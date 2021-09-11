@@ -23,8 +23,12 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
-    : d_bb(new NodeBitblaster(state)),
+BBProof::BBProof(Env& env,
+                 TheoryState* state,
+                 ProofNodeManager* pnm,
+                 bool fineGrained)
+    : EnvObj(env),
+      d_bb(new NodeBitblaster(env, state)),
       d_pnm(pnm),
       d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
       d_tcpg(pnm ? new TConvProofGenerator(

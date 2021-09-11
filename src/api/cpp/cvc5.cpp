@@ -60,6 +60,7 @@
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
+#include "options/outputc.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -7178,6 +7179,8 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   auto info = options::getInfo(d_smtEngine->getOptions(), option);
+  CVC5_API_CHECK(info.name != "")
+      << "Querying invalid or unknown option " << option;
   return std::visit(
       overloaded{
           [&info](const options::OptionInfo::VoidInfo& vi) {
@@ -7377,6 +7380,36 @@ bool Solver::isModelCoreSymbol(const Term& v) const
       << "Expecting a free constant as argument to isModelCoreSymbol.";
   //////// all checks before this line
   return d_smtEngine->isModelCoreSymbol(v.getNode());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Solver::getModel(const std::vector<Sort>& sorts,
+                             const std::vector<Term>& vars) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot get model unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot get model unless after a SAT or unknown response.";
+  CVC5_API_SOLVER_CHECK_SORTS(sorts);
+  for (const Sort& s : sorts)
+  {
+    CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
+        << "Expecting an uninterpreted sort as argument to "
+           "getModel.";
+  }
+  CVC5_API_SOLVER_CHECK_TERMS(vars);
+  for (const Term& v : vars)
+  {
+    CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
+        << "Expecting a free constant as argument to getModel.";
+  }
+  //////// all checks before this line
+  return d_smtEngine->getModel(Sort::sortVectorToTypeNodes(sorts),
+                               Term::termVectorToNodes(vars));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7900,21 +7933,24 @@ std::vector<Term> Solver::getSynthSolutions(
   CVC5_API_TRY_CATCH_END;
 }
 
-/*
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
-
-/*
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
-
 Statistics Solver::getStatistics() const
 {
   return Statistics(d_smtEngine->getStatisticsRegistry());
+}
+
+std::ostream& Solver::getOutput(const std::string& tag) const
+{
+  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // forward as such. We thus do not use the standard exception handling macros
+  // here but roll our own.
+  try
+  {
+    return Output(tag);
+  }
+  catch (const cvc5::Exception& e)
+  {
+    throw CVC5ApiException("Invalid output tag " + tag);
+  }
 }
 
 }  // namespace api

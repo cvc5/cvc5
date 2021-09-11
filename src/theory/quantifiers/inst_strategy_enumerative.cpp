@@ -29,12 +29,13 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategyEnum::InstStrategyEnum(QuantifiersState& qs,
+InstStrategyEnum::InstStrategyEnum(Env& env,
+                                   QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr,
                                    RelevantDomain* rd)
-    : QuantifiersModule(qs, qim, qr, tr), d_rd(rd), d_fullSaturateLimit(-1)
+    : QuantifiersModule(env, qs, qim, qr, tr), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()

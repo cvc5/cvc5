@@ -22,7 +22,7 @@ namespace theory {
 namespace quantifiers {
 
 ExpressionMinerManager::ExpressionMinerManager(Env& env)
-    : d_env(env),
+    : EnvObj(env),
       d_doRewSynth(false),
       d_doQueryGen(false),
       d_doFilterLogicalStrength(false),
@@ -87,7 +87,7 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
   {
     d_crd.initialize(vars, &d_sampler);
   }
-  d_crd.setExtendedRewriter(&d_ext_rew);
+  d_crd.enableExtendedRewriter();
   d_crd.setSilent(false);
 }
 

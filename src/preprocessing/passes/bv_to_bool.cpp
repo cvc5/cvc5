@@ -53,7 +53,7 @@ PreprocessingPassResult BVToBool::applyInternal(
   liftBvToBool(assertionsToPreprocess->ref(), new_assertions);
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    assertionsToPreprocess->replace(i, Rewriter::rewrite(new_assertions[i]));
+    assertionsToPreprocess->replace(i, rewrite(new_assertions[i]));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
@@ -281,7 +281,7 @@ void BVToBool::liftBvToBool(const std::vector<Node>& assertions,
   for (unsigned i = 0; i < assertions.size(); ++i)
   {
     Node new_assertion = liftNode(assertions[i]);
-    new_assertions.push_back(Rewriter::rewrite(new_assertion));
+    new_assertions.push_back(rewrite(new_assertion));
     Trace("bv-to-bool") << "  " << assertions[i] << " => " << new_assertions[i]
                         << "\n";
   }

@@ -22,8 +22,8 @@
 #include <tuple>
 #include <unordered_map>
 
-#include "context/backtrackable.h"
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "util/statistics_stats.h"
 
@@ -45,7 +45,6 @@ struct RowLemmaTypeHashFunction {
 };/* struct RowLemmaTypeHashFunction */
 
 void printList (CTNodeList* list);
-void printList( List<TNode>* list);
 
 bool inList(const CTNodeList* l, const TNode el);
 
@@ -69,7 +68,7 @@ public:
   CTNodeList* stores;
   CTNodeList* in_stores;
 
-  Info(context::Context* c, Backtracker<TNode>* bck);
+  Info(context::Context* c);
   ~Info();
 
   /**
@@ -100,7 +99,6 @@ typedef std::unordered_map<Node, Info*> CNodeInfoMap;
 class ArrayInfo {
 private:
   context::Context* ct;
-  Backtracker<TNode>* bck;
   CNodeInfoMap info_map;
 
   CTNodeList* emptyList;
@@ -130,27 +128,8 @@ private:
 
 public:
   const Info* emptyInfo;
-/*
-  ArrayInfo(): ct(NULl), info
-    d_mergeInfoTimer("theory::arrays::mergeInfoTimer"),
-    d_avgIndexListLength("theory::arrays::avgIndexListLength"),
-    d_avgStoresListLength("theory::arrays::avgStoresListLength"),
-    d_avgInStoresListLength("theory::arrays::avgInStoresListLength"),
-    d_listsCount("theory::arrays::listsCount",0),
-    d_callsMergeInfo("theory::arrays::callsMergeInfo",0),
-    d_maxList("theory::arrays::maxList",0),
-    d_tableSize("theory::arrays::infoTableSize", info_map) {
-  currentStatisticsRegistry()->registerStat(&d_mergeInfoTimer);
-  currentStatisticsRegistry()->registerStat(&d_avgIndexListLength);
-  currentStatisticsRegistry()->registerStat(&d_avgStoresListLength);
-  currentStatisticsRegistry()->registerStat(&d_avgInStoresListLength);
-  currentStatisticsRegistry()->registerStat(&d_listsCount);
-  currentStatisticsRegistry()->registerStat(&d_callsMergeInfo);
-  currentStatisticsRegistry()->registerStat(&d_maxList);
-  currentStatisticsRegistry()->registerStat(&d_tableSize);
-  }*/
 
-  ArrayInfo(context::Context* c, Backtracker<TNode>* b, std::string statisticsPrefix = "");
+  ArrayInfo(context::Context* c, std::string statisticsPrefix = "");
 
   ~ArrayInfo();
 

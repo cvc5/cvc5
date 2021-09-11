@@ -42,7 +42,8 @@ struct ExtRewriteAggAttributeId
 };
 typedef expr::Attribute<ExtRewriteAggAttributeId, Node> ExtRewriteAggAttribute;
 
-ExtendedRewriter::ExtendedRewriter(bool aggr) : d_aggr(aggr)
+ExtendedRewriter::ExtendedRewriter(Rewriter& rew, bool aggr)
+    : d_rew(rew), d_aggr(aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -97,7 +98,7 @@ bool ExtendedRewriter::addToChildren(Node nc,
 
 Node ExtendedRewriter::extendedRewrite(Node n) const
 {
-  n = Rewriter::rewrite(n);
+  n = d_rew.rewrite(n);
 
   // has it already been computed?
   Node ncache = getCache(n);
@@ -204,7 +205,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
       }
     }
   }
-  ret = Rewriter::rewrite(ret);
+  ret = d_rew.rewrite(ret);
   //--------------------end rewrite children
 
   // now, do extended rewrite
@@ -496,7 +497,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
           t2.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       if (nn != t2)
       {
-        nn = Rewriter::rewrite(nn);
+        nn = d_rew.rewrite(nn);
         if (nn == t1)
         {
           new_ret = t2;
@@ -508,7 +509,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
       // must use partial substitute here, to avoid substitution into witness
       std::map<Kind, bool> rkinds;
       nn = partialSubstitute(t1, vars, subs, rkinds);
-      nn = Rewriter::rewrite(nn);
+      nn = d_rew.rewrite(nn);
       if (nn != t1)
       {
         // If full=false, then we've duplicated a term u in the children of n.
@@ -537,7 +538,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
       Node nn = partialSubstitute(t2, assign, rkinds);
       if (nn != t2)
       {
-        nn = Rewriter::rewrite(nn);
+        nn = d_rew.rewrite(nn);
         if (nn == t1)
         {
           new_ret = nn;
@@ -625,7 +626,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
       {
         children[ii] = n[i][j + 1];
         Node pull = nm->mkNode(n.getKind(), children);
-        Node pullr = Rewriter::rewrite(pull);
+        Node pullr = d_rew.rewrite(pull);
         children[ii] = n[i];
         ite_c[i][j] = pullr;
       }
@@ -688,7 +689,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
       Assert(nite.getKind() == itek);
       // now, simply pull the ITE and try ITE rewrites
       Node pull_ite = nm->mkNode(itek, nite[0], ip.second[0], ip.second[1]);
-      pull_ite = Rewriter::rewrite(pull_ite);
+      pull_ite = d_rew.rewrite(pull_ite);
       if (pull_ite.getKind() == ITE)
       {
         Node new_pull_ite = extendedRewriteIte(itek, pull_ite, false);
@@ -887,7 +888,7 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
         ccs = cpol ? ccs : TermUtil::mkNegate(notk, ccs);
         Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs
                              << std::endl;
-        ccs = Rewriter::rewrite(ccs);
+        ccs = d_rew.rewrite(ccs);
         Trace("ext-rew-bcp") << "BCP: rewritten to " << ccs << std::endl;
         to_process.push_back(ccs);
         // store this as a node that propagation touched. This marks c so that
@@ -1522,7 +1523,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     index--;
     new_ret = nm->mkNode(eqk, children[index], new_ret);
   }
-  new_ret = Rewriter::rewrite(new_ret);
+  new_ret = d_rew.rewrite(new_ret);
   if (new_ret != ret)
   {
     return new_ret;

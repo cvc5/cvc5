@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -49,10 +50,11 @@ class QuantifiersInferenceManager;
  * Modules implement an initialize function, which determines whether the module
  * will take responsibility for the given conjecture.
  */
-class SygusModule
+class SygusModule : protected EnvObj
 {
  public:
-  SygusModule(QuantifiersState& qs,
+  SygusModule(Env& env,
+              QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               TermDbSygus* tds,
               SynthConjecture* p);

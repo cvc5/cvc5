@@ -727,7 +727,7 @@ class TermTest {
     assertEquals(int7.getLong(), 10);
     assertEquals(int7.getInteger(), "10");
     assertTrue(!int8.isInt() && int8.isLong() && int8.isInteger());
-    assertEquals(Integer.toUnsignedLong(int8.getInt()), 4294967295L);
+    // assertEquals(Integer.toUnsignedLong(int8.getInt()), 4294967295L);
     assertEquals(int8.getLong(), 4294967295L);
     assertEquals(int8.getInteger(), "4294967295");
     assertTrue(!int9.isInt() && int9.isLong() && int9.isInteger());
@@ -735,9 +735,9 @@ class TermTest {
     assertEquals(int9.getInteger(), "4294967296");
     assertTrue(!int10.isInt() && !int10.isLong() && int10.isInteger());
 
-    assertEquals(Long.compareUnsigned(int10.getLong(),
-                     new BigInteger("18446744073709551615").longValue()),
-        0);
+    // assertEquals(Long.compareUnsigned(int10.getLong(),
+    //                 new BigInteger("18446744073709551615").longValue()),
+    //    0);
     assertEquals(int10.getInteger(), "18446744073709551615");
     assertTrue(!int11.isInt() && !int11.isLong() && int11.isInteger());
     assertEquals(int11.getInteger(), "18446744073709551616");

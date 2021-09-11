@@ -42,7 +42,8 @@ class BBRegistrar;
 class BVSolverBitblast : public BVSolver
 {
  public:
-  BVSolverBitblast(TheoryState* state,
+  BVSolverBitblast(Env& env,
+                   TheoryState* state,
                    TheoryInferenceManager& inferMgr,
                    ProofNodeManager* pnm);
   ~BVSolverBitblast() = default;
