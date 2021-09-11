@@ -27,8 +27,8 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
-#include "proof/verit/verit_post_processor.h"
-#include "proof/verit/verit_printer.h"
+#include "proof/alethe/alethe_post_processor.h"
+#include "proof/alethe/alethe_printer.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
@@ -68,13 +68,13 @@ PfManager::PfManager(Env& env)
   // where A is an available assumption from outside the scope (note
   // that B1 was an assumption of this SCOPE subproof but since it could
   // be inferred from A, it was updated). This shape is problematic for
-  // the veriT reconstruction, so we disable the update of scoped
+  // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
   d_pfpp.reset(new ProofPostproccess(
       env,
       d_pppg.get(),
       d_rewriteDb.get(),
-      options::proofFormatMode() != options::ProofFormatMode::VERIT_EXTENDED));
+      options::proofFormatMode() != options::ProofFormatMode::ALETHE_EXTENDED));
 
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
@@ -186,15 +186,15 @@ void PfManager::printProof(std::ostream& out,
     lpfpp.process(fp);
     proof::LeanPrinter::print(out, assertions, fp);
   }
-  else if (options::proofFormatMode() == options::ProofFormatMode::VERIT
+  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE
            || options::proofFormatMode()
-                  == options::ProofFormatMode::VERIT_EXTENDED)
+                  == options::ProofFormatMode::ALETHE_EXTENDED)
   {
-    proof::VeritProofPostprocess vpfpp(d_pnm.get());
+    proof::AletheProofPostprocess vpfpp(d_pnm.get());
     vpfpp.process(fp);
-    proof::VeritProofPrinter vpp(options::proofFormatMode()
-                                 == options::ProofFormatMode::VERIT_EXTENDED);
-    vpp.veritPrinter(out, fp);
+    proof::AletheProofPrinter vpp(options::proofFormatMode()
+                                 == options::ProofFormatMode::ALETHE_EXTENDED);
+    vpp.alethePrinter(out, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {

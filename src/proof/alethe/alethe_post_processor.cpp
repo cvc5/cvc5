@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The module for processing proof nodes into veriT proof nodes
+ * The module for processing proof nodes into Alethe proof nodes
  */
 
-#include "proof/verit/verit_post_processor.h"
+#include "proof/alethe/alethe_post_processor.h"
 
 #include "expr/node_algorithm.h"
 #include "proof/proof.h"
@@ -52,32 +52,32 @@ static Node removeAttributes(Node res,
   return res;
 }
 
-VeritProofPostprocessCallback::VeritProofPostprocessCallback(
+AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     ProofNodeManager* pnm)
     : d_pnm(pnm), d_nm(NodeManager::currentNM())
 {
   d_cl = d_nm->mkBoundVar("cl", d_nm->stringType());
 }
 
-bool VeritProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
-  if (pn->getRule() == PfRule::VERIT_RULE)
+  if (pn->getRule() == PfRule::ALETHE_RULE)
   {
     return false;
   }
   return true;
 }
 
-bool VeritProofPostprocessCallback::update(Node res,
+bool AletheProofPostprocessCallback::update(Node res,
                                            PfRule id,
                                            const std::vector<Node>& children,
                                            const std::vector<Node>& args,
                                            CDProof* cdp,
                                            bool& continueUpdate)
 {
-  Trace("verit-proof") << "- veriT post process callback " << res << " " << id
+  Trace("alethe-proof") << "- Alethe post process callback " << res << " " << id
                        << " " << children << " / " << args << std::endl;
 
   d_nm = NodeManager::currentNM();
@@ -100,7 +100,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::ASSUME:
     {
-      return addVeritStep(res, VeritRule::ASSUME, children, {}, *cdp);
+      return addAletheStep(res, AletheRule::ASSUME, children, {}, *cdp);
     }
     // ======== Scope (a binder for assumptions)
     // Children: (P:F)
@@ -222,8 +222,8 @@ bool VeritProofPostprocessCallback::update(Node res,
       negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
       negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
       Node vp1 = d_nm->mkNode(kind::SEXPR, negNode);
-      success &= addVeritStep(
-          vp1, VeritRule::ANCHOR_SUBPROOF, children, sanitized_args, *cdp);
+      success &= addAletheStep(
+          vp1, AletheRule::ANCHOR_SUBPROOF, children, sanitized_args, *cdp);
 
       // Build vp2i
       Node andNode;
@@ -244,7 +244,7 @@ bool VeritProofPostprocessCallback::update(Node res,
                              d_cl,
                              andNode.notNode(),
                              args[i]);  // (cl (not (and F1 ... Fn)) Fi)
-        success &= addVeritStep(vp2_i, VeritRule::AND_POS, {}, {}, *cdp);
+        success &= addAletheStep(vp2_i, AletheRule::AND_POS, {}, {}, *cdp);
         premisesVP2.push_back(vp2_i);
         notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
       }
@@ -252,55 +252,55 @@ bool VeritProofPostprocessCallback::update(Node res,
       Node vp2a =
           d_nm->mkNode(kind::SEXPR, notAnd);  // (cl F (not (and F1 ... Fn))^n)
       success &=
-          addVeritStep(vp2a, VeritRule::RESOLUTION, premisesVP2, {}, *cdp);
+          addAletheStep(vp2a, AletheRule::RESOLUTION, premisesVP2, {}, *cdp);
 
       notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n F)
       notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
       Node vp2b = d_nm->mkNode(kind::SEXPR, notAnd);
-      success &= addVeritStep(vp2b, VeritRule::REORDER, {vp2a}, {}, *cdp);
+      success &= addAletheStep(vp2b, AletheRule::REORDER, {vp2a}, {}, *cdp);
 
       Node vp3 =
           d_nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
       success &=
-          addVeritStep(vp3, VeritRule::DUPLICATED_LITERALS, {vp2b}, {}, *cdp);
+          addAletheStep(vp3, AletheRule::DUPLICATED_LITERALS, {vp2b}, {}, *cdp);
 
       Node vp8 = d_nm->mkNode(
           kind::SEXPR, d_cl, d_nm->mkNode(kind::IMPLIES, andNode, children[0]));
 
       Node vp4 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], andNode);
-      success &= addVeritStep(vp4, VeritRule::IMPLIES_NEG1, {}, {}, *cdp);
+      success &= addAletheStep(vp4, AletheRule::IMPLIES_NEG1, {}, {}, *cdp);
 
       Node vp5 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], children[0]);
-      success &= addVeritStep(vp5, VeritRule::RESOLUTION, {vp4, vp3}, {}, *cdp);
+      success &= addAletheStep(vp5, AletheRule::RESOLUTION, {vp4, vp3}, {}, *cdp);
 
       Node vp6 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], children[0].notNode());
-      success &= addVeritStep(vp6, VeritRule::IMPLIES_NEG2, {}, {}, *cdp);
+      success &= addAletheStep(vp6, AletheRule::IMPLIES_NEG2, {}, {}, *cdp);
 
       Node vp7 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], vp8[1]);
-      success &= addVeritStep(vp7, VeritRule::RESOLUTION, {vp5, vp6}, {}, *cdp);
+      success &= addAletheStep(vp7, AletheRule::RESOLUTION, {vp5, vp6}, {}, *cdp);
 
       if (children[0] != d_nm->mkConst(false))
       {
-        success &= addVeritStep(
-            res, VeritRule::DUPLICATED_LITERALS, vp8, {vp7}, {}, *cdp);
+        success &= addAletheStep(
+            res, AletheRule::DUPLICATED_LITERALS, vp8, {vp7}, {}, *cdp);
       }
       else
       {
         success &=
-            addVeritStep(vp8, VeritRule::DUPLICATED_LITERALS, {vp7}, {}, *cdp);
+            addAletheStep(vp8, AletheRule::DUPLICATED_LITERALS, {vp7}, {}, *cdp);
 
         Node vp9 =
             d_nm->mkNode(kind::SEXPR,
                          d_cl,
                          d_nm->mkNode(kind::EQUAL, vp8[1], andNode.notNode()));
-        success &= addVeritStep(vp9, VeritRule::IMPLIES_SIMPLIFY, {}, {}, *cdp);
+        success &= addAletheStep(vp9, AletheRule::IMPLIES_SIMPLIFY, {}, {}, *cdp);
 
         Node vp10 = d_nm->mkNode(
             kind::SEXPR, d_cl, vp8[1].notNode(), andNode.notNode());
-        success &= addVeritStep(vp10, VeritRule::EQUIV1, {vp9}, {}, *cdp);
+        success &= addAletheStep(vp10, AletheRule::EQUIV1, {vp9}, {}, *cdp);
 
-        success &= addVeritStep(res,
-                                VeritRule::RESOLUTION,
+        success &= addAletheStep(res,
+                                AletheRule::RESOLUTION,
                                 d_nm->mkNode(kind::SEXPR, d_cl, res),
                                 {vp8, vp10},
                                 {},
@@ -333,7 +333,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     {
       theory::TheoryId tid =
           static_cast<theory::TheoryId>(std::stoul(args[1].toString()));
-      VeritRule vrule = VeritRule::UNDEFINED;
+      AletheRule vrule = AletheRule::UNDEFINED;
       Node t = res[0];
 
       switch (tid)
@@ -344,37 +344,37 @@ bool VeritProofPostprocessCallback::update(Node res,
           {
             case kind::ITE:
             {
-              vrule = VeritRule::ITE_SIMPLIFY;
+              vrule = AletheRule::ITE_SIMPLIFY;
               break;
             }
             case kind::EQUAL:
             {
-              vrule = VeritRule::EQ_SIMPLIFY;
+              vrule = AletheRule::EQ_SIMPLIFY;
               break;
             }
             case kind::AND:
             {
-              vrule = VeritRule::AND_SIMPLIFY;
+              vrule = AletheRule::AND_SIMPLIFY;
               break;
             }
             case kind::OR:
             {
-              vrule = VeritRule::OR_SIMPLIFY;
+              vrule = AletheRule::OR_SIMPLIFY;
               break;
             }
             case kind::NOT:
             {
-              vrule = VeritRule::NOT_SIMPLIFY;
+              vrule = AletheRule::NOT_SIMPLIFY;
               break;
             }
             case kind::IMPLIES:
             {
-              vrule = VeritRule::IMPLIES_SIMPLIFY;
+              vrule = AletheRule::IMPLIES_SIMPLIFY;
               break;
             }
             case kind::WITNESS:
             {
-              vrule = VeritRule::QNT_SIMPLIFY;
+              vrule = AletheRule::QNT_SIMPLIFY;
               break;
             }
             default:
@@ -387,7 +387,7 @@ bool VeritProofPostprocessCallback::update(Node res,
         }
         case theory::TheoryId::THEORY_BOOL:
         {
-          vrule = VeritRule::BOOL_SIMPLIFY;
+          vrule = AletheRule::BOOL_SIMPLIFY;
           break;
         }
         case theory::TheoryId::THEORY_UF:
@@ -396,7 +396,7 @@ bool VeritProofPostprocessCallback::update(Node res,
           {
             case kind::EQUAL:
             {  // A lot of these seem to be symmetry rules but not all....
-              vrule = VeritRule::EQUIV_SIMPLIFY;
+              vrule = AletheRule::EQUIV_SIMPLIFY;
               break;
             }
             default:
@@ -412,37 +412,37 @@ bool VeritProofPostprocessCallback::update(Node res,
           {
             case kind::DIVISION:
             {
-              vrule = VeritRule::DIV_SIMPLIFY;
+              vrule = AletheRule::DIV_SIMPLIFY;
               break;
             }
             case kind::PRODUCT:
             {
-              vrule = VeritRule::PROD_SIMPLIFY;
+              vrule = AletheRule::PROD_SIMPLIFY;
               break;
             }
             case kind::MINUS:
             {
-              vrule = VeritRule::MINUS_SIMPLIFY;
+              vrule = AletheRule::MINUS_SIMPLIFY;
               break;
             }
             case kind::UMINUS:
             {
-              vrule = VeritRule::UNARY_MINUS_SIMPLIFY;
+              vrule = AletheRule::UNARY_MINUS_SIMPLIFY;
               break;
             }
             case kind::PLUS:
             {
-              vrule = VeritRule::SUM_SIMPLIFY;
+              vrule = AletheRule::SUM_SIMPLIFY;
               break;
             }
             case kind::MULT:
             {
-              vrule = VeritRule::PROD_SIMPLIFY;
+              vrule = AletheRule::PROD_SIMPLIFY;
               break;
             }
             case kind::EQUAL:
             {
-              vrule = VeritRule::EQUIV_SIMPLIFY;
+              vrule = AletheRule::EQUIV_SIMPLIFY;
               break;
             }
             case kind::LT:
@@ -459,13 +459,13 @@ bool VeritProofPostprocessCallback::update(Node res,
             }
             case kind::LEQ:
             {
-              vrule = VeritRule::COMP_SIMPLIFY;
+              vrule = AletheRule::COMP_SIMPLIFY;
               break;
             }
             case kind::CAST_TO_REAL:
             {
-              return addVeritStep(res,
-                                  VeritRule::LA_GENERIC,
+              return addAletheStep(res,
+                                  AletheRule::LA_GENERIC,
                                   d_nm->mkNode(kind::SEXPR, d_cl, res),
                                   children,
                                   {d_nm->mkConst(Rational(1))},
@@ -480,14 +480,14 @@ bool VeritProofPostprocessCallback::update(Node res,
         }
         case theory::TheoryId::THEORY_QUANTIFIERS:
         {
-          vrule = VeritRule::QUANTIFIER_SIMPLIFY;
+          vrule = AletheRule::QUANTIFIER_SIMPLIFY;
           break;
         }
         default:
         {
         };
       }
-      return addVeritStep(
+      return addAletheStep(
           res, vrule, d_nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
     }
 
@@ -619,7 +619,7 @@ bool VeritProofPostprocessCallback::update(Node res,
                 clauses.end(), children[i].begin(), children[i].end());
             vps[i] = d_nm->mkNode(kind::SEXPR, clauses);
             success &=
-                addVeritStep(vps[i], VeritRule::OR, {children[i]}, {}, *cdp);
+                addAletheStep(vps[i], AletheRule::OR, {children[i]}, {}, *cdp);
             // If this is the case the literals in C1 are added to the
             // current_resolvent.
             current_resolvent.insert(current_resolvent.end(),
@@ -660,23 +660,23 @@ bool VeritProofPostprocessCallback::update(Node res,
       // printed as (cl C), otherwise as (cl G1 ... Gn)
       if (res.getKind() == kind::OR && current_resolvent.size() != 1)
       {
-        return success &= addVeritStepFromOr(res,
-                                             VeritRule::RESOLUTION,
+        return success &= addAletheStepFromOr(res,
+                                             AletheRule::RESOLUTION,
                                              vps,
                                              {},
                                              *cdp);  //(cl G1 ... Gn)
       }
       else if (res == d_nm->mkConst(false))
       {
-        return success &= addVeritStep(res,
-                                       VeritRule::RESOLUTION,
+        return success &= addAletheStep(res,
+                                       AletheRule::RESOLUTION,
                                        d_nm->mkNode(kind::SEXPR, d_cl),
                                        vps,
                                        {},
                                        *cdp);  //(cl)
       }
-      return success &= addVeritStep(res,
-                                     VeritRule::RESOLUTION,
+      return success &= addAletheStep(res,
+                                     AletheRule::RESOLUTION,
                                      d_nm->mkNode(kind::SEXPR, d_cl, res),
                                      vps,
                                      {},
@@ -760,7 +760,7 @@ bool VeritProofPostprocessCallback::update(Node res,
 
       // If a child F = (or F1 ... Fn) is the result of a ASSUME or
       // EQ_RESOLUTION it might be necessary to add an additional step with the
-      // veriT or rule since otherwise it will be used as (cl (or F1 ... Fn)).
+      // Alethe or rule since otherwise it will be used as (cl (or F1 ... Fn)).
 
       // The first child is used as a OR non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
@@ -777,7 +777,7 @@ bool VeritProofPostprocessCallback::update(Node res,
           subterms.insert(
               subterms.end(), children[0].begin(), children[0].end());
           Node conclusion = d_nm->mkNode(kind::SEXPR, subterms);
-          addVeritStep(conclusion, VeritRule::OR, {children[0]}, {}, *cdp);
+          addAletheStep(conclusion, AletheRule::OR, {children[0]}, {}, *cdp);
           new_children[0] = conclusion;
         }
       }
@@ -803,7 +803,7 @@ bool VeritProofPostprocessCallback::update(Node res,
             std::vector<Node> lits{d_cl};
             lits.insert(lits.end(), children[i].begin(), children[i].end());
             Node conclusion = d_nm->mkNode(kind::SEXPR, lits);
-            addVeritStep(conclusion, VeritRule::OR, {children[i]}, {}, *cdp);
+            addAletheStep(conclusion, AletheRule::OR, {children[i]}, {}, *cdp);
             new_children[i] = conclusion;
           }
         }
@@ -900,20 +900,20 @@ bool VeritProofPostprocessCallback::update(Node res,
       }
       if (!isSingletonClause)
       {
-        return addVeritStepFromOr(
-            res, VeritRule::RESOLUTION, new_children, {}, *cdp);
+        return addAletheStepFromOr(
+            res, AletheRule::RESOLUTION, new_children, {}, *cdp);
       }
       if (res == falseNode)
       {
-        return addVeritStep(res,
-                            VeritRule::RESOLUTION,
+        return addAletheStep(res,
+                            AletheRule::RESOLUTION,
                             d_nm->mkNode(kind::SEXPR, d_cl),
                             new_children,
                             {},
                             *cdp);
       }
-      return addVeritStep(res,
-                          VeritRule::RESOLUTION,
+      return addAletheStep(res,
+                          AletheRule::RESOLUTION,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           new_children,
                           {},
@@ -952,12 +952,12 @@ bool VeritProofPostprocessCallback::update(Node res,
         }
         if (!singleton)
         {
-          return addVeritStepFromOr(
-              res, VeritRule::DUPLICATED_LITERALS, children, {}, *cdp);
+          return addAletheStepFromOr(
+              res, AletheRule::DUPLICATED_LITERALS, children, {}, *cdp);
         }
       }
-      return addVeritStep(res,
-                          VeritRule::DUPLICATED_LITERALS,
+      return addAletheStep(res,
+                          AletheRule::DUPLICATED_LITERALS,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -995,10 +995,10 @@ bool VeritProofPostprocessCallback::update(Node res,
                               args[0].notNode().notNode().notNode().notNode(),
                               args[0].notNode());
 
-      return addVeritStep(vp2, VeritRule::NOT_NOT, {}, {}, *cdp)
-             && addVeritStep(vp1, VeritRule::NOT_NOT, {}, {}, *cdp)
-             && addVeritStepFromOr(
-                 res, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp);
+      return addAletheStep(vp2, AletheRule::NOT_NOT, {}, {}, *cdp)
+             && addAletheStep(vp1, AletheRule::NOT_NOT, {}, {}, *cdp)
+             && addAletheStepFromOr(
+                 res, AletheRule::RESOLUTION, {vp1, vp2}, {}, *cdp);
     }
     // ======== Equality resolution
     // Children: (P1:F1, P2:(= F1 F2))
@@ -1088,35 +1088,35 @@ bool VeritProofPostprocessCallback::update(Node res,
                 d_cl,
                 children[0],
                 children[0][i].notNode());  //(cl (or G1 ... Gn) (not Gi))
-            success &= addVeritStep(vp2i, VeritRule::OR_NEG, {}, {}, *cdp);
+            success &= addAletheStep(vp2i, AletheRule::OR_NEG, {}, {}, *cdp);
             vp2Nodes.push_back(vp2i);
             resNodes.push_back(children[0]);
           }
           Node vp3 = d_nm->mkNode(kind::SEXPR, resNodes);
           success &=
-              addVeritStep(vp3, VeritRule::RESOLUTION, vp2Nodes, {}, *cdp);
+              addAletheStep(vp3, AletheRule::RESOLUTION, vp2Nodes, {}, *cdp);
 
           Node vp4 = d_nm->mkNode(kind::SEXPR, d_cl, children[0]);
-          success &= addVeritStep(
-              vp4, VeritRule::DUPLICATED_LITERALS, {vp3}, {}, *cdp);
+          success &= addAletheStep(
+              vp4, AletheRule::DUPLICATED_LITERALS, {vp3}, {}, *cdp);
           child1 = vp4;
         }
       }
 
-      success &= addVeritStep(vp1, VeritRule::EQUIV_POS2, {}, {}, *cdp);
+      success &= addAletheStep(vp1, AletheRule::EQUIV_POS2, {}, {}, *cdp);
 
       if (res.toString() == "false")
       {
-        return success &= addVeritStep(res,
-                                       VeritRule::RESOLUTION,
+        return success &= addAletheStep(res,
+                                       AletheRule::RESOLUTION,
                                        d_nm->mkNode(kind::SEXPR, d_cl),
                                        {vp1, child2, child1},
                                        {},
                                        *cdp);
       }
 
-      return success &= addVeritStep(res,
-                                     VeritRule::RESOLUTION,
+      return success &= addAletheStep(res,
+                                     AletheRule::RESOLUTION,
                                      d_nm->mkNode(kind::SEXPR, d_cl, res),
                                      {vp1, child2, child1},
                                      {},
@@ -1144,9 +1144,9 @@ bool VeritProofPostprocessCallback::update(Node res,
     {
       Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
 
-      return addVeritStep(vp1, VeritRule::IMPLIES, {children[1]}, {}, *cdp)
-             && addVeritStep(res,
-                             VeritRule::RESOLUTION,
+      return addAletheStep(vp1, AletheRule::IMPLIES, {children[1]}, {}, *cdp)
+             && addAletheStep(res,
+                             AletheRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              {vp1, children[0]},
                              {},
@@ -1173,9 +1173,9 @@ bool VeritProofPostprocessCallback::update(Node res,
     {
       Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
 
-      return addVeritStep(vp1, VeritRule::NOT_NOT, {}, {}, *cdp)
-             && addVeritStep(res,
-                             VeritRule::RESOLUTION,
+      return addAletheStep(vp1, AletheRule::NOT_NOT, {}, {}, *cdp)
+             && addAletheStep(res,
+                             AletheRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              {vp1, children[0]},
                              {},
@@ -1194,8 +1194,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CONTRA:
     {
-      return addVeritStep(res,
-                          VeritRule::RESOLUTION,
+      return addAletheStep(res,
+                          AletheRule::RESOLUTION,
                           d_nm->mkNode(kind::SEXPR, d_cl),
                           children,
                           {},
@@ -1214,8 +1214,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::AND_ELIM:
     {
-      return addVeritStep(res,
-                          VeritRule::AND,
+      return addAletheStep(res,
+                          AletheRule::AND,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -1253,9 +1253,9 @@ bool VeritProofPostprocessCallback::update(Node res,
       new_children.push_back(vp1);
       new_children.insert(new_children.end(), children.begin(), children.end());
 
-      return addVeritStep(vp1, VeritRule::AND_NEG, {}, {}, *cdp)
-             && addVeritStep(res,
-                             VeritRule::RESOLUTION,
+      return addAletheStep(vp1, AletheRule::AND_NEG, {}, {}, *cdp)
+             && addAletheStep(res,
+                             AletheRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              new_children,
                              {},
@@ -1274,8 +1274,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_OR_ELIM:
     {
-      return addVeritStep(res,
-                          VeritRule::NOT_OR,
+      return addAletheStep(res,
+                          AletheRule::NOT_OR,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -1294,7 +1294,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::IMPLIES_ELIM:
     {
-      return addVeritStepFromOr(res, VeritRule::IMPLIES, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::IMPLIES, children, {}, *cdp);
     }
     // ======== Not Implication elimination version 1
     // Children: (P:(not (=> F1 F2)))
@@ -1309,8 +1309,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_IMPLIES_ELIM1:
     {
-      return addVeritStep(res,
-                          VeritRule::NOT_IMPLIES1,
+      return addAletheStep(res,
+                          AletheRule::NOT_IMPLIES1,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -1329,8 +1329,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_IMPLIES_ELIM2:
     {
-      return addVeritStep(res,
-                          VeritRule::NOT_IMPLIES2,
+      return addAletheStep(res,
+                          AletheRule::NOT_IMPLIES2,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -1349,7 +1349,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::EQUIV_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::EQUIV1, children, {}, *cdp);
     }
     // ======== Equivalence elimination version 2
     // Children: (P:(= F1 F2))
@@ -1364,7 +1364,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::EQUIV_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::EQUIV2, children, {}, *cdp);
     }
     // ======== Not Equivalence elimination version 1
     // Children: (P:(not (= F1 F2)))
@@ -1379,7 +1379,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_EQUIV_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_EQUIV1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::NOT_EQUIV1, children, {}, *cdp);
     }
     // ======== Not Equivalence elimination version 2
     // Children: (P:(not (= F1 F2)))
@@ -1394,7 +1394,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_EQUIV_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_EQUIV2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::NOT_EQUIV2, children, {}, *cdp);
     }
     // ======== XOR elimination version 1
     // Children: (P:(xor F1 F2)))
@@ -1409,7 +1409,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::XOR_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::XOR1, children, {}, *cdp);
     }
     // ======== XOR elimination version 2
     // Children: (P:(not (xor F1 F2))))
@@ -1424,7 +1424,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::XOR_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::XOR2, children, {}, *cdp);
     }
     // ======== Not XOR elimination version 1
     // Children: (P:(not (xor F1 F2)))
@@ -1439,7 +1439,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_XOR_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_XOR1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::NOT_XOR1, children, {}, *cdp);
     }
     // ======== Not XOR elimination version 2
     // Children: (P:(not (xor F1 F2)))
@@ -1454,7 +1454,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_XOR_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_XOR2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::NOT_XOR2, children, {}, *cdp);
     }
     // ======== ITE elimination version 1
     // Children: (P:(ite C F1 F2))
@@ -1469,7 +1469,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::ITE_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::ITE2, children, {}, *cdp);
     }
     // ======== ITE elimination version 2
     // Children: (P:(ite C F1 F2))
@@ -1484,7 +1484,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::ITE_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::ITE1, children, {}, *cdp);
     }
     // ======== Not ITE elimination version 1
     // Children: (P:(not (ite C F1 F2)))
@@ -1499,7 +1499,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_ITE_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_ITE2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::NOT_ITE2, children, {}, *cdp);
     }
     // ======== Not ITE elimination version 1
     // Children: (P:(not (ite C F1 F2)))
@@ -1514,7 +1514,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_ITE_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_ITE1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::NOT_ITE1, children, {}, *cdp);
     }
 
     //================================================= De Morgan rules
@@ -1531,7 +1531,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_AND:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_AND, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::NOT_AND, children, {}, *cdp);
     }
 
     //================================================= CNF rules
@@ -1548,7 +1548,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_AND_POS:
     {
-      return addVeritStepFromOr(res, VeritRule::AND_POS, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::AND_POS, children, {}, *cdp);
     }
     // ======== CNF And Neg
     // Children: ()
@@ -1563,7 +1563,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_AND_NEG:
     {
-      return addVeritStepFromOr(res, VeritRule::AND_NEG, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::AND_NEG, children, {}, *cdp);
     }
     // ======== CNF Or Pos
     // Children: ()
@@ -1578,7 +1578,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_OR_POS:
     {
-      return addVeritStepFromOr(res, VeritRule::OR_POS, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::OR_POS, children, {}, *cdp);
     }
     // ======== CNF Or Neg
     // Children: ()
@@ -1593,7 +1593,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_OR_NEG:
     {
-      return addVeritStepFromOr(res, VeritRule::OR_NEG, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::OR_NEG, children, {}, *cdp);
     }
     // ======== CNF Implies Pos
     // Children: ()
@@ -1608,8 +1608,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_IMPLIES_POS:
     {
-      return addVeritStepFromOr(
-          res, VeritRule::IMPLIES_POS, children, {}, *cdp);
+      return addAletheStepFromOr(
+          res, AletheRule::IMPLIES_POS, children, {}, *cdp);
     }
     // ======== CNF Implies Neg version 1
     // Children: ()
@@ -1624,8 +1624,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_IMPLIES_NEG1:
     {
-      return addVeritStepFromOr(
-          res, VeritRule::IMPLIES_NEG1, children, {}, *cdp);
+      return addAletheStepFromOr(
+          res, AletheRule::IMPLIES_NEG1, children, {}, *cdp);
     }
     // ======== CNF Implies Neg version 2
     // Children: ()
@@ -1640,8 +1640,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_IMPLIES_NEG2:
     {
-      return addVeritStepFromOr(
-          res, VeritRule::IMPLIES_NEG2, children, {}, *cdp);
+      return addAletheStepFromOr(
+          res, AletheRule::IMPLIES_NEG2, children, {}, *cdp);
     }
     // ======== CNF Equiv Pos version 1
     // Children: ()
@@ -1656,7 +1656,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_EQUIV_POS1:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV_POS2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::EQUIV_POS2, children, {}, *cdp);
     }
     // ======== CNF Equiv Pos version 2
     // Children: ()
@@ -1671,7 +1671,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_EQUIV_POS2:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV_POS1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::EQUIV_POS1, children, {}, *cdp);
     }
     // ======== CNF Equiv Neg version 1
     // Children: ()
@@ -1686,7 +1686,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_EQUIV_NEG1:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV_NEG2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::EQUIV_NEG2, children, {}, *cdp);
     }
     // ======== CNF Equiv Neg version 2
     // Children: ()
@@ -1701,7 +1701,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_EQUIV_NEG2:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV_NEG1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::EQUIV_NEG1, children, {}, *cdp);
     }
     // ======== CNF Xor Pos version 1
     // Children: ()
@@ -1716,7 +1716,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_XOR_POS1:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR_POS1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::XOR_POS1, children, {}, *cdp);
     }
     // ======== CNF Xor Pos version 2
     // Children: ()
@@ -1731,7 +1731,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_XOR_POS2:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR_POS2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::XOR_POS2, children, {}, *cdp);
     }
     // ======== CNF Xor Neg version 1
     // Children: ()
@@ -1746,7 +1746,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_XOR_NEG1:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR_NEG2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::XOR_NEG2, children, {}, *cdp);
     }
     // ======== CNF Xor Neg version 2
     // Children: ()
@@ -1761,7 +1761,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_XOR_NEG2:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR_NEG1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::XOR_NEG1, children, {}, *cdp);
     }
     // ======== CNF ITE Pos version 1
     // Children: ()
@@ -1776,7 +1776,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_POS1:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE_POS2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::ITE_POS2, children, {}, *cdp);
     }
     // ======== CNF ITE Pos version 2
     // Children: ()
@@ -1791,7 +1791,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_POS2:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE_POS1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::ITE_POS1, children, {}, *cdp);
     }
     // ======== CNF ITE Pos version 3
     // Children: ()
@@ -1838,12 +1838,12 @@ bool VeritProofPostprocessCallback::update(Node res,
       Node vp4 =
           d_nm->mkNode(kind::SEXPR, {d_cl, res[0], res[0], res[1], res[2]});
 
-      return addVeritStep(vp1, VeritRule::ITE_POS1, {}, {}, *cdp)
-             && addVeritStep(vp2, VeritRule::ITE_POS2, {}, {}, *cdp)
-             && addVeritStep(vp3, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
-             && addVeritStep(vp4, VeritRule::REORDER, {vp3}, {}, *cdp)
-             && addVeritStepFromOr(
-                 res, VeritRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
+      return addAletheStep(vp1, AletheRule::ITE_POS1, {}, {}, *cdp)
+             && addAletheStep(vp2, AletheRule::ITE_POS2, {}, {}, *cdp)
+             && addAletheStep(vp3, AletheRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
+             && addAletheStep(vp4, AletheRule::REORDER, {vp3}, {}, *cdp)
+             && addAletheStepFromOr(
+                 res, AletheRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
     }
     // ======== CNF ITE Neg version 1
     // Children: ()
@@ -1858,7 +1858,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_NEG1:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE_NEG2, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::ITE_NEG2, children, {}, *cdp);
     }
     // ======== CNF ITE Neg version 2
     // Children: ()
@@ -1873,7 +1873,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_NEG2:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE_NEG1, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::ITE_NEG1, children, {}, *cdp);
     }
     // ======== CNF ITE Neg version 3
     // Children: ()
@@ -1920,12 +1920,12 @@ bool VeritProofPostprocessCallback::update(Node res,
       Node vp4 =
           d_nm->mkNode(kind::SEXPR, {d_cl, res[0], res[0], res[1], res[2]});
 
-      return addVeritStep(vp1, VeritRule::ITE_NEG1, {}, {}, *cdp)
-             && addVeritStep(vp2, VeritRule::ITE_NEG2, {}, {}, *cdp)
-             && addVeritStep(vp3, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
-             && addVeritStep(vp4, VeritRule::REORDER, {vp3}, {}, *cdp)
-             && addVeritStepFromOr(
-                 res, VeritRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
+      return addAletheStep(vp1, AletheRule::ITE_NEG1, {}, {}, *cdp)
+             && addAletheStep(vp2, AletheRule::ITE_NEG2, {}, {}, *cdp)
+             && addAletheStep(vp3, AletheRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
+             && addAletheStep(vp4, AletheRule::REORDER, {vp3}, {}, *cdp)
+             && addAletheStepFromOr(
+                 res, AletheRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
     }
 
     //================================================= Equality rules
@@ -1941,8 +1941,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::REFL:
     {
-      return addVeritStep(res,
-                          VeritRule::REFL,
+      return addAletheStep(res,
+                          AletheRule::REFL,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -1961,8 +1961,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::TRANS:
     {
-      return addVeritStep(res,
-                          VeritRule::TRANS,
+      return addAletheStep(res,
+                          AletheRule::TRANS,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -2011,18 +2011,18 @@ bool VeritProofPostprocessCallback::update(Node res,
               {kind::INST_PATTERN, kind::INST_PATTERN_LIST},
               [](Node n) { return expr::hasClosure(n); }));
           // Node vpi = d_nm->mkNode(kind::SEXPR, d_cl, vars.back());
-          // addVeritStep(vpi,VeritRule::REFL,{},{},*cdp);
+          // addAletheStep(vpi,AletheRule::REFL,{},{},*cdp);
           // new_children.push_back(vpi);
         }
-        return addVeritStep(res,
-                            VeritRule::ANCHOR_BIND,
+        return addAletheStep(res,
+                            AletheRule::ANCHOR_BIND,
                             d_nm->mkNode(kind::SEXPR, d_cl, res),
                             {children[1]},
                             sanitized_args,
                             *cdp);
       }
-      return addVeritStep(res,
-                          VeritRule::CONG,
+      return addAletheStep(res,
+                          AletheRule::CONG,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -2056,10 +2056,10 @@ bool VeritProofPostprocessCallback::update(Node res,
       Node vp1 = d_nm->mkNode(
           kind::SEXPR, d_cl, d_nm->mkNode(kind::EQUAL, res, children[0]));
       Node vp2 = d_nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
-      return addVeritStep(vp1, VeritRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
-             && addVeritStep(vp2, VeritRule::EQUIV2, {vp1}, {}, *cdp)
-             && addVeritStep(res,
-                             VeritRule::RESOLUTION,
+      return addAletheStep(vp1, AletheRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
+             && addAletheStep(vp2, AletheRule::EQUIV2, {vp1}, {}, *cdp)
+             && addAletheStep(res,
+                             AletheRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              {vp2, children[0]},
                              {},
@@ -2095,11 +2095,11 @@ bool VeritProofPostprocessCallback::update(Node res,
       Node vp1 = d_nm->mkNode(
           kind::SEXPR, d_cl, d_nm->mkNode(kind::EQUAL, children[0], res));
       Node vp2 = d_nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
-      success &= addVeritStep(vp1, VeritRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
-                 && addVeritStep(vp2, VeritRule::EQUIV1, {vp1}, {}, *cdp);
+      success &= addAletheStep(vp1, AletheRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
+                 && addAletheStep(vp2, AletheRule::EQUIV1, {vp1}, {}, *cdp);
       return success
-             && addVeritStep(res,
-                             VeritRule::RESOLUTION,
+             && addAletheStep(res,
+                             AletheRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              {vp2, children[0]},
                              {},
@@ -2149,12 +2149,12 @@ bool VeritProofPostprocessCallback::update(Node res,
           kind::SEXPR, d_cl, children[0].notNode().notNode(), children[0][0]);
       Node vp4 = d_nm->mkNode(kind::SEXPR, d_cl, res, children[0][0]);
 
-      return addVeritStep(vp1, VeritRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
-             && addVeritStep(vp2, VeritRule::EQUIV2, {vp1}, {}, *cdp)
-             && addVeritStep(vp3, VeritRule::NOT_NOT, {}, {}, *cdp)
-             && addVeritStep(vp4, VeritRule::RESOLUTION, {vp2, vp3}, {}, *cdp)
-             && addVeritStep(res,
-                             VeritRule::RESOLUTION,
+      return addAletheStep(vp1, AletheRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
+             && addAletheStep(vp2, AletheRule::EQUIV2, {vp1}, {}, *cdp)
+             && addAletheStep(vp3, AletheRule::NOT_NOT, {}, {}, *cdp)
+             && addAletheStep(vp4, AletheRule::RESOLUTION, {vp2, vp3}, {}, *cdp)
+             && addAletheStep(res,
+                             AletheRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              {vp4, children[0]},
                              {},
@@ -2189,10 +2189,10 @@ bool VeritProofPostprocessCallback::update(Node res,
           kind::SEXPR, d_cl, d_nm->mkNode(kind::EQUAL, children[0], res));
       Node vp2 = d_nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
 
-      return addVeritStep(vp1, VeritRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
-             && addVeritStep(vp2, VeritRule::EQUIV1, {vp1}, {}, *cdp)
-             && addVeritStep(res,
-                             VeritRule::RESOLUTION,
+      return addAletheStep(vp1, AletheRule::EQUIV_SIMPLIFY, {}, {}, *cdp)
+             && addAletheStep(vp2, AletheRule::EQUIV1, {vp1}, {}, *cdp)
+             && addAletheStep(res,
+                             AletheRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              {vp2, children[0]},
                              {},
@@ -2270,12 +2270,12 @@ bool VeritProofPostprocessCallback::update(Node res,
                        d_cl,
                        d_nm->mkNode(kind::OR, children[0].notNode(), res));
       bool success =
-          addVeritStep(vp1, VeritRule::FORALL_INST, {}, new_args, *cdp);
+          addAletheStep(vp1, AletheRule::FORALL_INST, {}, new_args, *cdp);
       Node vp2 = d_nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
-      success &= addVeritStep(vp2, VeritRule::OR, {vp1}, {}, *cdp);
+      success &= addAletheStep(vp2, AletheRule::OR, {vp1}, {}, *cdp);
       return success
-             && addVeritStep(res,
-                             VeritRule::RESOLUTION,
+             && addAletheStep(res,
+                             AletheRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              {vp2, children[0]},
                              {},
@@ -2429,10 +2429,10 @@ bool VeritProofPostprocessCallback::update(Node res,
         vp_child1 = d_nm->mkNode(
             kind::SEXPR, d_cl, d_nm->mkNode(kind::LEQ, c, x));  // (cl (<= c x))
 
-        success &= addVeritStep(vpc1, VeritRule::EQUIV_POS2, {}, {}, *cdp)
-                   && addVeritStep(vpc2, VeritRule::COMP_SIMPLIFY, {}, {}, *cdp)
-                   && addVeritStep(vp_child1,
-                                   VeritRule::RESOLUTION,
+        success &= addAletheStep(vpc1, AletheRule::EQUIV_POS2, {}, {}, *cdp)
+                   && addAletheStep(vpc2, AletheRule::COMP_SIMPLIFY, {}, {}, *cdp)
+                   && addAletheStep(vp_child1,
+                                   AletheRule::RESOLUTION,
                                    {vpc1, vpc2, lesser},
                                    {},
                                    *cdp);
@@ -2463,15 +2463,15 @@ bool VeritProofPostprocessCallback::update(Node res,
                                d_nm->mkNode(kind::LEQ, x, c).notNode(),
                                d_nm->mkNode(kind::LEQ, c, x).notNode()});
       // (cl (= x c) (not (<= x c)) (not (<= c x)))
-      success &= addVeritStep(vp1, VeritRule::LA_DISEQUALITY, {}, {}, *cdp)
-                 && addVeritStep(vp2, VeritRule::OR, {vp1}, {}, *cdp);
+      success &= addAletheStep(vp1, AletheRule::LA_DISEQUALITY, {}, {}, *cdp)
+                 && addAletheStep(vp2, AletheRule::OR, {vp1}, {}, *cdp);
 
       // Postprocessing
       if (res == equal)
       {  // no postprocessing necessary
         return success
-               && addVeritStep(res,
-                               VeritRule::RESOLUTION,
+               && addAletheStep(res,
+                               AletheRule::RESOLUTION,
                                d_nm->mkNode(kind::SEXPR, d_cl, res),
                                {vp2, vp_child1, vp_child2},
                                {},
@@ -2504,15 +2504,15 @@ bool VeritProofPostprocessCallback::update(Node res,
         // (cl (= (> x c) (not (<= x c))))
 
         return success
-               && addVeritStep(vp3,
-                               VeritRule::RESOLUTION,
+               && addAletheStep(vp3,
+                               AletheRule::RESOLUTION,
                                {vp2, vp_child1, vp_child2},
                                {},
                                *cdp)
-               && addVeritStep(vp4, VeritRule::EQUIV_POS1, {}, {}, *cdp)
-               && addVeritStep(vp5, VeritRule::COMP_SIMPLIFY, {}, {}, *cdp)
-               && addVeritStep(res,
-                               VeritRule::RESOLUTION,
+               && addAletheStep(vp4, AletheRule::EQUIV_POS1, {}, {}, *cdp)
+               && addAletheStep(vp5, AletheRule::COMP_SIMPLIFY, {}, {}, *cdp)
+               && addAletheStep(res,
+                               AletheRule::RESOLUTION,
                                d_nm->mkNode(kind::SEXPR, d_cl, res),
                                {vp3, vp4, vp5},
                                {},
@@ -2545,15 +2545,15 @@ bool VeritProofPostprocessCallback::update(Node res,
                              .notNode()));  // (cl (= (< x c) (not (<= c x))))
 
         return success
-               && addVeritStep(vp3,
-                               VeritRule::RESOLUTION,
+               && addAletheStep(vp3,
+                               AletheRule::RESOLUTION,
                                {vp2, vp_child1, vp_child2},
                                {},
                                *cdp)
-               && addVeritStep(vp4, VeritRule::EQUIV_POS1, {}, {}, *cdp)
-               && addVeritStep(vp5, VeritRule::COMP_SIMPLIFY, {}, {}, *cdp)
-               && addVeritStep(res,
-                               VeritRule::RESOLUTION,
+               && addAletheStep(vp4, AletheRule::EQUIV_POS1, {}, {}, *cdp)
+               && addAletheStep(vp5, AletheRule::COMP_SIMPLIFY, {}, {}, *cdp)
+               && addAletheStep(res,
+                               AletheRule::RESOLUTION,
                                d_nm->mkNode(kind::SEXPR, d_cl, res),
                                {vp3, vp4, vp5},
                                {},
@@ -2637,15 +2637,15 @@ bool VeritProofPostprocessCallback::update(Node res,
     {
       if (res.getKind() == kind::NOT)
       {
-        return addVeritStep(res,
-                            VeritRule::NOT_SYMM,
+        return addAletheStep(res,
+                            AletheRule::NOT_SYMM,
                             d_nm->mkNode(kind::SEXPR, d_cl, res),
                             children,
                             {},
                             *cdp);
       }
-      return addVeritStep(res,
-                          VeritRule::SYMM,
+      return addAletheStep(res,
+                          AletheRule::SYMM,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
@@ -2670,14 +2670,14 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::REORDERING:
     {
-      return addVeritStepFromOr(res, VeritRule::REORDER, children, {}, *cdp);
+      return addAletheStepFromOr(res, AletheRule::REORDER, children, {}, *cdp);
     }
 
     default:  // TBD
     {
       std::cout << "Not implemented yet " << id << std::endl;
-      return addVeritStep(res,
-                          VeritRule::UNDEFINED,
+      return addAletheStep(res,
+                          AletheRule::UNDEFINED,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           args,
@@ -2685,24 +2685,24 @@ bool VeritProofPostprocessCallback::update(Node res,
     }
   }
 
-  Trace("verit-proof") << "... error translating rule " << id << " / " << res
+  Trace("alethe-proof") << "... error translating rule " << id << " / " << res
                        << " " << children << " " << args << std::endl;
   return false;
 }
 
-bool VeritProofPostprocessCallback::addVeritStep(
+bool AletheProofPostprocessCallback::addAletheStep(
     Node res,
-    VeritRule rule,
+    AletheRule rule,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  return addVeritStep(res, rule, res, children, args, cdp);
+  return addAletheStep(res, rule, res, children, args, cdp);
 }
 
-bool VeritProofPostprocessCallback::addVeritStep(
+bool AletheProofPostprocessCallback::addAletheStep(
     Node res,
-    VeritRule rule,
+    AletheRule rule,
     Node conclusion,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
@@ -2723,16 +2723,16 @@ bool VeritProofPostprocessCallback::addVeritStep(
   new_args.push_back(res);
   new_args.push_back(sanitized_conclusion);
   new_args.insert(new_args.end(), args.begin(), args.end());
-  Trace("verit-proof") << "... add veriT step " << res << " / " << conclusion
+  Trace("alethe-proof") << "... add Alethe step " << res << " / " << conclusion
                        << " " << rule << " " << children << " / " << new_args
                        << std::endl;
-  return cdp.addStep(res, PfRule::VERIT_RULE, children, new_args);
+  return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
 }
 
 // Replace a node (or F1 ... Fn) by (cl F1 ... Fn)
-bool VeritProofPostprocessCallback::addVeritStepFromOr(
+bool AletheProofPostprocessCallback::addAletheStepFromOr(
     Node res,
-    VeritRule rule,
+    AletheRule rule,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof& cdp)
@@ -2740,23 +2740,23 @@ bool VeritProofPostprocessCallback::addVeritStepFromOr(
   std::vector<Node> subterms = {d_cl};
   subterms.insert(subterms.end(), res.begin(), res.end());
   Node conclusion = d_nm->mkNode(kind::SEXPR, subterms);
-  return addVeritStep(res, rule, conclusion, children, args, cdp);
+  return addAletheStep(res, rule, conclusion, children, args, cdp);
 }
 
-VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
+AletheProofPostprocessFinalCallback::AletheProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_pnm(pnm), d_nm(NodeManager::currentNM())
 {
   d_cl = d_nm->mkBoundVar("cl", d_nm->stringType());
 }
 
-bool VeritProofPostprocessFinalCallback::shouldUpdate(
+bool AletheProofPostprocessFinalCallback::shouldUpdate(
     std::shared_ptr<ProofNode> pn,
     const std::vector<Node>& fa,
     bool& continueUpdate)
 {
   // Sanitize arguments of first scope
-  if (pn->getRule() != PfRule::VERIT_RULE)
+  if (pn->getRule() != PfRule::ALETHE_RULE)
   {
     continueUpdate = false;
     return true;
@@ -2782,7 +2782,7 @@ bool VeritProofPostprocessFinalCallback::shouldUpdate(
 }
 
 // Children:  (P1:C1) ... (Pn:Cn)
-// Arguments: (VeritRule::vrule,false,(cl false))
+// Arguments: (AletheRule::vrule,false,(cl false))
 // ---------------------
 // Conclusion: (false)
 //
@@ -2802,7 +2802,7 @@ bool VeritProofPostprocessFinalCallback::shouldUpdate(
 // proof node: (false)
 // proof term: (cl)
 // premises: VP1 VP2
-bool VeritProofPostprocessFinalCallback::update(
+bool AletheProofPostprocessFinalCallback::update(
     Node res,
     PfRule id,
     const std::vector<Node>& children,
@@ -2811,13 +2811,13 @@ bool VeritProofPostprocessFinalCallback::update(
     bool& continueUpdate)
 {
   // remove attribute for outermost scope
-  if (id != PfRule::VERIT_RULE)
+  if (id != PfRule::ALETHE_RULE)
   {
     std::vector<Node> sanitized_args;
     sanitized_args.push_back(res);
     sanitized_args.push_back(res);
     sanitized_args.push_back(
-        d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::ASSUME)));
+        d_nm->mkConst<Rational>(static_cast<unsigned>(AletheRule::ASSUME)));
     for (auto arg : args)
     {
       sanitized_args.push_back(removeAttributes(
@@ -2826,7 +2826,7 @@ bool VeritProofPostprocessFinalCallback::update(
           }));
     }
     return cdp->addStep(res,
-                        PfRule::VERIT_RULE,
+                        PfRule::ALETHE_RULE,
                         children,
                         sanitized_args,
                         true,
@@ -2841,12 +2841,12 @@ bool VeritProofPostprocessFinalCallback::update(
   Node vp2 = d_nm->mkConst(false).notNode();    // (not true)
   Node res2 = d_nm->mkNode(kind::SEXPR, d_cl);  // (cl)
 
-  VeritRule vrule = static_cast<VeritRule>(std::stoul(args[0].toString()));
+  AletheRule vrule = static_cast<AletheRule>(std::stoul(args[0].toString()));
   new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(vrule)));
   new_args.push_back(vp1);
   // In the special case that false is an assumption, we print false instead of
   // (cl false)
-  if (vrule == VeritRule::ASSUME)
+  if (vrule == AletheRule::ASSUME)
   {
     new_args.push_back(res);  // (false)
   }
@@ -2854,33 +2854,33 @@ bool VeritProofPostprocessFinalCallback::update(
   {
     new_args.push_back(d_nm->mkNode(kind::SEXPR, d_cl, res));  // (cl false)
   }
-  Trace("verit-proof") << "... add veriT step " << vp1 << " / "
+  Trace("alethe-proof") << "... add Alethe step " << vp1 << " / "
                        << d_nm->mkNode(kind::SEXPR, d_cl, res) << " " << vrule
                        << " " << children << " / {}" << std::endl;
   success &= cdp->addStep(
-      vp1, PfRule::VERIT_RULE, children, new_args, true, CDPOverwrite::ALWAYS);
+      vp1, PfRule::ALETHE_RULE, children, new_args, true, CDPOverwrite::ALWAYS);
 
   new_args.clear();
   new_args.push_back(
-      d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::FALSE)));
+      d_nm->mkConst<Rational>(static_cast<unsigned>(AletheRule::FALSE)));
   new_args.push_back(vp2);
   new_args.push_back(d_nm->mkNode(kind::SEXPR, d_cl, vp2));  // (cl (not false))
-  Trace("verit-proof") << "... add veriT step " << vp2 << " / "
+  Trace("alethe-proof") << "... add Alethe step " << vp2 << " / "
                        << d_nm->mkNode(kind::SEXPR, d_cl, vp2) << " "
-                       << VeritRule::FALSE << " {} / {}" << std::endl;
+                       << AletheRule::FALSE << " {} / {}" << std::endl;
   success &= cdp->addStep(
-      vp2, PfRule::VERIT_RULE, {}, new_args, true, CDPOverwrite::ALWAYS);
+      vp2, PfRule::ALETHE_RULE, {}, new_args, true, CDPOverwrite::ALWAYS);
 
   new_args.clear();
   new_args.push_back(
-      d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::RESOLUTION)));
+      d_nm->mkConst<Rational>(static_cast<unsigned>(AletheRule::RESOLUTION)));
   new_args.push_back(res);
   new_args.push_back(res2);
-  Trace("verit-proof") << "... add veriT step " << res << " / " << res2 << " "
-                       << VeritRule::RESOLUTION << " {" << vp2 << ", " << vp1
+  Trace("alethe-proof") << "... add Alethe step " << res << " / " << res2 << " "
+                       << AletheRule::RESOLUTION << " {" << vp2 << ", " << vp1
                        << " / {}" << std::endl;
   success &= cdp->addStep(res,
-                          PfRule::VERIT_RULE,
+                          PfRule::ALETHE_RULE,
                           {vp2, vp1},
                           new_args,
                           true,
@@ -2888,7 +2888,7 @@ bool VeritProofPostprocessFinalCallback::update(
   return success;
 }
 
-VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm)
+AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm)
     : d_pnm(pnm),
       d_cb(d_pnm),
       d_updater(d_pnm, d_cb, false, false),
@@ -2897,14 +2897,14 @@ VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm)
 {
 }
 
-VeritProofPostprocess::~VeritProofPostprocess() {}
+AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Translate proof node
   d_updater.process(pf->getChildren()[0]);
 
-  // In the veriT proof format the final step has to be (cl). However, after the
+  // In the Alethe proof format the final step has to be (cl). However, after the
   // translation it might be (cl false). In that case additional steps are
   // required.
   // The function has the additional purpose of sanitizing the attributes of the

@@ -10,21 +10,21 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The module for printing veriT proof nodes.
+ * The module for printing Alethe proof nodes.
  */
 
-#include "proof/verit/verit_printer.h"
+#include "proof/alethe/alethe_printer.h"
 
 #include <iostream>
 #include <unordered_map>
 
-#include "proof/verit/verit_proof_rule.h"
+#include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5 {
 
 namespace proof {
 
-VeritProofPrinter::VeritProofPrinter(bool extended) : d_extended(extended)
+AletheProofPrinter::AletheProofPrinter(bool extended) : d_extended(extended)
 {
   nested_level = 0;
   step_id = 1;
@@ -33,16 +33,16 @@ VeritProofPrinter::VeritProofPrinter(bool extended) : d_extended(extended)
   steps.push_back({});
 }
 
-void VeritProofPrinter::veritPrinter(std::ostream& out,
+void AletheProofPrinter::alethePrinter(std::ostream& out,
                                      std::shared_ptr<ProofNode> pfn)
 {
-  Trace("verit-printer") << "- Print proof in veriT format. " << std::endl;
+  Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
 
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
   for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
   {
-    Trace("verit-printer") << "... print assumption " << pfn->getArguments()[i]
+    Trace("alethe-printer") << "... print assumption " << pfn->getArguments()[i]
                            << std::endl;
     out << "(assume a" << std::to_string(i - 3) << " " << pfn->getArguments()[i]
         << ")\n";
@@ -50,10 +50,10 @@ void VeritProofPrinter::veritPrinter(std::ostream& out,
   }
 
   // Then, print the rest of the proof node
-  veritPrinterInternal(out, pfn->getChildren()[0]);
+  alethePrinterInternal(out, pfn->getChildren()[0]);
 }
 
-std::string VeritProofPrinter::veritPrinterInternal(
+std::string AletheProofPrinter::alethePrinterInternal(
     std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
   // Store current id in case a subproof overwrites step_id
@@ -61,28 +61,28 @@ std::string VeritProofPrinter::veritPrinterInternal(
 
   // If the proof node is untranslated a problem might have occured during
   // postprocessing
-  if (pfn->getArguments().size() < 3 || pfn->getRule() != PfRule::VERIT_RULE)
+  if (pfn->getArguments().size() < 3 || pfn->getRule() != PfRule::ALETHE_RULE)
   {
-    Trace("verit-printer")
+    Trace("alethe-printer")
         << "... printing failed! Encountered untranslated Node. "
         << pfn->getResult() << " " << toString(pfn->getRule()) << " "
         << " / " << pfn->getArguments() << std::endl;
     return "";
   }
 
-  // Get the verit proof rule
-  VeritRule vrule =
-      static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()));
+  // Get the alethe proof rule
+  AletheRule vrule =
+      static_cast<AletheRule>(std::stoul(pfn->getArguments()[0].toString()));
 
   // In case the rule is an anchor it is printed before its children. The
   // arguments of the anchor are printed as assumptions
-  if (vrule == VeritRule::ANCHOR_SUBPROOF || vrule == VeritRule::ANCHOR_BIND)
+  if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)
   {
     // Look up if subproof has already been printed
     auto it = steps[nested_level].find(pfn->getArguments()[2]);
     if (it != steps[nested_level].end())
     {
-      Trace("verit-printer")
+      Trace("alethe-printer")
           << "... subproof is already printed " << pfn->getResult() << " "
           << vrule << " / " << pfn->getArguments() << std::endl;
       return prefix + "t" + std::to_string(it->second);
@@ -94,17 +94,17 @@ std::string VeritProofPrinter::veritPrinterInternal(
     steps.push_back({});
 
     // Print anchor
-    Trace("verit-printer") << "... print anchor " << pfn->getResult() << " "
+    Trace("alethe-printer") << "... print anchor " << pfn->getResult() << " "
                            << vrule << " "
                            << " / " << pfn->getArguments() << std::endl;
     out << "(anchor :step " << prefix << "t" << step_id << " :args (";
     for (unsigned long int j = 3; j < pfn->getArguments().size(); j++)
     {
-      if (vrule == VeritRule::ANCHOR_SUBPROOF)
+      if (vrule == AletheRule::ANCHOR_SUBPROOF)
       {
         out << pfn->getArguments()[j].toString();
       }
-      else if (vrule == VeritRule::ANCHOR_BIND)
+      else if (vrule == AletheRule::ANCHOR_BIND)
       {
         out << "(:= " << pfn->getArguments()[j][0].toString() << " "
             << pfn->getArguments()[j][1].toString() << ")";
@@ -121,11 +121,11 @@ std::string VeritProofPrinter::veritPrinterInternal(
     step_id++;
 
     // Print assumptions
-    if (vrule == VeritRule::ANCHOR_SUBPROOF)
+    if (vrule == AletheRule::ANCHOR_SUBPROOF)
     {
       for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
       {
-        Trace("verit-printer")
+        Trace("alethe-printer")
             << "... print assumption " << pfn->getArguments()[i] << std::endl;
         out << "(assume " << prefix << "a" << std::to_string(i - 3) << " "
             << pfn->getArguments()[i] << ")\n";
@@ -141,9 +141,9 @@ std::string VeritProofPrinter::veritPrinterInternal(
 
   // Assumptions are printed at the anchor and therefore have to be in the list
   // of assumptions when an assume is reached
-  if (vrule == VeritRule::ASSUME)
+  if (vrule == AletheRule::ASSUME)
   {
-    Trace("verit-printer") << "... reached assumption " << pfn->getResult()
+    Trace("alethe-printer") << "... reached assumption " << pfn->getResult()
                            << " " << vrule << " "
                            << " / " << pfn->getArguments() << std::endl;
 
@@ -151,13 +151,13 @@ std::string VeritProofPrinter::veritPrinterInternal(
 
     if (it != assumptions[nested_level].end())
     {
-      Trace("verit-printer")
+      Trace("alethe-printer")
           << "... search assumption in list " << pfn->getArguments()[2] << "/"
           << assumptions[nested_level] << std::endl;
       return prefix + "a" + std::to_string(it->second);
     }
 
-    Trace("verit-printer") << "... printing failed! Encountered assumption "
+    Trace("alethe-printer") << "... printing failed! Encountered assumption "
                               "that has not been printed! "
                            << pfn->getArguments()[2] << "/"
                            << assumptions[nested_level] << std::endl;
@@ -168,25 +168,25 @@ std::string VeritProofPrinter::veritPrinterInternal(
   std::vector<std::string> child_prefixes;
   for (auto child : pfn->getChildren())
   {
-    child_prefixes.push_back(veritPrinterInternal(out, child));
+    child_prefixes.push_back(alethePrinterInternal(out, child));
   }
 
   // If rule is SYMM or REORDER the rule should not be printed in non-extended
-  // mode if (!d_extended && (vrule == VeritRule::REORDER || vrule ==
-  // VeritRule::SYMM)) for now exclude all reorder rules since they cannot be
+  // mode if (!d_extended && (vrule == AletheRule::REORDER || vrule ==
+  // AletheRule::SYMM)) for now exclude all reorder rules since they cannot be
   // reconstructed in Isabelle yet.
-  if (vrule == VeritRule::REORDER || (!d_extended && vrule == VeritRule::SYMM))
+  if (vrule == AletheRule::REORDER || (!d_extended && vrule == AletheRule::SYMM))
   {
-    Trace("verit-printer") << "... non-extended mode skip child "
+    Trace("alethe-printer") << "... non-extended mode skip child "
                            << pfn->getResult() << " " << vrule << " / "
                            << pfn->getArguments() << std::endl;
     return child_prefixes[0];
   }
 
   // If the rule is a subproof a subproof step needs to be printed
-  if (vrule == VeritRule::ANCHOR_SUBPROOF || vrule == VeritRule::ANCHOR_BIND)
+  if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)
   {
-    Trace("verit-printer") << "... print node " << pfn->getResult() << " "
+    Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
                            << vrule << " / " << pfn->getArguments()
                            << std::endl;
 
@@ -197,7 +197,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
     // Discharge assumptions
     // It is not clear from the onomicon whether the assumptions should be
     // discharged in this way or not.
-    if (vrule == VeritRule::ANCHOR_SUBPROOF)
+    if (vrule == AletheRule::ANCHOR_SUBPROOF)
     {
       out << " :discharge (";
       for (unsigned long int j = 0; j < assumptions[nested_level].size(); j++)
@@ -227,14 +227,14 @@ std::string VeritProofPrinter::veritPrinterInternal(
 
   if (it != steps[nested_level].end())
   {
-    Trace("verit-printer") << "... step is already printed " << pfn->getResult()
+    Trace("alethe-printer") << "... step is already printed " << pfn->getResult()
                            << " " << vrule << " / " << pfn->getArguments()
                            << std::endl;
     return prefix + "t" + std::to_string(it->second);
   }
 
   // Print current step
-  Trace("verit-printer") << "... print node " << pfn->getResult() << " "
+  Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
                          << vrule << " / " << pfn->getArguments() << std::endl;
   std::string current_t;
   current_t = "t" + std::to_string(step_id);
@@ -246,7 +246,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
     out << " :args (";
     for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
     {
-      if (vrule == VeritRule::FORALL_INST)
+      if (vrule == AletheRule::FORALL_INST)
       {
         out << "(:= " << pfn->getArguments()[i][1].toString() << " "
             << pfn->getArguments()[i][0].toString() << ")";

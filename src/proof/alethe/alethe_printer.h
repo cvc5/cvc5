@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The module for printing veriT proof nodes
+ * The module for printing Alethe proof nodes
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__VERIT_PROOF_PRINTER_H
-#define CVC4__PROOF__VERIT_PROOF_PRINTER_H
+#ifndef CVC4__PROOF__ALETHE_PROOF_PRINTER_H
+#define CVC4__PROOF__ALETHE_PROOF_PRINTER_H
 
 #include "proof/proof_node.h"
 
@@ -24,25 +24,25 @@ namespace cvc5 {
 
 namespace proof {
 
-class VeritProofPrinter
+class AletheProofPrinter
 {
  public:
-  VeritProofPrinter(bool extended);
-  ~VeritProofPrinter() {}
+  AletheProofPrinter(bool extended);
+  ~AletheProofPrinter() {}
   /**
-   * This method prints a proof node that has been transformed into the veriT
+   * This method prints a proof node that has been transformed into the Alethe
    * proof format
    *
    * @param out The stream to write to
    * @param pfn The proof node to be printed
    */
-  void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+  void alethePrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
  private:
   /** Used for printing the node after the initial anchor has been printed */
-  std::string veritPrinterInternal(std::ostream& out,
+  std::string alethePrinterInternal(std::ostream& out,
                                    std::shared_ptr<ProofNode> pfn);
-  /** Flag to indicate whether the veriT proof format should be extended */
+  /** Flag to indicate whether the Alethe proof format should be extended */
   bool d_extended;
   /** The current level of nesting, which increases if a subproof is entered */
   int nested_level;
@@ -62,4 +62,4 @@ class VeritProofPrinter
 
 }  // namespace cvc5
 
-#endif /* CVC4__PROOF__VERIT_PROOF_PRINTER_H */
+#endif /* CVC4__PROOF__ALETHE_PROOF_PRINTER_H */
