@@ -61,7 +61,7 @@ PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
     : EnvObj(preprocContext->getEnv()),
       d_preprocContext(preprocContext),
       d_name(name),
-      d_timer(smtStatisticsRegistry().registerTimer("preprocessing::" + name))
+      d_timer(statisticsRegistry().registerTimer("preprocessing::" + name))
 {
 }
 
