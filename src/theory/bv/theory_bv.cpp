@@ -41,7 +41,7 @@ TheoryBV::TheoryBV(Env& env,
       d_im(env, *this, d_state, nullptr, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
-      d_stats("theory::bv::")
+      d_stats(statisticsRegistry(), "theory::bv::")
 {
   switch (options().bv.bvSolver)
   {
@@ -402,9 +402,9 @@ Node TheoryBV::getValue(TNode node)
   return it->second;
 }
 
-TheoryBV::Statistics::Statistics(const std::string& name)
-    : d_solveSubstitutions(
-        smtStatisticsRegistry().registerInt(name + "NumSolveSubstitutions"))
+TheoryBV::Statistics::Statistics(StatisticsRegistry& reg,
+                                 const std::string& name)
+    : d_solveSubstitutions(reg.registerInt(name + "NumSolveSubstitutions"))
 {
 }
 
