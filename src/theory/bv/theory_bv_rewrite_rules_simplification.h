@@ -23,7 +23,6 @@
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/rewriter.h"
 #include "util/bitvector.h"
 
 namespace cvc5 {
@@ -2055,58 +2054,6 @@ inline Node RewriteRule<UltAddOne>::apply(TNode node)
   Node not_y_lt_x =
       nm->mkNode(kind::NOT, nm->mkNode(kind::BITVECTOR_ULT, y, x));
   return nm->mkNode(kind::AND, not_y_eq_1, not_y_lt_x);
-}
-
-/* -------------------------------------------------------------------------- */
-
-/** 
- * x ^(x-1) = 0 => 1 << sk
- * WARNING: this is an **EQUISATISFIABLE** transformation!
- * Only to be called on top level assertions. 
- * 
- * @param node 
- * 
- * @return 
- */
-template<> inline
-bool RewriteRule<IsPowerOfTwo>::applies(TNode node) {
-  if (node.getKind()!= kind::EQUAL) return false;
-  if (node[0].getKind() != kind::BITVECTOR_AND &&
-      node[1].getKind() != kind::BITVECTOR_AND)
-    return false;
-  if (!utils::isZero(node[0]) &&
-      !utils::isZero(node[1]))
-    return false;
-
-  TNode t = !utils::isZero(node[0])? node[0]: node[1];
-  if (t.getNumChildren() != 2) return false; 
-  TNode a = t[0];
-  TNode b = t[1];
-  unsigned size = utils::getSize(t);
-  if(size < 2) return false;
-  Node diff = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, a, b));
-  return (diff.isConst() && (diff == utils::mkConst(size, 1u) || diff == utils::mkOnes(size)));
-}
-
-template <>
-inline Node RewriteRule<IsPowerOfTwo>::apply(TNode node)
-{
-  Debug("bv-rewrite") << "RewriteRule<IsPowerOfTwo>(" << node << ")"
-                      << std::endl;
-  NodeManager *nm = NodeManager::currentNM();
-  TNode term = utils::isZero(node[0]) ? node[1] : node[0];
-  TNode a = term[0];
-  TNode b = term[1];
-  unsigned size = utils::getSize(term);
-  Node diff = Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, a, b));
-  Assert(diff.isConst());
-  TNode x = diff == utils::mkConst(size, 1u) ? a : b;
-  Node one = utils::mkConst(size, 1u);
-  Node sk = utils::mkVar(size);
-  Node sh = nm->mkNode(kind::BITVECTOR_SHL, one, sk);
-  Node x_eq_sh = nm->mkNode(kind::EQUAL, x, sh);
-  return x_eq_sh;
 }
 
 /* -------------------------------------------------------------------------- */
