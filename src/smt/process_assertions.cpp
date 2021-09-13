@@ -460,7 +460,20 @@ void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
   if (Trace.isOn(key))
   {
     PrintBenchmark pb(&d_env.getPrinter());
-    
+    context::CDList<Node>* asl = as.getAssertionList();
+    context::CDList<Node>* asld = as.getAssertionListDefinitions();
+    if (asl!=nullptr)
+    {
+      std::vector<Node> assertions(asl->begin(), asl->end());
+      std::vector<Node> defs;
+      if (asld!=nullptr)
+      {
+        defs.insert(defs.end(), asld->begin(), asld->end());
+      }
+      std::stringstream ss;
+      pb.printBenchmark(ss, logicInfo().getLogicString(), assertions, defs);
+      Trace(key) << ss.str();
+    }
   }
   if (Dump.isOn("assertions") && Dump.isOn(key))
   {
