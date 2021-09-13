@@ -190,3 +190,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "true"
   help       = "perform eager context-dependent evaluation for applications of string kinds"
+
+[[option]]
+  name       = "stringsAlphaCard"
+  category   = "regular"
+  long       = "strings-alpha-card=N"
+  type       = "uint64_t"
+  default    = "196608"
+  help       = "the assumed alphabet of the cardinality for strings"

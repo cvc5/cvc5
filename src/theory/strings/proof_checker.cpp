@@ -325,7 +325,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       Assert(args.size() == 1);
       SkolemCache skc(false);
-      ret = TermRegistry::eagerReduce(t, &skc);
+      ret = TermRegistry::eagerReduce(t, &skc, d_alphaCard);
     }
     else if (id == PfRule::STRING_LENGTH_POS)
     {

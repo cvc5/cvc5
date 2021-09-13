@@ -40,10 +40,12 @@ struct StringsProxyVarAttributeId
 typedef expr::Attribute<StringsProxyVarAttributeId, bool>
     StringsProxyVarAttribute;
 
-TermRegistry::TermRegistry(SolverState& s,
+TermRegistry::TermRegistry(Env& env,
+                           SolverState& s,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(nullptr),
       d_statistics(statistics),
       d_hasStrCode(false),
@@ -64,14 +66,20 @@ TermRegistry::TermRegistry(SolverState& s,
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
   d_negOne = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_cardSize = utils::getAlphabetCardinality();
+  Assert(options().strings.stringsAlphaCard <= String::num_codes());
+  d_cardSize = options().strings.stringsAlphaCard;
 }
 
 TermRegistry::~TermRegistry() {}
 
+uint32_t TermRegistry::getAlphabetCardinality() const
+{
+  return d_cardSize;
+}
+
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
-Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
+Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lemma;
@@ -85,7 +93,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
         AND,
         nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
         nm->mkNode(
-            LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
+            LT, t, nm->mkConst(Rational(alphaCard))));
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)

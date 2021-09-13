@@ -28,6 +28,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -44,17 +45,20 @@ class InferenceManager;
  * (5) Maintaining a skolem cache. Notice that this skolem cache is the
  * official skolem cache that should be used by all modules in TheoryStrings.
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  TermRegistry(SolverState& s,
+  TermRegistry(Env& env,
+               SolverState& s,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();
+  /** get the cardinality of the alphabet used, based on the options */
+  uint32_t getAlphabetCardinality() const;
   /** Finish initialize, which sets the inference manager */
   void finishInit(InferenceManager* im);
   /** The eager reduce routine
@@ -68,7 +72,7 @@ class TermRegistry
    * @param sc The Skolem cache to use for new variables,
    * @return The eager reduction for t.
    */
-  static Node eagerReduce(Node t, SkolemCache* sc);
+  static Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
   /**
    * Returns a lemma indicating that the length of a term t whose type is
    * string-like has positive length. The exact form of this lemma depends

@@ -30,7 +30,7 @@ namespace strings {
 class StringProofRuleChecker : public ProofRuleChecker
 {
  public:
-  StringProofRuleChecker() {}
+  StringProofRuleChecker(uint32_t alphaCard) : d_alphaCard(alphaCard) {}
   ~StringProofRuleChecker() {}
 
   /** Register all rules owned by this rule checker in pc. */
@@ -41,6 +41,8 @@ class StringProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
+  /** cardinality of the alphabet, which impacts certain inferences */
+  uint32_t d_alphaCard;
 };
 
 }  // namespace strings
