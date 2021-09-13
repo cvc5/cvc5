@@ -705,8 +705,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
-  theory/fp/fp_converter.cpp
-  theory/fp/fp_converter.h
+  theory/fp/fp_word_blaster.cpp
+  theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
   theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp

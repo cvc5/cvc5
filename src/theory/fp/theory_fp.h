@@ -33,7 +33,7 @@ namespace cvc5 {
 namespace theory {
 namespace fp {
 
-class FpConverter;
+class FpWordBlaster;
 
 class TheoryFp : public Theory
 {
@@ -120,11 +120,11 @@ class TheoryFp : public Theory
   context::CDHashSet<Node> d_registeredTerms;
 
   /** The word-blaster. Translates FP -> BV. */
-  std::unique_ptr<FpConverter> d_conv;
+  std::unique_ptr<FpWordBlaster> d_wordBlaster;
 
   bool d_expansionRequested;
 
-  void convertAndEquateTerm(TNode node);
+  void wordBlastAndEquateTerm(TNode node);
 
   /** Interaction with the rest of the solver **/
   void handleLemma(Node node, InferenceId id);
