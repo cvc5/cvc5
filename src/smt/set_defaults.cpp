@@ -81,13 +81,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     opts.driver.dumpUnsatCores = true;
   }
-<<<<<<< HEAD
   if (opts.driver.dumpDifficulty)
   {
     opts.smt.produceDifficulty = true;
   }
-=======
->>>>>>> 09cbf1c5746c69854a7578263240101e2430173e
   if (opts.smt.produceDifficulty)
   {
     if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
