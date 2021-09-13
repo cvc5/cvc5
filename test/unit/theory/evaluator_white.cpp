@@ -59,7 +59,7 @@ TEST_F(TestTheoryWhiteEvaluator, simple)
   std::vector<Node> args = {w, x, y, z};
   std::vector<Node> vals = {c1, zero, one, c1};
 
-  Evaluator eval;
+  Evaluator eval(nullptr);
   Node r = eval.eval(t, args, vals);
   ASSERT_EQ(r,
             Rewriter::rewrite(t.substitute(
@@ -90,7 +90,7 @@ TEST_F(TestTheoryWhiteEvaluator, loop)
 
   std::vector<Node> args = {x};
   std::vector<Node> vals = {c};
-  Evaluator eval;
+  Evaluator eval(nullptr);
   Node r = eval.eval(t, args, vals);
   ASSERT_EQ(r,
             Rewriter::rewrite(t.substitute(
@@ -106,7 +106,7 @@ TEST_F(TestTheoryWhiteEvaluator, strIdOf)
 
   std::vector<Node> args;
   std::vector<Node> vals;
-  Evaluator eval;
+  Evaluator eval(nullptr);
 
   {
     Node n = d_nodeManager->mkNode(kind::STRING_INDEXOF, a, empty, one);
@@ -140,7 +140,7 @@ TEST_F(TestTheoryWhiteEvaluator, code)
 
   std::vector<Node> args;
   std::vector<Node> vals;
-  Evaluator eval;
+  Evaluator eval(nullptr);
 
   // (str.code "A") ---> 65
   {
