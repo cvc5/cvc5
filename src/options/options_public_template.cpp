@@ -235,7 +235,7 @@ namespace cvc5::options
 OptionInfo getInfo(const Options& opts, const std::string& name)
 {
   // clang-format off
-  ${options_get_info}$
+  ${getinfo_impl}$
   // clang-format on
   return OptionInfo{"", {}, false, OptionInfo::VoidInfo{}};
 }

@@ -42,7 +42,7 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
-      d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
+      d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
       d_originalOptions(opts),
       d_resourceManager()

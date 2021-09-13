@@ -60,6 +60,7 @@
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
+#include "options/outputc.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -7935,6 +7936,36 @@ std::vector<Term> Solver::getSynthSolutions(
 Statistics Solver::getStatistics() const
 {
   return Statistics(d_smtEngine->getStatisticsRegistry());
+}
+
+bool Solver::isOutputOn(const std::string& tag) const
+{
+  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // forward as such. We thus do not use the standard exception handling macros
+  // here but roll our own.
+  try
+  {
+    return cvc5::OutputChannel.isOn(tag);
+  }
+  catch (const cvc5::Exception& e)
+  {
+    throw CVC5ApiException("Invalid output tag " + tag);
+  }
+}
+
+std::ostream& Solver::getOutput(const std::string& tag) const
+{
+  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // forward as such. We thus do not use the standard exception handling macros
+  // here but roll our own.
+  try
+  {
+    return Output(tag);
+  }
+  catch (const cvc5::Exception& e)
+  {
+    throw CVC5ApiException("Invalid output tag " + tag);
+  }
 }
 
 }  // namespace api

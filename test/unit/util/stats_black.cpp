@@ -22,7 +22,7 @@
 
 #include "lib/clock_gettime.h"
 #include "proof/proof_rule.h"
-#include "test.h"
+#include "test_env.h"
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
@@ -41,14 +41,14 @@ bool operator==(const StatisticBaseValue* sbv, const std::string& s)
 
 namespace test {
 
-class TestUtilBlackStats : public TestInternal
+class TestUtilBlackStats : public TestEnv
 {
 };
 
 TEST_F(TestUtilBlackStats, stats)
 {
 #ifdef CVC5_STATISTICS_ON
-  StatisticsRegistry reg(false);
+  StatisticsRegistry reg(*d_env.get(), false);
   std::string empty, bar = "bar", baz = "baz";
 
   AverageStat avg = reg.registerAverage("avg");
