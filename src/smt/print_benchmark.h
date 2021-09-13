@@ -30,7 +30,10 @@ class Printer;
 namespace smt {
 
 /**
- * A utility for printing a benchmark.
+ * A utility for printing a benchmark. This utility requires no bookkeeping
+ * about which commands have been executed. It reconstructs the set of
+ * commands that would have been required for generating a benchmark based on
+ * a list of nodes.
  */
 class PrintBenchmark
 {
@@ -58,6 +61,10 @@ class PrintBenchmark
    * Print benchmark, which prints a parsable benchmark on the output stream
    * out. It relies on the printAssertions method above, as well as printing
    * the logic based on given string and a final check-sat command.
+   *
+   * For the best printing, defs should be given in the order in which
+   * the symbols were declared. If this is not the case, then we may e.g.
+   * group blocks of definitions that were not grouped in the input.
    */
   void printBenchmark(std::ostream& out,
                       const std::string& logic,

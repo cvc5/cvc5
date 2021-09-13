@@ -119,6 +119,7 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       Assert(itd != defMap.end());
       Assert(!itd->second.first);
       d_printer->toStreamCmdDefineFunction(out, f, itd->second.second);
+      // a definition is also a declaration
       alreadyPrintedDecl.insert(f);
     }
     // print a recursive function definition block
@@ -128,6 +129,7 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       for (const Node& f : recDefs)
       {
         lambdas.push_back(defMap[f].second);
+        // a recursive definition is also a declaration
         alreadyPrintedDecl.insert(f);
       }
       d_printer->toStreamCmdDefineFunctionRec(out, recDefs, lambdas);
