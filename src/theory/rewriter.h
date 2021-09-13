@@ -19,8 +19,8 @@
 
 #include "expr/node.h"
 #include "proof/method_id.h"
-#include "theory/theory_rewriter.h"
 #include "theory/evaluator.h"
+#include "theory/theory_rewriter.h"
 
 namespace cvc5 {
 
@@ -74,7 +74,7 @@ class Rewriter {
   /**
    * Evaluate node n under the substitution args -> vals. For details, see
    * theory/evaluator.h.
-   * 
+   *
    * @param n The node to evaluate
    * @param args The domain of the substitution
    * @param vals The range of the substitution
@@ -189,12 +189,11 @@ class Rewriter {
 
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
-  
+
   /** The evaluator to use */
   Evaluator d_eval;
   /** The evaluator to use, which also invokes this rewriter */
   Evaluator d_evalWithRewrite;
-  
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;

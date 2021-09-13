@@ -90,7 +90,7 @@ class Rewriter;
 class Evaluator
 {
  public:
-   Evaluator(Rewriter * rr);
+  Evaluator(Rewriter* rr);
   /**
    * Evaluates node `n` under the substitution described by the variable names
    * `args` and the corresponding values `vals`. This method uses evaluation
@@ -156,7 +156,7 @@ class Evaluator
                    std::unordered_map<TNode, EvalResult>& eresults,
                    std::unordered_map<TNode, Node>& evalAsNode) const;
   /** The (optional) rewriter to be used */
-  Rewriter * d_rr;
+  Rewriter* d_rr;
   /** The cardinality of the alphabet of strings */
   uint32_t d_alphaCard;
 };
