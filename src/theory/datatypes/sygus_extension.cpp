@@ -1102,8 +1102,10 @@ Node SygusExtension::registerSearchValue(Node a,
         if (bv != bvr)
         {
           // add to the sampler database object
-          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap = d_sampler[a];
-          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
+          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap =
+              d_sampler[a];
+          std::map<TypeNode,
+                   std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
               smap.find(tn);
           if (its == smap.end())
           {

@@ -24,13 +24,13 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/lazy_trie.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
-#include "util/string.h"
 #include "util/rational.h"
 #include "util/sampler.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "util/string.h"
 
 namespace cvc5 {
 namespace theory {

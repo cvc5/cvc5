@@ -16,9 +16,9 @@
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
 #include "expr/skolem_manager.h"
+#include "smt/env.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/rcons_obligation.h"
-#include "smt/env.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
