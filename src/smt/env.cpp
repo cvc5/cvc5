@@ -41,7 +41,7 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_evalRew(new theory::Evaluator(d_rewriter.get())),
-      d_eval(new theory::Evaluator(d_rewriter.get())),
+      d_eval(new theory::Evaluator(nullptr)),
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),

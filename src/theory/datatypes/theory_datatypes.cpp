@@ -39,7 +39,7 @@
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
 #include "util/rational.h"
-#include "util/uninterpreted_constant.h"
+#include "expr/uninterpreted_constant.h"
 
 using namespace std;
 using namespace cvc5::kind;

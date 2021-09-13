@@ -28,6 +28,7 @@
 #include "util/bitvector.h"
 #include "util/random.h"
 #include "util/sampler.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 namespace cvc5 {
 namespace theory {

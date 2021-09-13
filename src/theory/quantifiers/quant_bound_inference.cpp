@@ -17,6 +17,7 @@
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

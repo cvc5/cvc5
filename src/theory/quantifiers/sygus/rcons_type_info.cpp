@@ -18,6 +18,8 @@
 #include "expr/skolem_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/rcons_obligation.h"
+#include "smt/env.h"
+#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
 namespace theory {
@@ -37,8 +39,9 @@ void RConsTypeInfo::initialize(Env& env,
   d_crd.reset(new CandidateRewriteDatabase(env, true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set
   // their number to 0
-  d_sygusSampler.initialize(stn, builtinVars, 0);
-  d_crd->initialize(builtinVars, &d_sygusSampler);
+  d_sygusSampler.reset(new SygusSampler(env.getRewriter()));
+  d_sygusSampler->initialize(stn, builtinVars, 0);
+  d_crd->initialize(builtinVars, d_sygusSampler.get());
 }
 
 Node RConsTypeInfo::nextEnum()

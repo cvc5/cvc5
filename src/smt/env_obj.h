@@ -57,6 +57,7 @@ class EnvObj
   Node extendedRewrite(TNode node, bool aggr = true) const;
   /**
    * Evaluate node n under the substitution args -> vals.
+   * This is a wrapper about theory::Rewriter::evaluate via Env.
    */
   Node evaluate(TNode n,
                 const std::vector<Node>& args,

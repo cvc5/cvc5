@@ -28,6 +28,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

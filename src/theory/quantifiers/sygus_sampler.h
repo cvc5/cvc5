@@ -20,7 +20,6 @@
 
 #include <map>
 #include "theory/quantifiers/lazy_trie.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 
 namespace cvc5 {
@@ -29,6 +28,8 @@ namespace theory {
 class Rewriter;
 
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** SygusSampler
  *
@@ -180,7 +181,7 @@ class SygusSampler : public LazyTrieEvaluator
   void checkEquivalent(Node bv, Node bvr, std::ostream& out);
 
  protected:
-  /** The rewriter */
+  /** The rewriter we are using to evaluate terms and samples */
   Rewriter* d_rr;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
