@@ -22,8 +22,8 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "util/resource_manager.h"
 #include "smt/env_obj.h"
+#include "util/resource_manager.h"
 
 namespace cvc5 {
 
@@ -61,9 +61,7 @@ class ProcessAssertions : protected EnvObj
   typedef std::unordered_map<Node, bool> NodeToBoolHashMap;
 
  public:
-  ProcessAssertions(SmtEngine& smt,
-                    Env& env,
-                    SmtEngineStatistics& stats);
+  ProcessAssertions(SmtEngine& smt, Env& env, SmtEngineStatistics& stats);
   ~ProcessAssertions();
   /** Finish initialize
    *

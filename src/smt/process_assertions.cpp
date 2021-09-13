@@ -21,6 +21,7 @@
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
+#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
@@ -33,12 +34,11 @@
 #include "smt/assertions.h"
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
+#include "smt/print_benchmark.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
-#include "options/outputc.h"
-#include "smt/print_benchmark.h"
 
 using namespace std;
 using namespace cvc5::preprocessing;
@@ -462,19 +462,19 @@ void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
     PrintBenchmark pb(&d_env.getPrinter());
     context::CDList<Node>* asl = as.getAssertionList();
     context::CDList<Node>* asld = as.getAssertionListDefinitions();
-    if (asl!=nullptr)
+    if (asl != nullptr)
     {
       std::vector<Node> assertions;
       std::vector<Node> defs;
       std::unordered_set<Node> defSet;
-      if (asld!=nullptr)
+      if (asld != nullptr)
       {
         defs.insert(defs.end(), asld->begin(), asld->end());
         defSet.insert(asld->begin(), asld->end());
       }
       for (const Node& a : *asl)
       {
-        if (defSet.find(a)==defSet.end())
+        if (defSet.find(a) == defSet.end())
         {
           assertions.push_back(a);
         }
