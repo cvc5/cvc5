@@ -79,7 +79,7 @@ class RelevanceManager
   typedef context::CDList<Node> NodeList;
 
  public:
-  RelevanceManager(Env& env, Valuation val);
+  RelevanceManager(context::UserContext* userContext, Valuation val);
   /**
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before
