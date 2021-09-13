@@ -37,15 +37,17 @@ namespace strings {
 
 CoreInferInfo::CoreInferInfo(InferenceId id) : d_infer(id), d_index(0), d_rev(false) {}
 
-CoreSolver::CoreSolver(SolverState& s,
+CoreSolver::CoreSolver(Env& env,
+                       SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        BaseSolver& bs)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_termReg(tr),
       d_bsolver(bs),
-      d_nfPairs(s.getSatContext())
+      d_nfPairs(context())
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );

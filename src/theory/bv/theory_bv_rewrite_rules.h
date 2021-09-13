@@ -203,7 +203,6 @@ enum RewriteRuleId
   BBAddNeg,
   UltAddOne,
   ConcatToMult,
-  IsPowerOfTwo,
   MultSltMult,
   BitOfConst,
 };
@@ -370,7 +369,6 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case MultDistrib: out << "MultDistrib"; return out;
   case UltAddOne: out << "UltAddOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
-  case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
   case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
   case BitOfConst: out << "BitOfConst"; return out;
@@ -589,7 +587,6 @@ struct AllRewriteRules {
   RewriteRule<MultDistrib>                    rule118;
   RewriteRule<UltAddOne> rule119;
   RewriteRule<ConcatToMult>                   rule120;
-  RewriteRule<IsPowerOfTwo>                   rule121;
   RewriteRule<RedorEliminate>                 rule122;
   RewriteRule<RedandEliminate>                rule123;
   RewriteRule<SignExtendEqConst>              rule124;

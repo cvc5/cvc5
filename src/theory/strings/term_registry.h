@@ -22,6 +22,7 @@
 #include "context/cdlist.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env_obj.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
@@ -44,14 +45,15 @@ class InferenceManager;
  * (5) Maintaining a skolem cache. Notice that this skolem cache is the
  * official skolem cache that should be used by all modules in TheoryStrings.
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  TermRegistry(SolverState& s,
+  TermRegistry(Env& env,
+               SolverState& s,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();

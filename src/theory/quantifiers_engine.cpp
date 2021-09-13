@@ -59,8 +59,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_qreg(qr),
       d_treg(tr),
       d_model(nullptr),
-      d_quants_prereg(qs.getUserContext()),
-      d_quants_red(qs.getUserContext()),
+      d_quants_prereg(userContext()),
+      d_quants_red(userContext()),
       d_numInstRoundsLemma(0)
 {
   Trace("quant-init-debug")
