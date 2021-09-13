@@ -930,20 +930,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
             assert option.type != 'void' or option.name is None
             assert option.name or option.short or option.long
-            mode_handler = option.handler and option.mode
-            argument_req = option.type not in ['bool', 'void']
 
             sphinxgen.add(module, option)
-
-            # Generate handlers for setOption/getOption
-            if option.long:
-                # Make long and alias names available via set/get-option
-                names = set()
-                if option.long:
-                    names.add(long_get_option(option.long))
-                if option.alias:
-                    names.update(option.alias)
-                assert names
 
     short, cmdline_opts, parseinternal = generate_parsing(modules)
     help_common, help_others = generate_cli_help(modules)
