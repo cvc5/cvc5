@@ -4353,6 +4353,13 @@ class CVC5_EXPORT Solver
   Statistics getStatistics() const;
 
   /**
+   * Whether the output stream for the given tag is enabled. Tags can be enabled
+   * with the `output` option (and `-o <tag>` on the command line). Raises an
+   * exception when an invalid tag is given.
+   */
+  bool isOutputOn(const std::string& tag) const;
+
+  /**
    * Returns an output stream for the given tag. Tags can be enabled with the
    * `output` option (and `-o <tag>` on the command line). Raises an exception
    * when an invalid tag is given.
