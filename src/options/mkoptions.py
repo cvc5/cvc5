@@ -82,6 +82,23 @@ def concat_format(s, objs):
     return '\n'.join([s.format(**o.__dict__) for o in objs])
 
 
+def format_include(include):
+    """Generate the #include directive for a given header name."""
+    if '<' in include:
+        return '#include {}'.format(include)
+    return '#include "{}"'.format(include)
+
+
+def is_numeric_cpp_type(ctype):
+    """Check if given type is a numeric type (double, int64_t or uint64_t)."""
+    return ctype in ['int64_t', 'uint64_t', 'double']
+
+
+def die(msg):
+    """Exit with the given error message."""
+    sys.exit('[error] {}'.format(msg))
+
+
 def all_options(modules, sorted=False):
     """Helper to iterate all options from all modules."""
     if sorted:
@@ -97,6 +114,35 @@ def all_options(modules, sorted=False):
             for option in module.options:
                 yield module, option
 
+
+def write_file(directory, name, content):
+    """Write content to `directory/name`. If the file exists, only overwrite it
+    when the content would actually change."""
+    fname = os.path.join(directory, name)
+    try:
+        if os.path.isfile(fname):
+            with open(fname, 'r') as file:
+                if content == file.read():
+                    return
+        with open(fname, 'w') as file:
+            file.write(content)
+    except IOError:
+        die("Could not write to '{}'".format(fname))
+
+
+def read_tpl(directory, name):
+    """Read a (custom) template file from `directory/name`. Expects placeholders
+    of the form `${varname}$` and turns them into `{varname}` while all other
+    curly braces are replaced by double curly braces. Thus, the result is
+    suitable for `.format()` with kwargs being used."""
+    fname = os.path.join(directory, name)
+    try:
+        with open(fname, 'r') as file:
+            res = file.read()
+            res = res.replace('{', '{{').replace('}', '}}')
+            return res.replace('${', '').replace('}$', '')
+    except IOError:
+        die("Could not find '{}'. Aborting.".format(fname))
 
 ### Other globals
 
@@ -202,6 +248,11 @@ def get_predicates(option):
     return res
 
 
+################################################################################
+################################################################################
+# classes to represent modules and options
+
+
 class Module(object):
     """Represents one options module from one <module>_options.toml file."""
     def __init__(self, d, filename):
@@ -245,7 +296,57 @@ class Option(object):
         return False
 
 ################################################################################
-# stuff for options/options_public.cpp
+################################################################################
+# code generation functions
+
+################################################################################
+# for options/options.h
+
+
+def generate_holder_fwd_decls(modules):
+    """Render forward declaration of holder structs"""
+    return concat_format('  struct Holder{id_cap};', modules)
+
+
+def generate_holder_mem_decls(modules):
+    """Render declarations of holder members of the Option class"""
+    return concat_format(
+        '    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
+
+
+def generate_holder_ref_decls(modules):
+    """Render reference declarations for holder members of the Option class"""
+    return concat_format('  options::Holder{id_cap}& {id};', modules)
+
+
+################################################################################
+# for options/options.cpp
+
+
+def generate_module_headers(modules):
+    """Render includes for module headers"""
+    return concat_format('#include "{header}"', modules)
+
+
+def generate_holder_mem_inits(modules):
+    """Render initializations of holder members of the Option class"""
+    return concat_format(
+        '        d_{id}(std::make_unique<options::Holder{id_cap}>()),',
+        modules)
+
+
+def generate_holder_ref_inits(modules):
+    """Render initializations of holder references of the Option class"""
+    return concat_format('        {id}(*d_{id}),', modules)
+
+
+def generate_holder_mem_copy(modules):
+    """Render copy operation of holder members of the Option class"""
+    return concat_format('      *d_{id} = *options.d_{id};', modules)
+
+
+################################################################################
+# for options/options_public.cpp
 
 
 def generate_public_includes(modules):
@@ -369,57 +470,83 @@ def generate_set_impl(modules):
 
 
 ################################################################################
-################################################################################
-# code generation functions
-
-################################################################################
-# for options/options.h
+# for main/options.cpp
 
 
-def generate_holder_fwd_decls(modules):
-    """Render forward declaration of holder structs"""
-    return concat_format('  struct Holder{id_cap};', modules)
+def _add_cmdoption(option, name, opts, next_id):
+    fmt = {
+        'name': name,
+        'arg': 'no' if option.type in ['bool', 'void'] else 'required',
+        'next_id': next_id
+    }
+    opts.append(
+        '{{ "{name}", {arg}_argument, nullptr, {next_id} }},'.format(**fmt))
 
 
-def generate_holder_mem_decls(modules):
-    """Render declarations of holder members of the Option class"""
-    return concat_format(
-        '    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
+def generate_parsing(modules):
+    """Generates the implementation for main::parseInternal() and matching
+    options definitions suitable for getopt_long(). Returns a tuple with:
+    - short options description (passed as third argument to getopt_long)
+    - long options description (passed as fourth argument to getopt_long)
+    - handler code that turns getopt_long return value to a setOption call
+    """
+    short = ""
+    opts = []
+    code = []
+    next_id = 256
+    for _, option in all_options(modules, False):
+        needs_impl = False
+        if option.short:  # short option
+            needs_impl = True
+            code.append("case '{0}': // -{0}".format(option.short))
+            short += option.short
+            if option.type not in ['bool', 'void']:
+                short += ':'
+        if option.long:  # long option
+            needs_impl = True
+            _add_cmdoption(option, option.long_name, opts, next_id)
+            code.append('case {}: // --{}'.format(next_id, option.long_name))
+            next_id += 1
+        if option.alias:  # long option aliases
+            needs_impl = True
+            for alias in option.alias:
+                _add_cmdoption(option, alias, opts, next_id)
+                code.append('case {}: // --{}'.format(next_id, alias))
+                next_id += 1
 
+        if needs_impl:
+            # there is some way to call it, add call to solver.setOption()
+            if option.type == 'bool':
+                code.append('  solver.setOption("{}", "true"); break;'.format(
+                    option.long_name))
+            elif option.type == 'void':
+                code.append('  solver.setOption("{}", ""); break;'.format(
+                    option.long_name))
+            else:
+                code.append(
+                    '  solver.setOption("{}", optionarg); break;'.format(
+                        option.long_name))
 
-def generate_holder_ref_decls(modules):
-    """Render reference declarations for holder members of the Option class"""
-    return concat_format('  options::Holder{id_cap}& {id};', modules)
+        if option.alternate:
+            assert option.type == 'bool'
+            # bool option that wants a --no-*
+            needs_impl = False
+            if option.long:  # long option
+                needs_impl = True
+                _add_cmdoption(option, 'no-' + option.long_name, opts, next_id)
+                code.append('case {}: // --no-{}'.format(
+                    next_id, option.long_name))
+                next_id += 1
+            if option.alias:  # long option aliases
+                needs_impl = True
+                for alias in option.alias:
+                    _add_cmdoption(option, 'no-' + alias, opts, next_id)
+                    code.append('case {}: // --no-{}'.format(next_id, alias))
+                    next_id += 1
+            code.append('  solver.setOption("{}", "false"); break;'.format(
+                option.long_name))
 
-
-################################################################################
-# for options/options.cpp
-
-
-def generate_module_headers(modules):
-    """Render includes for module headers"""
-    return concat_format('#include "{header}"', modules)
-
-
-def generate_holder_mem_inits(modules):
-    """Render initializations of holder members of the Option class"""
-    return concat_format(
-        '        d_{id}(std::make_unique<options::Holder{id_cap}>()),',
-        modules)
-
-
-def generate_holder_ref_inits(modules):
-    """Render initializations of holder references of the Option class"""
-    return concat_format('        {id}(*d_{id}),', modules)
-
-
-def generate_holder_mem_copy(modules):
-    """Render copy operation of holder members of the Option class"""
-    return concat_format('      *d_{id} = *options.d_{id};', modules)
-
-
-################################################################################
-# stuff for main/options.cpp
+    return short, '\n  '.join(opts), '\n    '.join(code)
 
 
 def _cli_help_format_options(option):
@@ -589,72 +716,11 @@ class SphinxGenerator:
         write_file(dstdir, filename, '\n'.join(res))
 
 
-def die(msg):
-    sys.exit('[error] {}'.format(msg))
-
-
-def write_file(directory, name, content):
-    """
-    Write string 'content' to file directory/name. If the file already exists,
-    we first check if the contents of the file is different from 'content'
-    before overwriting the file.
-    """
-    fname = os.path.join(directory, name)
-    try:
-        if os.path.isfile(fname):
-            with open(fname, 'r') as file:
-                if content == file.read():
-                    return
-        with open(fname, 'w') as file:
-            file.write(content)
-    except IOError:
-        die("Could not write '{}'".format(fname))
-
-
-def read_tpl(directory, name):
-    """
-    Read a template file directory/name. The contents of the template file will
-    be read into a string, which will later be used to fill in the generated
-    code/documentation via format. Hence, we have to escape curly braces. All
-    placeholder variables in the template files are enclosed in ${placeholer}$
-    and will be {placeholder} in the returned string.
-    """
-    fname = os.path.join(directory, name)
-    try:
-        # Escape { and } since we later use .format to add the generated code.
-        # Further, strip ${ and }$ from placeholder variables in the template
-        # file.
-        with open(fname, 'r') as file:
-            contents = \
-                file.read().replace('{', '{{').replace('}', '}}').\
-                            replace('${', '').replace('}$', '')
-            return contents
-    except IOError:
-        die("Could not find '{}'. Aborting.".format(fname))
-
-
 def long_get_option(name):
     """
     Extract the name of a given long option long=ARG
     """
     return name.split('=')[0]
-
-
-def is_numeric_cpp_type(ctype):
-    """
-    Check if given type is a numeric C++ type (this should cover the most
-    common cases).
-    """
-    return ctype in ['int64_t', 'uint64_t', 'double']
-
-
-def format_include(include):
-    """
-    Generate the #include directive for a given header name.
-    """
-    if '<' in include:
-        return '#include {}'.format(include)
-    return '#include "{}"'.format(include)
 
 
 def help_mode_format(option):
@@ -809,28 +875,13 @@ def codegen_module(module, dst_dir, tpls):
         write_file(dst_dir, filename, tpl['content'].format(**data))
 
 
-def add_getopt_long(long_name, argument_req, getopt_long):
-    """
-    For each long option we need to add an instance of the option struct in
-    order to parse long options (command-line) with getopt_long. Each long
-    option is associated with a number that gets incremented by one each time
-    we add a new long option.
-    """
-    value = g_getopt_long_start + len(getopt_long)
-    getopt_long.append(
-        TPL_GETOPT_LONG.format(
-            long_get_option(long_name),
-            'required' if argument_req else 'no', value))
-
-
 def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
 
     headers_module = []      # generated *_options.h header includes
-    getopt_short = []        # short options for getopt_long
-    getopt_long = []         # long options for getopt_long
     options_get_info = []    # code for getOptionInfo()
-    options_handler = []     # option handler calls
+    help_common = []         # help text for all common options
+    help_others = []         # help text for all non-common options
 
     sphinxgen = SphinxGenerator()
 
@@ -845,46 +896,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
             argument_req = option.type not in ['bool', 'void']
 
             sphinxgen.add(module, option)
-
-            # Generate options_handler and getopt_long
-            cases = []
-            if option.short:
-                cases.append("case '{0}': // -{0}".format(option.short))
-
-                getopt_short.append(option.short)
-                if argument_req:
-                    getopt_short.append(':')
-
-            if option.long:
-                cases.append(
-                    'case {}: // --{}'.format(
-                        g_getopt_long_start + len(getopt_long),
-                        option.long))
-                add_getopt_long(option.long, argument_req, getopt_long)
-                if option.alias:
-                    for alias in option.alias:
-                        cases.append(
-                            'case {}: // --{}'.format(
-                                g_getopt_long_start + len(getopt_long),
-                                alias))
-                        add_getopt_long(alias, argument_req, getopt_long)
-
-            if cases:
-                if option.type == 'bool':
-                    cases.append(
-                        '  solver.setOption("{}", "true");'.format(option.long_name)
-                        )
-                elif option.type == 'void':
-                    cases.append(
-                        '  solver.setOption("{}", "");'.format(option.long_name))
-                else:
-                    cases.append(
-                        '  solver.setOption("{}", optionarg);'.format(option.long_name))
-
-                cases.append('  break;')
-
-                options_handler.extend(cases)
-
 
             # Generate handlers for setOption/getOption
             if option.long:
@@ -927,30 +938,7 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                 else:
                     options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, false, OptionInfo::VoidInfo{{}}}};'.format(cond, long_get_option(option.long), alias=alias))
 
-            # Add --no- alternative options for boolean options
-            if option.long and option.alternate:
-                cases = []
-                cases.append(
-                    'case {}: // --no-{}'.format(
-                        g_getopt_long_start + len(getopt_long),
-                        option.long))
-
-                add_getopt_long('no-{}'.format(option.long), argument_req,
-                                getopt_long)
-                if option.alias:
-                    for alias in option.alias:
-                        cases.append(
-                            'case {}: // --no-{}'.format(
-                                g_getopt_long_start + len(getopt_long),
-                                alias))
-                        add_getopt_long('no-{}'.format(alias), argument_req,
-                                getopt_long)
-
-                cases.append(
-                        '  solver.setOption("{}", "false");'.format(option.long_name)
-                        )
-                cases.append('  break;')
-                options_handler.extend(cases)
+    short, cmdline_opts, parseinternal = generate_parsing(modules)
 
     help_common, help_others = generate_cli_help(modules)
 
@@ -969,12 +957,13 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'getnames_impl': generate_getnames_impl(modules),
         'get_impl': generate_get_impl(modules),
         'set_impl': generate_set_impl(modules),
-        'cmdline_options': '\n  '.join(getopt_long),
         'help_common': help_common,
         'help_others': help_others,
-        'options_handler': '\n    '.join(options_handler),
-        'options_short': ''.join(getopt_short),
         'options_get_info': '\n  '.join(sorted(options_get_info)),
+        # main/options.cpp
+        'cmdoptions_long': cmdline_opts,
+        'cmdoptions_short': short,
+        'parseinternal_impl': parseinternal,
     }
     for tpl in tpls:
         write_file(dst_dir, tpl['output'], tpl['content'].format(**data))
