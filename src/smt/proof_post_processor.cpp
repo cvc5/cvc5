@@ -1105,7 +1105,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::BV_BITBLAST)
   {
-    bv::BBProof bb(nullptr, d_pnm, true);
+    bv::BBProof bb(d_env, nullptr, d_pnm, true);
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
     bb.bbAtom(eq[0]);

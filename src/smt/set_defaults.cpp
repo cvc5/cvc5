@@ -81,10 +81,13 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     opts.driver.dumpUnsatCores = true;
   }
+<<<<<<< HEAD
   if (opts.driver.dumpDifficulty)
   {
     opts.smt.produceDifficulty = true;
   }
+=======
+>>>>>>> 09cbf1c5746c69854a7578263240101e2430173e
   if (opts.smt.produceDifficulty)
   {
     if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
@@ -143,6 +146,17 @@ void SetDefaults::setDefaultsPre(Options& opts)
   Assert(opts.smt.unsatCores
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
 
+  // new unsat core specific restrictions for proofs
+  if (opts.smt.unsatCores
+      && opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
+  {
+    // no fine-graininess
+    if (!opts.proof.proofGranularityModeWasSetByUser)
+    {
+      opts.proof.proofGranularityMode = options::ProofGranularityMode::OFF;
+    }
+  }
+
   if (opts.bv.bitvectorAigSimplificationsWasSetByUser)
   {
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
@@ -152,6 +166,21 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
     opts.bv.bitvectorAlgebraicSolver = true;
+  }
+  
+  // if we requiring disabling proofs, disable them now
+  if (opts.smt.produceProofs)
+  {
+    std::stringstream reasonNoProofs;
+    if (incompatibleWithProofs(opts, reasonNoProofs))
+    {
+      opts.smt.unsatCores = false;
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
+      Notice() << "SmtEngine: turning off produce-proofs due to "
+               << reasonNoProofs.str() << "." << std::endl;
+      opts.smt.produceProofs = false;
+      opts.smt.checkProofs = false;
+    }
   }
 }
 
@@ -195,12 +224,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     {
       opts.smt.ackermann = true;
     }
-  }
-
-  /* Disable bit-level propagation by default for the BITBLAST solver. */
-  if (opts.bv.bvSolver == options::BVSolver::BITBLAST)
-  {
-    opts.bv.bitvectorPropagate = false;
   }
 
   if (opts.smt.solveIntAsBV > 0)
@@ -272,18 +295,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     }
   }
 
-  // --ite-simp is an experimental option designed for QF_LIA/nec. This
-  // technique is experimental. This benchmark set also requires removing ITEs
-  // during preprocessing, before repeating simplification. Hence, we enable
-  // this by default.
-  if (opts.smt.doITESimp)
-  {
-    if (!opts.smt.earlyIteRemovalWasSetByUser)
-    {
-      opts.smt.earlyIteRemoval = true;
-    }
-  }
-
   // Set default options associated with strings-exp. We also set these options
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.
@@ -315,17 +326,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     // quantifiers (those marked with InternalQuantAttribute).
   }
 
-  // new unsat core specific restrictions for proofs
-  if (opts.smt.unsatCores
-      && opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
-  {
-    // no fine-graininess
-    if (!opts.proof.proofGranularityModeWasSetByUser)
-    {
-      opts.proof.proofGranularityMode = options::ProofGranularityMode::OFF;
-    }
-  }
-
   if (opts.arrays.arraysExp)
   {
     if (!logic.isQuantified())
@@ -333,12 +333,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       logic = logic.getUnlockedCopy();
       logic.enableQuantifiers();
       logic.lock();
-    }
-    // Allows to answer sat more often by default.
-    if (!opts.quantifiers.fmfBoundWasSetByUser)
-    {
-      opts.quantifiers.fmfBound = true;
-      Trace("smt") << "turning on fmf-bound, for arrays-exp" << std::endl;
     }
   }
 
@@ -351,20 +345,24 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     logic.lock();
   }
 
-  // if we requiring disabling proofs, disable them now
-  if (opts.smt.produceProofs)
+  // widen the logic
+  widenLogic(logic, opts);
+
+  // check if we have any options that are not supported with quantified logics
+  if (logic.isQuantified())
   {
-    std::stringstream reasonNoProofs;
-    if (incompatibleWithProofs(opts, reasonNoProofs))
+    std::stringstream reasonNoQuant;
+    if (incompatibleWithQuantifiers(opts, reasonNoQuant))
     {
-      opts.smt.unsatCores = false;
-      opts.smt.unsatCoresMode = options::UnsatCoresMode::OFF;
-      Notice() << "SmtEngine: turning off produce-proofs due to "
-               << reasonNoProofs.str() << "." << std::endl;
-      opts.smt.produceProofs = false;
-      opts.smt.checkProofs = false;
+      std::stringstream ss;
+      ss << reasonNoQuant.str() << " not supported in quantified logics.";
+      throw OptionException(ss.str());
     }
   }
+}
+
+void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
+{
 
   // sygus core connective requires unsat cores
   if (opts.quantifiers.sygusCoreConnective)
@@ -485,25 +483,19 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     Notice() << "SmtEngine: turning on produce-models" << std::endl;
     opts.smt.produceModels = true;
   }
-
-  // widen the logic
-  widenLogic(logic, opts);
-
-  // check if we have any options that are not supported with quantified logics
-  if (logic.isQuantified())
+  
+  // --ite-simp is an experimental option designed for QF_LIA/nec. This
+  // technique is experimental. This benchmark set also requires removing ITEs
+  // during preprocessing, before repeating simplification. Hence, we enable
+  // this by default.
+  if (opts.smt.doITESimp)
   {
-    std::stringstream reasonNoQuant;
-    if (incompatibleWithQuantifiers(opts, reasonNoQuant))
+    if (!opts.smt.earlyIteRemovalWasSetByUser)
     {
-      std::stringstream ss;
-      ss << reasonNoQuant.str() << " not supported in quantified logics.";
-      throw OptionException(ss.str());
+      opts.smt.earlyIteRemoval = true;
     }
   }
-}
-
-void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
-{
+  
   // Set the options for the theoryOf
   if (!opts.theory.theoryOfModeWasSetByUser)
   {
@@ -578,7 +570,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                  << std::endl;
     opts.smt.repeatSimp = repeatSimp;
   }
-
+  
+  /* Disable bit-level propagation by default for the BITBLAST solver. */
+  if (opts.bv.bvSolver == options::BVSolver::BITBLAST)
+  {
+    opts.bv.bitvectorPropagate = false;
+  }
+  
   if (opts.bv.boolToBitvector == options::BoolToBVMode::ALL
       && !logic.isTheoryEnabled(THEORY_BV))
   {
@@ -690,17 +688,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
   }
 
-  if (opts.base.incrementalSolving)
-  {
-    // disable modes not supported by incremental
-    opts.smt.sortInference = false;
-    opts.uf.ufssFairnessMonotone = false;
-    opts.quantifiers.globalNegate = false;
-    opts.quantifiers.cegqiNestedQE = false;
-    opts.bv.bvAbstraction = false;
-    opts.arith.arithMLTrick = false;
-  }
-
   if (logic.isHigherOrder())
   {
     opts.uf.ufHo = true;
@@ -716,7 +703,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // shared selectors are generally not good to combine with standard
   // quantifier techniques e.g. E-matching
-  if (opts.datatypes.dtSharedSelectorsWasSetByUser)
+  if (!opts.datatypes.dtSharedSelectorsWasSetByUser)
   {
     if (logic.isQuantified() && !usesSygus(opts))
     {
@@ -1008,6 +995,15 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
     reason << "solveIntAsBV";
     return true;
   }
+
+  // disable modes not supported by incremental
+  opts.smt.sortInference = false;
+  opts.uf.ufssFairnessMonotone = false;
+  opts.quantifiers.globalNegate = false;
+  opts.quantifiers.cegqiNestedQE = false;
+  opts.bv.bvAbstraction = false;
+  opts.arith.arithMLTrick = false;
+
   return false;
 }
 
@@ -1161,7 +1157,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
 bool SetDefaults::safeUnsatCores(const Options& opts) const
 {
   // whether we want to force safe unsat cores, i.e., if we are in the default
-  // ASSUMPTIONS mode, since other ones are experimental
+  // ASSUMPTIONS mode or PP_ONLY, since other ones are experimental
   return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS
          || opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY;
 }
@@ -1186,7 +1182,7 @@ bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
   return false;
 }
 
-void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
+void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
 {
   bool needsUf = false;
   // strings require LIA, UF; widen the logic
@@ -1277,6 +1273,15 @@ void SetDefaults::widenLogic(LogicInfo& logic, Options& opts) const
 void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                                          Options& opts) const
 {
+  if (opts.arrays.arraysExp)
+  {
+    // Allows to answer sat more often by default.
+    if (!opts.quantifiers.fmfBoundWasSetByUser)
+    {
+      opts.quantifiers.fmfBound = true;
+      Trace("smt") << "turning on fmf-bound, for arrays-exp" << std::endl;
+    }
+  }
   if (logic.hasCardinalityConstraints())
   {
     // must have finite model finding on

@@ -37,7 +37,7 @@ InstantiationEngine::InstantiationEngine(Env& env,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),

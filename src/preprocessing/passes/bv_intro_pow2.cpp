@@ -23,8 +23,7 @@
 
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
-#include "theory/rewriter.h"
+#include "theory/bv/theory_bv_utils.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -33,11 +32,75 @@ namespace passes {
 using NodeMap = std::unordered_map<Node, Node>;
 using namespace cvc5::theory;
 
-namespace {
+BvIntroPow2::BvIntroPow2(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "bv-intro-pow2"){};
 
-Node pow2Rewrite(Node node, NodeMap& cache)
+PreprocessingPassResult BvIntroPow2::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
 {
-  NodeMap::const_iterator ci = cache.find(node);
+  std::unordered_map<Node, Node> cache;
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    Node cur = (*assertionsToPreprocess)[i];
+    Node res = pow2Rewrite(cur, cache);
+    if (res != cur)
+    {
+      res = rewrite(res);
+      assertionsToPreprocess->replace(i, res);
+    }
+  }
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+bool BvIntroPow2::isPowerOfTwo(TNode node)
+{
+  if (node.getKind() != kind::EQUAL)
+  {
+    return false;
+  }
+  if (node[0].getKind() != kind::BITVECTOR_AND
+      && node[1].getKind() != kind::BITVECTOR_AND)
+  {
+    return false;
+  }
+  if (!bv::utils::isZero(node[0]) && !bv::utils::isZero(node[1]))
+  {
+    return false;
+  }
+
+  TNode t = !bv::utils::isZero(node[0]) ? node[0] : node[1];
+  if (t.getNumChildren() != 2) return false;
+  TNode a = t[0];
+  TNode b = t[1];
+  unsigned size = bv::utils::getSize(t);
+  if (size < 2) return false;
+  Node diff =
+      rewrite(NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, a, b));
+  return (diff.isConst()
+          && (diff == bv::utils::mkConst(size, 1u)
+              || diff == bv::utils::mkOnes(size)));
+}
+
+Node BvIntroPow2::rewritePowerOfTwo(TNode node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  TNode term = bv::utils::isZero(node[0]) ? node[1] : node[0];
+  TNode a = term[0];
+  TNode b = term[1];
+  unsigned size = bv::utils::getSize(term);
+  Node diff = rewrite(nm->mkNode(kind::BITVECTOR_SUB, a, b));
+  Assert(diff.isConst());
+  TNode x = diff == bv::utils::mkConst(size, 1u) ? a : b;
+  Node one = bv::utils::mkConst(size, 1u);
+  Node sk = bv::utils::mkVar(size);
+  Node sh = nm->mkNode(kind::BITVECTOR_SHL, one, sk);
+  Node x_eq_sh = nm->mkNode(kind::EQUAL, x, sh);
+  return x_eq_sh;
+}
+
+Node BvIntroPow2::pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache)
+{
+  const auto& ci = cache.find(node);
   if (ci != cache.end())
   {
     Node incache = (*ci).second;
@@ -66,10 +129,9 @@ Node pow2Rewrite(Node node, NodeMap& cache)
     break;
 
     case kind::EQUAL:
-      if (node[0].getType().isBitVector()
-          && theory::bv::RewriteRule<theory::bv::IsPowerOfTwo>::applies(node))
+      if (node[0].getType().isBitVector() && isPowerOfTwo(node))
       {
-        res = theory::bv::RewriteRule<theory::bv::IsPowerOfTwo>::run<false>(node);
+        res = rewritePowerOfTwo(node);
       }
       break;
     default: break;
@@ -77,28 +139,6 @@ Node pow2Rewrite(Node node, NodeMap& cache)
 
   cache.insert(std::make_pair(node, res));
   return res.isNull() ? node : res;
-}
-
-}  // namespace
-
-BvIntroPow2::BvIntroPow2(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-intro-pow2"){};
-
-PreprocessingPassResult BvIntroPow2::applyInternal(
-    AssertionPipeline* assertionsToPreprocess)
-{
-  std::unordered_map<Node, Node> cache;
-  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    Node cur = (*assertionsToPreprocess)[i];
-    Node res = pow2Rewrite(cur, cache);
-    if (res != cur)
-    {
-      res = Rewriter::rewrite(res);
-      assertionsToPreprocess->replace(i, res);
-    }
-  }
-  return PreprocessingPassResult::NO_CONFLICT;
 }
 
 }  // namespace passes

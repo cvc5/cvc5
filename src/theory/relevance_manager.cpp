@@ -25,9 +25,10 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(Env& env, Valuation val)
+RelevanceManager::RelevanceManager(context::UserContext* userContext,
+                                   Valuation val)
     : d_val(val),
-      d_input(env.getUserContext()),
+      d_input(userContext),
       d_computed(false),
       d_success(false),
       d_trackRSetExp(false),
@@ -35,8 +36,11 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options::produceDifficulty())
   {
-    d_dman.reset(new DifficultyManager(env.getUserContext(), val));
+    d_dman.reset(new DifficultyManager(userContext, val));
     d_trackRSetExp = true;
+    // we cannot miniscope AND at the top level, since we need to
+    // preserve the exact form of preprocessed assertions so the dependencies
+    // are tracked.
     d_miniscopeTopLevel = false;
   }
 }
@@ -79,7 +83,7 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
     Node a = toProcess[i];
     if (d_miniscopeTopLevel && a.getKind() == AND)
     {
-      // difficulty tracking requires splitting top-level AND earlier
+      // difficulty tracking disables miniscoping of AND
       Assert(d_dman == nullptr);
       // split AND
       for (const Node& ac : a)

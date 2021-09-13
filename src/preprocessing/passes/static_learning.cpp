@@ -47,8 +47,7 @@ PreprocessingPassResult StaticLearning::applyInternal(
     }
     else
     {
-      assertionsToPreprocess->replace(
-          i, theory::Rewriter::rewrite(learned.constructNode()));
+      assertionsToPreprocess->replace(i, rewrite(learned.constructNode()));
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
