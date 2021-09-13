@@ -114,6 +114,28 @@ Node Rewriter::extendedRewrite(TNode node, bool aggr)
   return er.extendedRewrite(node);
 }
 
+Node Rewriter::evaluate(TNode n,
+                        const std::vector<Node>& args,
+                        const std::vector<Node>& vals,
+                        bool useRewriter) const
+{
+  std::unordered_map<Node, Node> visited;
+  return evaluate(n, args, vals, visited, useRewriter);
+}
+
+Node Rewriter::evaluate(TNode n,
+                        const std::vector<Node>& args,
+                        const std::vector<Node>& vals,
+                        const std::unordered_map<Node, Node>& visited,
+                        bool useRewriter) const
+{
+  if (useRewriter)
+  {
+    return d_evalWithRewrite.evaluate(n, args, vals, visited);
+  }
+  return d_eval.evaluate(n, args, vals, visited);
+}
+
 TrustNode Rewriter::rewriteWithProof(TNode node,
                                      bool isExtEq)
 {
@@ -495,8 +517,7 @@ Node Rewriter::rewriteViaMethod(TNode n, MethodId idr)
   }
   if (idr == MethodId::RW_EVALUATE)
   {
-    Evaluator eval;
-    return eval.eval(n, {}, {}, false);
+    return evaluate(n, {}, {}, false);
   }
   if (idr == MethodId::RW_IDENTITY)
   {

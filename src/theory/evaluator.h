@@ -80,6 +80,8 @@ struct EvalResult
   Node toNode() const;
 };
 
+class Rewriter;
+
 /**
  * The class that performs the actual evaluation of a term under a
  * substitution. Right now, the class does not cache anything between different
@@ -88,6 +90,7 @@ struct EvalResult
 class Evaluator
 {
  public:
+   Evaluator(Rewriter * rr);
   /**
    * Evaluates node `n` under the substitution described by the variable names
    * `args` and the corresponding values `vals`. This method uses evaluation
@@ -103,22 +106,20 @@ class Evaluator
    * The result of this call is either equivalent to:
    * (1) Rewriter::rewrite(n.substitute(args,vars))
    * (2) Node::null().
-   * If useRewriter is true, then we are always in the first case. If
-   * useRewriter is false, then we may be in case (2) if computing the
+   * If d_rr is non-null, then we are always in the first case. If
+   * useRewriter is null, then we may be in case (2) if computing the
    * rewritten, substituted form of n could not be determined by evaluation.
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
-            const std::vector<Node>& vals,
-            bool useRewriter = true) const;
+            const std::vector<Node>& vals) const;
   /**
    * Same as above, but with a precomputed visited map.
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
             const std::vector<Node>& vals,
-            const std::unordered_map<Node, Node>& visited,
-            bool useRewriter = true) const;
+            const std::unordered_map<Node, Node>& visited) const;
 
  private:
   /**
@@ -141,8 +142,7 @@ class Evaluator
                           const std::vector<Node>& args,
                           const std::vector<Node>& vals,
                           std::unordered_map<TNode, Node>& evalAsNode,
-                          std::unordered_map<TNode, EvalResult>& results,
-                          bool useRewriter) const;
+                          std::unordered_map<TNode, EvalResult>& results) const;
   /** reconstruct
    *
    * This function reconstructs the result of evaluating n using a combination
@@ -155,6 +155,10 @@ class Evaluator
   Node reconstruct(TNode n,
                    std::unordered_map<TNode, EvalResult>& eresults,
                    std::unordered_map<TNode, Node>& evalAsNode) const;
+  /** The (optional) rewriter to be used */
+  Rewriter * d_rr;
+  /** The cardinality of the alphabet of strings */
+  uint32_t d_alphaCard;
 };
 
 }  // namespace theory

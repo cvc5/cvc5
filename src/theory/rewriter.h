@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "proof/method_id.h"
 #include "theory/theory_rewriter.h"
+#include "theory/evaluator.h"
 
 namespace cvc5 {
 
@@ -69,7 +70,27 @@ class Rewriter {
    * @param node The node to rewrite
    * @param aggr Whether to perform aggressive rewrites.
    */
-  Node extendedRewrite(TNode node, bool aggr = true);
+  Node extendedRewrite(TNode node, bool aggr = true) const;
+  /**
+   * Evaluate node n under the substitution args -> vals. For details, see
+   * theory/evaluator.h.
+   * 
+   * @param n The node to evaluate
+   * @param args The domain of the substitution
+   * @param vals The range of the substitution
+   * @param useRewriter if true, we use this rewriter to rewrite subterms of
+   * n that cannot be evaluated to a constant.
+   * @return the rewritten, evaluated form of n under the given substitution.
+   */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals) const;
+  /** Same as above, with a visited cache. */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                const std::unordered_map<Node, Node>& visited,
+                bool useRewriter = true) const;
 
   /**
    * Rewrite with proof production, which is managed by the term conversion
@@ -167,6 +188,12 @@ class Rewriter {
 
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
+  
+  /** The evaluator to use */
+  Evaluator d_eval;
+  /** The evaluator to use, which also invokes this rewriter */
+  Evaluator d_evalWithRewrite;
+  
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
