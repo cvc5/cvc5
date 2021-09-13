@@ -231,7 +231,7 @@ void SmtEngine::finishInit()
 
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
   // dumping the command twice.
-  if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
+  if (Dump.isOn("benchmark"))
   {
       LogicInfo everything;
       everything.lock();
@@ -338,12 +338,6 @@ void SmtEngine::setLogic(const std::string& s)
   try
   {
     setLogic(LogicInfo(s));
-    // dump out a set-logic command
-    if (Dump.isOn("raw-benchmark"))
-    {
-      getPrinter().toStreamCmdSetBenchmarkLogic(
-          d_env->getDumpOut(), getLogicInfo().getLogicString());
-    }
   }
   catch (IllegalArgumentException& e)
   {
@@ -643,12 +637,6 @@ void SmtEngine::defineFunctionsRec(
     debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
 
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdDefineFunctionRec(
-        d_env->getDumpOut(), funcs, formals, formulas);
-  }
-
   NodeManager* nm = getNodeManager();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
@@ -680,8 +668,7 @@ void SmtEngine::defineFunctionsRec(
       lem = nm->mkNode(kind::FORALL, boundVars, lem, aexpr);
     }
     // assert the quantified formula
-    //   notice we don't call assertFormula directly, since this would
-    //   duplicate the output on raw-benchmark.
+    //   notice we don't call assertFormula directly.
     // add define recursive definition to the assertions
     d_asserts->addDefineFunDefinition(lem, global);
   }
@@ -968,11 +955,6 @@ Result SmtEngine::assertFormula(const Node& formula)
 
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdAssert(d_env->getDumpOut(), formula);
-  }
-
   // Substitute out any abstract values in ex
   Node n = d_absValues->substituteAbstractValues(formula);
 
@@ -990,11 +972,6 @@ void SmtEngine::declareSygusVar(Node var)
 {
   SmtScope smts(this);
   d_sygusSolver->declareSygusVar(var);
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdDeclareVar(d_env->getDumpOut(), var, var.getType());
-  }
-  // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSynthFun(Node func,
@@ -1006,16 +983,6 @@ void SmtEngine::declareSynthFun(Node func,
   finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
-
-  // !!! TEMPORARY: We cannot construct a SynthFunCommand since we cannot
-  // construct a Term-level Grammar from a Node-level sygus TypeNode. Thus we
-  // must print the command using the Node-level utility method for now.
-
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdSynthFun(
-        d_env->getDumpOut(), func, vars, isInv, sygusType);
-  }
 }
 void SmtEngine::declareSynthFun(Node func,
                                 bool isInv,
@@ -1031,10 +998,6 @@ void SmtEngine::assertSygusConstraint(Node constraint)
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusConstraint(constraint);
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdConstraint(d_env->getDumpOut(), constraint);
-  }
 }
 
 void SmtEngine::assertSygusInvConstraint(Node inv,
@@ -1045,11 +1008,6 @@ void SmtEngine::assertSygusInvConstraint(Node inv,
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdInvConstraint(
-        d_env->getDumpOut(), inv, pre, trans, post);
-  }
 }
 
 Result SmtEngine::checkSynth()
@@ -1200,12 +1158,7 @@ std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   // completely accessible by the user. This is currently not rigorously
   // enforced. An alternative design would be to have this method implemented
   // at the API level, but this makes exceptions in the text interface less
-  // intuitive and makes it impossible to implement raw-benchmark at the
-  // SmtEngine level.
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdGetModel(d_env->getDumpOut());
-  }
+  // intuitive.
   TheoryModel* tm = getAvailableModel("get model");
   // use the smt::Model model utility for printing
   const Options& opts = d_env->getOptions();
