@@ -53,6 +53,7 @@ enum class AletheRule : uint32_t
   ASSUME,
   //================================================= Rules of the Alethe
   // calculus
+  //
   // ======== true
   // > i. true
   TRUE,
