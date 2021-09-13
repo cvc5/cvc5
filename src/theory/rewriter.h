@@ -84,7 +84,8 @@ class Rewriter {
    */
   Node evaluate(TNode n,
                 const std::vector<Node>& args,
-                const std::vector<Node>& vals) const;
+                const std::vector<Node>& vals,
+                bool useRewriter) const;
   /** Same as above, with a visited cache. */
   Node evaluate(TNode n,
                 const std::vector<Node>& args,

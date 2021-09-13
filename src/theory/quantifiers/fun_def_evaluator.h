@@ -21,7 +21,7 @@
 #include <map>
 #include <vector>
 #include "expr/node.h"
-#include "theory/evaluator.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -30,10 +30,10 @@ namespace quantifiers {
 /**
  * Techniques for evaluating recursively defined functions.
  */
-class FunDefEvaluator
+class FunDefEvaluator : protected EnvObj
 {
  public:
-  FunDefEvaluator();
+  FunDefEvaluator(Env& env);
   ~FunDefEvaluator() {}
   /**
    * Assert definition of a (recursive) function definition given by quantified
@@ -45,7 +45,7 @@ class FunDefEvaluator
    * class. If n cannot be simplified to a constant, then this method returns
    * null.
    */
-  Node evaluate(Node n) const;
+  Node evaluateDefinitions(Node n) const;
   /**
    * Has a call to assertDefinition been made? If this returns false, then
    * the evaluate method is the same as calling the rewriter, and returning
@@ -74,8 +74,6 @@ class FunDefEvaluator
   std::map<Node, FunDefInfo> d_funDefMap;
   /** list of all definitions */
   std::vector<Node> d_funDefs;
-  /** evaluator utility */
-  Evaluator d_eval;
 };
 
 }  // namespace quantifiers

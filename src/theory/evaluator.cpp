@@ -16,6 +16,7 @@
 #include "theory/evaluator.h"
 
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/integer.h"

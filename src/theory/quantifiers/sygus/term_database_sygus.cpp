@@ -55,7 +55,6 @@ TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
     : EnvObj(env),
       d_qstate(qs),
       d_syexp(new SygusExplain(this)),
-      d_eval(new Evaluator),
       d_funDefEval(new FunDefEvaluator),
       d_eval_unfold(new SygusEvalUnfold(this))
 {
@@ -759,7 +758,7 @@ Node TermDbSygus::rewriteNode(Node n) const
     {
       // If recursive functions are enabled, then we use the recursive function
       // evaluation utility.
-      Node fres = d_funDefEval->evaluate(res);
+      Node fres = d_funDefEval->evaluateDefinitions(res);
       if (!fres.isNull())
       {
         return fres;
@@ -996,7 +995,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
     // This may fail if there is a subterm of bn under the
     // substitution that is not constant, or if an operator in bn is not
     // supported by the evaluator
-    res = d_eval->eval(bn, varlist, args);
+    res = evaluate(bn, varlist, args);
   }
   if (res.isNull())
   {
