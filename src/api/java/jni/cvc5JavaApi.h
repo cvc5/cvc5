@@ -59,7 +59,7 @@ std::vector<T> getObjectsFromPointers(JNIEnv* env, jlongArray jPointers)
   std::vector<T> objects;
   for (jlong pointer : cPointers)
   {
-    T* term = (T*)(pointer);
+    T* term = reinterpret_cast<T*>(pointer);
     objects.push_back(*term);
   }
   return objects;
@@ -78,7 +78,7 @@ jlongArray getPointersFromObjects(JNIEnv* env, std::vector<T> objects)
   std::vector<jlong> pointers(objects.size());
   for (size_t i = 0; i < objects.size(); i++)
   {
-    pointers[i] = (jlong) new T(objects[i]);
+    pointers[i] = reinterpret_cast<jlong>(new T(objects[i]));
   }
   jlongArray ret = env->NewLongArray(objects.size());
   env->SetLongArrayRegion(ret, 0, objects.size(), pointers.data());
