@@ -56,7 +56,9 @@ Env::Env(NodeManager* nm, const Options* opts)
   }
   d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
-  // set the evaluators on the rewriter
+  // We initialize the evaluators on the rewriter here. We do this here since
+  // theory/rewriter.h should not include theory/evaluator.h, hence the
+  // rewriter only stores raw pointers to the evaluators that it invokes.
   d_rewriter->d_evalRew = d_evalRew.get();
   d_rewriter->d_eval = d_eval.get();
 }
