@@ -900,8 +900,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
             mode_handler = option.handler and option.mode
             argument_req = option.type not in ['bool', 'void']
 
-            sphinxgen.add(module, option)
-
             # Generate handlers for setOption/getOption
             if option.long:
                 # Make long and alias names available via set/get-option
