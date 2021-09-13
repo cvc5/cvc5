@@ -60,9 +60,10 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
       d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
-      d_rewriter(&d_statistics.d_rewrites),
+      d_rewriter(&d_statistics.d_rewrites, d_termReg.getAlphabetCardinality()),
+      // the checker depends on the cardinality of the alphabet
       d_checker(d_termReg.getAlphabetCardinality()),
-      d_bsolver(d_state, d_im),
+      d_bsolver(d_state, d_im, d_termReg),
       d_csolver(d_state, d_im, d_termReg, d_bsolver),
       d_esolver(d_state,
                 d_im,
@@ -74,7 +75,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_statistics),
       d_rsolver(d_state,
                 d_im,
-                d_termReg.getSkolemCache(),
+                d_termReg,
                 d_csolver,
                 d_esolver,
                 d_statistics),
@@ -435,11 +436,11 @@ bool TheoryStrings::collectModelInfoType(
           lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
       std::unique_ptr<SEnumLen> sel;
       Trace("strings-model") << "Cardinality of alphabet is "
-                             << d_treg.getAlphabetCardinality() << std::endl;
+                             << d_termReg.getAlphabetCardinality() << std::endl;
       if (tn.isString())  // string-only
       {
         sel.reset(new StringEnumLen(
-            currLen, currLen, d_treg.getAlphabetCardinality()));
+            currLen, currLen, d_termReg.getAlphabetCardinality()));
       }
       else
       {
@@ -1002,7 +1003,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
     Node t = atom[0];
-    Node card = nm->mkConst(Rational(d_treg.getAlphabetCardinality()));
+    Node card = nm->mkConst(Rational(d_termReg.getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node v = nm->mkBoundVar(nm->stringType());

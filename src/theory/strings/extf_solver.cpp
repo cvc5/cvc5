@@ -173,7 +173,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Node s = n[1];
     // positive contains reduces to a equality
     SkolemCache* skc = d_termReg.getSkolemCache();
-    Node eq = d_termReg.eagerReduce(n, skc);
+    Node eq = d_termReg.eagerReduce(n, skc, d_termReg.getAlphabetCardinality());
     Assert(!eq.isNull());
     Assert(eq.getKind() == ITE && eq[0] == n);
     eq = eq[1];

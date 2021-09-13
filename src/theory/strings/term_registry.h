@@ -70,6 +70,7 @@ class TermRegistry : protected EnvObj
    *
    * @param t The node to reduce,
    * @param sc The Skolem cache to use for new variables,
+   * @param alphaCard The cardinality of the alphabet we are assuming
    * @return The eager reduction for t.
    */
   static Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
@@ -209,7 +210,7 @@ class TermRegistry : protected EnvObj
   Node d_one;
   Node d_negOne;
   /** the cardinality of the alphabet */
-  uint32_t d_cardSize;
+  uint32_t d_alphaCard;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Pointer to the inference manager of the theory of strings. */

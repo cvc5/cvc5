@@ -36,7 +36,7 @@ namespace theory {
 namespace strings {
 namespace utils {
 
-uint32_t getAlphabetCardinality()
+uint32_t getDefaultAlphabetCardinality()
 {
   // 3*16^4 = 196608 values in the SMT-LIB standard for Unicode strings
   Assert(196608 <= String::num_codes());

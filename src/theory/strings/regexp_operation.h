@@ -106,7 +106,7 @@ class RegExpOpr {
   void firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset);
 
  public:
-  RegExpOpr(SkolemCache* sc);
+  RegExpOpr(SkolemCache* sc, uint32_t alphaCard);
   ~RegExpOpr();
 
   /**

@@ -676,7 +676,7 @@ EvalResult Evaluator::evalInternal(
         case kind::STRING_FROM_CODE:
         {
           Integer i = results[currNode[0]].d_rat.getNumerator();
-          if (i >= 0 && i < strings::utils::getAlphabetCardinality())
+          if (i >= 0 && i < strings::utils::getDefaultAlphabetCardinality())
           {
             std::vector<unsigned> svec = {i.toUnsignedInt()};
             results[currNode] = EvalResult(String(svec));

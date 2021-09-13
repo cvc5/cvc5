@@ -31,11 +31,11 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-BaseSolver::BaseSolver(SolverState& s, InferenceManager& im)
+BaseSolver::BaseSolver(SolverState& s, InferenceManager& im, TermRegistry& tr)
     : d_state(s), d_im(im), d_congruent(s.getSatContext())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_cardSize = utils::getAlphabetCardinality();
+  d_cardSize = tr.getAlphabetCardinality();
 }
 
 BaseSolver::~BaseSolver() {}

@@ -227,7 +227,7 @@ void SeqEnumLen::mkCurr()
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<StringEnumerator>(type),
-      d_wenum(0, utils::getAlphabetCardinality())
+      d_wenum(0, tep ? tep->getStringsAlphabetCard() : utils::getDefaultAlphabetCardinality())
 {
   Assert(type.getKind() == kind::TYPE_CONSTANT
          && type.getConst<TypeConstant>() == STRING_TYPE);

@@ -26,6 +26,7 @@
 #include "theory/strings/normal_form.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
 
 namespace cvc5 {
 namespace theory {
@@ -42,7 +43,8 @@ class BaseSolver
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  BaseSolver(SolverState& s, InferenceManager& im);
+  BaseSolver(SolverState& s, InferenceManager& im,
+                       TermRegistry& tr);
   ~BaseSolver();
 
   //-----------------------inference steps

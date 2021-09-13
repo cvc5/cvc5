@@ -27,8 +27,8 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-StringsRewriter::StringsRewriter(HistogramStat<Rewrite>* statistics)
-    : SequencesRewriter(statistics)
+StringsRewriter::StringsRewriter(HistogramStat<Rewrite>* statistics, uint32_t alphaCard)
+    : SequencesRewriter(statistics), d_alphaCard(alphaCard)
 {
 }
 
@@ -275,7 +275,7 @@ Node StringsRewriter::rewriteStringFromCode(Node n)
   {
     Integer i = n[0].getConst<Rational>().getNumerator();
     Node ret;
-    if (i >= 0 && i < strings::utils::getAlphabetCardinality())
+    if (i >= 0 && i < d_alphaCard)
     {
       std::vector<unsigned> svec = {i.toUnsignedInt()};
       ret = nm->mkConst(String(svec));

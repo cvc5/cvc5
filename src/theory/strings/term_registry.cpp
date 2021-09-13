@@ -67,14 +67,14 @@ TermRegistry::TermRegistry(Env& env,
   d_one = nm->mkConst(Rational(1));
   d_negOne = NodeManager::currentNM()->mkConst(Rational(-1));
   Assert(options().strings.stringsAlphaCard <= String::num_codes());
-  d_cardSize = options().strings.stringsAlphaCard;
+  d_alphaCard = options().strings.stringsAlphaCard;
 }
 
 TermRegistry::~TermRegistry() {}
 
 uint32_t TermRegistry::getAlphabetCardinality() const
 {
-  return d_cardSize;
+  return d_alphaCard;
 }
 
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
@@ -224,7 +224,7 @@ void TermRegistry::preRegisterTerm(TNode n)
       std::vector<unsigned> vec = n.getConst<String>().getVec();
       for (unsigned u : vec)
       {
-        if (u >= d_cardSize)
+        if (u >= d_alphaCard)
         {
           std::stringstream ss;
           ss << "Characters in string \"" << n
@@ -321,7 +321,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   else if (n.getKind() != STRING_CONTAINS)
   {
     // we don't send out eager reduction lemma for str.contains currently
-    Node eagerRedLemma = eagerReduce(n, &d_skCache);
+    Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
     if (!eagerRedLemma.isNull())
     {
       // if there was an eager reduction, we make the trust node for it

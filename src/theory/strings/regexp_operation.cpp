@@ -31,7 +31,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-RegExpOpr::RegExpOpr(SkolemCache* sc)
+RegExpOpr::RegExpOpr(SkolemCache* sc, uint32_t alphaCard)
     : d_true(NodeManager::currentNM()->mkConst(true)),
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_EMPTY,
@@ -48,7 +48,7 @@ RegExpOpr::RegExpOpr(SkolemCache* sc)
 
   d_emptySingleton =
       NodeManager::currentNM()->mkNode(STRING_TO_REGEXP, d_emptyString);
-  d_lastchar = utils::getAlphabetCardinality() - 1;
+  d_lastchar = alphaCard - 1;
 }
 
 RegExpOpr::~RegExpOpr() {}

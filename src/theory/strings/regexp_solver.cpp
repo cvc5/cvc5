@@ -23,6 +23,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 #include "util/statistics_value.h"
+#include "theory/strings/term_registry.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -34,7 +35,7 @@ namespace strings {
 
 RegExpSolver::RegExpSolver(SolverState& s,
                            InferenceManager& im,
-                           SkolemCache* skc,
+                           TermRegistry& tr,
                            CoreSolver& cs,
                            ExtfSolver& es,
                            SequencesStatistics& stats)
@@ -46,7 +47,7 @@ RegExpSolver::RegExpSolver(SolverState& s,
       d_regexp_ucached(s.getUserContext()),
       d_regexp_ccached(s.getSatContext()),
       d_processed_memberships(s.getSatContext()),
-      d_regexp_opr(skc)
+      d_regexp_opr(tr.getSkolemCache(), tr.getAlphabetCardinality())
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
   d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY);
