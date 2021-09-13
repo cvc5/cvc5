@@ -81,7 +81,8 @@ ${post_rewrite_set_cache}
   }
 }
 
-Rewriter::Rewriter() : d_tpg(nullptr), d_eval(nullptr), d_evalWithRewrite(nullptr)
+Rewriter::Rewriter()
+    : d_tpg(nullptr), d_eval(nullptr), d_evalWithRewrite(nullptr)
 {
 }
 

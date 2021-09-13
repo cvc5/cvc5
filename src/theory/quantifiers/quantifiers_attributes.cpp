@@ -19,8 +19,8 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
-#include "util/string.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
 using namespace cvc5::kind;

@@ -667,7 +667,7 @@ Node CegisCoreConnective::evaluatePt(Node n,
   }
   // use evaluator
   Node cn = evaluate(n, d_vars, mvs);
-  Assert (!cn.isNull());
+  Assert(!cn.isNull());
   if (!id.isNull())
   {
     ec[id] = cn;

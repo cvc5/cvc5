@@ -67,7 +67,7 @@ namespace quantifiers {
 class SygusSampler : public LazyTrieEvaluator
 {
  public:
-  SygusSampler(Rewriter * rr);
+  SygusSampler(Rewriter* rr);
   ~SygusSampler() override {}
 
   /** initialize
@@ -181,7 +181,7 @@ class SygusSampler : public LazyTrieEvaluator
 
  protected:
   /** The rewriter */
-  Rewriter * d_rr;
+  Rewriter* d_rr;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** term enumerator object (used for random sampling) */

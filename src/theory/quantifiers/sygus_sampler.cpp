@@ -33,7 +33,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusSampler::SygusSampler(Rewriter * rr)
+SygusSampler::SygusSampler(Rewriter* rr)
     : d_rr(rr), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
 {
 }
@@ -474,7 +474,7 @@ Node SygusSampler::evaluate(Node n, unsigned index)
   n = d_rr->rewrite(n);
   // use efficient rewrite for substitution + rewrite
   Node ev = d_rr->evaluate(n, d_vars, d_samples[index], true);
-  Assert (!ev.isNull());
+  Assert(!ev.isNull());
   Trace("sygus-sample-ev") << "Evaluate ( " << n << ", " << index << " ) -> ";
   Trace("sygus-sample-ev") << ev << std::endl;
   return ev;
