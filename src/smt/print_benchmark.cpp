@@ -85,9 +85,11 @@ void PrintBenchmark::printAssertions(std::ostream& out,
     Node defSym;
     Node defBody;
     decomposeDefinition(a, isRec, defSym, defBody);
-    Assert(!defSym.isNull());
-    Assert(defMap.find(defSym) != defMap.end());
-    defMap[defSym] = std::pair<bool, Node>(isRec, defBody);
+    if (!defSym.isNull())
+    {
+      Assert(defMap.find(defSym) == defMap.end());
+      defMap[defSym] = std::pair<bool, Node>(isRec, defBody);
+    }
     defSyms.push_back(defSym);
   }
   // go back and print the definitions
@@ -97,6 +99,11 @@ void PrintBenchmark::printAssertions(std::ostream& out,
   std::unordered_map<Node, std::pair<bool, Node>>::const_iterator itd;
   for (const Node& s : defSyms)
   {
+    if (s.isNull())
+    {
+      // if we failed to infer a definition, skip
+      continue;
+    }
     std::vector<Node> recDefs;
     std::vector<Node> ordinaryDefs;
     std::unordered_set<Node> syms;
@@ -112,13 +119,18 @@ void PrintBenchmark::printAssertions(std::ostream& out,
       Assert(itd != defMap.end());
       Assert(!itd->second.first);
       d_printer->toStreamCmdDefineFunction(out, f, itd->second.second);
+      alreadyPrintedDecl.insert(f);
     }
     // print a recursive function definition block
     if (!recDefs.empty())
     {
-      std::vector<Node> funcs;
       std::vector<Node> lambdas;
-      d_printer->toStreamCmdDefineFunctionRec(out, funcs, lambdas);
+      for (const Node& f : recDefs)
+      {
+        lambdas.push_back(defMap[f].second);
+        alreadyPrintedDecl.insert(f);
+      }
+      d_printer->toStreamCmdDefineFunctionRec(out, recDefs, lambdas);
     }
   }
 
@@ -247,6 +259,10 @@ bool PrintBenchmark::decomposeDefinition(Node a,
     sym = a[1][0].getOperator();
     body = NodeManager::currentNM()->mkNode(LAMBDA, a[0], a[1][1]);
     return true;
+  }
+  else
+  {
+    Warning() << "Unhandled definition: " << a << std::endl;
   }
   return false;
 }
