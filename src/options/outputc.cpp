@@ -27,5 +27,9 @@ bool OutputC::isOn(const options::OutputTag tag) const
 {
   return options::outputTagHolder()[static_cast<size_t>(tag)];
 }
+bool OutputC::isOn(const std::string& tag) const
+{
+  return (*this).isOn(options::stringToOutputTag(tag));
+}
 
 }  // namespace cvc5
