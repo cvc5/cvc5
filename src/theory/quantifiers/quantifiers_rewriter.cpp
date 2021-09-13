@@ -89,6 +89,8 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
   return out;
 }
 
+QuantifiersRewriter::QuantifiersRewriter(const Options& opts) : d_opts(opts){}
+
 bool QuantifiersRewriter::isLiteral( Node n ){
   switch( n.getKind() ){
   case NOT:
