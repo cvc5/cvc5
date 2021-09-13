@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include "expr/node.h"
 #include "proof/method_id.h"
 #include "theory/theory_rewriter.h"
@@ -194,9 +192,9 @@ class Rewriter {
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
 
   /** The evaluator to use */
-  std::unique_ptr<Evaluator> d_eval;
+  Evaluator* d_eval;
   /** The evaluator to use, which also invokes this rewriter */
-  std::unique_ptr<Evaluator> d_evalWithRewrite;
+  Evaluator* d_evalRew;
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;

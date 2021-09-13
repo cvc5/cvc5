@@ -25,6 +25,7 @@
 #include "smt/dump_manager.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
+#include "theory/evaluator.h"
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
@@ -39,6 +40,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
+      d_evalRew(new theory::Evaluator(d_rewriter.get())),
+      d_eval(new theory::Evaluator(d_rewriter.get())),
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
@@ -53,6 +56,9 @@ Env::Env(NodeManager* nm, const Options* opts)
   }
   d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
+  // set the evaluators on the rewriter
+  d_rewriter->d_evalRew = d_evalRew.get();
+  d_rewriter->d_eval = d_eval.get();
 }
 
 Env::~Env() {}

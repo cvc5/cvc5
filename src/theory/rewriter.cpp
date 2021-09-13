@@ -131,7 +131,7 @@ Node Rewriter::evaluate(TNode n,
 {
   if (useRewriter)
   {
-    return d_evalWithRewrite->evaluate(n, args, vals, visited);
+    return d_evalRew->evaluate(n, args, vals, visited);
   }
   return d_eval->evaluate(n, args, vals, visited);
 }

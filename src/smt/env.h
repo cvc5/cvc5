@@ -44,6 +44,7 @@ class PfManager;
 }
 
 namespace theory {
+class Evaluator;
 class Rewriter;
 class TrustSubstitutionMap;
 }
@@ -173,6 +174,10 @@ class Env
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+  /** Evaluator that also invokes the rewriter */
+  std::unique_ptr<theory::Evaluator> d_evalRew;
+  /** Evaluator that does not invoke the rewriter */
+  std::unique_ptr<theory::Evaluator> d_eval;
   /** The top level substitutions */
   std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
   /** The dump manager */

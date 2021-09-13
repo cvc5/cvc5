@@ -81,9 +81,8 @@ ${post_rewrite_set_cache}
   }
 }
 
-Rewriter::Rewriter() : d_tpg(nullptr), d_eval(new Evaluator(nullptr)), d_evalWithRewrite(new Evaluator(this))
+Rewriter::Rewriter() : d_tpg(nullptr), d_eval(nullptr), d_evalWithRewrite(nullptr)
 {
-
 }
 
 void Rewriter::clearCachesInternal()
