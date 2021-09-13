@@ -35,7 +35,7 @@ namespace smt {
 class PrintBenchmark
 {
  public:
-  PrintBenchmark(Printer* p) : d_printer(p) {}
+  PrintBenchmark(const Printer* p) : d_printer(p) {}
   /**
    * Print assertions, without special handling of defined functions.
    * This prints a parsable set of commands on the output stream out that
@@ -120,7 +120,7 @@ class PrintBenchmark
    * Pointer to the printer we are using, which is responsible for printing
    * individual commands.
    */
-  Printer* d_printer;
+  const Printer* d_printer;
 };
 
 }  // namespace smt

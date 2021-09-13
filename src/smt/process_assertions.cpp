@@ -37,6 +37,8 @@
 #include "smt/smt_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
+#include "options/outputc.h"
+#include "smt/print_benchmark.h"
 
 using namespace std;
 using namespace cvc5::preprocessing;
@@ -58,10 +60,10 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(SmtEngine& smt,
-                                     ResourceManager& rm,
+                                     Env& env,
                                      SmtEngineStatistics& stats)
-    : d_smt(smt),
-      d_resourceManager(rm),
+    : EnvObj(env),
+      d_smt(smt),
       d_smtStats(stats),
       d_preprocessingPassContext(nullptr)
 {
@@ -93,7 +95,7 @@ void ProcessAssertions::cleanup() { d_passes.clear(); }
 
 void ProcessAssertions::spendResource(Resource r)
 {
-  d_resourceManager.spendResource(r);
+  d_env.getResourceManager()->spendResource(r);
 }
 
 bool ProcessAssertions::apply(Assertions& as)
@@ -101,7 +103,8 @@ bool ProcessAssertions::apply(Assertions& as)
   AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
-  dumpAssertions("pre-everything", assertions);
+  dumpAssertions("assertions:pre-everything", as);
+  Trace("assertions:pre-everything") << std::endl;
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
@@ -132,7 +135,8 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
-  dumpAssertions("pre-definition-expansion", assertions);
+  dumpAssertions("pre-definition-expansion", as);
+  Trace("assertions:pre-definition-expansion") << std::endl;
   // Apply substitutions first. If we are non-incremental, this has only the
   // effect of replacing defined functions with their definitions.
   // We do not call theory-specific expand definitions here, since we want
@@ -141,7 +145,8 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
-  dumpAssertions("post-definition-expansion", assertions);
+  dumpAssertions("assertions:post-definition-expansion", as);
+  Trace("assertions:post-definition-expansion") << std::endl;
 
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
@@ -229,7 +234,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["sep-skolem-emp"]->apply(&assertions);
   }
 
-  if (d_smt.getLogicInfo().isQuantified())
+  if (logicInfo().isQuantified())
   {
     // remove rewrite rules, apply pre-skolemization to existential quantifiers
     d_passes["quantifiers-preprocess"]->apply(&assertions);
@@ -271,16 +276,18 @@ bool ProcessAssertions::apply(Assertions& as)
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-simplify"
                     << endl;
-  dumpAssertions("pre-simplify", assertions);
+  dumpAssertions("assertions:pre-simplify", as);
+  Trace("assertions:pre-simplify") << std::endl;
   Chat() << "simplifying assertions..." << endl;
-  noConflict = simplifyAssertions(assertions);
+  noConflict = simplifyAssertions(as);
   if (!noConflict)
   {
     ++(d_smtStats.d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
-  dumpAssertions("post-simplify", assertions);
+  dumpAssertions("assertions:post-simplify", as);
+  Trace("assertions:post-simplify") << std::endl;
 
   if (options::doStaticLearning())
   {
@@ -304,7 +311,8 @@ bool ProcessAssertions::apply(Assertions& as)
     d_smtStats.d_numAssertionsPost += assertions.size();
   }
 
-  dumpAssertions("pre-repeat-simplify", assertions);
+  dumpAssertions("assertions:pre-repeat-simplify", as);
+  Trace("assertions:pre-repeat-simplify") << std::endl;
   if (options::repeatSimp())
   {
     Trace("smt-proc")
@@ -312,12 +320,13 @@ bool ProcessAssertions::apply(Assertions& as)
         << endl;
     Chat() << "re-simplifying assertions..." << endl;
     ScopeCounter depth(d_simplifyAssertionsDepth);
-    noConflict &= simplifyAssertions(assertions);
+    noConflict &= simplifyAssertions(as);
     Trace("smt-proc")
         << "ProcessAssertions::processAssertions() : post-repeat-simplify"
         << endl;
   }
-  dumpAssertions("post-repeat-simplify", assertions);
+  dumpAssertions("assertions:post-repeat-simplify", as);
+  Trace("assertions:post-repeat-simplify") << std::endl;
 
   if (options::ufHo())
   {
@@ -348,17 +357,19 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
-  dumpAssertions("post-everything", assertions);
+  dumpAssertions("assertions:post-everything", as);
+  Trace("assertions:post-everything") << std::endl;
 
   return noConflict;
 }
 
 // returns false if simplification led to "false"
-bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
+bool ProcessAssertions::simplifyAssertions(Assertions& as)
 {
   spendResource(Resource::PreprocessStep);
   try
   {
+    AssertionPipeline& assertions = as.getAssertionPipeline();
     ScopeCounter depth(d_simplifyAssertionsDepth);
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
@@ -378,7 +389,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
       if (  // check that option is on
           options::arithMLTrick() &&
           // only useful in arith
-          d_smt.getLogicInfo().isTheoryEnabled(THEORY_ARITH) &&
+          logicInfo().isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
@@ -426,7 +437,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
       }
     }
 
-    dumpAssertions("post-repeatsimp", assertions);
+    dumpAssertions("post-repeatsimp", as);
     Trace("smt") << "POST repeatSimp" << endl;
     Debug("smt") << " assertions     : " << assertions.size() << endl;
   }
@@ -444,17 +455,21 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
   return true;
 }
 
-void ProcessAssertions::dumpAssertions(const char* key,
-                                       const AssertionPipeline& assertionList)
+void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
 {
-  if (Dump.isOn("assertions") && Dump.isOn(string("assertions:") + key))
+  if (Trace.isOn(key))
   {
+    PrintBenchmark pb(&d_env.getPrinter());
+    
+  }
+  if (Dump.isOn("assertions") && Dump.isOn(key))
+  {
+    const AssertionPipeline& assertionList = as.getAssertionPipeline();
     // Push the simplified assertions to the dump output stream
     for (unsigned i = 0; i < assertionList.size(); ++i)
     {
       TNode n = assertionList[i];
-      d_smt.getOutputManager().getPrinter().toStreamCmdAssert(
-          d_smt.getOutputManager().getDumpOut(), n);
+      d_env.getPrinter().toStreamCmdAssert(d_env.getDumpOut(), n);
     }
   }
 }

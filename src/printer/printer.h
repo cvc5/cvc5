@@ -112,7 +112,7 @@ class Printer
                                          TypeNode range,
                                          Node formula) const;
   /** Variant of above that takes the definition */
-  void toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda);
+  void toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda) const;
 
   /** Print define-fun-rec command */
   virtual void toStreamCmdDefineFunctionRec(
@@ -123,7 +123,7 @@ class Printer
   /** Variant of above that takes the definition */
   void toStreamCmdDefineFunctionRec(std::ostream& out,
                                     const std::vector<Node>& funcs,
-                                    const std::vector<Node>& lambdas);
+                                    const std::vector<Node>& lambdas) const;
 
   /** Print set-user-attribute command */
   void toStreamCmdSetUserAttribute(std::ostream& out,

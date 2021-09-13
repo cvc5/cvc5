@@ -242,7 +242,7 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   printUnknownCommand(out, "define-fun");
 }
 
-void Printer::toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda)
+void Printer::toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda) const
 {
   std::stringstream vs;
   vs << v;
@@ -270,7 +270,7 @@ void Printer::toStreamCmdDefineFunctionRec(
 
 void Printer::toStreamCmdDefineFunctionRec(std::ostream& out,
                                            const std::vector<Node>& funcs,
-                                           const std::vector<Node>& lambdas)
+                                           const std::vector<Node>& lambdas) const
 {
   std::vector<std::vector<Node>> formals;
   std::vector<Node> formulas;

@@ -45,7 +45,7 @@ Preprocessor::Preprocessor(SmtEngine& smt,
       d_propagator(true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_exDefs(env, stats),
-      d_processor(smt, *env.getResourceManager(), stats),
+      d_processor(smt, env, stats),
       d_pnm(nullptr)
 {
 }

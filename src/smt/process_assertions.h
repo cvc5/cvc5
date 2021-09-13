@@ -23,6 +23,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "util/resource_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -53,7 +54,7 @@ struct SmtEngineStatistics;
  * it processes assertions in a way that assumes that apply(...) could be
  * applied multiple times to different sets of assertions.
  */
-class ProcessAssertions
+class ProcessAssertions : protected EnvObj
 {
   /** The types for the recursive function definitions */
   typedef context::CDList<Node> NodeList;
@@ -61,7 +62,7 @@ class ProcessAssertions
 
  public:
   ProcessAssertions(SmtEngine& smt,
-                    ResourceManager& rm,
+                    Env& env,
                     SmtEngineStatistics& stats);
   ~ProcessAssertions();
   /** Finish initialize
@@ -83,8 +84,6 @@ class ProcessAssertions
  private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
-  /** Reference to resource manager */
-  ResourceManager& d_resourceManager;
   /** Reference to the SMT stats */
   SmtEngineStatistics& d_smtStats;
   /** The preprocess context */
@@ -111,13 +110,12 @@ class ProcessAssertions
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions(preprocessing::AssertionPipeline& assertions);
+  bool simplifyAssertions(Assertions& as);
   /**
    * Dump assertions. Print the current assertion list to the dump
    * assertions:`key` if it is enabled.
    */
-  void dumpAssertions(const char* key,
-                      const preprocessing::AssertionPipeline& assertionList);
+  void dumpAssertions(const char* key, Assertions& as);
 };
 
 }  // namespace smt
