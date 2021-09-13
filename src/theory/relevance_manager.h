@@ -171,7 +171,12 @@ class RelevanceManager
   bool d_success;
   /** Are we tracking the sources of why a literal is relevant */
   bool d_trackRSetExp;
-  /** Miniscope top-level AND */
+  /**
+   * Whether we have miniscoped top-level AND of assertions, which is done
+   * as an optimization. This is disabled if e.g. we are computing difficulty,
+   * which requires preserving the original form of the preprocessed
+   * assertions.
+   */
   bool d_miniscopeTopLevel;
   /**
    * Map from the domain of d_rset to the assertion in d_input that is the

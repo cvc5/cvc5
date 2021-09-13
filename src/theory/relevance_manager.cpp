@@ -38,6 +38,9 @@ RelevanceManager::RelevanceManager(context::UserContext* userContext,
   {
     d_dman.reset(new DifficultyManager(userContext, val));
     d_trackRSetExp = true;
+    // we cannot miniscope AND at the top level, since we need to
+    // preserve the exact form of preprocessed assertions so the dependencies
+    // are tracked.
     d_miniscopeTopLevel = false;
   }
 }
@@ -80,7 +83,7 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
     Node a = toProcess[i];
     if (d_miniscopeTopLevel && a.getKind() == AND)
     {
-      // difficulty tracking requires splitting top-level AND earlier
+      // difficulty tracking disables miniscoping of AND
       Assert(d_dman == nullptr);
       // split AND
       for (const Node& ac : a)
