@@ -192,7 +192,7 @@ class Rewriter {
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
 
-  /** 
+  /**
    * The evaluators to use, for when useRewriter is false (resp. true)
    * in the evaluate method above.
    */
