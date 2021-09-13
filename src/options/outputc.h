@@ -17,8 +17,10 @@ class OutputC
   explicit OutputC(std::ostream* os) : d_os(os) {}
 
   Cvc5ostream operator()(const options::OutputTag tag) const;
+  Cvc5ostream operator()(const std::string& tag) const;
 
   bool isOn(const options::OutputTag tag) const;
+  bool isOn(const std::string& tag) const;
 
  private:
   std::ostream* d_os;

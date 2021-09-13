@@ -16,6 +16,7 @@
 #include <algorithm>
 
 #include "test_api.h"
+#include "base/output.h"
 
 namespace cvc5 {
 
@@ -1332,10 +1333,13 @@ TEST_F(TestApiBlackSolver, getOptionNames)
 TEST_F(TestApiBlackSolver, getOptionInfo)
 {
   {
-    auto info = d_solver.getOptionInfo("verbose");
-    ASSERT_EQ(info.name, "verbose");
-    ASSERT_EQ(info.aliases, std::vector<std::string>{});
-    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::VoidInfo>(info.valueInfo));
+    EXPECT_THROW(d_solver.getOptionInfo("asdf-invalid"), CVC5ApiException);
+  }
+  {
+    api::OptionInfo info = d_solver.getOptionInfo("verbose");
+    EXPECT_EQ("verbose", info.name);
+    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
   }
   {
     // int64 type with default
@@ -1569,6 +1573,47 @@ TEST_F(TestApiBlackSolver, isModelCoreSymbol)
   ASSERT_TRUE(d_solver.isModelCoreSymbol(y));
   ASSERT_FALSE(d_solver.isModelCoreSymbol(z));
   ASSERT_THROW(d_solver.isModelCoreSymbol(zero), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getModel)
+{
+  d_solver.setOption("produce-models", "true");
+  Sort uSort = d_solver.mkUninterpretedSort("u");
+  Term x = d_solver.mkConst(uSort, "x");
+  Term y = d_solver.mkConst(uSort, "y");
+  Term z = d_solver.mkConst(uSort, "z");
+  Term f = d_solver.mkTerm(NOT, d_solver.mkTerm(EQUAL, x, y));
+  d_solver.assertFormula(f);
+  d_solver.checkSat();
+  std::vector<Sort> sorts;
+  sorts.push_back(uSort);
+  std::vector<Term> terms;
+  terms.push_back(x);
+  terms.push_back(y);
+  ASSERT_NO_THROW(d_solver.getModel(sorts, terms));
+  Term null;
+  terms.push_back(null);
+  ASSERT_THROW(d_solver.getModel(sorts, terms), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getModel2)
+{
+  d_solver.setOption("produce-models", "true");
+  std::vector<Sort> sorts;
+  std::vector<Term> terms;
+  ASSERT_THROW(d_solver.getModel(sorts, terms), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getModel3)
+{
+  d_solver.setOption("produce-models", "true");
+  std::vector<Sort> sorts;
+  std::vector<Term> terms;
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getModel(sorts, terms));
+  Sort integer = d_solver.getIntegerSort();
+  sorts.push_back(integer);
+  ASSERT_THROW(d_solver.getModel(sorts, terms), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getQuantifierElimination)
@@ -2428,6 +2473,17 @@ TEST_F(TestApiBlackSolver, tupleProject)
       "((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
       "\"Z\")))",
       projection.toString());
+}
+
+TEST_F(TestApiBlackSolver, Output)
+{
+  ASSERT_THROW(d_solver.isOutputOn("foo-invalid"), CVC5ApiException);
+  ASSERT_THROW(d_solver.getOutput("foo-invalid"), CVC5ApiException);
+  ASSERT_FALSE(d_solver.isOutputOn("inst"));
+  ASSERT_EQ(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+  d_solver.setOption("output", "inst");
+  ASSERT_TRUE(d_solver.isOutputOn("inst"));
+  ASSERT_NE(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
 }
 
 }  // namespace test

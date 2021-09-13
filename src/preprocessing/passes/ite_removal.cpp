@@ -64,7 +64,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
   }
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
-    assertions->replace(i, Rewriter::rewrite((*assertions)[i]));
+    assertions->replace(i, rewrite((*assertions)[i]));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

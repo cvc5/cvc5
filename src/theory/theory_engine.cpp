@@ -155,10 +155,9 @@ void TheoryEngine::finishInit()
                     << options::tcMode() << " not supported";
   }
   // create the relevance filter if any option requires it
-  if (options::relevanceFilter())
+  if (options::relevanceFilter() || options::produceDifficulty())
   {
-    d_relManager.reset(
-        new RelevanceManager(d_env.getUserContext(), theory::Valuation(this)));
+    d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -208,52 +207,47 @@ void TheoryEngine::finishInit()
 
 ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
 
-context::Context* TheoryEngine::getSatContext() const
-{
-  return d_env.getContext();
-}
+context::Context* TheoryEngine::getSatContext() const { return context(); }
 
 context::UserContext* TheoryEngine::getUserContext() const
 {
-  return d_env.getUserContext();
+  return userContext();
 }
 
 TheoryEngine::TheoryEngine(Env& env)
-    : d_propEngine(nullptr),
-      d_env(env),
+    : EnvObj(env),
+      d_propEngine(nullptr),
       d_logicInfo(env.getLogicInfo()),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
-      d_lazyProof(d_pnm != nullptr
-                      ? new LazyCDProof(d_pnm,
-                                        nullptr,
-                                        d_env.getUserContext(),
-                                        "TheoryEngine::LazyCDProof")
-                      : nullptr),
-      d_tepg(new TheoryEngineProofGenerator(d_pnm, d_env.getUserContext())),
+      d_lazyProof(
+          d_pnm != nullptr ? new LazyCDProof(
+              d_pnm, nullptr, userContext(), "TheoryEngine::LazyCDProof")
+                           : nullptr),
+      d_tepg(new TheoryEngineProofGenerator(d_pnm, userContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
       d_quantEngine(nullptr),
-      d_decManager(new DecisionManager(d_env.getUserContext())),
+      d_decManager(new DecisionManager(userContext())),
       d_relManager(nullptr),
-      d_inConflict(d_env.getContext(), false),
+      d_inConflict(context(), false),
       d_inSatMode(false),
       d_hasShutDown(false),
-      d_incomplete(d_env.getContext(), false),
-      d_incompleteTheory(d_env.getContext(), THEORY_BUILTIN),
-      d_incompleteId(d_env.getContext(), IncompleteId::UNKNOWN),
-      d_propagationMap(d_env.getContext()),
-      d_propagationMapTimestamp(d_env.getContext(), 0),
-      d_propagatedLiterals(d_env.getContext()),
-      d_propagatedLiteralsIndex(d_env.getContext(), 0),
-      d_atomRequests(d_env.getContext()),
-      d_combineTheoriesTime(smtStatisticsRegistry().registerTimer(
+      d_incomplete(context(), false),
+      d_incompleteTheory(context(), THEORY_BUILTIN),
+      d_incompleteId(context(), IncompleteId::UNKNOWN),
+      d_propagationMap(context()),
+      d_propagationMapTimestamp(context(), 0),
+      d_propagatedLiterals(context()),
+      d_propagatedLiteralsIndex(context(), 0),
+      d_atomRequests(context()),
+      d_combineTheoriesTime(statisticsRegistry().registerTimer(
           "TheoryEngine::combineTheoriesTime")),
       d_true(),
       d_false(),
       d_interrupted(false),
       d_inPreregister(false),
-      d_factsAsserted(d_env.getContext(), false)
+      d_factsAsserted(context(), false)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
@@ -264,7 +258,7 @@ TheoryEngine::TheoryEngine(Env& env)
 
   if (options::sortInference())
   {
-    d_sortInfer.reset(new SortInference);
+    d_sortInfer.reset(new SortInference(env));
   }
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -535,6 +529,11 @@ void TheoryEngine::check(Theory::Effort effort) {
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         }
       }
+      // notify the relevant manager
+      if (d_relManager != nullptr)
+      {
+        d_relManager->notifyCandidateModel(getModel());
+      }
       if (!d_inConflict && !needCheck())
       {
         // We only mark that we are in "SAT mode". We build the model later only
@@ -700,7 +699,7 @@ void TheoryEngine::postsolve() {
   d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
-  bool CVC5_UNUSED wasInConflict = d_inConflict;
+  CVC5_UNUSED bool wasInConflict = d_inConflict;
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -1063,7 +1062,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   Debug("theory::propagate")
       << "TheoryEngine::propagate(" << literal << ", " << theory << ")" << endl;
 
-  Trace("dtview::prop") << std::string(d_env.getContext()->getLevel(), ' ')
+  Trace("dtview::prop") << std::string(context()->getLevel(), ' ')
                         << ":THEORY-PROP: " << literal << endl;
 
   // spendResource();
@@ -1143,6 +1142,12 @@ const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
     return d_emptyRelevantSet;
   }
   return d_relManager->getRelevantAssertions(success);
+}
+
+void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
+{
+  Assert(d_relManager != nullptr);
+  d_relManager->getDifficultyMap(dmap);
 }
 
 Node TheoryEngine::getModelValue(TNode var) {
@@ -1370,14 +1375,18 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
   // since these by extension must be justified as well.
-  if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
+  if (d_relManager != nullptr)
   {
     std::vector<Node> skAsserts;
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    d_relManager->notifyPreprocessedAssertion(retLemma);
-    d_relManager->notifyPreprocessedAssertions(skAsserts);
+    if (isLemmaPropertyNeedsJustify(p))
+    {
+      d_relManager->notifyPreprocessedAssertion(retLemma);
+      d_relManager->notifyPreprocessedAssertions(skAsserts);
+    }
+    d_relManager->notifyLemma(retLemma);
   }
 
   // Mark that we added some lemmas

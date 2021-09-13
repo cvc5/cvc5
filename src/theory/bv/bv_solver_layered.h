@@ -58,6 +58,7 @@ class BVSolverLayered : public BVSolver
 
  public:
   BVSolverLayered(TheoryBV& bv,
+                  Env& env,
                   context::Context* c,
                   context::UserContext* u,
                   ProofNodeManager* pnm = nullptr,
