@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Enumeration of veriT proof rules
+ * Enumeration of Alethe proof rules
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__VERIT_PROOF_RULE_H
-#define CVC4__PROOF__VERIT_PROOF_RULE_H
+#ifndef CVC4__PROOF__ALETHE_PROOF_RULE_H
+#define CVC4__PROOF__ALETHE_PROOF_RULE_H
 
 #include <memory>
 
@@ -24,7 +24,7 @@ namespace cvc5 {
 
 namespace proof {
 
-enum class VeritRule : uint32_t
+enum class AletheRule : uint32_t
 {
   //================================================= Special Rules: Commands
   // These rules should be printed as commands
@@ -38,7 +38,7 @@ enum class VeritRule : uint32_t
   // ---------------------------------
   // > k. (cl (not F1) ... (not Fn) F)
   //
-  // Each subproof in veriT begins with an anchor command. The outermost
+  // Each subproof in Alethe begins with an anchor command. The outermost
   // application of anchor will not be printed.
   ANCHOR_SUBPROOF,
   // ======== bind
@@ -51,7 +51,7 @@ enum class VeritRule : uint32_t
   // ======== input
   // > i. F
   ASSUME,
-  //================================================= Rules of the veriT
+  //================================================= Rules of the Alethe
   // calculus
   // ======== true
   // > i. true
@@ -395,24 +395,24 @@ enum class VeritRule : uint32_t
 };
 
 /**
- * Converts a verit proof rule to a string.
+ * Converts a alethe proof rule to a string.
  *
- * @param id The verit proof rule
- * @return The name of the verit proof rule
+ * @param id The alethe proof rule
+ * @return The name of the alethe proof rule
  */
-const char* veritRuleToString(VeritRule id);
+const char* aletheRuleToString(AletheRule id);
 
 /**
- * Writes a verit proof rule name to a stream.
+ * Writes a alethe proof rule name to a stream.
  *
  * @param out The stream to write to
- * @param id The verit proof rule to write to the stream
+ * @param id The alethe proof rule to write to the stream
  * @return The stream
  */
-std::ostream& operator<<(std::ostream& out, VeritRule id);
+std::ostream& operator<<(std::ostream& out, AletheRule id);
 
 }  // namespace proof
 
 }  // namespace cvc5
 
-#endif /* CVC4__PROOF__VERIT_PROOF_RULE_H */
+#endif /* CVC4__PROOF__ALETHE_PROOF_RULE_H */

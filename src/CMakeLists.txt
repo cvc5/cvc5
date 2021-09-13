@@ -231,12 +231,12 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
-  proof/verit/verit_post_processor.cpp
-  proof/verit/verit_post_processor.h
-  proof/verit/verit_proof_rule.cpp
-  proof/verit/verit_proof_rule.h
-  proof/verit/verit_printer.cpp
-  proof/verit/verit_printer.h
+  proof/alethe/alethe_post_processor.cpp
+  proof/alethe/alethe_post_processor.h
+  proof/alethe/alethe_proof_rule.cpp
+  proof/alethe/alethe_proof_rule.h
+  proof/alethe/alethe_printer.cpp
+  proof/alethe/alethe_printer.h
   prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h
