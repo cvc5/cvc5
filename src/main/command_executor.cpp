@@ -200,7 +200,7 @@ bool solverInvoke(api::Solver* solver,
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    sstd::ostream& ss = solver->getOutput("raw-benchmark");
+    std::ostream& ss = solver->getOutput("raw-benchmark");
     cmd->toStream(ss);
   }
   cmd->invoke(solver, sm, out);
