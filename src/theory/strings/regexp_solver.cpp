@@ -20,10 +20,10 @@
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/ext_theory.h"
+#include "theory/strings/term_registry.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 #include "util/statistics_value.h"
-#include "theory/strings/term_registry.h"
 
 using namespace std;
 using namespace cvc5::context;

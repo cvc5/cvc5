@@ -43,8 +43,7 @@ class BaseSolver
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  BaseSolver(SolverState& s, InferenceManager& im,
-                       TermRegistry& tr);
+  BaseSolver(SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BaseSolver();
 
   //-----------------------inference steps

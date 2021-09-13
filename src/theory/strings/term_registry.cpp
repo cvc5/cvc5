@@ -72,10 +72,7 @@ TermRegistry::TermRegistry(Env& env,
 
 TermRegistry::~TermRegistry() {}
 
-uint32_t TermRegistry::getAlphabetCardinality() const
-{
-  return d_alphaCard;
-}
+uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
 
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
@@ -89,11 +86,10 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
     Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConst(Rational(1)));
     Node code_eq_neg1 = t.eqNode(nm->mkConst(Rational(-1)));
-    Node code_range = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
-        nm->mkNode(
-            LT, t, nm->mkConst(Rational(alphaCard))));
+    Node code_range =
+        nm->mkNode(AND,
+                   nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
+                   nm->mkNode(LT, t, nm->mkConst(Rational(alphaCard))));
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)

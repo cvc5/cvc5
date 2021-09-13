@@ -99,6 +99,7 @@ class StringsRewriter : public SequencesRewriter
    * Returns the rewritten form of n.
    */
   Node rewriteStringIsDigit(Node n);
+
  private:
   /** The cardinality of the alphabet */
   uint32_t d_alphaCard;

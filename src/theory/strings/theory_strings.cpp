@@ -73,12 +73,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_rsolver(d_state,
-                d_im,
-                d_termReg,
-                d_csolver,
-                d_esolver,
-                d_statistics),
+      d_rsolver(d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(options::regExpElimAgg(), d_pnm, userContext()),
       d_stringsFmf(context(), userContext(), valuation, d_termReg)
 {
