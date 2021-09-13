@@ -173,9 +173,9 @@ class QuantifiersRewriter : public TheoryRewriter
                              Node n,
                              Node ipl);
   Node computeProcessTerms2(Node body,
-                                   std::map<Node, Node>& cache,
-                                   std::vector<Node>& new_vars,
-                                   std::vector<Node>& new_conds) const;
+                            std::map<Node, Node>& cache,
+                            std::vector<Node>& new_vars,
+                            std::vector<Node>& new_conds) const;
   static void computeDtTesterIteSplit(
       Node n,
       std::map<Node, Node>& pcons,
