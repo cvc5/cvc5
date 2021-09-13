@@ -82,6 +82,23 @@ def concat_format(s, objs):
     return '\n'.join([s.format(**o.__dict__) for o in objs])
 
 
+def format_include(include):
+    """Generate the #include directive for a given header name."""
+    if '<' in include:
+        return '#include {}'.format(include)
+    return '#include "{}"'.format(include)
+
+
+def is_numeric_cpp_type(ctype):
+    """Check if given type is a numeric type (double, int64_t or uint64_t)."""
+    return ctype in ['int64_t', 'uint64_t', 'double']
+
+
+def die(msg):
+    """Exit with the given error message."""
+    sys.exit('[error] {}'.format(msg))
+
+
 def all_options(modules, sorted=False):
     """Helper to iterate all options from all modules."""
     if sorted:
@@ -97,6 +114,35 @@ def all_options(modules, sorted=False):
             for option in module.options:
                 yield module, option
 
+
+def write_file(directory, name, content):
+    """Write content to `directory/name`. If the file exists, only overwrite it
+    when the content would actually change."""
+    fname = os.path.join(directory, name)
+    try:
+        if os.path.isfile(fname):
+            with open(fname, 'r') as file:
+                if content == file.read():
+                    return
+        with open(fname, 'w') as file:
+            file.write(content)
+    except IOError:
+        die("Could not write to '{}'".format(fname))
+
+
+def read_tpl(directory, name):
+    """Read a (custom) template file from `directory/name`. Expects placeholders
+    of the form `${varname}$` and turns them into `{varname}` while all other
+    curly braces are replaced by double curly braces. Thus, the result is
+    suitable for `.format()` with kwargs being used."""
+    fname = os.path.join(directory, name)
+    try:
+        with open(fname, 'r') as file:
+            res = file.read()
+            res = res.replace('{', '{{').replace('}', '}}')
+            return res.replace('${', '').replace('}$', '')
+    except IOError:
+        die("Could not find '{}'. Aborting.".format(fname))
 
 ### Other globals
 
@@ -202,6 +248,11 @@ def get_predicates(option):
     return res
 
 
+################################################################################
+################################################################################
+# classes to represent modules and options
+
+
 class Module(object):
     """Represents one options module from one <module>_options.toml file."""
     def __init__(self, d, filename):
@@ -245,7 +296,57 @@ class Option(object):
         return False
 
 ################################################################################
-# stuff for options/options_public.cpp
+################################################################################
+# code generation functions
+
+################################################################################
+# for options/options.h
+
+
+def generate_holder_fwd_decls(modules):
+    """Render forward declaration of holder structs"""
+    return concat_format('  struct Holder{id_cap};', modules)
+
+
+def generate_holder_mem_decls(modules):
+    """Render declarations of holder members of the Option class"""
+    return concat_format(
+        '    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
+
+
+def generate_holder_ref_decls(modules):
+    """Render reference declarations for holder members of the Option class"""
+    return concat_format('  options::Holder{id_cap}& {id};', modules)
+
+
+################################################################################
+# for options/options.cpp
+
+
+def generate_module_headers(modules):
+    """Render includes for module headers"""
+    return concat_format('#include "{header}"', modules)
+
+
+def generate_holder_mem_inits(modules):
+    """Render initializations of holder members of the Option class"""
+    return concat_format(
+        '        d_{id}(std::make_unique<options::Holder{id_cap}>()),',
+        modules)
+
+
+def generate_holder_ref_inits(modules):
+    """Render initializations of holder references of the Option class"""
+    return concat_format('        {id}(*d_{id}),', modules)
+
+
+def generate_holder_mem_copy(modules):
+    """Render copy operation of holder members of the Option class"""
+    return concat_format('      *d_{id} = *options.d_{id};', modules)
+
+
+################################################################################
+# for options/options_public.cpp
 
 
 def generate_public_includes(modules):
@@ -369,57 +470,7 @@ def generate_set_impl(modules):
 
 
 ################################################################################
-################################################################################
-# code generation functions
-
-################################################################################
-# for options/options.h
-
-
-def generate_holder_fwd_decls(modules):
-    """Render forward declaration of holder structs"""
-    return concat_format('  struct Holder{id_cap};', modules)
-
-
-def generate_holder_mem_decls(modules):
-    """Render declarations of holder members of the Option class"""
-    return concat_format(
-        '    std::unique_ptr<options::Holder{id_cap}> d_{id};', modules)
-
-
-def generate_holder_ref_decls(modules):
-    """Render reference declarations for holder members of the Option class"""
-    return concat_format('  options::Holder{id_cap}& {id};', modules)
-
-
-################################################################################
-# for options/options.cpp
-
-
-def generate_module_headers(modules):
-    """Render includes for module headers"""
-    return concat_format('#include "{header}"', modules)
-
-
-def generate_holder_mem_inits(modules):
-    """Render initializations of holder members of the Option class"""
-    return concat_format(
-        '        d_{id}(std::make_unique<options::Holder{id_cap}>()),',
-        modules)
-
-
-def generate_holder_ref_inits(modules):
-    """Render initializations of holder references of the Option class"""
-    return concat_format('        {id}(*d_{id}),', modules)
-
-
-def generate_holder_mem_copy(modules):
-    """Render copy operation of holder members of the Option class"""
-    return concat_format('      *d_{id} = *options.d_{id};', modules)
-
-
-################################################################################
-# stuff for main/options.cpp
+# for main/options.cpp
 
 
 def _add_cmdoption(option, name, opts, next_id):
@@ -665,72 +716,11 @@ class SphinxGenerator:
         write_file(dstdir, filename, '\n'.join(res))
 
 
-def die(msg):
-    sys.exit('[error] {}'.format(msg))
-
-
-def write_file(directory, name, content):
-    """
-    Write string 'content' to file directory/name. If the file already exists,
-    we first check if the contents of the file is different from 'content'
-    before overwriting the file.
-    """
-    fname = os.path.join(directory, name)
-    try:
-        if os.path.isfile(fname):
-            with open(fname, 'r') as file:
-                if content == file.read():
-                    return
-        with open(fname, 'w') as file:
-            file.write(content)
-    except IOError:
-        die("Could not write '{}'".format(fname))
-
-
-def read_tpl(directory, name):
-    """
-    Read a template file directory/name. The contents of the template file will
-    be read into a string, which will later be used to fill in the generated
-    code/documentation via format. Hence, we have to escape curly braces. All
-    placeholder variables in the template files are enclosed in ${placeholer}$
-    and will be {placeholder} in the returned string.
-    """
-    fname = os.path.join(directory, name)
-    try:
-        # Escape { and } since we later use .format to add the generated code.
-        # Further, strip ${ and }$ from placeholder variables in the template
-        # file.
-        with open(fname, 'r') as file:
-            contents = \
-                file.read().replace('{', '{{').replace('}', '}}').\
-                            replace('${', '').replace('}$', '')
-            return contents
-    except IOError:
-        die("Could not find '{}'. Aborting.".format(fname))
-
-
 def long_get_option(name):
     """
     Extract the name of a given long option long=ARG
     """
     return name.split('=')[0]
-
-
-def is_numeric_cpp_type(ctype):
-    """
-    Check if given type is a numeric C++ type (this should cover the most
-    common cases).
-    """
-    return ctype in ['int64_t', 'uint64_t', 'double']
-
-
-def format_include(include):
-    """
-    Generate the #include directive for a given header name.
-    """
-    if '<' in include:
-        return '#include {}'.format(include)
-    return '#include "{}"'.format(include)
 
 
 def help_mode_format(option):
