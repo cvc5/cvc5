@@ -867,7 +867,7 @@ private:
 
     IntStat d_numBranchesFailed;
 
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& reg, const std::string& name);
   };
 
 

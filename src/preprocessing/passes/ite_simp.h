@@ -39,7 +39,7 @@ class ITESimp : public PreprocessingPass
   struct Statistics
   {
     IntStat d_arithSubstitutionsAdded;
-    Statistics();
+    Statistics(StatisticsRegistry& reg);
   };
 
   Node simpITE(util::ITEUtilities* ite_utils, TNode assertion);

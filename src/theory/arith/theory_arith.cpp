@@ -37,8 +37,8 @@ namespace arith {
 
 TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_ARITH, env, out, valuation),
-      d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
-          "theory::arith::ppRewriteTimer")),
+      d_ppRewriteTimer(
+          statisticsRegistry().registerTimer("theory::arith::ppRewriteTimer")),
       d_astate(env, valuation),
       d_im(env, *this, d_astate, d_pnm),
       d_ppre(context(), d_pnm),
