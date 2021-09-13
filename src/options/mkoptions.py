@@ -617,103 +617,110 @@ def generate_cli_help(modules):
     return '\n'.join(common), '\n'.join(others)
 
 
-class SphinxGenerator:
-    def __init__(self):
-        self.common = []
-        self.others = {}
+################################################################################
+# sphinx command line documentation @ docs/options_generated.rst
 
-    def add(self, module, option):
-        if option.category == 'undocumented':
-            return
-        if not option.long and not option.short:
-            return
-        names = []
-        if option.long:
-            if option.long_opt:
-                names.append('--{}={}'.format(option.long_name, option.long_opt))
-            else:
-                names.append('--{}'.format(option.long_name))
 
-        if option.alias:
-            if option.long_opt:
-                names.extend(['--{}={}'.format(a, option.long_opt) for a in option.alias])
-            else:
-                names.extend(['--{}'.format(a) for a in option.alias])
-
-        if option.short:
-            if option.long_opt:
-                names.append('-{} {}'.format(option.short, option.long_opt))
-            else:
-                names.append('-{}'.format(option.short))
-
-        modes = None
-        if option.mode:
-            modes = {}
-            for _, data in option.mode.items():
-                assert len(data) == 1
-                data = data[0]
-                modes[data['name']] = data.get('help', '')
-
-        data = {
-            'name': names,
-            'help': option.help,
-            'expert': option.category == 'expert',
-            'alternate': option.alternate,
-            'help_mode': option.help_mode,
-            'modes': modes,
-        }
-
-        if option.category == 'common':
-            self.common.append(data)
+def _sphinx_help_add(module, option, common, others):
+    """Analyze an option and add it to either common or others."""
+    names = []
+    if option.long:
+        if option.long_opt:
+            names.append('--{}={}'.format(option.long_name, option.long_opt))
         else:
-            if module.name not in self.others:
-                self.others[module.name] = []
-            self.others[module.name].append(data)
+            names.append('--{}'.format(option.long_name))
 
-    def __render_option(self, res, opt):
-        desc = '``{}``'
-        val = '    {}'
-        if opt['expert']:
-            res.append('.. admonition:: This option is intended for Experts only!')
-            res.append('    ')
-            desc = '    ' + desc
-            val = '    ' + val
+    if option.alias:
+        if option.long_opt:
+            names.extend(
+                ['--{}={}'.format(a, option.long_opt) for a in option.alias])
+        else:
+            names.extend(['--{}'.format(a) for a in option.alias])
 
-        if opt['alternate']:
-            desc += ' (also ``--no-*``)'
-        res.append(desc.format(' | '.join(opt['name'])))
-        res.append(val.format(opt['help']))
+    if option.short:
+        if option.long_opt:
+            names.append('-{} {}'.format(option.short, option.long_opt))
+        else:
+            names.append('-{}'.format(option.short))
 
-        if opt['modes']:
-            res.append(val.format(''))
-            res.append(val.format(opt['help_mode']))
-            res.append(val.format(''))
-            for k, v in opt['modes'].items():
-                if v == '':
-                    continue
-                res.append(val.format(':{}: {}'.format(k, v)))
+    modes = None
+    if option.mode:
+        modes = {}
+        for _, data in option.mode.items():
+            assert len(data) == 1
+            modes[data[0]['name']] = data[0].get('help', '')
+
+    data = {
+        'name': names,
+        'help': option.help,
+        'expert': option.category == 'expert',
+        'alternate': option.alternate,
+        'help_mode': option.help_mode,
+        'modes': modes,
+    }
+
+    if option.category == 'common':
+        common.append(data)
+    else:
+        if module.name not in others:
+            others[module.name] = []
+        others[module.name].append(data)
+
+
+def _sphinx_help_render_option(res, opt):
+    """Render an option to be displayed with sphinx."""
+    desc = '``{}``'
+    val = '    {}'
+    if opt['expert']:
+        res.append('.. admonition:: This option is intended for Experts only!')
         res.append('    ')
+        desc = '    ' + desc
+        val = '    ' + val
+
+    if opt['alternate']:
+        desc += ' (also ``--no-*``)'
+    res.append(desc.format(' | '.join(opt['name'])))
+    res.append(val.format(opt['help']))
+
+    if opt['modes']:
+        res.append(val.format(''))
+        res.append(val.format(opt['help_mode']))
+        res.append(val.format(''))
+        for k, v in opt['modes'].items():
+            if v == '':
+                continue
+            res.append(val.format(':{}: {}'.format(k, v)))
+    res.append('    ')
 
 
-    def render(self, dstdir, filename):
-        res = []
+def generate_sphinx_help(modules):
+    """Render the command line help for sphinx."""
+    common = []
+    others = {}
+    for module, option in all_options(modules, False):
+        if option.type == 'undocumented':
+            continue
+        if not option.long and not option.short:
+            continue
+        _sphinx_help_add(module, option, common, others)
 
-        res.append('Most Commonly-Used cvc5 Options')
-        res.append('===============================')
-        for opt in self.common:
-            self.__render_option(res, opt)
+    res = []
+    res.append('Most Commonly-Used cvc5 Options')
+    res.append('===============================')
+    for opt in common:
+        _sphinx_help_render_option(res, opt)
 
+    res.append('')
+    res.append('Additional cvc5 Options')
+    res.append('=======================')
+    for module in others:
         res.append('')
-        res.append('Additional cvc5 Options')
-        res.append('=======================')
-        for module in self.others:
-            res.append('')
-            res.append('{} Module'.format(module))
-            res.append('-' * (len(module) + 8))
-            for opt in self.others[module]:
-                self.__render_option(res, opt)
+        res.append('{} Module'.format(module))
+        res.append('-' * (len(module) + 8))
+        for opt in others[module]:
+            _sphinx_help_render_option(res, opt)
 
-        write_file(dstdir, filename, '\n'.join(res))
+    return '\n'.join(res)
 
 
 def long_get_option(name):
@@ -883,8 +890,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     help_common = []         # help text for all common options
     help_others = []         # help text for all non-common options
 
-    sphinxgen = SphinxGenerator()
-
     for module in modules:
         headers_module.append(format_include(module.header))
 
@@ -939,8 +944,11 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
                     options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, false, OptionInfo::VoidInfo{{}}}};'.format(cond, long_get_option(option.long), alias=alias))
 
     short, cmdline_opts, parseinternal = generate_parsing(modules)
-
     help_common, help_others = generate_cli_help(modules)
+
+    if os.path.isdir('{}/docs/'.format(build_dir)):
+        write_file('{}/docs/'.format(build_dir), 'options_generated.rst',
+                   generate_sphinx_help(modules))
 
     data = {
         # options/options.h
@@ -967,10 +975,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     }
     for tpl in tpls:
         write_file(dst_dir, tpl['output'], tpl['content'].format(**data))
-
-
-    if os.path.isdir('{}/docs/'.format(build_dir)):
-        sphinxgen.render('{}/docs/'.format(build_dir), 'options_generated.rst')
 
 
 class Checker:
