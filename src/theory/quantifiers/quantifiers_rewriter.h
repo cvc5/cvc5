@@ -156,10 +156,10 @@ class QuantifiersRewriter : public TheoryRewriter
                                  std::vector<Node>& vars,
                                  std::vector<Node>& subs);
   bool addCheckElimChild(std::vector<Node>& children,
-                                Node c,
-                                Kind k,
-                                std::map<Node, bool>& lit_pol,
-                                bool& childrenChanged) const;
+                         Node c,
+                         Kind k,
+                         std::map<Node, bool>& lit_pol,
+                         bool& childrenChanged) const;
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,
@@ -191,8 +191,8 @@ class QuantifiersRewriter : public TheoryRewriter
    *   forall xy. x != a V P( x,y ) ---> forall y. P( a, y )
    */
   Node computeVarElimination(Node body,
-                                    std::vector<Node>& args,
-                                    QAttributes& qa) const;
+                             std::vector<Node>& args,
+                             QAttributes& qa) const;
   //-------------------------------------end variable elimination
   //-------------------------------------conditional splitting
   /** compute conditional splitting
@@ -207,8 +207,8 @@ class QuantifiersRewriter : public TheoryRewriter
    * where in each case, x can be eliminated in the first conjunct.
    */
   Node computeCondSplit(Node body,
-                               const std::vector<Node>& args,
-                               QAttributes& qa) const;
+                        const std::vector<Node>& args,
+                        QAttributes& qa) const;
   //-------------------------------------end conditional splitting
   //------------------------------------- process terms
   /** compute process terms
@@ -229,10 +229,10 @@ class QuantifiersRewriter : public TheoryRewriter
    *   forall X, V. ( C => retBody )
    */
   Node computeProcessTerms(Node body,
-                                  std::vector<Node>& new_vars,
-                                  std::vector<Node>& new_conds,
-                                  Node q,
-                                  QAttributes& qa) const;
+                           std::vector<Node>& new_vars,
+                           std::vector<Node>& new_conds,
+                           Node q,
+                           QAttributes& qa) const;
   //------------------------------------- end process terms
   //------------------------------------- extended rewrite
   /** compute extended rewrite
@@ -248,7 +248,7 @@ class QuantifiersRewriter : public TheoryRewriter
    * Compute miniscoping in quantified formula q with attributes in qa.
    */
   Node computeMiniscoping(Node q, QAttributes& qa) const;
-  Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body ) const;
+  Node computeAggressiveMiniscoping(std::vector<Node>& args, Node body) const;
   /**
    * This function removes top-level quantifiers from subformulas of body
    * appearing with overall polarity pol. It adds quantified variables that
@@ -266,16 +266,16 @@ class QuantifiersRewriter : public TheoryRewriter
    * and add {x} to args, and {y} to nargs.
    */
   Node computePrenex(Node q,
-                            Node body,
-                            std::unordered_set<Node>& args,
-                            std::unordered_set<Node>& nargs,
-                            bool pol,
-                            bool prenexAgg)  const;
-  Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa )  const;
+                     Node body,
+                     std::unordered_set<Node>& args,
+                     std::unordered_set<Node>& nargs,
+                     bool pol,
+                     bool prenexAgg) const;
+  Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
 
-public:
- RewriteResponse preRewrite(TNode in) override;
- RewriteResponse postRewrite(TNode in) override;
+ public:
+  RewriteResponse preRewrite(TNode in) override;
+  RewriteResponse postRewrite(TNode in) override;
 
   static bool isPrenexNormalForm( Node n );
   static Node mkForAll(const std::vector<Node>& args,
@@ -288,18 +288,19 @@ public:
                        Node body,
                        std::vector<Node>& iplc,
                        bool marked = false);
-private:
-  /** 
+
+ private:
+  /**
    * Return true if we should do operation computeOption on quantified formula
    * q with attributes qa.
    */
- bool doOperation(Node q, RewriteStep computeOption, QAttributes& qa) const;
- /** 
-  * Return the rewritten form of q after applying operator computeOption to it.
-  */
- Node computeOperation(Node q,
-                              RewriteStep computeOption,
-                              QAttributes& qa) const;
+  bool doOperation(Node q, RewriteStep computeOption, QAttributes& qa) const;
+  /**
+   * Return the rewritten form of q after applying operator computeOption to it.
+   */
+  Node computeOperation(Node q,
+                        RewriteStep computeOption,
+                        QAttributes& qa) const;
   /** Reference to the options */
   const Options& d_opts;
 }; /* class QuantifiersRewriter */

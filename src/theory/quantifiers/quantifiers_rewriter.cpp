@@ -252,8 +252,14 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
   return RewriteResponse( status, ret );
 }
 
-bool QuantifiersRewriter::addCheckElimChild( std::vector< Node >& children, Node c, Kind k, std::map< Node, bool >& lit_pol, bool& childrenChanged ) const{
-  if( ( k==OR || k==AND ) && d_opts.quantifiers.elimTautQuant ){
+bool QuantifiersRewriter::addCheckElimChild(std::vector<Node>& children,
+                                            Node c,
+                                            Kind k,
+                                            std::map<Node, bool>& lit_pol,
+                                            bool& childrenChanged) const
+{
+  if ((k == OR || k == AND) && d_opts.quantifiers.elimTautQuant)
+  {
     Node lit = c.getKind()==NOT ? c[0] : c;
     bool pol = c.getKind()!=NOT;
     std::map< Node, bool >::iterator it = lit_pol.find( lit );
@@ -415,7 +421,12 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
   }
 }
 
-Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa )  const{
+Node QuantifiersRewriter::computeProcessTerms(Node body,
+                                              std::vector<Node>& new_vars,
+                                              std::vector<Node>& new_conds,
+                                              Node q,
+                                              QAttributes& qa) const
+{
   std::map< Node, Node > cache;
   if( qa.isFunDef() ){
     Node h = QuantAttributes::getFunDefHead( q );
@@ -436,10 +447,11 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
   return computeProcessTerms2(body, cache, new_vars, new_conds);
 }
 
-Node QuantifiersRewriter::computeProcessTerms2(Node body,
-                                               std::map<Node, Node>& cache,
-                                               std::vector<Node>& new_vars,
-                                               std::vector<Node>& new_conds) const
+Node QuantifiersRewriter::computeProcessTerms2(
+    Node body,
+    std::map<Node, Node>& cache,
+    std::vector<Node>& new_vars,
+    std::vector<Node>& new_conds) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2")
@@ -1252,7 +1264,10 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   return ret;
 }
 
-Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa ) const{
+Node QuantifiersRewriter::computeVarElimination(Node body,
+                                                std::vector<Node>& args,
+                                                QAttributes& qa) const
+{
   if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.dtVarExpandQuant
       && !d_opts.quantifiers.varIneqElimQuant)
   {
@@ -1310,7 +1325,8 @@ Node QuantifiersRewriter::computePrenex(Node q,
   if (k == FORALL)
   {
     if ((pol || prenexAgg)
-        && (d_opts.quantifiers.prenexQuantUser || !QuantAttributes::hasPattern(body)))
+        && (d_opts.quantifiers.prenexQuantUser
+            || !QuantAttributes::hasPattern(body)))
     {
       std::vector< Node > terms;
       std::vector< Node > subs;
@@ -1571,7 +1587,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa) const
   }else if( body.getKind()==AND ){
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
-    if (d_opts.quantifiers.miniscopeQuant || d_opts.quantifiers.aggressiveMiniscopeQuant)
+    if (d_opts.quantifiers.miniscopeQuant
+        || d_opts.quantifiers.aggressiveMiniscopeQuant)
     {
       BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
@@ -1615,7 +1632,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa) const
       return retVal;
     }
   }else if( body.getKind()==OR ){
-    if( d_opts.quantifiers.quantSplit ){
+    if (d_opts.quantifiers.quantSplit)
+    {
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
     }
@@ -1655,7 +1673,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa) const
   return mkForAll( activeArgs, body, qa );
 }
 
-Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& args, Node body ) const
+Node QuantifiersRewriter::computeAggressiveMiniscoping(std::vector<Node>& args,
+                                                       Node body) const
 {
   std::map<Node, std::vector<Node> > varLits;
   std::map<Node, std::vector<Node> > litVars;
@@ -1769,9 +1788,9 @@ bool QuantifiersRewriter::doOperation(Node q,
                                       RewriteStep computeOption,
                                       QAttributes& qa) const
 {
-  bool is_strict_trigger =
-      qa.d_hasPattern
-      && d_opts.quantifiers.userPatternsQuant == d_opts.quantifiers.UserPatMode::STRICT;
+  bool is_strict_trigger = qa.d_hasPattern
+                           && d_opts.quantifiers.userPatternsQuant
+                                  == d_opts.quantifiers.UserPatMode::STRICT;
   bool is_std = qa.isStandard() && !is_strict_trigger;
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
@@ -1791,21 +1810,27 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    return is_std && d_opts.quantifiers.iteLiftQuant != d_opts.quantifiers.IteLiftQuantMode::NONE;
+    return is_std
+           && d_opts.quantifiers.iteLiftQuant
+                  != d_opts.quantifiers.IteLiftQuantMode::NONE;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
-    return (d_opts.quantifiers.iteDtTesterSplitQuant || d_opts.quantifiers.condVarSplitQuant())
+    return (d_opts.quantifiers.iteDtTesterSplitQuant
+            || d_opts.quantifiers.condVarSplitQuant())
            && !is_strict_trigger;
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
-    return d_opts.quantifiers.prenexQuant != d_opts.quantifiers.PrenexQuantMode::NONE
+    return d_opts.quantifiers.prenexQuant
+               != d_opts.quantifiers.PrenexQuantMode::NONE
            && !d_opts.quantifiers.aggressiveMiniscopeQuant() && is_std;
   }
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
   {
-    return (d_opts.quantifiers.varElimQuant || d_opts.quantifiers.dtVarExpandQuant()) && is_std;
+    return (d_opts.quantifiers.varElimQuant
+            || d_opts.quantifiers.dtVarExpandQuant())
+           && is_std;
   }
   else
   {
@@ -1821,7 +1846,8 @@ Node QuantifiersRewriter::computeOperation(Node f,
   Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
   if (computeOption == COMPUTE_MINISCOPING)
   {
-    if (d_opts.quantifiers.prenexQuant() == d_opts.quantifiers.PrenexQuantMode::NORMAL)
+    if (d_opts.quantifiers.prenexQuant()
+        == d_opts.quantifiers.PrenexQuantMode::NORMAL)
     {
       if( !qa.d_qid_num.isNull() ){
         //already processed this, return self
@@ -1858,7 +1884,8 @@ Node QuantifiersRewriter::computeOperation(Node f,
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
-    if (d_opts.quantifiers.prenexQuant() == d_opts.quantifiers.PrenexQuantMode::NORMAL)
+    if (d_opts.quantifiers.prenexQuant()
+        == d_opts.quantifiers.PrenexQuantMode::NORMAL)
     {
       //will rewrite at preprocess time
       return f;
