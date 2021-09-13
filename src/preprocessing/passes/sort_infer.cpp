@@ -20,7 +20,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/dump_manager.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
@@ -42,7 +41,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   theory::SortInference* si =
       d_preprocContext->getTheoryEngine()->getSortInference();
 
-  if (options::sortInference())
+  if (options().smt.sortInference)
   {
     si->initialize(assertionsToPreprocess->ref());
     std::map<Node, Node> model_replace_f;
@@ -53,7 +52,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       Node next = si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
-        next = theory::Rewriter::rewrite(next);
+        next = rewrite(next);
         assertionsToPreprocess->replace(i, next);
         Trace("sort-infer-preprocess")
             << "*** Preprocess SortInferencePass " << prev << endl;
@@ -65,15 +64,14 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     si->getNewAssertions(newAsserts);
     for (const Node& na : newAsserts)
     {
-      Node nar = theory::Rewriter::rewrite(na);
+      Node nar = rewrite(na);
       Trace("sort-infer-preprocess")
           << "*** Preprocess SortInferencePass : new constraint " << nar
           << endl;
       assertionsToPreprocess->push_back(nar);
     }
     // indicate correspondence between the functions
-    SmtEngine* smt = smt::currentSmtEngine();
-    smt::DumpManager* dm = smt->getDumpManager();
+    smt::DumpManager* dm = d_env.getDumpManager();
     for (const std::pair<const Node, Node>& mrf : model_replace_f)
     {
       dm->setPrintFuncInModel(mrf.first, false);
@@ -82,7 +80,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   }
   // only need to compute monotonicity on the resulting formula if we are
   // using this option
-  if (options::ufssFairnessMonotone())
+  if (options().uf.ufssFairnessMonotone)
   {
     si->computeMonotonicity(assertionsToPreprocess->ref());
   }

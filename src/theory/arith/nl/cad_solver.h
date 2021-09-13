@@ -20,6 +20,7 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/env.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
 

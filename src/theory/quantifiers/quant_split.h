@@ -19,6 +19,7 @@
 #define CVC5__THEORY__QUANT_SPLIT_H
 
 #include "context/cdo.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace cvc5 {
@@ -50,7 +51,8 @@ class QuantDSplit : public QuantifiersModule {
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  QuantDSplit(QuantifiersState& qs,
+  QuantDSplit(Env& env,
+              QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
               TermRegistry& tr);

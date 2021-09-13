@@ -37,11 +37,10 @@ class NodeCommand
   virtual ~NodeCommand();
 
   /** Print this NodeCommand to output stream */
-  virtual void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const = 0;
+  virtual void toStream(std::ostream& out,
+                        int toDepth = -1,
+                        size_t dag = 1,
+                        Language language = Language::LANG_AUTO) const = 0;
 
   /** Get a string representation of this NodeCommand */
   std::string toString() const;
@@ -60,11 +59,10 @@ class DeclareFunctionNodeCommand : public NodeCommand
 {
  public:
   DeclareFunctionNodeCommand(const std::string& id, Node fun, TypeNode type);
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
   NodeCommand* clone() const override;
   const Node& getFunction() const;
 
@@ -82,11 +80,10 @@ class DeclareDatatypeNodeCommand : public NodeCommand
 {
  public:
   DeclareDatatypeNodeCommand(const std::vector<TypeNode>& datatypes);
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
   NodeCommand* clone() const override;
 
  private:
@@ -101,11 +98,10 @@ class DeclareTypeNodeCommand : public NodeCommand
 {
  public:
   DeclareTypeNodeCommand(const std::string& id, size_t arity, TypeNode type);
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
   NodeCommand* clone() const override;
   const std::string getSymbol() const;
   const TypeNode& getType() const;
@@ -127,11 +123,10 @@ class DefineFunctionNodeCommand : public NodeCommand
                             Node fun,
                             const std::vector<Node>& formals,
                             Node formula);
-  void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dag = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
   NodeCommand* clone() const override;
 
  private:

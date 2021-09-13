@@ -39,7 +39,8 @@ class FirstOrderModelFmc : public FirstOrderModel
   void processInitializeModelForTerm(Node n) override;
 
  public:
-  FirstOrderModelFmc(QuantifiersState& qs,
+  FirstOrderModelFmc(Env& env,
+                     QuantifiersState& qs,
                      QuantifiersRegistry& qr,
                      TermRegistry& tr);
   ~FirstOrderModelFmc() override;

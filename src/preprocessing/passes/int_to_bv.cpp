@@ -105,9 +105,9 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
 
 Node IntToBV::intToBV(TNode n, NodeMap& cache)
 {
-  int size = options::solveIntAsBV();
+  int size = options().smt.solveIntAsBV;
   AlwaysAssert(size > 0);
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -203,7 +203,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       // Mark the substitution and continue
       Node result = builder;
 
-      result = Rewriter::rewrite(result);
+      result = rewrite(result);
       cache[current] = result;
     }
     else
@@ -217,8 +217,20 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           result = sm->mkDummySkolem("__intToBV_var",
                                      nm->mkBitVectorType(size),
                                      "Variable introduced in intToBV pass");
-          Node bv2nat = nm->mkNode(kind::BITVECTOR_TO_NAT, result);
-          d_preprocContext->addSubstitution(current, bv2nat);
+          /**
+           * Correctly convert signed/unsigned BV values to Integers as follows
+           * x < 0 ? -nat(-x) : nat(x)
+           * where x refers to the bit-vector term `result`.
+           */
+          BitVector bvzero(size, Integer(0));
+          Node negResult = nm->mkNode(kind::BITVECTOR_TO_NAT,
+                                      nm->mkNode(kind::BITVECTOR_NEG, result));
+          Node bv2int = nm->mkNode(
+              kind::ITE,
+              nm->mkNode(kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
+              nm->mkNode(kind::UMINUS, negResult),
+              nm->mkNode(kind::BITVECTOR_TO_NAT, result));
+          d_preprocContext->addSubstitution(current, bv2int);
         }
       }
       else if (current.isConst())

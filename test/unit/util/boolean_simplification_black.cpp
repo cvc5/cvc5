@@ -72,7 +72,7 @@ class TestUtilBlackBooleanSimplification : public TestNode
     Assert(BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD >= 10);
 
     std::cout << expr::ExprSetDepth(-1)
-              << language::SetLanguage(language::output::LANG_CVC);
+              << language::SetLanguage(Language::LANG_CVC);
   }
 
   // assert equality up to commuting children

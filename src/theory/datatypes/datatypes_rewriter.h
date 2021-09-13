@@ -24,6 +24,16 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
+/**
+ * The rewriter for datatypes. An invariant of the rewriter is that
+ * postRewrite/preRewrite should not depend on the options, in particular,
+ * they should not depend on whether shared selectors are enabled. Thus,
+ * they should not use DTypeConstructor::getSelectorInternal. Instead,
+ * the conversion from external to internal selectors is done in
+ * expandDefinition. This invariant ensures that the rewritten form of a node
+ * does not mix multiple option settings, which would lead to e.g. shared
+ * selectors being used in an SmtEngine instance where they are disabled.
+ */
 class DatatypesRewriter : public TheoryRewriter
 {
  public:
@@ -48,6 +58,17 @@ class DatatypesRewriter : public TheoryRewriter
    * on all top-level codatatype subterms of n.
    */
   static Node normalizeConstant(Node n);
+  /**
+   * Expand an APPLY_SELECTOR term n, return its expanded form. If n is
+   *   (APPLY_SELECTOR selC x)
+   * its expanded form is
+   *   (ITE (APPLY_TESTER is-C x)
+   *     (APPLY_SELECTOR_TOTAL selC' x)
+   *     (f x))
+   * where f is a skolem function with id SELECTOR_WRONG, and selC' is the
+   * internal selector function for selC (possibly a shared selector).
+   */
+  static Node expandApplySelector(Node n);
   /** expand defintions */
   TrustNode expandDefinition(Node n) override;
 

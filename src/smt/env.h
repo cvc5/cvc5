@@ -14,7 +14,7 @@
  * internal code
  */
 
-#include "cvc5_public.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__ENV_H
 #define CVC5__SMT__ENV_H
@@ -40,6 +40,7 @@ class UserContext;
 
 namespace smt {
 class DumpManager;
+class PfManager;
 }
 
 namespace theory {
@@ -56,12 +57,13 @@ class TrustSubstitutionMap;
 class Env
 {
   friend class SmtEngine;
+  friend class smt::PfManager;
 
  public:
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm, Options* opts);
+  Env(NodeManager* nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
@@ -81,9 +83,6 @@ class Env
    * environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
-
-  /** Return the input name, or the empty string if not set */
-  const std::string& getFilename() const;
 
   /**
    * Check whether the SAT solver should produce proofs. Other than whether
@@ -143,11 +142,6 @@ class Env
 
   /** Set proof node manager if it exists */
   void setProofNodeManager(ProofNodeManager* pnm);
-  /**
-   * Set that the file name of the current instance is the given string. This
-   * is used for various purposes (e.g. get-info, SZS status).
-   */
-  void setFilename(const std::string& filename);
 
   /* Private shutdown ------------------------------------------------------- */
   /**
@@ -214,12 +208,6 @@ class Env
   const Options* d_originalOptions;
   /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
-
-  /**
-   * The input file name or the name set through (set-info :filename ...), if
-   * any.
-   */
-  std::string d_filename;
 }; /* class Env */
 
 }  // namespace cvc5

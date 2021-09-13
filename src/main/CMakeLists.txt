@@ -19,17 +19,22 @@ set(libmain_src_files
   interactive_shell.cpp
   interactive_shell.h
   main.h
+  options.h
   signal_handlers.cpp
   signal_handlers.h
   time_limit.cpp
   time_limit.h
 )
+set(libmain_gen_src_files
+  ${CMAKE_CURRENT_BINARY_DIR}/options.cpp
+)
+set_source_files_properties(${libmain_gen_src_files} PROPERTIES GENERATED TRUE)
 
 #-----------------------------------------------------------------------------#
 # Build object library since we will use the object files for cvc5-bin and
 # main-test library.
 
-add_library(main OBJECT ${libmain_src_files})
+add_library(main OBJECT ${libmain_src_files} ${libmain_gen_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC5DRIVER)
 if(ENABLE_SHARED)
   set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)

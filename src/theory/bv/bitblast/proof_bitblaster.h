@@ -29,12 +29,15 @@ namespace bv {
 
 class BitblastProofGenerator;
 
-class BBProof
+class BBProof : protected EnvObj
 {
   using Bits = std::vector<Node>;
 
  public:
-  BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained);
+  BBProof(Env& env,
+          TheoryState* state,
+          ProofNodeManager* pnm,
+          bool fineGrained);
   ~BBProof();
 
   /** Bit-blast atom 'node'. */

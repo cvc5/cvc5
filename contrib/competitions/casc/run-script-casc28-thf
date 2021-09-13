@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# script is used for THF division
+
+here=`dirname $0`
+cvc5=$here/cvc5
+bench="$1"
+
+file=${bench##*/}
+filename=${file%.*}
+
+echo "------- cvc5-thf casc 28 : $bench at $2..."
+
+# use: trywith [params..]
+# to attempt a run.  If an SZS ontology result is printed, then
+# the run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  limit=$1; shift;
+  echo "--- Run $@ at $limit...";
+  (ulimit -S -t "$limit";$cvc5 --lang=tptp --uf-ho --no-type-checking --no-interactive --dump-proofs --proof-granularity=off --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench) 2>/dev/null |
+  (read w1 w2 w3 result w4 w5;
+  case "$result" in
+  Unsatisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
+  Theorem) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
+  esac; exit 1)
+  if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
+}
+function finishwith {
+  echo "--- Run $@...";
+  $cvc5 --lang=tptp --uf-ho --no-type-checking --no-interactive --dump-proofs --proof-granularity=off --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench
+}
+
+# designed for 120 seconds
+trywith 10 --ho-elim --full-saturate-quant
+trywith 10 --ho-elim --no-e-matching --full-saturate-quant
+trywith 10 --ho-elim --no-e-matching --fs-sum --full-saturate-quant
+trywith 5  --ho-elim --finite-model-find --uf-ss=no-minimal
+trywith 5  --no-ho-matching --finite-model-find --uf-ss=no-minimal
+trywith 10 --no-ho-matching --full-saturate-quant --fs-interleave --ho-elim-store-ax
+trywith 10 --no-ho-matching --full-saturate-quant --macros-quant-mode=all
+trywith 10 --ho-elim --full-saturate-quant --fs-interleave
+trywith 10 --no-ho-matching --full-saturate-quant --ho-elim-store-ax
+finishwith  --ho-elim --no-ho-elim-store-ax --full-saturate-quant
+# echo "% SZS status" "GaveUp for $filename"

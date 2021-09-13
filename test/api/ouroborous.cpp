@@ -96,14 +96,16 @@ std::string parse(std::string instr,
   }
 
   api::Solver solver;
-  InputLanguage ilang =
-      input_language == "smt2" ? input::LANG_SMTLIB_V2 : input::LANG_CVC;
+  std::string ilang =
+      input_language == "smt2" ? "LANG_SMTLIB_V2_6" : "LANG_CVC";
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
   SymbolManager symman(&solver);
   std::unique_ptr<Parser> parser(
-      ParserBuilder(&solver, &symman).withInputLanguage(ilang).build());
+      ParserBuilder(&solver, &symman, false)
+          .withInputLanguage(solver.getOption("input-language"))
+          .build());
   parser->setInput(
       Input::newStringInput(ilang, declarations, "internal-buffer"));
   // we don't need to execute the commands, but we DO need to parse them to
@@ -129,19 +131,19 @@ std::string translate(std::string instr,
 
   std::cout << "==============================================" << std::endl
             << "translating from "
-            << (input_language == "smt2" ? input::LANG_SMTLIB_V2
-                                         : input::LANG_CVC)
+            << (input_language == "smt2" ? Language::LANG_SMTLIB_V2_6
+                                         : Language::LANG_CVC)
             << " to "
-            << (output_language == "smt2" ? output::LANG_SMTLIB_V2
-                                          : output::LANG_CVC)
+            << (output_language == "smt2" ? Language::LANG_SMTLIB_V2_6
+                                          : Language::LANG_CVC)
             << " this string:" << std::endl
             << instr << std::endl;
   std::string outstr = parse(instr, input_language, output_language);
   std::cout << "got this:" << std::endl
             << outstr << std::endl
             << "reparsing as "
-            << (output_language == "smt2" ? input::LANG_SMTLIB_V2
-                                          : input::LANG_CVC)
+            << (output_language == "smt2" ? Language::LANG_SMTLIB_V2_6
+                                          : Language::LANG_CVC)
             << std::endl;
   std::string poutstr = parse(outstr, output_language, output_language);
   assert(outstr == poutstr);
@@ -155,7 +157,7 @@ void runTestString(std::string instr, std::string instr_language)
 {
   std::cout << std::endl
             << "starting with: " << instr << std::endl
-            << "   in language " << input::LANG_SMTLIB_V2 << std::endl;
+            << "   in language " << Language::LANG_SMTLIB_V2_6 << std::endl;
   std::string smt2str = translate(instr, instr_language, "smt2");
   std::cout << "in SMT2      : " << smt2str << std::endl;
   std::string cvcstr = translate(smt2str, "smt2", "cvc");

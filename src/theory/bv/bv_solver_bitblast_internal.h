@@ -37,7 +37,8 @@ namespace bv {
 class BVSolverBitblastInternal : public BVSolver
 {
  public:
-  BVSolverBitblastInternal(TheoryState* state,
+  BVSolverBitblastInternal(Env& env,
+                           TheoryState* state,
                            TheoryInferenceManager& inferMgr,
                            ProofNodeManager* pnm);
   ~BVSolverBitblastInternal() = default;

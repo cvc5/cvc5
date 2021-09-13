@@ -23,6 +23,7 @@
 #include "expr/node.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
@@ -37,10 +38,11 @@ namespace arith {
  * agnostic to the state of solver; instead is simply given (variable, value)
  * pairs in branchIntegerVariable below and constructs the appropriate lemma.
  */
-class BranchAndBound
+class BranchAndBound : protected EnvObj
 {
  public:
-  BranchAndBound(ArithState& s,
+  BranchAndBound(Env& env,
+                 ArithState& s,
                  InferenceManager& im,
                  PreprocessRewriteEq& ppre,
                  ProofNodeManager* pnm);

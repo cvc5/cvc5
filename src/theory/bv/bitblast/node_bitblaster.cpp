@@ -22,7 +22,8 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-NodeBitblaster::NodeBitblaster(TheoryState* s) : TBitblaster<Node>(), d_state(s)
+NodeBitblaster::NodeBitblaster(Env& env, TheoryState* s)
+    : TBitblaster<Node>(), EnvObj(env), d_state(s)
 {
 }
 
@@ -38,14 +39,14 @@ void NodeBitblaster::bbAtom(TNode node)
   /* Note: We rewrite here since it's not guaranteed (yet) that facts sent
    * to theories are rewritten.
    */
-  Node normalized = Rewriter::rewrite(node);
+  Node normalized = rewrite(node);
   Node atom_bb =
       normalized.getKind() != kind::CONST_BOOLEAN
               && normalized.getKind() != kind::BITVECTOR_BITOF
           ? d_atomBBStrategies[normalized.getKind()](normalized, this)
           : normalized;
 
-  storeBBAtom(node, Rewriter::rewrite(atom_bb));
+  storeBBAtom(node, rewrite(atom_bb));
 }
 
 void NodeBitblaster::storeBBAtom(TNode atom, Node atom_bb)
@@ -136,7 +137,7 @@ Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
 
 void NodeBitblaster::computeRelevantTerms(std::set<Node>& termSet)
 {
-  Assert(options::bitblastMode() == options::BitblastMode::EAGER);
+  Assert(options().bv.bitblastMode == options::BitblastMode::EAGER);
   for (const auto& var : d_variables)
   {
     termSet.insert(var);
