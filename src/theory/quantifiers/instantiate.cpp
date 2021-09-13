@@ -506,7 +506,7 @@ bool Instantiate::existsInstantiation(Node q,
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
-      return it->second->existsInstMatch(d_env, d_qstate, q, terms, modEq);
+      return it->second->existsInstMatch(userContext(), d_qstate, q, terms, modEq);
     }
   }
   else
@@ -596,7 +596,7 @@ bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
       res.first->second = new CDInstMatchTrie(userContext());
     }
     d_c_inst_match_trie_dom.insert(q);
-    return res.first->second->addInstMatch(d_env, d_qstate, q, terms);
+    return res.first->second->addInstMatch(userContext(), d_qstate, q, terms);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
   return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);

@@ -62,32 +62,32 @@ BVSolverLayered::BVSolverLayered(Env& env,
       d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
       d_calledPreregister(false)
 {
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     d_eagerSolver.reset(new EagerBitblastSolver(c, this));
     return;
   }
 
-  if (options::bitvectorEqualitySolver())
+  if (options().bv.bitvectorEqualitySolver)
   {
     d_subtheories.emplace_back(new CoreSolver(c, this));
     d_subtheoryMap[SUB_CORE] = d_subtheories.back().get();
   }
 
-  if (options::bitvectorInequalitySolver())
+  if (options().bv.bitvectorInequalitySolver)
   {
     d_subtheories.emplace_back(new InequalitySolver(c, u, this));
     d_subtheoryMap[SUB_INEQUALITY] = d_subtheories.back().get();
   }
 
-  if (options::bitvectorAlgebraicSolver())
+  if (options().bv.bitvectorAlgebraicSolver)
   {
     d_subtheories.emplace_back(new AlgebraicSolver(c, this));
     d_subtheoryMap[SUB_ALGEBRAIC] = d_subtheories.back().get();
   }
 
   BitblastSolver* bb_solver = new BitblastSolver(c, this);
-  if (options::bvAbstraction())
+  if (options().bv.bvAbstraction)
   {
     bb_solver->setAbstraction(d_abstractionModule.get());
   }
@@ -142,7 +142,7 @@ void BVSolverLayered::preRegisterTerm(TNode node)
   Debug("bitvector-preregister")
       << "BVSolverLayered::preRegister(" << node << ")" << std::endl;
 
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     // the aig bit-blaster option is set heuristically
     // if bv abstraction is used
@@ -236,7 +236,7 @@ void BVSolverLayered::check(Theory::Effort e)
   // we may be getting new assertions so the model cache may not be sound
   d_invalidateModelCache.set(true);
   // if we are using the eager solver
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     // this can only happen on an empty benchmark
     if (!d_eagerSolver->isInitialized())
@@ -323,7 +323,7 @@ bool BVSolverLayered::collectModelValues(TheoryModel* m,
                                          const std::set<Node>& termSet)
 {
   Assert(!inConflict());
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     if (!d_eagerSolver->collectModelInfo(m, true))
     {
@@ -356,7 +356,7 @@ Node BVSolverLayered::getModelValue(TNode var)
 void BVSolverLayered::propagate(Theory::Effort e)
 {
   Debug("bitvector") << indent() << "BVSolverLayered::propagate()" << std::endl;
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     return;
   }
@@ -395,15 +395,15 @@ TrustNode BVSolverLayered::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "BVSolverLayered::ppRewrite " << t << "\n";
   Node res = t;
-  if (options::bitwiseEq() && RewriteRule<BitwiseEq>::applies(t))
+  if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
   {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
-    res = Rewriter::rewrite(result);
+    res = rewrite(result);
   }
   else if (RewriteRule<UltAddOne>::applies(t))
   {
     Node result = RewriteRule<UltAddOne>::run<false>(t);
-    res = Rewriter::rewrite(result);
+    res = rewrite(result);
   }
   else if (res.getKind() == kind::EQUAL
            && ((res[0].getKind() == kind::BITVECTOR_ADD
@@ -420,7 +420,7 @@ TrustNode BVSolverLayered::ppRewrite(TNode t)
     Node rewr_eq = RewriteRule<SolveEq>::run<true>(new_eq);
     if (rewr_eq[0].isVar() || rewr_eq[1].isVar())
     {
-      res = Rewriter::rewrite(rewr_eq);
+      res = rewrite(rewr_eq);
     }
     else
     {
@@ -452,7 +452,7 @@ TrustNode BVSolverLayered::ppRewrite(TNode t)
   //   if (RewriteRule<MultSlice>::applies(mult)) {
   //     Node new_mult = RewriteRule<MultSlice>::run<false>(mult);
   //     Node new_eq =
-  //     Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL,
+  //     rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL,
   //     new_mult, add));
 
   //     // the simplification can cause the formula to blow up
@@ -476,7 +476,7 @@ TrustNode BVSolverLayered::ppRewrite(TNode t)
   //   }
   // }
 
-  if (options::bvAbstraction() && t.getType().isBoolean())
+  if (options().bv.bvAbstraction && t.getType().isBoolean())
   {
     d_abstractionModule->addInputAtom(res);
   }
@@ -596,9 +596,9 @@ void BVSolverLayered::notifySharedTerm(TNode t)
 
 EqualityStatus BVSolverLayered::getEqualityStatus(TNode a, TNode b)
 {
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
     return EQUALITY_UNKNOWN;
-  Assert(options::bitblastMode() == options::BitblastMode::LAZY);
+  Assert(options().bv.bitblastMode == options::BitblastMode::LAZY);
   for (unsigned i = 0; i < d_subtheories.size(); ++i)
   {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
@@ -666,8 +666,8 @@ bool BVSolverLayered::applyAbstraction(const std::vector<Node>& assertions,
 {
   bool changed =
       d_abstractionModule->applyAbstraction(assertions, new_assertions);
-  if (changed && options::bitblastMode() == options::BitblastMode::EAGER
-      && options::bitvectorAig())
+  if (changed && options().bv.bitblastMode == options::BitblastMode::EAGER
+      && options().bv.bitvectorAig)
   {
     // disable AIG mode
     AlwaysAssert(!d_eagerSolver->isInitialized());
@@ -679,7 +679,7 @@ bool BVSolverLayered::applyAbstraction(const std::vector<Node>& assertions,
 
 void BVSolverLayered::setConflict(Node conflict)
 {
-  if (options::bvAbstraction())
+  if (options().bv.bvAbstraction)
   {
     NodeManager* const nm = NodeManager::currentNM();
     Node new_conflict = d_abstractionModule->simplifyConflict(conflict);

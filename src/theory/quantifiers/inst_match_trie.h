@@ -132,7 +132,7 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool existsInstMatch(Env& env,
+  bool existsInstMatch(context::Context* context,
                        QuantifiersState& qs,
                        Node q,
                        const std::vector<Node>& m,
@@ -147,7 +147,7 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool addInstMatch(Env& env,
+  bool addInstMatch(context::Context* context,
                     QuantifiersState& qs,
                     Node q,
                     const std::vector<Node>& m,

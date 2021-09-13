@@ -189,17 +189,17 @@ CDInstMatchTrie::~CDInstMatchTrie()
   d_data.clear();
 }
 
-bool CDInstMatchTrie::existsInstMatch(Env& env,
+bool CDInstMatchTrie::existsInstMatch(context::Context* context,
                                       quantifiers::QuantifiersState& qs,
                                       Node q,
                                       const std::vector<Node>& m,
                                       bool modEq,
                                       unsigned index)
 {
-  return !addInstMatch(env, qs, q, m, modEq, index, true);
+  return !addInstMatch(context, qs, q, m, modEq, index, true);
 }
 
-bool CDInstMatchTrie::addInstMatch(Env& env,
+bool CDInstMatchTrie::addInstMatch(context::Context* context,
                                    quantifiers::QuantifiersState& qs,
                                    Node f,
                                    const std::vector<Node>& m,
@@ -229,7 +229,7 @@ bool CDInstMatchTrie::addInstMatch(Env& env,
   if (it != d_data.end())
   {
     bool ret =
-        it->second->addInstMatch(env, qs, f, m, modEq, index + 1, onlyExist);
+        it->second->addInstMatch(context, qs, f, m, modEq, index + 1, onlyExist);
     if (!onlyExist || !ret)
     {
       return reset || ret;
@@ -250,7 +250,7 @@ bool CDInstMatchTrie::addInstMatch(Env& env,
           if (itc != d_data.end())
           {
             if (itc->second->addInstMatch(
-                    env, qs, f, m, modEq, index + 1, true))
+                    context, qs, f, m, modEq, index + 1, true))
             {
               return false;
             }
@@ -263,10 +263,10 @@ bool CDInstMatchTrie::addInstMatch(Env& env,
 
   if (!onlyExist)
   {
-    CDInstMatchTrie* imt = new CDInstMatchTrie(env.getUserContext());
+    CDInstMatchTrie* imt = new CDInstMatchTrie(context);
     Assert(d_data.find(n) == d_data.end());
     d_data[n] = imt;
-    imt->addInstMatch(env, qs, f, m, modEq, index + 1, false);
+    imt->addInstMatch(context, qs, f, m, modEq, index + 1, false);
   }
   return true;
 }

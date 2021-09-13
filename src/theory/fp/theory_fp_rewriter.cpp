@@ -38,7 +38,7 @@
 
 #include "base/check.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/fp/fp_converter.h"
+#include "theory/fp/fp_word_blaster.h"
 #include "util/floatingpoint.h"
 
 namespace cvc5 {
