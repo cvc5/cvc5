@@ -72,7 +72,7 @@ class Rewriter {
    * @param node The node to rewrite
    * @param aggr Whether to perform aggressive rewrites.
    */
-  Node extendedRewrite(TNode node, bool aggr = true) const;
+  Node extendedRewrite(TNode node, bool aggr = true);
   /**
    * Evaluate node n under the substitution args -> vals. For details, see
    * theory/evaluator.h.

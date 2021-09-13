@@ -27,6 +27,8 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
+#include "util/string.h"
+#include "util/rational.h"
 #include "util/sampler.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
