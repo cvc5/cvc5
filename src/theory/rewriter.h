@@ -17,9 +17,10 @@
 
 #pragma once
 
+#include <memory>
+
 #include "expr/node.h"
 #include "proof/method_id.h"
-#include "theory/evaluator.h"
 #include "theory/theory_rewriter.h"
 
 namespace cvc5 {
@@ -29,6 +30,8 @@ class ProofNodeManager;
 class TrustNode;
 
 namespace theory {
+
+class Evaluator;
 
 /**
  * The main rewriter class.
@@ -191,9 +194,9 @@ class Rewriter {
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
 
   /** The evaluator to use */
-  Evaluator d_eval;
+  std::unique_ptr<Evaluator> d_eval;
   /** The evaluator to use, which also invokes this rewriter */
-  Evaluator d_evalWithRewrite;
+  std::unique_ptr<Evaluator> d_evalWithRewrite;
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;

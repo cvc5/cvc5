@@ -16,6 +16,7 @@
 #include "theory/quantifiers/expr_miner_manager.h"
 
 #include "options/quantifiers_options.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
@@ -33,7 +34,8 @@ ExpressionMinerManager::ExpressionMinerManager(Env& env)
             options::sygusRewSynthAccel(),
             false),
       d_qg(env),
-      d_sols(env)
+      d_sols(env),
+      d_sampler(env.getRewriter())
 {
 }
 
