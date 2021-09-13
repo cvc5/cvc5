@@ -336,7 +336,7 @@ enum class AletheRule : uint32_t
   //  G > i. (= (ite F1 F2 F3) (and (=> F1 F2) (=> (not F1) (not F3))))
   CONNECTIVE_DEF,
   // ======== Simplify rules
-  // The following rules are simplfy rules introduced as tautologies that can be
+  // The following rules are simplifying rules introduced as tautologies that can be
   // verified by a number of simple transformations
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,
