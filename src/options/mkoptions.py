@@ -469,6 +469,43 @@ def generate_set_impl(modules):
     return '\n'.join(res)
 
 
+def generate_getinfo_impl(modules):
+    """Generates the implementation for options::getInfo()."""
+    res = []
+    for module, option in all_options(modules, True):
+        if not option.long:
+            continue
+        constr = None
+        fmt = {
+            'condition': ' || '.join(['name == "{}"'.format(x) for x in option.names]),
+            'name': option.long_name,
+            'alias': '',
+            'type': option.type,
+            'value': 'opts.{}.{}'.format(module.id, option.name),
+            'setbyuser': 'opts.{}.{}WasSetByUser'.format(module.id, option.name),
+            'default': option.default if option.default else '{}()'.format(option.type),
+            'minimum': option.minimum if option.minimum else '{}',
+            'maximum': option.maximum if option.maximum else '{}',
+        }
+        if option.alias:
+            fmt['alias'] = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+        if not option.name:
+            fmt['setbyuser'] = 'false'
+            constr = 'OptionInfo::VoidInfo{{}}'
+        elif option.type in ['bool', 'std::string']:
+            constr = 'OptionInfo::ValueInfo<{type}>{{{default}, {value}}}'
+        elif option.type == 'double' or is_numeric_cpp_type(option.type):
+            constr = 'OptionInfo::NumberInfo<{type}>{{{default}, {value}, {minimum}, {maximum}}}'
+        elif option.mode:
+            fmt['modes'] = ', '.join(['"{}"'.format(s) for s in sorted(option.mode.keys())])
+            constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'
+        else:
+            constr = 'OptionInfo::VoidInfo{{}}'
+        line = 'if ({condition}) return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, ' + constr + '}};'
+        res.append(line.format(**fmt))
+    return '\n  '.join(res)
+
+
 ################################################################################
 # for main/options.cpp
 
@@ -830,16 +867,10 @@ def codegen_module(module, dst_dir, tpls):
                     cases=''.join(cases)))
 
             # Generate str-to-enum handler
-            names = set()
             cases = []
             for value, attrib in option.mode.items():
                 assert len(attrib) == 1
                 name = attrib[0]['name']
-                if name in names:
-                    die("multiple modes with the name '{}' for option '{}'".
-                        format(name, option.long))
-                else:
-                    names.add(name)
 
                 cases.append(
                     TPL_MODE_HANDLER_CASE.format(
@@ -879,9 +910,6 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
 
     headers_module = []      # generated *_options.h header includes
-    options_get_info = []    # code for getOptionInfo()
-    help_common = []         # help text for all common options
-    help_others = []         # help text for all non-common options
 
     sphinxgen = SphinxGenerator()
 
@@ -892,54 +920,10 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
             assert option.type != 'void' or option.name is None
             assert option.name or option.short or option.long
-            mode_handler = option.handler and option.mode
-            argument_req = option.type not in ['bool', 'void']
 
             sphinxgen.add(module, option)
 
-            # Generate handlers for setOption/getOption
-            if option.long:
-                # Make long and alias names available via set/get-option
-                names = set()
-                if option.long:
-                    names.add(long_get_option(option.long))
-                if option.alias:
-                    names.update(option.alias)
-                assert names
-
-                cond = ' || '.join(
-                    ['name == "{}"'.format(x) for x in sorted(names)])
-
-                # Generate code for getOptionInfo
-                if option.alias:
-                    alias = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
-                else:
-                    alias = ''
-                if option.name:
-                    constr = None
-                    fmt = {
-                        'type': option.type,
-                        'value': 'opts.{}.{}'.format(module.id, option.name),
-                        'default': option.default if option.default else '{}()'.format(option.type),
-                        'minimum': option.minimum if option.minimum else '{}',
-                        'maximum': option.maximum if option.maximum else '{}',
-                    }
-                    if option.type in ['bool', 'std::string']:
-                        constr = 'OptionInfo::ValueInfo<{type}>{{{default}, {value}}}'.format(**fmt)
-                    elif option.type == 'double' or is_numeric_cpp_type(option.type):
-                        constr = 'OptionInfo::NumberInfo<{type}>{{{default}, {value}, {minimum}, {maximum}}}'.format(**fmt)
-                    elif option.mode:
-                        values = ', '.join(map(lambda s: '"{}"'.format(s), sorted(option.mode.keys())))
-                        assert(option.default)
-                        constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'.format(**fmt, modes=values)
-                    else:
-                        constr = 'OptionInfo::VoidInfo{}'
-                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, opts.{}.{}WasSetByUser, {}}};'.format(cond, long_get_option(option.long), module.id, option.name, constr, alias=alias))
-                else:
-                    options_get_info.append('if ({}) return OptionInfo{{"{}", {{{alias}}}, false, OptionInfo::VoidInfo{{}}}};'.format(cond, long_get_option(option.long), alias=alias))
-
     short, cmdline_opts, parseinternal = generate_parsing(modules)
-
     help_common, help_others = generate_cli_help(modules)
 
     data = {
@@ -957,9 +941,9 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'getnames_impl': generate_getnames_impl(modules),
         'get_impl': generate_get_impl(modules),
         'set_impl': generate_set_impl(modules),
+        'getinfo_impl': generate_getinfo_impl(modules),
         'help_common': help_common,
         'help_others': help_others,
-        'options_get_info': '\n  '.join(sorted(options_get_info)),
         # main/options.cpp
         'cmdoptions_long': cmdline_opts,
         'cmdoptions_short': short,
