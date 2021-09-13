@@ -22,7 +22,6 @@
 
 #include "expr/attribute.h"
 #include "expr/attribute_unique_id.h"
-#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/rewriter_attributes.h"
 
@@ -82,7 +81,7 @@ ${post_rewrite_set_cache}
 }
 
 Rewriter::Rewriter()
-    : d_tpg(nullptr), d_eval(nullptr), d_evalWithRewrite(nullptr)
+    : d_tpg(nullptr), d_eval(nullptr), d_evalRew(nullptr)
 {
 }
 

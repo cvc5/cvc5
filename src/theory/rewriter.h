@@ -23,6 +23,7 @@
 
 namespace cvc5 {
 
+class Env;
 class TConvProofGenerator;
 class ProofNodeManager;
 class TrustNode;
@@ -35,7 +36,7 @@ class Evaluator;
  * The main rewriter class.
  */
 class Rewriter {
-
+  friend class cvc5::Env;  // to initialize the evaluators of this class
  public:
   Rewriter();
 
