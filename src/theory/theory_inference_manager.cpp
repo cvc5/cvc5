@@ -67,7 +67,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
 
   if (d_pnm != nullptr)
   {
-    context::UserContext* u = state.getUserContext();
+    context::UserContext* u = userContext();
     d_defaultPg.reset(
         new EagerProofGenerator(d_pnm, u, statsName + "EagerProofGenerator"));
     if (options::proofAnnotate())
