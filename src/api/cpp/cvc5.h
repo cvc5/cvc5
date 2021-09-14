@@ -3903,7 +3903,7 @@ class CVC5_EXPORT Solver
    * is an estimate of how difficult each assertion was to solve. Unmentioned
    * assertions can be assumed to have zero difficulty.
    */
-  std::map<Term, Term> getDifficultyMap() const;
+  std::map<Term, Term> getDifficulty() const;
 
   /**
    * Get the refutation proof

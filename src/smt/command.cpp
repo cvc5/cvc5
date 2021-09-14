@@ -2404,7 +2404,7 @@ void GetDifficultyCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     d_sm = sm;
-    d_result = solver->getDifficultyMap();
+    d_result = solver->getDifficulty();
 
     d_commandStatus = CommandSuccess::instance();
   }

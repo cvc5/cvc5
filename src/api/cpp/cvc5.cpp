@@ -7294,7 +7294,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::map<Term, Term> Solver::getDifficultyMap() const
+std::map<Term, Term> Solver::getDifficulty() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
