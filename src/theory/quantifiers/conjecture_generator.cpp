@@ -167,7 +167,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
   if( eqc_i!=d_eqc_info.end() ){
     return eqc_i->second;
   }else if( doMake ){
-    EqcInfo* ei = new EqcInfo(d_qstate.getSatContext());
+    EqcInfo* ei = new EqcInfo(context());
     d_eqc_info[n] = ei;
     return ei;
   }else{
