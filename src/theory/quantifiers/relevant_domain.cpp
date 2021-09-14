@@ -212,7 +212,10 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
 {
   Trace("rel-dom-debug") << "Compute relevant domain " << n << "..." << std::endl;
   Node op = d_treg.getTermDatabase()->getMatchOperator(n);
-  if (!op.isNull())
+  // Relevant domain only makes sense for non-parametric operators, thus we
+  // check op==n.getOperator() here. This otherwise would lead to bad types
+  // for terms in the relevant domain.
+  if (!op.isNull() && op==n.getOperator())
   {
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
