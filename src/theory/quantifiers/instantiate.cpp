@@ -54,11 +54,10 @@ Instantiate::Instantiate(Env& env,
       d_qreg(qr),
       d_treg(tr),
       d_pnm(pnm),
-      d_insts(qs.getUserContext()),
-      d_c_inst_match_trie_dom(qs.getUserContext()),
-      d_pfInst(
-          pnm ? new CDProof(pnm, qs.getUserContext(), "Instantiate::pfInst")
-              : nullptr)
+      d_insts(userContext()),
+      d_c_inst_match_trie_dom(userContext()),
+      d_pfInst(pnm ? new CDProof(pnm, userContext(), "Instantiate::pfInst")
+                   : nullptr)
 {
 }
 
@@ -507,7 +506,7 @@ bool Instantiate::existsInstantiation(Node q,
     std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
-      return it->second->existsInstMatch(d_qstate, q, terms, modEq);
+      return it->second->existsInstMatch(userContext(), d_qstate, q, terms, modEq);
     }
   }
   else
@@ -594,10 +593,10 @@ bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
     const auto res = d_c_inst_match_trie.insert({q, nullptr});
     if (res.second)
     {
-      res.first->second = new CDInstMatchTrie(d_qstate.getUserContext());
+      res.first->second = new CDInstMatchTrie(userContext());
     }
     d_c_inst_match_trie_dom.insert(q);
-    return res.first->second->addInstMatch(d_qstate, q, terms);
+    return res.first->second->addInstMatch(userContext(), d_qstate, q, terms);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
   return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);
@@ -750,7 +749,7 @@ InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)
     return it->second.get();
   }
   std::shared_ptr<InstLemmaList> ill =
-      std::make_shared<InstLemmaList>(d_qstate.getUserContext());
+      std::make_shared<InstLemmaList>(userContext());
   d_insts.insert(q, ill);
   return ill.get();
 }

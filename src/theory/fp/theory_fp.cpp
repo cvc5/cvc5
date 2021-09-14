@@ -24,7 +24,7 @@
 #include "expr/skolem_manager.h"
 #include "options/fp_options.h"
 #include "smt/logic_exception.h"
-#include "theory/fp/fp_converter.h"
+#include "theory/fp/fp_word_blaster.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/output_channel.h"
 #include "theory/theory_model.h"
@@ -63,7 +63,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
       d_registeredTerms(userContext()),
-      d_conv(new FpConverter(userContext())),
+      d_wordBlaster(new FpWordBlaster(userContext())),
       d_expansionRequested(false),
       d_realToFloatMap(userContext()),
       d_floatToRealMap(userContext()),
@@ -511,31 +511,34 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   return false;
 }
 
-void TheoryFp::convertAndEquateTerm(TNode node)
+void TheoryFp::wordBlastAndEquateTerm(TNode node)
 {
-  Trace("fp-convertTerm") << "TheoryFp::convertTerm(): " << node << std::endl;
+  Trace("fp-wordBlastTerm")
+      << "TheoryFp::wordBlastTerm(): " << node << std::endl;
 
-  size_t oldSize = d_conv->d_additionalAssertions.size();
+  size_t oldSize = d_wordBlaster->d_additionalAssertions.size();
 
-  Node converted(d_conv->convert(node));
+  Node wordBlasted(d_wordBlaster->wordBlast(node));
 
-  size_t newSize = d_conv->d_additionalAssertions.size();
+  size_t newSize = d_wordBlaster->d_additionalAssertions.size();
 
-  if (converted != node) {
-    Debug("fp-convertTerm")
-        << "TheoryFp::convertTerm(): before " << node << std::endl;
-    Debug("fp-convertTerm")
-        << "TheoryFp::convertTerm(): after  " << converted << std::endl;
+  if (wordBlasted != node)
+  {
+    Debug("fp-wordBlastTerm")
+        << "TheoryFp::wordBlastTerm(): before " << node << std::endl;
+    Debug("fp-wordBlastTerm")
+        << "TheoryFp::wordBlastTerm(): after  " << wordBlasted << std::endl;
   }
 
   Assert(oldSize <= newSize);
 
   while (oldSize < newSize)
   {
-    Node addA = d_conv->d_additionalAssertions[oldSize];
+    Node addA = d_wordBlaster->d_additionalAssertions[oldSize];
 
-    Debug("fp-convertTerm") << "TheoryFp::convertTerm(): additional assertion  "
-                            << addA << std::endl;
+    Debug("fp-wordBlastTerm")
+        << "TheoryFp::wordBlastTerm(): additional assertion  " << addA
+        << std::endl;
 
     NodeManager* nm = NodeManager::currentNM();
 
@@ -546,13 +549,13 @@ void TheoryFp::convertAndEquateTerm(TNode node)
     ++oldSize;
   }
 
-  // Equate the floating-point atom and the converted one.
+  // Equate the floating-point atom and the wordBlasted one.
   // Also adds the bit-vectors to the bit-vector solver.
   if (node.getType().isBoolean())
   {
-    if (converted != node)
+    if (wordBlasted != node)
     {
-      Assert(converted.getType().isBitVector());
+      Assert(wordBlasted.getType().isBitVector());
 
       NodeManager* nm = NodeManager::currentNM();
 
@@ -560,7 +563,7 @@ void TheoryFp::convertAndEquateTerm(TNode node)
           nm->mkNode(kind::EQUAL,
                      node,
                      nm->mkNode(kind::EQUAL,
-                                converted,
+                                wordBlasted,
                                 nm->mkConst(::cvc5::BitVector(1U, 1U)))),
           InferenceId::FP_EQUATE_TERM);
     }
@@ -571,11 +574,12 @@ void TheoryFp::convertAndEquateTerm(TNode node)
   }
   else if (node.getType().isBitVector())
   {
-    if (converted != node) {
-      Assert(converted.getType().isBitVector());
+    if (wordBlasted != node)
+    {
+      Assert(wordBlasted.getType().isBitVector());
 
       handleLemma(
-          NodeManager::currentNM()->mkNode(kind::EQUAL, node, converted),
+          NodeManager::currentNM()->mkNode(kind::EQUAL, node, wordBlasted),
           InferenceId::FP_EQUATE_TERM);
     }
   }
@@ -657,7 +661,7 @@ void TheoryFp::registerTerm(TNode node)
      * registration. */
     if (!options().fp.fpLazyWb)
     {
-      convertAndEquateTerm(node);
+      wordBlastAndEquateTerm(node);
     }
   }
   return;
@@ -760,7 +764,7 @@ bool TheoryFp::preNotifyFact(
       && d_wbFactsCache.find(atom) == d_wbFactsCache.end())
   {
     d_wbFactsCache.insert(atom);
-    convertAndEquateTerm(atom);
+    wordBlastAndEquateTerm(atom);
   }
 
   if (atom.getKind() == kind::EQUAL)
@@ -793,7 +797,7 @@ void TheoryFp::notifySharedTerm(TNode n)
   if (options().fp.fpLazyWb && d_wbFactsCache.find(n) == d_wbFactsCache.end())
   {
     d_wbFactsCache.insert(n);
-    convertAndEquateTerm(n);
+    wordBlastAndEquateTerm(n);
   }
 }
 
@@ -818,7 +822,7 @@ TrustNode TheoryFp::explain(TNode n)
 }
 
 Node TheoryFp::getModelValue(TNode var) {
-  return d_conv->getValue(d_valuation, var);
+  return d_wordBlaster->getValue(d_valuation, var);
 }
 
 bool TheoryFp::collectModelInfo(TheoryModel* m,
@@ -880,10 +884,10 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
         << "TheoryFp::collectModelInfo(): relevantVariable " << node
         << std::endl;
 
-    Node converted = d_conv->getValue(d_valuation, node);
-    // We only assign the value if the FpConverter actually has one, that is,
-    // if FpConverter::getValue() does not return a null node.
-    if (!converted.isNull() && !m->assertEquality(node, converted, true))
+    Node wordBlasted = d_wordBlaster->getValue(d_valuation, node);
+    // We only assign the value if the FpWordBlaster actually has one, that is,
+    // if FpWordBlaster::getValue() does not return a null node.
+    if (!wordBlasted.isNull() && !m->assertEquality(node, wordBlasted, true))
     {
       return false;
     }

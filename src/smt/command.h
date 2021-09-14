@@ -219,7 +219,6 @@ class CVC5_EXPORT Command
 
   virtual void toStream(std::ostream& out,
                         int toDepth = -1,
-
                         size_t dag = 1,
                         Language language = Language::LANG_AUTO) const = 0;
 

@@ -1186,8 +1186,8 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareFunction(
-      out, d_func.toString(), sortToTypeNode(d_sort));
+  Printer::getPrinter(language)->toStreamCmdDeclareFunction(out,
+                                                            termToNode(d_func));
 }
 
 /* -------------------------------------------------------------------------- */

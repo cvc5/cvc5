@@ -24,7 +24,6 @@
 #include "expr/node.h"
 #include "theory/bv/bitblast/bitblast_utils.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/rewriter.h"
 #include "util/bitvector.h"
 
 namespace cvc5 {
@@ -514,36 +513,48 @@ void uDivModRec(const std::vector<T>& a, const std::vector<T>& b, std::vector<T>
 }
 
 template <class T>
-void DefaultUdivBB(TNode node, std::vector<T>& q, TBitblaster<T>* bb)
+void UdivUremBB(TNode node,
+                std::vector<T>& quot,
+                std::vector<T>& rem,
+                TBitblaster<T>* bb)
 {
   Debug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
                         << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UDIV && q.size() == 0);
+  Assert(quot.empty());
+  Assert(rem.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UDIV
+         || node.getKind() == kind::BITVECTOR_UREM);
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
-  std::vector<T> r;
-  uDivModRec(a, b, q, r, utils::getSize(node));
+  uDivModRec(a, b, quot, rem, utils::getSize(node));
   // adding a special case for division by 0
   std::vector<T> iszero;
-  for (unsigned i = 0; i < b.size(); ++i)
+  for (size_t i = 0, size = b.size(); i < size; ++i)
   {
     iszero.push_back(mkIff(b[i], mkFalse<T>()));
   }
   T b_is_0 = mkAnd(iszero);
 
-  for (unsigned i = 0; i < q.size(); ++i)
+  for (size_t i = 0, size = quot.size(); i < size; ++i)
   {
-    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);  // a udiv 0 is 11..11
-    r[i] = mkIte(b_is_0, a[i], r[i]);         // a urem 0 is a
+    quot[i] = mkIte(b_is_0, mkTrue<T>(), quot[i]);  // a udiv 0 is 11..11
+    rem[i] = mkIte(b_is_0, a[i], rem[i]);           // a urem 0 is a
   }
+}
 
-  // cache the remainder in case we need it later
-  Node remainder = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_UREM, node[0], node[1]));
-  bb->storeBBTerm(remainder, r);
+template <class T>
+void DefaultUdivBB(TNode node, std::vector<T>& quot, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
+                        << "\n";
+  Assert(quot.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UDIV);
+
+  std::vector<T> r;
+  UdivUremBB(node, quot, r, bb);
 }
 
 template <class T>
@@ -551,32 +562,11 @@ void DefaultUremBB(TNode node, std::vector<T>& rem, TBitblaster<T>* bb)
 {
   Debug("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node
                         << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UREM && rem.size() == 0);
-
-  std::vector<T> a, b;
-  bb->bbTerm(node[0], a);
-  bb->bbTerm(node[1], b);
+  Assert(rem.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UREM);
 
   std::vector<T> q;
-  uDivModRec(a, b, q, rem, utils::getSize(node));
-  // adding a special case for division by 0
-  std::vector<T> iszero;
-  for (unsigned i = 0; i < b.size(); ++i)
-  {
-    iszero.push_back(mkIff(b[i], mkFalse<T>()));
-  }
-  T b_is_0 = mkAnd(iszero);
-
-  for (unsigned i = 0; i < q.size(); ++i)
-  {
-    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);  // a udiv 0 is 11..11
-    rem[i] = mkIte(b_is_0, a[i], rem[i]);     // a urem 0 is a
-  }
-
-  // cache the quotient in case we need it later
-  Node quotient = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_UDIV, node[0], node[1]));
-  bb->storeBBTerm(quotient, q);
+  UdivUremBB(node, q, rem, bb);
 }
 
 template <class T>

@@ -37,12 +37,10 @@ using namespace cvc5::theory::quantifiers;
 using namespace cvc5::kind;
 
 BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
-    Node r,
-    context::Context* c,
-    context::Context* u,
-    Valuation valuation,
-    bool isProxy)
-    : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
+    Env& env, Node r, Valuation valuation, bool isProxy)
+    : DecisionStrategyFmf(env, valuation),
+      d_range(r),
+      d_ranges_proxied(userContext())
 {
   if( options::fmfBoundLazy() ){
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
@@ -514,12 +512,8 @@ void BoundedIntegers::checkOwnership(Node f)
           {
             Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << std::endl;
             d_ranges.push_back( r );
-            d_rms[r].reset(
-                new IntRangeDecisionHeuristic(r,
-                                              d_qstate.getSatContext(),
-                                              d_qstate.getUserContext(),
-                                              d_qstate.getValuation(),
-                                              isProxy));
+            d_rms[r].reset(new IntRangeDecisionHeuristic(
+                d_env, r, d_qstate.getValuation(), isProxy));
             dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
                                  d_rms[r].get());
           }
