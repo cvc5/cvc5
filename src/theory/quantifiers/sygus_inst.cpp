@@ -529,7 +529,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
    */
   Assert(d_dstrat.find(q) == d_dstrat.end());
   DecisionStrategy* ds = new DecisionStrategySingleton(
-      "CeLiteral", lit, d_qstate.getSatContext(), d_qstate.getValuation());
+      d_env, "CeLiteral", lit, d_qstate.getValuation());
 
   d_dstrat[q].reset(ds);
   d_qim.getDecisionManager()->registerStrategy(

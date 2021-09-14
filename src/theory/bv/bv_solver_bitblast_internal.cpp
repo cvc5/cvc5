@@ -17,6 +17,7 @@
 #include "theory/bv/bv_solver_bitblast_internal.h"
 
 #include "proof/conv_proof_generator.h"
+#include "theory/bv/bitblast/bitblast_proof_generator.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
@@ -74,7 +75,8 @@ BVSolverBitblastInternal::BVSolverBitblastInternal(
     ProofNodeManager* pnm)
     : BVSolver(env, *s, inferMgr),
       d_pnm(pnm),
-      d_bitblaster(new BBProof(env, s, pnm, false))
+      d_bitblaster(new BBProof(env, s, pnm, false)),
+      d_epg(pnm ? new EagerProofGenerator(pnm) : nullptr)
 {
 }
 
@@ -126,10 +128,8 @@ bool BVSolverBitblastInternal::preNotifyFact(
     }
     else
     {
-      d_bitblaster->getProofGenerator()->addRewriteStep(
-          fact, n, PfRule::BV_EAGER_ATOM, {}, {fact});
       TrustNode tlem =
-          TrustNode::mkTrustLemma(lemma, d_bitblaster->getProofGenerator());
+          d_epg->mkTrustNode(lemma, PfRule::BV_EAGER_ATOM, {}, {fact});
       d_im.trustedLemma(tlem, InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA);
     }
 

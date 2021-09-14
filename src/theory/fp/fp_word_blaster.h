@@ -21,19 +21,18 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__FP__FP_CONVERTER_H
-#define CVC5__THEORY__FP__FP_CONVERTER_H
+#ifndef CVC5__THEORY__FP__FP_WORD_BLASTER_H
+#define CVC5__THEORY__FP__FP_WORD_BLASTER_H
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "symfpu/core/unpackedFloat.h"
 #include "theory/valuation.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
-
-#include "symfpu/core/unpackedFloat.h"
 
 #ifdef CVC5_SYM_SYMBOLIC_EVAL
 // This allows debugging of the cvc5 symbolic back-end.
@@ -87,9 +86,9 @@ class traits
   static void precondition(const bool b);
   static void postcondition(const bool b);
   static void invariant(const bool b);
-  static void precondition(const prop &p);
-  static void postcondition(const prop &p);
-  static void invariant(const prop &p);
+  static void precondition(const prop& p);
+  static void postcondition(const prop& p);
+  static void invariant(const prop& p);
 };
 
 // Use the same type names as symfpu.
@@ -107,9 +106,9 @@ class nodeWrapper : public Node
  * allowing them to be traced via GDB.
  */
 #ifdef CVC5_SYM_SYMBOLIC_EVAL
-  nodeWrapper(const Node &n) : Node(theory::Rewriter::rewrite(n)) {}
+  nodeWrapper(const Node& n) : Node(theory::Rewriter::rewrite(n)) {}
 #else
-  nodeWrapper(const Node &n) : Node(n) {}
+  nodeWrapper(const Node& n) : Node(n) {}
 #endif
 };
 
@@ -123,13 +122,13 @@ class symbolicProposition : public nodeWrapper
  public:
   symbolicProposition(const Node n);
   symbolicProposition(bool v);
-  symbolicProposition(const symbolicProposition &old);
+  symbolicProposition(const symbolicProposition& old);
 
-  symbolicProposition operator!(void)const;
-  symbolicProposition operator&&(const symbolicProposition &op) const;
-  symbolicProposition operator||(const symbolicProposition &op) const;
-  symbolicProposition operator==(const symbolicProposition &op) const;
-  symbolicProposition operator^(const symbolicProposition &op) const;
+  symbolicProposition operator!(void) const;
+  symbolicProposition operator&&(const symbolicProposition& op) const;
+  symbolicProposition operator||(const symbolicProposition& op) const;
+  symbolicProposition operator==(const symbolicProposition& op) const;
+  symbolicProposition operator^(const symbolicProposition& op) const;
 };
 
 class symbolicRoundingMode : public nodeWrapper
@@ -142,10 +141,10 @@ class symbolicRoundingMode : public nodeWrapper
  public:
   symbolicRoundingMode(const Node n);
   symbolicRoundingMode(const unsigned v);
-  symbolicRoundingMode(const symbolicRoundingMode &old);
+  symbolicRoundingMode(const symbolicRoundingMode& old);
 
   symbolicProposition valid(void) const;
-  symbolicProposition operator==(const symbolicRoundingMode &op) const;
+  symbolicProposition operator==(const symbolicRoundingMode& op) const;
 };
 
 // Type function for mapping between types
@@ -183,68 +182,68 @@ class symbolicBitVector : public nodeWrapper
  public:
   symbolicBitVector(const Node n);
   symbolicBitVector(const bwt w, const unsigned v);
-  symbolicBitVector(const symbolicProposition &p);
-  symbolicBitVector(const symbolicBitVector<isSigned> &old);
-  symbolicBitVector(const BitVector &old);
+  symbolicBitVector(const symbolicProposition& p);
+  symbolicBitVector(const symbolicBitVector<isSigned>& old);
+  symbolicBitVector(const BitVector& old);
 
   bwt getWidth(void) const;
 
   /*** Constant creation and test ***/
-  static symbolicBitVector<isSigned> one(const bwt &w);
-  static symbolicBitVector<isSigned> zero(const bwt &w);
-  static symbolicBitVector<isSigned> allOnes(const bwt &w);
+  static symbolicBitVector<isSigned> one(const bwt& w);
+  static symbolicBitVector<isSigned> zero(const bwt& w);
+  static symbolicBitVector<isSigned> allOnes(const bwt& w);
 
   symbolicProposition isAllOnes() const;
   symbolicProposition isAllZeros() const;
 
-  static symbolicBitVector<isSigned> maxValue(const bwt &w);
-  static symbolicBitVector<isSigned> minValue(const bwt &w);
+  static symbolicBitVector<isSigned> maxValue(const bwt& w);
+  static symbolicBitVector<isSigned> minValue(const bwt& w);
 
   /*** Operators ***/
   symbolicBitVector<isSigned> operator<<(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator>>(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator|(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator&(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator+(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator-(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator*(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator/(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator%(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> operator-(void) const;
-  symbolicBitVector<isSigned> operator~(void)const;
+  symbolicBitVector<isSigned> operator~(void) const;
   symbolicBitVector<isSigned> increment() const;
   symbolicBitVector<isSigned> decrement() const;
   symbolicBitVector<isSigned> signExtendRightShift(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
 
   /*** Modular operations ***/
   // This back-end doesn't do any overflow checking so these are the same as
   // other operations
   symbolicBitVector<isSigned> modularLeftShift(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> modularRightShift(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> modularIncrement() const;
   symbolicBitVector<isSigned> modularDecrement() const;
   symbolicBitVector<isSigned> modularAdd(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> modularNegate() const;
 
   /*** Comparisons ***/
-  symbolicProposition operator==(const symbolicBitVector<isSigned> &op) const;
-  symbolicProposition operator<=(const symbolicBitVector<isSigned> &op) const;
-  symbolicProposition operator>=(const symbolicBitVector<isSigned> &op) const;
-  symbolicProposition operator<(const symbolicBitVector<isSigned> &op) const;
-  symbolicProposition operator>(const symbolicBitVector<isSigned> &op) const;
+  symbolicProposition operator==(const symbolicBitVector<isSigned>& op) const;
+  symbolicProposition operator<=(const symbolicBitVector<isSigned>& op) const;
+  symbolicProposition operator>=(const symbolicBitVector<isSigned>& op) const;
+  symbolicProposition operator<(const symbolicBitVector<isSigned>& op) const;
+  symbolicProposition operator>(const symbolicBitVector<isSigned>& op) const;
 
   /*** Type conversion ***/
   // cvc5 nodes make no distinction between signed and unsigned, thus these are
@@ -257,9 +256,9 @@ class symbolicBitVector : public nodeWrapper
   symbolicBitVector<isSigned> contract(bwt reduction) const;
   symbolicBitVector<isSigned> resize(bwt newSize) const;
   symbolicBitVector<isSigned> matchWidth(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> append(
-      const symbolicBitVector<isSigned> &op) const;
+      const symbolicBitVector<isSigned>& op) const;
 
   // Inclusive of end points, thus if the same, extracts just one bit
   symbolicBitVector<isSigned> extract(bwt upper, bwt lower) const;
@@ -272,11 +271,11 @@ class floatingPointTypeInfo : public FloatingPointSize
  public:
   floatingPointTypeInfo(const TypeNode t);
   floatingPointTypeInfo(unsigned exp, unsigned sig);
-  floatingPointTypeInfo(const floatingPointTypeInfo &old);
+  floatingPointTypeInfo(const floatingPointTypeInfo& old);
 
   TypeNode getTypeNode(void) const;
 };
-}
+}  // namespace symfpuSymbolic
 
 /**
  * This class uses SymFPU to convert an expression containing floating-point
@@ -289,16 +288,16 @@ class floatingPointTypeInfo : public FloatingPointSize
  * and unpacking operations are avoided and to make best use of structural
  * sharing.
  */
-class FpConverter
+class FpWordBlaster
 {
  public:
   /** Constructor. */
-  FpConverter(context::UserContext*);
+  FpWordBlaster(context::UserContext*);
   /** Destructor. */
-  ~FpConverter();
+  ~FpWordBlaster();
 
   /** Adds a node to the conversion, returns the converted node */
-  Node convert(TNode);
+  Node wordBlast(TNode);
 
   /**
    * Gives the node representing the value of a word-blasted variable.
@@ -334,11 +333,11 @@ class FpConverter
    * constant of the right type.
    */
 
-  Node ufToNode(const fpt &, const uf &) const;
-  Node rmToNode(const rm &) const;
-  Node propToNode(const prop &) const;
-  Node ubvToNode(const ubv &) const;
-  Node sbvToNode(const sbv &) const;
+  Node ufToNode(const fpt&, const uf&) const;
+  Node rmToNode(const rm&) const;
+  Node propToNode(const prop&) const;
+  Node ubvToNode(const ubv&) const;
+  Node sbvToNode(const sbv&) const;
 
   /* Creates the relevant components for a variable */
   uf buildComponents(TNode current);

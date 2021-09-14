@@ -16,6 +16,7 @@
 #include <algorithm>
 
 #include "test_api.h"
+#include "base/output.h"
 
 namespace cvc5 {
 
@@ -1374,8 +1375,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
     EXPECT_EQ("NONE", modeInfo.defaultValue);
     EXPECT_EQ("OutputTag::NONE", modeInfo.currentValue);
-    std::vector<std::string> modes{"INST", "NONE", "SYGUS", "TRIGGER"};
-    EXPECT_EQ(modes, modeInfo.modes);
+    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "NONE")
+                != modeInfo.modes.end());
   }
 }
 
@@ -2472,6 +2473,17 @@ TEST_F(TestApiBlackSolver, tupleProject)
       "((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
       "\"Z\")))",
       projection.toString());
+}
+
+TEST_F(TestApiBlackSolver, Output)
+{
+  ASSERT_THROW(d_solver.isOutputOn("foo-invalid"), CVC5ApiException);
+  ASSERT_THROW(d_solver.getOutput("foo-invalid"), CVC5ApiException);
+  ASSERT_FALSE(d_solver.isOutputOn("inst"));
+  ASSERT_EQ(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+  d_solver.setOption("output", "inst");
+  ASSERT_TRUE(d_solver.isOutputOn("inst"));
+  ASSERT_NE(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
 }
 
 }  // namespace test
