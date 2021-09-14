@@ -1486,7 +1486,7 @@ TEST_F(TestApiBlackSolver, getDifficulty2)
   Term f0 = d_solver.mkTerm(GEQ, x, ten);
   Term f1 = d_solver.mkTerm(GEQ, zero, x);
   d_solver.checkSat();
-  std::map<Term, Term> dmap
+  std::map<Term, Term> dmap;
   ASSERT_NO_THROW(dmap = d_solver.getDifficulty());
   // difficulty should map assertions to integer values
   for (const std::pair<Term, Term>& t : dmap)
