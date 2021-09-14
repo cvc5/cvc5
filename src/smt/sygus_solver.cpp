@@ -90,10 +90,18 @@ void SygusSolver::declareSynthFun(Node fn,
   setSygusConjectureStale();
 }
 
-void SygusSolver::assertSygusConstraint(Node constraint)
+void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
 {
-  Trace("smt") << "SygusSolver::assertSygusConstrant: " << constraint << "\n";
-  d_sygusConstraints.push_back(constraint);
+  Trace("smt") << "SygusSolver::assertSygusConstrant: " << n
+               << ", isAssume=" << isAssume << "\n";
+  if (isAssume)
+  {
+    d_sygusAssumps.push_back(n);
+  }
+  else
+  {
+    d_sygusConstraints.push_back(n);
+  }
 
   // sygus conjecture is now stale
   setSygusConjectureStale();
@@ -186,13 +194,14 @@ Result SygusSolver::checkSynth(Assertions& as)
     NodeManager* nm = NodeManager::currentNM();
     // build synthesis conjecture from asserted constraints and declared
     // variables/functions
-    std::vector<Node> bodyv;
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
-    size_t nconstraints = d_sygusConstraints.size();
-    Node body = nconstraints == 0
-                    ? nm->mkConst(true)
-                    : (nconstraints == 1 ? d_sygusConstraints[0]
-                                         : nm->mkNode(AND, d_sygusConstraints));
+    Node body = nm->mkAnd(d_sygusConstraints);
+    // note that if there are no constraints, then assumptions are irrelevant
+    if (!d_sygusConstraints.empty() && !d_sygusAssumps.empty())
+    {
+      Node bodyAssump = nm->mkAnd(d_sygusAssumps);
+      body = nm->mkNode(IMPLIES, bodyAssump, body);
+    }
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())

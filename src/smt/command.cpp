@@ -732,7 +732,9 @@ void SynthFunCommand::toStream(std::ostream& out,
 /* class SygusConstraintCommand */
 /* -------------------------------------------------------------------------- */
 
-SygusConstraintCommand::SygusConstraintCommand(const api::Term& t) : d_term(t)
+SygusConstraintCommand::SygusConstraintCommand(const api::Term& t,
+                                               bool isAssume)
+    : d_term(t), d_isAssume(isAssume)
 {
 }
 
@@ -740,7 +742,14 @@ void SygusConstraintCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->addSygusConstraint(d_term);
+    if (d_isAssume)
+    {
+      solver->addSygusAssume(d_term);
+    }
+    else
+    {
+      solver->addSygusConstraint(d_term);
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -753,12 +762,12 @@ api::Term SygusConstraintCommand::getTerm() const { return d_term; }
 
 Command* SygusConstraintCommand::clone() const
 {
-  return new SygusConstraintCommand(d_term);
+  return new SygusConstraintCommand(d_term, d_isAssume);
 }
 
 std::string SygusConstraintCommand::getCommandName() const
 {
-  return "constraint";
+  return d_isAssume ? "assume" : "constraint";
 }
 
 void SygusConstraintCommand::toStream(std::ostream& out,
@@ -766,7 +775,15 @@ void SygusConstraintCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdConstraint(out, termToNode(d_term));
+  if (d_isAssume)
+  {
+    Printer::getPrinter(language)->toStreamCmdAssume(out, termToNode(d_term));
+  }
+  else
+  {
+    Printer::getPrinter(language)->toStreamCmdConstraint(out,
+                                                         termToNode(d_term));
+  }
 }
 
 /* -------------------------------------------------------------------------- */
