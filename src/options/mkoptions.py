@@ -144,109 +144,6 @@ def read_tpl(directory, name):
     except IOError:
         die("Could not find '{}'. Aborting.".format(fname))
 
-### Other globals
-
-g_getopt_long_start = 256
-
-### Source code templates
-
-TPL_CALL_SET_OPTION = 'setOption(std::string("{smtname}"), ("{value}"));'
-
-TPL_GETOPT_LONG = '{{ "{}", {}_argument, nullptr, {} }},'
-
-TPL_HOLDER_MACRO_ATTR = '''  {type} {name};
-  bool {name}WasSetByUser = false;'''
-
-TPL_HOLDER_MACRO_ATTR_DEF = '''  {type} {name} = {default};
-  bool {name}WasSetByUser = false;'''
-
-TPL_DECL_SET_DEFAULT = 'void setDefault{funcname}(Options& opts, {type} value);'
-TPL_IMPL_SET_DEFAULT = TPL_DECL_SET_DEFAULT[:-1] + '''
-{{
-    if (!opts.{module}.{name}WasSetByUser) {{
-        opts.{module}.{name} = value;
-    }}
-}}'''
-
-TPL_NAME_DECL = 'static constexpr const char* {name}__name = "{long_name}";'
-
-# Option specific methods
-
-TPL_IMPL_OP_PAR = 'inline {type} {name}() {{ return Options::current().{module}.{name}; }}'
-
-# Mode templates
-TPL_DECL_MODE_ENUM = '''
-enum class {type}
-{{
-  {values}
-}};
-
-static constexpr size_t {type}__numValues = {nvalues};
-'''
-
-TPL_DECL_MODE_FUNC = 'std::ostream& operator<<(std::ostream& os, {type} mode);'
-TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-1] + '''
-{{
-  switch(mode) {{{cases}
-    default:
-      Unreachable();
-  }}
-  return os;
-}}'''
-
-TPL_IMPL_MODE_CASE = \
-"""
-    case {type}::{enum}:
-      return os << "{type}::{enum}";"""
-
-TPL_DECL_MODE_HANDLER = '{type} stringTo{type}(const std::string& optarg);'
-TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + '''
-{{
-  {cases}
-  else if (optarg == "help")
-  {{
-    std::cerr << {help};
-    std::exit(1);
-  }}
-  throw OptionException(std::string("unknown option for --{long}: `") +
-                        optarg + "'.  Try --{long}=help.");
-}}'''
-
-TPL_MODE_HANDLER_CASE = \
-"""if (optarg == "{name}")
-  {{
-    return {type}::{enum};
-  }}"""
-
-
-def get_handler(option):
-    """Render handler call for assignment functions"""
-    optname = option.long_name if option.long else ""
-    if option.handler:
-        if option.type == 'void':
-            return 'opts.handler().{}("{}", name)'.format(option.handler, optname)
-        else:
-            return 'opts.handler().{}("{}", name, optionarg)'.format(option.handler, optname)
-    elif option.mode:
-        return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(option.type, optname)
-
-
-def get_predicates(option):
-    """Render predicate calls for assignment functions"""
-    if option.type == 'void':
-        return []
-    optname = option.long_name if option.long else ""
-    assert option.type != 'void'
-    res = []
-    if option.minimum:
-        res.append('opts.handler().checkMinimum("{}", name, value, static_cast<{}>({}));'.format(optname, option.type, option.minimum))
-    if option.maximum:
-        res.append('opts.handler().checkMaximum("{}", name, value, static_cast<{}>({}));'.format(optname, option.type, option.maximum))
-    res += ['opts.handler().{}("{}", name, value);'.format(x, optname)
-            for x in option.predicates]
-    return res
-
 
 ################################################################################
 ################################################################################
@@ -504,6 +401,201 @@ def generate_getinfo_impl(modules):
         line = 'if ({condition}) return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, ' + constr + '}};'
         res.append(line.format(**fmt))
     return '\n  '.join(res)
+
+
+################################################################################
+# for options/<module>.h
+
+
+def generate_module_includes(module):
+    includes = set()
+    for option in module.options:
+        if option.name is None:
+            continue
+        includes.update([format_include(x) for x in option.includes])
+    return '\n'.join(sorted(includes))
+
+
+TPL_MODE_DECL = '''enum class {type}
+{{
+  {values}
+}};
+static constexpr size_t {type}__numValues = {nvalues};
+std::ostream& operator<<(std::ostream& os, {type} mode);
+{type} stringTo{type}(const std::string& optarg);
+'''
+
+
+def generate_module_mode_decl(module):
+    """Generates the declarations of mode enums and utility functions."""
+    res = []
+    for option in module.options:
+        if option.name is None or not option.mode:
+            continue
+        res.append(
+            TPL_MODE_DECL.format(type=option.type,
+                                 values=wrap_line(
+                                     ', '.join(option.mode.keys()), 2),
+                                 nvalues=len(option.mode)))
+    return '\n'.join(res)
+
+
+def generate_module_holder_decl(module):
+    res = []
+    for option in module.options:
+        if option.name is None:
+            continue
+        if option.default:
+            default = option.default
+            if option.mode and option.type not in default:
+                default = '{}::{}'.format(option.type, default)
+            res.append('{} {} = {};'.format(option.type, option.name, default))
+        else:
+            res.append('{} {};'.format(option.type, option.name))
+        res.append('bool {}WasSetByUser = false;'.format(option.name))
+    return '\n  '.join(res)
+
+
+def generate_module_wrapper_functions(module):
+    res = []
+    for option in module.options:
+        if option.name is None:
+            continue
+        res.append(
+            'inline {type} {name}() {{ return Options::current().{module}.{name}; }}'
+            .format(module=module.id, name=option.name, type=option.type))
+    return '\n'.join(res)
+
+
+def generate_module_option_names(module):
+    relevant = [
+        o for o in module.options
+        if not (o.name is None or o.long_name is None)
+    ]
+    return concat_format(
+        'static constexpr const char* {name}__name = "{long_name}";', relevant)
+
+
+def generate_module_setdefaults_decl(module):
+    res = []
+    for option in module.options:
+        if option.name is None:
+            continue
+        funcname = option.name[0].capitalize() + option.name[1:]
+        res.append('void setDefault{}(Options& opts, {} value);'.format(
+            funcname, option.type))
+    return '\n'.join(res)
+
+
+################################################################################
+# for options/<module>.cpp
+
+TPL_MODE_STREAM_OPERATOR = '''std::ostream& operator<<(std::ostream& os, {type} mode)
+{{
+  switch(mode)
+  {{
+    {cases}
+    default: Unreachable();
+  }}
+  return os;
+}}'''
+
+TPL_MODE_TO_STRING = '''{type} stringTo{type}(const std::string& optarg)
+{{
+  {cases}
+  else if (optarg == "help")
+  {{
+    std::cerr << {help};
+    std::exit(1);
+  }}
+  throw OptionException(std::string("unknown option for --{long}: `") +
+                        optarg + "'.  Try --{long}=help.");
+}}'''
+
+
+def _module_mode_help(option):
+    """Format help message for mode options."""
+    assert option.help_mode
+    assert option.mode
+
+    text = ['R"FOOBAR(']
+    text.append('  ' + wrap_line(option.help_mode, 2, break_on_hyphens=False))
+    text.append('Available {}s for --{} are:'.format(option.long_opt.lower(),
+                                                     option.long_name))
+
+    for value, attrib in option.mode.items():
+        assert len(attrib) == 1
+        attrib = attrib[0]
+        if 'help' not in attrib:
+            continue
+        if value == option.default and attrib['name'] != "default":
+            text.append('+ {} (default)'.format(attrib['name']))
+        else:
+            text.append('+ {}'.format(attrib['name']))
+        text.append('  '
+                    + wrap_line(attrib['help'], 2, break_on_hyphens=False))
+    text.append(')FOOBAR"')
+    return '\n'.join(text)
+
+
+def generate_module_mode_impl(module):
+    """Generates the declarations of mode enums and utility functions."""
+    res = []
+    for option in module.options:
+        if option.name is None or not option.mode:
+            continue
+        cases = [
+            'case {type}::{enum}: return os << "{type}::{enum}";'.format(
+                type=option.type, enum=x) for x in option.mode.keys()
+        ]
+        res.append(
+            TPL_MODE_STREAM_OPERATOR.format(type=option.type,
+                                            cases='\n    '.join(cases)))
+
+        # Generate str-to-enum handler
+        names = set()
+        cases = []
+        for value, attrib in option.mode.items():
+            assert len(attrib) == 1
+            name = attrib[0]['name']
+            if name in names:
+                die("multiple modes with the name '{}' for option '{}'".format(
+                    name, option.long))
+            else:
+                names.add(name)
+
+            cases.append(
+                'if (optarg == "{name}") return {type}::{enum};'.format(
+                    name=name, type=option.type, enum=value))
+        assert option.long
+        assert cases
+        res.append(
+            TPL_MODE_TO_STRING.format(type=option.type,
+                                      cases='\n  else '.join(cases),
+                                      help=_module_mode_help(option),
+                                      long=option.long_name))
+    return '\n'.join(res)
+
+
+TPL_SETDEFAULT_IMPL = '''void setDefault{capname}(Options& opts, {type} value)
+{{
+    if (!opts.{module}.{name}WasSetByUser) opts.{module}.{name} = value;
+}}'''
+
+
+def generate_module_setdefaults_impl(module):
+    res = []
+    for option in module.options:
+        if option.name is None:
+            continue
+        fmt = {
+            'capname': option.name[0].capitalize() + option.name[1:],
+            'type': option.type,
+            'module': module.id,
+            'name': option.name,
+        }
+        res.append(TPL_SETDEFAULT_IMPL.format(**fmt))
+    return '\n'.join(res)
 
 
 ################################################################################
@@ -796,122 +888,34 @@ def help_mode_format(option):
     return '\n         '.join('"{}\\n"'.format(x) for x in text)
 
 
+################################################################################
+# main code generation for individual modules
+
+
 def codegen_module(module, dst_dir, tpls):
-    """
-    Generate code for each option module (*_options.{h,cpp})
-    """
-    # *_options.h / *.options.cpp
-    includes = set()
-    holder_specs = []
-    option_names = []
-    wrap_funs = []
-    default_decl = []
-    default_impl = []
-    mode_decl = []
-    mode_impl = []
-
-    for option in \
-        sorted(module.options, key=lambda x: x.long if x.long else x.name):
-        if option.name is None:
-            continue
-
-        ### Generate code for {module.name}_options.h
-        includes.update([format_include(x) for x in option.includes])
-
-        # Generate option holder macro
-        if option.default:
-            default = option.default
-            if option.mode and option.type not in default:
-                default = '{}::{}'.format(option.type, default)
-            holder_specs.append(TPL_HOLDER_MACRO_ATTR_DEF.format(type=option.type, name=option.name, default=default))
-        else:
-            holder_specs.append(TPL_HOLDER_MACRO_ATTR.format(type=option.type, name=option.name))
-
-        # Generate module declaration
-        if option.long:
-            long_name = option.long.split('=')[0]
-        else:
-            long_name = ""
-        option_names.append(TPL_NAME_DECL.format(name=option.name, type=option.type, long_name = long_name))
-
-        capoptionname = option.name[0].capitalize() + option.name[1:]
-
-        # Generate module specialization
-        default_decl.append(TPL_DECL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
-
-        if option.long and option.type not in ['bool', 'void'] and \
-           '=' not in option.long:
-            die("module '{}': option '{}' with type '{}' needs an argument " \
-                "description ('{}=...')".format(
-                    module.id, option.long, option.type, option.long))
-        elif option.long and option.type in ['bool', 'void'] and \
-             '=' in option.long:
-            die("module '{}': option '{}' with type '{}' must not have an " \
-                "argument description".format(
-                    module.id, option.long, option.type))
-
-        # Generate module inlines
-        wrap_funs.append(TPL_IMPL_OP_PAR.format(module=module.id, name=option.name, type=option.type))
-
-
-        ### Generate code for {module.name}_options.cpp
-
-        # Accessors
-        default_impl.append(TPL_IMPL_SET_DEFAULT.format(module=module.id, name=option.name, funcname=capoptionname, type=option.type))
-
-        if option.mode:
-            values = option.mode.keys()
-            mode_decl.append(
-                TPL_DECL_MODE_ENUM.format(
-                    type=option.type,
-                    values=',\n  '.join(values),
-                    nvalues=len(values)))
-            mode_decl.append(TPL_DECL_MODE_FUNC.format(type=option.type))
-            cases = [TPL_IMPL_MODE_CASE.format(
-                        type=option.type, enum=x) for x in values]
-            mode_impl.append(
-                TPL_IMPL_MODE_FUNC.format(
-                    type=option.type,
-                    cases=''.join(cases)))
-
-            # Generate str-to-enum handler
-            cases = []
-            for value, attrib in option.mode.items():
-                assert len(attrib) == 1
-                name = attrib[0]['name']
-
-                cases.append(
-                    TPL_MODE_HANDLER_CASE.format(
-                        name=name,
-                        type=option.type,
-                        enum=value))
-            assert option.long
-            assert cases
-            mode_decl.append(TPL_DECL_MODE_HANDLER.format(type=option.type))
-            mode_impl.append(
-                TPL_IMPL_MODE_HANDLER.format(
-                    type=option.type,
-                    cases='\n  else '.join(cases),
-                    help=help_mode_format(option),
-                    long=option.long.split('=')[0]))
-
+    """Generate code for one option module."""
     data = {
         'id_cap': module.id_cap,
         'id': module.id,
-        'includes': '\n'.join(sorted(list(includes))),
-        'holder_spec': '\n'.join(holder_specs),
-        'option_names': '\n'.join(option_names),
-        'wrap_funs': '\n'.join(wrap_funs),
-        'defaults_decl': ''.join(default_decl),
-        'modes_decl': '\n'.join(mode_decl),
+        # module header
+        'includes': generate_module_includes(module),
+        'modes_decl': generate_module_mode_decl(module),
+        'holder_decl': generate_module_holder_decl(module),
+        'wrapper_functions': generate_module_wrapper_functions(module),
+        'option_names': generate_module_option_names(module),
+        'setdefaults_decl': generate_module_setdefaults_decl(module),
+        # module source
         'header': module.header,
-        'defaults_impl': '\n'.join(default_impl),
-        'modes_impl': '\n'.join(mode_impl),
+        'modes_impl': generate_module_mode_impl(module),
+        'setdefaults_impl': generate_module_setdefaults_impl(module),
     }
-
     for tpl in tpls:
         filename = tpl['output'].replace('module', module.filename)
         write_file(dst_dir, filename, tpl['content'].format(**data))
+
+
+################################################################################
+# main code generation
 
 
 def codegen_all_modules(modules, build_dir, dst_dir, tpls):
