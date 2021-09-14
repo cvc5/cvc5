@@ -492,7 +492,8 @@ def generate_module_setdefaults_decl(module):
 
 TPL_MODE_STREAM_OPERATOR = '''std::ostream& operator<<(std::ostream& os, {type} mode)
 {{
-  switch(mode) {{
+  switch(mode)
+  {{
     {cases}
     default: Unreachable();
   }}
