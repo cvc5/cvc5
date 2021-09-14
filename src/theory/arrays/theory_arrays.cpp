@@ -60,25 +60,23 @@ TheoryArrays::TheoryArrays(Env& env,
                            Valuation valuation,
                            std::string name)
     : Theory(THEORY_ARRAYS, env, out, valuation, name),
-      d_numRow(
-          smtStatisticsRegistry().registerInt(name + "number of Row lemmas")),
-      d_numExt(
-          smtStatisticsRegistry().registerInt(name + "number of Ext lemmas")),
+      d_numRow(statisticsRegistry().registerInt(name + "number of Row lemmas")),
+      d_numExt(statisticsRegistry().registerInt(name + "number of Ext lemmas")),
       d_numProp(
-          smtStatisticsRegistry().registerInt(name + "number of propagations")),
+          statisticsRegistry().registerInt(name + "number of propagations")),
       d_numExplain(
-          smtStatisticsRegistry().registerInt(name + "number of explanations")),
-      d_numNonLinear(smtStatisticsRegistry().registerInt(
+          statisticsRegistry().registerInt(name + "number of explanations")),
+      d_numNonLinear(statisticsRegistry().registerInt(
           name + "number of calls to setNonLinear")),
-      d_numSharedArrayVarSplits(smtStatisticsRegistry().registerInt(
+      d_numSharedArrayVarSplits(statisticsRegistry().registerInt(
           name + "number of shared array var splits")),
-      d_numGetModelValSplits(smtStatisticsRegistry().registerInt(
+      d_numGetModelValSplits(statisticsRegistry().registerInt(
           name + "number of getModelVal splits")),
-      d_numGetModelValConflicts(smtStatisticsRegistry().registerInt(
+      d_numGetModelValConflicts(statisticsRegistry().registerInt(
           name + "number of getModelVal conflicts")),
-      d_numSetModelValSplits(smtStatisticsRegistry().registerInt(
+      d_numSetModelValSplits(statisticsRegistry().registerInt(
           name + "number of setModelVal splits")),
-      d_numSetModelValConflicts(smtStatisticsRegistry().registerInt(
+      d_numSetModelValConflicts(statisticsRegistry().registerInt(
           name + "number of setModelVal conflicts")),
       d_ppEqualityEngine(userContext(), name + "pp", true),
       d_ppFacts(userContext()),
@@ -2127,7 +2125,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
 
 TheoryArrays::TheoryArraysDecisionStrategy::TheoryArraysDecisionStrategy(
     TheoryArrays* ta)
-    : d_ta(ta)
+    : DecisionStrategy(ta->d_env), d_ta(ta)
 {
 }
 void TheoryArrays::TheoryArraysDecisionStrategy::initialize() {}

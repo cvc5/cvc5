@@ -409,7 +409,7 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
     QuantifiersInferenceManager& qim,
     TermDbSygus* tds,
     SynthConjecture* parent)
-    : DecisionStrategyFmf(qs.getSatContext(), qs.getValuation()),
+    : DecisionStrategyFmf(env, qs.getValuation()),
       d_qim(qim),
       d_tds(tds),
       d_parent(parent)

@@ -92,7 +92,7 @@ void TheoryUF::finishInit() {
   if (options::finiteModelFind()
       && options::ufssMode() != options::UfssMode::NONE)
   {
-    d_thss.reset(new CardinalityExtension(d_state, d_im, this));
+    d_thss.reset(new CardinalityExtension(d_env, d_state, d_im, this));
   }
   // The kinds we are treating as function application in congruence
   bool isHo = logicInfo().isHigherOrder();
@@ -100,7 +100,7 @@ void TheoryUF::finishInit() {
   if (isHo)
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-    d_ho.reset(new HoExtension(d_state, d_im));
+    d_ho.reset(new HoExtension(d_env, d_state, d_im));
   }
 }
 
