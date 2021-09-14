@@ -601,6 +601,8 @@ libcvc5_add_sources(
   theory/bv/abstraction.h
   theory/bv/bitblast/aig_bitblaster.cpp
   theory/bv/bitblast/aig_bitblaster.h
+  theory/bv/bitblast/bitblast_proof_generator.cpp
+  theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
   theory/bv/bitblast/bitblast_utils.h
   theory/bv/bitblast/bitblaster.h
@@ -705,8 +707,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
-  theory/fp/fp_converter.cpp
-  theory/fp/fp_converter.h
+  theory/fp/fp_word_blaster.cpp
+  theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
   theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp

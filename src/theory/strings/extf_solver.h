@@ -23,6 +23,7 @@
 
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
@@ -79,12 +80,13 @@ class ExtfInfoTmp
  * functions for the theory of strings using a combination of context-dependent
  * simplification (Reynolds et al CAV 2017) and lazy reductions.
  */
-class ExtfSolver
+class ExtfSolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  ExtfSolver(SolverState& s,
+  ExtfSolver(Env& env,
+             SolverState& s,
              InferenceManager& im,
              TermRegistry& tr,
              StringsRewriter& rewriter,
