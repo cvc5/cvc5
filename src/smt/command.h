@@ -765,7 +765,7 @@ class CVC5_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
 class CVC5_EXPORT SygusConstraintCommand : public Command
 {
  public:
-  SygusConstraintCommand(const api::Term& t);
+  SygusConstraintCommand(const api::Term& t, bool isAssume = false);
   /** returns the declared constraint */
   api::Term getTerm() const;
   /** invokes this command
@@ -787,6 +787,8 @@ class CVC5_EXPORT SygusConstraintCommand : public Command
  protected:
   /** the declared constraint */
   api::Term d_term;
+  /** true if this is a sygus assumption */
+  bool d_isAssume;
 };
 
 /** Declares a sygus invariant constraint

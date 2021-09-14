@@ -1,6 +1,6 @@
 ; REQUIRES: no-competition
 ; COMMAND-LINE: --sygus-out=status --sygus-rec-fun --lang=sygus2
-; EXPECT-ERROR: (error "Parse Error: pLTL-sygus-syntax-err.sy:80.19: number of arguments does not match the constructor type
+; EXPECT-ERROR: (error "Parse Error: pLTL-sygus-syntax-err.sy:78.19: number of arguments does not match the constructor type
 ; EXPECT-ERROR:
 ; EXPECT-ERROR: (Op2 <O2> <F>)
 ; EXPECT-ERROR: ^
@@ -31,8 +31,6 @@
 )
 
 ; Trace Length.
-(declare-const tn Int)
-(assert (= tn 2))
 
 ;cTrace Declaration (trace_index, variable_index)
 (define-fun val ((i Int) (x Var)) Bool
@@ -44,7 +42,7 @@
 
 ;cpLTL Semantics
 (define-fun-rec holds ((f Formula) (t Time)) Bool
-  (and (<= 0 t tn)
+  (and (<= 0 t 2)
        (match f (
          ((P i) (val t i))
 
@@ -54,7 +52,7 @@
 
              (Y (and (< 0 t) (holds g (- t 1))))
 
-             (G (and (holds g t) (or (= t tn) (holds f (+ t 1)))))
+             (G (and (holds g t) (or (= t 2) (holds f (+ t 1)))))
 
              (H (and (holds g t) (or (= t 0) (holds f (- t 1)))))
           )))

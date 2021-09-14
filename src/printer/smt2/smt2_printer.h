@@ -124,6 +124,9 @@ class Smt2Printer : public cvc5::Printer
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;
 
+  /** Print assume command */
+  void toStreamCmdAssume(std::ostream& out, Node n) const override;
+
   /** Print inv-constraint command */
   void toStreamCmdInvConstraint(std::ostream& out,
                                 Node inv,
