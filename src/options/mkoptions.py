@@ -706,13 +706,14 @@ def _sphinx_help_add(module, option, common, others):
 
 def _sphinx_help_render_option(res, opt):
     """Render an option to be displayed with sphinx."""
+    indent = ' ' * 4
     desc = '``{}``'
-    val = '    {}'
+    val = indent + '{}'
     if opt['expert']:
         res.append('.. admonition:: This option is intended for Experts only!')
-        res.append('    ')
-        desc = '    ' + desc
-        val = '    ' + val
+        res.append(indent)
+        desc = indent + desc
+        val = indent + val
 
     if opt['alternate']:
         desc += ' (also ``--no-*``)'
@@ -727,7 +728,7 @@ def _sphinx_help_render_option(res, opt):
             if v == '':
                 continue
             res.append(val.format(':{}: {}'.format(k, v)))
-    res.append('    ')
+    res.append(indent)
 
 
 def generate_sphinx_help(modules):
