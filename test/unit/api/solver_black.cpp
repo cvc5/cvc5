@@ -2336,6 +2336,20 @@ TEST_F(TestApiBlackSolver, addSygusConstraint)
   ASSERT_THROW(slv.addSygusConstraint(boolTerm), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, addSygusAssume)
+{
+  Term nullTerm;
+  Term boolTerm = d_solver.mkBoolean(false);
+  Term intTerm = d_solver.mkInteger(1);
+
+  ASSERT_NO_THROW(d_solver.addSygusAssume(boolTerm));
+  ASSERT_THROW(d_solver.addSygusAssume(nullTerm), CVC5ApiException);
+  ASSERT_THROW(d_solver.addSygusAssume(intTerm), CVC5ApiException);
+
+  Solver slv;
+  ASSERT_THROW(slv.addSygusAssume(boolTerm), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, addSygusInvConstraint)
 {
   Sort boolean = d_solver.getBooleanSort();

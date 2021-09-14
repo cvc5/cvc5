@@ -87,6 +87,8 @@ class Printer
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
                                           const std::string& id,
                                           TypeNode type) const;
+  /** Variant of above for a pre-existing variable */
+  void toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const;
   /** Print declare-pool command */
   virtual void toStreamCmdDeclarePool(std::ostream& out,
                                       const std::string& id,
@@ -109,6 +111,8 @@ class Printer
                                          const std::vector<Node>& formals,
                                          TypeNode range,
                                          Node formula) const;
+  /** Variant of above that takes the definition */
+  void toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda) const;
 
   /** Print define-fun-rec command */
   virtual void toStreamCmdDefineFunctionRec(
@@ -116,6 +120,10 @@ class Printer
       const std::vector<Node>& funcs,
       const std::vector<std::vector<Node>>& formals,
       const std::vector<Node>& formulas) const;
+  /** Variant of above that takes the definition */
+  void toStreamCmdDefineFunctionRec(std::ostream& out,
+                                    const std::vector<Node>& funcs,
+                                    const std::vector<Node>& lambdas) const;
 
   /** Print set-user-attribute command */
   void toStreamCmdSetUserAttribute(std::ostream& out,
@@ -147,6 +155,9 @@ class Printer
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
+
+  /** Print assume command */
+  virtual void toStreamCmdAssume(std::ostream& out, Node n) const;
 
   /** Print inv-constraint command */
   virtual void toStreamCmdInvConstraint(

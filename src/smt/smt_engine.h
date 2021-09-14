@@ -416,8 +416,12 @@ class CVC5_EXPORT SmtEngine
    */
   void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
 
-  /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(Node constraint);
+  /**
+   * Add a regular sygus constraint or assumption.
+   * @param n The formula
+   * @param isAssume True if n is an assumption.
+   */
+  void assertSygusConstraint(Node n, bool isAssume = false);
 
   /**
    * Add an invariant constraint.

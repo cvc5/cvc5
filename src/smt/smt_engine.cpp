@@ -994,11 +994,11 @@ void SmtEngine::declareSynthFun(Node func,
   declareSynthFun(func, sygusType, isInv, vars);
 }
 
-void SmtEngine::assertSygusConstraint(Node constraint)
+void SmtEngine::assertSygusConstraint(Node n, bool isAssume)
 {
   SmtScope smts(this);
   finishInit();
-  d_sygusSolver->assertSygusConstraint(constraint);
+  d_sygusSolver->assertSygusConstraint(n, isAssume);
 }
 
 void SmtEngine::assertSygusInvConstraint(Node inv,

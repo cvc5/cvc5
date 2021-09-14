@@ -521,6 +521,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
   std::vector<std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
   std::vector<cvc5::api::Term> sygusVars;
   std::string name;
+  bool isAssume;
   bool isInv;
   cvc5::api::Grammar* grammar = nullptr;
 }
@@ -571,14 +572,13 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
           new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
   | /* constraint */
-    CONSTRAINT_TOK {
+    ( CONSTRAINT_TOK { isAssume = false; } | ASSUME_TOK { isAssume = true; } )
+    {
       PARSER_STATE->checkThatLogicIsSet();
-      Debug("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
-      Debug("parser-sygus") << "Sygus : read constraint..." << std::endl;
     }
     term[expr, expr2]
     { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
-      cmd.reset(new SygusConstraintCommand(expr));
+      cmd.reset(new SygusConstraintCommand(expr, isAssume));
     }
   | /* inv-constraint */
     INV_CONSTRAINT_TOK
@@ -787,6 +787,11 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     { // allow overloading here
+      if( PARSER_STATE->sygus() )
+      {
+        PARSER_STATE->parseErrorLogic("declare-const is not allowed in sygus "
+                                      "version 2.0");
+      }
       api::Term c =
           PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
@@ -2276,6 +2281,7 @@ SYNTH_INV_TOK : { PARSER_STATE->sygus()}?'synth-inv';
 CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
 CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
+ASSUME_TOK : { PARSER_STATE->sygus()}?'assume';
 INV_CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'inv-constraint';
 SET_FEATURE_TOK : { PARSER_STATE->sygus() }? 'set-feature';
 SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';

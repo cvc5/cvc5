@@ -4314,6 +4314,16 @@ class CVC5_EXPORT Solver
   void addSygusConstraint(const Term& term) const;
 
   /**
+   * Add a forumla to the set of Sygus assumptions.
+   * SyGuS v2:
+   * \verbatim
+   *   ( assume <term> )
+   * \endverbatim
+   * @param term the formula to add as an assumption
+   */
+  void addSygusAssume(const Term& term) const;
+
+  /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
    * SyGuS v2:
