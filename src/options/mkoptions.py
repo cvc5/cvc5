@@ -416,7 +416,8 @@ def generate_module_includes(module):
     return '\n'.join(sorted(includes))
 
 
-TPL_MODE_DECL = '''enum class {type} {{
+TPL_MODE_DECL = '''enum class {type}
+{{
   {values}
 }};
 static constexpr size_t {type}__numValues = {nvalues};
@@ -501,7 +502,8 @@ TPL_MODE_STREAM_OPERATOR = '''std::ostream& operator<<(std::ostream& os, {type} 
 TPL_MODE_TO_STRING = '''{type} stringTo{type}(const std::string& optarg)
 {{
   {cases}
-  else if (optarg == "help") {{
+  else if (optarg == "help")
+  {{
     std::cerr << {help};
     std::exit(1);
   }}
