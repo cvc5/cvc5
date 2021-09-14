@@ -260,6 +260,9 @@ set(regress_0_tests
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvcomp.cvc
   regress0/bv/bvmul-pow2-only.smt2
+  regress0/bv/bvproof1.smt2
+  regress0/bv/bvproof2.smt2
+  regress0/bv/bvproof3.smt2
   regress0/bv/bvsimple.cvc
   regress0/bv/bvsmod.smt2
   regress0/bv/calc2_sec2_shifter_mult_bmc15.atlas.delta01.smtv1.smt2
