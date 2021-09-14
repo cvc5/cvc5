@@ -7298,7 +7298,10 @@ std::map<Term, Term> Solver::getDifficulty() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
-  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT ||
+    d_smtEngine->getSmtMode() == SmtMode::SAT ||
+    d_smtEngine->getSmtMode() == SmtMode::SAT_UNKNOWN
+  )
       << "Cannot get difficulty unless after a UNSAT, SAT or unknown response.";
   //////// all checks before this line
   std::map<Term, Term> res;
