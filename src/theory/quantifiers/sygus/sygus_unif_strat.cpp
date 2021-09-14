@@ -23,7 +23,6 @@
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -265,7 +264,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     Node eut = nm->mkNode(DT_SYGUS_EVAL, echildren);
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
                                << std::endl;
-    eut = d_tds->getEvalUnfold()->unfold(eut);
+    eut = d_tds->rewriteNode(eut);
     Trace("sygus-unif-debug2") << "  ...got " << eut;
     Trace("sygus-unif-debug2") << ", type : " << eut.getType() << std::endl;
 
@@ -443,7 +442,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
                 teut = children.size() == 1
                            ? children[0]
                            : nm->mkNode(eut.getKind(), children);
-                teut = Rewriter::rewrite(teut);
+                teut = rewrite(teut);
               }
               else
               {

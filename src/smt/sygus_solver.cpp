@@ -25,8 +25,6 @@
 #include "options/option_exception.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
-#include "printer/printer.h"
-#include "smt/dump.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -220,10 +218,6 @@ Result SygusSolver::checkSynth(Assertions& as)
     Trace("smt") << "...constructed forall " << body << std::endl;
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
-    if (Dump.isOn("raw-benchmark"))
-    {
-      d_env.getPrinter().toStreamCmdCheckSynth(d_env.getDumpOut());
-    }
 
     d_sygusConjectureStale = false;
 

@@ -56,15 +56,48 @@ class SetDefaults
    */
   bool usesSygus(const Options& opts) const;
   /**
-   * Return true if proofs must be disabled. This is the case for any technique
-   * that answers "unsat" without showing a proof of unsatisfiabilty.
+   * Check if incompatible with incremental mode. Notice this method may modify
+   * the options to ensure that we are compatible with incremental mode.
+   *
+   * If this method returns true, then the reason why we were incompatible with
+   * incremental mode is written on the reason output stream. Suggestions for how to
+   * resolve the incompatibility exception are written on the suggest stream.
    */
-  bool mustDisableProofs(const Options& opts) const;
+  bool incompatibleWithIncremental(const LogicInfo& logic,
+                                   Options& opts,
+                                   std::ostream& reason,
+                                   std::ostream& suggest) const;
+  /**
+   * Return true if proofs must be disabled. This is the case for any technique
+   * that answers "unsat" without showing a proof of unsatisfiabilty. The output
+   * stream reason is similar to above.
+   *
+   * Notice this method may modify the options to ensure that we are compatible
+   * with proofs.
+   */
+  bool incompatibleWithProofs(Options& opts, std::ostream& reason) const;
+  /**
+   * Check whether we should disable models. The output stream reason is similar
+   * to above.
+   */
+  bool incompatibleWithModels(const Options& opts, std::ostream& reason) const;
+  /**
+   * Check if incompatible with unsat cores. Notice this method may modify
+   * the options to ensure that we are compatible with unsat cores.
+   * The output stream reason is similar to above.
+   */
+  bool incompatibleWithUnsatCores(Options& opts, std::ostream& reason) const;
   /**
    * Return true if we are using "safe" unsat cores, which disables all
    * techniques that may interfere with producing correct unsat cores.
    */
   bool safeUnsatCores(const Options& opts) const;
+  /**
+   * Check if incompatible with quantified formulas. Notice this method may
+   * modify the options to ensure that we are compatible with quantified logics.
+   * The output stream reason is similar to above.
+   */
+  bool incompatibleWithQuantifiers(Options& opts, std::ostream& reason) const;
   //------------------------- options setting, prior finalization of logic
   /**
    * Set defaults pre, which sets all options prior to finalizing the logic.
@@ -82,7 +115,7 @@ class SetDefaults
    * use of other theories to handle certain operators, e.g. UF to handle
    * partial functions.
    */
-  void widenLogic(LogicInfo& logic, Options& opts) const;
+  void widenLogic(LogicInfo& logic, const Options& opts) const;
   //------------------------- options setting, post finalization of logic
   /**
    * Set all default options, after we have finalized the logic.

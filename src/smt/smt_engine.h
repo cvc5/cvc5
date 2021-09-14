@@ -42,7 +42,6 @@ class Env;
 class NodeManager;
 class TheoryEngine;
 class UnsatCore;
-class LogicRequest;
 class StatisticsRegistry;
 class Printer;
 class ResourceManager;
@@ -77,7 +76,6 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
-class Model;
 class SmtEngineState;
 class AbstractValues;
 class Assertions;
@@ -104,9 +102,10 @@ class UnsatCoreManager;
 /* -------------------------------------------------------------------------- */
 
 namespace theory {
-  class Rewriter;
-  class QuantifiersEngine;
-  }  // namespace theory
+class TheoryModel;
+class Rewriter;
+class QuantifiersEngine;
+}  // namespace theory
 
 /* -------------------------------------------------------------------------- */
 
@@ -115,7 +114,6 @@ class CVC5_EXPORT SmtEngine
   friend class ::cvc5::api::Solver;
   friend class ::cvc5::smt::SmtEngineState;
   friend class ::cvc5::smt::SmtScope;
-  friend class ::cvc5::LogicRequest;
 
   /* .......................................................................  */
  public:
@@ -225,35 +223,6 @@ class CVC5_EXPORT SmtEngine
   void setIsInternalSubsolver();
   /** Is this an internal subsolver? */
   bool isInternalSubsolver() const;
-
-  /**
-   * Notify that we are now parsing the input with the given filename.
-   * This call sets the filename maintained by this SmtEngine for bookkeeping
-   * and also makes a copy of the current options of this SmtEngine. This
-   * is required so that the SMT-LIB command (reset) returns the SmtEngine
-   * to a state where its options were prior to parsing but after e.g.
-   * reading command line options.
-   */
-  void notifyStartParsing(const std::string& filename) CVC5_EXPORT;
-  /** return the input name (if any) */
-  const std::string& getFilename() const;
-
-  /**
-   * Helper method for the API to put the last check result into the statistics.
-   */
-  void setResultStatistic(const std::string& result) CVC5_EXPORT;
-  /**
-   * Helper method for the API to put the total runtime into the statistics.
-   */
-  void setTotalTimeStatistic(double seconds) CVC5_EXPORT;
-
-  /**
-   * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
-   * query).  Only permitted if produce-models is on.
-   *
-   * TODO (issues#287): eliminate this method.
-   */
-  smt::Model* getModel();
 
   /**
    * Block the current model. Can be called only if immediately preceded by
@@ -547,6 +516,19 @@ class CVC5_EXPORT SmtEngine
    * @return true if v is a model core symbol
    */
   bool isModelCoreSymbol(Node v);
+
+  /**
+   * Get a model (only if immediately preceded by an SAT or unknown query).
+   * Only permitted if the model option is on.
+   *
+   * @param declaredSorts The sorts to print in the model
+   * @param declaredFuns The free constants to print in the model. A subset
+   * of these may be printed based on isModelCoreSymbol.
+   * @return the string corresponding to the model. If the output language is
+   * smt2, then this corresponds to a response to the get-model command.
+   */
+  std::string getModel(const std::vector<TypeNode>& declaredSorts,
+                       const std::vector<Node>& declaredFuns);
 
   /** print instantiations
    *
@@ -961,7 +943,7 @@ class CVC5_EXPORT SmtEngine
    * @param c used for giving an error message to indicate the context
    * this method was called.
    */
-  smt::Model* getAvailableModel(const char* c) const;
+  theory::TheoryModel* getAvailableModel(const char* c) const;
   /**
    * Get available quantifiers engine, which throws a modal exception if it
    * does not exist. This can happen if a quantifiers-specific call (e.g.
@@ -1070,13 +1052,6 @@ class CVC5_EXPORT SmtEngine
 
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
-
-  /**
-   * The SMT-level model object, which contains information about how to
-   * print the model, as well as a pointer to the underlying TheoryModel
-   * implementation maintained by the SmtSolver.
-   */
-  std::unique_ptr<smt::Model> d_model;
 
   /**
    * The utility used for checking models

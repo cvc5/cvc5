@@ -60,6 +60,7 @@
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
+#include "options/outputc.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
@@ -308,6 +309,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {BAG_IS_SINGLETON, cvc5::Kind::BAG_IS_SINGLETON},
     {BAG_FROM_SET, cvc5::Kind::BAG_FROM_SET},
     {BAG_TO_SET, cvc5::Kind::BAG_TO_SET},
+    {BAG_MAP, cvc5::Kind::BAG_MAP},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, cvc5::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP},
@@ -617,6 +619,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
+        {cvc5::Kind::BAG_MAP,BAG_MAP},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -7044,11 +7047,195 @@ std::string Solver::getOption(const std::string& option) const
   CVC5_API_TRY_CATCH_END;
 }
 
+// Supports a visitor from a list of lambdas
+// Taken from https://en.cppreference.com/w/cpp/utility/variant/visit
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+bool OptionInfo::boolValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(std::holds_alternative<ValueInfo<bool>>(valueInfo))
+      << name << " is not a bool option";
+  //////// all checks before this line
+  return std::get<ValueInfo<bool>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+std::string OptionInfo::stringValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(
+      std::holds_alternative<ValueInfo<std::string>>(valueInfo))
+      << name << " is not a string option";
+  //////// all checks before this line
+  return std::get<ValueInfo<std::string>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+int64_t OptionInfo::intValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(
+      std::holds_alternative<NumberInfo<int64_t>>(valueInfo))
+      << name << " is not an int option";
+  //////// all checks before this line
+  return std::get<NumberInfo<int64_t>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+uint64_t OptionInfo::uintValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(
+      std::holds_alternative<NumberInfo<uint64_t>>(valueInfo))
+      << name << " is not a uint option";
+  //////// all checks before this line
+  return std::get<NumberInfo<uint64_t>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+double OptionInfo::doubleValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(
+      std::holds_alternative<NumberInfo<double>>(valueInfo))
+      << name << " is not a double option";
+  //////// all checks before this line
+  return std::get<NumberInfo<double>>(valueInfo).currentValue;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::ostream& operator<<(std::ostream& os, const OptionInfo& oi)
+{
+  os << "OptionInfo{ " << oi.name;
+  if (oi.setByUser)
+  {
+    os << " | set by user";
+  }
+  if (!oi.aliases.empty())
+  {
+    container_to_stream(os, oi.aliases, ", ", "", ", ");
+  }
+  auto printNum = [&os](const std::string& type, const auto& vi) {
+    os << " | " << type << " | " << vi.currentValue << " | default "
+       << vi.defaultValue;
+    if (vi.minimum || vi.maximum)
+    {
+      os << " |";
+      if (vi.minimum)
+      {
+        os << " " << *vi.minimum << " <=";
+      }
+      os << " x";
+      if (vi.maximum)
+      {
+        os << " <= " << *vi.maximum;
+      }
+    }
+  };
+  std::visit(overloaded{
+                 [&os](const OptionInfo::VoidInfo& vi) { os << " | void"; },
+                 [&os](const OptionInfo::ValueInfo<bool>& vi) {
+                   os << " | bool | " << vi.currentValue << " | default "
+                      << vi.defaultValue;
+                 },
+                 [&os](const OptionInfo::ValueInfo<std::string>& vi) {
+                   os << " | string | " << vi.currentValue << " | default "
+                      << vi.defaultValue;
+                 },
+                 [&printNum](const OptionInfo::NumberInfo<int64_t>& vi) {
+                   printNum("int64_t", vi);
+                 },
+                 [&printNum](const OptionInfo::NumberInfo<uint64_t>& vi) {
+                   printNum("uint64_t", vi);
+                 },
+                 [&printNum](const OptionInfo::NumberInfo<double>& vi) {
+                   printNum("double", vi);
+                 },
+                 [&os](const OptionInfo::ModeInfo& vi) {
+                   os << " | mode | " << vi.currentValue << " | default "
+                      << vi.defaultValue << " | modes: ";
+                   container_to_stream(os, vi.modes, "", "", ", ");
+                 },
+             },
+             oi.valueInfo);
+  os << " }";
+  return os;
+}
+
 std::vector<std::string> Solver::getOptionNames() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return options::getNames();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+OptionInfo Solver::getOptionInfo(const std::string& option) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  auto info = options::getInfo(d_smtEngine->getOptions(), option);
+  CVC5_API_CHECK(info.name != "")
+      << "Querying invalid or unknown option " << option;
+  return std::visit(
+      overloaded{
+          [&info](const options::OptionInfo::VoidInfo& vi) {
+            return OptionInfo{info.name,
+                              info.aliases,
+                              info.setByUser,
+                              OptionInfo::VoidInfo{}};
+          },
+          [&info](const options::OptionInfo::ValueInfo<bool>& vi) {
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
+          },
+          [&info](const options::OptionInfo::ValueInfo<std::string>& vi) {
+            return OptionInfo{info.name,
+                              info.aliases,
+                              info.setByUser,
+                              OptionInfo::ValueInfo<std::string>{
+                                  vi.defaultValue, vi.currentValue}};
+          },
+          [&info](const options::OptionInfo::NumberInfo<int64_t>& vi) {
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                OptionInfo::NumberInfo<int64_t>{
+                    vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
+          },
+          [&info](const options::OptionInfo::NumberInfo<uint64_t>& vi) {
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                OptionInfo::NumberInfo<uint64_t>{
+                    vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
+          },
+          [&info](const options::OptionInfo::NumberInfo<double>& vi) {
+            return OptionInfo{
+                info.name,
+                info.aliases,
+                info.setByUser,
+                OptionInfo::NumberInfo<double>{
+                    vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
+          },
+          [&info](const options::OptionInfo::ModeInfo& vi) {
+            return OptionInfo{info.name,
+                              info.aliases,
+                              info.setByUser,
+                              OptionInfo::ModeInfo{
+                                  vi.defaultValue, vi.currentValue, vi.modes}};
+          },
+      },
+      info.valueInfo);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7193,6 +7380,36 @@ bool Solver::isModelCoreSymbol(const Term& v) const
       << "Expecting a free constant as argument to isModelCoreSymbol.";
   //////// all checks before this line
   return d_smtEngine->isModelCoreSymbol(v.getNode());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Solver::getModel(const std::vector<Sort>& sorts,
+                             const std::vector<Term>& vars) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
+      << "Cannot get model unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
+      << "Cannot get model unless after a SAT or unknown response.";
+  CVC5_API_SOLVER_CHECK_SORTS(sorts);
+  for (const Sort& s : sorts)
+  {
+    CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
+        << "Expecting an uninterpreted sort as argument to "
+           "getModel.";
+  }
+  CVC5_API_SOLVER_CHECK_TERMS(vars);
+  for (const Term& v : vars)
+  {
+    CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
+        << "Expecting a free constant as argument to getModel.";
+  }
+  //////// all checks before this line
+  return d_smtEngine->getModel(Sort::sortVectorToTypeNodes(sorts),
+                               Term::termVectorToNodes(vars));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7730,21 +7947,39 @@ std::vector<Term> Solver::getSynthSolutions(
   CVC5_API_TRY_CATCH_END;
 }
 
-/*
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
-
-/*
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
-
 Statistics Solver::getStatistics() const
 {
   return Statistics(d_smtEngine->getStatisticsRegistry());
+}
+
+bool Solver::isOutputOn(const std::string& tag) const
+{
+  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // forward as such. We thus do not use the standard exception handling macros
+  // here but roll our own.
+  try
+  {
+    return cvc5::OutputChannel.isOn(tag);
+  }
+  catch (const cvc5::Exception& e)
+  {
+    throw CVC5ApiException("Invalid output tag " + tag);
+  }
+}
+
+std::ostream& Solver::getOutput(const std::string& tag) const
+{
+  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // forward as such. We thus do not use the standard exception handling macros
+  // here but roll our own.
+  try
+  {
+    return Output(tag);
+  }
+  catch (const cvc5::Exception& e)
+  {
+    throw CVC5ApiException("Invalid output tag " + tag);
+  }
 }
 
 }  // namespace api

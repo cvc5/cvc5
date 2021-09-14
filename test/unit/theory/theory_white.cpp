@@ -61,14 +61,8 @@ TEST_F(TestTheoryWhite, effort)
   Theory::Effort s = Theory::EFFORT_STANDARD;
   Theory::Effort f = Theory::EFFORT_FULL;
 
-  ASSERT_TRUE(Theory::standardEffortOnly(s));
-  ASSERT_FALSE(Theory::standardEffortOnly(f));
-
   ASSERT_FALSE(Theory::fullEffort(s));
   ASSERT_TRUE(Theory::fullEffort(f));
-
-  ASSERT_TRUE(Theory::standardEffortOrMore(s));
-  ASSERT_TRUE(Theory::standardEffortOrMore(f));
 }
 
 TEST_F(TestTheoryWhite, done)

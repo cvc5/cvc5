@@ -42,11 +42,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
-#include "options/base_options.h"
-#include "options/language.h"
-#include "options/main_options.h"
-#include "options/options.h"
-#include "options/parser_options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -90,16 +85,16 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
-    : d_solver(solver),
-      d_in(solver->getDriverOptions().in()),
-      d_out(solver->getDriverOptions().out()),
-      d_quit(false)
+InteractiveShell::InteractiveShell(api::Solver* solver,
+                                   SymbolManager* sm,
+                                   std::istream& in,
+                                   std::ostream& out)
+    : d_solver(solver), d_in(in), d_out(out), d_quit(false)
 {
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.build();
-  if (d_solver->getOptions().parser.forceLogicStringWasSetByUser)
+  if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
     d_parser->forceLogic(tmp.getLogicString());

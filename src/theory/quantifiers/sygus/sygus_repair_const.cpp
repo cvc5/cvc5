@@ -35,7 +35,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusRepairConst::SygusRepairConst(Env& env, TermDbSygus* tds)
-    : d_env(env), d_tds(tds), d_allow_constant_grammar(false)
+    : EnvObj(env), d_tds(tds), d_allow_constant_grammar(false)
 {
 }
 
@@ -189,7 +189,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
 
   // check whether it is not in the current logic, e.g. non-linear arithmetic.
   // if so, undo replacements until it is in the current logic.
-  const LogicInfo& logic = d_env.getLogicInfo();
+  const LogicInfo& logic = logicInfo();
   if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
   {
     fo_body = fitToLogic(sygusBody,
@@ -444,7 +444,7 @@ Node SygusRepairConst::getFoQuery(Node body,
   Trace("sygus-repair-const-debug") << "  ...got : " << body << std::endl;
 
   Trace("sygus-repair-const") << "  Unfold the specification..." << std::endl;
-  body = d_tds->evaluateWithUnfolding(body);
+  body = d_tds->rewriteNode(body);
   Trace("sygus-repair-const-debug") << "  ...got : " << body << std::endl;
 
   Trace("sygus-repair-const") << "  Introduce first-order vars..." << std::endl;

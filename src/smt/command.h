@@ -219,7 +219,6 @@ class CVC5_EXPORT Command
 
   virtual void toStream(std::ostream& out,
                         int toDepth = -1,
-
                         size_t dag = 1,
                         Language language = Language::LANG_AUTO) const = 0;
 
@@ -299,8 +298,6 @@ class CVC5_EXPORT Command
       const std::vector<api::Sort>& sorts);
   /** Helper to convert a Grammar to an internal TypeNode */
   static TypeNode grammarToTypeNode(api::Grammar* grammar);
-  /** Get original options from the solver (for ResetCommand) */
-  Options& getOriginalOptionsFrom(api::Solver* s);
 }; /* class Command */
 
 /**
@@ -952,7 +949,8 @@ class CVC5_EXPORT GetModelCommand : public Command
                 Language language = Language::LANG_AUTO) const override;
 
  protected:
-  smt::Model* d_result;
+  /** Result of printing the model */
+  std::string d_result;
 }; /* class GetModelCommand */
 
 /** The command to block models. */

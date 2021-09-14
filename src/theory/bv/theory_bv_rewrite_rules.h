@@ -203,7 +203,6 @@ enum RewriteRuleId
   BBAddNeg,
   UltAddOne,
   ConcatToMult,
-  IsPowerOfTwo,
   MultSltMult,
   BitOfConst,
 };
@@ -370,7 +369,6 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case MultDistrib: out << "MultDistrib"; return out;
   case UltAddOne: out << "UltAddOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
-  case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
   case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
   case BitOfConst: out << "BitOfConst"; return out;
@@ -445,32 +443,21 @@ public:
     SuppressWrongNoReturnWarning;
   }
 
-  template<bool checkApplies>
-  static inline Node run(TNode node) {
-    if (!checkApplies || applies(node)) {
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
+  template <bool checkApplies>
+  static inline Node run(TNode node)
+  {
+    if (!checkApplies || applies(node))
+    {
+      Debug("theory::bv::rewrite")
+          << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
-      //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
-      if (result != node) {
-        if(Dump.isOn("bv-rewrites")) {
-          std::ostringstream os;
-          os << "RewriteRule <"<<rule<<">; expect unsat";
-
-          Node condition = node.eqNode(result).notNode();
-
-          const Printer& printer =
-              smt::currentSmtEngine()->getOutputManager().getPrinter();
-          std::ostream& out =
-              smt::currentSmtEngine()->getOutputManager().getDumpOut();
-
-          printer.toStreamCmdComment(out, os.str());
-          printer.toStreamCmdCheckSat(out, condition);
-        }
-      }
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;
+      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node
+                                   << ") => " << result << std::endl;
       return result;
-    } else {
+    }
+    else
+    {
       return node;
     }
   }
@@ -600,7 +587,6 @@ struct AllRewriteRules {
   RewriteRule<MultDistrib>                    rule118;
   RewriteRule<UltAddOne> rule119;
   RewriteRule<ConcatToMult>                   rule120;
-  RewriteRule<IsPowerOfTwo>                   rule121;
   RewriteRule<RedorEliminate>                 rule122;
   RewriteRule<RedandEliminate>                rule123;
   RewriteRule<SignExtendEqConst>              rule124;

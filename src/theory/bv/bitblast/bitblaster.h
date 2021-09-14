@@ -30,6 +30,7 @@
 #include "prop/sat_solver_types.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"

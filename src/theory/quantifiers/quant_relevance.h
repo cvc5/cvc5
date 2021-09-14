@@ -40,7 +40,7 @@ class QuantRelevance : public QuantifiersUtil
    * if this is false, then all calls to getRelevance
    * return -1.
    */
-  QuantRelevance() {}
+  QuantRelevance(Env& env);
   ~QuantRelevance() {}
   /** reset */
   bool reset(Theory::Effort e) override { return true; }

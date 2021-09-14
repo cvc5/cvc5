@@ -21,6 +21,7 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/iand_utils.h"
 
 namespace cvc5 {
@@ -37,12 +38,12 @@ class NlModel;
 /** Integer and solver class
  *
  */
-class IAndSolver
+class IAndSolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  IAndSolver(InferenceManager& im, ArithState& state, NlModel& model);
+  IAndSolver(Env& env, InferenceManager& im, ArithState& state, NlModel& model);
   ~IAndSolver();
 
   /** init last call

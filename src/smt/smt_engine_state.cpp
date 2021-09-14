@@ -17,6 +17,7 @@
 
 #include "base/modal_exception.h"
 #include "options/base_options.h"
+#include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
@@ -43,7 +44,7 @@ void SmtEngineState::notifyExpectedStatus(const std::string& status)
   Assert(status == "sat" || status == "unsat" || status == "unknown")
       << "SmtEngineState::notifyExpectedStatus: unexpected status string "
       << status;
-  d_expectedStatus = Result(status, d_env.getFilename());
+  d_expectedStatus = Result(status, d_env.getOptions().driver.filename);
 }
 
 void SmtEngineState::notifyResetAssertions()
