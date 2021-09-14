@@ -601,6 +601,8 @@ libcvc5_add_sources(
   theory/bv/abstraction.h
   theory/bv/bitblast/aig_bitblaster.cpp
   theory/bv/bitblast/aig_bitblaster.h
+  theory/bv/bitblast/bitblast_proof_generator.cpp
+  theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
   theory/bv/bitblast/bitblast_utils.h
   theory/bv/bitblast/bitblaster.h
@@ -690,6 +692,8 @@ libcvc5_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
+  theory/difficulty_manager.cpp
+  theory/difficulty_manager.h
   theory/ee_manager.cpp
   theory/ee_manager.h
   theory/ee_manager_central.cpp
@@ -703,8 +707,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
-  theory/fp/fp_converter.cpp
-  theory/fp/fp_converter.h
+  theory/fp/fp_word_blaster.cpp
+  theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
   theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp
@@ -1206,7 +1210,7 @@ set(options_toml_files
 )
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
+list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
 list(APPEND options_gen_h_files "options/options.h")
 
 libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
@@ -1238,6 +1242,7 @@ add_custom_command(
     DEPENDS
       options/mkoptions.py
       ${options_toml_files}
+      main/options_template.cpp
       options/module_template.h
       options/module_template.cpp
       options/options_public_template.cpp

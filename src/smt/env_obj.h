@@ -29,6 +29,7 @@ class Env;
 class LogicInfo;
 class NodeManager;
 class Options;
+class StatisticsRegistry;
 
 namespace context {
 class Context;
@@ -66,6 +67,9 @@ class EnvObj
 
   /** Get a pointer to the UserContext via Env. */
   context::UserContext* userContext() const;
+
+  /** Get the statistics registry via Env. */
+  StatisticsRegistry& statisticsRegistry() const;
 
   /** The associated environment. */
   Env& d_env;

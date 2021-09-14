@@ -39,30 +39,6 @@
 #include "base/exception.h"
 #include "cvc5_export.h"
 
-// Define CVC5_PREDICT_FALSE(x) that helps the compiler predict that x will be
-// false (if there is compiler support).
-#ifdef __has_builtin
-#if __has_builtin(__builtin_expect)
-#define CVC5_PREDICT_FALSE(x) (__builtin_expect(x, false))
-#define CVC5_PREDICT_TRUE(x) (__builtin_expect(x, true))
-#else
-#define CVC5_PREDICT_FALSE(x) x
-#define CVC5_PREDICT_TRUE(x) x
-#endif
-#else
-#define CVC5_PREDICT_FALSE(x) x
-#define CVC5_PREDICT_TRUE(x) x
-#endif
-
-#ifdef __has_cpp_attribute
-#if __has_cpp_attribute(fallthrough)
-#define CVC5_FALLTHROUGH [[fallthrough]]
-#endif // __has_cpp_attribute(fallthrough)
-#endif // __has_cpp_attribute
-#ifndef CVC5_FALLTHROUGH
-#define CVC5_FALLTHROUGH
-#endif
-
 namespace cvc5 {
 
 // Implementation notes:

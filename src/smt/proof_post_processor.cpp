@@ -22,6 +22,7 @@
 #include "smt/smt_engine.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/bv/bitblast/bitblast_proof_generator.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/rewriter.h"
 #include "theory/strings/infer_proof_cons.h"
@@ -1105,7 +1106,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::BV_BITBLAST)
   {
-    bv::BBProof bb(nullptr, d_pnm, true);
+    bv::BBProof bb(d_env, nullptr, d_pnm, true);
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
     bb.bbAtom(eq[0]);

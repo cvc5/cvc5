@@ -260,6 +260,9 @@ set(regress_0_tests
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvcomp.cvc
   regress0/bv/bvmul-pow2-only.smt2
+  regress0/bv/bvproof1.smt2
+  regress0/bv/bvproof2.smt2
+  regress0/bv/bvproof3.smt2
   regress0/bv/bvsimple.cvc
   regress0/bv/bvsmod.smt2
   regress0/bv/calc2_sec2_shifter_mult_bmc15.atlas.delta01.smtv1.smt2
@@ -605,6 +608,7 @@ set(regress_0_tests
   regress0/fp/issue5511.smt2
   regress0/fp/issue5734.smt2
   regress0/fp/issue6164.smt2
+  regress0/fp/issue7002.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2
