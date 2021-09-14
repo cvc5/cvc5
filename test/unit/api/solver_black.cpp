@@ -1469,14 +1469,21 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
 
 TEST_F(TestApiBlackSolver, getDifficulty)
 {
-  ASSERT_THROW(d_solver.getDifficulty(), CVC5ApiException);
   d_solver.setOption("produce-difficulty", "true");
+  // cannot ask before a check sat
   ASSERT_THROW(d_solver.getDifficulty(), CVC5ApiException);
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getDifficulty());
 }
 
 TEST_F(TestApiBlackSolver, getDifficulty2)
+{
+  d_solver.checkSat();
+  // option is not set
+  ASSERT_THROW(d_solver.getDifficulty(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getDifficulty3)
 {
   d_solver.setOption("produce-difficulty", "true");
   Sort intSort = d_solver.getIntegerSort();
