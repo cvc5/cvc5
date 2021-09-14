@@ -667,8 +667,9 @@ void SmtEngine::defineFunctionsRec(
       Node boundVars = nm->mkNode(kind::BOUND_VAR_LIST, formals[i]);
       lem = nm->mkNode(kind::FORALL, boundVars, lem, aexpr);
     }
-    // assert the quantified formula
-    //   notice we don't call assertFormula directly.
+    // Assert the quantified formula. Notice we don't call assertFormula
+    // directly, since we should call a private member method since we have
+    // already ensuring this SmtEngine is initialized above.
     // add define recursive definition to the assertions
     d_asserts->addDefineFunDefinition(lem, global);
   }
