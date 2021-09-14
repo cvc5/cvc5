@@ -175,7 +175,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     }
 
     if (d_solver->getOptionInfo("dump-difficulty").boolValue()
-        && (isResultUnsat || res.isSat() || res.isSatUnknown()))
+        && (isResultUnsat || isResultSat || res.isSatUnknown()))
     {
       getterCommands.emplace_back(new GetDifficultyCommand());
     }
