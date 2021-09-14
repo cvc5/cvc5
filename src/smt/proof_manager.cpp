@@ -31,6 +31,7 @@
 #include "proof/alethe/alethe_printer.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/assertions.h"
+#include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
@@ -229,6 +230,58 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
   Trace("smt-proof-debug") << "PfManager::checkProof: returned " << *fp.get()
                            << std::endl;
+}
+
+void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
+                                       Assertions& as)
+{
+  Trace("difficulty") << "PfManager::translateDifficultyMap" << std::endl;
+  if (dmap.empty())
+  {
+    return;
+  }
+  std::map<Node, Node> dmapp = dmap;
+  dmap.clear();
+  std::vector<Node> ppAsserts;
+  for (const std::pair<const Node, Node>& ppa : dmapp)
+  {
+    Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
+                        << ppa.first << std::endl;
+    ppAsserts.push_back(ppa.first);
+  }
+  // assume a SAT refutation from all input assertions that were marked
+  // as having a difficulty
+  CDProof cdp(d_pnm.get());
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
+  std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
+  std::shared_ptr<ProofNode> fpf = getFinalProof(pf, as);
+  Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
+  Assert(fpf->getRule() == PfRule::SCOPE);
+  fpf = fpf->getChildren()[0];
+  // analyze proof
+  Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
+  const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
+  DifficultyPostprocessCallback dpc;
+  ProofNodeUpdater dpnu(d_pnm.get(), dpc);
+  // For each child of SAT_REFUTATION, we increment the difficulty on all
+  // "source" free assumptions (see DifficultyPostprocessCallback) by the
+  // difficulty of the preprocessed assertion.
+  for (const std::shared_ptr<ProofNode>& c : children)
+  {
+    Node res = c->getResult();
+    Assert(dmapp.find(res) != dmapp.end());
+    Trace("difficulty-debug") << "  process: " << res << std::endl;
+    Trace("difficulty-debug") << "  .dvalue: " << dmapp[res] << std::endl;
+    Trace("difficulty-debug") << "  ..proof: " << *c.get() << std::endl;
+    if (!dpc.setCurrentDifficulty(dmapp[res]))
+    {
+      continue;
+    }
+    dpnu.process(c);
+  }
+  // get the accumulated difficulty map from the callback
+  dpc.getDifficultyMap(dmap);
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }

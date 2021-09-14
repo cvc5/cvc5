@@ -79,6 +79,8 @@ class BVSolverBitblastInternal : public BVSolver
   std::unique_ptr<BBProof> d_bitblaster;
   /** Proof rule checker */
   BVProofRuleChecker d_checker;
+  /** Proof generator for unpacking BITVECTOR_EAGER_ATOM. */
+  std::unique_ptr<EagerProofGenerator> d_epg;
 };
 
 }  // namespace bv
