@@ -1492,7 +1492,7 @@ TEST_F(TestApiBlackSolver, getDifficulty2)
   for (const std::pair<Term, Term>& t : dmap)
   {
     ASSERT_TRUE(t.first==f0 || t.first==f1);
-    ASSERT_TRUE(t.getKind()==CONST_RATIONAL);
+    ASSERT_TRUE(t.second.getKind()==CONST_RATIONAL);
   }
 }
 
