@@ -1612,6 +1612,11 @@ void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
   out << "(get-unsat-core)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
+{
+  out << "(get-difficulty)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
                                                 Result::Sat status) const
 {

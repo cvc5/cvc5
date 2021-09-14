@@ -213,6 +213,9 @@ class Printer
   /** Print get-unsat-core command */
   virtual void toStreamCmdGetUnsatCore(std::ostream& out) const;
 
+  /** Print get-difficulty command */
+  virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
 

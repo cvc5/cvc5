@@ -7294,12 +7294,34 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::map<Term, Term> Solver::getDifficulty() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT
+                             || d_smtEngine->getSmtMode() == SmtMode::SAT
+                             || d_smtEngine->getSmtMode()
+                                    == SmtMode::SAT_UNKNOWN)
+      << "Cannot get difficulty unless after a UNSAT, SAT or unknown response.";
+  //////// all checks before this line
+  std::map<Term, Term> res;
+  std::map<Node, Node> dmap;
+  d_smtEngine->getDifficultyMap(dmap);
+  for (const std::pair<const Node, Node>& d : dmap)
+  {
+    res[Term(this, d.first)] = Term(this, d.second);
+  }
+  return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::string Solver::getProof(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceProofs)
-      << "Cannot get proof explicitly enabled (try --prooduce-proofs)";
+      << "Cannot get proof explicitly enabled (try --produce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
   return d_smtEngine->getProof();

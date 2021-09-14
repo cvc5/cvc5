@@ -169,6 +169,12 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
+    if (d_solver->getOptionInfo("dump-difficulty").boolValue()
+        && (isResultUnsat || isResultSat || res.isSatUnknown()))
+    {
+      getterCommands.emplace_back(new GetDifficultyCommand());
+    }
+
     if (!getterCommands.empty()) {
       // set no time limit during dumping if applicable
       if (d_solver->getOptionInfo("force-no-limit-cpu-while-dump").boolValue())

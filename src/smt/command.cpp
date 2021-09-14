@@ -2412,6 +2412,86 @@ void GetUnsatCoreCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
+/* class GetDifficultyCommand */
+/* -------------------------------------------------------------------------- */
+
+GetDifficultyCommand::GetDifficultyCommand() : d_sm(nullptr) {}
+void GetDifficultyCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    d_sm = sm;
+    d_result = solver->getDifficulty();
+
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetDifficultyCommand::printResult(std::ostream& out,
+                                       uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    out << "(" << std::endl;
+    for (const std::pair<const api::Term, api::Term>& d : d_result)
+    {
+      out << "(";
+      // use name if it has one
+      std::string name;
+      if (d_sm->getExpressionName(d.first, name, true))
+      {
+        out << name;
+      }
+      else
+      {
+        out << d.first;
+      }
+      out << " " << d.second << ")" << std::endl;
+    }
+    out << ")" << std::endl;
+  }
+}
+
+const std::map<api::Term, api::Term>& GetDifficultyCommand::getDifficultyMap()
+    const
+{
+  return d_result;
+}
+
+Command* GetDifficultyCommand::clone() const
+{
+  GetDifficultyCommand* c = new GetDifficultyCommand;
+  c->d_sm = d_sm;
+  c->d_result = d_result;
+  return c;
+}
+
+std::string GetDifficultyCommand::getCommandName() const
+{
+  return "get-difficulty";
+}
+
+void GetDifficultyCommand::toStream(std::ostream& out,
+                                    int toDepth,
+                                    size_t dag,
+                                    Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetDifficulty(out);
+}
+
+/* -------------------------------------------------------------------------- */
 /* class GetAssertionsCommand                                                 */
 /* -------------------------------------------------------------------------- */
 

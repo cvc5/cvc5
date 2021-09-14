@@ -1774,6 +1774,29 @@ std::vector<Node> SmtEngine::getAssertions()
   return getAssertionsInternal();
 }
 
+void SmtEngine::getDifficultyMap(std::map<Node, Node>& dmap)
+{
+  Trace("smt") << "SMT getDifficultyMap()\n";
+  SmtScope smts(this);
+  finishInit();
+  if (Dump.isOn("benchmark"))
+  {
+    getPrinter().toStreamCmdGetDifficulty(d_env->getDumpOut());
+  }
+  if (!d_env->getOptions().smt.produceDifficulty)
+  {
+    throw ModalException(
+        "Cannot get difficulty when difficulty option is off.");
+  }
+  // the prop engine has the proof of false
+  Assert(d_pfManager);
+  // get difficulty map from theory engine first
+  TheoryEngine* te = getTheoryEngine();
+  te->getDifficultyMap(dmap);
+  // then ask proof manager to translate dmap in terms of the input
+  d_pfManager->translateDifficultyMap(dmap, *d_asserts);
+}
+
 void SmtEngine::push()
 {
   SmtScope smts(this);
