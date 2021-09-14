@@ -80,11 +80,11 @@ class QuantifiersRewriter : public TheoryRewriter
    * returns true. Otherwise, it returns false.
    */
   bool getVarElimLit(Node body,
-                            Node n,
-                            bool pol,
-                            std::vector<Node>& args,
-                            std::vector<Node>& vars,
-                            std::vector<Node>& subs) const;
+                     Node n,
+                     bool pol,
+                     std::vector<Node>& args,
+                     std::vector<Node>& vars,
+                     std::vector<Node>& subs) const;
   /**
    * Get variable eliminate for an equality based on theory-specific reasoning.
    */
@@ -121,9 +121,9 @@ class QuantifiersRewriter : public TheoryRewriter
    * based on eliminating v.
    */
   bool getVarElim(Node body,
-                         std::vector<Node>& args,
-                         std::vector<Node>& vars,
-                         std::vector<Node>& subs) const;
+                  std::vector<Node>& args,
+                  std::vector<Node>& vars,
+                  std::vector<Node>& subs) const;
   /** has variable elimination
    *
    * Returns true if n asserted with polarity pol entails a literal for
@@ -154,11 +154,11 @@ class QuantifiersRewriter : public TheoryRewriter
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
   bool getVarElimInternal(Node body,
-                                 Node n,
-                                 bool pol,
-                                 std::vector<Node>& args,
-                                 std::vector<Node>& vars,
-                                 std::vector<Node>& subs) const;
+                          Node n,
+                          bool pol,
+                          std::vector<Node>& args,
+                          std::vector<Node>& vars,
+                          std::vector<Node>& subs) const;
   bool addCheckElimChild(std::vector<Node>& children,
                          Node c,
                          Kind k,
@@ -251,7 +251,7 @@ class QuantifiersRewriter : public TheoryRewriter
    * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
    * and computes NNF.
    */
-  Node computeElimSymbols( Node body ) const;
+  Node computeElimSymbols(Node body) const;
   /**
    * Compute miniscoping in quantified formula q with attributes in qa.
    */
