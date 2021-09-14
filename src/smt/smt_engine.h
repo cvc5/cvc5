@@ -698,7 +698,8 @@ class CVC5_EXPORT SmtEngine
   std::vector<Node> getAssertions();
 
   /**
-   * Get difficulty map
+   * Get difficulty map, which populates dmap, mapping input assertions
+   * to a value that estimates their difficulty for solving the current problem.
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
 

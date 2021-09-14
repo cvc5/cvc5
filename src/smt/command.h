@@ -1209,7 +1209,7 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
   SymbolManager* d_sm;
   /** the result of the get difficulty call */
   std::map<api::Term, api::Term> d_result;
-}; /* class GetDifficultyCommand */
+};
 
 class CVC5_EXPORT GetAssertionsCommand : public Command
 {

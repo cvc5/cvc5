@@ -2450,7 +2450,6 @@ void GetDifficultyCommand::printResult(std::ostream& out,
 const std::map<api::Term, api::Term>& GetDifficultyCommand::getDifficultyMap()
     const
 {
-  // of course, this will be empty if the command hasn't been invoked yet
   return d_result;
 }
 
