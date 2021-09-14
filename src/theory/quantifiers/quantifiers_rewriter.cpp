@@ -274,7 +274,9 @@ bool QuantifiersRewriter::addCheckElimChild(std::vector<Node>& children,
         return false;
       }
     }
-  }else{
+  }
+  else
+  {
     children.push_back( c );
   }
   return true;

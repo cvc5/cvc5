@@ -188,7 +188,7 @@ class QuantifiersRewriter : public TheoryRewriter
                      bool prenexAgg) const;
   Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
 
-  static bool isPrenexNormalForm( Node n );
+  static bool isPrenexNormalForm(Node n);
   static Node mkForAll(const std::vector<Node>& args,
                        Node body,
                        QAttributes& qa);
@@ -201,7 +201,6 @@ class QuantifiersRewriter : public TheoryRewriter
                        bool marked = false);
 
  private:
-
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
