@@ -85,16 +85,11 @@ RelevantDomain::RelevantDomain(Env& env,
 }
 
 RelevantDomain::~RelevantDomain() {
-  for (std::map<Node, std::map<size_t, RDomain*> >::iterator itr =
-           d_rel_doms.begin();
-       itr != d_rel_doms.end();
-       ++itr)
+  for (auto& r : d_rel_doms)
   {
-    for (std::map<size_t, RDomain*>::iterator itr2 = itr->second.begin();
-         itr2 != itr->second.end();
-         ++itr2)
+    for (auto& rr : r.second)
     {
-      RDomain * current = (*itr2).second;
+      RDomain * current = rr.second;
       Assert(current != NULL);
       delete current;
     }
@@ -120,16 +115,11 @@ void RelevantDomain::registerQuantifier(Node q) {}
 void RelevantDomain::compute(){
   if( !d_is_computed ){
     d_is_computed = true;
-    for (std::map<Node, std::map<size_t, RDomain*> >::iterator it =
-             d_rel_doms.begin();
-         it != d_rel_doms.end();
-         ++it)
+    for (auto& r : d_rel_doms)
     {
-      for (std::map<size_t, RDomain*>::iterator it2 = it->second.begin();
-           it2 != it->second.end();
-           ++it2)
+      for (auto& rr : r.second)
       {
-        it2->second->reset();
+        rr.second->reset();
       }
     }
     FirstOrderModel* fm = d_treg.getModel();
