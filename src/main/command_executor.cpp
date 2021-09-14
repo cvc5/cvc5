@@ -197,6 +197,12 @@ bool solverInvoke(api::Solver* solver,
                   Command* cmd,
                   std::ostream& out)
 {
+  // print output for -o raw-benchmark
+  if (solver->isOutputOn("raw-benchmark"))
+  {
+    std::ostream& ss = solver->getOutput("raw-benchmark");
+    cmd->toStream(ss);
+  }
   cmd->invoke(solver, sm, out);
   // ignore the error if the command-verbosity is 0 for this command
   std::string commandName =

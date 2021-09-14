@@ -1859,7 +1859,7 @@ QuantConflictFind::QuantConflictFind(Env& env,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
-      d_conflict(qs.getSatContext(), false),
+      d_conflict(context(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
       d_effort(EFFORT_INVALID)

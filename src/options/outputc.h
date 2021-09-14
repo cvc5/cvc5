@@ -20,6 +20,7 @@ class OutputC
   Cvc5ostream operator()(const std::string& tag) const;
 
   bool isOn(const options::OutputTag tag) const;
+  bool isOn(const std::string& tag) const;
 
  private:
   std::ostream* d_os;
