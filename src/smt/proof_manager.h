@@ -104,7 +104,8 @@ class PfManager : protected EnvObj
    * It does this translation by constructing a proof of preprocessing for all
    * preprocessed assertions marked as having a difficulty, traversing those
    * proofs, and conditionally incrementing the difficulty of the input
-   * assertion on which they depend.
+   * assertion on which they depend. This is based on whether the free
+   * assumption is the "source" of an assertion.
    *
    * @param dmap Map estimating the difficulty of preprocessed assertions
    * @param as The input assertions
