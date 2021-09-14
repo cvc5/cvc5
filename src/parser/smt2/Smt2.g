@@ -569,7 +569,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
           new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
   | /* constraint */
-    ( CONSTRAINT_TOK { isAssume = false; } | ASSUME_TOK { isAssume = true; } ) 
+    ( CONSTRAINT_TOK { isAssume = false; } | ASSUME_TOK { isAssume = true; } )
     {
       PARSER_STATE->checkThatLogicIsSet();
     }
