@@ -64,6 +64,11 @@ class QuantifiersRewriter : public TheoryRewriter
 {
  public:
   QuantifiersRewriter(const Options& opts);
+  /** Pre-rewrite n */
+  RewriteResponse preRewrite(TNode in) override;
+  /** Post-rewrite n */
+  RewriteResponse postRewrite(TNode in) override;
+
   static bool isLiteral( Node n );
   //-------------------------------------variable elimination utilities
   /** is variable elimination
@@ -149,7 +154,54 @@ class QuantifiersRewriter : public TheoryRewriter
                              std::vector<Node>& subs,
                              QAttributes& qa);
   //-------------------------------------end variable elimination utilities
+  /**
+   * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
+   * and computes NNF.
+   */
+  Node computeElimSymbols(Node body) const;
+  /**
+   * Compute miniscoping in quantified formula q with attributes in qa.
+   */
+  Node computeMiniscoping(Node q, QAttributes& qa) const;
+  Node computeAggressiveMiniscoping(std::vector<Node>& args, Node body) const;
+  /**
+   * This function removes top-level quantifiers from subformulas of body
+   * appearing with overall polarity pol. It adds quantified variables that
+   * appear in positive polarity positions into args, and those at negative
+   * polarity positions in nargs.
+   *
+   * If prenexAgg is true, we ensure that all top-level quantifiers are
+   * eliminated from subformulas. This means that we must expand ITE and
+   * Boolean equalities to ensure that quantifiers are at fixed polarities.
+   *
+   * For example, calling this function on:
+   *   (or (forall ((x Int)) (P x z)) (not (forall ((y Int)) (Q y z))))
+   * would return:
+   *   (or (P x z) (not (Q y z)))
+   * and add {x} to args, and {y} to nargs.
+   */
+  Node computePrenex(Node q,
+                     Node body,
+                     std::unordered_set<Node>& args,
+                     std::unordered_set<Node>& nargs,
+                     bool pol,
+                     bool prenexAgg) const;
+  Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
+
+  static bool isPrenexNormalForm( Node n );
+  static Node mkForAll(const std::vector<Node>& args,
+                       Node body,
+                       QAttributes& qa);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       bool marked = false);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       std::vector<Node>& iplc,
+                       bool marked = false);
+
  private:
+
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
@@ -246,58 +298,6 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   static Node computeExtendedRewrite(Node q);
   //------------------------------------- end extended rewrite
- public:
-  /**
-   * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
-   * and computes NNF.
-   */
-  Node computeElimSymbols(Node body) const;
-  /**
-   * Compute miniscoping in quantified formula q with attributes in qa.
-   */
-  Node computeMiniscoping(Node q, QAttributes& qa) const;
-  Node computeAggressiveMiniscoping(std::vector<Node>& args, Node body) const;
-  /**
-   * This function removes top-level quantifiers from subformulas of body
-   * appearing with overall polarity pol. It adds quantified variables that
-   * appear in positive polarity positions into args, and those at negative
-   * polarity positions in nargs.
-   *
-   * If prenexAgg is true, we ensure that all top-level quantifiers are
-   * eliminated from subformulas. This means that we must expand ITE and
-   * Boolean equalities to ensure that quantifiers are at fixed polarities.
-   *
-   * For example, calling this function on:
-   *   (or (forall ((x Int)) (P x z)) (not (forall ((y Int)) (Q y z))))
-   * would return:
-   *   (or (P x z) (not (Q y z)))
-   * and add {x} to args, and {y} to nargs.
-   */
-  Node computePrenex(Node q,
-                     Node body,
-                     std::unordered_set<Node>& args,
-                     std::unordered_set<Node>& nargs,
-                     bool pol,
-                     bool prenexAgg) const;
-  Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
-
- public:
-  RewriteResponse preRewrite(TNode in) override;
-  RewriteResponse postRewrite(TNode in) override;
-
-  static bool isPrenexNormalForm( Node n );
-  static Node mkForAll(const std::vector<Node>& args,
-                       Node body,
-                       QAttributes& qa);
-  static Node mkForall(const std::vector<Node>& args,
-                       Node body,
-                       bool marked = false);
-  static Node mkForall(const std::vector<Node>& args,
-                       Node body,
-                       std::vector<Node>& iplc,
-                       bool marked = false);
-
- private:
   /**
    * Return true if we should do operation computeOption on quantified formula
    * q with attributes qa.
