@@ -149,32 +149,27 @@ void RelevantDomain::compute(){
       }
     }
     //print debug
-    for (std::map<Node, std::map<size_t, RDomain*> >::iterator it =
-             d_rel_doms.begin();
-         it != d_rel_doms.end();
-         ++it)
+    for (std::pair<const Node, std::map<size_t, RDomain*> >& d : d_rel_doms)
     {
-      Trace("rel-dom") << "Relevant domain for " << it->first << " : " << std::endl;
-      for (std::map<size_t, RDomain*>::iterator it2 = it->second.begin();
-           it2 != it->second.end();
-           ++it2)
+      Trace("rel-dom") << "Relevant domain for " << d.first << " : " << std::endl;
+      for (std::pair<const size_t, RDomain*>& dd : d.second)
       {
-        Trace("rel-dom") << "   " << it2->first << " : ";
-        RDomain * r = it2->second;
+        Trace("rel-dom") << "   " << dd.first << " : ";
+        RDomain * r = dd.second;
         RDomain * rp = r->getParent();
         if( r==rp ){
           r->removeRedundantTerms(d_qs);
           Trace("rel-dom") << r->d_terms;
         }else{
-          Trace("rel-dom") << "Dom( " << it->first << ", " << it2->first
+          Trace("rel-dom") << "Dom( " << d.first << ", " << dd.first
                            << " ) ";
         }
         Trace("rel-dom") << std::endl;
         if (Configuration::isAssertionBuild())
         {
-          if (it->first.getKind() == FORALL)
+          if (d.first.getKind() == FORALL)
           {
-            TypeNode expectedType = it->first[0][it2->first].getType();
+            TypeNode expectedType = d.first[0][dd.first].getType();
             for (const Node& t : r->d_terms)
             {
               if (!t.getType().isComparableTo(expectedType))
