@@ -89,7 +89,7 @@ RelevantDomain::~RelevantDomain() {
   {
     for (auto& rr : r.second)
     {
-      RDomain * current = rr.second;
+      RDomain* current = rr.second;
       Assert(current != NULL);
       delete current;
     }
@@ -151,18 +151,18 @@ void RelevantDomain::compute(){
     //print debug
     for (std::pair<const Node, std::map<size_t, RDomain*> >& d : d_rel_doms)
     {
-      Trace("rel-dom") << "Relevant domain for " << d.first << " : " << std::endl;
+      Trace("rel-dom") << "Relevant domain for " << d.first << " : "
+                       << std::endl;
       for (std::pair<const size_t, RDomain*>& dd : d.second)
       {
         Trace("rel-dom") << "   " << dd.first << " : ";
-        RDomain * r = dd.second;
+        RDomain* r = dd.second;
         RDomain * rp = r->getParent();
         if( r==rp ){
           r->removeRedundantTerms(d_qs);
           Trace("rel-dom") << r->d_terms;
         }else{
-          Trace("rel-dom") << "Dom( " << d.first << ", " << dd.first
-                           << " ) ";
+          Trace("rel-dom") << "Dom( " << d.first << ", " << dd.first << " ) ";
         }
         Trace("rel-dom") << std::endl;
         if (Configuration::isAssertionBuild())
