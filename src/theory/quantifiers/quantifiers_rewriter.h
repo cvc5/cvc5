@@ -22,6 +22,9 @@
 #include "theory/theory_rewriter.h"
 
 namespace cvc5 {
+
+class Options;
+
 namespace theory {
 namespace quantifiers {
 
@@ -76,12 +79,12 @@ class QuantifiersRewriter : public TheoryRewriter
    * then this method removes v from args, adds v to vars, adds s to subs, and
    * returns true. Otherwise, it returns false.
    */
-  static bool getVarElimLit(Node body,
+  bool getVarElimLit(Node body,
                             Node n,
                             bool pol,
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
-                            std::vector<Node>& subs);
+                            std::vector<Node>& subs) const;
   /**
    * Get variable eliminate for an equality based on theory-specific reasoning.
    */
@@ -117,16 +120,16 @@ class QuantifiersRewriter : public TheoryRewriter
    * getVarElimLit, we return true. In this case, we update args/vars/subs
    * based on eliminating v.
    */
-  static bool getVarElim(Node body,
+  bool getVarElim(Node body,
                          std::vector<Node>& args,
                          std::vector<Node>& vars,
-                         std::vector<Node>& subs);
+                         std::vector<Node>& subs) const;
   /** has variable elimination
    *
    * Returns true if n asserted with polarity pol entails a literal for
    * which variable elimination is possible.
    */
-  static bool hasVarElim(Node n, bool pol, std::vector<Node>& args);
+  bool hasVarElim(Node n, bool pol, std::vector<Node>& args) const;
   /** compute variable elimination inequality
    *
    * This method eliminates variables from the body of quantified formula
@@ -150,12 +153,12 @@ class QuantifiersRewriter : public TheoryRewriter
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
-  static bool getVarElimInternal(Node body,
+  bool getVarElimInternal(Node body,
                                  Node n,
                                  bool pol,
                                  std::vector<Node>& args,
                                  std::vector<Node>& vars,
-                                 std::vector<Node>& subs);
+                                 std::vector<Node>& subs) const;
   bool addCheckElimChild(std::vector<Node>& children,
                          Node c,
                          Kind k,
@@ -244,7 +247,11 @@ class QuantifiersRewriter : public TheoryRewriter
   static Node computeExtendedRewrite(Node q);
   //------------------------------------- end extended rewrite
  public:
-  static Node computeElimSymbols( Node body );
+  /**
+   * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
+   * and computes NNF.
+   */
+  Node computeElimSymbols( Node body ) const;
   /**
    * Compute miniscoping in quantified formula q with attributes in qa.
    */

@@ -280,8 +280,7 @@ bool QuantifiersRewriter::addCheckElimChild(std::vector<Node>& children,
   return true;
 }
 
-// eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR, and computes NNF
-Node QuantifiersRewriter::computeElimSymbols( Node body ) {
+Node QuantifiersRewriter::computeElimSymbols( Node body ) const {
   Kind ok = body.getKind();
   Kind k = ok;
   bool negAllCh = false;
@@ -994,7 +993,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
 bool QuantifiersRewriter::getVarElim(Node body,
                                      std::vector<Node>& args,
                                      std::vector<Node>& vars,
-                                     std::vector<Node>& subs)
+                                     std::vector<Node>& subs) const
 {
   return getVarElimInternal(body, body, false, args, vars, subs);
 }
@@ -1004,7 +1003,7 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
                                              bool pol,
                                              std::vector<Node>& args,
                                              std::vector<Node>& vars,
-                                             std::vector<Node>& subs)
+                                             std::vector<Node>& subs) const
 {
   Kind nk = n.getKind();
   if (nk == NOT)
@@ -1028,7 +1027,7 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
   return getVarElimLit(body, n, pol, args, vars, subs);
 }
 
-bool QuantifiersRewriter::hasVarElim(Node n, bool pol, std::vector<Node>& args)
+bool QuantifiersRewriter::hasVarElim(Node n, bool pol, std::vector<Node>& args) const
 {
   std::vector< Node > vars;
   std::vector< Node > subs;
@@ -1413,7 +1412,7 @@ Node QuantifiersRewriter::computePrenex(Node q,
   return body;
 }
 
-Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QAttributes& qa ) {
+Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QAttributes& qa ) const{
   Assert(body.getKind() == OR);
   size_t var_found_count = 0;
   size_t eqc_count = 0;
@@ -1792,7 +1791,7 @@ bool QuantifiersRewriter::doOperation(Node q,
 {
   bool is_strict_trigger = qa.d_hasPattern
                            && d_opts.quantifiers.userPatternsQuant
-                                  == d_opts.quantifiers.UserPatMode::STRICT;
+                                  == options::UserPatMode::STRICT;
   bool is_std = qa.isStandard() && !is_strict_trigger;
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
@@ -1814,24 +1813,24 @@ bool QuantifiersRewriter::doOperation(Node q,
   {
     return is_std
            && d_opts.quantifiers.iteLiftQuant
-                  != d_opts.quantifiers.IteLiftQuantMode::NONE;
+                  != options::IteLiftQuantMode::NONE;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
     return (d_opts.quantifiers.iteDtTesterSplitQuant
-            || d_opts.quantifiers.condVarSplitQuant())
+            || d_opts.quantifiers.condVarSplitQuant)
            && !is_strict_trigger;
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
     return d_opts.quantifiers.prenexQuant
-               != d_opts.quantifiers.PrenexQuantMode::NONE
-           && !d_opts.quantifiers.aggressiveMiniscopeQuant() && is_std;
+               != options::PrenexQuantMode::NONE
+           && !d_opts.quantifiers.aggressiveMiniscopeQuant && is_std;
   }
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
   {
     return (d_opts.quantifiers.varElimQuant
-            || d_opts.quantifiers.dtVarExpandQuant())
+            || d_opts.quantifiers.dtVarExpandQuant)
            && is_std;
   }
   else
@@ -1848,8 +1847,8 @@ Node QuantifiersRewriter::computeOperation(Node f,
   Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
   if (computeOption == COMPUTE_MINISCOPING)
   {
-    if (d_opts.quantifiers.prenexQuant()
-        == d_opts.quantifiers.PrenexQuantMode::NORMAL)
+    if (d_opts.quantifiers.prenexQuant
+        == options::PrenexQuantMode::NORMAL)
     {
       if( !qa.d_qid_num.isNull() ){
         //already processed this, return self
@@ -1886,8 +1885,8 @@ Node QuantifiersRewriter::computeOperation(Node f,
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
-    if (d_opts.quantifiers.prenexQuant()
-        == d_opts.quantifiers.PrenexQuantMode::NORMAL)
+    if (d_opts.quantifiers.prenexQuant
+        == options::PrenexQuantMode::NORMAL)
     {
       //will rewrite at preprocess time
       return f;
