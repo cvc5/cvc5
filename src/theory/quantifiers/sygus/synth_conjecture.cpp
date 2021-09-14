@@ -241,11 +241,8 @@ void SynthConjecture::assign(Node q)
   }
 
   // register the strategy
-  d_feasible_strategy.reset(
-      new DecisionStrategySingleton("sygus_feasible",
-                                    d_feasible_guard,
-                                    d_qstate.getSatContext(),
-                                    d_qstate.getValuation()));
+  d_feasible_strategy.reset(new DecisionStrategySingleton(
+      d_env, "sygus_feasible", d_feasible_guard, d_qstate.getValuation()));
   d_qim.getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is

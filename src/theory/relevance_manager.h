@@ -27,9 +27,6 @@
 #include "theory/valuation.h"
 
 namespace cvc5 {
-
-class Env;
-
 namespace theory {
 
 class TheoryModel;

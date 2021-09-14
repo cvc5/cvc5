@@ -35,16 +35,18 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersState& qs,
+Skolemize::Skolemize(Env& env,
+                     QuantifiersState& qs,
                      TermRegistry& tr,
                      ProofNodeManager* pnm)
-    : d_qstate(qs),
+    : EnvObj(env),
+      d_qstate(qs),
       d_treg(tr),
-      d_skolemized(qs.getUserContext()),
+      d_skolemized(userContext()),
       d_pnm(pnm),
-      d_epg(pnm == nullptr ? nullptr
-                           : new EagerProofGenerator(
-                                 pnm, qs.getUserContext(), "Skolemize::epg"))
+      d_epg(pnm == nullptr
+                ? nullptr
+                : new EagerProofGenerator(pnm, userContext(), "Skolemize::epg"))
 {
 }
 
