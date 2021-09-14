@@ -27,13 +27,6 @@ TheoryState::TheoryState(Env& env, Valuation val)
 
 void TheoryState::setEqualityEngine(eq::EqualityEngine* ee) { d_ee = ee; }
 
-context::Context* TheoryState::getSatContext() const { return context(); }
-
-context::UserContext* TheoryState::getUserContext() const
-{
-  return userContext();
-}
-
 bool TheoryState::hasTerm(TNode a) const
 {
   Assert(d_ee != nullptr);

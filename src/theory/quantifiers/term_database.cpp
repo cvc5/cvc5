@@ -43,13 +43,12 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_qim(nullptr),
       d_qreg(qr),
       d_termsContext(),
-      d_termsContextUse(options::termDbCd() ? qs.getSatContext()
-                                            : &d_termsContext),
+      d_termsContextUse(options::termDbCd() ? context() : &d_termsContext),
       d_processed(d_termsContextUse),
       d_typeMap(d_termsContextUse),
       d_ops(d_termsContextUse),
       d_opMap(d_termsContextUse),
-      d_inactive_map(qs.getSatContext())
+      d_inactive_map(context())
 {
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
