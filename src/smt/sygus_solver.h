@@ -82,7 +82,7 @@ class SygusSolver
                        bool isInv,
                        const std::vector<Node>& vars);
 
-  /** Add a regular sygus constraint or assume.*/
+  /** Add a regular sygus constraint or assumption.*/
   void assertSygusConstraint(Node n, bool isAssume);
 
   /**
@@ -185,7 +185,7 @@ class SygusSolver
   std::vector<Node> d_sygusVars;
   /** sygus constraints */
   std::vector<Node> d_sygusConstraints;
-  /** sygus assumes */
+  /** sygus assumptions */
   std::vector<Node> d_sygusAssumps;
   /** functions-to-synthesize */
   std::vector<Node> d_sygusFunSymbols;
