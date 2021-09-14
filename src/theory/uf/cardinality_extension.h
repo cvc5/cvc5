@@ -20,6 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
+#include "smt/env_obj.h"
 #include "theory/decision_strategy.h"
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
@@ -36,7 +37,7 @@ class TheoryUF;
  * CAV 2013, or Reynolds dissertation "Finite Model Finding in Satisfiability
  * Modulo Theories".
  */
-class CardinalityExtension
+class CardinalityExtension : protected EnvObj
 {
  protected:
   typedef context::CDHashMap<Node, bool> NodeBoolMap;
@@ -340,9 +341,7 @@ class CardinalityExtension
     class CardinalityDecisionStrategy : public DecisionStrategyFmf
     {
      public:
-      CardinalityDecisionStrategy(Node t,
-                                  context::Context* satContext,
-                                  Valuation valuation);
+      CardinalityDecisionStrategy(Env& env, Node t, Valuation valuation);
       /** make literal (the i^th combined cardinality literal) */
       Node mkLiteral(unsigned i) override;
       /** identify */
@@ -357,7 +356,8 @@ class CardinalityExtension
   }; /** class SortModel */
 
  public:
-  CardinalityExtension(TheoryState& state,
+  CardinalityExtension(Env& env,
+                       TheoryState& state,
                        TheoryInferenceManager& im,
                        TheoryUF* th);
   ~CardinalityExtension();
@@ -436,8 +436,7 @@ class CardinalityExtension
   class CombinedCardinalityDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    CombinedCardinalityDecisionStrategy(context::Context* satContext,
-                                        Valuation valuation);
+    CombinedCardinalityDecisionStrategy(Env& env, Valuation valuation);
     /** make literal (the i^th combined cardinality literal) */
     Node mkLiteral(unsigned i) override;
     /** identify */
