@@ -292,9 +292,9 @@ void TermTupleEnumeratorBase::next(/*out*/ std::vector<Node>& terms)
                        : getTerm(variableIx, d_termIndex[variableIx]);
     terms[variableIx] = t;
     Trace("inst-alg-rd") << t << "  ";
-    Assert(terms[variableIx].isNull()
-           || terms[variableIx].getType().isComparableTo(
-               d_quantifier[0][variableIx].getType()));
+    Assert(t.isNull()
+           || t.getType().isComparableTo(
+               d_quantifier[0][variableIx].getType())) << "Bad type: " << t << " " << t.getType() << " " << d_quantifier[0][variableIx].getType();
   }
   Trace("inst-alg-rd") << std::endl;
 }
