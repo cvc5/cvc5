@@ -533,13 +533,13 @@ void UdivUremBB(TNode node,
   uDivModRec(a, b, quot, rem, utils::getSize(node));
   // adding a special case for division by 0
   std::vector<T> iszero;
-  for (size_t i = 0; i < b.size(); ++i)
+  for (size_t i = 0, size = b.size(); i < size; ++i)
   {
     iszero.push_back(mkIff(b[i], mkFalse<T>()));
   }
   T b_is_0 = mkAnd(iszero);
 
-  for (size_t i = 0; i < quot.size(); ++i)
+  for (size_t i = 0, size = quot.size(); i < size; ++i)
   {
     quot[i] = mkIte(b_is_0, mkTrue<T>(), quot[i]);  // a udiv 0 is 11..11
     rem[i] = mkIte(b_is_0, a[i], rem[i]);           // a urem 0 is a
