@@ -59,8 +59,10 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    **/
   Node d_cl;
   /**
-   * This method adds a new step to the proof applying rule but adds a
-   * conclusion different from the result as the third argument.
+   * This method adds a new ALETHE_RULE step to the proof, with `rule` as the
+   * first argument, the original conclusion `res` as the second and
+   * `conclusion`, the result to be printed (which may or may not differ from
+   * `res`), as the third.
    *
    * @param rule The id of the Alethe rule,
    * @param res The expected result of the application,
