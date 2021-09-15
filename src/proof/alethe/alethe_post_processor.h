@@ -100,16 +100,16 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 };
 
 /**
- * Final callback class used by the Alethe to add the last step to a proof in
- * certain cases.
+ * Final callback class used by the Alethe converter to add the last step to a
+ * proof in certain cases.
  */
 class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
  public:
   AletheProofPostprocessFinalCallback(ProofNodeManager* pnm);
   ~AletheProofPostprocessFinalCallback() {}
-  /** Should proof pn be updated? It should if the last step is (cl false) or if
-   * it is an assumption.
+  /** Should proof pn be updated? It should, if the last step is (cl false) or
+   * if it is an assumption.
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
