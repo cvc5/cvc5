@@ -61,25 +61,6 @@ static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
     sense of the option.\n\
 ";
-
-static const std::string languageDescription =
-    "\
-Languages currently supported as arguments to the -L / --lang option:\n\
-  auto                           attempt to automatically determine language\n\
-  cvc | presentation | pl        CVC presentation language\n\
-  smt | smtlib | smt2 |\n\
-  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
-  tptp                           TPTP format (cnf, fof and tff)\n\
-  sygus | sygus2                 SyGuS version 2.0\n\
-\n\
-Languages currently supported as arguments to the --output-lang option:\n\
-  auto                           match output language to input language\n\
-  cvc | presentation | pl        CVC presentation language\n\
-  smt | smtlib | smt2 |\n\
-  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
-  tptp                           TPTP format\n\
-  ast                            internal format (simple syntax trees)\n\
-";
 // clang-format on
 
 void printUsage(const std::string& msg, std::ostream& os)
@@ -97,11 +78,6 @@ void printShortUsage(const std::string& msg, std::ostream& os)
      << optionsFootnote << std::endl
      << "For full usage, please use --help." << std::endl
      << std::endl;
-}
-
-void printLanguageHelp(std::ostream& os)
-{
-  os << languageDescription << std::flush;
 }
 
 /**

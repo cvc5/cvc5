@@ -2,12 +2,10 @@ id     = "DRIVER"
 name   = "Driver"
 
 [[option]]
-  name       = "version"
   category   = "common"
   short      = "V"
   long       = "version"
-  type       = "bool"
-  alternate  = false
+  type       = "void"
   help       = "identify this cvc5 binary"
 
 [[option]]
@@ -30,7 +28,7 @@ name   = "Driver"
   category   = "common"
   long       = "copyright"
   type       = "void"
-  handler    = "copyright"
+  handler    = "showCopyright"
   help       = "show cvc5 copyright information"
 
 [[option]]

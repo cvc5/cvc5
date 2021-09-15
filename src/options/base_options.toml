@@ -53,12 +53,6 @@ name   = "Base"
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
 [[option]]
-  name       = "languageHelp"
-  long       = "language-help"
-  category   = "undocumented"
-  type       = "bool"
-
-[[option]]
   name       = "verbosity"
   long       = "verbosity=N"
   category   = "regular"

@@ -75,6 +75,14 @@ public:
     }
   }
 
+  /***** main options *****/
+  void showConfiguration(const std::string& option, const std::string& flag);
+  void showCopyright(const std::string& option, const std::string& flag);
+  void showVersion(const std::string& option, const std::string& flag);
+  void showDebugTags(const std::string& option, const std::string& flag);
+  void showTraceTags(const std::string& option, const std::string& flag);
+
+  
   // theory/quantifiers/options_handlers.h
   void checkInstWhenMode(const std::string& option,
                          const std::string& flag,
@@ -124,12 +132,6 @@ public:
                            const std::string& flag,
                            int dag);
 
-  /* main/options_handlers.h */
-  void copyright(const std::string& option, const std::string& flag);
-  void showConfiguration(const std::string& option, const std::string& flag);
-  void showDebugTags(const std::string& option, const std::string& flag);
-  void showTraceTags(const std::string& option, const std::string& flag);
-  void threadN(const std::string& option, const std::string& flag);
 
   /* options/base_options_handlers.h */
   void setDumpStream(const std::string& option,

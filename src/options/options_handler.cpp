@@ -16,6 +16,7 @@
 #include "options/options_handler.h"
 
 #include <cerrno>
+#include <iostream>
 #include <ostream>
 #include <string>
 
@@ -70,6 +71,125 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
 }  // namespace
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
+
+static void print_config (const char * str, std::string config) {
+  std::string s(str);
+  unsigned sz = 14;
+  if (s.size() < sz) s.resize(sz, ' ');
+  std::cout << s << ": " << config << std::endl;
+}
+
+static void print_config_cond (const char * str, bool cond = false) {
+  print_config(str, cond ? "yes" : "no");
+}
+
+void OptionsHandler::showConfiguration(const std::string& option,
+                                       const std::string& flag)
+{
+  std::cout << Configuration::about() << std::endl;
+
+  print_config ("version", Configuration::getVersionString());
+
+  if(Configuration::isGitBuild()) {
+    const char* branchName = Configuration::getGitBranchName();
+    if(*branchName == '\0')  { branchName = "-"; }
+    std::stringstream ss;
+    ss << "git ["
+       << branchName << " "
+       << std::string(Configuration::getGitCommit()).substr(0, 8)
+       << (Configuration::hasGitModifications() ? " (with modifications)" : "")
+       << "]";
+    print_config("scm", ss.str());
+  } else {
+    print_config_cond("scm", false);
+  }
+
+  std::cout << std::endl;
+
+  std::stringstream ss;
+  ss << Configuration::getVersionMajor() << "."
+     << Configuration::getVersionMinor() << "."
+     << Configuration::getVersionRelease();
+  print_config("library", ss.str());
+
+  std::cout << std::endl;
+
+  print_config_cond("debug code", Configuration::isDebugBuild());
+  print_config_cond("statistics", Configuration::isStatisticsBuild());
+  print_config_cond("tracing", Configuration::isTracingBuild());
+  print_config_cond("dumping", Configuration::isDumpingBuild());
+  print_config_cond("muzzled", Configuration::isMuzzledBuild());
+  print_config_cond("assertions", Configuration::isAssertionBuild());
+  print_config_cond("coverage", Configuration::isCoverageBuild());
+  print_config_cond("profiling", Configuration::isProfilingBuild());
+  print_config_cond("asan", Configuration::isAsanBuild());
+  print_config_cond("ubsan", Configuration::isUbsanBuild());
+  print_config_cond("tsan", Configuration::isTsanBuild());
+  print_config_cond("competition", Configuration::isCompetitionBuild());
+
+  std::cout << std::endl;
+
+  print_config_cond("abc", Configuration::isBuiltWithAbc());
+  print_config_cond("cln", Configuration::isBuiltWithCln());
+  print_config_cond("glpk", Configuration::isBuiltWithGlpk());
+  print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond("gmp", Configuration::isBuiltWithGmp());
+  print_config_cond("kissat", Configuration::isBuiltWithKissat());
+  print_config_cond("poly", Configuration::isBuiltWithPoly());
+  print_config_cond("editline", Configuration::isBuiltWithEditline());
+
+  std::exit(0);
+}
+
+void OptionsHandler::showCopyright(const std::string& option,
+                               const std::string& flag)
+{
+  std::cout << Configuration::copyright() << std::endl;
+  std::exit(0);
+}
+
+void OptionsHandler::showVersion(const std::string& option,
+                                       const std::string& flag)
+{
+  d_options->base.out << Configuration::about() << std::endl;
+  std::exit(0);
+}
+
+static void printTags(unsigned ntags, char const* const* tags)
+{
+  std::cout << "available tags:";
+  for (unsigned i = 0; i < ntags; ++ i)
+  {
+    std::cout << "  " << tags[i] << std::endl;
+  }
+  std::cout << std::endl;
+}
+
+void OptionsHandler::showDebugTags(const std::string& option,
+                                   const std::string& flag)
+{
+  if (!Configuration::isDebugBuild())
+  {
+    throw OptionException("debug tags not available in non-debug builds");
+  }
+  else if (!Configuration::isTracingBuild())
+  {
+    throw OptionException("debug tags not available in non-tracing builds");
+  }
+  printTags(Configuration::getNumDebugTags(),Configuration::getDebugTags());
+  exit(0);
+}
+
+void OptionsHandler::showTraceTags(const std::string& option,
+                                   const std::string& flag)
+{
+  if (!Configuration::isTracingBuild())
+  {
+    throw OptionException("trace tags not available in non-tracing build");
+  }
+  printTags(Configuration::getNumTraceTags(), Configuration::getTraceTags());
+  exit(0);
+}
 
 uint64_t OptionsHandler::limitHandler(const std::string& option,
                                       const std::string& flag,
@@ -263,10 +383,6 @@ void OptionsHandler::setStats(const std::string& option,
   }
 }
 
-void OptionsHandler::threadN(const std::string& option, const std::string& flag)
-{
-  throw OptionException(flag + " is not a real option by itself.  Use e.g. --thread0=\"--random-seed=10 --random-freq=0.02\" --thread1=\"--random-seed=20 --random-freq=0.05\"");
-}
 
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepth(const std::string& option,
@@ -296,117 +412,6 @@ void OptionsHandler::setDefaultDagThresh(const std::string& option,
 
 // main/options_handlers.h
 
-static void print_config (const char * str, std::string config) {
-  std::string s(str);
-  unsigned sz = 14;
-  if (s.size() < sz) s.resize(sz, ' ');
-  std::cout << s << ": " << config << std::endl;
-}
-
-static void print_config_cond (const char * str, bool cond = false) {
-  print_config(str, cond ? "yes" : "no");
-}
-
-void OptionsHandler::copyright(const std::string& option,
-                               const std::string& flag)
-{
-  std::cout << Configuration::copyright() << std::endl;
-  exit(0);
-}
-
-void OptionsHandler::showConfiguration(const std::string& option,
-                                       const std::string& flag)
-{
-  std::cout << Configuration::about() << std::endl;
-
-  print_config ("version", Configuration::getVersionString());
-
-  if(Configuration::isGitBuild()) {
-    const char* branchName = Configuration::getGitBranchName();
-    if(*branchName == '\0')  { branchName = "-"; }
-    std::stringstream ss;
-    ss << "git ["
-       << branchName << " "
-       << std::string(Configuration::getGitCommit()).substr(0, 8)
-       << (Configuration::hasGitModifications() ? " (with modifications)" : "")
-       << "]";
-    print_config("scm", ss.str());
-  } else {
-    print_config_cond("scm", false);
-  }
-
-  std::cout << std::endl;
-
-  std::stringstream ss;
-  ss << Configuration::getVersionMajor() << "."
-     << Configuration::getVersionMinor() << "."
-     << Configuration::getVersionRelease();
-  print_config("library", ss.str());
-
-  std::cout << std::endl;
-
-  print_config_cond("debug code", Configuration::isDebugBuild());
-  print_config_cond("statistics", Configuration::isStatisticsBuild());
-  print_config_cond("tracing", Configuration::isTracingBuild());
-  print_config_cond("dumping", Configuration::isDumpingBuild());
-  print_config_cond("muzzled", Configuration::isMuzzledBuild());
-  print_config_cond("assertions", Configuration::isAssertionBuild());
-  print_config_cond("coverage", Configuration::isCoverageBuild());
-  print_config_cond("profiling", Configuration::isProfilingBuild());
-  print_config_cond("asan", Configuration::isAsanBuild());
-  print_config_cond("ubsan", Configuration::isUbsanBuild());
-  print_config_cond("tsan", Configuration::isTsanBuild());
-  print_config_cond("competition", Configuration::isCompetitionBuild());
-
-  std::cout << std::endl;
-
-  print_config_cond("abc", Configuration::isBuiltWithAbc());
-  print_config_cond("cln", Configuration::isBuiltWithCln());
-  print_config_cond("glpk", Configuration::isBuiltWithGlpk());
-  print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
-  print_config_cond("gmp", Configuration::isBuiltWithGmp());
-  print_config_cond("kissat", Configuration::isBuiltWithKissat());
-  print_config_cond("poly", Configuration::isBuiltWithPoly());
-  print_config_cond("editline", Configuration::isBuiltWithEditline());
-
-  exit(0);
-}
-
-static void printTags(unsigned ntags, char const* const* tags)
-{
-  std::cout << "available tags:";
-  for (unsigned i = 0; i < ntags; ++ i)
-  {
-    std::cout << "  " << tags[i] << std::endl;
-  }
-  std::cout << std::endl;
-}
-
-void OptionsHandler::showDebugTags(const std::string& option,
-                                   const std::string& flag)
-{
-  if (!Configuration::isDebugBuild())
-  {
-    throw OptionException("debug tags not available in non-debug builds");
-  }
-  else if (!Configuration::isTracingBuild())
-  {
-    throw OptionException("debug tags not available in non-tracing builds");
-  }
-  printTags(Configuration::getNumDebugTags(),Configuration::getDebugTags());
-  exit(0);
-}
-
-void OptionsHandler::showTraceTags(const std::string& option,
-                                   const std::string& flag)
-{
-  if (!Configuration::isTracingBuild())
-  {
-    throw OptionException("trace tags not available in non-tracing build");
-  }
-  printTags(Configuration::getNumTraceTags(), Configuration::getTraceTags());
-  exit(0);
-}
 
 static std::string suggestTags(char const* const* validTags,
                                std::string inputTag,
@@ -500,7 +505,24 @@ Language OptionsHandler::stringToLanguage(const std::string& option,
                                           const std::string& optarg)
 {
   if(optarg == "help") {
-    d_options->base.languageHelp = true;
+    *d_options->base.out << R"FOOBAR(
+Languages currently supported as arguments to the -L / --lang option:
+  auto                           attempt to automatically determine language
+  cvc | presentation | pl        CVC presentation language
+  smt | smtlib | smt2 |
+  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
+  tptp                           TPTP format (cnf, fof and tff)
+  sygus | sygus2                 SyGuS version 2.0
+
+Languages currently supported as arguments to the --output-lang option:
+  auto                           match output language to input language
+  cvc | presentation | pl        CVC presentation language
+  smt | smtlib | smt2 |
+  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
+  tptp                           TPTP format
+  ast                            internal format (simple syntax trees)
+)FOOBAR" << std::endl;
+    std::exit(1);
     return Language::LANG_AUTO;
   }
 
