@@ -33,7 +33,7 @@ using namespace cvc5::smt;
 
 namespace cvc5 {
 
-Env::Env(NodeManager* nm, Options* opts)
+Env::Env(NodeManager* nm, const Options* opts)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
@@ -42,7 +42,7 @@ Env::Env(NodeManager* nm, Options* opts)
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
-      d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
+      d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
       d_originalOptions(opts),
       d_resourceManager()
@@ -51,6 +51,7 @@ Env::Env(NodeManager* nm, Options* opts)
   {
     d_options.copyValues(*opts);
   }
+  d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
 
@@ -80,6 +81,16 @@ context::Context* Env::getContext() { return d_context.get(); }
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
+
+bool Env::isSatProofProducing() const
+{
+  return d_proofNodeManager != nullptr
+         && (!d_options.smt.unsatCores
+             || (d_options.smt.unsatCoresMode
+                     != options::UnsatCoresMode::ASSUMPTIONS
+                 && d_options.smt.unsatCoresMode
+                        != options::UnsatCoresMode::PP_ONLY));
+}
 
 bool Env::isTheoryProofProducing() const
 {

@@ -23,6 +23,7 @@ C++ API Documentation
     grammar
     kind
     op
+    optioninfo
     result
     roundingmode
     solver

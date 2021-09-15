@@ -19,9 +19,11 @@
 #include <sstream>
 
 #include "options/proof_options.h"
+#include "proof/method_id.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
+#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {
@@ -177,11 +179,13 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         Assert(proven.getKind() == kind::EQUAL);
         if (!proofStepProcessed)
         {
-          // maybe its just a simple rewrite?
-          if (proven[1] == theory::Rewriter::rewrite(proven[0]))
+          // maybe its just an (extended) rewrite?
+          Node pr = theory::Rewriter::callExtendedRewrite(proven[0]);
+          if (proven[1] == pr)
           {
+            Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
             Trace("smt-pppg-debug") << "...add simple rewrite" << std::endl;
-            cdp.addStep(proven, PfRule::REWRITE, {}, {proven[0]});
+            cdp.addStep(proven, PfRule::REWRITE, {}, {proven[0], idr});
             proofStepProcessed = true;
           }
         }
@@ -251,7 +255,7 @@ std::string PreprocessProofGenerator::identify() const { return d_name; }
 
 void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
 {
-  if (options::proofEagerChecking())
+  if (options::proofCheck() == options::ProofCheckMode::EAGER)
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation

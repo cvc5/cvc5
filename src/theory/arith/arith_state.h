@@ -38,7 +38,8 @@ class TheoryArithPrivate;
 class ArithState : public TheoryState
 {
  public:
-  ArithState(context::Context* c, context::UserContext* u, Valuation val);
+  ArithState(Env& env,
+             Valuation val);
   ~ArithState() {}
   /** Are we currently in conflict? */
   bool isInConflict() const override;

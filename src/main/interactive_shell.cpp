@@ -42,11 +42,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
-#include "options/base_options.h"
-#include "options/language.h"
-#include "options/main_options.h"
-#include "options/options.h"
-#include "options/parser_options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -90,18 +85,18 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
-    : d_options(solver->getOptions()),
-      d_in(*d_options.base.in),
-      d_out(*d_options.base.out),
-      d_quit(false)
+InteractiveShell::InteractiveShell(api::Solver* solver,
+                                   SymbolManager* sm,
+                                   std::istream& in,
+                                   std::ostream& out)
+    : d_solver(solver), d_in(in), d_out(out), d_quit(false)
 {
-  ParserBuilder parserBuilder(solver, sm, d_options);
+  ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.build();
-  if (d_options.parser.forceLogicStringWasSetByUser)
+  if (d_solver->getOptionInfo("force-logic").setByUser)
   {
-    LogicInfo tmp(d_options.parser.forceLogicString);
+    LogicInfo tmp(d_solver->getOption("force-logic"));
     d_parser->forceLogic(tmp.getLogicString());
   }
 
@@ -116,35 +111,30 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    OutputLanguage lang =
-        toOutputLanguage(d_options.base.inputLanguage);
-    switch(lang) {
-      case output::LANG_CVC:
-        d_historyFilename = string(getenv("HOME")) + "/.cvc5_history";
-        commandsBegin = cvc_commands;
-        commandsEnd =
-            cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
-        break;
-      case output::LANG_TPTP:
-        d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
-        commandsBegin = tptp_commands;
-        commandsEnd =
-            tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
-        break;
-      default:
-        if (language::isOutputLang_smt2(lang))
-        {
-          d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
-          commandsBegin = smt2_commands;
-          commandsEnd =
-              smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
-        }
-        else
-        {
-          std::stringstream ss;
-          ss << "internal error: unhandled language " << lang;
-          throw Exception(ss.str());
-        }
+    std::string lang = solver->getOption("input-language");
+    if (lang == "LANG_CVC")
+    {
+      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history";
+      commandsBegin = cvc_commands;
+      commandsEnd = cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
+    }
+    else if (lang == "LANG_TPTP")
+    {
+      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
+      commandsBegin = tptp_commands;
+      commandsEnd =
+          tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
+    }
+    else if (lang == "LANG_SMTLIB_V2_6")
+    {
+      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
+      commandsBegin = smt2_commands;
+      commandsEnd =
+          smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
+    }
+    else
+    {
+      throw Exception("internal error: unhandled language " + lang);
     }
     d_usingEditline = true;
     int err = ::read_history(d_historyFilename.c_str());
@@ -205,9 +195,7 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
-    lineBuf = ::readline(d_options.driver.interactivePrompt
-                             ? (line == "" ? "cvc5> " : "... > ")
-                             : "");
+    lineBuf = ::readline(line == "" ? "cvc5> " : "... > ");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -217,13 +205,13 @@ restart:
   }
   else
   {
-    if (d_options.driver.interactivePrompt)
+    if (line == "")
     {
-      if(line == "") {
-        d_out << "cvc5> " << flush;
-      } else {
-        d_out << "... > " << flush;
-      }
+      d_out << "cvc5> " << flush;
+    }
+    else
+    {
+      d_out << "... > " << flush;
     }
 
     /* Read a line */
@@ -291,8 +279,7 @@ restart:
       if (d_usingEditline)
       {
 #if HAVE_LIBEDITLINE
-        lineBuf = ::readline(d_options.driver.interactivePrompt ? "... > "
-                                                                      : "");
+        lineBuf = ::readline("... > ");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
         }
@@ -302,10 +289,7 @@ restart:
       }
       else
       {
-        if (d_options.driver.interactivePrompt)
-        {
-          d_out << "... > " << flush;
-        }
+        d_out << "... > " << flush;
 
         /* Read a line */
         stringbuf sb;
@@ -320,7 +304,7 @@ restart:
   }
 
   d_parser->setInput(Input::newStringInput(
-      d_options.base.inputLanguage, input, INPUT_FILENAME));
+      d_solver->getOption("input-language"), input, INPUT_FILENAME));
 
   /* There may be more than one command in the input. Build up a
      sequence. */
@@ -371,7 +355,7 @@ restart:
   }
   catch (ParserException& pe)
   {
-    if (language::isOutputLang_smt2(d_options.base.outputLanguage))
+    if (d_solver->getOption("output-language") == "LANG_SMTLIB_V2_6")
     {
       d_out << "(error \"" << pe << "\")" << endl;
     }

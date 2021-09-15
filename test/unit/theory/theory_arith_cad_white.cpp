@@ -29,7 +29,7 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/quantifiers/extended_rewrite.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/poly_util.h"
@@ -193,8 +193,7 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
     EXPECT_NE(rewritten, d_nodeManager->mkConst(false));
   }
   {
-    quantifiers::ExtendedRewriter extrew;
-    Node rewritten = extrew.extendedRewrite(orig);
+    Node rewritten = Rewriter::callExtendedRewrite(orig);
     EXPECT_EQ(rewritten, d_nodeManager->mkConst(false));
   }
 }
@@ -224,7 +223,9 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_eval)
 
 TEST_F(TestTheoryWhiteArithCAD, test_cdcac_1)
 {
-  cad::CDCAC cac(nullptr, nullptr, {});
+  Options opts;
+  Env env(NodeManager::currentNM(), &opts);
+  cad::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
 
@@ -244,7 +245,9 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_1)
 
 TEST_F(TestTheoryWhiteArithCAD, test_cdcac_2)
 {
-  cad::CDCAC cac(nullptr, nullptr, {});
+  Options opts;
+  Env env(NodeManager::currentNM(), &opts);
+  cad::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
 
@@ -273,7 +276,9 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_2)
 
 TEST_F(TestTheoryWhiteArithCAD, test_cdcac_3)
 {
-  cad::CDCAC cac(nullptr, nullptr, {});
+  Options opts;
+  Env env(NodeManager::currentNM(), &opts);
+  cad::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
   poly::Variable z = cac.getConstraints().varMapper()(make_real_variable("z"));
@@ -294,7 +299,9 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_3)
 
 TEST_F(TestTheoryWhiteArithCAD, test_cdcac_4)
 {
-  cad::CDCAC cac(nullptr, nullptr, {});
+  Options opts;
+  Env env(NodeManager::currentNM(), &opts);
+  cad::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
   poly::Variable z = cac.getConstraints().varMapper()(make_real_variable("z"));
@@ -317,7 +324,9 @@ TEST_F(TestTheoryWhiteArithCAD, test_cdcac_4)
 
 void test_delta(const std::vector<Node>& a)
 {
-  cad::CDCAC cac(nullptr, nullptr, {});
+  Options opts;
+  Env env(NodeManager::currentNM(), &opts);
+  cad::CDCAC cac(env, {});
   cac.reset();
   for (const Node& n : a)
   {

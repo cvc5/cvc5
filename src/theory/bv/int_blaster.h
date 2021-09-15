@@ -74,6 +74,11 @@ namespace cvc5 {
 ** Tr(a=b) = Tr(a)=Tr(b)
 ** Tr((bvult a b)) = Tr(a) < Tr(b)
 ** Similar transformations are done for bvule, bvugt, and bvuge.
+** Tr((bvslt a b)) = Tr(uts(a)) < Tr(uts(b)),
+** where uts is a function that transforms unsigned
+** to signed representations. See more details
+** in the documentation of the function uts.
+** Similar transformations are done for the remaining comparators.
 **
 ** Bit-vector operators that are not listed above are either
 ** eliminated using the BV rewriter,
@@ -153,6 +158,32 @@ class IntBlaster
 
   /** Returns a node that represents the bitwise negation of n. */
   Node createBVNotNode(Node n, uint64_t bvsize);
+
+  /** Returns a node that represents the arithmetic negation of n. */
+  Node createBVNegNode(Node n, uint64_t bvsize);
+
+  /** Returns a node that represents the bitwise and of x and y, based on the
+   * provided option. */
+  Node createBVAndNode(Node x,
+                       Node y,
+                       uint64_t bvsize,
+                       std::vector<Node>& lemmas);
+
+  /** Returns a node that represents the bitwise or of x and y, by translation
+   * to sum and bitwise and. */
+  Node createBVOrNode(Node x,
+                      Node y,
+                      uint64_t bvsize,
+                      std::vector<Node>& lemmas);
+
+  /** Returns a node that represents the sum of x and y. */
+  Node createBVAddNode(Node x, Node y, uint64_t bvsize);
+
+  /** Returns a node that represents the difference of x and y. */
+  Node createBVSubNode(Node x, Node y, uint64_t bvsize);
+
+  /** Returns a node that represents the signed extension of x by amount. */
+  Node createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount);
 
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
@@ -240,7 +271,7 @@ class IntBlaster
    * A useful utility function.
    * if n is an integer and tn is bit-vector,
    * applies the IntToBitVector operator on n.
-   * if n is a vit-vector and tn is integer,
+   * if n is a bit-vector and tn is integer,
    * applies BitVector_TO_NAT operator.
    * Otherwise, keeps n intact.
    */
@@ -284,7 +315,7 @@ class IntBlaster
    * binary representation of n is the same as the
    * signed binary representation of m.
    */
-  Node unsignedToSigned(Node n, uint64_t bvsize);
+  Node uts(Node n, uint64_t bvsize);
 
   /**
    * Performs the actual translation to integers for nodes

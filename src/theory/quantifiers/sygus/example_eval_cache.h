@@ -73,8 +73,12 @@ class ExampleEvalCache
    * are builtin terms that the analog of values taken by enumerator e that
    * is associated with f.
    */
-  ExampleEvalCache(TermDbSygus* tds, SynthConjecture* p, Node f, Node e);
+  ExampleEvalCache(TermDbSygus* tds, Node e);
   ~ExampleEvalCache();
+  /**
+   * Add example to the list of examples maintained by this class.
+   */
+  void addExample(const std::vector<Node>& ex);
 
   /** Add search value
    *

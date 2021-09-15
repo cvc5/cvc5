@@ -35,16 +35,18 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersState& qs,
+Skolemize::Skolemize(Env& env,
+                     QuantifiersState& qs,
                      TermRegistry& tr,
                      ProofNodeManager* pnm)
-    : d_qstate(qs),
+    : EnvObj(env),
+      d_qstate(qs),
       d_treg(tr),
-      d_skolemized(qs.getUserContext()),
+      d_skolemized(userContext()),
       d_pnm(pnm),
-      d_epg(pnm == nullptr ? nullptr
-                           : new EagerProofGenerator(
-                                 pnm, qs.getUserContext(), "Skolemize::epg"))
+      d_epg(pnm == nullptr
+                ? nullptr
+                : new EagerProofGenerator(pnm, userContext(), "Skolemize::epg"))
 {
 }
 
@@ -178,13 +180,18 @@ void Skolemize::getSelfSel(const DType& dt,
 
 Node Skolemize::mkSkolemizedBody(Node f,
                                  Node n,
-                                 std::vector<TypeNode>& argTypes,
                                  std::vector<TNode>& fvs,
                                  std::vector<Node>& sk,
                                  Node& sub,
                                  std::vector<unsigned>& sub_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  // compute the argument types from the free variables
+  std::vector<TypeNode> argTypes;
+  for (TNode v : fvs)
+  {
+    argTypes.push_back(v.getType());
+  }
   SkolemManager* sm = nm->getSkolemManager();
   Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
@@ -329,12 +336,11 @@ Node Skolemize::getSkolemizedBody(Node f)
   std::unordered_map<Node, Node>::iterator it = d_skolem_body.find(f);
   if (it == d_skolem_body.end())
   {
-    std::vector<TypeNode> fvTypes;
     std::vector<TNode> fvs;
     Node sub;
     std::vector<unsigned> sub_vars;
-    Node ret = mkSkolemizedBody(
-        f, f[1], fvTypes, fvs, d_skolem_constants[f], sub, sub_vars);
+    Node ret =
+        mkSkolemizedBody(f, f[1], fvs, d_skolem_constants[f], sub, sub_vars);
     d_skolem_body[f] = ret;
     // store sub quantifier information
     if (!sub.isNull())

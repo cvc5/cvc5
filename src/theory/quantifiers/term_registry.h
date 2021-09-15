@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "context/cdhashset.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -37,13 +38,12 @@ class FirstOrderModel;
  * Term Registry, which manages notifying modules within quantifiers about
  * (ground) terms that exist in the current context.
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  TermRegistry(QuantifiersState& qs,
-               QuantifiersRegistry& qr);
+  TermRegistry(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
   void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
   /** Presolve */

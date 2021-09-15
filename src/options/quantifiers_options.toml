@@ -227,14 +227,6 @@ name   = "Quantifiers"
   help       = "consider ground terms within bodies of quantified formulas for matching"
 
 [[option]]
-  name       = "strictTriggers"
-  category   = "regular"
-  long       = "strict-triggers"
-  type       = "bool"
-  default    = "false"
-  help       = "only instantiate quantifiers with user patterns based on triggers"
-
-[[option]]
   name       = "relevantTriggers"
   category   = "regular"
   long       = "relevant-triggers"
@@ -388,6 +380,9 @@ name   = "Quantifiers"
 [[option.mode.TRUST]]
   name = "trust"
   help = "When provided, use only user-provided patterns for a quantified formula."
+[[option.mode.STRICT]]
+  name = "strict"
+  help = "When provided, use only user-provided patterns for a quantified formula, and do not use any other instantiation techniques."
 [[option.mode.RESORT]]
   name = "resort"
   help = "Use user-provided patterns only after auto-generated patterns saturate."
@@ -946,14 +941,6 @@ name   = "Quantifiers"
   name = "all"
   help = "Always use single invocation techniques."
 
-[[option]]
-  name       = "cegqiSingleInvPartial"
-  category   = "regular"
-  long       = "sygus-si-partial"
-  type       = "bool"
-  default    = "false"
-  help       = "combined techniques for synthesis conjectures that are partially single invocation"
-
 # Solution reconstruction modes for single invocation conjectures
 #
 # These modes indicate the policy when cvc5 solves a synthesis conjecture using
@@ -988,14 +975,6 @@ name   = "Quantifiers"
   type       = "int64_t"
   default    = "10000"
   help       = "number of rounds of enumeration to use during solution reconstruction (negative means unlimited)"
-
-[[option]]
-  name       = "cegqiSingleInvReconstructConst"
-  category   = "regular"
-  long       = "sygus-si-reconstruct-const"
-  type       = "bool"
-  default    = "true"
-  help       = "include constants when reconstruct solutions for single invocation conjectures in original grammar"
 
 [[option]]
   name       = "cegqiSingleInvAbort"

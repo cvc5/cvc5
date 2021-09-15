@@ -65,16 +65,13 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te,
-                       Env& env,
-                       ProofNodeManager* pnm)
+PropEngine::PropEngine(TheoryEngine* te, Env& env)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_env(env),
       d_skdm(new SkolemDefManager(d_env.getContext(), d_env.getUserContext())),
       d_theoryProxy(nullptr),
       d_satSolver(nullptr),
-      d_pnm(pnm),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
       d_ppm(nullptr),
@@ -84,6 +81,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   Debug("prop") << "Constructing the PropEngine" << std::endl;
   context::Context* satContext = d_env.getContext();
   context::UserContext* userContext = d_env.getUserContext();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   ResourceManager* rm = d_env.getResourceManager();
 
   options::DecisionMode dmode = options::decisionMode();
@@ -107,13 +105,8 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first
-  d_theoryProxy = new TheoryProxy(this,
-                                  d_theoryEngine,
-                                  d_decisionEngine.get(),
-                                  d_skdm.get(),
-                                  satContext,
-                                  userContext,
-                                  pnm);
+  d_theoryProxy = new TheoryProxy(
+      this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get(), d_env);
   d_cnfStream = new CnfStream(d_satSolver,
                               d_theoryProxy,
                               userContext,
@@ -124,17 +117,15 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);
+  bool satProofs = d_env.isSatProofProducing();
   // connect SAT solver
-  d_satSolver->initialize(
-      d_env.getContext(),
-      d_theoryProxy,
-      d_env.getUserContext(),
-      options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS
-          ? pnm
-          : nullptr);
+  d_satSolver->initialize(d_env.getContext(),
+                          d_theoryProxy,
+                          d_env.getUserContext(),
+                          satProofs ? pnm : nullptr);
 
   d_decisionEngine->finishInit(d_satSolver, d_cnfStream);
-  if (pnm && options::unsatCoresMode() != options::UnsatCoresMode::ASSUMPTIONS)
+  if (satProofs)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
         userContext,
@@ -229,7 +220,8 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   Assert(ppSkolems.size() == ppLemmas.size());
 
   // do final checks on the lemmas we are about to send
-  if (isProofEnabled() && options::proofEagerChecking())
+  if (isProofEnabled()
+      && options::proofCheck() == options::ProofCheckMode::EAGER)
   {
     Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug
@@ -670,7 +662,7 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
 
 void PropEngine::checkProof(context::CDList<Node>* assertions)
 {
-  if (!d_pnm)
+  if (!d_env.isSatProofProducing())
   {
     return;
   }
@@ -681,7 +673,7 @@ ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
 std::shared_ptr<ProofNode> PropEngine::getProof()
 {
-  if (!d_pnm)
+  if (!d_env.isSatProofProducing())
   {
     return nullptr;
   }
@@ -706,7 +698,7 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<Node> core;
   getUnsatCore(core);
-  CDProof cdp(d_pnm);
+  CDProof cdp(d_env.getProofNodeManager());
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
   return cdp.getProofFor(fnode);

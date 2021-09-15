@@ -135,6 +135,15 @@ Node Preprocessor::expandDefinitions(const Node& node,
   return n;
 }
 
+void Preprocessor::expandDefinitions(std::vector<Node>& ns)
+{
+  std::unordered_map<Node, Node> cache;
+  for (size_t i = 0, nasserts = ns.size(); i < nasserts; i++)
+  {
+    ns[i] = expandDefinitions(ns[i], cache);
+  }
+}
+
 Node Preprocessor::simplify(const Node& node)
 {
   Trace("smt") << "SMT simplify(" << node << ")" << endl;

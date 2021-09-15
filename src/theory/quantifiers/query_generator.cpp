@@ -20,8 +20,6 @@
 #include <sstream>
 
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "util/random.h"
 
 using namespace std;
@@ -31,7 +29,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryGenerator::QueryGenerator() : d_queryCount(0) {}
+QueryGenerator::QueryGenerator(Env& env) : ExprMiner(env), d_queryCount(0) {}
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
   Assert(ss != nullptr);

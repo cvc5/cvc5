@@ -34,6 +34,7 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
+#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
@@ -206,34 +207,6 @@ void OptionsHandler::setBitblastAig(const std::string& option,
       options::BitblastMode mode = stringToBitblastMode("eager");
       d_options->bv.bitblastMode = mode;
     }
-  }
-}
-
-// printer/options_handlers.h
-const std::string OptionsHandler::s_instFormatHelp = "\
-Inst format modes currently supported by the --inst-format option:\n\
-\n\
-default \n\
-+ Print instantiations as a list in the output language format.\n\
-\n\
-szs\n\
-+ Print instantiations as SZS compliant proof.\n\
-";
-
-InstFormatMode OptionsHandler::stringToInstFormatMode(const std::string& option,
-                                                      const std::string& flag,
-                                                      const std::string& optarg)
-{
-  if(optarg == "default") {
-    return InstFormatMode::DEFAULT;
-  } else if(optarg == "szs") {
-    return InstFormatMode::SZS;
-  } else if(optarg == "help") {
-    puts(s_instFormatHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --inst-format: `") +
-                          optarg + "'.  Try --inst-format help.");
   }
 }
 
@@ -522,41 +495,40 @@ void OptionsHandler::enableOutputTag(const std::string& option,
       static_cast<size_t>(stringToOutputTag(optarg)));
 }
 
-OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
-                                                      const std::string& flag,
-                                                      const std::string& optarg)
+Language OptionsHandler::stringToLanguage(const std::string& option,
+                                          const std::string& flag,
+                                          const std::string& optarg)
 {
   if(optarg == "help") {
     d_options->base.languageHelp = true;
-    return language::output::LANG_AUTO;
+    return Language::LANG_AUTO;
   }
 
   try {
-    return language::toOutputLanguage(optarg);
+    return language::toLanguage(optarg);
   } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() +
-                          "\nTry --output-language help");
+    throw OptionException("Error in " + option + ": " + oe.getMessage()
+                          + "\nTry --lang help");
   }
 
   Unreachable();
 }
 
-InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
-                                                    const std::string& flag,
-                                                    const std::string& optarg)
+void OptionsHandler::applyOutputLanguage(const std::string& option,
+                                         const std::string& flag,
+                                         Language lang)
 {
-  if(optarg == "help") {
-    d_options->base.languageHelp = true;
-    return language::input::LANG_AUTO;
-  }
+  d_options->base.out << language::SetLanguage(lang);
+}
 
-  try {
-    return language::toInputLanguage(optarg);
-  } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --lang help");
+void OptionsHandler::languageIsNotAST(const std::string& option,
+                                      const std::string& flag,
+                                      Language lang)
+{
+  if (lang == Language::LANG_AST)
+  {
+    throw OptionException("Language LANG_AST is not allowed for " + flag);
   }
-
-  Unreachable();
 }
 
 void OptionsHandler::setDumpStream(const std::string& option,

@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/subs.h"
 #include "expr/type_node.h"
 
 namespace cvc5 {
@@ -284,8 +285,7 @@ class SingleInvocationPartition
   bool processConjunct(Node n,
                        std::map<Node, bool>& visited,
                        std::vector<Node>& args,
-                       std::vector<Node>& terms,
-                       std::vector<Node>& subs);
+                       Subs& sb);
 
   /** get the and node corresponding to d_conjuncts[index] */
   Node getConjunct(int index);

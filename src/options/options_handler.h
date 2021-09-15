@@ -27,7 +27,6 @@
 #include "options/language.h"
 #include "options/managed_streams.h"
 #include "options/option_exception.h"
-#include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
 
 namespace cvc5 {
@@ -100,11 +99,6 @@ public:
                       const std::string& flag,
                       bool arg);
 
-  // printer/options_handlers.h
-  InstFormatMode stringToInstFormatMode(const std::string& option,
-                                        const std::string& flag,
-                                        const std::string& optarg);
-
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.
@@ -155,12 +149,18 @@ public:
                     int value);
   void increaseVerbosity(const std::string& option, const std::string& flag);
   void decreaseVerbosity(const std::string& option, const std::string& flag);
-  OutputLanguage stringToOutputLanguage(const std::string& option,
-                                        const std::string& flag,
-                                        const std::string& optarg);
-  InputLanguage stringToInputLanguage(const std::string& option,
-                                      const std::string& flag,
-                                      const std::string& optarg);
+  /** Convert optarg to Language enum */
+  Language stringToLanguage(const std::string& option,
+                            const std::string& flag,
+                            const std::string& optarg);
+  /** Apply the output language to the default output stream */
+  void applyOutputLanguage(const std::string& option,
+                           const std::string& flag,
+                           Language lang);
+  /** Check that lang is not LANG_AST (which is not allowed as input language). */
+  void languageIsNotAST(const std::string& option,
+                        const std::string& flag,
+                        Language lang);
   void enableTraceTag(const std::string& option,
                       const std::string& flag,
                       const std::string& optarg);
@@ -183,10 +183,6 @@ public:
 
   /** Pointer to the containing Options object.*/
   Options* d_options;
-
-  /* Help strings */
-  static const std::string s_instFormatHelp;
-
 }; /* class OptionHandler */
 
 }  // namespace options

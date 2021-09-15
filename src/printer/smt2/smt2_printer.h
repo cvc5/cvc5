@@ -124,6 +124,9 @@ class Smt2Printer : public cvc5::Printer
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;
 
+  /** Print assume command */
+  void toStreamCmdAssume(std::ostream& out, Node n) const override;
+
   /** Print inv-constraint command */
   void toStreamCmdInvConstraint(std::ostream& out,
                                 Node inv,
@@ -161,6 +164,9 @@ class Smt2Printer : public cvc5::Printer
 
   /** Print get-unsat-core command */
   void toStreamCmdGetUnsatCore(std::ostream& out) const override;
+
+  /** Print get-difficulty command */
+  void toStreamCmdGetDifficulty(std::ostream& out) const override;
 
   /** Print get-assertions command */
   void toStreamCmdGetAssertions(std::ostream& out) const override;
@@ -252,16 +258,16 @@ class Smt2Printer : public cvc5::Printer
    * tn declared via declare-sort or declare-datatype.
    */
   void toStreamModelSort(std::ostream& out,
-                         const smt::Model& m,
-                         TypeNode tn) const override;
+                         TypeNode tn,
+                         const std::vector<Node>& elements) const override;
 
   /**
    * To stream model term. This prints the appropriate output for term
    * n declared via declare-fun.
    */
   void toStreamModelTerm(std::ostream& out,
-                         const smt::Model& m,
-                         Node n) const override;
+                         const Node& n,
+                         const Node& value) const override;
 
   /**
    * To stream with let binding. This prints n, possibly in the scope

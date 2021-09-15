@@ -37,7 +37,6 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex_update.h"
 #include "theory/arith/tableau.h"
-#include "util/maybe.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -216,8 +215,8 @@ private:
 
   BorderHeap d_increasing;
   BorderHeap d_decreasing;
-  Maybe<DeltaRational> d_upperBoundDifference;
-  Maybe<DeltaRational> d_lowerBoundDifference;
+  std::optional<DeltaRational> d_upperBoundDifference;
+  std::optional<DeltaRational> d_lowerBoundDifference;
 
   Rational d_one;
   Rational d_negOne;

@@ -2515,6 +2515,21 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
   BAG_TO_SET,
+  /**
+   * bag.map operator applies the first argument, a function of type (-> T1 T2),
+   * to every element of the second argument, a bag of type (Bag T1),
+   * and returns a bag of type (Bag T2).
+   *
+   * Parameters:
+   *   - 1: a function of type (-> T1 T2)
+   *   - 2: a bag of type (Bag T1)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
+   * const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_MAP,
 
   /* Strings --------------------------------------------------------------- */
 
@@ -3348,11 +3363,14 @@ enum CVC5_EXPORT Kind : int32_t
    * Specifies a custom property for a quantified formula given by a
    * term that is ascribed a user attribute.
    *
-   * Parameters:
-   *   - 1: Term with a user attribute.
+   * Parameters: n >= 1
+   *   - 1: The keyword of the attribute (a term with kind CONST_STRING).
+   *   - 2...n: The values of the attribute.
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   *   - `mkTerm(Kind kind, Term child1, Term child2)
+   *   - `mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   - `mkTerm(Kind kind, const std::vector<Term>& children)
    */
   INST_ATTRIBUTE,
   /**

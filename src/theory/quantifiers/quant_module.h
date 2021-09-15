@@ -22,6 +22,7 @@
 #include <map>
 #include <vector>
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
@@ -40,7 +41,7 @@ class TermDb;
  * This is the virtual class for defining subsolvers of the quantifiers theory.
  * It has a similar interface to a Theory object.
  */
-class QuantifiersModule
+class QuantifiersModule : protected EnvObj
 {
  public:
   /** effort levels for quantifiers modules check */
@@ -59,7 +60,8 @@ class QuantifiersModule
   };
 
  public:
-  QuantifiersModule(quantifiers::QuantifiersState& qs,
+  QuantifiersModule(Env& env,
+                    quantifiers::QuantifiersState& qs,
                     quantifiers::QuantifiersInferenceManager& qim,
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr);

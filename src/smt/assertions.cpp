@@ -121,7 +121,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
 void Assertions::assertFormula(const Node& n)
 {
   ensureBoolean(n);
-  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+  bool maybeHasFv = language::isLangSygus(options::inputLanguage());
   addFormula(n, true, false, false, maybeHasFv);
 }
 
@@ -178,12 +178,19 @@ void Assertions::addFormula(TNode n,
     if (expr::hasFreeVar(n))
     {
       std::stringstream se;
-      se << "Cannot process assertion with free variable.";
-      if (language::isInputLangSygus(options::inputLanguage()))
+      if (isFunDef)
       {
-        // Common misuse of SyGuS is to use top-level assert instead of
-        // constraint when defining the synthesis conjecture.
-        se << " Perhaps you meant `constraint` instead of `assert`?";
+        se << "Cannot process function definition with free variable.";
+      }
+      else
+      {
+        se << "Cannot process assertion with free variable.";
+        if (language::isLangSygus(options::inputLanguage()))
+        {
+          // Common misuse of SyGuS is to use top-level assert instead of
+          // constraint when defining the synthesis conjecture.
+          se << " Perhaps you meant `constraint` instead of `assert`?";
+        }
       }
       throw ModalException(se.str().c_str());
     }
@@ -200,14 +207,16 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present
-    Assert(!language::isInputLangSygus(options::inputLanguage()));
+    Assert(!language::isLangSygus(options::inputLanguage()));
     d_globalDefineFunLemmas->emplace_back(n);
   }
   else
   {
-    // we don't check for free variables here, since even if we are sygus,
-    // we could contain functions-to-synthesize within definitions.
-    addFormula(n, true, false, true, false);
+    // We don't permit functions-to-synthesize within recursive function
+    // definitions currently. Thus, we should check for free variables if the
+    // input language is SyGuS.
+    bool maybeHasFv = language::isLangSygus(options::inputLanguage());
+    addFormula(n, true, false, true, maybeHasFv);
   }
 }
 

@@ -65,8 +65,6 @@ libcvc5_add_sources(
   options/options_public.h
   options/outputc.cpp
   options/outputc.h
-  options/printer_modes.cpp
-  options/printer_modes.h
   options/set_language.cpp
   options/set_language.h
   preprocessing/assertion_pipeline.cpp
@@ -161,6 +159,8 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
+  proof/assumption_proof_generator.cpp
+  proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
   proof/buffered_proof_generator.h
   proof/conv_proof_generator.cpp
@@ -178,6 +178,12 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
+  proof/lfsc/lfsc_list_sc_node_converter.cpp
+  proof/lfsc/lfsc_list_sc_node_converter.h
+  proof/lfsc/lfsc_node_converter.cpp
+  proof/lfsc/lfsc_node_converter.h
+  proof/lfsc/lfsc_print_channel.cpp
+  proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_util.cpp
   proof/lfsc/lfsc_util.h
   proof/method_id.cpp
@@ -288,12 +294,16 @@ libcvc5_add_sources(
   smt/check_models.h
   smt/command.cpp
   smt/command.h
+  smt/difficulty_post_processor.cpp
+  smt/difficulty_post_processor.h
   smt/dump.cpp
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
   smt/env.cpp
   smt/env.h
+  smt/env_obj.cpp
+  smt/env_obj.h
   smt/expand_definitions.cpp
   smt/expand_definitions.h
   smt/listeners.cpp
@@ -311,8 +321,6 @@ libcvc5_add_sources(
   smt/node_command.h
   smt/optimization_solver.cpp
   smt/optimization_solver.h
-  smt/options_manager.cpp
-  smt/options_manager.h
   smt/output_manager.cpp
   smt/output_manager.h
   smt/quant_elim_solver.cpp
@@ -325,6 +333,8 @@ libcvc5_add_sources(
   smt/process_assertions.h
   smt/proof_manager.cpp
   smt/proof_manager.h
+  smt/proof_final_callback.cpp
+  smt/proof_final_callback.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/set_defaults.cpp
@@ -591,6 +601,8 @@ libcvc5_add_sources(
   theory/bv/abstraction.h
   theory/bv/bitblast/aig_bitblaster.cpp
   theory/bv/bitblast/aig_bitblaster.h
+  theory/bv/bitblast/bitblast_proof_generator.cpp
+  theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
   theory/bv/bitblast/bitblast_utils.h
   theory/bv/bitblast/bitblaster.h
@@ -680,6 +692,8 @@ libcvc5_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
+  theory/difficulty_manager.cpp
+  theory/difficulty_manager.h
   theory/ee_manager.cpp
   theory/ee_manager.h
   theory/ee_manager_central.cpp
@@ -693,8 +707,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
-  theory/fp/fp_converter.cpp
-  theory/fp/fp_converter.h
+  theory/fp/fp_word_blaster.cpp
+  theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
   theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp
@@ -805,6 +819,8 @@ libcvc5_add_sources(
   theory/quantifiers/fmf/model_engine.h
   theory/quantifiers/fun_def_evaluator.cpp
   theory/quantifiers/fun_def_evaluator.h
+  theory/quantifiers/ho_term_database.cpp
+  theory/quantifiers/ho_term_database.h
   theory/quantifiers/index_trie.cpp
   theory/quantifiers/index_trie.h
   theory/quantifiers/inst_match.cpp
@@ -847,6 +863,8 @@ libcvc5_add_sources(
   theory/quantifiers/quantifiers_macros.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
+  theory/quantifiers/quantifiers_preprocess.cpp
+  theory/quantifiers/quantifiers_preprocess.h
   theory/quantifiers/quantifiers_registry.cpp
   theory/quantifiers/quantifiers_registry.h
   theory/quantifiers/quantifiers_rewriter.cpp
@@ -886,6 +904,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/enum_value_manager.cpp
+  theory/quantifiers/sygus/enum_value_manager.h
   theory/quantifiers/sygus/example_infer.cpp
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
@@ -1194,7 +1214,7 @@ set(options_toml_files
 )
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
+list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
 list(APPEND options_gen_h_files "options/options.h")
 
 libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
@@ -1226,6 +1246,7 @@ add_custom_command(
     DEPENDS
       options/mkoptions.py
       ${options_toml_files}
+      main/options_template.cpp
       options/module_template.h
       options/module_template.cpp
       options/options_public_template.cpp

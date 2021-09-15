@@ -20,6 +20,8 @@
 
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/valuation.h"
 
 namespace cvc5 {
@@ -29,20 +31,17 @@ namespace eq {
 class EqualityEngine;
 }
 
-class TheoryState
+class TheoryState : protected EnvObj
 {
  public:
-  TheoryState(context::Context* c, context::UserContext* u, Valuation val);
+  TheoryState(Env& env,
+              Valuation val);
   virtual ~TheoryState() {}
   /**
    * Set equality engine, where ee is a pointer to the official equality engine
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
-  /** Get the SAT context */
-  context::Context* getSatContext() const;
-  /** Get the user context */
-  context::UserContext* getUserContext() const;
   //-------------------------------------- equality information
   /** Is t registered as a term in the equality engine of this class? */
   virtual bool hasTerm(TNode a) const;
@@ -111,10 +110,6 @@ class TheoryState
   Valuation& getValuation();
 
  protected:
-  /** Pointer to the SAT context object used by the theory. */
-  context::Context* d_context;
-  /** Pointer to the user context object used by the theory. */
-  context::UserContext* d_ucontext;
   /**
    * The valuation proxy for the Theory to communicate back with the
    * theory engine (and other theories).

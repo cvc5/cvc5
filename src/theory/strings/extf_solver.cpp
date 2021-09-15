@@ -30,7 +30,8 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-ExtfSolver::ExtfSolver(SolverState& s,
+ExtfSolver::ExtfSolver(Env& env,
+                       SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        StringsRewriter& rewriter,
@@ -38,7 +39,8 @@ ExtfSolver::ExtfSolver(SolverState& s,
                        CoreSolver& cs,
                        ExtTheory& et,
                        SequencesStatistics& statistics)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_termReg(tr),
       d_rewriter(rewriter),
@@ -47,9 +49,9 @@ ExtfSolver::ExtfSolver(SolverState& s,
       d_extt(et),
       d_statistics(statistics),
       d_preproc(d_termReg.getSkolemCache(), &statistics.d_reductions),
-      d_hasExtf(s.getSatContext(), false),
-      d_extfInferCache(s.getSatContext()),
-      d_reduced(s.getUserContext())
+      d_hasExtf(context(), false),
+      d_extfInferCache(context()),
+      d_reduced(userContext())
 {
   d_extt.addFunctionKind(kind::STRING_SUBSTR);
   d_extt.addFunctionKind(kind::STRING_UPDATE);
@@ -698,12 +700,8 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return mv;
   }
   Node nr = d_state.getRepresentative(n);
-  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
-  if (!c.isNull())
-  {
-    return c;
-  }
-  else if (effort >= 1 && n.getType().isStringLike())
+  // if the normal form is available, use it
+  if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
     // normal forms
@@ -716,6 +714,12 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
       d_im.addToExplanation(n, nfnr.d_base, exp);
     }
     return ns;
+  }
+  // otherwise, we use the best content heuristic
+  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  if (!c.isNull())
+  {
+    return c;
   }
   return n;
 }

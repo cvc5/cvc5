@@ -296,28 +296,12 @@ name   = "Arithmetic Theory"
   help       = "round robin turn"
 
 [[option]]
-  name       = "dioRepeat"
-  category   = "regular"
-  long       = "dio-repeat"
-  type       = "bool"
-  default    = "false"
-  help       = "handle dio solver constraints in mass or one at a time"
-
-[[option]]
   name       = "replayEarlyCloseDepths"
   category   = "regular"
   long       = "replay-early-close-depth=N"
   type       = "int64_t"
   default    = "1"
   help       = "multiples of the depths to try to close the approx log eagerly"
-
-[[option]]
-  name       = "replayFailurePenalty"
-  category   = "regular"
-  long       = "replay-failure-penalty=N"
-  type       = "int64_t"
-  default    = "100"
-  help       = "number of solve integer attempts to skips after a numeric failure"
 
 [[option]]
   name       = "replayNumericFailurePenalty"
@@ -342,38 +326,6 @@ name   = "Arithmetic Theory"
   type       = "uint64_t"
   default    = "25500"
   help       = "maximum complexity of any coefficient while outputting replaying cut lemmas"
-
-[[option]]
-  name       = "soiApproxMajorFailure"
-  category   = "regular"
-  long       = "replay-soi-major-threshold=T"
-  type       = "double"
-  default    = ".01"
-  help       = "threshold for a major tolerance failure by the approximate solver"
-
-[[option]]
-  name       = "soiApproxMajorFailurePen"
-  category   = "regular"
-  long       = "replay-soi-major-threshold-pen=N"
-  type       = "int64_t"
-  default    = "50"
-  help       = "threshold for a major tolerance failure by the approximate solver"
-
-[[option]]
-  name       = "soiApproxMinorFailure"
-  category   = "regular"
-  long       = "replay-soi-minor-threshold=T"
-  type       = "double"
-  default    = ".0001"
-  help       = "threshold for a minor tolerance failure by the approximate solver"
-
-[[option]]
-  name       = "soiApproxMinorFailurePen"
-  category   = "regular"
-  long       = "replay-soi-minor-threshold-pen=N"
-  type       = "int64_t"
-  default    = "10"
-  help       = "threshold for a minor tolerance failure by the approximate solver"
 
 [[option]]
   name       = "ppAssertMaxSubSize"
@@ -416,6 +368,14 @@ name   = "Arithmetic Theory"
 [[option.mode.FULL]]
   name = "full"
   help = "Use all lemma schemes"
+
+[[option]]
+  name       = "nlRlvAssertBounds"
+  category   = "regular"
+  long       = "nl-rlv-assert-bounds"
+  type       = "bool"
+  default    = "false"
+  help       = "use bound inference utility to prune when an assertion is entailed by another"
 
 [[option]]
   name       = "nlExtResBound"

@@ -491,7 +491,7 @@ api::Term createPrecedenceTree(Parser* parser, api::Solver* s,
   api::Term e = createPrecedenceTree(
       parser, s, expressions, operators, 0, expressions.size() - 1);
   if(Debug.isOn("prec") && operators.size() > 1) {
-    language::SetLanguage::Scope ls(Debug("prec"), language::output::LANG_AST);
+    language::SetLanguage::Scope ls(Debug("prec"), Language::LANG_AST);
     Debug("prec") << "=> " << e << std::endl;
   }
   return e;
@@ -1103,7 +1103,7 @@ declareVariables[std::unique_ptr<cvc5::Command>* cmd, cvc5::api::Sort& t,
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
               std::stringstream ss;
-              ss << language::SetLanguage(language::output::LANG_CVC)
+              ss << language::SetLanguage(Language::LANG_CVC)
                  << "incompatible type for `" << *i << "':" << std::endl
                  << "  old type: " << oldType << std::endl
                  << "  new type: " << t << std::endl;
@@ -1514,7 +1514,7 @@ letDecl
 }
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
     {
-      Debug("parser") << language::SetLanguage(language::output::LANG_CVC)
+      Debug("parser") << language::SetLanguage(Language::LANG_CVC)
                       << e.getSort() << std::endl;
       PARSER_STATE->defineVar(name, e);
       Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
@@ -2196,12 +2196,12 @@ simpleTerm[cvc5::api::Term& f]
   | HEX_LITERAL
     { Assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 4);
-      f = SOLVER->mkBitVector(hexString, 16);
+      f = SOLVER->mkBitVector(hexString.size() * 4, hexString, 16);
     }
   | BINARY_LITERAL
     { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("0bin") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 4);
-      f = SOLVER->mkBitVector(binString, 2);
+      f = SOLVER->mkBitVector(binString.size(), binString, 2);
     }
     /* record literals */
   | PARENHASH recordEntry[name,e] { names.push_back(name); args.push_back(e); }

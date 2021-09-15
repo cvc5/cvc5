@@ -106,6 +106,18 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check)
 {
+  if (n.getKind() == kind::INST_ATTRIBUTE)
+  {
+    if (n.getNumChildren() > 1)
+    {
+      // first must be a keyword
+      if (n[0].getKind() != kind::CONST_STRING)
+      {
+        throw TypeCheckingExceptionPrivate(
+            n[0], "Expecting a keyword at the head of INST_ATTRIBUTE.");
+      }
+    }
+  }
   return nodeManager->instPatternType();
 }
 
