@@ -71,7 +71,7 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    *
    * @param rule The id of the Alethe rule,
    * @param res The expected result of the application,
-   * @param conclusion The conclusion of the application as the Alethe printer
+   * @param conclusion The conclusion to be printed for the step
    * @param children The children of the application,
    * @param args The arguments of the application
    * @param cdp The proof to add to
