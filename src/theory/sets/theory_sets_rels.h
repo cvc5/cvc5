@@ -20,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "smt/env_obj.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/rels_utils.h"
 #include "theory/sets/solver_state.h"
@@ -59,13 +60,15 @@ public:
  * extension of the theory of sets. That is, it shares many components of the
  * TheorySets object which owns it.
  */
-class TheorySetsRels {
+class TheorySetsRels : protected EnvObj
+{
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
-  TheorySetsRels(SolverState& s,
+  TheorySetsRels(Env& env,
+                 SolverState& s,
                  InferenceManager& im,
                  SkolemCache& skc,
                  TermRegistry& treg);
