@@ -138,7 +138,7 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The cl operator is defined as described in the
-    *AletheProofPostprocessCallback class above
+    * AletheProofPostprocessCallback class above
    **/
   Node d_cl;
 };
