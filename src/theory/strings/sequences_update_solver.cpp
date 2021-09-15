@@ -19,25 +19,28 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 
+using namespace cvc5::context;
 using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SequencesUpdateSolver::SequencesUpdateSolver(SolverState& s,
+SequencesUpdateSolver::SequencesUpdateSolver(Env& env,
+                                             SolverState& s,
                                              InferenceManager& im,
                                              TermRegistry& tr,
                                              CoreSolver& cs,
                                              ExtfSolver& es,
                                              ExtTheory& extt)
-    : d_state(s),
+    : EnvObj(env),
+	  d_state(s),
       d_im(im),
       d_termReg(tr),
       d_csolver(cs),
       d_esolver(es),
-      d_sasolver(s, im, tr, cs, es, extt),
-      d_eqProc(s.getSatContext())
+      d_sasolver(env, s, im, tr, cs, es, extt),
+      d_eqProc(context())
 {
   NodeManager * nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));

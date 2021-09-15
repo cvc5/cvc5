@@ -36,11 +36,12 @@ namespace strings {
   * operators with concatenation. It relies on a subsolver for doing array
   * like reasoning (sequences_array_solver.h).
   */
-class SequencesUpdateSolver
+class SequencesUpdateSolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
  public:
-  SequencesUpdateSolver(SolverState& s,
+  SequencesUpdateSolver(Env& env,
+                        SolverState& s,
                         InferenceManager& im,
                         TermRegistry& tr,
                         CoreSolver& cs,

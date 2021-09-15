@@ -28,10 +28,11 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-class SequencesArraySolver
+class SequencesArraySolver : protected EnvObj
 {
  public:
-  SequencesArraySolver(SolverState& s,
+  SequencesArraySolver(Env& env,
+                       SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        CoreSolver& cs,
