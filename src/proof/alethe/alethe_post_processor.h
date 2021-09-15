@@ -16,8 +16,8 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
-#include "proof/proof_node_updater.h"
 #include "proof/alethe/alethe_proof_rule.h"
+#include "proof/proof_node_updater.h"
 
 namespace cvc5 {
 
@@ -97,10 +97,10 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @return True if the step could be added, or false if not.
    */
   bool addAletheStepFromOr(Node res,
-                          AletheRule rule,
-                          const std::vector<Node>& children,
-                          const std::vector<Node>& args,
-                          CDProof& cdp);
+                           AletheRule rule,
+                           const std::vector<Node>& children,
+                           const std::vector<Node>& args,
+                           CDProof& cdp);
 };
 
 }  // namespace proof
