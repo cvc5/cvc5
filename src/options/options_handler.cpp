@@ -68,9 +68,243 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
                         + indent + "Try --bv-sat-solver=minisat");
 }
 
+void printTags(unsigned ntags, char const* const* tags)
+{
+  std::cout << "available tags:";
+  for (unsigned i = 0; i < ntags; ++ i)
+  {
+    std::cout << "  " << tags[i] << std::endl;
+  }
+  std::cout << std::endl;
+}
+
+std::string suggestTags(char const* const* validTags,
+                               std::string inputTag,
+                               char const* const* additionalTags)
+{
+  DidYouMean didYouMean;
+
+  const char* opt;
+  for (size_t i = 0; (opt = validTags[i]) != nullptr; ++i)
+  {
+    didYouMean.addWord(validTags[i]);
+  }
+  if (additionalTags != nullptr)
+  {
+    for (size_t i = 0; (opt = additionalTags[i]) != nullptr; ++i)
+    {
+      didYouMean.addWord(additionalTags[i]);
+    }
+  }
+
+  return didYouMean.getMatchAsString(inputTag);
+}
+
 }  // namespace
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
+
+void OptionsHandler::setErrStream(const std::string& option,
+                                  const std::string& flag,
+                                  const ManagedErr& me)
+{
+  Debug.setStream(me);
+  Warning.setStream(me);
+  CVC5Message.setStream(me);
+  Notice.setStream(me);
+  Chat.setStream(me);
+  Trace.setStream(me);
+}
+
+void OptionsHandler::languageIsNotAST(const std::string& option,
+                                      const std::string& flag,
+                                      Language lang)
+{
+  if (lang == Language::LANG_AST)
+  {
+    throw OptionException("Language LANG_AST is not allowed for " + flag);
+  }
+}
+
+void OptionsHandler::applyOutputLanguage(const std::string& option,
+                                         const std::string& flag,
+                                         Language lang)
+{
+  d_options->base.out << language::SetLanguage(lang);
+}
+
+void OptionsHandler::setVerbosity(const std::string& option,
+                                  const std::string& flag,
+                                  int value)
+{
+  if(Configuration::isMuzzledBuild()) {
+    DebugChannel.setStream(&cvc5::null_os);
+    TraceChannel.setStream(&cvc5::null_os);
+    NoticeChannel.setStream(&cvc5::null_os);
+    ChatChannel.setStream(&cvc5::null_os);
+    MessageChannel.setStream(&cvc5::null_os);
+    WarningChannel.setStream(&cvc5::null_os);
+  } else {
+    if(value < 2) {
+      ChatChannel.setStream(&cvc5::null_os);
+    } else {
+      ChatChannel.setStream(&std::cout);
+    }
+    if(value < 1) {
+      NoticeChannel.setStream(&cvc5::null_os);
+    } else {
+      NoticeChannel.setStream(&std::cout);
+    }
+    if(value < 0) {
+      MessageChannel.setStream(&cvc5::null_os);
+      WarningChannel.setStream(&cvc5::null_os);
+    } else {
+      MessageChannel.setStream(&std::cout);
+      WarningChannel.setStream(&std::cerr);
+    }
+  }
+}
+
+void OptionsHandler::decreaseVerbosity(const std::string& option,
+                                       const std::string& flag)
+{
+  d_options->base.verbosity -= 1;
+  setVerbosity(option, flag, d_options->base.verbosity);
+}
+
+void OptionsHandler::increaseVerbosity(const std::string& option,
+                                       const std::string& flag)
+{
+  d_options->base.verbosity += 1;
+  setVerbosity(option, flag, d_options->base.verbosity);
+}
+
+void OptionsHandler::setStats(const std::string& option,
+                              const std::string& flag,
+                              bool value)
+{
+#ifndef CVC5_STATISTICS_ON
+  if (value)
+  {
+    std::stringstream ss;
+    ss << "option `" << flag
+       << "' requires a statistics-enabled build of cvc5; this binary was not "
+          "built with statistics support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC5_STATISTICS_ON */
+  if (!value)
+  {
+    d_options->base.statisticsAll = false;
+    d_options->base.statisticsEveryQuery = false;
+    d_options->base.statisticsExpert = false;
+  }
+}
+
+void OptionsHandler::setStatsDetail(const std::string& option,
+                              const std::string& flag,
+                              bool value)
+{
+#ifndef CVC5_STATISTICS_ON
+  if (value)
+  {
+    std::stringstream ss;
+    ss << "option `" << flag
+       << "' requires a statistics-enabled build of cvc5; this binary was not "
+          "built with statistics support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC5_STATISTICS_ON */
+  if (value)
+  {
+    d_options->base.statistics = true;
+  }
+}
+
+void OptionsHandler::enableTraceTag(const std::string& option,
+                                    const std::string& flag,
+                                    const std::string& optarg)
+{
+  if(!Configuration::isTracingBuild())
+  {
+    throw OptionException("trace tags not available in non-tracing builds");
+  }
+  else if(!Configuration::isTraceTag(optarg.c_str()))
+  {
+    if (optarg == "help")
+    {
+      printTags(
+          Configuration::getNumTraceTags(), Configuration::getTraceTags());
+      std::exit(0);
+    }
+
+    throw OptionException(
+        std::string("trace tag ") + optarg + std::string(" not available.")
+        + suggestTags(Configuration::getTraceTags(), optarg, nullptr));
+  }
+  Trace.on(optarg);
+}
+
+void OptionsHandler::enableDebugTag(const std::string& option,
+                                    const std::string& flag,
+                                    const std::string& optarg)
+{
+  if (!Configuration::isDebugBuild())
+  {
+    throw OptionException("debug tags not available in non-debug builds");
+  }
+  else if (!Configuration::isTracingBuild())
+  {
+    throw OptionException("debug tags not available in non-tracing builds");
+  }
+
+  if (!Configuration::isDebugTag(optarg.c_str())
+      && !Configuration::isTraceTag(optarg.c_str()))
+  {
+    if (optarg == "help")
+    {
+      printTags(
+          Configuration::getNumDebugTags(), Configuration::getDebugTags());
+      std::exit(0);
+    }
+
+    throw OptionException(std::string("debug tag ") + optarg
+                          + std::string(" not available.")
+                          + suggestTags(Configuration::getDebugTags(),
+                                        optarg,
+                                        Configuration::getTraceTags()));
+  }
+  Debug.on(optarg);
+  Trace.on(optarg);
+}
+
+void OptionsHandler::enableOutputTag(const std::string& option,
+                                     const std::string& flag,
+                                     const std::string& optarg)
+{
+  d_options->base.outputTagHolder.set(
+      static_cast<size_t>(stringToOutputTag(optarg)));
+}
+
+void OptionsHandler::setPrintSuccess(const std::string& option,
+                                     const std::string& flag,
+                                     bool value)
+{
+  Debug.getStream() << Command::printsuccess(value);
+  Trace.getStream() << Command::printsuccess(value);
+  Notice.getStream() << Command::printsuccess(value);
+  Chat.getStream() << Command::printsuccess(value);
+  CVC5Message.getStream() << Command::printsuccess(value);
+  Warning.getStream() << Command::printsuccess(value);
+  *d_options->base.out << Command::printsuccess(value);
+}
+
+void OptionsHandler::setResourceWeight(const std::string& option,
+                                       const std::string& flag,
+                                       const std::string& optarg)
+{
+  d_options->base.resourceWeightHolder.emplace_back(optarg);
+}
 
 static void print_config (const char * str, std::string config) {
   std::string s(str);
@@ -155,16 +389,6 @@ void OptionsHandler::showVersion(const std::string& option,
   std::exit(0);
 }
 
-static void printTags(unsigned ntags, char const* const* tags)
-{
-  std::cout << "available tags:";
-  for (unsigned i = 0; i < ntags; ++ i)
-  {
-    std::cout << "  " << tags[i] << std::endl;
-  }
-  std::cout << std::endl;
-}
-
 void OptionsHandler::showDebugTags(const std::string& option,
                                    const std::string& flag)
 {
@@ -189,27 +413,6 @@ void OptionsHandler::showTraceTags(const std::string& option,
   }
   printTags(Configuration::getNumTraceTags(), Configuration::getTraceTags());
   exit(0);
-}
-
-uint64_t OptionsHandler::limitHandler(const std::string& option,
-                                      const std::string& flag,
-                                      const std::string& optarg)
-{
-  uint64_t ms;
-  std::istringstream convert(optarg);
-  if (!(convert >> ms))
-  {
-    throw OptionException("option `" + option
-                          + "` requires a number as an argument");
-  }
-  return ms;
-}
-
-void OptionsHandler::setResourceWeight(const std::string& option,
-                                       const std::string& flag,
-                                       const std::string& optarg)
-{
-  d_options->base.resourceWeightHolder.emplace_back(optarg);
 }
 
 // theory/quantifiers/options_handlers.h
@@ -338,51 +541,6 @@ void OptionsHandler::setProduceAssertions(const std::string& option,
   d_options->smt.interactiveMode = value;
 }
 
-void OptionsHandler::setStats(const std::string& option,
-                              const std::string& flag,
-                              bool value)
-{
-#ifndef CVC5_STATISTICS_ON
-  if (value)
-  {
-    std::stringstream ss;
-    ss << "option `" << flag
-       << "' requires a statistics-enabled build of cvc5; this binary was not "
-          "built with statistics support";
-    throw OptionException(ss.str());
-  }
-#endif /* CVC5_STATISTICS_ON */
-  std::string opt = option;
-  if (option.substr(0, 2) == "--")
-  {
-    opt = opt.substr(2);
-  }
-  if (value)
-  {
-    if (opt == options::base::statisticsAll__name)
-    {
-      d_options->base.statistics = true;
-    }
-    else if (opt == options::base::statisticsEveryQuery__name)
-    {
-      d_options->base.statistics = true;
-    }
-    else if (opt == options::base::statisticsExpert__name)
-    {
-      d_options->base.statistics = true;
-    }
-  }
-  else
-  {
-    if (opt == options::base::statistics__name)
-    {
-      d_options->base.statisticsAll = false;
-      d_options->base.statisticsEveryQuery = false;
-      d_options->base.statisticsExpert = false;
-    }
-  }
-}
-
 
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepth(const std::string& option,
@@ -411,94 +569,6 @@ void OptionsHandler::setDefaultDagThresh(const std::string& option,
 }
 
 // main/options_handlers.h
-
-
-static std::string suggestTags(char const* const* validTags,
-                               std::string inputTag,
-                               char const* const* additionalTags)
-{
-  DidYouMean didYouMean;
-
-  const char* opt;
-  for (size_t i = 0; (opt = validTags[i]) != nullptr; ++i)
-  {
-    didYouMean.addWord(validTags[i]);
-  }
-  if (additionalTags != nullptr)
-  {
-    for (size_t i = 0; (opt = additionalTags[i]) != nullptr; ++i)
-    {
-      didYouMean.addWord(additionalTags[i]);
-    }
-  }
-
-  return didYouMean.getMatchAsString(inputTag);
-}
-
-void OptionsHandler::enableTraceTag(const std::string& option,
-                                    const std::string& flag,
-                                    const std::string& optarg)
-{
-  if(!Configuration::isTracingBuild())
-  {
-    throw OptionException("trace tags not available in non-tracing builds");
-  }
-  else if(!Configuration::isTraceTag(optarg.c_str()))
-  {
-    if (optarg == "help")
-    {
-      printTags(
-          Configuration::getNumTraceTags(), Configuration::getTraceTags());
-      exit(0);
-    }
-
-    throw OptionException(
-        std::string("trace tag ") + optarg + std::string(" not available.")
-        + suggestTags(Configuration::getTraceTags(), optarg, nullptr));
-  }
-  Trace.on(optarg);
-}
-
-void OptionsHandler::enableDebugTag(const std::string& option,
-                                    const std::string& flag,
-                                    const std::string& optarg)
-{
-  if (!Configuration::isDebugBuild())
-  {
-    throw OptionException("debug tags not available in non-debug builds");
-  }
-  else if (!Configuration::isTracingBuild())
-  {
-    throw OptionException("debug tags not available in non-tracing builds");
-  }
-
-  if (!Configuration::isDebugTag(optarg.c_str())
-      && !Configuration::isTraceTag(optarg.c_str()))
-  {
-    if (optarg == "help")
-    {
-      printTags(
-          Configuration::getNumDebugTags(), Configuration::getDebugTags());
-      exit(0);
-    }
-
-    throw OptionException(std::string("debug tag ") + optarg
-                          + std::string(" not available.")
-                          + suggestTags(Configuration::getDebugTags(),
-                                        optarg,
-                                        Configuration::getTraceTags()));
-  }
-  Debug.on(optarg);
-  Trace.on(optarg);
-}
-
-void OptionsHandler::enableOutputTag(const std::string& option,
-                                     const std::string& flag,
-                                     const std::string& optarg)
-{
-  d_options->base.outputTagHolder.set(
-      static_cast<size_t>(stringToOutputTag(optarg)));
-}
 
 Language OptionsHandler::stringToLanguage(const std::string& option,
                                           const std::string& flag,
@@ -536,23 +606,6 @@ Languages currently supported as arguments to the --output-lang option:
   Unreachable();
 }
 
-void OptionsHandler::applyOutputLanguage(const std::string& option,
-                                         const std::string& flag,
-                                         Language lang)
-{
-  d_options->base.out << language::SetLanguage(lang);
-}
-
-void OptionsHandler::languageIsNotAST(const std::string& option,
-                                      const std::string& flag,
-                                      Language lang)
-{
-  if (lang == Language::LANG_AST)
-  {
-    throw OptionException("Language LANG_AST is not allowed for " + flag);
-  }
-}
-
 void OptionsHandler::setDumpStream(const std::string& option,
                                    const std::string& flag,
                                    const ManagedOut& mo)
@@ -564,93 +617,12 @@ void OptionsHandler::setDumpStream(const std::string& option,
       "The dumping feature was disabled in this build of cvc5.");
 #endif /* CVC5_DUMPING */
 }
-void OptionsHandler::setErrStream(const std::string& option,
-                                  const std::string& flag,
-                                  const ManagedErr& me)
-{
-  Debug.setStream(me);
-  Warning.setStream(me);
-  CVC5Message.setStream(me);
-  Notice.setStream(me);
-  Chat.setStream(me);
-  Trace.setStream(me);
-}
-void OptionsHandler::setInStream(const std::string& option,
-                                 const std::string& flag,
-                                 const ManagedIn& mi)
-{
-}
-void OptionsHandler::setOutStream(const std::string& option,
-                                  const std::string& flag,
-                                  const ManagedOut& mo)
-{
-}
-
 /* options/base_options_handlers.h */
-void OptionsHandler::setVerbosity(const std::string& option,
-                                  const std::string& flag,
-                                  int value)
-{
-  if(Configuration::isMuzzledBuild()) {
-    DebugChannel.setStream(&cvc5::null_os);
-    TraceChannel.setStream(&cvc5::null_os);
-    NoticeChannel.setStream(&cvc5::null_os);
-    ChatChannel.setStream(&cvc5::null_os);
-    MessageChannel.setStream(&cvc5::null_os);
-    WarningChannel.setStream(&cvc5::null_os);
-  } else {
-    if(value < 2) {
-      ChatChannel.setStream(&cvc5::null_os);
-    } else {
-      ChatChannel.setStream(&std::cout);
-    }
-    if(value < 1) {
-      NoticeChannel.setStream(&cvc5::null_os);
-    } else {
-      NoticeChannel.setStream(&std::cout);
-    }
-    if(value < 0) {
-      MessageChannel.setStream(&cvc5::null_os);
-      WarningChannel.setStream(&cvc5::null_os);
-    } else {
-      MessageChannel.setStream(&std::cout);
-      WarningChannel.setStream(&std::cerr);
-    }
-  }
-}
-
-void OptionsHandler::increaseVerbosity(const std::string& option,
-                                       const std::string& flag)
-{
-  d_options->base.verbosity += 1;
-  setVerbosity(option, flag, d_options->base.verbosity);
-}
-
-void OptionsHandler::decreaseVerbosity(const std::string& option,
-                                       const std::string& flag)
-{
-  d_options->base.verbosity -= 1;
-  setVerbosity(option, flag, d_options->base.verbosity);
-}
-
 void OptionsHandler::setDumpMode(const std::string& option,
                                  const std::string& flag,
                                  const std::string& optarg)
 {
   Dump.setDumpFromString(optarg);
-}
-
-void OptionsHandler::setPrintSuccess(const std::string& option,
-                                     const std::string& flag,
-                                     bool value)
-{
-  Debug.getStream() << Command::printsuccess(value);
-  Trace.getStream() << Command::printsuccess(value);
-  Notice.getStream() << Command::printsuccess(value);
-  Chat.getStream() << Command::printsuccess(value);
-  CVC5Message.getStream() << Command::printsuccess(value);
-  Warning.getStream() << Command::printsuccess(value);
-  *d_options->base.out << Command::printsuccess(value);
 }
 
 }  // namespace options

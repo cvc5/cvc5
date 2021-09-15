@@ -75,7 +75,54 @@ public:
     }
   }
 
-  /***** main options *****/
+  /******************************* base options *******************************/
+  /** Apply the error output stream to the different output channels */
+  void setErrStream(const std::string& option,
+                    const std::string& flag,
+                    const ManagedErr& me);
+
+  /** Convert option value to Language enum */
+  Language stringToLanguage(const std::string& option,
+                            const std::string& flag,
+                            const std::string& optarg);
+  /** Check that lang is not LANG_AST (not allowed as input language) */
+  void languageIsNotAST(const std::string& option,
+                        const std::string& flag,
+                        Language lang);
+  /** Apply the output language to the default output stream */
+  void applyOutputLanguage(const std::string& option,
+                           const std::string& flag,
+                           Language lang);
+  /** Apply verbosity to the different output channels */
+  void setVerbosity(const std::string& option,
+                    const std::string& flag,
+                    int value);
+  /** Decrease verbosity and call setVerbosity */
+  void decreaseVerbosity(const std::string& option, const std::string& flag);
+  /** Increase verbosity and call setVerbosity */
+  void increaseVerbosity(const std::string& option, const std::string& flag);
+  /** If statistics are disabled, disable statistics sub-options */
+  void setStats(const std::string& option, const std::string& flag, bool value);
+  /** If statistics sub-option is disabled, enable statistics */
+  void setStatsDetail(const std::string& option, const std::string& flag, bool value);
+  void enableTraceTag(const std::string& option,
+                      const std::string& flag,
+                      const std::string& optarg);
+  void enableDebugTag(const std::string& option,
+                      const std::string& flag,
+                      const std::string& optarg);
+
+  void enableOutputTag(const std::string& option,
+                       const std::string& flag,
+                       const std::string& optarg);
+  void setPrintSuccess(const std::string& option,
+                       const std::string& flag,
+                       bool value);
+  void setResourceWeight(const std::string& option,
+                         const std::string& flag,
+                         const std::string& optarg);
+
+  /******************************* main options *******************************/
   void showConfiguration(const std::string& option, const std::string& flag);
   void showCopyright(const std::string& option, const std::string& flag);
   void showVersion(const std::string& option, const std::string& flag);
@@ -115,15 +162,6 @@ public:
                             const std::string& flag,
                             bool value);
 
-  void setStats(const std::string& option, const std::string& flag, bool value);
-
-  uint64_t limitHandler(const std::string& option,
-                        const std::string& flag,
-                        const std::string& optarg);
-  void setResourceWeight(const std::string& option,
-                         const std::string& flag,
-                         const std::string& optarg);
-
   /* expr/options_handlers.h */
   void setDefaultExprDepth(const std::string& option,
                            const std::string& flag,
@@ -137,49 +175,10 @@ public:
   void setDumpStream(const std::string& option,
                      const std::string& flag,
                      const ManagedOut& mo);
-  void setErrStream(const std::string& option,
-                    const std::string& flag,
-                    const ManagedErr& me);
-  void setInStream(const std::string& option,
-                   const std::string& flag,
-                   const ManagedIn& mi);
-  void setOutStream(const std::string& option,
-                    const std::string& flag,
-                    const ManagedOut& mo);
-  void setVerbosity(const std::string& option,
-                    const std::string& flag,
-                    int value);
-  void increaseVerbosity(const std::string& option, const std::string& flag);
-  void decreaseVerbosity(const std::string& option, const std::string& flag);
-  /** Convert optarg to Language enum */
-  Language stringToLanguage(const std::string& option,
-                            const std::string& flag,
-                            const std::string& optarg);
-  /** Apply the output language to the default output stream */
-  void applyOutputLanguage(const std::string& option,
-                           const std::string& flag,
-                           Language lang);
-  /** Check that lang is not LANG_AST (which is not allowed as input language). */
-  void languageIsNotAST(const std::string& option,
-                        const std::string& flag,
-                        Language lang);
-  void enableTraceTag(const std::string& option,
-                      const std::string& flag,
-                      const std::string& optarg);
-  void enableDebugTag(const std::string& option,
-                      const std::string& flag,
-                      const std::string& optarg);
-
-  void enableOutputTag(const std::string& option,
-                       const std::string& flag,
-                       const std::string& optarg);
 
   void setDumpMode(const std::string& option,
                    const std::string& flag,
                    const std::string& optarg);
-  void setPrintSuccess(const std::string& option,
-                       const std::string& flag,
-                       bool value);
 
  private:
 
