@@ -41,13 +41,6 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
   /**
    * This method updates the proof rule application depending on the given
    * rule and translating it into a proof node in terms of the Alethe rules.
-   *
-   * @param res The expected result of the application,
-   * @param rule The id of the Alethe rule,
-   * @param children The children of the application,
-   * @param args The arguments of the application,
-   * @param cdp The proof to add to,
-   * @return True if the step could be added, or null if not.
    */
   bool update(Node res,
               PfRule id,
