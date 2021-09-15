@@ -26,9 +26,15 @@ namespace proof {
 
 enum class AletheRule : uint32_t
 {
-  // This enumeration lists all Alethe proof rules. For each rule a list of steps is given. The last step is the conclusion obtained by applying the rule in question. There might be zero or more steps occuring before the conclusion in the proof these are listed as assumptions. A step has the form:
+  // This enumeration lists all Alethe proof rules. For each rule a list of
+  // steps is given. The last step is the conclusion obtained by applying the
+  // rule in question. There might be zero or more steps occuring before the
+  // conclusion in the proof. A step has the form:
+  //
   //   G > i. F
-  // where G is a context, i is an id and F is a formula. A context may include substitutions x->y.
+  // where G is a context, i is an id and F is a formula. A context may include
+  // substitutions x->y and fixed variables x. For more details see
+  // https://verit.loria.fr/documentation/alethe-spec.pdf
   //
   //================================================= Special Rules: Commands
   // These rules should be printed as commands

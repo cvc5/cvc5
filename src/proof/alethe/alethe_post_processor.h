@@ -16,8 +16,8 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
-#include "proof/proof_node_updater.h"
 #include "proof/alethe/alethe_proof_rule.h"
+#include "proof/proof_node_updater.h"
 
 namespace cvc5 {
 
@@ -41,13 +41,6 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
   /**
    * This method updates the proof rule application depending on the given
    * rule and translating it into a proof node in terms of the Alethe rules.
-   *
-   * @param res The expected result of the application,
-   * @param rule The id of the Alethe rule,
-   * @param children The children of the application,
-   * @param args The arguments of the application,
-   * @param cdp The proof to add to,
-   * @return True if the step could be added, or null if not.
    */
   bool update(Node res,
               PfRule id,
@@ -66,12 +59,14 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    **/
   Node d_cl;
   /**
-   * This method adds a new step to the proof applying rule but adds a
-   * conclusion different from the result as the third argument.
+   * This method adds a new ALETHE_RULE step to the proof, with `rule` as the
+   * first argument, the original conclusion `res` as the second and
+   * `conclusion`, the result to be printed (which may or may not differ from
+   * `res`), as the third.
    *
    * @param rule The id of the Alethe rule,
    * @param res The expected result of the application,
-   * @param conclusion The conclusion of the application as the Alethe printer
+   * @param conclusion The conclusion to be printed for the step
    * @param children The children of the application,
    * @param args The arguments of the application
    * @param cdp The proof to add to
@@ -84,10 +79,11 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                      const std::vector<Node>& args,
                      CDProof& cdp);
   /**
-   * This method adds a new step (or F1 ... Fn) to the proof applying rule while
-   * printing a version where the outermost or is replaced by cl, i.e. (cl F1
-   * ... Fn). For this it internally calls addAletheStep. The kind of the given
-   * Node has to be OR.
+   * As above, but for proof nodes with original conclusions of the form `(or F1
+   * ... Fn)` whose conclusion-to-be-printed must be `(cl F1 ... Fn)`.
+   *
+   * This method internally calls addAletheStep. The kind of the given Node has
+   * to be OR.
    *
    * @param res The expected result of the application in form (or F1 ... Fn),
    * @param rule The id of the Alethe rule,
@@ -97,10 +93,10 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @return True if the step could be added, or false if not.
    */
   bool addAletheStepFromOr(Node res,
-                          AletheRule rule,
-                          const std::vector<Node>& children,
-                          const std::vector<Node>& args,
-                          CDProof& cdp);
+                           AletheRule rule,
+                           const std::vector<Node>& children,
+                           const std::vector<Node>& args,
+                           CDProof& cdp);
 };
 
 /**

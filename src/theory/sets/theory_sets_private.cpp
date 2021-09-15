@@ -51,9 +51,9 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_state(state),
       d_im(im),
       d_skCache(skc),
-      d_treg(state, im, skc, pnm),
-      d_rels(new TheorySetsRels(state, im, skc, d_treg)),
-      d_cardSolver(new CardinalityExtension(state, im, d_treg)),
+      d_treg(d_env, state, im, skc, pnm),
+      d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
+      d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_rels_enabled(false),
       d_card_enabled(false)
 {
