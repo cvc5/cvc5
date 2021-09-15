@@ -257,7 +257,7 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
     RDomainLit& rdl = d_rel_dom_lit[hasPol][pol][n];
     if (rdl.d_merge)
     {
-      Assert(rdl.d_rd[0] != NULL && rdl.d_rd[1] != NULL);
+      Assert(rdl.d_rd[0] != nullptr && rdl.d_rd[1] != nullptr);
       RDomain* rd1 = rdl.d_rd[0]->getParent();
       RDomain* rd2 = rdl.d_rd[1]->getParent();
       if( rd1!=rd2 ){
@@ -266,7 +266,7 @@ void RelevantDomain::computeRelevantDomainNode(Node q,
     }
     else
     {
-      if (rdl.d_rd[0] != NULL)
+      if (rdl.d_rd[0] != nullptr)
       {
         RDomain* rd = rdl.d_rd[0]->getParent();
         for (unsigned i = 0; i < rdl.d_val.size(); i++)
@@ -413,8 +413,8 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     }
     else
     {
-      rdl.d_rd[0] = NULL;
-      rdl.d_rd[1] = NULL;
+      rdl.d_rd[0] = nullptr;
+      rdl.d_rd[1] = nullptr;
     }
   }
 }
