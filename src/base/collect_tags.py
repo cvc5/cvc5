@@ -44,10 +44,9 @@ def collect_tags(basedir):
 def write_file(filename, type, tags):
     """Render the header file to the given filename."""
     with open(filename, 'w') as out:
-        out.write('static char const* const {}_tags[] = {{\n'.format(type))
+        out.write('static const std::vector<std::string> {}_tags = {{\n'.format(type))
         for t in tags:
             out.write('"{}",\n'.format(t))
-        out.write('nullptr\n')
         out.write('};\n')
 
 
