@@ -20,7 +20,6 @@
 #ifndef CVC5__THEORY__BV__BV_SOLVER_H
 #define CVC5__THEORY__BV__BV_SOLVER_H
 
-#include "smt/env.h"
 #include "smt/env_obj.h"
 #include "theory/theory.h"
 

@@ -45,4 +45,9 @@ context::UserContext* EnvObj::userContext() const
   return d_env.getUserContext();
 }
 
+StatisticsRegistry& EnvObj::statisticsRegistry() const
+{
+  return d_env.getStatisticsRegistry();
+}
+
 }  // namespace cvc5
