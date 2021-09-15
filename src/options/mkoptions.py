@@ -192,6 +192,10 @@ class Option(object):
         if self.long_name: return True
         return False
 
+    def __str__(self):
+        return self.long_name if self.long_name else self.name
+
+
 ################################################################################
 ################################################################################
 # code generation functions
@@ -853,41 +857,6 @@ def generate_sphinx_help(modules):
     return '\n'.join(res)
 
 
-def long_get_option(name):
-    """
-    Extract the name of a given long option long=ARG
-    """
-    return name.split('=')[0]
-
-
-def help_mode_format(option):
-    """
-    Format help message for mode options.
-    """
-    assert option.help_mode
-    assert option.mode
-
-    wrapper = textwrap.TextWrapper(width=78, break_on_hyphens=False)
-    text = ['{}'.format(x) for x in wrapper.wrap(option.help_mode)]
-
-    optname, optvalue = option.long.split('=')
-    text.append('Available {}s for --{} are:'.format(
-                optvalue.lower(), optname))
-
-    for value, attrib in option.mode.items():
-        assert len(attrib) == 1
-        attrib = attrib[0]
-        if 'help' not in attrib:
-            continue
-        if value == option.default and attrib['name'] != "default":
-            text.append('+ {} (default)'.format(attrib['name']))
-        else:
-            text.append('+ {}'.format(attrib['name']))
-        text.extend('  {}'.format(x) for x in wrapper.wrap(attrib['help']))
-
-    return '\n         '.join('"{}\\n"'.format(x) for x in text)
-
-
 ################################################################################
 # main code generation for individual modules
 
@@ -920,12 +889,6 @@ def codegen_module(module, dst_dir, tpls):
 
 def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
-
-    headers_module = []      # generated *_options.h header includes
-
-    for module in modules:
-        headers_module.append(format_include(module.header))
-
     short, cmdline_opts, parseinternal = generate_parsing(modules)
     help_common, help_others = generate_cli_help(modules)
 
@@ -949,15 +912,19 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
         'get_impl': generate_get_impl(modules),
         'set_impl': generate_set_impl(modules),
         'getinfo_impl': generate_getinfo_impl(modules),
+        # main/options.cpp
         'help_common': help_common,
         'help_others': help_others,
-        # main/options.cpp
         'cmdoptions_long': cmdline_opts,
         'cmdoptions_short': short,
         'parseinternal_impl': parseinternal,
     }
     for tpl in tpls:
         write_file(dst_dir, tpl['output'], tpl['content'].format(**data))
+
+
+################################################################################
+# sanity checking
 
 
 class Checker:
@@ -1056,6 +1023,10 @@ class Checker:
                     if o.alternate:
                         self.__check_option_long(o, 'no-' + alias)
         return o
+
+
+################################################################################
+# main entrypoint
 
 
 def usage():
