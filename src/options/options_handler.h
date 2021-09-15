@@ -105,19 +105,23 @@ public:
   void setStats(const std::string& option, const std::string& flag, bool value);
   /** If statistics sub-option is disabled, enable statistics */
   void setStatsDetail(const std::string& option, const std::string& flag, bool value);
+  /** Enable a particular trace tag */
   void enableTraceTag(const std::string& option,
                       const std::string& flag,
                       const std::string& optarg);
+  /** Enable a particular debug tag */
   void enableDebugTag(const std::string& option,
                       const std::string& flag,
                       const std::string& optarg);
-
+  /** Enable a particular output tag */
   void enableOutputTag(const std::string& option,
                        const std::string& flag,
                        const std::string& optarg);
+  /** Apply print success flag to the different output channels */
   void setPrintSuccess(const std::string& option,
                        const std::string& flag,
                        bool value);
+  /** Pass the resource weight specification to the resource manager */
   void setResourceWeight(const std::string& option,
                          const std::string& flag,
                          const std::string& optarg);
