@@ -60,11 +60,14 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The cl operator
-   * For every step the conclusion is a clause. But since the or operator requires at least two arguments it is extended by the cl operator. In case of more than one argument it corresponds to or otherwise it is the identity.
+   * For every step the conclusion is a clause. But since the or operator
+   *requires at least two arguments it is extended by the cl operator. In case
+   *of more than one argument it corresponds to or otherwise it is the identity.
    **/
   Node d_cl;
-   /**
-   * This method adds a new step to the proof applying rule but adds a conclusion different from the result as the third argument.
+  /**
+   * This method adds a new step to the proof applying rule but adds a
+   * conclusion different from the result as the third argument.
    *
    * @param rule The id of the Alethe rule,
    * @param res The expected result of the application,
@@ -75,13 +78,16 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @return True if the step could be added, or false if not.
    */
   bool addAletheStep(AletheRule rule,
-		    Node res,
-                    Node conclusion,
-                    const std::vector<Node>& children,
-                    const std::vector<Node>& args,
-                    CDProof& cdp);
+                     Node res,
+                     Node conclusion,
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args,
+                     CDProof& cdp);
   /**
-   * This method adds a new step (or F1 ... Fn) to the proof applying rule while printing a version where the outermost or is replaced by cl, i.e. (cl F1 ... Fn). For this it internally calls addAletheStep. The kind of the given Node has to be OR.
+   * This method adds a new step (or F1 ... Fn) to the proof applying rule while
+   * printing a version where the outermost or is replaced by cl, i.e. (cl F1
+   * ... Fn). For this it internally calls addAletheStep. The kind of the given
+   * Node has to be OR.
    *
    * @param res The expected result of the application in form (or F1 ... Fn),
    * @param rule The id of the Alethe rule,
