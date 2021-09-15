@@ -34,17 +34,12 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
   ~AletheProofPostprocessCallback() {}
   /** Should proof pn be updated? Only if its top-level proof rule is not an
    *  Alethe proof rule.
-   *
-   * @param pn the proof node that maybe should be updated
-   * @param continueUpdate indicates whether we should continue recursively
-   * updating pn
-   * @return whether we should run the update method on pn
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /**
-   * This method updates the proof rule application by splitting on the given
+   * This method updates the proof rule application depending on the given
    * rule and translating it into a proof node in terms of the Alethe rules.
    *
    * @param res The expected result of the application,
@@ -64,49 +59,29 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-  /** The node manager */
-  NodeManager* d_nm;
-  /** The variable cl **/
+  /** The cl operator
+   * For every step the conclusion is a clause. But since the or operator requires at least two arguments it is extended by the cl operator. In case of more than one argument it corresponds to or otherwise it is the identity.
+   **/
   Node d_cl;
-  /**
-   * This method adds a new step to the proof applying the ALETHE_RULE. It adds
-   * the id of the ALETHE_RULE as the first argument, the res node as the second
-   * and third argument.
+   /**
+   * This method adds a new step to the proof applying rule but adds a conclusion different from the result as the third argument.
    *
-   * @param res The expected result of the application,
    * @param rule The id of the Alethe rule,
-   * @param children The children of the application,
-   * @param args The arguments of the application,
-   * @param cdp The proof to add to,
-   * @return True if the step could be added, or false if not.
-   */
-  bool addAletheStep(Node res,
-                    AletheRule rule,
-                    const std::vector<Node>& children,
-                    const std::vector<Node>& args,
-                    CDProof& cdp);
-  /**
-   * This method adds a new step to the proof applying the ALETHE_RULE but adds
-   * a conclusion different from the result as the third argument.
-   *
    * @param res The expected result of the application,
-   * @param rule The id of the Alethe rule,
    * @param conclusion The conclusion of the application as the Alethe printer
    * @param children The children of the application,
    * @param args The arguments of the application
    * @param cdp The proof to add to
    * @return True if the step could be added, or false if not.
    */
-  bool addAletheStep(Node res,
-                    AletheRule rule,
+  bool addAletheStep(AletheRule rule,
+		    Node res,
                     Node conclusion,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof& cdp);
   /**
-   * This method adds a new step to the proof applying the Alethe rule while
-   * replacing the outermost or by cl, i.e. (cl F1 ... Fn). The kind of the
-   * given Node has to be OR.
+   * This method adds a new step (or F1 ... Fn) to the proof applying rule while printing a version where the outermost or is replaced by cl, i.e. (cl F1 ... Fn). For this it internally calls addAletheStep. The kind of the given Node has to be OR.
    *
    * @param res The expected result of the application in form (or F1 ... Fn),
    * @param rule The id of the Alethe rule,
