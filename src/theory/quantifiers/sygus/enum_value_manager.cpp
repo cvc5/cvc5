@@ -14,6 +14,7 @@
  */
 #include "theory/quantifiers/sygus/enum_value_manager.h"
 
+#include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -32,12 +33,16 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumValueManager::EnumValueManager(Node e,
+EnumValueManager::EnumValueManager(Env& env,
+                                   QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    TermRegistry& tr,
                                    SygusStatistics& s,
+                                   Node e,
                                    bool hasExamples)
-    : d_enum(e),
+    : EnvObj(env),
+      d_enum(e),
+      d_qstate(qs),
       d_qim(qim),
       d_treg(tr),
       d_stats(s),
@@ -98,14 +103,17 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
         // create the enumerator callback
         if (options::sygusSymBreakDynamic())
         {
+          std::ostream* out = nullptr;
           if (options::sygusRewVerify())
           {
             d_samplerRrV.reset(new SygusSampler);
             d_samplerRrV->initializeSygus(
                 d_tds, e, options::sygusSamples(), false);
+            // use the default output for the output of sygusRewVerify
+            out = options().base.out;
           }
           d_secd.reset(new SygusEnumeratorCallbackDefault(
-              e, &d_stats, d_eec.get(), d_samplerRrV.get()));
+              e, &d_stats, d_eec.get(), d_samplerRrV.get(), out));
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors

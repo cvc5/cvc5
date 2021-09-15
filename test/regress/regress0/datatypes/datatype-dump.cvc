@@ -1,7 +1,7 @@
 % This regression is the same as datatype.cvc but tests the
 % dumping infrastructure.
 %
-% COMMAND-LINE: --dump raw-benchmark
+% COMMAND-LINE: -o raw-benchmark
 %
 % EXPECT: OPTION "incremental" false;
 % EXPECT: OPTION "logic" "ALL";

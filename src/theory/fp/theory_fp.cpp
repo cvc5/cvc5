@@ -24,10 +24,9 @@
 #include "expr/skolem_manager.h"
 #include "options/fp_options.h"
 #include "smt/logic_exception.h"
-#include "theory/fp/fp_converter.h"
+#include "theory/fp/fp_word_blaster.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/output_channel.h"
-#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "util/floatingpoint.h"
 
@@ -63,16 +62,17 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
-      d_registeredTerms(getUserContext()),
-      d_conv(new FpConverter(getUserContext())),
+      d_registeredTerms(userContext()),
+      d_wordBlaster(new FpWordBlaster(userContext())),
       d_expansionRequested(false),
-      d_realToFloatMap(getUserContext()),
-      d_floatToRealMap(getUserContext()),
-      d_abstractionMap(getUserContext()),
-      d_rewriter(getUserContext()),
+      d_realToFloatMap(userContext()),
+      d_floatToRealMap(userContext()),
+      d_abstractionMap(userContext()),
+      d_rewriter(userContext()),
       d_state(env, valuation),
-      d_im(*this, d_state, d_pnm, "theory::fp::", false),
-      d_wbFactsCache(getUserContext())
+      d_im(env, *this, d_state, d_pnm, "theory::fp::", true),
+      d_wbFactsCache(userContext()),
+      d_true(d_env.getNodeManager()->mkConst(true))
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
@@ -312,7 +312,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
 
     Node evaluate =
         nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL, floatValue, undefValue);
-    Node concreteValue = Rewriter::rewrite(evaluate);
+    Node concreteValue = rewrite(evaluate);
     Assert(concreteValue.isConst());
 
     Trace("fp-refineAbstraction")
@@ -358,7 +358,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       handleLemma(fl, InferenceId::FP_PREPROCESS);
 
       // Then the backwards constraints
-      Node floatAboveAbstract = Rewriter::rewrite(
+      Node floatAboveAbstract = rewrite(
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
@@ -375,7 +375,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
               nm->mkNode(kind::GEQ, abstract, abstractValue)));
       handleLemma(bg, InferenceId::FP_PREPROCESS);
 
-      Node floatBelowAbstract = Rewriter::rewrite(
+      Node floatBelowAbstract = rewrite(
           nm->mkNode(kind::FLOATINGPOINT_TO_FP_REAL,
                      nm->mkConst(FloatingPointToFPReal(
                          concrete[0].getType().getConst<FloatingPointSize>())),
@@ -428,7 +428,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
                        concrete.getType().getConst<FloatingPointSize>())),
                    rmValue,
                    realValue);
-    Node concreteValue = Rewriter::rewrite(evaluate);
+    Node concreteValue = rewrite(evaluate);
     Assert(concreteValue.isConst());
 
     Trace("fp-refineAbstraction")
@@ -472,9 +472,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
       if (!abstractValue.getConst<FloatingPoint>().isInfinite())
       {
         Node realValueOfAbstract =
-            Rewriter::rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
-                                         abstractValue,
-                                         nm->mkConst(Rational(0U))));
+            rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
+                               abstractValue,
+                               nm->mkConst(Rational(0U))));
 
         Node bg = nm->mkNode(
             kind::IMPLIES,
@@ -511,31 +511,34 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   return false;
 }
 
-void TheoryFp::convertAndEquateTerm(TNode node)
+void TheoryFp::wordBlastAndEquateTerm(TNode node)
 {
-  Trace("fp-convertTerm") << "TheoryFp::convertTerm(): " << node << std::endl;
+  Trace("fp-wordBlastTerm")
+      << "TheoryFp::wordBlastTerm(): " << node << std::endl;
 
-  size_t oldSize = d_conv->d_additionalAssertions.size();
+  size_t oldSize = d_wordBlaster->d_additionalAssertions.size();
 
-  Node converted(d_conv->convert(node));
+  Node wordBlasted(d_wordBlaster->wordBlast(node));
 
-  size_t newSize = d_conv->d_additionalAssertions.size();
+  size_t newSize = d_wordBlaster->d_additionalAssertions.size();
 
-  if (converted != node) {
-    Debug("fp-convertTerm")
-        << "TheoryFp::convertTerm(): before " << node << std::endl;
-    Debug("fp-convertTerm")
-        << "TheoryFp::convertTerm(): after  " << converted << std::endl;
+  if (wordBlasted != node)
+  {
+    Debug("fp-wordBlastTerm")
+        << "TheoryFp::wordBlastTerm(): before " << node << std::endl;
+    Debug("fp-wordBlastTerm")
+        << "TheoryFp::wordBlastTerm(): after  " << wordBlasted << std::endl;
   }
 
   Assert(oldSize <= newSize);
 
   while (oldSize < newSize)
   {
-    Node addA = d_conv->d_additionalAssertions[oldSize];
+    Node addA = d_wordBlaster->d_additionalAssertions[oldSize];
 
-    Debug("fp-convertTerm") << "TheoryFp::convertTerm(): additional assertion  "
-                            << addA << std::endl;
+    Debug("fp-wordBlastTerm")
+        << "TheoryFp::wordBlastTerm(): additional assertion  " << addA
+        << std::endl;
 
     NodeManager* nm = NodeManager::currentNM();
 
@@ -546,13 +549,13 @@ void TheoryFp::convertAndEquateTerm(TNode node)
     ++oldSize;
   }
 
-  // Equate the floating-point atom and the converted one.
+  // Equate the floating-point atom and the wordBlasted one.
   // Also adds the bit-vectors to the bit-vector solver.
   if (node.getType().isBoolean())
   {
-    if (converted != node)
+    if (wordBlasted != node)
     {
-      Assert(converted.getType().isBitVector());
+      Assert(wordBlasted.getType().isBitVector());
 
       NodeManager* nm = NodeManager::currentNM();
 
@@ -560,7 +563,7 @@ void TheoryFp::convertAndEquateTerm(TNode node)
           nm->mkNode(kind::EQUAL,
                      node,
                      nm->mkNode(kind::EQUAL,
-                                converted,
+                                wordBlasted,
                                 nm->mkConst(::cvc5::BitVector(1U, 1U)))),
           InferenceId::FP_EQUATE_TERM);
     }
@@ -571,11 +574,12 @@ void TheoryFp::convertAndEquateTerm(TNode node)
   }
   else if (node.getType().isBitVector())
   {
-    if (converted != node) {
-      Assert(converted.getType().isBitVector());
+    if (wordBlasted != node)
+    {
+      Assert(wordBlasted.getType().isBitVector());
 
       handleLemma(
-          NodeManager::currentNM()->mkNode(kind::EQUAL, node, converted),
+          NodeManager::currentNM()->mkNode(kind::EQUAL, node, wordBlasted),
           InferenceId::FP_EQUATE_TERM);
     }
   }
@@ -655,9 +659,9 @@ void TheoryFp::registerTerm(TNode node)
 
     /* When not word-blasting lazier, we word-blast every term on
      * registration. */
-    if (!options::fpLazyWb())
+    if (!options().fp.fpLazyWb)
     {
-      convertAndEquateTerm(node);
+      wordBlastAndEquateTerm(node);
     }
   }
   return;
@@ -670,7 +674,7 @@ bool TheoryFp::isRegistered(TNode node)
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
-  if (!options::fpExp())
+  if (!options().fp.fpExp)
   {
     TypeNode tn = node.getType();
     if (tn.isFloatingPoint())
@@ -701,7 +705,11 @@ void TheoryFp::handleLemma(Node node, InferenceId id)
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
   // will be preprocessed when sent, which is important because it contains
   // embedded ITEs
-  d_im.lemma(node, id);
+  if (rewrite(node) != d_true)
+  {
+    /* We only send non-trivial lemmas. */
+    d_im.lemma(node, id);
+  }
 }
 
 bool TheoryFp::propagateLit(TNode node)
@@ -752,10 +760,11 @@ bool TheoryFp::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
   /* Word-blast lazier if configured. */
-  if (options::fpLazyWb() && d_wbFactsCache.find(atom) == d_wbFactsCache.end())
+  if (options().fp.fpLazyWb
+      && d_wbFactsCache.find(atom) == d_wbFactsCache.end())
   {
     d_wbFactsCache.insert(atom);
-    convertAndEquateTerm(atom);
+    wordBlastAndEquateTerm(atom);
   }
 
   if (atom.getKind() == kind::EQUAL)
@@ -785,10 +794,10 @@ bool TheoryFp::preNotifyFact(
 void TheoryFp::notifySharedTerm(TNode n)
 {
   /* Word-blast lazier if configured. */
-  if (options::fpLazyWb() && d_wbFactsCache.find(n) == d_wbFactsCache.end())
+  if (options().fp.fpLazyWb && d_wbFactsCache.find(n) == d_wbFactsCache.end())
   {
     d_wbFactsCache.insert(n);
-    convertAndEquateTerm(n);
+    wordBlastAndEquateTerm(n);
   }
 }
 
@@ -813,7 +822,7 @@ TrustNode TheoryFp::explain(TNode n)
 }
 
 Node TheoryFp::getModelValue(TNode var) {
-  return d_conv->getValue(d_valuation, var);
+  return d_wordBlaster->getValue(d_valuation, var);
 }
 
 bool TheoryFp::collectModelInfo(TheoryModel* m,
@@ -875,10 +884,10 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
         << "TheoryFp::collectModelInfo(): relevantVariable " << node
         << std::endl;
 
-    Node converted = d_conv->getValue(d_valuation, node);
-    // We only assign the value if the FpConverter actually has one, that is,
-    // if FpConverter::getValue() does not return a null node.
-    if (!converted.isNull() && !m->assertEquality(node, converted, true))
+    Node wordBlasted = d_wordBlaster->getValue(d_valuation, node);
+    // We only assign the value if the FpWordBlaster actually has one, that is,
+    // if FpWordBlaster::getValue() does not return a null node.
+    if (!wordBlasted.isNull() && !m->assertEquality(node, wordBlasted, true))
     {
       return false;
     }

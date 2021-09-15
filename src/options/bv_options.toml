@@ -78,7 +78,7 @@ name   = "Bitvector Theory"
 
 [[option]]
   name       = "bitvectorAlgebraicSolver"
-  category   = "experimental"
+  category   = "expert"
   long       = "bv-algebraic-solver"
   type       = "bool"
   default    = "false"
@@ -189,14 +189,6 @@ name   = "Bitvector Theory"
   type       = "bool"
   default    = "false"
   help       = "simplify formula via Gaussian Elimination if applicable"
-
-[[option]]
-  name       = "bvAlgExtf"
-  category   = "regular"
-  long       = "bv-alg-extf"
-  type       = "bool"
-  default    = "true"
-  help       = "algebraic inferences for extended functions"
 
 [[option]]
   name       = "bvPrintConstsAsIndexedSymbols"

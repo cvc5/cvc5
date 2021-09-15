@@ -32,11 +32,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstantiationEngine::InstantiationEngine(QuantifiersState& qs,
+InstantiationEngine::InstantiationEngine(Env& env,
+                                         QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
@@ -46,7 +47,7 @@ InstantiationEngine::InstantiationEngine(QuantifiersState& qs,
 {
   if (options::relevantTriggers())
   {
-    d_quant_rel.reset(new quantifiers::QuantRelevance);
+    d_quant_rel.reset(new quantifiers::QuantRelevance(env));
   }
   if (options::eMatching()) {
     // these are the instantiation strategies for E-matching

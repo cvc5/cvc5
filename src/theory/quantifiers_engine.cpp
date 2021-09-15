@@ -21,7 +21,6 @@
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/uf_options.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
@@ -46,20 +45,22 @@ namespace cvc5 {
 namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
+    Env& env,
     quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
     ProofNodeManager* pnm)
-    : d_qstate(qs),
+    : EnvObj(env),
+      d_qstate(qs),
       d_qim(qim),
       d_te(nullptr),
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
       d_model(nullptr),
-      d_quants_prereg(qs.getUserContext()),
-      d_quants_red(qs.getUserContext()),
+      d_quants_prereg(userContext()),
+      d_quants_red(userContext()),
       d_numInstRoundsLemma(0)
 {
   Trace("quant-init-debug")
@@ -75,12 +76,12 @@ QuantifiersEngine::QuantifiersEngine(
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
-        new quantifiers::fmcheck::FullModelChecker(qs, qim, qr, tr));
+        new quantifiers::fmcheck::FullModelChecker(env, qs, qim, qr, tr));
   }
   else
   {
     Trace("quant-init-debug") << "...make default model builder." << std::endl;
-    d_builder.reset(new quantifiers::QModelBuilder(qs, qim, qr, tr));
+    d_builder.reset(new quantifiers::QModelBuilder(env, qs, qim, qr, tr));
   }
   // set the model object
   d_builder->finishInit();
@@ -112,9 +113,9 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_model->finishInit(te->getModel());
   d_te = te;
   // Initialize the modules and the utilities here.
-  d_qmodules.reset(new quantifiers::QuantifiersModules);
+  d_qmodules.reset(new quantifiers::QuantifiersModules());
   d_qmodules->initialize(
-      d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
+      d_env, d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());

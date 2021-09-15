@@ -1,6 +1,5 @@
 id     = "BASE"
 name   = "Base"
-public = true
 
 [[option]]
   name       = "in"
@@ -34,9 +33,10 @@ public = true
   category   = "common"
   short      = "L"
   long       = "lang=LANG"
-  type       = "InputLanguage"
-  default    = "language::input::LANG_AUTO"
-  handler    = "stringToInputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  predicates = ["languageIsNotAST"]
   includes   = ["options/language.h"]
   help       = "force input language (default is \"auto\"; see --lang help)"
 
@@ -45,14 +45,16 @@ public = true
   alias      = ["output-language"]
   category   = "common"
   long       = "output-lang=LANG"
-  type       = "OutputLanguage"
-  default    = "language::output::LANG_AUTO"
-  handler    = "stringToOutputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  predicates = ["applyOutputLanguage"]
   includes   = ["options/language.h"]
   help       = "force output language (default is \"auto\"; see --output-lang help)"
 
 [[option]]
   name       = "languageHelp"
+  long       = "language-help"
   category   = "undocumented"
   type       = "bool"
 
@@ -215,10 +217,13 @@ public = true
   short      = "o"
   long       = "output=TAG"
   type       = "OutputTag"
+  default    = "NONE"
   handler    = "enableOutputTag"
   category   = "regular"
   help       = "Enable output tag."
   help_mode  = "Output tags."
+[[option.mode.NONE]]
+  name = "none"
 [[option.mode.INST]]
   name = "inst"
   help = "print instantiations during solving"
@@ -228,6 +233,9 @@ public = true
 [[option.mode.TRIGGER]]
   name = "trigger"
   help = "print selected triggers for quantified formulas"
+[[option.mode.RAW_BENCHMARK]]
+  name = "raw-benchmark"
+  help = "print the benchmark back on the output verbatim as it is processed"
 
 # Stores then enabled output tags.
 [[option]]
