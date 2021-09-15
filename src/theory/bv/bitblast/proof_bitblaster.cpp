@@ -17,14 +17,19 @@
 #include <unordered_set>
 
 #include "proof/conv_proof_generator.h"
+#include "theory/bv/bitblast/bitblast_proof_generator.h"
 #include "theory/theory_model.h"
 
 namespace cvc5 {
 namespace theory {
 namespace bv {
 
-BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
-    : d_bb(new NodeBitblaster(state)),
+BBProof::BBProof(Env& env,
+                 TheoryState* state,
+                 ProofNodeManager* pnm,
+                 bool fineGrained)
+    : EnvObj(env),
+      d_bb(new NodeBitblaster(env, state)),
       d_pnm(pnm),
       d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
       d_tcpg(pnm ? new TConvProofGenerator(
@@ -40,6 +45,7 @@ BBProof::BBProof(TheoryState* state, ProofNodeManager* pnm, bool fineGrained)
                  d_tcontext.get(),
                  false)
                  : nullptr),
+      d_bbpg(pnm ? new BitblastProofGenerator(pnm, d_tcpg.get()) : nullptr),
       d_recordFineGrainedProofs(fineGrained)
 {
 }
@@ -48,119 +54,137 @@ BBProof::~BBProof() {}
 
 void BBProof::bbAtom(TNode node)
 {
-  std::vector<TNode> visit;
-  visit.push_back(node);
-  std::unordered_set<TNode> visited;
+  bool fineProofs = isProofsEnabled() && d_recordFineGrainedProofs;
 
-  bool fpenabled = isProofsEnabled() && d_recordFineGrainedProofs;
-
-  NodeManager* nm = NodeManager::currentNM();
-
-  while (!visit.empty())
+  /* Bit-blasting bit-vector atoms consists of 3 steps:
+   *   1. rewrite the atom
+   *   2. bit-blast the rewritten atom
+   *   3. rewrite the resulting bit-blasted term
+   *
+   * This happens in a single call to d_bb->bbAtom(...). When we record
+   * fine-grained proofs, we explicitly record the above 3 steps.
+   *
+   * Note: The below post-order traversal corresponds to the recursive
+   * bit-blasting of bit-vector terms that happens implicitly when calling the
+   * corresponding bit-blasting strategy in d_bb->bbAtom(...).
+   */
+  if (fineProofs)
   {
-    TNode n = visit.back();
-    if (hasBBAtom(n) || hasBBTerm(n))
-    {
-      visit.pop_back();
-      continue;
-    }
+    std::vector<TNode> visit;
+    std::unordered_set<TNode> visited;
+    NodeManager* nm = NodeManager::currentNM();
 
-    if (visited.find(n) == visited.end())
-    {
-      visited.insert(n);
-      if (!Theory::isLeafOf(n, theory::THEORY_BV))
-      {
-        visit.insert(visit.end(), n.begin(), n.end());
-      }
-    }
-    else
-    {
-      if (Theory::isLeafOf(n, theory::THEORY_BV) && !n.isConst())
-      {
-        Bits bits;
-        d_bb->makeVariable(n, bits);
-        if (fpenabled)
-        {
-          Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
-          d_bbMap.emplace(n, n_tobv);
-          d_tcpg->addRewriteStep(n,
-                                 n_tobv,
-                                 PfRule::BV_BITBLAST_STEP,
-                                 {},
-                                 {n.eqNode(n_tobv)},
-                                 false);
-        }
-      }
-      else if (n.getType().isBitVector())
-      {
-        Bits bits;
-        d_bb->bbTerm(n, bits);
-        Kind kind = n.getKind();
-        if (fpenabled)
-        {
-          Node n_tobv = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
-          d_bbMap.emplace(n, n_tobv);
-          Node c_tobv;
-          if (n.isConst())
-          {
-            c_tobv = n;
-          }
-          else
-          {
-            std::vector<Node> children_tobv;
-            if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
-            {
-              children_tobv.push_back(n.getOperator());
-            }
+    // post-rewrite atom
+    Node rwNode = Rewriter::rewrite(node);
 
-            for (const auto& child : n)
-            {
-              children_tobv.push_back(d_bbMap.at(child));
-            }
-            c_tobv = nm->mkNode(kind, children_tobv);
-          }
-          d_tcpg->addRewriteStep(c_tobv,
-                                 n_tobv,
-                                 PfRule::BV_BITBLAST_STEP,
-                                 {},
-                                 {c_tobv.eqNode(n_tobv)},
-                                 false);
+    // Post-order traversal of `rwNode` to make sure that all subterms are
+    // bit-blasted and recorded.
+    visit.push_back(rwNode);
+    while (!visit.empty())
+    {
+      TNode n = visit.back();
+      if (hasBBAtom(n) || hasBBTerm(n))
+      {
+        visit.pop_back();
+        continue;
+      }
+
+      if (visited.find(n) == visited.end())
+      {
+        visited.insert(n);
+        if (!Theory::isLeafOf(n, theory::THEORY_BV))
+        {
+          visit.insert(visit.end(), n.begin(), n.end());
         }
       }
       else
       {
-        d_bb->bbAtom(n);
-        if (fpenabled)
+        /* Handle BV theory leafs as variables, i.e., apply the BITVECTOR_BITOF
+         * operator to each bit of `n`. */
+        if (Theory::isLeafOf(n, theory::THEORY_BV) && !n.isConst())
         {
-          Node n_tobv = getStoredBBAtom(n);
-          std::vector<Node> children_tobv;
-          for (const auto& child : n)
-          {
-            children_tobv.push_back(d_bbMap.at(child));
-          }
-          Node c_tobv = nm->mkNode(n.getKind(), children_tobv);
-          d_tcpg->addRewriteStep(c_tobv,
-                                 n_tobv,
-                                 PfRule::BV_BITBLAST_STEP,
-                                 {},
-                                 {c_tobv.eqNode(n_tobv)},
-                                 false);
+          Bits bits;
+          d_bb->makeVariable(n, bits);
+
+          Node bbt = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
+          d_bbMap.emplace(n, bbt);
+          d_tcpg->addRewriteStep(
+              n, bbt, PfRule::BV_BITBLAST_STEP, {}, {n.eqNode(bbt)});
         }
+        else if (n.getType().isBitVector())
+        {
+          Bits bits;
+          d_bb->bbTerm(n, bits);
+
+          Node bbt = nm->mkNode(kind::BITVECTOR_BB_TERM, bits);
+          Node rbbt;
+          if (n.isConst())
+          {
+            d_bbMap.emplace(n, bbt);
+            rbbt = n;
+          }
+          else
+          {
+            d_bbMap.emplace(n, bbt);
+            rbbt = reconstruct(n);
+          }
+          d_tcpg->addRewriteStep(
+              rbbt, bbt, PfRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
+        }
+        else
+        {
+          Assert(n == rwNode);
+        }
+        visit.pop_back();
       }
-      visit.pop_back();
+    }
+
+    /* Bit-blast given rewritten bit-vector atom `node`.
+     * Note: This will pre and post-rewrite and store it in the bit-blasting
+     * cache. */
+    d_bb->bbAtom(node);
+    Node result = d_bb->getStoredBBAtom(node);
+
+    // Retrieve bit-blasted `rwNode` without post-rewrite.
+    Node bbt = rwNode.getKind() == kind::CONST_BOOLEAN
+                       || rwNode.getKind() == kind::BITVECTOR_BITOF
+                   ? rwNode
+                   : d_bb->applyAtomBBStrategy(rwNode);
+
+    Node rbbt = reconstruct(rwNode);
+
+    d_tcpg->addRewriteStep(
+        rbbt, bbt, PfRule::BV_BITBLAST_STEP, {}, {rbbt.eqNode(bbt)});
+
+    d_bbpg->addBitblastStep(node, bbt, node.eqNode(result));
+  }
+  else
+  {
+    d_bb->bbAtom(node);
+
+    /* Record coarse-grain bit-blast proof step. */
+    if (isProofsEnabled() && !d_recordFineGrainedProofs)
+    {
+      Node bbt = getStoredBBAtom(node);
+      d_bbpg->addBitblastStep(Node(), Node(), node.eqNode(bbt));
     }
   }
-  /* Record coarse-grain bit-blast proof step. */
-  if (isProofsEnabled() && !d_recordFineGrainedProofs)
+}
+
+Node BBProof::reconstruct(TNode t)
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  std::vector<Node> children;
+  if (t.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
-    Node node_tobv = getStoredBBAtom(node);
-    d_tcpg->addRewriteStep(node,
-                           node_tobv,
-                           PfRule::BV_BITBLAST,
-                           {},
-                           {node.eqNode(node_tobv)},
-                           false);
+    children.push_back(t.getOperator());
   }
+  for (const auto& child : t)
+  {
+    children.push_back(d_bbMap.at(child));
+  }
+  return nm->mkNode(t.getKind(), children);
 }
 
 bool BBProof::hasBBAtom(TNode atom) const { return d_bb->hasBBAtom(atom); }
@@ -183,7 +207,7 @@ bool BBProof::collectModelValues(TheoryModel* m,
   return d_bb->collectModelValues(m, relevantTerms);
 }
 
-TConvProofGenerator* BBProof::getProofGenerator() { return d_tcpg.get(); }
+BitblastProofGenerator* BBProof::getProofGenerator() { return d_bbpg.get(); }
 
 bool BBProof::isProofsEnabled() const { return d_pnm != nullptr; }
 

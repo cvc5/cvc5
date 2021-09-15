@@ -3896,6 +3896,16 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get a difficulty estimate for an asserted formula. This method is
+   * intended to be called immediately after any response to a checkSat.
+   *
+   * @return a map from (a subset of) the input assertions to a real value that
+   * is an estimate of how difficult each assertion was to solve. Unmentioned
+   * assertions can be assumed to have zero difficulty.
+   */
+  std::map<Term, Term> getDifficulty() const;
+
+  /**
    * Get the refutation proof
    * SMT-LIB:
    * \verbatim
@@ -4304,6 +4314,16 @@ class CVC5_EXPORT Solver
   void addSygusConstraint(const Term& term) const;
 
   /**
+   * Add a forumla to the set of Sygus assumptions.
+   * SyGuS v2:
+   * \verbatim
+   *   ( assume <term> )
+   * \endverbatim
+   * @param term the formula to add as an assumption
+   */
+  void addSygusAssume(const Term& term) const;
+
+  /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
    * SyGuS v2:
@@ -4351,6 +4371,13 @@ class CVC5_EXPORT Solver
    * will not change when the solver is used again.
    */
   Statistics getStatistics() const;
+
+  /**
+   * Whether the output stream for the given tag is enabled. Tags can be enabled
+   * with the `output` option (and `-o <tag>` on the command line). Raises an
+   * exception when an invalid tag is given.
+   */
+  bool isOutputOn(const std::string& tag) const;
 
   /**
    * Returns an output stream for the given tag. Tags can be enabled with the

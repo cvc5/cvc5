@@ -196,6 +196,9 @@ name   = "SMT Layer"
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
+[[option.mode.PP_ONLY]]
+  name = "pp-only"
+  help = "Not producing unsat cores, but tracking proofs of preprocessing (internal only)."
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -219,6 +222,14 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "turn on unsat assumptions generation"
+
+[[option]]
+  name       = "produceDifficulty"
+  category   = "regular"
+  long       = "produce-difficulty"
+  type       = "bool"
+  default    = "false"
+  help       = "enable tracking of difficulty."
 
 [[option]]
   name       = "difficultyMode"

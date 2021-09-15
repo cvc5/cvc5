@@ -155,10 +155,9 @@ void TheoryEngine::finishInit()
                     << options::tcMode() << " not supported";
   }
   // create the relevance filter if any option requires it
-  if (options::relevanceFilter())
+  if (options::relevanceFilter() || options::produceDifficulty())
   {
-    d_relManager.reset(
-        new RelevanceManager(userContext(), theory::Valuation(this)));
+    d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -242,7 +241,7 @@ TheoryEngine::TheoryEngine(Env& env)
       d_propagatedLiterals(context()),
       d_propagatedLiteralsIndex(context(), 0),
       d_atomRequests(context()),
-      d_combineTheoriesTime(smtStatisticsRegistry().registerTimer(
+      d_combineTheoriesTime(statisticsRegistry().registerTimer(
           "TheoryEngine::combineTheoriesTime")),
       d_true(),
       d_false(),
@@ -530,6 +529,11 @@ void TheoryEngine::check(Theory::Effort effort) {
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         }
       }
+      // notify the relevant manager
+      if (d_relManager != nullptr)
+      {
+        d_relManager->notifyCandidateModel(getModel());
+      }
       if (!d_inConflict && !needCheck())
       {
         // We only mark that we are in "SAT mode". We build the model later only
@@ -695,7 +699,7 @@ void TheoryEngine::postsolve() {
   d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
-  bool CVC5_UNUSED wasInConflict = d_inConflict;
+  CVC5_UNUSED bool wasInConflict = d_inConflict;
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -1140,6 +1144,12 @@ const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
   return d_relManager->getRelevantAssertions(success);
 }
 
+void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
+{
+  Assert(d_relManager != nullptr);
+  d_relManager->getDifficultyMap(dmap);
+}
+
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
   {
@@ -1365,14 +1375,18 @@ void TheoryEngine::lemma(TrustNode tlemma,
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
   // since these by extension must be justified as well.
-  if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
+  if (d_relManager != nullptr)
   {
     std::vector<Node> skAsserts;
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    d_relManager->notifyPreprocessedAssertion(retLemma);
-    d_relManager->notifyPreprocessedAssertions(skAsserts);
+    if (isLemmaPropertyNeedsJustify(p))
+    {
+      d_relManager->notifyPreprocessedAssertion(retLemma);
+      d_relManager->notifyPreprocessedAssertions(skAsserts);
+    }
+    d_relManager->notifyLemma(retLemma);
   }
 
   // Mark that we added some lemmas

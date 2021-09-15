@@ -141,8 +141,7 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc5_binary,
     exit_status = None
     if dump:
         dump_args = [
-            '--preprocess-only', '--dump', 'raw-benchmark',
-            '--output-lang=smt2', '-qq'
+            '--parse-only', '-o', 'raw-benchmark', '--output-lang=smt2'
         ]
         dump_output, _, _ = run_process(
             bin_args + command_line + dump_args + [benchmark_filename],

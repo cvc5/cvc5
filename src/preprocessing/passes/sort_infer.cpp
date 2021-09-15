@@ -41,7 +41,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   theory::SortInference* si =
       d_preprocContext->getTheoryEngine()->getSortInference();
 
-  if (options::sortInference())
+  if (options().smt.sortInference)
   {
     si->initialize(assertionsToPreprocess->ref());
     std::map<Node, Node> model_replace_f;
@@ -80,7 +80,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   }
   // only need to compute monotonicity on the resulting formula if we are
   // using this option
-  if (options::ufssFairnessMonotone())
+  if (options().uf.ufssFairnessMonotone)
   {
     si->computeMonotonicity(assertionsToPreprocess->ref());
   }
