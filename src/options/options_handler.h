@@ -104,7 +104,9 @@ public:
   /** If statistics are disabled, disable statistics sub-options */
   void setStats(const std::string& option, const std::string& flag, bool value);
   /** If statistics sub-option is disabled, enable statistics */
-  void setStatsDetail(const std::string& option, const std::string& flag, bool value);
+  void setStatsDetail(const std::string& option,
+                      const std::string& flag,
+                      bool value);
   /** Enable a particular trace tag */
   void enableTraceTag(const std::string& option,
                       const std::string& flag,
@@ -133,7 +135,6 @@ public:
   void showDebugTags(const std::string& option, const std::string& flag);
   void showTraceTags(const std::string& option, const std::string& flag);
 
-  
   // theory/quantifiers/options_handlers.h
   void checkInstWhenMode(const std::string& option,
                          const std::string& flag,

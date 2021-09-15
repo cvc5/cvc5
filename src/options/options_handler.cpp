@@ -71,7 +71,7 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
 void printTags(unsigned ntags, char const* const* tags)
 {
   std::cout << "available tags:";
-  for (unsigned i = 0; i < ntags; ++ i)
+  for (unsigned i = 0; i < ntags; ++i)
   {
     std::cout << "  " << tags[i] << std::endl;
   }
@@ -79,8 +79,8 @@ void printTags(unsigned ntags, char const* const* tags)
 }
 
 std::string suggestTags(char const* const* validTags,
-                               std::string inputTag,
-                               char const* const* additionalTags)
+                        std::string inputTag,
+                        char const* const* additionalTags)
 {
   DidYouMean didYouMean;
 
@@ -102,7 +102,7 @@ std::string suggestTags(char const* const* validTags,
 
 }  // namespace
 
-OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
+OptionsHandler::OptionsHandler(Options* options) : d_options(options) {}
 
 void OptionsHandler::setErrStream(const std::string& option,
                                   const std::string& flag,
@@ -137,28 +137,40 @@ void OptionsHandler::setVerbosity(const std::string& option,
                                   const std::string& flag,
                                   int value)
 {
-  if(Configuration::isMuzzledBuild()) {
+  if (Configuration::isMuzzledBuild())
+  {
     DebugChannel.setStream(&cvc5::null_os);
     TraceChannel.setStream(&cvc5::null_os);
     NoticeChannel.setStream(&cvc5::null_os);
     ChatChannel.setStream(&cvc5::null_os);
     MessageChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
-  } else {
-    if(value < 2) {
+  }
+  else
+  {
+    if (value < 2)
+    {
       ChatChannel.setStream(&cvc5::null_os);
-    } else {
+    }
+    else
+    {
       ChatChannel.setStream(&std::cout);
     }
-    if(value < 1) {
+    if (value < 1)
+    {
       NoticeChannel.setStream(&cvc5::null_os);
-    } else {
+    }
+    else
+    {
       NoticeChannel.setStream(&std::cout);
     }
-    if(value < 0) {
+    if (value < 0)
+    {
       MessageChannel.setStream(&cvc5::null_os);
       WarningChannel.setStream(&cvc5::null_os);
-    } else {
+    }
+    else
+    {
       MessageChannel.setStream(&std::cout);
       WarningChannel.setStream(&std::cerr);
     }
@@ -202,8 +214,8 @@ void OptionsHandler::setStats(const std::string& option,
 }
 
 void OptionsHandler::setStatsDetail(const std::string& option,
-                              const std::string& flag,
-                              bool value)
+                                    const std::string& flag,
+                                    bool value)
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -225,16 +237,16 @@ void OptionsHandler::enableTraceTag(const std::string& option,
                                     const std::string& flag,
                                     const std::string& optarg)
 {
-  if(!Configuration::isTracingBuild())
+  if (!Configuration::isTracingBuild())
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
-  else if(!Configuration::isTraceTag(optarg.c_str()))
+  else if (!Configuration::isTraceTag(optarg.c_str()))
   {
     if (optarg == "help")
     {
-      printTags(
-          Configuration::getNumTraceTags(), Configuration::getTraceTags());
+      printTags(Configuration::getNumTraceTags(),
+                Configuration::getTraceTags());
       std::exit(0);
     }
 
@@ -263,8 +275,8 @@ void OptionsHandler::enableDebugTag(const std::string& option,
   {
     if (optarg == "help")
     {
-      printTags(
-          Configuration::getNumDebugTags(), Configuration::getDebugTags());
+      printTags(Configuration::getNumDebugTags(),
+                Configuration::getDebugTags());
       std::exit(0);
     }
 
@@ -376,14 +388,14 @@ void OptionsHandler::showConfiguration(const std::string& option,
 }
 
 void OptionsHandler::showCopyright(const std::string& option,
-                               const std::string& flag)
+                                   const std::string& flag)
 {
   std::cout << Configuration::copyright() << std::endl;
   std::exit(0);
 }
 
 void OptionsHandler::showVersion(const std::string& option,
-                                       const std::string& flag)
+                                 const std::string& flag)
 {
   d_options->base.out << Configuration::about() << std::endl;
   std::exit(0);
@@ -400,7 +412,7 @@ void OptionsHandler::showDebugTags(const std::string& option,
   {
     throw OptionException("debug tags not available in non-tracing builds");
   }
-  printTags(Configuration::getNumDebugTags(),Configuration::getDebugTags());
+  printTags(Configuration::getNumDebugTags(), Configuration::getDebugTags());
   exit(0);
 }
 
@@ -434,7 +446,8 @@ void OptionsHandler::abcEnabledBuild(const std::string& option,
                                      bool value)
 {
 #ifndef CVC5_USE_ABC
-  if(value) {
+  if (value)
+  {
     std::stringstream ss;
     ss << "option `" << option
        << "' requires an abc-enabled build of cvc5; this binary was not built "
@@ -449,7 +462,8 @@ void OptionsHandler::abcEnabledBuild(const std::string& option,
                                      const std::string& value)
 {
 #ifndef CVC5_USE_ABC
-  if(!value.empty()) {
+  if (!value.empty())
+  {
     std::stringstream ss;
     ss << "option `" << option
        << "' requires an abc-enabled build of cvc5; this binary was not built "
@@ -520,13 +534,18 @@ void OptionsHandler::setBitblastAig(const std::string& option,
                                     const std::string& flag,
                                     bool arg)
 {
-  if(arg) {
-    if (d_options->bv.bitblastModeWasSetByUser) {
+  if (arg)
+  {
+    if (d_options->bv.bitblastModeWasSetByUser)
+    {
       if (d_options->bv.bitblastMode != options::BitblastMode::EAGER)
       {
-        throw OptionException("bitblast-aig must be used with eager bitblaster");
+        throw OptionException(
+            "bitblast-aig must be used with eager bitblaster");
       }
-    } else {
+    }
+    else
+    {
       options::BitblastMode mode = stringToBitblastMode("eager");
       d_options->bv.bitblastMode = mode;
     }
@@ -540,7 +559,6 @@ void OptionsHandler::setProduceAssertions(const std::string& option,
   d_options->smt.produceAssertions = value;
   d_options->smt.interactiveMode = value;
 }
-
 
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepth(const std::string& option,
