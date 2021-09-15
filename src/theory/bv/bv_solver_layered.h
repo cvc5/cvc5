@@ -24,6 +24,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
+#include "smt/env_obj.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/theory_bv.h"
@@ -57,8 +58,8 @@ class BVSolverLayered : public BVSolver
       d_subtheoryMap;
 
  public:
-  BVSolverLayered(TheoryBV& bv,
-                  Env& env,
+  BVSolverLayered(Env& env,
+                  TheoryBV& bv,
                   context::Context* c,
                   context::UserContext* u,
                   ProofNodeManager* pnm = nullptr,

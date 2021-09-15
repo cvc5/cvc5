@@ -18,14 +18,6 @@ name   = "Arrays Theory"
   help       = "use algorithm from Christ/Hoenicke (SMT 2014)"
 
 [[option]]
-  name       = "arraysModelBased"
-  category   = "regular"
-  long       = "arrays-model-based"
-  type       = "bool"
-  default    = "false"
-  help       = "turn on model-based array solver"
-
-[[option]]
   name       = "arraysEagerIndexSplitting"
   category   = "regular"
   long       = "arrays-eager-index"
@@ -40,14 +32,6 @@ name   = "Arrays Theory"
   type       = "bool"
   default    = "false"
   help       = "turn on eager lemma generation for arrays"
-
-[[option]]
-  name       = "arraysConfig"
-  category   = "regular"
-  long       = "arrays-config=N"
-  type       = "int64_t"
-  default    = "0"
-  help       = "set different array option configurations - for developers only"
 
 [[option]]
   name       = "arraysReduceSharing"

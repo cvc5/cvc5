@@ -100,9 +100,8 @@ private:
  class IntRangeDecisionHeuristic : public DecisionStrategyFmf
  {
   public:
-   IntRangeDecisionHeuristic(Node r,
-                             context::Context* c,
-                             context::Context* u,
+   IntRangeDecisionHeuristic(Env& env,
+                             Node r,
                              Valuation valuation,
                              bool isProxy);
    /** make the n^th literal of this strategy */
