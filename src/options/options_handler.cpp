@@ -401,7 +401,7 @@ void OptionsHandler::showDebugTags(const std::string& option,
     throw OptionException("debug tags not available in non-tracing builds");
   }
   printTags(Configuration::getNumDebugTags(),Configuration::getDebugTags());
-  exit(0);
+  std::exit(0);
 }
 
 void OptionsHandler::showTraceTags(const std::string& option,
@@ -412,7 +412,7 @@ void OptionsHandler::showTraceTags(const std::string& option,
     throw OptionException("trace tags not available in non-tracing build");
   }
   printTags(Configuration::getNumTraceTags(), Configuration::getTraceTags());
-  exit(0);
+  std::exit(0);
 }
 
 // theory/quantifiers/options_handlers.h
