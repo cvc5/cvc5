@@ -115,15 +115,8 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
   /**
-   * This method gets a proof node pn = false printed as (cl false) and updates
-   * the proof for false such that (cl) is printed.
-   *
-   * @param res The expected result of the application,
-   * @param rule The id of the Alethe rule,
-   * @param children The children of the application,
-   * @param args The arguments of the application,
-   * @param cdp The proof to add to,
-   * @return True if the step could be added, or false if not.
+   * This method gets a proof node pn = false which is printed as (cl false) and
+   * updates the proof for false such that (cl) is printed.
    */
   bool update(Node res,
               PfRule id,
@@ -135,7 +128,11 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-  /** The variable cl **/
+  /** The cl operator
+   * For every step the conclusion is a clause. But since the or operator
+   *requires at least two arguments it is extended by the cl operator. In case
+   *of more than one argument it corresponds to or otherwise it is the identity.
+   **/
   Node d_cl;
 };
 
