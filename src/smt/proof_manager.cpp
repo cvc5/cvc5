@@ -74,7 +74,7 @@ PfManager::PfManager(Env& env)
       env,
       d_pppg.get(),
       d_rewriteDb.get(),
-      options::proofFormatMode() != options::ProofFormatMode::ALETHE_EXTENDED));
+      options::proofFormatMode() != options::ProofFormatMode::ALETHE));
 
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
@@ -186,14 +186,12 @@ void PfManager::printProof(std::ostream& out,
     lpfpp.process(fp);
     proof::LeanPrinter::print(out, assertions, fp);
   }
-  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE
-           || options::proofFormatMode()
-                  == options::ProofFormatMode::ALETHE_EXTENDED)
+  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE)
   {
     proof::AletheProofPostprocess vpfpp(d_pnm.get());
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp(options::proofFormatMode()
-                                 == options::ProofFormatMode::ALETHE_EXTENDED);
+                                 == options::ProofFormatMode::ALETHE);
     vpp.alethePrinter(out, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)

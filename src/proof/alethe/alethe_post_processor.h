@@ -32,7 +32,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   AletheProofPostprocessCallback(ProofNodeManager* pnm);
   ~AletheProofPostprocessCallback() {}
-  /** Should proof pn be updated?
+  /** Should proof pn be updated? Only if its top-level proof rule is not an
+   *  Alethe proof rule.
    *
    * @param pn the proof node that maybe should be updated
    * @param continueUpdate indicates whether we should continue recursively

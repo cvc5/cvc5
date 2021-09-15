@@ -39,7 +39,7 @@ enum class AletheRule : uint32_t
   // > k. (cl (not F1) ... (not Fn) F)
   //
   // Each subproof in Alethe begins with an anchor command. The outermost
-  // application of anchor will not be printed.
+  // application of ANCHOR_SUBPROOF will not be printed.
   ANCHOR_SUBPROOF,
   // ======== bind
   // G,y1,...,yn,x1->y1,...,xn->yn > j.  (= F1 F2)
@@ -370,8 +370,6 @@ enum class AletheRule : uint32_t
   // --------------------------------------------------------
   // G > k. (forall (x1 ... xn) (= F G))
   SKO_FORALL,
-  /** Special Rules*/
-  //================================================= Extended Rule
   // ======== symm
   // > i. (= F G)
   // ...
@@ -395,18 +393,18 @@ enum class AletheRule : uint32_t
 };
 
 /**
- * Converts a alethe proof rule to a string.
+ * Converts an Alethe proof rule to a string.
  *
- * @param id The alethe proof rule
- * @return The name of the alethe proof rule
+ * @param id The Alethe proof rule
+ * @return The name of the Alethe proof rule
  */
 const char* aletheRuleToString(AletheRule id);
 
 /**
- * Writes a alethe proof rule name to a stream.
+ * Writes an Alethe proof rule name to a stream.
  *
  * @param out The stream to write to
- * @param id The alethe proof rule to write to the stream
+ * @param id The Alethe proof rule to write to the stream
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, AletheRule id);
@@ -416,3 +414,4 @@ std::ostream& operator<<(std::ostream& out, AletheRule id);
 }  // namespace cvc5
 
 #endif /* CVC4__PROOF__ALETHE_PROOF_RULE_H */
+

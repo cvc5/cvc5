@@ -21,9 +21,6 @@ name   = "Proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"
-[[option.mode.ALETHE_EXTENDED]]
-  name       = "alethe-extended"
-  help       = "Output Alethe proof extended by additional proof rules"
 [[option.mode.LFSC]]
   name       = "lfsc"
   help       = "Output LFSC proof"
