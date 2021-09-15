@@ -79,10 +79,11 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                      const std::vector<Node>& args,
                      CDProof& cdp);
   /**
-   * This method adds a new step (or F1 ... Fn) to the proof applying rule while
-   * printing a version where the outermost or is replaced by cl, i.e. (cl F1
-   * ... Fn). For this it internally calls addAletheStep. The kind of the given
-   * Node has to be OR.
+   * As above, but for proof nodes with original conclusions of the form `(or F1
+   * ... Fn)` whose conclusion-to-be-printed must be `(cl F1 ... Fn)`.
+   *
+   * This method internally calls addAletheStep. The kind of the given Node has
+   * to be OR.
    *
    * @param res The expected result of the application in form (or F1 ... Fn),
    * @param rule The id of the Alethe rule,
