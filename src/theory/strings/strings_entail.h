@@ -40,7 +40,7 @@ class SequencesRewriter;
 class StringsEntail
 {
  public:
-  StringsEntail(Rewriter * r, ArithEntail& aent, SequencesRewriter& rewriter);
+  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter& rewriter);
 
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -111,10 +111,10 @@ class StringsEntail
    *    curr is updated to str.len(y)+1
    */
   bool stripSymbolicLength(std::vector<Node>& n1,
-                                  std::vector<Node>& nr,
-                                  int dir,
-                                  Node& curr,
-                                  bool strict = false);
+                           std::vector<Node>& nr,
+                           int dir,
+                           Node& curr,
+                           bool strict = false);
   /** component contains
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1
@@ -376,7 +376,7 @@ class StringsEntail
 
  private:
   /** Pointer to the full rewriter */
-  Rewriter * d_rr;
+  Rewriter* d_rr;
   /** The arithmetic entailment module */
   ArithEntail& d_arithEntail;
   /**

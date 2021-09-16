@@ -37,7 +37,7 @@ namespace strings {
 class ArithEntail
 {
  public:
-  ArithEntail(Rewriter * r);
+  ArithEntail(Rewriter* r);
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
@@ -78,9 +78,7 @@ class ArithEntail
    *
    * Because: x = -(str.len y), so -x >= 0 --> (str.len y) >= 0 --> true
    */
-  bool checkWithEqAssumption(Node assumption,
-                                    Node a,
-                                    bool strict = false);
+  bool checkWithEqAssumption(Node assumption, Node a, bool strict = false);
 
   /**
    * Checks whether assumption |= a >= b (if strict is false) or
@@ -95,9 +93,9 @@ class ArithEntail
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
    */
   bool checkWithAssumption(Node assumption,
-                                  Node a,
-                                  Node b,
-                                  bool strict = false);
+                           Node a,
+                           Node b,
+                           bool strict = false);
 
   /**
    * Checks whether assumptions |= a >= b (if strict is false) or
@@ -113,9 +111,9 @@ class ArithEntail
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
    */
   bool checkWithAssumptions(std::vector<Node> assumptions,
-                                   Node a,
-                                   Node b,
-                                   bool strict = false);
+                            Node a,
+                            Node b,
+                            bool strict = false);
 
   /** get arithmetic lower bound
    * If this function returns a non-null Node ret,
@@ -149,8 +147,8 @@ class ArithEntail
    *     str.len(y) >= str.len(x)
    */
   bool inferZerosInSumGeq(Node x,
-                                 std::vector<Node>& ys,
-                                 std::vector<Node>& zeroYs);
+                          std::vector<Node>& ys,
+                          std::vector<Node>& zeroYs);
 
  private:
   /** check entail arithmetic internal
@@ -174,10 +172,10 @@ class ArithEntail
    * consider (recursively) the approximations for len( substr( x, 0, n ) ).
    */
   void getArithApproximations(Node a,
-                                     std::vector<Node>& approx,
-                                     bool isOverApprox = false);
+                              std::vector<Node>& approx,
+                              bool isOverApprox = false);
   /** The underlying rewriter */
-  Rewriter * d_rr;
+  Rewriter* d_rr;
 };
 
 }  // namespace strings

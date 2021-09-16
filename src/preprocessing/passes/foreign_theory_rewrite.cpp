@@ -20,9 +20,9 @@
 #include "expr/node_traversal.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace preprocessing {

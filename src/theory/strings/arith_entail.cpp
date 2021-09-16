@@ -30,7 +30,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-ArithEntail::ArithEntail(Rewriter * r) : d_rr(r) {}
+ArithEntail::ArithEntail(Rewriter* r) : d_rr(r) {}
 
 bool ArithEntail::checkEq(Node a, Node b)
 {
@@ -268,8 +268,7 @@ bool ArithEntail::checkApprox(Node ar)
             Node ci = aam.second;
             if (!cr.isNull())
             {
-              ci = ci.isNull() ? cr
-                               : d_rr->rewrite(nm->mkNode(MULT, ci, cr));
+              ci = ci.isNull() ? cr : d_rr->rewrite(nm->mkNode(MULT, ci, cr));
             }
             Trace("strings-ent-approx-debug") << ci << "*" << ti << " ";
             int ciSgn = ci.isNull() ? 1 : ci.getConst<Rational>().sgn();
