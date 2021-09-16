@@ -31,9 +31,8 @@ namespace passes {
 using namespace cvc5::theory;
 
 ForeignTheoryRewriter::ForeignTheoryRewriter(Env& env)
-    : EnvObj(env),
-      d_cache(userContext()){
-
+    : EnvObj(env), d_cache(userContext())
+{
 }
 
 Node ForeignTheoryRewriter::simplify(Node n)
@@ -117,7 +116,7 @@ Node ForeignTheoryRewriter::rewriteStringsGeq(Node n)
 }
 
 Node ForeignTheoryRewriter::reconstructNode(Node originalNode,
-                                           std::vector<Node> newChildren)
+                                            std::vector<Node> newChildren)
 {
   // Nodes with no children are reconstructed to themselves
   if (originalNode.getNumChildren() == 0)
@@ -146,13 +145,13 @@ ForeignTheoryRewrite::ForeignTheoryRewrite(
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
       d_ftr(preprocContext->getEnv())
 {
-
 }
-    
+
 PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts; ++i)
+  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
+       ++i)
   {
     assertionsToPreprocess->replace(
         i, rewrite(d_ftr.simplify((*assertionsToPreprocess)[i])));
