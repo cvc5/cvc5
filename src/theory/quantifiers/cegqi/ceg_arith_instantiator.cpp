@@ -892,8 +892,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
         }
         else
         {
-          msum[it->first] =
-              rewrite(nm->mkNode(MULT, it->second, rcoeff));
+          msum[it->first] = rewrite(nm->mkNode(MULT, it->second, rcoeff));
         }
       }
       if (!it->first.isNull() && !it->first.getType().isInteger())

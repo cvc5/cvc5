@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -88,10 +88,11 @@ class TermProperties {
   // we consider terms + TermProperties that are unique up to their cache node
   // (see constructInstantiationInc)
   Node getCacheNode() const { return d_coeff; }
-  // is non-basic 
+  // is non-basic
   bool isBasic() const { return d_coeff.isNull(); }
-  // get modified term 
-  Node getModifiedTerm( Node pv ) const {
+  // get modified term
+  Node getModifiedTerm(Node pv) const
+  {
     if( !d_coeff.isNull() ){
       return NodeManager::currentNM()->mkNode( kind::MULT, d_coeff, pv );
     }else{
@@ -204,7 +205,8 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
  * For details on counterexample-guided quantifier instantiation
  * (for linear arithmetic), see Reynolds/King/Kuncak FMSD 2017.
  */
-class CegInstantiator : protected EnvObj {
+class CegInstantiator : protected EnvObj
+{
  public:
   /**
    * The instantiator will be constructing instantiations for quantified formula
@@ -577,21 +579,22 @@ class CegInstantiator : protected EnvObj {
  * In these calls, the Instantiator in turn makes calls to methods in
  * CegInstanatior (primarily constructInstantiationInc).
  */
-class Instantiator : protected EnvObj {
+class Instantiator : protected EnvObj
+{
  public:
- Instantiator(Env& env, TypeNode tn);
- virtual ~Instantiator() {}
- /** reset
-  * This is called once, prior to any of the below methods are called.
-  * This function sets up any initial information necessary for constructing
-  * instantiations for pv based on the current context.
-  */
- virtual void reset(CegInstantiator* ci,
-                    SolvedForm& sf,
-                    Node pv,
-                    CegInstEffort effort)
- {
- }
+  Instantiator(Env& env, TypeNode tn);
+  virtual ~Instantiator() {}
+  /** reset
+   * This is called once, prior to any of the below methods are called.
+   * This function sets up any initial information necessary for constructing
+   * instantiations for pv based on the current context.
+   */
+  virtual void reset(CegInstantiator* ci,
+                     SolvedForm& sf,
+                     Node pv,
+                     CegInstEffort effort)
+  {
+  }
 
   /** has process equal term
    *

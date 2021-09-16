@@ -137,8 +137,9 @@ void TermProperties::composeProperty(TermProperties& p)
   }
   else
   {
-    NodeManager * nm = NodeManager::currentNM();
-    d_coeff = nm->mkConst(Rational(d_coeff.getConst<Rational>()*p.d_coeff.getConst<Rational>()));
+    NodeManager* nm = NodeManager::currentNM();
+    d_coeff = nm->mkConst(Rational(d_coeff.getConst<Rational>()
+                                   * p.d_coeff.getConst<Rational>()));
   }
 }
 
@@ -161,11 +162,11 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   }
   else
   {
-    Assert (new_theta.getKind()==CONST_RATIONAL);
-    Assert (pv_prop.d_coeff.getKind()==CONST_RATIONAL);
-    NodeManager * nm = NodeManager::currentNM();
-    new_theta =
-        nm->mkConst(Rational(new_theta.getConst<Rational>()*pv_prop.d_coeff.getConst<Rational>()));
+    Assert(new_theta.getKind() == CONST_RATIONAL);
+    Assert(pv_prop.d_coeff.getKind() == CONST_RATIONAL);
+    NodeManager* nm = NodeManager::currentNM();
+    new_theta = nm->mkConst(Rational(new_theta.getConst<Rational>()
+                                     * pv_prop.d_coeff.getConst<Rational>()));
   }
   d_theta.push_back(new_theta);
 }
@@ -1148,7 +1149,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Assert(prop[i].d_coeff.isConst());
           Node nn = NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/prop[i].d_coeff.getConst<Rational>() ) );
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
-          nn =  rewrite( nn );
+          nn = rewrite(nn);
           nsubs.push_back( nn );
         }else{
           nsubs.push_back( subs[i] );
@@ -1187,13 +1188,15 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
         }
         //make sum with normalized coefficient
         if( !pv_prop.d_coeff.isNull() ){
-          pv_prop.d_coeff = rewrite( pv_prop.d_coeff );
+          pv_prop.d_coeff = rewrite(pv_prop.d_coeff);
           Trace("sygus-si-apply-subs-debug") << "Combined coeff : " << pv_prop.d_coeff << std::endl;
           std::vector< Node > children;
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
             Node c_coeff;
             if( !msum_coeff[it->first].isNull() ){
-              c_coeff = rewrite( NodeManager::currentNM()->mkConst( pv_prop.d_coeff.getConst<Rational>() / msum_coeff[it->first].getConst<Rational>() ) );
+              c_coeff = rewrite(NodeManager::currentNM()->mkConst(
+                  pv_prop.d_coeff.getConst<Rational>()
+                  / msum_coeff[it->first].getConst<Rational>()));
             }else{
               c_coeff = pv_prop.d_coeff;
             }
@@ -1211,7 +1214,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
           Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
-          nretc = rewrite( nretc );
+          nretc = rewrite(nretc);
           //ensure that nret does not contain vars
           if (!expr::hasSubterm(nretc, vars))
           {
@@ -1230,7 +1233,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
     }
   }
   if( n!=nret && !nret.isNull() ){
-    nret = rewrite( nret );
+    nret = rewrite(nret);
   }
   return nret;
 }
@@ -1256,7 +1259,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_rhs = atom[1];
       }else{
         atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
-        atom_lhs = rewrite( atom_lhs );
+        atom_lhs = rewrite(atom_lhs);
         atom_rhs = nm->mkConst(Rational(0));
       }
       //must be an eligible term
@@ -1286,7 +1289,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     }
   }
   if( lit!=lret && !lret.isNull() ){
-    lret = rewrite( lret );
+    lret = rewrite(lret);
   }
   return lret;
 }
