@@ -31,9 +31,8 @@ namespace passes {
 using namespace cvc5::theory;
 
 ForeignTheoryRewriter::ForeignTheoryRewriter(Env& env)
-    : EnvObj(env),
-      d_cache(userContext()){
-
+    : EnvObj(env), d_cache(userContext())
+{
 }
 
 Node ForeignTheoryRewrite::simplify(Node n)
@@ -144,15 +143,16 @@ Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
 ForeignTheoryRewrite::ForeignTheoryRewrite(
     PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
-      d_cache(userContext()), d_ftr(preprocContext->getEnv())
+      d_cache(userContext()),
+      d_ftr(preprocContext->getEnv())
 {
-
 }
-    
+
 PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts; ++i)
+  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
+       ++i)
   {
     assertionsToPreprocess->replace(
         i, rewrite(d_ftr.simplify((*assertionsToPreprocess)[i])));
