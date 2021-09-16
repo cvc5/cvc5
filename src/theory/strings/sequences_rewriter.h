@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/strings/arith_entail.h"
 #include "theory/strings/rewrites.h"
 #include "theory/strings/sequences_stats.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/theory_rewriter.h"
 
@@ -34,8 +34,10 @@ namespace strings {
 class SequencesRewriter : public TheoryRewriter
 {
  public:
-  SequencesRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics);
-
+  SequencesRewriter(Rewriter * r, HistogramStat<Rewrite>* statistics);
+  /** The underling entailment utilities */
+  ArithEntail& getArithEntail();
+  StringsEntail& getStringsEntail();
  protected:
   /** rewrite regular expression concatenation
    *

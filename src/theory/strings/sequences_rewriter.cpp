@@ -37,14 +37,15 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(Rewriter* r,
-                                     HistogramStat<Rewrite>* statistics)
-    : d_statistics(statistics),
-      d_arithEntail(r),
-      d_stringsEntail(r, d_arithEntail, *this)
+SequencesRewriter::SequencesRewriter(Rewriter * r, HistogramStat<Rewrite>* statistics)
+    : d_statistics(statistics), d_arithEntail(r), d_stringsEntail(r, d_arithEntail, *this)
 {
 }
 
+ArithEntail& SequencesRewriter::getArithEntail() { return d_arithEntail; }
+
+StringsEntail& SequencesRewriter::getStringsEntail() { return d_stringsEntail; }
+  
 Node SequencesRewriter::rewriteEquality(Node node)
 {
   Assert(node.getKind() == kind::EQUAL);
@@ -334,8 +335,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       {
         Node zero = nm->mkConst(Rational(0));
 
-        if (d_arithEntail.check(ne[1], false)
-            && d_arithEntail.check(ne[2], true))
+        if (d_arithEntail.check(ne[1], false) && d_arithEntail.check(ne[2], true))
         {
           // (= "" (str.substr x 0 m)) ---> (= "" x) if m > 0
           if (ne[1] == zero)
@@ -1829,8 +1829,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
       Node n1_lt_tot_len =
           Rewriter::rewrite(nm->mkNode(kind::LT, node[1], tot_len));
-      if (d_arithEntail.checkWithAssumption(
-              n1_lt_tot_len, zero, node[2], false))
+      if (d_arithEntail.checkWithAssumption(n1_lt_tot_len, zero, node[2], false))
       {
         Node ret = Word::mkEmptyWord(node.getType());
         return returnRewrite(node, ret, Rewrite::SS_START_ENTAILS_ZERO_LEN);
@@ -2540,8 +2539,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   {
     std::vector<Node> cb;
     std::vector<Node> ce;
-    if (d_stringsEntail.stripConstantEndpoints(
-            children0, children1, cb, ce, -1))
+    if (d_stringsEntail.stripConstantEndpoints(children0, children1, cb, ce, -1))
     {
       Node ret = utils::mkConcat(children0, stype);
       ret = nm->mkNode(STRING_INDEXOF, ret, node[1], node[2]);

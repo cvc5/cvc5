@@ -43,9 +43,11 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
     TestSmt::SetUp();
     Options opts;
     d_rewriter = d_smtEngine->getRewriter();
+    d_seqRewriter.reset(new SequencesRewriter(d_rewriter, nullptr);
   }
 
   Rewriter* d_rewriter;
+  std::unique_ptr<SequencesRewriter> d_seqRewriter;
 
   void inNormalForm(Node t)
   {
@@ -81,6 +83,7 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
 
 TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_length_one)
 {
+  StringsEntail& se = d_seqRewriter->getStringsEntail();
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -97,28 +100,29 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_length_one)
   Node three = d_nodeManager->mkConst(Rational(3));
   Node i = d_nodeManager->mkVar("i", intType);
 
-  ASSERT_TRUE(StringsEntail::checkLengthOne(a));
-  ASSERT_TRUE(StringsEntail::checkLengthOne(a, true));
+  ASSERT_TRUE(se.checkLengthOne(a));
+  ASSERT_TRUE(se.checkLengthOne(a, true));
 
   Node substr = d_nodeManager->mkNode(kind::STRING_SUBSTR, x, zero, one);
-  ASSERT_TRUE(StringsEntail::checkLengthOne(substr));
-  ASSERT_FALSE(StringsEntail::checkLengthOne(substr, true));
+  ASSERT_TRUE(se.checkLengthOne(substr));
+  ASSERT_FALSE(se.checkLengthOne(substr, true));
 
   substr =
       d_nodeManager->mkNode(kind::STRING_SUBSTR,
                             d_nodeManager->mkNode(kind::STRING_CONCAT, a, x),
                             zero,
                             one);
-  ASSERT_TRUE(StringsEntail::checkLengthOne(substr));
-  ASSERT_TRUE(StringsEntail::checkLengthOne(substr, true));
+  ASSERT_TRUE(se.checkLengthOne(substr));
+  ASSERT_TRUE(se.checkLengthOne(substr, true));
 
   substr = d_nodeManager->mkNode(kind::STRING_SUBSTR, x, zero, two);
-  ASSERT_FALSE(StringsEntail::checkLengthOne(substr));
-  ASSERT_FALSE(StringsEntail::checkLengthOne(substr, true));
+  ASSERT_FALSE(se.checkLengthOne(substr));
+  ASSERT_FALSE(se.checkLengthOne(substr, true));
 }
 
 TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_arith)
 {
+  ArithEntail& ae = d_seqRewriter->getArithEntail();
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -130,14 +134,15 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_arith)
   Node substr_z = d_nodeManager->mkNode(
       kind::STRING_LENGTH,
       d_nodeManager->mkNode(kind::STRING_SUBSTR, z, n, one));
-  ASSERT_TRUE(ArithEntail::check(one, substr_z));
+  ASSERT_TRUE(ae.check(one, substr_z));
 
   // (str.len (str.substr z n 1)) >= 1 ---> false
-  ASSERT_FALSE(ArithEntail::check(substr_z, one));
+  ASSERT_FALSE(ae.check(substr_z, one));
 }
 
 TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
 {
+  ArithEntail& ae = d_seqRewriter->getArithEntail();
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -158,17 +163,17 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
 
   // x + (str.len y) = 0 |= 0 >= x --> true
   ASSERT_TRUE(
-      ArithEntail::checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, false));
+      ae.checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, false));
 
   // x + (str.len y) = 0 |= 0 > x --> false
   ASSERT_FALSE(
-      ArithEntail::checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, true));
+      ae.checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, true));
 
   Node x_plus_slen_y_plus_z_eq_zero = d_rewriter->rewrite(d_nodeManager->mkNode(
       kind::EQUAL, d_nodeManager->mkNode(kind::PLUS, x_plus_slen_y, z), zero));
 
   // x + (str.len y) + z = 0 |= 0 > x --> false
-  ASSERT_FALSE(ArithEntail::checkWithAssumption(
+  ASSERT_FALSE(ae.checkWithAssumption(
       x_plus_slen_y_plus_z_eq_zero, zero, x, true));
 
   Node x_plus_slen_y_plus_slen_y_eq_zero =
@@ -178,7 +183,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
           zero));
 
   // x + (str.len y) + (str.len y) = 0 |= 0 >= x --> true
-  ASSERT_TRUE(ArithEntail::checkWithAssumption(
+  ASSERT_TRUE(ae.checkWithAssumption(
       x_plus_slen_y_plus_slen_y_eq_zero, zero, x, false));
 
   Node five = d_nodeManager->mkConst(Rational(5));
@@ -189,27 +194,27 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
 
   // x + 5 < 6 |= 0 >= x --> true
   ASSERT_TRUE(
-      ArithEntail::checkWithAssumption(x_plus_five_lt_six, zero, x, false));
+      ae.checkWithAssumption(x_plus_five_lt_six, zero, x, false));
 
   // x + 5 < 6 |= 0 > x --> false
   ASSERT_TRUE(
-      !ArithEntail::checkWithAssumption(x_plus_five_lt_six, zero, x, true));
+      !ae.checkWithAssumption(x_plus_five_lt_six, zero, x, true));
 
   Node neg_x = d_nodeManager->mkNode(kind::UMINUS, x);
   Node x_plus_five_lt_five =
       d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, five));
 
   // x + 5 < 5 |= -x >= 0 --> true
-  ASSERT_TRUE(ArithEntail::checkWithAssumption(
+  ASSERT_TRUE(ae.checkWithAssumption(
       x_plus_five_lt_five, neg_x, zero, false));
 
   // x + 5 < 5 |= 0 > x --> true
   ASSERT_TRUE(
-      ArithEntail::checkWithAssumption(x_plus_five_lt_five, zero, x, false));
+      ae.checkWithAssumption(x_plus_five_lt_five, zero, x, false));
 
   // 0 < x |= x >= (str.len (int.to.str x))
   Node assm = d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, zero, x));
-  ASSERT_TRUE(ArithEntail::checkWithAssumption(
+  ASSERT_TRUE(ae.checkWithAssumption(
       assm,
       x,
       d_nodeManager->mkNode(kind::STRING_LENGTH,
@@ -1303,6 +1308,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_contains)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, infer_eqs_from_contains)
 {
+  StringsEntail& se = d_seqRewriter->getStringsEntail();
   TypeNode strType = d_nodeManager->stringType();
 
   Node empty = d_nodeManager->mkConst(::cvc5::String(""));
@@ -1319,30 +1325,30 @@ TEST_F(TestTheoryWhiteSequencesRewriter, infer_eqs_from_contains)
       d_nodeManager->mkNode(kind::AND,
                             d_nodeManager->mkNode(kind::EQUAL, empty, x),
                             d_nodeManager->mkNode(kind::EQUAL, empty, y));
-  sameNormalForm(StringsEntail::inferEqsFromContains(empty, xy), empty_x_y);
+  sameNormalForm(se.inferEqsFromContains(empty, xy), empty_x_y);
 
   // inferEqsFromContains(x, (str.++ x y)) returns false
   Node bxya = d_nodeManager->mkNode(kind::STRING_CONCAT, {b, y, x, a});
-  sameNormalForm(StringsEntail::inferEqsFromContains(x, bxya), f);
+  sameNormalForm(se.inferEqsFromContains(x, bxya), f);
 
   // inferEqsFromContains(x, y) returns null
-  Node n = StringsEntail::inferEqsFromContains(x, y);
+  Node n = se.inferEqsFromContains(x, y);
   ASSERT_TRUE(n.isNull());
 
   // inferEqsFromContains(x, x) returns something equivalent to (= x x)
   Node eq_x_x = d_nodeManager->mkNode(kind::EQUAL, x, x);
-  sameNormalForm(StringsEntail::inferEqsFromContains(x, x), eq_x_x);
+  sameNormalForm(se.inferEqsFromContains(x, x), eq_x_x);
 
   // inferEqsFromContains((str.replace x "B" "A"), x) returns something
   // equivalent to (= (str.replace x "B" "A") x)
   Node repl = d_nodeManager->mkNode(kind::STRING_REPLACE, x, b, a);
   Node eq_repl_x = d_nodeManager->mkNode(kind::EQUAL, repl, x);
-  sameNormalForm(StringsEntail::inferEqsFromContains(repl, x), eq_repl_x);
+  sameNormalForm(se.inferEqsFromContains(repl, x), eq_repl_x);
 
   // inferEqsFromContains(x, (str.replace x "B" "A")) returns something
   // equivalent to (= (str.replace x "B" "A") x)
   Node eq_x_repl = d_nodeManager->mkNode(kind::EQUAL, x, repl);
-  sameNormalForm(StringsEntail::inferEqsFromContains(x, repl), eq_x_repl);
+  sameNormalForm(se.inferEqsFromContains(x, repl), eq_x_repl);
 }
 
 TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_prefix_suffix)
@@ -1672,6 +1678,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_equality_ext)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, strip_constant_endpoints)
 {
+  StringsEntail& se = d_seqRewriter->getStringsEntail();
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -1693,7 +1700,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, strip_constant_endpoints)
     std::vector<Node> n2 = {a};
     std::vector<Node> nb;
     std::vector<Node> ne;
-    bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 0);
+    bool res = se.stripConstantEndpoints(n1, n2, nb, ne, 0);
     ASSERT_FALSE(res);
   }
 
@@ -1704,7 +1711,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, strip_constant_endpoints)
     std::vector<Node> n2 = {a, d_nodeManager->mkNode(kind::STRING_ITOS, n)};
     std::vector<Node> nb;
     std::vector<Node> ne;
-    bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 0);
+    bool res = se.stripConstantEndpoints(n1, n2, nb, ne, 0);
     ASSERT_FALSE(res);
   }
 
@@ -1719,7 +1726,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, strip_constant_endpoints)
     std::vector<Node> ne;
     std::vector<Node> n1r = {cd};
     std::vector<Node> nbr = {ab};
-    bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 1);
+    bool res = se.stripConstantEndpoints(n1, n2, nb, ne, 1);
     ASSERT_TRUE(res);
     ASSERT_EQ(n1, n1r);
     ASSERT_EQ(nb, nbr);
@@ -1736,7 +1743,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, strip_constant_endpoints)
     std::vector<Node> ne;
     std::vector<Node> n1r = {c, x};
     std::vector<Node> nbr = {ab};
-    bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, 1);
+    bool res = se.stripConstantEndpoints(n1, n2, nb, ne, 1);
     ASSERT_TRUE(res);
     ASSERT_EQ(n1, n1r);
     ASSERT_EQ(nb, nbr);
@@ -1753,7 +1760,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, strip_constant_endpoints)
     std::vector<Node> ne;
     std::vector<Node> n1r = {a};
     std::vector<Node> ner = {bc};
-    bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, -1);
+    bool res = se.stripConstantEndpoints(n1, n2, nb, ne, -1);
     ASSERT_TRUE(res);
     ASSERT_EQ(n1, n1r);
     ASSERT_EQ(ne, ner);
@@ -1770,7 +1777,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, strip_constant_endpoints)
     std::vector<Node> ne;
     std::vector<Node> n1r = {x, a};
     std::vector<Node> ner = {bc};
-    bool res = StringsEntail::stripConstantEndpoints(n1, n2, nb, ne, -1);
+    bool res = se.stripConstantEndpoints(n1, n2, nb, ne, -1);
     ASSERT_TRUE(res);
     ASSERT_EQ(n1, n1r);
     ASSERT_EQ(ne, ner);
