@@ -505,7 +505,7 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(q, d_qstate, d_treg, this));
+    d_cinst[q].reset(new CegInstantiator(d_env, q, d_qstate, d_treg, this));
     return d_cinst[q].get();
   }
   return it->second.get();

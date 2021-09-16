@@ -137,8 +137,8 @@ void TermProperties::composeProperty(TermProperties& p)
   }
   else
   {
-    d_coeff = NodeManager::currentNM()->mkNode(MULT, d_coeff, p.d_coeff);
-    d_coeff = Rewriter::rewrite(d_coeff);
+    NodeManager * nm = NodeManager::currentNM();
+    d_coeff = nm->mkConst(Rational(d_coeff.getConst<Rational>()*p.d_coeff.getConst<Rational>()));
   }
 }
 
@@ -161,9 +161,11 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
   }
   else
   {
+    Assert (new_theta.getKind()==CONST_RATIONAL);
+    Assert (pv_prop.d_coeff.getKind()==CONST_RATIONAL);
+    NodeManager * nm = NodeManager::currentNM();
     new_theta =
-        NodeManager::currentNM()->mkNode(MULT, new_theta, pv_prop.d_coeff);
-    new_theta = Rewriter::rewrite(new_theta);
+        nm->mkConst(Rational(new_theta.getConst<Rational>()*pv_prop.d_coeff.getConst<Rational>()));
   }
   d_theta.push_back(new_theta);
 }
@@ -182,11 +184,13 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.pop_back();
 }
 
-CegInstantiator::CegInstantiator(Node q,
+CegInstantiator::CegInstantiator(Env& env,
+                                 Node q,
                                  QuantifiersState& qs,
                                  TermRegistry& tr,
                                  InstStrategyCegqi* parent)
-    : d_quant(q),
+    : EnvObj(env),
+      d_quant(q),
       d_qstate(qs),
       d_treg(tr),
       d_parent(parent),
@@ -476,16 +480,16 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     TypeNode tn = v.getType();
     Instantiator * vinst;
     if( tn.isReal() ){
-      vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
+      vinst = new ArithInstantiator(d_env, tn, d_parent->getVtsTermCache());
     }else if( tn.isDatatype() ){
-      vinst = new DtInstantiator(tn);
+      vinst = new DtInstantiator(d_env, tn);
     }else if( tn.isBitVector() ){
-      vinst = new BvInstantiator(tn, d_parent->getBvInverter());
+      vinst = new BvInstantiator(d_env, tn, d_parent->getBvInverter());
     }else if( tn.isBoolean() ){
-      vinst = new ModelValueInstantiator(tn);
+      vinst = new ModelValueInstantiator(d_env, tn);
     }else{
       //default
-      vinst = new Instantiator(tn);
+      vinst = new Instantiator(d_env, tn);
     }
     d_instantiator[v] = vinst;
   }
@@ -1120,7 +1124,7 @@ bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& no
 
 Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
   computeProgVars( n );
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
   if( Trace.isOn("sygus-si-apply-subs-debug") ){
@@ -1144,7 +1148,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Assert(prop[i].d_coeff.isConst());
           Node nn = NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/prop[i].d_coeff.getConst<Rational>() ) );
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
-          nn =  Rewriter::rewrite( nn );
+          nn =  rewrite( nn );
           nsubs.push_back( nn );
         }else{
           nsubs.push_back( subs[i] );
@@ -1183,13 +1187,13 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
         }
         //make sum with normalized coefficient
         if( !pv_prop.d_coeff.isNull() ){
-          pv_prop.d_coeff = Rewriter::rewrite( pv_prop.d_coeff );
+          pv_prop.d_coeff = rewrite( pv_prop.d_coeff );
           Trace("sygus-si-apply-subs-debug") << "Combined coeff : " << pv_prop.d_coeff << std::endl;
           std::vector< Node > children;
           for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
             Node c_coeff;
             if( !msum_coeff[it->first].isNull() ){
-              c_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkConst( pv_prop.d_coeff.getConst<Rational>() / msum_coeff[it->first].getConst<Rational>() ) );
+              c_coeff = rewrite( NodeManager::currentNM()->mkConst( pv_prop.d_coeff.getConst<Rational>() / msum_coeff[it->first].getConst<Rational>() ) );
             }else{
               c_coeff = pv_prop.d_coeff;
             }
@@ -1207,7 +1211,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             Trace("sygus-si-apply-subs-debug") << "Add child : " << c << std::endl;
           }
           Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
-          nretc = Rewriter::rewrite( nretc );
+          nretc = rewrite( nretc );
           //ensure that nret does not contain vars
           if (!expr::hasSubterm(nretc, vars))
           {
@@ -1226,7 +1230,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
     }
   }
   if( n!=nret && !nret.isNull() ){
-    nret = Rewriter::rewrite( nret );
+    nret = rewrite( nret );
   }
   return nret;
 }
@@ -1252,7 +1256,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_rhs = atom[1];
       }else{
         atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
-        atom_lhs = Rewriter::rewrite( atom_lhs );
+        atom_lhs = rewrite( atom_lhs );
         atom_rhs = nm->mkConst(Rational(0));
       }
       //must be an eligible term
@@ -1269,7 +1273,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         if( !atom_lhs.isNull() ){
           if( !atom_lhs_prop.d_coeff.isNull() ){
             atom_rhs = nm->mkNode(MULT, atom_lhs_prop.d_coeff, atom_rhs);
-            atom_rhs = Rewriter::rewrite(atom_rhs);
+            atom_rhs = rewrite(atom_rhs);
           }
           lret = nm->mkNode(atom.getKind(), atom_lhs, atom_rhs);
           if( !pol ){
@@ -1282,7 +1286,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     }
   }
   if( lit!=lret && !lret.isNull() ){
-    lret = Rewriter::rewrite( lret );
+    lret = rewrite( lret );
   }
   return lret;
 }
@@ -1621,7 +1625,7 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
   }
 }
 
-Instantiator::Instantiator(TypeNode tn) : d_type(tn)
+Instantiator::Instantiator(Env& env, TypeNode tn) : EnvObj(env), d_type(tn)
 {
   d_closed_enum_type = tn.isClosedEnumerable();
 }
