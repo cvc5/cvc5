@@ -340,6 +340,11 @@ void Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
   printUnknownCommand(out, "constraint");
 }
 
+void Printer::toStreamCmdAssume(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "assume");
+}
+
 void Printer::toStreamCmdInvConstraint(
     std::ostream& out, Node inv, Node pre, Node trans, Node post) const
 {
@@ -423,6 +428,11 @@ void Printer::toStreamCmdGetUnsatAssumptions(std::ostream& out) const
 void Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 {
   printUnknownCommand(out, "get-unsat-core");
+}
+
+void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-difficulty");
 }
 
 void Printer::toStreamCmdGetAssertions(std::ostream& out) const

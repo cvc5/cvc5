@@ -87,11 +87,6 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  if (d_solver->getOptionInfo("parse-only").boolValue())
-  {
-    return true;
-  }
-
   CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
   if(seq != nullptr) {
     // assume no error
@@ -174,6 +169,12 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
+    if (d_solver->getOptionInfo("dump-difficulty").boolValue()
+        && (isResultUnsat || isResultSat || res.isSatUnknown()))
+    {
+      getterCommands.emplace_back(new GetDifficultyCommand());
+    }
+
     if (!getterCommands.empty()) {
       // set no time limit during dumping if applicable
       if (d_solver->getOptionInfo("force-no-limit-cpu-while-dump").boolValue())
@@ -203,6 +204,12 @@ bool solverInvoke(api::Solver* solver,
     std::ostream& ss = solver->getOutput("raw-benchmark");
     cmd->toStream(ss);
   }
+
+  if (solver->getOptionInfo("parse-only").boolValue())
+  {
+    return true;
+  }
+
   cmd->invoke(solver, sm, out);
   // ignore the error if the command-verbosity is 0 for this command
   std::string commandName =

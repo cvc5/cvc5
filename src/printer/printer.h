@@ -156,6 +156,9 @@ class Printer
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
 
+  /** Print assume command */
+  virtual void toStreamCmdAssume(std::ostream& out, Node n) const;
+
   /** Print inv-constraint command */
   virtual void toStreamCmdInvConstraint(
       std::ostream& out, Node inv, Node pre, Node trans, Node post) const;
@@ -209,6 +212,9 @@ class Printer
 
   /** Print get-unsat-core command */
   virtual void toStreamCmdGetUnsatCore(std::ostream& out) const;
+
+  /** Print get-difficulty command */
+  virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
 
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
