@@ -162,19 +162,17 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
       d_nodeManager->mkNode(kind::EQUAL, x_plus_slen_y, zero));
 
   // x + (str.len y) = 0 |= 0 >= x --> true
-  ASSERT_TRUE(
-      ae.checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, false));
+  ASSERT_TRUE(ae.checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, false));
 
   // x + (str.len y) = 0 |= 0 > x --> false
-  ASSERT_FALSE(
-      ae.checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, true));
+  ASSERT_FALSE(ae.checkWithAssumption(x_plus_slen_y_eq_zero, zero, x, true));
 
   Node x_plus_slen_y_plus_z_eq_zero = d_rewriter->rewrite(d_nodeManager->mkNode(
       kind::EQUAL, d_nodeManager->mkNode(kind::PLUS, x_plus_slen_y, z), zero));
 
   // x + (str.len y) + z = 0 |= 0 > x --> false
-  ASSERT_FALSE(ae.checkWithAssumption(
-      x_plus_slen_y_plus_z_eq_zero, zero, x, true));
+  ASSERT_FALSE(
+      ae.checkWithAssumption(x_plus_slen_y_plus_z_eq_zero, zero, x, true));
 
   Node x_plus_slen_y_plus_slen_y_eq_zero =
       d_rewriter->rewrite(d_nodeManager->mkNode(
@@ -193,24 +191,20 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
       d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, six));
 
   // x + 5 < 6 |= 0 >= x --> true
-  ASSERT_TRUE(
-      ae.checkWithAssumption(x_plus_five_lt_six, zero, x, false));
+  ASSERT_TRUE(ae.checkWithAssumption(x_plus_five_lt_six, zero, x, false));
 
   // x + 5 < 6 |= 0 > x --> false
-  ASSERT_TRUE(
-      !ae.checkWithAssumption(x_plus_five_lt_six, zero, x, true));
+  ASSERT_TRUE(!ae.checkWithAssumption(x_plus_five_lt_six, zero, x, true));
 
   Node neg_x = d_nodeManager->mkNode(kind::UMINUS, x);
   Node x_plus_five_lt_five =
       d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, x_plus_five, five));
 
   // x + 5 < 5 |= -x >= 0 --> true
-  ASSERT_TRUE(ae.checkWithAssumption(
-      x_plus_five_lt_five, neg_x, zero, false));
+  ASSERT_TRUE(ae.checkWithAssumption(x_plus_five_lt_five, neg_x, zero, false));
 
   // x + 5 < 5 |= 0 > x --> true
-  ASSERT_TRUE(
-      ae.checkWithAssumption(x_plus_five_lt_five, zero, x, false));
+  ASSERT_TRUE(ae.checkWithAssumption(x_plus_five_lt_five, zero, x, false));
 
   // 0 < x |= x >= (str.len (int.to.str x))
   Node assm = d_rewriter->rewrite(d_nodeManager->mkNode(kind::LT, zero, x));
