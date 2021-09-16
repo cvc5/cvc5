@@ -54,35 +54,50 @@ static Node removeAttributes(Node res,
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     ProofNodeManager* pnm)
-    : d_pnm(pnm), d_nm(NodeManager::currentNM())
+    : d_pnm(pnm)
 {
-  d_cl = d_nm->mkBoundVar("cl", d_nm->stringType());
+  NodeManager* nm = NodeManager::currentNM();
+  d_cl = nm->mkBoundVar("cl", nm->stringType());
 }
 
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  const std::vector<Node>& fa,
                                                  bool& continueUpdate)
 {
-  if (pn->getRule() == PfRule::ALETHE_RULE)
-  {
-    return false;
-  }
-  return true;
+  return pn->getRule() != PfRule::ALETHE_RULE;
 }
 
-bool AletheProofPostprocessCallback::addAletheStep(
-    Node res,
-    AletheRule rule,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof& cdp)
+bool AletheProofPostprocessCallback::update(Node res,
+                                            PfRule id,
+                                            const std::vector<Node>& children,
+                                            const std::vector<Node>& args,
+                                            CDProof* cdp,
+                                            bool& continueUpdate)
 {
-  return addAletheStep(res, rule, res, children, args, cdp);
+  Trace("alethe-proof") << "- Alethe post process callback " << res << " " << id
+                        << " " << children << " / " << args << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> new_args = std::vector<Node>();
+
+  switch (id)
+  {
+    default:
+    {
+      std::cout << "Not implemented yet " << id << std::endl;
+      return addAletheStep(AletheRule::UNDEFINED,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           args,
+                           *cdp);
+    }
+  }
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
-    Node res,
     AletheRule rule,
+    Node res,
     Node conclusion,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
@@ -99,7 +114,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
   }
 
   std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(rule)));
+  new_args.push_back(
+      NodeManager::currentNM()->mkConst<Rational>(static_cast<unsigned>(rule)));
   new_args.push_back(res);
   new_args.push_back(sanitized_conclusion);
   new_args.insert(new_args.end(), args.begin(), args.end());
@@ -119,8 +135,8 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 {
   std::vector<Node> subterms = {d_cl};
   subterms.insert(subterms.end(), res.begin(), res.end());
-  Node conclusion = d_nm->mkNode(kind::SEXPR, subterms);
-  return addAletheStep(res, rule, conclusion, children, args, cdp);
+  Node conclusion = NodeManager::currentNM()->mkNode(kind::SEXPR, subterms);
+  return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
 
 }  // namespace proof
