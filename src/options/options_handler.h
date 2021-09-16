@@ -140,11 +140,6 @@ public:
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& option, const std::string& flag);
 
-  // theory/quantifiers/options_handlers.h
-  void checkInstWhenMode(const std::string& option,
-                         const std::string& flag,
-                         InstWhenMode mode);
-
   // theory/bv/options_handlers.h
   void abcEnabledBuild(const std::string& option,
                        const std::string& flag,

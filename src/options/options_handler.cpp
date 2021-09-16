@@ -415,19 +415,6 @@ void OptionsHandler::showTraceTags(const std::string& option,
   std::exit(0);
 }
 
-// theory/quantifiers/options_handlers.h
-
-void OptionsHandler::checkInstWhenMode(const std::string& option,
-                                       const std::string& flag,
-                                       InstWhenMode mode)
-{
-  if (mode == InstWhenMode::PRE_FULL)
-  {
-    throw OptionException(std::string("Mode pre-full for ") + option
-                          + " is not supported in this release.");
-  }
-}
-
 // theory/bv/options_handlers.h
 void OptionsHandler::abcEnabledBuild(const std::string& option,
                                      const std::string& flag,

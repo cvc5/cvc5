@@ -407,12 +407,8 @@ name   = "Quantifiers"
   long       = "inst-when=MODE"
   type       = "InstWhenMode"
   default    = "FULL_LAST_CALL"
-  predicates = ["checkInstWhenMode"]
   help       = "when to apply instantiation"
   help_mode  = "Instantiation modes."
-[[option.mode.PRE_FULL]]
-  name = "pre-full"
-  help = "Run instantiation round before full effort (possibly at standard effort)."
 [[option.mode.FULL]]
   name = "full"
   help = "Run instantiation round at full effort, before theory combination."
