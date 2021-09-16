@@ -43,7 +43,7 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
     TestSmt::SetUp();
     Options opts;
     d_rewriter = d_smtEngine->getRewriter();
-    d_seqRewriter.reset(new SequencesRewriter(d_rewriter, nullptr);
+    d_seqRewriter.reset(new SequencesRewriter(d_rewriter, nullptr));
   }
 
   Rewriter* d_rewriter;
