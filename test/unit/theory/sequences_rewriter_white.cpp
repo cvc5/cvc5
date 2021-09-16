@@ -218,7 +218,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
 {
-  StringsRewriter sr(d_rewriter.get(), nullptr);
+  StringsRewriter sr(d_rewriter, nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
