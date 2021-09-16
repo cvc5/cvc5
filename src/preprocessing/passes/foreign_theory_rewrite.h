@@ -23,6 +23,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -30,14 +31,10 @@ namespace passes {
 
 using CDNodeMap = context::CDHashMap<Node, Node>;
 
-class ForeignTheoryRewrite : public PreprocessingPass
+class ForeignTheoryRewriter : protected EnvObj
 {
  public:
-  ForeignTheoryRewrite(PreprocessingPassContext* preprocContext);
-
- protected:
-  PreprocessingPassResult applyInternal(
-      AssertionPipeline* assertionsToPreprocess) override;
+  ForeignTheoryRewriter(Env& env);
   /** the main function that simplifies n.
    * does a traversal on n and call rewriting fucntions.
    */
@@ -59,6 +56,18 @@ class ForeignTheoryRewrite : public PreprocessingPass
   static Node reconstructNode(Node originalNode, std::vector<Node> newChildren);
   /** A cache to store the simplified nodes */
   CDNodeMap d_cache;
+};
+
+class ForeignTheoryRewrite : public PreprocessingPass
+{
+ public:
+  ForeignTheoryRewrite(PreprocessingPassContext* preprocContext);
+
+ protected:
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
+  /** Foreign theory rewriter */
+  ForeignTheoryRewriter d_ftr;
 };
 
 }  // namespace passes

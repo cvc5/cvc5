@@ -29,10 +29,12 @@ namespace preprocessing {
 namespace passes {
 
 using namespace cvc5::theory;
-ForeignTheoryRewrite::ForeignTheoryRewrite(
-    PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
-      d_cache(userContext()){};
+
+ForeignTheoryRewriter::ForeignTheoryRewriter(Env& env)
+    : EnvObj(env),
+      d_cache(userContext()){
+
+}
 
 Node ForeignTheoryRewrite::simplify(Node n)
 {
@@ -139,15 +141,22 @@ Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
   return builder.constructNode();
 }
 
+ForeignTheoryRewrite::ForeignTheoryRewrite(
+    PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
+      d_cache(userContext()), d_ftr(preprocContext->getEnv())
+{
+
+}
+    
 PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts; ++i)
   {
     assertionsToPreprocess->replace(
-        i, rewrite(simplify((*assertionsToPreprocess)[i])));
+        i, rewrite(d_ftr.simplify((*assertionsToPreprocess)[i])));
   }
-
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
