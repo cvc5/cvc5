@@ -21,6 +21,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "smt/env_obj.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
@@ -76,13 +77,14 @@ class CoreInferInfo
  * This implements techniques for handling (dis)equalities involving
  * string concatenation terms based on the procedure by Liang et al CAV 2014.
  */
-class CoreSolver
+class CoreSolver : protected EnvObj
 {
   friend class InferenceManager;
   using NodeIntMap = context::CDHashMap<Node, int>;
 
  public:
-  CoreSolver(SolverState& s,
+  CoreSolver(Env& env,
+             SolverState& s,
              InferenceManager& im,
              TermRegistry& tr,
              BaseSolver& bs);

@@ -7294,12 +7294,34 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::map<Term, Term> Solver::getDifficulty() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT
+                             || d_smtEngine->getSmtMode() == SmtMode::SAT
+                             || d_smtEngine->getSmtMode()
+                                    == SmtMode::SAT_UNKNOWN)
+      << "Cannot get difficulty unless after a UNSAT, SAT or unknown response.";
+  //////// all checks before this line
+  std::map<Term, Term> res;
+  std::map<Node, Node> dmap;
+  d_smtEngine->getDifficultyMap(dmap);
+  for (const std::pair<const Node, Node>& d : dmap)
+  {
+    res[Term(this, d.first)] = Term(this, d.second);
+  }
+  return res;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 std::string Solver::getProof(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceProofs)
-      << "Cannot get proof explicitly enabled (try --prooduce-proofs)";
+      << "Cannot get proof explicitly enabled (try --produce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
   return d_smtEngine->getProof();
@@ -7819,7 +7841,21 @@ void Solver::addSygusConstraint(const Term& term) const
       term.d_node->getType() == getNodeManager()->booleanType(), term)
       << "boolean term";
   //////// all checks before this line
-  d_smtEngine->assertSygusConstraint(*term.d_node);
+  d_smtEngine->assertSygusConstraint(*term.d_node, false);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+void Solver::addSygusAssume(const Term& term) const
+{
+  NodeManagerScope scope(getNodeManager());
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_TERM(term);
+  CVC5_API_ARG_CHECK_EXPECTED(
+      term.d_node->getType() == getNodeManager()->booleanType(), term)
+      << "boolean term";
+  //////// all checks before this line
+  d_smtEngine->assertSygusConstraint(*term.d_node, true);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7936,6 +7972,21 @@ std::vector<Term> Solver::getSynthSolutions(
 Statistics Solver::getStatistics() const
 {
   return Statistics(d_smtEngine->getStatisticsRegistry());
+}
+
+bool Solver::isOutputOn(const std::string& tag) const
+{
+  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // forward as such. We thus do not use the standard exception handling macros
+  // here but roll our own.
+  try
+  {
+    return cvc5::OutputChannel.isOn(tag);
+  }
+  catch (const cvc5::Exception& e)
+  {
+    throw CVC5ApiException("Invalid output tag " + tag);
+  }
 }
 
 std::ostream& Solver::getOutput(const std::string& tag) const

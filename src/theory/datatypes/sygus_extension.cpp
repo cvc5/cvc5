@@ -52,10 +52,10 @@ SygusExtension::SygusExtension(Env& env,
       d_im(im),
       d_tds(tds),
       d_ssb(tds),
-      d_testers(s.getSatContext()),
-      d_testers_exp(s.getSatContext()),
-      d_active_terms(s.getSatContext()),
-      d_currTermSize(s.getSatContext())
+      d_testers(context()),
+      d_testers_exp(context()),
+      d_active_terms(context()),
+      d_currTermSize(context())
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -1330,11 +1330,8 @@ void SygusExtension::registerSizeTerm(Node e)
         d_anchor_to_ag_strategy.find(e);
     if (itaas == d_anchor_to_ag_strategy.end())
     {
-      d_anchor_to_ag_strategy[e].reset(
-          new DecisionStrategySingleton("sygus_enum_active",
-                                        ag,
-                                        d_state.getSatContext(),
-                                        d_state.getValuation()));
+      d_anchor_to_ag_strategy[e].reset(new DecisionStrategySingleton(
+          d_env, "sygus_enum_active", ag, d_state.getValuation()));
     }
     d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
@@ -1416,7 +1413,7 @@ void SygusExtension::registerMeasureTerm( Node m ) {
       d_szinfo.find(m);
   if( it==d_szinfo.end() ){
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
-    d_szinfo[m].reset(new SygusSizeDecisionStrategy(d_im, m, d_state));
+    d_szinfo[m].reset(new SygusSizeDecisionStrategy(d_env, d_im, m, d_state));
     // register this as a decision strategy
     d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
@@ -1753,8 +1750,8 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
 }
 
 SygusExtension::SygusSizeDecisionStrategy::SygusSizeDecisionStrategy(
-    InferenceManager& im, Node t, TheoryState& s)
-    : DecisionStrategyFmf(s.getSatContext(), s.getValuation()),
+    Env& env, InferenceManager& im, Node t, TheoryState& s)
+    : DecisionStrategyFmf(env, s.getValuation()),
       d_this(t),
       d_curr_search_size(0),
       d_im(im)

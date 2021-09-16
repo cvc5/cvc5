@@ -556,7 +556,10 @@ private:
   class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SygusSizeDecisionStrategy(InferenceManager& im, Node t, TheoryState& s);
+    SygusSizeDecisionStrategy(Env& env,
+                              InferenceManager& im,
+                              Node t,
+                              TheoryState& s);
     /** the measure term */
     Node d_this;
     /**
