@@ -29,7 +29,7 @@ JNIEXPORT void JNICALL Java_cvc5_Sort_deletePointer(JNIEnv*,
                                                     jclass,
                                                     jlong pointer)
 {
-  delete ((Sort*)pointer);
+  delete reinterpret_cast<Sort*>(pointer);
 }
 
 /*
@@ -43,10 +43,10 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_equals(JNIEnv* env,
                                                  jlong pointer2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort sort1 = *(Sort*)pointer1;
-  Sort sort2 = *(Sort*)pointer2;
-  return (jboolean)(sort1 == sort2);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort sort1 = *(reinterpret_cast<Sort*>(pointer1));
+  Sort sort2 = *(reinterpret_cast<Sort*>(pointer2));
+  return static_cast<jboolean>((sort1 == sort2));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -60,17 +60,17 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_compareTo(JNIEnv* env,
                                                 jlong pointer2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* sort1 = (Sort*)pointer1;
-  Sort* sort2 = (Sort*)pointer2;
+  Sort* sort1 = reinterpret_cast<Sort*>(pointer1);
+  Sort* sort2 = reinterpret_cast<Sort*>(pointer2);
   if (*sort1 < *sort2)
   {
-    return (jint)-1;
+    return static_cast<jint>(-1);
   }
   if (*sort1 == *sort2)
   {
     return 0;
   }
-  return (jint)1;
+  return static_cast<jint>(1);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -84,9 +84,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isNull(JNIEnv* env,
                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isNull();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isNull());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -99,9 +99,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isBoolean(JNIEnv* env,
                                                     jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isBoolean();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isBoolean());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -114,9 +114,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isInteger(JNIEnv* env,
                                                     jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isInteger();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isInteger());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -129,9 +129,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isReal(JNIEnv* env,
                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isReal();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isReal());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -144,9 +144,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isString(JNIEnv* env,
                                                    jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isString();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isString());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -159,9 +159,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isRegExp(JNIEnv* env,
                                                    jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isRegExp();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isRegExp());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -174,9 +174,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isRoundingMode(JNIEnv* env,
                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isRoundingMode();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isRoundingMode());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -189,9 +189,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isBitVector(JNIEnv* env,
                                                       jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isBitVector();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isBitVector());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -204,9 +204,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isFloatingPoint(JNIEnv* env,
                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isFloatingPoint();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isFloatingPoint());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -219,9 +219,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isDatatype(JNIEnv* env,
                                                      jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isDatatype();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isDatatype());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -234,9 +234,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isParametricDatatype(JNIEnv* env,
                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isParametricDatatype();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isParametricDatatype());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -249,9 +249,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isConstructor(JNIEnv* env,
                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isConstructor();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isConstructor());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -264,9 +264,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isSelector(JNIEnv* env,
                                                      jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isSelector();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isSelector());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -279,9 +279,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isTester(JNIEnv* env,
                                                    jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isTester();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isTester());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -294,9 +294,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isUpdater(JNIEnv* env,
                                                     jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isUpdater();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isUpdater());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -309,9 +309,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isFunction(JNIEnv* env,
                                                      jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isFunction();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isFunction());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -324,9 +324,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isPredicate(JNIEnv* env,
                                                       jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isPredicate();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isPredicate());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -339,9 +339,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isTuple(JNIEnv* env,
                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isTuple();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isTuple());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -354,9 +354,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isRecord(JNIEnv* env,
                                                    jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isRecord();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isRecord());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -369,9 +369,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isArray(JNIEnv* env,
                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isArray();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isArray());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -384,9 +384,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isSet(JNIEnv* env,
                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isSet();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isSet());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -399,9 +399,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isBag(JNIEnv* env,
                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isBag();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isBag());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -414,9 +414,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isSequence(JNIEnv* env,
                                                      jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isSequence();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isSequence());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -429,9 +429,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isUninterpretedSort(JNIEnv* env,
                                                               jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isUninterpretedSort();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isUninterpretedSort());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -444,9 +444,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isSortConstructor(JNIEnv* env,
                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isSortConstructor();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isSortConstructor());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -459,9 +459,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isFirstClass(JNIEnv* env,
                                                        jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isFirstClass();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isFirstClass());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -474,9 +474,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isFunctionLike(JNIEnv* env,
                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isFunctionLike();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isFunctionLike());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -490,10 +490,10 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isSubsortOf(JNIEnv* env,
                                                       jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  Sort* sort = (Sort*)sortPointer;
-  return (jboolean)current->isSubsortOf(*sort);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
+  return static_cast<jboolean>(current->isSubsortOf(*sort));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -507,10 +507,10 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isComparableTo(JNIEnv* env,
                                                          jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  Sort* sort = (Sort*)sortPointer;
-  return (jboolean)current->isComparableTo(*sort);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
+  return static_cast<jboolean>(current->isComparableTo(*sort));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -523,9 +523,9 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getDatatype(JNIEnv* env,
                                                    jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Datatype* retPointer = new Datatype(current->getDatatype());
-  return ((jlong)retPointer);
+  return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -540,7 +540,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_instantiate(JNIEnv* env,
                                                    jlongArray paramsPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   // get the size of params pointers
   jsize size = env->GetArrayLength(paramsPointers);
   // allocate buffer for the long array
@@ -551,14 +551,14 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_instantiate(JNIEnv* env,
   std::vector<Sort> params;
   for (jsize i = 0; i < size; i++)
   {
-    Sort* sort = (Sort*)buffer[i];
+    Sort* sort = reinterpret_cast<Sort*>(buffer[i]);
     params.push_back(*sort);
   }
   // free the buffer memory
   delete[] buffer;
 
   Sort* retPointer = new Sort(current->instantiate(params));
-  return ((jlong)retPointer);
+  return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -574,11 +574,11 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_substitute__JJJ(JNIEnv* env,
                                                        jlong replacementPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  Sort* sort = (Sort*)sortPointer;
-  Sort* replacement = (Sort*)replacementPointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
+  Sort* replacement = reinterpret_cast<Sort*>(replacementPointer);
   Sort* retPointer = new Sort(current->substitute(*sort, *replacement));
-  return ((jlong)retPointer);
+  return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -595,7 +595,7 @@ Java_cvc5_Sort_substitute__J_3J_3J(JNIEnv* env,
                                    jlongArray replacementPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   // get the size of pointers
   jsize sortsSize = env->GetArrayLength(sortPointers);
   jsize replacementsSize = env->GetArrayLength(replacementPointers);
@@ -610,14 +610,14 @@ Java_cvc5_Sort_substitute__J_3J_3J(JNIEnv* env,
   std::vector<Sort> sorts;
   for (jsize i = 0; i < sortsSize; i++)
   {
-    Sort* sort = (Sort*)sortsBuffer[i];
+    Sort* sort = reinterpret_cast<Sort*>(sortsBuffer[i]);
     sorts.push_back(*sort);
   }
 
   std::vector<Sort> replacements;
   for (jsize i = 0; i < replacementsSize; i++)
   {
-    Sort* sort = (Sort*)replacementsBuffer[i];
+    Sort* sort = reinterpret_cast<Sort*>(replacementsBuffer[i]);
     replacements.push_back(*sort);
   }
 
@@ -626,7 +626,7 @@ Java_cvc5_Sort_substitute__J_3J_3J(JNIEnv* env,
   delete[] replacementsBuffer;
 
   Sort* retPointer = new Sort(current->substitute(sorts, replacements));
-  return ((jlong)retPointer);
+  return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -640,7 +640,7 @@ JNIEXPORT jstring JNICALL Java_cvc5_Sort_toString(JNIEnv* env,
                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
@@ -655,8 +655,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_getConstructorArity(JNIEnv* env,
                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jint)current->getConstructorArity();
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getConstructorArity());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -669,7 +669,7 @@ JNIEXPORT jlongArray JNICALL
 Java_cvc5_Sort_getConstructorDomainSorts(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getConstructorDomainSorts();
   std::vector<long> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
@@ -692,7 +692,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getConstructorCodomainSort(JNIEnv* env,
                                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getConstructorCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -708,7 +708,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSelectorDomainSort(JNIEnv* env,
                                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getSelectorDomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -724,7 +724,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSelectorCodomainSort(JNIEnv* env,
                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getSelectorCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -740,7 +740,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getTesterDomainSort(JNIEnv* env,
                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getTesterDomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -756,7 +756,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getTesterCodomainSort(JNIEnv* env,
                                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getTesterCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -772,8 +772,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_getFunctionArity(JNIEnv* env,
                                                        jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jint)current->getFunctionArity();
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getFunctionArity());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -786,7 +786,7 @@ JNIEXPORT jlongArray JNICALL
 Java_cvc5_Sort_getFunctionDomainSorts(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getFunctionDomainSorts();
   std::vector<long> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
@@ -809,7 +809,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getFunctionCodomainSort(JNIEnv* env,
                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getFunctionCodomainSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -825,7 +825,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getArrayIndexSort(JNIEnv* env,
                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getArrayIndexSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -841,7 +841,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getArrayElementSort(JNIEnv* env,
                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getArrayElementSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -857,7 +857,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSetElementSort(JNIEnv* env,
                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getSetElementSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -873,7 +873,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getBagElementSort(JNIEnv* env,
                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getBagElementSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -889,7 +889,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Sort_getSequenceElementSort(JNIEnv* env,
                                                               jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getSequenceElementSort());
   return (jlong)retPointer;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
@@ -905,7 +905,7 @@ JNIEXPORT jstring JNICALL Java_cvc5_Sort_getUninterpretedSortName(JNIEnv* env,
                                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   return env->NewStringUTF(current->getUninterpretedSortName().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
@@ -919,9 +919,9 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Sort_isUninterpretedSortParameterized(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jboolean)current->isUninterpretedSortParameterized();
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isUninterpretedSortParameterized());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
 /*
@@ -933,7 +933,7 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getUninterpretedSortParamSorts(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getUninterpretedSortParamSorts();
   std::vector<long> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
@@ -956,7 +956,7 @@ JNIEXPORT jstring JNICALL Java_cvc5_Sort_getSortConstructorName(JNIEnv* env,
                                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   return env->NewStringUTF(current->getSortConstructorName().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
@@ -971,8 +971,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_getSortConstructorArity(JNIEnv* env,
                                                               jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jint)current->getSortConstructorArity();
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getSortConstructorArity());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -986,8 +986,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_getBVSize(JNIEnv* env,
                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jint)current->getBVSize();
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getBVSize());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -1001,8 +1001,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_getFPExponentSize(JNIEnv* env,
                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jint)current->getFPExponentSize();
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getFPExponentSize());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -1016,8 +1016,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_getFPSignificandSize(JNIEnv* env,
                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jint)current->getFPSignificandSize();
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getFPSignificandSize());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -1031,7 +1031,7 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getDatatypeParamSorts(JNIEnv* env,
                                                                   jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getDatatypeParamSorts();
   std::vector<long> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
@@ -1054,8 +1054,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_getDatatypeArity(JNIEnv* env,
                                                        jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jint)current->getDatatypeArity();
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getDatatypeArity());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -1069,8 +1069,8 @@ JNIEXPORT jint JNICALL Java_cvc5_Sort_getTupleLength(JNIEnv* env,
                                                      jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
-  return (jint)current->getTupleLength();
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getTupleLength());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
@@ -1084,7 +1084,7 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Sort_getTupleSorts(JNIEnv* env,
                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Sort* current = (Sort*)pointer;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getTupleSorts();
   std::vector<long> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
