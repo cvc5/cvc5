@@ -22,6 +22,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -104,8 +105,9 @@ Node ForeignTheoryRewrite::foreignRewrite(Node n)
 
 Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
 {
+  theory::strings::ArithEntail ae(d_env.getRewriter());
   // check if the node can be simplified to true
-  if (theory::strings::ArithEntail::check(n[0], n[1], false))
+  if (ae.check(n[0], n[1], false))
   {
     return NodeManager::currentNM()->mkConst(true);
   }

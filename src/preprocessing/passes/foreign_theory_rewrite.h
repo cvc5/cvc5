@@ -45,14 +45,14 @@ class ForeignTheoryRewrite : public PreprocessingPass
   /** A specific simplification function specific for GEQ
    * constraints in strings.
    */
-  static Node rewriteStringsGeq(Node n);
+  Node rewriteStringsGeq(Node n);
   /** invoke rewrite functions for n.
    * based on the structure of n (typically its kind)
    * we invoke rewrites from other theories.
    * For example: when encountering a `>=` node,
    * we invoke rewrites from the theory of strings.
    */
-  static Node foreignRewrite(Node n);
+  Node foreignRewrite(Node n);
   /** construct a node with the same operator as originalNode whose children are
    * processedChildren
    */
