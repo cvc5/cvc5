@@ -39,7 +39,7 @@ Cegis::Cegis(Env& env,
              SynthConjecture* p)
     : SygusModule(env, qs, qim, tds, p),
       d_eval_unfold(tds->getEvalUnfold()),
-      d_cegis_sampler(env.getRewriter()),
+      d_cegis_sampler(env),
       d_usingSymCons(false)
 {
 }

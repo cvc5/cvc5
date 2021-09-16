@@ -36,8 +36,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusSampler::SygusSampler(Rewriter* rr)
-    : d_rr(rr), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+SygusSampler::SygusSampler(Env& env)
+    : d_env(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
@@ -474,9 +474,9 @@ Node SygusSampler::evaluate(Node n, unsigned index)
 {
   Assert(index < d_samples.size());
   // do beta-reductions in n first
-  n = d_rr->rewrite(n);
+  n = d_env.getRewriter()->rewrite(n);
   // use efficient rewrite for substitution + rewrite
-  Node ev = d_rr->evaluate(n, d_vars, d_samples[index], true);
+  Node ev = d_env.evaluate(n, d_vars, d_samples[index], true);
   Assert(!ev.isNull());
   Trace("sygus-sample-ev") << "Evaluate ( " << n << ", " << index << " ) -> ";
   Trace("sygus-sample-ev") << ev << std::endl;
@@ -610,7 +610,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
         // negative
         ret = nm->mkNode(kind::UMINUS, ret);
       }
-      ret = d_rr->rewrite(ret);
+      ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());
       return ret;
     }
@@ -708,7 +708,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
       Node ret = d_tds->mkGeneric(dt, cindex, pre);
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
-      ret = d_rr->rewrite(ret);
+      ret = d_env.getRewriter()->rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
       // A rare case where we generate a non-constant value from constant
       // leaves is (/ n 0).

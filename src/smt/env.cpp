@@ -56,11 +56,6 @@ Env::Env(NodeManager* nm, const Options* opts)
   }
   d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
-  // We initialize the evaluators on the rewriter here. We do this here since
-  // theory/rewriter.h should not include theory/evaluator.h, hence the
-  // rewriter only stores raw pointers to the evaluators that it invokes.
-  d_rewriter->d_evalRew = d_evalRew.get();
-  d_rewriter->d_eval = d_eval.get();
 }
 
 Env::~Env() {}
@@ -139,5 +134,57 @@ const Printer& Env::getPrinter()
 }
 
 std::ostream& Env::getDumpOut() { return *d_options.base.out; }
+
+
+Node Env::evaluate(TNode n,
+                        const std::vector<Node>& args,
+                        const std::vector<Node>& vals,
+                        bool useRewriter) const
+{
+  std::unordered_map<Node, Node> visited;
+  return evaluate(n, args, vals, visited, useRewriter);
+}
+
+Node Env::evaluate(TNode n,
+                        const std::vector<Node>& args,
+                        const std::vector<Node>& vals,
+                        const std::unordered_map<Node, Node>& visited,
+                        bool useRewriter) const
+{
+  if (useRewriter)
+  {
+    return d_evalRew->eval(n, args, vals, visited);
+  }
+  return d_eval->eval(n, args, vals, visited);
+}
+
+Node Env::rewriteViaMethod(TNode n, MethodId idr)
+{
+  if (idr == MethodId::RW_REWRITE)
+  {
+    return d_rewriter->rewrite(n);
+  }
+  if (idr == MethodId::RW_EXT_REWRITE)
+  {
+    return d_rewriter->extendedRewrite(n);
+  }
+  if (idr == MethodId::RW_REWRITE_EQ_EXT)
+  {
+    return d_rewriter->rewriteEqualityExt(n);
+  }
+  if (idr == MethodId::RW_EVALUATE)
+  {
+    return evaluate(n, {}, {}, false);
+  }
+  if (idr == MethodId::RW_IDENTITY)
+  {
+    // does nothing
+    return n;
+  }
+  // unknown rewriter
+  Unhandled() << "Rewriter::rewriteViaMethod: no rewriter for " << idr
+              << std::endl;
+  return n;
+}
 
 }  // namespace cvc5

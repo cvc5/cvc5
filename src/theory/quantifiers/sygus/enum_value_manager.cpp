@@ -106,7 +106,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
           std::ostream* out = nullptr;
           if (options::sygusRewVerify())
           {
-            d_samplerRrV.reset(new SygusSampler(d_env.getRewriter()));
+            d_samplerRrV.reset(new SygusSampler(d_env));
             d_samplerRrV->initializeSygus(
                 d_tds, e, options::sygusSamples(), false);
             // use the default output for the output of sygusRewVerify

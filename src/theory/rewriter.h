@@ -18,7 +18,6 @@
 #pragma once
 
 #include "expr/node.h"
-#include "proof/method_id.h"
 #include "theory/theory_rewriter.h"
 
 namespace cvc5 {
@@ -65,6 +64,9 @@ class Rewriter {
   Node rewriteEqualityExt(TNode node);
 
   /**
+   * !!! Temporary until static access to rewriter is eliminated. This method
+   * should be moved to same place as evaluate (currently in Env).
+   *
    * Extended rewrite of the given node. This method is implemented by a
    * custom ExtendRewriter class that wraps this class to perform custom
    * rewrites (usually those that are not useful for solving, but e.g. useful
@@ -73,27 +75,6 @@ class Rewriter {
    * @param aggr Whether to perform aggressive rewrites.
    */
   Node extendedRewrite(TNode node, bool aggr = true);
-  /**
-   * Evaluate node n under the substitution args -> vals. For details, see
-   * theory/evaluator.h.
-   *
-   * @param n The node to evaluate
-   * @param args The domain of the substitution
-   * @param vals The range of the substitution
-   * @param useRewriter if true, we use this rewriter to rewrite subterms of
-   * n that cannot be evaluated to a constant.
-   * @return the rewritten, evaluated form of n under the given substitution.
-   */
-  Node evaluate(TNode n,
-                const std::vector<Node>& args,
-                const std::vector<Node>& vals,
-                bool useRewriter) const;
-  /** Same as above, with a visited cache. */
-  Node evaluate(TNode n,
-                const std::vector<Node>& args,
-                const std::vector<Node>& vals,
-                const std::unordered_map<Node, Node>& visited,
-                bool useRewriter = true) const;
 
   /**
    * Rewrite with proof production, which is managed by the term conversion
@@ -126,17 +107,6 @@ class Rewriter {
 
   /** Get the theory rewriter for the given id */
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
-
-  /**
-   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
-   * This encapsulates the exact behavior of a REWRITE step in a proof.
-   *
-   * @param n The node to rewrite,
-   * @param idr The method identifier of the rewriter, by default RW_REWRITE
-   * specifying a call to rewrite.
-   * @return The rewritten form of n.
-   */
-  Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
 
  private:
   /**
@@ -191,13 +161,6 @@ class Rewriter {
 
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
-
-  /**
-   * The evaluators to use, for when useRewriter is false (resp. true)
-   * in the evaluate method above.
-   */
-  Evaluator* d_eval;
-  Evaluator* d_evalRew;
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;

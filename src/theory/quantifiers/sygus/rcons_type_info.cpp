@@ -39,7 +39,7 @@ void RConsTypeInfo::initialize(Env& env,
   d_crd.reset(new CandidateRewriteDatabase(env, true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set
   // their number to 0
-  d_sygusSampler.reset(new SygusSampler(env.getRewriter()));
+  d_sygusSampler.reset(new SygusSampler(env));
   d_sygusSampler->initialize(stn, builtinVars, 0);
   d_crd->initialize(builtinVars, d_sygusSampler.get());
 }

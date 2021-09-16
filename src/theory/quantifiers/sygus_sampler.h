@@ -23,10 +23,10 @@
 #include "theory/quantifiers/term_enumeration.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
-
-class Rewriter;
-
 namespace quantifiers {
 
 class TermDbSygus;
@@ -68,7 +68,7 @@ class TermDbSygus;
 class SygusSampler : public LazyTrieEvaluator
 {
  public:
-  SygusSampler(Rewriter* rr);
+  SygusSampler(Env& env);
   ~SygusSampler() override {}
 
   /** initialize
@@ -181,8 +181,8 @@ class SygusSampler : public LazyTrieEvaluator
   void checkEquivalent(Node bv, Node bvr, std::ostream& out);
 
  protected:
-  /** The rewriter we are using to evaluate terms and samples */
-  Rewriter* d_rr;
+  /** The environment we are using to evaluate terms and samples */
+  Env& d_env;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** term enumerator object (used for random sampling) */

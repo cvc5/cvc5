@@ -67,7 +67,7 @@ Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     MethodId idr)
 {
   Node nks = applySubstitution(n, exp, ids, ida);
-  return d_env.getRewriter()->rewriteViaMethod(nks, idr);
+  return d_env.rewriteViaMethod(nks, idr);
 }
 
 bool BuiltinProofRuleChecker::getSubstitutionForLit(Node exp,
@@ -249,7 +249,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node res = d_env.getRewriter()->rewriteViaMethod(args[0], idr);
+    Node res = d_env.rewriteViaMethod(args[0], idr);
     if (res.isNull())
     {
       return Node::null();
@@ -260,7 +260,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Node res = d_env.getRewriter()->rewriteViaMethod(args[0], MethodId::RW_EVALUATE);
+    Node res = d_env.rewriteViaMethod(args[0], MethodId::RW_EVALUATE);
     if (res.isNull())
     {
       return Node::null();

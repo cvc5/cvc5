@@ -22,10 +22,10 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/evaluator.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter_tables.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
+#include "theory/quantifiers/extended_rewrite.h"
 
 using namespace std;
 
@@ -112,28 +112,6 @@ Node Rewriter::extendedRewrite(TNode node, bool aggr)
 {
   quantifiers::ExtendedRewriter er(*this, aggr);
   return er.extendedRewrite(node);
-}
-
-Node Rewriter::evaluate(TNode n,
-                        const std::vector<Node>& args,
-                        const std::vector<Node>& vals,
-                        bool useRewriter) const
-{
-  std::unordered_map<Node, Node> visited;
-  return evaluate(n, args, vals, visited, useRewriter);
-}
-
-Node Rewriter::evaluate(TNode n,
-                        const std::vector<Node>& args,
-                        const std::vector<Node>& vals,
-                        const std::unordered_map<Node, Node>& visited,
-                        bool useRewriter) const
-{
-  if (useRewriter)
-  {
-    return d_evalRew->eval(n, args, vals, visited);
-  }
-  return d_eval->eval(n, args, vals, visited);
 }
 
 TrustNode Rewriter::rewriteWithProof(TNode node,
@@ -499,35 +477,6 @@ void Rewriter::clearCaches()
 #endif
 
   clearCachesInternal();
-}
-
-Node Rewriter::rewriteViaMethod(TNode n, MethodId idr)
-{
-  if (idr == MethodId::RW_REWRITE)
-  {
-    return rewrite(n);
-  }
-  if (idr == MethodId::RW_EXT_REWRITE)
-  {
-    return extendedRewrite(n);
-  }
-  if (idr == MethodId::RW_REWRITE_EQ_EXT)
-  {
-    return rewriteEqualityExt(n);
-  }
-  if (idr == MethodId::RW_EVALUATE)
-  {
-    return evaluate(n, {}, {}, false);
-  }
-  if (idr == MethodId::RW_IDENTITY)
-  {
-    // does nothing
-    return n;
-  }
-  // unknown rewriter
-  Unhandled() << "Rewriter::rewriteViaMethod: no rewriter for " << idr
-              << std::endl;
-  return n;
 }
 
 }  // namespace theory

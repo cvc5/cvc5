@@ -24,6 +24,7 @@
 #include "options/options.h"
 #include "theory/logic_info.h"
 #include "util/statistics_registry.h"
+#include "proof/method_id.h"
 
 namespace cvc5 {
 
@@ -138,6 +139,39 @@ class Env
    */
   std::ostream& getDumpOut();
 
+  /* Rewrite helpers--------------------------------------------------------- */
+  /**
+   * Evaluate node n under the substitution args -> vals. For details, see
+   * theory/evaluator.h.
+   *
+   * @param n The node to evaluate
+   * @param args The domain of the substitution
+   * @param vals The range of the substitution
+   * @param useRewriter if true, we use this rewriter to rewrite subterms of
+   * n that cannot be evaluated to a constant.
+   * @return the rewritten, evaluated form of n under the given substitution.
+   */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                bool useRewriter) const;
+  /** Same as above, with a visited cache. */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                const std::unordered_map<Node, Node>& visited,
+                bool useRewriter = true) const;
+  /**
+   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
+   * This encapsulates the exact behavior of a REWRITE step in a proof.
+   *
+   * @param n The node to rewrite,
+   * @param idr The method identifier of the rewriter, by default RW_REWRITE
+   * specifying a call to rewrite.
+   * @return The rewritten form of n.
+   */
+  Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
+  
  private:
   /* Private initialization ------------------------------------------------- */
 

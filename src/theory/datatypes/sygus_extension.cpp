@@ -1109,7 +1109,7 @@ Node SygusExtension::registerSearchValue(Node a,
               smap.find(tn);
           if (its == smap.end())
           {
-            smap[tn].reset(new quantifiers::SygusSampler(d_env.getRewriter()));
+            smap[tn].reset(new quantifiers::SygusSampler(d_env));
             smap[tn]->initializeSygus(
                 d_tds, nv, options::sygusSamples(), false);
             its = d_sampler[a].find(tn);

@@ -38,7 +38,7 @@ Node EnvObj::evaluate(TNode n,
                       const std::vector<Node>& vals,
                       bool useRewriter) const
 {
-  return d_env.getRewriter()->evaluate(n, args, vals, useRewriter);
+  return d_env.evaluate(n, args, vals, useRewriter);
 }
 Node EnvObj::evaluate(TNode n,
                       const std::vector<Node>& args,
@@ -46,7 +46,7 @@ Node EnvObj::evaluate(TNode n,
                       const std::unordered_map<Node, Node>& visited,
                       bool useRewriter) const
 {
-  return d_env.getRewriter()->evaluate(n, args, vals, visited, useRewriter);
+  return d_env.evaluate(n, args, vals, visited, useRewriter);
 }
 
 const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }

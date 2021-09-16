@@ -35,7 +35,7 @@ ExpressionMinerManager::ExpressionMinerManager(Env& env)
             false),
       d_qg(env),
       d_sols(env),
-      d_sampler(env.getRewriter())
+      d_sampler(env)
 {
 }
 
