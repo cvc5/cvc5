@@ -218,6 +218,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, check_entail_with_with_assumption)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
 {
+  StringsRewriter sr(d_rewriter.get(), nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -238,7 +239,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
 
   // (str.substr "A" x x) --> ""
   Node n = d_nodeManager->mkNode(kind::STRING_SUBSTR, a, x, x);
-  Node res = StringsRewriter(nullptr).rewriteSubstr(n);
+  Node res = sr.rewriteSubstr(n);
   ASSERT_EQ(res, empty);
 
   // (str.substr "A" (+ x 1) x) -> ""
@@ -247,7 +248,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       a,
       d_nodeManager->mkNode(kind::PLUS, x, d_nodeManager->mkConst(Rational(1))),
       x);
-  res = StringsRewriter(nullptr).rewriteSubstr(n);
+  res = sr.rewriteSubstr(n);
   ASSERT_EQ(res, empty);
 
   // (str.substr "A" (+ x (str.len s2)) x) -> ""
@@ -257,12 +258,12 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       d_nodeManager->mkNode(
           kind::PLUS, x, d_nodeManager->mkNode(kind::STRING_LENGTH, s)),
       x);
-  res = StringsRewriter(nullptr).rewriteSubstr(n);
+  res = sr.rewriteSubstr(n);
   ASSERT_EQ(res, empty);
 
   // (str.substr "A" x y) -> (str.substr "A" x y)
   n = d_nodeManager->mkNode(kind::STRING_SUBSTR, a, x, y);
-  res = StringsRewriter(nullptr).rewriteSubstr(n);
+  res = sr.rewriteSubstr(n);
   ASSERT_EQ(res, n);
 
   // (str.substr "ABCD" (+ x 3) x) -> ""
@@ -270,13 +271,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
                             abcd,
                             d_nodeManager->mkNode(kind::PLUS, x, three),
                             x);
-  res = StringsRewriter(nullptr).rewriteSubstr(n);
+  res = sr.rewriteSubstr(n);
   ASSERT_EQ(res, empty);
 
   // (str.substr "ABCD" (+ x 2) x) -> (str.substr "ABCD" (+ x 2) x)
   n = d_nodeManager->mkNode(
       kind::STRING_SUBSTR, abcd, d_nodeManager->mkNode(kind::PLUS, x, two), x);
-  res = StringsRewriter(nullptr).rewriteSubstr(n);
+  res = sr.rewriteSubstr(n);
   ASSERT_EQ(res, n);
 
   // (str.substr (str.substr s x x) x x) -> ""
