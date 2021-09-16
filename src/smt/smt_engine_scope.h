@@ -38,7 +38,7 @@ bool smtEngineInScope();
 /** get the current resource manager */
 ResourceManager* currentResourceManager();
 
-class SmtScope : public NodeManagerScope
+class SmtScope
 {
  public:
   SmtScope(const SmtEngine* smt);
