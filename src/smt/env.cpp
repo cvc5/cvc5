@@ -181,7 +181,7 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
     return n;
   }
   // unknown rewriter
-  Unhandled() << "Rewriter::rewriteViaMethod: no rewriter for " << idr
+  Unhandled() << "Env::rewriteViaMethod: no rewriter for " << idr
               << std::endl;
   return n;
 }
