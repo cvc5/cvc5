@@ -22,10 +22,10 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/evaluator.h"
+#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter_tables.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
-#include "theory/quantifiers/extended_rewrite.h"
 
 using namespace std;
 

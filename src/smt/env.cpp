@@ -135,21 +135,20 @@ const Printer& Env::getPrinter()
 
 std::ostream& Env::getDumpOut() { return *d_options.base.out; }
 
-
 Node Env::evaluate(TNode n,
-                        const std::vector<Node>& args,
-                        const std::vector<Node>& vals,
-                        bool useRewriter) const
+                   const std::vector<Node>& args,
+                   const std::vector<Node>& vals,
+                   bool useRewriter) const
 {
   std::unordered_map<Node, Node> visited;
   return evaluate(n, args, vals, visited, useRewriter);
 }
 
 Node Env::evaluate(TNode n,
-                        const std::vector<Node>& args,
-                        const std::vector<Node>& vals,
-                        const std::unordered_map<Node, Node>& visited,
-                        bool useRewriter) const
+                   const std::vector<Node>& args,
+                   const std::vector<Node>& vals,
+                   const std::unordered_map<Node, Node>& visited,
+                   bool useRewriter) const
 {
   if (useRewriter)
   {

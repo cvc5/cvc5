@@ -22,9 +22,9 @@
 #include <memory>
 
 #include "options/options.h"
+#include "proof/method_id.h"
 #include "theory/logic_info.h"
 #include "util/statistics_registry.h"
-#include "proof/method_id.h"
 
 namespace cvc5 {
 
@@ -171,7 +171,7 @@ class Env
    * @return The rewritten form of n.
    */
   Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
-  
+
  private:
   /* Private initialization ------------------------------------------------- */
 
