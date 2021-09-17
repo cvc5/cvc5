@@ -994,11 +994,11 @@ cdef class Solver:
 
         Can be used in various forms:
 
-        - Given a string "N/D" constructs the corresponding rational.
-        - Given a string "W.D" constructs the reduction of (W * P + D)/P, where P is the appropriate power of 10.
-        - Given a float f, constructs the rational matching f's string representation. This means that mkReal(0.3) gives 3/10 and not the IEEE-754 approximation of 3/10.
-        - Given a string "W" or an integer, constructs that integer.
-        - Given two strings and/or integers N and D, constructs N/D.
+        - Given a string ``"N/D"`` constructs the corresponding rational.
+        - Given a string ``"W.D"`` constructs the reduction of ``(W * P + D)/P``, where ``P`` is the appropriate power of 10.
+        - Given a float ``f``, constructs the rational matching ``f``'s string representation. This means that ``mkReal(0.3)`` gives ``3/10`` and not the IEEE-754 approximation of ``3/10``.
+        - Given a string ``"W"`` or an integer, constructs that integer.
+        - Given two strings and/or integers ``N`` and ``D``, constructs ``N/D``.
         """
         cdef Term term = Term(self)
         if den is None:
@@ -1061,7 +1061,7 @@ cdef class Solver:
 
     def mkString(self, str s, useEscSequences = None):
         """Create a String constant from a `str` which may contain SMT-LIB
-        compatible escape sequences like `\u1234` to encode unicode characters.
+        compatible escape sequences like `\\u1234` to encode unicode characters.
 
         :param s: the string this constant represents
         :param useEscSequences: determines whether escape sequences in `s` should be converted to the corresponding unicode character
@@ -1217,6 +1217,7 @@ cdef class Solver:
 
     def mkRoundingMode(self, RoundingMode rm):
         """Create a roundingmode constant.
+        
         :param rm: the floating point rounding mode this constant represents
         """
         cdef Term term = Term(self)
@@ -1226,8 +1227,8 @@ cdef class Solver:
     def mkUninterpretedConst(self, Sort sort, int index):
         """Create uninterpreted constant.
 
-        @param sort Sort of the constant
-        @param index Index of the constant
+        :param sort: Sort of the constant
+        :param index: Index of the constant
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkUninterpretedConst(sort.csort, index)
@@ -1708,15 +1709,15 @@ cdef class Solver:
 
         Supports two uses:
 
-        - Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)
-        - Term defineFunRec(Term fun, List[Term] bound_vars, Term term, bool glbl)
+        - ``Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
+        - ``Term defineFunRec(Term fun, List[Term] bound_vars, Term term, bool glbl)``
 
 
         SMT-LIB:
 
         .. code-block:: smtlib
 
-            ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+            ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
         Create elements of parameter 'funs' with mkConst().
 
@@ -1752,9 +1753,9 @@ cdef class Solver:
 
         .. code-block:: smtlib
 
-            ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+            ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-        Create elements of parameter 'funs' with mkConst().
+        Create elements of parameter ``funs`` with mkConst().
 
         :param funs: the sorted functions
         :param bound_vars: the list of parameters to the functions
@@ -1960,7 +1961,7 @@ cdef class Solver:
         return term
 
     def pop(self, nscopes=1):
-        """Pop (a) level(s) from the assertion stack.
+        """Pop ``nscopes`` level(s) from the assertion stack.
 
         SMT-LIB:
 
@@ -1973,7 +1974,7 @@ cdef class Solver:
         self.csolver.pop(nscopes)
 
     def push(self, nscopes=1):
-        """ Push (a) level(s) to the assertion stack.
+        """ Push ``nscopes`` level(s) to the assertion stack.
 
         SMT-LIB:
 

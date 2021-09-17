@@ -25,7 +25,7 @@ class SmtLibLexer(RegexLexer):
         'reset', 'reset-assertions', 'set-info', 'set-logic', 'set-option',
         # SyGuS v2
         'declare-var', 'constraint', 'inv-constraint', 'synth-fun',
-        'check-synth', 'synth-inv',
+        'check-synth', 'synth-inv', 'declare-pool',
     ]
     SORTS = [
         'Array', 'BitVec', 'Bool', 'FloatingPoint', 'Float[0-9]+', 'Int',
