@@ -10,14 +10,6 @@ name   = "Separation Logic Theory"
   help       = "check negated spatial assertions"
 
 [[option]]
-  name       = "sepExp"
-  category   = "regular"
-  long       = "sep-exp"
-  type       = "bool"
-  default    = "false"
-  help       = "experimental flag for sep"
-
-[[option]]
   name       = "sepMinimalRefine"
   category   = "regular"
   long       = "sep-min-refine"
