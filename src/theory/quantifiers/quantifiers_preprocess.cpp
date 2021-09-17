@@ -77,8 +77,8 @@ Node QuantifiersPreprocess::computePrenexAgg(
     std::unordered_set<Node> argsSet;
     std::unordered_set<Node> nargsSet;
     Node q;
-    Node nn =
-        QuantifiersRewriter::computePrenex(q, n, argsSet, nargsSet, true, true);
+    QuantifiersRewriter qrew(options());
+    Node nn = qrew.computePrenex(q, n, argsSet, nargsSet, true, true);
     Assert(n != nn || argsSet.empty());
     Assert(n != nn || nargsSet.empty());
     if (n != nn)
