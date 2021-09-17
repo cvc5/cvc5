@@ -24,10 +24,10 @@ RealAlgebraicNumber evaluate(TNode expr, const std::map<Node, RealAlgebraicNumbe
         }
         case Kind::MULT:
         case Kind::NONLINEAR_MULT: {
-            RealAlgebraicNumber aggr;
+            RealAlgebraicNumber aggr(Integer(1));
             for (const auto& n: expr)
             {
-                aggr += evaluate(n, rans);
+                aggr *= evaluate(n, rans);
             }
             return aggr;
         }
