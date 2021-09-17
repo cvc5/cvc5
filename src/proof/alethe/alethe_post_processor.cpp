@@ -24,8 +24,8 @@ namespace cvc5 {
 
 namespace proof {
 
-// This function removes all attributes contained in the list of attributes from
-// a Node res while only recursively updating the node further if
+// This function removes all attributes contained in a given list of attributes
+// from a Node res while only recursively updating the node further if
 // continueRemoval is true.
 static Node removeAttributes(Node res,
                              const std::vector<Kind>& attributes,
