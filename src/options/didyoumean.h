@@ -36,6 +36,9 @@ class CVC5_EXPORT DidYouMean {
   ~DidYouMean() {}
 
   void addWord(std::string word) { d_words.insert(std::move(word)); }
+  void addWords(const std::vector<std::string>& words) {
+    d_words.insert(words.begin(), words.end());
+  }
 
   std::vector<std::string> getMatch(const std::string& input);
 

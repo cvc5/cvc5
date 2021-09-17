@@ -413,14 +413,8 @@ static std::string suggestTags(const std::vector<std::string>& validTags,
                                const std::vector<std::string>& additionalTags)
 {
   DidYouMean didYouMean;
-  for (const auto& tag : validTags)
-  {
-    didYouMean.addWord(tag);
-  }
-  for (const auto& tag : additionalTags)
-  {
-    didYouMean.addWord(tag);
-  }
+  didYouMean.addWords(validTags);
+  didYouMean.addWords(additionalTags);
   return didYouMean.getMatchAsString(inputTag);
 }
 
@@ -432,7 +426,7 @@ void OptionsHandler::enableTraceTag(const std::string& option,
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
-  else if(!Configuration::isTraceTag(optarg.c_str()))
+  else if(!Configuration::isTraceTag(optarg))
   {
     if (optarg == "help")
     {
@@ -460,8 +454,8 @@ void OptionsHandler::enableDebugTag(const std::string& option,
     throw OptionException("debug tags not available in non-tracing builds");
   }
 
-  if (!Configuration::isDebugTag(optarg.c_str())
-      && !Configuration::isTraceTag(optarg.c_str()))
+  if (!Configuration::isDebugTag(optarg)
+      && !Configuration::isTraceTag(optarg))
   {
     if (optarg == "help")
     {
