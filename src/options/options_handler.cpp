@@ -426,7 +426,7 @@ void OptionsHandler::enableTraceTag(const std::string& option,
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
-  else if(!Configuration::isTraceTag(optarg))
+  else if (!Configuration::isTraceTag(optarg))
   {
     if (optarg == "help")
     {
@@ -454,8 +454,7 @@ void OptionsHandler::enableDebugTag(const std::string& option,
     throw OptionException("debug tags not available in non-tracing builds");
   }
 
-  if (!Configuration::isDebugTag(optarg)
-      && !Configuration::isTraceTag(optarg))
+  if (!Configuration::isDebugTag(optarg) && !Configuration::isTraceTag(optarg))
   {
     if (optarg == "help")
     {

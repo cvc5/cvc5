@@ -22,11 +22,10 @@
 #include <sstream>
 #include <string>
 
-#include "base/configuration_private.h"
-#include "base/cvc5config.h"
-
 #include "base/Debug_tags.h"
 #include "base/Trace_tags.h"
+#include "base/configuration_private.h"
+#include "base/cvc5config.h"
 
 using namespace std;
 
