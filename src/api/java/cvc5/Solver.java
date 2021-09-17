@@ -1414,7 +1414,7 @@ public class Solver implements IPointer
    * @param assumption the formula to assume
    * @return the result of the satisfiability check.
    */
-  Result checkSatAssuming(Term assumption)
+  public Result checkSatAssuming(Term assumption)
   {
     long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
     return new Result(this, resultPointer);
