@@ -15,7 +15,10 @@
 
 package cvc5;
 
-public class DatatypeConstructor extends AbstractPointer
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+public class DatatypeConstructor extends AbstractPointer implements Iterable<DatatypeSelector>
 {
   // region construction and destruction
   DatatypeConstructor(Solver solver, long pointer)
@@ -39,7 +42,7 @@ public class DatatypeConstructor extends AbstractPointer
   // endregion
 
   /** @return the name of this Datatype constructor. */
-  String getName()
+  public String getName()
   {
     return getName(pointer);
   }
@@ -50,7 +53,7 @@ public class DatatypeConstructor extends AbstractPointer
    * Get the constructor operator of this datatype constructor.
    * @return the constructor term
    */
-  Term getConstructorTerm()
+  public Term getConstructorTerm()
   {
     long termPointer = getConstructorTerm(pointer);
     return new Term(solver, termPointer);
@@ -81,7 +84,7 @@ public class DatatypeConstructor extends AbstractPointer
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  Term getSpecializedConstructorTerm(Sort retSort)
+  public Term getSpecializedConstructorTerm(Sort retSort)
   {
     long termPointer = getSpecializedConstructorTerm(pointer, retSort.getPointer());
     return new Term(solver, termPointer);
@@ -93,7 +96,7 @@ public class DatatypeConstructor extends AbstractPointer
    * Get the tester operator of this datatype constructor.
    * @return the tester operator
    */
-  Term getTesterTerm()
+  public Term getTesterTerm()
   {
     long termPointer = getTesterTerm(pointer);
     return new Term(solver, termPointer);
@@ -103,7 +106,7 @@ public class DatatypeConstructor extends AbstractPointer
   /**
    * @return the number of selectors (so far) of this Datatype constructor.
    */
-  int getNumSelectors()
+  public int getNumSelectors()
   {
     return getNumSelectors(pointer);
   }
@@ -138,7 +141,7 @@ public class DatatypeConstructor extends AbstractPointer
    * @param name the name of the datatype selector
    * @return a term representing the datatype selector with the given name
    */
-  Term getSelectorTerm(String name)
+  public Term getSelectorTerm(String name)
   {
     long termPointer = getSelectorTerm(pointer, name);
     return new Term(solver, termPointer);
@@ -148,7 +151,7 @@ public class DatatypeConstructor extends AbstractPointer
   /**
    * @return true if this DatatypeConstructor is a null object
    */
-  boolean isNull()
+  public boolean isNull()
   {
     return isNull(pointer);
   }
@@ -159,4 +162,34 @@ public class DatatypeConstructor extends AbstractPointer
    * @return a string representation of this datatype constructor
    */
   protected native String toString(long pointer);
+
+  public class ConstIterator implements Iterator<DatatypeSelector> {
+        private int currentIndex;
+        private int size;
+
+        public ConstIterator() {
+          currentIndex = -1;
+          size = getNumSelectors();
+        }
+
+        @Override
+        public boolean hasNext() {
+          return currentIndex < size - 1;
+        }
+
+        @Override
+        public DatatypeSelector next() {
+          if (currentIndex >= size - 1) {
+            throw new NoSuchElementException();
+          }
+          currentIndex++;
+
+          return getSelector(currentIndex);
+        }
+      }
+
+      @Override
+      public Iterator<DatatypeSelector> iterator() {
+        return new ConstIterator();
+      }
 }

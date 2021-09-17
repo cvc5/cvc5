@@ -428,7 +428,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Create sorts parameter with Solver.mkParamSort().
    * @param params the list of sort parameters to instantiate with
    */
-  Sort instantiate(List<Sort> params)
+  public Sort instantiate(List<Sort> params)
   {
     return instantiate(params.toArray(new Sort[0]));
   }
@@ -438,7 +438,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * Create sorts parameter with Solver.mkParamSort().
    * @param params the list of sort parameters to instantiate with
    */
-  Sort instantiate(Sort[] params)
+  public Sort instantiate(Sort[] params)
   {
     long[] paramsPointers = Utils.getPointers(params);
     long sortPointer = instantiate(pointer, paramsPointers);
@@ -465,7 +465,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * @param sorts the subsorts to be substituted within this sort.
    * @param replacements the sort replacing the substituted subsorts.
    */
-  Sort substitute(Sort[] sorts, Sort[] replacements)
+  public Sort substitute(Sort[] sorts, Sort[] replacements)
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long[] replacementPointers = Utils.getPointers(sorts);
@@ -513,7 +513,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * @return the codomain sort of a constructor sort
    */
-  Sort getConstructorCodomainSort()
+  public Sort getConstructorCodomainSort()
   {
     long sortPointer = getConstructorCodomainSort(pointer);
     return new Sort(solver, sortPointer);

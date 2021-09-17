@@ -15,7 +15,10 @@
 
 package cvc5;
 
-public class Datatype extends AbstractPointer
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+public class Datatype extends AbstractPointer implements Iterable<DatatypeConstructor>
 {
   // region construction and destruction
   Datatype(Solver solver, long pointer)
@@ -195,4 +198,34 @@ public class Datatype extends AbstractPointer
    * @return a string representation of this datatype
    */
   protected native String toString(long pointer);
+
+  public class ConstIterator implements Iterator<DatatypeConstructor> {
+      private int currentIndex;
+      private int size;
+
+      public ConstIterator() {
+        currentIndex = -1;
+        size = getNumConstructors();
+      }
+
+      @Override
+      public boolean hasNext() {
+        return currentIndex < size - 1;
+      }
+
+      @Override
+      public DatatypeConstructor next() {
+        if (currentIndex >= size - 1) {
+          throw new NoSuchElementException();
+        }
+        currentIndex++;
+
+        return getConstructor(currentIndex);
+      }
+    }
+
+    @Override
+    public Iterator<DatatypeConstructor> iterator() {
+      return new ConstIterator();
+    }
 }
