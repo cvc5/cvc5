@@ -27,6 +27,7 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/arith/arith_evaluator.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -325,9 +326,8 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node aval = Rewriter::rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  Node bval = Rewriter::rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  if (aval == bval)
+  Node diff = d_env.getNodeManager()->mkNode(Kind::MINUS, a, b);
+  if (isExpressionZero(d_env, diff, d_arithModelCache))
   {
     return EQUALITY_TRUE_IN_MODEL;
   }
