@@ -857,9 +857,9 @@ cdef class Solver:
         """
         Supports the following arguments:
 
-        - Term mkTerm(Kind kind)
-        - Term mkTerm(Kind kind, Op child1, List[Term] children)
-        - Term mkTerm(Kind kind, List[Term] children)
+        - ``Term mkTerm(Kind kind)``
+        - ``Term mkTerm(Kind kind, Op child1, List[Term] children)``
+        - ``Term mkTerm(Kind kind, List[Term] children)``
 
         where List[Term] can also be comma-separated arguments
         """
@@ -901,11 +901,11 @@ cdef class Solver:
         """
         Supports the following uses:
 
-        - Op mkOp(Kind kind)
-        - Op mkOp(Kind kind, Kind k)
-        - Op mkOp(Kind kind, const string& arg)
-        - Op mkOp(Kind kind, uint32_t arg)
-        - Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
+        - ``Op mkOp(Kind kind)``
+        - ``Op mkOp(Kind kind, Kind k)``
+        - ``Op mkOp(Kind kind, const string& arg)``
+        - ``Op mkOp(Kind kind, uint32_t arg)``
+        - ``Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)``
         """
         cdef Op op = Op(self)
         cdef vector[int] v
@@ -1103,8 +1103,8 @@ cdef class Solver:
         """
         Supports the following arguments:
 
-        - Term mkBitVector(int size, int val=0)
-        - Term mkBitVector(int size, string val, int base)
+        - ``Term mkBitVector(int size, int val=0)``
+        - ``Term mkBitVector(int size, string val, int base)``
 
         :return: a bit-vector literal term
         :param: `size` an integer size.
