@@ -113,12 +113,12 @@ public:
   static bool isBuiltWithPoly();
 
   /* Return a sorted array of the debug tags name */
-  static std::vector<std::string> getDebugTags();
+  static const std::vector<std::string>& getDebugTags();
   /* Test if the given argument is a known debug tag name */
   static bool isDebugTag(const std::string& tag);
 
   /* Return a sorted array of the trace tags name */
-  static std::vector<std::string> getTraceTags();
+  static const std::vector<std::string>& getTraceTags();
   /* Test if the given argument is a known trace tag name */
   static bool isTraceTag(const std::string& tag);
 

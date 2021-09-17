@@ -25,13 +25,8 @@
 #include "base/configuration_private.h"
 #include "base/cvc5config.h"
 
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-#  include "base/Debug_tags.h"
-#endif /* CVC5_DEBUG && CVC5_TRACING */
-
-#ifdef CVC5_TRACING
-#  include "base/Trace_tags.h"
-#endif /* CVC5_TRACING */
+#include "base/Debug_tags.h"
+#include "base/Trace_tags.h"
 
 using namespace std;
 
@@ -254,13 +249,9 @@ bool Configuration::isBuiltWithPoly()
   return IS_POLY_BUILD;
 }
 
-std::vector<std::string> Configuration::getDebugTags()
+const std::vector<std::string>& Configuration::getDebugTags()
 {
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
   return Debug_tags;
-#else  /* CVC5_DEBUG && CVC5_TRACING */
-  return {};
-#endif /* CVC5_DEBUG && CVC5_TRACING */
 }
 
 bool Configuration::isDebugTag(const std::string& tag)
@@ -272,13 +263,9 @@ bool Configuration::isDebugTag(const std::string& tag)
   return false;
 }
 
-std::vector<std::string> Configuration::getTraceTags()
+const std::vector<std::string>& Configuration::getTraceTags()
 {
-#if CVC5_TRACING
   return Trace_tags;
-#else  /* CVC5_TRACING */
-  return {};
-#endif /* CVC5_TRACING */
 }
 
 bool Configuration::isTraceTag(const std::string& tag)
