@@ -603,6 +603,8 @@ cdef class Solver:
         return sort
 
     def getNullSort(self):
+        """:return: sort null
+        """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getNullSort()
         return sort
@@ -636,44 +638,63 @@ cdef class Solver:
         return sort
 
     def mkArraySort(self, Sort indexSort, Sort elemSort):
-        """:return: the array sort
-        :param: `indexSort` the sort of indices
-        :param: `elemSort` the sort of values
+        """Create an array sort.
+
+        :param: indexSort the array index sort
+        :param: elemSort the array element sort
+        :return: the array sort
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkArraySort(indexSort.csort, elemSort.csort)
         return sort
 
     def mkBitVectorSort(self, uint32_t size):
-        """:return: the bit-vector sort
-        :param: `size` the number of bits in the sort
+        """Create a bit-vector sort.
+
+        :param: size the bit-width of the bit-vector sort
+        :return: the bit-vector sort
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkBitVectorSort(size)
         return sort
 
     def mkFloatingPointSort(self, uint32_t exp, uint32_t sig):
-        """:return: the floating-point sort
-        :param: `exp` the number of exponent bits
-        :param: `sig` the number of significand bits
+        """Create a floating-point sort.
+
+        :param: exp the bit-width of the exponent of the floating-point sort.
+        :param: sig the bit-width of the significand of the floating-point sort.
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkFloatingPointSort(exp, sig)
         return sort
 
     def mkDatatypeSort(self, DatatypeDecl dtypedecl):
-        """:return: the datatype sort
-        :param: `dtypdecl` a datatype declaration
+        """Create a datatype sort.
+
+        :param: dtypedecl the datatype declaration from which the sort is created
+        :return: the datatype sort
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
     def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
-        """:return: the sorts for a single datatype declaration
-        :param: `dtypedecls` the list of declarations
-        :param: `unresolvedSorts` the list of unresolved (uninterpreted) sorts which should be resolved to the sorts of the declared datatypes. This list must have the same length as `dtypedecls`.
-        :note: this is how one declares mutually recursive datatypes
+        """Create a vector of datatype sorts using unresolved sorts. The names of
+        the datatype declarations in dtypedecls must be distinct.
+
+        This method is called when the DatatypeDecl objects dtypedecls have been
+        built using "unresolved" sorts.
+
+        We associate each sort in unresolvedSorts with exacly one datatype from
+        dtypedecls. In particular, it must have the same name as exactly one
+        datatype declaration in dtypedecls.
+
+        When constructing datatypes, unresolved sorts are replaced by the datatype
+        sort constructed for the datatype declaration it is associated with.
+
+        :param: dtypedecls the datatype declarations from which the sort is created
+        :param: unresolvedSorts the list of unresolved sorts
+        :return: the datatype sorts
         """
         if unresolvedSorts == None:
             unresolvedSorts = set([])
@@ -699,9 +720,11 @@ cdef class Solver:
         return sorts
 
     def mkFunctionSort(self, sorts, Sort codomain):
-        """:return: the sort for functions from inputs
-        :param: `sorts` the list of input sorts
-        :param: `codomain` the output sort
+        """ Create function sort.
+
+        :param: sorts the sort of the function arguments
+        :param: codomain the sort of the function return value
+        :return: the function sort
         """
 
         cdef Sort sort = Sort(self)
@@ -720,14 +743,21 @@ cdef class Solver:
         return sort
 
     def mkParamSort(self, symbolname):
+        """ Create a sort parameter.
+
+        :param: symbol the name of the sort
+        :return: the sort parameter
+        """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkParamSort(symbolname.encode())
         return sort
 
     @expand_list_arg(num_req_args=0)
     def mkPredicateSort(self, *sorts):
-        """:return: the sort of predicates
-        :param: `sorts` the input sorts, given as a list or as distinct arguments.
+        """Create a predicate sort.
+
+        :param: sorts the list of sorts of the predicate, as a list or as distinct arguments.
+        :return: the predicate sort
         """
         cdef Sort sort = Sort(self)
         cdef vector[c_Sort] v
@@ -738,8 +768,10 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
-        """:return: the sort of records
-        :param: `fields` the fields of the record. A list of `Tuple[str,Sort]` pairs.
+        """Create a record sort
+
+        :param: fields the list of fields of the record, as a list or as distinct arguments
+        :return: the record sort
         """
         cdef Sort sort = Sort(self)
         cdef vector[pair[string, c_Sort]] v
@@ -754,47 +786,62 @@ cdef class Solver:
         return sort
 
     def mkSetSort(self, Sort elemSort):
-        """:return: the sort of sets
-        :param: `elemSort` the sort of elements of the set
+        """Create a set sort.
+
+        :param: elemSort the sort of the set elements
+        :return: the set sort
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkSetSort(elemSort.csort)
         return sort
 
     def mkBagSort(self, Sort elemSort):
-        """:return: the sort of bags (multisets)
-        :param: `elemSort` the sort of elements of the bag
+        """Create a bag sort.
+
+        :param: elemSort the sort of the bag elements
+        :return: the bag sort
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkBagSort(elemSort.csort)
         return sort
 
     def mkSequenceSort(self, Sort elemSort):
-        """:return: the sort of sequences
-        :param: `elemSort` the sort of elements in the sequence
+        """Create a sequence sort.
+
+        :param: elemSort the sort of the sequence elements
+        :return: the sequence sort
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
         return sort
 
     def mkUninterpretedSort(self, str name):
-        """:return: the uninterpretted sort
-        :param: `name` the name of the sort
+        """Create an uninterpreted sort.
+
+        :param: symbol the name of the sort
+        :return: the uninterpreted sort
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkUninterpretedSort(name.encode())
         return sort
 
     def mkSortConstructorSort(self, str symbol, size_t arity):
+        """Create a sort constructor sort.
+
+        :param: symbol the symbol of the sort
+        :param: arity the arity of the sort
+        :return: the sort constructor sort
+        """
         cdef Sort sort = Sort(self)
         sort.csort =self.csolver.mkSortConstructorSort(symbol.encode(), arity)
         return sort
 
     @expand_list_arg(num_req_args=0)
     def mkTupleSort(self, *sorts):
-        """
-        :return: a sort of tuples
-        :param: `sorts`: a list of sorts of elements in the tuple.  Can be provided as a list or as separate arguments.
+        """Create a tuple sort.
+
+        :param: sorts of the elements of the tuple, as a list or as distinct arguments
+        :return: the tuple sort
         """
         cdef Sort sort = Sort(self)
         cdef vector[c_Sort] v
@@ -806,12 +853,13 @@ cdef class Solver:
     @expand_list_arg(num_req_args=1)
     def mkTerm(self, kind_or_op, *args):
         """
-            Supports the following arguments
-                  - Term mkTerm(Kind kind)
-                  - Term mkTerm(Kind kind, Op child1, List[Term] children)
-                  - Term mkTerm(Kind kind, List[Term] children)
+        Supports the following arguments:
 
-            where List[Term] can also be comma-separated arguments
+        - Term mkTerm(Kind kind)
+        - Term mkTerm(Kind kind, Op child1, List[Term] children)
+        - Term mkTerm(Kind kind, List[Term] children)
+
+        where List[Term] can also be comma-separated arguments
         """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
@@ -829,6 +877,12 @@ cdef class Solver:
         return term
 
     def mkTuple(self, sorts, terms):
+        """Create a tuple term. Terms are automatically converted if sorts are compatible.
+
+        :param: sorts The sorts of the elements in the tuple
+        :param: terms The elements in the tuple
+        :return: the tuple Term
+        """
         cdef vector[c_Sort] csorts
         cdef vector[c_Term] cterms
 
@@ -843,12 +897,13 @@ cdef class Solver:
     @expand_list_arg(num_req_args=0)
     def mkOp(self, kind k, *args):
         """
-        Supports the following uses
-              - Op mkOp(Kind kind)
-              - Op mkOp(Kind kind, Kind k)
-              - Op mkOp(Kind kind, const string& arg)
-              - Op mkOp(Kind kind, uint32_t arg)
-              - Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
+        Supports the following uses:
+
+        - Op mkOp(Kind kind)
+        - Op mkOp(Kind kind, Kind k)
+        - Op mkOp(Kind kind, const string& arg)
+        - Op mkOp(Kind kind, uint32_t arg)
+        - Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
         """
         cdef Op op = Op(self)
         cdef vector[int] v
@@ -878,34 +933,47 @@ cdef class Solver:
         return op
 
     def mkTrue(self):
-        """ :return: the `true` boolean term """
+        """Create a Boolean true constant.
+
+        :return: the true constant
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkTrue()
         return term
 
     def mkFalse(self):
-        """ :return: the `false` boolean term """
+        """Create a Boolean false constant.
+
+        :return: the false constant
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkFalse()
         return term
 
     def mkBoolean(self, bint val):
-        """ :return: a boolean term with literal value.
-        :param: `val` the value"""
+        """Create a Boolean constant.
+
+        :return: the Boolean constant
+        :param: val the value of the constant
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkBoolean(val)
         return term
 
     def mkPi(self):
-        """ :return: a real term with value equal to pi.
+        """Create a constant representing the number Pi.
+
+        :return: a constant representing Pi
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkPi()
         return term
 
     def mkInteger(self, val):
-        """ :return: an integer term with literal value
-        :param: `val` the value of the term
+        """Create an integer constant.
+
+        :param: val representation of the constant: either a string or integer
+        :return: a constant of sort Integer
         """
         cdef Term term = Term(self)
         if isinstance(val, str):
@@ -916,19 +984,19 @@ cdef class Solver:
         return term
 
     def mkReal(self, val, den=None):
-        """ :return: a real term with literal value
+        """Create a real constant.
+
         :param: `val` the value of the term. Can be an integer, float, or string. It will be formatted as a string before the term is built.
         :param: `den` if not None, the value is `val`/`den`
+        :return: a real term with literal value
 
-        Can be used in various forms.
-        * Given a string "N/D" constructs the corresponding rational.
-        * Given a string "W.D" constructs the reduction of (W * P + D)/P, where
-          P is the appropriate power of 10.
-        * Given a float f, constructs the rational matching f's string
-          representation. This means that mkReal(0.3) gives 3/10 and not the
-          IEEE-754 approximation of 3/10.
-        * Given a string "W" or an integer, constructs that integer.
-        * Given two strings and/or integers N and D, constructs N/D.
+        Can be used in various forms:
+
+        - Given a string "N/D" constructs the corresponding rational.
+        - Given a string "W.D" constructs the reduction of (W * P + D)/P, where P is the appropriate power of 10.
+        - Given a float f, constructs the rational matching f's string representation. This means that mkReal(0.3) gives 3/10 and not the IEEE-754 approximation of 3/10.
+        - Given a string "W" or an integer, constructs that integer.
+        - Given two strings and/or integers N and D, constructs N/D.
         """
         cdef Term term = Term(self)
         if den is None:
@@ -942,43 +1010,60 @@ cdef class Solver:
         return term
 
     def mkRegexpEmpty(self):
-        """ :return: the empty regex
+        """Create a regular expression empty term.
+
+        :return: the empty term
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkRegexpEmpty()
         return term
 
     def mkRegexpSigma(self):
-        """ :return: the regex that matches any character
+        """Create a regular expression sigma term.
+
+        :return: the sigma term
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkRegexpSigma()
         return term
 
     def mkEmptySet(self, Sort s):
-        """ :return: the empty set
+        """Create a constant representing an empty set of the given sort.
+
+        :param: sort the sort of the set elements.
+        :return: the empty set constant
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkEmptySet(s.csort)
         return term
 
     def mkEmptyBag(self, Sort s):
+        """Create a constant representing an empty bag of the given sort.
+
+        :param: sort the sort of the bag elements.
+        :return: the empty bag constant
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkEmptyBag(s.csort)
         return term
 
     def mkSepNil(self, Sort sort):
-        """ :return: a separation logic nil term
+        """Create a separation logic nil term.
+
         :param: sort the sort of the nil term
+        :return: the separation logic nil term
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkSepNil(sort.csort)
         return term
 
     def mkString(self, str s, useEscSequences = None):
-        """ :return: a string literal term
-        :param: `s` The string
-        :param: `useEscSequences` whether to decode escape sequences
+        """Create a String constant from a `str` which may contain SMT-LIB
+        compatible escape sequences like `\u1234` to encode unicode characters.
+
+        :param: s the string this constant represents
+        :param: useEscSequences determines whether escape sequences in `s` should be converted to the corresponding unicode character
+        :return: the String constant
         """
         cdef Term term = Term(self)
         cdef Py_ssize_t size
@@ -992,16 +1077,20 @@ cdef class Solver:
         return term
 
     def mkEmptySequence(self, Sort sort):
-        """ :return: the empty sequence
-        :param: `sort`: the sort of elements
+        """Create an empty sequence of the given element sort.
+
+        :param: sort The element sort of the sequence.
+        :return: the empty sequence with given element sort.
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkEmptySequence(sort.csort)
         return term
 
     def mkUniverseSet(self, Sort sort):
-        """ :return: a set with all elements
-        :param: `sort` the sort of elements in the set. The set will contain `all` of this sort.
+        """Create a universe set of the given sort.
+
+        :param: sort the sort of the set elements
+        :return: the universe set constant
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkUniverseSet(sort.csort)
@@ -1058,73 +1147,96 @@ cdef class Solver:
         return term
 
     def mkConstArray(self, Sort sort, Term val):
-        """ :return: a constant array
-        :param: `sort` the sort of keys
-        :param: `val` the constant value (a default value for the arrays map)
+        """ Create a constant array with the provided constant value stored at every
+        index
+
+        :param: sort the sort of the constant array (must be an array sort)
+        :param: val the constant value to store (must match the sort's element sort)
+        :return: the constant array term
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkConstArray(sort.csort, val.cterm)
         return term
 
     def mkPosInf(self, int exp, int sig):
-        """ :return: the positive infinity term
-        :param: `exp` the number of exponent bits
-        :param: `sig` the number of significand bits
+        """Create a positive infinity floating-point constant.
+
+        :param: exp Number of bits in the exponent
+        :param: sig Number of bits in the significand
+        :return: the floating-point constant
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkPosInf(exp, sig)
         return term
 
     def mkNegInf(self, int exp, int sig):
-        """ :return: the negative infinity term
-        :param: `exp` the number of exponent bits
-        :param: `sig` the number of significand bits
+        """Create a negative infinity floating-point constant.
+
+        :param: exp Number of bits in the exponent
+        :param: sig Number of bits in the significand
+        :return: the floating-point constant
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkNegInf(exp, sig)
         return term
 
     def mkNaN(self, int exp, int sig):
-        """ :return: the non-a-number term
-        :param: `exp` the number of exponent bits
-        :param: `sig` the number of significand bits
+        """Create a not-a-number (NaN) floating-point constant.
+
+        :param: exp Number of bits in the exponent
+        :param: sig Number of bits in the significand
+        :return: the floating-point constant
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkNaN(exp, sig)
         return term
 
     def mkPosZero(self, int exp, int sig):
-        """ :return: the positive zero term
-        :param: `exp` the number of exponent bits
-        :param: `sig` the number of significand bits
+        """Create a positive zero (+0.0) floating-point constant.
+
+        :param: exp Number of bits in the exponent
+        :param: sig Number of bits in the significand
+        :return: the floating-point constant
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkPosZero(exp, sig)
         return term
 
     def mkNegZero(self, int exp, int sig):
-        """ :return: the negative zero term
-        :param: `exp` the number of exponent bits
-        :param: `sig` the number of significand bits
+        """Create a negative zero (+0.0) floating-point constant.
+
+        :param: exp Number of bits in the exponent
+        :param: sig Number of bits in the significand
+        :return: the floating-point constant
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkNegZero(exp, sig)
         return term
 
     def mkRoundingMode(self, RoundingMode rm):
-        """ :return: a rounding mode term
-        :param: `rm` the rounding mode
+        """Create a roundingmode constant.
+        :param: rm the floating point rounding mode this constant represents
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.crm)
         return term
 
     def mkUninterpretedConst(self, Sort sort, int index):
+        """Create uninterpreted constant.
+
+        @param sort Sort of the constant
+        @param index Index of the constant
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkUninterpretedConst(sort.csort, index)
         return term
 
     def mkAbstractValue(self, index):
+        """Create an abstract value constant.
+        The given index needs to be positive.
+
+        :param: index Index of the abstract value
+        """
         cdef Term term = Term(self)
         try:
             term.cterm = self.csolver.mkAbstractValue(str(index).encode())
@@ -1135,14 +1247,27 @@ cdef class Solver:
         return term
 
     def mkFloatingPoint(self, int exp, int sig, Term val):
+        """Create a floating-point constant.
+
+        :param: exp Size of the exponent
+        :param: sig Size of the significand
+        :param: val Value of the floating-point constant as a bit-vector term
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkFloatingPoint(exp, sig, val.cterm)
         return term
 
     def mkConst(self, Sort sort, symbol=None):
-        """ :return: a constant term
-        :param: `sort` the sort of the constant
-        :param: `symbol` if None, the costant gets a fresh name. Otherwise, this is the name (a string)
+        """
+        Create (first-order) constant (0-arity function symbol).
+        SMT-LIB::
+
+            ( declare-const <symbol> <sort> )
+            ( declare-fun <symbol> ( ) <sort> )
+
+        :param: sort the sort of the constant
+        :param: symbol the name of the constant. If None, a default symbol is used.
+        :return: the first-order constant
         """
         cdef Term term = Term(self)
         if symbol is None:
@@ -1153,9 +1278,12 @@ cdef class Solver:
         return term
 
     def mkVar(self, Sort sort, symbol=None):
-        """ :return: a bound variabe term
-        :param: `sort` the sort of the constant
-        :param: `symbol` the name of the variable
+        """Create a bound variable to be used in a binder (i.e. a quantifier, a
+        lambda, or a witness binder).
+
+        :param: sort the sort of the variable
+        :param: symbol the name of the variable
+        :return: the variable
         """
         cdef Term term = Term(self)
         if symbol is None:
@@ -1167,13 +1295,19 @@ cdef class Solver:
 
     def mkDatatypeConstructorDecl(self, str name):
         """ :return: a datatype constructor declaration
-        :param: `name` the constructors name
+        :param: `name` the constructor's name
         """
         cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl(self)
         ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
         return ddc
 
     def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
+        """Create a datatype declaration.
+
+        :param: name the name of the datatype
+        :param: isCoDatatype true if a codatatype is to be constructed
+        :return: the DatatypeDecl
+        """
         cdef DatatypeDecl dd = DatatypeDecl(self)
         cdef vector[c_Sort] v
 
@@ -1218,9 +1352,13 @@ cdef class Solver:
         return dd
 
     def simplify(self, Term t):
-        """ :return: a simplified term
-        :param: `t` the term to simplify
-        :note: this uses the SMT solver's rewriter to simplify the term. There are no guarantees about its behavior.
+        """Simplify a formula without doing "much" work.  Does not involve the
+        SAT Engine in the simplification, but uses the current definitions,
+        assertions, and the current partial model, if one has been constructed.
+        It also involves theory normalization.
+
+        :param: t the formula to simplify
+        :return: the simplified formula
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.simplify(t.cterm)
@@ -1228,19 +1366,35 @@ cdef class Solver:
 
     def assertFormula(self, Term term):
         """ Assert a formula
-        :param: `term` the formula to assert
+        SMT-LIB::
+
+            ( assert <term> )
+
+        :param: term the formula to assert
         """
         self.csolver.assertFormula(term.cterm)
 
     def checkSat(self):
-        """ Check whether the current assertions can be satisfied
-        :return: a Result
+        """
+        Check satisfiability.
+        SMT-LIB::
+
+            ( check-sat )
+
+        :return: the result of the satisfiability check.
         """
         cdef Result r = Result()
         r.cr = self.csolver.checkSat()
         return r
 
     def mkSygusGrammar(self, boundVars, ntSymbols):
+        """Create a Sygus grammar. The first non-terminal is treated as the
+        starting non-terminal, so the order of non-terminals matters.
+
+        :param: boundVars the parameters to corresponding synth-fun/synth-inv
+        :param: ntSymbols the pre-declaration of the non-terminal symbols
+        :return: the grammar
+        """
         cdef Grammar grammar = Grammar(self)
         cdef vector[c_Term] bvc
         cdef vector[c_Term] ntc
@@ -1252,17 +1406,57 @@ cdef class Solver:
         return grammar
 
     def mkSygusVar(self, Sort sort, str symbol=""):
+        """Append symbol to the current list of universal variables.
+        SyGuS v2::
+
+            ( declare-var <symbol> <sort> )
+
+        :param: sort the sort of the universal variable
+        :param: symbol the name of the universal variable
+        :return: the universal variable
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkSygusVar(sort.csort, symbol.encode())
         return term
 
     def addSygusConstraint(self, Term t):
+        """
+        Add a forumla to the set of Sygus constraints.
+        SyGuS v2::
+
+            ( constraint <term> )
+
+        :param: term the formula to add as a constraint
+        """
         self.csolver.addSygusConstraint(t.cterm)
 
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
+        """Add a set of Sygus constraints to the current state that correspond to an
+        invariant synthesis problem.
+        SyGuS v2::
+
+            ( inv-constraint <inv> <pre> <trans> <post> )
+
+        :param: inv the function-to-synthesize
+        :param: pre the pre-condition
+        :param: trans the transition relation
+        :param: post the post-condition
+        """
         self.csolver.addSygusInvConstraint(inv_f.cterm, pre_f.cterm, trans_f.cterm, post_f.cterm)
 
     def synthFun(self, str symbol, bound_vars, Sort sort, Grammar grammar=None):
+        """
+        Synthesize n-ary function following specified syntactic constraints.
+        SyGuS v2::
+
+            ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
+
+        :param: symbol the name of the function
+        :param: boundVars the parameters to this function
+        :param: sort the sort of the return value of this function
+        :param: grammar the syntactic constraints
+        :return: the function
+        """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
@@ -1274,16 +1468,38 @@ cdef class Solver:
         return term
 
     def checkSynth(self):
+        """
+        Try to find a solution for the synthesis conjecture corresponding to the
+        current list of functions-to-synthesize, universal variables and
+        constraints.
+        SyGuS v2::
+
+            ( check-synth )
+
+        :return: the result of the synthesis conjecture.
+        """
         cdef Result r = Result()
         r.cr = self.csolver.checkSynth()
         return r
 
     def getSynthSolution(self, Term term):
+        """Get the synthesis solution of the given term. This method should be
+        called immediately after the solver answers unsat for sygus input.
+
+        :param: term the term for which the synthesis solution is queried
+        :return: the synthesis solution of the given term
+        """
         cdef Term t = Term(self)
         t.cterm = self.csolver.getSynthSolution(term.cterm)
         return t
 
     def getSynthSolutions(self, list terms):
+        """Get the synthesis solutions of the given terms. This method should be
+        called immediately after the solver answers unsat for sygus input.
+
+        :param: terms the terms for which the synthesis solutions is queried
+        :return: the synthesis solutions of the given terms
+        """
         result = []
         cdef vector[c_Term] vec
         for t in terms:
@@ -1297,6 +1513,17 @@ cdef class Solver:
 
 
     def synthInv(self, symbol, bound_vars, Grammar grammar=None):
+        """
+        Synthesize invariant.
+        SyGuS v2::
+
+            ( synth-inv <symbol> ( <boundVars>* ) <grammar> )
+
+        :param: symbol the name of the invariant
+        :param: boundVars the parameters to this invariant
+        :param: grammar the syntactic constraints
+        :return: the invariant
+        """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
@@ -1309,12 +1536,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
-        """
-            Supports the following arguments:
-                 Result checkSatAssuming(List[Term] assumptions)
+        """ Check satisfiability assuming the given formula.
+        SMT-LIB::
 
-                 where assumptions can also be comma-separated arguments of
-                 type (boolean) Term
+            ( check-sat-assuming ( <prop_literal> ) )
+
+        :param: assumptions the formulas to assume, as a list or as distinct arguments
+        :return: the result of the satisfiability check.
         """
         cdef Result r = Result()
         # used if assumptions is a list of terms
@@ -1326,11 +1554,10 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def checkEntailed(self, *assumptions):
-        """ Has the following signature
-                 Result checkEntailed(List[Term] assumptions)
+        """Check entailment of the given formula w.r.t. the current set of assertions.
 
-        where assumptions can also be comma-separated arguments of
-        type (boolean) Term
+        :param: terms the formulas to check entailment for, as a list or as distinct arguments
+        :return: the result of the entailment check.
         """
         cdef Result r = Result()
         # used if assumptions is a list of terms
@@ -1343,11 +1570,14 @@ cdef class Solver:
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
         """
-            Supports the following arguments:
-                 Sort declareDatatype(str symbol, List[Term] ctors)
+        Create datatype sort.
+        SMT-LIB::
 
-                 where ctors can also be comma-separated arguments of
-                  type DatatypeConstructorDecl
+            ( declare-datatype <symbol> <datatype_decl> )
+
+        :param: symbol the name of the datatype sort
+        :param: ctors the constructor declarations of the datatype sort, as a list or as distinct arguments
+        :return: the datatype sort
         """
         cdef Sort sort = Sort(self)
         cdef vector[c_DatatypeConstructorDecl] v
@@ -1358,6 +1588,16 @@ cdef class Solver:
         return sort
 
     def declareFun(self, str symbol, list sorts, Sort sort):
+        """Declare n-ary function symbol.
+        SMT-LIB::
+
+            ( declare-fun <symbol> ( <sort>* ) <sort> )
+
+        :param: symbol the name of the function
+        :param: sorts the sorts of the parameters to this function
+        :param: sort the sort of the return value of this function
+        :return: the function
+        """
         cdef Term term = Term(self)
         cdef vector[c_Sort] v
         for s in sorts:
@@ -1368,17 +1608,37 @@ cdef class Solver:
         return term
 
     def declareSort(self, str symbol, int arity):
+        """Declare uninterpreted sort.
+        SMT-LIB::
+
+            ( declare-sort <symbol> <numeral> )
+
+        :param: symbol the name of the sort
+        :param: arity the arity of the sort
+        :return: the sort
+        """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
     def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         """
+        Define n-ary function.
         Supports two uses:
-                Term defineFun(str symbol, List[Term] bound_vars,
-                               Sort sort, Term term, bool glbl)
-                Term defineFun(Term fun, List[Term] bound_vars,
-                               Term term, bool glbl)
+
+        - Term defineFun(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)
+        - Term defineFun(Term fun, List[Term] bound_vars, Term term, bool glbl)
+
+        SMT-LIB::
+
+            ( define-fun <function_def> )
+
+        :param: symbol the name of the function
+        :param: bound_vars the parameters to this function
+        :param: sort the sort of the return value of this function
+        :param: term the function body
+        :param: global determines whether this definition is global (i.e. persists when popping the context)
+        :return: the function
         """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
@@ -1400,12 +1660,24 @@ cdef class Solver:
         return term
 
     def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
-        """
+        """Define recursive functions.
+
         Supports two uses:
-                Term defineFunRec(str symbol, List[Term] bound_vars,
-                               Sort sort, Term term, bool glbl)
-                Term defineFunRec(Term fun, List[Term] bound_vars,
-                               Term term, bool glbl)
+
+        - Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)
+        - Term defineFunRec(Term fun, List[Term] bound_vars, Term term, bool glbl)
+
+        SMT-LIB::
+
+            ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+
+        Create elements of parameter 'funs' with mkConst().
+
+        :param: funs the sorted functions
+        :param: bound_vars the list of parameters to the functions
+        :param: terms the list of function bodies of the functions
+        :param: global determines whether this definition is global (i.e. persists when popping the context)
+        :return: the function
         """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
@@ -1427,6 +1699,19 @@ cdef class Solver:
         return term
 
     def defineFunsRec(self, funs, bound_vars, terms):
+        """Define recursive functions.
+        SMT-LIB::
+
+            ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+
+        Create elements of parameter 'funs' with mkConst().
+
+        :param: funs the sorted functions
+        :param: bound_vars the list of parameters to the functions
+        :param: terms the list of function bodies of the functions
+        :param: global determines whether this definition is global (i.e. persists when popping the context)
+        :return: the function
+        """
         cdef vector[c_Term] vf
         cdef vector[vector[c_Term]] vbv
         cdef vector[c_Term] vt
@@ -1445,7 +1730,12 @@ cdef class Solver:
             vf.push_back((<Term?> t).cterm)
 
     def getAssertions(self):
-        """ :return: a list of asserted formulas
+        """Get the list of asserted formulas.
+        SMT-LIB::
+
+            ( get-assertions )
+
+        :return: the list of asserted formulas
         """
         assertions = []
         for a in self.csolver.getAssertions():
@@ -1455,18 +1745,38 @@ cdef class Solver:
         return assertions
 
     def getInfo(self, str flag):
-        """ Get an info flag
-        :param: `flag` the info flag
+        """Get info from the solver.
+        SMT-LIB::
+
+            ( get-info <info_flag> )
+
+        :param: flag the info flag
+        :return: the info
         """
         return self.csolver.getInfo(flag.encode())
 
     def getOption(self, str option):
-        """ :return: the value of an option
-        :param: `option` the option whose value to get
+        """Get the value of a given option.
+        SMT-LIB::
+
+            ( get-option <keyword> )
+
+        :param: option the option for which the value is queried
+        :return: a string representation of the option value
         """
         return self.csolver.getOption(option.encode())
 
     def getUnsatAssumptions(self):
+        """
+        Get the set of unsat ("failed") assumptions.
+        SMT-LIB::
+
+            ( get-unsat-assumptions )
+
+        Requires to enable option 'produce-unsat-assumptions'.
+
+        :return: the set of unsat assumptions.
+        """
         assumptions = []
         for a in self.csolver.getUnsatAssumptions():
             term = Term(self)
@@ -1475,6 +1785,15 @@ cdef class Solver:
         return assumptions
 
     def getUnsatCore(self):
+        """Get the unsatisfiable core.
+        SMT-LIB::
+
+            ( get-unsat-core )
+
+        Requires to enable option 'produce-unsat-cores'.
+
+        :return: a set of terms representing the unsatisfiable core
+        """
         core = []
         for a in self.csolver.getUnsatCore():
             term = Term(self)
@@ -1483,14 +1802,27 @@ cdef class Solver:
         return core
 
     def getValue(self, Term t):
-        """ :return: a literal term, whose value is a function of the current model
-        :param: `t` the (possibly non-literal) term whose value to get
+        """Get the value of the given term in the current model.
+        SMT-LIB::
+
+            ( get-value ( <term> ) )
+
+        :param: term the term for which the value is queried
+        :return: the value of the given term
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.getValue(t.cterm)
         return term
 
     def getModelDomainElements(self, Sort s):
+        """
+        Get the domain elements of uninterpreted sort s in the current model. The
+        current model interprets s as the finite sort whose domain elements are
+        given in the return value of this method.
+
+        :param: s The uninterpreted sort in question
+        :return: the domain elements of s in the current model
+        """
         result = []
         cresult = self.csolver.getModelDomainElements(s.csort)
         for e in cresult:
@@ -1500,22 +1832,55 @@ cdef class Solver:
         return result
 
     def isModelCoreSymbol(self, Term v):
+        """This returns false if the model value of free constant v was not
+        essential for showing the satisfiability of the last call to checkSat
+        using the current model. This method will only return false (for any v)
+        if the model-cores option has been set.
+
+        :param: v The term in question
+        :return: true if v is a model core symbol
+        """
         return self.csolver.isModelCoreSymbol(v.cterm)
 
     def getSeparationHeap(self):
+        """When using separation logic, obtain the term for the heap.
+
+        :return: The term for the heap
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.getSeparationHeap()
         return term
 
-    def declareSeparationHeap(self, Sort locType, Sort dataType):
-        self.csolver.declareSeparationHeap(locType.csort, dataType.csort)
-
     def getSeparationNilTerm(self):
+        """When using separation logic, obtain the term for nil.
+
+        :return: The term for nil
+        """
         cdef Term term = Term(self)
         term.cterm = self.csolver.getSeparationNilTerm()
         return term
 
+    def declareSeparationHeap(self, Sort locType, Sort dataType):
+        """
+        When using separation logic, this sets the location sort and the
+        datatype sort to the given ones. This method should be invoked exactly
+        once, before any separation logic constraints are provided.
+
+        :param: locSort The location sort of the heap
+        :param: dataSort The data sort of the heap
+        """
+        self.csolver.declareSeparationHeap(locType.csort, dataType.csort)
+
     def declarePool(self, str symbol, Sort sort, initValue):
+        """Declare a symbolic pool of terms with the given initial value.
+        SMT-LIB::
+
+            ( declare-pool <symbol> <sort> ( <term>* ) )
+
+        :param: symbol The name of the pool
+        :param: sort The sort of the elements of the pool.
+        :param: initValue The initial value of the pool
+        """
         cdef Term term = Term(self)
         cdef vector[c_Term] niv
         for v in initValue:
@@ -1524,40 +1889,64 @@ cdef class Solver:
         return term
 
     def pop(self, nscopes=1):
-        """ Exit assertion contexts
-        :param: `nscopes` the number of contexts to exit
+        """Pop (a) level(s) from the assertion stack.
+        SMT-LIB::
+
+            ( pop <numeral> )
+
+        :param: nscopes the number of levels to pop
         """
         self.csolver.pop(nscopes)
 
     def push(self, nscopes=1):
-        """ Enter assertion contexts
-        :param: `nscopes` the number of contexts to enter
-        :note: assertions in a pushed context can be popped to be removed
+        """ Push (a) level(s) to the assertion stack.
+        SMT-LIB::
+
+            ( push <numeral> )
+
+        :param: nscopes the number of levels to push
         """
         self.csolver.push(nscopes)
 
     def resetAssertions(self):
-        """ Remove all assertions
+        """
+        Remove all assertions.
+        SMT-LIB::
+
+            ( reset-assertions )
+
         """
         self.csolver.resetAssertions()
 
     def setInfo(self, str keyword, str value):
-        """ Set an info flag
-        :param: `keyword` the info flag
-        :param: `value` its value
+        """Set info.
+        SMT-LIB::
+
+            ( set-info <attribute> )
+
+        :param: keyword the info flag
+        :param: value the value of the info flag
         """
         self.csolver.setInfo(keyword.encode(), value.encode())
 
     def setLogic(self, str logic):
-        """ Set the solver's logic
-        :param: `logic` e.g., "QF_ABV"
+        """Set logic.
+        SMT-LIB::
+
+            ( set-logic <symbol> )
+
+        :param: logic the logic to set
         """
         self.csolver.setLogic(logic.encode())
 
     def setOption(self, str option, str value):
-        """ Set an option's value
-        :param: `option` the option
-        :param: `value` its value
+        """Set option.
+        SMT-LIB::
+
+            ( set-option <option> )
+
+        :param: option the option name
+        :param: value the option value
         """
         self.csolver.setOption(option.encode(), value.encode())
 
