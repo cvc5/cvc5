@@ -255,11 +255,8 @@ const std::vector<std::string>& Configuration::getDebugTags()
 
 bool Configuration::isDebugTag(const std::string& tag)
 {
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
   return std::find(Debug_tags.begin(), Debug_tags.end(), tag)
          != Debug_tags.end();
-#endif /* CVC5_DEBUG && CVC5_TRACING */
-  return false;
 }
 
 const std::vector<std::string>& Configuration::getTraceTags()
@@ -269,11 +266,8 @@ const std::vector<std::string>& Configuration::getTraceTags()
 
 bool Configuration::isTraceTag(const std::string& tag)
 {
-#if CVC5_TRACING
   return std::find(Trace_tags.begin(), Trace_tags.end(), tag)
          != Trace_tags.end();
-#endif /* CVC5_TRACING */
-  return false;
 }
 
 bool Configuration::isGitBuild() {
