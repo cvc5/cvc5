@@ -2899,11 +2899,9 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
 
   if(d_qflraStatus != Result::UNSAT){
     static const int64_t pass2Limit = 20;
-    int64_t oldCap = options().arith.arithStandardCheckVarOrderPivots;
-    Options::current().arith.arithStandardCheckVarOrderPivots = pass2Limit;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
+    simplex.setVarOrderPivotLimit(pass2Limit);
     d_qflraStatus = simplex.findModel(false);
-    Options::current().arith.arithStandardCheckVarOrderPivots = oldCap;
   }
 
   if(Debug.isOn("arith::importSolution")){
