@@ -1421,7 +1421,7 @@ cdef class Solver:
 
     def addSygusConstraint(self, Term t):
         """
-        Add a forumla to the set of Sygus constraints.
+        Add a formula to the set of SyGuS constraints.
         SyGuS v2::
 
             ( constraint <term> )
@@ -1431,7 +1431,7 @@ cdef class Solver:
         self.csolver.addSygusConstraint(t.cterm)
 
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
-        """Add a set of Sygus constraints to the current state that correspond to an
+        """Add a set of SyGuS constraints to the current state that correspond to an
         invariant synthesis problem.
         SyGuS v2::
 
@@ -1626,8 +1626,8 @@ cdef class Solver:
         Define n-ary function.
         Supports two uses:
 
-        - Term defineFun(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)
-        - Term defineFun(Term fun, List[Term] bound_vars, Term term, bool glbl)
+        - ``Term defineFun(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
+        - ``Term defineFun(Term fun, List[Term] bound_vars, Term term, bool glbl)``
 
         SMT-LIB::
 
