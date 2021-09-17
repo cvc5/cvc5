@@ -786,7 +786,7 @@ public class Solver implements IPointer
    * @param val the value of the constant
    * @return a constant of sort Integer
    */
-  Term mkInteger(long val)
+  public Term mkInteger(long val)
   {
     long termPointer = mkInteger(pointer, val);
     return new Term(this, termPointer);
