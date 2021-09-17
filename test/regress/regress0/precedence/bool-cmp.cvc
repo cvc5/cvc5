@@ -1,6 +1,0 @@
-% EXPECT: entailed
-% Simple test for right precedence of comparisons and booleans
-
-x , y, z: INT;
-
-QUERY (x > y AND y = z OR x < z) <=> (((x > y) AND (y = z)) OR (x < z));
