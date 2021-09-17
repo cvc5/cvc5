@@ -71,7 +71,7 @@ bool isExpressionZero(Env& env, Node expr, const std::map<Node, Node>& model)
     }
     expr = expr.substitute(nodes.begin(), nodes.end(), repls.begin(), repls.end());
     expr = env.getRewriter()->rewrite(expr);
-    return evaluate(expr, rans)
+    return isZero(evaluate(expr, rans));
 }
 
 
