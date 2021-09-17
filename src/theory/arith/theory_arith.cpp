@@ -322,6 +322,10 @@ void TheoryArith::presolve(){
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  if (a == b)
+  {
+    return EQUALITY_TRUE_IN_MODEL;
+  }
   if (d_arithModelCache.empty())
   {
     return d_internal->getEqualityStatus(a,b);
