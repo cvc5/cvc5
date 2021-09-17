@@ -118,6 +118,8 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   ~AletheProofPostprocessFinalCallback() {}
   /** Should proof pn be updated? It should, if the last step is printed as (cl
    * false) or if it is an assumption (in that case it is printed as false).
+   * Since the proof node should not be traversed, this method will always set
+   * continueUpdate to false.
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
