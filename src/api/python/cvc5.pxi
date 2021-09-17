@@ -1,5 +1,6 @@
 from collections import defaultdict, Set
 from fractions import Fraction
+from functools import wraps
 import sys
 
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
@@ -49,6 +50,7 @@ def expand_list_arg(num_req_args=0):
     if it's a list, it expands it before calling the function.
     """
     def decorator(func):
+        @wraps(func)
         def wrapper(owner, *args):
             if len(args) == num_req_args + 1 and \
                isinstance(args[num_req_args], list):
@@ -433,7 +435,7 @@ cdef class Op:
 
     def getKind(self):
         return kind(<int> self.cop.getKind())
-    
+
     def isIndexed(self):
         return self.cop.isIndexed()
 
@@ -1260,7 +1262,10 @@ cdef class Solver:
     def mkConst(self, Sort sort, symbol=None):
         """
         Create (first-order) constant (0-arity function symbol).
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( declare-const <symbol> <sort> )
             ( declare-fun <symbol> ( ) <sort> )
@@ -1366,7 +1371,10 @@ cdef class Solver:
 
     def assertFormula(self, Term term):
         """ Assert a formula
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( assert <term> )
 
@@ -1377,7 +1385,10 @@ cdef class Solver:
     def checkSat(self):
         """
         Check satisfiability.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( check-sat )
 
@@ -1407,7 +1418,10 @@ cdef class Solver:
 
     def mkSygusVar(self, Sort sort, str symbol=""):
         """Append symbol to the current list of universal variables.
-        SyGuS v2::
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
 
             ( declare-var <symbol> <sort> )
 
@@ -1422,7 +1436,10 @@ cdef class Solver:
     def addSygusConstraint(self, Term t):
         """
         Add a formula to the set of SyGuS constraints.
-        SyGuS v2::
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
 
             ( constraint <term> )
 
@@ -1433,7 +1450,10 @@ cdef class Solver:
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
         """Add a set of SyGuS constraints to the current state that correspond to an
         invariant synthesis problem.
-        SyGuS v2::
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
 
             ( inv-constraint <inv> <pre> <trans> <post> )
 
@@ -1447,7 +1467,10 @@ cdef class Solver:
     def synthFun(self, str symbol, bound_vars, Sort sort, Grammar grammar=None):
         """
         Synthesize n-ary function following specified syntactic constraints.
-        SyGuS v2::
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
 
             ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
 
@@ -1472,7 +1495,10 @@ cdef class Solver:
         Try to find a solution for the synthesis conjecture corresponding to the
         current list of functions-to-synthesize, universal variables and
         constraints.
-        SyGuS v2::
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
 
             ( check-synth )
 
@@ -1515,7 +1541,10 @@ cdef class Solver:
     def synthInv(self, symbol, bound_vars, Grammar grammar=None):
         """
         Synthesize invariant.
-        SyGuS v2::
+
+        SyGuS v2:
+
+        .. code-block:: smtlib
 
             ( synth-inv <symbol> ( <boundVars>* ) <grammar> )
 
@@ -1537,7 +1566,10 @@ cdef class Solver:
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
         """ Check satisfiability assuming the given formula.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( check-sat-assuming ( <prop_literal> ) )
 
@@ -1571,7 +1603,10 @@ cdef class Solver:
     def declareDatatype(self, str symbol, *ctors):
         """
         Create datatype sort.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( declare-datatype <symbol> <datatype_decl> )
 
@@ -1589,7 +1624,10 @@ cdef class Solver:
 
     def declareFun(self, str symbol, list sorts, Sort sort):
         """Declare n-ary function symbol.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( declare-fun <symbol> ( <sort>* ) <sort> )
 
@@ -1609,7 +1647,10 @@ cdef class Solver:
 
     def declareSort(self, str symbol, int arity):
         """Declare uninterpreted sort.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( declare-sort <symbol> <numeral> )
 
@@ -1629,7 +1670,10 @@ cdef class Solver:
         - ``Term defineFun(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
         - ``Term defineFun(Term fun, List[Term] bound_vars, Term term, bool glbl)``
 
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( define-fun <function_def> )
 
@@ -1667,7 +1711,10 @@ cdef class Solver:
         - Term defineFunRec(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)
         - Term defineFunRec(Term fun, List[Term] bound_vars, Term term, bool glbl)
 
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
 
@@ -1700,7 +1747,10 @@ cdef class Solver:
 
     def defineFunsRec(self, funs, bound_vars, terms):
         """Define recursive functions.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
 
@@ -1731,7 +1781,10 @@ cdef class Solver:
 
     def getAssertions(self):
         """Get the list of asserted formulas.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( get-assertions )
 
@@ -1746,7 +1799,10 @@ cdef class Solver:
 
     def getInfo(self, str flag):
         """Get info from the solver.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( get-info <info_flag> )
 
@@ -1757,7 +1813,10 @@ cdef class Solver:
 
     def getOption(self, str option):
         """Get the value of a given option.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( get-option <keyword> )
 
@@ -1769,7 +1828,10 @@ cdef class Solver:
     def getUnsatAssumptions(self):
         """
         Get the set of unsat ("failed") assumptions.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( get-unsat-assumptions )
 
@@ -1786,7 +1848,10 @@ cdef class Solver:
 
     def getUnsatCore(self):
         """Get the unsatisfiable core.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( get-unsat-core )
 
@@ -1803,7 +1868,10 @@ cdef class Solver:
 
     def getValue(self, Term t):
         """Get the value of the given term in the current model.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( get-value ( <term> ) )
 
@@ -1873,7 +1941,10 @@ cdef class Solver:
 
     def declarePool(self, str symbol, Sort sort, initValue):
         """Declare a symbolic pool of terms with the given initial value.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( declare-pool <symbol> <sort> ( <term>* ) )
 
@@ -1890,7 +1961,10 @@ cdef class Solver:
 
     def pop(self, nscopes=1):
         """Pop (a) level(s) from the assertion stack.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( pop <numeral> )
 
@@ -1900,7 +1974,10 @@ cdef class Solver:
 
     def push(self, nscopes=1):
         """ Push (a) level(s) to the assertion stack.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( push <numeral> )
 
@@ -1911,7 +1988,10 @@ cdef class Solver:
     def resetAssertions(self):
         """
         Remove all assertions.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( reset-assertions )
 
@@ -1920,7 +2000,10 @@ cdef class Solver:
 
     def setInfo(self, str keyword, str value):
         """Set info.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( set-info <attribute> )
 
@@ -1931,7 +2014,10 @@ cdef class Solver:
 
     def setLogic(self, str logic):
         """Set logic.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( set-logic <symbol> )
 
@@ -1941,7 +2027,10 @@ cdef class Solver:
 
     def setOption(self, str option, str value):
         """Set option.
-        SMT-LIB::
+
+        SMT-LIB:
+
+        .. code-block:: smtlib
 
             ( set-option <option> )
 
@@ -2044,7 +2133,7 @@ cdef class Sort:
 
     def isBag(self):
         return self.csort.isBag()
-    
+
     def isSequence(self):
         return self.csort.isSequence()
 
@@ -2114,7 +2203,7 @@ cdef class Sort:
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getTesterCodomainSort()
         return sort
-    
+
     def getFunctionArity(self):
         return self.csort.getFunctionArity()
 
@@ -2276,7 +2365,7 @@ cdef class Term:
         # lists for substitutions
         cdef vector[c_Term] ces
         cdef vector[c_Term] creplacements
-        
+
         # normalize the input parameters to be lists
         if isinstance(term_or_list_1, list):
             assert isinstance(term_or_list_2, list)
@@ -2295,7 +2384,7 @@ cdef class Term:
             # add the single elements to the vectors
             ces.push_back((<Term?> term_or_list_1).cterm)
             creplacements.push_back((<Term?> term_or_list_2).cterm)
-        
+
         # call the API substitute method with lists
         term.cterm = self.cterm.substitute(ces, creplacements)
         return term
@@ -2378,19 +2467,19 @@ cdef class Term:
 
     def isFloatingPointPosZero(self):
         return self.cterm.isFloatingPointPosZero()
-    
+
     def isFloatingPointNegZero(self):
         return self.cterm.isFloatingPointNegZero()
-    
+
     def isFloatingPointPosInf(self):
         return self.cterm.isFloatingPointPosInf()
-    
+
     def isFloatingPointNegInf(self):
         return self.cterm.isFloatingPointNegInf()
-    
+
     def isFloatingPointNaN(self):
         return self.cterm.isFloatingPointNaN()
-    
+
     def isFloatingPointValue(self):
         return self.cterm.isFloatingPointValue()
 
@@ -2424,7 +2513,7 @@ cdef class Term:
 
     def isUninterpretedValue(self):
         return self.cterm.isUninterpretedValue()
- 
+
     def getUninterpretedValue(self):
         cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedValue()
         cdef Sort sort = Sort(self.solver)
