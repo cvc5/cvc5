@@ -99,6 +99,225 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
+    // ======== Scope (a binder for assumptions)
+    // Children: (P:F)
+    // Arguments: (F1, ..., Fn)
+    // --------------
+    // Conclusion: (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) if F is false
+    //
+    // proof rule: anchor
+    // proof node: (VP1:(cl (not F1) ... (not Fn) F))
+    // proof term: (cl (not F1) ... (not Fn) F)
+    // premises: P
+    // args: (F1, ..., Fn)
+    //
+    // Repeat the following two step for i=1 to n:
+    //
+    // proof rule: and_pos
+    // proof node: (VP2_i:(cl (not (and F1 ... Fn)) Fi))
+    // proof term: (cl (not (and F1 ... Fn)) Fi)
+    // premises: ()
+    // args: ()
+    //
+    // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
+    // Fn)) for i times
+    //
+    // proof rule: resolution
+    // proof node: (VP2a:(cl F (not (and F1 ... Fn))^n))
+    // proof term: (cl F (not (and F1 ... Fn))^n)
+    // premises: VP1, VP2_i for all i in {1..n},
+    // args: ()
+    //
+    // proof rule: reorder
+    // proof node: (VP2b:(cl (not (and F1 ... Fn))^n F))
+    // proof term: (cl (not (and F1 ... Fn))^n F)
+    // premises: VP2a
+    // args: ()
+    //
+    // proof rule: duplicated_literals
+    // proof node: (VP3:(cl (not (and F1 ... Fn)) F))
+    // proof term: (cl (not (and F1 ... Fn)) F)
+    // premises: VP2a or VP2b
+    // args: ()
+    //
+    // proof rule: implies_neg1
+    // proof node: (VP4:(cl (=> (and F1 ... Fn) F) (and F1 ... Fn)))
+    // proof term: (cl (=> (and F1 ... Fn) F) (and F1 ... Fn))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof node: (VP5:(cl (=> (and F1 ... Fn) F) F))
+    // proof term: (cl (=> (and F1 ... Fn) F) F)
+    // premises: VP4 VP3
+    // args: ()
+    //
+    // proof rule: implies_neg2
+    // proof node: (VP6:(cl (=> (and F1 ... Fn) F) (not F)))
+    // proof term: (cl (=> (and F1 ... Fn) F) (not F))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof node: (VP7:(cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F)))
+    // proof term: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
+    // premises: VP5 VP6
+    // args: ()
+    //
+    // If F = false:
+    //
+    // proof rule: duplicated_literals
+    // proof node: (VP8:(cl (=> (and F1 ... Fn) F)))
+    // proof term: (cl (=> (and F1 ... Fn) F))
+    // premises: VP7
+    // args: ()
+    //
+    // proof rule: implies_simplify
+    // proof node:
+    //   (VP9:(cl (= (=> (and F1 ... Fn) false) (not (and F1 ...Fn)))))
+    // proof term:
+    //   (cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn))))
+    // premises: ()
+    // args: ()
+    //
+    // proof rule: equiv1
+    // proof node:
+    //   (VP10:(cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn))))
+    // proof term:
+    //   (cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn)))
+    // premises: VP9
+    // args: ()
+    //
+    // proof rule: resolution
+    // proof node: (or (not (and F1 ... Fn)))
+    // proof term: (cl (not (and F1 ... Fn)))
+    // premises: VP8 VP10
+    // args: ()
+    //
+    // Otherwise:
+    //
+    // proof rule: duplicated_literals
+    // proof node: (or (=> (and F1 ... Fn) F))
+    // proof term: (cl (=> (and F1 ... Fn) F))
+    // premises: VP7
+    // args: ()
+    case PfRule::SCOPE:
+    {
+      bool success = true;
+
+      // Build vp1
+      std::vector<Node> negNode;
+      std::vector<Node> sanitized_args;
+      for (Node arg : args)
+      {
+        negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
+        sanitized_args.push_back(removeAttributes(
+            arg, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
+              return expr::hasClosure(n);
+            }));
+      }
+      negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
+      negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
+      Node vp1 = d_nm->mkNode(kind::SEXPR, negNode);
+      success &= addAletheStep(AletheRule::ANCHOR_SUBPROOF,
+                               vp1,
+                               vp1,
+                               children,
+                               sanitized_args,
+                               *cdp);
+
+      // Build vp2i
+      Node andNode;
+      if (args.size() != 1)
+      {
+        andNode = d_nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
+      }
+      else
+      {
+        andNode = args[0];  // F1
+      }
+      std::vector<Node> premisesVP2 = {vp1};
+      std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
+      Node vp2_i;
+      for (long unsigned int i = 0; i < args.size(); i++)
+      {
+        vp2_i = d_nm->mkNode(kind::SEXPR,
+                             d_cl,
+                             andNode.notNode(),
+                             args[i]);  // (cl (not (and F1 ... Fn)) Fi)
+        success &=
+            addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
+        premisesVP2.push_back(vp2_i);
+        notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
+      }
+
+      Node vp2a =
+          d_nm->mkNode(kind::SEXPR, notAnd);  // (cl F (not (and F1 ... Fn))^n)
+      success &= addAletheStep(
+          AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
+
+      notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n F)
+      notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
+      Node vp2b = d_nm->mkNode(kind::SEXPR, notAnd);
+      success &=
+          addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
+
+      Node vp3 =
+          d_nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
+      success &= addAletheStep(
+          AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
+
+      Node vp8 = d_nm->mkNode(
+          kind::SEXPR, d_cl, d_nm->mkNode(kind::IMPLIES, andNode, children[0]));
+
+      Node vp4 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], andNode);
+      success &=
+          addAletheStep(AletheRule::IMPLIES_NEG1, vp4, vp4, {}, {}, *cdp);
+
+      Node vp5 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], children[0]);
+      success &=
+          addAletheStep(AletheRule::RESOLUTION, vp5, vp5, {vp4, vp3}, {}, *cdp);
+
+      Node vp6 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], children[0].notNode());
+      success &=
+          addAletheStep(AletheRule::IMPLIES_NEG2, vp6, vp6, {}, {}, *cdp);
+
+      Node vp7 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], vp8[1]);
+      success &=
+          addAletheStep(AletheRule::RESOLUTION, vp7, vp7, {vp5, vp6}, {}, *cdp);
+
+      if (children[0] != d_nm->mkConst(false))
+      {
+        success &= addAletheStep(
+            AletheRule::DUPLICATED_LITERALS, res, vp8, {vp7}, {}, *cdp);
+      }
+      else
+      {
+        success &= addAletheStep(
+            AletheRule::DUPLICATED_LITERALS, vp8, vp8, {vp7}, {}, *cdp);
+
+        Node vp9 =
+            d_nm->mkNode(kind::SEXPR,
+                         d_cl,
+                         d_nm->mkNode(kind::EQUAL, vp8[1], andNode.notNode()));
+        success &=
+            addAletheStep(AletheRule::IMPLIES_SIMPLIFY, vp9, vp9, {}, {}, *cdp);
+
+        Node vp10 = d_nm->mkNode(
+            kind::SEXPR, d_cl, vp8[1].notNode(), andNode.notNode());
+        success &=
+            addAletheStep(AletheRule::EQUIV1, vp10, vp10, {vp9}, {}, *cdp);
+
+        success &= addAletheStep(AletheRule::RESOLUTION,
+                                 res,
+                                 d_nm->mkNode(kind::SEXPR, d_cl, res),
+                                 {vp8, vp10},
+                                 {},
+                                 *cdp);
+      }
+
+      return success;
+    }
     default:
     {
       std::cout << "Not implemented yet " << id << std::endl;
