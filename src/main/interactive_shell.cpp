@@ -112,13 +112,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
     ::using_history();
 
     std::string lang = solver->getOption("input-language");
-    if (lang == "LANG_CVC")
-    {
-      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history";
-      commandsBegin = cvc_commands;
-      commandsEnd = cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
-    }
-    else if (lang == "LANG_TPTP")
+    if (lang == "LANG_TPTP")
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
       commandsBegin = tptp_commands;
