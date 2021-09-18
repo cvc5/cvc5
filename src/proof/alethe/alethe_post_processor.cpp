@@ -82,6 +82,23 @@ bool AletheProofPostprocessCallback::update(Node res,
 
   switch (id)
   {
+    //================================================= Core rules
+    //======================== Assume and Scope
+    // ======== Assumption (a leaf)
+    // Children: none
+    // Arguments: (F)
+    // --------------
+    // Conclusion: F
+    //
+    // proof rule: assume
+    // proof node: (VP:F)
+    // proof term: F
+    // premises: ()
+    // args: ()
+    case PfRule::ASSUME:
+    {
+      return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
