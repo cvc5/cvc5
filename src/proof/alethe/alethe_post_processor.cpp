@@ -61,8 +61,8 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
 }
 
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
+                                                  const std::vector<Node>& fa,
+                                                  bool& continueUpdate)
 {
   return pn->getRule() != PfRule::ALETHE_RULE;
 }
@@ -84,7 +84,6 @@ bool AletheProofPostprocessCallback::update(Node res,
   {
     default:
     {
-      std::cout << "Not implemented yet " << id << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
@@ -120,8 +119,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
   new_args.push_back(sanitized_conclusion);
   new_args.insert(new_args.end(), args.begin(), args.end());
   Trace("alethe-proof") << "... add Alethe step " << res << " / " << conclusion
-                       << " " << rule << " " << children << " / " << new_args
-                       << std::endl;
+                        << " " << rule << " " << children << " / " << new_args
+                        << std::endl;
   return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
 }
 
