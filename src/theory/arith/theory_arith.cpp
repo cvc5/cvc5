@@ -41,7 +41,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
           statisticsRegistry().registerTimer("theory::arith::ppRewriteTimer")),
       d_astate(env, valuation),
       d_im(env, *this, d_astate, d_pnm),
-      d_ppre(context(), d_pnm),
+      d_ppre(d_env),
       d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
       d_internal(new TheoryArithPrivate(*this, env, d_bab)),
