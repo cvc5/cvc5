@@ -1037,22 +1037,25 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
+  else if ((p.d_kind == api::APPLY_SELECTOR || p.d_kind == api::APPLY_UPDATER)
+           && !p.d_expr.isNull())
   {
     // tuple selector case
     if (!p.d_expr.isUInt64Value())
     {
-      parseError("index of tupSel is larger than size of uint64_t");
+      parseError(
+          "index of tuple select or update is larger than size of uint64_t");
     }
     uint64_t n = p.d_expr.getUInt64Value();
-    if (args.size() != 1)
+    if (args.size() != (p.d_kind == api::APPLY_SELECTOR ? 1 : 2))
     {
-      parseError("tupSel should only be applied to one tuple argument");
+      parseError(
+          "wrong number of arguments for tuple select or update");
     }
     api::Sort t = args[0].getSort();
     if (!t.isTuple())
     {
-      parseError("tupSel applied to non-tuple");
+      parseError("tuple select or update applied to non-tuple");
     }
     size_t length = t.getTupleLength();
     if (n >= length)
@@ -1062,8 +1065,17 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const api::Datatype& dt = t.getDatatype();
-    api::Term ret = d_solver->mkTerm(
-        api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+    api::Term ret;
+    if (p.d_kind == api::APPLY_SELECTOR)
+    {
+      ret = d_solver->mkTerm(
+          api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+    }
+    else
+    {
+      ret = d_solver->mkTerm(
+          api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
+    }
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
