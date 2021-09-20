@@ -44,10 +44,16 @@ def collect_tags(basedir):
 def write_file(filename, type, tags):
     """Render the header file to the given filename."""
     with open(filename, 'w') as out:
-        out.write('static char const* const {}_tags[] = {{\n'.format(type))
+        out.write('static const std::vector<std::string> {}_tags = {{\n'.format(type))
+        if type == 'Debug':
+            out.write('#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)\n')
+        elif type == 'Trace':
+            out.write('#if defined(CVC5_TRACING)\n')
+        else:
+            raise 'type is neither Debug nor Trace: {}'.format(type)
         for t in tags:
             out.write('"{}",\n'.format(t))
-        out.write('nullptr\n')
+        out.write('#endif\n')
         out.write('};\n')
 
 
