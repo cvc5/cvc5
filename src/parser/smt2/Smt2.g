@@ -1701,6 +1701,13 @@ identifier[cvc5::ParseOp& p]
         }
         p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
       }
+    | TUPLE_UPDATE_TOK
+      {
+        // we adopt a special syntax (_ tuple_update n)
+        p.d_kind = api::APPLY_UPDATER;
+        // put m in expr so that the caller can deal with this case
+        //p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
+      }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
         p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
@@ -2306,6 +2313,7 @@ CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
 TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
+TUPLE_UPDATE_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_update';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
