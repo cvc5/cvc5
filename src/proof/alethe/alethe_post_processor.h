@@ -17,6 +17,7 @@
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
 #include "proof/proof_node_updater.h"
+#include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5 {
@@ -30,7 +31,8 @@ namespace proof {
 class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  AletheProofPostprocessCallback(ProofNodeManager* pnm);
+  AletheProofPostprocessCallback(ProofNodeManager* pnm,
+                                 AletheNodeConverter& anc);
   ~AletheProofPostprocessCallback() {}
   /** Should proof pn be updated? Only if its top-level proof rule is not an
    *  Alethe proof rule.
@@ -66,6 +68,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofNodeManager* d_pnm;
   /** The node manager */
   NodeManager* d_nm;
+  /** The Alethe node converter */
+  AletheNodeConverter& d_anc;
   /** The variable cl **/
   Node d_cl;
   /**
@@ -129,7 +133,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
  public:
-  AletheProofPostprocessFinalCallback(ProofNodeManager* pnm);
+  AletheProofPostprocessFinalCallback(ProofNodeManager* pnm,
+                                      AletheNodeConverter& anc);
   ~AletheProofPostprocessFinalCallback() {}
   /** Should proof pn be updated?
    *
@@ -164,6 +169,8 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   ProofNodeManager* d_pnm;
   /** The node manager */
   NodeManager* d_nm;
+  /** The Alethe node converter */
+  AletheNodeConverter& d_anc;
   /** The variable cl **/
   Node d_cl;
 };
@@ -175,7 +182,7 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocess
 {
  public:
-  AletheProofPostprocess(ProofNodeManager* pnm);
+  AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);

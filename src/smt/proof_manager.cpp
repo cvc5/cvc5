@@ -27,6 +27,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
 #include "rewriter/rewrite_db.h"
@@ -189,7 +190,8 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE)
   {
-    proof::AletheProofPostprocess vpfpp(d_pnm.get());
+    proof::AletheNodeConverter anc;
+    proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp(options::proofFormatMode()
                                  == options::ProofFormatMode::ALETHE);

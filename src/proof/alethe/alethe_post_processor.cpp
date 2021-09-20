@@ -24,37 +24,9 @@ namespace cvc5 {
 
 namespace proof {
 
-// This function removes all attributes contained in the list of attributes from
-// a Node res while only recursively updating the node further if
-// continueRemoval is true.
-static Node removeAttributes(Node res,
-                             const std::vector<Kind>& attributes,
-                             bool (*continueRemoval)(Node))
-{
-  if (res.getNumChildren() != 0)
-  {
-    std::vector<Node> new_children;
-    if (res.hasOperator())
-    {
-      new_children.push_back(res.getOperator());
-    }
-    for (int i = 0; i < res.end() - res.begin(); i++)
-    {
-      if (std::find(attributes.begin(), attributes.end(), res[i].getKind())
-          == attributes.end())
-      {
-        new_children.push_back(
-            proof::removeAttributes(res[i], attributes, continueRemoval));
-      }
-    }
-    return NodeManager::currentNM()->mkNode(res.getKind(), new_children);
-  }
-  return res;
-}
-
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    ProofNodeManager* pnm)
-    : d_pnm(pnm), d_nm(NodeManager::currentNM())
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_nm(NodeManager::currentNM()), d_anc(anc)
 {
   d_cl = d_nm->mkBoundVar("cl", d_nm->stringType());
 }
@@ -214,10 +186,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       for (Node arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-        sanitized_args.push_back(removeAttributes(
-            arg, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
-              return expr::hasClosure(n);
-            }));
+        sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
       negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
@@ -2006,10 +1975,8 @@ bool AletheProofPostprocessCallback::update(Node res,
              i < (children[0][0].end() - children[0][0].begin());
              i++)
         {
-          sanitized_args.push_back(removeAttributes(
-              d_nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]),
-              {kind::INST_PATTERN, kind::INST_PATTERN_LIST},
-              [](Node n) { return expr::hasClosure(n); }));
+          sanitized_args.push_back(d_anc.convert(
+              d_nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i])));
           // Node vpi = d_nm->mkNode(kind::SEXPR, d_cl, vars.back());
           // addAletheStep(vpi,AletheRule::REFL,{},{},*cdp);
           // new_children.push_back(vpi);
@@ -2712,10 +2679,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Node sanitized_conclusion = conclusion;
   if (expr::hasClosure(conclusion))
   {
-    sanitized_conclusion = removeAttributes(
-        conclusion, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
-          return expr::hasClosure(n);
-        });
+    sanitized_conclusion = d_anc.convert(conclusion);
   }
 
   std::vector<Node> new_args = std::vector<Node>();
@@ -2744,8 +2708,8 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
 }
 
 AletheProofPostprocessFinalCallback::AletheProofPostprocessFinalCallback(
-    ProofNodeManager* pnm)
-    : d_pnm(pnm), d_nm(NodeManager::currentNM())
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_nm(NodeManager::currentNM()), d_anc(anc)
 {
   d_cl = d_nm->mkBoundVar("cl", d_nm->stringType());
 }
@@ -2820,10 +2784,7 @@ bool AletheProofPostprocessFinalCallback::update(
         d_nm->mkConst<Rational>(static_cast<unsigned>(AletheRule::ASSUME)));
     for (auto arg : args)
     {
-      sanitized_args.push_back(removeAttributes(
-          arg, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
-            return expr::hasClosure(n);
-          }));
+      sanitized_args.push_back(d_anc.convert(arg));
     }
     return cdp->addStep(res,
                         PfRule::ALETHE_RULE,
@@ -2888,11 +2849,12 @@ bool AletheProofPostprocessFinalCallback::update(
   return success;
 }
 
-AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm)
+AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
+                                               AletheNodeConverter& anc)
     : d_pnm(pnm),
-      d_cb(d_pnm),
+      d_cb(d_pnm, anc),
       d_updater(d_pnm, d_cb, false, false),
-      d_fcb(d_pnm),
+      d_fcb(d_pnm, anc),
       d_finalize(d_pnm, d_fcb, false, false)
 {
 }
