@@ -24,8 +24,30 @@ namespace cvc5 {
 
 EnvObj::EnvObj(Env& env) : d_env(env) {}
 
-Node EnvObj::rewrite(TNode node) { return d_env.getRewriter()->rewrite(node); }
+Node EnvObj::rewrite(TNode node) const
+{
+  return d_env.getRewriter()->rewrite(node);
+}
 
-const LogicInfo& EnvObj::getLogicInfo() const { return d_env.getLogicInfo(); }
+Node EnvObj::extendedRewrite(TNode node, bool aggr) const
+{
+  return d_env.getRewriter()->extendedRewrite(node, aggr);
+}
+
+const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }
+
+const Options& EnvObj::options() const { return d_env.getOptions(); }
+
+context::Context* EnvObj::context() const { return d_env.getContext(); }
+
+context::UserContext* EnvObj::userContext() const
+{
+  return d_env.getUserContext();
+}
+
+StatisticsRegistry& EnvObj::statisticsRegistry() const
+{
+  return d_env.getStatisticsRegistry();
+}
 
 }  // namespace cvc5

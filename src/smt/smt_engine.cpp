@@ -194,20 +194,15 @@ void SmtEngine::finishInit()
   SetDefaults sdefaults(d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
-  ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
-    d_pfManager.reset(new PfManager(*d_env.get(), this));
+    d_pfManager.reset(new PfManager(*d_env.get()));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
-    // use this proof node manager
-    pnm = d_pfManager->getProofNodeManager();
-    // enable proof support in the environment/rewriter
-    d_env->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
     d_asserts->setProofGenerator(pppg);
     // enabled proofs in the preprocessor
@@ -236,7 +231,7 @@ void SmtEngine::finishInit()
 
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
   // dumping the command twice.
-  if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
+  if (Dump.isOn("benchmark"))
   {
       LogicInfo everything;
       everything.lock();
@@ -255,12 +250,12 @@ void SmtEngine::finishInit()
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
   {
-    d_abductSolver.reset(new AbductionSolver(*d_env.get(), this));
+    d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
   if (d_env->getOptions().smt.produceInterpols
       != options::ProduceInterpols::NONE)
   {
-    d_interpolSolver.reset(new InterpolationSolver(*d_env.get(), this));
+    d_interpolSolver.reset(new InterpolationSolver(*d_env.get()));
   }
 
   d_pp->finishInit();
@@ -343,12 +338,6 @@ void SmtEngine::setLogic(const std::string& s)
   try
   {
     setLogic(LogicInfo(s));
-    // dump out a set-logic command
-    if (Dump.isOn("raw-benchmark"))
-    {
-      getPrinter().toStreamCmdSetBenchmarkLogic(
-          d_env->getDumpOut(), getLogicInfo().getLogicString());
-    }
   }
   catch (IllegalArgumentException& e)
   {
@@ -648,12 +637,6 @@ void SmtEngine::defineFunctionsRec(
     debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
 
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdDefineFunctionRec(
-        d_env->getDumpOut(), funcs, formals, formulas);
-  }
-
   NodeManager* nm = getNodeManager();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
@@ -684,9 +667,9 @@ void SmtEngine::defineFunctionsRec(
       Node boundVars = nm->mkNode(kind::BOUND_VAR_LIST, formals[i]);
       lem = nm->mkNode(kind::FORALL, boundVars, lem, aexpr);
     }
-    // assert the quantified formula
-    //   notice we don't call assertFormula directly, since this would
-    //   duplicate the output on raw-benchmark.
+    // Assert the quantified formula. Notice we don't call assertFormula
+    // directly, since we should call a private member method since we have
+    // already ensuring this SmtEngine is initialized above.
     // add define recursive definition to the assertions
     d_asserts->addDefineFunDefinition(lem, global);
   }
@@ -973,11 +956,6 @@ Result SmtEngine::assertFormula(const Node& formula)
 
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdAssert(d_env->getDumpOut(), formula);
-  }
-
   // Substitute out any abstract values in ex
   Node n = d_absValues->substituteAbstractValues(formula);
 
@@ -995,11 +973,6 @@ void SmtEngine::declareSygusVar(Node var)
 {
   SmtScope smts(this);
   d_sygusSolver->declareSygusVar(var);
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdDeclareVar(d_env->getDumpOut(), var, var.getType());
-  }
-  // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSynthFun(Node func,
@@ -1011,16 +984,6 @@ void SmtEngine::declareSynthFun(Node func,
   finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
-
-  // !!! TEMPORARY: We cannot construct a SynthFunCommand since we cannot
-  // construct a Term-level Grammar from a Node-level sygus TypeNode. Thus we
-  // must print the command using the Node-level utility method for now.
-
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdSynthFun(
-        d_env->getDumpOut(), func, vars, isInv, sygusType);
-  }
 }
 void SmtEngine::declareSynthFun(Node func,
                                 bool isInv,
@@ -1031,15 +994,11 @@ void SmtEngine::declareSynthFun(Node func,
   declareSynthFun(func, sygusType, isInv, vars);
 }
 
-void SmtEngine::assertSygusConstraint(Node constraint)
+void SmtEngine::assertSygusConstraint(Node n, bool isAssume)
 {
   SmtScope smts(this);
   finishInit();
-  d_sygusSolver->assertSygusConstraint(constraint);
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdConstraint(d_env->getDumpOut(), constraint);
-  }
+  d_sygusSolver->assertSygusConstraint(n, isAssume);
 }
 
 void SmtEngine::assertSygusInvConstraint(Node inv,
@@ -1050,11 +1009,6 @@ void SmtEngine::assertSygusInvConstraint(Node inv,
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdInvConstraint(
-        d_env->getDumpOut(), inv, pre, trans, post);
-  }
 }
 
 Result SmtEngine::checkSynth()
@@ -1205,12 +1159,7 @@ std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   // completely accessible by the user. This is currently not rigorously
   // enforced. An alternative design would be to have this method implemented
   // at the API level, but this makes exceptions in the text interface less
-  // intuitive and makes it impossible to implement raw-benchmark at the
-  // SmtEngine level.
-  if (Dump.isOn("raw-benchmark"))
-  {
-    getPrinter().toStreamCmdGetModel(d_env->getDumpOut());
-  }
+  // intuitive.
   TheoryModel* tm = getAvailableModel("get model");
   // use the smt::Model model utility for printing
   const Options& opts = d_env->getOptions();
@@ -1307,7 +1256,6 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
         "separation logic theory.";
     throw RecoverableModalException(msg);
   }
-  NodeManagerScope nms(getNodeManager());
   Node heap;
   Node nil;
   TheoryModel* tm = getAvailableModel("get separation logic heap and nil");
@@ -1754,7 +1702,9 @@ bool SmtEngine::getInterpol(const Node& conj,
 {
   SmtScope smts(this);
   finishInit();
-  bool success = d_interpolSolver->getInterpol(conj, grammarType, interpol);
+  std::vector<Node> axioms = getExpandedAssertions();
+  bool success =
+      d_interpolSolver->getInterpol(axioms, conj, grammarType, interpol);
   // notify the state of whether the get-interpol call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
@@ -1773,7 +1723,8 @@ bool SmtEngine::getAbduct(const Node& conj,
 {
   SmtScope smts(this);
   finishInit();
-  bool success = d_abductSolver->getAbduct(conj, grammarType, abd);
+  std::vector<Node> axioms = getExpandedAssertions();
+  bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
   // notify the state of whether the get-abduct call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
@@ -1820,6 +1771,29 @@ std::vector<Node> SmtEngine::getAssertions()
     throw ModalException(msg);
   }
   return getAssertionsInternal();
+}
+
+void SmtEngine::getDifficultyMap(std::map<Node, Node>& dmap)
+{
+  Trace("smt") << "SMT getDifficultyMap()\n";
+  SmtScope smts(this);
+  finishInit();
+  if (Dump.isOn("benchmark"))
+  {
+    getPrinter().toStreamCmdGetDifficulty(d_env->getDumpOut());
+  }
+  if (!d_env->getOptions().smt.produceDifficulty)
+  {
+    throw ModalException(
+        "Cannot get difficulty when difficulty option is off.");
+  }
+  // the prop engine has the proof of false
+  Assert(d_pfManager);
+  // get difficulty map from theory engine first
+  TheoryEngine* te = getTheoryEngine();
+  te->getDifficultyMap(dmap);
+  // then ask proof manager to translate dmap in terms of the input
+  d_pfManager->translateDifficultyMap(dmap, *d_asserts);
 }
 
 void SmtEngine::push()
@@ -1945,7 +1919,6 @@ void SmtEngine::printStatisticsDiff() const
 
 void SmtEngine::setOption(const std::string& key, const std::string& value)
 {
-  NodeManagerScope nms(getNodeManager());
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
   if (Dump.isOn("benchmark"))
@@ -1988,7 +1961,6 @@ bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
 std::string SmtEngine::getOption(const std::string& key) const
 {
-  NodeManagerScope nms(getNodeManager());
   NodeManager* nm = d_env->getNodeManager();
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;

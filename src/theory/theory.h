@@ -440,46 +440,12 @@ class Theory : protected EnvObj
     EFFORT_LAST_CALL = 200
   }; /* enum Effort */
 
-  static inline bool standardEffortOrMore(Effort e) CVC5_CONST_FUNCTION
-  {
-    return e >= EFFORT_STANDARD;
-  }
-  static inline bool standardEffortOnly(Effort e) CVC5_CONST_FUNCTION
-  {
-    return e >= EFFORT_STANDARD && e < EFFORT_FULL;
-  }
-  static inline bool fullEffort(Effort e) CVC5_CONST_FUNCTION
-  {
-    return e == EFFORT_FULL;
-  }
+  static bool fullEffort(Effort e) { return e == EFFORT_FULL; }
 
   /**
    * Get the id for this Theory.
    */
   TheoryId getId() const { return d_id; }
-
-  /**
-   * Get a reference to the environment.
-   */
-  Env& getEnv() const { return d_env; }
-
-  /**
-   * Shorthand to access the options object.
-   */
-  const Options& options() const { return getEnv().getOptions(); }
-
-  /**
-   * Get the SAT context associated to this Theory.
-   */
-  context::Context* getSatContext() const { return d_env.getContext(); }
-
-  /**
-   * Get the context associated to this Theory.
-   */
-  context::UserContext* getUserContext() const
-  {
-    return d_env.getUserContext();
-  }
 
   /**
    * Get the output channel associated to this theory.
@@ -520,7 +486,7 @@ class Theory : protected EnvObj
   void assertFact(TNode assertion, bool isPreregistered)
   {
     Trace("theory") << "Theory<" << getId() << ">::assertFact["
-                    << getSatContext()->getLevel() << "](" << assertion << ", "
+                    << context()->getLevel() << "](" << assertion << ", "
                     << (isPreregistered ? "true" : "false") << ")" << std::endl;
     d_facts.push_back(Assertion(assertion, isPreregistered));
   }

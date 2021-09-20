@@ -22,7 +22,6 @@
 #include "proof/method_id.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
-#include "theory/quantifiers/extended_rewrite.h"
 
 namespace cvc5 {
 
@@ -39,16 +38,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   BuiltinProofRuleChecker(Env& env);
   /** Destructor. */
   ~BuiltinProofRuleChecker() {}
-  /**
-   * Apply rewrite on n (in skolem form). This encapsulates the exact behavior
-   * of a REWRITE step in a proof.
-   *
-   * @param n The node to rewrite,
-   * @param idr The method identifier of the rewriter, by default RW_REWRITE
-   * specifying a call to Rewriter::rewrite.
-   * @return The rewritten form of n.
-   */
-  Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
    * Get substitution for literal exp. Updates vars/subs to the substitution
    * specified by exp for the substitution method ids.
@@ -123,9 +112,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-
-  /** extended rewriter object */
-  quantifiers::ExtendedRewriter d_ext_rewriter;
 
  private:
   /** Reference to the environment. */

@@ -17,6 +17,7 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -35,7 +36,7 @@ namespace quantifiers {
  *   exists f. forall x. Q[ f(x), x ]
  * For more details, see Example 6 of Reynolds et al. SYNT 2017.
  */
-class SygusQePreproc
+class SygusQePreproc : protected EnvObj
 {
  public:
   SygusQePreproc(Env& env);
@@ -45,10 +46,6 @@ class SygusQePreproc
    * by the quantifier elimination technique outlined above.
    */
   Node preprocess(Node q);
-
- private:
-  /** Reference to the env */
-  Env& d_env;
 };
 
 }  // namespace quantifiers

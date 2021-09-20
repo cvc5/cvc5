@@ -23,11 +23,12 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-ArithPreprocess::ArithPreprocess(ArithState& state,
+ArithPreprocess::ArithPreprocess(Env& env,
+                                 ArithState& state,
                                  InferenceManager& im,
                                  ProofNodeManager* pnm,
                                  OperatorElim& oe)
-    : d_im(im), d_opElim(oe), d_reduced(state.getUserContext())
+    : EnvObj(env), d_im(im), d_opElim(oe), d_reduced(userContext())
 {
 }
 TrustNode ArithPreprocess::eliminate(TNode n,

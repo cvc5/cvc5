@@ -178,10 +178,14 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
+  proof/lfsc/lfsc_list_sc_node_converter.cpp
+  proof/lfsc/lfsc_list_sc_node_converter.h
   proof/lfsc/lfsc_node_converter.cpp
   proof/lfsc/lfsc_node_converter.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_print_channel.cpp
+  proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_util.cpp
   proof/lfsc/lfsc_util.h
   proof/method_id.cpp
@@ -292,6 +296,8 @@ libcvc5_add_sources(
   smt/check_models.h
   smt/command.cpp
   smt/command.h
+  smt/difficulty_post_processor.cpp
+  smt/difficulty_post_processor.h
   smt/dump.cpp
   smt/dump.h
   smt/dump_manager.cpp
@@ -597,6 +603,8 @@ libcvc5_add_sources(
   theory/bv/abstraction.h
   theory/bv/bitblast/aig_bitblaster.cpp
   theory/bv/bitblast/aig_bitblaster.h
+  theory/bv/bitblast/bitblast_proof_generator.cpp
+  theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
   theory/bv/bitblast/bitblast_utils.h
   theory/bv/bitblast/bitblaster.h
@@ -686,6 +694,8 @@ libcvc5_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
+  theory/difficulty_manager.cpp
+  theory/difficulty_manager.h
   theory/ee_manager.cpp
   theory/ee_manager.h
   theory/ee_manager_central.cpp
@@ -699,8 +709,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
-  theory/fp/fp_converter.cpp
-  theory/fp/fp_converter.h
+  theory/fp/fp_word_blaster.cpp
+  theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
   theory/fp/fp_expand_defs.h
   theory/fp/theory_fp.cpp
@@ -855,6 +865,8 @@ libcvc5_add_sources(
   theory/quantifiers/quantifiers_macros.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
+  theory/quantifiers/quantifiers_preprocess.cpp
+  theory/quantifiers/quantifiers_preprocess.h
   theory/quantifiers/quantifiers_registry.cpp
   theory/quantifiers/quantifiers_registry.h
   theory/quantifiers/quantifiers_rewriter.cpp
@@ -1200,7 +1212,7 @@ set(options_toml_files
 )
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp")
+list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
 list(APPEND options_gen_h_files "options/options.h")
 
 libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
@@ -1232,6 +1244,7 @@ add_custom_command(
     DEPENDS
       options/mkoptions.py
       ${options_toml_files}
+      main/options_template.cpp
       options/module_template.h
       options/module_template.cpp
       options/options_public_template.cpp

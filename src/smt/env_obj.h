@@ -29,6 +29,12 @@ class Env;
 class LogicInfo;
 class NodeManager;
 class Options;
+class StatisticsRegistry;
+
+namespace context {
+class Context;
+class UserContext;
+}  // namespace context
 
 class EnvObj
 {
@@ -43,10 +49,27 @@ class EnvObj
    * Rewrite a node.
    * This is a wrapper around theory::Rewriter::rewrite via Env.
    */
-  Node rewrite(TNode node);
+  Node rewrite(TNode node) const;
+  /**
+   * Extended rewrite a node.
+   * This is a wrapper around theory::Rewriter::extendedRewrite via Env.
+   */
+  Node extendedRewrite(TNode node, bool aggr = true) const;
 
   /** Get the current logic information. */
-  const LogicInfo& getLogicInfo() const;
+  const LogicInfo& logicInfo() const;
+
+  /** Get the options object (const version only) via Env. */
+  const Options& options() const;
+
+  /** Get a pointer to the Context via Env. */
+  context::Context* context() const;
+
+  /** Get a pointer to the UserContext via Env. */
+  context::UserContext* userContext() const;
+
+  /** Get the statistics registry via Env. */
+  StatisticsRegistry& statisticsRegistry() const;
 
   /** The associated environment. */
   Env& d_env;

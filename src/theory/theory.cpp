@@ -71,9 +71,9 @@ Theory::Theory(TheoryId id,
       d_sharedTermsIndex(d_env.getContext(), 0),
       d_careGraph(nullptr),
       d_instanceName(name),
-      d_checkTime(smtStatisticsRegistry().registerTimer(getStatsPrefix(id)
-                                                        + name + "checkTime")),
-      d_computeCareGraphTime(smtStatisticsRegistry().registerTimer(
+      d_checkTime(statisticsRegistry().registerTimer(getStatsPrefix(id) + name
+                                                     + "checkTime")),
+      d_computeCareGraphTime(statisticsRegistry().registerTimer(
           getStatsPrefix(id) + name + "computeCareGraphTime")),
       d_sharedTerms(d_env.getContext()),
       d_out(&out),
@@ -132,11 +132,8 @@ void Theory::finishInitStandalone()
   if (needsEqualityEngine(esi))
   {
     // always associated with the same SAT context as the theory
-    d_allocEqualityEngine.reset(
-        new eq::EqualityEngine(*esi.d_notify,
-                               getSatContext(),
-                               esi.d_name,
-                               esi.d_constantsAreTriggers));
+    d_allocEqualityEngine.reset(new eq::EqualityEngine(
+        *esi.d_notify, context(), esi.d_name, esi.d_constantsAreTriggers));
     // use it as the official equality engine
     setEqualityEngine(d_allocEqualityEngine.get());
   }
@@ -338,7 +335,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels() && !getLogicInfo().isQuantified())
+  if (!options::produceModels() && !logicInfo().isQuantified())
   {
     // Don't care about the model and logic is not quantified, we can eliminate.
     return true;

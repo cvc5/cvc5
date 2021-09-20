@@ -60,56 +60,54 @@ TheoryArrays::TheoryArrays(Env& env,
                            Valuation valuation,
                            std::string name)
     : Theory(THEORY_ARRAYS, env, out, valuation, name),
-      d_numRow(
-          smtStatisticsRegistry().registerInt(name + "number of Row lemmas")),
-      d_numExt(
-          smtStatisticsRegistry().registerInt(name + "number of Ext lemmas")),
+      d_numRow(statisticsRegistry().registerInt(name + "number of Row lemmas")),
+      d_numExt(statisticsRegistry().registerInt(name + "number of Ext lemmas")),
       d_numProp(
-          smtStatisticsRegistry().registerInt(name + "number of propagations")),
+          statisticsRegistry().registerInt(name + "number of propagations")),
       d_numExplain(
-          smtStatisticsRegistry().registerInt(name + "number of explanations")),
-      d_numNonLinear(smtStatisticsRegistry().registerInt(
+          statisticsRegistry().registerInt(name + "number of explanations")),
+      d_numNonLinear(statisticsRegistry().registerInt(
           name + "number of calls to setNonLinear")),
-      d_numSharedArrayVarSplits(smtStatisticsRegistry().registerInt(
+      d_numSharedArrayVarSplits(statisticsRegistry().registerInt(
           name + "number of shared array var splits")),
-      d_numGetModelValSplits(smtStatisticsRegistry().registerInt(
+      d_numGetModelValSplits(statisticsRegistry().registerInt(
           name + "number of getModelVal splits")),
-      d_numGetModelValConflicts(smtStatisticsRegistry().registerInt(
+      d_numGetModelValConflicts(statisticsRegistry().registerInt(
           name + "number of getModelVal conflicts")),
-      d_numSetModelValSplits(smtStatisticsRegistry().registerInt(
+      d_numSetModelValSplits(statisticsRegistry().registerInt(
           name + "number of setModelVal splits")),
-      d_numSetModelValConflicts(smtStatisticsRegistry().registerInt(
+      d_numSetModelValConflicts(statisticsRegistry().registerInt(
           name + "number of setModelVal conflicts")),
-      d_ppEqualityEngine(getUserContext(), name + "pp", true),
-      d_ppFacts(getUserContext()),
+      d_ppEqualityEngine(userContext(), name + "pp", true),
+      d_ppFacts(userContext()),
       d_rewriter(d_pnm),
       d_state(env, valuation),
-      d_im(*this, d_state, d_pnm),
-      d_literalsToPropagate(getSatContext()),
-      d_literalsToPropagateIndex(getSatContext(), 0),
-      d_isPreRegistered(getSatContext()),
-      d_mayEqualEqualityEngine(getSatContext(), name + "mayEqual", true),
+      d_im(env, *this, d_state, d_pnm),
+      d_literalsToPropagate(context()),
+      d_literalsToPropagateIndex(context(), 0),
+      d_isPreRegistered(context()),
+      d_mayEqualEqualityEngine(context(), name + "mayEqual", true),
       d_notify(*this),
-      d_infoMap(getSatContext(), name),
-      d_mergeQueue(getSatContext()),
+      d_infoMap(context(), name),
+      d_mergeQueue(context()),
       d_mergeInProgress(false),
-      d_RowQueue(getSatContext()),
-      d_RowAlreadyAdded(getUserContext()),
-      d_sharedArrays(getSatContext()),
-      d_sharedOther(getSatContext()),
-      d_sharedTerms(getSatContext(), false),
-      d_reads(getSatContext()),
-      d_constReadsList(getSatContext()),
+      d_RowQueue(context()),
+      d_RowAlreadyAdded(userContext()),
+      d_sharedArrays(context()),
+      d_sharedOther(context()),
+      d_sharedTerms(context(), false),
+      d_reads(context()),
+      d_constReadsList(context()),
       d_constReadsContext(new context::Context()),
-      d_contextPopper(getSatContext(), d_constReadsContext),
-      d_skolemIndex(getSatContext(), 0),
-      d_decisionRequests(getSatContext()),
-      d_permRef(getSatContext()),
-      d_modelConstraints(getSatContext()),
-      d_lemmasSaved(getSatContext()),
-      d_defValues(getSatContext()),
+      d_contextPopper(context(), d_constReadsContext),
+      d_skolemIndex(context(), 0),
+      d_decisionRequests(context()),
+      d_permRef(context()),
+      d_modelConstraints(context()),
+      d_lemmasSaved(context()),
+      d_defValues(context()),
       d_readTableContext(new context::Context()),
-      d_arrayMerges(getSatContext()),
+      d_arrayMerges(context()),
       d_inCheckModel(false),
       d_dstrat(new TheoryArraysDecisionStrategy(this)),
       d_dstratInit(false)
@@ -389,21 +387,22 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(
 
 bool TheoryArrays::propagateLit(TNode literal)
 {
-  Debug("arrays") << spaces(getSatContext()->getLevel())
+  Debug("arrays") << spaces(context()->getLevel())
                   << "TheoryArrays::propagateLit(" << literal << ")"
                   << std::endl;
 
   // If already in conflict, no more propagation
   if (d_state.isInConflict())
   {
-    Debug("arrays") << spaces(getSatContext()->getLevel())
+    Debug("arrays") << spaces(context()->getLevel())
                     << "TheoryArrays::propagateLit(" << literal
                     << "): already in conflict" << std::endl;
     return false;
   }
 
   // Propagate away
-  if (d_inCheckModel && getSatContext()->getLevel() != d_topLevel) {
+  if (d_inCheckModel && context()->getLevel() != d_topLevel)
+  {
     return true;
   }
   bool ok = d_out->propagate(literal);
@@ -642,7 +641,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   {
     return;
   }
-  Debug("arrays") << spaces(getSatContext()->getLevel())
+  Debug("arrays") << spaces(context()->getLevel())
                   << "TheoryArrays::preRegisterTerm(" << node << ")"
                   << std::endl;
   Kind nk = node.getKind();
@@ -694,8 +693,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       d_infoMap.addIndex(store, node[1]);
 
       // Synchronize d_constReadsContext with SAT context
-      Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
-      while (d_constReadsContext->getLevel() < getSatContext()->getLevel())
+      Assert(d_constReadsContext->getLevel() <= context()->getLevel());
+      while (d_constReadsContext->getLevel() < context()->getLevel())
       {
         d_constReadsContext->push();
       }
@@ -817,8 +816,8 @@ void TheoryArrays::preRegisterTerm(TNode node)
 void TheoryArrays::explain(TNode literal, Node& explanation)
 {
   ++d_numExplain;
-  Debug("arrays") << spaces(getSatContext()->getLevel())
-                  << "TheoryArrays::explain(" << literal << ")" << std::endl;
+  Debug("arrays") << spaces(context()->getLevel()) << "TheoryArrays::explain("
+                  << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
@@ -846,7 +845,7 @@ TrustNode TheoryArrays::explain(TNode literal)
 
 void TheoryArrays::notifySharedTerm(TNode t)
 {
-  Debug("arrays::sharing") << spaces(getSatContext()->getLevel())
+  Debug("arrays::sharing") << spaces(context()->getLevel())
                            << "TheoryArrays::notifySharedTerm(" << t << ")"
                            << std::endl;
   if (t.getType().isArray()) {
@@ -965,8 +964,9 @@ void TheoryArrays::computeCareGraph()
   }
   if (d_sharedTerms) {
     // Synchronize d_constReadsContext with SAT context
-    Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
-    while (d_constReadsContext->getLevel() < getSatContext()->getLevel()) {
+    Assert(d_constReadsContext->getLevel() <= context()->getLevel());
+    while (d_constReadsContext->getLevel() < context()->getLevel())
+    {
       d_constReadsContext->push();
     }
 
@@ -1304,7 +1304,8 @@ void TheoryArrays::postCheck(Effort level)
               << "Arrays::addExtLemma (weak-eq) " << lemma << "\n";
           d_out->lemma(lemma, LemmaProperty::SEND_ATOMS);
           d_readTableContext->pop();
-          Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
+          Trace("arrays") << spaces(context()->getLevel())
+                          << "Arrays::check(): done" << endl;
           return;
         }
       }
@@ -1326,7 +1327,8 @@ void TheoryArrays::postCheck(Effort level)
     }
   }
 
-  Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
+  Trace("arrays") << spaces(context()->getLevel()) << "Arrays::check(): done"
+                  << endl;
 }
 
 bool TheoryArrays::preNotifyFact(
@@ -1466,7 +1468,8 @@ void TheoryArrays::setNonLinear(TNode a)
   if (options::arraysWeakEquivalence()) return;
   if (d_infoMap.isNonLinear(a)) return;
 
-  Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::setNonLinear (" << a << ")\n";
+  Trace("arrays") << spaces(context()->getLevel()) << "Arrays::setNonLinear ("
+                  << a << ")\n";
   d_infoMap.setNonLinear(a);
   ++d_numNonLinear;
 
@@ -1495,7 +1498,9 @@ void TheoryArrays::setNonLinear(TNode a)
       TNode j = store[1];
       TNode c = store[0];
       lem = std::make_tuple(store, c, j, i);
-      Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::setNonLinear ("<<store<<", "<<c<<", "<<j<<", "<<i<<")\n";
+      Trace("arrays-lem") << spaces(context()->getLevel())
+                          << "Arrays::setNonLinear (" << store << ", " << c
+                          << ", " << j << ", " << i << ")\n";
       queueRowLemma(lem);
     }
   }
@@ -1522,7 +1527,8 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
     // so we take its representative to be safe.
     a = d_equalityEngine->getRepresentative(a);
     Assert(d_equalityEngine->getRepresentative(b) == a);
-    Trace("arrays-merge") << spaces(getSatContext()->getLevel()) << "Arrays::merge: (" << a << ", " << b << ")\n";
+    Trace("arrays-merge") << spaces(context()->getLevel()) << "Arrays::merge: ("
+                          << a << ", " << b << ")\n";
 
     if (options::arraysOptimizeLinear() && !options::arraysWeakEquivalence()) {
       bool aNL = d_infoMap.isNonLinear(a);
@@ -1642,7 +1648,9 @@ void TheoryArrays::checkStore(TNode a) {
       TNode j = (*js)[it];
       if (i == j) continue;
       lem = std::make_tuple(a, b, i, j);
-      Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkStore ("<<a<<", "<<b<<", "<<i<<", "<<j<<")\n";
+      Trace("arrays-lem") << spaces(context()->getLevel())
+                          << "Arrays::checkStore (" << a << ", " << b << ", "
+                          << i << ", " << j << ")\n";
       queueRowLemma(lem);
     }
   }
@@ -1689,7 +1697,9 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     TNode j = store[1];
     if (i == j) continue;
     lem = std::make_tuple(store, store[0], j, i);
-    Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkRowForIndex ("<<store<<", "<<store[0]<<", "<<j<<", "<<i<<")\n";
+    Trace("arrays-lem") << spaces(context()->getLevel())
+                        << "Arrays::checkRowForIndex (" << store << ", "
+                        << store[0] << ", " << j << ", " << i << ")\n";
     queueRowLemma(lem);
   }
 
@@ -1701,7 +1711,9 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
       TNode j = instore[1];
       if (i == j) continue;
       lem = std::make_tuple(instore, instore[0], j, i);
-      Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkRowForIndex ("<<instore<<", "<<instore[0]<<", "<<j<<", "<<i<<")\n";
+      Trace("arrays-lem") << spaces(context()->getLevel())
+                          << "Arrays::checkRowForIndex (" << instore << ", "
+                          << instore[0] << ", " << j << ", " << i << ")\n";
       queueRowLemma(lem);
     }
   }
@@ -1749,7 +1761,9 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
       TNode j = store[1];
       TNode c = store[0];
       lem = std::make_tuple(store, c, j, i);
-      Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkRowLemmas ("<<store<<", "<<c<<", "<<j<<", "<<i<<")\n";
+      Trace("arrays-lem") << spaces(context()->getLevel())
+                          << "Arrays::checkRowLemmas (" << store << ", " << c
+                          << ", " << j << ", " << i << ")\n";
       queueRowLemma(lem);
     }
   }
@@ -1764,7 +1778,9 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
         TNode j = store[1];
         TNode c = store[0];
         lem = std::make_tuple(store, c, j, i);
-        Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkRowLemmas ("<<store<<", "<<c<<", "<<j<<", "<<i<<")\n";
+        Trace("arrays-lem")
+            << spaces(context()->getLevel()) << "Arrays::checkRowLemmas ("
+            << store << ", " << c << ", " << j << ", " << i << ")\n";
         queueRowLemma(lem);
       }
     }
@@ -1800,7 +1816,9 @@ void TheoryArrays::propagateRowLemma(RowLemmaType lem)
   if (prop > 0) {
     if (d_equalityEngine->areDisequal(i, j, true) && (bothExist || prop > 1))
     {
-      Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
+      Trace("arrays-lem") << spaces(context()->getLevel())
+                          << "Arrays::queueRowLemma: propagating aj = bj ("
+                          << aj << ", " << bj << ")\n";
       Node aj_eq_bj = aj.eqNode(bj);
       Node reason =
           (i.isConst() && j.isConst()) ? d_true : i.eqNode(j).notNode();
@@ -1818,7 +1836,9 @@ void TheoryArrays::propagateRowLemma(RowLemmaType lem)
     }
     if (bothExist && d_equalityEngine->areDisequal(aj, bj, true))
     {
-      Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
+      Trace("arrays-lem") << spaces(context()->getLevel())
+                          << "Arrays::queueRowLemma: propagating i = j (" << i
+                          << ", " << j << ")\n";
       Node reason =
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node j_eq_i = j.eqNode(i);
@@ -2105,7 +2125,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
 
 TheoryArrays::TheoryArraysDecisionStrategy::TheoryArraysDecisionStrategy(
     TheoryArrays* ta)
-    : d_ta(ta)
+    : DecisionStrategy(ta->d_env), d_ta(ta)
 {
 }
 void TheoryArrays::TheoryArraysDecisionStrategy::initialize() {}
