@@ -140,7 +140,7 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The cl operator is defined as described in the
-    * AletheProofPostprocessCallback class above
+   * AletheProofPostprocessCallback class above
    **/
   Node d_cl;
 };
@@ -162,13 +162,8 @@ class AletheProofPostprocess
   ProofNodeManager* d_pnm;
   /** The post process callback */
   AletheProofPostprocessCallback d_cb;
-  /** The updater, which is responsible for translating proof rules */
-  ProofNodeUpdater d_updater;
   /** The final post process callback */
   AletheProofPostprocessFinalCallback d_fcb;
-  /** The updater, which is responsible for adding additional steps to the end
-   * of the proof */
-  ProofNodeUpdater d_finalize;
 };
 
 }  // namespace proof
