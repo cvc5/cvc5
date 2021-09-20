@@ -28,11 +28,14 @@ namespace cvc5 {
 namespace theory {
 namespace uf {
 
-HoExtension::HoExtension(TheoryState& state, TheoryInferenceManager& im)
-    : d_state(state),
+HoExtension::HoExtension(Env& env,
+                         TheoryState& state,
+                         TheoryInferenceManager& im)
+    : EnvObj(env),
+      d_state(state),
       d_im(im),
-      d_extensionality(state.getUserContext()),
-      d_uf_std_skolem(state.getUserContext())
+      d_extensionality(userContext()),
+      d_uf_std_skolem(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }

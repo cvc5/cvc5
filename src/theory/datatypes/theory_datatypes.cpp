@@ -51,16 +51,16 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
                                  OutputChannel& out,
                                  Valuation valuation)
     : Theory(THEORY_DATATYPES, env, out, valuation),
-      d_term_sk(getUserContext()),
-      d_labels(getSatContext()),
-      d_selector_apps(getSatContext()),
-      d_collectTermsCache(getSatContext()),
-      d_collectTermsCacheU(getUserContext()),
-      d_functionTerms(getSatContext()),
-      d_singleton_eq(getUserContext()),
+      d_term_sk(userContext()),
+      d_labels(context()),
+      d_selector_apps(context()),
+      d_collectTermsCache(context()),
+      d_collectTermsCacheU(userContext()),
+      d_functionTerms(context()),
+      d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
       d_state(env, valuation),
-      d_im(*this, d_state, d_pnm),
+      d_im(env, *this, d_state, d_pnm),
       d_notify(d_im, *this)
 {
 
@@ -110,7 +110,7 @@ void TheoryDatatypes::finishInit()
   {
     quantifiers::TermDbSygus* tds =
         getQuantifiersEngine()->getTermDatabaseSygus();
-    d_sygusExtension.reset(new SygusExtension(d_state, d_im, tds));
+    d_sygusExtension.reset(new SygusExtension(d_env, d_state, d_im, tds));
     // do congruence on evaluation functions
     d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
   }
@@ -129,7 +129,7 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMak
       if( eqc_i != d_eqc_info.end() ){
         ei = eqc_i->second;
       }else{
-        ei = new EqcInfo( getSatContext() );
+        ei = new EqcInfo(context());
         d_eqc_info[n] = ei;
       }
       if( n.getKind()==APPLY_CONSTRUCTOR ){

@@ -31,12 +31,13 @@ namespace theory {
 namespace quantifiers {
 
 //Model Engine constructor
-ModelEngine::ModelEngine(QuantifiersState& qs,
+ModelEngine::ModelEngine(Env& env,
+                         QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr,
                          QModelBuilder* builder)
-    : QuantifiersModule(qs, qim, qr, tr),
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_incomplete_check(true),
       d_addedLemmas(0),
       d_triedLemmas(0),

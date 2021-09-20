@@ -28,12 +28,12 @@ namespace bv {
  *
  * Implements the bare minimum to bit-blast bit-vector atoms/terms.
  */
-class NodeBitblaster : public TBitblaster<Node>
+class NodeBitblaster : public TBitblaster<Node>, protected EnvObj
 {
   using Bits = std::vector<Node>;
 
  public:
-  NodeBitblaster(TheoryState* state);
+  NodeBitblaster(Env& env, TheoryState* state);
   ~NodeBitblaster() = default;
 
   /** Bit-blast term 'node' and return bit-blasted 'bits'. */
@@ -62,6 +62,13 @@ class NodeBitblaster : public TBitblaster<Node>
 
   /** Checks whether node is a variable introduced via `makeVariable`.*/
   bool isVariable(TNode node);
+
+  /**
+   * Bit-blast `node` and return the result without applying any rewrites.
+   *
+   * This method is used by BBProof and does not cache the result for `node`.
+   */
+  Node applyAtomBBStrategy(TNode node);
 
  private:
   /** Query SAT solver for assignment of node 'a'. */

@@ -37,18 +37,18 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-TermDb::TermDb(QuantifiersState& qs, QuantifiersRegistry& qr)
-    : d_qstate(qs),
+TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
+    : QuantifiersUtil(env),
+      d_qstate(qs),
       d_qim(nullptr),
       d_qreg(qr),
       d_termsContext(),
-      d_termsContextUse(options::termDbCd() ? qs.getSatContext()
-                                            : &d_termsContext),
+      d_termsContextUse(options::termDbCd() ? context() : &d_termsContext),
       d_processed(d_termsContextUse),
       d_typeMap(d_termsContextUse),
       d_ops(d_termsContextUse),
       d_opMap(d_termsContextUse),
-      d_inactive_map(qs.getSatContext())
+      d_inactive_map(context())
 {
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -178,7 +178,7 @@ Node TermDb::getMatchOperator( Node n ) {
   if (k == SELECT || k == STORE || k == UNION || k == INTERSECTION
       || k == SUBSET || k == SETMINUS || k == MEMBER || k == SINGLETON
       || k == APPLY_SELECTOR_TOTAL || k == APPLY_SELECTOR || k == APPLY_TESTER
-      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH)
+      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH)
   {
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();

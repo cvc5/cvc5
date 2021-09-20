@@ -80,8 +80,8 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
 
 /* -------------------------------------------------------------------------- */
 
-ITESimp::Statistics::Statistics()
-    : d_arithSubstitutionsAdded(smtStatisticsRegistry().registerInt(
+ITESimp::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_arithSubstitutionsAdded(reg.registerInt(
         "preprocessing::passes::ITESimp::ArithSubstitutionsAdded"))
 {
 }
@@ -97,7 +97,7 @@ Node ITESimp::simpITE(util::ITEUtilities* ite_utils, TNode assertion)
     Node result = ite_utils->simpITE(assertion);
     Node res_rewritten = rewrite(result);
 
-    if (options::simplifyWithCareEnabled())
+    if (options().smt.simplifyWithCareEnabled)
     {
       Chat() << "starting simplifyWithCare()" << endl;
       Node postSimpWithCare = ite_utils->simplifyWithCare(res_rewritten);
@@ -119,7 +119,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
   bool simpDidALotOfWork = d_iteUtilities.simpIteDidALotOfWorkHeuristic();
   if (simpDidALotOfWork)
   {
-    if (options::compressItes())
+    if (options().smt.compressItes)
     {
       result = d_iteUtilities.compress(assertionsToPreprocess);
     }
@@ -128,7 +128,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
     {
       // if false, don't bother to reclaim memory here.
       NodeManager* nm = NodeManager::currentNM();
-      if (nm->poolSize() >= options::zombieHuntThreshold())
+      if (nm->poolSize() >= options().smt.zombieHuntThreshold)
       {
         Chat() << "..ite simplifier did quite a bit of work.. "
                << nm->poolSize() << endl;
@@ -136,7 +136,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
                << " nodes before cleanup" << endl;
         d_iteUtilities.clear();
         d_env.getRewriter()->clearCaches();
-        nm->reclaimZombiesUntil(options::zombieHuntThreshold());
+        nm->reclaimZombiesUntil(options().smt.zombieHuntThreshold);
         Chat() << "....node manager contains " << nm->poolSize()
                << " nodes after cleanup" << endl;
       }
@@ -145,7 +145,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 
   // Do theory specific preprocessing passes
   if (logicInfo().isTheoryEnabled(theory::THEORY_ARITH)
-      && !options::incrementalSolving())
+      && !options().base.incrementalSolving)
   {
     if (!simpDidALotOfWork)
     {
@@ -222,7 +222,9 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 /* -------------------------------------------------------------------------- */
 
 ITESimp::ITESimp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "ite-simp"), d_iteUtilities(d_env)
+    : PreprocessingPass(preprocContext, "ite-simp"),
+      d_iteUtilities(d_env),
+      d_statistics(statisticsRegistry())
 {
 }
 

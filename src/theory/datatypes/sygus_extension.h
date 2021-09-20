@@ -25,6 +25,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/sygus_sampler.h"
@@ -62,7 +63,7 @@ class InferenceManager;
  * We prioritize decisions of form (1) before (2). Both kinds of decision are
  * critical for solution completeness, which is enforced by DecisionManager.
  */
-class SygusExtension
+class SygusExtension : protected EnvObj
 {
   typedef context::CDHashMap<Node, int> IntMap;
   typedef context::CDHashMap<Node, Node> NodeMap;
@@ -70,7 +71,8 @@ class SygusExtension
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  SygusExtension(TheoryState& s,
+  SygusExtension(Env& env,
+                 TheoryState& s,
                  InferenceManager& im,
                  quantifiers::TermDbSygus* tds);
   ~SygusExtension();
@@ -553,7 +555,10 @@ private:
   class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SygusSizeDecisionStrategy(InferenceManager& im, Node t, TheoryState& s);
+    SygusSizeDecisionStrategy(Env& env,
+                              InferenceManager& im,
+                              Node t,
+                              TheoryState& s);
     /** the measure term */
     Node d_this;
     /**

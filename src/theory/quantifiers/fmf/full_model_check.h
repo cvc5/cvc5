@@ -155,7 +155,8 @@ protected:
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 
  public:
-  FullModelChecker(QuantifiersState& qs,
+  FullModelChecker(Env& env,
+                   QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    QuantifiersRegistry& qr,
                    TermRegistry& tr);

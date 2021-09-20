@@ -37,30 +37,29 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NonlinearExtension::NonlinearExtension(TheoryArith& containing,
+NonlinearExtension::NonlinearExtension(Env& env,
+                                       TheoryArith& containing,
                                        ArithState& state)
-    : d_containing(containing),
+    : EnvObj(env),
+      d_containing(containing),
       d_astate(state),
       d_im(containing.getInferenceManager()),
       d_needsLastCall(false),
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
-      d_extTheory(d_extTheoryCb,
-                  containing.getSatContext(),
-                  containing.getUserContext(),
-                  d_im),
+      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
       d_model(),
-      d_trSlv(d_im, d_model, d_astate.getEnv()),
-      d_extState(d_im, d_model, d_astate.getEnv()),
+      d_trSlv(d_im, d_model, d_env),
+      d_extState(d_im, d_model, d_env),
       d_factoringSlv(&d_extState),
       d_monomialBoundsSlv(&d_extState),
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState),
       d_tangentPlaneSlv(&d_extState),
-      d_cadSlv(d_astate.getEnv(), d_im, d_model),
+      d_cadSlv(d_env, d_im, d_model),
       d_icpSlv(d_im),
-      d_iandSlv(d_im, state, d_model),
-      d_pow2Slv(d_im, state, d_model)
+      d_iandSlv(env, d_im, state, d_model),
+      d_pow2Slv(env, d_im, state, d_model)
 {
   d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
   d_extTheory.addFunctionKind(kind::EXPONENTIAL);
@@ -73,9 +72,9 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
 
-  if (d_astate.getEnv().isTheoryProofProducing())
+  if (d_env.isTheoryProofProducing())
   {
-    ProofChecker* pc = d_astate.getEnv().getProofNodeManager()->getChecker();
+    ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
     d_proofChecker.registerTo(pc);
   }
 }
@@ -92,11 +91,6 @@ void NonlinearExtension::preRegisterTerm(TNode n)
 void NonlinearExtension::processSideEffect(const NlLemma& se)
 {
   d_trSlv.processSideEffect(se);
-}
-
-const Options& NonlinearExtension::options() const
-{
-  return d_containing.options();
 }
 
 void NonlinearExtension::computeRelevantAssertions(
@@ -146,7 +140,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       // not relevant, skip
       continue;
     }
-    if (bounds.add(lit, false))
+    // if using the bound inference utility
+    if (options().arith.nlRlvAssertBounds && bounds.add(lit, false))
     {
       continue;
     }

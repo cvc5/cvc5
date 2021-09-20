@@ -113,7 +113,7 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
     Node next = preSkolemEmp(prev, pol, visited);
     if (next != prev)
     {
-      assertionsToPreprocess->replace(i, Rewriter::rewrite(next));
+      assertionsToPreprocess->replace(i, rewrite(next));
       Trace("sep-preprocess") << "*** Preprocess sep " << prev << endl;
       Trace("sep-preprocess") << "   ...got " << (*assertionsToPreprocess)[i]
                               << endl;

@@ -74,8 +74,6 @@ class SygusEnumeratorCallback
   Node d_enum;
   /** The type of enum */
   TypeNode d_tn;
-  /** extended rewriter */
-  ExtendedRewriter d_extr;
   /** pointer to the statistics */
   SygusStatistics* d_stats;
 };

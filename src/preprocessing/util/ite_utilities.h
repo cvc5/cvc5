@@ -182,7 +182,7 @@ class ITECompressor : protected EnvObj
    public:
     IntStat d_compressCalls;
     IntStat d_skolemsAdded;
-    Statistics();
+    Statistics(StatisticsRegistry& reg);
   };
 
   void reset();
@@ -238,7 +238,7 @@ class ITESimplifier : protected EnvObj
 
     HistogramStat<uint32_t> d_inSmaller;
 
-    Statistics();
+    Statistics(StatisticsRegistry& reg);
   };
 
   inline bool containsTermITE(TNode n)

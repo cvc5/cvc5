@@ -219,7 +219,6 @@ class CVC5_EXPORT Command
 
   virtual void toStream(std::ostream& out,
                         int toDepth = -1,
-
                         size_t dag = 1,
                         Language language = Language::LANG_AUTO) const = 0;
 
@@ -299,8 +298,6 @@ class CVC5_EXPORT Command
       const std::vector<api::Sort>& sorts);
   /** Helper to convert a Grammar to an internal TypeNode */
   static TypeNode grammarToTypeNode(api::Grammar* grammar);
-  /** Get original options from the solver (for ResetCommand) */
-  Options& getOriginalOptionsFrom(api::Solver* s);
 }; /* class Command */
 
 /**
@@ -768,7 +765,7 @@ class CVC5_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
 class CVC5_EXPORT SygusConstraintCommand : public Command
 {
  public:
-  SygusConstraintCommand(const api::Term& t);
+  SygusConstraintCommand(const api::Term& t, bool isAssume = false);
   /** returns the declared constraint */
   api::Term getTerm() const;
   /** invokes this command
@@ -790,6 +787,8 @@ class CVC5_EXPORT SygusConstraintCommand : public Command
  protected:
   /** the declared constraint */
   api::Term d_term;
+  /** true if this is a sygus assumption */
+  bool d_isAssume;
 };
 
 /** Declares a sygus invariant constraint
@@ -1190,6 +1189,29 @@ class CVC5_EXPORT GetUnsatCoreCommand : public Command
   /** the result of the unsat core call */
   std::vector<api::Term> d_result;
 }; /* class GetUnsatCoreCommand */
+
+class CVC5_EXPORT GetDifficultyCommand : public Command
+{
+ public:
+  GetDifficultyCommand();
+  const std::map<api::Term, api::Term>& getDifficultyMap() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
+
+ protected:
+  /** The symbol manager we were invoked with */
+  SymbolManager* d_sm;
+  /** the result of the get difficulty call */
+  std::map<api::Term, api::Term> d_result;
+};
 
 class CVC5_EXPORT GetAssertionsCommand : public Command
 {
