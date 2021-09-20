@@ -21,7 +21,6 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "smt/smt_engine.h"
-#include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
 
