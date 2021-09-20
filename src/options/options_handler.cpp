@@ -34,6 +34,7 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
+#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
@@ -371,12 +372,12 @@ void OptionsHandler::showConfiguration(const std::string& option,
   exit(0);
 }
 
-static void printTags(unsigned ntags, char const* const* tags)
+static void printTags(const std::vector<std::string>& tags)
 {
   std::cout << "available tags:";
-  for (unsigned i = 0; i < ntags; ++ i)
+  for (const auto& t : tags)
   {
-    std::cout << "  " << tags[i] << std::endl;
+    std::cout << "  " << t << std::endl;
   }
   std::cout << std::endl;
 }
@@ -392,8 +393,8 @@ void OptionsHandler::showDebugTags(const std::string& option,
   {
     throw OptionException("debug tags not available in non-tracing builds");
   }
-  printTags(Configuration::getNumDebugTags(),Configuration::getDebugTags());
-  exit(0);
+  printTags(Configuration::getDebugTags());
+  std::exit(0);
 }
 
 void OptionsHandler::showTraceTags(const std::string& option,
@@ -403,29 +404,17 @@ void OptionsHandler::showTraceTags(const std::string& option,
   {
     throw OptionException("trace tags not available in non-tracing build");
   }
-  printTags(Configuration::getNumTraceTags(), Configuration::getTraceTags());
-  exit(0);
+  printTags(Configuration::getTraceTags());
+  std::exit(0);
 }
 
-static std::string suggestTags(char const* const* validTags,
+static std::string suggestTags(const std::vector<std::string>& validTags,
                                std::string inputTag,
-                               char const* const* additionalTags)
+                               const std::vector<std::string>& additionalTags)
 {
   DidYouMean didYouMean;
-
-  const char* opt;
-  for (size_t i = 0; (opt = validTags[i]) != nullptr; ++i)
-  {
-    didYouMean.addWord(validTags[i]);
-  }
-  if (additionalTags != nullptr)
-  {
-    for (size_t i = 0; (opt = additionalTags[i]) != nullptr; ++i)
-    {
-      didYouMean.addWord(additionalTags[i]);
-    }
-  }
-
+  didYouMean.addWords(validTags);
+  didYouMean.addWords(additionalTags);
   return didYouMean.getMatchAsString(inputTag);
 }
 
@@ -437,18 +426,17 @@ void OptionsHandler::enableTraceTag(const std::string& option,
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
-  else if(!Configuration::isTraceTag(optarg.c_str()))
+  else if (!Configuration::isTraceTag(optarg))
   {
     if (optarg == "help")
     {
-      printTags(
-          Configuration::getNumTraceTags(), Configuration::getTraceTags());
-      exit(0);
+      printTags(Configuration::getTraceTags());
+      std::exit(0);
     }
 
     throw OptionException(
         std::string("trace tag ") + optarg + std::string(" not available.")
-        + suggestTags(Configuration::getTraceTags(), optarg, nullptr));
+        + suggestTags(Configuration::getTraceTags(), optarg, {}));
   }
   Trace.on(optarg);
 }
@@ -466,14 +454,12 @@ void OptionsHandler::enableDebugTag(const std::string& option,
     throw OptionException("debug tags not available in non-tracing builds");
   }
 
-  if (!Configuration::isDebugTag(optarg.c_str())
-      && !Configuration::isTraceTag(optarg.c_str()))
+  if (!Configuration::isDebugTag(optarg) && !Configuration::isTraceTag(optarg))
   {
     if (optarg == "help")
     {
-      printTags(
-          Configuration::getNumDebugTags(), Configuration::getDebugTags());
-      exit(0);
+      printTags(Configuration::getDebugTags());
+      std::exit(0);
     }
 
     throw OptionException(std::string("debug tag ") + optarg
@@ -494,41 +480,40 @@ void OptionsHandler::enableOutputTag(const std::string& option,
       static_cast<size_t>(stringToOutputTag(optarg)));
 }
 
-OutputLanguage OptionsHandler::stringToOutputLanguage(const std::string& option,
-                                                      const std::string& flag,
-                                                      const std::string& optarg)
+Language OptionsHandler::stringToLanguage(const std::string& option,
+                                          const std::string& flag,
+                                          const std::string& optarg)
 {
   if(optarg == "help") {
     d_options->base.languageHelp = true;
-    return language::output::LANG_AUTO;
+    return Language::LANG_AUTO;
   }
 
   try {
-    return language::toOutputLanguage(optarg);
+    return language::toLanguage(optarg);
   } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() +
-                          "\nTry --output-language help");
+    throw OptionException("Error in " + option + ": " + oe.getMessage()
+                          + "\nTry --lang help");
   }
 
   Unreachable();
 }
 
-InputLanguage OptionsHandler::stringToInputLanguage(const std::string& option,
-                                                    const std::string& flag,
-                                                    const std::string& optarg)
+void OptionsHandler::applyOutputLanguage(const std::string& option,
+                                         const std::string& flag,
+                                         Language lang)
 {
-  if(optarg == "help") {
-    d_options->base.languageHelp = true;
-    return language::input::LANG_AUTO;
-  }
+  d_options->base.out << language::SetLanguage(lang);
+}
 
-  try {
-    return language::toInputLanguage(optarg);
-  } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --lang help");
+void OptionsHandler::languageIsNotAST(const std::string& option,
+                                      const std::string& flag,
+                                      Language lang)
+{
+  if (lang == Language::LANG_AST)
+  {
+    throw OptionException("Language LANG_AST is not allowed for " + flag);
   }
-
-  Unreachable();
 }
 
 void OptionsHandler::setDumpStream(const std::string& option,

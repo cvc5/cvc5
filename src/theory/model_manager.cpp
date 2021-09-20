@@ -28,8 +28,8 @@ namespace cvc5 {
 namespace theory {
 
 ModelManager::ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem)
-    : d_te(te),
-      d_env(env),
+    : EnvObj(env),
+      d_te(te),
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
@@ -46,9 +46,8 @@ ModelManager::~ModelManager() {}
 void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
 {
   // construct the model
-  const LogicInfo& logicInfo = d_env.getLogicInfo();
   // Initialize the model and model builder.
-  if (logicInfo.isQuantified())
+  if (logicInfo().isQuantified())
   {
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
@@ -59,7 +58,7 @@ void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
   // not have a model builder
   if (d_modelBuilder == nullptr)
   {
-    d_alocModelBuilder.reset(new TheoryEngineModelBuilder);
+    d_alocModelBuilder.reset(new TheoryEngineModelBuilder(d_env));
     d_modelBuilder = d_alocModelBuilder.get();
   }
   // notice that the equality engine of the model has yet to be assigned.

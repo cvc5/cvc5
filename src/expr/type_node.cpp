@@ -208,7 +208,7 @@ bool TypeNode::isClosedEnumerable()
   if (!getAttribute(IsClosedEnumerableComputedAttr()))
   {
     bool ret = true;
-    if (isArray() || isSort() || isCodatatype() || isFunction())
+    if (isArray() || isSort() || isCodatatype() || isFunction() || isRegExp())
     {
       ret = false;
     }
@@ -466,10 +466,6 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 }
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   Assert(!t0.isNull());
   Assert(!t1.isNull());
 
@@ -660,7 +656,8 @@ bool TypeNode::isSygusDatatype() const
 
 std::string TypeNode::toString() const {
   std::stringstream ss;
-  OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
+  Language outlang =
+      (this == &s_null) ? Language::LANG_AUTO : options::outputLanguage();
   d_nv->toStream(ss, -1, 0, outlang);
   return ss.str();
 }

@@ -44,13 +44,13 @@ namespace sep {
 
 TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
-      d_lemmas_produced_c(getUserContext()),
+      d_lemmas_produced_c(userContext()),
       d_bounds_init(false),
       d_state(env, valuation),
-      d_im(*this, d_state, d_pnm, "theory::sep::"),
+      d_im(env, *this, d_state, d_pnm, "theory::sep::"),
       d_notify(*this),
-      d_reduce(getUserContext()),
-      d_spatial_assertions(getSatContext())
+      d_reduce(userContext()),
+      d_spatial_assertions(context())
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -198,7 +198,6 @@ void TheorySep::postProcessModel( TheoryModel* m ){
         Trace("sep-model") << " " << l << " -> ";
         if( d_pto_model[l].isNull() ){
           Trace("sep-model") << "_";
-          //m->d_comment_str << "_";
           TypeEnumerator te_range( data_type );
           if (d_state.isFiniteType(data_type))
           {
@@ -468,7 +467,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         << std::endl;
     Node g = sm->mkDummySkolem("G", nm->booleanType());
     d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
-        "sep_neg_guard", g, getSatContext(), getValuation()));
+        d_env, "sep_neg_guard", g, getValuation()));
     DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
     d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_SEP_NEG_GUARD, ds);
@@ -922,7 +921,7 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
   std::map< Node, HeapAssertInfo* >::iterator e_i = d_eqc_info.find( n );
   if( e_i==d_eqc_info.end() ){
     if( doMake ){
-      HeapAssertInfo* ei = new HeapAssertInfo( getSatContext() );
+      HeapAssertInfo* ei = new HeapAssertInfo(context());
       d_eqc_info[n] = ei;
       return ei;
     }else{
@@ -1209,7 +1208,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     bool tn_is_monotonic = true;
     if( tn.isSort() ){
       //TODO: use monotonicity inference
-      tn_is_monotonic = !getLogicInfo().isQuantified();
+      tn_is_monotonic = !logicInfo().isQuantified();
     }else{
       tn_is_monotonic = tn.getCardinality().isInfinite();
     }

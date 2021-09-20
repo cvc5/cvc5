@@ -20,17 +20,18 @@
 #ifndef CVC5__THEORY__BV__BV_SOLVER_H
 #define CVC5__THEORY__BV__BV_SOLVER_H
 
+#include "smt/env_obj.h"
 #include "theory/theory.h"
 
 namespace cvc5 {
 namespace theory {
 namespace bv {
 
-class BVSolver
+class BVSolver : protected EnvObj
 {
  public:
-  BVSolver(TheoryState& state, TheoryInferenceManager& inferMgr)
-      : d_state(state), d_im(inferMgr){};
+  BVSolver(Env& env, TheoryState& state, TheoryInferenceManager& inferMgr)
+      : EnvObj(env), d_state(state), d_im(inferMgr){};
 
   virtual ~BVSolver() {}
 

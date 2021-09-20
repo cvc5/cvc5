@@ -21,7 +21,6 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "smt/smt_engine.h"
-#include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
 
@@ -33,14 +32,14 @@ namespace cvc5 {
 namespace theory {
 
 TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
-    : d_env(env),
+    : EnvObj(env),
       d_name(name),
       d_equalityEngine(nullptr),
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
   // must use function models when ufHo is enabled
-  Assert(d_enableFuncModels || !options::ufHo());
+  Assert(d_enableFuncModels || !logicInfo().isHigherOrder());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -52,7 +51,8 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   Assert(ee != nullptr);
   d_equalityEngine = ee;
   // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
+  d_equalityEngine->addFunctionKind(
+      kind::APPLY_UF, false, logicInfo().isHigherOrder());
   d_equalityEngine->addFunctionKind(kind::HO_APPLY);
   d_equalityEngine->addFunctionKind(kind::SELECT);
   // d_equalityEngine->addFunctionKind(kind::STORE);
@@ -74,7 +74,6 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 
 void TheoryModel::reset(){
   d_modelCache.clear();
-  d_comment_str.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
   d_approximations.clear();
@@ -89,11 +88,6 @@ void TheoryModel::reset(){
   d_uf_models.clear();
   d_using_model_core = false;
   d_model_core.clear();
-}
-
-void TheoryModel::getComments(std::ostream& out) const {
-  Trace("model-builder") << "get comments..." << std::endl;
-  out << d_comment_str.str();
 }
 
 void TheoryModel::setHeapModel( Node h, Node neq ) { 
@@ -153,13 +147,13 @@ Node TheoryModel::getValue(TNode n) const
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.
       NodeManager* nm = NodeManager::currentNM();
-      nn = nm->mkNode(kind::LAMBDA, nn[0], Rewriter::rewrite(nn[1]));
+      nn = nm->mkNode(kind::LAMBDA, nn[0], rewrite(nn[1]));
     }
   }
   else
   {
     //normalize
-    nn = Rewriter::rewrite(nn);
+    nn = rewrite(nn);
   }
   Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
@@ -254,7 +248,7 @@ Node TheoryModel::getModelValue(TNode n) const
     }
     ret = nm->mkNode(n.getKind(), children);
     Debug("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
-    ret = Rewriter::rewrite(ret);
+    ret = rewrite(ret);
     Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
@@ -295,11 +289,11 @@ Node TheoryModel::getModelValue(TNode n) const
     return answer;
   }
   // must rewrite the term at this point
-  ret = Rewriter::rewrite(n);
+  ret = rewrite(n);
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
   bool eeHasTerm;
-  if (!options::ufHo() && (t.isFunction() || t.isPredicate()))
+  if (!logicInfo().isHigherOrder() && (t.isFunction() || t.isPredicate()))
   {
     // functions are in the equality engine, but *not* as first-class members
     // when higher-order is disabled. In this case, we cannot query
@@ -366,7 +360,7 @@ Node TheoryModel::getModelValue(TNode n) const
     {
       // this is the class for regular expressions
       // we simply invoke the rewriter on them
-      ret = Rewriter::rewrite(ret);
+      ret = rewrite(ret);
     }
     else
     {
@@ -610,6 +604,7 @@ void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
   Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
   recordApproximation(n, predDisj);
 }
+bool TheoryModel::isUsingModelCore() const { return d_using_model_core; }
 void TheoryModel::setUsingModelCore()
 {
   d_using_model_core = true;
@@ -697,9 +692,10 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
   Assert(d_uf_models.find(f) == d_uf_models.end());
 
-  if( options::ufHo() ){
+  if (logicInfo().isHigherOrder())
+  {
     //we must rewrite the function value since the definition needs to be a constant value
-    f_def = Rewriter::rewrite( f_def );
+    f_def = rewrite(f_def);
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
     Assert(f_def.isConst()) << "Non-constant f_def: " << f_def;
@@ -710,7 +706,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     d_uf_models[f] = f_def;
   }
 
-  if (options::ufHo() && d_equalityEngine->hasTerm(f))
+  if (logicInfo().isHigherOrder() && d_equalityEngine->hasTerm(f))
   {
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
     // assign to representative if higher-order
@@ -745,7 +741,8 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
     Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
-      if( options::ufHo() ){
+      if (logicInfo().isHigherOrder())
+      {
         // if in higher-order mode, assign function definitions modulo equality
         Node r = getRepresentative( n );
         std::map< Node, Node >::iterator itf = func_to_rep.find( r );

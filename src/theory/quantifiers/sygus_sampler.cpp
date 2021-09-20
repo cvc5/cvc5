@@ -23,8 +23,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
@@ -780,8 +778,12 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-void SygusSampler::checkEquivalent(Node bv, Node bvr)
+void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
 {
+  if (bv == bvr)
+  {
+    return;
+  }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
                            << std::endl;
 
@@ -827,14 +829,12 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
       return;
     }
     // we have detected unsoundness in the rewriter
-    Options& sopts = smt::currentSmtEngine()->getOptions();
-    std::ostream* out = sopts.base.out;
-    (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
+    out << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
     // debugging information
-    (*out) << "Terms are not equivalent for : " << std::endl;
-    (*out) << ptOut.str();
+    out << "Terms are not equivalent for : " << std::endl;
+    out << ptOut.str();
     Assert(bve != bvre);
-    (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
+    out << "where they evaluate to " << bve << " and " << bvre << std::endl;
 
     if (options::sygusRewVerifyAbort())
     {

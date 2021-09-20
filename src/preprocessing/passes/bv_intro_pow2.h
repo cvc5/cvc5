@@ -36,6 +36,23 @@ class BvIntroPow2 : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+
+ private:
+  /** Checks whether PowerOfTwo rewrite applies. */
+  bool isPowerOfTwo(TNode node);
+  /**
+   * Applies PowerOfTwo rewrite.
+   *
+   * x & (x-1) = 0 => x = 1 << sk
+   *
+   * where sk is a fresh Skolem.
+   *
+   * WARNING: this is an **EQUISATISFIABLE** transformation!
+   * Only to be called on top level assertions.
+   */
+  Node rewritePowerOfTwo(TNode node);
+  /** Does the traversal of assertions and applies rweritePowerOfTwo. */
+  Node pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache);
 };
 
 }  // namespace passes

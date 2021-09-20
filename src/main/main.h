@@ -13,15 +13,11 @@
  * Header for main cvc5 driver.
  */
 
-#include <chrono>
-#include <exception>
 #include <memory>
 #include <string>
 
 #include "api/cpp/cvc5.h"
 #include "base/cvc5config.h"
-#include "base/exception.h"
-#include "options/options.h"
 
 #ifndef CVC5__MAIN__MAIN_H
 #define CVC5__MAIN__MAIN_H
@@ -39,19 +35,6 @@ extern std::string progName;
 
 /** A reference for use by the signal handlers to print statistics */
 extern std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
-
-/** Manages a custom timer for the total runtime in RAII-style. */
-class TotalTimer
-{
- public:
-  TotalTimer() : d_start(std::chrono::steady_clock::now()) {}
-  ~TotalTimer();
-
- private:
-  std::chrono::steady_clock::time_point d_start;
-};
-/** The time point the binary started, accessible to signal handlers */
-extern std::unique_ptr<TotalTimer> totalTime;
 
 /**
  * If true, will not spin on segfault even when CVC5_DEBUG is on.

@@ -826,11 +826,10 @@ public:
    * print it fully
    * @param language the language in which to output
    */
-  inline void toStream(
-      std::ostream& out,
-      int toDepth = -1,
-      size_t dagThreshold = 1,
-      OutputLanguage language = language::output::LANG_AUTO) const
+  inline void toStream(std::ostream& out,
+                       int toDepth = -1,
+                       size_t dagThreshold = 1,
+                       Language language = Language::LANG_AUTO) const
   {
     assertTNodeNotExpired();
     d_nv->toStream(out, toDepth, dagThreshold, language);
@@ -1008,10 +1007,6 @@ template <bool ref_count>
 template <class AttrKind>
 inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->getAttribute(*this, AttrKind());
@@ -1021,10 +1016,6 @@ template <bool ref_count>
 template <class AttrKind>
 inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->hasAttribute(*this, AttrKind());
@@ -1034,10 +1025,6 @@ template <bool ref_count>
 template <class AttrKind>
 inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->getAttribute(*this, AttrKind(), ret);
@@ -1047,10 +1034,6 @@ template <bool ref_count>
 template <class AttrKind>
 inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
@@ -1247,10 +1230,6 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
 {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   kind::MetaKind mk = getMetaKind();
@@ -1277,10 +1256,6 @@ inline bool NodeTemplate<ref_count>::hasOperator() const {
 template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->getType(*this, check);
@@ -1483,17 +1458,13 @@ Node NodeTemplate<ref_count>::substitute(
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintNodeNoDag(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n) {
@@ -1502,17 +1473,13 @@ static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n)
 }
 
 static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintTNodeNoDag(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& n) {

@@ -786,6 +786,7 @@ void Smt2Printer::toStream(std::ostream& out,
   break;
   case kind::APPLY_UPDATER:
   {
+    stillNeedToPrintParams = false;
     Node op = n.getOperator();
     size_t index = DType::indexOf(op);
     const DType& dt = DType::datatypeOf(op);
@@ -1083,6 +1084,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
   case kind::BAG_FROM_SET: return "bag.from_set";
   case kind::BAG_TO_SET: return "bag.to_set";
+  case kind::BAG_MAP: return "bag.map";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1204,7 +1206,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.
-  tn.toStream(out, language::output::LANG_SMTLIB_V2_6);
+  tn.toStream(out, Language::LANG_SMTLIB_V2_6);
 }
 
 template <class T>
@@ -1261,14 +1263,6 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 
 void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  //print the model comments
-  std::stringstream c;
-  tm->getComments(c);
-  std::string ln;
-  while( std::getline( c, ln ) ){
-    out << "; " << ln << std::endl;
-  }
   //print the model
   out << "(" << endl;
   // don't need to print approximations since they are built into choice
@@ -1277,7 +1271,7 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
   out << ")" << endl;
   //print the heap model, if it exists
   Node h, neq;
-  if (tm->getHeapModel(h, neq))
+  if (m.getHeapModel(h, neq))
   {
     // description of the heap+what nil is equal to fully describes model
     out << "(heap" << endl;
@@ -1288,8 +1282,8 @@ void Smt2Printer::toStream(std::ostream& out, const smt::Model& m) const
 }
 
 void Smt2Printer::toStreamModelSort(std::ostream& out,
-                                    const smt::Model& m,
-                                    TypeNode tn) const
+                                    TypeNode tn,
+                                    const std::vector<Node>& elements) const
 {
   if (!tn.isSort())
   {
@@ -1297,8 +1291,6 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
         << tn << std::endl;
     return;
   }
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  std::vector<Node> elements = tm->getDomainElements(tn);
   // print the cardinality
   out << "; cardinality of " << tn << " is " << elements.size() << endl;
   if (options::modelUninterpPrint()
@@ -1328,26 +1320,22 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
 }
 
 void Smt2Printer::toStreamModelTerm(std::ostream& out,
-                                    const smt::Model& m,
-                                    Node n) const
+                                    const Node& n,
+                                    const Node& value) const
 {
-  const theory::TheoryModel* tm = m.getTheoryModel();
-  // We get the value from the theory model directly, which notice
-  // does not have to go through the standard SmtEngine::getValue interface.
-  Node val = tm->getValue(n);
-  if (val.getKind() == kind::LAMBDA)
+  if (value.getKind() == kind::LAMBDA)
   {
     TypeNode rangeType = n.getType().getRangeType();
-    out << "(define-fun " << n << " " << val[0] << " " << rangeType << " ";
+    out << "(define-fun " << n << " " << value[0] << " " << rangeType << " ";
     // call toStream and force its type to be proper
-    toStreamCastToType(out, val[1], -1, rangeType);
+    toStreamCastToType(out, value[1], -1, rangeType);
     out << ")" << endl;
   }
   else
   {
     out << "(define-fun " << n << " () " << n.getType() << " ";
     // call toStream and force its type to be proper
-    toStreamCastToType(out, val, -1, n.getType());
+    toStreamCastToType(out, value, -1, n.getType());
     out << ")" << endl;
   }
 }
@@ -1625,6 +1613,11 @@ void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
   out << "(get-unsat-core)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
+{
+  out << "(get-difficulty)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
                                                 Result::Sat status) const
 {
@@ -1888,6 +1881,11 @@ void Smt2Printer::toStreamCmdDeclareVar(std::ostream& out,
 void Smt2Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
 {
   out << "(constraint " << n << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdAssume(std::ostream& out, Node n) const
+{
+  out << "(assume " << n << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdInvConstraint(

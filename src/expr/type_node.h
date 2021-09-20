@@ -374,7 +374,9 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AUTO) const {
+  inline void toStream(std::ostream& out,
+                       Language language = Language::LANG_AUTO) const
+  {
     d_nv->toStream(out, -1, 0, language);
   }
 
@@ -850,35 +852,23 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
 template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
 }
 
@@ -1029,17 +1019,13 @@ inline unsigned TypeNode::getFloatingPointSignificandSize() const {
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
