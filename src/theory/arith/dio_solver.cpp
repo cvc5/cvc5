@@ -41,20 +41,20 @@ inline Node makeIntegerVariable(){
 
 DioSolver::DioSolver(Env& env)
     : EnvObj(env),
-      d_lastUsedProofVariable(userContext(), 0),
-      d_inputConstraints(userContext()),
-      d_nextInputConstraintToEnqueue(userContext(), 0),
-      d_trail(userContext()),
-      d_subs(userContext()),
+      d_lastUsedProofVariable(context(), 0),
+      d_inputConstraints(context()),
+      d_nextInputConstraintToEnqueue(context(), 0),
+      d_trail(context()),
+      d_subs(context()),
       d_currentF(),
-      d_savedQueue(userContext()),
-      d_savedQueueIndex(userContext(), 0),
-      d_conflictIndex(userContext()),
-      d_maxInputCoefficientLength(userContext(), 0),
-      d_usedDecomposeIndex(userContext(), false),
-      d_lastPureSubstitution(userContext(), 0),
-      d_pureSubstitionIter(userContext(), 0),
-      d_decompositionLemmaQueue(userContext())
+      d_savedQueue(context()),
+      d_savedQueueIndex(context(), 0),
+      d_conflictIndex(context()),
+      d_maxInputCoefficientLength(context(), 0),
+      d_usedDecomposeIndex(context(), false),
+      d_lastPureSubstitution(context(), 0),
+      d_pureSubstitionIter(context(), 0),
+      d_decompositionLemmaQueue(context())
 {
 }
 
