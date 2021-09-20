@@ -1701,13 +1701,6 @@ identifier[cvc5::ParseOp& p]
         }
         p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
       }
-    | TUPLE_UPDATE_TOK
-      {
-        // we adopt a special syntax (_ tuple_update n)
-        p.d_kind = api::APPLY_UPDATER;
-        // put m in expr so that the caller can deal with this case
-        //p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
-      }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
         p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
