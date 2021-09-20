@@ -1577,12 +1577,13 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
  * - For declared functions f, we return (2).
  * - For indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
- * - For tuple selectors (_ tupSel n), we return (1) and (3). api::Kind is set to
- * APPLY_SELECTOR, and expr is set to n, which is to be interpreted by the
- * caller as the n^th generic tuple selector. We do this since there is no
- * AST expression representing generic tuple select, and we do not have enough
- * type information at this point to know the type of the tuple we will be
- * selecting from.
+ * - For tuple selectors (_ tupSel n) and tuple updaters (_ tuple_update n), we
+ * return (1) and (3). api::Kind is set to APPLY_SELECTOR or APPLY_UPDATER
+ * respectively, and expr is set to n, which is to be interpreted by the
+ * caller as the n^th generic tuple selector or updater. We do this since there
+ * is no AST expression representing generic tuple select, and we do not have
+ * enough type information at this point to know the type of the tuple we will
+ * be selecting from.
  *
  * (Ascripted Identifiers)
  *
@@ -1688,10 +1689,12 @@ identifier[cvc5::ParseOp& p]
         // put m in expr so that the caller can deal with this case
         p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
-    | TUPLE_UPDATE_TOK
+    | TUPLE_UPDATE_TOK mtu=INTEGER_LITERAL
       {
         // we adopt a special syntax (_ tuple_update n)
         p.d_kind = api::APPLY_UPDATER;
+        // put m in expr so that the caller can deal with this case
+        p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($mtu));
       }
     | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
