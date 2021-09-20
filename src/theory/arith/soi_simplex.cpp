@@ -253,7 +253,7 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
     }
   }
 
-  CompPenaltyColLength colCmp(&d_linEq);
+  CompPenaltyColLength colCmp(&d_linEq, options::havePenalties());
   CandVector::iterator i = candidates.begin();
   CandVector::iterator end = candidates.end();
   std::make_heap(i, end, colCmp);
