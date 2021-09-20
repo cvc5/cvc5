@@ -16,6 +16,7 @@
 #include "theory/arith/pp_rewrite_eq.h"
 
 #include "options/arith_options.h"
+#include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
@@ -23,16 +24,15 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-PreprocessRewriteEq::PreprocessRewriteEq(context::Context* c,
-                                         ProofNodeManager* pnm)
-    : d_ppPfGen(pnm, c, "Arith::ppRewrite"), d_pnm(pnm)
+PreprocessRewriteEq::PreprocessRewriteEq(Env& env)
+    : EnvObj(env), d_ppPfGen(d_env.getProofNodeManager(), context(), "Arith::ppRewrite")
 {
 }
 
 TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
 {
   Assert(atom.getKind() == kind::EQUAL);
-  if (!options::arithRewriteEq())
+  if (!options().arith.arithRewriteEq)
   {
     return TrustNode::null();
   }
@@ -49,13 +49,15 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
     return d_ppPfGen.mkTrustedRewrite(
         atom,
         rewritten,
-        d_pnm->mkNode(
+        d_env.getProofNodeManager()->mkNode(
             PfRule::THEORY_INFERENCE, {}, {atom.eqNode(rewritten), t}));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
-bool PreprocessRewriteEq::proofsEnabled() const { return d_pnm != nullptr; }
+bool PreprocessRewriteEq::proofsEnabled() const {
+  return d_env.isTheoryProofProducing();
+}
 
 }  // namespace arith
 }  // namespace theory
