@@ -56,8 +56,9 @@ namespace arith {
 
 class ArithVariables;
 
-class ArithCongruenceManager: protected EnvObj {
-private:
+class ArithCongruenceManager : protected EnvObj
+{
+ private:
   context::CDRaised d_inConflict;
   RaiseEqualityEngineConflict d_raiseConflict;
 
@@ -295,7 +296,7 @@ private:
     Statistics();
   } d_statistics;
 
-};/* class ArithCongruenceManager */
+}; /* class ArithCongruenceManager */
 
 std::vector<Node> andComponents(TNode an);
 

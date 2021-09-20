@@ -58,11 +58,14 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_pnm(d_env.getProofNodeManager()),
       // Construct d_pfGenEe with the SAT context, since its proof include
       // unclosed assumptions of theory literals.
-      d_pfGenEe(
-          new EagerProofGenerator(d_env.getProofNodeManager(), context(), "ArithCongruenceManager::pfGenEe")),
+      d_pfGenEe(new EagerProofGenerator(d_env.getProofNodeManager(),
+                                        context(),
+                                        "ArithCongruenceManager::pfGenEe")),
       // Construct d_pfGenEe with the USER context, since its proofs are closed.
-      d_pfGenExplain(new EagerProofGenerator(
-          d_env.getProofNodeManager(), userContext(), "ArithCongruenceManager::pfGenExplain")),
+      d_pfGenExplain(
+          new EagerProofGenerator(d_env.getProofNodeManager(),
+                                  userContext(),
+                                  "ArithCongruenceManager::pfGenExplain")),
       d_pfee(nullptr)
 {
 }

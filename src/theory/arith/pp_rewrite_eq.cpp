@@ -25,7 +25,8 @@ namespace theory {
 namespace arith {
 
 PreprocessRewriteEq::PreprocessRewriteEq(Env& env)
-    : EnvObj(env), d_ppPfGen(d_env.getProofNodeManager(), context(), "Arith::ppRewrite")
+    : EnvObj(env),
+      d_ppPfGen(d_env.getProofNodeManager(), context(), "Arith::ppRewrite")
 {
 }
 
@@ -55,7 +56,8 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
-bool PreprocessRewriteEq::proofsEnabled() const {
+bool PreprocessRewriteEq::proofsEnabled() const
+{
   return d_env.isTheoryProofProducing();
 }
 

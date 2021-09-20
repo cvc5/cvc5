@@ -34,7 +34,7 @@ namespace arith {
  *
  * In particular, we may rewrite (= x y) to (and (>= x y) (<= x y)).
  */
-class PreprocessRewriteEq: protected EnvObj
+class PreprocessRewriteEq : protected EnvObj
 {
  public:
   PreprocessRewriteEq(Env& env);
