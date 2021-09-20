@@ -182,6 +182,8 @@ libcvc5_add_sources(
   proof/lfsc/lfsc_list_sc_node_converter.h
   proof/lfsc/lfsc_node_converter.cpp
   proof/lfsc/lfsc_node_converter.h
+  proof/lfsc/lfsc_post_processor.cpp
+  proof/lfsc/lfsc_post_processor.h
   proof/lfsc/lfsc_print_channel.cpp
   proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_util.cpp
