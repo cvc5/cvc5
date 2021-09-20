@@ -861,7 +861,7 @@ cdef class Solver:
         - ``Term mkTerm(Kind kind, Op child1, List[Term] children)``
         - ``Term mkTerm(Kind kind, List[Term] children)``
 
-        where List[Term] can also be comma-separated arguments
+        where ``List[Term]`` can also be comma-separated arguments
         """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
