@@ -68,18 +68,22 @@ namespace arith {
 
 class FCSimplexDecisionProcedure : public SimplexDecisionProcedure{
 public:
-  FCSimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc);
+ FCSimplexDecisionProcedure(Env& env,
+                            LinearEqualityModule& linEq,
+                            ErrorSet& errors,
+                            RaiseConflict conflictChannel,
+                            TempVarMalloc tvmalloc);
 
-  Result::Sat findModel(bool exactResult) override;
+ Result::Sat findModel(bool exactResult) override;
 
-  // other error variables are dropping
-  WitnessImprovement dualLikeImproveError(ArithVar evar);
-  WitnessImprovement primalImproveError(ArithVar evar);
+ // other error variables are dropping
+ WitnessImprovement dualLikeImproveError(ArithVar evar);
+ WitnessImprovement primalImproveError(ArithVar evar);
 
-  // dual like
-  // - found conflict
-  // - satisfied error set
-  Result::Sat dualLike();
+ // dual like
+ // - found conflict
+ // - satisfied error set
+ Result::Sat dualLike();
 
 private:
   static const uint32_t PENALTY = 4;

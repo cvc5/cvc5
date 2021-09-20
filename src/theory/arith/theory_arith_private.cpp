@@ -122,7 +122,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
-      d_diosolver(context()),
+      d_diosolver(env),
       d_restartsCounter(0),
       d_tableauSizeHasBeenModified(false),
       d_tableauResetDensity(1.6),
@@ -138,13 +138,13 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_cmEnabled(context(), options().arith.arithCongMan),
 
       d_dualSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_fcSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_soiSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(context(), -1),

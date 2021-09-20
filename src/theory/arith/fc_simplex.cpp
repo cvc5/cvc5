@@ -29,11 +29,12 @@ namespace theory {
 namespace arith {
 
 FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
+    Env& env,
     LinearEqualityModule& linEq,
     ErrorSet& errors,
     RaiseConflict conflictChannel,
     TempVarMalloc tvmalloc)
-    : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc),
+    : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
       d_focusSize(0),
       d_focusErrorVar(ARITHVAR_SENTINEL),
       d_focusCoefficients(),

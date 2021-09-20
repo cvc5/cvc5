@@ -31,9 +31,13 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-AttemptSolutionSDP::AttemptSolutionSDP(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-  : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc)
-  , d_statistics()
+AttemptSolutionSDP::AttemptSolutionSDP(Env& env,
+                                       LinearEqualityModule& linEq,
+                                       ErrorSet& errors,
+                                       RaiseConflict conflictChannel,
+                                       TempVarMalloc tvmalloc)
+    : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
+      d_statistics()
 { }
 
 AttemptSolutionSDP::Statistics::Statistics()

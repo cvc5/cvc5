@@ -21,6 +21,7 @@
 #include "base/output.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/partial_model.h"
 
@@ -38,21 +39,24 @@ inline Node makeIntegerVariable(){
                            "is an integer variable created by the dio solver");
 }
 
-DioSolver::DioSolver(context::Context* ctxt)
-    : d_lastUsedProofVariable(ctxt, 0),
-      d_inputConstraints(ctxt),
-      d_nextInputConstraintToEnqueue(ctxt, 0),
-      d_trail(ctxt),
-      d_subs(ctxt),
+DioSolver::DioSolver(Env& env)
+    : EnvObj(env),
+      d_lastUsedProofVariable(userContext(), 0),
+      d_inputConstraints(userContext()),
+      d_nextInputConstraintToEnqueue(userContext(), 0),
+      d_trail(userContext()),
+      d_subs(userContext()),
       d_currentF(),
-      d_savedQueue(ctxt),
-      d_savedQueueIndex(ctxt, 0),
-      d_conflictIndex(ctxt),
-      d_maxInputCoefficientLength(ctxt, 0),
-      d_usedDecomposeIndex(ctxt, false),
-      d_lastPureSubstitution(ctxt, 0),
-      d_pureSubstitionIter(ctxt, 0),
-      d_decompositionLemmaQueue(ctxt) {}
+      d_savedQueue(userContext()),
+      d_savedQueueIndex(userContext(), 0),
+      d_conflictIndex(userContext()),
+      d_maxInputCoefficientLength(userContext(), 0),
+      d_usedDecomposeIndex(userContext(), false),
+      d_lastPureSubstitution(userContext(), 0),
+      d_pureSubstitionIter(userContext(), 0),
+      d_decompositionLemmaQueue(userContext())
+{
+}
 
 DioSolver::Statistics::Statistics()
     : d_conflictCalls(smtStatisticsRegistry().registerInt(
@@ -812,7 +816,8 @@ void DioSolver::subAndReduceCurrentFByIndex(DioSolver::SubIndex subIndex){
 }
 
 void DioSolver::addTrailElementAsLemma(TrailIndex i) {
-  if(options::exportDioDecompositions()){
+  if (options().arith.exportDioDecompositions)
+  {
     d_decompositionLemmaQueue.push(i);
   }
 }

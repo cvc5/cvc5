@@ -26,6 +26,7 @@
 #include "context/cdmaybe.h"
 #include "context/cdo.h"
 #include "context/cdqueue.h"
+#include "smt/env_obj.h"
 #include "theory/arith/normal_form.h"
 #include "util/rational.h"
 #include "util/statistics_stats.h"
@@ -37,8 +38,9 @@ class Context;
 namespace theory {
 namespace arith {
 
-class DioSolver {
-private:
+class DioSolver : protected EnvObj
+{
+ private:
   typedef size_t TrailIndex;
   typedef size_t InputConstraintIndex;
   typedef size_t SubIndex;
@@ -176,11 +178,12 @@ private:
 public:
 
   /** Construct a Diophantine equation solver with the given context. */
-  DioSolver(context::Context* ctxt);
+ DioSolver(Env& env);
 
-  /** Returns true if the substitutions use no new variables. */
-  bool hasMorePureSubstitutions() const{
-    return d_pureSubstitionIter < d_lastPureSubstitution;
+ /** Returns true if the substitutions use no new variables. */
+ bool hasMorePureSubstitutions() const
+ {
+   return d_pureSubstitionIter < d_lastPureSubstitution;
   }
 
   Node nextPureSubstitution();
@@ -416,7 +419,7 @@ public:
   };
 
   Statistics d_statistics;
-};/* class DioSolver */
+}; /* class DioSolver */
 
 }  // namespace arith
 }  // namespace theory
