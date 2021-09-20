@@ -38,13 +38,13 @@ static Node removeAttributes(Node res,
     {
       new_children.push_back(res.getOperator());
     }
-    for (int i = 0; i < res.end() - res.begin(); i++)
+    for (Node r : res)
     {
-      if (std::find(attributes.begin(), attributes.end(), res[i].getKind())
+      if (std::find(attributes.begin(), attributes.end(), r.getKind())
           == attributes.end())
       {
         new_children.push_back(
-            proof::removeAttributes(res[i], attributes, continueRemoval));
+            proof::removeAttributes(r, attributes, continueRemoval));
       }
     }
     return NodeManager::currentNM()->mkNode(res.getKind(), new_children);
