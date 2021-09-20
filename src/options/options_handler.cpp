@@ -68,35 +68,23 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
                         + indent + "Try --bv-sat-solver=minisat");
 }
 
-void printTags(unsigned ntags, char const* const* tags)
+static void printTags(const std::vector<std::string>& tags)
 {
   std::cout << "available tags:";
-  for (uint64_t i = 0; i < ntags; ++ i)
+  for (const auto& t : tags)
   {
-    std::cout << "  " << tags[i] << std::endl;
+    std::cout << "  " << t << std::endl;
   }
   std::cout << std::endl;
 }
 
-std::string suggestTags(char const* const* validTags,
-                               std::string inputTag,
-                               char const* const* additionalTags)
+std::string suggestTags(const std::vector<std::string>& validTags,
+                        std::string inputTag,
+                        const std::vector<std::string>& additionalTags)
 {
   DidYouMean didYouMean;
-
-  const char* opt;
-  for (size_t i = 0; (opt = validTags[i]) != nullptr; ++i)
-  {
-    didYouMean.addWord(validTags[i]);
-  }
-  if (additionalTags != nullptr)
-  {
-    for (size_t i = 0; (opt = additionalTags[i]) != nullptr; ++i)
-    {
-      didYouMean.addWord(additionalTags[i]);
-    }
-  }
-
+  didYouMean.addWords(validTags);
+  didYouMean.addWords(additionalTags);
   return didYouMean.getMatchAsString(inputTag);
 }
 
@@ -233,14 +221,13 @@ void OptionsHandler::enableTraceTag(const std::string& option,
   {
     if (optarg == "help")
     {
-      printTags(
-          Configuration::getNumTraceTags(), Configuration::getTraceTags());
+      printTags(Configuration::getTraceTags());
       std::exit(0);
     }
 
     throw OptionException(
         std::string("trace tag ") + optarg + std::string(" not available.")
-        + suggestTags(Configuration::getTraceTags(), optarg, nullptr));
+        + suggestTags(Configuration::getTraceTags(), optarg, {}));
   }
   Trace.on(optarg);
 }
@@ -263,8 +250,7 @@ void OptionsHandler::enableDebugTag(const std::string& option,
   {
     if (optarg == "help")
     {
-      printTags(
-          Configuration::getNumDebugTags(), Configuration::getDebugTags());
+      printTags(Configuration::getDebugTags());
       std::exit(0);
     }
 
@@ -400,7 +386,7 @@ void OptionsHandler::showDebugTags(const std::string& option,
   {
     throw OptionException("debug tags not available in non-tracing builds");
   }
-  printTags(Configuration::getNumDebugTags(),Configuration::getDebugTags());
+  printTags(Configuration::getDebugTags());
   std::exit(0);
 }
 
@@ -411,7 +397,7 @@ void OptionsHandler::showTraceTags(const std::string& option,
   {
     throw OptionException("trace tags not available in non-tracing build");
   }
-  printTags(Configuration::getNumTraceTags(), Configuration::getTraceTags());
+  printTags(Configuration::getTraceTags());
   std::exit(0);
 }
 
