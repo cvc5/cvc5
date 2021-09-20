@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
 #include "proof/eager_proof_generator.h"
+#include "smt/env_obj.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
 
@@ -30,10 +31,10 @@ class TConvProofGenerator;
 namespace theory {
 namespace arith {
 
-class OperatorElim : public EagerProofGenerator
+class OperatorElim : protected EnvObj, public EagerProofGenerator
 {
  public:
-  OperatorElim(ProofNodeManager* pnm, const LogicInfo& info);
+  OperatorElim(Env& env);
   ~OperatorElim() {}
   /** Eliminate operators in this term.
    *
@@ -59,8 +60,6 @@ class OperatorElim : public EagerProofGenerator
   static Node getAxiomFor(Node n);
 
  private:
-  /** Logic info of the owner of this class */
-  const LogicInfo& d_info;
   /**
    * Function symbols used to implement:
    * (1) Uninterpreted division-by-zero semantics.  Needed to deal with partial
