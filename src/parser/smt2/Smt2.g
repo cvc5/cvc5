@@ -1688,6 +1688,11 @@ identifier[cvc5::ParseOp& p]
         // put m in expr so that the caller can deal with this case
         p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
+    | TUPLE_UPDATE_TOK
+      {
+        // we adopt a special syntax (_ tuple_update n)
+        p.d_kind = api::APPLY_UPDATER;
+      }
     | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
         // we adopt a special syntax (_ tuple_project i_1 ... i_n) where
