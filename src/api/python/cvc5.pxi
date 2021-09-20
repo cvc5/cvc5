@@ -1061,7 +1061,7 @@ cdef class Solver:
 
     def mkString(self, str s, useEscSequences = None):
         """Create a String constant from a `str` which may contain SMT-LIB
-        compatible escape sequences like `\\u1234` to encode unicode characters.
+        compatible escape sequences like ``\\u1234`` to encode unicode characters.
 
         :param s: the string this constant represents
         :param useEscSequences: determines whether escape sequences in `s` should be converted to the corresponding unicode character
@@ -1400,7 +1400,7 @@ cdef class Solver:
         return r
 
     def mkSygusGrammar(self, boundVars, ntSymbols):
-        """Create a Sygus grammar. The first non-terminal is treated as the
+        """Create a SyGuS grammar. The first non-terminal is treated as the
         starting non-terminal, so the order of non-terminals matters.
 
         :param boundVars: the parameters to corresponding synth-fun/synth-inv
@@ -1719,7 +1719,7 @@ cdef class Solver:
 
             ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-        Create elements of parameter 'funs' with mkConst().
+        Create elements of parameter ``funs`` with mkConst().
 
         :param funs: the sorted functions
         :param bound_vars: the list of parameters to the functions
@@ -1836,7 +1836,7 @@ cdef class Solver:
 
             ( get-unsat-assumptions )
 
-        Requires to enable option 'produce-unsat-assumptions'.
+        Requires to enable option :ref:`produce-unsat-assumptions <lbl-option-produce-unsat-assumptions>`.
 
         :return: the set of unsat assumptions.
         """
@@ -1856,7 +1856,7 @@ cdef class Solver:
 
             ( get-unsat-core )
 
-        Requires to enable option 'produce-unsat-cores'.
+        Requires to enable option :ref:`produce-unsat-cores <lbl-produce-unsat-cores>`.
 
         :return: a set of terms representing the unsatisfiable core
         """
