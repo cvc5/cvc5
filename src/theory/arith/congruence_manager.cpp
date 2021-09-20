@@ -22,6 +22,7 @@
 #include "options/arith_options.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
@@ -36,33 +37,32 @@ namespace theory {
 namespace arith {
 
 ArithCongruenceManager::ArithCongruenceManager(
-    context::Context* c,
-    context::UserContext* u,
+    Env& env,
     ConstraintDatabase& cd,
     SetupLiteralCallBack setup,
     const ArithVariables& avars,
-    RaiseEqualityEngineConflict raiseConflict,
-    ProofNodeManager* pnm)
-    : d_inConflict(c),
+    RaiseEqualityEngineConflict raiseConflict)
+    : EnvObj(env),
+      d_inConflict(context()),
       d_raiseConflict(raiseConflict),
       d_notify(*this),
-      d_keepAlive(c),
-      d_propagatations(c),
-      d_explanationMap(c),
+      d_keepAlive(context()),
+      d_propagatations(context()),
+      d_explanationMap(context()),
       d_constraintDatabase(cd),
       d_setupLiteral(setup),
       d_avariables(avars),
       d_ee(nullptr),
-      d_satContext(c),
-      d_userContext(u),
-      d_pnm(pnm),
+      d_satContext(context()),
+      d_userContext(userContext()),
+      d_pnm(d_env.getProofNodeManager()),
       // Construct d_pfGenEe with the SAT context, since its proof include
       // unclosed assumptions of theory literals.
       d_pfGenEe(
-          new EagerProofGenerator(pnm, c, "ArithCongruenceManager::pfGenEe")),
+          new EagerProofGenerator(d_env.getProofNodeManager(), context(), "ArithCongruenceManager::pfGenEe")),
       // Construct d_pfGenEe with the USER context, since its proofs are closed.
       d_pfGenExplain(new EagerProofGenerator(
-          pnm, u, "ArithCongruenceManager::pfGenExplain")),
+          d_env.getProofNodeManager(), userContext(), "ArithCongruenceManager::pfGenExplain")),
       d_pfee(nullptr)
 {
 }
@@ -71,7 +71,7 @@ ArithCongruenceManager::~ArithCongruenceManager() {}
 
 bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 {
-  Assert(!options::arithEqSolver());
+  Assert(!options().arith.arithEqSolver);
   esi.d_notify = &d_notify;
   esi.d_name = "arithCong::ee";
   return true;
@@ -79,7 +79,7 @@ bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 
 void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
 {
-  if (options::arithEqSolver())
+  if (options().arith.arithEqSolver)
   {
     // use our own copy
     d_allocEe.reset(
