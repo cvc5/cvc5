@@ -23,8 +23,8 @@
 #include "base/output.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
-#include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
+#include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
@@ -144,14 +144,15 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
 }
 
 ArithIteUtils::ArithIteUtils(
+    Env& env,
     preprocessing::util::ContainsTermITEVisitor& contains,
-    context::Context* uc,
     SubstitutionMap& subs)
-    : d_contains(contains),
+    : EnvObj(env),
+      d_contains(contains),
       d_subs(subs),
       d_one(1),
-      d_subcount(uc, 0),
-      d_skolems(uc),
+      d_subcount(userContext(), 0),
+      d_skolems(userContext()),
       d_implies(),
       d_orBinEqs()
 {
@@ -273,7 +274,7 @@ void ArithIteUtils::addSubstitution(TNode f, TNode t){
 }
 
 Node ArithIteUtils::applySubstitutions(TNode f){
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
   return d_subs.apply(f);
 }
 
@@ -287,7 +288,7 @@ Node ArithIteUtils::selectForCmp(Node n) const{
 }
 
 void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
   for(size_t i=0, N=assertions.size(); i < N; ++i){
     collectAssertions(assertions[i]);
   }

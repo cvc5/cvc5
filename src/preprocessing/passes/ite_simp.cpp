@@ -152,9 +152,7 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
       util::ContainsTermITEVisitor& contains =
           *(d_iteUtilities.getContainsVisitor());
       arith::ArithIteUtils aiteu(
-          contains,
-          userContext(),
-          d_preprocContext->getTopLevelSubstitutions().get());
+          d_env, contains, d_preprocContext->getTopLevelSubstitutions().get());
       bool anyItes = false;
       for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
       {
