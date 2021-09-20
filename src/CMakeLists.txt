@@ -221,6 +221,8 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/alethe/alethe_node_converter.cpp
+  proof/alethe/alethe_node_converter.h
   prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h
