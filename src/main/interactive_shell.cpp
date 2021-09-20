@@ -66,10 +66,6 @@ using __gnu_cxx::stdio_filebuf;
 char** commandCompletion(const char* text, int start, int end);
 char* commandGenerator(const char* text, int state);
 
-static const std::string cvc_commands[] = {
-#include "main/cvc_tokens.h"
-};/* cvc_commands */
-
 static const std::string smt2_commands[] = {
 #include "main/smt2_tokens.h"
 };/* smt2_commands */
