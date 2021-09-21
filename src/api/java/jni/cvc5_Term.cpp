@@ -572,6 +572,111 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getString(JNIEnv* env,
 
 /*
  * Class:     cvc5_Term
+ * Method:    isReal32Value
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isReal32Value(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isReal32Value());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getReal32Value
+ * Signature: (J)[I
+ */
+JNIEXPORT jintArray JNICALL Java_cvc5_Term_getReal32Value(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  std::pair<std::int32_t, std::uint32_t> pair = current->getReal32Value();
+  std::vector<std::int32_t> array(2);
+  array[0] = pair.first;
+  array[1] = pair.second;
+
+  jintArray ret = env->NewIntArray(array.size());
+  env->SetIntArrayRegion(ret, 0, array.size(), array.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    isReal64Value
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isReal64Value(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isReal64Value());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getReal64Value
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getReal64Value(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  std::pair<std::int64_t, std::uint64_t> pair = current->getReal64Value();
+  std::vector<int64_t> array(2);
+  array[0] = pair.first;
+  array[1] = pair.second;
+
+  jlongArray ret = env->NewLongArray(array.size());
+  env->SetLongArrayRegion(ret, 0, array.size(), array.data());
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    isRealValue
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isRealValue(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isRealValue());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getRealValue
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_cvc5_Term_getRealValue(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  std::string realValue = current->getRealValue();
+  return env->NewStringUTF(realValue.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Term
  * Method:    iterator
  * Signature: (J)J
  */

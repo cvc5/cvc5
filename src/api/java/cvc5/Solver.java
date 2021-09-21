@@ -1872,6 +1872,45 @@ public class Solver implements IPointer
   private native long[] getValue(long pointer, long[] termPointers);
 
   /**
+   * This returns false if the model value of free constant v was not essential
+   * for showing the satisfiability of the last call to checkSat using the
+   * current model. This method will only return false (for any v) if
+   * the model-cores option has been set.
+   *
+   * @param v The term in question
+   * @return true if v is a model core symbol
+   */
+  public boolean isModelCoreSymbol(Term v)
+  {
+    return isModelCoreSymbol(pointer, v.getPointer());
+  }
+
+  private native boolean isModelCoreSymbol(long pointer, long termPointer);
+
+  /**
+   * Get the model
+   * SMT-LIB:
+   * \verbatim
+   * ( get-model )
+   * \endverbatim
+   * Requires to enable option 'produce-models'.
+   * @param sorts The list of uninterpreted sorts that should be printed in the
+   * model.
+   * @param vars The list of free constants that should be printed in the
+   * model. A subset of these may be printed based on isModelCoreSymbol.
+   * @return a string representing the model.
+   */
+  public String getModel(Sort[] sorts, Term[] vars)
+  {
+    long[] sortPointers = Utils.getPointers(sorts);
+    long[] varPointers = Utils.getPointers(vars);
+    return getModel(pointer, sortPointers, varPointers);
+  }
+
+  private native String getModel(long pointer, long[] sortPointers, long[] varPointers);
+
+
+  /**
    * Do quantifier elimination.
    * SMT-LIB:
    * \verbatim
@@ -2363,7 +2402,7 @@ public class Solver implements IPointer
    * \endverbatim
    * @param term the formula to add as a constraint
    */
-  void addSygusConstraint(Term term)
+  public void addSygusConstraint(Term term)
   {
     addSygusConstraint(pointer, term.getPointer());
   }

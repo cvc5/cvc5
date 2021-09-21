@@ -1940,6 +1940,43 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getValue__J_3J(
 
 /*
  * Class:     cvc5_Solver
+ * Method:    isModelCoreSymbol
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Solver_isModelCoreSymbol(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer,
+                                                              jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
+  return static_cast<jboolean>(solver->isModelCoreSymbol(*term));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    getModel
+ * Signature: (J[J[J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_cvc5_Solver_getModel(JNIEnv* env,
+                                                    jobject,
+                                                    jlong pointer,
+                                                    jlongArray sortPointers,
+                                                    jlongArray varPointers)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
+  std::vector<Term> vars = getObjectsFromPointers<Term>(env, varPointers);
+  std::string model = solver->getModel(sorts, vars);
+  return env->NewStringUTF(model.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Solver
  * Method:    getQuantifierElimination
  * Signature: (JJ)J
  */

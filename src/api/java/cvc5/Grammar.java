@@ -63,7 +63,7 @@ public class Grammar extends AbstractPointer {
    * Allow \p ntSymbol to be an arbitrary constant.
    * @param ntSymbol the non-terminal allowed to be any constant
    */
-  void addAnyConstant(Term ntSymbol) {
+  public void addAnyConstant(Term ntSymbol) {
     addAnyConstant(pointer, ntSymbol.getPointer());
   }
 
@@ -74,7 +74,7 @@ public class Grammar extends AbstractPointer {
    * synth-fun/synth-inv with the same sort as \p ntSymbol.
    * @param ntSymbol the non-terminal allowed to be any input constant
    */
-  void addAnyVariable(Term ntSymbol) {
+  public void addAnyVariable(Term ntSymbol) {
     addAnyVariable(pointer, ntSymbol.getPointer());
   }
 
