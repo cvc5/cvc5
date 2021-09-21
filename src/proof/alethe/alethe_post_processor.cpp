@@ -29,7 +29,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     : d_pnm(pnm), d_anc(anc)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_cl = nm->mkBoundVar("cl", nm->stringType());
+  d_cl = nm->mkBoundVar("cl", nm->sExprType());
 }
 
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
