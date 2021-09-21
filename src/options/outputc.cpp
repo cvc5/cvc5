@@ -6,9 +6,9 @@ namespace cvc5 {
 
 OutputC OutputChannel(&std::cout);
 
-Cvc5ostream OutputC::operator()(const options::OutputTag tag) const
+Cvc5ostream OutputC::operator()(const Options& opts, const options::OutputTag tag) const
 {
-  if (options::outputTagHolder()[static_cast<size_t>(tag)])
+  if (opts.base.outputTagHolder[static_cast<size_t>(tag)])
   {
     return Cvc5ostream(d_os);
   }
@@ -18,18 +18,27 @@ Cvc5ostream OutputC::operator()(const options::OutputTag tag) const
   }
 }
 
-Cvc5ostream OutputC::operator()(const std::string& tag) const
+Cvc5ostream OutputC::operator()(const Options& opts, const std::string& tag) const
 {
-  return (*this)(options::stringToOutputTag(tag));
+  return (*this)(opts, options::stringToOutputTag(tag));
 }
 
+Cvc5ostream OutputC::operator()(const options::OutputTag tag) const
+{
+  return (*this)(Options::current(), tag);
+}
+
+bool OutputC::isOn(const Options& opts, const options::OutputTag tag) const
+{
+  return opts.base.outputTagHolder[static_cast<size_t>(tag)];
+}
+bool OutputC::isOn(const Options& opts, const std::string& tag) const
+{
+  return (*this).isOn(opts, options::stringToOutputTag(tag));
+}
 bool OutputC::isOn(const options::OutputTag tag) const
 {
-  return options::outputTagHolder()[static_cast<size_t>(tag)];
-}
-bool OutputC::isOn(const std::string& tag) const
-{
-  return (*this).isOn(options::stringToOutputTag(tag));
+  return isOn(Options::current(), tag);
 }
 
 }  // namespace cvc5
