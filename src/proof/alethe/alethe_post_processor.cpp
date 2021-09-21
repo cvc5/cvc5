@@ -29,7 +29,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     : d_pnm(pnm), d_anc(anc)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_cl = nm->mkBoundVar("cl", nm->stringType());
+  d_cl = nm->mkBoundVar("cl", nm->sExprType());
 }
 
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -84,7 +84,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Node sanitized_conclusion = conclusion;
   if (expr::hasClosure(conclusion))
   {
-    sanitized_args.push_back(d_anc.convert(arg));
+    sanitized_conclusion = d_anc.convert(conclusion);
   }
 
   std::vector<Node> new_args = std::vector<Node>();
@@ -99,7 +99,6 @@ bool AletheProofPostprocessCallback::addAletheStep(
   return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
 }
 
-// Replace a node (or F1 ... Fn) by (cl F1 ... Fn)
 bool AletheProofPostprocessCallback::addAletheStepFromOr(
     Node res,
     AletheRule rule,

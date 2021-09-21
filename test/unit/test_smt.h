@@ -44,15 +44,14 @@ class TestSmt : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager.reset(new NodeManager());
+    d_nodeManager = NodeManager::currentNM();
+    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
-    d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
+    d_smtEngine.reset(new SmtEngine(d_nodeManager));
     d_smtEngine->finishInit();
   }
 
-  std::unique_ptr<NodeManagerScope> d_nmScope;
-  std::unique_ptr<NodeManager> d_nodeManager;
+  NodeManager* d_nodeManager;
   SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };
@@ -62,14 +61,13 @@ class TestSmtNoFinishInit : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager.reset(new NodeManager());
+    d_nodeManager = NodeManager::currentNM();
+    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
-    d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
+    d_smtEngine.reset(new SmtEngine(d_nodeManager));
   }
 
-  std::unique_ptr<NodeManagerScope> d_nmScope;
-  std::unique_ptr<NodeManager> d_nodeManager;
+  NodeManager* d_nodeManager;
   SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };

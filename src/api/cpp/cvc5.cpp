@@ -994,9 +994,6 @@ Sort::~Sort()
 {
   if (d_solver != nullptr)
   {
-    // Ensure that the correct node manager is in scope when the node is
-    // destroyed.
-    NodeManagerScope scope(d_solver->getNodeManager());
     d_type.reset();
   }
 }
@@ -1354,7 +1351,6 @@ bool Sort::isComparableTo(const Sort& s) const
 
 Datatype Sort::getDatatype() const
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(isDatatype()) << "Expected datatype sort.";
@@ -1366,7 +1362,6 @@ Datatype Sort::getDatatype() const
 
 Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_SORTS(params);
@@ -1386,7 +1381,6 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
 
 Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_SORT(sort);
@@ -1402,7 +1396,6 @@ Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
 Sort Sort::substitute(const std::vector<Sort>& sorts,
                       const std::vector<Sort>& replacements) const
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_SORTS(sorts);
@@ -1427,7 +1420,6 @@ std::string Sort::toString() const
   //////// all checks before this line
   if (d_solver != nullptr)
   {
-    NodeManagerScope scope(d_solver->getNodeManager());
     return d_type->toString();
   }
   return d_type->toString();
@@ -1811,7 +1803,6 @@ Op::~Op()
   {
     // Ensure that the correct node manager is in scope when the type node is
     // destroyed.
-    NodeManagerScope scope(d_solver->getNodeManager());
     d_node.reset();
   }
 }
@@ -2267,7 +2258,6 @@ std::string Op::toString() const
         << "Expecting a non-null internal expression";
     if (d_solver != nullptr)
     {
-      NodeManagerScope scope(d_solver->getNodeManager());
       return d_node->toString();
     }
     return d_node->toString();
@@ -2303,8 +2293,6 @@ Term::Term() : d_solver(nullptr), d_node(new cvc5::Node()) {}
 
 Term::Term(const Solver* slv, const cvc5::Node& n) : d_solver(slv)
 {
-  // Ensure that we create the node in the correct node manager.
-  NodeManagerScope scope(d_solver->getNodeManager());
   d_node.reset(new cvc5::Node(n));
 }
 
@@ -2312,9 +2300,6 @@ Term::~Term()
 {
   if (d_solver != nullptr)
   {
-    // Ensure that the correct node manager is in scope when the node is
-    // destroyed.
-    NodeManagerScope scope(d_solver->getNodeManager());
     d_node.reset();
   }
 }
@@ -2445,7 +2430,6 @@ Sort Term::getSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  NodeManagerScope scope(d_solver->getNodeManager());
   //////// all checks before this line
   return Sort(d_solver, d_node->getType());
   ////////
@@ -2635,7 +2619,6 @@ std::string Term::toString() const
   //////// all checks before this line
   if (d_solver != nullptr)
   {
-    NodeManagerScope scope(d_solver->getNodeManager());
     return d_node->toString();
   }
   return d_node->toString();
@@ -3468,8 +3451,6 @@ DatatypeConstructorDecl::~DatatypeConstructorDecl()
 {
   if (d_ctor != nullptr)
   {
-    // ensure proper node manager is in scope
-    NodeManagerScope scope(d_solver->getNodeManager());
     d_ctor.reset();
   }
 }
@@ -3477,7 +3458,6 @@ DatatypeConstructorDecl::~DatatypeConstructorDecl()
 void DatatypeConstructorDecl::addSelector(const std::string& name,
                                           const Sort& sort)
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK_SORT(sort);
@@ -3491,7 +3471,6 @@ void DatatypeConstructorDecl::addSelector(const std::string& name,
 
 void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
@@ -3574,15 +3553,12 @@ DatatypeDecl::~DatatypeDecl()
 {
   if (d_dtype != nullptr)
   {
-    // ensure proper node manager is in scope
-    NodeManagerScope scope(d_solver->getNodeManager());
     d_dtype.reset();
   }
 }
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_ARG_CHECK_NOT_NULL(ctor);
@@ -3667,8 +3643,6 @@ DatatypeSelector::~DatatypeSelector()
 {
   if (d_stor != nullptr)
   {
-    // ensure proper node manager is in scope
-    NodeManagerScope scope(d_solver->getNodeManager());
     d_stor.reset();
   }
 }
@@ -3758,8 +3732,6 @@ DatatypeConstructor::~DatatypeConstructor()
 {
   if (d_ctor != nullptr)
   {
-    // ensure proper node manager is in scope
-    NodeManagerScope scope(d_solver->getNodeManager());
     d_ctor.reset();
   }
 }
@@ -3787,7 +3759,6 @@ Term DatatypeConstructor::getConstructorTerm() const
 Term DatatypeConstructor::getSpecializedConstructorTerm(
     const Sort& retSort) const
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_ctor->isResolved())
@@ -4021,8 +3992,6 @@ Datatype::~Datatype()
 {
   if (d_dtype != nullptr)
   {
-    // ensure proper node manager is in scope
-    NodeManagerScope scope(d_solver->getNodeManager());
     d_dtype.reset();
   }
 }
@@ -4974,9 +4943,10 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 
 Solver::Solver(std::unique_ptr<Options>&& original)
 {
-  d_nodeMgr.reset(new NodeManager());
+  d_nodeMgr = NodeManager::currentNM();
+  d_nodeMgr->init();
   d_originalOptions = std::move(original);
-  d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
+  d_smtEngine.reset(new SmtEngine(d_nodeMgr, d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions().driver.seed));
   resetStatistics();
@@ -4989,7 +4959,7 @@ Solver::~Solver() {}
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
 
-NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
+NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr; }
 
 void Solver::increment_term_stats(Kind kind) const
 {
@@ -5433,7 +5403,6 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 
 Sort Solver::getNullSort(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(this, TypeNode());
@@ -5443,7 +5412,6 @@ Sort Solver::getNullSort(void) const
 
 Sort Solver::getBooleanSort(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(this, getNodeManager()->booleanType());
@@ -5453,7 +5421,6 @@ Sort Solver::getBooleanSort(void) const
 
 Sort Solver::getIntegerSort(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(this, getNodeManager()->integerType());
@@ -5463,7 +5430,6 @@ Sort Solver::getIntegerSort(void) const
 
 Sort Solver::getRealSort(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(this, getNodeManager()->realType());
@@ -5473,7 +5439,6 @@ Sort Solver::getRealSort(void) const
 
 Sort Solver::getRegExpSort(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(this, getNodeManager()->regExpType());
@@ -5483,7 +5448,6 @@ Sort Solver::getRegExpSort(void) const
 
 Sort Solver::getStringSort(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(this, getNodeManager()->stringType());
@@ -5493,7 +5457,6 @@ Sort Solver::getStringSort(void) const
 
 Sort Solver::getRoundingModeSort(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(this, getNodeManager()->roundingModeType());
@@ -5505,7 +5468,6 @@ Sort Solver::getRoundingModeSort(void) const
 
 Sort Solver::mkArraySort(const Sort& indexSort, const Sort& elemSort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(indexSort);
   CVC5_API_SOLVER_CHECK_SORT(elemSort);
@@ -5518,7 +5480,6 @@ Sort Solver::mkArraySort(const Sort& indexSort, const Sort& elemSort) const
 
 Sort Solver::mkBitVectorSort(uint32_t size) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(size > 0, size) << "size > 0";
   //////// all checks before this line
@@ -5529,7 +5490,6 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
@@ -5541,7 +5501,6 @@ Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 
 Sort Solver::mkDatatypeSort(const DatatypeDecl& dtypedecl) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DTDECL(dtypedecl);
   //////// all checks before this line
@@ -5553,7 +5512,6 @@ Sort Solver::mkDatatypeSort(const DatatypeDecl& dtypedecl) const
 std::vector<Sort> Solver::mkDatatypeSorts(
     const std::vector<DatatypeDecl>& dtypedecls) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_SOLVER_CHECK_DTDECLS(dtypedecls);
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
@@ -5566,7 +5524,6 @@ std::vector<Sort> Solver::mkDatatypeSorts(
     const std::vector<DatatypeDecl>& dtypedecls,
     const std::set<Sort>& unresolvedSorts) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DTDECLS(dtypedecls);
   CVC5_API_SOLVER_CHECK_SORTS(unresolvedSorts);
@@ -5578,7 +5535,6 @@ std::vector<Sort> Solver::mkDatatypeSorts(
 
 Sort Solver::mkFunctionSort(const Sort& domain, const Sort& codomain) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DOMAIN_SORT(domain);
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(codomain);
@@ -5592,7 +5548,6 @@ Sort Solver::mkFunctionSort(const Sort& domain, const Sort& codomain) const
 Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
                             const Sort& codomain) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
       << "at least one parameter sort for function sort";
@@ -5608,7 +5563,6 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
 
 Sort Solver::mkParamSort(const std::string& symbol) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(
@@ -5620,7 +5574,6 @@ Sort Solver::mkParamSort(const std::string& symbol) const
 
 Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
       << "at least one parameter sort for predicate sort";
@@ -5636,7 +5589,6 @@ Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 Sort Solver::mkRecordSort(
     const std::vector<std::pair<std::string, Sort>>& fields) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   std::vector<std::pair<std::string, TypeNode>> f;
   for (size_t i = 0, size = fields.size(); i < size; ++i)
@@ -5657,7 +5609,6 @@ Sort Solver::mkRecordSort(
 
 Sort Solver::mkSetSort(const Sort& elemSort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(elemSort);
   //////// all checks before this line
@@ -5668,7 +5619,6 @@ Sort Solver::mkSetSort(const Sort& elemSort) const
 
 Sort Solver::mkBagSort(const Sort& elemSort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(elemSort);
   //////// all checks before this line
@@ -5679,7 +5629,6 @@ Sort Solver::mkBagSort(const Sort& elemSort) const
 
 Sort Solver::mkSequenceSort(const Sort& elemSort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(elemSort);
   //////// all checks before this line
@@ -5690,7 +5639,6 @@ Sort Solver::mkSequenceSort(const Sort& elemSort) const
 
 Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Sort(this, getNodeManager()->mkSort(symbol));
@@ -5701,7 +5649,6 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
   //////// all checks before this line
@@ -5712,7 +5659,6 @@ Sort Solver::mkSortConstructorSort(const std::string& symbol,
 
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORTS_NOT_FUNCTION_LIKE(sorts);
   //////// all checks before this line
@@ -5726,7 +5672,6 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 
 Term Solver::mkTrue(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Term(this, d_nodeMgr->mkConst<bool>(true));
@@ -5736,7 +5681,6 @@ Term Solver::mkTrue(void) const
 
 Term Solver::mkFalse(void) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Term(this, d_nodeMgr->mkConst<bool>(false));
@@ -5746,7 +5690,6 @@ Term Solver::mkFalse(void) const
 
 Term Solver::mkBoolean(bool val) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return Term(this, d_nodeMgr->mkConst<bool>(val));
@@ -5756,7 +5699,6 @@ Term Solver::mkBoolean(bool val) const
 
 Term Solver::mkPi() const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
@@ -5769,7 +5711,6 @@ Term Solver::mkPi() const
 
 Term Solver::mkInteger(const std::string& s) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
   Term integer = mkRealFromStrHelper(s);
@@ -5783,7 +5724,6 @@ Term Solver::mkInteger(const std::string& s) const
 
 Term Solver::mkInteger(int64_t val) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Term integer = mkValHelper<cvc5::Rational>(cvc5::Rational(val));
@@ -5795,7 +5735,6 @@ Term Solver::mkInteger(int64_t val) const
 
 Term Solver::mkReal(const std::string& s) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
    * throws an std::invalid_argument exception. For consistency, we treat it
@@ -5811,7 +5750,6 @@ Term Solver::mkReal(const std::string& s) const
 
 Term Solver::mkReal(int64_t val) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Term rational = mkValHelper<cvc5::Rational>(cvc5::Rational(val));
@@ -5822,7 +5760,6 @@ Term Solver::mkReal(int64_t val) const
 
 Term Solver::mkReal(int64_t num, int64_t den) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Term rational = mkValHelper<cvc5::Rational>(cvc5::Rational(num, den));
@@ -5833,7 +5770,6 @@ Term Solver::mkReal(int64_t num, int64_t den) const
 
 Term Solver::mkRegexpEmpty() const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
@@ -5846,7 +5782,6 @@ Term Solver::mkRegexpEmpty() const
 
 Term Solver::mkRegexpSigma() const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
@@ -5859,7 +5794,6 @@ Term Solver::mkRegexpSigma() const
 
 Term Solver::mkEmptySet(const Sort& sort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || sort.isSet(), sort)
       << "null sort or set sort";
@@ -5873,7 +5807,6 @@ Term Solver::mkEmptySet(const Sort& sort) const
 
 Term Solver::mkEmptyBag(const Sort& sort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || sort.isBag(), sort)
       << "null sort or bag sort";
@@ -5887,7 +5820,6 @@ Term Solver::mkEmptyBag(const Sort& sort) const
 
 Term Solver::mkSepNil(const Sort& sort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
@@ -5901,7 +5833,6 @@ Term Solver::mkSepNil(const Sort& sort) const
 
 Term Solver::mkString(const std::string& s, bool useEscSequences) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::String>(cvc5::String(s, useEscSequences));
@@ -5911,7 +5842,6 @@ Term Solver::mkString(const std::string& s, bool useEscSequences) const
 
 Term Solver::mkString(const std::wstring& s) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::String>(cvc5::String(s));
@@ -5921,7 +5851,6 @@ Term Solver::mkString(const std::wstring& s) const
 
 Term Solver::mkEmptySequence(const Sort& sort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
@@ -5934,7 +5863,6 @@ Term Solver::mkEmptySequence(const Sort& sort) const
 
 Term Solver::mkUniverseSet(const Sort& sort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
@@ -5950,7 +5878,6 @@ Term Solver::mkUniverseSet(const Sort& sort) const
 
 Term Solver::mkBitVector(uint32_t size, uint64_t val) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkBVFromIntHelper(size, val);
@@ -5962,7 +5889,6 @@ Term Solver::mkBitVector(uint32_t size,
                          const std::string& s,
                          uint32_t base) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkBVFromStrHelper(size, s, base);
@@ -5972,7 +5898,6 @@ Term Solver::mkBitVector(uint32_t size,
 
 Term Solver::mkConstArray(const Sort& sort, const Term& val) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(val);
@@ -5997,7 +5922,6 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
 
 Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
@@ -6008,7 +5932,6 @@ Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
 
 Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
@@ -6019,7 +5942,6 @@ Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
 
 Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
@@ -6030,7 +5952,6 @@ Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
 
 Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
@@ -6041,7 +5962,6 @@ Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
 
 Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
@@ -6052,7 +5972,6 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 
 Term Solver::mkRoundingMode(RoundingMode rm) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::RoundingMode>(s_rmodes.at(rm));
@@ -6062,7 +5981,6 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
 
 Term Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
@@ -6074,7 +5992,6 @@ Term Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const
 
 Term Solver::mkAbstractValue(const std::string& index) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(!index.empty(), index) << "a non-empty string";
 
@@ -6091,7 +6008,6 @@ Term Solver::mkAbstractValue(const std::string& index) const
 
 Term Solver::mkAbstractValue(uint64_t index) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_ARG_CHECK_EXPECTED(index > 0, index) << "an integer > 0";
   //////// all checks before this line
@@ -6105,7 +6021,6 @@ Term Solver::mkAbstractValue(uint64_t index) const
 
 Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(val);
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
@@ -6128,7 +6043,6 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 
 Term Solver::mkConst(const Sort& sort, const std::string& symbol) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
@@ -6142,7 +6056,6 @@ Term Solver::mkConst(const Sort& sort, const std::string& symbol) const
 
 Term Solver::mkConst(const Sort& sort) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
@@ -6159,7 +6072,6 @@ Term Solver::mkConst(const Sort& sort) const
 
 Term Solver::mkVar(const Sort& sort, const std::string& symbol) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   //////// all checks before this line
@@ -6178,7 +6090,6 @@ Term Solver::mkVar(const Sort& sort, const std::string& symbol) const
 DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
     const std::string& name)
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return DatatypeConstructorDecl(this, name);
@@ -6191,7 +6102,6 @@ DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
 
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return DatatypeDecl(this, name, isCoDatatype);
@@ -6203,7 +6113,6 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     Sort param,
                                     bool isCoDatatype)
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(param);
   //////// all checks before this line
@@ -6216,7 +6125,6 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     const std::vector<Sort>& params,
                                     bool isCoDatatype)
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORTS(params);
   //////// all checks before this line
@@ -6230,7 +6138,6 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
 
 Term Solver::mkTerm(Kind kind) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
   //////// all checks before this line
@@ -6241,7 +6148,6 @@ Term Solver::mkTerm(Kind kind) const
 
 Term Solver::mkTerm(Kind kind, const Term& child) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
   CVC5_API_SOLVER_CHECK_TERM(child);
@@ -6253,7 +6159,6 @@ Term Solver::mkTerm(Kind kind, const Term& child) const
 
 Term Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
   CVC5_API_SOLVER_CHECK_TERM(child1);
@@ -6269,7 +6174,6 @@ Term Solver::mkTerm(Kind kind,
                     const Term& child2,
                     const Term& child3) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
   CVC5_API_SOLVER_CHECK_TERM(child1);
@@ -6284,7 +6188,6 @@ Term Solver::mkTerm(Kind kind,
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_KIND_CHECK(kind);
   CVC5_API_SOLVER_CHECK_TERMS(children);
@@ -6296,7 +6199,6 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 
 Term Solver::mkTerm(const Op& op) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_OP(op);
   checkMkTerm(op.d_kind, 0);
@@ -6318,7 +6220,6 @@ Term Solver::mkTerm(const Op& op) const
 
 Term Solver::mkTerm(const Op& op, const Term& child) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_OP(op);
   CVC5_API_SOLVER_CHECK_TERM(child);
@@ -6330,7 +6231,6 @@ Term Solver::mkTerm(const Op& op, const Term& child) const
 
 Term Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_OP(op);
   CVC5_API_SOLVER_CHECK_TERM(child1);
@@ -6346,7 +6246,6 @@ Term Solver::mkTerm(const Op& op,
                     const Term& child2,
                     const Term& child3) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_OP(op);
   CVC5_API_SOLVER_CHECK_TERM(child1);
@@ -6360,7 +6259,6 @@ Term Solver::mkTerm(const Op& op,
 
 Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_OP(op);
   CVC5_API_SOLVER_CHECK_TERMS(children);
@@ -6373,7 +6271,6 @@ Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
 Term Solver::mkTuple(const std::vector<Sort>& sorts,
                      const std::vector<Term>& terms) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(sorts.size() == terms.size())
       << "Expected the same number of sorts and elements";
@@ -6630,7 +6527,6 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
 
 Term Solver::simplify(const Term& term)
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   //////// all checks before this line
@@ -6641,7 +6537,6 @@ Term Solver::simplify(const Term& term)
 
 Result Solver::checkEntailed(const Term& term) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions().base.incrementalSolving)
@@ -6657,7 +6552,6 @@ Result Solver::checkEntailed(const Term& term) const
 Result Solver::checkEntailed(const std::vector<Term>& terms) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -6686,7 +6580,6 @@ void Solver::assertFormula(const Term& term) const
 Result Solver::checkSat(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -6700,7 +6593,6 @@ Result Solver::checkSat(void) const
 Result Solver::checkSatAssuming(const Term& assumption) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -6715,7 +6607,6 @@ Result Solver::checkSatAssuming(const Term& assumption) const
 Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(!d_smtEngine->isQueryMade() || assumptions.size() == 0
                  || d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -6857,7 +6748,6 @@ Term Solver::defineFunRec(const std::string& symbol,
                           const Term& term,
                           bool global) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
 
   CVC5_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
@@ -6902,7 +6792,6 @@ Term Solver::defineFunRec(const Term& fun,
                           const Term& term,
                           bool global) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
 
   CVC5_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
@@ -6944,7 +6833,6 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
                            const std::vector<Term>& terms,
                            bool global) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
 
   CVC5_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
@@ -7245,7 +7133,6 @@ DriverOptions Solver::getDriverOptions() const { return DriverOptions(*this); }
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot get unsat assumptions unless incremental solving is enabled "
          "(try --incremental)";
@@ -7273,7 +7160,6 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
 std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(d_smtEngine->getOptions().smt.unsatCores)
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
@@ -7297,7 +7183,6 @@ std::vector<Term> Solver::getUnsatCore(void) const
 std::map<Term, Term> Solver::getDifficulty() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT
                              || d_smtEngine->getSmtMode() == SmtMode::SAT
                              || d_smtEngine->getSmtMode()
@@ -7319,7 +7204,6 @@ std::map<Term, Term> Solver::getDifficulty() const
 std::string Solver::getProof(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceProofs)
       << "Cannot get proof explicitly enabled (try --produce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
@@ -7341,7 +7225,6 @@ Term Solver::getValue(const Term& term) const
 std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
@@ -7364,7 +7247,6 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get domain elements unless model generation is enabled "
          "(try --produce-models)";
@@ -7390,7 +7272,6 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
 bool Solver::isModelCoreSymbol(const Term& v) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot check if model core symbol unless model generation is enabled "
          "(try --produce-models)";
@@ -7410,7 +7291,6 @@ std::string Solver::getModel(const std::vector<Sort>& sorts,
                              const std::vector<Term>& vars) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_RECOVERABLE_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get model unless model generation is enabled "
          "(try --produce-models)";
@@ -7438,7 +7318,6 @@ std::string Solver::getModel(const std::vector<Sort>& sorts,
 
 Term Solver::getQuantifierElimination(const Term& q) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(q);
   //////// all checks before this line
@@ -7450,7 +7329,6 @@ Term Solver::getQuantifierElimination(const Term& q) const
 
 Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(q);
   //////// all checks before this line
@@ -7478,7 +7356,6 @@ void Solver::declareSeparationHeap(const Sort& locSort,
 
 Term Solver::getSeparationHeap() const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(
       d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7497,7 +7374,6 @@ Term Solver::getSeparationHeap() const
 
 Term Solver::getSeparationNilTerm() const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(
       d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7518,7 +7394,6 @@ Term Solver::declarePool(const std::string& symbol,
                          const Sort& sort,
                          const std::vector<Term>& initValue) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERMS(initValue);
@@ -7534,7 +7409,6 @@ Term Solver::declarePool(const std::string& symbol,
 
 void Solver::pop(uint32_t nscopes) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot pop when not solving incrementally (use --incremental)";
@@ -7551,7 +7425,6 @@ void Solver::pop(uint32_t nscopes) const
 
 bool Solver::getInterpolant(const Term& conj, Term& output) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   //////// all checks before this line
@@ -7570,7 +7443,6 @@ bool Solver::getInterpolant(const Term& conj,
                             Grammar& grammar,
                             Term& output) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   //////// all checks before this line
@@ -7588,7 +7460,6 @@ bool Solver::getInterpolant(const Term& conj,
 
 bool Solver::getAbduct(const Term& conj, Term& output) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   //////// all checks before this line
@@ -7605,7 +7476,6 @@ bool Solver::getAbduct(const Term& conj, Term& output) const
 
 bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
   //////// all checks before this line
@@ -7623,7 +7493,6 @@ bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
 
 void Solver::blockModel() const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
@@ -7638,7 +7507,6 @@ void Solver::blockModel() const
 
 void Solver::blockModelValues(const std::vector<Term>& terms) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_smtEngine->getOptions().smt.produceModels)
       << "Cannot get value unless model generation is enabled "
@@ -7656,7 +7524,6 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
 
 void Solver::printInstantiations(std::ostream& out) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   d_smtEngine->printInstantiations(out);
@@ -7666,7 +7533,6 @@ void Solver::printInstantiations(std::ostream& out) const
 
 void Solver::push(uint32_t nscopes) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_smtEngine->getOptions().base.incrementalSolving)
       << "Cannot push when not solving incrementally (use --incremental)";
@@ -7834,7 +7700,6 @@ Term Solver::synthInv(const std::string& symbol,
 
 void Solver::addSygusConstraint(const Term& term) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_ARG_CHECK_EXPECTED(
@@ -7848,7 +7713,6 @@ void Solver::addSygusConstraint(const Term& term) const
 
 void Solver::addSygusAssume(const Term& term) const
 {
-  NodeManagerScope scope(getNodeManager());
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_ARG_CHECK_EXPECTED(
