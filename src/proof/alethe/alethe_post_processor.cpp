@@ -25,8 +25,8 @@ namespace cvc5 {
 namespace proof {
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    ProofNodeManager* pnm)
-    : d_pnm(pnm)
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_anc(anc)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cl = nm->mkBoundVar("cl", nm->stringType());
@@ -78,10 +78,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Node sanitized_conclusion = conclusion;
   if (expr::hasClosure(conclusion))
   {
-    sanitized_conclusion = removeAttributes(
-        conclusion, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
-          return expr::hasClosure(n);
-        });
+    sanitized_args.push_back(d_anc.convert(arg));
   }
 
   std::vector<Node> new_args = std::vector<Node>();
