@@ -92,7 +92,6 @@
 #include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/proof_macros.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {

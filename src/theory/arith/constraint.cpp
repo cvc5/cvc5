@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "base/output.h"
+#include "options/smt_options.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
