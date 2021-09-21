@@ -49,7 +49,7 @@ SimplexDecisionProcedure::SimplexDecisionProcedure(LinearEqualityModule& linEq, 
 {
   d_heuristicRule = options::arithErrorSelectionRule();
   d_errorSet.setSelectionRule(d_heuristicRule);
-  d_conflictBuilder = new FarkasConflictBuilder();
+  d_conflictBuilder = new FarkasConflictBuilder(options::produceProofs());
 }
 
 SimplexDecisionProcedure::~SimplexDecisionProcedure(){
