@@ -1543,6 +1543,12 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
     }
     expr = SOLVER->mkTuple(sorts, terms);
   }
+  | LPAREN_TOK TUPLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    api::Op op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
+    expr = SOLVER->mkTerm(op, expr);
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1676,6 +1682,19 @@ identifier[cvc5::ParseOp& p]
         // get the updater term
         p.d_expr = ds.getUpdaterTerm();
       }
+    | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ tuple_project i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = api::TUPLE_PROJECT;
+        std::vector<uint32_t> indices(numerals.size());
+        for(size_t i = 0; i < numerals.size(); ++i)
+        {
+          // convert uint64_t to uint32_t
+          indices[i] = numerals[i];
+        }
+        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
+      }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
         std::string opName = AntlrInput::tokenText($sym);
@@ -1697,19 +1716,12 @@ identifier[cvc5::ParseOp& p]
         }
         else if (k==api::TUPLE_PROJECT)
         {
-          if (numerals.empty())
+          std::vector<uint32_t> nums;
+          for (uint64_t i : numerals)
           {
-            p.d_kind = k;
+            nums.push_back(i);
           }
-          else
-          {
-            std::vector<uint32_t> nums;
-            for (uint64_t i : numerals)
-            {
-              nums.push_back(i);
-            }
-            p.d_op = SOLVER->mkOp(k, nums);
-          }
+          p.d_op = SOLVER->mkOp(k, nums);
         }
         else if (numerals.size() == 1)
         {
@@ -2324,6 +2336,7 @@ FORALL_TOK        : 'forall';
 EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
+TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
