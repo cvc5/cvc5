@@ -1693,11 +1693,12 @@ identifier[cvc5::ParseOp& p]
           if (numerals.size()!=1)
           {
             PARSER_STATE->parseError(
-                "Bad syntax for tuple selector or updater.");
+                "Unexpected syntax for tuple selector or updater.");
           }
           // The operator is dependent upon inferring the type of the arguments,
           // and hence the type is not available yet. Hence, we remember the
-          // index in the parse operator.
+          // index as a numeral in the parse operator.
+          p.d_kind = k;
           p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
         else if (k==api::TUPLE_PROJECT)
@@ -1716,6 +1717,11 @@ identifier[cvc5::ParseOp& p]
         else if (numerals.size() == 2)
         {
           p.d_op = SOLVER->mkOp(k, numerals[0], numerals[1]);
+        }
+        else
+        {
+          PARSER_STATE->parseError(
+              "Unexpected number of numerals for indexed symbol.");
         }
       }
     )
