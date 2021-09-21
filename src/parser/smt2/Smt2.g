@@ -1657,7 +1657,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isConstructor())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for test (_ is X), X must be a constructor.");
+              "Bad syntax for tester (_ is X), X must be a constructor.");
         }
         // get the datatype that f belongs to
         api::Sort sf = f.getSort().getConstructorCodomainSort();
@@ -1671,7 +1671,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isSelector())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for test (_ update X), X must be a selector.");
+              "Bad syntax for (_ update X), X must be a selector.");
         }
         std::string sname = f.toString();
         // get the datatype that f belongs to
@@ -1689,12 +1689,17 @@ identifier[cvc5::ParseOp& p]
         // put m in expr so that the caller can deal with this case
         p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
-    | TUPLE_UPDATE_TOK mtu=INTEGER_LITERAL
+    | TUPLE_UPDATE_TOK nonemptyNumeralList[numerals]
       {
+        if (numerals.size()!=1)
+        {
+          PARSER_STATE->parseError(
+              "Bad syntax for (_ tuple_update n), n must be a single integer.");
+        }
         // we adopt a special syntax (_ tuple_update n)
         p.d_kind = api::APPLY_UPDATER;
         // put m in expr so that the caller can deal with this case
-        p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($mtu));
+        p.d_expr = SOLVER->mkInteger(numerals[0]);
       }
     | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
