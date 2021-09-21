@@ -50,7 +50,7 @@ class Smt2 : public Parser
   bool d_seenSetLogic;
 
   LogicInfo d_logic;
-  std::unordered_map<std::string, api::Kind> operatorKindMap;
+  std::unordered_map<std::string, api::Kind> d_operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
    * BITVECTOR_EXTRACT).
@@ -128,8 +128,7 @@ class Smt2 : public Parser
    * @return The operator term corresponding to the indexed operator or a parse
    *         error if the name is not valid.
    */
-  api::Op mkIndexedOp(const std::string& name,
-                      const std::vector<uint64_t>& numerals);
+  api::Kind getIndexedOpKind(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as.

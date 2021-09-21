@@ -1657,7 +1657,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isConstructor())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for tester (_ is X), X must be a constructor.");
+              "Bad syntax for (_ is X), X must be a constructor.");
         }
         // get the datatype that f belongs to
         api::Sort sf = f.getSort().getConstructorCodomainSort();
@@ -1682,29 +1682,41 @@ identifier[cvc5::ParseOp& p]
         // get the updater term
         p.d_expr = ds.getUpdaterTerm();
       }
-    | TUPLE_SEL_TOK m=INTEGER_LITERAL
-      {
-        // we adopt a special syntax (_ tupSel n)
-        p.d_kind = api::APPLY_SELECTOR;
-        // put m in expr so that the caller can deal with this case
-        p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
-      }
-    | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ tuple_project i_1 ... i_n) where
-        // i_1, ..., i_n are numerals
-        p.d_kind = api::TUPLE_PROJECT;
-        std::vector<uint32_t> indices(numerals.size());
-        for(size_t i = 0; i < numerals.size(); ++i)
-        {
-          // convert uint64_t to uint32_t
-          indices[i] = numerals[i];
-        }
-        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
-      }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
-        p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
+        std::string opName = AntlrInput::tokenText($sym);
+        api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
+        if (k==api::APPLY_SELECTOR || k==api::APPLY_UPDATER)
+        {
+          // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
+          // for tuple selectors and updaters
+          if (numerals.size()!=1)
+          {
+            PARSER_STATE->parseError(
+                "Bad syntax for tuple selector or updater.");
+          }
+          // The operator is dependent upon inferring the type of the arguments,
+          // and hence the type is not available yet. Hence, we remember the
+          // index in the parse operator.
+          p.d_expr = SOLVER->mkInteger(numerals[0]);
+        }
+        else if (k==api::TUPLE_PROJECT)
+        {
+          std::vector<uint32_t> nums;
+          for (uint64_t i : numerals)
+          {
+            nums.push_back(i);
+          }
+          p.d_op = SOLVER->mkOp(k, nums);
+        }
+        else if (numerals.size() == 1)
+        {
+          p.d_op = SOLVER->mkOp(k, numerals[0]);
+        }
+        else if (numerals.size() == 2)
+        {
+          p.d_op = SOLVER->mkOp(k, numerals[0], numerals[1]);
+        }
       }
     )
     RPAREN_TOK
@@ -2305,9 +2317,6 @@ FORALL_TOK        : 'forall';
 EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
-TUPLE_UPDATE_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupUpdate';
-TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
-TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
