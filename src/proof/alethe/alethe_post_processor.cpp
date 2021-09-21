@@ -70,10 +70,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       for (Node arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-        sanitized_args.push_back(removeAttributes(
-            arg, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
-              return expr::hasClosure(n);
-            }));
+        sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
       negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
