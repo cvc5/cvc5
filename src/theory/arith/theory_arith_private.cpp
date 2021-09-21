@@ -4437,7 +4437,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     {
       d_farkasBuffer.clear();
     }
-    RationalVectorP coeffs = options().smt.produceProofs ? &d_farkasBuffer : nullptr;
+    RationalVectorP coeffs =
+        options().smt.produceProofs ? &d_farkasBuffer : nullptr;
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied

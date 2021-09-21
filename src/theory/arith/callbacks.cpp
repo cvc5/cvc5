@@ -73,11 +73,11 @@ void RaiseConflict::raiseConflict(ConstraintCP c, InferenceId id) const{
 }
 
 FarkasConflictBuilder::FarkasConflictBuilder(bool produceProofs)
-  : d_farkas()
-  , d_constraints()
-  , d_consequent(NullConstraint)
-  , d_consequentSet(false)
-  , d_produceProofs(produceProofs)
+    : d_farkas(),
+      d_constraints(),
+      d_consequent(NullConstraint),
+      d_consequentSet(false),
+      d_produceProofs(produceProofs)
 {
   reset();
 }

@@ -311,11 +311,16 @@ struct ConstraintRule {
    * coefficients.
    */
   RationalVectorCP d_farkasCoefficients;
-  
+
   ConstraintRule();
   ConstraintRule(ConstraintP con, ArithProofType pt);
-  ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd);
-  ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd, RationalVectorCP coeffs);
+  ConstraintRule(ConstraintP con,
+                 ArithProofType pt,
+                 AntecedentId antecedentEnd);
+  ConstraintRule(ConstraintP con,
+                 ArithProofType pt,
+                 AntecedentId antecedentEnd,
+                 RationalVectorCP coeffs);
 
   void print(std::ostream& out, bool produceProofs) const;
   void debugPrint() const;
@@ -334,7 +339,10 @@ class Constraint {
    * Because of circular dependencies a Constraint is not fully valid until
    * initialize has been called on it.
    */
-  Constraint(ArithVar x,  ConstraintType t, const DeltaRational& v, bool produceProofs);
+  Constraint(ArithVar x,
+             ConstraintType t,
+             const DeltaRational& v,
+             bool produceProofs);
 
   /**
    * Destructor for a constraint.
@@ -640,7 +648,10 @@ class Constraint {
    */
   ConstraintP getFloor();
 
-  static ConstraintP makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r, bool produceProofs);
+  static ConstraintP makeNegation(ArithVar v,
+                                  ConstraintType t,
+                                  const DeltaRational& r,
+                                  bool produceProofs);
 
   const ValueCollection& getValueCollection() const;
 
@@ -985,9 +996,9 @@ std::ostream& operator<<(std::ostream& o, const ValueCollection& c);
 std::ostream& operator<<(std::ostream& o, const ConstraintCPVec& v);
 std::ostream& operator<<(std::ostream& o, const ArithProofType);
 
-
-class ConstraintDatabase : protected EnvObj {
-private:
+class ConstraintDatabase : protected EnvObj
+{
+ private:
   /**
    * The map from ArithVars to their unique databases.
    * When the vector changes size, we cannot allow the maps to move so this

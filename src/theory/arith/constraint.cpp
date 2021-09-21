@@ -40,38 +40,36 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+ConstraintRule::ConstraintRule()
+    : d_constraint(NullConstraint),
+      d_proofType(NoAP),
+      d_antecedentEnd(AntecedentIdSentinel)
+{
+  d_farkasCoefficients = RationalVectorCPSentinel;
+}
 
-  ConstraintRule::ConstraintRule()
-    : d_constraint(NullConstraint)
-    , d_proofType(NoAP)
-    , d_antecedentEnd(AntecedentIdSentinel)
-  {
-    d_farkasCoefficients = RationalVectorCPSentinel;
-  }
+ConstraintRule::ConstraintRule(ConstraintP con, ArithProofType pt)
+    : d_constraint(con), d_proofType(pt), d_antecedentEnd(AntecedentIdSentinel)
+{
+  d_farkasCoefficients = RationalVectorCPSentinel;
+}
+ConstraintRule::ConstraintRule(ConstraintP con,
+                               ArithProofType pt,
+                               AntecedentId antecedentEnd)
+    : d_constraint(con), d_proofType(pt), d_antecedentEnd(antecedentEnd)
+{
+  d_farkasCoefficients = RationalVectorCPSentinel;
+}
 
-  ConstraintRule::ConstraintRule(ConstraintP con, ArithProofType pt)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(AntecedentIdSentinel)
-  {
-    d_farkasCoefficients = RationalVectorCPSentinel;
-  }
-  ConstraintRule::ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(antecedentEnd)
-  {
-    d_farkasCoefficients = RationalVectorCPSentinel;
-  }
-
-  ConstraintRule::ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd, RationalVectorCP coeffs)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(antecedentEnd)
-  {
-    Assert(con->isProofProducing() || coeffs == RationalVectorCPSentinel);
-    d_farkasCoefficients = coeffs;
-  }
+ConstraintRule::ConstraintRule(ConstraintP con,
+                               ArithProofType pt,
+                               AntecedentId antecedentEnd,
+                               RationalVectorCP coeffs)
+    : d_constraint(con), d_proofType(pt), d_antecedentEnd(antecedentEnd)
+{
+  Assert(con->isProofProducing() || coeffs == RationalVectorCPSentinel);
+  d_farkasCoefficients = coeffs;
+}
 
 /** Given a simplifiedKind this returns the corresponding ConstraintType. */
 //ConstraintType constraintTypeOfLiteral(Kind k);
@@ -106,20 +104,23 @@ ConstraintType Constraint::constraintTypeOfComparison(const Comparison& cmp){
   }
 }
 
-Constraint::Constraint(ArithVar x,  ConstraintType t, const DeltaRational& v, bool produceProofs)
-  : d_variable(x),
-    d_type(t),
-    d_value(v),
-    d_database(NULL),
-    d_literal(Node::null()),
-    d_negation(NullConstraint),
-    d_canBePropagated(false),
-    d_assertionOrder(AssertionOrderSentinel),
-    d_witness(TNode::null()),
-    d_crid(ConstraintRuleIdSentinel),
-    d_split(false),
-    d_variablePosition(),
-    d_produceProofs(produceProofs)
+Constraint::Constraint(ArithVar x,
+                       ConstraintType t,
+                       const DeltaRational& v,
+                       bool produceProofs)
+    : d_variable(x),
+      d_type(t),
+      d_value(v),
+      d_database(NULL),
+      d_literal(Node::null()),
+      d_negation(NullConstraint),
+      d_canBePropagated(false),
+      d_assertionOrder(AssertionOrderSentinel),
+      d_witness(TNode::null()),
+      d_crid(ConstraintRuleIdSentinel),
+      d_split(false),
+      d_variablePosition(),
+      d_produceProofs(produceProofs)
 {
   Assert(!initialized());
 }
@@ -697,17 +698,15 @@ bool Constraint::sanityChecking(Node n) const {
   }
 }
 
-void ConstraintRule::debugPrint() const {
-  print(std::cerr, false);
-}
+void ConstraintRule::debugPrint() const { print(std::cerr, false); }
 
 ConstraintCP ConstraintDatabase::getAntecedent (AntecedentId p) const {
   Assert(p < d_antecedents.size());
   return d_antecedents[p];
 }
 
-
-void ConstraintRule::print(std::ostream& out, bool produceProofs) const {
+void ConstraintRule::print(std::ostream& out, bool produceProofs) const
+{
   RationalVectorCP coeffs = produceProofs ? d_farkasCoefficients : nullptr;
   out << "{ConstraintRule, ";
   out << d_constraint << std::endl;
@@ -863,7 +862,11 @@ bool Constraint::wellFormedFarkasProof() const {
          && rhs.sgn() < 0;
 }
 
-ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r, bool produceProofs){
+ConstraintP Constraint::makeNegation(ArithVar v,
+                                     ConstraintType t,
+                                     const DeltaRational& r,
+                                     bool produceProofs)
+{
   switch(t){
   case LowerBound:
     {
@@ -895,13 +898,9 @@ ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRa
         return new Constraint(v, LowerBound, addInf, produceProofs);
       }
     }
-  case Equality:
-    return new Constraint(v, Disequality, r, produceProofs);
-  case Disequality:
-    return new Constraint(v, Equality, r, produceProofs);
-  default:
-    Unreachable();
-    return NullConstraint;
+    case Equality: return new Constraint(v, Disequality, r, produceProofs);
+    case Disequality: return new Constraint(v, Equality, r, produceProofs);
+    default: Unreachable(); return NullConstraint;
   }
 }
 
@@ -973,7 +972,8 @@ ConstraintP ConstraintDatabase::getConstraint(ArithVar v, ConstraintType t, cons
     return vc.getConstraintOfType(t);
   }else{
     ConstraintP c = new Constraint(v, t, r, options().smt.produceProofs);
-    ConstraintP negC = Constraint::makeNegation(v, t, r, options().smt.produceProofs);
+    ConstraintP negC =
+        Constraint::makeNegation(v, t, r, options().smt.produceProofs);
 
     SortedConstraintMapIterator negPos;
     if(t == Equality || t == Disequality){
@@ -1173,7 +1173,8 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
 
   DeltaRational posDR = posCmp.normalizedDeltaRational();
 
-  ConstraintP posC = new Constraint(v, posType, posDR, options().smt.produceProofs);
+  ConstraintP posC =
+      new Constraint(v, posType, posDR, options().smt.produceProofs);
 
   Debug("arith::constraint") << "addliteral( literal ->" << literal << ")" << endl;
   Debug("arith::constraint") << "addliteral( posC ->" << posC << ")" << endl;
@@ -1204,7 +1205,8 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
     ConstraintType negType = Constraint::constraintTypeOfComparison(negCmp);
     DeltaRational negDR = negCmp.normalizedDeltaRational();
 
-    ConstraintP negC = new Constraint(v, negType, negDR, options().smt.produceProofs);
+    ConstraintP negC =
+        new Constraint(v, negType, negDR, options().smt.produceProofs);
 
     SortedConstraintMapIterator negI;
 

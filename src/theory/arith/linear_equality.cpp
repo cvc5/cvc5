@@ -482,7 +482,9 @@ const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool ro
   return NULL;
 }
 
-void LinearEqualityModule::propagateBasicFromRow(ConstraintP c, bool produceProofs){
+void LinearEqualityModule::propagateBasicFromRow(ConstraintP c,
+                                                 bool produceProofs)
+{
   Assert(c != NullConstraint);
   Assert(c->isUpperBound() || c->isLowerBound());
   Assert(!c->assertedToTheTheory());

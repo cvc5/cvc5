@@ -123,7 +123,8 @@ private:
   ConstraintCP d_consequent;
   bool d_consequentSet;
   bool d_produceProofs;
-public:
+
+ public:
 
   /**
    * Constructs a new FarkasConflictBuilder.
