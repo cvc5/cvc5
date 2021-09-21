@@ -13,32 +13,28 @@
  * An example of accessing CVC4's statistics using the Java API.
  */
 
-import edu.stanford.CVC4.*;
-import java.util.Iterator;
+import cvc5.*;
 
 public class Statistics {
   public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+    Solver solver = new Solver();
 
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
-
-    Type boolType = em.booleanType();
-    Expr a = em.mkVar("A", boolType);
-    Expr b = em.mkVar("B", boolType);
+    Sort boolSort = solver.getBooleanSort();
+    Term a = solver.mkConst(boolSort, "A");
+    Term b = solver.mkConst(boolSort, "B");
 
     // A ^ B
-    smt.assertFormula(em.mkExpr(Kind.AND, a, b));
+    solver.assertFormula(solver.mkTerm(Kind.AND, a, b));
 
-    Result res = smt.checkSat();
+    Result res = solver.checkSat();
 
     // Get the statistics from the `SmtEngine` and iterate over them. The
     // `Statistics` class implements the `Iterable<Statistic>` interface. A
     // `Statistic` is a pair that consists of a name and an `SExpr` that stores
     // the value of the statistic.
-    edu.stanford.CVC4.Statistics stats = smt.getStatistics();
-    for (Statistic stat : stats) {
-      System.out.println(stat.getFirst() + " = " + stat.getSecond());
-    }
+//    Statistics stats = solver.getStatistics();
+//    for (Statistic stat : stats) {
+//      System.out.println(stat.getFirst() + " = " + stat.getSecond());
+//    }
   }
 }

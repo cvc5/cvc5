@@ -15,42 +15,41 @@
  * A simple demonstration of catching CVC4 execptions via the Java API.
  */
 
-import edu.stanford.CVC4.*;
+import cvc5.*;
 
 public class Exceptions {
   public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+    
+    Solver solver = new Solver();
 
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
-
-    smt.setOption("produce-models", new SExpr(true));
+    solver.setOption("produce-models", "true");
 
     // Setting an invalid option
     try {
-      smt.setOption("non-existing", new SExpr(true));
+      solver.setOption("non-existing", "true");
       System.exit(1);
-    } catch (edu.stanford.CVC4.Exception e) {
+    } catch (Exception e)
+    {
       System.out.println(e.toString());
     }
 
     // Creating a term with an invalid type
     try {
-      Type integer = em.integerType();
-      Expr x = em.mkVar("x", integer);
-      Expr invalidExpr = em.mkExpr(Kind.AND, x, x);
-      smt.checkSat(invalidExpr);
+      Sort integer = solver.getIntegerSort();
+      Term x = solver.mkVar(integer, "x");
+      Term invalidTerm = solver.mkTerm(Kind.AND, x, x);
+      solver.checkSatAssuming(invalidTerm);
       System.exit(1);
-    } catch (edu.stanford.CVC4.Exception e) {
+    } catch (Exception e) {
       System.out.println(e.toString());
     }
 
     // Asking for a model after unsat result
     try {
-      smt.checkSat(em.mkConst(false));
-      smt.getModel();
+      solver.checkSatAssuming(solver.mkBoolean(false));
+      solver.getModel(new Sort[]{}, new Term[]{});
       System.exit(1);
-    } catch (edu.stanford.CVC4.Exception e) {
+    } catch (Exception e) {
       System.out.println(e.toString());
     }
   }
