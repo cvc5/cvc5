@@ -1595,6 +1595,7 @@ set(regress_1_tests
   regress1/decision/wishue160.smt2
   regress1/error.cvc
   regress1/errorcrash.smt2
+  regress1/fp/fp_to_real.smt2
   regress1/fp/rti_3_5_bug_report.smt2
   regress1/fmf-fun-dbu.smt2
   regress1/fmf/ALG008-1.smt2
@@ -2492,6 +2493,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/error1.smtv1.smt2
+  regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2
   regress2/hash_sat_06_19.smt2
   regress2/hash_sat_07_17.smt2
