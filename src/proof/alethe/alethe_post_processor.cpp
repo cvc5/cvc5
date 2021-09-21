@@ -24,37 +24,9 @@ namespace cvc5 {
 
 namespace proof {
 
-// This function removes all attributes contained in a given list of attributes
-// from a Node res while only recursively updating the node further if
-// continueRemoval is true.
-static Node removeAttributes(Node res,
-                             const std::vector<Kind>& attributes,
-                             bool (*continueRemoval)(Node))
-{
-  if (res.getNumChildren() != 0)
-  {
-    std::vector<Node> new_children;
-    if (res.hasOperator())
-    {
-      new_children.push_back(res.getOperator());
-    }
-    for (Node r : res)
-    {
-      if (std::find(attributes.begin(), attributes.end(), r.getKind())
-          == attributes.end())
-      {
-        new_children.push_back(
-            proof::removeAttributes(r, attributes, continueRemoval));
-      }
-    }
-    return NodeManager::currentNM()->mkNode(res.getKind(), new_children);
-  }
-  return res;
-}
-
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    ProofNodeManager* pnm)
-    : d_pnm(pnm)
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_anc(anc)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cl = nm->mkBoundVar("cl", nm->stringType());
@@ -123,10 +95,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Node sanitized_conclusion = conclusion;
   if (expr::hasClosure(conclusion))
   {
-    sanitized_conclusion = removeAttributes(
-        conclusion, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
-          return expr::hasClosure(n);
-        });
+    sanitized_args.push_back(d_anc.convert(arg));
   }
 
   std::vector<Node> new_args = std::vector<Node>();
