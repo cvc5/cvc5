@@ -60,6 +60,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
+<<<<<<< HEAD
     // ======== Scope (a binder for assumptions)
     // Children: (P:F)
     // Arguments: (F1, ..., Fn)
@@ -162,6 +163,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // proof term: (cl (=> (and F1 ... Fn) F))
     // premises: VP7
     // args: ()
+=======
+>>>>>>> origin/alethe-8-SCOPE
     case PfRule::SCOPE:
     {
       bool success = true;
@@ -281,7 +284,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     default:
     {
-      std::cout << "Not implemented yet " << id << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
