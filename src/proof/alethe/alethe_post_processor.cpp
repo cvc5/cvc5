@@ -54,6 +54,12 @@ bool AletheProofPostprocessCallback::update(Node res,
 
   switch (id)
   {
+    //================================================= Core rules
+    //======================== Assume and Scope
+    case PfRule::ASSUME:
+    {
+      return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
