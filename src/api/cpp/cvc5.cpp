@@ -7845,7 +7845,7 @@ bool Solver::isOutputOn(const std::string& tag) const
   // here but roll our own.
   try
   {
-    return cvc5::OutputChannel.isOn(tag);
+    return cvc5::OutputChannel.isOn(d_smtEngine->getOptions(), tag);
   }
   catch (const cvc5::Exception& e)
   {
@@ -7860,7 +7860,7 @@ std::ostream& Solver::getOutput(const std::string& tag) const
   // here but roll our own.
   try
   {
-    return Output(tag);
+    return Output(d_smtEngine->getOptions(), tag);
   }
   catch (const cvc5::Exception& e)
   {

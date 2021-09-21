@@ -359,7 +359,7 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  bool printDebug = Output.isOn(options::OutputTag::SYGUS);
+  bool printDebug = Output.isOn(options(), options::OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -424,7 +424,7 @@ bool SynthConjecture::doCheck()
           }
         }
         Trace("sygus-engine") << std::endl;
-        Output(options::OutputTag::SYGUS)
+        Output(options(), options::OutputTag::SYGUS)
             << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
       }
       Assert(candidate_values.empty());
