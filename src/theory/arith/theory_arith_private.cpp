@@ -97,13 +97,11 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                            : nullptr),
       d_checker(),
       d_pfGen(new EagerProofGenerator(d_pnm, userContext())),
-      d_constraintDatabase(context(),
-                           userContext(),
+      d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
                            RaiseConflict(*this),
-                           d_pfGen.get(),
-                           d_pnm),
+                           d_pfGen.get()),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -1749,7 +1747,7 @@ void TheoryArithPrivate::outputConflicts(){
       const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (Debug.isOn("arith::conflict"))
       {
-        pf.print(std::cout);
+        pf.print(std::cout, options().smt.produceProofs);
         std::cout << std::endl;
       }
       if (Debug.isOn("arith::pf::tree"))
