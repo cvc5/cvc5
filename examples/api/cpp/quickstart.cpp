@@ -114,11 +114,18 @@ int main()
   std::cout << "value for y: " << yStr << std::endl;
   std::cout << "value for x - y: " << xMinusYStr << std::endl;
 
-  // Further, we can convert the values to cpp types,
-  // using standard cpp conversion functions.
-  double xDouble = std::stod(xStr);
-  double yDouble = std::stod(yStr);
-  double xMinusYDouble = std::stod(xMinusYStr);
+  // Further, we can convert the values to cpp types
+  std::pair<int64_t, uint64_t> xPair = xVal.getReal64Value();
+  std::pair<int64_t, uint64_t> yPair = yVal.getReal64Value();
+  std::pair<int64_t, uint64_t> xMinusYPair = xMinusYVal.getReal64Value();
+  double xDouble = xPair.first / static_cast<double>(xPair.second);
+  double yDouble = yPair.first / static_cast<double>(yPair.second);
+  double xMinusYDouble =
+      xMinusYPair.first / static_cast<double>(xMinusYPair.second);
+
+  std::cout << "value for x: " << xDouble << std::endl;
+  std::cout << "value for y: " << yDouble << std::endl;
+  std::cout << "value for x - y: " << xMinusYDouble << std::endl;
 
   // Another way to independently compute the value of x - y would be
   // to use the cpp minus operator instead of asking the solver.
