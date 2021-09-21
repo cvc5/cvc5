@@ -138,7 +138,8 @@ void Smt2::addDatatypesOperators()
     // Notice that tuple operators, we use the generic APPLY_SELECTOR and
     // APPLY_UPDATER kinds. These are processed based on the context
     // in which they are parsed, e.g. when parsing identifiers.
-    addIndexedOperator(api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
+    addIndexedOperator(
+        api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
     addIndexedOperator(api::TUPLE_PROJECT, api::TUPLE_PROJECT, "tuple_project");
     addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
   }
@@ -1045,8 +1046,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     uint64_t n = p.d_expr.getUInt64Value();
     if (args.size() != (p.d_kind == api::APPLY_SELECTOR ? 1 : 2))
     {
-      parseError(
-          "wrong number of arguments for tuple select or update");
+      parseError("wrong number of arguments for tuple select or update");
     }
     api::Sort t = args[0].getSort();
     if (!t.isTuple())
