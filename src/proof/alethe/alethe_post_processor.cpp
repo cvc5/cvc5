@@ -93,7 +93,6 @@ bool AletheProofPostprocessCallback::addAletheStep(
   return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
 }
 
-// Replace a node (or F1 ... Fn) by (cl F1 ... Fn)
 bool AletheProofPostprocessCallback::addAletheStepFromOr(
     Node res,
     AletheRule rule,
