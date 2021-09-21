@@ -78,7 +78,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Node sanitized_conclusion = conclusion;
   if (expr::hasClosure(conclusion))
   {
-    sanitized_args.push_back(d_anc.convert(arg));
+    sanitized_conclusion = d_anc.convert(conclusion);
   }
 
   std::vector<Node> new_args = std::vector<Node>();
