@@ -140,7 +140,6 @@ void Smt2::addDatatypesOperators()
     // in which they are parsed, e.g. when parsing identifiers.
     addIndexedOperator(
         api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
-    addIndexedOperator(api::TUPLE_PROJECT, api::TUPLE_PROJECT, "tuple_project");
     addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
   }
 }

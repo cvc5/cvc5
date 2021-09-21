@@ -1714,15 +1714,6 @@ identifier[cvc5::ParseOp& p]
           p.d_kind = k;
           p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
-        else if (k==api::TUPLE_PROJECT)
-        {
-          std::vector<uint32_t> nums;
-          for (uint64_t i : numerals)
-          {
-            nums.push_back(i);
-          }
-          p.d_op = SOLVER->mkOp(k, nums);
-        }
         else if (numerals.size() == 1)
         {
           p.d_op = SOLVER->mkOp(k, numerals[0]);
