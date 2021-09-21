@@ -1543,12 +1543,6 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
     }
     expr = SOLVER->mkTuple(sorts, terms);
   }
-  | LPAREN_TOK TUPLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    api::Op op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
-    expr = SOLVER->mkTerm(op, expr);
-  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1703,12 +1697,19 @@ identifier[cvc5::ParseOp& p]
         }
         else if (k==api::TUPLE_PROJECT)
         {
-          std::vector<uint32_t> nums;
-          for (uint64_t i : numerals)
+          if (numerals.empty())
           {
-            nums.push_back(i);
+            p.d_kind = k;
           }
-          p.d_op = SOLVER->mkOp(k, nums);
+          else
+          {
+            std::vector<uint32_t> nums;
+            for (uint64_t i : numerals)
+            {
+              nums.push_back(i);
+            }
+            p.d_op = SOLVER->mkOp(k, nums);
+          }
         }
         else if (numerals.size() == 1)
         {
