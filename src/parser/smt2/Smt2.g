@@ -1699,11 +1699,11 @@ identifier[cvc5::ParseOp& p]
       {
         std::string opName = AntlrInput::tokenText($sym);
         api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k==api::APPLY_SELECTOR || k==api::APPLY_UPDATER)
+        if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
           // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
           // for tuple selectors and updaters
-          if (numerals.size()!=1)
+          if (numerals.size() != 1)
           {
             PARSER_STATE->parseError(
                 "Unexpected syntax for tuple selector or updater.");
@@ -1714,7 +1714,7 @@ identifier[cvc5::ParseOp& p]
           p.d_kind = k;
           p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
-        else if (k==api::TUPLE_PROJECT)
+        else if (k == api::TUPLE_PROJECT)
         {
           std::vector<uint32_t> nums;
           for (uint64_t i : numerals)
