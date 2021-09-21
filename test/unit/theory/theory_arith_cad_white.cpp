@@ -51,7 +51,7 @@ class TestTheoryWhiteArithCAD : public TestSmt
     d_realType.reset(new TypeNode(d_nodeManager->realType()));
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
     Trace.on("cad-check");
-    nodeManager = d_nodeManager.get();
+    nodeManager = d_nodeManager;
   }
 
   Node dummy(int i) const { return d_nodeManager->mkConst(Rational(i)); }

@@ -99,6 +99,73 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                            CDProof& cdp);
 };
 
+/**
+ * Final callback class used by the Alethe converter to add the last step to a
+ * proof in the following two cases. The last step should always be printed as
+ * (cl).
+ *
+ * 1. If the last step of a proof which is false is reached it is printed as (cl
+ *    false).
+ * 2. If one of the assumptions is false it is printed as false.
+ *
+ * Thus, an additional resolution step with (cl (not true)) has to be added to
+ * transfer (cl false) into (cl).
+ */
+class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
+{
+ public:
+  AletheProofPostprocessFinalCallback(ProofNodeManager* pnm);
+  ~AletheProofPostprocessFinalCallback() {}
+  /** Should proof pn be updated? It should, if the last step is printed as (cl
+   * false) or if it is an assumption (in that case it is printed as false).
+   * Since the proof node should not be traversed, this method will always set
+   * continueUpdate to false.
+   */
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
+                    bool& continueUpdate) override;
+  /**
+   * This method gets a proof node pn. If the last step of the proof is false
+   * which is printed as (cl false) it updates the proof for false such that
+   * (cl) is printed instead.
+   */
+  bool update(Node res,
+              PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp,
+              bool& continueUpdate) override;
+
+ private:
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The cl operator is defined as described in the
+   * AletheProofPostprocessCallback class above
+   **/
+  Node d_cl;
+};
+
+/**
+ * The proof postprocessor module. This postprocesses a proof node into one
+ * using the rules from the Alethe calculus.
+ */
+class AletheProofPostprocess
+{
+ public:
+  AletheProofPostprocess(ProofNodeManager* pnm);
+  ~AletheProofPostprocess();
+  /** post-process */
+  void process(std::shared_ptr<ProofNode> pf);
+
+ private:
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The post process callback */
+  AletheProofPostprocessCallback d_cb;
+  /** The final post process callback */
+  AletheProofPostprocessFinalCallback d_fcb;
+};
+
 }  // namespace proof
 
 }  // namespace cvc5

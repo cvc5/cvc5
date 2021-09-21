@@ -90,7 +90,6 @@ class NodeManager
   friend class SkolemManager;
 
   friend class NodeBuilder;
-  friend class NodeManagerScope;
 
  public:
   /**
@@ -101,6 +100,14 @@ class NodeManager
   static bool isNAryKind(Kind k);
 
  private:
+  /**
+   * Instead of creating an instance using the constructor,
+   * `NodeManager::currentNM()` should be used to retrieve an instance of
+   * `NodeManager`.
+   */
+  explicit NodeManager();
+  ~NodeManager();
+
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
     bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }
@@ -113,14 +120,14 @@ class NodeManager
                              expr::NodeValueIDHashFunction,
                              expr::NodeValueIDEquality> NodeValueIDSet;
 
-  static thread_local NodeManager* s_current;
-
   /** The skolem manager */
   std::unique_ptr<SkolemManager> d_skManager;
   /** The bound variable manager */
   std::unique_ptr<BoundVarManager> d_bvManager;
 
   NodeValuePool d_nodeValuePool;
+
+  bool d_initialized;
 
   size_t next_id;
 
@@ -346,8 +353,6 @@ class NodeManager
 
   NodeManager& operator=(const NodeManager&) = delete;
 
-  void init();
-
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
@@ -374,11 +379,16 @@ class NodeManager
                 int flags = SKOLEM_DEFAULT);
 
  public:
-  explicit NodeManager();
-  ~NodeManager();
+  /**
+   * Initialize the node manager by adding a null node to the pool and filling
+   * the caches for `operatorOf()`. This method must be called before using the
+   * NodeManager. This method may be called multiple times. Subsequent calls to
+   * this method have no effect.
+   */
+  void init();
 
   /** The node manager in the current public-facing cvc5 library context */
-  static NodeManager* currentNM() { return s_current; }
+  static NodeManager* currentNM();
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
   /** Get this node manager's bound variable manager */
@@ -1052,43 +1062,6 @@ class NodeManager
   void debugHook(int debugFlag);
 }; /* class NodeManager */
 
-/**
- * This class changes the "current" thread-global
- * <code>NodeManager</code> when it is created and reinstates the
- * previous thread-global <code>NodeManager</code> when it is
- * destroyed, effectively maintaining a set of nested
- * <code>NodeManager</code> scopes.  This is especially useful on
- * public-interface calls into the cvc5 library, where cvc5's notion
- * of the "current" <code>NodeManager</code> should be set to match
- * the calling context.  See, for example, the implementations of
- * public calls in the <code>SmtEngine</code> class.
- *
- * The client must be careful to create and destroy
- * <code>NodeManagerScope</code> objects in a well-nested manner (such
- * as on the stack). You may create a <code>NodeManagerScope</code>
- * with <code>new</code> and destroy it with <code>delete</code>, or
- * place it as a data member of an object that is, but if the scope of
- * these <code>new</code>/<code>delete</code> pairs isn't properly
- * maintained, the incorrect "current" <code>NodeManager</code>
- * pointer may be restored after a delete.
- */
-class NodeManagerScope {
-  /** The old NodeManager, to be restored on destruction. */
-  NodeManager* d_oldNodeManager;
-public:
- NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current)
- {
-   NodeManager::s_current = nm;
-   Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
-  }
-
-  ~NodeManagerScope() {
-    NodeManager::s_current = d_oldNodeManager;
-    Debug("current") << "node manager scope: "
-                     << "returning to " << NodeManager::s_current << "\n";
-  }
-};/* class NodeManagerScope */
-
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                                          TypeNode constituentType) {
   CheckArgument(!indexType.isNull(), indexType,
@@ -1310,10 +1283,6 @@ TypeNode NodeManager::mkTypeConst(const T& val) {
 
 template <class NodeClass, class T>
 NodeClass NodeManager::mkConstInternal(const T& val) {
-  // This method indirectly calls `NodeValue::inc()`, which relies on having
-  // the correct `NodeManager` in scope.
-  NodeManagerScope nms(this);
-
   // typedef typename kind::metakind::constantMap<T>::OwningTheory theory_t;
   NVStorage<1> nvStorage;
   expr::NodeValue& nvStack = reinterpret_cast<expr::NodeValue&>(nvStorage);
