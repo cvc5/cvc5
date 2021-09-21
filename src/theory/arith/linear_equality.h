@@ -417,7 +417,7 @@ public:
    * The constraint on a basic variable b is implied by the constraints
    * on its row.  This is a wrapper for propagateRow().
    */
-  void propagateBasicFromRow(ConstraintP c);
+  void propagateBasicFromRow(ConstraintP c, bool produceProofs);
 
   /**
    * Let v be the variable for the constraint c.

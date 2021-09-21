@@ -482,7 +482,7 @@ const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool ro
   return NULL;
 }
 
-void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
+void LinearEqualityModule::propagateBasicFromRow(ConstraintP c, bool produceProofs){
   Assert(c != NullConstraint);
   Assert(c->isUpperBound() || c->isLowerBound());
   Assert(!c->assertedToTheTheory());
@@ -493,7 +493,7 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
   ConstraintCPVec bounds;
-  RationalVectorP coeffs = ARITH_NULLPROOF(new RationalVector());
+  RationalVectorP coeffs = produceProofs ? new RationalVector() : nullptr;
   propagateRow(bounds, ridx, upperBound, c, coeffs);
   c->impliedByFarkas(bounds, coeffs, false);
   c->tryToPropagate();
