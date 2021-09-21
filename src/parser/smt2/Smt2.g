@@ -1577,7 +1577,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
  * - For declared functions f, we return (2).
  * - For indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
- * - For tuple selectors (_ tupSel n) and tuple updaters (_ tuple_update n), we
+ * - For tuple selectors (_ tuple_select n) and updaters (_ tuple_update n), we
  * return (1) and (3). api::Kind is set to APPLY_SELECTOR or APPLY_UPDATER
  * respectively, and expr is set to n, which is to be interpreted by the
  * caller as the n^th generic tuple selector or updater. We do this since there
@@ -2336,6 +2336,9 @@ FORALL_TOK        : 'forall';
 EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
+// Notice that this is currently tokenized since it can be used both as an
+// indexed and non-indexed operator. We do not map names to operators in the
+// parser, hence this token is used separately in two contexts.
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

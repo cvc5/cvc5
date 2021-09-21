@@ -142,8 +142,6 @@ void Smt2::addDatatypesOperators()
         api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
     addIndexedOperator(api::TUPLE_PROJECT, api::TUPLE_PROJECT, "tuple_project");
     addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
-    // the zero argument tuple projection is not indexed
-    addOperator(api::TUPLE_PROJECT, "tuple_project");
   }
 }
 
