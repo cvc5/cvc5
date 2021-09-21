@@ -466,10 +466,6 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 }
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   Assert(!t0.isNull());
   Assert(!t1.isNull());
 
