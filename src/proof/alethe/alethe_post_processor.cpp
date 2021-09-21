@@ -177,19 +177,9 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
-    // ======== Theory Rewrite
-    // Children: none
-    // Arguments: (F, tid, rid)
-    // ----------------------------------------
-    // Conclusion: F,
-    //
-    // where F is an equality of the form (= t t') where t' is obtained by
-    // applying the kind of rewriting given by the method identifier rid, which
-    // is one of:
-    //  { RW_REWRITE_THEORY_PRE, RW_REWRITE_THEORY_POST, RW_REWRITE_EQ_EXT }
-    //
-    // The rule is translated according to tid and the outermost connective of
-    // t. This is not an exact translation but should work in most cases.
+    // The rule is translated according to the theory id tid and the outermost
+    // connective of the conclusion F. This is not an exact translation but
+    // should work in most cases.
     //
     // E.g. if the F: (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
     // is correctly guessed as the rule.
@@ -339,6 +329,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
         default:
         {
+          // In this case the rule is undefined
         };
       }
       return addAletheStep(
