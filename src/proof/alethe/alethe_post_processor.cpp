@@ -24,45 +24,17 @@ namespace cvc5 {
 
 namespace proof {
 
-// This function removes all attributes contained in a given list of attributes
-// from a Node res while only recursively updating the node further if
-// continueRemoval is true.
-static Node removeAttributes(Node res,
-                             const std::vector<Kind>& attributes,
-                             bool (*continueRemoval)(Node))
-{
-  if (res.getNumChildren() != 0)
-  {
-    std::vector<Node> new_children;
-    if (res.hasOperator())
-    {
-      new_children.push_back(res.getOperator());
-    }
-    for (int i = 0; i < res.end() - res.begin(); i++)
-    {
-      if (std::find(attributes.begin(), attributes.end(), res[i].getKind())
-          == attributes.end())
-      {
-        new_children.push_back(
-            proof::removeAttributes(res[i], attributes, continueRemoval));
-      }
-    }
-    return NodeManager::currentNM()->mkNode(res.getKind(), new_children);
-  }
-  return res;
-}
-
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    ProofNodeManager* pnm)
-    : d_pnm(pnm)
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_anc(anc)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cl = nm->mkBoundVar("cl", nm->stringType());
 }
 
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                                 const std::vector<Node>& fa,
-                                                 bool& continueUpdate)
+                                                  const std::vector<Node>& fa,
+                                                  bool& continueUpdate)
 {
   return pn->getRule() != PfRule::ALETHE_RULE;
 }
@@ -84,123 +56,10 @@ bool AletheProofPostprocessCallback::update(Node res,
   {
     //================================================= Core rules
     //======================== Assume and Scope
-    // ======== Assumption (a leaf)
-    // Children: none
-    // Arguments: (F)
-    // --------------
-    // Conclusion: F
-    //
-    // proof rule: assume
-    // proof node: (VP:F)
-    // proof term: F
-    // premises: ()
-    // args: ()
     case PfRule::ASSUME:
     {
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
-    // ======== Scope (a binder for assumptions)
-    // Children: (P:F)
-    // Arguments: (F1, ..., Fn)
-    // --------------
-    // Conclusion: (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) if F is false
-    //
-    // proof rule: anchor
-    // proof node: (VP1:(cl (not F1) ... (not Fn) F))
-    // proof term: (cl (not F1) ... (not Fn) F)
-    // premises: P
-    // args: (F1, ..., Fn)
-    //
-    // Repeat the following two step for i=1 to n:
-    //
-    // proof rule: and_pos
-    // proof node: (VP2_i:(cl (not (and F1 ... Fn)) Fi))
-    // proof term: (cl (not (and F1 ... Fn)) Fi)
-    // premises: ()
-    // args: ()
-    //
-    // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
-    // Fn)) for i times
-    //
-    // proof rule: resolution
-    // proof node: (VP2a:(cl F (not (and F1 ... Fn))^n))
-    // proof term: (cl F (not (and F1 ... Fn))^n)
-    // premises: VP1, VP2_i for all i in {1..n},
-    // args: ()
-    //
-    // proof rule: reorder
-    // proof node: (VP2b:(cl (not (and F1 ... Fn))^n F))
-    // proof term: (cl (not (and F1 ... Fn))^n F)
-    // premises: VP2a
-    // args: ()
-    //
-    // proof rule: duplicated_literals
-    // proof node: (VP3:(cl (not (and F1 ... Fn)) F))
-    // proof term: (cl (not (and F1 ... Fn)) F)
-    // premises: VP2a or VP2b
-    // args: ()
-    //
-    // proof rule: implies_neg1
-    // proof node: (VP4:(cl (=> (and F1 ... Fn) F) (and F1 ... Fn)))
-    // proof term: (cl (=> (and F1 ... Fn) F) (and F1 ... Fn))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (VP5:(cl (=> (and F1 ... Fn) F) F))
-    // proof term: (cl (=> (and F1 ... Fn) F) F)
-    // premises: VP4 VP3
-    // args: ()
-    //
-    // proof rule: implies_neg2
-    // proof node: (VP6:(cl (=> (and F1 ... Fn) F) (not F)))
-    // proof term: (cl (=> (and F1 ... Fn) F) (not F))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (VP7:(cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F)))
-    // proof term: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
-    // premises: VP5 VP6
-    // args: ()
-    //
-    // If F = false:
-    //
-    // proof rule: duplicated_literals
-    // proof node: (VP8:(cl (=> (and F1 ... Fn) F)))
-    // proof term: (cl (=> (and F1 ... Fn) F))
-    // premises: VP7
-    // args: ()
-    //
-    // proof rule: implies_simplify
-    // proof node:
-    //   (VP9:(cl (= (=> (and F1 ... Fn) false) (not (and F1 ...Fn)))))
-    // proof term:
-    //   (cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn))))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: equiv1
-    // proof node:
-    //   (VP10:(cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn))))
-    // proof term:
-    //   (cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn)))
-    // premises: VP9
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (or (not (and F1 ... Fn)))
-    // proof term: (cl (not (and F1 ... Fn)))
-    // premises: VP8 VP10
-    // args: ()
-    //
-    // Otherwise:
-    //
-    // proof rule: duplicated_literals
-    // proof node: (or (=> (and F1 ... Fn) F))
-    // proof term: (cl (=> (and F1 ... Fn) F))
-    // premises: VP7
-    // args: ()
     case PfRule::SCOPE:
     {
       bool success = true;
@@ -320,7 +179,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     default:
     {
-      std::cout << "Not implemented yet " << id << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
@@ -343,10 +201,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Node sanitized_conclusion = conclusion;
   if (expr::hasClosure(conclusion))
   {
-    sanitized_conclusion = removeAttributes(
-        conclusion, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
-          return expr::hasClosure(n);
-        });
+    sanitized_args.push_back(d_anc.convert(arg));
   }
 
   std::vector<Node> new_args = std::vector<Node>();
@@ -356,8 +211,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
   new_args.push_back(sanitized_conclusion);
   new_args.insert(new_args.end(), args.begin(), args.end());
   Trace("alethe-proof") << "... add Alethe step " << res << " / " << conclusion
-                       << " " << rule << " " << children << " / " << new_args
-                       << std::endl;
+                        << " " << rule << " " << children << " / " << new_args
+                        << std::endl;
   return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
 }
 
