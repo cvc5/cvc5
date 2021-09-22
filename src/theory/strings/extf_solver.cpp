@@ -18,7 +18,7 @@
 #include "options/strings_options.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/sequences_update_solver.h"
+#include "theory/strings/array_solver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/statistics_registry.h"
 

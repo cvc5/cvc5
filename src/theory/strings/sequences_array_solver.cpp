@@ -15,7 +15,7 @@
 
 #include "theory/strings/sequences_array_solver.h"
 
-#include "theory/strings/sequences_update_solver.h"
+#include "theory/strings/array_solver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
