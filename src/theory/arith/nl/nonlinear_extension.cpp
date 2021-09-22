@@ -245,60 +245,87 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   return ret;
 }
 
+void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
+                      const std::set<Node>& termSet)
+{
+  Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
+
+  d_needsLastCall = true;
+  if (options().arith.nlExtRewrites)
+  {
+    std::vector<Node> nred;
+    if (!d_extTheory.doInferences(0, nred))
+    {
+      Trace("nl-ext") << "...sent no lemmas, # extf to reduce = "
+                      << nred.size() << std::endl;
+      if (nred.empty())
+      {
+        d_needsLastCall = false;
+      }
+    }
+    else
+    {
+      Trace("nl-ext") << "...sent lemmas." << std::endl;
+    }
+  }
+
+  if (!needsCheckLastEffort())
+  {
+    // no non-linear constraints, we are done
+    return;
+  }
+  Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
+  d_model.reset(d_containing.getValuation().getModel(), arithModel);
+  // run a last call effort check
+  Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
+  Result::Sat res = modelBasedRefinement(termSet);
+  if (res == Result::Sat::SAT)
+  {
+    Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
+    d_approximations.clear();
+    d_witnesses.clear();
+    // modify the model values
+    d_model.getModelValueRepair(arithModel,
+                                d_approximations,
+                                d_witnesses,
+                                options().smt.modelWitnessValue);
+  }
+}
+
+void NonlinearExtension::checkLastCallEffort()
+{
+  Trace("nl-ext") << "NonlinearExtension::checkLastCallEffort" << std::endl;
+
+  // If we computed lemmas during collectModelInfo, send them now.
+  if (d_im.hasPendingLemma())
+  {
+    d_im.doPendingFacts();
+    d_im.doPendingLemmas();
+    d_im.doPendingPhaseRequirements();
+    return;
+  }
+  // Otherwise, we will answer SAT. The values that we approximated are
+  // recorded as approximations here.
+  TheoryModel* tm = d_containing.getValuation().getModel();
+  for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
+  {
+    if (a.second.second.isNull())
+    {
+      tm->recordApproximation(a.first, a.second.first);
+    }
+    else
+    {
+      tm->recordApproximation(a.first, a.second.first, a.second.second);
+    }
+  }
+  for (const auto& vw : d_witnesses)
+  {
+    tm->recordApproximation(vw.first, vw.second);
+  }
+}
+
 void NonlinearExtension::check(Theory::Effort e)
 {
-  Trace("nl-ext") << std::endl;
-  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
-  if (e == Theory::EFFORT_FULL)
-  {
-    d_needsLastCall = true;
-    if (options().arith.nlExtRewrites)
-    {
-      std::vector<Node> nred;
-      if (!d_extTheory.doInferences(0, nred))
-      {
-        Trace("nl-ext") << "...sent no lemmas, # extf to reduce = "
-                        << nred.size() << std::endl;
-        if (nred.empty())
-        {
-          d_needsLastCall = false;
-        }
-      }
-      else
-      {
-        Trace("nl-ext") << "...sent lemmas." << std::endl;
-      }
-    }
-  }
-  else
-  {
-    // If we computed lemmas during collectModelInfo, send them now.
-    if (d_im.hasPendingLemma())
-    {
-      d_im.doPendingFacts();
-      d_im.doPendingLemmas();
-      d_im.doPendingPhaseRequirements();
-      return;
-    }
-    // Otherwise, we will answer SAT. The values that we approximated are
-    // recorded as approximations here.
-    TheoryModel* tm = d_containing.getValuation().getModel();
-    for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
-    {
-      if (a.second.second.isNull())
-      {
-        tm->recordApproximation(a.first, a.second.first);
-      }
-      else
-      {
-        tm->recordApproximation(a.first, a.second.first, a.second.second);
-      }
-    }
-    for (const auto& vw : d_witnesses)
-    {
-      tm->recordApproximation(vw.first, vw.second);
-    }
-  }
 }
 
 Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
@@ -505,27 +532,6 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
 void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
                                         const std::set<Node>& termSet)
 {
-  if (!needsCheckLastEffort())
-  {
-    // no non-linear constraints, we are done
-    return;
-  }
-  Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
-  d_model.reset(d_containing.getValuation().getModel(), arithModel);
-  // run a last call effort check
-  Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-  Result::Sat res = modelBasedRefinement(termSet);
-  if (res == Result::Sat::SAT)
-  {
-    Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
-    d_approximations.clear();
-    d_witnesses.clear();
-    // modify the model values
-    d_model.getModelValueRepair(arithModel,
-                                d_approximations,
-                                d_witnesses,
-                                options().smt.modelWitnessValue);
-  }
 }
 
 void NonlinearExtension::presolve()

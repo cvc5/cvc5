@@ -167,7 +167,7 @@ void TheoryArith::postCheck(Effort level)
   {
     if (d_nonlinearExtension != nullptr)
     {
-      d_nonlinearExtension->check(level);
+      d_nonlinearExtension->checkLastCallEffort();
     }
     return;
   }
@@ -189,8 +189,7 @@ void TheoryArith::postCheck(Effort level)
     {
       std::set<Node> termSet;
       updateModelCache(termSet);
-      d_nonlinearExtension->check(level);
-      d_nonlinearExtension->interceptModel(d_arithModelCache, termSet);
+      d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
     else if (d_internal->foundNonlinear())
     {

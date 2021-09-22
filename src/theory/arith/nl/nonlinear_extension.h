@@ -91,6 +91,13 @@ class NonlinearExtension : EnvObj
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
+
+
+  void checkFullEffort(std::map<Node, Node>& arithModel,
+                      const std::set<Node>& termSet);
+
+  void checkLastCallEffort();
+
   /** Check at effort level e.
    *
    * This call may result in (possibly multiple) calls to d_im.lemma(...)
