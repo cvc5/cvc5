@@ -1145,7 +1145,8 @@ bool SmtEngine::isModelCoreSymbol(Node n)
     // impact whether we are in "sat" mode
     std::vector<Node> asserts = getAssertionsInternal();
     d_pp->expandDefinitions(asserts);
-    ModelCoreBuilder::setModelCore(asserts, tm, opts.smt.modelCoresMode);
+    ModelCoreBuilder mcb(*d_env.get());
+    mcb.setModelCore(asserts, tm, opts.smt.modelCoresMode);
   }
   return tm->isModelCoreSymbol(n);
 }
