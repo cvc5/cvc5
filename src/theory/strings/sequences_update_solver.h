@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__STRINGS__SEQ_UPDATE_SOLVER_H
-#define CVC5__THEORY__STRINGS__SEQ_UPDATE_SOLVER_H
+#ifndef CVC5__THEORY__STRINGS__ARRAY_SOLVER_H
+#define CVC5__THEORY__STRINGS__ARRAY_SOLVER_H
 
 #include "context/cdhashset.h"
 #include "theory/strings/core_solver.h"
@@ -31,23 +31,23 @@ namespace theory {
 namespace strings {
 
 /**
-  * This is a prototype solver for reasoning about seq.update and seq.nth
+  * This is a solver for reasoning about seq.update and seq.nth
   * natively. This class specifically addresses the combination of this
   * operators with concatenation. It relies on a subsolver for doing array
   * like reasoning (sequences_array_solver.h).
   */
-class SequencesUpdateSolver : protected EnvObj
+class ArraySolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
  public:
-  SequencesUpdateSolver(Env& env,
+  ArraySolver(Env& env,
                         SolverState& s,
                         InferenceManager& im,
                         TermRegistry& tr,
                         CoreSolver& cs,
                         ExtfSolver& es,
                         ExtTheory& extt);
-  ~SequencesUpdateSolver();
+  ~ArraySolver();
 
   /**
    * Perform reasoning about seq.nth and seq.update operations, in particular,
@@ -95,7 +95,7 @@ class SequencesUpdateSolver : protected EnvObj
   Node d_zero;
   /** The write model */
   SequencesArraySolver d_sasolver;
-  /** (TODO: eliminate this) equalities in the current context */
+  /** Equalities we have processed in the current context */
   NodeSet d_eqProc;
 };
 

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -13,7 +13,7 @@
  * Sequences solver for seq.nth/seq.update.
  */
 
-#include "theory/strings/sequences_update_solver.h"
+#include "theory/strings/array_solver.h"
 
 #include "util/rational.h"
 #include "theory/strings/arith_entail.h"
@@ -74,12 +74,12 @@ void SequencesUpdateSolver::checkArrayConcat()
 {
   if (!d_termReg.hasSeqUpdate())
   {
-    Trace("seq-update") << "No seq.update/seq.nth terms, skipping check..."
+    Trace("seq-array") << "No seq.update/seq.nth terms, skipping check..."
                         << std::endl;
     return;
   }
   d_currTerms.clear();
-  Trace("seq-update") << "SequencesUpdateSolver::checkArrayConcat..." << std::endl;
+  Trace("seq-array") << "SequencesUpdateSolver::checkArrayConcat..." << std::endl;
   checkTerms(STRING_UPDATE);
   checkTerms(SEQ_NTH);
 }
@@ -87,11 +87,11 @@ void SequencesUpdateSolver::checkArray()
 {
   if (!d_termReg.hasSeqUpdate())
   {
-    Trace("seq-update") << "No seq.update/seq.nth terms, skipping check..."
+    Trace("seq-array") << "No seq.update/seq.nth terms, skipping check..."
                         << std::endl;
     return;
   }
-  Trace("seq-update") << "SequencesUpdateSolver::checkArray..." << std::endl;
+  Trace("seq-array") << "SequencesUpdateSolver::checkArray..." << std::endl;
   d_sasolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
 }
 
@@ -99,11 +99,11 @@ void SequencesUpdateSolver::checkArrayEager()
 {
   if (!d_termReg.hasSeqUpdate())
   {
-    Trace("seq-update") << "No seq.update/seq.nth terms, skipping check..."
+    Trace("seq-array") << "No seq.update/seq.nth terms, skipping check..."
                         << std::endl;
     return;
   }
-  Trace("seq-update") << "SequencesUpdateSolver::checkArray..." << std::endl;
+  Trace("seq-array") << "SequencesUpdateSolver::checkArray..." << std::endl;
   std::vector<Node> nthTerms = d_esolver.getActive(SEQ_NTH);
   std::vector<Node> updateTerms = d_esolver.getActive(STRING_UPDATE);
   d_sasolver.check(nthTerms, updateTerms);
@@ -118,28 +118,28 @@ void SequencesUpdateSolver::checkTerms(Kind k)
   std::vector<Node> terms = d_esolver.getActive(k);
   for (const Node& t : terms)
   {
-    Trace("seq-update-debug") << "check term " << t << "..." << std::endl;
+    Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
     Assert (t.getKind()==k);
     if (k==STRING_UPDATE && !isHandledUpdate(t))
     {
       // not handled by procedure
-      Trace("seq-update-debug") << "...unhandled" << std::endl;
+      Trace("seq-array-debug") << "...unhandled" << std::endl;
       continue;
     }
     Node r = d_state.getRepresentative(t[0]);
     NormalForm& nf = d_csolver.getNormalForm(r);
-    Trace("seq-update-debug") << "...normal form " << nf.d_nf << std::endl;
+    Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
     if (nf.d_nf.empty())
     {
       // should have been reduced (UPD_EMPTYSTR)
       if (k==STRING_UPDATE) Assert (false);
-      Trace("seq-update-debug") << "...empty" << std::endl;
+      Trace("seq-array-debug") << "...empty" << std::endl;
       continue;
     }
     else if (nf.d_nf.size() == 1)
     {
-      Trace("seq-update-debug") << "...norm form size 1" << std::endl;
-      // TODO: split on n=0 if needed, do not introduce ITE
+      Trace("seq-array-debug") << "...norm form size 1" << std::endl;
+      // NOTE: could split on n=0 if needed, do not introduce ITE
       if (nf.d_nf[0].getKind() == SEQ_UNIT)
       {
         // do we know whether n = 0 ?
@@ -178,13 +178,13 @@ void SequencesUpdateSolver::checkTerms(Kind k)
       continue;
     }
     // otherwise, we are the concatenation of the components
-    // TODO: for nth, split on index vs component lengths, do not introduce ITE
+    // NOTE: for nth, split on index vs component lengths, do not introduce ITE
     std::vector<Node> cond;
     std::vector<Node> cchildren;
     std::vector<Node> lacc;
     for (const Node& c : nf.d_nf)
     {
-      Trace("seq-update-debug") << "...process " << c << std::endl;
+      Trace("seq-array-debug") << "...process " << c << std::endl;
       Node clen = nm->mkNode(STRING_LENGTH, c);
       Node currIndex = t[1];
       if (!lacc.empty())
@@ -195,14 +195,14 @@ void SequencesUpdateSolver::checkTerms(Kind k)
       if (k==STRING_UPDATE)
       {
         Node cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
-        Trace("seq-update-debug") << "......component " << cc << std::endl;
+        Trace("seq-array-debug") << "......component " << cc << std::endl;
         cchildren.push_back(cc);
       }
       else
       {
         Assert (k==SEQ_NTH);
         Node cc = nm->mkNode(SEQ_NTH, c, currIndex);
-        Trace("seq-update-debug") << "......component " << cc << std::endl;
+        Trace("seq-array-debug") << "......component " << cc << std::endl;
         cchildren.push_back(cc);
       }
       lacc.push_back(clen);
@@ -210,7 +210,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
       {
         Node currSumPost = lacc.size()==1 ? lacc[0] : nm->mkNode(PLUS, lacc);
         Node cc = nm->mkNode(LT, t[1], currSumPost);
-        Trace("seq-update-debug") << "......condition " << cc << std::endl;
+        Trace("seq-array-debug") << "......condition " << cc << std::endl;
         cond.push_back(cc);
       }
     }
@@ -253,7 +253,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
     if (d_eqProc.find(eq) == d_eqProc.end())
     {
       d_eqProc.insert(eq);
-      Trace("seq-update") << "- send lemma - " << eq << std::endl;
+      Trace("seq-array") << "- send lemma - " << eq << std::endl;
       d_im.sendInference(exp, eq, iid);
     }
   }

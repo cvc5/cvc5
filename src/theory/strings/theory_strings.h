@@ -37,7 +37,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/sequences_stats.h"
-#include "theory/strings/sequences_update_solver.h"
+#include "theory/strings/array_solver.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strategy.h"
 #include "theory/strings/strings_fmf.h"
@@ -298,10 +298,10 @@ class TheoryStrings : public Theory {
    */
   ExtfSolver d_esolver;
   /**
-   * The sequences update solver, responsible for reasoning about
+   * The array solver, which implements specialized approaches for
    * seq.nth/seq.update.
    */
-  SequencesUpdateSolver d_susolver;
+  ArraySolver d_asolver;
   /** regular expression solver module */
   RegExpSolver d_rsolver;
   /** regular expression elimination module */
