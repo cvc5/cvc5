@@ -134,7 +134,6 @@ bool AletheProofPostprocessCallback::update(Node res,
         sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
-      negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
       Node vp1 = nm->mkNode(kind::SEXPR, negNode);
       success &= addAletheStep(AletheRule::ANCHOR_SUBPROOF,
                                vp1,
