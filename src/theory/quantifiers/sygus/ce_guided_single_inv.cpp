@@ -228,6 +228,9 @@ bool CegSingleInv::solve()
   // solve the single invocation conjecture using a fresh copy of SMT engine
   std::unique_ptr<SmtEngine> siSmt;
   initializeSubsolver(siSmt, d_env);
+  // do not use shared selectors in subsolver, since this leads to solutions
+  // with non-user symbols
+  siSmt->setOption("dt-share-sel", "false");
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
@@ -503,7 +506,8 @@ bool CegSingleInv::solveTrivial(Node q)
 
     std::vector<Node> varsTmp;
     std::vector<Node> subsTmp;
-    QuantifiersRewriter::getVarElim(body, args, varsTmp, subsTmp);
+    QuantifiersRewriter qrew(options());
+    qrew.getVarElim(body, args, varsTmp, subsTmp);
     // if we eliminated a variable, update body and reprocess
     if (!varsTmp.empty())
     {

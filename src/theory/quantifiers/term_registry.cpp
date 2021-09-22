@@ -32,12 +32,13 @@ namespace quantifiers {
 TermRegistry::TermRegistry(Env& env,
                            QuantifiersState& qs,
                            QuantifiersRegistry& qr)
-    : d_presolve(qs.getUserContext(), true),
-      d_presolveCache(qs.getUserContext()),
+    : EnvObj(env),
+      d_presolve(userContext(), true),
+      d_presolveCache(userContext()),
       d_termEnum(new TermEnumeration),
-      d_termPools(new TermPools(qs)),
-      d_termDb(qs.getEnv().getLogicInfo().isHigherOrder() ? new HoTermDb(qs, qr)
-                                                          : new TermDb(qs, qr)),
+      d_termPools(new TermPools(env, qs)),
+      d_termDb(logicInfo().isHigherOrder() ? new HoTermDb(env, qs, qr)
+                                           : new TermDb(env, qs, qr)),
       d_sygusTdb(nullptr),
       d_qmodel(nullptr)
 {

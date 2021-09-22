@@ -18,13 +18,13 @@
 #ifndef CVC5__BOUNDED_INTEGERS_H
 #define CVC5__BOUNDED_INTEGERS_H
 
-#include "theory/quantifiers/quant_module.h"
-
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/attribute.h"
+#include "smt/env_obj.h"
 #include "theory/decision_strategy.h"
 #include "theory/quantifiers/quant_bound_inference.h"
+#include "theory/quantifiers/quant_module.h"
 
 namespace cvc5 {
 namespace theory {
@@ -100,9 +100,8 @@ private:
  class IntRangeDecisionHeuristic : public DecisionStrategyFmf
  {
   public:
-   IntRangeDecisionHeuristic(Node r,
-                             context::Context* c,
-                             context::Context* u,
+   IntRangeDecisionHeuristic(Env& env,
+                             Node r,
                              Valuation valuation,
                              bool isProxy);
    /** make the n^th literal of this strategy */
@@ -164,7 +163,8 @@ private:
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
 
  public:
-  BoundedIntegers(QuantifiersState& qs,
+  BoundedIntegers(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr);

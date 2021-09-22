@@ -43,7 +43,7 @@ class BoolToBV : public PreprocessingPass
     IntStat d_numIteToBvite;
     IntStat d_numTermsLowered;
     IntStat d_numIntroducedItes;
-    Statistics();
+    Statistics(StatisticsRegistry& reg);
   };
 
   /** Takes an assertion and attempts to create more bit-vector structure

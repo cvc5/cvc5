@@ -20,6 +20,7 @@
 
 #include "base/map_util.h"
 #include "expr/node.h"
+#include "options/bv_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
@@ -33,9 +34,10 @@ namespace passes {
 using namespace cvc5::theory;
 
 BoolToBV::BoolToBV(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bool-to-bv"), d_statistics()
+    : PreprocessingPass(preprocContext, "bool-to-bv"),
+      d_statistics(statisticsRegistry())
 {
-  d_boolToBVMode = options::boolToBitvector();
+  d_boolToBVMode = options().bv.boolToBitvector;
 };
 
 PreprocessingPassResult BoolToBV::applyInternal(
@@ -50,7 +52,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
     for (size_t i = 0; i < size; ++i)
     {
       Node newAssertion = lowerAssertion((*assertionsToPreprocess)[i], true);
-      assertionsToPreprocess->replace(i, Rewriter::rewrite(newAssertion));
+      assertionsToPreprocess->replace(i, rewrite(newAssertion));
     }
   }
   else
@@ -59,7 +61,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
     for (size_t i = 0; i < size; ++i)
     {
       assertionsToPreprocess->replace(
-          i, Rewriter::rewrite(lowerIte((*assertionsToPreprocess)[i])));
+          i, rewrite(lowerIte((*assertionsToPreprocess)[i])));
     }
   }
 
@@ -402,15 +404,15 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
   updateCache(n, builder.constructNode());
 }
 
-BoolToBV::Statistics::Statistics()
-    : d_numIteToBvite(smtStatisticsRegistry().registerInt(
-        "preprocessing::passes::BoolToBV::NumIteToBvite")),
+BoolToBV::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_numIteToBvite(
+        reg.registerInt("preprocessing::passes::BoolToBV::NumIteToBvite")),
       // the following two statistics are not correct in the ITE mode, because
       // we might discard rebuilt nodes if we fails to convert a bool to
       // width-one bit-vector (never forces)
-      d_numTermsLowered(smtStatisticsRegistry().registerInt(
-          "preprocessing::passes:BoolToBV::NumTermsLowered")),
-      d_numIntroducedItes(smtStatisticsRegistry().registerInt(
+      d_numTermsLowered(
+          reg.registerInt("preprocessing::passes:BoolToBV::NumTermsLowered")),
+      d_numIntroducedItes(reg.registerInt(
           "preprocessing::passes::BoolToBV::NumTermsForcedLowered"))
 {
 }

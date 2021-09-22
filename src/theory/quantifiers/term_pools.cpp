@@ -36,7 +36,10 @@ void TermPoolQuantInfo::initialize()
   d_skolemAddToPool.clear();
 }
 
-TermPools::TermPools(QuantifiersState& qs) : d_qs(qs) {}
+TermPools::TermPools(Env& env, QuantifiersState& qs)
+    : QuantifiersUtil(env), d_qs(qs)
+{
+}
 
 bool TermPools::reset(Theory::Effort e)
 {

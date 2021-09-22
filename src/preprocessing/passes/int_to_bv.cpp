@@ -105,9 +105,9 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
 
 Node IntToBV::intToBV(TNode n, NodeMap& cache)
 {
-  int size = options::solveIntAsBV();
+  int size = options().smt.solveIntAsBV;
   AlwaysAssert(size > 0);
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -203,7 +203,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       // Mark the substitution and continue
       Node result = builder;
 
-      result = Rewriter::rewrite(result);
+      result = rewrite(result);
       cache[current] = result;
     }
     else

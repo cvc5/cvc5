@@ -260,6 +260,9 @@ set(regress_0_tests
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvcomp.cvc
   regress0/bv/bvmul-pow2-only.smt2
+  regress0/bv/bvproof1.smt2
+  regress0/bv/bvproof2.smt2
+  regress0/bv/bvproof3.smt2
   regress0/bv/bvsimple.cvc
   regress0/bv/bvsmod.smt2
   regress0/bv/calc2_sec2_shifter_mult_bmc15.atlas.delta01.smtv1.smt2
@@ -519,6 +522,7 @@ set(regress_0_tests
   regress0/datatypes/tuple-no-clash.cvc
   regress0/datatypes/tuple-record-bug.cvc
   regress0/datatypes/tuple.cvc
+  regress0/datatypes/tuple_update.smt2
   regress0/datatypes/tuples-empty.smt2
   regress0/datatypes/tuples-multitype.smt2
   regress0/datatypes/typed_v10l30054.cvc
@@ -605,6 +609,7 @@ set(regress_0_tests
   regress0/fp/issue5511.smt2
   regress0/fp/issue5734.smt2
   regress0/fp/issue6164.smt2
+  regress0/fp/issue7002.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2
@@ -1237,6 +1242,7 @@ set(regress_0_tests
   regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
+  regress0/sygus/assume-simple.sy
   regress0/sygus/array-grammar-select.sy
   regress0/sygus/ccp16.lus.sy
   regress0/sygus/cegqi-si-string-triv-2fun.sy
@@ -1590,6 +1596,7 @@ set(regress_1_tests
   regress1/decision/wishue160.smt2
   regress1/error.cvc
   regress1/errorcrash.smt2
+  regress1/fp/fp_to_real.smt2
   regress1/fp/rti_3_5_bug_report.smt2
   regress1/fmf-fun-dbu.smt2
   regress1/fmf/ALG008-1.smt2
@@ -2332,6 +2339,7 @@ set(regress_1_tests
   regress1/sygus/interpol_from_pono_2.smt2
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
+  regress1/sygus/issue3109-share-sel.sy
   regress1/sygus/issue3199.smt2
   regress1/sygus/issue3200.smt2
   regress1/sygus/issue3201.smt2
@@ -2394,6 +2402,7 @@ set(regress_1_tests
   regress1/sygus/re-concat.sy
   regress1/sygus/repair-const-rl.sy
   regress1/sygus/replicate-mod.sy
+  regress1/sygus/replicate-mod-assume.sy
   regress1/sygus/rex-strings-alarm.sy
   regress1/sygus/sets-pred-test.sy
   regress1/sygus/simple-regexp.sy
@@ -2486,6 +2495,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/error1.smtv1.smt2
+  regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2
   regress2/hash_sat_06_19.smt2
   regress2/hash_sat_07_17.smt2

@@ -16,6 +16,7 @@
 #include <algorithm>
 
 #include "test_api.h"
+#include "base/output.h"
 
 namespace cvc5 {
 
@@ -1374,8 +1375,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
     EXPECT_EQ("NONE", modeInfo.defaultValue);
     EXPECT_EQ("OutputTag::NONE", modeInfo.currentValue);
-    std::vector<std::string> modes{"INST", "NONE", "SYGUS", "TRIGGER"};
-    EXPECT_EQ(modes, modeInfo.modes);
+    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "NONE")
+                != modeInfo.modes.end());
   }
 }
 
@@ -1464,6 +1465,42 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   cvc5::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
   ASSERT_NO_THROW(d_solver.getProof());
+}
+
+TEST_F(TestApiBlackSolver, getDifficulty)
+{
+  d_solver.setOption("produce-difficulty", "true");
+  // cannot ask before a check sat
+  ASSERT_THROW(d_solver.getDifficulty(), CVC5ApiException);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getDifficulty());
+}
+
+TEST_F(TestApiBlackSolver, getDifficulty2)
+{
+  d_solver.checkSat();
+  // option is not set
+  ASSERT_THROW(d_solver.getDifficulty(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, getDifficulty3)
+{
+  d_solver.setOption("produce-difficulty", "true");
+  Sort intSort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intSort, "x");
+  Term zero = d_solver.mkInteger(0);
+  Term ten = d_solver.mkInteger(10);
+  Term f0 = d_solver.mkTerm(GEQ, x, ten);
+  Term f1 = d_solver.mkTerm(GEQ, zero, x);
+  d_solver.checkSat();
+  std::map<Term, Term> dmap;
+  ASSERT_NO_THROW(dmap = d_solver.getDifficulty());
+  // difficulty should map assertions to integer values
+  for (const std::pair<Term, Term>& t : dmap)
+  {
+    ASSERT_TRUE(t.first == f0 || t.first == f1);
+    ASSERT_TRUE(t.second.getKind() == CONST_RATIONAL);
+  }
 }
 
 TEST_F(TestApiBlackSolver, getValue1)
@@ -2299,6 +2336,20 @@ TEST_F(TestApiBlackSolver, addSygusConstraint)
   ASSERT_THROW(slv.addSygusConstraint(boolTerm), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, addSygusAssume)
+{
+  Term nullTerm;
+  Term boolTerm = d_solver.mkBoolean(false);
+  Term intTerm = d_solver.mkInteger(1);
+
+  ASSERT_NO_THROW(d_solver.addSygusAssume(boolTerm));
+  ASSERT_THROW(d_solver.addSygusAssume(nullTerm), CVC5ApiException);
+  ASSERT_THROW(d_solver.addSygusAssume(intTerm), CVC5ApiException);
+
+  Solver slv;
+  ASSERT_THROW(slv.addSygusAssume(boolTerm), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, addSygusInvConstraint)
 {
   Sort boolean = d_solver.getBooleanSort();
@@ -2472,6 +2523,17 @@ TEST_F(TestApiBlackSolver, tupleProject)
       "((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
       "\"Z\")))",
       projection.toString());
+}
+
+TEST_F(TestApiBlackSolver, Output)
+{
+  ASSERT_THROW(d_solver.isOutputOn("foo-invalid"), CVC5ApiException);
+  ASSERT_THROW(d_solver.getOutput("foo-invalid"), CVC5ApiException);
+  ASSERT_FALSE(d_solver.isOutputOn("inst"));
+  ASSERT_EQ(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+  d_solver.setOption("output", "inst");
+  ASSERT_TRUE(d_solver.isOutputOn("inst"));
+  ASSERT_NE(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
 }
 
 }  // namespace test

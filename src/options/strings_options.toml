@@ -123,14 +123,6 @@ name   = "Strings Theory"
   help       = "use model guessing to avoid string extended function reductions"
 
 [[option]]
-  name       = "stringLenPropCsp"
-  category   = "regular"
-  long       = "strings-lprop-csp"
-  type       = "bool"
-  default    = "false"
-  help       = "do length propagation based on constant splits"
-
-[[option]]
   name       = "regExpElim"
   category   = "regular"
   long       = "re-elim"

@@ -154,8 +154,8 @@ class TermTupleEnumeratorBase : public TermTupleEnumeratorInterface
   /** Set up terms for given variable.  */
   virtual size_t prepareTerms(size_t variableIx) = 0;
   /** Get a given term for a given variable.  */
-  virtual Node getTerm(size_t variableIx,
-                       size_t term_index) CVC5_WARN_UNUSED_RESULT = 0;
+  CVC5_WARN_UNUSED_RESULT virtual Node getTerm(size_t variableIx,
+                                               size_t term_index) = 0;
 };
 
 /**
@@ -292,9 +292,10 @@ void TermTupleEnumeratorBase::next(/*out*/ std::vector<Node>& terms)
                        : getTerm(variableIx, d_termIndex[variableIx]);
     terms[variableIx] = t;
     Trace("inst-alg-rd") << t << "  ";
-    Assert(terms[variableIx].isNull()
-           || terms[variableIx].getType().isComparableTo(
-               d_quantifier[0][variableIx].getType()));
+    Assert(t.isNull()
+           || t.getType().isComparableTo(d_quantifier[0][variableIx].getType()))
+        << "Bad type: " << t << " " << t.getType() << " "
+        << d_quantifier[0][variableIx].getType();
   }
   Trace("inst-alg-rd") << std::endl;
 }

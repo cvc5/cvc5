@@ -22,6 +22,7 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/decision_strategy.h"
 #include "theory/strings/term_registry.h"
 #include "theory/valuation.h"
@@ -35,15 +36,12 @@ namespace strings {
  * This class manages the creation of a decision strategy that bounds the
  * sum of lengths of terms of type string.
  */
-class StringsFmf
+class StringsFmf : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  StringsFmf(context::Context* c,
-             context::UserContext* u,
-             Valuation valuation,
-             TermRegistry& tr);
+  StringsFmf(Env& env, Valuation valuation, TermRegistry& tr);
   ~StringsFmf();
   /** presolve
    *
@@ -68,9 +66,7 @@ class StringsFmf
   class StringSumLengthDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    StringSumLengthDecisionStrategy(context::Context* c,
-                                    context::UserContext* u,
-                                    Valuation valuation);
+    StringSumLengthDecisionStrategy(Env& env, Valuation valuation);
     /** make literal */
     Node mkLiteral(unsigned i) override;
     /** identify */
@@ -95,10 +91,6 @@ class StringsFmf
   };
   /** an instance of the above class */
   std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
-  /** The SAT search context for the theory of strings. */
-  context::Context* d_satContext;
-  /** The user level assertion context for the theory of strings. */
-  context::UserContext* d_userContext;
   /** The valuation object of theory of strings */
   Valuation d_valuation;
   /** The term registry of theory of strings */
