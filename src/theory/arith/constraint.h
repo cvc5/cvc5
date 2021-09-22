@@ -87,11 +87,11 @@
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/proof_macros.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -310,39 +310,18 @@ struct ConstraintRule {
    * coefficients.
    */
   RationalVectorCP d_farkasCoefficients;
-  ConstraintRule()
-    : d_constraint(NullConstraint)
-    , d_proofType(NoAP)
-    , d_antecedentEnd(AntecedentIdSentinel)
-  {
-    d_farkasCoefficients = RationalVectorCPSentinel;
-  }
 
-  ConstraintRule(ConstraintP con, ArithProofType pt)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(AntecedentIdSentinel)
-  {
-    d_farkasCoefficients = RationalVectorCPSentinel;
-  }
-  ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(antecedentEnd)
-  {
-    d_farkasCoefficients = RationalVectorCPSentinel;
-  }
+  ConstraintRule();
+  ConstraintRule(ConstraintP con, ArithProofType pt);
+  ConstraintRule(ConstraintP con,
+                 ArithProofType pt,
+                 AntecedentId antecedentEnd);
+  ConstraintRule(ConstraintP con,
+                 ArithProofType pt,
+                 AntecedentId antecedentEnd,
+                 RationalVectorCP coeffs);
 
-  ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd, RationalVectorCP coeffs)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(antecedentEnd)
-  {
-    Assert(ARITH_PROOF_ON() || coeffs == RationalVectorCPSentinel);
-    d_farkasCoefficients = coeffs;
-  }
-
-  void print(std::ostream& out) const;
+  void print(std::ostream& out, bool produceProofs) const;
   void debugPrint() const;
 }; /* class ConstraintRule */
 
@@ -359,7 +338,10 @@ class Constraint {
    * Because of circular dependencies a Constraint is not fully valid until
    * initialize has been called on it.
    */
-  Constraint(ArithVar x,  ConstraintType t, const DeltaRational& v);
+  Constraint(ArithVar x,
+             ConstraintType t,
+             const DeltaRational& v,
+             bool produceProofs);
 
   /**
    * Destructor for a constraint.
@@ -491,6 +473,9 @@ class Constraint {
 
   /** Returns true if the node is an assumption.*/
   bool isAssumption() const;
+
+  /** Whether we produce proofs */
+  bool isProofProducing() const { return d_produceProofs; }
 
   /** Set the constraint to have an EqualityEngine proof. */
   void setEqualityEngineProof();
@@ -662,7 +647,10 @@ class Constraint {
    */
   ConstraintP getFloor();
 
-  static ConstraintP makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r);
+  static ConstraintP makeNegation(ArithVar v,
+                                  ConstraintType t,
+                                  const DeltaRational& r,
+                                  bool produceProofs);
 
   const ValueCollection& getValueCollection() const;
 
@@ -799,12 +787,13 @@ class Constraint {
       ConstraintP constraint = crp->d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
-      ARITH_PROOF({
+      if (constraint->isProofProducing())
+      {
         if (crp->d_farkasCoefficients != RationalVectorCPSentinel)
         {
           delete crp->d_farkasCoefficients;
         }
-      });
+      }
     }
   };
 
@@ -890,7 +879,7 @@ class Constraint {
 
   inline RationalVectorCP getFarkasCoefficients() const
   {
-    return ARITH_NULLPROOF(getConstraintRule().d_farkasCoefficients);
+    return d_produceProofs ? getConstraintRule().d_farkasCoefficients : nullptr;
   }
 
   void debugPrint() const;
@@ -993,6 +982,9 @@ class Constraint {
    */
   SortedConstraintMapIterator d_variablePosition;
 
+  /** Whether to produce proofs, */
+  bool d_produceProofs;
+
 }; /* class ConstraintValue */
 
 std::ostream& operator<<(std::ostream& o, const Constraint& c);
@@ -1003,9 +995,9 @@ std::ostream& operator<<(std::ostream& o, const ValueCollection& c);
 std::ostream& operator<<(std::ostream& o, const ConstraintCPVec& v);
 std::ostream& operator<<(std::ostream& o, const ArithProofType);
 
-
-class ConstraintDatabase {
-private:
+class ConstraintDatabase : protected EnvObj
+{
+ private:
   /**
    * The map from ArithVars to their unique databases.
    * When the vector changes size, we cannot allow the maps to move so this
@@ -1105,7 +1097,6 @@ private:
 
   ArithCongruenceManager& d_congruenceManager;
 
-  const context::Context * const d_satContext;
   /** Owned by the TheoryArithPrivate, used here. */
   EagerProofGenerator* d_pfGen;
   /** Owned by the TheoryArithPrivate, used here. */
@@ -1120,13 +1111,11 @@ private:
   friend class Constraint;
 
  public:
-  ConstraintDatabase(context::Context* satContext,
-                     context::Context* userContext,
+  ConstraintDatabase(Env& env,
                      const ArithVariables& variables,
                      ArithCongruenceManager& dm,
                      RaiseConflict conflictCallBack,
-                     EagerProofGenerator* pfGen,
-                     ProofNodeManager* pnm);
+                     EagerProofGenerator* pfGen);
 
   ~ConstraintDatabase();
 
