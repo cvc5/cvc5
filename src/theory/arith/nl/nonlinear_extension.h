@@ -107,7 +107,7 @@ class NonlinearExtension : EnvObj
   void finalizeModel(TheoryModel* tm);
 
   /** Does this class need a call to check(...) at last call effort? */
-  bool needsCheckLastEffort() const { return d_needsLastCall; }
+  bool hasNlTerms() const { return d_hasNlTerms; }
 
   /** Process side effect se */
   void processSideEffect(const NlLemma& se);
@@ -197,7 +197,7 @@ class NonlinearExtension : EnvObj
   /** The statistics class */
   NlStats d_stats;
   // needs last call effort
-  bool d_needsLastCall;
+  bool d_hasNlTerms;
   /**
    * The number of times we have the called main check method
    * (modelBasedRefinement). This counter is used for interleaving strategies.

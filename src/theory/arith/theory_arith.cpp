@@ -230,7 +230,7 @@ bool TheoryArith::preNotifyFact(
 bool TheoryArith::needsCheckLastEffort() {
   if (d_nonlinearExtension != nullptr)
   {
-    return d_nonlinearExtension->needsCheckLastEffort();
+    return d_nonlinearExtension->hasNlTerms();
   }
   return false;
 }

@@ -44,7 +44,7 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_containing(containing),
       d_astate(state),
       d_im(containing.getInferenceManager()),
-      d_needsLastCall(false),
+      d_hasNlTerms(false),
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
@@ -245,7 +245,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
 {
   Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
 
-  d_needsLastCall = true;
+  d_hasNlTerms = true;
   if (options().arith.nlExtRewrites)
   {
     std::vector<Node> nred;
@@ -255,7 +255,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                       << std::endl;
       if (nred.empty())
       {
-        d_needsLastCall = false;
+        d_hasNlTerms = false;
       }
     }
     else
@@ -264,7 +264,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     }
   }
 
-  if (!needsCheckLastEffort())
+  if (!hasNlTerms())
   {
     // no non-linear constraints, we are done
     return;
