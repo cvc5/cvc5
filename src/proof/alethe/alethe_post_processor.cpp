@@ -126,7 +126,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       bool success = true;
 
       // Build vp1
-      std::vector<Node> negNode;
+      std::vector<Node> negNode{d_cl};
       std::vector<Node> sanitized_args;
       for (Node arg : args)
       {
