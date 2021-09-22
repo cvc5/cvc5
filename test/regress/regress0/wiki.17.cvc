@@ -1,4 +1,0 @@
-a, b, c : BOOLEAN;
-
-% EXPECT: entailed
-QUERY NOT FALSE <=> TRUE;
