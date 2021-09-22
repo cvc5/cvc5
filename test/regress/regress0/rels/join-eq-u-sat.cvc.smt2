@@ -1,0 +1,18 @@
+; EXPECT: sat
+(set-option :incremental false)
+(set-logic ALL)
+
+(declare-fun x () (Set (Tuple Int Int)))
+(declare-fun y () (Set (Tuple Int Int)))
+(declare-datatypes ((unit 0)) (((u))))
+
+
+(declare-fun w () (Set (Tuple Int unit)))
+(declare-fun z () (Set (Tuple unit Int)))
+(assert (= (join x y) (join w z)))
+(assert (member (mkTuple 0 1) (join x y)))
+(assert (member (mkTuple 0 u) w))
+(declare-fun t () Int)
+(assert (and (> t 0) (< t 3)))
+(assert (not (member (mkTuple u t) z)))
+(check-sat)
