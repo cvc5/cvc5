@@ -167,7 +167,15 @@ void TheoryArith::postCheck(Effort level)
   {
     if (d_nonlinearExtension != nullptr)
     {
-      d_nonlinearExtension->checkLastCallEffort();
+      // If we computed lemmas in the last FULL_EFFORT check, send them now.
+      if (d_im.hasPendingLemma())
+      {
+        d_im.doPendingFacts();
+        d_im.doPendingLemmas();
+        d_im.doPendingPhaseRequirements();
+        return
+      }
+      d_nonlinearExtension->finalizeModel();
     }
     return;
   }

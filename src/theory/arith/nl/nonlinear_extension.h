@@ -95,7 +95,7 @@ class NonlinearExtension : EnvObj
   /**
    * Performs the main checks for nonlinear arithmetic, based on the current
    * (linear) arithmetic model from `arithModel`. This method may already send
-   * lemmas, but most lemmas are stored and only sent when checkLastCallEffort
+   * lemmas, but most lemmas are stored and only sent when finalizeModel
    * is called.
    */
   void checkFullEffort(std::map<Node, Node>& arithModel,
@@ -106,7 +106,7 @@ class NonlinearExtension : EnvObj
    * these lemmas are sent and the method returns.
    * Otherwise, the nonlinear model is copied into the theory model.
    */
-  void checkLastCallEffort();
+  void finalizeModel();
 
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }

@@ -287,18 +287,10 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   }
 }
 
-void NonlinearExtension::checkLastCallEffort()
+void NonlinearExtension::finalizeModel()
 {
-  Trace("nl-ext") << "NonlinearExtension::checkLastCallEffort" << std::endl;
+  Trace("nl-ext") << "NonlinearExtension::finalizeModel" << std::endl;
 
-  // If we computed lemmas during collectModelInfo, send them now.
-  if (d_im.hasPendingLemma())
-  {
-    d_im.doPendingFacts();
-    d_im.doPendingLemmas();
-    d_im.doPendingPhaseRequirements();
-    return;
-  }
   // Otherwise, we will answer SAT. The values that we approximated are
   // recorded as approximations here.
   TheoryModel* tm = d_containing.getValuation().getModel();
