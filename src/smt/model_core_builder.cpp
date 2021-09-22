@@ -21,8 +21,8 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-ModelCoreBuilder::ModelCoreBuilder(Env& env) : EnvObj(env){}
-  
+ModelCoreBuilder::ModelCoreBuilder(Env& env) : EnvObj(env) {}
+
 bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
                                     theory::TheoryModel* m,
                                     options::ModelCoresMode mode)
@@ -83,13 +83,11 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   SubstitutionMinimize sm(d_env);
   if (mode == options::ModelCoresMode::NON_IMPLIED)
   {
-    minimized = sm.findWithImplied(
-        formula, vars, subs, coreVars, impliedVars);
+    minimized = sm.findWithImplied(formula, vars, subs, coreVars, impliedVars);
   }
   else if (mode == options::ModelCoresMode::SIMPLE)
   {
-    minimized = sm.find(
-        formula, truen, vars, subs, coreVars);
+    minimized = sm.find(formula, truen, vars, subs, coreVars);
   }
   else
   {

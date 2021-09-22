@@ -47,10 +47,10 @@ class SubstitutionMinimize : protected EnvObj
    * false.
    */
   bool find(Node t,
-                   Node target,
-                   const std::vector<Node>& vars,
-                   const std::vector<Node>& subs,
-                   std::vector<Node>& reqVars);
+            Node target,
+            const std::vector<Node>& vars,
+            const std::vector<Node>& subs,
+            std::vector<Node>& reqVars);
   /** find with implied
    *
    * This method should be called on a formula t.
@@ -75,18 +75,18 @@ class SubstitutionMinimize : protected EnvObj
    * appear in impliedVars.
    */
   bool findWithImplied(Node t,
-                              const std::vector<Node>& vars,
-                              const std::vector<Node>& subs,
-                              std::vector<Node>& reqVars,
-                              std::vector<Node>& impliedVars);
+                       const std::vector<Node>& vars,
+                       const std::vector<Node>& subs,
+                       std::vector<Node>& reqVars,
+                       std::vector<Node>& impliedVars);
 
  private:
   /** Common helper function for the above functions. */
   bool findInternal(Node t,
-                           Node target,
-                           const std::vector<Node>& vars,
-                           const std::vector<Node>& subs,
-                           std::vector<Node>& reqVars);
+                    Node target,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::vector<Node>& reqVars);
   /** is singular arg
    *
    * Returns true if

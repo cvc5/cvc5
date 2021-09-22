@@ -325,7 +325,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   if( options::dtBinarySplit() && consIndex!=-1 ){
                     Node test = utils::mkTester(n, consIndex, dt);
                     Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
-                    test = rewrite( test );
+                    test = rewrite(test);
                     NodeBuilder nb(kind::OR);
                     nb << test << test.notNode();
                     Node lemma = nb;
@@ -1422,7 +1422,7 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
   Node n_ic = utils::getInstCons(k, dt, index);
-  n_ic = rewrite( n_ic );
+  n_ic = rewrite(n_ic);
   // it may be a new term, so we collect terms and add it to the equality engine
   collectTerms( n_ic );
   d_equalityEngine->addTerm(n_ic);

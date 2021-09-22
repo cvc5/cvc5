@@ -1768,7 +1768,7 @@ void TheorySep::mergePto( Node p1, Node p2 ) {
 
 void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer ) {
   Trace("sep-lemma-debug") << "Do rewrite on inference : " << conc << std::endl;
-  conc = rewrite( conc );
+  conc = rewrite(conc);
   Trace("sep-lemma-debug") << "Got : " << conc << std::endl;
   if( conc!=d_true ){
     if( infer && conc!=d_false ){
