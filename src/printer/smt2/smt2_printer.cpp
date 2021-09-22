@@ -786,15 +786,24 @@ void Smt2Printer::toStream(std::ostream& out,
   break;
   case kind::APPLY_UPDATER:
   {
+    stillNeedToPrintParams = false;
     Node op = n.getOperator();
     size_t index = DType::indexOf(op);
     const DType& dt = DType::datatypeOf(op);
     size_t cindex = DType::cindexOf(op);
-    out << "(_ update ";
-    toStream(out,
-             dt[cindex][index].getSelector(),
-             toDepth < 0 ? toDepth : toDepth - 1);
-    out << ") ";
+    if (dt.isTuple())
+    {
+      stillNeedToPrintParams = false;
+      out << "(_ tuple_update " << DType::indexOf(op) << ") ";
+    }
+    else
+    {
+      out << "(_ update ";
+      toStream(out,
+               dt[cindex][index].getSelector(),
+               toDepth < 0 ? toDepth : toDepth - 1);
+      out << ") ";
+    }
   }
   break;
   case kind::APPLY_SELECTOR_TOTAL:
@@ -1612,6 +1621,11 @@ void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
   out << "(get-unsat-core)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
+{
+  out << "(get-difficulty)" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
                                                 Result::Sat status) const
 {
@@ -1875,6 +1889,11 @@ void Smt2Printer::toStreamCmdDeclareVar(std::ostream& out,
 void Smt2Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
 {
   out << "(constraint " << n << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdAssume(std::ostream& out, Node n) const
+{
+  out << "(assume " << n << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdInvConstraint(

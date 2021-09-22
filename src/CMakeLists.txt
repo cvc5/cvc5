@@ -180,6 +180,8 @@ libcvc5_add_sources(
   proof/lfsc/lfsc_list_sc_node_converter.h
   proof/lfsc/lfsc_node_converter.cpp
   proof/lfsc/lfsc_node_converter.h
+  proof/lfsc/lfsc_post_processor.cpp
+  proof/lfsc/lfsc_post_processor.h
   proof/lfsc/lfsc_print_channel.cpp
   proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_util.cpp
@@ -217,6 +219,8 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/alethe/alethe_node_converter.cpp
+  proof/alethe/alethe_node_converter.h
   prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h
@@ -503,7 +507,6 @@ libcvc5_add_sources(
   theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
-  theory/arith/proof_macros.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
   theory/arith/simplex.cpp

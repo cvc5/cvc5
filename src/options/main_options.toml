@@ -135,6 +135,14 @@ name   = "Driver"
   help       = "dump the full unsat core, including unlabeled assertions"
 
 [[option]]
+  name       = "dumpDifficulty"
+  category   = "regular"
+  long       = "dump-difficulty"
+  type       = "bool"
+  default    = "false"
+  help       = "dump the difficulty measure after every response to check-sat"
+
+[[option]]
   name       = "forceNoLimitCpuWhileDump"
   category   = "regular"
   long       = "force-no-limit-cpu-while-dump"

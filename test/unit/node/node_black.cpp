@@ -69,7 +69,7 @@ class TestNodeBlackNode : public TestNode
     Options opts;
     opts.base.outputLanguage = Language::LANG_AST;
     opts.base.outputLanguageWasSetByUser = true;
-    d_smt.reset(new SmtEngine(d_nodeManager.get(), &opts));
+    d_smt.reset(new SmtEngine(d_nodeManager, &opts));
   }
 
   std::unique_ptr<SmtEngine> d_smt;
@@ -653,7 +653,7 @@ TEST_F(TestNodeBlackNode, dagifier)
 TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
   Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
   std::vector<Node> children;
   for (Node child : add)
@@ -667,7 +667,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)
 TEST_F(TestNodeBlackNode, for_each_over_nodes_as_tnode)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
   Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
   std::vector<TNode> children;
   for (TNode child : add)
@@ -681,7 +681,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_tnode)
 TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_node)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
   Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
   TNode add_tnode = add_node;
   std::vector<Node> children;
@@ -696,7 +696,7 @@ TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_node)
 TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_tnode)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
   Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
   TNode add_tnode = add_node;
   std::vector<TNode> children;
@@ -801,8 +801,8 @@ TNode level1(NodeManager* nm) { return level0(nm); }
 TEST_F(TestNodeBlackNode, node_tnode_usage)
 {
   Node n;
-  ASSERT_NO_FATAL_FAILURE(n = level0(d_nodeManager.get()));
-  ASSERT_DEATH(n = level1(d_nodeManager.get()), "d_nv->d_rc > 0");
+  ASSERT_NO_FATAL_FAILURE(n = level0(d_nodeManager));
+  ASSERT_DEATH(n = level1(d_nodeManager), "d_nv->d_rc > 0");
 }
 
 }  // namespace test
