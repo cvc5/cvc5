@@ -178,7 +178,7 @@ class NonlinearExtension : EnvObj
    * whose model value cannot be computed is included in the return value of
    * this function.
    */
-  std::vector<Node> checkModelEval(const std::vector<Node>& assertions);
+  std::vector<Node> getUnsatisfiedAssertions(const std::vector<Node>& assertions);
 
   //---------------------------check model
   /** Check model

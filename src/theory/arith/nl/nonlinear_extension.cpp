@@ -187,25 +187,20 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
                   << std::endl;
 }
 
-std::vector<Node> NonlinearExtension::checkModelEval(
+std::vector<Node> NonlinearExtension::getUnsatisfiedAssertions(
     const std::vector<Node>& assertions)
 {
   std::vector<Node> false_asserts;
-  for (size_t i = 0; i < assertions.size(); ++i)
+  for (const auto& lit: assertions)
   {
-    Node lit = assertions[i];
-    Node atom = lit.getKind() == NOT ? lit[0] : lit;
     Node litv = d_model.computeConcreteModelValue(lit);
     Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
     if (litv != d_true)
     {
-      Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
+      Trace("nl-ext-mv-assert") << " [model-false]";
       false_asserts.push_back(lit);
     }
-    else
-    {
-      Trace("nl-ext-mv-assert") << std::endl;
-    }
+    Trace("nl-ext-mv-assert") << std::endl;
   }
   return false_asserts;
 }
@@ -340,7 +335,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
   Trace("nl-ext-mv-assert")
       << "Getting model values... check for [model-false]" << std::endl;
   // get the assertions that are false in the model
-  const std::vector<Node> false_asserts = checkModelEval(assertions);
+  const std::vector<Node> false_asserts = getUnsatisfiedAssertions(assertions);
   Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
 
   // get the extended terms belonging to this theory
