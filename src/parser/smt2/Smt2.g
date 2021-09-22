@@ -1703,7 +1703,36 @@ identifier[cvc5::ParseOp& p]
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
-        p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
+        std::string opName = AntlrInput::tokenText($sym);
+        api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
+        if (k == api::APPLY_UPDATER)
+        {
+          // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
+          // for tuple selectors and updaters
+          if (numerals.size() != 1)
+          {
+            PARSER_STATE->parseError(
+                "Unexpected syntax for tuple selector or updater.");
+          }
+          // The operator is dependent upon inferring the type of the arguments,
+          // and hence the type is not available yet. Hence, we remember the
+          // index as a numeral in the parse operator.
+          p.d_kind = k;
+          p.d_expr = SOLVER->mkInteger(numerals[0]);
+        }
+        else if (numerals.size() == 1)
+        {
+          p.d_op = SOLVER->mkOp(k, numerals[0]);
+        }
+        else if (numerals.size() == 2)
+        {
+          p.d_op = SOLVER->mkOp(k, numerals[0], numerals[1]);
+        }
+        else
+        {
+          PARSER_STATE->parseError(
+              "Unexpected number of numerals for indexed symbol.");
+        }
       }
     )
     RPAREN_TOK
