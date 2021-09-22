@@ -1988,7 +1988,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
   // This is required for model soundness currently, although we could
   // investigate determine cases where the disequality is already
   // satisfied (for optimization).
-  if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE) 
+  if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
   {
     processDeqExtensionality(ni, nj);
     return;

@@ -38,7 +38,9 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
     case CHECK_MEMBERSHIP: out << "check_membership"; break;
     case CHECK_CARDINALITY: out << "check_cardinality"; break;
-    case CHECK_SEQUENCES_ARRAY_CONCAT: out << "check_sequences_update_concat_terms"; break;
+    case CHECK_SEQUENCES_ARRAY_CONCAT:
+      out << "check_sequences_update_concat_terms";
+      break;
     case CHECK_SEQUENCES_ARRAY: out << "check_sequences_array"; break;
     default: out << "?"; break;
   }
@@ -90,7 +92,8 @@ void Strategy::initializeStrategy()
   // initialize the strategy if not already done so
   if (!d_strategy_init)
   {
-    std::map<Theory::Effort, unsigned> step_begin; std::map<Theory::Effort, unsigned> step_end;
+    std::map<Theory::Effort, unsigned> step_begin;
+    std::map<Theory::Effort, unsigned> step_end;
     d_strategy_init = true;
     // beginning indices
     step_begin[Theory::EFFORT_FULL] = 0;
@@ -102,10 +105,10 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
-	if (options::stringSeqUpdate() == options::StringSeqUpdateMode::EAGER)
-	{
-		addStrategyStep(CHECK_SEQUENCES_ARRAY_EAGER);
-	}
+    if (options::stringSeqUpdate() == options::StringSeqUpdateMode::EAGER)
+    {
+      addStrategyStep(CHECK_SEQUENCES_ARRAY_EAGER);
+    }
     // we must check cycles before using flat forms
     addStrategyStep(CHECK_CYCLES);
     if (options::stringFlatForms())

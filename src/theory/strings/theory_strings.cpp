@@ -72,7 +72,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_asolver(env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_extTheory),
+      d_asolver(
+          env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_extTheory),
       d_rsolver(env,
                 d_state,
                 d_im,
@@ -226,7 +227,7 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   Trace("strings-model") << "TheoryStrings::collectModelValues" << std::endl;
   // Collects representatives by types and orders sequence types by how nested
   // they are
-  std::map<TypeNode, ModelTypeInfo > tinfo;
+  std::map<TypeNode, ModelTypeInfo> tinfo;
   std::unordered_set<TypeNode> toProcess;
   // Generate model
   // get the relevant string equivalence classes
@@ -238,12 +239,12 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
       Node r = d_state.getRepresentative(s);
       tinfo[tn].d_repSet.insert(r);
       toProcess.insert(tn);
-      if (s.getKind()==STRING_UPDATE)
+      if (s.getKind() == STRING_UPDATE)
       {
         tinfo[tn].d_updateTerms.insert(s);
       }
     }
-    if (s.getKind()==SEQ_NTH)
+    if (s.getKind() == SEQ_NTH)
     {
       tn = s[0].getType();
       tinfo[tn].d_nthTerms.insert(s);
@@ -270,16 +271,17 @@ struct SortSeqIndex
   /** the comparison */
   bool operator()(std::pair<Node, Node> i, std::pair<Node, Node> j)
   {
-    Assert (i.first.getKind()==CONST_RATIONAL && j.first.getKind()==CONST_RATIONAL);
-    Assert (i.first != j.first );
-    return i.first.getConst<Rational>()<j.first.getConst<Rational>();
+    Assert(i.first.getKind() == CONST_RATIONAL
+           && j.first.getKind() == CONST_RATIONAL);
+    Assert(i.first != j.first);
+    return i.first.getConst<Rational>() < j.first.getConst<Rational>();
   }
 };
 
 bool TheoryStrings::collectModelInfoType(
     TypeNode tn,
     std::unordered_set<TypeNode>& toProcess,
-    const std::map<TypeNode, ModelTypeInfo >& tinfo,
+    const std::map<TypeNode, ModelTypeInfo>& tinfo,
     TheoryModel* m)
 {
   // Make sure that the model values for the element type of sequences are
@@ -306,21 +308,21 @@ bool TheoryStrings::collectModelInfoType(
   d_state.separateByLength(repVec, colT, ltsT);
   const std::vector<std::vector<Node> >& col = colT[tn];
   const std::vector<Node>& lts = ltsT[tn];
-  
+
   // process the update terms: organize by eqc?
-    /*
-  if (options::stringSeqUpdate())
+  /*
+if (options::stringSeqUpdate())
+{
+  for (size_t i=0; i<2; i++)
   {
-    for (size_t i=0; i<2; i++)
+    const std::unordered_set<Node>& terms = i==0 ? mti.d_updateTerms :
+mti.d_nthTerms; for (const Node& t : terms)
     {
-      const std::unordered_set<Node>& terms = i==0 ? mti.d_updateTerms : mti.d_nthTerms;
-      for (const Node& t : terms)
-      {
-        
-      }
+
     }
   }
-    */
+}
+  */
 
   NodeManager* nm = NodeManager::currentNM();
   std::map< Node, Node > processed;
@@ -383,7 +385,8 @@ bool TheoryStrings::collectModelInfoType(
     std::vector< Node > pure_eq;
     Node lenValue = lts_values[i];
     Trace("strings-model") << "Considering (" << col[i].size()
-                           << ") equivalence classes for length " << lenValue << std::endl;
+                           << ") equivalence classes for length " << lenValue
+                           << std::endl;
     for (const Node& eqc : col[i])
     {
       Trace("strings-model") << "- eqc: " << eqc << std::endl;
@@ -406,13 +409,16 @@ bool TheoryStrings::collectModelInfoType(
         continue;
       }
       // ensure we have decided on length value at this point
-      if( lenValue.isNull() ){
+      if (lenValue.isNull())
+      {
         // start with length two (other lengths have special precendence)
         std::size_t lvalue = 2;
-        while( values_used.find( lvalue )!=values_used.end() ){
+        while (values_used.find(lvalue) != values_used.end())
+        {
           lvalue++;
         }
-        Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
+        Trace("strings-model")
+            << "*** Decide to make length of " << lvalue << std::endl;
         lenValue = nm->mkConst(Rational(lvalue));
         values_used[lvalue] = Node::null();
       }
@@ -438,7 +444,8 @@ bool TheoryStrings::collectModelInfoType(
         }
         Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
         assignedValue = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
-        Trace("strings-model") << "-> assign via seq.unit: " << assignedValue << std::endl;
+        Trace("strings-model")
+            << "-> assign via seq.unit: " << assignedValue << std::endl;
       }
       else if (d_termReg.hasStringCode() && lenValue == d_one)
       {
@@ -455,28 +462,29 @@ bool TheoryStrings::collectModelInfoType(
           std::vector<unsigned> vec;
           vec.push_back(cvalue);
           assignedValue = nm->mkConst(String(vec));
-          Trace("strings-model") << "-> assign via str.code: " << assignedValue << std::endl;
+          Trace("strings-model")
+              << "-> assign via str.code: " << assignedValue << std::endl;
         }
       }
       else if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
       {
         // determine skeleton based on the write model, if it exists
-        const std::map< Node, Node >& writeModel = d_asolver.getWriteModel(eqc);
+        const std::map<Node, Node>& writeModel = d_asolver.getWriteModel(eqc);
         if (!writeModel.empty())
         {
-          std::vector< std::pair< Node, Node > > writes;
+          std::vector<std::pair<Node, Node> > writes;
           std::unordered_set<Node> usedWrites;
-          for ( const std::pair< const Node, Node >& w : writeModel)
+          for (const std::pair<const Node, Node>& w : writeModel)
           {
             Node ivalue = d_valuation.getModelValue(w.first);
-            Assert (ivalue.getKind()==CONST_RATIONAL);
+            Assert(ivalue.getKind() == CONST_RATIONAL);
             // ignore if out of bounds
             Rational irat = ivalue.getConst<Rational>();
-            if (irat.sgn()==-1 || irat>=lenValue.getConst<Rational>())
+            if (irat.sgn() == -1 || irat >= lenValue.getConst<Rational>())
             {
               continue;
             }
-            if (usedWrites.find(ivalue)!=usedWrites.end())
+            if (usedWrites.find(ivalue) != usedWrites.end())
             {
               continue;
             }
@@ -489,40 +497,44 @@ bool TheoryStrings::collectModelInfoType(
           std::sort(writes.begin(), writes.end(), ssi);
           std::vector<Node> cc;
           uint32_t currIndex = 0;
-          for (size_t w=0, wsize = writes.size(); w<=wsize; w++)
+          for (size_t w = 0, wsize = writes.size(); w <= wsize; w++)
           {
             uint32_t nextIndex;
-            if (w==writes.size())
+            if (w == writes.size())
             {
-              nextIndex = lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
+              nextIndex =
+                  lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
             }
             else
             {
               Node windex = writes[w].first;
-              Assert(windex.getConst<Rational>() <= Rational(String::maxSize()));
+              Assert(windex.getConst<Rational>()
+                     <= Rational(String::maxSize()));
               nextIndex =
                   windex.getConst<Rational>().getNumerator().toUnsignedInt();
-              Assert (nextIndex>=currIndex);
+              Assert(nextIndex >= currIndex);
             }
-            if (nextIndex>currIndex)
+            if (nextIndex > currIndex)
             {
               // allocate arbitrary value to fill gap
-              uint32_t gapSize = nextIndex-currIndex;
-              SEnumLen * selGap = sels.getEnumerator(gapSize, tn);
-              Assert (!selGap->isFinished());
+              uint32_t gapSize = nextIndex - currIndex;
+              SEnumLen* selGap = sels.getEnumerator(gapSize, tn);
+              Assert(!selGap->isFinished());
               Node cgap = selGap->getCurrent();
               selGap->increment();
               cc.push_back(cgap);
             }
             // then take read
-            if (w<wsize)
+            if (w < wsize)
             {
               cc.push_back(writes[w].second);
             }
-            currIndex = nextIndex+1;
+            currIndex = nextIndex + 1;
           }
           assignedValue = utils::mkConcat(cc, tn);
-          Trace("strings-model") << "-> assign via seq.update/nth eqc: " << assignedValue << std::endl;
+          Trace("strings-model")
+              << "-> assign via seq.update/nth eqc: " << assignedValue
+              << std::endl;
         }
       }
       if (!assignedValue.isNull())
@@ -539,7 +551,8 @@ bool TheoryStrings::collectModelInfoType(
 
     //assign a new length if necessary
     if( !pure_eq.empty() ){
-      Trace("strings-model") << "Need to assign values of length " << lenValue << " to equivalence classes ";
+      Trace("strings-model") << "Need to assign values of length " << lenValue
+                             << " to equivalence classes ";
       for( unsigned j=0; j<pure_eq.size(); j++ ){
         Trace("strings-model") << pure_eq[j] << " ";
       }
@@ -552,7 +565,7 @@ bool TheoryStrings::collectModelInfoType(
           lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
       Trace("strings-model") << "Cardinality of alphabet is "
                              << utils::getAlphabetCardinality() << std::endl;
-      SEnumLen * sel = sels.getEnumerator(currLen, tn);
+      SEnumLen* sel = sels.getEnumerator(currLen, tn);
       for (const Node& eqc : pure_eq)
       {
         Node c;

@@ -174,12 +174,13 @@ class SEnumLenSet
   /** destructor */
   ~SEnumLenSet() {}
   /** Get enumerator for length, type */
-  SEnumLen * getEnumerator(size_t len, TypeNode tn);
+  SEnumLen* getEnumerator(size_t len, TypeNode tn);
+
  private:
   /** an enumerator for the elements' type */
   TypeEnumeratorProperties* d_tep;
   /** for each start length, type */
-  std::map< std::pair< size_t, TypeNode>, std::unique_ptr<SEnumLen> > d_sels;
+  std::map<std::pair<size_t, TypeNode>, std::unique_ptr<SEnumLen> > d_sels;
 };
 
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>

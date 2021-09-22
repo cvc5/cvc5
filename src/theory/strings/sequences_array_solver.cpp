@@ -35,7 +35,7 @@ SequencesArraySolver::SequencesArraySolver(Env& env,
                                            ExtfSolver& es,
                                            ExtTheory& extt)
     : EnvObj(env),
-	  d_state(s),
+      d_state(s),
       d_im(im),
       d_termReg(tr),
       d_csolver(cs),
@@ -84,21 +84,22 @@ void SequencesArraySolver::checkNth(const std::vector<Node>& nthTerms)
 
 void SequencesArraySolver::checkUpdate(const std::vector<Node>& updateTerms)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
 
-  Trace("seq-array-debug") << "updateTerms number: " <<  updateTerms.size() << std::endl;
+  Trace("seq-array-debug") << "updateTerms number: " << updateTerms.size()
+                           << std::endl;
   for (const Node& n : updateTerms)
   {
     // current term (seq.update x i a)
-    
+
     // inference rule is:
-    // (seq.update x i a) in TERMS     
-    // (seq.nth t j) in TERMS  
+    // (seq.update x i a) in TERMS
+    // (seq.nth t j) in TERMS
     // t == (seq.update x i a)
     // ----------------------------------------------------------------------
-    // (seq.nth (seq.update x i a) j) = 
+    // (seq.nth (seq.update x i a) j) =
     //   (ITE, j in range(i, i+len(a)), (seq.nth a (j - i)),  (seq.nth x j))
-    
+
     // t == (seq.update x i a) =>
     // (seq.nth t j) = (ITE, j in range(i, i+len(a)), (seq.nth a (j - i)),
     // (seq.nth x j))
@@ -171,7 +172,8 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
   {
     Trace("seq-array-terms") << n << std::endl;
   }
-  Trace("seq-array-debug") << "UPDATE SIZE: " << updateTerms.size() << std::endl;
+  Trace("seq-array-debug") << "UPDATE SIZE: " << updateTerms.size()
+                           << std::endl;
   for (const Node& n : updateTerms)
   {
     Trace("seq-array-terms") << n << std::endl;

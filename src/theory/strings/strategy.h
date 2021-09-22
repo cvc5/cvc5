@@ -69,7 +69,7 @@ enum InferStep
   CHECK_SEQUENCES_ARRAY_CONCAT,
   // check sequence array-like reasoning
   CHECK_SEQUENCES_ARRAY,
-  // check sequence 
+  // check sequence
   CHECK_SEQUENCES_ARRAY_EAGER,
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);

@@ -16,9 +16,9 @@
 #include "theory/strings/extf_solver.h"
 
 #include "options/strings_options.h"
+#include "theory/strings/array_solver.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/array_solver.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/statistics_registry.h"
 
@@ -159,12 +159,12 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   else if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
   {
-    if (k==SEQ_NTH)
+    if (k == SEQ_NTH)
     {
       // don't need to reduce seq.nth when sequence update solver is used
       return false;
     }
-    else if (k==STRING_UPDATE && ArraySolver::isHandledUpdate(n))
+    else if (k == STRING_UPDATE && ArraySolver::isHandledUpdate(n))
     {
       // don't need to reduce certain seq.update
       return false;

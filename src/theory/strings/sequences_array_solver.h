@@ -48,9 +48,9 @@ class SequencesArraySolver : protected EnvObj
    */
   void check(const std::vector<Node>& nthTerms,
              const std::vector<Node>& updateTerms);
-  
+
   /**
-   * 
+   *
    * @param eqc The sequence equivalence class representative. We can assume
    * the equivalence class of eqc contains no concatenation terms.
    * @return the map corresponding to the model for eqc. The domain of
@@ -60,6 +60,7 @@ class SequencesArraySolver : protected EnvObj
    * this map.
    */
   const std::map<Node, Node>& getWriteModel(Node eqc);
+
  private:
   /** The solver state object */
   SolverState& d_state;
@@ -74,7 +75,7 @@ class SequencesArraySolver : protected EnvObj
   /** the extended theory object for the theory of strings */
   ExtTheory& d_extt;
   /** The write model */
-  std::map< Node, std::map< Node, Node > > d_writeModel;
+  std::map<Node, std::map<Node, Node>> d_writeModel;
   context::CDHashSet<Node> d_lem;
 
   // ========= data structure =========

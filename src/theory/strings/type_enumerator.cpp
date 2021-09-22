@@ -225,21 +225,21 @@ void SeqEnumLen::mkCurr()
       Sequence(d_type.getSequenceElementType(), seq));
 }
 
+SEnumLenSet::SEnumLenSet(TypeEnumeratorProperties* tep) : d_tep(tep) {}
 
-SEnumLenSet::SEnumLenSet(TypeEnumeratorProperties* tep) : d_tep(tep){}
-
-SEnumLen * SEnumLenSet::getEnumerator(size_t len, TypeNode tn)
+SEnumLen* SEnumLenSet::getEnumerator(size_t len, TypeNode tn)
 {
   std::pair<size_t, TypeNode> key(len, tn);
-  std::map< std::pair< size_t, TypeNode>, std::unique_ptr<SEnumLen> >::iterator it = d_sels.find(key);
+  std::map<std::pair<size_t, TypeNode>, std::unique_ptr<SEnumLen> >::iterator
+      it = d_sels.find(key);
   if (it != d_sels.end())
   {
     return it->second.get();
   }
   if (tn.isString())  // string-only
   {
-    d_sels[key].reset(new StringEnumLen(
-        len, len, utils::getAlphabetCardinality()));
+    d_sels[key].reset(
+        new StringEnumLen(len, len, utils::getAlphabetCardinality()));
   }
   else
   {

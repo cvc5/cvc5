@@ -25,6 +25,7 @@
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
 #include "theory/ext_theory.h"
+#include "theory/strings/array_solver.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/eager_solver.h"
@@ -37,7 +38,6 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/sequences_stats.h"
-#include "theory/strings/array_solver.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strategy.h"
 #include "theory/strings/strings_fmf.h"
@@ -174,13 +174,13 @@ class TheoryStrings : public Theory {
   /** Model type info, update in collectModelValues below */
   class ModelTypeInfo
   {
-  public:
+   public:
     /** The set of representatives */
     std::unordered_set<Node> d_repSet;
     /** The set of str.update terms */
-    std::unordered_set< Node > d_updateTerms;
+    std::unordered_set<Node> d_updateTerms;
     /** The set of seq.nth terms */
-    std::unordered_set< Node > d_nthTerms;
+    std::unordered_set<Node> d_nthTerms;
   };
   /** compute care graph */
   void computeCareGraph() override;
@@ -201,15 +201,14 @@ class TheoryStrings : public Theory {
    *
    * @param tn The type to compute model values for
    * @param toProcess Remaining types to compute model values for
-   * @param tinfo A map of types to information, including representatives of the equivalence
-   *               classes of the given type
+   * @param tinfo A map of types to information, including representatives of
+   * the equivalence classes of the given type
    * @return false if a conflict is discovered while doing this assignment.
    */
-  bool collectModelInfoType(
-      TypeNode tn,
-      std::unordered_set<TypeNode>& toProcess,
-      const std::map<TypeNode, ModelTypeInfo>& tinfo,
-      TheoryModel* m);
+  bool collectModelInfoType(TypeNode tn,
+                            std::unordered_set<TypeNode>& toProcess,
+                            const std::map<TypeNode, ModelTypeInfo>& tinfo,
+                            TheoryModel* m);
 
   /** assert pending fact
    *

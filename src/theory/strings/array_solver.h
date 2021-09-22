@@ -22,31 +22,32 @@
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/sequences_array_solver.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
-#include "theory/strings/sequences_array_solver.h"
 
 namespace cvc5 {
 namespace theory {
 namespace strings {
 
 /**
-  * This is a solver for reasoning about seq.update and seq.nth
-  * natively. This class specifically addresses the combination of this
-  * operators with concatenation. It relies on a subsolver for doing array
-  * like reasoning (sequences_array_solver.h).
-  */
+ * This is a solver for reasoning about seq.update and seq.nth
+ * natively. This class specifically addresses the combination of this
+ * operators with concatenation. It relies on a subsolver for doing array
+ * like reasoning (sequences_array_solver.h).
+ */
 class ArraySolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
+
  public:
   ArraySolver(Env& env,
-                        SolverState& s,
-                        InferenceManager& im,
-                        TermRegistry& tr,
-                        CoreSolver& cs,
-                        ExtfSolver& es,
-                        ExtTheory& extt);
+              SolverState& s,
+              InferenceManager& im,
+              TermRegistry& tr,
+              CoreSolver& cs,
+              ExtfSolver& es,
+              ExtTheory& extt);
   ~ArraySolver();
 
   /**
@@ -64,9 +65,9 @@ class ArraySolver : protected EnvObj
   static bool isHandledUpdate(Node n);
   /** get base */
   static Node getUpdateBase(Node n);
-  
+
   /**
-   * 
+   *
    * @param eqc The sequence equivalence class representative. We can assume
    * the equivalence class of eqc contains no concatenation terms.
    * @return the map corresponding to the model for eqc. The domain of
@@ -76,6 +77,7 @@ class ArraySolver : protected EnvObj
    * this map.
    */
   const std::map<Node, Node>& getWriteModel(Node eqc);
+
  private:
   /** check terms of given kind */
   void checkTerms(Kind k);
