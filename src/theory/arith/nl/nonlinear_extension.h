@@ -92,9 +92,8 @@ class NonlinearExtension : EnvObj
    */
   void preRegisterTerm(TNode n);
 
-
   void checkFullEffort(std::map<Node, Node>& arithModel,
-                      const std::set<Node>& termSet);
+                       const std::set<Node>& termSet);
 
   void checkLastCallEffort();
 
@@ -178,7 +177,8 @@ class NonlinearExtension : EnvObj
    * whose model value cannot be computed is included in the return value of
    * this function.
    */
-  std::vector<Node> getUnsatisfiedAssertions(const std::vector<Node>& assertions);
+  std::vector<Node> getUnsatisfiedAssertions(
+      const std::vector<Node>& assertions);
 
   //---------------------------check model
   /** Check model

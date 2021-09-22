@@ -191,7 +191,7 @@ std::vector<Node> NonlinearExtension::getUnsatisfiedAssertions(
     const std::vector<Node>& assertions)
 {
   std::vector<Node> false_asserts;
-  for (const auto& lit: assertions)
+  for (const auto& lit : assertions)
   {
     Node litv = d_model.computeConcreteModelValue(lit);
     Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
@@ -241,7 +241,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 }
 
 void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
-                      const std::set<Node>& termSet)
+                                         const std::set<Node>& termSet)
 {
   Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
 
@@ -251,8 +251,8 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     std::vector<Node> nred;
     if (!d_extTheory.doInferences(0, nred))
     {
-      Trace("nl-ext") << "...sent no lemmas, # extf to reduce = "
-                      << nred.size() << std::endl;
+      Trace("nl-ext") << "...sent no lemmas, # extf to reduce = " << nred.size()
+                      << std::endl;
       if (nred.empty())
       {
         d_needsLastCall = false;
@@ -319,9 +319,7 @@ void NonlinearExtension::checkLastCallEffort()
   }
 }
 
-void NonlinearExtension::check(Theory::Effort e)
-{
-}
+void NonlinearExtension::check(Theory::Effort e) {}
 
 Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 {
