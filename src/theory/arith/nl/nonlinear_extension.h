@@ -138,14 +138,6 @@ class NonlinearExtension : EnvObj
                       const std::set<Node>& termSet);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
-  /** presolve
-   *
-   * This function is called during TheoryArith's presolve command.
-   * In this function, we send lemmas we accumulated during preprocessing,
-   * for instance, definitional lemmas from expandDefinitions are sent out
-   * on the output channel of TheoryArith in this function.
-   */
-  void presolve();
 
   /** Process side effect se */
   void processSideEffect(const NlLemma& se);

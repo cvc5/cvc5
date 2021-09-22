@@ -312,10 +312,6 @@ void TheoryArith::notifyRestart(){
 
 void TheoryArith::presolve(){
   d_internal->presolve();
-  if (d_nonlinearExtension != nullptr)
-  {
-    d_nonlinearExtension->presolve();
-  }
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
