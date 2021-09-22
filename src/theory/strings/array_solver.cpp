@@ -126,7 +126,7 @@ void ArraySolver::checkTerms(Kind k)
         {
           thenBranch = t[2];
           elseBranch = nf.d_nf[0];
-          iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
+          iid = InferenceId::STRINGS_ARRAY_UPDATE_UNIT;
         }
         else
         {
@@ -134,7 +134,7 @@ void ArraySolver::checkTerms(Kind k)
           thenBranch = nf.d_nf[0][0];
           Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
           elseBranch = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
-          iid = InferenceId::STRINGS_SU_NTH_UNIT;
+          iid = InferenceId::STRINGS_ARRAY_NTH_UNIT;
         }
         std::vector<Node> exp;
         d_im.addToExplanation(t[0], nf.d_nf[0], exp);
@@ -202,7 +202,7 @@ void ArraySolver::checkTerms(Kind k)
     {
       Node finalc = utils::mkConcat(cchildren, t.getType());
       eq = t.eqNode(finalc);
-      iid = InferenceId::STRINGS_SU_UPDATE_CONCAT;
+      iid = InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
     }
     else
     {
@@ -218,7 +218,7 @@ void ArraySolver::checkTerms(Kind k)
       Node oobCond =
           nm->mkNode(OR, nm->mkNode(LT, t[1], d_zero), cond[0].notNode());
       eq = nm->mkNode(ITE, oobCond, t.eqNode(ufa), eq);
-      iid = InferenceId::STRINGS_SU_NTH_CONCAT;
+      iid = InferenceId::STRINGS_ARRAY_NTH_CONCAT;
     }
     std::vector<Node> exp;
     d_im.addToExplanation(r, t[0], exp);
