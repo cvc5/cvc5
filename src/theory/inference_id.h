@@ -674,6 +674,8 @@ enum class InferenceId
   //   len(s) != len(t) V len(s) = len(t)
   STRINGS_DEQ_LENGTH_SP,
   // Disequality extensionality
+  // x != y => ( seq.len(x) != seq.len(y) or
+  //             ( seq.nth(x, d) != seq.nth(y, d) ^ 0 <= d < seq.len(x) ) )
   STRINGS_DEQ_EXTENSIONALITY,
   //-------------------- codes solver
   // str.to_code( v ) = rewrite( str.to_code(c) )

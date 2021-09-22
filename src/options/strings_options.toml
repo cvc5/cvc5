@@ -208,5 +208,3 @@ name   = "Strings Theory"
 [[option.mode.NONE]]
   name = "none"
   help = "do not use array-inspired solver for sequence updates"
-
-
