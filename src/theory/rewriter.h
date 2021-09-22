@@ -18,22 +18,24 @@
 #pragma once
 
 #include "expr/node.h"
-#include "proof/method_id.h"
 #include "theory/theory_rewriter.h"
 
 namespace cvc5 {
 
+class Env;
 class TConvProofGenerator;
 class ProofNodeManager;
 class TrustNode;
 
 namespace theory {
 
+class Evaluator;
+
 /**
  * The main rewriter class.
  */
 class Rewriter {
-
+  friend class cvc5::Env;  // to initialize the evaluators of this class
  public:
   Rewriter();
 
@@ -62,6 +64,9 @@ class Rewriter {
   Node rewriteEqualityExt(TNode node);
 
   /**
+   * !!! Temporary until static access to rewriter is eliminated. This method
+   * should be moved to same place as evaluate (currently in Env).
+   *
    * Extended rewrite of the given node. This method is implemented by a
    * custom ExtendRewriter class that wraps this class to perform custom
    * rewrites (usually those that are not useful for solving, but e.g. useful
@@ -102,17 +107,6 @@ class Rewriter {
 
   /** Get the theory rewriter for the given id */
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
-
-  /**
-   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
-   * This encapsulates the exact behavior of a REWRITE step in a proof.
-   *
-   * @param n The node to rewrite,
-   * @param idr The method identifier of the rewriter, by default RW_REWRITE
-   * specifying a call to rewrite.
-   * @return The rewritten form of n.
-   */
-  Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
 
  private:
   /**
