@@ -391,7 +391,7 @@ Node sygusToBuiltin(Node n, bool isExternal)
 Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Evaluator eval;
+  Evaluator eval(nullptr);
   // constant arguments?
   bool constArgs = true;
   for (const Node& a : args)
