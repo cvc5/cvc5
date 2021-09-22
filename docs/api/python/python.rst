@@ -13,6 +13,7 @@ Python API Documentation
     :maxdepth: 1
 
     quickstart
+    solver
     datatype
     datatypeconstructor
     datatypeconstructordecl
