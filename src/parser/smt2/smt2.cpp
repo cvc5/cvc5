@@ -959,6 +959,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // special case: tuple projection with zero arguments
       if (kind == api::TUPLE_PROJECT)
       {
+        kind = api::NULL_EXPR;
         std::vector<uint32_t> indices;
         op = d_solver->mkOp(api::TUPLE_PROJECT, indices);
         isBuiltinOperator = false;
