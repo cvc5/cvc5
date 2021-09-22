@@ -24,7 +24,6 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
-#include "theory/strings/sequences_array_solver.h"
 
 namespace cvc5 {
 namespace theory {
@@ -54,28 +53,12 @@ class ArraySolver : protected EnvObj
    * their application to concatenation terms.
    */
   void checkArrayConcat();
-  /**
-   * Perform reasoning about seq.nth and seq.update operations.
-   */
-  void checkArray();
-  void checkArrayEager();
 
   /** is handled update */
   static bool isHandledUpdate(Node n);
   /** get base */
   static Node getUpdateBase(Node n);
-  
-  /**
-   * 
-   * @param eqc The sequence equivalence class representative. We can assume
-   * the equivalence class of eqc contains no concatenation terms.
-   * @return the map corresponding to the model for eqc. The domain of
-   * the returned map should be in distinct integer equivalence classes of the
-   * equality engine of strings theory. The model assigned to eqc will be
-   * a skeleton constructed via seq.++ where the components take values from
-   * this map.
-   */
-  const std::map<Node, Node>& getWriteModel(Node eqc);
+
  private:
   /** check terms of given kind */
   void checkTerms(Kind k);
@@ -93,8 +76,6 @@ class ArraySolver : protected EnvObj
   std::map<Kind, std::vector<Node> > d_currTerms;
   /** Common constants */
   Node d_zero;
-  /** The write model */
-  SequencesArraySolver d_sasolver;
   /** Equalities we have processed in the current context */
   NodeSet d_eqProc;
 };

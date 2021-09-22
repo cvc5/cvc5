@@ -39,7 +39,6 @@ ArraySolver::ArraySolver(Env& env,
       d_termReg(tr),
       d_csolver(cs),
       d_esolver(es),
-      d_sasolver(env, s, im, tr, cs, es, extt),
       d_eqProc(context())
 {
   NodeManager * nm = NodeManager::currentNM();
@@ -82,31 +81,6 @@ void ArraySolver::checkArrayConcat()
   Trace("seq-array") << "ArraySolver::checkArrayConcat..." << std::endl;
   checkTerms(STRING_UPDATE);
   checkTerms(SEQ_NTH);
-}
-void ArraySolver::checkArray()
-{
-  if (!d_termReg.hasSeqUpdate())
-  {
-    Trace("seq-array") << "No seq.update/seq.nth terms, skipping check..."
-                        << std::endl;
-    return;
-  }
-  Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
-  d_sasolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
-}
-
-void ArraySolver::checkArrayEager()
-{
-  if (!d_termReg.hasSeqUpdate())
-  {
-    Trace("seq-array") << "No seq.update/seq.nth terms, skipping check..."
-                        << std::endl;
-    return;
-  }
-  Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
-  std::vector<Node> nthTerms = d_esolver.getActive(SEQ_NTH);
-  std::vector<Node> updateTerms = d_esolver.getActive(STRING_UPDATE);
-  d_sasolver.check(nthTerms, updateTerms);
 }
   
 void ArraySolver::checkTerms(Kind k)
@@ -257,11 +231,6 @@ void ArraySolver::checkTerms(Kind k)
       d_im.sendInference(exp, eq, iid);
     }
   }
-}
-
-const std::map<Node, Node>& ArraySolver::getWriteModel(Node eqc)
-{
-  return d_sasolver.getWriteModel(eqc);
 }
 
 }  // namespace strings
