@@ -287,13 +287,10 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   }
 }
 
-void NonlinearExtension::finalizeModel()
+void NonlinearExtension::finalizeModel(TheoryModel* tm)
 {
   Trace("nl-ext") << "NonlinearExtension::finalizeModel" << std::endl;
 
-  // Otherwise, we will answer SAT. The values that we approximated are
-  // recorded as approximations here.
-  TheoryModel* tm = d_containing.getValuation().getModel();
   for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
   {
     if (a.second.second.isNull())

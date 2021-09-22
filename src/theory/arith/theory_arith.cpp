@@ -173,9 +173,9 @@ void TheoryArith::postCheck(Effort level)
         d_im.doPendingFacts();
         d_im.doPendingLemmas();
         d_im.doPendingPhaseRequirements();
-        return
+        return;
       }
-      d_nonlinearExtension->finalizeModel();
+      d_nonlinearExtension->finalizeModel(getValuation().getModel());
     }
     return;
   }

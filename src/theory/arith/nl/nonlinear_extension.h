@@ -102,11 +102,9 @@ class NonlinearExtension : EnvObj
                        const std::set<Node>& termSet);
 
   /**
-   * If there are pending lemmas (from the previous call to checkFullEffort),
-   * these lemmas are sent and the method returns.
-   * Otherwise, the nonlinear model is copied into the theory model.
+   * Finalize the given model by adding approximations and witnesses.
    */
-  void finalizeModel();
+  void finalizeModel(TheoryModel* tm);
 
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
