@@ -60,6 +60,67 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
+    // See proof_rule.h for documentation on the SCOPE rule. This comment uses
+    // variable names as introduced there. Instead of (not (and F1 ... Fn))
+    // (cl (not (and F1 ... Fn))) is printed and instead of (=> (and F1 ... Fn)
+    // F) the term (cl (=> (and F1 ... Fn))) is printed while the proof node
+    // remains the same.
+    //
+    // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
+    // Fn)) for i times.
+    //
+    // T1:
+    //
+    //   P
+    // ----- ANCHOR    ------- ... ------- AND_POS
+    //  VP1             VP2_1  ...  VP2_n
+    // ------------------------------------ RESOLUTION
+    //               VP2a
+    // ------------------------------------ REORDER
+    //  VP2b
+    // ------ DUPLICATED_LITERALS   ------- IMPLIES_NEG1
+    //   VP3                          VP4
+    // ------------------------------------  RESOLUTION    ------- IMPLIES_NEG2
+    //    VP5                                                VP6
+    // ----------------------------------------------------------- RESOLUTION
+    //                               VP7
+    //
+    // VP1: (cl (not F1) ... (not Fn) F)
+    // VP2_i: (cl (not (and F1 ... Fn)) Fi), for i = 1 to n
+    // VP2a: (cl F (not (and F1 ... Fn))^n)
+    // VP2b: (cl (not (and F1 ... Fn))^n F)
+    // VP3: (cl (not (and F1 ... Fn)) F)
+    // VP4: (cl (=> (and F1 ... Fn) F) (and F1 ... Fn)))
+    // VP5: (cl (=> (and F1 ... Fn) F) F)
+    // VP6: (cl (=> (and F1 ... Fn) F) (not F))
+    // VP7: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
+    //
+    // The reorder step is not necessary if n = 1, because in that case VP2a is
+    // (cl (not F1 F) which is the same as VP2b.
+    //
+    //
+    // If F = false:
+    //
+    //                                    --------- IMPLIES_SIMPLIFY
+    //    T1                                 VP9
+    // --------- DUPLICATED_LITERALS      --------- EQUIV_1
+    //    VP8                                VP10
+    // -------------------------------------------- RESOLUTION
+    //          (cl (not (and F1 ... Fn)))*
+    //
+    // VP8: (cl (=> (and F1 ... Fn))) (cl (not (=> (and F1 ... Fn) false))
+    //      (not (and F1 ... Fn)))
+    // VP9: (cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn))))
+    //
+    //
+    // Otherwise,
+    //                T1
+    //  ------------------------------ DUPLICATED_LITERALS
+    //   (cl (=> (and F1 ... Fn) F))**
+    //
+    //
+    // *  the corresponding proof node is (not (and F1 ... Fn))
+    // ** the corresponding proof node is (=> (and F1 ... Fn) F)
     case PfRule::SCOPE:
     {
       bool success = true;
@@ -97,22 +158,18 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp2_i;
       for (long unsigned int i = 0; i < args.size(); i++)
       {
-        vp2_i = nm->mkNode(kind::SEXPR,
-                           d_cl,
-                           andNode.notNode(),
-                           args[i]);  // (cl (not (and F1 ... Fn)) Fi)
+        vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
         success &=
             addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
         premisesVP2.push_back(vp2_i);
         notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
       }
 
-      Node vp2a =
-          nm->mkNode(kind::SEXPR, notAnd);  // (cl F (not (and F1 ... Fn))^n)
+      Node vp2a = nm->mkNode(kind::SEXPR, notAnd);
       success &= addAletheStep(
           AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
 
-      notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n F)
+      notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
       notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
       Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
       success &=
