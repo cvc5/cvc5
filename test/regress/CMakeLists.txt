@@ -1579,6 +1579,7 @@ set(regress_1_tests
   regress1/datatypes/non-simple-rec-mut-unsat.smt2
   regress1/datatypes/non-simple-rec-param.smt2
   regress1/datatypes/tuple_projection.smt2
+  regress1/datatypes/tuple_update.smt2
   regress1/decision/bug374a.smtv1.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/issue5454-2.smt2

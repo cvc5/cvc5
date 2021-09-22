@@ -142,6 +142,7 @@ void Smt2::addDatatypesOperators()
         api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
     addIndexedOperator(api::TUPLE_PROJECT, api::TUPLE_PROJECT, "tuple_project");
     addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
+    addOperator(api::TUPLE_PROJECT, "tuple_project");
   }
 }
 
@@ -956,6 +957,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
+      // special case: tuple projection with zero arguments
+      if (kind == api::TUPLE_PROJECT)
+      {
+        std::vector<uint32_t> indices;
+        op = d_solver->mkOp(api::TUPLE_PROJECT, indices);
+        isBuiltinOperator = false;
+      }
     }
     else
     {
@@ -1073,12 +1081,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
           api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
     }
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
-    return ret;
-  }
-  else if (p.d_kind == api::TUPLE_PROJECT)
-  {
-    api::Term ret = d_solver->mkTerm(p.d_op, args[0]);
-    Debug("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind != api::NULL_EXPR)
