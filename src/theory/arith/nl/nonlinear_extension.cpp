@@ -319,8 +319,6 @@ void NonlinearExtension::checkLastCallEffort()
   }
 }
 
-void NonlinearExtension::check(Theory::Effort e) {}
-
 Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
@@ -520,11 +518,6 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
 
   // did not add lemmas
   return Result::Sat::SAT;
-}
-
-void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
-                                        const std::set<Node>& termSet)
-{
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,
