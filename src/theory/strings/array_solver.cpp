@@ -15,9 +15,9 @@
 
 #include "theory/strings/array_solver.h"
 
-#include "util/rational.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "util/rational.h"
 
 using namespace cvc5::context;
 using namespace cvc5::kind;
@@ -27,21 +27,21 @@ namespace theory {
 namespace strings {
 
 ArraySolver::ArraySolver(Env& env,
-                                             SolverState& s,
-                                             InferenceManager& im,
-                                             TermRegistry& tr,
-                                             CoreSolver& cs,
-                                             ExtfSolver& es,
-                                             ExtTheory& extt)
+                         SolverState& s,
+                         InferenceManager& im,
+                         TermRegistry& tr,
+                         CoreSolver& cs,
+                         ExtfSolver& es,
+                         ExtTheory& extt)
     : EnvObj(env),
-	  d_state(s),
+      d_state(s),
       d_im(im),
       d_termReg(tr),
       d_csolver(cs),
       d_esolver(es),
       d_eqProc(context())
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
 }
 
@@ -50,7 +50,7 @@ ArraySolver::~ArraySolver() {}
 bool ArraySolver::isHandledUpdate(Node n)
 {
   Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node lenN = n[2];
   if (n.getKind() == STRING_UPDATE)
   {
@@ -62,7 +62,7 @@ bool ArraySolver::isHandledUpdate(Node n)
 
 Node ArraySolver::getUpdateBase(Node n)
 {
-  while (n.getKind()==STRING_UPDATE)
+  while (n.getKind() == STRING_UPDATE)
   {
     n = n[0];
   }
@@ -74,7 +74,7 @@ void ArraySolver::checkArrayConcat()
   if (!d_termReg.hasSeqUpdate())
   {
     Trace("seq-array") << "No seq.update/seq.nth terms, skipping check..."
-                        << std::endl;
+                       << std::endl;
     return;
   }
   d_currTerms.clear();
@@ -82,19 +82,19 @@ void ArraySolver::checkArrayConcat()
   checkTerms(STRING_UPDATE);
   checkTerms(SEQ_NTH);
 }
-  
+
 void ArraySolver::checkTerms(Kind k)
 {
-  Assert (k==STRING_UPDATE || k==SEQ_NTH);
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(k == STRING_UPDATE || k == SEQ_NTH);
+  NodeManager* nm = NodeManager::currentNM();
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
   std::vector<Node> terms = d_esolver.getActive(k);
   for (const Node& t : terms)
   {
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
-    Assert (t.getKind()==k);
-    if (k==STRING_UPDATE && !isHandledUpdate(t))
+    Assert(t.getKind() == k);
+    if (k == STRING_UPDATE && !isHandledUpdate(t))
     {
       // not handled by procedure
       Trace("seq-array-debug") << "...unhandled" << std::endl;
@@ -106,7 +106,7 @@ void ArraySolver::checkTerms(Kind k)
     if (nf.d_nf.empty())
     {
       // should have been reduced (UPD_EMPTYSTR)
-      if (k==STRING_UPDATE) Assert (false);
+      if (k == STRING_UPDATE) Assert(false);
       Trace("seq-array-debug") << "...empty" << std::endl;
       continue;
     }
@@ -122,7 +122,7 @@ void ArraySolver::checkTerms(Kind k)
         Node thenBranch;
         Node elseBranch;
         InferenceId iid;
-        if (k==STRING_UPDATE)
+        if (k == STRING_UPDATE)
         {
           thenBranch = t[2];
           elseBranch = nf.d_nf[0];
@@ -130,7 +130,7 @@ void ArraySolver::checkTerms(Kind k)
         }
         else
         {
-          Assert (k==SEQ_NTH);
+          Assert(k == SEQ_NTH);
           thenBranch = nf.d_nf[0][0];
           Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
           elseBranch = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
@@ -139,7 +139,10 @@ void ArraySolver::checkTerms(Kind k)
         std::vector<Node> exp;
         d_im.addToExplanation(t[0], nf.d_nf[0], exp);
         d_im.addToExplanation(r, t[0], exp);
-        Node eq = nm->mkNode(ITE, t[1].eqNode(d_zero), t.eqNode(thenBranch), t.eqNode(elseBranch));
+        Node eq = nm->mkNode(ITE,
+                             t[1].eqNode(d_zero),
+                             t.eqNode(thenBranch),
+                             t.eqNode(elseBranch));
         if (d_eqProc.find(eq) == d_eqProc.end())
         {
           d_eqProc.insert(eq);
@@ -163,10 +166,10 @@ void ArraySolver::checkTerms(Kind k)
       Node currIndex = t[1];
       if (!lacc.empty())
       {
-        Node currSum = lacc.size()==1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+        Node currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
         currIndex = nm->mkNode(MINUS, currIndex, currSum);
       }
-      if (k==STRING_UPDATE)
+      if (k == STRING_UPDATE)
       {
         Node cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
         Trace("seq-array-debug") << "......component " << cc << std::endl;
@@ -174,31 +177,31 @@ void ArraySolver::checkTerms(Kind k)
       }
       else
       {
-        Assert (k==SEQ_NTH);
+        Assert(k == SEQ_NTH);
         Node cc = nm->mkNode(SEQ_NTH, c, currIndex);
         Trace("seq-array-debug") << "......component " << cc << std::endl;
         cchildren.push_back(cc);
       }
       lacc.push_back(clen);
-      if (k==SEQ_NTH)
+      if (k == SEQ_NTH)
       {
-        Node currSumPost = lacc.size()==1 ? lacc[0] : nm->mkNode(PLUS, lacc);
+        Node currSumPost = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
         Node cc = nm->mkNode(LT, t[1], currSumPost);
         Trace("seq-array-debug") << "......condition " << cc << std::endl;
         cond.push_back(cc);
       }
     }
-    // z = (seq.++ x y) => 
-    // (seq.update z n l) = 
+    // z = (seq.++ x y) =>
+    // (seq.update z n l) =
     //   (seq.++ (seq.update x n 1) (seq.update y (- n len(x)) 1))
     // z = (seq.++ x y) =>
-    // (seq.nth z n) = 
-    //    (ite (or (< n 0) (>= n (+ (str.len x) (str.len y)))) (Uf z n) 
-    //    (ite (< n (str.len x)) (seq.nth x n) 
+    // (seq.nth z n) =
+    //    (ite (or (< n 0) (>= n (+ (str.len x) (str.len y)))) (Uf z n)
+    //    (ite (< n (str.len x)) (seq.nth x n)
     //      (seq.nth y (- n (str.len x)))))
     InferenceId iid;
     Node eq;
-    if (k==STRING_UPDATE)
+    if (k == STRING_UPDATE)
     {
       Node finalc = utils::mkConcat(cchildren, t.getType());
       eq = t.eqNode(finalc);
@@ -210,7 +213,7 @@ void ArraySolver::checkTerms(Kind k)
       std::reverse(cond.begin(), cond.end());
       Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
       eq = t.eqNode(cchildren[0]);
-      for (size_t i=1, ncond = cond.size(); i<ncond; i++)
+      for (size_t i = 1, ncond = cond.size(); i < ncond; i++)
       {
         eq = nm->mkNode(ITE, cond[i], t.eqNode(cchildren[i]), eq);
       }

@@ -30,22 +30,23 @@ namespace theory {
 namespace strings {
 
 /**
-  * This is a solver for reasoning about seq.update and seq.nth
-  * natively. This class specifically addresses the combination of this
-  * operators with concatenation. It relies on a subsolver for doing array
-  * like reasoning (sequences_array_solver.h).
-  */
+ * This is a solver for reasoning about seq.update and seq.nth
+ * natively. This class specifically addresses the combination of this
+ * operators with concatenation. It relies on a subsolver for doing array
+ * like reasoning (sequences_array_solver.h).
+ */
 class ArraySolver : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
+
  public:
   ArraySolver(Env& env,
-                        SolverState& s,
-                        InferenceManager& im,
-                        TermRegistry& tr,
-                        CoreSolver& cs,
-                        ExtfSolver& es,
-                        ExtTheory& extt);
+              SolverState& s,
+              InferenceManager& im,
+              TermRegistry& tr,
+              CoreSolver& cs,
+              ExtfSolver& es,
+              ExtTheory& extt);
   ~ArraySolver();
 
   /**
