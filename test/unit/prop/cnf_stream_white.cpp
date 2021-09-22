@@ -150,7 +150,6 @@ class TestPropWhiteCnfStream : public TestSmt
 
 TEST_F(TestPropWhiteCnfStream, and)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
@@ -161,7 +160,6 @@ TEST_F(TestPropWhiteCnfStream, and)
 
 TEST_F(TestPropWhiteCnfStream, complex_expr)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
@@ -184,21 +182,18 @@ TEST_F(TestPropWhiteCnfStream, complex_expr)
 
 TEST_F(TestPropWhiteCnfStream, true)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   d_cnfStream->convertAndAssert(d_nodeManager->mkConst(true), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
 TEST_F(TestPropWhiteCnfStream, false)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   d_cnfStream->convertAndAssert(d_nodeManager->mkConst(false), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
 TEST_F(TestPropWhiteCnfStream, iff)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
@@ -208,7 +203,6 @@ TEST_F(TestPropWhiteCnfStream, iff)
 
 TEST_F(TestPropWhiteCnfStream, implies)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
@@ -218,7 +212,6 @@ TEST_F(TestPropWhiteCnfStream, implies)
 
 TEST_F(TestPropWhiteCnfStream, not )
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
       d_nodeManager->mkNode(kind::NOT, a), false, false);
@@ -227,7 +220,6 @@ TEST_F(TestPropWhiteCnfStream, not )
 
 TEST_F(TestPropWhiteCnfStream, or)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
@@ -238,7 +230,6 @@ TEST_F(TestPropWhiteCnfStream, or)
 
 TEST_F(TestPropWhiteCnfStream, var)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(a, false, false);
@@ -250,7 +241,6 @@ TEST_F(TestPropWhiteCnfStream, var)
 
 TEST_F(TestPropWhiteCnfStream, xor)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
@@ -260,7 +250,6 @@ TEST_F(TestPropWhiteCnfStream, xor)
 
 TEST_F(TestPropWhiteCnfStream, ensure_literal)
 {
-  NodeManagerScope nms(d_nodeManager.get());
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node a_and_b = d_nodeManager->mkNode(kind::AND, a, b);

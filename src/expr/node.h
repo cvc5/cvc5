@@ -1007,10 +1007,6 @@ template <bool ref_count>
 template <class AttrKind>
 inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->getAttribute(*this, AttrKind());
@@ -1020,10 +1016,6 @@ template <bool ref_count>
 template <class AttrKind>
 inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->hasAttribute(*this, AttrKind());
@@ -1033,10 +1025,6 @@ template <bool ref_count>
 template <class AttrKind>
 inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->getAttribute(*this, AttrKind(), ret);
@@ -1046,10 +1034,6 @@ template <bool ref_count>
 template <class AttrKind>
 inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   NodeManager::currentNM()->setAttribute(*this, AttrKind(), value);
@@ -1246,10 +1230,6 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
 {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   kind::MetaKind mk = getMetaKind();
@@ -1276,10 +1256,6 @@ inline bool NodeTemplate<ref_count>::hasOperator() const {
 template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current cvc5::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
-
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->getType(*this, check);

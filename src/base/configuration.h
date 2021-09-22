@@ -20,6 +20,7 @@
 #define CVC5__CONFIGURATION_H
 
 #include <string>
+#include <vector>
 
 #include "cvc5_export.h"
 
@@ -111,19 +112,15 @@ public:
 
   static bool isBuiltWithPoly();
 
-  /* Return the number of debug tags */
-  static unsigned getNumDebugTags();
   /* Return a sorted array of the debug tags name */
-  static char const* const* getDebugTags();
+  static const std::vector<std::string>& getDebugTags();
   /* Test if the given argument is a known debug tag name */
-  static bool isDebugTag(char const *);
+  static bool isDebugTag(const std::string& tag);
 
-  /* Return the number of trace tags */
-  static unsigned getNumTraceTags();
   /* Return a sorted array of the trace tags name */
-  static char const* const* getTraceTags();
+  static const std::vector<std::string>& getTraceTags();
   /* Test if the given argument is a known trace tag name */
-  static bool isTraceTag(char const *);
+  static bool isTraceTag(const std::string& tag);
 
   static bool isGitBuild();
   static const char* getGitBranchName();

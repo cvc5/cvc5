@@ -99,7 +99,6 @@ bool DatatypeConstructorTypeRule::computeIsConst(NodeManager* nodeManager,
                                                  TNode n)
 {
   Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
-  NodeManagerScope nms(nodeManager);
   for (TNode::const_iterator i = n.begin(); i != n.end(); ++i)
   {
     if (!(*i).isConst())
