@@ -522,6 +522,7 @@ set(regress_0_tests
   regress0/datatypes/tuple-no-clash.cvc
   regress0/datatypes/tuple-record-bug.cvc
   regress0/datatypes/tuple.cvc
+  regress0/datatypes/tuple_update.smt2
   regress0/datatypes/tuples-empty.smt2
   regress0/datatypes/tuples-multitype.smt2
   regress0/datatypes/typed_v10l30054.cvc
