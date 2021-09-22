@@ -53,7 +53,7 @@ void SequencesArraySolver::sendInference(const std::vector<Node>& exp,
   if (d_lem.find(lem) == d_lem.end())
   {
     d_lem.insert(lem);
-    InferenceId iid = InferenceId::STRINGS_SU_UPDATE_UNIT;
+    InferenceId iid = InferenceId::UNKNOWN;
     Trace("seq-update") << "- send lemma - " << lem << std::endl;
     d_im.sendInference(exp, lem, iid);
   }
@@ -212,7 +212,7 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
       // 1)
       Node ret = nm->mkNode(SEQ_NTH, s, iRev);
       d_im.sendInference(
-          {}, nexp, n.eqNode(ret), InferenceId::STRINGS_SU_NTH_REV);
+          {}, nexp, n.eqNode(ret), InferenceId::STRINGS_ARRAY_NTH_REV);
       d_extt.markReduced(n, ExtReducedId::STRINGS_NTH_REV);
     }
   }

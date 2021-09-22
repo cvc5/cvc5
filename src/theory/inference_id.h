@@ -684,11 +684,15 @@ enum class InferenceId
   // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
   STRINGS_CODE_INJ,
   //-------------------- sequence update solver
-  STRINGS_SU_UPDATE_UNIT,
-  STRINGS_SU_UPDATE_CONCAT,
-  STRINGS_SU_NTH_UNIT,
-  STRINGS_SU_NTH_CONCAT,
-  STRINGS_SU_NTH_REV,
+  // update over unit
+  STRINGS_ARRAY_UPDATE_UNIT,
+  // update over conatenation
+  STRINGS_ARRAY_UPDATE_CONCAT,
+  // nth over unit
+  STRINGS_ARRAY_NTH_UNIT,
+  // nth over conatenation
+  STRINGS_ARRAY_NTH_CONCAT,
+  STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false

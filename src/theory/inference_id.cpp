@@ -401,11 +401,11 @@ const char* toString(InferenceId i)
       return "STRINGS_DEQ_EXTENSIONALITY";
     case InferenceId::STRINGS_CODE_PROXY: return "STRINGS_CODE_PROXY";
     case InferenceId::STRINGS_CODE_INJ: return "STRINGS_CODE_INJ";  
-    case InferenceId::STRINGS_SU_UPDATE_UNIT: return "STRINGS_SU_UPDATE_UNIT";
-    case InferenceId::STRINGS_SU_UPDATE_CONCAT: return "STRINGS_SU_UPDATE_CONCAT";
-    case InferenceId::STRINGS_SU_NTH_UNIT: return "STRINGS_SU_NTH_UNIT";
-    case InferenceId::STRINGS_SU_NTH_CONCAT: return "STRINGS_SU_NTH_CONCAT";
-    case InferenceId::STRINGS_SU_NTH_REV: return "STRINGS_SU_NTH_REV";
+    case InferenceId::STRINGS_ARRAY_UPDATE_UNIT: return "STRINGS_ARRAY_UPDATE_UNIT";
+    case InferenceId::STRINGS_ARRAY_UPDATE_CONCAT: return "STRINGS_ARRAY_UPDATE_CONCAT";
+    case InferenceId::STRINGS_ARRAY_NTH_UNIT: return "STRINGS_ARRAY_NTH_UNIT";
+    case InferenceId::STRINGS_ARRAY_NTH_CONCAT: return "STRINGS_ARRAY_NTH_CONCAT";
+    case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";
     case InferenceId::STRINGS_RE_UNFOLD_POS: return "STRINGS_RE_UNFOLD_POS";
     case InferenceId::STRINGS_RE_UNFOLD_NEG: return "STRINGS_RE_UNFOLD_NEG";
