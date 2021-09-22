@@ -80,7 +80,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
   std::vector<Node> coreVars;
   std::vector<Node> impliedVars;
   bool minimized = false;
-  SubstitutionMinimize sm(d_env);
+  theory::SubstitutionMinimize sm(d_env);
   if (mode == options::ModelCoresMode::NON_IMPLIED)
   {
     minimized = sm.findWithImplied(formula, vars, subs, coreVars, impliedVars);
