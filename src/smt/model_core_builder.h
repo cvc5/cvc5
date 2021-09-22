@@ -30,7 +30,7 @@ namespace cvc5 {
 /**
  * A utility for building model cores.
  */
-class ModelCoreBuilder
+class ModelCoreBuilder : protected EnvObj
 {
  public:
   ModelCoreBuilder(Env& env);
