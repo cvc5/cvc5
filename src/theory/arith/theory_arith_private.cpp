@@ -37,6 +37,7 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/base_options.h"
+#include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
@@ -97,13 +98,11 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                            : nullptr),
       d_checker(),
       d_pfGen(new EagerProofGenerator(d_pnm, userContext())),
-      d_constraintDatabase(context(),
-                           userContext(),
+      d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
                            RaiseConflict(*this),
-                           d_pfGen.get(),
-                           d_pnm),
+                           d_pfGen.get()),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -1749,7 +1748,7 @@ void TheoryArithPrivate::outputConflicts(){
       const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (Debug.isOn("arith::conflict"))
       {
-        pf.print(std::cout);
+        pf.print(std::cout, options().smt.produceProofs);
         std::cout << std::endl;
       }
       if (Debug.isOn("arith::pf::tree"))
@@ -4130,7 +4129,7 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
-        d_linEq.propagateBasicFromRow(bestImplied);
+        d_linEq.propagateBasicFromRow(bestImplied, options().smt.produceProofs);
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
         if(Debug.isOn("arith::prop")){
@@ -4435,8 +4434,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
   if( !assertedToTheTheory && canBePropagated && !hasProof ){
     ConstraintCPVec explain;
-    ARITH_PROOF(d_farkasBuffer.clear());
-    RationalVectorP coeffs = ARITH_NULLPROOF(&d_farkasBuffer);
+    if (options().smt.produceProofs)
+    {
+      d_farkasBuffer.clear();
+    }
+    RationalVectorP coeffs =
+        options().smt.produceProofs ? &d_farkasBuffer : nullptr;
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied
