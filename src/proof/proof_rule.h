@@ -1396,6 +1396,15 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   LFSC_RULE,
+  //================================================ Place holder for Alethe
+  // rules
+  // ======== Alethe rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, Q', A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  // where Q' is the representation of Q to be printed by the Alethe printer.
+  ALETHE_RULE,
 
   //================================================= Unknown rule
   UNKNOWN,
