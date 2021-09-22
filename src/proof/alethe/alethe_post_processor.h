@@ -16,8 +16,9 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
-#include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof_node_updater.h"
+#include "proof/alethe/alethe_node_converter.h"
+#include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5 {
 
@@ -30,7 +31,8 @@ namespace proof {
 class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  AletheProofPostprocessCallback(ProofNodeManager* pnm);
+  AletheProofPostprocessCallback(ProofNodeManager* pnm,
+                                 AletheNodeConverter& anc);
   ~AletheProofPostprocessCallback() {}
   /** Should proof pn be updated? Only if its top-level proof rule is not an
    *  Alethe proof rule.
@@ -52,6 +54,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The Alethe node converter */
+  AletheNodeConverter& d_anc;
   /** The cl operator
    * For every step the conclusion is a clause. But since the or operator
    *requires at least two arguments it is extended by the cl operator. In case
@@ -97,6 +101,76 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);
+};
+
+/**
+ * Final callback class used by the Alethe converter to add the last step to a
+ * proof in the following two cases. The last step should always be printed as
+ * (cl).
+ *
+ * 1. If the last step of a proof which is false is reached it is printed as (cl
+ *    false).
+ * 2. If one of the assumptions is false it is printed as false.
+ *
+ * Thus, an additional resolution step with (cl (not true)) has to be added to
+ * transfer (cl false) into (cl).
+ */
+class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
+{
+ public:
+   AletheProofPostprocessFinalCallback(ProofNodeManager* pnm,
+                                       AletheNodeConverter& anc);
+  ~AletheProofPostprocessFinalCallback() {}
+  /** Should proof pn be updated? It should, if the last step is printed as (cl
+   * false) or if it is an assumption (in that case it is printed as false).
+   * Since the proof node should not be traversed, this method will always set
+   * continueUpdate to false.
+   */
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
+                    bool& continueUpdate) override;
+  /**
+   * This method gets a proof node pn. If the last step of the proof is false
+   * which is printed as (cl false) it updates the proof for false such that
+   * (cl) is printed instead.
+   */
+  bool update(Node res,
+              PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp,
+              bool& continueUpdate) override;
+
+ private:
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The Alethe node converter */
+  AletheNodeConverter& d_anc;
+  /** The cl operator is defined as described in the
+   * AletheProofPostprocessCallback class above
+   **/
+  Node d_cl;
+};
+
+/**
+ * The proof postprocessor module. This postprocesses a proof node into one
+ * using the rules from the Alethe calculus.
+ */
+class AletheProofPostprocess
+{
+ public:
+   AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
+  ~AletheProofPostprocess();
+  /** post-process */
+  void process(std::shared_ptr<ProofNode> pf);
+
+ private:
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The post process callback */
+  AletheProofPostprocessCallback d_cb;
+  /** The final post process callback */
+  AletheProofPostprocessFinalCallback d_fcb;
 };
 
 }  // namespace proof
