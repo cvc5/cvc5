@@ -164,12 +164,12 @@ bool ExtfSolver::doReduction(int effort, Node n)
       // don't need to reduce seq.nth when sequence update solver is used
       return false;
     }
-    else if (k==STRING_UPDATE && SequencesUpdateSolver::isHandledUpdate(n))
+    else if (k==STRING_UPDATE && ArraySolver::isHandledUpdate(n))
     {
       // don't need to reduce certain seq.update
       return false;
     }
-    else if (k == STRING_SUBSTR && SequencesUpdateSolver::isHandledUpdate(n))
+    else if (k == STRING_SUBSTR && ArraySolver::isHandledUpdate(n))
     {
       // don't need to reduce certain seq.extract with length 1
       return false;

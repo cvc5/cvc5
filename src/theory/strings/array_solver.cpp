@@ -26,7 +26,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-SequencesUpdateSolver::SequencesUpdateSolver(Env& env,
+ArraySolver::ArraySolver(Env& env,
                                              SolverState& s,
                                              InferenceManager& im,
                                              TermRegistry& tr,
@@ -46,9 +46,9 @@ SequencesUpdateSolver::SequencesUpdateSolver(Env& env,
   d_zero = nm->mkConst(Rational(0));
 }
 
-SequencesUpdateSolver::~SequencesUpdateSolver() {}
+ArraySolver::~ArraySolver() {}
 
-bool SequencesUpdateSolver::isHandledUpdate(Node n)
+bool ArraySolver::isHandledUpdate(Node n)
 {
   Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
   NodeManager * nm = NodeManager::currentNM();
@@ -61,7 +61,7 @@ bool SequencesUpdateSolver::isHandledUpdate(Node n)
   return ArithEntail::checkEq(lenN, one);
 }
 
-Node SequencesUpdateSolver::getUpdateBase(Node n)
+Node ArraySolver::getUpdateBase(Node n)
 {
   while (n.getKind()==STRING_UPDATE)
   {
@@ -70,7 +70,7 @@ Node SequencesUpdateSolver::getUpdateBase(Node n)
   return n;
 }
 
-void SequencesUpdateSolver::checkArrayConcat()
+void ArraySolver::checkArrayConcat()
 {
   if (!d_termReg.hasSeqUpdate())
   {
@@ -79,11 +79,11 @@ void SequencesUpdateSolver::checkArrayConcat()
     return;
   }
   d_currTerms.clear();
-  Trace("seq-array") << "SequencesUpdateSolver::checkArrayConcat..." << std::endl;
+  Trace("seq-array") << "ArraySolver::checkArrayConcat..." << std::endl;
   checkTerms(STRING_UPDATE);
   checkTerms(SEQ_NTH);
 }
-void SequencesUpdateSolver::checkArray()
+void ArraySolver::checkArray()
 {
   if (!d_termReg.hasSeqUpdate())
   {
@@ -91,11 +91,11 @@ void SequencesUpdateSolver::checkArray()
                         << std::endl;
     return;
   }
-  Trace("seq-array") << "SequencesUpdateSolver::checkArray..." << std::endl;
+  Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
   d_sasolver.check(d_currTerms[SEQ_NTH], d_currTerms[STRING_UPDATE]);
 }
 
-void SequencesUpdateSolver::checkArrayEager()
+void ArraySolver::checkArrayEager()
 {
   if (!d_termReg.hasSeqUpdate())
   {
@@ -103,13 +103,13 @@ void SequencesUpdateSolver::checkArrayEager()
                         << std::endl;
     return;
   }
-  Trace("seq-array") << "SequencesUpdateSolver::checkArray..." << std::endl;
+  Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
   std::vector<Node> nthTerms = d_esolver.getActive(SEQ_NTH);
   std::vector<Node> updateTerms = d_esolver.getActive(STRING_UPDATE);
   d_sasolver.check(nthTerms, updateTerms);
 }
   
-void SequencesUpdateSolver::checkTerms(Kind k)
+void ArraySolver::checkTerms(Kind k)
 {
   Assert (k==STRING_UPDATE || k==SEQ_NTH);
   NodeManager * nm = NodeManager::currentNM();
@@ -259,7 +259,7 @@ void SequencesUpdateSolver::checkTerms(Kind k)
   }
 }
 
-const std::map<Node, Node>& SequencesUpdateSolver::getWriteModel(Node eqc)
+const std::map<Node, Node>& ArraySolver::getWriteModel(Node eqc)
 {
   return d_sasolver.getWriteModel(eqc);
 }

@@ -65,7 +65,7 @@ void SequencesArraySolver::checkNth(const std::vector<Node>& nthTerms)
   std::vector<Node> extractTerms = d_esolver.getActive(STRING_SUBSTR);
   for (const Node& n : extractTerms)
   {
-    if (SequencesUpdateSolver::isHandledUpdate(n))
+    if (ArraySolver::isHandledUpdate(n))
     {
       // (seq.extract A i l) ^ (<= 0 i) ^ (< i (str.len A)) --> (seq.unit
       // (seq.nth A i))
