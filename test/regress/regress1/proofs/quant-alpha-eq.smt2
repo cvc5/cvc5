@@ -6,4 +6,3 @@
 (assert (forall ((?v0 A$)) (not (p$ ?v0))))
 (assert (not false))
 (check-sat)
-(get-proof)
