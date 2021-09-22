@@ -182,3 +182,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "true"
   help       = "perform eager context-dependent evaluation for applications of string kinds"
+
+[[option]]
+  name       = "stringsDeqExt"
+  category   = "regular"
+  long       = "strings-deq-ext"
+  type       = "bool"
+  default    = "false"
+  help       = "use extensionality for string disequalities"
