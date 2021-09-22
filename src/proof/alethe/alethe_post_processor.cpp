@@ -95,8 +95,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP6: (cl (=> (and F1 ... Fn) F) (not F))
     // VP7: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
     //
-    // The reorder step is not necessary if n = 1, because in that case VP2a is
-    // (cl (not F1 F) which is the same as VP2b.
+    // Note that if n = 1, then the ANCHOR step yields (cl (not F1) F), which is
+    // the same as VP3. Since VP1 = VP3, the steps for that transformation are
+    // not generated.
     //
     //
     // If F = false:
