@@ -141,12 +141,7 @@ class TheoryFp : public Theory
 
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
-  Node abstractRealToFloat(Node);
-  Node abstractFloatToReal(Node);
-
  private:
-  ConversionAbstractionMap d_realToFloatMap;
-  ConversionAbstractionMap d_floatToRealMap;
   AbstractionMap d_abstractionMap;  // abstract -> original
 
   /** The theory rewriter for this theory. */
