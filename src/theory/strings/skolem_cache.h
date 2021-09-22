@@ -149,6 +149,9 @@ class SkolemCache
     // forall s, n.
     //  k(s, n) is some undefined value of sort U
     SK_NTH,
+    // Diff index for disequalities
+    // a != b => substr(a,k,1) != substr(b,k,1)
+    SK_DEQ_DIFF
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
