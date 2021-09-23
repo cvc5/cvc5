@@ -262,6 +262,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     Assert(!ac.isNull());
     as.push_back(ac);
   }
+  // The proof expression stream, which packs the next expressions (proofs,
+  // terms, sorts, LFSC datatypes) into a print-expression vector pargs. This
+  // stream can be used via "pf << e" which appends an expression to the
+  // vector maintained by this stream.
   PExprStream pf(pargs, d_tt, d_ff);
   // hole
   PExpr h;
