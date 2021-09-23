@@ -1,6 +1,0 @@
-% EXPECT: entailed
-% Simple test for right precedence of <=> and =>.
-
-A, B, C: BOOLEAN;
-
-QUERY (A => B <=> C) <=> ((A => B) <=> C);
