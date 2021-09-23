@@ -21,6 +21,7 @@
 #include <vector>
 #include "expr/node.h"
 #include "options/quantifiers_options.h"
+#include "smt/env_obj.h"
 #include "theory/theory.h"
 
 namespace cvc5 {
@@ -48,10 +49,10 @@ enum class InstStrategyStatus
 /**
  * A base class for instantiation strategies within E-matching.
  */
-class InstStrategy
+class InstStrategy : protected EnvObj
 {
  public:
-  InstStrategy(inst::TriggerDatabase& td,
+  InstStrategy(Env& env, inst::TriggerDatabase& td,
                QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr,

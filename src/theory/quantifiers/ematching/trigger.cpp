@@ -19,6 +19,7 @@
 #include "options/base_options.h"
 #include "options/outputc.h"
 #include "options/quantifiers_options.h"
+#include "smt/env.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
@@ -43,13 +44,13 @@ namespace quantifiers {
 namespace inst {
 
 /** trigger class constructor */
-Trigger::Trigger(QuantifiersState& qs,
+Trigger::Trigger(Env& env, QuantifiersState& qs,
                  QuantifiersInferenceManager& qim,
                  QuantifiersRegistry& qr,
                  TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes)
-    : d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr), d_quant(q)
+    : EnvObj(env), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr), d_quant(q)
 {
   // We must ensure that the ground subterms of the trigger have been
   // preprocessed.
@@ -80,8 +81,11 @@ Trigger::Trigger(QuantifiersState& qs,
   if (Output.isOn(options::OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    Output(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q)
+    if (d_env.isOutputOn(options::OutputTag::TRIGGER))
+      {
+        d_env.getOutput(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q)
                                         << " " << d_trNode << ")" << std::endl;
+      }
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){

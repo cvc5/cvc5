@@ -15,18 +15,19 @@
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
 
+#include "smt/env.h"
 #include "theory/quantifiers/quantifiers_state.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategy::InstStrategy(inst::TriggerDatabase& td,
+InstStrategy::InstStrategy(Env& env, inst::TriggerDatabase& td,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr,
                            TermRegistry& tr)
-    : d_td(td), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
+    : EnvObj(env), d_td(td), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
 {
 }
 InstStrategy::~InstStrategy() {}

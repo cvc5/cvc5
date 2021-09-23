@@ -86,7 +86,7 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   std::map<Node, bool> d_hasUserPatterns;
 
  public:
-  InstStrategyAutoGenTriggers(inst::TriggerDatabase& td,
+  InstStrategyAutoGenTriggers(Env& env, inst::TriggerDatabase& td,
                               QuantifiersState& qs,
                               QuantifiersInferenceManager& qim,
                               QuantifiersRegistry& qr,

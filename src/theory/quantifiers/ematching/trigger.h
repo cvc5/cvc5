@@ -19,6 +19,7 @@
 #define CVC5__THEORY__QUANTIFIERS__TRIGGER_H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 
 namespace cvc5 {
@@ -95,12 +96,12 @@ class InstMatchGenerator;
  * required to ensure the correctness of instantiation lemmas we generate.
  *
  */
-class Trigger {
+class Trigger : protected EnvObj {
   friend class IMGenerator;
 
  public:
   /** trigger constructor */
-  Trigger(QuantifiersState& qs,
+  Trigger(Env& env, QuantifiersState& qs,
           QuantifiersInferenceManager& qim,
           QuantifiersRegistry& qr,
           TermRegistry& tr,
