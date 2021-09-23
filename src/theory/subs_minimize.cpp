@@ -27,7 +27,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-SubstitutionMinimize::SubstitutionMinimize() {}
+SubstitutionMinimize::SubstitutionMinimize(Env& env) : EnvObj(env) {}
 
 bool SubstitutionMinimize::find(Node t,
                                 Node target,
@@ -119,7 +119,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
       // try the current substitution
       Node tcs = tc.substitute(
           reqVars.begin(), reqVars.end(), reqSubs.begin(), reqSubs.end());
-      Node tcsr = Rewriter::rewrite(tcs);
+      Node tcsr = rewrite(tcs);
       std::vector<Node> tcsrConj;
       getConjuncts(tcsr, tcsrConj);
       for (const Node& tcc : tcsrConj)
@@ -246,7 +246,7 @@ bool SubstitutionMinimize::findInternal(Node n,
           nb << it->second;
         }
         ret = nb.constructNode();
-        ret = Rewriter::rewrite(ret);
+        ret = rewrite(ret);
       }
       value[cur] = ret;
     }
@@ -323,7 +323,7 @@ bool SubstitutionMinimize::findInternal(Node n,
               // i to visit, and update curr below.
               if (scurr != curr)
               {
-                curr = Rewriter::rewrite(scurr);
+                curr = rewrite(scurr);
                 visit.push_back(cur[i]);
               }
             }
