@@ -21,7 +21,6 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "smt/smt_engine.h"
-#include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
 
@@ -148,13 +147,13 @@ Node TheoryModel::getValue(TNode n) const
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.
       NodeManager* nm = NodeManager::currentNM();
-      nn = nm->mkNode(kind::LAMBDA, nn[0], Rewriter::rewrite(nn[1]));
+      nn = nm->mkNode(kind::LAMBDA, nn[0], rewrite(nn[1]));
     }
   }
   else
   {
     //normalize
-    nn = Rewriter::rewrite(nn);
+    nn = rewrite(nn);
   }
   Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
@@ -249,7 +248,7 @@ Node TheoryModel::getModelValue(TNode n) const
     }
     ret = nm->mkNode(n.getKind(), children);
     Debug("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
-    ret = Rewriter::rewrite(ret);
+    ret = rewrite(ret);
     Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
@@ -290,7 +289,7 @@ Node TheoryModel::getModelValue(TNode n) const
     return answer;
   }
   // must rewrite the term at this point
-  ret = Rewriter::rewrite(n);
+  ret = rewrite(n);
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
   bool eeHasTerm;
@@ -361,7 +360,7 @@ Node TheoryModel::getModelValue(TNode n) const
     {
       // this is the class for regular expressions
       // we simply invoke the rewriter on them
-      ret = Rewriter::rewrite(ret);
+      ret = rewrite(ret);
     }
     else
     {
@@ -696,7 +695,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
   if (logicInfo().isHigherOrder())
   {
     //we must rewrite the function value since the definition needs to be a constant value
-    f_def = Rewriter::rewrite( f_def );
+    f_def = rewrite(f_def);
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
     Assert(f_def.isConst()) << "Non-constant f_def: " << f_def;

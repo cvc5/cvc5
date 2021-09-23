@@ -863,11 +863,14 @@ enum class PfRule : uint32_t
   INSTANTIATE,
   // ======== Alpha equivalence
   // Children: none
-  // Arguments: (F, y1 = z1, ..., yn = zn)
+  // Arguments: (F, (y1 = z1), ..., (yn = zn) )
   // ----------------------------------------
   // Conclusion: (= F F*sigma)
   // sigma maps y1 ... yn to z1 ... zn, where y1 ... yn are unique bound
-  // variables, and z1 ... zn are unique bound variables.
+  // variables, and z1 ... zn are unique bound variables. Notice that this
+  // rule is correct only when z1, ..., zn are not contained in
+  // FV(F) \ { y1 ... yn }. The internal quantifiers proof checker does not
+  // currently check that this is the case.
   ALPHA_EQUIV,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?

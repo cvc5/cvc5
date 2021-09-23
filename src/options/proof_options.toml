@@ -18,12 +18,12 @@ name   = "Proof"
 [[option.mode.LEAN]]
   name       = "lean"
   help       = "Output Lean proof"
-[[option.mode.ALETHE]]
-  name       = "alethe"
-  help       = "Output Alethe proof"
 [[option.mode.LFSC]]
   name       = "lfsc"
   help       = "Output LFSC proof"
+[[option.mode.ALETHE]]
+  name       = "alethe"
+  help       = "Output Alethe proof"
 [[option.mode.TPTP]]
   name       = "tptp"
   help       = "Output TPTP proof (work in progress)"

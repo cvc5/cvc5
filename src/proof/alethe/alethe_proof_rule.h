@@ -26,6 +26,16 @@ namespace proof {
 
 enum class AletheRule : uint32_t
 {
+  // This enumeration lists all Alethe proof rules. For each rule a list of
+  // steps is given. The last step is the conclusion obtained by applying the
+  // rule in question. There might be zero or more steps occuring before the
+  // conclusion in the proof. A step has the form:
+  //
+  //   G > i. F
+  // where G is a context, i is an id and F is a formula. A context may include
+  // substitutions x->y and fixed variables x. For more details see
+  // https://verit.loria.fr/documentation/alethe-spec.pdf
+  //
   //================================================= Special Rules: Commands
   // These rules should be printed as commands
   //
@@ -53,6 +63,7 @@ enum class AletheRule : uint32_t
   ASSUME,
   //================================================= Rules of the Alethe
   // calculus
+  //
   // ======== true
   // > i. true
   TRUE,
@@ -336,7 +347,7 @@ enum class AletheRule : uint32_t
   //  G > i. (= (ite F1 F2 F3) (and (=> F1 F2) (=> (not F1) (not F3))))
   CONNECTIVE_DEF,
   // ======== Simplify rules
-  // The following rules are simplfy rules introduced as tautologies that can be
+  // The following rules are simplifying rules introduced as tautologies that can be
   // verified by a number of simple transformations
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,
@@ -414,4 +425,3 @@ std::ostream& operator<<(std::ostream& out, AletheRule id);
 }  // namespace cvc5
 
 #endif /* CVC4__PROOF__ALETHE_PROOF_RULE_H */
-

@@ -30,28 +30,29 @@ def check_iteractive_shell():
     child.expect("cvc5>")
 
     # If we send a line with just 'BOOLE' ...
-    child.sendline("BOOLE")
+    child.sendline("(set-log")
 
     # ... then we get an error
-    child.expect("Parse Error: <shell>:...: Unexpected token: 'BOOLE'")
+    child.expect("Parse Error: <shell>:1.7: expected SMT-LIBv2 command, got `set-log\'")
 
     # Start sending 'BOOL' (without an E)
-    child.send("BOOL")
+    child.send("(declare-data")
 
     # Send tab twice
     child.sendcontrol("i")
     child.sendcontrol("i")
 
     # We expect to see the completion
-    child.expect("BOOL.*BOOLEAN.*BOOLEXTRACT")
+    child.expect("declare-datatype.*declare-datatypes")
 
-    # NOTE: the double tab has completed our 'BOOL' to 'BOOLE'!
+    # NOTE: the double tab has completed our '(declare-data' to '(declare-datatype'!
 
-    # Now send enter (which submits 'BOOLE')
+    # Now send enter (which submits '(declare-datatype')
+    child.send(")")
     child.sendcontrol("m")
 
     # So we expect to see an error for 'BOOLE'
-    child.expect("Parse Error: <shell>:...: Unexpected token: 'BOOLE'")
+    child.expect("Parse Error: <shell>:1.17: Unexpected token: '\)'.")
 
     # Send enter
     child.sendcontrol("m")
@@ -65,8 +66,8 @@ def check_iteractive_shell():
     # Send enter
     child.sendcontrol("m")
 
-    # We expect to see an error on 'BOOLE' again
-    child.expect("Parse Error: <shell>:...: Unexpected token: 'BOOLE'")
+    # We expect to see the previous error again
+    child.expect("Parse Error: <shell>:1.17: Unexpected token: '\)'.")
 
     return 0
 

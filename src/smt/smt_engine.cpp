@@ -235,8 +235,9 @@ void SmtEngine::finishInit()
   {
       LogicInfo everything;
       everything.lock();
-      getPrinter().toStreamCmdComment(
+      getPrinter().toStreamCmdSetInfo(
           d_env->getDumpOut(),
+          "notes",
           "cvc5 always dumps the most general, all-supported logic (below), as "
           "some internals might require the use of a logic more general than "
           "the input.");
@@ -378,18 +379,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
 
   if (Dump.isOn("benchmark"))
   {
-    if (key == "status")
-    {
-      Result::Sat status =
-          (value == "sat")
-              ? Result::SAT
-              : ((value == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
-      getPrinter().toStreamCmdSetBenchmarkStatus(d_env->getDumpOut(), status);
-    }
-    else
-    {
-      getPrinter().toStreamCmdSetInfo(d_env->getDumpOut(), key, value);
-    }
+    getPrinter().toStreamCmdSetInfo(d_env->getDumpOut(), key, value);
   }
 
   if (key == "filename")
@@ -1141,7 +1131,8 @@ bool SmtEngine::isModelCoreSymbol(Node n)
     // impact whether we are in "sat" mode
     std::vector<Node> asserts = getAssertionsInternal();
     d_pp->expandDefinitions(asserts);
-    ModelCoreBuilder::setModelCore(asserts, tm, opts.smt.modelCoresMode);
+    ModelCoreBuilder mcb(*d_env.get());
+    mcb.setModelCore(asserts, tm, opts.smt.modelCoresMode);
   }
   return tm->isModelCoreSymbol(n);
 }
@@ -1252,7 +1243,6 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
         "separation logic theory.";
     throw RecoverableModalException(msg);
   }
-  NodeManagerScope nms(getNodeManager());
   Node heap;
   Node nil;
   TheoryModel* tm = getAvailableModel("get separation logic heap and nil");
@@ -1924,7 +1914,6 @@ void SmtEngine::printStatisticsDiff() const
 
 void SmtEngine::setOption(const std::string& key, const std::string& value)
 {
-  NodeManagerScope nms(getNodeManager());
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
   if (Dump.isOn("benchmark"))
@@ -1967,7 +1956,6 @@ bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
 std::string SmtEngine::getOption(const std::string& key) const
 {
-  NodeManagerScope nms(getNodeManager());
   NodeManager* nm = d_env->getNodeManager();
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;

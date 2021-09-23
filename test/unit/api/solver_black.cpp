@@ -1500,7 +1500,7 @@ TEST_F(TestApiBlackSolver, getDifficulty3)
   std::map<Term, Term> dmap;
   ASSERT_NO_THROW(dmap = d_solver.getDifficulty());
   // difficulty should map assertions to integer values
-  for (const std::pair<Term, Term>& t : dmap)
+  for (const std::pair<const Term, Term>& t : dmap)
   {
     ASSERT_TRUE(t.first == f0 || t.first == f1);
     ASSERT_TRUE(t.second.getKind() == CONST_RATIONAL);

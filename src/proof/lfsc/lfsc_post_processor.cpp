@@ -55,6 +55,10 @@ bool LfscProofPostprocessCallback::update(Node res,
   NodeManager* nm = NodeManager::currentNM();
   Assert(id != PfRule::LFSC_RULE);
   bool isFirstTime = d_firstTime;
+  // On the first call to update, the proof node is the outermost scope of the
+  // proof. This scope should not be printed in the LFSC proof. Instead, the
+  // LFSC proof printer will print the proper scope around the proof, which
+  // e.g. involves an LFSC "check" command.
   d_firstTime = false;
 
   switch (id)

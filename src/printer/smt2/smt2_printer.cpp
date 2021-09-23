@@ -786,15 +786,24 @@ void Smt2Printer::toStream(std::ostream& out,
   break;
   case kind::APPLY_UPDATER:
   {
+    stillNeedToPrintParams = false;
     Node op = n.getOperator();
     size_t index = DType::indexOf(op);
     const DType& dt = DType::datatypeOf(op);
     size_t cindex = DType::cindexOf(op);
-    out << "(_ update ";
-    toStream(out,
-             dt[cindex][index].getSelector(),
-             toDepth < 0 ? toDepth : toDepth - 1);
-    out << ") ";
+    if (dt.isTuple())
+    {
+      stillNeedToPrintParams = false;
+      out << "(_ tuple_update " << DType::indexOf(op) << ") ";
+    }
+    else
+    {
+      out << "(_ update ";
+      toStream(out,
+               dt[cindex][index].getSelector(),
+               toDepth < 0 ? toDepth : toDepth - 1);
+      out << ") ";
+    }
   }
   break;
   case kind::APPLY_SELECTOR_TOTAL:
@@ -1617,12 +1626,6 @@ void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   out << "(get-difficulty)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                                Result::Sat status) const
-{
-  out << "(set-info :status " << status << ')' << std::endl;
-}
-
 void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                                const std::string& logic) const
 {
@@ -1633,7 +1636,7 @@ void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
                                      const std::string& value) const
 {
-  out << "(set-info :" << flag << ' ' << value << ')' << std::endl;
+    out << "(set-info :" << flag << " |" << value << "|)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
@@ -1724,19 +1727,6 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
   }
   out << ")";
   out << ")" << std::endl;
-}
-
-void Smt2Printer::toStreamCmdComment(std::ostream& out,
-                                     const std::string& comment) const
-{
-  std::string s = comment;
-  size_t pos = 0;
-  while ((pos = s.find_first_of('"', pos)) != string::npos)
-  {
-    s.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(set-info :notes \"" << s << "\")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDeclareHeap(std::ostream& out,

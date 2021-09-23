@@ -19,6 +19,8 @@
 #include "options/main_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
+#include "proof/alethe/alethe_node_converter.h"
+#include "proof/alethe/alethe_post_processor.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
