@@ -16,7 +16,6 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
 #include "options/base_options.h"
-#include "options/outputc.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quant_relevance.h"

@@ -17,7 +17,6 @@
 
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
-#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"

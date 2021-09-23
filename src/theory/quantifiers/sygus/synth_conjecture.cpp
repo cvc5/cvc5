@@ -20,7 +20,6 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
-#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"

@@ -17,7 +17,6 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
-#include "options/outputc.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
