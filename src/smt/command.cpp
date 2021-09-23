@@ -1019,29 +1019,6 @@ void QuitCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class CommentCommand                                                       */
-/* -------------------------------------------------------------------------- */
-
-CommentCommand::CommentCommand(std::string comment) : d_comment(comment) {}
-std::string CommentCommand::getComment() const { return d_comment; }
-void CommentCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  Dump("benchmark") << *this;
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* CommentCommand::clone() const { return new CommentCommand(d_comment); }
-std::string CommentCommand::getCommandName() const { return "comment"; }
-
-void CommentCommand::toStream(std::ostream& out,
-                              int toDepth,
-                              size_t dag,
-                              Language language) const
-{
-  Printer::getPrinter(language)->toStreamCmdComment(out, d_comment);
-}
-
-/* -------------------------------------------------------------------------- */
 /* class CommandSequence                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -2546,61 +2523,6 @@ void GetAssertionsCommand::toStream(std::ostream& out,
                                     Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetAssertions(out);
-}
-
-/* -------------------------------------------------------------------------- */
-/* class SetBenchmarkStatusCommand                                            */
-/* -------------------------------------------------------------------------- */
-
-SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status)
-    : d_status(status)
-{
-}
-
-BenchmarkStatus SetBenchmarkStatusCommand::getStatus() const
-{
-  return d_status;
-}
-
-void SetBenchmarkStatusCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    stringstream ss;
-    ss << d_status;
-    solver->setInfo("status", ss.str());
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* SetBenchmarkStatusCommand::clone() const
-{
-  return new SetBenchmarkStatusCommand(d_status);
-}
-
-std::string SetBenchmarkStatusCommand::getCommandName() const
-{
-  return "set-info";
-}
-
-void SetBenchmarkStatusCommand::toStream(std::ostream& out,
-                                         int toDepth,
-                                         size_t dag,
-                                         Language language) const
-{
-  Result::Sat status = Result::SAT_UNKNOWN;
-  switch (d_status)
-  {
-    case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;
-    case BenchmarkStatus::SMT_UNSATISFIABLE: status = Result::UNSAT; break;
-    case BenchmarkStatus::SMT_UNKNOWN: status = Result::SAT_UNKNOWN; break;
-  }
-
-  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, status);
 }
 
 /* -------------------------------------------------------------------------- */
