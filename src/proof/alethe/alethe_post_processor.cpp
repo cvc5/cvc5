@@ -493,9 +493,9 @@ bool AletheProofPostprocessCallback::update(Node res,
             clauses.push_back(d_cl);
             clauses.insert(
                 clauses.end(), children[i].begin(), children[i].end());
-            vps[i] = d_nm->mkNode(kind::SEXPR, clauses);
+            vps[i] = nm->mkNode(kind::SEXPR, clauses);
             success &=
-                addAletheStep(vps[i], AletheRule::OR, {children[i]}, {}, *cdp);
+                addAletheStep(AletheRule::OR, vps[i], vps[i], {children[i]}, {}, *cdp);
             // If this is the case the literals in C1 are added to the
             // current_resolvent.
             current_resolvent.insert(current_resolvent.end(),
@@ -536,24 +536,24 @@ bool AletheProofPostprocessCallback::update(Node res,
       // printed as (cl C), otherwise as (cl G1 ... Gn)
       if (res.getKind() == kind::OR && current_resolvent.size() != 1)
       {
-        return success &= addAletheStepFromOr(res,
-                                              AletheRule::RESOLUTION,
+        return success &= addAletheStepFromOr(AletheRule::RESOLUTION,
+                                              res,
                                               vps,
                                               {},
                                               *cdp);  //(cl G1 ... Gn)
       }
-      else if (res == d_nm->mkConst(false))
+      else if (res == nm->mkConst(false))
       {
-        return success &= addAletheStep(res,
-                                        AletheRule::RESOLUTION,
-                                        d_nm->mkNode(kind::SEXPR, d_cl),
+        return success &= addAletheStep(AletheRule::RESOLUTION,
+        			        res,
+                                        nm->mkNode(kind::SEXPR, d_cl),
                                         vps,
                                         {},
                                         *cdp);  //(cl)
       }
-      return success &= addAletheStep(res,
-                                      AletheRule::RESOLUTION,
-                                      d_nm->mkNode(kind::SEXPR, d_cl, res),
+      return success &= addAletheStep(AletheRule::RESOLUTION,
+                                      res,
+                                      nm->mkNode(kind::SEXPR, d_cl, res),
                                       vps,
                                       {},
                                       *cdp);  //(cl C)
