@@ -706,8 +706,12 @@ void Instantiate::notifyEndRound()
       {
         continue;
       }
-      Output(options(), options::OutputTag::INST) << "(num-instantiations " << name << " "
-                                       << i.second << ")" << std::endl;
+      if (d_env.isOutputOn(options::OutputTag::INST))
+      {
+        d_env.getOutput(options::OutputTag::INST)
+            << "(num-instantiations " << name << " " << i.second << ")"
+            << std::endl;
+      }
     }
   }
 }

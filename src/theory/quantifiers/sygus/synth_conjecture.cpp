@@ -424,8 +424,11 @@ bool SynthConjecture::doCheck()
           }
         }
         Trace("sygus-engine") << std::endl;
-        Output(options(), options::OutputTag::SYGUS)
-            << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+        if (d_env.isOutputOn(options::OutputTag::SYGUS))
+        {
+          d_env.getOutput(options::OutputTag::SYGUS)
+              << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+        }
       }
       Assert(candidate_values.empty());
       constructed_cand = d_master->constructCandidates(
