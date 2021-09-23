@@ -16,7 +16,6 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
 #include "options/base_options.h"
-#include "options/outputc.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quant_relevance.h"
@@ -65,13 +64,14 @@ struct sortTriggers {
 };
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
+    Env& env,
     inst::TriggerDatabase& td,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,
     TermRegistry& tr,
     QuantRelevance* qrlv)
-    : InstStrategy(td, qs, qim, qr, tr), d_quant_rel(qrlv)
+    : InstStrategy(env, td, qs, qim, qr, tr), d_quant_rel(qrlv)
 {
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
@@ -150,8 +150,11 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
         && d_auto_gen_trigger[1][f].empty() && !QuantAttributes::hasPattern(f))
     {
       Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
-      Output(options::OutputTag::TRIGGER)
-          << "(no-trigger " << f << ")" << std::endl;
+      if (d_env.isOutputOn(options::OutputTag::TRIGGER))
+      {
+        d_env.getOutput(options::OutputTag::TRIGGER)
+            << "(no-trigger " << f << ")" << std::endl;
+      }
     }
   }
   if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)

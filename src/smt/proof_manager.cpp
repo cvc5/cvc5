@@ -19,6 +19,8 @@
 #include "options/main_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
+#include "proof/alethe/alethe_node_converter.h"
+#include "proof/alethe/alethe_post_processor.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -60,13 +62,13 @@ PfManager::PfManager(Env& env)
   // where A is an available assumption from outside the scope (note
   // that B1 was an assumption of this SCOPE subproof but since it could
   // be inferred from A, it was updated). This shape is problematic for
-  // the veriT reconstruction, so we disable the update of scoped
+  // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
   d_pfpp.reset(new ProofPostproccess(
       env,
       d_pppg.get(),
       nullptr,
-      options::proofFormatMode() != options::ProofFormatMode::VERIT));
+      options::proofFormatMode() != options::ProofFormatMode::ALETHE));
 
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
@@ -170,6 +172,12 @@ void PfManager::printProof(std::ostream& out,
   {
     proof::DotPrinter dotPrinter;
     dotPrinter.print(out, fp.get());
+  }
+  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE)
+  {
+    proof::AletheNodeConverter anc;
+    proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
+    vpfpp.process(fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {

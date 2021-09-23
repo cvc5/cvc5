@@ -1,7 +1,0 @@
-% EXPECT: entailed
-x: INT;
-P: INT -> BOOLEAN;
-
-ASSERT 1 <= x AND x <= 2;
-ASSERT P(1) AND P(2);
-QUERY P(x);

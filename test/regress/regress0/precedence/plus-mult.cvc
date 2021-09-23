@@ -1,7 +1,0 @@
-% EXPECT: entailed
-% Simple test for right precedence of plus/minus and mult/divide
-
-a, b, c, d, e: INT;
-
-QUERY (a + 2 * b / 3 - c / 4 * 5 + d / 6 - e ) =
-  ((((a + ((2 * b) / 3)) - ((c / 4) * 5)) + (d / 6)) - e);
