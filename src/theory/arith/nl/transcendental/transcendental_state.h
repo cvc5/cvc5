@@ -18,6 +18,7 @@
 
 #include "expr/node.h"
 #include "proof/proof_set.h"
+#include "smt/env.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
@@ -61,10 +62,7 @@ inline std::ostream& operator<<(std::ostream& os, Convexity c) {
  */
 struct TranscendentalState
 {
-  TranscendentalState(InferenceManager& im,
-                      NlModel& model,
-                      ProofNodeManager* pnm,
-                      context::UserContext* c);
+  TranscendentalState(InferenceManager& im, NlModel& model, Env& env);
 
   /**
    * Checks whether proofs are enabled.
@@ -170,15 +168,10 @@ struct TranscendentalState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+  /** Reference to the environment */
+  Env& d_env;
   /** Utility to compute taylor approximations */
   TaylorGenerator d_taylor;
-  /**
-   * Pointer to the current proof node manager. nullptr, if proofs are
-   * disabled.
-   */
-  ProofNodeManager* d_pnm;
-  /** The user context. */
-  context::UserContext* d_ctx;
   /**
    * A CDProofSet that hands out CDProof objects for lemmas.
    */

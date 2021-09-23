@@ -1,7 +1,0 @@
-x0, x1, x2, x3 : BOOLEAN;
-ASSERT x1 OR NOT x0;
-ASSERT x0 OR NOT x3;
-ASSERT x3 OR x2;
-ASSERT x1 AND NOT x1;
-% EXPECT: entailed
-QUERY x2;

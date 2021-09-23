@@ -19,10 +19,13 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 
 #include <unordered_set>
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
+class Env;
 class LogicInfo;
 
 namespace theory {
@@ -45,10 +48,10 @@ class TermDbSygus;
  * within repairSolution(...) below, which if satisfiable gives us the
  * valuation for c'.
  */
-class SygusRepairConst
+class SygusRepairConst : protected EnvObj
 {
  public:
-  SygusRepairConst(TermDbSygus* tds);
+  SygusRepairConst(Env& env, TermDbSygus* tds);
   ~SygusRepairConst() {}
   /** initialize
    *
@@ -188,7 +191,7 @@ class SygusRepairConst
    * sk_vars.
    */
   Node fitToLogic(Node body,
-                  LogicInfo& logic,
+                  const LogicInfo& logic,
                   Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& candidate_skeletons,
@@ -205,7 +208,7 @@ class SygusRepairConst
    * exvar to x.
    * If n is in the given logic, this method returns true.
    */
-  bool getFitToLogicExcludeVar(LogicInfo& logic, Node n, Node& exvar);
+  bool getFitToLogicExcludeVar(const LogicInfo& logic, Node n, Node& exvar);
 };
 
 }  // namespace quantifiers

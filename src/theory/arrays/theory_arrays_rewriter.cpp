@@ -30,9 +30,13 @@ namespace theory {
 namespace arrays {
 
 namespace attr {
-  struct ArrayConstantMostFrequentValueTag { };
-  struct ArrayConstantMostFrequentValueCountTag { };
-  }  // namespace attr
+struct ArrayConstantMostFrequentValueTag
+{
+};
+struct ArrayConstantMostFrequentValueCountTag
+{
+};
+}  // namespace attr
 
 typedef expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t> ArrayConstantMostFrequentValueCountAttr;
 typedef expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node> ArrayConstantMostFrequentValueAttr;
@@ -51,8 +55,9 @@ void setMostFrequentValueCount(TNode store, uint64_t count) {
   return store.setAttribute(ArrayConstantMostFrequentValueCountAttr(), count);
 }
 
-TheoryArraysRewriter::TheoryArraysRewriter(ProofNodeManager* pnm)
-    : d_epg(pnm ? new EagerProofGenerator(pnm) : nullptr)
+TheoryArraysRewriter::TheoryArraysRewriter(Rewriter* rewriter,
+                                           ProofNodeManager* pnm)
+    : d_rewriter(rewriter), d_epg(pnm ? new EagerProofGenerator(pnm) : nullptr)
 {
 }
 
@@ -345,7 +350,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         }
         else
         {
-          n = Rewriter::rewrite(mkEqNode(store[1], index));
+          n = d_rewriter->rewrite(mkEqNode(store[1], index));
           if (n.getKind() != kind::CONST_BOOLEAN)
           {
             break;
@@ -417,7 +422,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
         }
         else
         {
-          Node eqRewritten = Rewriter::rewrite(mkEqNode(store[1], index));
+          Node eqRewritten = d_rewriter->rewrite(mkEqNode(store[1], index));
           if (eqRewritten.getKind() != kind::CONST_BOOLEAN)
           {
             Trace("arrays-postrewrite")
@@ -457,7 +462,7 @@ RewriteResponse TheoryArraysRewriter::postRewrite(TNode node)
             }
             else
             {
-              n = Rewriter::rewrite(mkEqNode(store[1], index));
+              n = d_rewriter->rewrite(mkEqNode(store[1], index));
               if (n.getKind() != kind::CONST_BOOLEAN)
               {
                 break;
@@ -557,7 +562,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
         }
         else
         {
-          n = Rewriter::rewrite(mkEqNode(store[1], index));
+          n = d_rewriter->rewrite(mkEqNode(store[1], index));
           if (n.getKind() != kind::CONST_BOOLEAN)
           {
             break;
@@ -620,7 +625,7 @@ RewriteResponse TheoryArraysRewriter::preRewrite(TNode node)
         }
         else
         {
-          Node eqRewritten = Rewriter::rewrite(mkEqNode(store[1], index));
+          Node eqRewritten = d_rewriter->rewrite(mkEqNode(store[1], index));
           if (eqRewritten.getKind() != kind::CONST_BOOLEAN)
           {
             break;

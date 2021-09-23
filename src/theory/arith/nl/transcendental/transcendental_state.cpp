@@ -30,20 +30,20 @@ namespace transcendental {
 
 TranscendentalState::TranscendentalState(InferenceManager& im,
                                          NlModel& model,
-                                         ProofNodeManager* pnm,
-                                         context::UserContext* c)
-    : d_im(im), d_model(model), d_pnm(pnm), d_ctx(c)
+                                         Env& env)
+    : d_im(im), d_model(model), d_env(env)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  if (d_pnm != nullptr)
+  if (d_env.isTheoryProofProducing())
   {
-    d_proof.reset(new CDProofSet<CDProof>(d_pnm, d_ctx, "nl-trans"));
+    d_proof.reset(new CDProofSet<CDProof>(
+        d_env.getProofNodeManager(), d_env.getUserContext(), "nl-trans"));
     d_proofChecker.reset(new TranscendentalProofRuleChecker());
-    d_proofChecker->registerTo(pnm->getChecker());
+    d_proofChecker->registerTo(d_env.getProofNodeManager()->getChecker());
   }
 }
 
@@ -55,7 +55,7 @@ bool TranscendentalState::isProofEnabled() const
 CDProof* TranscendentalState::getProof()
 {
   Assert(isProofEnabled());
-  return d_proof->allocateProof(d_ctx);
+  return d_proof->allocateProof(d_env.getUserContext());
 }
 
 void TranscendentalState::init(const std::vector<Node>& xts,

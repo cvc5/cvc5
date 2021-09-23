@@ -34,7 +34,7 @@
 
 namespace cvc5 {
 namespace theory {
-  
+
 class QuantifiersEngine;
 class DecisionManager;
 
@@ -57,7 +57,8 @@ class QuantifiersModules
    * This constructs the above modules based on the current options. It adds
    * a pointer to each module it constructs to modules.
    */
-  void initialize(QuantifiersState& qs,
+  void initialize(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr,

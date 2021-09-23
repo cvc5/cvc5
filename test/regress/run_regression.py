@@ -141,8 +141,7 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc5_binary,
     exit_status = None
     if dump:
         dump_args = [
-            '--preprocess-only', '--dump', 'raw-benchmark',
-            '--output-lang=smt2', '-qq'
+            '--parse-only', '-o', 'raw-benchmark', '--output-lang=smt2'
         ]
         dump_output, _, _ = run_process(
             bin_args + command_line + dump_args + [benchmark_filename],
@@ -204,8 +203,6 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
     elif benchmark_ext == '.smt2':
         status_regex = r'set-info\s*:status\s*(sat|unsat)'
         comment_char = ';'
-    elif benchmark_ext == '.cvc':
-        pass
     elif benchmark_ext == '.p':
         status_regex = r'% Status\s*:\s*(Theorem|Unsatisfiable|CounterSatisfiable|Satisfiable)'
         status_to_output = lambda s: '% SZS status {} for {}'.format(
@@ -216,7 +213,7 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
         check_unsat_cores = False
         check_proofs = False
     else:
-        sys.exit('"{}" must be *.cvc or *.smt or *.smt2 or *.p or *.sy'.format(
+        sys.exit('"{}" must be *.smt2 or *.p or *.sy'.format(
             benchmark_basename))
 
     benchmark_lines = None
@@ -332,13 +329,12 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
             '--check-synth-sol' not in all_args:
             all_args += ['--check-synth-sol']
         if ('sat' in expected_output_lines or \
-            'not_entailed' in expected_output_lines or \
             'unknown' in expected_output_lines) and \
            '--no-debug-check-models' not in all_args and \
            '--no-check-models' not in all_args and \
            '--debug-check-models' not in all_args:
             extra_command_line_args += ['--debug-check-models']
-        if 'unsat' in expected_output_lines or 'entailed' in expected_output_lines:
+        if 'unsat' in expected_output_lines in expected_output_lines:
             if check_unsat_cores and \
                '--no-produce-unsat-cores' not in all_args and \
                '--no-check-unsat-cores' not in all_args and \

@@ -22,8 +22,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 
@@ -175,12 +173,9 @@ Node mkSygusTerm(const DType& dt,
       }
       else
       {
-        // Only expand definitions if the operator is not constant, since
-        // calling expandDefinitions on them should be a no-op. This check
-        // ensures we don't try to expand e.g. bitvector extract operators,
-        // whose type is undefined, and thus should not be passed to
-        // expandDefinitions.
-        opn = smt::currentSmtEngine()->expandDefinitions(op);
+        // Get the expanded definition form, if it has been marked. This ensures
+        // that user-defined functions have been eliminated from op.
+        opn = getExpandedDefinitionForm(op);
         opn = Rewriter::rewrite(opn);
         SygusOpRewrittenAttribute sora;
         op.setAttribute(sora, opn);
@@ -396,7 +391,7 @@ Node sygusToBuiltin(Node n, bool isExternal)
 Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Evaluator eval;
+  Evaluator eval(nullptr);
   // constant arguments?
   bool constArgs = true;
   for (const Node& a : args)
@@ -734,6 +729,28 @@ unsigned getSygusTermSize(Node n)
   Assert(cindex >= 0 && static_cast<size_t>(cindex) < dt.getNumConstructors());
   unsigned weight = dt[cindex].getWeight();
   return weight + sum;
+}
+
+/**
+ * Map terms to the result of expand definitions calling smt::expandDefinitions
+ * on it.
+ */
+struct SygusExpDefFormAttributeId
+{
+};
+typedef expr::Attribute<SygusExpDefFormAttributeId, Node>
+    SygusExpDefFormAttribute;
+
+void setExpandedDefinitionForm(Node op, Node eop)
+{
+  op.setAttribute(SygusExpDefFormAttribute(), eop);
+}
+
+Node getExpandedDefinitionForm(Node op)
+{
+  Node eop = op.getAttribute(SygusExpDefFormAttribute());
+  // if not set, assume original
+  return eop.isNull() ? op : eop;
 }
 
 }  // namespace utils

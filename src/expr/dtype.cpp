@@ -895,10 +895,21 @@ const std::vector<std::shared_ptr<DTypeConstructor> >& DType::getConstructors()
   return d_constructors;
 }
 
+std::unordered_set<TypeNode> DType::getSubfieldTypes() const
+{
+  std::unordered_set<TypeNode> subFieldTypes;
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
+  {
+    for (size_t i = 0, nargs = ctor->getNumArgs(); i < nargs; i++)
+    {
+      subFieldTypes.insert(ctor->getArgType(i));
+    }
+  }
+  return subFieldTypes;
+}
+
 std::ostream& operator<<(std::ostream& os, const DType& dt)
 {
-  // can only output datatypes in the cvc5 native language
-  language::SetLanguage::Scope ls(os, language::output::LANG_CVC);
   dt.toStream(os);
   return os;
 }

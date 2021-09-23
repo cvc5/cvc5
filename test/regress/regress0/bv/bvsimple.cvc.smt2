@@ -1,0 +1,13 @@
+; EXPECT: unsat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-fun x () (_ BitVec 5))
+(declare-fun y () (_ BitVec 4))
+(declare-fun yy () (_ BitVec 3))
+(declare-fun bv () (_ BitVec 10))
+(declare-fun a () Bool)
+(declare-fun xx () (_ BitVec 8))
+(declare-fun zz () (_ BitVec 12))
+(declare-fun x4 () (_ BitVec 4))
+(declare-fun y4 () (_ BitVec 4))
+(check-sat-assuming ( (not (let ((_let_1 (bvneg x4))) (let ((_let_2 ((_ zero_extend 4) x4))) (let ((_let_3 ((_ zero_extend 4) y4))) (let ((_let_4 (= (concat #b000 ((_ extract 3 3) #b1000)) #b0001))) (=> (and (and (and (and (and (and (and (and (and (and (= #b0000111101010000 #b0000111101010000) (= (concat #b01 #b0) #b010)) _let_4) (= (concat #b0011 #b000) #b0011000)) _let_4) (= ((_ zero_extend 2) #b100) #b00100)) (= ((_ sign_extend 2) #b100) #b11100)) (= ((_ zero_extend 0) #b100) #b100)) (= ((_ sign_extend 0) #b100) #b100)) (= ((_ extract 8 4) (bvadd (concat x #b0000) (concat (concat #b000 (bvnot y)) #b11))) (bvadd x ((_ zero_extend 3) (bvnot ((_ extract 3 2) y)))))) (and (= x4 #b0101) (= y4 #b0101))) (and (and (and (and (and (and (and (= (bvmul _let_2 _let_3) (bvmul _let_3 _let_2)) (not (bvult x4 y4))) (bvule (bvsub _let_2 _let_3) (bvadd _let_2 ((_ zero_extend 4) _let_1)))) (= x4 (bvsub _let_1 (bvadd x4 #b0001)))) (= ((_ extract 5 3) #b01100000) ((_ extract 4 2) (concat #b1111001 ((_ extract 0 0) bv))))) (= (concat #b1 (ite a #b0 #b1)) ((_ extract 1 0) (ite a #b110 #b011)))) (=> (and (= xx #b11111111) (= zz #b111111110000)) (and (= zz (concat xx #b0000)) (= ((_ extract 7 0) (concat #b0000 ((_ extract 11 4) zz))) xx)))) true))))))) ))

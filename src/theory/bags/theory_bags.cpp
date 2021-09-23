@@ -27,20 +27,15 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-TheoryBags::TheoryBags(context::Context* c,
-                       context::UserContext* u,
-                       OutputChannel& out,
-                       Valuation valuation,
-                       const LogicInfo& logicInfo,
-                       ProofNodeManager* pnm)
-    : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
+    : Theory(THEORY_BAGS, env, out, valuation),
+      d_state(env, valuation),
+      d_im(env, *this, d_state, d_pnm),
       d_ig(&d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(),
       d_rewriter(&d_statistics.d_rewrites),
-      d_termReg(d_state, d_im),
+      d_termReg(env, d_state, d_im),
       d_solver(d_state, d_im, d_termReg)
 {
   // use the official theory state and inference manager objects

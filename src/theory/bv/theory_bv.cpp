@@ -30,35 +30,34 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-TheoryBV::TheoryBV(context::Context* c,
-                   context::UserContext* u,
+TheoryBV::TheoryBV(Env& env,
                    OutputChannel& out,
                    Valuation valuation,
-                   const LogicInfo& logicInfo,
-                   ProofNodeManager* pnm,
                    std::string name)
-    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pnm, name),
+    : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
       d_rewriter(),
-      d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr, "theory::bv::"),
+      d_state(env, valuation),
+      d_im(env, *this, d_state, nullptr, "theory::bv::"),
       d_notify(d_im),
-      d_invalidateModelCache(c, true),
-      d_stats("theory::bv::")
+      d_invalidateModelCache(context(), true),
+      d_stats(statisticsRegistry(), "theory::bv::")
 {
-  switch (options::bvSolver())
+  switch (options().bv.bvSolver)
   {
     case options::BVSolver::BITBLAST:
-      d_internal.reset(new BVSolverBitblast(&d_state, d_im, pnm));
+      d_internal.reset(new BVSolverBitblast(env, &d_state, d_im, d_pnm));
       break;
 
     case options::BVSolver::LAYERED:
-      d_internal.reset(new BVSolverLayered(*this, c, u, pnm, name));
+      d_internal.reset(new BVSolverLayered(
+          env, *this, context(), userContext(), d_pnm, name));
       break;
 
     default:
-      AlwaysAssert(options::bvSolver() == options::BVSolver::BITBLAST_INTERNAL);
-      d_internal.reset(new BVSolverBitblastInternal(&d_state, d_im, pnm));
+      AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
+      d_internal.reset(
+          new BVSolverBitblastInternal(d_env, &d_state, d_im, d_pnm));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -70,7 +69,7 @@ TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
 ProofRuleChecker* TheoryBV::getProofChecker()
 {
-  if (options::bvSolver() == options::BVSolver::BITBLAST_INTERNAL)
+  if (options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL)
   {
     return static_cast<BVSolverBitblastInternal*>(d_internal.get())
         ->getProofChecker();
@@ -224,7 +223,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
      * x = c::sk2       if h == bw(x)-1, where bw(sk2) = l
      * x = sk1::c::sk2  otherwise, where bw(sk1) = bw(x)-1-h and bw(sk2) = l
      */
-    Node node = Rewriter::rewrite(in);
+    Node node = rewrite(in);
     if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst())
         || (node[1].getKind() == kind::BITVECTOR_EXTRACT
             && node[0].isConst()))
@@ -393,7 +392,7 @@ Node TheoryBV::getValue(TNode node)
         Assert(iit->second.isConst());
         nb << iit->second;
       }
-      it->second = Rewriter::rewrite(nb.constructNode());
+      it->second = rewrite(nb.constructNode());
     }
   } while (!visit.empty());
 
@@ -402,9 +401,9 @@ Node TheoryBV::getValue(TNode node)
   return it->second;
 }
 
-TheoryBV::Statistics::Statistics(const std::string& name)
-    : d_solveSubstitutions(
-        smtStatisticsRegistry().registerInt(name + "NumSolveSubstitutions"))
+TheoryBV::Statistics::Statistics(StatisticsRegistry& reg,
+                                 const std::string& name)
+    : d_solveSubstitutions(reg.registerInt(name + "NumSolveSubstitutions"))
 {
 }
 

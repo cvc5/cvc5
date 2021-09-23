@@ -21,10 +21,8 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-ArithState::ArithState(context::Context* c,
-                       context::UserContext* u,
-                       Valuation val)
-    : TheoryState(c, u, val), d_parent(nullptr)
+ArithState::ArithState(Env& env, Valuation val)
+    : TheoryState(env, val), d_parent(nullptr)
 {
 }
 

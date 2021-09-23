@@ -722,12 +722,6 @@ enum class PfRule : uint32_t
   //              (forall ((x T))
   //               (=> (and (<= i x) (<= x j)) (= (select a x) (select b x)))))
   ARRAYS_EQ_RANGE_EXPAND,
-  // ======== Array Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  ARRAYS_TRUST,
 
   //================================================= Bit-Vector rules
   // Note: bitblast() represents the result of the bit-blasted term as a
@@ -800,12 +794,6 @@ enum class PfRule : uint32_t
   // Conclusion: false
   // for i != j.
   DT_CLASH,
-  // ======== Datatype Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: F
-  DT_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Skolem intro
@@ -847,14 +835,24 @@ enum class PfRule : uint32_t
   // has prefix "QUANTIFIERS_INST_E_MATCHING", then t is the trigger that
   // generated the instantiation.
   INSTANTIATE,
+  // ======== Alpha equivalence
+  // Children: none
+  // Arguments: (F, (y1 = z1), ..., (yn = zn) )
+  // ----------------------------------------
+  // Conclusion: (= F F*sigma)
+  // sigma maps y1 ... yn to z1 ... zn, where y1 ... yn are unique bound
+  // variables, and z1 ... zn are unique bound variables. Notice that this
+  // rule is correct only when z1, ..., zn are not contained in
+  // FV(F) \ { y1 ... yn }. The internal quantifiers proof checker does not
+  // currently check that this is the case.
+  ALPHA_EQUIV,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?
   // Arguments: (F)
   // ---------------------------------------------------------------
   // Conclusion: F
-  // where F is an equality of the form t = QuantifiersRewriter::preprocess(t)
+  // where F is an equality of the form t = QuantifiersPreprocess::preprocess(t)
   QUANTIFIERS_PREPROCESS,
-
   //================================================= String rules
   //======================== Core solver
   // ======== Concat eq
@@ -1082,12 +1080,15 @@ enum class PfRule : uint32_t
   // Also applies to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
-  // ======== String Trust
-  // Children: none
-  // Arguments: (Q)
+  //======================== Trusted
+  // ======== String inference
+  // Children: ?
+  // Arguments: (F id isRev exp)
   // ---------------------
-  // Conclusion: (Q)
-  STRING_TRUST,
+  // Conclusion: F
+  // used to bookkeep an inference that has not yet been converted via
+  // strings::InferProofCons::convert.
+  STRING_INFERENCE,
 
   //================================================= Arithmetic rules
   // ======== Adding Inequalities
@@ -1152,12 +1153,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: arith::OperatorElim::getAxiomFor(t)
   ARITH_OP_ELIM_AXIOM,
-  // ======== Int Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (Q)
-  // ---------------------
-  // Conclusion: (Q)
-  INT_TRUST,
 
   //======== Multiplication sign inference
   // Children: none

@@ -14,7 +14,7 @@
  * internal code
  */
 
-#include "cvc5_public.h"
+#include "cvc5_private.h"
 
 #ifndef CVC5__SMT__ENV_H
 #define CVC5__SMT__ENV_H
@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "options/options.h"
+#include "proof/method_id.h"
 #include "theory/logic_info.h"
 #include "util/statistics_registry.h"
 
@@ -40,9 +41,11 @@ class UserContext;
 
 namespace smt {
 class DumpManager;
+class PfManager;
 }
 
 namespace theory {
+class Evaluator;
 class Rewriter;
 class TrustSubstitutionMap;
 }
@@ -56,12 +59,13 @@ class TrustSubstitutionMap;
 class Env
 {
   friend class SmtEngine;
+  friend class smt::PfManager;
 
  public:
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm, Options* opts);
+  Env(NodeManager* nm, const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
@@ -81,6 +85,21 @@ class Env
    * environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
+
+  /**
+   * Check whether the SAT solver should produce proofs. Other than whether
+   * the proof node manager is set, SAT proofs are only generated when the
+   * unsat core mode is not ASSUMPTIONS.
+   */
+  bool isSatProofProducing() const;
+
+  /**
+   * Check whether theories should produce proofs as well. Other than whether
+   * the proof node manager is set, theory engine proofs are conditioned on the
+   * relationship between proofs and unsat cores: the unsat cores are in
+   * FULL_PROOF mode, no proofs are generated on theory engine.
+   */
+  bool isTheoryProofProducing() const;
 
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
@@ -120,6 +139,39 @@ class Env
    */
   std::ostream& getDumpOut();
 
+  /* Rewrite helpers--------------------------------------------------------- */
+  /**
+   * Evaluate node n under the substitution args -> vals. For details, see
+   * theory/evaluator.h.
+   *
+   * @param n The node to evaluate
+   * @param args The domain of the substitution
+   * @param vals The range of the substitution
+   * @param useRewriter if true, we use this rewriter to rewrite subterms of
+   * n that cannot be evaluated to a constant.
+   * @return the rewritten, evaluated form of n under the given substitution.
+   */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                bool useRewriter) const;
+  /** Same as above, with a visited cache. */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                const std::unordered_map<Node, Node>& visited,
+                bool useRewriter = true) const;
+  /**
+   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
+   * This encapsulates the exact behavior of a REWRITE step in a proof.
+   *
+   * @param n The node to rewrite,
+   * @param idr The method identifier of the rewriter, by default RW_REWRITE
+   * specifying a call to rewrite.
+   * @return The rewritten form of n.
+   */
+  Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -156,6 +208,10 @@ class Env
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+  /** Evaluator that also invokes the rewriter */
+  std::unique_ptr<theory::Evaluator> d_evalRew;
+  /** Evaluator that does not invoke the rewriter */
+  std::unique_ptr<theory::Evaluator> d_eval;
   /** The top level substitutions */
   std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
   /** The dump manager */

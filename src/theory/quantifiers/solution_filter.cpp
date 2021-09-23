@@ -19,8 +19,7 @@
 
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/env.h"
 #include "util/random.h"
 
 using namespace cvc5::kind;
@@ -29,7 +28,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SolutionFilterStrength::SolutionFilterStrength() : d_isStrong(true) {}
+SolutionFilterStrength::SolutionFilterStrength(Env& env)
+    : ExprMiner(env), d_isStrong(true)
+{
+}
 void SolutionFilterStrength::initialize(const std::vector<Node>& vars,
                                         SygusSampler* ss)
 {
@@ -91,7 +93,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       }
       else
       {
-        Options& opts = smt::currentSmtEngine()->getOptions();
+        const Options& opts = d_env.getOptions();
         std::ostream* smtOut = opts.base.out;
         (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
                   << std::endl;

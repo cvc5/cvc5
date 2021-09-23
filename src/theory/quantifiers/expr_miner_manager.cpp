@@ -16,18 +16,26 @@
 #include "theory/quantifiers/expr_miner_manager.h"
 
 #include "options/quantifiers_options.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-ExpressionMinerManager::ExpressionMinerManager()
-    : d_doRewSynth(false),
+ExpressionMinerManager::ExpressionMinerManager(Env& env)
+    : EnvObj(env),
+      d_doRewSynth(false),
       d_doQueryGen(false),
       d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
       d_tds(nullptr),
-      d_crd(options::sygusRewSynthCheck(), options::sygusRewSynthAccel(), false)
+      d_crd(env,
+            options::sygusRewSynthCheck(),
+            options::sygusRewSynthAccel(),
+            false),
+      d_qg(env),
+      d_sols(env),
+      d_sampler(env)
 {
 }
 
@@ -81,7 +89,7 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
   {
     d_crd.initialize(vars, &d_sampler);
   }
-  d_crd.setExtendedRewriter(&d_ext_rew);
+  d_crd.enableExtendedRewriter();
   d_crd.setSilent(false);
 }
 

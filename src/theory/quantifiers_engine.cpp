@@ -21,7 +21,6 @@
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/uf_options.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
@@ -46,20 +45,22 @@ namespace cvc5 {
 namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
+    Env& env,
     quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
     ProofNodeManager* pnm)
-    : d_qstate(qs),
+    : EnvObj(env),
+      d_qstate(qs),
       d_qim(qim),
       d_te(nullptr),
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
       d_model(nullptr),
-      d_quants_prereg(qs.getUserContext()),
-      d_quants_red(qs.getUserContext()),
+      d_quants_prereg(userContext()),
+      d_quants_red(userContext()),
       d_numInstRoundsLemma(0)
 {
   Trace("quant-init-debug")
@@ -75,12 +76,12 @@ QuantifiersEngine::QuantifiersEngine(
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
-        new quantifiers::fmcheck::FullModelChecker(qs, qim, qr, tr));
+        new quantifiers::fmcheck::FullModelChecker(env, qs, qim, qr, tr));
   }
   else
   {
     Trace("quant-init-debug") << "...make default model builder." << std::endl;
-    d_builder.reset(new quantifiers::QModelBuilder(qs, qim, qr, tr));
+    d_builder.reset(new quantifiers::QModelBuilder(env, qs, qim, qr, tr));
   }
   // set the model object
   d_builder->finishInit();
@@ -112,9 +113,9 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_model->finishInit(te->getModel());
   d_te = te;
   // Initialize the modules and the utilities here.
-  d_qmodules.reset(new quantifiers::QuantifiersModules);
+  d_qmodules.reset(new quantifiers::QuantifiersModules());
   d_qmodules->initialize(
-      d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
+      d_env, d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -506,37 +507,37 @@ void QuantifiersEngine::notifyCombineTheories() {
   // in quantifiers state.
 }
 
-bool QuantifiersEngine::reduceQuantifier( Node q ) {
-  //TODO: this can be unified with preregistration: AlphaEquivalence takes ownership of reducable quants
-  BoolMap::const_iterator it = d_quants_red.find( q );
-  if( it==d_quants_red.end() ){
-    Node lem;
+bool QuantifiersEngine::reduceQuantifier(Node q)
+{
+  // TODO: this can be unified with preregistration: AlphaEquivalence takes
+  // ownership of reducable quants
+  BoolMap::const_iterator it = d_quants_red.find(q);
+  if (it == d_quants_red.end())
+  {
+    TrustNode tlem;
     InferenceId id = InferenceId::UNKNOWN;
-    std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
-    if( itr==d_quants_red_lem.end() ){
-      if (d_qmodules->d_alpha_equiv)
+    if (d_qmodules->d_alpha_equiv)
+    {
+      Trace("quant-engine-red")
+          << "Alpha equivalence " << q << "?" << std::endl;
+      // add equivalence with another quantified formula
+      tlem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
+      id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
+      if (!tlem.isNull())
       {
-        Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
-        //add equivalence with another quantified formula
-        lem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
-        id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
-        if( !lem.isNull() ){
-          Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
-          ++(d_qstate.getStats().d_red_alpha_equiv);
-        }
+        Trace("quant-engine-red")
+            << "...alpha equivalence success." << std::endl;
+        ++(d_qstate.getStats().d_red_alpha_equiv);
       }
-      d_quants_red_lem[q] = lem;
-    }else{
-      lem = itr->second;
     }
-    if( !lem.isNull() ){
-      d_qim.lemma(lem, id);
+    if (!tlem.isNull())
+    {
+      d_qim.trustedLemma(tlem, id);
     }
-    d_quants_red[q] = !lem.isNull();
-    return !lem.isNull();
-  }else{
-    return (*it).second;
+    d_quants_red[q] = !tlem.isNull();
+    return !tlem.isNull();
   }
+  return (*it).second;
 }
 
 void QuantifiersEngine::registerQuantifierInternal(Node f)
@@ -621,7 +622,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     {
       if (Trace.isOn("quantifiers-sk-debug"))
       {
-        Node slem = Rewriter::rewrite(lem.getNode());
+        Node slem = rewrite(lem.getNode());
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }

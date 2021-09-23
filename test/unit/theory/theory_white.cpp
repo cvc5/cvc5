@@ -37,30 +37,19 @@ class TestTheoryWhite : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_context = d_smtEngine->getContext();
-    d_user_context = d_smtEngine->getUserContext();
-    d_logicInfo.reset(new LogicInfo());
-    d_logicInfo->lock();
     d_smtEngine->finishInit();
     delete d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
     delete d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
     d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = nullptr;
     d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
 
-    d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(d_context,
-                                                         d_user_context,
-                                                         d_outputChannel,
-                                                         Valuation(nullptr),
-                                                         *d_logicInfo,
-                                                         nullptr));
+    d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(
+        d_smtEngine->getEnv(), d_outputChannel, Valuation(nullptr)));
     d_outputChannel.clear();
     d_atom0 = d_nodeManager->mkConst(true);
     d_atom1 = d_nodeManager->mkConst(false);
   }
 
-  Context* d_context;
-  UserContext* d_user_context;
-  std::unique_ptr<LogicInfo> d_logicInfo;
   DummyOutputChannel d_outputChannel;
   std::unique_ptr<DummyTheory<THEORY_BUILTIN>> d_dummy_theory;
   Node d_atom0;
@@ -72,14 +61,8 @@ TEST_F(TestTheoryWhite, effort)
   Theory::Effort s = Theory::EFFORT_STANDARD;
   Theory::Effort f = Theory::EFFORT_FULL;
 
-  ASSERT_TRUE(Theory::standardEffortOnly(s));
-  ASSERT_FALSE(Theory::standardEffortOnly(f));
-
   ASSERT_FALSE(Theory::fullEffort(s));
   ASSERT_TRUE(Theory::fullEffort(f));
-
-  ASSERT_TRUE(Theory::standardEffortOrMore(s));
-  ASSERT_TRUE(Theory::standardEffortOrMore(f));
 }
 
 TEST_F(TestTheoryWhite, done)

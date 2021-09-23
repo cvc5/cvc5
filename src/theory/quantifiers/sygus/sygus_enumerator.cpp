@@ -25,6 +25,7 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/type_node_id_trie.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -33,12 +34,12 @@ namespace theory {
 namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(TermDbSygus* tds,
-                                 SynthConjecture* p,
+                                 SygusEnumeratorCallback* sec,
                                  SygusStatistics* s,
                                  bool enumShapes,
                                  bool enumAnyConstHoles)
     : d_tds(tds),
-      d_parent(p),
+      d_sec(sec),
       d_stats(s),
       d_enumShapes(enumShapes),
       d_enumAnyConstHoles(enumAnyConstHoles),
@@ -51,6 +52,12 @@ void SygusEnumerator::initialize(Node e)
 {
   Trace("sygus-enum") << "SygusEnumerator::initialize " << e << std::endl;
   d_enum = e;
+  // allocate the default callback
+  if (d_sec == nullptr && options::sygusSymBreakDynamic())
+  {
+    d_secd.reset(new SygusEnumeratorCallbackDefault(e, d_stats));
+    d_sec = d_secd.get();
+  }
   d_etype = d_enum.getType();
   Assert(d_etype.isDatatype());
   Assert(d_etype.getDType().isSygus());
@@ -59,7 +66,7 @@ void SygusEnumerator::initialize(Node e)
 
   // if we don't have a term database, we don't register symmetry breaking
   // lemmas
-  if (!d_tds)
+  if (d_tds == nullptr)
   {
     return;
   }
@@ -167,28 +174,24 @@ Node SygusEnumerator::getCurrent()
 bool SygusEnumerator::isEnumShapes() const { return d_enumShapes; }
 
 SygusEnumerator::TermCache::TermCache()
-    : d_tds(nullptr),
-      d_eec(nullptr),
+    : d_sec(nullptr),
       d_isSygusType(false),
       d_numConClasses(0),
       d_sizeEnum(0),
-      d_isComplete(false),
-      d_sampleRrVInit(false)
+      d_isComplete(false)
 {
 }
 
 void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
                                             Node e,
                                             TypeNode tn,
-                                            TermDbSygus* tds,
-                                            ExampleEvalCache* eec)
+                                            SygusEnumeratorCallback* sec)
 {
   Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
   d_stats = s;
   d_enum = e;
   d_tn = tn;
-  d_tds = tds;
-  d_eec = eec;
+  d_sec = sec;
   d_sizeStartIndex[0] = 0;
   d_isSygusType = false;
 
@@ -338,57 +341,15 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     return true;
   }
   Assert(!n.isNull());
-  if (options::sygusSymBreakDynamic())
+  if (d_sec != nullptr)
   {
-    Node bn = datatypes::utils::sygusToBuiltin(n);
-    Node bnr = d_extr.extendedRewrite(bn);
-    if (d_stats != nullptr)
+    if (!d_sec->addTerm(n, d_bterms))
     {
-      ++(d_stats->d_enumTermsRewrite);
-    }
-    if (options::sygusRewVerify())
-    {
-      if (bn != bnr)
-      {
-        if (!d_sampleRrVInit)
-        {
-          d_sampleRrVInit = true;
-          d_samplerRrV.initializeSygus(
-              d_tds, d_enum, options::sygusSamples(), false);
-        }
-        d_samplerRrV.checkEquivalent(bn, bnr);
-      }
-    }
-    // must be unique up to rewriting
-    if (d_bterms.find(bnr) != d_bterms.end())
-    {
-      Trace("sygus-enum-exc") << "Exclude: " << bn << std::endl;
+      Trace("sygus-enum-exc")
+          << "Exclude: " << datatypes::utils::sygusToBuiltin(n)
+          << " due to callback" << std::endl;
       return false;
     }
-    // insert to builtin term cache, regardless of whether it is redundant
-    // based on examples.
-    d_bterms.insert(bnr);
-    // if we are doing PBE symmetry breaking
-    if (d_eec != nullptr)
-    {
-      if (d_stats != nullptr)
-      {
-        ++(d_stats->d_enumTermsExampleEval);
-      }
-      // Is it equivalent under examples?
-      Node bne = d_eec->addSearchVal(d_tn, bnr);
-      if (!bne.isNull())
-      {
-        if (bnr != bne)
-        {
-          Trace("sygus-enum-exc")
-              << "Exclude (by examples): " << bn << ", since we already have "
-              << bne << std::endl;
-          return false;
-        }
-      }
-    }
-    Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
   }
   if (d_stats != nullptr)
   {
@@ -573,13 +534,7 @@ void SygusEnumerator::TermEnumSlave::validateIndexNextEnd()
 void SygusEnumerator::initializeTermCache(TypeNode tn)
 {
   // initialize the term cache
-  // see if we use an example evaluation cache for symmetry breaking
-  ExampleEvalCache* eec = nullptr;
-  if (d_parent != nullptr && options::sygusSymBreakPbe())
-  {
-    eec = d_parent->getExampleEvalCache(d_enum);
-  }
-  d_tcache[tn].initialize(d_stats, d_enum, tn, d_tds, eec);
+  d_tcache[tn].initialize(d_stats, d_enum, tn, d_sec);
 }
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)

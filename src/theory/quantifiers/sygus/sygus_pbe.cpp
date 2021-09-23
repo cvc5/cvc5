@@ -30,10 +30,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusPbe::SygusPbe(QuantifiersInferenceManager& qim,
+SygusPbe::SygusPbe(Env& env,
+                   QuantifiersState& qs,
+                   QuantifiersInferenceManager& qim,
                    TermDbSygus* tds,
                    SynthConjecture* p)
-    : SygusModule(qim, tds, p)
+    : SygusModule(env, qs, qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -70,7 +72,7 @@ bool SygusPbe::initialize(Node conj,
   for (const Node& c : candidates)
   {
     Assert(ei->hasExamples(c));
-    d_sygus_unif[c].reset(new SygusUnifIo(d_parent));
+    d_sygus_unif[c].reset(new SygusUnifIo(d_env, d_parent));
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                        << std::endl;
     std::map<Node, std::vector<Node>> strategy_lemmas;
@@ -130,7 +132,7 @@ bool SygusPbe::initialize(Node conj,
         // Apply extended rewriting on the lemma. This helps utilities like
         // SygusEnumerator more easily recognize the shape of this lemma, e.g.
         // ( ~is-ite(x) or ( ~is-ite(x) ^ P ) ) --> ~is-ite(x).
-        lem = d_tds->getExtRewriter()->extendedRewrite(lem);
+        lem = extendedRewrite(lem);
         Trace("sygus-pbe") << "  static redundant op lemma : " << lem
                            << std::endl;
         // Register as a symmetry breaking lemma with the term database.

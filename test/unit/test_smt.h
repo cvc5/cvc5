@@ -44,15 +44,14 @@ class TestSmt : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager.reset(new NodeManager());
+    d_nodeManager = NodeManager::currentNM();
+    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
-    d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
+    d_smtEngine.reset(new SmtEngine(d_nodeManager));
     d_smtEngine->finishInit();
   }
 
-  std::unique_ptr<NodeManagerScope> d_nmScope;
-  std::unique_ptr<NodeManager> d_nodeManager;
+  NodeManager* d_nodeManager;
   SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };
@@ -62,14 +61,13 @@ class TestSmtNoFinishInit : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager.reset(new NodeManager());
+    d_nodeManager = NodeManager::currentNM();
+    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
-    d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
+    d_smtEngine.reset(new SmtEngine(d_nodeManager));
   }
 
-  std::unique_ptr<NodeManagerScope> d_nmScope;
-  std::unique_ptr<NodeManager> d_nodeManager;
+  NodeManager* d_nodeManager;
   SkolemManager* d_skolemManager;
   std::unique_ptr<SmtEngine> d_smtEngine;
 };
@@ -136,7 +134,6 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
 
   void requirePhase(TNode, bool) override {}
   void setIncomplete(theory::IncompleteId id) override {}
-  void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
   void clear() { d_callHistory.clear(); }
 
@@ -206,14 +203,9 @@ template <theory::TheoryId theoryId>
 class DummyTheory : public theory::Theory
 {
  public:
-  DummyTheory(context::Context* ctxt,
-              context::UserContext* uctxt,
-              theory::OutputChannel& out,
-              theory::Valuation valuation,
-              const LogicInfo& logicInfo,
-              ProofNodeManager* pnm)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm),
-        d_state(ctxt, uctxt, valuation)
+  DummyTheory(Env& env, theory::OutputChannel& out, theory::Valuation valuation)
+      : Theory(theoryId, env, out, valuation),
+        d_state(env, valuation)
   {
     // use a default theory state object
     d_theoryState = &d_state;

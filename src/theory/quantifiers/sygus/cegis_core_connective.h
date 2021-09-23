@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/node_trie.h"
-#include "theory/evaluator.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "util/result.h"
 
@@ -160,7 +160,9 @@ class VariadicTrie
 class CegisCoreConnective : public Cegis
 {
  public:
-  CegisCoreConnective(QuantifiersInferenceManager& qim,
+  CegisCoreConnective(Env& env,
+                      QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim,
                       TermDbSygus* tds,
                       SynthConjecture* p);
   ~CegisCoreConnective() {}
@@ -362,11 +364,9 @@ class CegisCoreConnective : public Cegis
    * If id is non-null, then id is a unique identifier for mvs, and we cache
    * the result of n for this point.
    */
-  Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
+  Node evaluatePt(Node n, Node id, const std::vector<Node>& mvs);
   /** A cache of the above function */
   std::unordered_map<Node, std::unordered_map<Node, Node>> d_eval_cache;
-  /** The evaluator utility used for the above function */
-  Evaluator d_eval;
   //-----------------------------------end for evaluation
 
   /** Construct solution from pool

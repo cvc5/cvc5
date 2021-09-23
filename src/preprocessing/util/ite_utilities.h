@@ -28,10 +28,12 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
+
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -65,10 +67,10 @@ class ContainsTermITEVisitor
   NodeBoolMap d_cache;
 };
 
-class ITEUtilities
+class ITEUtilities : protected EnvObj
 {
  public:
-  ITEUtilities();
+  ITEUtilities(Env& env);
   ~ITEUtilities();
 
   Node simpITE(TNode assertion);
@@ -162,10 +164,10 @@ class TermITEHeightCounter
  * A routine designed to undo the potentially large blow up
  * due to expansion caused by the ite simplifier.
  */
-class ITECompressor
+class ITECompressor : protected EnvObj
 {
  public:
-  ITECompressor(ContainsTermITEVisitor* contains);
+  ITECompressor(Env& env, ContainsTermITEVisitor* contains);
   ~ITECompressor();
 
   /* returns false if an assertion is discovered to be equal to false. */
@@ -175,14 +177,13 @@ class ITECompressor
   void garbageCollect();
 
  private:
-  Node d_true;  /* Copy of true. */
-  Node d_false; /* Copy of false. */
-  ContainsTermITEVisitor* d_contains;
-  AssertionPipeline* d_assertions;
-  IncomingArcCounter d_incoming;
-
-  typedef std::unordered_map<Node, Node> NodeMap;
-  NodeMap d_compressed;
+  class Statistics
+  {
+   public:
+    IntStat d_compressCalls;
+    IntStat d_skolemsAdded;
+    Statistics(StatisticsRegistry& reg);
+  };
 
   void reset();
 
@@ -192,20 +193,23 @@ class ITECompressor
   Node compressTerm(Node toCompress);
   Node compressBoolean(Node toCompress);
 
-  class Statistics
-  {
-   public:
-    IntStat d_compressCalls;
-    IntStat d_skolemsAdded;
-    Statistics();
-  };
+  Node d_true;  /* Copy of true. */
+  Node d_false; /* Copy of false. */
+
+  ContainsTermITEVisitor* d_contains;
+  AssertionPipeline* d_assertions;
+  IncomingArcCounter d_incoming;
+
+  typedef std::unordered_map<Node, Node> NodeMap;
+  NodeMap d_compressed;
+
   Statistics d_statistics;
 }; /* class ITECompressor */
 
-class ITESimplifier
+class ITESimplifier : protected EnvObj
 {
  public:
-  ITESimplifier(ContainsTermITEVisitor* d_containsVisitor);
+  ITESimplifier(Env& env, ContainsTermITEVisitor* d_containsVisitor);
   ~ITESimplifier();
 
   Node simpITE(TNode assertion);
@@ -214,26 +218,38 @@ class ITESimplifier
   void clearSimpITECaches();
 
  private:
-  Node d_true;
-  Node d_false;
+  using NodeVec = std::vector<Node>;
+  using ConstantLeavesMap = std::unordered_map<Node, NodeVec*>;
+  using NodePair = std::pair<Node, Node>;
+  using NodePairHashFunction =
+      PairHashFunction<Node, Node, std::hash<Node>, std::hash<Node>>;
+  using NodePairMap = std::unordered_map<NodePair, Node, NodePairHashFunction>;
 
-  ContainsTermITEVisitor* d_containsVisitor;
+  class Statistics
+  {
+   public:
+    IntStat d_maxNonConstantsFolded;
+    IntStat d_unexpected;
+    IntStat d_unsimplified;
+    IntStat d_exactMatchFold;
+    IntStat d_binaryPredFold;
+    IntStat d_specialEqualityFolds;
+    IntStat d_simpITEVisits;
+
+    HistogramStat<uint32_t> d_inSmaller;
+
+    Statistics(StatisticsRegistry& reg);
+  };
+
   inline bool containsTermITE(TNode n)
   {
     return d_containsVisitor->containsTermITE(n);
   }
-  TermITEHeightCounter d_termITEHeight;
+
   inline uint32_t termITEHeight(TNode e)
   {
     return d_termITEHeight.termITEHeight(e);
   }
-
-  // ConstantIte is a small inductive sublanguage:
-  //     constant
-  // or  termITE(cnd, ConstantIte, ConstantIte)
-  typedef std::vector<Node> NodeVec;
-  typedef std::unordered_map<Node, NodeVec*> ConstantLeavesMap;
-  ConstantLeavesMap d_constantLeaves;
 
   // d_constantLeaves satisfies the following invariants:
   // not containsTermITE(x) then !isKey(x)
@@ -248,9 +264,6 @@ class ITESimplifier
    * returns a sorted NodeVec of the leaves. */
   NodeVec* computeConstantLeaves(TNode ite);
 
-  // Lists all of the vectors in d_constantLeaves for fast deletion.
-  std::vector<NodeVec*> d_allocatedConstantLeaves;
-
   /* transforms */
   Node transformAtom(TNode atom);
   Node attemptConstantRemoval(TNode atom);
@@ -264,50 +277,49 @@ class ITESimplifier
   // Given ConstantIte tree cite and a constant c,
   // return a boolean expression equivalent to (= lcite c)
   Node constantIteEqualsConstant(TNode cite, TNode c);
-  uint32_t d_citeEqConstApplications;
 
-  typedef std::pair<Node, Node> NodePair;
-  using NodePairHashFunction =
-      PairHashFunction<Node, Node, std::hash<Node>, std::hash<Node>>;
-  typedef std::unordered_map<NodePair, Node, NodePairHashFunction> NodePairMap;
-  NodePairMap d_constantIteEqualsConstantCache;
-  NodePairMap d_replaceOverCache;
-  NodePairMap d_replaceOverTermIteCache;
   Node replaceOver(Node n, Node replaceWith, Node simpVar);
   Node replaceOverTermIte(Node term, Node simpAtom, Node simpVar);
 
-  std::unordered_map<Node, bool> d_leavesConstCache;
   bool leavesAreConst(TNode e, theory::TheoryId tid);
   bool leavesAreConst(TNode e);
 
-  NodePairMap d_simpConstCache;
   Node simpConstants(TNode simpContext, TNode iteNode, TNode simpVar);
+
+  Node createSimpContext(TNode c, Node& iteNode, Node& simpVar);
+
+  Node d_true;
+  Node d_false;
+
+  ContainsTermITEVisitor* d_containsVisitor;
+
+  TermITEHeightCounter d_termITEHeight;
+
+  // ConstantIte is a small inductive sublanguage:
+  //     constant
+  // or  termITE(cnd, ConstantIte, ConstantIte)
+  ConstantLeavesMap d_constantLeaves;
+
+  // Lists all of the vectors in d_constantLeaves for fast deletion.
+  std::vector<NodeVec*> d_allocatedConstantLeaves;
+
+  uint32_t d_citeEqConstApplications;
+
+  NodePairMap d_constantIteEqualsConstantCache;
+  NodePairMap d_replaceOverCache;
+  NodePairMap d_replaceOverTermIteCache;
+
+  std::unordered_map<Node, bool> d_leavesConstCache;
+
+  NodePairMap d_simpConstCache;
   std::unordered_map<TypeNode, Node> d_simpVars;
   Node getSimpVar(TypeNode t);
 
   typedef std::unordered_map<Node, Node> NodeMap;
   NodeMap d_simpContextCache;
-  Node createSimpContext(TNode c, Node& iteNode, Node& simpVar);
 
   NodeMap d_simpITECache;
   Node simpITEAtom(TNode atom);
-
- private:
-  class Statistics
-  {
-   public:
-    IntStat d_maxNonConstantsFolded;
-    IntStat d_unexpected;
-    IntStat d_unsimplified;
-    IntStat d_exactMatchFold;
-    IntStat d_binaryPredFold;
-    IntStat d_specialEqualityFolds;
-    IntStat d_simpITEVisits;
-
-    HistogramStat<uint32_t> d_inSmaller;
-
-    Statistics();
-  };
 
   Statistics d_statistics;
 };

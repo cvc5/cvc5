@@ -18,7 +18,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::kind;
@@ -27,7 +26,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusQePreproc::SygusQePreproc() {}
+SygusQePreproc::SygusQePreproc(Env& env) : EnvObj(env) {}
 
 Node SygusQePreproc::preprocess(Node q)
 {
@@ -53,7 +52,7 @@ Node SygusQePreproc::preprocess(Node q)
   }
   // create new smt engine to do quantifier elimination
   std::unique_ptr<SmtEngine> smt_qe;
-  initializeSubsolver(smt_qe);
+  initializeSubsolver(smt_qe, d_env);
   Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                         "QE to obtain single invocation."
                      << std::endl;
@@ -134,7 +133,7 @@ Node SygusQePreproc::preprocess(Node q)
     qeRes = nm->mkNode(FORALL, q[0], qeRes, q[2]);
     Trace("cegqi-qep") << "Converted conjecture after QE : " << qeRes
                        << std::endl;
-    qeRes = Rewriter::rewrite(qeRes);
+    qeRes = rewrite(qeRes);
     Node nq = qeRes;
     // must assert it is equivalent to the original
     Node lem = q.eqNode(nq);

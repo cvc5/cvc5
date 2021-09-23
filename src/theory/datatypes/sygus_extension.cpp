@@ -35,6 +35,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
+#include "util/rational.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -42,17 +43,19 @@ using namespace cvc5::context;
 using namespace cvc5::theory;
 using namespace cvc5::theory::datatypes;
 
-SygusExtension::SygusExtension(TheoryState& s,
+SygusExtension::SygusExtension(Env& env,
+                               TheoryState& s,
                                InferenceManager& im,
                                quantifiers::TermDbSygus* tds)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_tds(tds),
       d_ssb(tds),
-      d_testers(s.getSatContext()),
-      d_testers_exp(s.getSatContext()),
-      d_active_terms(s.getSatContext()),
-      d_currTermSize(s.getSatContext())
+      d_testers(context()),
+      d_testers_exp(context()),
+      d_active_terms(context()),
+      d_currTermSize(context())
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -599,7 +602,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
     {
       Node szl = nm->mkNode(DT_SIZE, n);
       Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
-      szr = Rewriter::rewrite(szr);
+      szr = rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
     if (isVarAgnostic)
@@ -1037,7 +1040,7 @@ Node SygusExtension::registerSearchValue(Node a,
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
-    Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
+    Node bvr = extendedRewrite(bv);
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = utils::getSygusTermSize(nv);
@@ -1099,16 +1102,20 @@ Node SygusExtension::registerSearchValue(Node a,
         if (bv != bvr)
         {
           // add to the sampler database object
-          std::map<TypeNode, quantifiers::SygusSampler>::iterator its =
-              d_sampler[a].find(tn);
-          if (its == d_sampler[a].end())
+          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap =
+              d_sampler[a];
+          std::map<TypeNode,
+                   std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
+              smap.find(tn);
+          if (its == smap.end())
           {
-            d_sampler[a][tn].initializeSygus(
+            smap[tn].reset(new quantifiers::SygusSampler(d_env));
+            smap[tn]->initializeSygus(
                 d_tds, nv, options::sygusSamples(), false);
             its = d_sampler[a].find(tn);
           }
           // check equivalent
-          its->second.checkEquivalent(bv, bvr);
+          its->second->checkEquivalent(bv, bvr, *options().base.out);
         }
       }
 
@@ -1323,11 +1330,8 @@ void SygusExtension::registerSizeTerm(Node e)
         d_anchor_to_ag_strategy.find(e);
     if (itaas == d_anchor_to_ag_strategy.end())
     {
-      d_anchor_to_ag_strategy[e].reset(
-          new DecisionStrategySingleton("sygus_enum_active",
-                                        ag,
-                                        d_state.getSatContext(),
-                                        d_state.getValuation()));
+      d_anchor_to_ag_strategy[e].reset(new DecisionStrategySingleton(
+          d_env, "sygus_enum_active", ag, d_state.getValuation()));
     }
     d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
@@ -1409,7 +1413,7 @@ void SygusExtension::registerMeasureTerm( Node m ) {
       d_szinfo.find(m);
   if( it==d_szinfo.end() ){
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
-    d_szinfo[m].reset(new SygusSizeDecisionStrategy(d_im, m, d_state));
+    d_szinfo[m].reset(new SygusSizeDecisionStrategy(d_env, d_im, m, d_state));
     // register this as a decision strategy
     d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
@@ -1746,8 +1750,8 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
 }
 
 SygusExtension::SygusSizeDecisionStrategy::SygusSizeDecisionStrategy(
-    InferenceManager& im, Node t, TheoryState& s)
-    : DecisionStrategyFmf(s.getSatContext(), s.getValuation()),
+    Env& env, InferenceManager& im, Node t, TheoryState& s)
+    : DecisionStrategyFmf(env, s.getValuation()),
       d_this(t),
       d_curr_search_size(0),
       d_im(im)

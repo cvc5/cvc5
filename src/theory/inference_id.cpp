@@ -28,6 +28,7 @@ const char* toString(InferenceId i)
   {
     case InferenceId::EQ_CONSTANT_MERGE: return "EQ_CONSTANT_MERGE";
     case InferenceId::COMBINATION_SPLIT: return "COMBINATION_SPLIT";
+    case InferenceId::EXTT_SIMPLIFY: return "EXTT_SIMPLIFY";
     case InferenceId::ARITH_BLACK_BOX: return "ARITH_BLACK_BOX";
     case InferenceId::ARITH_CONF_EQ: return "ARITH_CONF_EQ";
     case InferenceId::ARITH_CONF_LOWER: return "ARITH_CONF_LOWER";
@@ -396,6 +397,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_DEQ_LENS_EQ: return "STRINGS_DEQ_LENS_EQ";
     case InferenceId::STRINGS_DEQ_NORM_EMP: return "STRINGS_DEQ_NORM_EMP";
     case InferenceId::STRINGS_DEQ_LENGTH_SP: return "STRINGS_DEQ_LENGTH_SP";
+    case InferenceId::STRINGS_DEQ_EXTENSIONALITY:
+      return "STRINGS_DEQ_EXTENSIONALITY";
     case InferenceId::STRINGS_CODE_PROXY: return "STRINGS_CODE_PROXY";
     case InferenceId::STRINGS_CODE_INJ: return "STRINGS_CODE_INJ";
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";

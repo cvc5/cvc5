@@ -58,6 +58,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isFinite() except +
         bint isWellFounded() except +
         bint hasNestedRecursion() except +
+        bint isNull() except +
         string toString() except +
         cppclass const_iterator:
             const_iterator() except +
@@ -80,6 +81,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         size_t getNumSelectors() except +
         DatatypeSelector getSelector(const string& name) except +
         Term getSelectorTerm(const string& name) except +
+        bint isNull() except +
         string toString() except +
         cppclass const_iterator:
             const_iterator() except +
@@ -94,6 +96,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
     cdef cppclass DatatypeConstructorDecl:
         void addSelector(const string& name, Sort sort) except +
         void addSelectorSelf(const string& name) except +
+        bint isNull() except +
         string toString() except +
 
 
@@ -103,6 +106,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isParametric() except +
         string toString() except +
         string getName() except +
+        bint isNull() except +
 
 
     cdef cppclass DatatypeSelector:
@@ -111,6 +115,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term getSelectorTerm() except +
         Term getUpdaterTerm() except +
         Sort getRangeSort() except +
+        bint isNull() except +
         string toString() except +
 
 
@@ -155,7 +160,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
 
 
     cdef cppclass Solver:
-        Solver(Options*) except +
+        Solver() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
         Sort getNullSort() except +
@@ -273,6 +278,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getUnsatCore() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
+        vector[Term] getModelDomainElements(Sort sort) except +
+        bint isModelCoreSymbol(Term v) except +
         void declareSeparationHeap(Sort locSort, Sort dataSort) except +
         Term getSeparationHeap() except +
         Term getSeparationNilTerm() except +

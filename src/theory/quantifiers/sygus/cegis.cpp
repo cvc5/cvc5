@@ -32,11 +32,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersInferenceManager& qim,
+Cegis::Cegis(Env& env,
+             QuantifiersState& qs,
+             QuantifiersInferenceManager& qim,
              TermDbSygus* tds,
              SynthConjecture* p)
-    : SygusModule(qim, tds, p),
+    : SygusModule(env, qs, qim, tds, p),
       d_eval_unfold(tds->getEvalUnfold()),
+      d_cegis_sampler(env),
       d_usingSymCons(false)
 {
 }
@@ -344,7 +347,7 @@ void Cegis::addRefinementLemma(Node lem)
                           d_rl_vals.end());
   }
   // rewrite with extended rewriter
-  slem = d_tds->getExtRewriter()->extendedRewrite(slem);
+  slem = d_tds->rewriteNode(slem);
   // collect all variables in slem
   expr::getSymbols(slem, d_refinement_lemma_vars);
   std::vector<Node> waiting;
@@ -508,7 +511,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       Node lemcs = lem.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
       Trace("sygus-cref-eval2")
           << "...under substitution it is : " << lemcs << std::endl;
-      Node lemcsu = vsit.doEvaluateWithUnfolding(d_tds, lemcs);
+      Node lemcsu = d_tds->rewriteNode(lemcs);
       Trace("sygus-cref-eval2")
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
@@ -592,7 +595,6 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
     }
   }
 
-  Evaluator* eval = d_tds->getEvaluator();
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node>& rlemmas =
@@ -601,7 +603,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
     {
       // We may have computed the evaluation of some function applications
       // via example-based symmetry breaking, stored in evalVisited.
-      Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
+      Node lemcsu = evaluate(lem, vs, ms, evalVisited);
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
         return true;

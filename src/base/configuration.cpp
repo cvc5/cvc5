@@ -18,19 +18,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 
+#include "base/Debug_tags.h"
+#include "base/Trace_tags.h"
 #include "base/configuration_private.h"
 #include "base/cvc5config.h"
-
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-#  include "base/Debug_tags.h"
-#endif /* CVC5_DEBUG && CVC5_TRACING */
-
-#ifdef CVC5_TRACING
-#  include "base/Trace_tags.h"
-#endif /* CVC5_TRACING */
 
 using namespace std;
 
@@ -195,10 +190,10 @@ std::string Configuration::copyright() {
          << "  See http://www.ginac.de/CLN for copyright information.\n\n";
     }
     if (Configuration::isBuiltWithGlpk()) {
-      ss << "  glpk-cut-log -  a modified version of GPLK, "
+      ss << "  glpk-cut-log - a modified version of GPLK, "
          << "the GNU Linear Programming Kit\n"
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
-         << "information\n\n";
+         << " information\n\n";
     }
   }
 
@@ -253,70 +248,26 @@ bool Configuration::isBuiltWithPoly()
   return IS_POLY_BUILD;
 }
 
-unsigned Configuration::getNumDebugTags() {
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-  /* -1 because a NULL pointer is inserted as the last value */
-  return (sizeof(Debug_tags) / sizeof(Debug_tags[0])) - 1;
-#else  /* CVC5_DEBUG && CVC5_TRACING */
-  return 0;
-#endif /* CVC5_DEBUG && CVC5_TRACING */
-}
-
-char const* const* Configuration::getDebugTags() {
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
+const std::vector<std::string>& Configuration::getDebugTags()
+{
   return Debug_tags;
-#else  /* CVC5_DEBUG && CVC5_TRACING */
-  static char const* no_tags[] = { NULL };
-  return no_tags;
-#endif /* CVC5_DEBUG && CVC5_TRACING */
 }
 
-int strcmpptr(const char **s1, const char **s2){
-  return strcmp(*s1,*s2);
+bool Configuration::isDebugTag(const std::string& tag)
+{
+  return std::find(Debug_tags.begin(), Debug_tags.end(), tag)
+         != Debug_tags.end();
 }
 
-bool Configuration::isDebugTag(char const *tag){
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-  unsigned ntags = getNumDebugTags();
-  char const* const* tags = getDebugTags();
-  for (unsigned i = 0; i < ntags; ++ i) {
-    if (strcmp(tag, tags[i]) == 0) {
-      return true;
-    }
-  }
-#endif /* CVC5_DEBUG && CVC5_TRACING */
-  return false;
-}
-
-unsigned Configuration::getNumTraceTags() {
-#if CVC5_TRACING
-  /* -1 because a NULL pointer is inserted as the last value */
-  return sizeof(Trace_tags) / sizeof(Trace_tags[0]) - 1;
-#else  /* CVC5_TRACING */
-  return 0;
-#endif /* CVC5_TRACING */
-}
-
-char const* const* Configuration::getTraceTags() {
-#if CVC5_TRACING
+const std::vector<std::string>& Configuration::getTraceTags()
+{
   return Trace_tags;
-#else  /* CVC5_TRACING */
-  static char const* no_tags[] = { NULL };
-  return no_tags;
-#endif /* CVC5_TRACING */
 }
 
-bool Configuration::isTraceTag(char const * tag){
-#if CVC5_TRACING
-  unsigned ntags = getNumTraceTags();
-  char const* const* tags = getTraceTags();
-  for (unsigned i = 0; i < ntags; ++ i) {
-    if (strcmp(tag, tags[i]) == 0) {
-      return true;
-    }
-  }
-#endif /* CVC5_TRACING */
-  return false;
+bool Configuration::isTraceTag(const std::string& tag)
+{
+  return std::find(Trace_tags.begin(), Trace_tags.end(), tag)
+         != Trace_tags.end();
 }
 
 bool Configuration::isGitBuild() {

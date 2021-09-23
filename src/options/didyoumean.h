@@ -20,13 +20,15 @@
 
 #pragma once
 
+#include "cvc5_export.h"
+
 #include <set>
 #include <string>
 #include <vector>
 
 namespace cvc5 {
 
-class DidYouMean {
+class CVC5_EXPORT DidYouMean {
  public:
   using Words = std::set<std::string>;
 
@@ -34,6 +36,10 @@ class DidYouMean {
   ~DidYouMean() {}
 
   void addWord(std::string word) { d_words.insert(std::move(word)); }
+  void addWords(const std::vector<std::string>& words)
+  {
+    d_words.insert(words.begin(), words.end());
+  }
 
   std::vector<std::string> getMatch(const std::string& input);
 

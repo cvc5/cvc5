@@ -37,23 +37,16 @@ class TestMainBlackInteractiveShell : public TestInternal
     TestInternal::SetUp();
 
     d_sin = std::make_unique<std::stringstream>();
-    d_stdin = std::cin.rdbuf();
-    std::cin.rdbuf(d_sin->rdbuf());
-
     d_sout = std::make_unique<std::stringstream>();
-    d_stdout = std::cout.rdbuf();
-    std::cout.rdbuf(d_sout->rdbuf());
 
     d_solver.reset(new cvc5::api::Solver());
-    d_solver->setOption("input-language", "cvc");
+    d_solver->setOption("input-language", "smt2");
     d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
   void TearDown() override
   {
-    std::cin.rdbuf(d_stdin);
     d_sin.reset(nullptr);
-    std::cout.rdbuf(d_stdout);
     d_sout.reset(nullptr);
     // ensure that symbol manager is destroyed before solver
     d_symman.reset(nullptr);
@@ -87,29 +80,26 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<SymbolManager> d_symman;
   std::unique_ptr<cvc5::api::Solver> d_solver;
-
-  std::streambuf* d_stdin;
-  std::streambuf* d_stdout;
 };
 
 TEST_F(TestMainBlackInteractiveShell, assert_true)
 {
-  *d_sin << "ASSERT TRUE;\n" << std::flush;
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  *d_sin << "(assert true)\n" << std::flush;
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   countCommands(shell, 1, 1);
 }
 
 TEST_F(TestMainBlackInteractiveShell, query_false)
 {
-  *d_sin << "QUERY FALSE;\n" << std::flush;
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  *d_sin << "(check-sat)\n" << std::flush;
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   countCommands(shell, 1, 1);
 }
 
 TEST_F(TestMainBlackInteractiveShell, def_use1)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get());
-  *d_sin << "x : REAL; ASSERT x > 0;\n" << std::flush;
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
+  *d_sin << "(declare-const x Real) (assert (> x 0))\n" << std::flush;
   /* readCommand may return a sequence, so we can't say for sure
      whether it will return 1 or 2... */
   countCommands(shell, 1, 2);
@@ -117,18 +107,18 @@ TEST_F(TestMainBlackInteractiveShell, def_use1)
 
 TEST_F(TestMainBlackInteractiveShell, def_use2)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   /* readCommand may return a sequence, see above. */
-  *d_sin << "x : REAL;\n" << std::flush;
+  *d_sin << "(declare-const x Real)\n" << std::flush;
   Command* tmp = shell.readCommand();
-  *d_sin << "ASSERT x > 0;\n" << std::flush;
+  *d_sin << "(assert (> x 0))\n" << std::flush;
   countCommands(shell, 1, 1);
   delete tmp;
 }
 
 TEST_F(TestMainBlackInteractiveShell, empty_line)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   *d_sin << std::flush;
   countCommands(shell, 0, 0);
 }
@@ -136,7 +126,7 @@ TEST_F(TestMainBlackInteractiveShell, empty_line)
 TEST_F(TestMainBlackInteractiveShell, repeated_empty_lines)
 {
   *d_sin << "\n\n\n";
-  InteractiveShell shell(d_solver.get(), d_symman.get());
+  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
   /* Might return up to four empties, might return nothing */
   countCommands(shell, 0, 3);
 }

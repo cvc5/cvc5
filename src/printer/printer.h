@@ -42,8 +42,8 @@ class Printer
    */
   virtual ~Printer() {}
 
-  /** Get the Printer for a given OutputLanguage */
-  static Printer* getPrinter(OutputLanguage lang);
+  /** Get the Printer for a given Language */
+  static Printer* getPrinter(Language lang);
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out,
@@ -87,6 +87,8 @@ class Printer
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
                                           const std::string& id,
                                           TypeNode type) const;
+  /** Variant of above for a pre-existing variable */
+  void toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const;
   /** Print declare-pool command */
   virtual void toStreamCmdDeclarePool(std::ostream& out,
                                       const std::string& id,
@@ -109,6 +111,8 @@ class Printer
                                          const std::vector<Node>& formals,
                                          TypeNode range,
                                          Node formula) const;
+  /** Variant of above that takes the definition */
+  void toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda) const;
 
   /** Print define-fun-rec command */
   virtual void toStreamCmdDefineFunctionRec(
@@ -116,6 +120,10 @@ class Printer
       const std::vector<Node>& funcs,
       const std::vector<std::vector<Node>>& formals,
       const std::vector<Node>& formulas) const;
+  /** Variant of above that takes the definition */
+  void toStreamCmdDefineFunctionRec(std::ostream& out,
+                                    const std::vector<Node>& funcs,
+                                    const std::vector<Node>& lambdas) const;
 
   /** Print set-user-attribute command */
   void toStreamCmdSetUserAttribute(std::ostream& out,
@@ -147,6 +155,9 @@ class Printer
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
+
+  /** Print assume command */
+  virtual void toStreamCmdAssume(std::ostream& out, Node n) const;
 
   /** Print inv-constraint command */
   virtual void toStreamCmdInvConstraint(
@@ -202,12 +213,11 @@ class Printer
   /** Print get-unsat-core command */
   virtual void toStreamCmdGetUnsatCore(std::ostream& out) const;
 
+  /** Print get-difficulty command */
+  virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
-
-  /** Print set-info :status command */
-  virtual void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                             Result::Sat status) const;
 
   /** Print set-logic command */
   virtual void toStreamCmdSetBenchmarkLogic(std::ostream& out,
@@ -249,9 +259,6 @@ class Printer
   /** Print quit command */
   virtual void toStreamCmdQuit(std::ostream& out) const;
 
-  /** Print comment command */
-  virtual void toStreamCmdComment(std::ostream& out,
-                                  const std::string& comment) const;
   /** Declare heap command */
   virtual void toStreamCmdDeclareHeap(std::ostream& out,
                                       TypeNode locType,
@@ -271,22 +278,22 @@ class Printer
 
   /**
    * To stream model sort. This prints the appropriate output for type
-   * tn declared via declare-sort or declare-datatype.
+   * tn declared via declare-sort.
    */
   virtual void toStreamModelSort(std::ostream& out,
-                                 const smt::Model& m,
-                                 TypeNode tn) const = 0;
+                                 TypeNode tn,
+                                 const std::vector<Node>& elements) const = 0;
 
   /**
    * To stream model term. This prints the appropriate output for term
    * n declared via declare-fun.
    */
   virtual void toStreamModelTerm(std::ostream& out,
-                                 const smt::Model& m,
-                                 Node n) const = 0;
+                                 const Node& n,
+                                 const Node& value) const = 0;
 
   /** write model response to command using another language printer */
-  void toStreamUsing(OutputLanguage lang,
+  void toStreamUsing(Language lang,
                      std::ostream& out,
                      const smt::Model& m) const;
 
@@ -301,11 +308,12 @@ class Printer
   Printer(const Printer&) = delete;
   Printer& operator=(const Printer&) = delete;
 
-  /** Make a Printer for a given OutputLanguage */
-  static std::unique_ptr<Printer> makePrinter(OutputLanguage lang);
+  /** Make a Printer for a given Language */
+  static std::unique_ptr<Printer> makePrinter(Language lang);
 
-  /** Printers for each OutputLanguage */
-  static std::unique_ptr<Printer> d_printers[language::output::LANG_MAX];
+  /** Printers for each Language */
+  static std::unique_ptr<Printer>
+      d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 }; /* class Printer */
 

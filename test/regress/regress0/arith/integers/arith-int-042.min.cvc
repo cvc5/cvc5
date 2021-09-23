@@ -1,4 +1,0 @@
-% EXPECT: entailed
-x1: INT;
-x0: INT;
-QUERY NOT (((x0 * 6) + (x1 * 32)) = 1);

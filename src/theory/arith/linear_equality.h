@@ -37,7 +37,6 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex_update.h"
 #include "theory/arith/tableau.h"
-#include "util/maybe.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -216,8 +215,8 @@ private:
 
   BorderHeap d_increasing;
   BorderHeap d_decreasing;
-  Maybe<DeltaRational> d_upperBoundDifference;
-  Maybe<DeltaRational> d_lowerBoundDifference;
+  std::optional<DeltaRational> d_upperBoundDifference;
+  std::optional<DeltaRational> d_lowerBoundDifference;
 
   Rational d_one;
   Rational d_negOne;
@@ -418,87 +417,86 @@ public:
    * The constraint on a basic variable b is implied by the constraints
    * on its row.  This is a wrapper for propagateRow().
    */
-  void propagateBasicFromRow(ConstraintP c);
+ void propagateBasicFromRow(ConstraintP c, bool produceProofs);
 
-  /**
-   * Let v be the variable for the constraint c.
-   * Exports either the explanation of an upperbound or a lower bound
-   * of v using the other variables in the row.
-   *
-   * If farkas != RationalVectorPSentinel, this function additionally
-   * stores the farkas coefficients of the constraints stored in into.
-   * Position 0 is the coefficient of v.
-   * Position i > 0, corresponds to the order of the other constraints.
-   */
-  void propagateRow(ConstraintCPVec& into
-                    , RowIndex ridx
-                    , bool rowUp
-                    , ConstraintP c
-                    , RationalVectorP farkas);
+ /**
+  * Let v be the variable for the constraint c.
+  * Exports either the explanation of an upperbound or a lower bound
+  * of v using the other variables in the row.
+  *
+  * If farkas != RationalVectorPSentinel, this function additionally
+  * stores the farkas coefficients of the constraints stored in into.
+  * Position 0 is the coefficient of v.
+  * Position i > 0, corresponds to the order of the other constraints.
+  */
+ void propagateRow(ConstraintCPVec& into,
+                   RowIndex ridx,
+                   bool rowUp,
+                   ConstraintP c,
+                   RationalVectorP farkas);
 
-  /**
-   * Computes the value of a basic variable using the assignments
-   * of the values of the variables in the basic variable's row tableau.
-   * This can compute the value using either:
-   * - the the current assignment (useSafe=false) or
-   * - the safe assignment (useSafe = true).
-   */
-  DeltaRational computeRowValue(ArithVar x, bool useSafe) const;
+ /**
+  * Computes the value of a basic variable using the assignments
+  * of the values of the variables in the basic variable's row tableau.
+  * This can compute the value using either:
+  * - the the current assignment (useSafe=false) or
+  * - the safe assignment (useSafe = true).
+  */
+ DeltaRational computeRowValue(ArithVar x, bool useSafe) const;
 
-  /**
-   * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
-   * and 2 ArithVar variables and returns one of the ArithVar variables
-   * potentially using the internals of the SimplexDecisionProcedure.
-   */
+ /**
+  * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
+  * and 2 ArithVar variables and returns one of the ArithVar variables
+  * potentially using the internals of the SimplexDecisionProcedure.
+  */
 
-  ArithVar noPreference(ArithVar x, ArithVar y) const{
-    return x;
-  }
+ ArithVar noPreference(ArithVar x, ArithVar y) const { return x; }
 
-  /**
-   * minVarOrder is a PreferenceFunction for selecting the smaller of the 2
-   * ArithVars. This PreferenceFunction is used during the VarOrder stage of
-   * findModel.
-   */
-  ArithVar minVarOrder(ArithVar x, ArithVar y) const;
+ /**
+  * minVarOrder is a PreferenceFunction for selecting the smaller of the 2
+  * ArithVars. This PreferenceFunction is used during the VarOrder stage of
+  * findModel.
+  */
+ ArithVar minVarOrder(ArithVar x, ArithVar y) const;
 
-  /**
-   * minColLength is a PreferenceFunction for selecting the variable with the
-   * smaller row count in the tableau.
-   *
-   * This is a heuristic rule and should not be used during the VarOrder
-   * stage of findModel.
-   */
-  ArithVar minColLength(ArithVar x, ArithVar y) const;
+ /**
+  * minColLength is a PreferenceFunction for selecting the variable with the
+  * smaller row count in the tableau.
+  *
+  * This is a heuristic rule and should not be used during the VarOrder
+  * stage of findModel.
+  */
+ ArithVar minColLength(ArithVar x, ArithVar y) const;
 
-  /**
-   * minRowLength is a PreferenceFunction for selecting the variable with the
-   * smaller row count in the tableau.
-   *
-   * This is a heuristic rule and should not be used during the VarOrder
-   * stage of findModel.
-   */
-  ArithVar minRowLength(ArithVar x, ArithVar y) const;
+ /**
+  * minRowLength is a PreferenceFunction for selecting the variable with the
+  * smaller row count in the tableau.
+  *
+  * This is a heuristic rule and should not be used during the VarOrder
+  * stage of findModel.
+  */
+ ArithVar minRowLength(ArithVar x, ArithVar y) const;
 
-  /**
-   * minBoundAndRowCount is a PreferenceFunction for preferring a variable
-   * without an asserted bound over variables with an asserted bound.
-   * If both have bounds or both do not have bounds,
-   * the rule falls back to minRowCount(...).
-   *
-   * This is a heuristic rule and should not be used during the VarOrder
-   * stage of findModel.
-   */
-  ArithVar minBoundAndColLength(ArithVar x, ArithVar y) const;
+ /**
+  * minBoundAndRowCount is a PreferenceFunction for preferring a variable
+  * without an asserted bound over variables with an asserted bound.
+  * If both have bounds or both do not have bounds,
+  * the rule falls back to minRowCount(...).
+  *
+  * This is a heuristic rule and should not be used during the VarOrder
+  * stage of findModel.
+  */
+ ArithVar minBoundAndColLength(ArithVar x, ArithVar y) const;
 
-
-  template <bool above>
-  inline bool isAcceptableSlack(int sgn, ArithVar nonbasic) const {
-    return
-      ( above && sgn < 0 && d_variables.strictlyBelowUpperBound(nonbasic)) ||
-      ( above && sgn > 0 && d_variables.strictlyAboveLowerBound(nonbasic)) ||
-      (!above && sgn > 0 && d_variables.strictlyBelowUpperBound(nonbasic)) ||
-      (!above && sgn < 0 && d_variables.strictlyAboveLowerBound(nonbasic));
+ template <bool above>
+ inline bool isAcceptableSlack(int sgn, ArithVar nonbasic) const
+ {
+   return (above && sgn < 0 && d_variables.strictlyBelowUpperBound(nonbasic))
+          || (above && sgn > 0 && d_variables.strictlyAboveLowerBound(nonbasic))
+          || (!above && sgn > 0
+              && d_variables.strictlyBelowUpperBound(nonbasic))
+          || (!above && sgn < 0
+              && d_variables.strictlyAboveLowerBound(nonbasic));
   }
 
   /**

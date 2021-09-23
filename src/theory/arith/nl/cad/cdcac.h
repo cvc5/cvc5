@@ -25,6 +25,8 @@
 
 #include <vector>
 
+#include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
 #include "theory/arith/nl/cad/proof_generator.h"
@@ -43,13 +45,11 @@ namespace cad {
  * This class implements Cylindrical Algebraic Coverings as presented in
  * https://arxiv.org/pdf/2003.05633.pdf
  */
-class CDCAC
+class CDCAC : protected EnvObj
 {
  public:
   /** Initialize this method with the given variable ordering. */
-  CDCAC(context::Context* ctx,
-        ProofNodeManager* pnm,
-        const std::vector<poly::Variable>& ordering = {});
+  CDCAC(Env& env, const std::vector<poly::Variable>& ordering = {});
 
   /** Reset this instance. */
   void reset();

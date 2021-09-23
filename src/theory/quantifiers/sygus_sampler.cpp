@@ -23,20 +23,21 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/lazy_trie.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
+#include "util/rational.h"
 #include "util/sampler.h"
+#include "util/string.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusSampler::SygusSampler()
-    : d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+SygusSampler::SygusSampler(Env& env)
+    : d_env(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
@@ -473,21 +474,11 @@ Node SygusSampler::evaluate(Node n, unsigned index)
 {
   Assert(index < d_samples.size());
   // do beta-reductions in n first
-  n = Rewriter::rewrite(n);
+  n = d_env.getRewriter()->rewrite(n);
   // use efficient rewrite for substitution + rewrite
-  Node ev = d_eval.eval(n, d_vars, d_samples[index]);
+  Node ev = d_env.evaluate(n, d_vars, d_samples[index], true);
+  Assert(!ev.isNull());
   Trace("sygus-sample-ev") << "Evaluate ( " << n << ", " << index << " ) -> ";
-  if (!ev.isNull())
-  {
-    Trace("sygus-sample-ev") << ev << std::endl;
-    return ev;
-  }
-  Trace("sygus-sample-ev") << "null" << std::endl;
-  Trace("sygus-sample-ev") << "Rewrite -> ";
-  // substitution + rewrite
-  std::vector<Node>& pt = d_samples[index];
-  ev = n.substitute(d_vars.begin(), d_vars.end(), pt.begin(), pt.end());
-  ev = Rewriter::rewrite(ev);
   Trace("sygus-sample-ev") << ev << std::endl;
   return ev;
 }
@@ -619,7 +610,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
         // negative
         ret = nm->mkNode(kind::UMINUS, ret);
       }
-      ret = Rewriter::rewrite(ret);
+      ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());
       return ret;
     }
@@ -717,7 +708,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
       Node ret = d_tds->mkGeneric(dt, cindex, pre);
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
-      ret = Rewriter::rewrite(ret);
+      ret = d_env.getRewriter()->rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
       // A rare case where we generate a non-constant value from constant
       // leaves is (/ n 0).
@@ -780,8 +771,12 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-void SygusSampler::checkEquivalent(Node bv, Node bvr)
+void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
 {
+  if (bv == bvr)
+  {
+    return;
+  }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
                            << std::endl;
 
@@ -827,14 +822,12 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
       return;
     }
     // we have detected unsoundness in the rewriter
-    Options& sopts = smt::currentSmtEngine()->getOptions();
-    std::ostream* out = sopts.base.out;
-    (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
+    out << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
     // debugging information
-    (*out) << "Terms are not equivalent for : " << std::endl;
-    (*out) << ptOut.str();
+    out << "Terms are not equivalent for : " << std::endl;
+    out << ptOut.str();
     Assert(bve != bvre);
-    (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
+    out << "where they evaluate to " << bve << " and " << bvre << std::endl;
 
     if (options::sygusRewVerifyAbort())
     {

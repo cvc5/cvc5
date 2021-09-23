@@ -162,14 +162,6 @@ name   = "SMT Layer"
   help = "Print based on SyGuS standard."
 
 [[option]]
-  name       = "sygusPrintCallbacks"
-  category   = "regular"
-  long       = "sygus-print-callbacks"
-  type       = "bool"
-  default    = "true"
-  help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
-
-[[option]]
   name       = "unsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
@@ -196,6 +188,9 @@ name   = "SMT Layer"
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
+[[option.mode.PP_ONLY]]
+  name = "pp-only"
+  help = "Not producing unsat cores, but tracking proofs of preprocessing (internal only)."
 
 [[option]]
   name       = "minimalUnsatCores"
@@ -219,6 +214,29 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "turn on unsat assumptions generation"
+
+[[option]]
+  name       = "produceDifficulty"
+  category   = "regular"
+  long       = "produce-difficulty"
+  type       = "bool"
+  default    = "false"
+  help       = "enable tracking of difficulty."
+
+[[option]]
+  name       = "difficultyMode"
+  category   = "regular"
+  long       = "difficulty-mode=MODE"
+  type       = "DifficultyMode"
+  default    = "LEMMA_LITERAL"
+  help       = "choose output mode for get-difficulty, see --difficulty-mode=help"
+  help_mode  = "difficulty output modes."
+[[option.mode.LEMMA_LITERAL]]
+  name = "lemma-literal"
+  help = "Difficulty of an assertion is how many lemmas use a literal that the assertion depends on to be satisfied."
+[[option.mode.MODEL_CHECK]]
+  name = "model-check"
+  help = "Difficulty of an assertion is how many times it was not satisfied in a candidate model."
 
 [[option]]
   name       = "checkSynthSol"
@@ -301,7 +319,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "earlyIteRemoval"
-  category   = "experimental"
+  category   = "expert"
   long       = "early-ite-removal"
   type       = "bool"
   default    = "false"
@@ -354,10 +372,7 @@ name   = "SMT Layer"
   type       = "ModelUninterpPrintMode"
   default    = "None"
   help       = "determines how to print uninterpreted elements in models"
-  help_mode  = "uninterpreted elements in models printing  modes."
-[[option.mode.DtEnum]]
-  name = "dtenum"
-  help = "print uninterpreted elements as datatype enumerations, where the sort is the datatype"
+  help_mode  = "uninterpreted elements in models printing modes."
 [[option.mode.DeclSortAndFun]]
   name = "decl-sort-and-fun"
   help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"

@@ -182,14 +182,15 @@ void addSpecialValues(const TypeNode& tn,
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersState& qs,
+SygusInst::SygusInst(Env& env,
+                     QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
-      d_ce_lemma_added(qs.getUserContext()),
-      d_global_terms(qs.getUserContext()),
-      d_notified_assertions(qs.getUserContext())
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_ce_lemma_added(userContext()),
+      d_global_terms(userContext()),
+      d_notified_assertions(userContext())
 {
 }
 
@@ -528,7 +529,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
    */
   Assert(d_dstrat.find(q) == d_dstrat.end());
   DecisionStrategy* ds = new DecisionStrategySingleton(
-      "CeLiteral", lit, d_qstate.getSatContext(), d_qstate.getValuation());
+      d_env, "CeLiteral", lit, d_qstate.getValuation());
 
   d_dstrat[q].reset(ds);
   d_qim.getDecisionManager()->registerStrategy(

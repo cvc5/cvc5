@@ -121,15 +121,13 @@ class Smt2 : public Parser
                               const std::vector<uint64_t>& numerals);
 
   /**
-   * Creates an indexed operator term, e.g. (_ extract 5 0).
+   * Creates an indexed operator kind, e.g. BITVECTOR_EXTRACT for "extract".
    *
    * @param name The name of the operator (e.g. "extract")
-   * @param numerals The parameters for the operator (e.g. [5, 0])
-   * @return The operator term corresponding to the indexed operator or a parse
+   * @return The kind corresponding to the indexed operator or a parse
    *         error if the name is not valid.
    */
-  api::Op mkIndexedOp(const std::string& name,
-                      const std::vector<uint64_t>& numerals);
+  api::Kind getIndexedOpKind(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as.
@@ -230,12 +228,10 @@ class Smt2 : public Parser
    */
   bool v2_6(bool exact = false) const
   {
-    return language::isInputLang_smt2_6(getLanguage(), exact);
+    return d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6";
   }
   /** Are we using a sygus language? */
   bool sygus() const;
-  /** Are we using the sygus version 2.0 format? */
-  bool sygus_v2() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
@@ -414,8 +410,6 @@ class Smt2 : public Parser
   void addFloatingPointOperators();
 
   void addSepOperators();
-
-  InputLanguage getLanguage() const;
 
   /**
    * Utility function to create a conjunction of expressions.

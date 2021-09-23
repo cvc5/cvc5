@@ -28,14 +28,16 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-BranchAndBound::BranchAndBound(ArithState& s,
+BranchAndBound::BranchAndBound(Env& env,
+                               ArithState& s,
                                InferenceManager& im,
                                PreprocessRewriteEq& ppre,
                                ProofNodeManager* pnm)
-    : d_astate(s),
+    : EnvObj(env),
+      d_astate(s),
       d_im(im),
       d_ppre(ppre),
-      d_pfGen(new EagerProofGenerator(pnm, s.getUserContext())),
+      d_pfGen(new EagerProofGenerator(pnm, userContext())),
       d_pnm(pnm)
 {
 }
@@ -45,7 +47,7 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   TrustNode lem = TrustNode::null();
   NodeManager* nm = NodeManager::currentNM();
   Integer floor = value.floor();
-  if (options::brabTest())
+  if (options().arith.brabTest)
   {
     Trace("integers") << "branch-round-and-bound enabled" << std::endl;
     Integer ceil = value.ceiling();
