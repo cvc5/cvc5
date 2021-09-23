@@ -26,7 +26,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-FunDefEvaluator::FunDefEvaluator() {}
+FunDefEvaluator::FunDefEvaluator(Env& env) : EnvObj(env) {}
 
 void FunDefEvaluator::assertDefinition(Node q)
 {
@@ -51,11 +51,11 @@ void FunDefEvaluator::assertDefinition(Node q)
                    << fdi.d_args << " / " << fdi.d_body << std::endl;
 }
 
-Node FunDefEvaluator::evaluate(Node n) const
+Node FunDefEvaluator::evaluateDefinitions(Node n) const
 {
   // should do standard rewrite before this call
   Assert(Rewriter::rewrite(n) == n);
-  Trace("fd-eval") << "FunDefEvaluator: evaluate " << n << std::endl;
+  Trace("fd-eval") << "FunDefEvaluator: evaluateDefinitions " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, unsigned> funDefCount;
   std::unordered_map<TNode, unsigned>::iterator itCount;
@@ -185,7 +185,7 @@ Node FunDefEvaluator::evaluate(Node n) const
           if (!args.empty())
           {
             // invoke it on arguments using the evaluator
-            sbody = d_eval.eval(sbody, args, children);
+            sbody = evaluate(sbody, args, children);
             if (Trace.isOn("fd-eval-debug2"))
             {
               Trace("fd-eval-debug2")

@@ -1,0 +1,12 @@
+; EXPECT: unsat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-fun x0 () Bool)
+(declare-fun x1 () Bool)
+(declare-fun x2 () Bool)
+(declare-fun x3 () Bool)
+(assert (or x1 (not x0)))
+(assert (or x0 (not x3)))
+(assert (or x3 x2))
+(assert (and x1 (not x1)))
+(check-sat-assuming ( x2 ))

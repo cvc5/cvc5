@@ -24,6 +24,7 @@
 #include "proof/conv_proof_generator.h"
 #include "smt/dump_manager.h"
 #include "smt/smt_engine_stats.h"
+#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
@@ -39,6 +40,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
+      d_evalRew(new theory::Evaluator(d_rewriter.get())),
+      d_eval(new theory::Evaluator(nullptr)),
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
@@ -131,5 +134,56 @@ const Printer& Env::getPrinter()
 }
 
 std::ostream& Env::getDumpOut() { return *d_options.base.out; }
+
+Node Env::evaluate(TNode n,
+                   const std::vector<Node>& args,
+                   const std::vector<Node>& vals,
+                   bool useRewriter) const
+{
+  std::unordered_map<Node, Node> visited;
+  return evaluate(n, args, vals, visited, useRewriter);
+}
+
+Node Env::evaluate(TNode n,
+                   const std::vector<Node>& args,
+                   const std::vector<Node>& vals,
+                   const std::unordered_map<Node, Node>& visited,
+                   bool useRewriter) const
+{
+  if (useRewriter)
+  {
+    return d_evalRew->eval(n, args, vals, visited);
+  }
+  return d_eval->eval(n, args, vals, visited);
+}
+
+Node Env::rewriteViaMethod(TNode n, MethodId idr)
+{
+  if (idr == MethodId::RW_REWRITE)
+  {
+    return d_rewriter->rewrite(n);
+  }
+  if (idr == MethodId::RW_EXT_REWRITE)
+  {
+    return d_rewriter->extendedRewrite(n);
+  }
+  if (idr == MethodId::RW_REWRITE_EQ_EXT)
+  {
+    return d_rewriter->rewriteEqualityExt(n);
+  }
+  if (idr == MethodId::RW_EVALUATE)
+  {
+    return evaluate(n, {}, {}, false);
+  }
+  if (idr == MethodId::RW_IDENTITY)
+  {
+    // does nothing
+    return n;
+  }
+  // unknown rewriter
+  Unhandled() << "Env::rewriteViaMethod: no rewriter for " << idr
+              << std::endl;
+  return n;
+}
 
 }  // namespace cvc5

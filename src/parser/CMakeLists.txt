@@ -32,10 +32,6 @@ set(libcvc5parser_src_files
   bounded_token_buffer.h
   bounded_token_factory.cpp
   bounded_token_factory.h
-  cvc/cvc.cpp
-  cvc/cvc.h
-  cvc/cvc_input.cpp
-  cvc/cvc_input.h
   input.cpp
   input.h
   line_buffer.cpp
@@ -66,7 +62,7 @@ set(libcvc5parser_src_files
 #-----------------------------------------------------------------------------#
 # Generate parsers for all supported languages
 
-foreach(lang Cvc Smt2 Tptp)
+foreach(lang Smt2 Tptp)
   string(TOLOWER ${lang} lang_dir)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${lang_dir})
   add_custom_command(

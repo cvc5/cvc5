@@ -22,6 +22,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/kind.h"
 #include "expr/skolem_manager.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -38,6 +39,7 @@
 #include "theory/theory_state.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
