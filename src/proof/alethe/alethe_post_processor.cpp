@@ -150,12 +150,16 @@ bool AletheProofPostprocessCallback::update(Node res,
                                sanitized_args,
                                *cdp);
 
-      Node vp3 = vp1;
-
-      if (args.size() != 1)
+      Node andNode, vp3;
+      if (args.size() == 1)
+      {
+        vp3 = vp1;
+        andNode = args[0];  // F1
+      }
+      else
       {
         // Build vp2i
-        Node andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
+        andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
         std::vector<Node> premisesVP2 = {vp1};
         std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
         Node vp2_i;
@@ -178,8 +182,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &=
             addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
 
-        Node vp3 =
-            nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
+        vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
         success &= addAletheStep(
             AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
       }
@@ -287,6 +290,43 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
   Node conclusion = NodeManager::currentNM()->mkNode(kind::SEXPR, subterms);
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
+
+AletheProofPostprocessFinalCallback::AletheProofPostprocessFinalCallback(
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_anc(anc)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  d_cl = nm->mkBoundVar("cl", nm->sExprType());
+}
+
+bool AletheProofPostprocessFinalCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    const std::vector<Node>& fa,
+    bool& continueUpdate)
+{
+  return false;
+}
+
+bool AletheProofPostprocessFinalCallback::update(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate)
+{
+  return true;
+}
+
+AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
+                                               AletheNodeConverter& anc)
+    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc)
+{
+}
+
+AletheProofPostprocess::~AletheProofPostprocess() {}
+
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {}
 
 }  // namespace proof
 

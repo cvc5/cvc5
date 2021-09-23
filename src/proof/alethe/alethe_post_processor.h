@@ -16,9 +16,9 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
-#include "proof/proof_node_updater.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_proof_rule.h"
+#include "proof/proof_node_updater.h"
 
 namespace cvc5 {
 
@@ -118,8 +118,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
  public:
-   AletheProofPostprocessFinalCallback(ProofNodeManager* pnm,
-                                       AletheNodeConverter& anc);
+  AletheProofPostprocessFinalCallback(ProofNodeManager* pnm,
+                                      AletheNodeConverter& anc);
   ~AletheProofPostprocessFinalCallback() {}
   /** Should proof pn be updated? It should, if the last step is printed as (cl
    * false) or if it is an assumption (in that case it is printed as false).
@@ -159,7 +159,7 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocess
 {
  public:
-   AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
+  AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
