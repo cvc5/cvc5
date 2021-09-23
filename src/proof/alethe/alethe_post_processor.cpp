@@ -100,8 +100,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
 }
 
 bool AletheProofPostprocessCallback::addAletheStepFromOr(
-    Node res,
     AletheRule rule,
+    Node res,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof& cdp)
