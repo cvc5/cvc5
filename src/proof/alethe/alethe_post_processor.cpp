@@ -441,6 +441,43 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
 
+AletheProofPostprocessFinalCallback::AletheProofPostprocessFinalCallback(
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_anc(anc)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  d_cl = nm->mkBoundVar("cl", nm->sExprType());
+}
+
+bool AletheProofPostprocessFinalCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    const std::vector<Node>& fa,
+    bool& continueUpdate)
+{
+  return false;
+}
+
+bool AletheProofPostprocessFinalCallback::update(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate)
+{
+  return true;
+}
+
+AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
+                                               AletheNodeConverter& anc)
+    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc)
+{
+}
+
+AletheProofPostprocess::~AletheProofPostprocess() {}
+
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {}
+
 }  // namespace proof
 
 }  // namespace cvc5
