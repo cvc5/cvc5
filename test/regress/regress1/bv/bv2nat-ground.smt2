@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --solve-bv-as-int=sum
 ; EXPECT: unsat
 (set-logic QF_BVLIA)
 (set-info :status unsat)

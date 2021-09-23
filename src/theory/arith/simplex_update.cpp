@@ -1,29 +1,44 @@
-/*********************                                                        */
-/*! \file simplex_update.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This implements UpdateInfo.
- **
- ** This implements the UpdateInfo.
- **/
-
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This implements the UpdateInfo.
+ */
 
 #include "theory/arith/simplex_update.h"
+
 #include "theory/arith/constraint.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
+/*
+ * Generates a string representation of std::optional and inserts it into a
+ * stream.
+ *
+ * Note: We define this function here in the cvc5::theory::arith namespace,
+ * because it would otherwise not be found for std::optional<int>. This is due
+ * to the argument-dependent lookup rules.
+ *
+ * @param out The stream
+ * @param m The value
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, const std::optional<int>& m)
+{
+  return cvc5::operator<<(out, m);
+}
 
 UpdateInfo::UpdateInfo():
   d_nonbasic(ARITHVAR_SENTINEL),
@@ -74,7 +89,7 @@ void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f){
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
   d_focusDirection = f;
-  d_tableauCoefficient.clear();
+  d_tableauCoefficient.reset();
   updateWitness();
   Assert(unbounded());
   Assert(improvement(d_witness));
@@ -84,9 +99,9 @@ void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f){
 void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
   d_limiting = c;
   d_nonbasicDelta = delta;
-  d_errorsChange.clear();
+  d_errorsChange.reset();
   d_focusDirection = 1;
-  d_tableauCoefficient.clear();
+  d_tableauCoefficient.reset();
   updateWitness();
   Assert(!describesPivot());
   Assert(improvement(d_witness));
@@ -96,8 +111,8 @@ void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
 void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c){
   d_limiting = c;
   d_nonbasicDelta = delta;
-  d_errorsChange.clear();
-  d_focusDirection.clear();
+  d_errorsChange.reset();
+  d_focusDirection.reset();
   updateWitness();
   Assert(describesPivot());
   Assert(debugSgnAgreement());
@@ -107,7 +122,7 @@ void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Cons
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
-  d_focusDirection.clear();
+  d_focusDirection.reset();
   d_tableauCoefficient = &r;
   updateWitness();
   Assert(describesPivot());
@@ -119,7 +134,7 @@ void UpdateInfo::witnessedUpdate(const DeltaRational& delta, ConstraintP c, int 
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
   d_focusDirection = fd;
-  d_tableauCoefficient.clear();
+  d_tableauCoefficient.reset();
   updateWitness();
   Assert(describesPivot() || improvement(d_witness));
   Assert(debugSgnAgreement());
@@ -187,6 +202,6 @@ std::ostream& operator<<(std::ostream& out,  WitnessImprovement w){
   return out;
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

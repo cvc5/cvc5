@@ -1,4 +1,4 @@
-% COMMAND-LINE:  --uf-ho
+% COMMAND-LINE:  --ho-elim
 % EXPECT: % SZS status Theorem for involved_parsing_ALG248^3
 
 %------------------------------------------------------------------------------

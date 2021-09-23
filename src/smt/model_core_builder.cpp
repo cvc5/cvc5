@@ -1,29 +1,35 @@
-/*********************                                                        */
-/*! \file model_core_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of utility for building model cores
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utility for building model cores.
+ */
 
 #include "smt/model_core_builder.h"
 
 #include "theory/subs_minimize.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
-bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
-                                    Model* m,
+bool ModelCoreBuilder::setModelCore(const std::vector<Node>& assertions,
+                                    theory::TheoryModel* m,
                                     options::ModelCoresMode mode)
 {
+  if (m->isUsingModelCore())
+  {
+    // already computed
+    return true;
+  }
   if (Trace.isOn("model-core"))
   {
     Trace("model-core") << "Compute model core, assertions:" << std::endl;
@@ -34,18 +40,13 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   }
 
   // convert to nodes
-  std::vector<Node> asserts;
-  for (unsigned i = 0, size = assertions.size(); i < size; i++)
-  {
-    asserts.push_back(Node::fromExpr(assertions[i]));
-  }
   NodeManager* nm = NodeManager::currentNM();
 
-  Node formula = asserts.size() > 1? nm->mkNode(AND, asserts) : asserts[0];
+  Node formula = nm->mkAnd(assertions);
   std::vector<Node> vars;
   std::vector<Node> subs;
   Trace("model-core") << "Assignments: " << std::endl;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(formula);
@@ -58,7 +59,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
       visited.insert(cur);
       if (cur.isVar())
       {
-        Node vcur = Node::fromExpr(m->getValue(cur.toExpr()));
+        Node vcur = m->getValue(cur);
         Trace("model-core") << "  " << cur << " -> " << vcur << std::endl;
         vars.push_back(cur);
         subs.push_back(vcur);
@@ -100,7 +101,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
 
     for (const Node& cv : coreVars)
     {
-      m->recordModelCoreSymbol(cv.toExpr());
+      m->recordModelCoreSymbol(cv);
     }
     return true;
   }
@@ -109,4 +110,4 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   return false;
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

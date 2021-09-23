@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext --nl-ext-tplanes
+; COMMAND-LINE: --nl-ext=full --nl-ext-tplanes
 ; EXPECT: unsat
 (set-logic QF_NRA)
 (set-info :source |
@@ -18,7 +18,7 @@ Submitted by Dejan Jovanovic for SMT-LIB.
 
 
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun skoX () Real)

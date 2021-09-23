@@ -1,21 +1,25 @@
-/*********************                                                        */
-/*! \file sets_translate.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Andres Noetzli, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include <boost/algorithm/string.hpp> // include Boost, a C++ library
+#include <cvc5/cvc5.h>
+#include <cvc4/options/set_language.h>
+
+#include <boost/algorithm/string.hpp>  // include Boost, a C++ library
 #include <cassert>
 #include <iostream>
 #include <string>
@@ -23,14 +27,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-#include <cvc4/options/set_language.h>
-
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::options;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::options;
 
 bool nonsense(char c) { return !isalnum(c); }
 
@@ -341,16 +341,26 @@ int main(int argc, char* argv[])
       DefineFunctionCommand* definefun = dynamic_cast<DefineFunctionCommand*>(cmd);
 
       Command* new_cmd = NULL;
-      if(assert) {
+      if (assert)
+      {
         Expr newexpr = m.collectSortsExpr(assert->getExpr());
         new_cmd = new AssertCommand(newexpr);
-      } else if(declarefun) {
+      }
+      else if (declarefun)
+      {
         Expr newfunc = m.collectSortsExpr(declarefun->getFunction());
-        new_cmd = new DeclareFunctionCommand(declarefun->getSymbol(), newfunc, declarefun->getType());
-      } else if(definefun) {
+        new_cmd = new DeclareFunctionCommand(
+            declarefun->getSymbol(), newfunc, declarefun->getType());
+      }
+      else if (definefun)
+      {
         Expr newfunc = m.collectSortsExpr(definefun->getFunction());
         Expr newformula = m.collectSortsExpr(definefun->getFormula());
-        new_cmd = new DefineFunctionCommand(definefun->getSymbol(), newfunc, definefun->getFormals(), newformula);
+        new_cmd = new DefineFunctionCommand(definefun->getSymbol(),
+                                            newfunc,
+                                            definefun->getFormals(),
+                                            newformula,
+                                            false);
       }
 
       if(new_cmd == NULL) {

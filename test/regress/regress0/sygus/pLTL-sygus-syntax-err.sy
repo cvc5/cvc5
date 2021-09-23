@@ -1,16 +1,16 @@
 ; REQUIRES: no-competition
 ; COMMAND-LINE: --sygus-out=status --sygus-rec-fun --lang=sygus2
-; EXPECT-ERROR: CVC4 Error:
-; EXPECT-ERROR: Parse Error: pLTL-sygus-syntax-err.sy:80.19: number of arguments does not match the constructor type
-; EXPECT-ERROR: 
+; EXPECT-ERROR: (error "Parse Error: pLTL-sygus-syntax-err.sy:78.19: number of arguments does not match the constructor type
+; EXPECT-ERROR:
 ; EXPECT-ERROR: (Op2 <O2> <F>)
 ; EXPECT-ERROR: ^
+; EXPECT-ERROR: ")
 ; EXIT: 1
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-option :lang sygus2)
 ;(set-option :sygus-out status)
 (set-option :sygus-rec-fun true)
-(set-option :uf-ho true)
+
 
 (define-sort Time () Int)
 
@@ -31,8 +31,6 @@
 )
 
 ; Trace Length.
-(declare-const tn Int)
-(assert (= tn 2))
 
 ;cTrace Declaration (trace_index, variable_index)
 (define-fun val ((i Int) (x Var)) Bool
@@ -44,22 +42,22 @@
 
 ;cpLTL Semantics
 (define-fun-rec holds ((f Formula) (t Time)) Bool
-  (and (<= 0 t tn)
+  (and (<= 0 t 2)
        (match f (
          ((P i) (val t i))
-      
-         ((Op1 op g) 
+
+         ((Op1 op g)
            (match op (
-             (NOT (not (holds g t))) 
+             (NOT (not (holds g t)))
 
-             (Y (and (< 0 t) (holds g (- t 1))))    
+             (Y (and (< 0 t) (holds g (- t 1))))
 
-             (G (and (holds g t) (or (= t tn) (holds f (+ t 1)))))
+             (G (and (holds g t) (or (= t 2) (holds f (+ t 1)))))
 
              (H (and (holds g t) (or (= t 0) (holds f (- t 1)))))
           )))
 
-         ((Op2 op f g)     
+         ((Op2 op f g)
            (match op (
              (AND (and (holds f t) (holds g t)))
 
@@ -88,6 +86,3 @@
 (constraint (holds (Op1 G (phi X0 X1)) 0))
 
 (check-synth)
-
-
-

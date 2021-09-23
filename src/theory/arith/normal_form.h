@@ -1,27 +1,27 @@
-/*********************                                                        */
-/*! \file normal_form.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NORMAL_FORM_H
-#define CVC4__THEORY__ARITH__NORMAL_FORM_H
+#ifndef CVC5__THEORY__ARITH__NORMAL_FORM_H
+#define CVC5__THEORY__ARITH__NORMAL_FORM_H
 
 #include <algorithm>
-#include <list>
 
 #include "base/output.h"
 #include "expr/node.h"
@@ -29,8 +29,7 @@
 #include "theory/arith/delta_rational.h"
 #include "util/rational.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -239,6 +238,8 @@ public:
      case kind::INTS_DIVISION_TOTAL:
      case kind::INTS_MODULUS_TOTAL:
      case kind::DIVISION_TOTAL: return isDivMember(n);
+     case kind::IAND: return isIAndMember(n);
+     case kind::POW2: return isPow2Member(n);
      case kind::EXPONENTIAL:
      case kind::SINE:
      case kind::COSINE:
@@ -264,6 +265,8 @@ public:
  }
 
   static bool isLeafMember(Node n);
+  static bool isIAndMember(Node n);
+  static bool isPow2Member(Node n);
   static bool isDivMember(Node n);
   bool isDivLike() const{
     return isDivMember(getNode());
@@ -420,7 +423,7 @@ public:
 
 template <class GetNodeIterator>
 inline Node makeNode(Kind k, GetNodeIterator start, GetNodeIterator end) {
-  NodeBuilder<> nb(k);
+  NodeBuilder nb(k);
 
   while(start != end) {
     nb << (*start).getNode();
@@ -944,6 +947,18 @@ public:
   /** Returns true if the polynomial contains a non-linear monomial.*/
   bool isNonlinear() const;
 
+  /** Check whether this polynomial is only a single variable. */
+  bool isVariable() const
+  {
+    return singleton() && getHead().getVarList().singleton()
+           && getHead().coefficientIsOne();
+  }
+  /** Return the variable, given that isVariable() holds. */
+  Variable getVariable() const
+  {
+    Assert(isVariable());
+    return getHead().getVarList().getHead();
+  }
 
   /**
    * Selects a minimal monomial in the polynomial by the absolute value of
@@ -1375,10 +1390,23 @@ public:
   Polynomial normalizedVariablePart() const;
   DeltaRational normalizedDeltaRational() const;
 
+  /**
+   * Transforms a Comparison object into a stronger normal form:
+   *    Polynomial ~Kind~ Constant
+   * 
+   * From the comparison, this method resolved a negation (if present) and
+   * moves everything to the left side.
+   * If split_constant is false, the constant is always zero.
+   * If split_constant is true, the polynomial has no constant term and is
+   * normalized to have leading coefficient one.
+   */
+  std::tuple<Polynomial, Kind, Constant> decompose(
+      bool split_constant = false) const;
+
 };/* class Comparison */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__ARITH__NORMAL_FORM_H */
+#endif /* CVC5__THEORY__ARITH__NORMAL_FORM_H */

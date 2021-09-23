@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext
+; COMMAND-LINE: --nl-ext=full
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :status sat)
@@ -19,7 +19,7 @@ Submitted by Dejan Jovanovic for SMT-LIB.
 
 
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status sat)
 (declare-fun skoX () Real)

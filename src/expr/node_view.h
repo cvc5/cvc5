@@ -15,10 +15,10 @@
  ** iterator that treats a certain kind as flattened).
  **/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__NODE_VIEW_H
-#define CVC4__EXPR__NODE_VIEW_H
+#ifndef CVC5__EXPR__NODE_VIEW_H
+#define CVC5__EXPR__NODE_VIEW_H
 
 #include <iterator>
 #include <unordered_set>
@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "expr/node_value.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 /**
@@ -55,7 +55,6 @@ class FlatViewTemplate
    * @param skipDups If true, then duplicate children are skipped
    */
   FlatViewTemplate(NodeTemplate<ref_count> node,
-                   Kind kind,
                    bool skipDups = false);
 
   class iterator
@@ -71,12 +70,11 @@ class FlatViewTemplate
      * Creates an instance of the iterator over a flat view.
      *
      * @param node The node to iterate over
-     * @param kind The kind to treat as flattened
      * @param end Determines whether this iterator should point to the end or
      *            the beginning
      * @param skipDups If true, then duplicate children are skipped
      */
-    iterator(NodeTemplate<ref_count> node, Kind kind, bool end, bool skipDups);
+    iterator(NodeTemplate<ref_count> node, bool end, bool skipDups);
 
     NodeTemplate<ref_count> operator*() const { return *d_iters.back().first; }
 
@@ -104,22 +102,20 @@ class FlatViewTemplate
     std::vector<std::pair<NodeValue::iterator<NodeTemplate<ref_count>>,
                           NodeValue::iterator<NodeTemplate<ref_count>>>>
         d_iters;
-    std::unordered_set<TNode, TNodeHashFunction> d_visited;
+    std::unordered_set<TNode> d_visited;
     /** True if the iterator should skip duplicates */
     bool d_skipDups;
   };
 
   /** Creates an iterator pointing to the first child */
-  iterator begin() { return iterator(d_node, d_kind, false, d_skipDups); }
+  iterator begin() { return iterator(d_node, false, d_skipDups); }
 
   /** Creates an iterator pointing to the end */
-  iterator end() { return iterator(d_node, d_kind, true, d_skipDups); }
+  iterator end() { return iterator(d_node, true, d_skipDups); }
 
  private:
   /** The node to iterate over */
   NodeTemplate<ref_count> d_node;
-  /** The kind to be treated as flattened */
-  Kind d_kind;
   /** True if the iterator should skip duplicates */
   bool d_skipDups;
 };
@@ -128,6 +124,6 @@ using FlatView = FlatViewTemplate<true>;
 using FlatTView = FlatViewTemplate<false>;
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__NODE_VIEW_H */
+#endif /* CVC5__EXPR__NODE_VIEW_H */

@@ -1,12 +1,9 @@
-; COMMAND-LINE: --bitblast=eager --no-check-models  --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager 
 ; REQUIRES: cryptominisat
-; REQUIRES: drat2er
-; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=lrat --check-proofs --no-check-unsat-cores
-; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=drat --check-proofs --no-check-unsat-cores
-; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=er --check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat
 ; EXPECT: unsat
 (set-logic QF_UFBV)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-fun v0 () (_ BitVec 4))

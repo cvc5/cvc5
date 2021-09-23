@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ackermann --no-check-models --no-check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --ackermann
 ; EXPECT: unsat
 (set-logic QF_UFBV)
 

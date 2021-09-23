@@ -1,40 +1,43 @@
-/*********************                                                        */
-/*! \file pseudo_boolean_processor.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 
 #include "base/output.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
-using namespace CVC4::theory::arith;
+using namespace cvc5::theory;
+using namespace cvc5::theory::arith;
 
 PseudoBooleanProcessor::PseudoBooleanProcessor(
     PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "pseudo-boolean-processor"),
-      d_pbBounds(preprocContext->getUserContext()),
-      d_subCache(preprocContext->getUserContext()),
-      d_pbs(preprocContext->getUserContext(), 0)
+      d_pbBounds(userContext()),
+      d_subCache(userContext()),
+      d_pbs(userContext(), 0)
 {
 }
 
@@ -207,7 +210,7 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
                                                Node orig)
 {
   Assert(assertion.getKind() == kind::GEQ);
-  Assert(assertion == Rewriter::rewrite(assertion));
+  Assert(assertion == rewrite(assertion));
 
   // assume assertion is rewritten
   Node l = assertion[0];
@@ -261,7 +264,7 @@ void PseudoBooleanProcessor::learnInternal(Node assertion,
     case kind::LEQ:
     case kind::LT:
     {
-      Node rw = Rewriter::rewrite(assertion);
+      Node rw = rewrite(assertion);
       if (assertion == rw)
       {
         if (assertion.getKind() == kind::GEQ)
@@ -317,7 +320,7 @@ void PseudoBooleanProcessor::addSub(Node from, Node to)
 {
   if (!d_subCache.hasSubstitution(from))
   {
-    Node rw_to = Rewriter::rewrite(to);
+    Node rw_to = rewrite(to);
     d_subCache.addSubstitution(from, rw_to);
   }
 }
@@ -383,7 +386,7 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
 
 Node PseudoBooleanProcessor::applyReplacements(Node pre)
 {
-  Node assertion = Rewriter::rewrite(pre);
+  Node assertion = rewrite(pre);
 
   Node result = d_subCache.apply(assertion);
   if (Debug.isOn("pbs::rewrites") && result != assertion)
@@ -408,7 +411,7 @@ void PseudoBooleanProcessor::applyReplacements(
 
 void PseudoBooleanProcessor::clear()
 {
-  d_off.clear();
+  d_off.reset();
   d_pos.clear();
   d_neg.clear();
 }
@@ -416,4 +419,4 @@ void PseudoBooleanProcessor::clear()
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

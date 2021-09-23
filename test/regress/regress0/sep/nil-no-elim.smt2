@@ -3,6 +3,7 @@
 (declare-sort U 0)
 (declare-fun f (U) U)
 (declare-fun a () U)
+(declare-heap (U Int))
 
 (assert (= (as sep.nil U) (f a)))
 

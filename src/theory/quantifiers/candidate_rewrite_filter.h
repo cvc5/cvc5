@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file candidate_rewrite_filter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements techniques for candidate rewrite rule filtering, which
- ** filters the output of --sygus-rr-synth. The classes in this file implement
- ** filtering based on congruence, variable ordering, and matching.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements techniques for candidate rewrite rule filtering, which
+ * filters the output of --sygus-rr-synth. The classes in this file implement
+ * filtering based on congruence, variable ordering, and matching.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
-#define CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
+#define CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
 
 #include <map>
 #include "expr/match_trie.h"
@@ -25,7 +26,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -114,7 +115,7 @@ class CandidateRewriteFilter
    * Stores all relevant pairs returned by this sampler (see registerTerm). In
    * detail, if (t,s) is a relevant pair, then t in d_pairs[s].
    */
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
+  std::map<Node, std::unordered_set<Node> > d_pairs;
   /**
    * For each (builtin) type, a match trie storing all terms in the domain of
    * d_pairs.
@@ -171,6 +172,6 @@ class CandidateRewriteFilter
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H */

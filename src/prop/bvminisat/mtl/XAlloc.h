@@ -24,7 +24,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <errno.h>
 #include <stdlib.h>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace BVMinisat {
 
 //=================================================================================================
@@ -41,8 +41,7 @@ static inline void* xrealloc(void *ptr, size_t size)
 }
 
 //=================================================================================================
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
-
+}  // namespace BVMinisat
+}  // namespace cvc5
 
 #endif

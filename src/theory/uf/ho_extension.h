@@ -1,29 +1,33 @@
-/*********************                                                        */
-/*! \file ho_extension.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The higher-order extension of TheoryUF.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The higher-order extension of TheoryUF.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef __CVC4__THEORY__UF__HO_EXTENSION_H
-#define __CVC4__THEORY__UF__HO_EXTENSION_H
+#ifndef __CVC5__THEORY__UF__HO_EXTENSION_H
+#define __CVC5__THEORY__UF__HO_EXTENSION_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -44,15 +48,15 @@ class TheoryUF;
  *
  * For more details, see "Extending SMT Solvers to Higher-Order", Barbosa et al.
  */
-class HoExtension
+class HoExtension : protected EnvObj
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  HoExtension(TheoryUF& p, context::Context* c, context::UserContext* u);
+  HoExtension(Env& env, TheoryState& state, TheoryInferenceManager& im);
 
-  /** expand definition
+  /** ppRewrite
    *
    * This returns the expanded form of node.
    *
@@ -61,7 +65,7 @@ class HoExtension
    * function variables for function heads that are not variables via the
    * getApplyUfForHoApply method below.
    */
-  Node expandDefinition(Node node);
+  Node ppRewrite(Node node);
 
   /** check higher order
    *
@@ -110,7 +114,7 @@ class HoExtension
    * values in m. It returns false if any (dis)equality added to m led to
    * an inconsistency in m.
    */
-  bool collectModelInfoHo(std::set<Node>& termSet, TheoryModel* m);
+  bool collectModelInfoHo(TheoryModel* m, const std::set<Node>& termSet);
 
  protected:
   /** get apply uf for ho apply
@@ -180,8 +184,10 @@ class HoExtension
  private:
   /** common constants */
   Node d_true;
-  /** the parent of this extension */
-  TheoryUF& d_parent;
+  /** Reference to the state object */
+  TheoryState& d_state;
+  /** Reference to the inference manager */
+  TheoryInferenceManager& d_im;
   /** extensionality has been applied to these disequalities */
   NodeSet d_extensionality;
 
@@ -194,6 +200,6 @@ class HoExtension
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* __CVC4__THEORY__UF__HO_EXTENSION_H */
+#endif /* __CVC5__THEORY__UF__HO_EXTENSION_H */

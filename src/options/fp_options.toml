@@ -1,6 +1,5 @@
 id     = "FP"
-name   = "Fp"
-header = "options/fp_options.h"
+name   = "Floating-Point"
 
 [[option]]
   name       = "fpExp"
@@ -9,3 +8,11 @@ header = "options/fp_options.h"
   type       = "bool"
   default    = "false"
   help       = "Allow floating-point sorts of all sizes, rather than only Float32 (8/24) or Float64 (11/53) (experimental)"
+
+[[option]]
+  name       = "fpLazyWb"
+  category   = "expert"
+  long       = "fp-lazy-wb"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable lazier word-blasting (on preNotifyFact instead of registerTerm)"

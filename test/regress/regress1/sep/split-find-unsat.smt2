@@ -1,7 +1,8 @@
-; COMMAND-LINE: --no-check-models
+; COMMAND-LINE:
 ; EXPECT: unsat
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 (set-info :status unsat)
+(declare-heap (Int Int))
 
 (declare-const x Int)
 (declare-const y Int)

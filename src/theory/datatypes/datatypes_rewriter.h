@@ -1,32 +1,39 @@
-/*********************                                                        */
-/*! \file datatypes_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewriter for the theory of (co)inductive datatypes
- **
- ** Rewriter for the theory of (co)inductive datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewriter for the theory of (co)inductive datatypes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
-#define CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
+#ifndef CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H
+#define CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
-#include "expr/node_manager_attributes.h"
 #include "theory/theory_rewriter.h"
-#include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
+/**
+ * The rewriter for datatypes. An invariant of the rewriter is that
+ * postRewrite/preRewrite should not depend on the options, in particular,
+ * they should not depend on whether shared selectors are enabled. Thus,
+ * they should not use DTypeConstructor::getSelectorInternal. Instead,
+ * the conversion from external to internal selectors is done in
+ * expandDefinition. This invariant ensures that the rewritten form of a node
+ * does not mix multiple option settings, which would lead to e.g. shared
+ * selectors being used in an SmtEngine instance where they are disabled.
+ */
 class DatatypesRewriter : public TheoryRewriter
 {
  public:
@@ -51,6 +58,19 @@ class DatatypesRewriter : public TheoryRewriter
    * on all top-level codatatype subterms of n.
    */
   static Node normalizeConstant(Node n);
+  /**
+   * Expand an APPLY_SELECTOR term n, return its expanded form. If n is
+   *   (APPLY_SELECTOR selC x)
+   * its expanded form is
+   *   (ITE (APPLY_TESTER is-C x)
+   *     (APPLY_SELECTOR_TOTAL selC' x)
+   *     (f x))
+   * where f is a skolem function with id SELECTOR_WRONG, and selC' is the
+   * internal selector function for selC (possibly a shared selector).
+   */
+  static Node expandApplySelector(Node n);
+  /** expand defintions */
+  TrustNode expandDefinition(Node n) override;
 
  private:
   /** rewrite constructor term in */
@@ -59,6 +79,8 @@ class DatatypesRewriter : public TheoryRewriter
   static RewriteResponse rewriteSelector(TNode in);
   /** rewrite tester term in */
   static RewriteResponse rewriteTester(TNode in);
+  /** rewrite updater term in */
+  static RewriteResponse rewriteUpdater(TNode in);
 
   /** collect references
    *
@@ -77,7 +99,7 @@ class DatatypesRewriter : public TheoryRewriter
    *   Stream := cons( head : Int, tail : Stream )
    * The stream 1,0,1,0,1,0... when written in mu-notation is the term:
    *   mu x. cons( 1, mu y. cons( 0, x ) )
-   * This is represented in CVC4 by the Node:
+   * This is represented in cvc5 by the Node:
    *   cons( 1, cons( 0, c[1] ) )
    * where c[1] is a uninterpreted constant datatype with Debruijn index 1,
    * indicating that c[1] is nested underneath 1 level on the path to the
@@ -144,8 +166,8 @@ class DatatypesRewriter : public TheoryRewriter
                               unsigned depth);
 }; /* class DatatypesRewriter */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H */
+#endif /* CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H */

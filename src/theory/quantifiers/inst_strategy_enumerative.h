@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file inst_strategy_enumerative.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerative instantiation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerative instantiation.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC5__INST_STRATEGY_ENUMERATIVE_H
+#define CVC5__INST_STRATEGY_ENUMERATIVE_H
 
-#include "context/context.h"
-#include "context/context_mm.h"
-#include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/relevant_domain.h"
+#include "smt/env_obj.h"
+#include "theory/quantifiers/quant_module.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
+
+class RelevantDomain;
 
 /** Enumerative instantiation
  *
@@ -62,8 +63,15 @@ namespace quantifiers {
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd);
+  InstStrategyEnum(Env& env,
+                   QuantifiersState& qs,
+                   QuantifiersInferenceManager& qim,
+                   QuantifiersRegistry& qr,
+                   TermRegistry& tr,
+                   RelevantDomain* rd);
   ~InstStrategyEnum() {}
+  /** Presolve */
+  void presolve() override;
   /** Needs check. */
   bool needsCheck(Theory::Effort e) override;
   /** Reset round. */
@@ -101,10 +109,16 @@ class InstStrategyEnum : public QuantifiersModule
    * term instantiations.
    */
   bool process(Node q, bool fullEffort, bool isRd);
+  /**
+   * A limit on the number of rounds to apply this strategy, where a value < 0
+   * means no limit. This value is set to the value of fullSaturateLimit()
+   * during presolve.
+   */
+  int32_t d_fullSaturateLimit;
 }; /* class InstStrategyEnum */
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

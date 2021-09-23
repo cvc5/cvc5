@@ -1,8 +1,9 @@
 ; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_ALL)
 
 (declare-sort Loc 0)
+(declare-heap (Loc Loc))
 
 (declare-const w Loc)
 (declare-const u1 Loc)

@@ -1,34 +1,42 @@
-/*********************                                                        */
-/*! \file skolemize.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utilities for skolemization
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for skolemization.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H
-#define CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
+#define CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H
 
 #include <unordered_map>
 #include <unordered_set>
 
 #include "context/cdhashmap.h"
-#include "expr/datatype.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers/quant_util.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class DTypeConstructor;
+
 namespace theory {
 namespace quantifiers {
+
+class QuantifiersState;
+class TermRegistry;
 
 /** Skolemization utility
  *
@@ -56,20 +64,22 @@ namespace quantifiers {
  * default and can be enabled by option:
  *   --quant-ind
  */
-class Skolemize
+class Skolemize : protected EnvObj
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersEngine* qe, context::UserContext* u);
+  Skolemize(Env& env,
+            QuantifiersState& qs,
+            TermRegistry& tr,
+            ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
-   * If the return value ret of this function
-   * is non-null, then ret is a new skolemization lemma
-   * we generated for q. These lemmas are constructed
-   * once per user-context.
+   * If the return value ret of this function is non-null, then ret is a trust
+   * node corresponding to a new skolemization lemma we generated for q. These
+   * lemmas are constructed once per user-context.
    */
-  Node process(Node q);
+  TrustNode process(Node q);
   /** get skolem constants for quantified formula q */
   bool getSkolemConstants(Node q, std::vector<Node>& skolems);
   /** get the i^th skolem constant for quantified formula q */
@@ -83,10 +93,10 @@ class Skolemize
    * The skolem constants/functions we generate by this
    * skolemization are added to sk.
    *
-   * The arguments fvTypes and fvs are used if we are
+   * The argument fvs are used if we are
    * performing skolemization within a nested quantified
    * formula. In this case, skolem constants we introduce
-   * must be parameterized based on fvTypes and must be
+   * must be parameterized based on the types of fvs and must be
    * applied to fvs.
    *
    * The last two arguments sub and sub_vars are used for
@@ -97,7 +107,6 @@ class Skolemize
    */
   static Node mkSkolemizedBody(Node q,
                                Node n,
-                               std::vector<TypeNode>& fvTypes,
                                std::vector<TNode>& fvs,
                                std::vector<Node>& sk,
                                Node& sub,
@@ -106,17 +115,22 @@ class Skolemize
   Node getSkolemizedBody(Node q);
   /** is n a variable that we can apply inductive strenghtening to? */
   static bool isInductionTerm(Node n);
-  /** print all skolemizations
+  /**
+   * Get skolemization vectors, where for each quantified formula that was
+   * skolemized, this is the list of skolems that were used to witness the
+   * negation of that quantified formula (which is equivalent to an existential
+   * one).
+   *
    * This is used for the command line option
    *   --dump-instantiations
-   * which prints an informal justification
-   * of steps taken by the quantifiers module.
-   * Returns true if we printed at least one
-   * skolemization.
+   * which prints an informal justification of steps taken by the quantifiers
+   * module.
    */
-  bool printSkolemization(std::ostream& out);
+  void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
 
  private:
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
   /** get self selectors
    * For datatype constructor dtc with type dt,
    * this collects the set of datatype selector applications,
@@ -128,19 +142,24 @@ class Skolemize
                          Node n,
                          TypeNode ntn,
                          std::vector<Node>& selfSel);
-  /** quantifiers engine that owns this module */
-  QuantifiersEngine* d_quantEngine;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** quantified formulas that have been skolemized */
   NodeNodeMap d_skolemized;
   /** map from quantified formulas to the list of skolem constants */
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
-      d_skolem_constants;
+  std::unordered_map<Node, std::vector<Node>> d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
-  std::unordered_map<Node, Node, NodeHashFunction> d_skolem_body;
+  std::unordered_map<Node, Node> d_skolem_body;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
+  /** Eager proof generator for skolemization lemmas */
+  std::unique_ptr<EagerProofGenerator> d_epg;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SKOLEMIZE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H */

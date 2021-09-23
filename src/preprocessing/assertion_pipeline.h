@@ -1,30 +1,39 @@
-/*********************                                                        */
-/*! \file assertion_pipeline.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Justin Xu, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief AssertionPipeline stores a list of assertions modified by
- ** preprocessing passes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * AssertionPipeline stores a list of assertions modified by
+ * preprocessing passes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
-#define CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
+#ifndef CVC5__PREPROCESSING__ASSERTION_PIPELINE_H
+#define CVC5__PREPROCESSING__ASSERTION_PIPELINE_H
 
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/term_formula_removal.h"
+#include "proof/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofGenerator;
+namespace smt {
+class PreprocessProofGenerator;
+}
+
 namespace preprocessing {
+
+using IteSkolemMap = std::unordered_map<size_t, Node>;
 
 /**
  * Assertion Pipeline stores a list of assertions modified by preprocessing
@@ -45,7 +54,6 @@ class AssertionPipeline
    */
   void clear();
 
-  Node& operator[](size_t i) { return d_nodes[i]; }
   const Node& operator[](size_t i) const { return d_nodes[i]; }
 
   /**
@@ -54,10 +62,22 @@ class AssertionPipeline
    * @param n The assertion/assumption
    * @param isAssumption If true, records that \p n is an assumption. Note that
    * all assumptions have to be added contiguously.
+   * @param isInput If true, n is an input formula (an assumption in the main
+   * body of the overall proof).
+   * @param pg The proof generator who can provide a proof of n. The proof
+   * generator is not required and is ignored if isInput is true.
    */
-  void push_back(Node n, bool isAssumption = false);
+  void push_back(Node n,
+                 bool isAssumption = false,
+                 bool isInput = false,
+                 ProofGenerator* pg = nullptr);
+  /** Same as above, with TrustNode */
+  void pushBackTrusted(TrustNode trn);
 
-  std::vector<Node>& ref() { return d_nodes; }
+  /**
+   * Get the constant reference to the underlying assertions. It is only
+   * possible to modify these via the replace methods below.
+   */
   const std::vector<Node>& ref() const { return d_nodes; }
 
   std::vector<Node>::const_iterator begin() const { return d_nodes.cbegin(); }
@@ -66,21 +86,18 @@ class AssertionPipeline
   /*
    * Replaces assertion i with node n and records the dependency between the
    * original assertion and its replacement.
+   *
+   * @param i The position of the assertion to replace.
+   * @param n The replacement assertion.
+   * @param pg The proof generator who can provide a proof of d_nodes[i] == n,
+   * where d_nodes[i] is the assertion at position i prior to this call.
    */
-  void replace(size_t i, Node n);
-
-  /*
-   * Replaces assertion i with node n and records that this replacement depends
-   * on assertion i and the nodes listed in addnDeps. The dependency
-   * information is used for unsat cores and proofs.
+  void replace(size_t i, Node n, ProofGenerator* pg = nullptr);
+  /**
+   * Same as above, with TrustNode trn, which is of kind REWRITE and proves
+   * d_nodes[i] = n for some n.
    */
-  void replace(size_t i, Node n, const std::vector<Node>& addnDeps);
-
-  /*
-   * Replaces an assertion with a vector of assertions and records the
-   * dependencies.
-   */
-  void replace(size_t i, const std::vector<Node>& ns);
+  void replaceTrusted(size_t i, TrustNode trn);
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
@@ -113,8 +130,23 @@ class AssertionPipeline
 
   /**
    * Adds a substitution node of the form (= lhs rhs) to the assertions.
+   * This conjoins n to assertions at a distinguished index given by
+   * d_substsIndex.
+   *
+   * @param n The substitution node
+   * @param pg The proof generator that can provide a proof of n.
    */
-  void addSubstitutionNode(Node n);
+  void addSubstitutionNode(Node n, ProofGenerator* pg = nullptr);
+
+  /**
+   * Conjoin n to the assertion vector at position i. This replaces
+   * d_nodes[i] with the rewritten form of (AND d_nodes[i] n).
+   *
+   * @param i The assertion to replace
+   * @param n The formula to conjoin at position i
+   * @param pg The proof generator that can provide a proof of n
+   */
+  void conjoin(size_t i, Node n, ProofGenerator* pg = nullptr);
 
   /**
    * Checks whether the assertion at a given index represents substitutions.
@@ -125,7 +157,12 @@ class AssertionPipeline
   {
     return d_storeSubstsInAsserts && i == d_substsIndex;
   }
-
+  //------------------------------------ for proofs
+  /** Set proof generator */
+  void setProofGenerator(smt::PreprocessProofGenerator* pppg);
+  /** Is proof enabled? */
+  bool isProofEnabled() const;
+  //------------------------------------ end for proofs
  private:
   /** The list of current assertions */
   std::vector<Node> d_nodes;
@@ -157,9 +194,11 @@ class AssertionPipeline
   size_t d_assumptionsStart;
   /** The number of assumptions */
   size_t d_numAssumptions;
+  /** The proof generator, if one is provided */
+  smt::PreprocessProofGenerator* d_pppg;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */
+#endif /* CVC5__PREPROCESSING__ASSERTION_PIPELINE_H */

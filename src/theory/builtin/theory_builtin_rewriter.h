@@ -1,29 +1,29 @@
-/*********************                                                        */
-/*! \file theory_builtin_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
-#define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
+#ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
+#define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 
-#include "theory/theory.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -32,29 +32,6 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   static Node blastDistinct(TNode node);
 
  public:
-  /**
-   * Takes a chained application of a binary operator and returns a conjunction
-   * of binary applications of that operator.
-   *
-   * For example:
-   *
-   * (= x y z) ---> (and (= x y) (= y z))
-   *
-   * @param node A node that is a chained application of a binary operator
-   * @return A conjunction of binary applications of the chained operator
-   */
-  static Node blastChain(TNode node);
-
-  static inline RewriteResponse doRewrite(TNode node)
-  {
-    switch (node.getKind())
-    {
-      case kind::DISTINCT:
-        return RewriteResponse(REWRITE_DONE, blastDistinct(node));
-      case kind::CHAIN: return RewriteResponse(REWRITE_DONE, blastChain(node));
-      default: return RewriteResponse(REWRITE_DONE, node);
-    }
-  }
 
   RewriteResponse postRewrite(TNode node) override;
 
@@ -63,12 +40,24 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   // conversions between lambdas and arrays
  private:
   /** recursive helper for getLambdaForArrayRepresentation */
-  static Node getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
-                                                  std::unordered_map< TNode, Node, TNodeHashFunction >& visited );
+  static Node getLambdaForArrayRepresentationRec(
+      TNode a,
+      TNode bvl,
+      unsigned bvlIndex,
+      std::unordered_map<TNode, Node>& visited);
   /** recursive helper for getArrayRepresentationForLambda */
   static Node getArrayRepresentationForLambdaRec(TNode n, TypeNode retType);
 
  public:
+  /**
+   * The default rewriter for rewrites that occur at both pre and post rewrite.
+   */
+  static RewriteResponse doRewrite(TNode node);
+  /**
+   * Main entry point for rewriting terms of the form (witness ((x T)) (P x)).
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteWitness(TNode node);
   /** Get function type for array type
    *
    * This returns the function type of terms returned by the function
@@ -132,8 +121,8 @@ class TheoryBuiltinRewriter : public TheoryRewriter
   static Node getArrayRepresentationForLambda(TNode n);
 }; /* class TheoryBuiltinRewriter */
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H */
+#endif /* CVC5__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H */

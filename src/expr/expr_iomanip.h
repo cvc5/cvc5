@@ -1,27 +1,26 @@
-/*********************                                                        */
-/*! \file expr_iomanip.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Expr IO manipulation classes.
- **
- ** Expr IO manipulation classes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Expr IO manipulation classes.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__EXPR__EXPR_IOMANIP_H
-#define CVC4__EXPR__EXPR_IOMANIP_H
+#ifndef CVC5__EXPR__EXPR_IOMANIP_H
+#define CVC5__EXPR__EXPR_IOMANIP_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 /**
@@ -43,9 +42,9 @@ namespace expr {
  * allocated word in ios_base), and serves also as the manipulator
  * itself (as above).
  */
-class CVC4_PUBLIC ExprSetDepth {
-public:
-
+class ExprSetDepth
+{
+ public:
   /**
    * Construct a ExprSetDepth with the given depth.
    */
@@ -89,63 +88,14 @@ public:
    * When this manipulator is used, the depth is stored here.
    */
   long d_depth;
-};/* class ExprSetDepth */
-
-/**
- * IOStream manipulator to print type ascriptions or not.
- *
- *   // let a, b, c, and d be variables of sort U
- *   Expr e = em->mkExpr(OR, a, b, em->mkExpr(AND, c, em->mkExpr(NOT, d)))
- *   out << e;
- *
- * gives "(OR a:U b:U (AND c:U (NOT d:U)))", but
- */
-class CVC4_PUBLIC ExprPrintTypes {
-public:
-  /**
-   * Construct a ExprPrintTypes with the given setting.
-   */
-  ExprPrintTypes(bool printTypes);
-
-  void applyPrintTypes(std::ostream& out);
-
-  static bool getPrintTypes(std::ostream& out);
-
-  static void setPrintTypes(std::ostream& out, bool printTypes);
-
-  /**
-   * Set the print-types state on the output stream for the current
-   * stack scope.  This makes sure the old state is reset on the
-   * stream after normal OR exceptional exit from the scope, using the
-   * RAII C++ idiom.
-   */
-  class Scope {
-  public:
-    Scope(std::ostream& out, bool printTypes);
-    ~Scope();
-
-  private:
-    std::ostream& d_out;
-    bool d_oldPrintTypes;
-  };/* class ExprPrintTypes::Scope */
-
- private:
-  /**
-   * The allocated index in ios_base for our setting.
-   */
-  static const int s_iosIndex;
-
-  /**
-   * When this manipulator is used, the setting is stored here.
-   */
-  bool d_printTypes;
-};/* class ExprPrintTypes */
+}; /* class ExprSetDepth */
 
 /**
  * IOStream manipulator to print expressions as a dag (or not).
  */
-class CVC4_PUBLIC ExprDag {
-public:
+class ExprDag
+{
+ public:
   /**
    * Construct a ExprDag with the given setting (dagification on or off).
    */
@@ -196,7 +146,7 @@ public:
    * When this manipulator is used, the setting is stored here.
    */
   size_t d_dag;
-};/* class ExprDag */
+}; /* class ExprDag */
 
 /**
  * Sets the default dag setting when pretty-printing a Expr to an ostream.
@@ -207,19 +157,7 @@ public:
  *
  * The setting stays permanently (until set again) with the stream.
  */
-std::ostream& operator<<(std::ostream& out, ExprDag d) CVC4_PUBLIC;
-
-
-/**
- * Sets the default print-types setting when pretty-printing an Expr
- * to an ostream.  Use like this:
- *
- *   // let out be an ostream, e an Expr
- *   out << Expr::printtypes(true) << e << endl;
- *
- * The setting stays permanently (until set again) with the stream.
- */
-std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, ExprDag d);
 
 /**
  * Sets the default depth when pretty-printing a Expr to an ostream.
@@ -230,10 +168,10 @@ std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) CVC4_PUBLIC;
  *
  * The depth stays permanently (until set again) with the stream.
  */
-std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, ExprSetDepth sd);
 
-}/* namespace CVC4::expr */
+}  // namespace expr
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__EXPR__EXPR_IOMANIP_H */
+#endif /* CVC5__EXPR__EXPR_IOMANIP_H */

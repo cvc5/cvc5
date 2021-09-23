@@ -1,36 +1,44 @@
-/*********************                                                        */
-/*! \file nary_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "smt_util/nary_builder.h"
 
 #include "expr/metakind.h"
+#include "util/rational.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace util {
 
-Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children){
-  if(children.size() == 0){
+Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children)
+{
+  if (children.size() == 0)
+  {
     return zeroArity(kind);
-  }else if(children.size() == 1){
+  }
+  else if (children.size() == 1)
+  {
     return children[0];
-  }else{
-    const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
-    const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
+  }
+  else
+  {
+    const uint32_t max = kind::metakind::getMaxArityForKind(kind);
+    const uint32_t min = kind::metakind::getMinArityForKind(kind);
 
     Assert(min <= children.size());
 
@@ -122,7 +130,7 @@ bool RePairAssocCommutativeOperators::isAssociateCommutative(Kind k){
   case BITVECTOR_OR:
   case BITVECTOR_XOR:
   case BITVECTOR_MULT:
-  case BITVECTOR_PLUS:
+  case BITVECTOR_ADD:
   case DISTINCT:
   case PLUS:
   case MULT:
@@ -179,7 +187,7 @@ Node RePairAssocCommutativeOperators::case_other(TNode n){
     return n;
   }
 
-  NodeBuilder<> nb(n.getKind());
+  NodeBuilder nb(n.getKind());
 
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
     nb << n.getOperator();
@@ -196,4 +204,4 @@ Node RePairAssocCommutativeOperators::case_other(TNode n){
 }
 
 }/* util namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5

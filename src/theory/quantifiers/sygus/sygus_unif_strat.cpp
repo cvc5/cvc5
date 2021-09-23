@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file sygus_unif_strat.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_unif_strat
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_unif_strat.
+ */
 
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -81,14 +83,14 @@ std::ostream& operator<<(std::ostream& os, StrategyType st)
   return os;
 }
 
-void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
+void SygusUnifStrategy::initialize(TermDbSygus* tds,
                                    Node f,
                                    std::vector<Node>& enums)
 {
   Assert(d_candidate.isNull());
   d_candidate = f;
   d_root = f.getType();
-  d_qe = qe;
+  d_tds = tds;
 
   // collect the enumerator types and form the strategy
   buildStrategyGraph(d_root, role_equal);
@@ -171,6 +173,7 @@ void SygusUnifStrategy::registerStrategyPoint(Node et,
 void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   if (d_tinfo.find(tn) == d_tinfo.end())
   {
     // register type
@@ -193,7 +196,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
   std::map<EnumRole, Node>::iterator iten = eti.d_enum.find(erole);
   if (iten == eti.d_enum.end())
   {
-    ee = nm->mkSkolem("ee", tn);
+    ee = sm->mkDummySkolem("ee", tn);
     eti.d_enum[erole] = ee;
     Trace("sygus-unif-debug")
         << "...enumerator " << ee << " for " << tn.getDType().getName()
@@ -244,7 +247,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
     {
       TypeNode ttn = dt[j][k].getRangeType();
-      Node kv = nm->mkSkolem("ut", ttn);
+      Node kv = sm->mkDummySkolem("ut", ttn);
       sks.push_back(kv);
       cop_to_sks[cop].push_back(kv);
       sktns.push_back(ttn);
@@ -261,7 +264,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
     Node eut = nm->mkNode(DT_SYGUS_EVAL, echildren);
     Trace("sygus-unif-debug2") << "  Test evaluation of " << eut << "..."
                                << std::endl;
-    eut = d_qe->getTermDatabaseSygus()->getEvalUnfold()->unfold(eut);
+    eut = d_tds->rewriteNode(eut);
     Trace("sygus-unif-debug2") << "  ...got " << eut;
     Trace("sygus-unif-debug2") << ", type : " << eut.getType() << std::endl;
 
@@ -302,7 +305,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
                                    << std::endl;
         Node esk = nm->mkNode(DT_SYGUS_EVAL, echildren);
         vs.push_back(esk);
-        Node tvar = nm->mkSkolem("templ", esk.getType());
+        Node tvar = sm->mkDummySkolem("templ", esk.getType());
         templ_var_index[tvar] = k;
         Trace("sygus-unif-debug2") << "* template inference : looking for "
                                    << tvar << " for arg " << k << std::endl;
@@ -439,7 +442,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
                 teut = children.size() == 1
                            ? children[0]
                            : nm->mkNode(eut.getKind(), children);
-                teut = Rewriter::rewrite(teut);
+                teut = rewrite(teut);
               }
               else
               {
@@ -573,7 +576,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
           if (cop_to_child_templ[cop].find(j) != cop_to_child_templ[cop].end())
           {
             // it is templated, allocate a fresh variable
-            et = nm->mkSkolem("et", ct);
+            et = sm->mkDummySkolem("et", ct);
             Trace("sygus-unif-debug") << "...enumerate " << et << " of type "
                                       << ct.getDType().getName();
             Trace("sygus-unif-debug") << " for arg " << j << " of "
@@ -870,8 +873,8 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       }
       if (op.getKind() == kind::BUILTIN)
       {
-        Kind k = NodeManager::operatorToKind(op);
-        if (k == NOT || k == OR || k == AND || k == ITE)
+        Kind kind = NodeManager::operatorToKind(op);
+        if (kind == NOT || kind == OR || kind == AND || kind == ITE)
         {
           // can eliminate if their argument types are simple loops to this type
           bool type_ok = true;
@@ -1047,6 +1050,6 @@ void SygusUnifStrategy::indent(const char* c, int ind)
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

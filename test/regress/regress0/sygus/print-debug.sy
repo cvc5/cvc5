@@ -1,0 +1,16 @@
+; REQUIRES: no-competition
+; COMMAND-LINE: -o sygus
+; EXPECT: (sygus-enum 0)
+; EXPECT: (sygus-candidate (f 0))
+; EXPECT: (sygus-enum 1)
+; EXPECT: (sygus-candidate (f 1))
+; EXPECT: (
+; EXPECT: (define-fun f () Int 1)
+; EXPECT: )
+(set-logic LIA)
+
+(synth-fun f () Int ((Start Int)) ((Start Int (0 1))))
+
+(constraint (not (= f 0)))
+
+(check-synth)

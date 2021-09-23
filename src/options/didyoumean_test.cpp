@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file didyoumean_test.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-// This is not built as a part of CVC4 and is not built by Makefile.am.
+// This is not built as a part of cvc5 and is not built by Makefile.am.
 // Compile: g++ didyoumean_test.cpp didyoumean.cpp
 // For debug compile with -DDIDYOUMEAN_DEBUG or -DDIDYOUMEAN_DEBUG1 or both
 
@@ -23,7 +24,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace CVC4;
+using namespace cvc5;
 
 set<string> getDebugTags();
 set<string> getOptionStrings();
@@ -165,9 +166,9 @@ set<string> getDebugTags() {
   a.insert("bvminisat");
   a.insert("bvminisat::explain");
   a.insert("bvminisat::search");
-  a.insert("cbqi");
-  a.insert("cbqi-debug");
-  a.insert("cbqi-prop-as-dec");
+  a.insert("cegqi");
+  a.insert("cegqi-debug");
+  a.insert("cegqi-prop-as-dec");
   a.insert("cd_set_collection");
   a.insert("cdlist");
   a.insert("cdlist:cmm");
@@ -529,7 +530,6 @@ set<string> getOptionStrings() {
       "dio-repeat",
       "no-dio-repeat",
       "replay-early-close-depth",
-      "replay-failure-penalty",
       "replay-num-err-penalty",
       "replay-reject-cut",
       "replay-lemma-reject-cut",
@@ -605,7 +605,7 @@ set<string> getOptionStrings() {
       "literal-matching",
       "enable-cbqi",
       "no-enable-cbqi",
-      "cbqi-recurse",
+      "cegqi-recurse",
       "no-cbqi-recurse",
       "user-pat",
       "flip-decision",

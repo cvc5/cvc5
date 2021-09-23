@@ -1,6 +1,6 @@
 (set-logic QF_UFLIRAFS)
-(set-info :status unsat)
-(declare-fun s () (Set Int))
+(set-info :status sat)
+(declare-fun s () (Set Real))
 (declare-fun t () (Set Real))
 (declare-fun r () (Set Real))
 (declare-fun u () (Set Real))

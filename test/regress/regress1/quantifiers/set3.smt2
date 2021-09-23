@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --full-saturate-quant
 (set-logic AUFLIA)
 (set-info :source | Assertion verification of simple set manipulation programs. |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-sort Set 0)

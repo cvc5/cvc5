@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file atom_requests.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/atom_requests.h"
 
-using namespace CVC4;
+using namespace cvc5;
 
 AtomRequests::AtomRequests(context::Context* context)
 : d_allRequests(context)
@@ -65,15 +66,13 @@ void AtomRequests::add(TNode triggerAtom, TNode atomToSend, theory::TheoryId toT
   d_triggerToRequestMap[triggerAtom] = index;
 }
 
-bool AtomRequests::atom_iterator::done() const {
-  return index == null_index;
-}
+bool AtomRequests::atom_iterator::done() const { return d_index == null_index; }
 
 void AtomRequests::atom_iterator::next() {
-  index = requests.d_requests[index].previous;
+  d_index = d_requests.d_requests[d_index].d_previous;
 }
 
 const AtomRequests::Request& AtomRequests::atom_iterator::get() const {
-  return requests.d_requests[index].request;
+  return d_requests.d_requests[d_index].d_request;
 }
 

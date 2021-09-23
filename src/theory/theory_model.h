@@ -1,33 +1,38 @@
-/*********************                                                        */
-/*! \file theory_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_MODEL_H
-#define CVC4__THEORY__THEORY_MODEL_H
+#ifndef CVC5__THEORY__THEORY_MODEL_H
+#define CVC5__THEORY__THEORY_MODEL_H
 
 #include <unordered_map>
 #include <unordered_set>
 
-#include "smt/model.h"
+#include "smt/env_obj.h"
+#include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
-#include "theory/substitutions.h"
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
+#include "util/cardinality.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class Env;
+
 namespace theory {
 
 /** Theory Model class.
@@ -37,16 +42,16 @@ namespace theory {
  * (1) d_equalityEngine : an equality engine object, which stores
  *     an equivalence relation over all terms that exist in
  *     the current set of assertions.
- * (2) d_substitutions : a substitution map storing cases of
- *     explicitly solved terms, for instance during preprocessing.
- * (3) d_reps : a map from equivalence class representatives of
+ * (2) d_reps : a map from equivalence class representatives of
  *     the equality engine to the (constant) representatives
  *     assigned to that equivalence class.
- * (4) d_uf_models : a map from uninterpreted functions to their
+ * (3) d_uf_models : a map from uninterpreted functions to their
  *     lambda representation.
- * (5) d_rep_set : a data structure that allows interpretations
+ * (4) d_rep_set : a data structure that allows interpretations
  *     for types to be represented as terms. This is useful for
  *     finite model finding.
+ * Additionally, models are dependent on top-level substitutions stored in the
+ * d_env class.
  *
  * These data structures are built after a full effort check with
  * no lemmas sent, within a call to:
@@ -75,33 +80,21 @@ namespace theory {
  * above functions such as getRepresentative() when assigning total
  * interpretations for uninterpreted functions.
  */
-class TheoryModel : public Model
+class TheoryModel : protected EnvObj
 {
   friend class TheoryEngineModelBuilder;
-public:
-  TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
-  ~TheoryModel() override;
+
+ public:
+  TheoryModel(Env& env, std::string name, bool enableFuncModels);
+  virtual ~TheoryModel();
+  /**
+   * Finish init, where ee is the equality engine the model should use.
+   */
+  void finishInit(eq::EqualityEngine* ee);
 
   /** reset the model */
   virtual void reset();
-  /** is built
-   *
-   * Have we attempted to build this model since the last
-   * call to reset? Notice for model building techniques
-   * that are not guaranteed to succeed (such as
-   * when quantified formulas are enabled), a true return
-   * value does not imply that this is a model of the
-   * current assertions.
-   */
-  bool isBuilt() { return d_modelBuilt; }
-  /** is built success
-   *
-   * Was this model successfully built since the last call to reset?
-   */
-  bool isBuiltSuccess() { return d_modelBuiltSuccess; }
   //---------------------------- for building the model
-  /** Adds a substitution from x to t. */
-  void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
   /** assert equality holds in the model
    *
    * This method returns true if and only if the equality engine of this model
@@ -120,7 +113,7 @@ public:
    * is consistent after asserting the equality engine to this model.
    */
   bool assertEqualityEngine(const eq::EqualityEngine* ee,
-                            std::set<Node>* termSet = NULL);
+                            const std::set<Node>* termSet = NULL);
   /** assert skeleton
    *
    * This method gives a "skeleton" for the model value of the equivalence
@@ -215,6 +208,13 @@ public:
    * construction process.
    */
   void recordApproximation(TNode n, TNode pred);
+  /**
+   * Same as above, but with a witness constant. This ensures that the
+   * approximation predicate is of the form (or (= n witness) pred). This
+   * is useful if the user wants to know a possible concrete value in
+   * the range of the predicate.
+   */
+  void recordApproximation(TNode n, TNode pred, Node witness);
   /** set unevaluate/semi-evaluated kind
    *
    * This informs this model how it should interpret applications of terms with
@@ -259,6 +259,24 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
+  /**
+   * Set irrelevant kind. These kinds do not impact model generation, that is,
+   * registered terms in theories of this kind do not need to be sent to
+   * the model. An example is APPLY_TESTER.
+   */
+  void setIrrelevantKind(Kind k);
+  /**
+   * Get the set of irrelevant kinds that have been registered by the above
+   * method.
+   */
+  const std::set<Kind>& getIrrelevantKinds() const;
+  /** is legal elimination
+   *
+   * Returns true if x -> val is a legal elimination of variable x.
+   * In particular, this ensures that val does not have any subterms that
+   * are of unevaluated kinds.
+   */
+  bool isLegalElimination(TNode x, TNode val);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -279,46 +297,44 @@ public:
    * has called buildModel(...) on this model.
    */
   Node getValue(TNode n) const;
-  /** get comments */
-  void getComments(std::ostream& out) const override;
 
   //---------------------------- separation logic
   /** set the heap and value sep.nil is equal to */
   void setHeapModel(Node h, Node neq);
   /** get the heap and value sep.nil is equal to */
-  bool getHeapModel(Expr& h, Expr& neq) const override;
+  bool getHeapModel(Node& h, Node& neq) const;
   //---------------------------- end separation logic
 
   /** is the list of approximations non-empty? */
-  bool hasApproximations() const override;
+  bool hasApproximations() const;
   /** get approximations */
-  std::vector<std::pair<Expr, Expr> > getApproximations() const override;
+  std::vector<std::pair<Node, Node> > getApproximations() const;
   /** get domain elements for uninterpreted sort t */
-  std::vector<Expr> getDomainElements(Type t) const override;
+  std::vector<Node> getDomainElements(TypeNode t) const;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
 
   //---------------------------- model cores
+  /** True if a model core has been computed for this model. */
+  bool isUsingModelCore() const;
   /** set using model core */
-  void setUsingModelCore() override;
+  void setUsingModelCore();
   /** record model core symbol */
-  void recordModelCoreSymbol(Expr sym) override;
+  void recordModelCoreSymbol(Node sym);
   /** Return whether symbol expr is in the model core. */
-  bool isModelCoreSymbol(Expr sym) const override;
+  bool isModelCoreSymbol(Node sym) const;
   //---------------------------- end model cores
 
-  /** get value function for Exprs. */
-  Expr getValue(Expr expr) const override;
   /** get cardinality for sort */
-  Cardinality getCardinality(Type t) const override;
+  Cardinality getCardinality(TypeNode t) const;
 
   //---------------------------- function values
-  /** a map from functions f to a list of all APPLY_UF terms with operator f */
-  std::map< Node, std::vector< Node > > d_uf_terms;
-  /** a map from functions f to a list of all HO_APPLY terms with first argument f */
-  std::map< Node, std::vector< Node > > d_ho_uf_terms;
+  /** Does this model have terms for the given uninterpreted function? */
+  bool hasUfTerms(Node f) const;
+  /** Get the terms for uninterpreted function f */
+  const std::vector<Node>& getUfTerms(Node f) const;
   /** are function values enabled? */
   bool areFunctionValuesEnabled() const;
   /** assign function value f to definition f_def */
@@ -333,26 +349,29 @@ public:
   */
   std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
+  /** Get the name of this model */
+  const std::string& getName() const;
+  /**
+   * For debugging, print the equivalence classes of the underlying equality
+   * engine.
+   */
+  std::string debugPrintModelEqc() const;
+
  protected:
-  /** substitution map for this model */
-  SubstitutionMap d_substitutions;
-  /** whether we have tried to build this model in the current context */
-  bool d_modelBuilt;
-  /** whether this model has been built successfully */
-  bool d_modelBuiltSuccess;
-  /** special local context for our equalityEngine so we can clear it
-   * independently of search context */
-  context::Context* d_eeContext;
+  /** Unique name of this model */
+  std::string d_name;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
   /** approximations (see recordApproximation) */
   std::map<Node, Node> d_approximations;
   /** list of all approximations */
   std::vector<std::pair<Node, Node> > d_approx_list;
-  /** a set of kinds that are not evaluated */
-  std::unordered_set<Kind, kind::KindHashFunction> d_not_evaluated_kinds;
+  /** a set of kinds that are unevaluated */
+  std::unordered_set<Kind, kind::KindHashFunction> d_unevaluated_kinds;
   /** a set of kinds that are semi-evaluated */
   std::unordered_set<Kind, kind::KindHashFunction> d_semi_evaluated_kinds;
+  /** The set of irrelevant kinds */
+  std::set<Kind> d_irrKinds;
   /**
    * Map of representatives of equality engine to used representatives in
    * representative set
@@ -374,18 +393,15 @@ public:
   /** true/false nodes */
   Node d_true;
   Node d_false;
-  /** comment stream to include in printing */
-  std::stringstream d_comment_str;
   /** are we using model cores? */
   bool d_using_model_core;
   /** symbols that are in the model core */
-  std::unordered_set<Node, NodeHashFunction> d_model_core;
+  std::unordered_set<Node> d_model_core;
   /** Get model value function.
    *
    * This function is a helper function for getValue.
-   *   hasBoundVars is whether n may contain bound variables
    */
-  Node getModelValue(TNode n, bool hasBoundVars = false) const;
+  Node getModelValue(TNode n) const;
   /** add term internal
    *
    * This will do any model-specific processing necessary for n,
@@ -394,10 +410,9 @@ public:
    * a model builder constructs this model.
    */
   virtual void addTermInternal(TNode n);
-
  private:
   /** cache for getModelValue */
-  mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
+  mutable std::unordered_map<Node, Node> d_modelCache;
 
   //---------------------------- separation logic
   /** the value of the heap */
@@ -407,6 +422,11 @@ public:
   //---------------------------- end separation logic
 
   //---------------------------- function values
+  /** a map from functions f to a list of all APPLY_UF terms with operator f */
+  std::map<Node, std::vector<Node> > d_uf_terms;
+  /** a map from functions f to a list of all HO_APPLY terms with first argument
+   * f */
+  std::map<Node, std::vector<Node> > d_ho_uf_terms;
   /** whether function models are enabled */
   bool d_enableFuncModels;
   /** map from function terms to the (lambda) definitions
@@ -417,7 +437,7 @@ public:
   //---------------------------- end function values
 };/* class TheoryModel */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__THEORY_MODEL_H */
+#endif /* CVC5__THEORY__THEORY_MODEL_H */

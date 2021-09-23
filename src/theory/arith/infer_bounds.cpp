@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file infer_bounds.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/infer_bounds.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -34,19 +35,20 @@ InferBoundAlgorithm::InferBoundAlgorithm(Algorithms a)
   Assert(a != Simplex);
 }
 
-InferBoundAlgorithm::InferBoundAlgorithm(const Maybe<int>& simplexRounds)
-  : d_alg(Simplex)
+InferBoundAlgorithm::InferBoundAlgorithm(
+    const std::optional<int>& simplexRounds)
+    : d_alg(Simplex)
 {}
 
 Algorithms InferBoundAlgorithm::getAlgorithm() const{
   return d_alg;
 }
 
-const Maybe<int>& InferBoundAlgorithm::getSimplexRounds() const{
+const std::optional<int>& InferBoundAlgorithm::getSimplexRounds() const
+{
   Assert(getAlgorithm() == Simplex);
   return d_simplexRounds;
 }
-
 
 InferBoundAlgorithm InferBoundAlgorithm::mkLookup(){
   return InferBoundAlgorithm(Lookup);
@@ -56,13 +58,14 @@ InferBoundAlgorithm InferBoundAlgorithm::mkRowSum(){
   return InferBoundAlgorithm(RowSum);
 }
 
-InferBoundAlgorithm InferBoundAlgorithm::mkSimplex(const Maybe<int>& rounds){
+InferBoundAlgorithm InferBoundAlgorithm::mkSimplex(
+    const std::optional<int>& rounds)
+{
   return InferBoundAlgorithm(rounds);
 }
 
 ArithEntailmentCheckParameters::ArithEntailmentCheckParameters()
-  : EntailmentCheckParameters(theory::THEORY_ARITH)
-  , d_algorithms()
+    : d_algorithms()
 {}
 
 ArithEntailmentCheckParameters::~ArithEntailmentCheckParameters()
@@ -85,50 +88,6 @@ ArithEntailmentCheckParameters::const_iterator ArithEntailmentCheckParameters::b
 ArithEntailmentCheckParameters::const_iterator ArithEntailmentCheckParameters::end() const{
   return d_algorithms.end();
 }
-
-
-// SimplexInferBoundsParameters::SimplexInferBoundsParameters()
-//   : d_parameter(1)
-//   , d_upperBound(true)
-//   , d_threshold()
-// {}
-
-// SimplexInferBoundsParameters::~SimplexInferBoundsParameters(){}
-
-
-
-// int SimplexInferBoundsParameters::getSimplexRoundParameter() const {
-//   return d_parameter;
-// }
-
-// bool SimplexInferBoundsParameters::findLowerBound() const {
-//   return ! findUpperBound();
-// }
-
-// bool SimplexInferBoundsParameters::findUpperBound() const {
-//   return d_upperBound;
-// }
-
-// void SimplexInferBoundsParameters::setThreshold(const DeltaRational& th){
-//   d_threshold = th;
-//   d_useThreshold = true;
-// }
-
-// bool SimplexInferBoundsParameters::useThreshold() const{
-//   return d_useThreshold;
-// }
-
-// const DeltaRational& SimplexInferBoundsParameters::getThreshold() const{
-//   return d_threshold;
-// }
-
-// SimplexInferBoundsParameters::SimplexInferBoundsParameters(int p, bool ub)
-//   : d_parameter(p)
-//   , d_upperBound(ub)
-//   , d_useThreshold(false)
-//   , d_threshold()
-// {}
-
 
 InferBoundsResult::InferBoundsResult()
   : d_foundBound(false)
@@ -219,11 +178,6 @@ void InferBoundsResult::setBound(const DeltaRational& dr, Node exp){
   d_explanation = exp;
 }
 
-//bool InferBoundsResult::foundBound() const { return d_foundBound; }
-//bool InferBoundsResult::boundIsOptimal() const { return d_boundIsProvenOpt; }
-//bool InferBoundsResult::inconsistentState() const { return d_inconsistentState; }
-
-
 void InferBoundsResult::setBudgetExhausted() { d_budgetExhausted = true; }
 void InferBoundsResult::setReachedThreshold() { d_reachedThreshold = true; }
 void InferBoundsResult::setIsOptimal() { d_boundIsProvenOpt = true; }
@@ -277,10 +231,8 @@ std::ostream& operator<<(std::ostream& os, const InferBoundsResult& ibr){
   return os;
 }
 
-
 ArithEntailmentCheckSideEffects::ArithEntailmentCheckSideEffects()
-  : EntailmentCheckSideEffects(theory::THEORY_ARITH)
-  , d_simplexSideEffects (NULL)
+    : d_simplexSideEffects(NULL)
 {}
 
 ArithEntailmentCheckSideEffects::~ArithEntailmentCheckSideEffects(){
@@ -316,4 +268,4 @@ std::ostream& operator<<(std::ostream& os,  const Algorithms a){
 
 } /* namespace arith */
 } /* namespace theory */
-} /* namespace CVC4 */
+}  // namespace cvc5

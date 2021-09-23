@@ -1,36 +1,36 @@
-/*********************                                                        */
-/*! \file translator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief CVC4 translator
- **
- ** The CVC4 translator executable.  This program translates from one of
- ** CVC4's input languages to one of its output languages.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * CVC4 translator
+ *
+ * The CVC4 translator executable.  This program translates from one of
+ * CVC4's input languages to one of its output languages.
+ */
+
+#include <cvc5/cvc5.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/set_language.h>
+#include <getopt.h>
 
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <getopt.h>
 #include <iostream>
 
-#include <cvc4/api/cvc4cpp.h>
-#include <cvc4/cvc4.h>
-#include <cvc4/expr/expr_iomanip.h>
-#include <cvc4/options/set_language.h>
-
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::language;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::language;
+using namespace cvc5::parser;
 
 enum {
   INPUT_LANG = 'L',
@@ -47,7 +47,7 @@ const struct option longopts[] = {
   { "output-language", required_argument, NULL, OUTPUT_LANG },
   { "expand-definitions", no_argument, NULL, EXPAND_DEFINITIONS },
   { "combine-assertions", no_argument, NULL, COMBINE_ASSERTIONS },
-  { "default-dag-thresh", required_argument, NULL, DEFAULT_DAG_THRESH },
+  { "dag-thresh", required_argument, NULL, DEFAULT_DAG_THRESH },
   { "lang", required_argument, NULL, INPUT_LANG },
   { "language", required_argument, NULL, INPUT_LANG },
   { "out", required_argument, NULL, OUTPUT_FILE },
@@ -60,7 +60,7 @@ static void showHelp() {
        << "  --output-language | -O  set output language (default smt2)" << endl
        << "  --input-language | -L   set input language (default auto)" << endl
        << "  --out | -o              set output file (- for stdout)" << endl
-       << "  --default-dag-thresh=N  set DAG threshold" << endl
+       << "  --dag-thresh=N  set DAG threshold" << endl
        << "  --expand-definitions    expand define-funs" << endl
        << "  --combine-assertions    combine all assertions into one" << endl
        << "  --help | -h             this help" << endl
@@ -237,14 +237,14 @@ int main(int argc, char* argv[]) {
         break;
       case DEFAULT_DAG_THRESH: {
           if(!isdigit(*optarg)) {
-            cerr << "error: --default-dag-thresh requires non-negative argument: `"
+            cerr << "error: --dag-thresh requires non-negative argument: `"
                  << optarg << "' invalid." << endl;
             exit(1);
           }
           char* end;
           unsigned long ul = strtoul(optarg, &end, 10);
           if(errno != 0 || *end != '\0') {
-            cerr << "error: --default-dag-thresh argument malformed: `"
+            cerr << "error: --dag-thresh argument malformed: `"
                  << optarg << "'." << endl;
             exit(1);
           }

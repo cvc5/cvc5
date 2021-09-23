@@ -1,29 +1,32 @@
-/*********************                                                        */
-/*! \file candidate_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory uf candidate generator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory uf candidate generator.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+namespace quantifiers {
 
-class QuantifiersEngine;
+class QuantifiersState;
+class TermRegistry;
 
 namespace inst {
 
@@ -51,10 +54,8 @@ namespace inst {
  *
  */
 class CandidateGenerator {
-protected:
-  QuantifiersEngine* d_qe;
-public:
-  CandidateGenerator( QuantifiersEngine* qe ) : d_qe( qe ){}
+ public:
+  CandidateGenerator(QuantifiersState& qs, TermRegistry& tr);
   virtual ~CandidateGenerator(){}
   /** reset instantiation round
    *
@@ -70,10 +71,17 @@ public:
   virtual void reset( Node eqc ) = 0;
   /** get the next candidate */
   virtual Node getNextCandidate() = 0;
-public:
- /** is n a legal candidate? */
- bool isLegalCandidate(Node n);
-};/* class CandidateGenerator */
+  /** is n a legal candidate? */
+  bool isLegalCandidate(Node n);
+  /** Identify this generator (for debugging, etc..) */
+  virtual std::string identify() const = 0;
+
+ protected:
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qs;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
+};
 
 /* the default candidate generator class
  *
@@ -88,9 +96,7 @@ class CandidateGeneratorQE : public CandidateGenerator
   friend class CandidateGeneratorQEDisequal;
 
  public:
-  CandidateGeneratorQE(QuantifiersEngine* qe, Node pat);
-  /** reset instantiation round */
-  void resetInstantiationRound() override;
+  CandidateGeneratorQE(QuantifiersState& qs, TermRegistry& tr, Node pat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -102,8 +108,14 @@ class CandidateGeneratorQE : public CandidateGenerator
   {
     return d_exclude_eqc.find(r) != d_exclude_eqc.end();
   }
+  /** Identify this generator (for debugging, etc..) */
+  std::string identify() const override { return "CandidateGeneratorQE"; }
 
  protected:
+  /** reset this class for matching operator op in equivalence class eqc */
+  void resetForOperator(Node eqc, Node op);
+  /** the default implementation of getNextCandidate. */
+  Node getNextCandidateInternal();
   /** operator you are looking for */
   Node d_op;
   /** the equality class iterator (for cand_term_eqc) */
@@ -112,7 +124,7 @@ class CandidateGeneratorQE : public CandidateGenerator
   int d_term_iter;
   /** the TermDb index of the current ground term (for cand_term_db) */
   int d_term_iter_limit;
-  /** the term we are matching (for cand_term_ident) */
+  /** the current equivalence class */
   Node d_eqc;
   /** candidate generation modes */
   enum {
@@ -141,11 +153,13 @@ class CandidateGeneratorQELitDeq : public CandidateGenerator
    * mpat is an equality that we are matching to equalities in the equivalence
    * class of false
    */
-  CandidateGeneratorQELitDeq(QuantifiersEngine* qe, Node mpat);
+  CandidateGeneratorQELitDeq(QuantifiersState& qs, TermRegistry& tr, Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
   Node getNextCandidate() override;
+  /** Identify this generator (for debugging, etc..) */
+  std::string identify() const override { return "CandidateGeneratorQELitDeq"; }
 
  private:
   /** the equality class iterator for false */
@@ -175,9 +189,11 @@ class CandidateGeneratorQEAll : public CandidateGenerator
   unsigned d_index;
   //first time
   bool d_firstTime;
+  /** Identify this generator (for debugging, etc..) */
+  std::string identify() const override { return "CandidateGeneratorQEAll"; }
 
  public:
-  CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat );
+  CandidateGeneratorQEAll(QuantifiersState& qs, TermRegistry& tr, Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -195,11 +211,18 @@ class CandidateGeneratorQEAll : public CandidateGenerator
 class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 {
  public:
-  CandidateGeneratorConsExpand(QuantifiersEngine* qe, Node mpat);
+  CandidateGeneratorConsExpand(QuantifiersState& qs,
+                               TermRegistry& tr,
+                               Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
   Node getNextCandidate() override;
+  /** Identify this generator (for debugging, etc..) */
+  std::string identify() const override
+  {
+    return "CandidateGeneratorConsExpand";
+  }
 
  protected:
   /** the (datatype) type of the input match pattern */
@@ -208,8 +231,36 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
   bool isLegalOpCandidate(Node n) override;
 };
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+/**
+ * Candidate generator for selector applications, which considers both
+ * internal terms corresponding to correctly and incorrectly applied selectors.
+ */
+class CandidateGeneratorSelector : public CandidateGeneratorQE
+{
+ public:
+  CandidateGeneratorSelector(QuantifiersState& qs, TermRegistry& tr, Node mpat);
+  /** reset */
+  void reset(Node eqc) override;
+  /**
+   * Get next candidate, returns matching candidates that are ground terms
+   * of the selector operator, followed by those that are applications of the
+   * UF corresponding to an invocation of applying this selector to an
+   * application of the wrong constructor.
+   */
+  Node getNextCandidate() override;
+  /** Identify this generator (for debugging, etc..) */
+  std::string identify() const override { return "CandidateGeneratorSelector"; }
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */
+ protected:
+  /** the selector operator */
+  Node d_selOp;
+  /** the UF operator */
+  Node d_ufOp;
+};
+
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
+
+#endif /* CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */

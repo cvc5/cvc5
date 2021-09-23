@@ -1,9 +1,13 @@
-; COMMAND-LINE: --no-check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --no-check-unsat-cores --no-produce-proofs
+; EXPECT: unsat
+
+; Note we require disabling proofs/unsat cores due to timeouts in nightlies
+
 (set-logic AUFLIRA)
 (set-info :source | Example extracted from Peter Baumgartner's talk at CADE-21: Logical Engineering with Instance-Based Methods.
 
 It was translated to SMT-LIB by Leonardo de Moura |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-fun symmetric ((Array Int (Array Int Real)) Int) Bool)

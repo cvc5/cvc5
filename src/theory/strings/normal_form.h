@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file normal_form.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Normal form datastructure for the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Normal form datastructure for the theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__NORMAL_FORM_H
-#define CVC4__THEORY__STRINGS__NORMAL_FORM_H
+#ifndef CVC5__THEORY__STRINGS__NORMAL_FORM_H
+#define CVC5__THEORY__STRINGS__NORMAL_FORM_H
 
 #include <map>
 #include <vector>
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -138,6 +139,20 @@ class NormalForm
    * when isRev is false (resp. true).
    */
   void getExplanation(int index, std::vector<Node>& curr_exp);
+
+  /**
+   * Collects the constant string starting at a given index, i.e. concatenates
+   * all the consecutive constant strings. If the normal form is reverse order,
+   * this function searches backwards but the result will be in the original
+   * order.
+   *
+   * @param index The index to start at, updated to point to the first
+   *              non-constant component of the normal form or set equal to the
+   *              size of the normal form if the remainder is all constants
+   * @return The combined string constants
+   */
+  Node collectConstantStringAt(size_t& index);
+
   /** get explanation for prefix equality
    *
    * This adds to curr_exp the reason why the prefix of nfi up to index index_i
@@ -154,6 +169,6 @@ class NormalForm
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__NORMAL_FORM_H */
+#endif /* CVC5__THEORY__STRINGS__NORMAL_FORM_H */

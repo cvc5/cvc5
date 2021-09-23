@@ -1,33 +1,31 @@
-/*********************                                                        */
-/*! \file cardinality_extension.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Theory of UF with cardinality.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of UF with cardinality.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY_UF_STRONG_SOLVER_H
-#define CVC4__THEORY_UF_STRONG_SOLVER_H
+#ifndef CVC5__THEORY_UF_STRONG_SOLVER_H
+#define CVC5__THEORY_UF_STRONG_SOLVER_H
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
+#include "smt/env_obj.h"
+#include "theory/decision_strategy.h"
 #include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-#include "theory/decision_manager.h"
-
-namespace CVC4 {
-
-class SortInference;
-
+namespace cvc5 {
 namespace theory {
 namespace uf {
 
@@ -39,11 +37,11 @@ class TheoryUF;
  * CAV 2013, or Reynolds dissertation "Finite Model Finding in Satisfiability
  * Modulo Theories".
  */
-class CardinalityExtension
+class CardinalityExtension : protected EnvObj
 {
  protected:
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
 
  public:
   /**
@@ -133,14 +131,14 @@ class CardinalityExtension
       /** conflict find pointer */
       SortModel* d_cf;
 
-      context::CDO< unsigned > d_testCliqueSize;
+      context::CDO<size_t> d_testCliqueSize;
       context::CDO< unsigned > d_splitsSize;
       //a postulated clique
       NodeBoolMap d_testClique;
       //disequalities needed for this clique to happen
       NodeBoolMap d_splits;
       //number of valid representatives in this region
-      context::CDO< unsigned > d_reps_size;
+      context::CDO<size_t> d_reps_size;
       //total disequality size (external)
       context::CDO< unsigned > d_total_diseq_external;
       //total disequality size (internal)
@@ -188,9 +186,9 @@ class CardinalityExtension
       //set n1 != n2 to value 'valid', type is whether it is internal/external
       void setDisequal( Node n1, Node n2, int type, bool valid );
       //get num reps
-      int getNumReps() { return d_reps_size; }
+      size_t getNumReps() const { return d_reps_size; }
       //get test clique size
-      int getTestCliqueSize() { return d_testCliqueSize; }
+      size_t getTestCliqueSize() const { return d_testCliqueSize; }
       // has representative
       bool hasRep( Node n ) {
         return d_nodes.find(n) != d_nodes.end() && d_nodes[n]->valid();
@@ -215,10 +213,14 @@ class CardinalityExtension
    private:
     /** the type this model is for */
     TypeNode d_type;
+    /** Reference to the state object */
+    TheoryState& d_state;
+    /** Reference to the inference manager */
+    TheoryInferenceManager& d_im;
     /** Pointer to the cardinality extension that owns this. */
     CardinalityExtension* d_thss;
     /** regions used to d_region_index */
-    context::CDO< unsigned > d_regions_index;
+    context::CDO<size_t> d_regions_index;
     /** vector of regions */
     std::vector< Region* > d_regions;
     /** map from Nodes to index of d_regions they exist in, -1 means invalid */
@@ -251,58 +253,43 @@ class CardinalityExtension
     /** move node n to region ri */
     void moveNode( Node n, int ri );
     /** allocate cardinality */
-    void allocateCardinality( OutputChannel* out );
+    void allocateCardinality();
     /**
      * Add splits. Returns
      *   0 = no split,
      *  -1 = entailed disequality added, or
      *   1 = split added.
      */
-    int addSplit( Region* r, OutputChannel* out );
+    int addSplit(Region* r);
     /** add clique lemma */
-    void addCliqueLemma( std::vector< Node >& clique, OutputChannel* out );
-    /** add totality axiom */
-    void addTotalityAxiom( Node n, int cardinality, OutputChannel* out );
-    /** Are we in conflict */
-    context::CDO<bool> d_conflict;
+    void addCliqueLemma(std::vector<Node>& clique);
     /** cardinality */
-    context::CDO< int > d_cardinality;
+    context::CDO<uint32_t> d_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
-    /** cardinality totality terms */
-    std::map< int, std::vector< Node > > d_totality_terms;
     /** cardinality literals */
-    std::map< int, Node > d_cardinality_literal;
+    std::map<uint32_t, Node> d_cardinality_literal;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
     std::map< int, std::vector< std::vector< Node > > > d_cliques;
     /** maximum negatively asserted cardinality */
-    context::CDO< int > d_maxNegCard;
+    context::CDO<uint32_t> d_maxNegCard;
     /** list of fresh representatives allocated */
     std::vector< Node > d_fresh_aloc_reps;
     /** whether we are initialized */
     context::CDO< bool > d_initialized;
-    /** cache for lemmas */
-    NodeBoolMap d_lemma_cache;
-
-    /** apply totality */
-    bool applyTotality( int cardinality );
-    /** get totality lemma terms */
-    Node getTotalityLemmaTerm( int cardinality, int i );
     /** simple check cardinality */
     void simpleCheckCardinality();
 
-    bool doSendLemma( Node lem );
-
    public:
     SortModel(Node n,
-              context::Context* c,
-              context::UserContext* u,
+              TheoryState& state,
+              TheoryInferenceManager& im,
               CardinalityExtension* thss);
     virtual ~SortModel();
     /** initialize */
-    void initialize( OutputChannel* out );
+    void initialize();
     /** new node */
     void newEqClass( Node n );
     /** merge */
@@ -312,29 +299,35 @@ class CardinalityExtension
     /** are disequal */
     bool areDisequal( Node a, Node b );
     /** check */
-    void check( Theory::Effort level, OutputChannel* out );
+    void check(Theory::Effort level);
     /** presolve */
     void presolve();
-    /** propagate */
-    void propagate( Theory::Effort level, OutputChannel* out );
     /** assert cardinality */
-    void assertCardinality( OutputChannel* out, int c, bool val );
-    /** is in conflict */
-    bool isConflict() { return d_conflict; }
+    void assertCardinality(uint32_t c, bool val);
     /** get cardinality */
-    int getCardinality() { return d_cardinality; }
+    uint32_t getCardinality() const { return d_cardinality; }
     /** has cardinality */
-    bool hasCardinalityAsserted() { return d_hasCard; }
+    bool hasCardinalityAsserted() const { return d_hasCard; }
     /** get cardinality term */
-    Node getCardinalityTerm() { return d_cardinality_term; }
+    Node getCardinalityTerm() const { return d_cardinality_term; }
     /** get cardinality literal */
-    Node getCardinalityLiteral(unsigned c);
+    Node getCardinalityLiteral(uint32_t c);
     /** get maximum negative cardinality */
-    int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
+    uint32_t getMaximumNegativeCardinality() const
+    {
+      return d_maxNegCard.get();
+    }
     //print debug
     void debugPrint( const char* c );
-    /** debug a model */
-    bool debugModel( TheoryModel* m );
+    /**
+     * Check at last call effort. This will verify that the model is minimal.
+     * This return lemmas if there are terms in the model that the cardinality
+     * extension was not notified of.
+     *
+     * @return false if current model is not minimal. In this case, lemmas are
+     * sent on the output channel of the UF theory.
+     */
+    bool checkLastCall();
     /** get number of regions (for debugging) */
     int getNumRegions();
 
@@ -348,9 +341,7 @@ class CardinalityExtension
     class CardinalityDecisionStrategy : public DecisionStrategyFmf
     {
      public:
-      CardinalityDecisionStrategy(Node t,
-                                  context::Context* satContext,
-                                  Valuation valuation);
+      CardinalityDecisionStrategy(Env& env, Node t, Valuation valuation);
       /** make literal (the i^th combined cardinality literal) */
       Node mkLiteral(unsigned i) override;
       /** identify */
@@ -365,19 +356,13 @@ class CardinalityExtension
   }; /** class SortModel */
 
  public:
-  CardinalityExtension(context::Context* c,
-                       context::UserContext* u,
-                       OutputChannel& out,
+  CardinalityExtension(Env& env,
+                       TheoryState& state,
+                       TheoryInferenceManager& im,
                        TheoryUF* th);
   ~CardinalityExtension();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
-  /** get sort inference module */
-  SortInference* getSortInference();
-  /** get default sat context */
-  context::Context* getSatContext();
-  /** get default output channel */
-  OutputChannel& getOutputChannel();
   /** new node */
   void newEqClass( Node n );
   /** merge */
@@ -398,10 +383,6 @@ class CardinalityExtension
   std::string identify() const { return std::string("CardinalityExtension"); }
   //print debug
   void debugPrint( const char* c );
-  /** debug a model */
-  bool debugModel( TheoryModel* m );
-  /** get is in conflict */
-  bool isConflict() { return d_conflict; }
   /** get cardinality for node */
   int getCardinality( Node n );
   /** get cardinality for type */
@@ -414,11 +395,8 @@ class CardinalityExtension
     IntStat d_clique_conflicts;
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
-    IntStat d_disamb_term_lemmas;
-    IntStat d_totality_lemmas;
     IntStat d_max_model_size;
     Statistics();
-    ~Statistics();
   };
   /** statistics class */
   Statistics d_statistics;
@@ -435,17 +413,19 @@ class CardinalityExtension
   /** ensure eqc for all subterms of n */
   void ensureEqcRec(Node n);
 
-  /** The output channel used by this class. */
-  OutputChannel* d_out;
+  /** Reference to the state object */
+  TheoryState& d_state;
+  /** Reference to the inference manager */
+  TheoryInferenceManager& d_im;
   /** theory uf pointer */
   TheoryUF* d_th;
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
   /** rep model structure, one for each type */
   std::map<TypeNode, SortModel*> d_rep_model;
 
   /** minimum positive combined cardinality */
-  context::CDO<int> d_min_pos_com_card;
+  context::CDO<uint32_t> d_min_pos_com_card;
+  /** Whether the field above has been set */
+  context::CDO<bool> d_min_pos_com_card_set;
   /**
    * Decision strategy for combined cardinality constraints. This asserts
    * the minimal combined cardinality constraint positively in the SAT
@@ -456,8 +436,7 @@ class CardinalityExtension
   class CombinedCardinalityDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    CombinedCardinalityDecisionStrategy(context::Context* satContext,
-                                        Valuation valuation);
+    CombinedCardinalityDecisionStrategy(Env& env, Valuation valuation);
     /** make literal (the i^th combined cardinality literal) */
     Node mkLiteral(unsigned i) override;
     /** identify */
@@ -473,13 +452,16 @@ class CardinalityExtension
   /** the master monotone type (if ufssFairnessMonotone enabled) */
   TypeNode d_tn_mono_master;
   std::map<TypeNode, bool> d_tn_mono_slave;
-  context::CDO<int> d_min_pos_tn_master_card;
+  /** The minimum positive asserted master cardinality */
+  context::CDO<uint32_t> d_min_pos_tn_master_card;
+  /** Whether the field above has been set */
+  context::CDO<bool> d_min_pos_tn_master_card_set;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
 }; /* class CardinalityExtension */
 
-}/* CVC4::theory namespace::uf */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */
+#endif /* CVC5__THEORY_UF_STRONG_SOLVER_H */

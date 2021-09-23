@@ -3,7 +3,7 @@
 Alberto Griggio
 
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "random")
 (set-info :status sat)
 (declare-fun x0 () Int)

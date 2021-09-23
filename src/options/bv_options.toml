@@ -1,48 +1,8 @@
 id     = "BV"
-name   = "Bitvector theory"
-header = "options/bv_options.h"
-
-[[option]]
-  name       = "bvProofFormat"
-  category   = "expert"
-  long       = "bv-proof-format=MODE"
-  type       = "BvProofFormat"
-  default    = "ER"
-  predicates = ["checkSatSolverEnabled<BvProofFormat>"]
-  help       = "choose which UNSAT proof format to use, see --bv-sat-solver=help"
-  help_mode  = "Bit-vector proof formats."
-[[option.mode.ER]]
-  name = "er"
-  help = "Extended Resolution, i.e. resolution with new variable definitions."
-[[option.mode.DRAT]]
-  name = "drat"
-  help = "Deletion and Resolution Asymmetric Tautology Additions."
-[[option.mode.LRAT]]
-  name = "lrat"
-  help = "DRAT with unit propagation hints to accelerate checking."
-
-[[option]]
-  name       = "bvOptimizeSatProof"
-  category   = "expert"
-  long       = "bv-optimize-sat-proof=MODE"
-  type       = "BvOptimizeSatProof"
-  default    = "FORMULA"
-  predicates = ["checkSatSolverEnabled<BvOptimizeSatProof>"]
-  help       = "enable SAT proof optimizations, see --bv-optimize-sat-proof=help"
-  help_mode  = "SAT proof optimization level."
-[[option.mode.NONE]]
-  name = "none"
-  help = "Do not optimize the SAT proof."
-[[option.mode.PROOF]]
-  name = "proof"
-  help = "Use drat-trim to shrink the SAT proof."
-[[option.mode.FORMULA]]
-  name = "formula"
-  help = "Use drat-trim to shrink the SAT proof and formula."
+name   = "Bitvector Theory"
 
 [[option]]
   name       = "bvSatSolver"
-  smt_name   = "bv-sat-solver"
   category   = "expert"
   long       = "bv-sat-solver=MODE"
   type       = "SatSolverMode"
@@ -56,10 +16,11 @@ header = "options/bv_options.h"
   name = "cryptominisat"
 [[option.mode.CADICAL]]
   name = "cadical"
+[[option.mode.KISSAT]]
+  name = "kissat"
 
 [[option]]
   name       = "bitblastMode"
-  smt_name   = "bitblast"
   category   = "regular"
   long       = "bitblast=MODE"
   type       = "BitblastMode"
@@ -87,8 +48,8 @@ header = "options/bv_options.h"
   category   = "expert"
   long       = "bv-aig-simp=COMMAND"
   type       = "std::string"
+  default    = "\"balance;drw\""
   predicates = ["abcEnabledBuild"]
-  links      = ["--bitblast-aig"]
   help       = "abc command to run AIG simplifications (implies --bitblast-aig, default is \"balance;drw\")"
 
 [[option]]
@@ -105,26 +66,7 @@ header = "options/bv_options.h"
   long       = "bv-eq-solver"
   type       = "bool"
   default    = "true"
-  help       = "use the equality engine for the bit-vector theory (only if --bitblast=lazy)"
-
-[[option]]
-  name       = "bitvectorEqualitySlicer"
-  category   = "regular"
-  long       = "bv-eq-slicer=MODE"
-  type       = "BvSlicerMode"
-  default    = "OFF"
-  links      = ["--bv-eq-solver"]
-  help       = "turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)"
-  help_mode  = "Bit-vector equality slicer modes."
-[[option.mode.ON]]
-  name = "on"
-  help = "Turn slicer on."
-[[option.mode.OFF]]
-  name = "off"
-  help = "Turn slicer off."
-[[option.mode.AUTO]]
-  name = "auto"
-  help = "Turn slicer on if input has only equalities over core symbols."
+  help       = "use the equality engine for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorInequalitySolver"
@@ -132,23 +74,22 @@ header = "options/bv_options.h"
   long       = "bv-inequality-solver"
   type       = "bool"
   default    = "true"
-  help       = "turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)"
+  help       = "turn on the inequality solver for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorAlgebraicSolver"
-  category   = "regular"
+  category   = "expert"
   long       = "bv-algebraic-solver"
   type       = "bool"
-  default    = "true"
-  help       = "turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
+  default    = "false"
+  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bv-solver=layered)"
 
 [[option]]
   name       = "bitvectorAlgebraicBudget"
   category   = "expert"
   long       = "bv-algebraic-budget=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "1500"
-  links      = ["--bv-algebraic-solver"]
   help       = "the budget allowed for the algebraic solver in number of SAT conflicts"
 
 [[option]]
@@ -161,7 +102,6 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "boolToBitvector"
-  smt_name   = "bool-to-bv"
   category   = "regular"
   long       = "bool-to-bv=MODE"
   type       = "BoolToBVMode"
@@ -187,14 +127,6 @@ header = "options/bv_options.h"
   help       = "lift equivalence with one-bit bit-vectors to be boolean operations"
 
 [[option]]
-  name       = "bitvectorDivByZeroConst"
-  category   = "regular"
-  long       = "bv-div-zero-const"
-  type       = "bool"
-  default    = "false"
-  help       = "always return -1 on division by zero"
-
-[[option]]
   name       = "bvExtractArithRewrite"
   category   = "expert"
   long       = "bv-extract-arith"
@@ -204,7 +136,7 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "bvAbstraction"
-  category   = "expert"
+  category   = "undocumented"
   long       = "bv-abstraction"
   type       = "bool"
   default    = "false"
@@ -212,7 +144,7 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "skolemizeArguments"
-  category   = "expert"
+  category   = "undocumented"
   long       = "bv-skolemize"
   type       = "bool"
   default    = "false"
@@ -222,9 +154,8 @@ header = "options/bv_options.h"
   name       = "bvNumFunc"
   category   = "expert"
   long       = "bv-num-func=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "1"
-  read_only  = true
   help       = "number of function symbols in conflicts that are generalized"
 
 [[option]]
@@ -241,7 +172,6 @@ header = "options/bv_options.h"
   long       = "bv-quick-xplain"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "minimize bv conflicts using the QuickXplain algorithm"
 
 [[option]]
@@ -250,7 +180,6 @@ header = "options/bv_options.h"
   long       = "bv-intro-pow2"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "introduce bitvector powers of two as a preprocessing pass"
 
 [[option]]
@@ -259,37 +188,39 @@ header = "options/bv_options.h"
   long       = "bv-gauss-elim"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "simplify formula via Gaussian Elimination if applicable"
 
 [[option]]
-  name       = "bvLazyRewriteExtf"
+  name       = "bvPrintConstsAsIndexedSymbols"
   category   = "regular"
-  long       = "bv-lazy-rewrite-extf"
-  type       = "bool"
-  default    = "true"
-  help       = "lazily rewrite extended functions like bv2nat and int2bv"
-
-[[option]]
-  name       = "bvLazyReduceExtf"
-  category   = "regular"
-  long       = "bv-lazy-reduce-extf"
+  long       = "bv-print-consts-as-indexed-symbols"
   type       = "bool"
   default    = "false"
-  help       = "reduce extended functions like bv2nat and int2bv at last call instead of full effort"
+  help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"
 
 [[option]]
-  name       = "bvAlgExtf"
+  name       = "bvSolver"
   category   = "regular"
-  long       = "bv-alg-extf"
-  type       = "bool"
-  default    = "true"
-  help       = "algebraic inferences for extended functions"
+  long       = "bv-solver=MODE"
+  type       = "BVSolver"
+  default    = "BITBLAST"
+  help       = "choose bit-vector solver, see --bv-solver=help"
+  help_mode  = "Bit-vector solvers."
+[[option.mode.BITBLAST]]
+  name = "bitblast"
+  help = "Enables bitblasting solver."
+[[option.mode.BITBLAST_INTERNAL]]
+  name = "bitblast-internal"
+  help = "Enables bitblasting to internal SAT solver with proof support."
+[[option.mode.LAYERED]]
+  name = "layered"
+  help = "Enables the layered BV solver."
 
 [[option]]
-  name       = "bvPrintConstsInBinary"
+  name       = "bvAssertInput"
   category   = "regular"
-  long       = "bv-print-consts-in-binary"
+  long       = "bv-assert-input"
   type       = "bool"
   default    = "false"
-  help       = "print bit-vector constants in binary (e.g. #b0001) instead of decimal (e.g. (_ bv1 4)), applies to SMT-LIB 2.x"
+  help       = "assert input assertions on user-level 0 instead of assuming them in the bit-vector SAT solver"
+

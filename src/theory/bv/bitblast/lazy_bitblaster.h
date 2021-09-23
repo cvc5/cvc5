@@ -1,39 +1,39 @@
-/*********************                                                        */
-/*! \file lazy_bitblaster.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bitblaster for the lazy bv solver.
- **
- ** Bitblaster for the lazy bv solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner, Liana Hadarean, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bitblaster for the lazy bv solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 
-#include "proof/resolution_bitvector_proof.h"
 #include "theory/bv/bitblast/bitblaster.h"
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
-#include "prop/cnf_stream.h"
-#include "prop/registrar.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
-namespace CVC4 {
+namespace cvc5 {
+namespace prop {
+class CnfStream;
+class NullRegistrat;
+}
 namespace theory {
 namespace bv {
 
-class TheoryBV;
+class BVSolverLayered;
 
 class TLazyBitblaster : public TBitblaster<Node>
 {
@@ -46,7 +46,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   bool hasBBAtom(TNode atom) const override;
 
   TLazyBitblaster(context::Context* c,
-                  TheoryBV* bv,
+                  BVSolverLayered* bv,
                   const std::string name = "",
                   bool emptyNotify = false);
   ~TLazyBitblaster();
@@ -73,10 +73,10 @@ class TLazyBitblaster : public TBitblaster<Node>
    * Adds a constant value for each bit-blasted variable in the model.
    *
    * @param m the model
-   * @param fullModel whether to create a "full model," i.e., add
-   * constants to equivalence classes that don't already have them
+   * @param termSet the set of relevant terms
    */
-  bool collectModelInfo(TheoryModel* m, bool fullModel);
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -109,22 +109,24 @@ class TLazyBitblaster : public TBitblaster<Node>
   class MinisatNotify : public prop::BVSatSolverNotify
   {
     prop::CnfStream* d_cnf;
-    TheoryBV* d_bv;
+    BVSolverLayered* d_bv;
     TLazyBitblaster* d_lazyBB;
 
    public:
-    MinisatNotify(prop::CnfStream* cnf, TheoryBV* bv, TLazyBitblaster* lbv)
+    MinisatNotify(prop::CnfStream* cnf,
+                  BVSolverLayered* bv,
+                  TLazyBitblaster* lbv)
         : d_cnf(cnf), d_bv(bv), d_lazyBB(lbv)
     {
     }
 
     bool notify(prop::SatLiteral lit) override;
     void notify(prop::SatClause& clause) override;
-    void spendResource(unsigned amount) override;
-    void safePoint(unsigned amount) override;
+    void spendResource(Resource r) override;
+    void safePoint(Resource r) override;
   };
 
-  TheoryBV* d_bv;
+  BVSolverLayered* d_bv;
   context::Context* d_ctx;
 
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
@@ -161,7 +163,6 @@ class TLazyBitblaster : public TBitblaster<Node>
     IntStat d_numBitblastingPropagations;
     TimerStat d_bitblastTimer;
     Statistics(const std::string& name);
-    ~Statistics();
   };
   std::string d_name;
 
@@ -175,5 +176,5 @@ class TLazyBitblaster : public TBitblaster<Node>
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
-#endif  //  CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+}  // namespace cvc5
+#endif  //  CVC5__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H

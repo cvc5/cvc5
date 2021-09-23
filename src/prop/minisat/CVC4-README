@@ -1,6 +1,6 @@
 ================ CHANGES TO THE ORIGINAL CODE ==================================
 
-The only CVC4 connections passed to minisat are the proxy (defined in sat.h) and
+The only cvc5 connections passed to minisat are the proxy (defined in sat.h) and
 the context. The context is obtained from the SmtEngine, and the proxy is an 
 intermediary class that has all-access to the SatSolver so as to simplify the 
 interface to (possible) other sat solvers. These two are passed to minisat at 
@@ -35,7 +35,7 @@ Backtracking in minisat is performed through the cancelUntil() method, which is
 now modified to pop the context the appropriate number of times.
 
 Minisat pushes the scope in the newDecisionLevel() method where we appropriately 
-also push the CVC4 context.
+also push the cvc5 context.
 
 * Phase caching
 

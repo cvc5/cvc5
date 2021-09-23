@@ -1,31 +1,38 @@
-/*********************                                                        */
-/*! \file theory_model_builder.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of theory model buidler class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of theory model buidler class.
+ */
 #include "theory/theory_model_builder.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "theory/theory_engine.h"
+#include "smt/env.h"
+#include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
+
+TheoryEngineModelBuilder::TheoryEngineModelBuilder(Env& env) : EnvObj(env) {}
 
 void TheoryEngineModelBuilder::Assigner::initialize(
     TypeNode tn, TypeEnumeratorProperties* tep, const std::vector<Node>& aes)
@@ -58,10 +65,6 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
     ++te;
   } while (!success);
   return n;
-}
-
-TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
-{
 }
 
 Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
@@ -127,7 +130,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
   {
     // selectors are always assignable (where we guarantee that they are not
     // evaluatable here)
-    if (!options::ufHo())
+    if (!logicInfo().isHigherOrder())
     {
       Assert(!n.getType().isFunction());
       return true;
@@ -149,7 +152,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
   else
   {
     // non-function variables, and fully applied functions
-    if (!options::ufHo())
+    if (!logicInfo().isHigherOrder())
     {
       // no functions exist, all functions are fully applied
       Assert(n.getKind() != kind::HO_APPLY);
@@ -192,12 +195,12 @@ void TheoryEngineModelBuilder::addAssignableSubterms(TNode n,
 
 void TheoryEngineModelBuilder::assignConstantRep(TheoryModel* tm,
                                                  Node eqc,
-                                                 Node const_rep)
+                                                 Node constRep)
 {
-  d_constantReps[eqc] = const_rep;
+  d_constantReps[eqc] = constRep;
   Trace("model-builder") << "    Assign: Setting constant rep of " << eqc
-                         << " to " << const_rep << endl;
-  tm->d_rep_set.setTermForRepresentative(const_rep, eqc);
+                         << " to " << constRep << endl;
+  tm->d_rep_set.setTermForRepresentative(constRep, eqc);
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue(
@@ -272,7 +275,13 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
   return false;
 }
 
-bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn)
+bool TheoryEngineModelBuilder::isFiniteType(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  options::finiteModelFind());
+}
+
+bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
 {
   if (tn.isSort())
   {
@@ -333,7 +342,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
 void TheoryEngineModelBuilder::addToTypeList(
     TypeNode tn,
     std::vector<TypeNode>& type_list,
-    std::unordered_set<TypeNode, TypeNodeHashFunction>& visiting)
+    std::unordered_set<TypeNode>& visiting)
 {
   if (std::find(type_list.begin(), type_list.end(), tn) == type_list.end())
   {
@@ -372,31 +381,9 @@ void TheoryEngineModelBuilder::addToTypeList(
   }
 }
 
-bool TheoryEngineModelBuilder::buildModel(Model* m)
+bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 {
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel" << std::endl;
-  TheoryModel* tm = (TheoryModel*)m;
-  eq::EqualityEngine* ee = tm->d_equalityEngine;
-
-  // buildModel should only be called once per check
-  Assert(!tm->isBuilt());
-
-  // Reset model
-  tm->reset();
-
-  // mark as built
-  tm->d_modelBuilt = true;
-  tm->d_modelBuiltSuccess = false;
-
-  // Collect model info from the theories
-  Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..."
-                         << std::endl;
-  if (!d_te->collectModelInfo(tm))
-  {
-    Trace("model-builder")
-        << "TheoryEngineModelBuilder: fail collect model info" << std::endl;
-    return false;
-  }
 
   Trace("model-builder")
       << "TheoryEngineModelBuilder: Preprocess build model..." << std::endl;
@@ -410,42 +397,265 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   }
 
   Trace("model-builder")
-      << "TheoryEngineModelBuilder: Add assignable subterms..." << std::endl;
-  // Loop through all terms and make sure that assignable sub-terms are in the
-  // equality engine
-  // Also, record #eqc per type (for finite model finding)
+      << "TheoryEngineModelBuilder: Add assignable subterms "
+         ", collect representatives and compute assignable information..."
+      << std::endl;
+
+  // type enumerator properties
+  TypeEnumeratorProperties tep;
+
+  // In the first step of model building, we do a traversal of the
+  // equality engine and record the information in the following:
+
+  // The constant representatives, per equivalence class
+  d_constantReps.clear();
+  // The representatives that have been asserted by theories. This includes
+  // non-constant "skeletons" that have been specified by parametric theories.
+  std::map<Node, Node> assertedReps;
+  // A parition of the set of equivalence classes that have:
+  // (1) constant representatives,
+  // (2) an assigned representative specified by a theory in collectModelInfo,
+  // (3) no assigned representative.
+  TypeSet typeConstSet, typeRepSet, typeNoRepSet;
+  // An ordered list of types, such that T1 comes before T2 if T1 is a
+  // "component type" of T2, e.g. U comes before (Set U). This is only strictly
+  // necessary for finite model finding + parametric types instantiated with
+  // uninterpreted sorts, but is probably a good idea to do in general since it
+  // leads to models with smaller term sizes. -AJR
+  std::vector<TypeNode> type_list;
+  // The count of equivalence classes per sort (for finite model finding).
   std::map<TypeNode, unsigned> eqc_usort_count;
+
+  // the set of equivalence classes that are "assignable", i.e. those that have
+  // an assignable expression in them (see isAssignable), and have not already
+  // been assigned a constant.
+  std::unordered_set<Node> assignableEqc;
+  // The set of equivalence classes that are "evaluable", i.e. those that have
+  // an expression in them that is not assignable, and have not already been
+  // assigned a constant.
+  std::unordered_set<Node> evaluableEqc;
+  // Assigner objects for relevant equivalence classes that require special
+  // ways of assigning values, e.g. those that take into account assignment
+  // exclusion sets.
+  std::map<Node, Assigner> eqcToAssigner;
+  // A map from equivalence classes to the equivalence class that it shares an
+  // assigner object with (all elements in the range of this map are in the
+  // domain of eqcToAssigner).
+  std::map<Node, Node> eqcToAssignerMaster;
+
+  // Loop through equivalence classes of the equality engine of the model.
+  eq::EqualityEngine* ee = tm->d_equalityEngine;
+  NodeSet assignableCache;
+  std::map<Node, Node>::iterator itm;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  // should we compute assigner objects?
+  bool computeAssigners = tm->hasAssignmentExclusionSets();
+  // the set of exclusion sets we have processed
+  std::unordered_set<Node> processedExcSet;
+  for (; !eqcs_i.isFinished(); ++eqcs_i)
   {
-    NodeSet cache;
-    for (; !eqcs_i.isFinished(); ++eqcs_i)
+    Node eqc = *eqcs_i;
+
+    // Information computed for each equivalence class
+
+    // The assigned represenative and constant representative
+    Node rep, constRep;
+    // A flag set to true if the current equivalence class is assignable (see
+    // assignableEqc).
+    bool assignable = false;
+    // Set to true if the current equivalence class is evaluatable (see
+    // evaluableEqc).
+    bool evaluable = false;
+    // Set to true if a term in the current equivalence class has been given an
+    // assignment exclusion set.
+    bool hasESet CVC5_UNUSED = false;
+    // Set to true if we found that a term in the current equivalence class has
+    // been given an assignment exclusion set, and we have not seen this term
+    // as part of a previous assignment exclusion group. In other words, when
+    // this flag is true we construct a new assigner object with the current
+    // equivalence class as its master.
+    bool foundESet = false;
+    // The assignment exclusion set for the current equivalence class.
+    std::vector<Node> eset;
+    // The group to which this equivalence class belongs when exclusion sets
+    // were assigned (see the argument group of
+    // TheoryModel::getAssignmentExclusionSet).
+    std::vector<Node> esetGroup;
+
+    // Loop through terms in this EC
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
+    for (; !eqc_i.isFinished(); ++eqc_i)
     {
-      eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i), ee);
-      for (; !eqc_i.isFinished(); ++eqc_i)
+      Node n = *eqc_i;
+      Trace("model-builder") << "  Processing Term: " << n << endl;
+
+      // For each term n in this equivalence class, below we register its
+      // assignable subterms, compute whether it is a constant or assigned
+      // representative, then if we don't have a constant representative,
+      // compute information regarding how we will assign values.
+
+      // (1) Add assignable subterms, which ensures that e.g. models for
+      // uninterpreted functions take into account all subterms in the
+      // equality engine of the model
+      addAssignableSubterms(n, tm, assignableCache);
+      // model-specific processing of the term
+      tm->addTermInternal(n);
+
+      // (2) Record constant representative or assign representative, if
+      // applicable
+      if (n.isConst())
       {
-        addAssignableSubterms(*eqc_i, tm, cache);
+        Assert(constRep.isNull());
+        constRep = n;
+        Trace("model-builder")
+            << "  ConstRep( " << eqc << " ) = " << constRep << std::endl;
+        // if we have a constant representative, nothing else matters
+        continue;
       }
-      TypeNode tn = (*eqcs_i).getType();
-      if (tn.isSort())
+
+      // If we don't have a constant rep, check if this is an assigned rep.
+      itm = tm->d_reps.find(n);
+      if (itm != tm->d_reps.end())
       {
-        if (eqc_usort_count.find(tn) == eqc_usort_count.end())
+        // Notice that this equivalence class may contain multiple terms that
+        // were specified as being a representative, since e.g. datatypes may
+        // assert representative for two constructor terms that are not in the
+        // care graph and are merged during collectModeInfo due to equality
+        // information from another theory. We overwrite the value of rep in
+        // these cases here.
+        rep = itm->second;
+        Trace("model-builder")
+            << "  Rep( " << eqc << " ) = " << rep << std::endl;
+      }
+
+      // (3) Finally, process assignable information
+      if (!isAssignable(n))
+      {
+        evaluable = true;
+        // expressions that are not assignable should not be given assignment
+        // exclusion sets
+        Assert(!tm->getAssignmentExclusionSet(n, esetGroup, eset));
+        continue;
+      }
+      assignable = true;
+      if (!computeAssigners)
+      {
+        // we don't compute assigners, skip
+        continue;
+      }
+      // process the assignment exclusion set for term n
+      // was it processed based on a master exclusion group (see
+      // eqcToAssignerMaster)?
+      if (processedExcSet.find(n) != processedExcSet.end())
+      {
+        // Should not have two assignment exclusion sets for the same
+        // equivalence class
+        Assert(!hasESet);
+        Assert(eqcToAssignerMaster.find(eqc) != eqcToAssignerMaster.end());
+        // already processed as a slave term
+        hasESet = true;
+        continue;
+      }
+      // was it assigned one?
+      if (tm->getAssignmentExclusionSet(n, esetGroup, eset))
+      {
+        // Should not have two assignment exclusion sets for the same
+        // equivalence class
+        Assert(!hasESet);
+        foundESet = true;
+        hasESet = true;
+      }
+    }
+
+    // finished traversing the equality engine
+    TypeNode eqct = eqc.getType();
+    // count the number of equivalence classes of sorts in finite model finding
+    if (options::finiteModelFind())
+    {
+      if (eqct.isSort())
+      {
+        eqc_usort_count[eqct]++;
+      }
+    }
+    // Assign representative for this equivalence class
+    if (!constRep.isNull())
+    {
+      // Theories should not specify a rep if there is already a constant in the
+      // equivalence class. However, it may be the case that the representative
+      // specified by a theory may be merged with a constant based on equality
+      // information from another class. Thus, rep may be non-null here.
+      // Regardless, we assign constRep as the representative here.
+      assignConstantRep(tm, eqc, constRep);
+      typeConstSet.add(eqct.getBaseType(), constRep);
+      continue;
+    }
+    else if (!rep.isNull())
+    {
+      assertedReps[eqc] = rep;
+      typeRepSet.add(eqct.getBaseType(), eqc);
+      std::unordered_set<TypeNode> visiting;
+      addToTypeList(eqct.getBaseType(), type_list, visiting);
+    }
+    else
+    {
+      typeNoRepSet.add(eqct, eqc);
+      std::unordered_set<TypeNode> visiting;
+      addToTypeList(eqct, type_list, visiting);
+    }
+
+    if (assignable)
+    {
+      assignableEqc.insert(eqc);
+    }
+    if (evaluable)
+    {
+      evaluableEqc.insert(eqc);
+    }
+    // If we found an assignment exclusion set, we construct a new assigner
+    // object.
+    if (foundESet)
+    {
+      // we don't accept assignment exclusion sets for evaluable eqc
+      Assert(!evaluable);
+      // construct the assigner
+      Assigner& a = eqcToAssigner[eqc];
+      // Take the representatives of each term in the assignment exclusion
+      // set, which ensures we can look up their value in d_constReps later.
+      std::vector<Node> aes;
+      for (const Node& e : eset)
+      {
+        // Should only supply terms that occur in the model or constants
+        // in assignment exclusion sets.
+        Assert(tm->hasTerm(e) || e.isConst());
+        Node er = tm->hasTerm(e) ? tm->getRepresentative(e) : e;
+        aes.push_back(er);
+      }
+      // initialize
+      a.initialize(eqc.getType(), &tep, aes);
+      // all others in the group are slaves of this
+      for (const Node& g : esetGroup)
+      {
+        Assert(isAssignable(g));
+        if (!tm->hasTerm(g))
         {
-          eqc_usort_count[tn] = 1;
+          // Ignore those that aren't in the model, in the case the user
+          // has supplied an assignment exclusion set to a variable not in
+          // the model.
+          continue;
         }
-        else
+        Node gr = tm->getRepresentative(g);
+        if (gr != eqc)
         {
-          eqc_usort_count[tn]++;
+          eqcToAssignerMaster[gr] = eqc;
+          // remember that this term has been processed
+          processedExcSet.insert(g);
         }
       }
     }
   }
 
-  Trace("model-builder") << "Collect representatives..." << std::endl;
+  // Now finished initialization
 
-  // Process all terms in the equality engine, store representatives for each EC
-  d_constantReps.clear();
-  std::map<Node, Node> assertedReps;
-  TypeSet typeConstSet, typeRepSet, typeNoRepSet;
   // Compute type enumerator properties. This code ensures we do not
   // enumerate terms that have uninterpreted constants that violate the
   // bounds imposed by finite model finding. For example, if finite
@@ -453,7 +663,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   // then the type enumerator for list of U should enumerate:
   //   nil, (cons U1 nil), (cons U2 nil), (cons U1 (cons U1 nil)), ...
   // instead of enumerating (cons U3 nil).
-  TypeEnumeratorProperties tep;
   if (options::finiteModelFind())
   {
     tep.d_fixed_usort_card = true;
@@ -467,96 +676,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
     typeConstSet.setTypeEnumeratorProperties(&tep);
   }
-
-  // AJR: build ordered list of types that ensures that base types are
-  // enumerated first.
-  // (I think) this is only strictly necessary for finite model finding +
-  // parametric types instantiated with uninterpreted sorts, but is probably
-  // a good idea to do in general since it leads to models with smaller term
-  // sizes.
-  std::vector<TypeNode> type_list;
-  eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
-  for (; !eqcs_i.isFinished(); ++eqcs_i)
-  {
-    // eqc is the equivalence class representative
-    Node eqc = (*eqcs_i);
-    Trace("model-builder") << "Processing EC: " << eqc << endl;
-    Assert(tm->d_equalityEngine->getRepresentative(eqc) == eqc);
-    TypeNode eqct = eqc.getType();
-    Assert(assertedReps.find(eqc) == assertedReps.end());
-    Assert(d_constantReps.find(eqc) == d_constantReps.end());
-
-    // Loop through terms in this EC
-    Node rep, const_rep;
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
-    for (; !eqc_i.isFinished(); ++eqc_i)
-    {
-      Node n = *eqc_i;
-      Trace("model-builder") << "  Processing Term: " << n << endl;
-      // Record as rep if this node was specified as a representative
-      if (tm->d_reps.find(n) != tm->d_reps.end())
-      {
-        // AJR: I believe this assertion is too strict,
-        // e.g. datatypes may assert representative for two constructor terms
-        // that are not in the care graph and are merged during
-        // collectModelInfo.
-        // Assert(rep.isNull());
-        rep = tm->d_reps[n];
-        Assert(!rep.isNull());
-        Trace("model-builder") << "  Rep( " << eqc << " ) = " << rep
-                               << std::endl;
-      }
-      // Record as const_rep if this node is constant
-      if (n.isConst())
-      {
-        Assert(const_rep.isNull());
-        const_rep = n;
-        Trace("model-builder") << "  ConstRep( " << eqc << " ) = " << const_rep
-                               << std::endl;
-      }
-      // model-specific processing of the term
-      tm->addTermInternal(n);
-    }
-
-    // Assign representative for this EC
-    if (!const_rep.isNull())
-    {
-      // Theories should not specify a rep if there is already a constant in the
-      // EC
-      // AJR: I believe this assertion is too strict, eqc with asserted reps may
-      // merge with constant eqc
-      // Assert(rep.isNull() || rep == const_rep);
-      assignConstantRep(tm, eqc, const_rep);
-      typeConstSet.add(eqct.getBaseType(), const_rep);
-    }
-    else if (!rep.isNull())
-    {
-      assertedReps[eqc] = rep;
-      typeRepSet.add(eqct.getBaseType(), eqc);
-      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
-      addToTypeList(eqct.getBaseType(), type_list, visiting);
-    }
-    else
-    {
-      typeNoRepSet.add(eqct, eqc);
-      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
-      addToTypeList(eqct, type_list, visiting);
-    }
-  }
-
-  Trace("model-builder") << "Compute assignable information..." << std::endl;
-  // The set of equivalence classes that are "assignable"
-  std::unordered_set<Node, NodeHashFunction> assignableEqc;
-  // The set of equivalence classes that are "evaluable"
-  std::unordered_set<Node, NodeHashFunction> evaluableEqc;
-  // Assigner objects for relevant equivalence classes
-  std::map<Node, Assigner> eqcToAssigner;
-  // Maps equivalence classes to the equivalence class that maps to its assigner
-  // object in the above map.
-  std::map<Node, Node> eqcToAssignerMaster;
-  // Compute the above information
-  computeAssignableInfo(
-      tm, tep, assignableEqc, evaluableEqc, eqcToAssigner, eqcToAssignerMaster);
 
   // Need to ensure that each EC has a constant representative.
 
@@ -726,9 +845,9 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       {
         const DType& dt = t.getDType();
         isCorecursive = dt.isCodatatype()
-                        && (!dt.isFinite(t) || dt.isRecursiveSingleton(t));
+                        && (!isFiniteType(t) || dt.isRecursiveSingleton(t));
       }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
       bool isUSortFiniteRestricted = false;
       if (options::finiteModelFind())
       {
@@ -736,7 +855,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
 #endif
 
-      set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne)
       {
@@ -752,9 +870,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
       Trace("model-builder") << "  Assign phase, working on type: " << t
                              << endl;
-      bool assignable, evaluable CVC4_UNUSED;
+      bool assignable, evaluable CVC5_UNUSED;
       std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
+      set<Node>* repSet = typeRepSet.getSet(t);
       for (i = noRepSet.begin(); i != noRepSet.end();)
       {
         i2 = i;
@@ -788,13 +907,12 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
-          // Boolean type, then the term is either a variable or an APPLY_UF.
+          // Boolean type, then the term must be assignable.
           // Note we only assign to terms of Boolean type if the term occurs in
           // a singleton equivalence class; otherwise the term would have been
           // in the equivalence class of true or false and would not need
           // assigning.
-          Assert(!t.isBoolean() || (*i2).isVar()
-                 || (*i2).getKind() == kind::APPLY_UF);
+          Assert(!t.isBoolean() || isAssignable(*i2));
           Node n;
           if (itAssigner != eqcToAssigner.end())
           {
@@ -804,10 +922,17 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (!t.isFinite())
+          else if (t.isSort() || !isFiniteType(t))
           {
-            // if its infinite, we get a fresh value that does not occur in
-            // the model.
+            // If its interpreted as infinite, we get a fresh value that does
+            // not occur in the model.
+            // Note we also consider uninterpreted sorts to be infinite here
+            // regardless of whether the cardinality class of t is
+            // CardinalityClass::INTERPRETED_FINITE.
+            // This is required because the UF solver does not explicitly
+            // assign uninterpreted constants to equivalence classes in its
+            // collectModelValues method. Doing so would have the same effect
+            // as running the code in this case.
             bool success;
             do
             {
@@ -819,7 +944,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               success = true;
               Trace("model-builder-debug") << "Check if excluded : " << n
                                            << std::endl;
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
               if (isUSortFiniteRestricted)
               {
                 // must not involve uninterpreted constants beyond cardinality
@@ -896,7 +1021,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
   }
 
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   // Assert that all representatives have been converted to constants
   for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it)
   {
@@ -908,7 +1033,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       Assert(false);
     }
   }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC5_ASSERTIONS */
 
   Trace("model-builder") << "Copy representatives to model..." << std::endl;
   tm->d_reps.clear();
@@ -929,11 +1054,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it)
   {
     set<Node>& noRepSet = TypeSet::getSet(it);
-    set<Node>::iterator i;
-    for (i = noRepSet.begin(); i != noRepSet.end(); ++i)
+    for (const Node& node : noRepSet)
     {
-      tm->d_reps[*i] = *i;
-      tm->d_rep_set.add((*i).getType(), *i);
+      tm->d_reps[node] = node;
+      tm->d_rep_set.add(node.getType(), node);
     }
   }
 
@@ -945,168 +1069,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     return false;
   }
   Trace("model-builder") << "TheoryEngineModelBuilder: success" << std::endl;
-  tm->d_modelBuiltSuccess = true;
   return true;
 }
-void TheoryEngineModelBuilder::computeAssignableInfo(
-    TheoryModel* tm,
-    TypeEnumeratorProperties& tep,
-    std::unordered_set<Node, NodeHashFunction>& assignableEqc,
-    std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
-    std::map<Node, Assigner>& eqcToAssigner,
-    std::map<Node, Node>& eqcToAssignerMaster)
-{
-  eq::EqualityEngine* ee = tm->d_equalityEngine;
-  bool computeAssigners = tm->hasAssignmentExclusionSets();
-  std::unordered_set<Node, NodeHashFunction> processed;
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
-  // A flag set to true if the current equivalence class is assignable (see
-  // assignableEqc).
-  bool assignable = false;
-  // Set to true if the current equivalence class is evaluatable (see
-  // evaluableEqc).
-  bool evaluable = false;
-  // Set to true if a term in the current equivalence class has been given an
-  // assignment exclusion set.
-  bool hasESet = false;
-  // Set to true if we found that a term in the current equivalence class has
-  // been given an assignment exclusion set, and we have not seen this term
-  // as part of a previous assignment exclusion group. In other words, when
-  // this flag is true we construct a new assigner object with the current
-  // equivalence class as its master.
-  bool foundESet = false;
-  // Look at all equivalence classes in the model
-  for (; !eqcs_i.isFinished(); ++eqcs_i)
-  {
-    Node eqc = *eqcs_i;
-    if (d_constantReps.find(eqc) != d_constantReps.end())
-    {
-      // already assigned above, skip
-      continue;
-    }
-    // reset information for the current equivalence classe
-    assignable = false;
-    evaluable = false;
-    hasESet = false;
-    foundESet = false;
-    // the assignment exclusion set for the current equivalence class
-    std::vector<Node> eset;
-    // the group to which this equivalence class belongs when exclusion sets
-    // were assigned (see the argument group of
-    // TheoryModel::getAssignmentExclusionSet).
-    std::vector<Node> group;
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
-    // For each term in the current equivalence class, we update the above
-    // information. We may terminate this loop before looking at all terms if we
-    // have inferred the value of all of the information above.
-    for (; !eqc_i.isFinished(); ++eqc_i)
-    {
-      Node n = *eqc_i;
-      if (!isAssignable(n))
-      {
-        evaluable = true;
-        if (!computeAssigners)
-        {
-          if (assignable)
-          {
-            // both flags set, we are done
-            break;
-          }
-        }
-        // expressions that are not assignable should not be given assignment
-        // exclusion sets
-        Assert(!tm->getAssignmentExclusionSet(n, group, eset));
-        continue;
-      }
-      else
-      {
-        assignable = true;
-        if (!computeAssigners)
-        {
-          if (evaluable)
-          {
-            // both flags set, we are done
-            break;
-          }
-          // we don't compute assigners, skip
-          continue;
-        }
-      }
-      // process the assignment exclusion set for term n
-      // was it processed as a slave of a group?
-      if (processed.find(n) != processed.end())
-      {
-        // Should not have two assignment exclusion sets for the same
-        // equivalence class
-        Assert(!hasESet);
-        Assert(eqcToAssignerMaster.find(eqc) != eqcToAssignerMaster.end());
-        // already processed as a slave term
-        hasESet = true;
-        continue;
-      }
-      // was it assigned one?
-      if (tm->getAssignmentExclusionSet(n, group, eset))
-      {
-        // Should not have two assignment exclusion sets for the same
-        // equivalence class
-        Assert(!hasESet);
-        foundESet = true;
-        hasESet = true;
-      }
-    }
-    if (assignable)
-    {
-      assignableEqc.insert(eqc);
-    }
-    if (evaluable)
-    {
-      evaluableEqc.insert(eqc);
-    }
-    // If we found an assignment exclusion set, we construct a new assigner
-    // object.
-    if (foundESet)
-    {
-      // we don't accept assignment exclusion sets for evaluable eqc
-      Assert(!evaluable);
-      // construct the assigner
-      Assigner& a = eqcToAssigner[eqc];
-      // Take the representatives of each term in the assignment exclusion
-      // set, which ensures we can look up their value in d_constReps later.
-      std::vector<Node> aes;
-      for (const Node& e : eset)
-      {
-        // Should only supply terms that occur in the model or constants
-        // in assignment exclusion sets.
-        Assert(tm->hasTerm(e) || e.isConst());
-        Node er = tm->hasTerm(e) ? tm->getRepresentative(e) : e;
-        aes.push_back(er);
-      }
-      // initialize
-      a.initialize(eqc.getType(), &tep, aes);
-      // all others in the group are slaves of this
-      for (const Node& g : group)
-      {
-        Assert(isAssignable(g));
-        if (!tm->hasTerm(g))
-        {
-          // Ignore those that aren't in the model, in the case the user
-          // has supplied an assignment exclusion set to a variable not in
-          // the model.
-          continue;
-        }
-        Node gr = tm->getRepresentative(g);
-        if (gr != eqc)
-        {
-          eqcToAssignerMaster[gr] = eqc;
-          // remember that this term has been processed
-          processed.insert(g);
-        }
-      }
-    }
-  }
-}
 
-void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
+void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
 {
   // if we are incomplete, there is no guarantee on the model.
   // thus, we do not check the model here.
@@ -1114,19 +1080,16 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   {
     return;
   }
-  TheoryModel* tm = static_cast<TheoryModel*>(m);
-  Assert(tm != nullptr);
+  Assert(m != nullptr);
   // debug-check the model if the checkModels() is enabled.
-  if (options::checkModels())
+  if (options::debugCheckModels())
   {
-    debugCheckModel(tm);
+    debugCheckModel(m);
   }
 }
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-#ifdef CVC4_ASSERTIONS
-  Assert(tm->isBuilt());
   if (tm->hasApproximations())
   {
     // models with approximations may fail the assertions below
@@ -1148,7 +1111,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       // if Boolean, it does not necessarily have a constant representative, use
       // get value instead
       rep = tm->getValue(eqc);
-      Assert(rep.isConst());
+      AlwaysAssert(rep.isConst());
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
     for (; !eqc_i.isFinished(); ++eqc_i)
@@ -1156,21 +1119,26 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       Node n = *eqc_i;
       static int repCheckInstance = 0;
       ++repCheckInstance;
-
+      AlwaysAssert(rep.getType().isSubtypeOf(n.getType()))
+          << "Representative " << rep << " of " << n
+          << " violates type constraints (" << rep.getType() << " and "
+          << n.getType() << ")";
       // non-linear mult is not necessarily accurate wrt getValue
       if (n.getKind() != kind::NONLINEAR_MULT)
       {
-        Debug("check-model::rep-checking") << "( " << repCheckInstance << ") "
-                                           << "n: " << n << endl
-                                           << "getValue(n): " << tm->getValue(n)
-                                           << endl
-                                           << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep)
-            << "run with -d check-model::rep-checking for details";
+        if (tm->getValue(*eqc_i) != rep)
+        {
+          std::stringstream err;
+          err << "Failed representative check:" << std::endl
+              << "( " << repCheckInstance << ") "
+              << "n: " << n << endl
+              << "getValue(n): " << tm->getValue(n) << std::endl
+              << "rep: " << rep << std::endl;
+          AlwaysAssert(tm->getValue(*eqc_i) == rep) << err.str();
+        }
       }
     }
   }
-#endif /* CVC4_ASSERTIONS */
 
   // builder-specific debugging
   debugModel(tm);
@@ -1211,12 +1179,18 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
           if (itMap != d_constantReps.end())
           {
             ri = (*itMap).second;
+            Trace("model-builder-debug") << i << ": const child " << ri << std::endl;
             recurse = false;
           }
           else if (!evalOnly)
           {
             recurse = false;
+            Trace("model-builder-debug") << i << ": keep " << ri << std::endl;
           }
+        }
+        else
+        {
+          Trace("model-builder-debug") << i << ": no hasTerm " << ri << std::endl;
         }
         if (recurse)
         {
@@ -1233,8 +1207,6 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     if (childrenConst)
     {
       retNode = Rewriter::rewrite(retNode);
-      Assert(retNode.getKind() == kind::APPLY_UF
-             || !retNode.getType().isFirstClass() || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;
@@ -1257,7 +1229,7 @@ bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 
 void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 {
-  Assert(!options::ufHo());
+  Assert(!logicInfo().isHigherOrder());
   uf::UfModelTree ufmt(f);
   Node default_v;
   for (size_t i = 0; i < m->d_uf_terms[f].size(); i++)
@@ -1302,7 +1274,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 
 void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
-  Assert(options::ufHo());
+  Assert(logicInfo().isHigherOrder());
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;
@@ -1426,7 +1398,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   Trace("model-builder") << "Assigning function values..." << std::endl;
   std::vector<Node> funcs_to_assign = m->getFunctionsToAssign();
 
-  if (options::ufHo())
+  if (logicInfo().isHigherOrder())
   {
     // sort based on type size if higher-order
     Trace("model-builder") << "Sort functions by type..." << std::endl;
@@ -1453,7 +1425,7 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
     Trace("model-builder") << "  Function #" << k << " is " << f << std::endl;
     // std::map< Node, std::vector< Node > >::iterator itht =
     // m->d_ho_uf_terms.find( f );
-    if (!options::ufHo())
+    if (!logicInfo().isHigherOrder())
     {
       Trace("model-builder") << "  Assign function value for " << f
                              << " based on APPLY_UF" << std::endl;
@@ -1469,5 +1441,5 @@ void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
   Trace("model-builder") << "Finished assigning function values." << std::endl;
 }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace theory
+}  // namespace cvc5

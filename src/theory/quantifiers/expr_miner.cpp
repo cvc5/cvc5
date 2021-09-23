@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file expr_miner.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of expr_miner
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of expr_miner.
+ */
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -34,84 +35,43 @@ void ExprMiner::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 
 Node ExprMiner::convertToSkolem(Node n)
 {
-  std::vector<Node> fvs;
-  TermUtil::computeVarContains(n, fvs);
-  if (fvs.empty())
+  if (d_skolems.empty())
   {
-    return n;
-  }
-  std::vector<Node> sfvs;
-  std::vector<Node> sks;
-  // map to skolems
-  NodeManager* nm = NodeManager::currentNM();
-  for (unsigned i = 0, size = fvs.size(); i < size; i++)
-  {
-    Node v = fvs[i];
-    // only look at the sampler variables
-    if (std::find(d_vars.begin(), d_vars.end(), v) != d_vars.end())
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    for (const Node& v : d_vars)
     {
-      sfvs.push_back(v);
-      std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
-      if (itf == d_fv_to_skolem.end())
-      {
-        Node sk = nm->mkSkolem("rrck", v.getType());
-        d_fv_to_skolem[v] = sk;
-        sks.push_back(sk);
-      }
-      else
-      {
-        sks.push_back(itf->second);
-      }
+      Node sk = sm->mkDummySkolem("rrck", v.getType());
+      d_skolems.push_back(sk);
+      d_fv_to_skolem[v] = sk;
     }
   }
-  return n.substitute(sfvs.begin(), sfvs.end(), sks.begin(), sks.end());
+  return n.substitute(
+      d_vars.begin(), d_vars.end(), d_skolems.begin(), d_skolems.end());
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
-                                  ExprManager& em,
-                                  ExprManagerMapCollection& varMap,
-                                  Node query,
-                                  bool& needExport)
+                                  Node query)
 {
-  // Convert bound variables to skolems. This ensures the satisfiability
-  // check is ground.
-  Node squery = convertToSkolem(query);
-  NodeManager* nm = NodeManager::currentNM();
-  if (options::sygusExprMinerCheckUseExport())
+  Assert (!query.isNull());
+  if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
-    // To support a separate timeout for the subsolver, we need to create
-    // a separate ExprManager with its own options. This requires that
-    // the expressions sent to the subsolver can be exported from on
-    // ExprManager to another. If the export fails, we throw an
-    // OptionException.
-    try
-    {
-      checker.reset(new SmtEngine(&em));
-      checker->setIsInternalSubsolver();
-      checker->setTimeLimit(options::sygusExprMinerCheckTimeout(), true);
-      checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
-      checker->setOption("sygus-rr-synth-input", false);
-      checker->setOption("input-language", "smt2");
-      Expr equery = squery.toExpr().exportTo(&em, varMap);
-      checker->assertFormula(equery);
-    }
-    catch (const CVC4::ExportUnsupportedException& e)
-    {
-      std::stringstream msg;
-      msg << "Unable to export " << squery
-          << " but exporting expressions is "
-             "required for an expression "
-             "miner check.";
-      throw OptionException(msg.str());
-    }
-    needExport = true;
+    initializeSubsolver(checker,
+                        d_env,
+                        true,
+                        options::sygusExprMinerCheckTimeout());
   }
   else
   {
-    needExport = false;
-    checker.reset(new SmtEngine(nm->toExprManager()));
-    checker->assertFormula(squery.toExpr());
+    initializeSubsolver(checker, d_env);
   }
+  // also set the options
+  checker->setOption("sygus-rr-synth-input", "false");
+  checker->setOption("input-language", "smt2");
+  // Convert bound variables to skolems. This ensures the satisfiability
+  // check is ground.
+  Node squery = convertToSkolem(query);
+  checker->assertFormula(squery);
 }
 
 Result ExprMiner::doCheck(Node query)
@@ -128,15 +88,11 @@ Result ExprMiner::doCheck(Node query)
       return Result(Result::SAT);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
-  bool needExport = false;
-  ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> smte;
-  ExprManagerMapCollection varMap;
-  initializeChecker(smte, em, varMap, queryr, needExport);
+  initializeChecker(smte, query);
   return smte->checkSat();
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

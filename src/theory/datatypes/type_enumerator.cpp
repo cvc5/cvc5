@@ -1,24 +1,26 @@
-/*********************                                                        */
-/*! \file type_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerators for datatypes
- **
- ** Enumerators for datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerators for datatypes.
+ */
 
 #include "theory/datatypes/type_enumerator.h"
+
+#include "expr/ascription_type.h"
+#include "expr/dtype_cons.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-using namespace CVC4;
+using namespace cvc5;
 using namespace theory;
 using namespace datatypes;
 
@@ -107,7 +109,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      if (d_child_enum)
      {
        ret = NodeManager::currentNM()->mkConst(
-           UninterpretedConstant(d_type.toType(), d_size_limit));
+           UninterpretedConstant(d_type, d_size_limit));
      }
      else
      {
@@ -137,13 +139,13 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        }
      }
      Debug("dt-enum-debug") << "Get constructor..." << std::endl;
-     NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+     NodeBuilder b(kind::APPLY_CONSTRUCTOR);
      if (d_datatype.isParametric())
      {
        NodeManager* nm = NodeManager::currentNM();
        TypeNode typ = ctor.getSpecializedConstructorType(d_type);
        b << nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                       nm->mkConst(AscriptionType(typ.toType())),
+                       nm->mkConst(AscriptionType(typ)),
                        ctor.getConstructor());
      }
      else
@@ -199,9 +201,22 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    Debug("dt-enum") << "datatype is " << d_type << std::endl;
    Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " "
                     << d_datatype.isRecursiveSingleton(d_type);
-   Debug("dt-enum") << " " << d_datatype.isInterpretedFinite(d_type)
+   Debug("dt-enum") << " " << d_datatype.getCardinalityClass(d_type)
                     << std::endl;
-
+   // Start with the ground term constructed via mkGroundValue, which does
+   // a traversal over the structure of the datatype to find a finite term.
+   // Notice that mkGroundValue may be dependent upon extracting the first
+   // value of type enumerators for *other non-datatype* subfield types of
+   // this datatype. Since datatypes can not be embedded in non-datatype
+   // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
+   // call is guaranteed to avoid infinite recursion. It is important that we
+   // start with this term, since it has the same shape as the one returned by
+   // TypeNode::mkGroundTerm for d_type, which avoids debug check model
+   // failures.
+   d_zeroTerm = d_datatype.mkGroundValue(d_type);
+   // Only use the zero term if it was successfully constructed. This may
+   // fail for codatatype types whose only values are infinite.
+   d_zeroTermActive = !d_zeroTerm.isNull();
    if (d_datatype.isCodatatype() && hasCyclesDt(d_datatype))
    {
      // start with uninterpreted constant
@@ -214,15 +229,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    {
      // find the "zero" term via mkGroundTerm
      Debug("dt-enum-debug") << "make ground term..." << std::endl;
-     // Start with the ground term constructed via mkGroundValue, which does
-     // a traversal over the structure of the datatype to find a finite term.
-     // Notice that mkGroundValue may be dependent upon extracting the first
-     // value of type enumerators for *other non-datatype* subfield types of
-     // this datatype. Since datatypes can not be embedded in non-datatype
-     // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
-     // call is guaranteed to avoid infinite recursion.
-     d_zeroTerm = d_datatype.mkGroundValue(d_type);
-     d_zeroTermActive = true;
      Debug("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
      Assert(d_zeroTerm.getKind() == kind::APPLY_CONSTRUCTOR);
      d_has_debruijn = 0;
@@ -308,7 +314,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        // or other cases
        if (prevSize == d_size_limit
            || (d_size_limit == 0 && d_datatype.isCodatatype())
-           || !d_datatype.isInterpretedFinite(d_type))
+           || d_datatype.getCardinalityClass(d_type)
+                  == CardinalityClass::INFINITE)
        {
          d_size_limit++;
          d_ctor = 0;

@@ -7,7 +7,7 @@
 
 (declare-fun x () Real)
 
-(assert (= (as univset (Set Real)) (as univset (Set Int))))
+(assert (= (as univset (Set Real)) (as univset (Set Real))))
 
 (assert (member x a))
 

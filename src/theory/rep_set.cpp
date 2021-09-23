@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file rep_set.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of representative set
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of representative set.
+ */
 
 #include <unordered_set>
 
@@ -18,9 +19,9 @@
 #include "theory/type_enumerator.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 
 void RepSet::clear(){
@@ -41,7 +42,7 @@ bool RepSet::hasRep(TypeNode tn, Node n) const
   }
 }
 
-unsigned RepSet::getNumRepresentatives(TypeNode tn) const
+size_t RepSet::getNumRepresentatives(TypeNode tn) const
 {
   const std::vector<Node>* reps = getTypeRepsOrNull(tn);
   return (reps != nullptr) ? reps->size() : 0;
@@ -68,7 +69,7 @@ const std::vector<Node>* RepSet::getTypeRepsOrNull(TypeNode tn) const
 
 namespace {
 
-bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
+bool containsStoreAll(Node n, std::unordered_set<Node>& cache)
 {
   if( std::find( cache.begin(), cache.end(), n )==cache.end() ){
     cache.insert(n);
@@ -90,7 +91,7 @@ bool containsStoreAll(Node n, std::unordered_set<Node, NodeHashFunction>& cache)
 void RepSet::add( TypeNode tn, Node n ){
   //for now, do not add array constants FIXME
   if( tn.isArray() ){
-    std::unordered_set<Node, NodeHashFunction> cache;
+    std::unordered_set<Node> cache;
     if( containsStoreAll( n, cache ) ){
       return;
     }
@@ -350,6 +351,7 @@ int RepSetIterator::incrementAtIndex(int i)
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   i = (int)d_index.size()-1;
 #endif
+  Trace("rsi-debug") << "RepSetIterator::incrementAtIndex: " << i << std::endl;
   //increment d_index
   if( i>=0){
     Trace("rsi-debug") << "domain size of " << i << " is " << domainSize(i) << std::endl;
@@ -361,6 +363,7 @@ int RepSetIterator::incrementAtIndex(int i)
     }
   }
   if( i==-1 ){
+    Trace("rsi-debug") << "increment failed" << std::endl;
     d_index.clear();
     return -1;
   }else{
@@ -371,6 +374,8 @@ int RepSetIterator::incrementAtIndex(int i)
 }
 
 int RepSetIterator::do_reset_increment( int i, bool initial ) {
+  Trace("rsi-debug") << "RepSetIterator::do_reset_increment: " << i
+                     << ", initial=" << initial << std::endl;
   for( unsigned ii=(i+1); ii<d_index.size(); ii++ ){
     bool emptyDomain = false;
     int ri_res = resetIndex( ii, initial );
@@ -385,10 +390,22 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
     //force next iteration if currently an empty domain
     if (emptyDomain)
     {
-      Trace("rsi-debug") << "This is an empty domain, increment." << std::endl;
-      return increment();
+      Trace("rsi-debug") << "This is an empty domain (index " << ii << ")."
+                         << std::endl;
+      if (ii > 0)
+      {
+        // increment at the previous index
+        return incrementAtIndex(ii - 1);
+      }
+      else
+      {
+        // this is the first index, we are done
+        d_index.clear();
+        return -1;
+      }
     }
   }
+  Trace("rsi-debug") << "Finished, return " << i << std::endl;
   return i;
 }
 
@@ -412,14 +429,17 @@ Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
                      << d_domain_elements[i].size() << std::endl;
   Assert(0 <= curr && curr < d_domain_elements[i].size());
   Node t = d_domain_elements[i][curr];
+  Trace("rsi-debug") << "rsi : term = " << t << std::endl;
   if (valTerm)
   {
     Node tt = d_rs->getTermForRepresentative(t);
     if (!tt.isNull())
     {
+  Trace("rsi-debug") << "rsi : return rep term = " << tt << std::endl;
       return tt;
     }
   }
+  Trace("rsi-debug") << "rsi : return" << std::endl;
   return t;
 }
 
@@ -445,5 +465,5 @@ void RepSetIterator::debugPrintSmall( const char* c ){
   Debug( c ) << std::endl;
 }
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5

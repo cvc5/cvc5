@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext --no-new-prop
+; COMMAND-LINE: --nl-ext=full --no-new-prop
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :source |
@@ -18,7 +18,7 @@ Submitted by Dejan Jovanovic for SMT-LIB.
 
 
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status sat)
 (declare-fun skoX () Real)

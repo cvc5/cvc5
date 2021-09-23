@@ -1,0 +1,8 @@
+; COMMAND-LINE: --lang=sygus2
+; EXPECT: (
+; EXPECT: (define-fun g ((x Int)) Int (f 0))
+; EXPECT: )
+(set-logic LIA)
+(define-fun f ((x Int)) Int (+ x 1))
+(synth-fun g ((x Int)) Int ((Start Int)) ((Start Int ((f 0)))))
+(check-synth)

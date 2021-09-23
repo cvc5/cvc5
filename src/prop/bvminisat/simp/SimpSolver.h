@@ -21,13 +21,17 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_SimpSolver_h
 #define BVMinisat_SimpSolver_h
 
-#include "context/context.h"
+#include "base/check.h"
 #include "proof/clause_id.h"
 #include "prop/bvminisat/core/Solver.h"
 #include "prop/bvminisat/mtl/Queue.h"
-#include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+namespace context {
+class Context;
+}
+
 namespace BVMinisat {
 
 //=================================================================================================
@@ -37,42 +41,55 @@ class SimpSolver : public Solver {
  public:
     // Constructor/Destructor:
     //
-    SimpSolver(CVC4::context::Context* c);
-    ~SimpSolver();
+  SimpSolver(cvc5::context::Context* context);
+  ~SimpSolver();
 
-    // Problem specification:
-    //
-    Var     newVar    (bool polarity = true, bool dvar = true, bool freeze = false);
-    bool    addClause (const vec<Lit>& ps, ClauseId& id);
-    bool    addEmptyClause();                // Add the empty clause to the solver.
-    bool    addClause (Lit p, ClauseId& id);               // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q, ClauseId& id);        // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r, ClauseId& id); // Add a ternary clause to the solver.
-    bool    addClause_( vec<Lit>& ps, ClauseId& id);
-    bool    substitute(Var v, Lit x);  // Replace all occurences of v with x (may cause a contradiction).
+  // Problem specification:
+  //
+  Var newVar(bool polarity = true, bool dvar = true, bool freeze = false);
+  bool addClause(const vec<Lit>& ps, ClauseId& id);
+  bool addEmptyClause();                // Add the empty clause to the solver.
+  bool addClause(Lit p, ClauseId& id);  // Add a unit clause to the solver.
+  bool addClause(Lit p,
+                 Lit q,
+                 ClauseId& id);  // Add a binary clause to the solver.
+  bool addClause(Lit p,
+                 Lit q,
+                 Lit r,
+                 ClauseId& id);  // Add a ternary clause to the solver.
+  bool addClause_(vec<Lit>& ps, ClauseId& id);
+  bool substitute(Var v, Lit x);  // Replace all occurrences of v with x (may
+                                  // cause a contradiction).
 
-    // Variable mode:
-    // 
-    void    setFrozen (Var v, bool b); // If a variable is frozen it will not be eliminated.
-    bool    isEliminated(Var v) const;
+  // Variable mode:
+  //
+  void setFrozen(Var v,
+                 bool b);  // If a variable is frozen it will not be eliminated.
+  bool isEliminated(Var v) const;
 
-    // Solving:
-    //
-    lbool    solve       (const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
-    lbool    solveLimited(const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
-    lbool    solveLimited(bool do_simp = true, bool turn_off_simp = false);
-    lbool    solve       (                     bool do_simp = true, bool turn_off_simp = false);
-    lbool    solve       (Lit p       ,        bool do_simp = true, bool turn_off_simp = false);       
-    lbool    solve       (Lit p, Lit q,        bool do_simp = true, bool turn_off_simp = false);
-    lbool    solve       (Lit p, Lit q, Lit r, bool do_simp = true, bool turn_off_simp = false);
-    bool    eliminate   (bool turn_off_elim = false);  // Perform variable elimination based simplification. 
+  // Solving:
+  //
+  lbool solve(const vec<Lit>& assumps,
+              bool do_simp = true,
+              bool turn_off_simp = false);
+  lbool solveLimited(const vec<Lit>& assumps,
+                     bool do_simp = true,
+                     bool turn_off_simp = false);
+  lbool solveLimited(bool do_simp = true, bool turn_off_simp = false);
+  lbool solve(bool do_simp = true, bool turn_off_simp = false);
+  lbool solve(Lit p, bool do_simp = true, bool turn_off_simp = false);
+  lbool solve(Lit p, Lit q, bool do_simp = true, bool turn_off_simp = false);
+  lbool solve(
+      Lit p, Lit q, Lit r, bool do_simp = true, bool turn_off_simp = false);
+  bool eliminate(bool turn_off_elim = false);  // Perform variable elimination
+                                               // based simplification.
 
-    // Memory managment:
-    //
-    void garbageCollect() override;
+  // Memory managment:
+  //
+  void garbageCollect() override;
 
-    // Generate a (possibly simplified) DIMACS file:
-    //
+  // Generate a (possibly simplified) DIMACS file:
+  //
 #if 0
     void    toDimacs  (const char* file, const vec<Lit>& assumps);
     void    toDimacs  (const char* file);
@@ -97,10 +114,10 @@ class SimpSolver : public Solver {
     //
     int     merges;
     int     asymm_lits;
-    int     eliminated_vars;
-  //    CVC4::TimerStat total_eliminate_time;
+    int64_t eliminated_vars;
+    //    cvc5::TimerStat total_eliminate_time;
 
- protected:
+   protected:
 
     // Helper structures:
     //
@@ -172,11 +189,12 @@ class SimpSolver : public Solver {
 
 inline bool SimpSolver::isEliminated (Var v) const { return eliminated[v]; }
 inline void SimpSolver::updateElimHeap(Var v) {
-    assert(use_simplification);
-    // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
-    if (elim_heap.inHeap(v) || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
-        elim_heap.update(v); }
-
+  Assert(use_simplification);
+  // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
+  if (elim_heap.inHeap(v)
+      || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
+    elim_heap.update(v);
+}
 
 inline bool SimpSolver::addClause    (const vec<Lit>& ps, ClauseId& id)    { ps.copyTo(add_tmp); return addClause_(add_tmp, id); }
 inline bool SimpSolver::addEmptyClause()                     { add_tmp.clear(); ClauseId id; return addClause_(add_tmp, id); }
@@ -219,8 +237,7 @@ inline lbool SimpSolver::solveLimited (bool do_simp, bool turn_off_simp){
     return solve_(do_simp, turn_off_simp); }
 
 //=================================================================================================
-} /* CVC4::BVMinisat namespace */
-} /* CVC4 namespace */
-
+}  // namespace BVMinisat
+}  // namespace cvc5
 
 #endif

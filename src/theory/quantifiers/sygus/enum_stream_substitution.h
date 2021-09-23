@@ -1,28 +1,31 @@
-/*********************                                                        */
-/*! \file enum_stream_substitution.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief class for streaming concrete values (through substitutions) from
- ** enumerated abstract ones
- **/
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class for streaming concrete values (through substitutions) from
+ * enumerated abstract ones.
+ */
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
 
 #include "expr/node.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers/sygus/enum_val_generator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** Streamer of different values according to variable permutations
  *
@@ -32,7 +35,7 @@ namespace quantifiers {
 class EnumStreamPermutation
 {
  public:
-  EnumStreamPermutation(quantifiers::TermDbSygus* tds);
+  EnumStreamPermutation(TermDbSygus* tds);
   ~EnumStreamPermutation() {}
   /** resets utility
    *
@@ -69,7 +72,7 @@ class EnumStreamPermutation
 
  private:
   /** sygus term database of current quantifiers engine */
-  quantifiers::TermDbSygus* d_tds;
+  TermDbSygus* d_tds;
   /** maps subclass ids to subset of d_vars with that subclass id */
   std::map<unsigned, std::vector<Node>> d_var_classes;
   /** maps variables to subfield types with constructors for
@@ -81,11 +84,11 @@ class EnumStreamPermutation
   /** value to which we are generating permutations */
   Node d_value;
   /** generated permutations (modulo rewriting) */
-  std::unordered_set<Node, NodeHashFunction> d_perm_values;
+  std::unordered_set<Node> d_perm_values;
   /** retrieves variables occurring in value */
   void collectVars(Node n,
                    std::vector<Node>& vars,
-                   std::unordered_set<Node, NodeHashFunction>& visited);
+                   std::unordered_set<Node>& visited);
   /** Utility for stepwise application of Heap's algorithm for permutation
    *
    * see https://en.wikipedia.org/wiki/Heap%27s_algorithm
@@ -164,7 +167,7 @@ class EnumStreamPermutation
 class EnumStreamSubstitution
 {
  public:
-  EnumStreamSubstitution(quantifiers::TermDbSygus* tds);
+  EnumStreamSubstitution(TermDbSygus* tds);
   ~EnumStreamSubstitution() {}
   /** initializes utility
    *
@@ -210,7 +213,7 @@ class EnumStreamSubstitution
 
  private:
   /** sygus term database of current quantifiers engine */
-  quantifiers::TermDbSygus* d_tds;
+  TermDbSygus* d_tds;
   /** type this utility has been initialized for */
   TypeNode d_tn;
   /** current value */
@@ -228,7 +231,7 @@ class EnumStreamSubstitution
    */
   Node d_last;
   /** generated combinations */
-  std::unordered_set<Node, NodeHashFunction> d_comb_values;
+  std::unordered_set<Node> d_comb_values;
   /** permutation utility */
   EnumStreamPermutation d_stream_permutations;
   /** Utility for stepwise generation of ordered subsets of size k from n
@@ -280,7 +283,7 @@ class EnumStreamSubstitution
 class EnumStreamConcrete : public EnumValGenerator
 {
  public:
-  EnumStreamConcrete(quantifiers::TermDbSygus* tds) : d_ess(tds) {}
+  EnumStreamConcrete(TermDbSygus* tds) : d_ess(tds) {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
   /** get that value v was enumerated */
@@ -299,6 +302,6 @@ class EnumStreamConcrete : public EnumValGenerator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

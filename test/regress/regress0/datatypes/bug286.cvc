@@ -1,5 +1,0 @@
-% EXPECT: invalid
-DATATYPE foo = f(i:INT) END;
-x : foo;
-y : INT;
-QUERY x = f(y);

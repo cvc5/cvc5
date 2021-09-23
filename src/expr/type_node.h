@@ -1,28 +1,25 @@
-/*********************                                                        */
-/*! \file type_node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information.
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef CVC4__TYPE_NODE_H
-#define CVC4__TYPE_NODE_H
-
-#include <stdint.h>
+#ifndef CVC5__TYPE_NODE_H
+#define CVC5__TYPE_NODE_H
 
 #include <iostream>
 #include <string>
@@ -32,31 +29,23 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "util/cardinality.h"
+#include "util/cardinality_class.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 class NodeManager;
+class Cardinality;
 class DType;
 
 namespace expr {
   class NodeValue;
-}/* CVC4::expr namespace */
+  }  // namespace expr
 
 /**
  * Encapsulation of an NodeValue pointer for Types. The reference count is
  * maintained in the NodeValue.
  */
 class TypeNode {
-
-public:
-
-  // for hash_maps, hash_sets..
-  struct HashFunction {
-    size_t operator()(TypeNode node) const {
-      return (size_t) node.getId();
-    }
-  };/* struct HashFunction */
 
 private:
 
@@ -79,7 +68,6 @@ private:
 
   friend class NodeManager;
 
-  template <unsigned nchild_thresh>
   friend class NodeBuilder;
 
   /**
@@ -95,20 +83,22 @@ private:
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
-  TypeNode substitute(const TypeNode& type, const TypeNode& replacement,
-                      std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
+  TypeNode substitute(const TypeNode& type,
+                      const TypeNode& replacement,
+                      std::unordered_map<TypeNode, TypeNode>& cache) const;
 
   /**
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
    */
   template <class Iterator1, class Iterator2>
-  TypeNode substitute(Iterator1 typesBegin, Iterator1 typesEnd,
-                      Iterator2 replacementsBegin, Iterator2 replacementsEnd,
-                      std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const;
+  TypeNode substitute(Iterator1 typesBegin,
+                      Iterator1 typesEnd,
+                      Iterator2 replacementsBegin,
+                      Iterator2 replacementsEnd,
+                      std::unordered_map<TypeNode, TypeNode>& cache) const;
 
-public:
-
+ public:
   /** Default constructor, makes a null expression. */
   TypeNode() : d_nv(&expr::NodeValue::null()) { }
 
@@ -384,8 +374,10 @@ public:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AUTO) const {
-    d_nv->toStream(out, -1, false, 0, language);
+  inline void toStream(std::ostream& out,
+                       Language language = Language::LANG_AUTO) const
+  {
+    d_nv->toStream(out, -1, 0, language);
   }
 
   /**
@@ -406,40 +398,24 @@ public:
   }
 
   /**
-   * Convert this TypeNode into a Type using the currently-in-scope
-   * manager.
-   */
-  inline Type toType();
-
-  /**
-   * Convert a Type into a TypeNode.
-   */
-  inline static TypeNode fromType(const Type& t);
-
-  /**
    * Returns the cardinality of this type.
    *
    * @return a finite or infinite cardinality
    */
   Cardinality getCardinality() const;
-
   /**
-   * Is this type finite? This assumes uninterpreted sorts have infinite
-   * cardinality.
+   * Get the cardinality class of this type node. The cardinality class
+   * is static for each type node and does not depend on the state of the
+   * solver. For details on cardinality classes, see util/cardinality_class.h
+   *
+   * @return the cardinality class
    */
-  bool isFinite();
-
-  /**
-   * Is this type interpreted as finite.
-   * If finite model finding is enabled, this assumes all uninterpreted sorts
-   *   are interpreted as finite.
-   */
-  bool isInterpretedFinite();
+  CardinalityClass getCardinalityClass();
 
   /** is closed enumerable type
    *
    * This returns true if this type has an enumerator that produces constants
-   * that are fully handled by CVC4's quantifier-free theory solvers. Examples
+   * that are fully handled by cvc5's quantifier-free theory solvers. Examples
    * of types that are not closed enumerable are:
    * (1) uninterpreted sorts,
    * (2) arrays,
@@ -452,7 +428,7 @@ public:
   /**
    * Is this a first-class type?
    * First-class types are types for which:
-   * (1) we handle equalities between terms of that type, and 
+   * (1) we handle equalities between terms of that type, and
    * (2) they are allowed to be parameters of parametric types (e.g. index or element types of arrays).
    *
    * Examples of types that are not first-class include constructor types,
@@ -506,6 +482,9 @@ public:
   /** Is this the String type? */
   bool isString() const;
 
+  /** Is this a string-like type? (string or sequence) */
+  bool isStringLike() const;
+
   /** Is this the Rounding Mode type? */
   bool isRoundingMode() const;
 
@@ -514,6 +493,12 @@ public:
 
   /** Is this a Set type? */
   bool isSet() const;
+
+  /** Is this a Bag type? */
+  bool isBag() const;
+
+  /** Is this a Sequence type? */
+  bool isSequence() const;
 
   /** Get the index type (for array types) */
   TypeNode getArrayIndexType() const;
@@ -530,9 +515,17 @@ public:
   /** Get the return type (for selector types) */
   TypeNode getSelectorRangeType() const;
 
+  /** Get the domain type (for tester types) */
+  TypeNode getTesterDomainType() const;
+
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
 
+  /** Get the element type (for bag types) */
+  TypeNode getBagElementType() const;
+
+  /** Get the element type (for sequence types) */
+  TypeNode getSequenceElementType() const;
   /**
    * Is this a function type?  Function-like things (e.g. datatype
    * selectors) that aren't actually functions are NOT considered
@@ -591,17 +584,14 @@ public:
   /** Is this a tuple type? */
   bool isTuple() const;
 
+  /** Is this a record type? */
+  bool isRecord() const;
+
   /** Get the length of a tuple type */
   size_t getTupleLength() const;
 
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
-
-  /** Is this a symbolic expression type? */
-  bool isSExpr() const;
-
-  /** Get the constituent types of a symbolic expression type */
-  std::vector<TypeNode> getSExprTypes() const;
 
   /** Is this a regexp type */
   bool isRegExp() const;
@@ -631,6 +621,9 @@ public:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /** Is this a sygus datatype type */
+  bool isSygusDatatype() const;
+
   /**
    * Get instantiated datatype type. The type on which this method is called
    * should be a parametric datatype whose parameter list is the same size as
@@ -653,6 +646,9 @@ public:
   /** Is this a tester type */
   bool isTester() const;
 
+  /** Is this a datatype updater type */
+  bool isUpdater() const;
+
   /** Get the internal Datatype specification from a datatype type */
   const DType& getDType() const;
 
@@ -663,13 +659,21 @@ public:
   unsigned getFloatingPointSignificandSize() const;
 
   /** Get the size of this bit-vector type */
-  unsigned getBitVectorSize() const;
+  uint32_t getBitVectorSize() const;
 
   /** Is this a sort kind */
   bool isSort() const;
 
   /** Is this a sort constructor kind */
   bool isSortConstructor() const;
+
+  /** Get sort constructor arity */
+  uint64_t getSortConstructorArity() const;
+
+  /**
+   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   */
+  std::string getName() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is
@@ -689,25 +693,16 @@ public:
    * Returns the leastUpperBound in the extended type lattice of the two types.
    * If this is \top, i.e. there is no inhabited type that contains both,
    * a TypeNode such that isNull() is true is returned.
-   *
-   * For more information see: http://cvc4.cs.nyu.edu/wiki/Cvc4_Type_Lattice
    */
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
   static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
-  /** get ensure type condition 
+  /** get ensure type condition
    *  Return value is a condition that implies that n has type tn.
   */
   static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
   static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
-
-  /**
-   * Is this type interpreted as finite.
-   * If the flag usortFinite is true, this assumes all uninterpreted sorts
-   *   are interpreted as finite.
-   */
-  bool isFiniteInternal(bool usortFinite);
 
   /**
    * Indents the given stream a given amount of spaces.
@@ -735,26 +730,26 @@ inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
   return out;
 }
 
-typedef TypeNode::HashFunction TypeNodeHashFunction;
+}  // namespace cvc5
 
-}/* CVC4 namespace */
+namespace std {
+
+template <>
+struct hash<cvc5::TypeNode>
+{
+  size_t operator()(const cvc5::TypeNode& tn) const;
+};
+
+}  // namespace std
 
 #include "expr/node_manager.h"
 
-namespace CVC4 {
-
-inline Type TypeNode::toType() {
-  return NodeManager::currentNM()->toType(*this);
-}
-
-inline TypeNode TypeNode::fromType(const Type& t) {
-  return NodeManager::fromType(t);
-}
+namespace cvc5 {
 
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
                      const TypeNode& replacement) const {
-  std::unordered_map<TypeNode, TypeNode, HashFunction> cache;
+  std::unordered_map<TypeNode, TypeNode> cache;
   return substitute(type, replacement, cache);
 }
 
@@ -764,19 +759,21 @@ TypeNode::substitute(Iterator1 typesBegin,
                      Iterator1 typesEnd,
                      Iterator2 replacementsBegin,
                      Iterator2 replacementsEnd) const {
-  std::unordered_map<TypeNode, TypeNode, HashFunction> cache;
+  std::unordered_map<TypeNode, TypeNode> cache;
   return substitute(typesBegin, typesEnd,
                     replacementsBegin, replacementsEnd, cache);
 }
 
 template <class Iterator1, class Iterator2>
-TypeNode TypeNode::substitute(Iterator1 typesBegin,
-                              Iterator1 typesEnd,
-                              Iterator2 replacementsBegin,
-                              Iterator2 replacementsEnd,
-                              std::unordered_map<TypeNode, TypeNode, HashFunction>& cache) const {
+TypeNode TypeNode::substitute(
+    Iterator1 typesBegin,
+    Iterator1 typesEnd,
+    Iterator2 replacementsBegin,
+    Iterator2 replacementsEnd,
+    std::unordered_map<TypeNode, TypeNode>& cache) const
+{
   // in cache?
-  std::unordered_map<TypeNode, TypeNode, HashFunction>::const_iterator i = cache.find(*this);
+  std::unordered_map<TypeNode, TypeNode>::const_iterator i = cache.find(*this);
   if(i != cache.end()) {
     return (*i).second;
   }
@@ -793,17 +790,15 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
     cache[*this] = *this;
     return *this;
   } else {
-    NodeBuilder<> nb(getKind());
+    NodeBuilder nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);
     }
-    for(TypeNode::const_iterator i = begin(),
-          iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(typesBegin, typesEnd,
-                            replacementsBegin, replacementsEnd, cache);
+    for (const TypeNode& tn : *this)
+    {
+      nb << tn.substitute(
+          typesBegin, typesEnd, replacementsBegin, replacementsEnd, cache);
     }
     TypeNode tn = nb.constructTypeNode();
     cache[*this] = tn;
@@ -857,35 +852,23 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
 template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  Assert(NodeManager::currentNM() != NULL)
-      << "There is no current CVC4::NodeManager associated to this thread.\n"
-         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
 }
 
@@ -960,6 +943,11 @@ inline bool TypeNode::isSet() const {
   return getKind() == kind::SET_TYPE;
 }
 
+inline bool TypeNode::isSequence() const
+{
+  return getKind() == kind::SEQUENCE_TYPE;
+}
+
 inline TypeNode TypeNode::getSetElementType() const {
   Assert(isSet());
   return (*this)[0];
@@ -989,84 +977,32 @@ inline TypeNode TypeNode::getRangeType() const {
   if(isTester()) {
     return NodeManager::currentNM()->booleanType();
   }
-  Assert(isFunction() || isConstructor() || isSelector());
+  Assert(isFunction() || isConstructor() || isSelector())
+      << "Cannot get range type of " << *this;
   return (*this)[getNumChildren() - 1];
-}
-
-/** Is this a symbolic expression type? */
-inline bool TypeNode::isSExpr() const {
-  return getKind() == kind::SEXPR_TYPE;
-}
-
-/** Is this a floating-point type */
-inline bool TypeNode::isFloatingPoint() const {
-  return getKind() == kind::FLOATINGPOINT_TYPE;
-}
-
-/** Is this a bit-vector type */
-inline bool TypeNode::isBitVector() const {
-  return getKind() == kind::BITVECTOR_TYPE;
-}
-
-/** Is this a datatype type */
-inline bool TypeNode::isDatatype() const {
-  return getKind() == kind::DATATYPE_TYPE || getKind() == kind::PARAMETRIC_DATATYPE;
-}
-
-/** Is this a parametric datatype type */
-inline bool TypeNode::isParametricDatatype() const {
-  return getKind() == kind::PARAMETRIC_DATATYPE;
-}
-
-/** Is this a constructor type */
-inline bool TypeNode::isConstructor() const {
-  return getKind() == kind::CONSTRUCTOR_TYPE;
-}
-
-/** Is this a selector type */
-inline bool TypeNode::isSelector() const {
-  return getKind() == kind::SELECTOR_TYPE;
-}
-
-/** Is this a tester type */
-inline bool TypeNode::isTester() const {
-  return getKind() == kind::TESTER_TYPE;
 }
 
 /** Is this a floating-point type of with <code>exp</code> exponent bits
     and <code>sig</code> significand bits */
 inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
-  return
-    ( getKind() == kind::FLOATINGPOINT_TYPE &&
-      getConst<FloatingPointSize>().exponent() == exp &&
-      getConst<FloatingPointSize>().significand() == sig );
-}
-
-/** Is this a bit-vector type of size <code>size</code> */
-inline bool TypeNode::isBitVector(unsigned size) const {
-  return
-    ( getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size );
+  return (getKind() == kind::FLOATINGPOINT_TYPE
+          && getConst<FloatingPointSize>().exponentWidth() == exp
+          && getConst<FloatingPointSize>().significandWidth() == sig);
 }
 
 /** Get the exponent size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointExponentSize() const {
   Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().exponent();
+  return getConst<FloatingPointSize>().exponentWidth();
 }
 
 /** Get the significand size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().significand();
+  return getConst<FloatingPointSize>().significandWidth();
 }
 
-/** Get the size of this bit-vector type */
-inline unsigned TypeNode::getBitVectorSize() const {
-  Assert(isBitVector());
-  return getConst<BitVectorSize>();
-}
-
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
  * outside of gdb.  This writes to the Warning() stream and immediately
@@ -1083,27 +1019,21 @@ inline unsigned TypeNode::getBitVectorSize() const {
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
-  Warning() << Node::setdepth(-1)
-            << Node::printtypes(false)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << n << std::endl;
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
   Warning().flush();
 }
 static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
   n.printAst(Warning(), 0);
   Warning().flush();
 }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__NODE_H */
+#endif /* CVC5__NODE_H */

@@ -1,40 +1,41 @@
-/*********************                                                        */
-/*! \file simplex_update.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This provides a class for summarizing pivot proposals.
- **
- ** This shares with the theory a Tableau, and a PartialModel that:
- **  - satisfies the equalities in the Tableau, and
- **  - the assignment for the non-basic variables satisfies their bounds.
- ** This maintains the relationship needed by the SimplexDecisionProcedure.
- **
- ** In the language of Simplex for DPLL(T), this provides:
- ** - update()
- ** - pivotAndUpdate()
- **
- ** This class also provides utility functions that require
- ** using both the Tableau and PartialModel.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This provides a class for summarizing pivot proposals.
+ *
+ * This shares with the theory a Tableau, and a PartialModel that:
+ *  - satisfies the equalities in the Tableau, and
+ *  - the assignment for the non-basic variables satisfies their bounds.
+ * This maintains the relationship needed by the SimplexDecisionProcedure.
+ *
+ * In the language of Simplex for DPLL(T), this provides:
+ * - update()
+ * - pivotAndUpdate()
+ *
+ * This class also provides utility functions that require
+ * using both the Tableau and PartialModel.
+ */
 
-
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
-#include "theory/arith/delta_rational.h"
+#include <optional>
+
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
-#include "util/maybe.h"
+#include "theory/arith/delta_rational.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -109,7 +110,7 @@ private:
    * This is changed via the updateProposal(...) methods.
    * The value needs to satisfy debugSgnAgreement() or it is in conflict.
    */
-  Maybe<DeltaRational> d_nonbasicDelta;
+  std::optional<DeltaRational> d_nonbasicDelta;
 
   /**
    * This is true if the pivot-and-update is *known* to cause a conflict.
@@ -118,16 +119,16 @@ private:
   bool d_foundConflict;
 
   /** This is the change in the size of the error set. */
-  Maybe<int> d_errorsChange;
+  std::optional<int> d_errorsChange;
 
   /** This is the sgn of the change in the value of the focus set.*/
-  Maybe<int> d_focusDirection;
+  std::optional<int> d_focusDirection;
 
   /** This is the sgn of the change in the value of the focus set.*/
-  Maybe<DeltaRational> d_focusChange;
+  std::optional<DeltaRational> d_focusChange;
 
   /** This is the coefficient in the tableau for the entry.*/
-  Maybe<const Rational*> d_tableauCoefficient;
+  std::optional<const Rational*> d_tableauCoefficient;
 
   /**
    * This is the constraint that nonbasic is basic is updating s.t. its variable is against it.
@@ -329,18 +330,19 @@ private:
     if(d_foundConflict){
       return ConflictFound;
     }
-    else if (d_errorsChange.just() && d_errorsChange.value() < 0)
+    else if (d_errorsChange && d_errorsChange.value() < 0)
     {
       return ErrorDropped;
     }
-    else if (d_errorsChange.nothing() || d_errorsChange.value() == 0)
+    else if (d_errorsChange.value_or(0) == 0)
     {
-      if(d_focusDirection.just()){
-        if (d_focusDirection.value() > 0)
+      if (d_focusDirection)
+      {
+        if (*d_focusDirection > 0)
         {
           return FocusImproved;
         }
-        else if (d_focusDirection.value() == 0)
+        else if (*d_focusDirection == 0)
         {
           return Degenerate;
         }
@@ -353,6 +355,6 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const UpdateInfo& up);
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

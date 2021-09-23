@@ -1,33 +1,30 @@
-/*********************                                                        */
-/*! \file theory_builtin_type_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Type rules for the builtin theory
- **
- ** Type rules for the builtin theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Type rules for the builtin theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
-#define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
+#ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
+#define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "expr/expr.h"
-#include "theory/rewriter.h"
 #include "theory/builtin/theory_builtin_rewriter.h" // for array and lambda representation
 
 #include <sstream>
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace builtin {
 
@@ -83,21 +80,20 @@ class DistinctTypeRule {
 class SExprTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    std::vector<TypeNode> types;
-    for(TNode::iterator child_it = n.begin(), child_it_end = n.end();
-        child_it != child_it_end;
-        ++child_it) {
-      types.push_back((*child_it).getType(check));
+    if (check)
+    {
+      for (TNode c : n)
+      {
+        c.getType(check);
+      }
     }
-    return nodeManager->mkSExprType(types);
+    return nodeManager->sExprType();
   }
 };/* class SExprTypeRule */
 
 class UninterpretedConstantTypeRule {
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    return TypeNode::fromType(n.getConst<UninterpretedConstant>().getType());
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };/* class UninterpretedConstantTypeRule */
 
 class AbstractValueTypeRule {
@@ -159,7 +155,7 @@ class LambdaTypeRule {
   }
 };/* class LambdaTypeRule */
 
-class ChoiceTypeRule
+class WitnessTypeRule
 {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager,
@@ -169,14 +165,14 @@ class ChoiceTypeRule
     if (n[0].getType(check) != nodeManager->boundVarListType())
     {
       std::stringstream ss;
-      ss << "expected a bound var list for CHOICE expression, got `"
+      ss << "expected a bound var list for WITNESS expression, got `"
          << n[0].getType().toString() << "'";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     if (n[0].getNumChildren() != 1)
     {
       std::stringstream ss;
-      ss << "expected a bound var list with one argument for CHOICE expression";
+      ss << "expected a bound var list with one argument for WITNESS expression";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     if (check)
@@ -185,153 +181,56 @@ class ChoiceTypeRule
       if (!rangeType.isBoolean())
       {
         std::stringstream ss;
-        ss << "expected a body of a CHOICE expression to have Boolean type";
+        ss << "expected a body of a WITNESS expression to have Boolean type";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
-    // The type of a choice function is the type of its bound variable.
+    // The type of a witness function is the type of its bound variable.
     return n[0][0].getType();
   }
-}; /* class ChoiceTypeRule */
-
-class ChainTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CHAIN);
-
-    if(!check) {
-      return nodeManager->booleanType();
-    }
-
-    TypeNode tn;
-    try {
-      tn = nodeManager->getType(TheoryBuiltinRewriter::blastChain(n), check);
-    } catch(TypeCheckingExceptionPrivate& e) {
-      std::stringstream ss;
-      ss << "Cannot typecheck the expansion of chained operator `" << n.getOperator() << "':"
-         << std::endl;
-      // indent the sub-exception for clarity
-      std::stringstream ss2;
-      ss2 << e;
-      std::string eStr = ss2.str();
-      for(size_t i = eStr.find('\n'); i != std::string::npos; i = eStr.find('\n', i)) {
-        eStr.insert(++i, "| ");
-      }
-      ss << "| " << eStr;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
-    // This check is intentionally != booleanType() rather than
-    // !(...isBoolean()): if we ever add a type compatible with
-    // Boolean (pseudobooleans or whatever), we have to revisit
-    // the above "!check" case where booleanType() is returned
-    // directly.  Putting this check here will cause a failure if
-    // it's ever relevant.
-    if(tn != nodeManager->booleanType()) {
-      std::stringstream ss;
-      ss << "Chains can only be formed over predicates; "
-         << "the operator here returns `" << tn << "', expected `"
-         << nodeManager->booleanType() << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-
-    return nodeManager->booleanType();
-  }
-};/* class ChainTypeRule */
-
-class ChainedOperatorTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CHAIN_OP);
-    return nodeManager->getType(nodeManager->operatorOf(n.getConst<Chain>().getOperator()), check);
-  }
-};/* class ChainedOperatorTypeRule */
+}; /* class WitnessTypeRule */
 
 class SortProperties {
  public:
   inline static bool isWellFounded(TypeNode type) {
     return true;
   }
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::SORT_TYPE);
-    return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
-  }
+  static Node mkGroundTerm(TypeNode type);
 };/* class SortProperties */
 
 class FunctionProperties {
  public:
-  inline static Cardinality computeCardinality(TypeNode type) {
-    // Don't assert this; allow other theories to use this cardinality
-    // computation.
-    //
-    // Assert(type.getKind() == kind::FUNCTION_TYPE);
+  static Cardinality computeCardinality(TypeNode type);
 
-    Cardinality argsCard(1);
-    // get the largest cardinality of function arguments/return type
-    for(unsigned i = 0, i_end = type.getNumChildren() - 1; i < i_end; ++i) {
-      argsCard *= type[i].getCardinality();
-    }
-
-    Cardinality valueCard = type[type.getNumChildren() - 1].getCardinality();
-
-    return valueCard ^ argsCard;
-  }
-};/* class FuctionProperties */
-
-class SExprProperties {
- public:
-  inline static Cardinality computeCardinality(TypeNode type) {
-    // Don't assert this; allow other theories to use this cardinality
-    // computation.
-    //
-    // Assert(type.getKind() == kind::SEXPR_TYPE);
-
-    Cardinality card(1);
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      card *= (*i).getCardinality();
-    }
-
-    return card;
-  }
-
-  inline static bool isWellFounded(TypeNode type) {
-    // Don't assert this; allow other theories to use this
-    // wellfoundedness computation.
-    //
-    // Assert(type.getKind() == kind::SEXPR_TYPE);
-
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      if(! (*i).isWellFounded()) {
+  /** Function type is well-founded if its component sorts are */
+  static bool isWellFounded(TypeNode type)
+  {
+    for (TypeNode::iterator i = type.begin(), i_end = type.end(); i != i_end;
+         ++i)
+    {
+      if (!(*i).isWellFounded())
+      {
         return false;
       }
     }
-
     return true;
   }
-
-  inline static Node mkGroundTerm(TypeNode type) {
-    Assert(type.getKind() == kind::SEXPR_TYPE);
-
-    std::vector<Node> children;
-    for(TypeNode::iterator i = type.begin(),
-          i_end = type.end();
-        i != i_end;
-        ++i) {
-      children.push_back((*i).mkGroundTerm());
-    }
-
-    return NodeManager::currentNM()->mkNode(kind::SEXPR, children);
+  /**
+   * Ground term for function sorts is (lambda x. t) where x is the
+   * canonical variable list for its type and t is the canonical ground term of
+   * its range.
+   */
+  static Node mkGroundTerm(TypeNode type)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node bvl = nm->getBoundVarListForFunctionType(type);
+    Node ret = type.getRangeType().mkGroundTerm();
+    return nm->mkNode(kind::LAMBDA, bvl, ret);
   }
-};/* class SExprProperties */
+};/* class FuctionProperties */
 
-}/* CVC4::theory::builtin namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace builtin
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */
+#endif /* CVC5__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */

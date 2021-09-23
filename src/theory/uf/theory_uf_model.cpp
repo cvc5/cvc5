@@ -1,35 +1,32 @@
-/*********************                                                        */
-/*! \file theory_uf_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of Theory UF Model
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of Theory UF Model.
+ */
 
 #include "theory/uf/theory_uf_model.h"
 
 #include <stack>
-#include <vector>
 
 #include "expr/attribute.h"
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::uf;
+using namespace cvc5::kind;
+
+namespace cvc5 {
+namespace theory {
+namespace uf {
 
 //clear
 void UfModelTreeNode::clear(){
@@ -49,7 +46,11 @@ void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int
   if( argIndex<(int)indexOrder.size() ){
     //take r = null when argument is the model basis
     Node r;
-    if( ground || ( !n.isNull() && !n[ indexOrder[argIndex] ].getAttribute(ModelBasisAttribute()) ) ){
+    if (ground
+        || (!n.isNull()
+            && !quantifiers::FirstOrderModel::isModelBasis(
+                   n[indexOrder[argIndex]])))
+    {
       r = m->getRepresentative( n[ indexOrder[argIndex] ] );
     }
     d_data[ r ].setValue( m, n, v, indexOrder, ground, argIndex+1 );
@@ -63,14 +64,17 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
       defaultValue = d_data[Node::null()].getFunctionValue(args, index + 1, argDefaultValue, simplify);
     }
 
-    vector<Node> caseArgs;
-    map<Node, Node> caseValues;
+    std::vector<Node> caseArgs;
+    std::map<Node, Node> caseValues;
 
-    for(map< Node, UfModelTreeNode>::iterator it = d_data.begin(); it != d_data.end(); ++it) {
-      if(!it->first.isNull()) {
-        Node val = it->second.getFunctionValue(args, index + 1, defaultValue, simplify);
-        caseArgs.push_back(it->first);
-        caseValues[it->first] = val;
+    for (std::pair<const Node, UfModelTreeNode>& p : d_data)
+    {
+      if (!p.first.isNull())
+      {
+        Node val =
+            p.second.getFunctionValue(args, index + 1, defaultValue, simplify);
+        caseArgs.push_back(p.first);
+        caseValues[p.first] = val;
       }
     }
 
@@ -86,7 +90,7 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
         Node val = caseValues[ caseArgs[ i ] ];
         if(val.getKind() == ITE) {
           // use a stack to reverse the order, since we're traversing outside-in
-          stack<TNode> stk;
+          std::stack<TNode> stk;
           do {
             stk.push(val);
             val = val[2];
@@ -153,14 +157,20 @@ void UfModelTreeNode::simplify( Node op, Node defaultVal, int argIndex ){
       }
     }
     //now see if any children can be removed, and simplify the ones that cannot
-    for( std::map< Node, UfModelTreeNode >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
-      if( !it->first.isNull() ){
-        if( !defaultVal.isNull() && it->second.d_value==defaultVal ){
-          eraseData.push_back( it->first );
-        }else{
-          it->second.simplify( op, defaultVal, argIndex+1 );
-          if( it->second.isEmpty() ){
-            eraseData.push_back( it->first );
+    for (auto& kv : d_data)
+    {
+      if (!kv.first.isNull())
+      {
+        if (!defaultVal.isNull() && kv.second.d_value == defaultVal)
+        {
+          eraseData.push_back(kv.first);
+        }
+        else
+        {
+          kv.second.simplify(op, defaultVal, argIndex + 1);
+          if (kv.second.isEmpty())
+          {
+            eraseData.push_back(kv.first);
           }
         }
       }
@@ -231,3 +241,7 @@ Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
   }
   return getFunctionValue( vars, simplify );
 }
+
+}  // namespace uf
+}  // namespace theory
+}  // namespace cvc5

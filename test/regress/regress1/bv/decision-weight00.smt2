@@ -5,7 +5,7 @@
  Patrice Godefroid, SAGE (systematic dynamic test generation)
  For more information: http://research.microsoft.com/en-us/um/people/pg/public_psfiles/ndss2008.pdf
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unknown)
 (declare-fun x () (_ BitVec 32))

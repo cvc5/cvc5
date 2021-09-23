@@ -1,107 +1,114 @@
-/*********************                                                        */
-/*! \file constraint.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Alex Ozdemir, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Defines Constraint and ConstraintDatabase which is the internal representation of variables in arithmetic
- **
- ** This file defines Constraint and ConstraintDatabase.
- ** A Constraint is the internal representation of literals in TheoryArithmetic.
- ** Constraints are fundamentally a triple:
- **  - ArithVar associated with the constraint,
- **  - a DeltaRational value,
- **  - and a ConstraintType.
- **
- ** Literals:
- **   The constraint may also keep track of a node corresponding to the
- **   Constraint.
- **   This can be accessed by getLiteral() in O(1) if it has been set.
- **   This node must be in normal form and may be used for communication with
- **   the TheoryEngine.
- **
- ** In addition, Constraints keep track of the following:
- **  - A Constraint that is the negation of the Constraint.
- **  - An iterator into a set of Constraints for the ArithVar sorted by
- **    DeltaRational value.
- **  - A context dependent internal proof of the node that can be used for
- **    explanations.
- **  - Whether an equality/disequality has been split in the user context via a
- **    lemma.
- **  - Whether a constraint, be be used in explanations sent to the context
- **
- ** Looking up constraints:
- **  - All of the Constraints with associated nodes in the ConstraintDatabase can
- **    be accessed via a single hashtable lookup until the Constraint is removed.
- **  - Nodes that have not been associated to a constraints can be
- **    inserted/associated to existing nodes in O(log n) time.
- **
- ** Implications:
- **  - A Constraint can be used to find unate implications.
- **  - A unate implication is an implication based purely on the ArithVar matching
- **    and the DeltaRational value.
- **    (implies (<= x c) (<= x d)) given c <= d
- **  - This is done using the iterator into the sorted set of constraints.
- **  - Given a tight constraint and previous tightest constraint, this will
- **    efficiently propagate internally.
- **
- ** Additing and Removing Constraints
- **  - Adding Constraints takes O(log n) time where n is the number of
- **    constraints associated with the ArithVar.
- **  - Removing Constraints takes O(1) time.
- **
- ** Internals:
- **  - Constraints are pointers to ConstraintValues.
- **  - Undefined Constraints are NullConstraint.
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Alex Ozdemir, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Defines Constraint and ConstraintDatabase which is the internal
+ * representation of variables in arithmetic
+ *
+ * This file defines Constraint and ConstraintDatabase.
+ * A Constraint is the internal representation of literals in TheoryArithmetic.
+ * Constraints are fundamentally a triple:
+ *  - ArithVar associated with the constraint,
+ *  - a DeltaRational value,
+ *  - and a ConstraintType.
+ *
+ * Literals:
+ *   The constraint may also keep track of a node corresponding to the
+ *   Constraint.
+ *   This can be accessed by getLiteral() in O(1) if it has been set.
+ *   This node must be in normal form and may be used for communication with
+ *   the TheoryEngine.
+ *
+ * In addition, Constraints keep track of the following:
+ *  - A Constraint that is the negation of the Constraint.
+ *  - An iterator into a set of Constraints for the ArithVar sorted by
+ *    DeltaRational value.
+ *  - A context dependent internal proof of the node that can be used for
+ *    explanations.
+ *  - Whether an equality/disequality has been split in the user context via a
+ *    lemma.
+ *  - Whether a constraint, be be used in explanations sent to the context
+ *
+ * Looking up constraints:
+ *  - All of the Constraints with associated nodes in the ConstraintDatabase
+ *    can be accessed via a single hashtable lookup until the Constraint is
+ *    removed.
+ *  - Nodes that have not been associated to a constraints can be
+ *    inserted/associated to existing nodes in O(log n) time.
+ *
+ * Implications:
+ *  - A Constraint can be used to find unate implications.
+ *  - A unate implication is an implication based purely on the ArithVar
+ *    matching  and the DeltaRational value.
+ *    (implies (<= x c) (<= x d)) given c <= d
+ *  - This is done using the iterator into the sorted set of constraints.
+ *  - Given a tight constraint and previous tightest constraint, this will
+ *    efficiently propagate internally.
+ *
+ * Additing and Removing Constraints
+ *  - Adding Constraints takes O(log n) time where n is the number of
+ *    constraints associated with the ArithVar.
+ *  - Removing Constraints takes O(1) time.
+ *
+ * Internals:
+ *  - Constraints are pointers to ConstraintValues.
+ *  - Undefined Constraints are NullConstraint.
+ *
+ * Assumption vs. Assertion:
+ * - An assertion is anything on the theory d_fact queue.
+ *   This includes any thing propagated and returned to the fact queue.
+ *   These can be used in external conflicts and propagations of earlier
+ *   proofs.
+ * - An assumption is anything on the theory d_fact queue that has no further
+ *   explanation i.e. this theory did not propagate it.
+ * - To set something an assumption, first set it as being as assertion.
+ * - Internal assumptions have no explanations and must be regressed out of the
+ *   proof.
+ */
 
- **
- ** Assumption vs. Assertion:
- ** - An assertion is anything on the theory d_fact queue.
- **   This includes any thing propagated and returned to the fact queue.
- **   These can be used in external conflicts and propagations of earlier proofs.
- ** - An assumption is anything on the theory d_fact queue that has no further
- **   explanation i.e. this theory did not propagate it.
- ** - To set something an assumption, first set it as being as assertion.
- ** - Internal assumptions have no explanations and must be regressed out of the proof.
- **/
+#include "cvc5_private.h"
 
-#include "cvc4_private.h"
-
-#ifndef CVC4__THEORY__ARITH__CONSTRAINT_H
-#define CVC4__THEORY__ARITH__CONSTRAINT_H
+#ifndef CVC5__THEORY__ARITH__CONSTRAINT_H
+#define CVC5__THEORY__ARITH__CONSTRAINT_H
 
 #include <unordered_map>
-#include <list>
-#include <set>
 #include <vector>
 
 #include "base/configuration_private.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
-#include "context/context.h"
 #include "expr/node.h"
-#include "proof/proof.h"
+#include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
-#include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofNodeManager;
+class EagerProofGenerator;
+
+namespace context {
+class Context;
+}
 namespace theory {
+
 namespace arith {
+
 class Comparison;
-}
-}
-}
-namespace CVC4 {
-namespace theory {
-namespace arith {
+class ArithCongruenceManager;
+class ArithVariables;
 
 /**
  * Logs the types of different proofs.
@@ -124,6 +131,8 @@ namespace arith {
  *                    :   !(x > a) and !(x < a) => x = a
  * - EqualityEngineAP : This is propagated by the equality engine.
  *                    : Consult this for the proof.
+ * - IntTightenAP     : This is indicates that a bound involving integers was tightened.
+ *                    : e.g. i < 5.5 became i <= 5, when i is an integer.
  * - IntHoleAP        : This is currently a catch-all for all integer specific reason.
  */
 enum ArithProofType
@@ -133,6 +142,7 @@ enum ArithProofType
     FarkasAP,
     TrichotomyAP,
     EqualityEngineAP,
+    IntTightenAP,
     IntHoleAP};
 
 /**
@@ -145,7 +155,7 @@ enum ConstraintType {LowerBound, Equality, UpperBound, Disequality};
 
 typedef context::CDList<ConstraintCP> CDConstraintList;
 
-typedef std::unordered_map<Node, ConstraintP, NodeHashFunction> NodetoConstraintMap;
+typedef std::unordered_map<Node, ConstraintP> NodetoConstraintMap;
 
 typedef size_t ConstraintRuleID;
 static const ConstraintRuleID ConstraintRuleIdSentinel = std::numeric_limits<ConstraintRuleID>::max();
@@ -249,11 +259,11 @@ struct PerVariableDatabase{
   }
 };
 
-
 /**
  * If proofs are on, there is a vector of rationals for farkas coefficients.
- * This is the owner of the memory for the vector, and calls delete upon cleanup.
- * 
+ * This is the owner of the memory for the vector, and calls delete upon
+ * cleanup.
+ *
  */
 struct ConstraintRule {
   ConstraintP d_constraint;
@@ -299,50 +309,19 @@ struct ConstraintRule {
    * We do however use all of the constraints by requiring non-zero
    * coefficients.
    */
-#if IS_PROOFS_BUILD
   RationalVectorCP d_farkasCoefficients;
-#endif /* IS_PROOFS_BUILD */
-  ConstraintRule()
-    : d_constraint(NullConstraint)
-    , d_proofType(NoAP)
-    , d_antecedentEnd(AntecedentIdSentinel)
-  {
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
-  }
 
-  ConstraintRule(ConstraintP con, ArithProofType pt)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(AntecedentIdSentinel)
-  {
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
-  }
-  ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(antecedentEnd)
-  {
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
-  }
+  ConstraintRule();
+  ConstraintRule(ConstraintP con, ArithProofType pt);
+  ConstraintRule(ConstraintP con,
+                 ArithProofType pt,
+                 AntecedentId antecedentEnd);
+  ConstraintRule(ConstraintP con,
+                 ArithProofType pt,
+                 AntecedentId antecedentEnd,
+                 RationalVectorCP coeffs);
 
-  ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd, RationalVectorCP coeffs)
-    : d_constraint(con)
-    , d_proofType(pt)
-    , d_antecedentEnd(antecedentEnd)
-  {
-    Assert(PROOF_ON() || coeffs == RationalVectorCPSentinel);
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = coeffs;
-#endif /* IS_PROOFS_BUILD */
-  }
-
-  void print(std::ostream& out) const;
+  void print(std::ostream& out, bool produceProofs) const;
   void debugPrint() const;
 }; /* class ConstraintRule */
 
@@ -359,7 +338,10 @@ class Constraint {
    * Because of circular dependencies a Constraint is not fully valid until
    * initialize has been called on it.
    */
-  Constraint(ArithVar x,  ConstraintType t, const DeltaRational& v);
+  Constraint(ArithVar x,
+             ConstraintType t,
+             const DeltaRational& v,
+             bool produceProofs);
 
   /**
    * Destructor for a constraint.
@@ -416,7 +398,7 @@ class Constraint {
    * Returns a lemma that is assumed to be true for the rest of the user context.
    * Constraint must be an equality or disequality.
    */
-  Node split();
+  TrustNode split();
 
   bool canBePropagated() const {
     return d_canBePropagated;
@@ -469,6 +451,14 @@ class Constraint {
     return d_literal;
   }
 
+  /** Gets a literal in the normal form suitable for proofs.
+   * That is, (sum of non-const monomials) >< const.
+   *
+   * This is a sister method to `getLiteral`, which returns a normal form
+   * literal, suitable for external solving use.
+   */
+  Node getProofLiteral() const;
+
   /**
    * Set the node as having a proof and being an assumption.
    * The node must be assertedToTheTheory().
@@ -484,6 +474,9 @@ class Constraint {
   /** Returns true if the node is an assumption.*/
   bool isAssumption() const;
 
+  /** Whether we produce proofs */
+  bool isProofProducing() const { return d_produceProofs; }
+
   /** Set the constraint to have an EqualityEngine proof. */
   void setEqualityEngineProof();
   bool hasEqualityEngineProof() const;
@@ -493,15 +486,16 @@ class Constraint {
 
   /**
    * @brief Returns whether this constraint is provable using a Farkas
-   * proof that has input assertions as its antecedents.
+   * proof applied to (possibly tightened) input assertions.
    *
    * An example of a constraint that has a simple Farkas proof:
    *    x <= 0 proven from x + y <= 0 and x - y <= 0.
    *
-   * An example of a constraint that does not have a simple Farkas proof:
+   * An example of another constraint that has a simple Farkas proof:
    *    x <= 0 proven from x + y <= 0 and x - y <= 0.5 for integers x, y
-   *       (since integer reasoning is also required!).
-   * Another example of a constraint that might be proven without a simple
+   *       (integer bound-tightening is applied first!).
+   *
+   * An example of a constraint that might be proven **without** a simple
    * Farkas proof:
    *    x < 0 proven from not(x == 0) and not(x > 0).
    *
@@ -510,12 +504,22 @@ class Constraint {
    *
    */
   bool hasSimpleFarkasProof() const;
+  /**
+   * Returns whether this constraint is an assumption or a tightened
+   * assumption.
+   */
+  bool isPossiblyTightenedAssumption() const;
+
+  /** Returns true if the node has a int bound tightening proof. */
+  bool hasIntTightenProof() const;
 
   /** Returns true if the node has a int hole proof. */
   bool hasIntHoleProof() const;
 
   /** Returns true if the node has a trichotomy proof. */
   bool hasTrichotomyProof() const;
+
+  void printProofTree(std::ostream & out, size_t depth = 0) const;
 
   /**
    * A sets the constraint to be an internal assumption.
@@ -539,9 +543,7 @@ class Constraint {
    * This is the minimum fringe of the implication tree s.t.
    * every constraint is assertedToTheTheory() or hasEqualityEngineProof().
    */
-  Node externalExplainByAssertions() const {
-    return externalExplain(AssertionOrderSentinel);
-  }
+  TrustNode externalExplainByAssertions() const;
 
   /**
    * Writes an explanation of a constraint into the node builder.
@@ -554,8 +556,9 @@ class Constraint {
    * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
-  void externalExplainByAssertions(NodeBuilder<>& nb) const{
-    externalExplain(nb, AssertionOrderSentinel);
+  std::shared_ptr<ProofNode> externalExplainByAssertions(NodeBuilder& nb) const
+  {
+    return externalExplain(nb, AssertionOrderSentinel);
   }
 
   /* Equivalent to calling externalExplainByAssertions on all constraints in b */
@@ -582,22 +585,28 @@ class Constraint {
    * The constraint must have a proof.
    * The constraint cannot be an assumption.
    *
-   * This is the minimum fringe of the implication tree (excluding the constraint itself)
-   * s.t. every constraint is assertedToTheTheory() or hasEqualityEngineProof().
+   * This is the minimum fringe of the implication tree (excluding the
+   * constraint itself) s.t. every constraint is assertedToTheTheory() or
+   * hasEqualityEngineProof().
+   *
+   * All return conjuncts were asserted before this constraint.
+   *
+   * Requires the given node to rewrite to the canonical literal for this
+   * constraint.
+   *
+   * @params n the literal to prove
+   *           n must rewrite to the constraint's canonical literal
+   *
+   * @returns a trust node of the form:
+   *         (=> explanation n)
    */
-  Node externalExplainForPropagation() const {
-    Assert(hasProof());
-    Assert(!isAssumption());
-    Assert(!isInternalAssumption());
-    return externalExplain(d_assertionOrder);
-  }
+  TrustNode externalExplainForPropagation(TNode n) const;
 
   /**
    * Explain the constraint and its negation in terms of assertions.
    * The constraint must be in conflict.
    */
-  Node externalExplainConflict() const;
-
+  TrustNode externalExplainConflict() const;
 
   /** The constraint is known to be true. */
   inline bool hasProof() const {
@@ -638,7 +647,10 @@ class Constraint {
    */
   ConstraintP getFloor();
 
-  static ConstraintP makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r);
+  static ConstraintP makeNegation(ArithVar v,
+                                  ConstraintType t,
+                                  const DeltaRational& r,
+                                  bool produceProofs);
 
   const ValueCollection& getValueCollection() const;
 
@@ -657,7 +669,16 @@ class Constraint {
 
   /**
    * Marks a the constraint c as being entailed by a.
-   * The reason has to do with integer rounding.
+   * The reason has to do with integer bound tightening.
+   *
+   * After calling impliedByIntTighten(), the caller should either raise a conflict
+   * or try call tryToPropagate().
+   */
+  void impliedByIntTighten(ConstraintCP a, bool inConflict);
+
+  /**
+   * Marks a the constraint c as being entailed by a.
+   * The reason has to do with integer reasoning.
    *
    * After calling impliedByIntHole(), the caller should either raise a conflict
    * or try call tryToPropagate().
@@ -666,7 +687,7 @@ class Constraint {
 
   /**
    * Marks a the constraint c as being entailed by a.
-   * The reason has to do with integer rounding.
+   * The reason has to do with integer reasoning.
    *
    * After calling impliedByIntHole(), the caller should either raise a conflict
    * or try call tryToPropagate().
@@ -727,7 +748,7 @@ class Constraint {
 
   /**
    * If the constraint
-   *   canBePropagated() and 
+   *   canBePropagated() and
    *   !assertedToTheTheory(),
    * the constraint is added to the database's propagation queue.
    *
@@ -766,10 +787,13 @@ class Constraint {
       ConstraintP constraint = crp->d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
-
-      PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
-        delete crp->d_farkasCoefficients;
-      });
+      if (constraint->isProofProducing())
+      {
+        if (crp->d_farkasCoefficients != RationalVectorCPSentinel)
+        {
+          delete crp->d_farkasCoefficients;
+        }
+      }
     }
   };
 
@@ -832,7 +856,6 @@ class Constraint {
   static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
 
   Node externalExplain(AssertionOrder order) const;
-
   /**
    * Returns an explanation of that was assertedBefore(order).
    * The constraint must have a proof.
@@ -841,7 +864,8 @@ class Constraint {
    * This is the minimum fringe of the implication tree
    * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
    */
-  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
+  std::shared_ptr<ProofNode> externalExplain(NodeBuilder& nb,
+                                             AssertionOrder order) const;
 
   static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
 
@@ -853,10 +877,11 @@ class Constraint {
     return getConstraintRule().d_antecedentEnd;
   }
 
-  inline RationalVectorCP getFarkasCoefficients() const {
-    return NULLPROOF(getConstraintRule().d_farkasCoefficients);
+  inline RationalVectorCP getFarkasCoefficients() const
+  {
+    return d_produceProofs ? getConstraintRule().d_farkasCoefficients : nullptr;
   }
-  
+
   void debugPrint() const;
 
   /**
@@ -957,6 +982,9 @@ class Constraint {
    */
   SortedConstraintMapIterator d_variablePosition;
 
+  /** Whether to produce proofs, */
+  bool d_produceProofs;
+
 }; /* class ConstraintValue */
 
 std::ostream& operator<<(std::ostream& o, const Constraint& c);
@@ -967,9 +995,9 @@ std::ostream& operator<<(std::ostream& o, const ValueCollection& c);
 std::ostream& operator<<(std::ostream& o, const ConstraintCPVec& v);
 std::ostream& operator<<(std::ostream& o, const ArithProofType);
 
-
-class ConstraintDatabase {
-private:
+class ConstraintDatabase : protected EnvObj
+{
+ private:
   /**
    * The map from ArithVars to their unique databases.
    * When the vector changes size, we cannot allow the maps to move so this
@@ -1028,8 +1056,7 @@ private:
      * The index in this list is the proper ordering of the proofs.
      */
     ConstraintRuleList d_constraintProofs;
-    
-    
+
     /**
      * Contains the exact list of constraints that can be used for propagation.
      */
@@ -1070,23 +1097,25 @@ private:
 
   ArithCongruenceManager& d_congruenceManager;
 
-  const context::Context * const d_satContext;
+  /** Owned by the TheoryArithPrivate, used here. */
+  EagerProofGenerator* d_pfGen;
+  /** Owned by the TheoryArithPrivate, used here. */
+  ProofNodeManager* d_pnm;
 
   RaiseConflict d_raiseConflict;
 
 
   const Rational d_one;
   const Rational d_negOne;
-  
-  friend class Constraint;
-  
-public:
 
-  ConstraintDatabase( context::Context* satContext,
-                      context::Context* userContext,
-                      const ArithVariables& variables,
-                      ArithCongruenceManager& dm,
-                      RaiseConflict conflictCallBack);
+  friend class Constraint;
+
+ public:
+  ConstraintDatabase(Env& env,
+                     const ArithVariables& variables,
+                     ArithCongruenceManager& dm,
+                     RaiseConflict conflictCallBack,
+                     EagerProofGenerator* pfGen);
 
   ~ConstraintDatabase();
 
@@ -1123,8 +1152,11 @@ public:
   bool variableDatabaseIsSetup(ArithVar v) const;
   void removeVariable(ArithVar v);
 
-  Node eeExplain(ConstraintCP c) const;
-  void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
+  /** Get an explanation and proof for this constraint from the equality engine
+   */
+  TrustNode eeExplain(ConstraintCP c) const;
+  /** Get an explanation for this constraint from the equality engine */
+  void eeExplain(ConstraintCP c, NodeBuilder& nb) const;
 
   /**
    * Returns a constraint with the variable v, the constraint type t, and a value
@@ -1161,14 +1193,39 @@ public:
 
   void deleteConstraintAndNegation(ConstraintP c);
 
+  /** Given constraints `a` and `b` such that `a OR b` by unate reasoning,
+   *  adds a TrustNode to `out` which proves `a OR b` as a lemma.
+   *
+   *  Example: `x <= 5` OR `5 <= x`.
+   */
+  void proveOr(std::vector<TrustNode>& out,
+               ConstraintP a,
+               ConstraintP b,
+               bool negateSecond) const;
+  /** Given constraints `a` and `b` such that `a` implies `b` by unate
+   * reasoning, adds a TrustNode to `out` which proves `-a OR b` as a lemma.
+   *
+   *  Example: `x >= 5` -> `x >= 4`.
+   */
+  void implies(std::vector<TrustNode>& out, ConstraintP a, ConstraintP b) const;
+  /** Given constraints `a` and `b` such that `not(a AND b)` by unate reasoning,
+   *  adds a TrustNode to `out` which proves `-a OR -b` as a lemma.
+   *
+   *  Example: `x >= 4` -> `x <= 3`.
+   */
+  void mutuallyExclusive(std::vector<TrustNode>& out,
+                         ConstraintP a,
+                         ConstraintP b) const;
+
   /**
    * Outputs a minimal set of unate implications onto the vector for the variable.
    * This outputs lemmas of the general forms
    *     (= p c) implies (<= p d) for c < d, or
    *     (= p c) implies (not (= p d)) for c != d.
    */
-  void outputUnateEqualityLemmas(std::vector<Node>& lemmas) const;
-  void outputUnateEqualityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
+  void outputUnateEqualityLemmas(std::vector<TrustNode>& lemmas) const;
+  void outputUnateEqualityLemmas(std::vector<TrustNode>& lemmas,
+                                 ArithVar v) const;
 
   /**
    * Outputs a minimal set of unate implications onto the vector for the variable.
@@ -1176,9 +1233,9 @@ public:
    * If ineqs is true, this outputs lemmas of the general form
    *     (<= p c) implies (<= p d) for c < d.
    */
-  void outputUnateInequalityLemmas(std::vector<Node>& lemmas) const;
-  void outputUnateInequalityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
-
+  void outputUnateInequalityLemmas(std::vector<TrustNode>& lemmas) const;
+  void outputUnateInequalityLemmas(std::vector<TrustNode>& lemmas,
+                                   ArithVar v) const;
 
   void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
   void unatePropUpperBound(ConstraintP curr, ConstraintP prev);
@@ -1186,8 +1243,10 @@ public:
 
   /** AntecendentID must be in range. */
   ConstraintCP getAntecedent(AntecedentId p) const;
-  
-private:
+
+  bool isProofEnabled() const { return d_pnm != nullptr; }
+
+ private:
   /** returns true if cons is now in conflict. */
   bool handleUnateProp(ConstraintP ant, ConstraintP cons);
 
@@ -1199,14 +1258,12 @@ private:
     IntStat d_unatePropagateImplications;
 
     Statistics();
-    ~Statistics();
   } d_statistics;
 
 }; /* ConstraintDatabase */
 
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__THEORY__ARITH__CONSTRAINT_H */
+#endif /* CVC5__THEORY__ARITH__CONSTRAINT_H */

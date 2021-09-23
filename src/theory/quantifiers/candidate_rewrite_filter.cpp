@@ -1,18 +1,19 @@
-/*********************                                                        */
-/*! \file candidate_rewrite_filter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements techniques for candidate rewrite rule filtering, which
- ** filters the output of --sygus-rr-synth. The classes in this file implement
- ** filtering based on congruence, variable ordering, and matching.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements techniques for candidate rewrite rule filtering, which
+ * filters the output of --sygus-rr-synth. The classes in this file implement
+ * filtering based on congruence, variable ordering, and matching.
+ */
 
 #include "theory/quantifiers/candidate_rewrite_filter.h"
 
@@ -20,9 +21,9 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -163,12 +164,11 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   }
   if (Trace.isOn("sygus-rr-filter"))
   {
-    Printer* p = Printer::getPrinter(options::outputLanguage());
     std::stringstream ss;
     ss << "(redundant-rewrite ";
-    p->toStreamSygus(ss, n);
+    TermDbSygus::toStreamSygus(ss, n);
     ss << " ";
-    p->toStreamSygus(ss, eq_n);
+    TermDbSygus::toStreamSygus(ss, eq_n);
     ss << ")";
     Trace("sygus-rr-filter") << ss.str() << std::endl;
   }
@@ -227,8 +227,7 @@ bool CandidateRewriteFilter::notify(Node s,
   Assert(!s.isNull());
   n = d_drewrite->toExternal(n);
   Assert(!n.isNull());
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
-      d_pairs.find(n);
+  std::map<Node, std::unordered_set<Node> >::iterator it = d_pairs.find(n);
   if (Trace.isOn("crf-match"))
   {
     Trace("crf-match") << "  " << s << " matches " << n
@@ -238,7 +237,7 @@ bool CandidateRewriteFilter::notify(Node s,
       Trace("crf-match") << "    " << vars[i] << " -> " << subs[i] << std::endl;
     }
   }
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   for (unsigned i = 0, size = vars.size(); i < size; i++)
   {
     // By using internal representation of terms, we ensure polymorphism is
@@ -248,9 +247,9 @@ bool CandidateRewriteFilter::notify(Node s,
 #endif
   // must convert the inferred substitution to original form
   std::vector<Node> esubs;
-  for (const Node& s : subs)
+  for (const Node& sb : subs)
   {
-    esubs.push_back(d_drewrite->toExternal(s));
+    esubs.push_back(d_drewrite->toExternal(sb));
   }
   Assert(it != d_pairs.end());
   for (const Node& nr : it->second)
@@ -278,4 +277,4 @@ bool CandidateRewriteFilter::notify(Node s,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

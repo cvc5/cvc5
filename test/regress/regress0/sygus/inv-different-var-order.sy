@@ -1,10 +1,7 @@
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 ;EXPECT: unsat
 (set-logic LIA)
 (synth-inv inv-f ((x Int) (y Int) (b Bool)))
-(declare-primed-var b Bool)
-(declare-primed-var x Int)
-(declare-primed-var y Int)
 (define-fun pre-f ((x Int) (y Int) (b Bool)) Bool
 (and
 (and (>= x 5) (<= x 9))

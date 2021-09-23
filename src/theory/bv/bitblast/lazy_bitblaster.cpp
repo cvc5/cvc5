@@ -1,36 +1,35 @@
-/*********************                                                        */
-/*! \file lazy_bitblaster.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bitblaster for the lazy bv solver.
- **
- ** Bitblaster for the lazy bv solver.
- **/
-
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bitblaster for the layered BV solver.
+ */
 
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 
+#include "cvc5_private.h"
 #include "options/bv_options.h"
-#include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
+#include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
+#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -59,7 +58,7 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
 }
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c,
-                                 bv::TheoryBV* bv,
+                                 bv::BVSolverLayered* bv,
                                  const std::string name,
                                  bool emptyNotify)
     : TBitblaster<Node>(),
@@ -74,17 +73,19 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
       d_emptyNotify(emptyNotify),
       d_fullModelAssertionLevel(c, 0),
       d_name(name),
-      d_statistics(name)
+      d_statistics(name + "::")
 {
-  d_satSolver.reset(
-      prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
+  d_satSolver.reset(prop::SatSolverFactory::createMinisat(
+      c, smtStatisticsRegistry(), name + "::"));
 
-  d_cnfStream.reset(
-      new prop::TseitinCnfStream(d_satSolver.get(),
-                                 d_nullRegistrar.get(),
-                                 d_nullContext.get(),
-                                 options::proof(),
-                                 "LazyBitblaster"));
+  ResourceManager* rm = smt::currentResourceManager();
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_nullRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm,
+                                        prop::FormulaLitPolicy::INTERNAL,
+                                        "LazyBitblaster"));
 
   d_satSolverNotify.reset(
       d_emptyNotify
@@ -160,8 +161,7 @@ void TLazyBitblaster::bbAtom(TNode node)
     Assert(!atom_bb.isNull());
     Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
     storeBBAtom(node, atom_bb);
-    d_cnfStream->convertAndAssert(
-        atom_definition, false, false, RULE_INVALID, TNode::null());
+    d_cnfStream->convertAndAssert(atom_definition, false, false);
     return;
   }
 
@@ -172,28 +172,19 @@ void TLazyBitblaster::bbAtom(TNode node)
           ? d_atomBBStrategies[normalized.getKind()](normalized, this)
           : normalized;
 
-  if (!options::proof())
-  {
-    atom_bb = Rewriter::rewrite(atom_bb);
-  }
+  atom_bb = Rewriter::rewrite(atom_bb);
 
   // asserting that the atom is true iff the definition holds
   Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
   storeBBAtom(node, atom_bb);
-  d_cnfStream->convertAndAssert(
-      atom_definition, false, false, RULE_INVALID, TNode::null());
+  d_cnfStream->convertAndAssert(atom_definition, false, false);
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  // No need to store the definition for the lazy bit-blaster (unless proofs are enabled).
-  if( d_bvp != NULL ){
-    d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
-  }
   d_bbAtoms.insert(atom);
 }
 
 void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
-  if( d_bvp ){ d_bvp->registerTermBB(node.toExpr()); }
   d_termCache.insert(std::make_pair(node, bits));
 }
 
@@ -234,7 +225,7 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
   }
   Assert(node.getType().isBitVector());
 
-  d_bv->spendResource(options::bitblastStep());
+  d_bv->spendResource(Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   ++d_statistics.d_numTerms;
 
@@ -302,8 +293,12 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
     markerLit = ~markerLit;
   }
 
-  Debug("bitvector-bb") << "TheoryBV::TLazyBitblaster::assertToSat asserting node: " << atom <<"\n";
-  Debug("bitvector-bb") << "TheoryBV::TLazyBitblaster::assertToSat with literal:   " << markerLit << "\n";
+  Debug("bitvector-bb")
+      << "BVSolverLayered::TLazyBitblaster::assertToSat asserting node: "
+      << atom << "\n";
+  Debug("bitvector-bb")
+      << "BVSolverLayered::TLazyBitblaster::assertToSat with literal:   "
+      << markerLit << "\n";
 
   prop::SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);
 
@@ -367,33 +362,22 @@ void TLazyBitblaster::getConflict(std::vector<TNode>& conflict)
   }
 }
 
-TLazyBitblaster::Statistics::Statistics(const std::string& prefix) :
-  d_numTermClauses(prefix + "::NumTermSatClauses", 0),
-  d_numAtomClauses(prefix + "::NumAtomSatClauses", 0),
-  d_numTerms(prefix + "::NumBitblastedTerms", 0),
-  d_numAtoms(prefix + "::NumBitblastedAtoms", 0),
-  d_numExplainedPropagations(prefix + "::NumExplainedPropagations", 0),
-  d_numBitblastingPropagations(prefix + "::NumBitblastingPropagations", 0),
-  d_bitblastTimer(prefix + "::BitblastTimer")
+TLazyBitblaster::Statistics::Statistics(const std::string& prefix)
+    : d_numTermClauses(
+        smtStatisticsRegistry().registerInt(prefix + "NumTermSatClauses")),
+      d_numAtomClauses(
+          smtStatisticsRegistry().registerInt(prefix + "NumAtomSatClauses")),
+      d_numTerms(
+          smtStatisticsRegistry().registerInt(prefix + "NumBitblastedTerms")),
+      d_numAtoms(
+          smtStatisticsRegistry().registerInt(prefix + "NumBitblastedAtoms")),
+      d_numExplainedPropagations(smtStatisticsRegistry().registerInt(
+          prefix + "NumExplainedPropagations")),
+      d_numBitblastingPropagations(smtStatisticsRegistry().registerInt(
+          prefix + "NumBitblastingPropagations")),
+      d_bitblastTimer(
+          smtStatisticsRegistry().registerTimer(prefix + "BitblastTimer"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numTermClauses);
-  smtStatisticsRegistry()->registerStat(&d_numAtomClauses);
-  smtStatisticsRegistry()->registerStat(&d_numTerms);
-  smtStatisticsRegistry()->registerStat(&d_numAtoms);
-  smtStatisticsRegistry()->registerStat(&d_numExplainedPropagations);
-  smtStatisticsRegistry()->registerStat(&d_numBitblastingPropagations);
-  smtStatisticsRegistry()->registerStat(&d_bitblastTimer);
-}
-
-
-TLazyBitblaster::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numTermClauses);
-  smtStatisticsRegistry()->unregisterStat(&d_numAtomClauses);
-  smtStatisticsRegistry()->unregisterStat(&d_numTerms);
-  smtStatisticsRegistry()->unregisterStat(&d_numAtoms);
-  smtStatisticsRegistry()->unregisterStat(&d_numExplainedPropagations);
-  smtStatisticsRegistry()->unregisterStat(&d_numBitblastingPropagations);
-  smtStatisticsRegistry()->unregisterStat(&d_bitblastTimer);
 }
 
 bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
@@ -415,35 +399,37 @@ bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
 
 void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   if (clause.size() > 1) {
-    NodeBuilder<> lemmab(kind::OR);
+    NodeBuilder lemmab(kind::OR);
     for (unsigned i = 0; i < clause.size(); ++ i) {
       lemmab << d_cnf->getNode(clause[i]);
     }
     Node lemma = lemmab;
-    d_bv->d_out->lemma(lemma);
+    d_bv->d_im.lemma(lemma, InferenceId::BV_LAYERED_LEMMA);
   } else {
-    d_bv->d_out->lemma(d_cnf->getNode(clause[0]));
+    d_bv->d_im.lemma(d_cnf->getNode(clause[0]), InferenceId::BV_LAYERED_LEMMA);
   }
 }
 
-void TLazyBitblaster::MinisatNotify::spendResource(unsigned amount)
+void TLazyBitblaster::MinisatNotify::spendResource(Resource r)
 {
-  d_bv->spendResource(amount);
+  d_bv->spendResource(r);
 }
 
-void TLazyBitblaster::MinisatNotify::safePoint(unsigned amount)
+void TLazyBitblaster::MinisatNotify::safePoint(Resource r)
 {
-  d_bv->d_out->safePoint(amount);
+  d_bv->d_im.safePoint(r);
 }
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
 {
   int numAssertions = d_bv->numAssertions();
+  bool has_full_model =
+      numAssertions != 0 && d_fullModelAssertionLevel.get() == numAssertions;
+
   Debug("bv-equality-status")
       << "TLazyBitblaster::getEqualityStatus " << a << " = " << b << "\n";
   Debug("bv-equality-status")
-      << "BVSatSolver has full model? "
-      << (d_fullModelAssertionLevel.get() == numAssertions) << "\n";
+      << "BVSatSolver has full model? " << has_full_model << "\n";
 
   // First check if it trivially rewrites to false/true
   Node a_eq_b =
@@ -452,7 +438,7 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
   if (a_eq_b == utils::mkFalse()) return theory::EQUALITY_FALSE;
   if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;
 
-  if (d_fullModelAssertionLevel.get() != numAssertions)
+  if (!has_full_model)
   {
     return theory::EQUALITY_UNKNOWN;
   }
@@ -534,11 +520,9 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   return utils::mkConst(bits.size(), value);
 }
 
-bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
+bool TLazyBitblaster::collectModelValues(TheoryModel* m,
+                                         const std::set<Node>& termSet)
 {
-  std::set<Node> termSet;
-  d_bv->computeRelevantTerms(termSet);
-
   for (std::set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
     TNode var = *it;
     // not actually a leaf of the bit-vector theory
@@ -552,9 +536,9 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     Node const_value = getModelFromSatSolver(var, true);
     Assert(const_value.isNull() || const_value.isConst());
     if(const_value != Node()) {
-      Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
-                               << var << " "
-                               << const_value << "))\n";
+      Debug("bitvector-model")
+          << "TLazyBitblaster::collectModelValues (assert (= " << var << " "
+          << const_value << "))\n";
       if (!m->assertEquality(var, const_value, true))
       {
         return false;
@@ -578,8 +562,12 @@ void TLazyBitblaster::clearSolver() {
   // recreate sat solver
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
-  d_cnfStream.reset(new prop::TseitinCnfStream(
-      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get()));
+  ResourceManager* rm = smt::currentResourceManager();
+  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+                                        d_nullRegistrar.get(),
+                                        d_nullContext.get(),
+                                        nullptr,
+                                        rm));
   d_satSolverNotify.reset(
       d_emptyNotify
           ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()
@@ -590,4 +578,4 @@ void TLazyBitblaster::clearSolver() {
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

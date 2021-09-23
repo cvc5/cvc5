@@ -1,29 +1,28 @@
-/*********************                                                        */
-/*! \file SimpleVC.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the Java interface
- **
- ** A simple demonstration of the Java interface.
- **
- ** To run the resulting class file, you need to do something like the
- ** following:
- **
- **   java \
- **     -cp path/to/CVC4.jar:SimpleVC.jar \
- **     -Djava.library.path=/dir/containing/libcvc4jni.so \
- **     SimpleVC
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the Java interface.
+ *
+ * To run the resulting class file, you need to do something like the
+ * following:
+ *
+ *   java \
+ *     -cp path/to/CVC4.jar:SimpleVC.jar \
+ *     -Djava.library.path=/dir/containing/libcvc4jni.so \
+ *     SimpleVC
+ *
+ */
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class SimpleVC {
   public static void main(String[] args) {
@@ -52,11 +51,11 @@ public class SimpleVC {
     Expr twox_plus_y_geq_3 = em.mkExpr(Kind.GEQ, twox_plus_y, three);
 
     Expr formula =
-      new Expr(em.mkExpr(Kind.AND, x_positive, y_positive)).
-      impExpr(new Expr(twox_plus_y_geq_3));
+        em.mkExpr(Kind.AND, x_positive, y_positive).impExpr(twox_plus_y_geq_3);
 
-    System.out.println("Checking validity of formula " + formula + " with CVC4.");
-    System.out.println("CVC4 should report VALID.");
-    System.out.println("Result from CVC4 is: " + smt.query(formula));
+    System.out.println(
+        "Checking entailment of formula " + formula + " with CVC4.");
+    System.out.println("CVC4 should report ENTAILED.");
+    System.out.println("Result from CVC4 is: " + smt.checkEntailed(formula));
   }
 }

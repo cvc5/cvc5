@@ -1,5 +1,24 @@
+###############################################################################
+# Top contributors (to current version):
+#   Mathias Preiner, Aina Niemetz, Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+##
+
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
+
+if(NOT WIN32)
+  string(ASCII 27 Esc)
+  set(Yellow "${Esc}[33m")
+  set(ResetColor "${Esc}[m")
+endif()
 
 # Add a C flag to the global list of C flags.
 macro(add_c_flag flag)
@@ -80,20 +99,20 @@ macro(add_required_c_cxx_flag flag)
   add_required_cxx_flag(${flag})
 endmacro()
 
-# CVC4 Boolean options are three-valued to detect if an option was set by the
+# cvc5 Boolean options are three-valued to detect if an option was set by the
 # user. The available values are: IGNORE (default), ON, OFF
 # Default options do not override options that were set by the user, i.e.,
-# cvc4_set_option only sets an option if it's value is still IGNORE.
+# cvc5_set_option only sets an option if it's value is still IGNORE.
 # This e.g., allows the user to disable proofs for debug builds (where proofs
 # are enabled by default).
-macro(cvc4_option var description)
+macro(cvc5_option var description)
   set(${var} IGNORE CACHE STRING "${description}")
   # Provide drop down menu options in cmake-gui
   set_property(CACHE ${var} PROPERTY STRINGS IGNORE ON OFF)
 endmacro()
 
 # Only set option if the user did not set an option.
-macro(cvc4_set_option var value)
+macro(cvc5_set_option var value)
   if(${var} STREQUAL "IGNORE")
     set(${var} ${value})
   endif()
@@ -108,24 +127,45 @@ function(list_prepend in_list prepand_value out_list)
   set(${out_list} ${${out_list}} PARENT_SCOPE)
 endfunction()
 
-# Helper to print the configuration of a 2-valued or 3-valued option 'var'
-# with prefix 'str'.
-macro(print_config str var)
-  if(${var} STREQUAL "ON")
-    set(OPT_VAL_STR "on")
-  else()
-    set(OPT_VAL_STR "off")
-  endif()
-  message("${str} ${OPT_VAL_STR}")
+macro(print_info msg)
+  message("${Blue}${msg}${ResetColor}")
 endmacro()
 
+# Helper to print the configuration of a 2-valued or 3-valued option 'var' with
+# prefix 'str'. Optionally takes a `FOUND_SYSTEM` argument that is used to
+# indicate when a given dependency is built as part of the cvc5 build.
+function(print_config str var)
+  set(options)
+  set(oneValueArgs FOUND_SYSTEM)
+  set(multiValueArgs)
+  cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-# Collect all source files that are required to build libcvc4 in LIBCVC4_SRCS
-# or LIBCVC4_GEN_SRCS. If GENERATED is the first argument the sources are
-# added to LIBCVC4_GEN_SRCS. All sources are prepended with the absolute
+  if("${var}" STREQUAL "ON")
+    set(OPT_VAL_STR "on")
+  elseif("${var}" STREQUAL "OFF" OR "${var}" STREQUAL "IGNORE")
+    set(OPT_VAL_STR "off")
+  else()
+    set(OPT_VAL_STR "${var}")
+  endif()
+
+  if("${ARGS_FOUND_SYSTEM}" STREQUAL "TRUE")
+    set(OPT_FOUND_SYSTEM_STR " (system)")
+  elseif("${ARGS_FOUND_SYSTEM}" STREQUAL "FALSE")
+    set(OPT_FOUND_SYSTEM_STR " (local)")
+  else()
+    set(OPT_FOUND_SYSTEM_STR "")
+  endif()
+
+  message("${Blue}${str}: ${Green}${OPT_VAL_STR}${OPT_FOUND_SYSTEM_STR}${ResetColor}")
+endfunction()
+
+
+# Collect all source files that are required to build libcvc5 in LIBCVC5_SRCS
+# or LIBCVC5_GEN_SRCS. If GENERATED is the first argument the sources are
+# added to LIBCVC5_GEN_SRCS. All sources are prepended with the absolute
 # current path path. CMAKE_CURRENT_BINARY_DIR is prepended
 # to generated source files.
-macro(libcvc4_add_sources)
+macro(libcvc5_add_sources)
   set(_sources ${ARGV})
 
   # Check if the first argument is GENERATED.
@@ -133,10 +173,10 @@ macro(libcvc4_add_sources)
   if(${_generated} STREQUAL "GENERATED")
     list(REMOVE_AT _sources 0)
     set(_cur_path ${CMAKE_CURRENT_BINARY_DIR})
-    set(_append_to LIBCVC4_GEN_SRCS)
+    set(_append_to LIBCVC5_GEN_SRCS)
   else()
     set(_cur_path ${CMAKE_CURRENT_SOURCE_DIR})
-    set(_append_to LIBCVC4_SRCS)
+    set(_append_to LIBCVC5_SRCS)
   endif()
 
   # Prepend source files with current path.
@@ -155,3 +195,28 @@ macro(libcvc4_add_sources)
     set(${_append_to} ${${_append_to}} PARENT_SCOPE)
   endif()
 endmacro()
+
+# Check if given Python module is installed and raises a FATAL_ERROR error
+# if the module cannot be found.
+function(check_python_module module)
+  execute_process(
+    COMMAND
+    ${PYTHON_EXECUTABLE} -c "import ${module}"
+    RESULT_VARIABLE
+      RET_MODULE_TEST
+    ERROR_QUIET
+  )
+  set(module_name ${ARGN})
+  if(NOT module_name)
+    set(module_name ${module})
+  endif()
+
+  if(RET_MODULE_TEST)
+    message(FATAL_ERROR
+        "Could not find module ${module_name} for Python "
+        "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+        "Make sure to install ${module_name} for this Python version "
+        "via \n`${PYTHON_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "Note: You need to have pip installed for this Python version.")
+  endif()
+endfunction()

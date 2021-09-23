@@ -1,64 +1,78 @@
-/*********************                                                        */
-/*! \file candidate_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Francois Bobot
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of theory uf candidate generator class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of theory uf candidate generator class.
+ */
 
 #include "theory/quantifiers/ematching/candidate_generator.h"
+
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/instantiate.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/theory_uf.h"
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::inst;
+using namespace cvc5::kind;
 
-bool CandidateGenerator::isLegalCandidate( Node n ){
-  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
+namespace cvc5 {
+namespace theory {
+namespace quantifiers {
+namespace inst {
+
+CandidateGenerator::CandidateGenerator(QuantifiersState& qs, TermRegistry& tr)
+    : d_qs(qs), d_treg(tr)
+{
 }
 
-CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
-    : CandidateGenerator(qe),
+bool CandidateGenerator::isLegalCandidate( Node n ){
+  return d_treg.getTermDatabase()->isTermActive(n)
+         && (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n));
+}
+
+CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
+                                           TermRegistry& tr,
+                                           Node pat)
+    : CandidateGenerator(qs, tr),
       d_term_iter(-1),
       d_term_iter_limit(0),
       d_mode(cand_term_none)
 {
-  d_op = qe->getTermDatabase()->getMatchOperator( pat );
+  d_op = d_treg.getTermDatabase()->getMatchOperator(pat);
   Assert(!d_op.isNull());
 }
 
-void CandidateGeneratorQE::resetInstantiationRound(){
-  d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms( d_op );
-}
+void CandidateGeneratorQE::reset(Node eqc) { resetForOperator(eqc, d_op); }
 
-void CandidateGeneratorQE::reset( Node eqc ){
+void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
+{
   d_term_iter = 0;
+  d_eqc = eqc;
+  d_op = op;
+  d_term_iter_limit = d_treg.getTermDatabase()->getNumGroundTerms(d_op);
   if( eqc.isNull() ){
     d_mode = cand_term_db;
   }else{
     if( isExcludedEqc( eqc ) ){
       d_mode = cand_term_none;
     }else{
-      eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
+      eq::EqualityEngine* ee = d_qs.getEqualityEngine();
       if( ee->hasTerm( eqc ) ){
-        TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, d_op);
+        TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(eqc, op);
         if( tat ){
           //create an equivalence class iterator in eq class eqc
           Node rep = ee->getRepresentative( eqc );
@@ -69,7 +83,6 @@ void CandidateGeneratorQE::reset( Node eqc ){
         }   
       }else{
         //the only match is this term itself
-        d_eqc = eqc;
         d_mode = cand_term_ident;
       }
     }
@@ -78,25 +91,31 @@ void CandidateGeneratorQE::reset( Node eqc ){
 bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
   if( n.hasOperator() ){
     if( isLegalCandidate( n ) ){
-      return d_qe->getTermDatabase()->getMatchOperator( n )==d_op;
+      return d_treg.getTermDatabase()->getMatchOperator(n) == d_op;
     }
   }
   return false;
 }
 
 Node CandidateGeneratorQE::getNextCandidate(){
+  return getNextCandidateInternal();
+}
+
+Node CandidateGeneratorQE::getNextCandidateInternal()
+{
   if( d_mode==cand_term_db ){
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
-      Node n = d_qe->getTermDatabase()->getGroundTerm( d_op, d_term_iter );
+      Node n = d_treg.getTermDatabase()->getGroundTerm(d_op, d_term_iter);
       d_term_iter++;
       if( isLegalCandidate( n ) ){
-        if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
+        if (d_treg.getTermDatabase()->hasTermCurrent(n))
+        {
           if( d_exclude_eqc.empty() ){
             return n;
           }else{
-            Node r = d_qe->getEqualityQuery()->getRepresentative( n );
+            Node r = d_qs.getRepresentative(n);
             if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
               Debug("cand-gen-qe") << "...returning " << n << std::endl;
               return n;
@@ -129,15 +148,19 @@ Node CandidateGeneratorQE::getNextCandidate(){
   return Node::null();
 }
 
-CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
-CandidateGenerator( qe ), d_match_pattern( mpat ){
+CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(QuantifiersState& qs,
+                                                       TermRegistry& tr,
+                                                       Node mpat)
+    : CandidateGenerator(qs, tr), d_match_pattern(mpat)
+{
   Assert(d_match_pattern.getKind() == EQUAL);
   d_match_pattern_type = d_match_pattern[0].getType();
 }
 
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
-  Node false_term = d_qe->getEqualityQuery()->getEngine()->getRepresentative( NodeManager::currentNM()->mkConst<bool>(false) );
-  d_eqc_false = eq::EqClassIterator( false_term, d_qe->getEqualityQuery()->getEngine() );
+  eq::EqualityEngine* ee = d_qs.getEqualityEngine();
+  Node falset = NodeManager::currentNM()->mkConst(false);
+  d_eqc_false = eq::EqClassIterator(falset, ee);
 }
 
 Node CandidateGeneratorQELitDeq::getNextCandidate(){
@@ -146,7 +169,9 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
     Node n = (*d_eqc_false);
     ++d_eqc_false;
     if( n.getKind()==d_match_pattern.getKind() ){
-      if( n[0].getType().isComparableTo( d_match_pattern_type ) ){
+      if (n[0].getType().isComparableTo(d_match_pattern_type)
+          && isLegalCandidate(n))
+      {
         //found an iff or equality, try to match it
         //DO_THIS: cache to avoid redundancies?
         //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?
@@ -157,9 +182,11 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
   return Node::null();
 }
 
-
-CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat ) :
-  CandidateGenerator( qe ), d_match_pattern( mpat ){
+CandidateGeneratorQEAll::CandidateGeneratorQEAll(QuantifiersState& qs,
+                                                 TermRegistry& tr,
+                                                 Node mpat)
+    : CandidateGenerator(qs, tr), d_match_pattern(mpat)
+{
   d_match_pattern_type = mpat.getType();
   Assert(mpat.getKind() == INST_CONSTANT);
   d_f = quantifiers::TermUtil::getInstConstAttr( mpat );
@@ -168,22 +195,23 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mp
 }
 
 void CandidateGeneratorQEAll::reset( Node eqc ) {
-  d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
+  d_eq = eq::EqClassesIterator(d_qs.getEqualityEngine());
   d_firstTime = true;
 }
 
 Node CandidateGeneratorQEAll::getNextCandidate() {
-  quantifiers::TermDb* tdb = d_qe->getTermDatabase();
+  quantifiers::TermDb* tdb = d_treg.getTermDatabase();
   while( !d_eq.isFinished() ){
     TNode n = (*d_eq);
     ++d_eq;
     if( n.getType().isComparableTo( d_match_pattern_type ) ){
       TNode nh = tdb->getEligibleTermInEqc(n);
       if( !nh.isNull() ){
-        if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
-          nh = d_qe->getInternalRepresentative( nh, d_f, d_index );
+        if (options::instMaxLevel() != -1)
+        {
+          nh = d_treg.getModel()->getInternalRepresentative(nh, d_f, d_index);
           //don't consider this if already the instantiation is ineligible
-          if (!tdb->isTermEligibleForInstantiation(nh, d_f))
+          if (!nh.isNull() && !tdb->isTermEligibleForInstantiation(nh, d_f))
           {
             nh = Node::null();
           }
@@ -199,14 +227,15 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   if( d_firstTime ){
     //must return something
     d_firstTime = false;
-    return d_qe->getInstantiate()->getTermForType(d_match_pattern_type);
+    return d_treg.getTermForType(d_match_pattern_type);
   }
   return Node::null();
 }
 
-CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(
-    QuantifiersEngine* qe, Node mpat)
-    : CandidateGeneratorQE(qe, mpat)
+CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(QuantifiersState& qs,
+                                                           TermRegistry& tr,
+                                                           Node mpat)
+    : CandidateGeneratorQE(qs, tr, mpat)
 {
   Assert(mpat.getKind() == APPLY_CONSTRUCTOR);
   d_mpat_type = mpat.getType();
@@ -230,7 +259,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
 Node CandidateGeneratorConsExpand::getNextCandidate()
 {
   // get the next term from the base class
-  Node curr = CandidateGeneratorQE::getNextCandidate();
+  Node curr = getNextCandidateInternal();
   if (curr.isNull() || (curr.hasOperator() && curr.getOperator() == d_op))
   {
     return curr;
@@ -254,3 +283,75 @@ bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
 {
   return isLegalCandidate(n);
 }
+
+CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
+                                                       TermRegistry& tr,
+                                                       Node mpat)
+    : CandidateGeneratorQE(qs, tr, mpat)
+{
+  Trace("sel-trigger") << "Selector trigger: " << mpat << std::endl;
+  Assert(mpat.getKind() == APPLY_SELECTOR);
+  // NOTE: could use qs.getValuation().getPreprocessedTerm(mpat); when
+  // expand definitions is eliminated, however, this also requires avoiding
+  // term formula removal.
+  Node mpatExp = datatypes::DatatypesRewriter::expandApplySelector(mpat);
+  Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
+  if (mpatExp.getKind() == ITE)
+  {
+    Assert(mpatExp[1].getKind() == APPLY_SELECTOR_TOTAL);
+    Assert(mpatExp[2].getKind() == APPLY_UF);
+    d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp[1]);
+    d_ufOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp[2]);
+  }
+  else if (mpatExp.getKind() == APPLY_SELECTOR_TOTAL)
+  {
+    // corner case of datatype with one constructor
+    d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);
+  }
+  else
+  {
+    // corner case of a wrongly applied selector as a trigger
+    Assert(mpatExp.getKind() == APPLY_UF);
+    d_ufOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);
+  }
+  Assert(d_selOp != d_ufOp);
+}
+
+void CandidateGeneratorSelector::reset(Node eqc)
+{
+  Trace("sel-trigger-debug") << "Reset in eqc=" << eqc << std::endl;
+  // start with d_selOp, if it exists
+  resetForOperator(eqc, !d_selOp.isNull()? d_selOp : d_ufOp);
+}
+
+Node CandidateGeneratorSelector::getNextCandidate()
+{
+  Node nextc = getNextCandidateInternal();
+  if (!nextc.isNull())
+  {
+    Trace("sel-trigger-debug") << "...next candidate is " << nextc << std::endl;
+    return nextc;
+  }
+  else if (d_op == d_selOp)
+  {
+    if (d_ufOp.isNull())
+    {
+      // corner case: selector cannot be wrongly applied (1-cons case)
+      d_op = Node::null();
+    }
+    else
+    {
+      // finished correctly applied selectors, now try incorrectly applied ones
+      resetForOperator(d_eqc, d_ufOp);
+      return getNextCandidate();
+    }
+  }
+  Trace("sel-trigger-debug") << "...finished" << std::endl;
+  // no more candidates
+  return Node::null();
+}
+
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

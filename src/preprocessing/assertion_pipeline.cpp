@@ -1,26 +1,29 @@
-/*********************                                                        */
-/*! \file assertion_pipeline.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Justin Xu, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief AssertionPipeline stores a list of assertions modified by
- ** preprocessing passes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * AssertionPipeline stores a list of assertions modified by
+ * preprocessing passes.
+ */
 
 #include "preprocessing/assertion_pipeline.h"
 
 #include "expr/node_manager.h"
-#include "proof/proof.h"
-#include "proof/proof_manager.h"
+#include "options/smt_options.h"
+#include "proof/lazy_proof.h"
+#include "smt/preprocess_proof_generator.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 
 AssertionPipeline::AssertionPipeline()
@@ -28,7 +31,8 @@ AssertionPipeline::AssertionPipeline()
       d_storeSubstsInAsserts(false),
       d_substsIndex(0),
       d_assumptionsStart(0),
-      d_numAssumptions(0)
+      d_numAssumptions(0),
+      d_pppg(nullptr)
 {
 }
 
@@ -40,11 +44,15 @@ void AssertionPipeline::clear()
   d_numAssumptions = 0;
 }
 
-void AssertionPipeline::push_back(Node n, bool isAssumption)
+void AssertionPipeline::push_back(Node n,
+                                  bool isAssumption,
+                                  bool isInput,
+                                  ProofGenerator* pgen)
 {
   d_nodes.push_back(n);
   if (isAssumption)
   {
+    Assert(pgen == nullptr);
     if (d_numAssumptions == 0)
     {
       d_assumptionsStart = d_nodes.size() - 1;
@@ -56,38 +64,65 @@ void AssertionPipeline::push_back(Node n, bool isAssumption)
     Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
     d_numAssumptions++;
   }
-}
-
-void AssertionPipeline::replace(size_t i, Node n)
-{
-  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
-  d_nodes[i] = n;
-}
-
-void AssertionPipeline::replace(size_t i,
-                                Node n,
-                                const std::vector<Node>& addnDeps)
-{
-  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]);
-        for (const auto& addnDep
-             : addnDeps) {
-          ProofManager::currentPM()->addDependence(n, addnDep);
-        });
-  d_nodes[i] = n;
-}
-
-void AssertionPipeline::replace(size_t i, const std::vector<Node>& ns)
-{
-  PROOF(
-      for (const auto& n
-           : ns) { ProofManager::currentPM()->addDependence(n, d_nodes[i]); });
-  d_nodes[i] = NodeManager::currentNM()->mkConst<bool>(true);
-
-  for (const auto& n : ns)
+  Trace("assert-pipeline") << "Assertions: ...new assertion " << n
+                           << ", isInput=" << isInput << std::endl;
+  if (isProofEnabled())
   {
-    d_nodes.push_back(n);
+    if (!isInput)
+    {
+      // notice this is always called, regardless of whether pgen is nullptr
+      d_pppg->notifyNewAssert(n, pgen);
+    }
+    else
+    {
+      Assert(pgen == nullptr);
+      // n is an input assertion, whose proof should be ASSUME.
+      d_pppg->notifyInput(n);
+    }
   }
 }
+
+void AssertionPipeline::pushBackTrusted(TrustNode trn)
+{
+  Assert(trn.getKind() == TrustNodeKind::LEMMA);
+  // push back what was proven
+  push_back(trn.getProven(), false, false, trn.getGenerator());
+}
+
+void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
+{
+  if (n == d_nodes[i])
+  {
+    // no change, skip
+    return;
+  }
+  Trace("assert-pipeline") << "Assertions: Replace " << d_nodes[i] << " with "
+                           << n << std::endl;
+  if (isProofEnabled())
+  {
+    d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
+  }
+  d_nodes[i] = n;
+}
+
+void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
+{
+  if (trn.isNull())
+  {
+    // null trust node denotes no change, nothing to do
+    return;
+  }
+  Assert(trn.getKind() == TrustNodeKind::REWRITE);
+  Assert(trn.getProven()[0] == d_nodes[i]);
+  replace(i, trn.getNode(), trn.getGenerator());
+}
+
+void AssertionPipeline::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+{
+  d_pppg = pppg;
+}
+
+bool AssertionPipeline::isProofEnabled() const { return d_pppg != nullptr; }
 
 void AssertionPipeline::enableStoreSubstsInAsserts()
 {
@@ -101,15 +136,72 @@ void AssertionPipeline::disableStoreSubstsInAsserts()
   d_storeSubstsInAsserts = false;
 }
 
-void AssertionPipeline::addSubstitutionNode(Node n)
+void AssertionPipeline::addSubstitutionNode(Node n, ProofGenerator* pg)
 {
   Assert(d_storeSubstsInAsserts);
   Assert(n.getKind() == kind::EQUAL);
-  d_nodes[d_substsIndex] = theory::Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[d_substsIndex]));
-  Assert(theory::Rewriter::rewrite(d_nodes[d_substsIndex])
-         == d_nodes[d_substsIndex]);
+  conjoin(d_substsIndex, n, pg);
+}
+
+void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
+  Node newConjr = theory::Rewriter::rewrite(newConj);
+  Trace("assert-pipeline") << "Assertions: conjoin " << n << " to "
+                           << d_nodes[i] << std::endl;
+  Trace("assert-pipeline-debug") << "conjoin " << n << " to " << d_nodes[i]
+                                 << ", got " << newConjr << std::endl;
+  if (newConjr == d_nodes[i])
+  {
+    // trivial, skip
+    return;
+  }
+  if (isProofEnabled())
+  {
+    if (newConjr == n)
+    {
+      // don't care about the previous proof and can simply plug in the
+      // proof from pg if the resulting assertion is the same as n.
+      d_pppg->notifyNewAssert(newConjr, pg);
+    }
+    else
+    {
+      // ---------- from pppg   --------- from pg
+      // d_nodes[i]                n
+      // -------------------------------- AND_INTRO
+      //      d_nodes[i] ^ n
+      // -------------------------------- MACRO_SR_PRED_TRANSFORM
+      //   rewrite( d_nodes[i] ^ n )
+      // allocate a fresh proof which will act as the proof generator
+      LazyCDProof* lcp = d_pppg->allocateHelperProof();
+      lcp->addLazyStep(n, pg, PfRule::PREPROCESS);
+      if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
+      {
+        // skip the AND_INTRO if the previous d_nodes[i] was true
+        newConj = n;
+      }
+      else
+      {
+        lcp->addLazyStep(d_nodes[i], d_pppg);
+        lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
+      }
+      if (newConjr != newConj)
+      {
+        lcp->addStep(
+            newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
+      }
+      // Notice we have constructed a proof of a new assertion, where d_pppg
+      // is referenced in the lazy proof above. If alternatively we had
+      // constructed a proof of d_nodes[i] = rewrite( d_nodes[i] ^ n ), we would
+      // have used notifyPreprocessed. However, it is simpler to make the
+      // above proof.
+      d_pppg->notifyNewAssert(newConjr, lcp);
+    }
+  }
+  d_nodes[i] = newConjr;
+  Assert(theory::Rewriter::rewrite(newConjr) == newConjr);
 }
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

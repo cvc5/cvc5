@@ -1,32 +1,37 @@
-/*********************                                                        */
-/*! \file solution_filter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for filtering solutions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for filtering solutions.
+ */
 
 #include "theory/quantifiers/solution_filter.h"
 
 #include <fstream>
+
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/env.h"
 #include "util/random.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SolutionFilterStrength::SolutionFilterStrength() : d_isStrong(true) {}
+SolutionFilterStrength::SolutionFilterStrength(Env& env)
+    : ExprMiner(env), d_isStrong(true)
+{
+}
 void SolutionFilterStrength::initialize(const std::vector<Node>& vars,
                                         SygusSampler* ss)
 {
@@ -88,10 +93,10 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       }
       else
       {
-        Options& nodeManagerOptions = nm->getOptions();
-        std::ostream* out = nodeManagerOptions.getOut();
-        (*out) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
-               << std::endl;
+        const Options& opts = d_env.getOptions();
+        std::ostream* smtOut = opts.base.out;
+        (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
+                  << std::endl;
       }
     }
     d_curr_sols.clear();
@@ -103,4 +108,4 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

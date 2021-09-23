@@ -1,36 +1,37 @@
-/*********************                                                        */
-/*! \file node.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reference-counted encapsulation of a pointer to node information.
- **
- ** Reference-counted encapsulation of a pointer to node information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Reference-counted encapsulation of a pointer to node information.
+ */
 #include "expr/node.h"
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/attribute.h"
+#include "expr/type_checker.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 
 TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message)
     : Exception(message), d_node(new Node(node))
 {
-#ifdef CVC4_DEBUG
+#ifdef CVC5_DEBUG
   std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
   if(current != NULL){
@@ -46,7 +47,7 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
     string ssstring = ss.str();
     current->setContents(ssstring.c_str());
   }
-#endif /* CVC4_DEBUG */
+#endif /* CVC5_DEBUG */
 }
 
 TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }
@@ -108,4 +109,18 @@ bool NodeTemplate<ref_count>::isConst() const {
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 
-}/* CVC4 namespace */
+}  // namespace cvc5
+
+namespace std {
+
+size_t hash<cvc5::Node>::operator()(const cvc5::Node& node) const
+{
+  return node.getId();
+}
+
+size_t hash<cvc5::TNode>::operator()(const cvc5::TNode& node) const
+{
+  return node.getId();
+}
+
+}  // namespace std

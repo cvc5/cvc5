@@ -1,15 +1,13 @@
 id     = "DECISION"
-name   = "Decision heuristics"
-header = "options/decision_options.h"
+name   = "Decision Heuristics"
 
 [[option]]
   name       = "decisionMode"
-  smt_name   = "decision-mode"
+  alias      = ["decision-mode"]
   category   = "regular"
   long       = "decision=MODE"
   type       = "DecisionMode"
   default    = "INTERNAL"
-  predicates = ["setDecisionModeStopOnly"]
   help       = "choose decision mode, see --decision=help"
   help_mode  = "Decision modes."
 [[option.mode.INTERNAL]]
@@ -18,23 +16,23 @@ header = "options/decision_options.h"
 [[option.mode.JUSTIFICATION]]
   name = "justification"
   help = "An ATGP-inspired justification heuristic."
-[[option.mode.RELEVANCY]]
-  name = "justification-stoponly"
+[[option.mode.STOPONLY]]
+  name = "stoponly"
   help = "Use the justification heuristic only to stop early, not for decisions."
-
-[[option]]
-  name       = "decisionStopOnly"
-  category   = "undocumented"
-  type       = "bool"
+[[option.mode.JUSTIFICATION_OLD]]
+  name = "justification-old"
+  help = "Older implementation of an ATGP-inspired justification heuristic."
+[[option.mode.STOPONLY_OLD]]
+  name = "stoponly-old"
+  help = "Use the old implementation of justification heuristic only to stop early, not for decisions."
 
 [[option]]
   name       = "decisionThreshold"
   category   = "expert"
   long       = "decision-threshold=N"
-  type       = "decision::DecisionWeight"
+  type       = "cvc5::decision::DecisionWeight"
   default    = "0"
   includes   = ["options/decision_weight.h"]
-  read_only  = true
   help       = "ignore all nodes greater than threshold in first attempt to pick decision"
 
 [[option]]
@@ -43,7 +41,6 @@ header = "options/decision_options.h"
   long       = "decision-use-weight"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use the weight nodes (locally, by looking at children) to direct recursive search"
 
 
@@ -51,9 +48,8 @@ header = "options/decision_options.h"
   name       = "decisionRandomWeight"
   category   = "expert"
   long       = "decision-random-weight=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "0"
-  read_only  = true
   help       = "assign random weights to nodes between 0 and N-1 (0: disable)"
 
 [[option]]
@@ -62,7 +58,6 @@ header = "options/decision_options.h"
   long       = "decision-weight-internal=HOW"
   type       = "DecisionWeightInternal"
   default    = "OFF"
-  read_only  = true
   help       = "compute weights of internal nodes using children: off, max, sum, usr1"
   help_mode  = "Decision weight internal mode."
 [[option.mode.OFF]]
@@ -73,3 +68,41 @@ header = "options/decision_options.h"
   name = "sum"
 [[option.mode.USR1]]
   name = "usr1"
+
+[[option]]
+  name       = "jhSkolemMode"
+  category   = "expert"
+  long       = "jh-skolem=MODE"
+  type       = "JutificationSkolemMode"
+  default    = "FIRST"
+  help       = "policy for when to satisfy skolem definitions in justification heuristic"
+  help_mode  = "Policy for when to satisfy skolem definitions in justification heuristic"
+[[option.mode.FIRST]]
+  name = "first"
+  help = "satisfy pending relevant skolem definitions before input assertions"
+[[option.mode.LAST]]
+  name = "last"
+  help = "satisfy pending relevant skolem definitions after input assertions"
+
+[[option]]
+  name       = "jhRlvOrder"
+  category   = "expert"
+  long       = "jh-rlv-order"
+  type       = "bool"
+  default    = "false"
+  help       = "maintain activity-based ordering for decision justification heuristic"
+
+[[option]]
+  name       = "jhSkolemRlvMode"
+  category   = "expert"
+  long       = "jh-skolem-rlv=MODE"
+  type       = "JutificationSkolemRlvMode"
+  default    = "ASSERT"
+  help       = "policy for when to consider skolem definitions relevant in justification heuristic"
+  help_mode  = "Policy for when to consider skolem definitions relevant in justification heuristic"
+[[option.mode.ASSERT]]
+  name = "assert"
+  help = "skolems are relevant when they occur in an asserted literal"
+[[option.mode.ALWAYS]]
+  name = "always"
+  help = "skolems are always relevant"

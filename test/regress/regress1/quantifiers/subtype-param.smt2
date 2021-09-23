@@ -1,4 +1,3 @@
-; COMMAND-LINE: --lang=smt2.5
 ; EXPECT: (error "argument type is not a subtype of the function's argument type:
 ; EXPECT: argument:  x
 ; EXPECT: has type:  (Array Int Int)
@@ -6,10 +5,10 @@
 ; EXPECT: in term : (Q (as x (Array Int Real)))")
 ; EXIT: 1
 
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (set-info :status unsat)
 
-(declare-datatypes (T) ((List (cons (hd T) (tl (List T))) (nil))))
+(declare-datatypes ((List 1)) ((par (T) ((cons (hd T) (tl (List T))) (nil)))))
 
 (declare-fun R ((List Real)) Bool)
 (assert (forall ((x (List Real))) (R x)))

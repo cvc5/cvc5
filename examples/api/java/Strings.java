@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file Strings.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Reasoning about strings with CVC4 via Java API.
- **
- ** A simple demonstration of reasoning about strings with CVC4 via Jave API.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tianyi Liang, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of reasoning about strings with CVC4 via Java API.
+ */
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class Strings {
   public static void main(String[] args) {

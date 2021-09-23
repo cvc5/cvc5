@@ -1,6 +1,6 @@
 (set-logic AUFLIA)
 (set-info :source | SMT-COMP'06 organizers |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "check")
 (set-info :status unsat)
 (set-info :notes |This benchmark is designed to check if the DP supports bignumbers.|)

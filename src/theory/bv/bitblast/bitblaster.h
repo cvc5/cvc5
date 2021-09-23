@@ -1,44 +1,46 @@
-/*********************                                                        */
-/*! \file bitblaster.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Wrapper around the SAT solver used for bitblasting
- **
- ** Wrapper around the SAT solver used for bitblasting.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Alex Ozdemir
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Wrapper around the SAT solver used for bitblasting.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__BITBLASTER_H
-#define CVC4__THEORY__BV__BITBLAST__BITBLASTER_H
+#ifndef CVC5__THEORY__BV__BITBLAST__BITBLASTER_H
+#define CVC5__THEORY__BV__BITBLAST__BITBLASTER_H
 
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
-#include "proof/bitvector_proof.h"
 #include "prop/bv_sat_solver_notify.h"
+#include "prop/cnf_stream.h"
+#include "prop/registrar.h"
+#include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
-#include "theory/theory_registrar.h"
+#include "theory/rewriter.h"
+#include "theory/theory.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
-typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
-typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+typedef std::unordered_set<Node> NodeSet;
+typedef std::unordered_set<TNode> TNodeSet;
 
 /**
  * The Bitblaster that manages the mapping between Nodes
@@ -51,9 +53,9 @@ class TBitblaster
 {
  protected:
   typedef std::vector<T> Bits;
-  typedef std::unordered_map<Node, Bits, NodeHashFunction> TermDefMap;
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_map<Node, Node, NodeHashFunction> ModelCache;
+  typedef std::unordered_map<Node, Bits> TermDefMap;
+  typedef std::unordered_set<TNode> TNodeSet;
+  typedef std::unordered_map<Node, Node> ModelCache;
 
   typedef void (*TermBBStrategy)(TNode, Bits&, TBitblaster<T>*);
   typedef T (*AtomBBStrategy)(TNode, TBitblaster<T>*);
@@ -64,7 +66,6 @@ class TBitblaster
   // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<context::Context> d_nullContext;
   std::unique_ptr<prop::CnfStream> d_cnfStream;
-  proof::BitVectorProof* d_bvp;
 
   void initAtomBBStrategies();
   void initTermBBStrategies();
@@ -91,7 +92,6 @@ class TBitblaster
   bool hasBBTerm(TNode node) const;
   void getBBTerm(TNode node, Bits& bits) const;
   virtual void storeBBTerm(TNode term, const Bits& bits);
-  virtual void setProofLog(proof::BitVectorProof* bvp);
 
   /**
    * Return a constant representing the value of a in the  model.
@@ -109,11 +109,12 @@ class MinisatEmptyNotify : public prop::BVSatSolverNotify
   MinisatEmptyNotify() {}
   bool notify(prop::SatLiteral lit) override { return true; }
   void notify(prop::SatClause& clause) override {}
-  void spendResource(unsigned amount) override
+  void spendResource(Resource r) override
   {
-    NodeManager::currentResourceManager()->spendResource(amount);
+    smt::currentResourceManager()->spendResource(r);
   }
-  void safePoint(unsigned amount) override {}
+
+  void safePoint(Resource r) override {}
 };
 
 // Bitblaster implementation
@@ -156,13 +157,11 @@ void TBitblaster<T>::initTermBBStrategies()
   d_termBBStrategies[kind::BITVECTOR_NOR] = DefaultNorBB<T>;
   d_termBBStrategies[kind::BITVECTOR_COMP] = DefaultCompBB<T>;
   d_termBBStrategies[kind::BITVECTOR_MULT] = DefaultMultBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_PLUS] = DefaultPlusBB<T>;
+  d_termBBStrategies[kind::BITVECTOR_ADD] = DefaultAddBB<T>;
   d_termBBStrategies[kind::BITVECTOR_SUB] = DefaultSubBB<T>;
   d_termBBStrategies[kind::BITVECTOR_NEG] = DefaultNegBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_UDIV] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_UREM] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_UDIV_TOTAL] = DefaultUdivBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_UREM_TOTAL] = DefaultUremBB<T>;
+  d_termBBStrategies[kind::BITVECTOR_UDIV] = DefaultUdivBB<T>;
+  d_termBBStrategies[kind::BITVECTOR_UREM] = DefaultUremBB<T>;
   d_termBBStrategies[kind::BITVECTOR_SDIV] = UndefinedTermBBStrategy<T>;
   d_termBBStrategies[kind::BITVECTOR_SREM] = UndefinedTermBBStrategy<T>;
   d_termBBStrategies[kind::BITVECTOR_SMOD] = UndefinedTermBBStrategy<T>;
@@ -185,8 +184,7 @@ TBitblaster<T>::TBitblaster()
     : d_termCache(),
       d_modelCache(),
       d_nullContext(new context::Context()),
-      d_cnfStream(),
-      d_bvp(nullptr)
+      d_cnfStream()
 {
   initAtomBBStrategies();
   initTermBBStrategies();
@@ -214,20 +212,6 @@ template <class T>
 void TBitblaster<T>::invalidateModelCache()
 {
   d_modelCache.clear();
-}
-
-template <class T>
-void TBitblaster<T>::setProofLog(proof::BitVectorProof* bvp)
-{
-  if (THEORY_PROOF_ON())
-  {
-    d_bvp = bvp;
-    prop::SatSolver* satSolver = getSatSolver();
-    bvp->attachToSatSolver(*satSolver);
-    prop::SatVariable t = satSolver->trueVar();
-    prop::SatVariable f = satSolver->falseVar();
-    bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get(), t, f);
-  }
 }
 
 template <class T>
@@ -263,7 +247,7 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
   }
   Assert(node.getType().isBitVector());
 
-  NodeBuilder<> nb(node.getKind());
+  NodeBuilder nb(node.getKind());
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     nb << node.getOperator();
@@ -284,6 +268,6 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BV__BITBLAST__BITBLASTER_H */
+#endif /* CVC5__THEORY__BV__BITBLAST__BITBLASTER_H */

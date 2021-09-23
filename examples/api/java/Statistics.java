@@ -1,20 +1,19 @@
-/*********************                                                        */
-/*! \file Statistics.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An example of accessing CVC4's statistics using the Java API
- **
- ** An example of accessing CVC4's statistics using the Java API.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An example of accessing CVC4's statistics using the Java API.
+ */
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 import java.util.Iterator;
 
 public class Statistics {
@@ -37,7 +36,7 @@ public class Statistics {
     // `Statistics` class implements the `Iterable<Statistic>` interface. A
     // `Statistic` is a pair that consists of a name and an `SExpr` that stores
     // the value of the statistic.
-    edu.nyu.acsys.CVC4.Statistics stats = smt.getStatistics();
+    edu.stanford.CVC4.Statistics stats = smt.getStatistics();
     for (Statistic stat : stats) {
       System.out.println(stat.getFirst() + " = " + stat.getSecond());
     }

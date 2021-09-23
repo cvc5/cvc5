@@ -3,7 +3,7 @@
 http://www.cs.bham.ac.uk/~vxs/quasigroups/benchmark/
 
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status sat)
 (declare-sort U 0)

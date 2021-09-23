@@ -1,6 +1,5 @@
-; COMMAND-LINE: --uf-ho
 ; EXPECT: unknown
-(set-logic ALL)
+(set-logic HO_ALL)
 (declare-sort $$unsorted 0)
 (declare-sort mu 0)
 

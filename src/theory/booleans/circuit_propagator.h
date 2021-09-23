@@ -1,25 +1,24 @@
-/*********************                                                        */
-/*! \file circuit_propagator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A non-clausal circuit propagator for Boolean simplification
- **
- ** A non-clausal circuit propagator for Boolean simplification.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A non-clausal circuit propagator for Boolean simplification.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
-#define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#ifndef CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#define CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
-#include <functional>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -28,10 +27,15 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/theory.h"
-#include "util/hash.h"
+#include "proof/lazy_proof_chain.h"
+#include "proof/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class ProofGenerator;
+class ProofNode;
+class EagerProofGenerator;
+
 namespace theory {
 namespace booleans {
 
@@ -57,28 +61,12 @@ class CircuitPropagator
     ASSIGNED_TO_FALSE,
   };
 
-  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction>
-      BackEdgesMap;
+  typedef std::unordered_map<Node, std::vector<Node>> BackEdgesMap;
 
   /**
    * Construct a new CircuitPropagator.
    */
-  CircuitPropagator(bool enableForward = true, bool enableBackward = true)
-      : d_context(),
-        d_propagationQueue(),
-        d_propagationQueueClearer(&d_context, d_propagationQueue),
-        d_conflict(&d_context, false),
-        d_learnedLiterals(),
-        d_learnedLiteralClearer(&d_context, d_learnedLiterals),
-        d_backEdges(),
-        d_backEdgesClearer(&d_context, d_backEdges),
-        d_seen(&d_context),
-        d_state(&d_context),
-        d_forwardPropagation(enableForward),
-        d_backwardPropagation(enableBackward),
-        d_needsFinish(false)
-  {
-  }
+  CircuitPropagator(bool enableForward = true, bool enableBackward = true);
 
   /** Get Node assignment in circuit.  Assert-fails if Node is unassigned. */
   bool getAssignment(TNode n) const
@@ -95,9 +83,10 @@ class CircuitPropagator
 
   bool getNeedsFinish() { return d_needsFinish; }
 
-  std::vector<Node>& getLearnedLiterals() { return d_learnedLiterals; }
+  std::vector<TrustNode>& getLearnedLiterals() { return d_learnedLiterals; }
 
-  void finish() { d_context.pop(); }
+  /** Finish the computation and pop the internal context */
+  void finish();
 
   /** Assert for propagation */
   void assertTrue(TNode assertion);
@@ -107,9 +96,10 @@ class CircuitPropagator
    * discovered by the propagator are put in the substitutions vector used in
    * construction.
    *
-   * @return true iff conflict found
+   * @return a trust node encapsulating the proof for a conflict as a lemma that
+   * proves false, or the null trust node otherwise
    */
-  bool propagate() CVC4_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT TrustNode propagate();
 
   /**
    * Get the back edges of this circuit.
@@ -142,6 +132,15 @@ class CircuitPropagator
     if (!value && ((*i).second == ASSIGNED_TO_FALSE)) return true;
     return false;
   }
+  /**
+   * Set proof node manager, context and parent proof generator.
+   *
+   * If parent is non-null, then it is responsible for the proofs provided
+   * to this class.
+   */
+  void setProof(ProofNodeManager* pnm,
+                context::Context* ctx,
+                ProofGenerator* defParent);
 
  private:
   /** A context-notify object that clears out stale data. */
@@ -167,79 +166,24 @@ class CircuitPropagator
     T& d_data;
   }; /* class DataClearer<T> */
 
-  /** Predicate for use in STL functions. */
-  class IsAssigned : public std::unary_function<TNode, bool>
-  {
-    CircuitPropagator& d_circuit;
-
-   public:
-    IsAssigned(CircuitPropagator& circuit) : d_circuit(circuit) {}
-
-    bool operator()(TNode in) const { return d_circuit.isAssigned(in); }
-  }; /* class IsAssigned */
-
-  /** Predicate for use in STL functions. */
-  class IsAssignedTo : public std::unary_function<TNode, bool>
-  {
-    CircuitPropagator& d_circuit;
-    bool d_value;
-
-   public:
-    IsAssignedTo(CircuitPropagator& circuit, bool value)
-        : d_circuit(circuit), d_value(value)
-    {
-    }
-
-    bool operator()(TNode in) const
-    {
-      return d_circuit.isAssignedTo(in, d_value);
-    }
-  }; /* class IsAssignedTo */
-
   /**
    * Assignment status of each node.
    */
-  typedef context::CDHashMap<TNode, AssignmentStatus, TNodeHashFunction>
-      AssignmentMap;
+  typedef context::CDHashMap<TNode, AssignmentStatus> AssignmentMap;
 
   /**
    * Assign Node in circuit with the value and add it to the queue; note
    * conflicts.
    */
-  void assignAndEnqueue(TNode n, bool value)
-  {
-    Trace("circuit-prop") << "CircuitPropagator::assign(" << n << ", "
-                          << (value ? "true" : "false") << ")" << std::endl;
+  void assignAndEnqueue(TNode n,
+                        bool value,
+                        std::shared_ptr<ProofNode> proof = nullptr);
 
-    if (n.getKind() == kind::CONST_BOOLEAN)
-    {
-      // Assigning a constant to the opposite value is dumb
-      if (value != n.getConst<bool>())
-      {
-        d_conflict = true;
-        return;
-      }
-    }
-
-    // Get the current assignment
-    AssignmentStatus state = d_state[n];
-
-    if (state != UNASSIGNED)
-    {
-      // If the node is already assigned we might have a conflict
-      if (value != (state == ASSIGNED_TO_TRUE))
-      {
-        d_conflict = true;
-      }
-    }
-    else
-    {
-      // If unassigned, mark it as assigned
-      d_state[n] = value ? ASSIGNED_TO_TRUE : ASSIGNED_TO_FALSE;
-      // Add for further propagation
-      d_propagationQueue.push_back(n);
-    }
-  }
+  /**
+   * Store a conflict for the case that we have derived both n and n.negate()
+   * to be true.
+   */
+  void makeConflict(Node n);
 
   /**
    * Compute the map from nodes to the nodes that use it.
@@ -258,6 +202,9 @@ class CircuitPropagator
    */
   void propagateBackward(TNode parent, bool assignment);
 
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
+
   context::Context d_context;
 
   /** The propagation queue */
@@ -269,18 +216,18 @@ class CircuitPropagator
    * but this keeps us safe in case there's still some rubbish around
    * on the queue.
    */
-  DataClearer<std::vector<TNode> > d_propagationQueueClearer;
+  DataClearer<std::vector<TNode>> d_propagationQueueClearer;
 
   /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
+  context::CDO<TrustNode> d_conflict;
 
   /** Map of substitutions */
-  std::vector<Node> d_learnedLiterals;
+  std::vector<TrustNode> d_learnedLiterals;
 
   /**
    * Similar data clearer for learned literals.
    */
-  DataClearer<std::vector<Node>> d_learnedLiteralClearer;
+  DataClearer<std::vector<TrustNode>> d_learnedLiteralClearer;
 
   /**
    * Back edges from nodes to where they are used.
@@ -294,7 +241,7 @@ class CircuitPropagator
 
   /** Nodes that have been attached already (computed forward edges for) */
   // All the nodes we've visited so far
-  context::CDHashSet<Node, NodeHashFunction> d_seen;
+  context::CDHashSet<Node> d_seen;
 
   AssignmentMap d_state;
 
@@ -307,10 +254,21 @@ class CircuitPropagator
   /* Does the current state require a call to finish()? */
   bool d_needsFinish;
 
+  /** Adds a new proof for f, or drops it if we already have a proof */
+  void addProof(TNode f, std::shared_ptr<ProofNode> pf);
+
+  /** A pointer to the proof manager */
+  ProofNodeManager* d_pnm;
+  /** Eager proof generator that actually stores the proofs */
+  std::unique_ptr<EagerProofGenerator> d_epg;
+  /** Connects the proofs to subproofs internally */
+  std::unique_ptr<LazyCDProofChain> d_proofInternal;
+  /** Connects the proofs to assumptions externally */
+  std::unique_ptr<LazyCDProofChain> d_proofExternal;
 }; /* class CircuitPropagator */
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */
+#endif /* CVC5__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */

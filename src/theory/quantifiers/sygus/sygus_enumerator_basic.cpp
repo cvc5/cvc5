@@ -1,24 +1,26 @@
-/*********************                                                        */
-/*! \file sygus_enumerator_basic.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus basic enumerator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus basic enumerator.
+ */
 #include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
 
 #include "options/datatypes_options.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -39,7 +41,7 @@ bool EnumValGeneratorBasic::increment()
   if (options::sygusSymBreakDynamic())
   {
     Node nextb = d_tds->sygusToBuiltin(d_currTerm);
-    nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
+    nextb = Rewriter::callExtendedRewrite(nextb);
     if (d_cache.find(nextb) == d_cache.end())
     {
       d_cache.insert(nextb);
@@ -55,4 +57,4 @@ bool EnumValGeneratorBasic::increment()
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5

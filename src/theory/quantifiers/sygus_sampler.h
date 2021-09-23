@@ -1,31 +1,35 @@
-/*********************                                                        */
-/*! \file sygus_sampler.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, FabianWolff, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_sampler
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Fabian Wolff
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_sampler
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
 
 #include <map>
-#include "theory/evaluator.h"
 #include "theory/quantifiers/lazy_trie.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** SygusSampler
  *
@@ -64,7 +68,7 @@ namespace quantifiers {
 class SygusSampler : public LazyTrieEvaluator
 {
  public:
-  SygusSampler();
+  SygusSampler(Env& env);
   ~SygusSampler() override {}
 
   /** initialize
@@ -169,18 +173,22 @@ class SygusSampler : public LazyTrieEvaluator
    *
    * Check whether bv and bvr are equivalent on all sample points, print
    * an error if not. Used with --sygus-rr-verify.
+   *
+   * @param bv The original term
+   * @param bvr The rewritten form of bvr
+   * @param out The output stream to write if the rewrite was unsound.
    */
-  void checkEquivalent(Node bv, Node bvr);
+  void checkEquivalent(Node bv, Node bvr, std::ostream& out);
 
  protected:
+  /** The environment we are using to evaluate terms and samples */
+  Env& d_env;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** term enumerator object (used for random sampling) */
   TermEnumeration d_tenum;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
-  /** evaluator class */
-  Evaluator d_eval;
   /** data structure to check duplication of sample points */
   class PtTrie
   {
@@ -318,8 +326,8 @@ class SygusSampler : public LazyTrieEvaluator
   void registerSygusType(TypeNode tn);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H */

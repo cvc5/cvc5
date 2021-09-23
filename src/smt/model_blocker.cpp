@@ -1,46 +1,39 @@
-/*********************                                                        */
-/*! \file model_blocker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of utility for blocking models.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utility for blocking models.
+ */
 
 #include "smt/model_blocker.h"
 
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 
-Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
+Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
                                    options::BlockModelsMode mode,
-                                   const std::vector<Expr>& exprToBlock)
+                                   const std::vector<Node>& exprToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
   // convert to nodes
-  std::vector<Node> tlAsserts;
-  for (const Expr& a : assertions)
-  {
-    Node an = Node::fromExpr(a);
-    tlAsserts.push_back(an);
-  }
-  std::vector<Node> nodesToBlock;
-  for (const Expr& eb : exprToBlock)
-  {
-    nodesToBlock.push_back(Node::fromExpr(eb));
-  }
+  std::vector<Node> tlAsserts = assertions;
+  std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
   if (mode == options::BlockModelsMode::LITERALS)
@@ -75,13 +68,13 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
       Node blockTriv = nm->mkConst(false);
       Trace("model-blocker")
           << "...model blocker is (trivially) " << blockTriv << std::endl;
-      return blockTriv.toExpr();
+      return blockTriv;
     }
 
     Node formula = asserts.size() > 1 ? nm->mkNode(AND, asserts) : asserts[0];
-    std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-    std::unordered_map<TNode, Node, TNodeHashFunction> implicant;
-    std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+    std::unordered_map<TNode, Node> visited;
+    std::unordered_map<TNode, Node> implicant;
+    std::unordered_map<TNode, Node>::iterator it;
     std::vector<TNode> visit;
     TNode cur;
     visit.push_back(formula);
@@ -117,7 +110,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
               // rewrite, this ensures that e.g. the propositional value of
               // quantified formulas can be queried
               n = theory::Rewriter::rewrite(n);
-              Node vn = Node::fromExpr(m->getValue(n.toExpr()));
+              Node vn = m->getValue(n);
               Assert(vn.isConst());
               if (vn.getConst<bool>() == cpol)
               {
@@ -139,7 +132,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         }
         else if (catom.getKind() == ITE)
         {
-          Node vcond = Node::fromExpr(m->getValue(cur[0].toExpr()));
+          Node vcond = m->getValue(cur[0]);
           Assert(vcond.isConst());
           Node cond = cur[0];
           Node branch;
@@ -161,7 +154,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
           std::vector<Node> children;
           for (const Node& cn : catom)
           {
-            Node vn = Node::fromExpr(m->getValue(cn.toExpr()));
+            Node vn = m->getValue(cn);
             Assert(vn.isConst());
             children.push_back(vn.getConst<bool>() ? cn : cn.negate());
           }
@@ -242,7 +235,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     {
       Trace("model-blocker")
           << "no specific terms to block recognized" << std::endl;
-      std::unordered_set<Node, NodeHashFunction> symbols;
+      std::unordered_set<Node> symbols;
       for (Node n : tlAsserts)
       {
         expr::getSymbols(n, symbols);
@@ -260,7 +253,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     // otherwise, block all terms that were specified in get-value
     else
     {
-      std::unordered_set<Node, NodeHashFunction> terms;
+      std::unordered_set<Node> terms;
       for (Node n : nodesToBlock)
       {
         Node v = m->getValue(n);
@@ -282,7 +275,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     }
   }
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
-  return blocker.toExpr();
+  return blocker;
 }
 
-} /* namespace CVC4 */
+}  // namespace cvc5

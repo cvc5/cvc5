@@ -1,30 +1,35 @@
-/*********************                                                        */
-/*! \file sygus_unif_io.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_unif_io
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_unif_io.
+ */
 
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/evaluator.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/sygus/example_infer.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
+#include "theory/strings/word.h"
 #include "util/random.h"
 
 #include <math.h>
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -43,9 +48,16 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   Assert(d_vals.size() == vals.size());
   bool changed = false;
   Node poln = pol ? d_true : d_false;
-  for (unsigned i = 0; i < vals.size(); i++)
+  for (size_t i = 0, vsize = vals.size(); i < vsize; i++)
   {
-    if (vals[i] != poln)
+    Node v = vals[i];
+    if (v.isNull())
+    {
+      // nothing can be inferred if the evaluation is unknown, e.g. if using
+      // partial functions.
+      continue;
+    }
+    if (v != poln)
     {
       if (d_vals[i] == d_true)
       {
@@ -62,7 +74,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
 }
 
 bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
-                                         std::vector<unsigned>& pos,
+                                         std::vector<size_t>& pos,
                                          NodeRole nrole)
 {
   Assert(pos.size() == d_str_pos.size());
@@ -103,7 +115,7 @@ void UnifContextIo::initialize(SygusUnifIo* sui)
     // output type of the examples
     TypeNode exotn = sui->d_examples_out[0].getType();
 
-    if (exotn.isString())
+    if (exotn.isStringLike())
     {
       for (unsigned i = 0; i < sz; i++)
       {
@@ -116,10 +128,10 @@ void UnifContextIo::initialize(SygusUnifIo* sui)
 
 void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
                                       const std::vector<Node>& vals,
-                                      std::vector<String>& ex_vals)
+                                      std::vector<Node>& ex_vals)
 {
   bool isPrefix = d_curr_role == role_string_prefix;
-  String dummy;
+  Node dummy;
   for (unsigned i = 0; i < vals.size(); i++)
   {
     if (d_vals[i] == sui->d_true)
@@ -129,14 +141,16 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
       if (pos_value > 0)
       {
         Assert(d_curr_role != role_invalid);
-        String s = vals[i].getConst<String>();
-        Assert(pos_value <= s.size());
-        ex_vals.push_back(isPrefix ? s.suffix(s.size() - pos_value)
-                                   : s.prefix(s.size() - pos_value));
+        Node s = vals[i];
+        size_t sSize = strings::Word::getLength(s);
+        Assert(pos_value <= sSize);
+        ex_vals.push_back(isPrefix
+                              ? strings::Word::suffix(s, sSize - pos_value)
+                              : strings::Word::prefix(s, sSize - pos_value));
       }
       else
       {
-        ex_vals.push_back(vals[i].getConst<String>());
+        ex_vals.push_back(vals[i]);
       }
     }
     else
@@ -149,14 +163,14 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
 
 bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
                                        bool isPrefix,
-                                       const std::vector<String>& ex_vals,
+                                       const std::vector<Node>& ex_vals,
                                        const std::vector<Node>& vals,
-                                       std::vector<unsigned>& inc,
-                                       unsigned& tot)
+                                       std::vector<size_t>& inc,
+                                       size_t& tot)
 {
   for (unsigned j = 0; j < vals.size(); j++)
   {
-    unsigned ival = 0;
+    size_t ival = 0;
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
@@ -166,12 +180,12 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
         // position
         return false;
       }
-      String mystr = vals[j].getConst<String>();
-      ival = mystr.size();
-      if (mystr.size() <= ex_vals[j].size())
+      ival = strings::Word::getLength(vals[j]);
+      size_t exjLen = strings::Word::getLength(ex_vals[j]);
+      if (ival <= exjLen)
       {
-        if (!(isPrefix ? ex_vals[j].strncmp(mystr, ival)
-                       : ex_vals[j].rstrncmp(mystr, ival)))
+        if (!(isPrefix ? strings::Word::strncmp(ex_vals[j], vals[j], ival)
+                       : strings::Word::rstrncmp(ex_vals[j], vals[j], ival)))
         {
           Trace("sygus-sui-dt-debug") << "X";
           return false;
@@ -195,7 +209,7 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
   return true;
 }
 bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
-                                   const std::vector<String>& ex_vals,
+                                   const std::vector<Node>& ex_vals,
                                    const std::vector<Node>& vals)
 {
   for (unsigned j = 0; j < vals.size(); j++)
@@ -208,8 +222,7 @@ bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
         // value is unknown, thus it does not solve
         return false;
       }
-      String mystr = vals[j].getConst<String>();
-      if (ex_vals[j] != mystr)
+      if (ex_vals[j] != vals[j])
       {
         return false;
       }
@@ -495,8 +508,10 @@ void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
   getLeavesInternal(vals, pol, v, 0, -2);
 }
 
-SygusUnifIo::SygusUnifIo()
-    : d_check_sol(false),
+SygusUnifIo::SygusUnifIo(Env& env, SynthConjecture* p)
+    : SygusUnif(env),
+      d_parent(p),
+      d_check_sol(false),
       d_cond_count(0),
       d_sol_term_size(0),
       d_sol_cons_nondet(false),
@@ -507,51 +522,34 @@ SygusUnifIo::SygusUnifIo()
 }
 
 SygusUnifIo::~SygusUnifIo() {}
+
 void SygusUnifIo::initializeCandidate(
-    QuantifiersEngine* qe,
+    TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
+  d_candidate = f;
+  // copy the examples from the parent
+  ExampleInfer* ei = d_parent->getExampleInfer();
   d_examples.clear();
   d_examples_out.clear();
+  // copy the examples
+  if (ei->hasExamples(f))
+  {
+    for (unsigned i = 0, nex = ei->getNumExamples(f); i < nex; i++)
+    {
+      std::vector<Node> input;
+      ei->getExample(f, i, input);
+      Node output = ei->getExampleOut(f, i);
+      d_examples.push_back(input);
+      d_examples_out.push_back(output);
+    }
+  }
   d_ecache.clear();
-  d_candidate = f;
-  SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
+  SygusUnif::initializeCandidate(tds, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
-  d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
-}
-
-void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
-{
-  d_examples.push_back(input);
-  d_examples_out.push_back(output);
-}
-
-void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)
-{
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
-  if (it != eoc.end())
-  {
-    exOut.insert(exOut.end(), it->second.begin(), it->second.end());
-    return;
-  }
-  TypeNode xtn = e.getType();
-  std::vector<Node>& eocv = eoc[bv];
-  for (size_t j = 0, size = d_examples.size(); j < size; j++)
-  {
-    Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
-    exOut.push_back(res);
-    eocv.push_back(res);
-  }
-}
-
-void SygusUnifIo::clearExampleCache(Node e, Node bv)
-{
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  Assert(eoc.find(bv) != eoc.end());
-  eoc.erase(bv);
+  d_strategy.at(f).staticLearnRedundantOps(strategy_lemmas);
 }
 
 void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -562,7 +560,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Assert(!d_examples.empty());
   Assert(d_examples.size() == d_examples_out.size());
 
-  EnumInfo& ei = d_strategy[c].getEnumInfo(e);
+  EnumInfo& ei = d_strategy.at(c).getEnumInfo(e);
   // The explanation for why the current value should be excluded in future
   // iterations.
   Node exp_exc;
@@ -570,51 +568,34 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   std::vector<Node> base_results;
   TypeNode xtn = e.getType();
   Node bv = d_tds->sygusToBuiltin(v, xtn);
-  bv = d_tds->getExtRewriter()->extendedRewrite(bv);
+  bv = extendedRewrite(bv);
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
-  computeExamples(e, bv, base_results);
-  // don't need it after this
-  clearExampleCache(e, bv);
+  ExampleEvalCache* eec = d_parent->getExampleEvalCache(e);
+  Assert(eec != nullptr);
+  // Evaluate, which should be cached (assuming we have performed example-based
+  // symmetry breaking on bv). Moreover don't cache the result in the case it
+  // is not there already, since we won't need this evaluation anywhere outside
+  // of this class.
+  eec->evaluateVec(bv, base_results);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
-  Evaluator* ev = d_tds->getEvaluator();
-  bool tryEval = options::sygusEvalOpt();
   for (const Node& xs : ei.d_enum_slave)
   {
     Assert(srmap.find(xs) == srmap.end());
-    EnumInfo& eiv = d_strategy[c].getEnumInfo(xs);
+    EnumInfo& eiv = d_strategy.at(c).getEnumInfo(xs);
     Node templ = eiv.d_template;
     if (!templ.isNull())
     {
-      TNode templ_var = eiv.d_template_arg;
-      std::vector<Node> args;
-      args.push_back(templ_var);
+      // Substitute and evaluate, notice that the template skeleton may
+      // involve the sygus variables e.g. (>= x _) where x is a sygus
+      // variable, hence we must compute the substituted template before
+      // calling the evaluator.
+      TNode targ = eiv.d_template_arg;
+      TNode tbv = bv;
+      Node stempl = templ.substitute(targ, tbv);
       std::vector<Node> sresults;
-      for (const Node& res : base_results)
-      {
-        TNode tres = res;
-        Node sres;
-        // It may not be constant, e.g. if we involve a partial operator
-        // like datatype selectors. In this case, we avoid using the evaluator,
-        // which expects a constant substitution.
-        if (tres.isConst())
-        {
-          std::vector<Node> vals;
-          vals.push_back(tres);
-          if (tryEval)
-          {
-            sres = ev->eval(templ, args, vals);
-          }
-        }
-        if (sres.isNull())
-        {
-          // fall back on rewriter
-          sres = templ.substitute(templ_var, tres);
-          sres = Rewriter::rewrite(sres);
-        }
-        sresults.push_back(sres);
-      }
+      eec->evaluateVec(stempl, sresults);
       srmap[xs] = sresults;
     }
     else
@@ -647,7 +628,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     for (unsigned s = 0; s < ei.d_enum_slave.size(); s++)
     {
       Node xs = ei.d_enum_slave[s];
-      EnumInfo& eiv = d_strategy[c].getEnumInfo(xs);
+      EnumInfo& eiv = d_strategy.at(c).getEnumInfo(xs);
       EnumCache& ecv = d_ecache[xs];
       Trace("sygus-sui-enum") << "Process " << xs << " from " << s << std::endl;
       // bool prevIsCover = false;
@@ -665,6 +646,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       std::vector<Node> results;
       std::map<Node, bool> cond_vals;
       std::map<Node, std::vector<Node>>::iterator itsr = srmap.find(xs);
+      Trace("sygus-sui-debug") << " {" << itsr->second << "} ";
       Assert(itsr != srmap.end());
       for (unsigned j = 0, size = itsr->second.size(); j < size; j++)
       {
@@ -847,14 +829,15 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
       initializeConstructSol();
       initializeConstructSolFor(c);
       // call the virtual construct solution method
-      Node e = d_strategy[c].getRootEnumerator();
+      Node e = d_strategy.at(c).getRootEnumerator();
       Node vcc = constructSol(c, e, role_equal, 1, lemmas);
       // if we constructed the solution, and we either did not previously have
       // a solution, or the new solution is better (smaller).
       if (!vcc.isNull()
           && (d_solution.isNull()
               || (!d_solution.isNull()
-                  && d_tds->getSygusTermSize(vcc) < d_sol_term_size)))
+                  && datatypes::utils::getSygusTermSize(vcc)
+                         < d_sol_term_size)))
       {
         if (Trace.isOn("sygus-pbe"))
         {
@@ -865,7 +848,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
         }
         d_solution = vcc;
         newSolution = vcc;
-        d_sol_term_size = d_tds->getSygusTermSize(vcc);
+        d_sol_term_size = datatypes::utils::getSygusTermSize(vcc);
         Trace("sygus-pbe-sol")
             << "PBE solution size: " << d_sol_term_size << std::endl;
         // We've determined its feasible, now, enable information gain and
@@ -898,7 +881,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
 bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
 {
   TypeNode xbt = d_tds->sygusToBuiltinType(e.getType());
-  if (xbt.isString())
+  if (xbt.isStringLike())
   {
     std::map<Node, bool>::iterator itx = d_use_str_contains_eexc.find(e);
     if (itx != d_use_str_contains_eexc.end())
@@ -909,10 +892,10 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
         << "Is " << e << " is str.contains exclusion?" << std::endl;
     d_use_str_contains_eexc[e] = true;
     Node c = d_candidate;
-    EnumInfo& ei = d_strategy[c].getEnumInfo(e);
+    EnumInfo& ei = d_strategy.at(c).getEnumInfo(e);
     for (const Node& sn : ei.d_enum_slave)
     {
-      EnumInfo& eis = d_strategy[c].getEnumInfo(sn);
+      EnumInfo& eis = d_strategy.at(c).getEnumInfo(sn);
       EnumRole er = eis.getRole();
       if (er != enum_io && er != enum_concat_term)
       {
@@ -962,7 +945,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         << "Check enumerator exclusion for " << e << " -> "
         << d_tds->sygusToBuiltin(v) << " based on str.contains." << std::endl;
     std::vector<unsigned> cmp_indices;
-    for (unsigned i = 0, size = results.size(); i < size; i++)
+    for (size_t i = 0, size = results.size(); i < size; i++)
     {
       // If the result is not constant, then it is worthless. It does not
       // impact whether the term is excluded.
@@ -971,8 +954,8 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         Assert(d_examples_out[i].isConst());
         Trace("sygus-sui-cterm-debug")
             << "  " << results[i] << " <> " << d_examples_out[i];
-        Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
-        Node contr = Rewriter::rewrite(cont);
+        Node cont = nm->mkNode(STRING_CONTAINS, d_examples_out[i], results[i]);
+        Node contr = rewrite(cont);
         if (contr == d_false)
         {
           cmp_indices.push_back(i);
@@ -1010,6 +993,8 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
 
 void SygusUnifIo::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
 {
+  Trace("sygus-sui-debug") << "Add enum value " << this << " " << v << " : "
+                           << results << std::endl;
   // should not have been enumerated before
   Assert(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
   d_enum_val_to_index[v] = d_enum_vals.size();
@@ -1054,10 +1039,10 @@ Node SygusUnifIo::constructSol(
     Trace("sygus-sui-dt-debug") << std::endl;
   }
   // enumerator type info
-  EnumTypeInfo& tinfo = d_strategy[f].getEnumTypeInfo(etn);
+  EnumTypeInfo& tinfo = d_strategy.at(f).getEnumTypeInfo(etn);
 
   // get the enumerator information
-  EnumInfo& einfo = d_strategy[f].getEnumInfo(e);
+  EnumInfo& einfo = d_strategy.at(f).getEnumInfo(e);
 
   EnumCache& ecache = d_ecache[e];
 
@@ -1087,7 +1072,7 @@ Node SygusUnifIo::constructSol(
         {
           ret_dt = constructBestSolvedTerm(e, subsumed_by);
           indent("sygus-sui-dt", ind);
-          Trace("sygus-sui-dt") << "return PBE: success : conditionally solved"
+          Trace("sygus-sui-dt") << "return PBE: success : conditionally solved "
                                 << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         }
         else
@@ -1100,7 +1085,7 @@ Node SygusUnifIo::constructSol(
     }
     if (ret_dt.isNull())
     {
-      if (d_tds->sygusToBuiltinType(e.getType()).isString())
+      if (d_tds->sygusToBuiltinType(e.getType()).isStringLike())
       {
         // check if a current value that closes all examples
         // get the term enumerator for this type
@@ -1112,7 +1097,7 @@ Node SygusUnifIo::constructSol(
 
           EnumCache& ecachet = d_ecache[et];
           // get the current examples
-          std::vector<String> ex_vals;
+          std::vector<Node> ex_vals;
           x.getCurrentStrings(this, d_examples_out, ex_vals);
           Assert(ecache.d_enum_vals.size() == ecache.d_enum_vals_res.size());
 
@@ -1145,9 +1130,8 @@ Node SygusUnifIo::constructSol(
     if (ret_dt.isNull() && !retValMod)
     {
       bool firstTime = true;
-      std::unordered_set<Node, NodeHashFunction> intersection;
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-          pit;
+      std::unordered_set<Node> intersection;
+      std::map<TypeNode, std::unordered_set<Node>>::iterator pit;
       for (size_t i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
         if (x.d_vals[i].getConst<bool>())
@@ -1222,12 +1206,12 @@ Node SygusUnifIo::constructSol(
     // check if each return value is a prefix/suffix of all open examples
     if (!retValMod || x.getCurrentRole() == nrole)
     {
-      std::map<Node, std::vector<unsigned> > incr;
+      std::map<Node, std::vector<size_t>> incr;
       bool isPrefix = nrole == role_string_prefix;
-      std::map<Node, unsigned> total_inc;
+      std::map<Node, size_t> total_inc;
       std::vector<Node> inc_strs;
       // make the value of the examples
-      std::vector<String> ex_vals;
+      std::vector<Node> ex_vals;
       x.getCurrentStrings(this, d_examples_out, ex_vals);
       if (Trace.isOn("sygus-sui-dt-debug"))
       {
@@ -1253,7 +1237,7 @@ Node SygusUnifIo::constructSol(
         TermDbSygus::toStreamSygus("sygus-sui-dt-debug", val_t);
         Trace("sygus-sui-dt-debug") << " : ";
         Assert(ecache.d_enum_vals_res[i].size() == d_examples_out.size());
-        unsigned tot = 0;
+        size_t tot = 0;
         bool exsuccess = x.getStringIncrement(this,
                                               isPrefix,
                                               ex_vals,
@@ -1352,9 +1336,9 @@ Node SygusUnifIo::constructSol(
       if (snode.d_strats[i]->d_this == strat_ITE)
       {
         // flip the two
-        EnumTypeInfoStrat* etis = snode.d_strats[i];
+        EnumTypeInfoStrat* etis_i = snode.d_strats[i];
         snode.d_strats[i] = snode.d_strats[0];
-        snode.d_strats[0] = etis;
+        snode.d_strats[0] = etis_i;
         break;
       }
     }
@@ -1380,7 +1364,7 @@ Node SygusUnifIo::constructSol(
       // for ITE
       Node split_cond_enum;
       unsigned split_cond_res_index = 0;
-      CVC4_UNUSED bool set_split_cond_res_index = false;
+      CVC5_UNUSED bool set_split_cond_res_index = false;
 
       for (unsigned sc = 0, size = etis->d_cenum.size(); sc < size; sc++)
       {
@@ -1449,12 +1433,33 @@ Node SygusUnifIo::constructSol(
           }
           else
           {
-            // TODO (#1250) : degenerate case where children have different
-            // types?
-            indent("sygus-sui-dt", ind);
-            Trace("sygus-sui-dt") << "return PBE: failed ITE strategy, "
-                                      "cannot find a distinguishable condition"
-                                  << std::endl;
+            // if the branch types are different, it could still make a
+            // difference to recurse, for instance see issue #4790. We do this
+            // if either branch is a different type from the current type.
+            TypeNode branchType1 = etis->d_cenum[1].first.getType();
+            TypeNode branchType2 = etis->d_cenum[2].first.getType();
+            bool childTypesEqual = branchType1 == etn && branchType2 == etn;
+            if (!childTypesEqual)
+            {
+              if (!ecache_child.d_enum_vals.empty())
+              {
+                // take arbitrary
+                rec_c = constructBestConditional(ce, ecache_child.d_enum_vals);
+                indent("sygus-sui-dt", ind);
+                Trace("sygus-sui-dt")
+                    << "PBE: ITE strategy : choose arbitrary conditional due "
+                       "to disequal child types "
+                    << d_tds->sygusToBuiltin(rec_c) << std::endl;
+              }
+            }
+            if (rec_c.isNull())
+            {
+              indent("sygus-sui-dt", ind);
+              Trace("sygus-sui-dt")
+                  << "return PBE: failed ITE strategy, "
+                     "cannot find a distinguishable condition, childTypesEqual="
+                  << childTypesEqual << std::endl;
+            }
           }
           if (!rec_c.isNull())
           {
@@ -1672,6 +1677,6 @@ Node SygusUnifIo::constructBestConditional(Node ce,
   return conds[bestIndex];
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

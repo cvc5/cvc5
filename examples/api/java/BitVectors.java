@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file BitVectors.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the solving capabilities of the CVC4
- ** bit-vector solver.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Liana Hadarean, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the solving capabilities of the cvc5 bit-vector
+ * solver.
+ *
+ */
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class BitVectors {
   public static void main(String[] args) {
@@ -86,14 +87,14 @@ public class BitVectors {
     Expr new_x_eq_new_x_ = em.mkExpr(Kind.EQUAL, new_x, new_x_);
 
     System.out.println(" Querying: " + new_x_eq_new_x_);
-    System.out.println(" Expect valid. ");
-    System.out.println(" CVC4: " + smt.query(new_x_eq_new_x_));
+    System.out.println(" Expect entailed. ");
+    System.out.println(" CVC4: " + smt.checkEntailed(new_x_eq_new_x_));
     System.out.println(" Popping context. ");
     smt.pop();
 
     // Encoding code (2)
     // new_x_ = a + b - x
-    Expr a_plus_b = em.mkExpr(Kind.BITVECTOR_PLUS, a, b);
+    Expr a_plus_b = em.mkExpr(Kind.BITVECTOR_ADD, a, b);
     Expr a_plus_b_minus_x = em.mkExpr(Kind.BITVECTOR_SUB, a_plus_b, x);
     Expr assignment2 = em.mkExpr(Kind.EQUAL, new_x_, a_plus_b_minus_x);
 
@@ -102,7 +103,7 @@ public class BitVectors {
     smt.assertFormula(assignment2);
 
     System.out.println(" Querying: " + new_x_eq_new_x_);
-    System.out.println(" Expect valid. ");
-    System.out.println(" CVC4: " + smt.query(new_x_eq_new_x_));
+    System.out.println(" Expect entailed. ");
+    System.out.println(" CVC4: " + smt.checkEntailed(new_x_eq_new_x_));
   }
 }

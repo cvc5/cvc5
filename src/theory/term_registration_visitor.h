@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file term_registration_visitor.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -22,7 +23,7 @@
 
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5 {
 
 class TheoryEngine;
 
@@ -42,7 +43,7 @@ class PreRegisterVisitor {
   /** The engine */
   TheoryEngine* d_engine;
 
-  typedef context::CDHashMap<TNode, theory::Theory::Set, TNodeHashFunction> TNodeToTheorySetMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet> TNodeToTheorySetMap;
 
   /**
    * Map from terms to the theories that have already had this term pre-registered.
@@ -50,45 +51,74 @@ class PreRegisterVisitor {
   TNodeToTheorySetMap d_visited;
 
   /**
-   * A set of all theories in the term
-   */
-  theory::Theory::Set d_theories;
-
-  /**
    * String representation of the visited map, for debugging purposes.
    */
   std::string toString() const;
 
-public:
+ public:
+  /** required to instantiate template for NodeVisitor */
+  using return_type = void;
 
-  /** Returned set tells us which theories there are */
-  typedef theory::Theory::Set return_type;
-  
-  PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
-  : d_engine(engine)
-  , d_visited(context)
-  , d_theories(0)
-  {}
+  PreRegisterVisitor(TheoryEngine* engine, context::Context* c)
+      : d_engine(engine), d_visited(c)
+  {
+  }
 
   /**
-   * Returns true is current has already been pre-registered with both current and parent theories.
+   * Returns true is current has already been pre-registered with both current
+   * and parent theories.
    */
   bool alreadyVisited(TNode current, TNode parent);
-  
-  /**
-   * Pre-registeres current with any of the current and parent theories that haven't seen the term yet.
-   */
-  void visit(TNode current, TNode parent);
-  
-  /**
-   * Marks the node as the starting literal.
-   */
-  void start(TNode node) { }
 
   /**
-   * Notifies the engine of all the theories used.
+   * Pre-registeres current with any of the current and parent theories that
+   * haven't seen the term yet.
    */
-  theory::Theory::Set done(TNode node) { return d_theories; }
+  void visit(TNode current, TNode parent);
+
+  /**
+   * Marks the node as the starting literal, which does nothing. This method
+   * is required to instantiate template for NodeVisitor.
+   */
+  void start(TNode node);
+
+  /** Called when the visitor is finished with a term, do nothing */
+  void done(TNode node) {}
+
+  /**
+   * Preregister the term current occuring under term parent.  This calls
+   * Theory::preRegisterTerm for the theories of current and parent, as well
+   * as the theory of current's type, if it is finite.
+   *
+   * This method takes a set of theories visitedTheories that have already
+   * preregistered current and updates this set with the theories that
+   * preregister current during this call
+   *
+   * @param te Pointer to the theory engine containing the theories
+   * @param visitedTheories The theories that have already preregistered current
+   * @param current The term to preregister
+   * @param parent The parent term of current
+   * @param preregTheories The theories that have already preregistered current.
+   * If there is no theory sharing, this coincides with visitedTheories.
+   * Otherwise, visitedTheories may be a subset of preregTheories.
+   */
+  static void preRegister(TheoryEngine* te,
+                          theory::TheoryIdSet& visitedTheories,
+                          TNode current,
+                          TNode parent,
+                          theory::TheoryIdSet preregTheories);
+
+ private:
+  /**
+   * Helper for above, called whether we wish to register a term with a theory
+   * given by an identifier id.
+   */
+  static void preRegisterWithTheory(TheoryEngine* te,
+                                    theory::TheoryIdSet& visitedTheories,
+                                    theory::TheoryId id,
+                                    TNode current,
+                                    TNode parent,
+                                    theory::TheoryIdSet preregTheories);
 };
 
 
@@ -98,16 +128,8 @@ public:
  * been visited already, we need to visit it again, since we need to associate it with both atoms.
  */
 class SharedTermsVisitor {
-
-  /** The shared terms database */
-  SharedTermsDatabase& d_sharedTerms;
-
-  /**
-   * Cache from preprocessing of atoms.
-   */
-  typedef std::unordered_map<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
-  TNodeVisitedMap d_visited;
-
+  using TNodeVisitedMap = std::unordered_map<TNode, theory::TheoryIdSet>;
+  using TNodeToTheorySetMap = context::CDHashMap<TNode, theory::TheoryIdSet>;
   /**
    * String representation of the visited map, for debugging purposes.
    */
@@ -116,14 +138,18 @@ class SharedTermsVisitor {
   /** 
    * The initial atom.
    */
-  TNode d_atom; 
-    
-public:
+  TNode d_atom;
 
-  typedef void return_type;
+ public:
+  /** required to instantiate template for NodeVisitor */
+  using return_type = void;
 
-  SharedTermsVisitor(SharedTermsDatabase& sharedTerms)
-  : d_sharedTerms(sharedTerms) {}
+  SharedTermsVisitor(TheoryEngine* te,
+                     SharedTermsDatabase& sharedTerms,
+                     context::Context* c)
+      : d_engine(te), d_sharedTerms(sharedTerms), d_preregistered(c)
+  {
+  }
 
   /**
    * Returns true is current has already been pre-registered with both current and parent theories.
@@ -134,9 +160,9 @@ public:
    * Pre-registeres current with any of the current and parent theories that haven't seen the term yet.
    */
   void visit(TNode current, TNode parent);
-  
+
   /**
-   * Marks the node as the starting literal.
+   * Marks the node as the starting literal, which clears the state.
    */
   void start(TNode node);
 
@@ -149,7 +175,16 @@ public:
    * Clears the internal state.
    */   
   void clear();
+
+ private:
+  /** The engine */
+  TheoryEngine* d_engine;
+  /** The shared terms database */
+  SharedTermsDatabase& d_sharedTerms;
+  /** Cache of nodes we have visited in this traversal */
+  TNodeVisitedMap d_visited;
+  /** (Global) cache of nodes we have preregistered in this SAT context */
+  TNodeToTheorySetMap d_preregistered;
 };
 
-
-}
+}  // namespace cvc5

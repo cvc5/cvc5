@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file sygus_invariance.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus invariance tests
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus invariance tests.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
 
 #include <unordered_map>
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -110,9 +111,6 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
    */
   void init(Node conj, Node var, Node res);
 
-  /** do evaluate with unfolding, using the cache of this class */
-  Node doEvaluateWithUnfolding(TermDbSygus* tds, Node n);
-
  protected:
   /** does d_terms{ d_var -> nvn } still rewrite to d_result? */
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
@@ -136,8 +134,6 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
    * disjunctively, i.e. if one child test succeeds, the overall test succeeds.
    */
   bool d_is_conjunctive;
-  /** cache of n -> the simplified form of eval( n ) */
-  std::unordered_map<Node, Node, NodeHashFunction> d_visited;
 };
 
 /** EquivSygusInvarianceTest
@@ -296,8 +292,8 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
   bool d_isUniversal;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */

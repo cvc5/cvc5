@@ -1,74 +1,43 @@
-/*********************                                                        */
-/*! \file parser.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A collection of state for use by parser implementations.
- **
- ** A collection of state for use by parser implementations.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A collection of state for use by parser implementations.
+ */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_STATE_H
-#define CVC4__PARSER__PARSER_STATE_H
+#ifndef CVC5__PARSER__PARSER_H
+#define CVC5__PARSER__PARSER_H
 
-#include <string>
-#include <set>
 #include <list>
-#include <cassert>
+#include <memory>
+#include <set>
+#include <string>
 
-#include "expr/expr.h"
-#include "expr/expr_stream.h"
+#include "api/cpp/cvc5.h"
+#include "cvc5_export.h"
 #include "expr/kind.h"
+#include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
+#include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 // Forward declarations
-class BooleanType;
 class Command;
-class FunctionType;
-class Type;
 class ResourceManager;
-namespace api {
-class Solver;
-}
-
-//for sygus gterm two-pass parsing
-class CVC4_PUBLIC SygusGTerm {
-public:
-  enum{
-    gterm_op,
-    gterm_constant,
-    gterm_variable,
-    gterm_input_variable,
-    gterm_local_variable,
-    gterm_nested_sort,
-    gterm_unresolved,
-    gterm_ignore,
-  };
-  Type d_type;
-  Expr d_expr;
-  std::vector< Expr > d_let_vars;
-  unsigned d_gterm_type;
-  std::string d_name;
-  std::vector< SygusGTerm > d_children;
-  
-  unsigned getNumChildren() { return d_children.size(); }
-  void addChild(){
-    d_children.push_back( SygusGTerm() );
-  }
-};
 
 namespace parser {
 
@@ -88,7 +57,7 @@ enum DeclarationCheck {
  * Returns a string representation of the given object (for
  * debugging).
  */
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
 inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) {
   switch(check) {
   case CHECK_NONE:
@@ -116,7 +85,7 @@ enum SymbolType {
  * Returns a string representation of the given object (for
  * debugging).
  */
-inline std::ostream& operator<<(std::ostream& out, SymbolType type) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out, SymbolType type);
 inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
@@ -133,26 +102,22 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  * name of the file, line number and column information, and in-scope
  * declarations.
  */
-class CVC4_PUBLIC Parser {
+class CVC5_EXPORT Parser
+{
   friend class ParserBuilder;
 private:
- /** The resource manager associated with this expr manager */
- ResourceManager* d_resourceManager;
 
  /** The input that we're parsing. */
- Input* d_input;
+ std::unique_ptr<Input> d_input;
 
  /**
-  * The declaration scope that is "owned" by this parser.  May or
-  * may not be the current declaration scope in use.
+  * Reference to the symbol manager, which manages the symbol table used by
+  * this parser.
   */
- SymbolTable d_symtabAllocated;
+ SymbolManager* d_symman;
 
  /**
-  * This current symbol table used by this parser.  Initially points
-  * to d_symtabAllocated, but can be changed (making this parser
-  * delegate its definitions and lookups to another parser).
-  * See useDeclarationsFrom().
+  * This current symbol table used by this parser, from symbol manager.
   */
  SymbolTable* d_symtab;
 
@@ -162,22 +127,6 @@ private:
   * lambda.
   */
  size_t d_assertionLevel;
-
- /**
-  * Whether we're in global declarations mode (all definitions and
-  * declarations are global).
-  */
- bool d_globalDeclarations;
-
- /**
-  * Maintains a list of reserved symbols at the assertion level that might
-  * not occur in our symbol table.  This is necessary to e.g. support the
-  * proper behavior of the :named annotation in SMT-LIBv2 when used under
-  * a let or a quantifier, since inside a let/quant body the declaration
-  * scope is that of the let/quant body, but the defined name should be
-  * reserved at the assertion level.
-  */
- std::set<std::string> d_reservedSymbols;
 
  /** How many anonymous functions we've created. */
  size_t d_anonymousFunctionCount;
@@ -211,7 +160,7 @@ private:
  std::string d_forcedLogic;
 
  /** The set of operators available in the current logic. */
- std::set<Kind> d_logicOperators;
+ std::set<api::Kind> d_logicOperators;
 
  /** The set of attributes already warned about. */
  std::set<std::string> d_attributesWarnedAbout;
@@ -223,7 +172,7 @@ private:
   * depend on mkMutualDatatypeTypes() to check everything and clear
   * this out.
   */
- std::set<Type> d_unresolved;
+ std::set<api::Sort> d_unresolved;
 
  /**
   * "Preemption commands": extra commands implied by subterms that
@@ -237,7 +186,7 @@ private:
  /** Lookup a symbol in the given namespace (as specified by the type).
   * Only returns a symbol if it is not overloaded, returns null otherwise.
   */
- Expr getSymbol(const std::string& var_name, SymbolType type);
+ api::Term getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
  /** The API Solver object. */
@@ -249,7 +198,8 @@ protected:
   * @attention The parser takes "ownership" of the given
   * input and will delete it on destruction.
   *
-  * @param the solver API object
+  * @param solver solver API object
+  * @param symm reference to the symbol manager
   * @param input the parser input
   * @param strictMode whether to incorporate strict(er) compliance checks
   * @param parseOnly whether we are parsing only (and therefore certain checks
@@ -257,7 +207,7 @@ protected:
   * unimplementedFeature())
   */
  Parser(api::Solver* solver,
-        Input* input,
+        SymbolManager* sm,
         bool strictMode = false,
         bool parseOnly = false);
 
@@ -265,21 +215,18 @@ public:
 
   virtual ~Parser();
 
-  /** Get the associated <code>ExprManager</code>. */
-  ExprManager* getExprManager() const;
-
   /** Get the associated solver. */
   api::Solver* getSolver() const;
 
   /** Get the associated input. */
-  inline Input* getInput() const {
-    return d_input;
-  }
+  Input* getInput() const { return d_input.get(); }
+
+  /** Get unresolved sorts */
+  inline std::set<api::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
-    delete d_input;
-    d_input = input;
+    d_input.reset(input);
     d_input->setParser(*this);
     d_done = false;
   }
@@ -321,12 +268,8 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  virtual void forceLogic(const std::string& logic)
-  {
-    assert(!d_logicIsForced);
-    d_logicIsForced = true;
-    d_forcedLogic = logic;
-  }
+  virtual void forceLogic(const std::string& logic);
+
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 
@@ -337,7 +280,7 @@ public:
    * @return the variable expression
    * Only returns a variable if its name is not overloaded, returns null otherwise.
    */
-  Expr getVariable(const std::string& name);
+  api::Term getVariable(const std::string& name);
 
   /**
    * Gets the function currently bound to name.
@@ -346,7 +289,7 @@ public:
    * @return the variable expression
    * Only returns a function if its name is not overloaded, returns null otherwise.
    */
-  Expr getFunction(const std::string& name);
+  api::Term getFunction(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as, based on the current binding.
@@ -357,37 +300,56 @@ public:
    * a nullary constructor or a defined function.
    * Only returns an expression if its name is not overloaded, returns null otherwise.
    */
-  virtual Expr getExpressionForName(const std::string& name);
-  
+  virtual api::Term getExpressionForName(const std::string& name);
+
   /**
-   * Returns the expression that name should be interpreted as, based on the current binding.
+   * Returns the expression that name should be interpreted as, based on the
+   * current binding.
    *
-   * This is the same as above but where the name has been type cast to t. 
+   * This is the same as above but where the name has been type cast to t.
    */
-  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
-  
+  virtual api::Term getExpressionForNameAndType(const std::string& name,
+                                                api::Sort t);
+
   /**
-   * Returns the kind that should be used for applications of expression fun, where
-   * fun has "function-like" type, i.e. where checkFunctionLike(fun) returns true. 
-   * Returns a parse error if fun does not have function-like type.
-   * 
-   * For example, this function returns
-   *   APPLY_UF if fun has function type, 
+   * If this method returns true, then name is updated with the tester name
+   * for constructor cons.
+   *
+   * In detail, notice that (user-defined) datatypes associate a unary predicate
+   * for each constructor, called its "tester". This symbol is automatically
+   * defined when a datatype is defined. The tester name for a constructor
+   * (e.g. "cons") depends on the language:
+   * - In smt versions < 2.6, the (non-standard) syntax is "is-cons",
+   * - In smt versions >= 2.6, the indexed symbol "(_ is cons)" is used. Thus,
+   * no tester symbol is necessary, since "is" is a builtin symbol. We still use
+   * the above syntax if strict mode is disabled.
+   * - In cvc, the syntax for testers is "is_cons".
+   */
+  virtual bool getTesterName(api::Term cons, std::string& name);
+
+  /**
+   * Returns the kind that should be used for applications of expression fun.
+   * This is a generalization of ExprManager::operatorToKind that also
+   * handles variables whose types are "function-like", i.e. where
+   * checkFunctionLike(fun) returns true.
+   *
+   * For examples of the latter, this function returns
+   *   APPLY_UF if fun has function type,
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
-  Kind getKindForFunction(Expr fun);
-  
+  api::Kind getKindForFunction(api::Term fun);
+
   /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
    */
-  Type getSort(const std::string& sort_name);
+  api::Sort getSort(const std::string& sort_name);
 
   /**
    * Returns a (parameterized) sort, given a name and args.
    */
-  Type getSort(const std::string& sort_name,
-               const std::vector<Type>& params);
+  api::Sort getSort(const std::string& sort_name,
+                    const std::vector<api::Sort>& params);
 
   /**
    * Returns arity of a (parameterized) sort, given a name and args.
@@ -417,114 +379,82 @@ public:
                         std::string notes = "");
 
   /**
-   * Reserve a symbol at the assertion level.
-   */
-  void reserveSymbolAtAssertionLevel(const std::string& name);
-
-  /**
    * Checks whether the given expression is function-like, i.e.
-   * it expects arguments. This is checked by looking at the type 
+   * it expects arguments. This is checked by looking at the type
    * of fun. Examples of function types are function, constructor,
    * selector, tester.
    * @param fun the expression to check
    * @throws ParserException if checks are enabled and fun is not
    * a function
    */
-  void checkFunctionLike(Expr fun);
+  void checkFunctionLike(api::Term fun);
 
-  /**
-   * Check that <code>kind</code> can accept <code>numArgs</code> arguments.
-   * @param kind the built-in operator to check
-   * @param numArgs the number of actual arguments
-   * @throws ParserException if checks are enabled and the operator
-   * <code>kind</code> cannot be applied to <code>numArgs</code>
-   * arguments.
-   */
-  void checkArity(Kind kind, unsigned numArgs);
-
-  /**
-   * Check that <code>kind</code> is a legal operator in the current
-   * logic and that it can accept <code>numArgs</code> arguments.
+  /** Create a new cvc5 variable expression of the given type.
    *
-   * @param kind the built-in operator to check
-   * @param numArgs the number of actual arguments
-   * @throws ParserException if the parser mode is strict and the
-   * operator <code>kind</code> has not been enabled
-   */
-  void checkOperator(Kind kind, unsigned numArgs);
-
-  /** Create a new CVC4 variable expression of the given type. 
-   *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
+   * It is inserted at context level zero in the symbol table if levelZero is
+   * true, or if we are using global declarations.
    *
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
-  Expr mkVar(const std::string& name, const Type& type,
-             uint32_t flags = ExprManager::VAR_FLAG_NONE, 
-             bool doOverload = false);
+  api::Term bindVar(const std::string& name,
+                    const api::Sort& type,
+                    bool levelZero = false,
+                    bool doOverload = false);
 
   /**
-   * Create a set of new CVC4 variable expressions of the given type.
+   * Create a set of new cvc5 variable expressions of the given type.
    *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
+   * It is inserted at context level zero in the symbol table if levelZero is
+   * true, or if we are using global declarations.
    *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
-  std::vector<Expr>
-    mkVars(const std::vector<std::string> names, const Type& type,
-           uint32_t flags = ExprManager::VAR_FLAG_NONE, 
-           bool doOverload = false);
+  std::vector<api::Term> bindVars(const std::vector<std::string> names,
+                                  const api::Sort& type,
+                                  bool levelZero = false,
+                                  bool doOverload = false);
 
   /**
-   * Create a new CVC4 bound variable expression of the given type. This binds
+   * Create a new cvc5 bound variable expression of the given type. This binds
    * the symbol name to that variable in the current scope.
    */
-  Expr mkBoundVar(const std::string& name, const Type& type);
+  api::Term bindBoundVar(const std::string& name, const api::Sort& type);
   /**
-   * Create a new CVC4 bound variable expressions of the given names and types.
+   * Create a new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    */
-  std::vector<Expr> mkBoundVars(
-      std::vector<std::pair<std::string, Type> >& sortedVarNames);
+  std::vector<api::Term> bindBoundVars(
+      std::vector<std::pair<std::string, api::Sort> >& sortedVarNames);
 
   /**
-   * Create a set of new CVC4 bound variable expressions of the given type.
-   *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
+   * Create a set of new cvc5 bound variable expressions of the given type.
    *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
-  std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type);
+  std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
+                                       const api::Sort& type);
 
-  /**
-   * Create a new CVC4 function expression of the given type,
-   * appending a unique index to its name.  (That's the ONLY
-   * difference between mkAnonymousFunction() and mkVar()).
-   *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
-   */
-  Expr mkAnonymousFunction(const std::string& prefix, const Type& type,
-                           uint32_t flags = ExprManager::VAR_FLAG_NONE);
-
-  /** Create a new variable definition (e.g., from a let binding). 
+  /** Create a new variable definition (e.g., from a let binding).
    * levelZero is set if the binding must be done at level 0.
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
-  void defineVar(const std::string& name, const Expr& val,
-                 bool levelZero = false, bool doOverload = false);
+  void defineVar(const std::string& name,
+                 const api::Term& val,
+                 bool levelZero = false,
+                 bool doOverload = false);
 
   /**
    * Create a new type definition.
@@ -532,11 +462,15 @@ public:
    * @param name The name of the type
    * @param type The type that should be associated with the name
    * @param levelZero If true, the type definition is considered global and
-   *                  cannot be removed by poppoing the user context
+   *                  cannot be removed by popping the user context
+   * @param skipExisting If true, the type definition is ignored if the same
+   *                     symbol has already been defined. It is assumed that
+   *                     the definition is the exact same as the existing one.
    */
   void defineType(const std::string& name,
-                  const Type& type,
-                  bool levelZero = false);
+                  const api::Sort& type,
+                  bool levelZero = false,
+                  bool skipExisting = false);
 
   /**
    * Create a new (parameterized) type definition.
@@ -548,46 +482,48 @@ public:
    *                  cannot be removed by poppoing the user context
    */
   void defineType(const std::string& name,
-                  const std::vector<Type>& params,
-                  const Type& type,
+                  const std::vector<api::Sort>& params,
+                  const api::Sort& type,
                   bool levelZero = false);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,
-                               const std::vector<Type>& params,
-                               const Type& type);
+                               const std::vector<api::Sort>& params,
+                               const api::Sort& type);
 
   /**
    * Creates a new sort with the given name.
    */
-  SortType mkSort(const std::string& name,
-                  uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  api::Sort mkSort(const std::string& name);
 
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  SortConstructorType mkSortConstructor(
-      const std::string& name,
-      size_t arity,
-      uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  api::Sort mkSortConstructor(const std::string& name, size_t arity);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
    */
-  SortType mkUnresolvedType(const std::string& name);
+  api::Sort mkUnresolvedType(const std::string& name);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity.
    */
-  SortConstructorType mkUnresolvedTypeConstructor(const std::string& name, 
-                                                  size_t arity);
+  api::Sort mkUnresolvedTypeConstructor(const std::string& name, size_t arity);
   /**
    * Creates a new unresolved (parameterized) type constructor given the type
    * parameters.
    */
-  SortConstructorType mkUnresolvedTypeConstructor(const std::string& name, 
-                                                  const std::vector<Type>& params);
+  api::Sort mkUnresolvedTypeConstructor(const std::string& name,
+                                        const std::vector<api::Sort>& params);
+
+  /**
+   * Creates a new unresolved (parameterized) type constructor of the given
+   * arity. Calls either mkUnresolvedType or mkUnresolvedTypeConstructor
+   * depending on the arity.
+   */
+  api::Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
    * Returns true IFF name is an unresolved type.
@@ -595,13 +531,16 @@ public:
   bool isUnresolvedType(const std::string& name);
 
   /**
-   * Create sorts of mutually-recursive datatypes.
-   * For each symbol defined by the datatype, if a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   * Creates and binds sorts of a list of mutually-recursive datatype
+   * declarations.
+   *
+   * For each symbol defined by the datatype, if a symbol with name already
+   * exists, then if doOverload is true, we create overloaded operators. Else, if
+   * doOverload is false, the existing expression is shadowed by the new
+   * expression.
    */
-  std::vector<DatatypeType>
-  mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
+  std::vector<api::Sort> bindMutualDatatypeTypes(
+      std::vector<api::DatatypeDecl>& datatypes, bool doOverload = false);
 
   /** make flat function type
    *
@@ -641,9 +580,9 @@ public:
    * where @ is (higher-order) application. In this example, z is added to
    * flattenVars.
    */
-  Type mkFlatFunctionType(std::vector<Type>& sorts,
-                          Type range,
-                          std::vector<Expr>& flattenVars);
+  api::Sort mkFlatFunctionType(std::vector<api::Sort>& sorts,
+                               api::Sort range,
+                               std::vector<api::Term>& flattenVars);
 
   /** make flat function type
    *
@@ -651,7 +590,7 @@ public:
    * This is used when the arguments of the function are not important (for
    * instance, if we are only using this type in a declare-fun).
    */
-  Type mkFlatFunctionType(std::vector<Type>& sorts, Type range);
+  api::Sort mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort range);
 
   /** make higher-order apply
    *
@@ -666,14 +605,39 @@ public:
    * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  Expr mkHoApply(Expr expr, std::vector<Expr>& args);
+  api::Term mkHoApply(api::Term expr, const std::vector<api::Term>& args);
+
+  /** Apply type ascription
+   *
+   * Return term t with a type ascription applied to it. This is used for
+   * syntax like (as t T) in smt2 and t::T in the CVC language. This includes:
+   * - (as emptyset (Set T))
+   * - (as emptybag (Bag T))
+   * - (as univset (Set T))
+   * - (as sep.nil T)
+   * - (cons T)
+   * - ((as cons T) t1 ... tn) where cons is a parametric datatype constructor.
+   *
+   * The term to ascribe t is a term whose kind and children (but not type)
+   * are equivalent to that of the term returned by this method.
+   *
+   * Notice that method is not necessarily a cast. In actuality, the above terms
+   * should be understood as symbols indexed by types. However, SMT-LIB does not
+   * permit types as indices, so we must use, e.g. (as emptyset (Set T))
+   * instead of (_ emptyset (Set T)).
+   *
+   * @param t The term to ascribe a type
+   * @param s The sort to ascribe
+   * @return Term t with sort s ascribed.
+   */
+  api::Term applyTypeAscription(api::Term t, api::Sort s);
 
   /**
    * Add an operator to the current legal set.
    *
    * @param kind the built-in operator to add
    */
-  void addOperator(Kind kind);
+  void addOperator(api::Kind kind);
 
   /**
    * Preempt the next returned command with other ones; used to
@@ -686,10 +650,11 @@ public:
   /** Is the symbol bound to a boolean variable? */
   bool isBoolean(const std::string& name);
 
-  /** Is fun a function (or function-like thing)? 
-  * Currently this means its type is either a function, constructor, tester, or selector.
-  */
-  bool isFunctionLike(Expr fun);
+  /** Is fun a function (or function-like thing)?
+   * Currently this means its type is either a function, constructor, tester, or
+   * selector.
+   */
+  bool isFunctionLike(api::Term fun);
 
   /** Is the symbol bound to a predicate? */
   bool isPredicate(const std::string& name);
@@ -698,7 +663,7 @@ public:
   Command* nextCommand();
 
   /** Parse and return the next expression. */
-  Expr nextExpression();
+  api::Term nextExpression();
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) { d_input->warning(msg); }
@@ -737,123 +702,86 @@ public:
   /**
    * Gets the current declaration level.
    */
-  inline size_t scopeLevel() const { return d_symtab->getLevel(); }
+  size_t scopeLevel() const;
 
   /**
    * Pushes a scope. All subsequent symbol declarations made are only valid in
    * this scope, i.e. they are deleted on the next call to popScope.
    *
-   * The argument bindingLevel is true, the assertion level is set to the
-   * current scope level. This determines which scope assertions are declared
-   * at.
+   * The argument isUserContext is true, when we are pushing a user context
+   * e.g. via the smt2 command (push n). This may also include one initial
+   * pushScope when the parser is initialized. User-context pushes and pops
+   * have an impact on both expression names and the symbol table, whereas
+   * other pushes and pops only have an impact on the symbol table.
    */
-  inline void pushScope(bool bindingLevel = false) {
-    d_symtab->pushScope();
-    if(!bindingLevel) {
-      d_assertionLevel = scopeLevel();
-    }
-  }
+  void pushScope(bool isUserContext = false);
 
-  inline void popScope() {
-    d_symtab->popScope();
-    if(scopeLevel() < d_assertionLevel) {
-      d_assertionLevel = scopeLevel();
-      d_reservedSymbols.clear();
-    }
-  }
+  void popScope();
 
-  virtual void reset() {
-    d_symtab->reset();
-  }
+  virtual void reset();
 
-  void setGlobalDeclarations(bool flag) {
-    d_globalDeclarations = flag;
-  }
+  /** Return the symbol manager used by this parser. */
+  SymbolManager* getSymbolManager();
 
-  /**
-   * Set the current symbol table used by this parser.
-   * From now on, this parser will perform its definitions and
-   * lookups in the declaration scope of the "parser" argument
-   * (but doesn't re-delegate if the other parser's declaration scope
-   * changes later).  A NULL argument restores this parser's
-   * "primordial" declaration scope assigned at its creation.  Calling
-   * p->useDeclarationsFrom(p) is a no-op.
-   *
-   * This feature is useful when e.g. reading out-of-band expression data:
-   * 1. Parsing --replay log files produced with --replay-log.
-   * 2. Perhaps a multi-query benchmark file is being single-stepped
-   *    with intervening queries on stdin that must reference the same
-   *    declaration scope(s).
-   *
-   * However, the feature must be used carefully.  Pushes and pops
-   * should be performed with the correct current declaration scope.
-   * Care must be taken to match up declaration scopes, of course;
-   * If variables in the deferred-to parser go out of scope, the
-   * secondary parser will give errors that they are undeclared.
-   * Also, an outer-scope variable shadowed by an inner-scope one of
-   * the same name may be temporarily inaccessible.
-   *
-   * In short, caveat emptor.
-   */
-  inline void useDeclarationsFrom(Parser* parser) {
-    if(parser == NULL) {
-      d_symtab = &d_symtabAllocated;
-    } else {
-      d_symtab = parser->d_symtab;
-    }
-  }
-
-  inline void useDeclarationsFrom(SymbolTable* symtab) {
-    d_symtab = symtab;
-  }
-
-  inline SymbolTable* getSymbolTable() const {
-    return d_symtab;
-  }
-
-  /**
-   * An expression stream interface for a parser.  This stream simply
-   * pulls expressions from the given Parser object.
-   *
-   * Here, the ExprStream base class allows a Parser (from the parser
-   * library) and core components of CVC4 (in the core library) to
-   * communicate without polluting the public interface or having them
-   * reach into private (undocumented) interfaces.
-   */
-  class ExprStream : public CVC4::ExprStream {
-    Parser* d_parser;
-  public:
-    ExprStream(Parser* parser) : d_parser(parser) {}
-    ~ExprStream() { delete d_parser; }
-    Expr nextExpr() override { return d_parser->nextExpression(); }
-  };/* class Parser::ExprStream */
-  
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(Expr fun) {
+  bool isOverloadedFunction(api::Term fun)
+  {
     return d_symtab->isOverloadedFunction(fun);
   }
-  
+
   /** Get overloaded constant for type.
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
-  Expr getOverloadedConstantForType(const std::string& name, Type t) {
+  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t)
+  {
     return d_symtab->getOverloadedConstantForType(name, t);
   }
-  
+
   /**
    * If possible, returns a defined function for a name
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) {
+  api::Term getOverloadedFunctionForTypes(const std::string& name,
+                                          std::vector<api::Sort>& argTypes)
+  {
     return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
   //------------------------ end operator overloading
-};/* class Parser */
+  /**
+   * Make string constant
+   *
+   * This makes the string constant based on the string s. This may involve
+   * processing ad-hoc escape sequences (if the language is not
+   * SMT-LIB 2.6 or higher), or otherwise calling the solver to construct
+   * the string.
+   */
+  api::Term mkStringConstant(const std::string& s);
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+  /**
+   * Make string constant from a single character in hex representation
+   *
+   * This makes the string constant based on the character from the strings,
+   * represented as a hexadecimal code point.
+   */
+  api::Term mkCharConstant(const std::string& s);
 
-#endif /* CVC4__PARSER__PARSER_STATE_H */
+  /** ad-hoc string escaping
+   *
+   * Returns the (internal) vector of code points corresponding to processing
+   * the escape sequences in string s. This is to support string inputs that
+   * do no comply with the SMT-LIB standard.
+   *
+   * This method handles escape sequences, including \n, \t, \v, \b, \r, \f, \a,
+   * \\, \x[N] and octal escape sequences of the form \[c1]([c2]([c3])?)? where
+   * c1, c2, c3 are digits from 0 to 7.
+   */
+  std::wstring processAdHocStringEsc(const std::string& s);
+}; /* class Parser */
+
+}  // namespace parser
+}  // namespace cvc5
+
+#endif /* CVC5__PARSER__PARSER_STATE_H */

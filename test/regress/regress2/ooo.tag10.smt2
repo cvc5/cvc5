@@ -5,7 +5,7 @@ UCLID benchmark suite.  See UCLID project: http://www.cs.cmu.edu/~uclid
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun Br1 () Int)

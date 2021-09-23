@@ -1,27 +1,32 @@
-/*********************                                                        */
-/*! \file sort_infer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sort inference preprocessing pass
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sort inference preprocessing pass.
+ */
 
 #include "preprocessing/passes/sort_infer.h"
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "smt/dump_manager.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -33,9 +38,10 @@ SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SortInferencePass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  SortInference* si = d_preprocContext->getTheoryEngine()->getSortInference();
+  theory::SortInference* si =
+      d_preprocContext->getTheoryEngine()->getSortInference();
 
-  if (options::sortInference())
+  if (options().smt.sortInference)
   {
     si->initialize(assertionsToPreprocess->ref());
     std::map<Node, Node> model_replace_f;
@@ -46,7 +52,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       Node next = si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
-        next = theory::Rewriter::rewrite(next);
+        next = rewrite(next);
         assertionsToPreprocess->replace(i, next);
         Trace("sort-infer-preprocess")
             << "*** Preprocess SortInferencePass " << prev << endl;
@@ -58,24 +64,23 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     si->getNewAssertions(newAsserts);
     for (const Node& na : newAsserts)
     {
-      Node nar = theory::Rewriter::rewrite(na);
+      Node nar = rewrite(na);
       Trace("sort-infer-preprocess")
           << "*** Preprocess SortInferencePass : new constraint " << nar
           << endl;
       assertionsToPreprocess->push_back(nar);
     }
     // indicate correspondence between the functions
-    // TODO (#2308): move this to a better place
-    SmtEngine* smt = smt::currentSmtEngine();
+    smt::DumpManager* dm = d_env.getDumpManager();
     for (const std::pair<const Node, Node>& mrf : model_replace_f)
     {
-      smt->setPrintFuncInModel(mrf.first.toExpr(), false);
-      smt->setPrintFuncInModel(mrf.second.toExpr(), true);
+      dm->setPrintFuncInModel(mrf.first, false);
+      dm->setPrintFuncInModel(mrf.second, true);
     }
   }
   // only need to compute monotonicity on the resulting formula if we are
   // using this option
-  if (options::ufssFairnessMonotone())
+  if (options().uf.ufssFairnessMonotone)
   {
     si->computeMonotonicity(assertionsToPreprocess->ref());
   }
@@ -85,4 +90,4 @@ PreprocessingPassResult SortInferencePass::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,31 +1,32 @@
-/*********************                                                        */
-/*! \file linear_equality.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief This module maintains the relationship between a Tableau and PartialModel.
- **
- ** This shares with the theory a Tableau, and a PartialModel that:
- **  - satisfies the equalities in the Tableau, and
- **  - the assignment for the non-basic variables satisfies their bounds.
- ** This maintains the relationship needed by the SimplexDecisionProcedure.
- **
- ** In the language of Simplex for DPLL(T), this provides:
- ** - update()
- ** - pivotAndUpdate()
- **
- ** This class also provides utility functions that require
- ** using both the Tableau and PartialModel.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This module maintains the relationship between a Tableau and
+ * PartialModel.
+ *
+ * This shares with the theory a Tableau, and a PartialModel that:
+ *  - satisfies the equalities in the Tableau, and
+ *  - the assignment for the non-basic variables satisfies their bounds.
+ * This maintains the relationship needed by the SimplexDecisionProcedure.
+ *
+ * In the language of Simplex for DPLL(T), this provides:
+ * - update()
+ * - pivotAndUpdate()
+ *
+ * This class also provides utility functions that require
+ * using both the Tableau and PartialModel.
+ */
 
-
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
@@ -36,10 +37,9 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex_update.h"
 #include "theory/arith/tableau.h"
-#include "util/maybe.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -215,8 +215,8 @@ private:
 
   BorderHeap d_increasing;
   BorderHeap d_decreasing;
-  Maybe<DeltaRational> d_upperBoundDifference;
-  Maybe<DeltaRational> d_lowerBoundDifference;
+  std::optional<DeltaRational> d_upperBoundDifference;
+  std::optional<DeltaRational> d_lowerBoundDifference;
 
   Rational d_one;
   Rational d_negOne;
@@ -417,87 +417,86 @@ public:
    * The constraint on a basic variable b is implied by the constraints
    * on its row.  This is a wrapper for propagateRow().
    */
-  void propagateBasicFromRow(ConstraintP c);
+ void propagateBasicFromRow(ConstraintP c, bool produceProofs);
 
-  /**
-   * Let v be the variable for the constraint c.
-   * Exports either the explanation of an upperbound or a lower bound
-   * of v using the other variables in the row.
-   *
-   * If farkas != RationalVectorPSentinel, this function additionally
-   * stores the farkas coefficients of the constraints stored in into.
-   * Position 0 is the coefficient of v.
-   * Position i > 0, corresponds to the order of the other constraints.
-   */
-  void propagateRow(ConstraintCPVec& into
-                    , RowIndex ridx
-                    , bool rowUp
-                    , ConstraintP c
-                    , RationalVectorP farkas);
+ /**
+  * Let v be the variable for the constraint c.
+  * Exports either the explanation of an upperbound or a lower bound
+  * of v using the other variables in the row.
+  *
+  * If farkas != RationalVectorPSentinel, this function additionally
+  * stores the farkas coefficients of the constraints stored in into.
+  * Position 0 is the coefficient of v.
+  * Position i > 0, corresponds to the order of the other constraints.
+  */
+ void propagateRow(ConstraintCPVec& into,
+                   RowIndex ridx,
+                   bool rowUp,
+                   ConstraintP c,
+                   RationalVectorP farkas);
 
-  /**
-   * Computes the value of a basic variable using the assignments
-   * of the values of the variables in the basic variable's row tableau.
-   * This can compute the value using either:
-   * - the the current assignment (useSafe=false) or
-   * - the safe assignment (useSafe = true).
-   */
-  DeltaRational computeRowValue(ArithVar x, bool useSafe) const;
+ /**
+  * Computes the value of a basic variable using the assignments
+  * of the values of the variables in the basic variable's row tableau.
+  * This can compute the value using either:
+  * - the the current assignment (useSafe=false) or
+  * - the safe assignment (useSafe = true).
+  */
+ DeltaRational computeRowValue(ArithVar x, bool useSafe) const;
 
-  /**
-   * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
-   * and 2 ArithVar variables and returns one of the ArithVar variables
-   * potentially using the internals of the SimplexDecisionProcedure.
-   */
+ /**
+  * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
+  * and 2 ArithVar variables and returns one of the ArithVar variables
+  * potentially using the internals of the SimplexDecisionProcedure.
+  */
 
-  ArithVar noPreference(ArithVar x, ArithVar y) const{
-    return x;
-  }
+ ArithVar noPreference(ArithVar x, ArithVar y) const { return x; }
 
-  /**
-   * minVarOrder is a PreferenceFunction for selecting the smaller of the 2
-   * ArithVars. This PreferenceFunction is used during the VarOrder stage of
-   * findModel.
-   */
-  ArithVar minVarOrder(ArithVar x, ArithVar y) const;
+ /**
+  * minVarOrder is a PreferenceFunction for selecting the smaller of the 2
+  * ArithVars. This PreferenceFunction is used during the VarOrder stage of
+  * findModel.
+  */
+ ArithVar minVarOrder(ArithVar x, ArithVar y) const;
 
-  /**
-   * minColLength is a PreferenceFunction for selecting the variable with the
-   * smaller row count in the tableau.
-   *
-   * This is a heuristic rule and should not be used during the VarOrder
-   * stage of findModel.
-   */
-  ArithVar minColLength(ArithVar x, ArithVar y) const;
+ /**
+  * minColLength is a PreferenceFunction for selecting the variable with the
+  * smaller row count in the tableau.
+  *
+  * This is a heuristic rule and should not be used during the VarOrder
+  * stage of findModel.
+  */
+ ArithVar minColLength(ArithVar x, ArithVar y) const;
 
-  /**
-   * minRowLength is a PreferenceFunction for selecting the variable with the
-   * smaller row count in the tableau.
-   *
-   * This is a heuristic rule and should not be used during the VarOrder
-   * stage of findModel.
-   */
-  ArithVar minRowLength(ArithVar x, ArithVar y) const;
+ /**
+  * minRowLength is a PreferenceFunction for selecting the variable with the
+  * smaller row count in the tableau.
+  *
+  * This is a heuristic rule and should not be used during the VarOrder
+  * stage of findModel.
+  */
+ ArithVar minRowLength(ArithVar x, ArithVar y) const;
 
-  /**
-   * minBoundAndRowCount is a PreferenceFunction for preferring a variable
-   * without an asserted bound over variables with an asserted bound.
-   * If both have bounds or both do not have bounds,
-   * the rule falls back to minRowCount(...).
-   *
-   * This is a heuristic rule and should not be used during the VarOrder
-   * stage of findModel.
-   */
-  ArithVar minBoundAndColLength(ArithVar x, ArithVar y) const;
+ /**
+  * minBoundAndRowCount is a PreferenceFunction for preferring a variable
+  * without an asserted bound over variables with an asserted bound.
+  * If both have bounds or both do not have bounds,
+  * the rule falls back to minRowCount(...).
+  *
+  * This is a heuristic rule and should not be used during the VarOrder
+  * stage of findModel.
+  */
+ ArithVar minBoundAndColLength(ArithVar x, ArithVar y) const;
 
-
-  template <bool above>
-  inline bool isAcceptableSlack(int sgn, ArithVar nonbasic) const {
-    return
-      ( above && sgn < 0 && d_variables.strictlyBelowUpperBound(nonbasic)) ||
-      ( above && sgn > 0 && d_variables.strictlyAboveLowerBound(nonbasic)) ||
-      (!above && sgn > 0 && d_variables.strictlyBelowUpperBound(nonbasic)) ||
-      (!above && sgn < 0 && d_variables.strictlyAboveLowerBound(nonbasic));
+ template <bool above>
+ inline bool isAcceptableSlack(int sgn, ArithVar nonbasic) const
+ {
+   return (above && sgn < 0 && d_variables.strictlyBelowUpperBound(nonbasic))
+          || (above && sgn > 0 && d_variables.strictlyAboveLowerBound(nonbasic))
+          || (!above && sgn > 0
+              && d_variables.strictlyBelowUpperBound(nonbasic))
+          || (!above && sgn < 0
+              && d_variables.strictlyAboveLowerBound(nonbasic));
   }
 
   /**
@@ -712,7 +711,6 @@ private:
     TimerStat d_forceTime;
 
     Statistics();
-    ~Statistics();
   };
   mutable Statistics d_statistics;
 
@@ -755,6 +753,6 @@ public:
   }
 };
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5

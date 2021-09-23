@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file expr_iomanip.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Kshitij Bansal
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Expr IO manipulation classes.
- **
- ** Expr IO manipulation classes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Kshitij Bansal
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Expr IO manipulation classes.
+ */
 
 #include "expr/expr_iomanip.h"
 
@@ -22,14 +21,11 @@
 #include "options/options.h"
 #include "options/expr_options.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 const int ExprSetDepth::s_iosIndex = std::ios_base::xalloc();
-const int ExprPrintTypes::s_iosIndex = std::ios_base::xalloc();
 const int ExprDag::s_iosIndex = std::ios_base::xalloc();
-
-
 
 ExprSetDepth::ExprSetDepth(long depth) : d_depth(depth) {}
 
@@ -69,31 +65,6 @@ ExprSetDepth::Scope::Scope(std::ostream& out, long depth)
 
 ExprSetDepth::Scope::~Scope() {
   ExprSetDepth::setDepth(d_out, d_oldDepth);
-}
-
-
-ExprPrintTypes::ExprPrintTypes(bool printTypes) : d_printTypes(printTypes) {}
-
-void ExprPrintTypes::applyPrintTypes(std::ostream& out) {
-  out.iword(s_iosIndex) = d_printTypes;
-}
-
-bool ExprPrintTypes::getPrintTypes(std::ostream& out) {
-  return out.iword(s_iosIndex);
-}
-
-void ExprPrintTypes::setPrintTypes(std::ostream& out, bool printTypes) {
-  out.iword(s_iosIndex) = printTypes;
-}
-
-ExprPrintTypes::Scope::Scope(std::ostream& out, bool printTypes)
-  : d_out(out),
-    d_oldPrintTypes(ExprPrintTypes::getPrintTypes(out)) {
-  ExprPrintTypes::setPrintTypes(out, printTypes);
-}
-
-ExprPrintTypes::Scope::~Scope() {
-  ExprPrintTypes::setPrintTypes(d_out, d_oldPrintTypes);
 }
 
 ExprDag::ExprDag(bool dag) : d_dag(dag ? 1 : 0) {}
@@ -145,16 +116,10 @@ std::ostream& operator<<(std::ostream& out, ExprDag d) {
   return out;
 }
 
-std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) {
-  pt.applyPrintTypes(out);
-  return out;
-}
-
 std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) {
   sd.applyDepth(out);
   return out;
 }
 
-
-}/* namespace CVC4::expr */
-}/* namespace CVC4 */
+}  // namespace expr
+}  // namespace cvc5

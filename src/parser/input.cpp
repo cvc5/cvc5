@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A super-class for input language parsers.
- **
- ** A super-class for input language parsers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A super-class for input language parsers
+ */
 
 // This must be included first.
 #include "parser/antlr_input.h"
@@ -20,18 +19,16 @@
 #include "parser/input.h"
 
 #include "base/output.h"
-#include "expr/type.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "smt/command.h"
 
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::kind;
+using namespace cvc5;
+using namespace cvc5::parser;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 InputStreamException::InputStreamException(const std::string& msg) :
@@ -54,7 +51,7 @@ InputStream *Input::getInputStream() {
   return d_inputStream;
 }
 
-Input* Input::newFileInput(InputLanguage lang,
+Input* Input::newFileInput(const std::string& lang,
                            const std::string& filename,
                            bool useMmap)
 {
@@ -63,17 +60,16 @@ Input* Input::newFileInput(InputLanguage lang,
   return AntlrInput::newInput(lang, *inputStream);
 }
 
-Input* Input::newStreamInput(InputLanguage lang,
+Input* Input::newStreamInput(const std::string& lang,
                              std::istream& input,
-                             const std::string& name,
-                             bool lineBuffered)
+                             const std::string& name)
 {
-  AntlrInputStream *inputStream =
-    AntlrInputStream::newStreamInputStream(input, name, lineBuffered);
+  AntlrInputStream* inputStream =
+      AntlrInputStream::newStreamInputStream(input, name);
   return AntlrInput::newInput(lang, *inputStream);
 }
 
-Input* Input::newStringInput(InputLanguage lang,
+Input* Input::newStringInput(const std::string& lang,
                              const std::string& str,
                              const std::string& name)
 {
@@ -81,5 +77,5 @@ Input* Input::newStringInput(InputLanguage lang,
   return AntlrInput::newInput(lang, *inputStream);
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

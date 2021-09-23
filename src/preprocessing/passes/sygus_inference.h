@@ -1,29 +1,27 @@
-/*********************                                                        */
-/*! \file sygus_inference.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SygusInference
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SygusInference.
+ */
 
-#ifndef CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
-#define CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
+#ifndef CVC5__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
+#define CVC5__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
 
-#include <map>
-#include <string>
 #include <vector>
 #include "expr/node.h"
 
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
@@ -59,13 +57,13 @@ class SygusInference : public PreprocessingPass
    * If this function returns true, then we add all uninterpreted symbols s in
    * assertions to funs and their corresponding solution to sols.
    */
-  bool solveSygus(std::vector<Node>& assertions,
+  bool solveSygus(const std::vector<Node>& assertions,
                   std::vector<Node>& funs,
                   std::vector<Node>& sols);
 };
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */
+#endif /* CVC5__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */

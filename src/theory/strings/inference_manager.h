@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Customized inference manager for the theory of strings
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Customized inference manager for the theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__STRINGS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__STRINGS__INFERENCE_MANAGER_H
 
 #include <map>
 #include <vector>
@@ -23,16 +24,21 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "proof/proof_node_manager.h"
+#include "theory/ext_theory.h"
+#include "theory/inference_manager_buffered.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/infer_proof_cons.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
-
-class TheoryStrings;
 
 /** Inference Manager
  *
@@ -64,17 +70,30 @@ class TheoryStrings;
  * theory of strings, e.g. sendPhaseRequirement, setIncomplete, and
  * with the extended theory object e.g. markCongruent.
  */
-class InferenceManager
+class InferenceManager : public InferenceManagerBuffered
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
+  friend class InferInfo;
 
  public:
-  InferenceManager(TheoryStrings& p,
-                   context::Context* c,
-                   context::UserContext* u,
+  InferenceManager(Env& env,
+                   Theory& t,
                    SolverState& s,
-                   OutputChannel& out);
+                   TermRegistry& tr,
+                   ExtTheory& e,
+                   SequencesStatistics& statistics,
+                   ProofNodeManager* pnm);
   ~InferenceManager() {}
+
+  /**
+   * Do pending method. This processes all pending facts, lemmas and pending
+   * phase requests based on the policy of this manager. This means that
+   * we process the pending facts first and abort if in conflict. Otherwise, we
+   * process the pending lemmas and then the pending phase requirements.
+   * Notice that we process the pending lemmas even if there were facts.
+   */
+  void doPending();
 
   /** send internal inferences
    *
@@ -87,105 +106,103 @@ class InferenceManager
    * sendInference below in that it does not introduce any new non-constant
    * terms to the state.
    *
-   * The argument c is a string identifying the reason for the inference.
-   * This string is used for debugging purposes.
+   * The argument infer identifies the reason for the inference.
+   * This is used for debugging and statistics purposes.
    *
    * Return true if the inference is complete, in the sense that we infer
    * inferences that are equivalent to conc. This returns false e.g. if conc
    * (or one of its conjuncts if it is a conjunction) was not inferred due
    * to the criteria mentioned above.
    */
-  bool sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
+  bool sendInternalInference(std::vector<Node>& exp,
+                             Node conc,
+                             InferenceId infer);
+
   /** send inference
    *
-   * This function should be called when ( exp ^ exp_n ) => eq. The set exp
+   * This function should be called when exp => eq. The set exp
    * contains literals that are explainable, i.e. those that hold in the
    * equality engine of the theory of strings. On the other hand, the set
-   * exp_n ("explanations new") contain nodes that are not explainable by the
-   * theory of strings. This method may call sendInfer or sendLemma. Overall,
-   * the result of this method is one of the following:
+   * noExplain contains nodes that are not explainable by the theory of strings.
+   * This method may call sendLemma or otherwise add a InferInfo to d_pending,
+   * indicating a fact should be asserted to the equality engine. Overall, the
+   * result of this method is one of the following:
    *
-   * [1] (No-op) Do nothing if eq is true,
+   * [1] (No-op) Do nothing if eq is equivalent to true,
    *
    * [2] (Infer) Indicate that eq should be added to the equality engine of this
-   * class with explanation EXPLAIN(exp), where EXPLAIN returns the
-   * explanation of the node in exp in terms of the literals asserted to the
-   * theory of strings,
+   * class with explanation exp, where exp is a set of literals that currently
+   * hold in the equality engine. We add this to the pending vector d_pending.
    *
-   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
-   * be sent on the output channel of the theory of strings, or
+   * [3] (Lemma) Indicate that the lemma
+   *   ( EXPLAIN(exp \ noExplain) ^ noExplain ) => eq
+   * should be sent on the output channel of the theory of strings, where
+   * EXPLAIN returns the explanation of the node in exp in terms of the literals
+   * asserted to the theory of strings, as computed by the equality engine.
+   * This is also added to a pending vector, d_pendingLem.
    *
    * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
    * channel of the theory of strings.
    *
    * Determining which case to apply depends on the form of eq and whether
-   * exp_n is empty. In particular, lemmas must be used whenever exp_n is
-   * non-empty, conflicts are used when exp_n is empty and eq is false.
+   * noExplain is empty. In particular, lemmas must be used whenever noExplain
+   * is non-empty, conflicts are used when noExplain is empty and eq is false.
    *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
-   *
-   * If the flag asLemma is true, then this method will send a lemma instead
-   * of an inference whenever applicable.
+   * @param exp The explanation of eq.
+   * @param noExplain The subset of exp that cannot be explained by the
+   * equality engine. This may impact whether we are processing this call as a
+   * fact or as a lemma.
+   * @param eq The conclusion.
+   * @param infer Identifies the reason for inference, used for
+   * debugging. This updates the statistics about the number of inferences made
+   * of each type.
+   * @param isRev Whether this is the "reverse variant" of the inference, which
+   * is used as a hint for proof reconstruction.
+   * @param asLemma If true, then this method will send a lemma instead
+   * of a fact whenever applicable.
+   * @return true if the inference was not trivial (e.g. its conclusion did
+   * not rewrite to true).
    */
-  void sendInference(const std::vector<Node>& exp,
-                     const std::vector<Node>& exp_n,
+  bool sendInference(const std::vector<Node>& exp,
+                     const std::vector<Node>& noExplain,
                      Node eq,
-                     const char* c,
+                     InferenceId infer,
+                     bool isRev = false,
                      bool asLemma = false);
-  /** same as above, but where exp_n is empty */
-  void sendInference(const std::vector<Node>& exp,
+  /** same as above, but where noExplain is empty */
+  bool sendInference(const std::vector<Node>& exp,
                      Node eq,
-                     const char* c,
+                     InferenceId infer,
+                     bool isRev = false,
                      bool asLemma = false);
+
   /** Send inference
    *
-   * Makes the appropriate call to send inference based on the infer info
-   * data structure (see sendInference documentation above).
+   * This implements the above methods for the InferInfo object. It is called
+   * by the methods above.
+   *
+   * The inference info ii should have a rewritten conclusion and should not be
+   * trivial (InferInfo::isTrivial). It is the responsibility of the caller to
+   * ensure this.
+   *
+   * If the flag asLemma is true, then this method will send a lemma instead
+   * of a fact whenever applicable.
    */
-  void sendInference(const InferInfo& i);
+  void sendInference(InferInfo& ii, bool asLemma = false);
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a
    * lemma. We additionally request a phase requirement for the equality a=b
    * with polarity preq.
    *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
+   * The argument infer identifies the reason for inference, used for
+   * debugging. This updates the statistics about the number of
+   * inferences made of each type.
    *
    * This method returns true if the split was non-trivial, and false
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
-  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
-  /** Send phase requirement
-   *
-   * This method is called to indicate this class should send a phase
-   * requirement request to the output channel for literal lit to be
-   * decided with polarity pol.
-   */
-  void sendPhaseRequirement(Node lit, bool pol);
-  /** register length
-   *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that the length n satisfies its assigned
-   * status (given by argument s).
-   *
-   * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
-   *
-   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
-   *
-   * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
-   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
-   * This method also ensures that, when applicable, the left branch is taken
-   * first via calls to requirePhase.
-   *
-   * If the status is LENGTH_IGNORE, then no lemma is sent. This status is used
-   * e.g. when the length of n is already implied by other constraints.
-   *
-   * In contrast to the above functions, it makes immediate calls to the output
-   * channel instead of adding them to pending lists.
-   */
-  void registerLength(Node n, LengthStatus s);
+  bool sendSplit(Node a, Node b, InferenceId infer, bool preq = true);
 
   //----------------------------constructing antecedants
   /**
@@ -196,165 +213,53 @@ class InferenceManager
   /** Adds lit to the vector exp if it is non-null */
   void addToExplanation(Node lit, std::vector<Node>& exp) const;
   //----------------------------end constructing antecedants
-  /** Do pending facts
-   *
-   * This method asserts pending facts (d_pending) with explanations
-   * (d_pendingExp) to the equality engine of the theory of strings via calls
-   * to assertPendingFact in the theory of strings.
-   *
-   * It terminates early if a conflict is encountered, for instance, by
-   * equality reasoning within the equality engine.
-   *
-   * Regardless of whether a conflict is encountered, the vector d_pending
-   * and map d_pendingExp are cleared.
-   */
-  void doPendingFacts();
-  /** Do pending lemmas
-   *
-   * This method flushes all pending lemmas (d_pending_lem) to the output
-   * channel of theory of strings.
-   *
-   * Like doPendingFacts, this function will terminate early if a conflict
-   * has already been encountered by the theory of strings. The vector
-   * d_pending_lem is cleared regardless of whether a conflict is discovered.
-   *
-   * Notice that as a result of the above design, some lemmas may be "dropped"
-   * if a conflict is discovered in between when a lemma is added to the
-   * pending vector of this class (via a sendInference call). Lemmas
-   * e.g. those that are required for initialization should not be sent via
-   * this class, since they should never be dropped.
-   */
-  void doPendingLemmas();
   /**
    * Have we processed an inference during this call to check? In particular,
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
   bool hasProcessed() const;
-  /** Do we have a pending fact to add to the equality engine? */
-  bool hasPendingFact() const { return !d_pending.empty(); }
-  /** Do we have a pending lemma to send on the output channel? */
-  bool hasPendingLemma() const { return !d_pendingLem.empty(); }
 
-  /** make explanation
-   *
-   * This returns a node corresponding to the explanation of formulas in a,
-   * interpreted conjunctively. The returned node is a conjunction of literals
-   * that have been asserted to the equality engine.
-   */
-  Node mkExplain(const std::vector<Node>& a) const;
-  /** Same as above, but the new literals an are append to the result */
-  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an) const;
+  // ------------------------------------------------- extended theory
   /**
-   * Explain literal l, add conjuncts to assumptions vector instead of making
-   * the node corresponding to their conjunction.
+   * Mark that extended function is reduced. If contextDepend is true,
+   * then this mark is SAT-context dependent, otherwise it is user-context
+   * dependent (see ExtTheory::markReduced).
    */
-  void explain(TNode literal, std::vector<TNode>& assumptions) const;
+  void markReduced(Node n, ExtReducedId id, bool contextDepend = true);
+  // ------------------------------------------------- end extended theory
+
   /**
-   * Set that we are incomplete for the current set of assertions (in other
-   * words, we must answer "unknown" instead of "sat"); this calls the output
-   * channel's setIncomplete method.
+   * Called when ii is ready to be processed as a conflict. This makes a
+   * trusted node whose generator is the underlying proof equality engine
+   * (if it exists), and sends it on the output channel.
    */
-  void setIncomplete();
-  /**
-   * Mark that terms a and b are congruent in the current context.
-   * This makes a call to markCongruent in the extended theory object of
-   * the parent theory if the kind of a (and b) is owned by the extended
-   * theory.
-   */
-  void markCongruent(Node a, Node b);
+  void processConflict(const InferInfo& ii);
 
  private:
-  /**
-   * Indicates that ant => conc should be sent on the output channel of this
-   * class. This will either trigger an immediate call to the conflict
-   * method of the output channel of this class of conc is false, or adds the
-   * above lemma to the lemma cache d_pending_lem, which may be flushed
-   * later within the current call to TheoryStrings::check.
-   *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
-   */
-  void sendLemma(Node ant, Node conc, const char* c);
-  /**
-   * Indicates that conc should be added to the equality engine of this class
-   * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
-   * of) literals that each are explainable, i.e. they already hold in the
-   * equality engine of this class.
-   */
-  void sendInfer(Node eq_exp, Node eq, const char* c);
-
-  /** the parent theory of strings object */
-  TheoryStrings& d_parent;
-  /**
-   * This is a reference to the solver state of the theory of strings.
-   */
+  /** Called when ii is ready to be processed as a fact */
+  void processFact(InferInfo& ii, ProofGenerator*& pg);
+  /** Called when ii is ready to be processed as a lemma */
+  TrustNode processLemma(InferInfo& ii, LemmaProperty& p);
+  /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
-  /** the output channel
-   *
-   * This is a reference to the output channel of the theory of strings.
-   */
-  OutputChannel& d_out;
+  /** Reference to the term registry of theory of strings */
+  TermRegistry& d_termReg;
+  /** the extended theory object for the theory of strings */
+  ExtTheory& d_extt;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
+  /** Conversion from inferences to proofs */
+  std::unique_ptr<InferProofCons> d_ipc;
   /** Common constants */
-  Node d_emptyString;
   Node d_true;
   Node d_false;
   Node d_zero;
   Node d_one;
-  /** The list of pending literals to assert to the equality engine */
-  std::vector<Node> d_pending;
-  /** A map from the literals in the above vector to their explanation */
-  std::map<Node, Node> d_pendingExp;
-  /** A map from literals to their pending phase requirement */
-  std::map<Node, bool> d_pendingReqPhase;
-  /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<Node> d_pendingLem;
-  /**
-   * The keep set of this class. This set is maintained to ensure that
-   * facts and their explanations are ref-counted. Since facts and their
-   * explanations are SAT-context-dependent, this set is also
-   * SAT-context-dependent.
-   */
-  NodeSet d_keep;
-  /** List of terms that we have register length for */
-  NodeSet d_lengthLemmaTermsCache;
-  /** infer substitution proxy vars
-   *
-   * This method attempts to (partially) convert the formula n into a
-   * substitution of the form:
-   *   v1 -> s1, ..., vn -> sn
-   * where s1 ... sn are proxy variables and v1 ... vn are either variables
-   * or constants.
-   *
-   * This method ensures that P ^ v1 = s1 ^ ... ^ vn = sn ^ unproc is equivalent
-   * to P ^ n, where P is the conjunction of equalities corresponding to the
-   * definition of all proxy variables introduced by the theory of strings.
-   *
-   * For example, say that v1 was introduced as a proxy variable for "ABC", and
-   * v2 was introduced as a proxy variable for "AA".
-   *
-   * Given the input n := v1 = "ABC" ^ v2 = x ^ x = "AA", this method sets:
-   * vars = { x },
-   * subs = { v2 },
-   * unproc = {}.
-   * In particular, this says that the information content of n is essentially
-   * x = v2. The first and third conjunctions can be dropped from the
-   * explanation since these equalities simply correspond to definitions
-   * of proxy variables.
-   *
-   * This method is used as a performance heuristic. It can infer when the
-   * explanation of a fact depends only trivially on equalities corresponding
-   * to definitions of proxy variables, which can be omitted since they are
-   * assumed to hold globally.
-   */
-  void inferSubstitutionProxyVars(Node n,
-                                  std::vector<Node>& vars,
-                                  std::vector<Node>& subs,
-                                  std::vector<Node>& unproc) const;
 };
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
 #endif

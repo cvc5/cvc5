@@ -1,40 +1,5 @@
 id     = "PRINTER"
 name   = "Printing"
-header = "options/printer_options.h"
-
-[[option]]
-  name       = "modelFormatMode"
-  category   = "regular"
-  long       = "model-format=MODE"
-  type       = "ModelFormatMode"
-  default    = "DEFAULT"
-  help       = "print format mode for models, see --model-format=help"
-  help_mode  = "Model format modes."
-[[option.mode.DEFAULT]]
-  name = "default"
-  help = "Print model as expressions in the output language format."
-[[option.mode.TABLE]]
-  name = "table"
-  help = "Print functional expressions over finite domains in a table format."
-
-[[option]]
-  name       = "instFormatMode"
-  category   = "regular"
-  long       = "inst-format=MODE"
-  type       = "InstFormatMode"
-  default    = "InstFormatMode::DEFAULT"
-  handler    = "stringToInstFormatMode"
-  includes   = ["options/printer_modes.h"]
-  help       = "print format mode for instantiations, see --inst-format=help"
-# InstFormatMode is currently exported as public so we can't auto genenerate
-# the enum.
-#  help_mode  = "Inst format modes."
-#[[option.mode.DEFAULT]]
-#  name = "default"
-#  help = "Print instantiations as a list in the output language format."
-#[[option.mode.SZS]]
-#  name = "szs"
-#  help = "Print instantiations as SZS compliant proof."
 
 [[option]]
   name       = "flattenHOChains"
@@ -43,3 +8,26 @@ header = "options/printer_options.h"
   type       = "bool"
   default    = "false"
   help       = "print (binary) application chains in a flattened way, e.g. (a b c) rather than ((a b) c)"
+
+[[option]]
+  name       = "printInstMode"
+  category   = "regular"
+  long       = "print-inst=MODE"
+  type       = "PrintInstMode"
+  default    = "LIST"
+  help       = "print format for printing instantiations"
+  help_mode  = "Print format for printing instantiations."
+[[option.mode.LIST]]
+  name = "list"
+  help = "Print the list of instantiations per quantified formula, when non-empty."
+[[option.mode.NUM]]
+  name = "num"
+  help = "Print the total number of instantiations per quantified formula, when non-zero."
+
+[[option]]
+  name       = "printInstFull"
+  category   = "regular"
+  long       = "print-inst-full"
+  type       = "bool"
+  default    = "true"
+  help       = "print instantiations for formulas that do not have given identifiers"

@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file bitblast_strategies_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of bitblasting functions for various operators. 
- **
- ** Implementation of bitblasting functions for various operators. 
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of bitblasting functions for various operators.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
-#define CVC4__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
+#ifndef CVC5__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
+#define CVC5__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
 
 #include <cmath>
 #include <ostream>
@@ -25,9 +24,9 @@
 #include "expr/node.h"
 #include "theory/bv/bitblast/bitblast_utils.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/rewriter.h"
+#include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
 namespace theory {
 namespace bv {
@@ -395,9 +394,11 @@ void DefaultMultBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 }
 
 template <class T>
-void DefaultPlusBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultPlusBB bitblasting " << node << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_PLUS && res.size() == 0);
+void DefaultAddBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultAddBB bitblasting " << node
+                        << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_ADD && res.size() == 0);
 
   bb->bbTerm(node[0], res);
 
@@ -413,7 +414,6 @@ void DefaultPlusBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 
   Assert(res.size() == utils::getSize(node));
 }
-
 
 template <class T>
 void DefaultSubBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
@@ -513,36 +513,48 @@ void uDivModRec(const std::vector<T>& a, const std::vector<T>& b, std::vector<T>
 }
 
 template <class T>
-void DefaultUdivBB(TNode node, std::vector<T>& q, TBitblaster<T>* bb)
+void UdivUremBB(TNode node,
+                std::vector<T>& quot,
+                std::vector<T>& rem,
+                TBitblaster<T>* bb)
 {
   Debug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
                         << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UDIV_TOTAL && q.size() == 0);
+  Assert(quot.empty());
+  Assert(rem.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UDIV
+         || node.getKind() == kind::BITVECTOR_UREM);
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
-  std::vector<T> r;
-  uDivModRec(a, b, q, r, utils::getSize(node));
+  uDivModRec(a, b, quot, rem, utils::getSize(node));
   // adding a special case for division by 0
   std::vector<T> iszero;
-  for (unsigned i = 0; i < b.size(); ++i)
+  for (size_t i = 0, size = b.size(); i < size; ++i)
   {
     iszero.push_back(mkIff(b[i], mkFalse<T>()));
   }
   T b_is_0 = mkAnd(iszero);
 
-  for (unsigned i = 0; i < q.size(); ++i)
+  for (size_t i = 0, size = quot.size(); i < size; ++i)
   {
-    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);  // a udiv 0 is 11..11
-    r[i] = mkIte(b_is_0, a[i], r[i]);         // a urem 0 is a
+    quot[i] = mkIte(b_is_0, mkTrue<T>(), quot[i]);  // a udiv 0 is 11..11
+    rem[i] = mkIte(b_is_0, a[i], rem[i]);           // a urem 0 is a
   }
+}
 
-  // cache the remainder in case we need it later
-  Node remainder = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_UREM_TOTAL, node[0], node[1]));
-  bb->storeBBTerm(remainder, r);
+template <class T>
+void DefaultUdivBB(TNode node, std::vector<T>& quot, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
+                        << "\n";
+  Assert(quot.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UDIV);
+
+  std::vector<T> r;
+  UdivUremBB(node, quot, r, bb);
 }
 
 template <class T>
@@ -550,32 +562,11 @@ void DefaultUremBB(TNode node, std::vector<T>& rem, TBitblaster<T>* bb)
 {
   Debug("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node
                         << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UREM_TOTAL && rem.size() == 0);
-
-  std::vector<T> a, b;
-  bb->bbTerm(node[0], a);
-  bb->bbTerm(node[1], b);
+  Assert(rem.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UREM);
 
   std::vector<T> q;
-  uDivModRec(a, b, q, rem, utils::getSize(node));
-  // adding a special case for division by 0
-  std::vector<T> iszero;
-  for (unsigned i = 0; i < b.size(); ++i)
-  {
-    iszero.push_back(mkIff(b[i], mkFalse<T>()));
-  }
-  T b_is_0 = mkAnd(iszero);
-
-  for (unsigned i = 0; i < q.size(); ++i)
-  {
-    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);  // a udiv 0 is 11..11
-    rem[i] = mkIte(b_is_0, a[i], rem[i]);     // a urem 0 is a
-  }
-
-  // cache the quotient in case we need it later
-  Node quotient = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]));
-  bb->storeBBTerm(quotient, q);
+  UdivUremBB(node, q, rem, bb);
 }
 
 template <class T>
@@ -611,11 +602,11 @@ void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
-  // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node);
-  T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
+
+  std::vector<T> a_size_bits;
+  DefaultConstBB(a_size, a_size_bits, bb);
+  T b_ult_a_size = uLessThanBB(b, a_size_bits, false);
+
   std::vector<T> prev_res;
   res = a;
   // we only need to look at the bits bellow log2_a_size
@@ -669,11 +660,11 @@ void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
-  // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node);
-  T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
+
+  std::vector<T> a_size_bits;
+  DefaultConstBB(a_size, a_size_bits, bb);
+  T b_ult_a_size = uLessThanBB(b, a_size_bits, false);
+
   res = a;
   std::vector<T> prev_res;
 
@@ -727,11 +718,10 @@ void DefaultAshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
-  // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node);
-  T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
+
+  std::vector<T> a_size_bits;
+  DefaultConstBB(a_size, a_size_bits, bb);
+  T b_ult_a_size = uLessThanBB(b, a_size_bits, false);
 
   res = a;
   T sign_bit = a.back();
@@ -867,8 +857,9 @@ void DefaultSignExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* 
   std::vector<T> bits;
   bb->bbTerm(node[0], bits);
   
-  T sign_bit = bits.back(); 
-  unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount; 
+  T sign_bit = bits.back();
+  unsigned amount =
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 
   for (unsigned i = 0; i < bits.size(); ++i ) {
     res_bits.push_back(bits[i]); 
@@ -899,6 +890,6 @@ void DefaultRotateLeftBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) 
 
 }
 }
-}
+}  // namespace cvc5
 
 #endif

@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file normal_form.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "theory/arith/normal_form.h"
 
 #include <list>
@@ -24,7 +25,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace arith {
 
@@ -70,6 +71,17 @@ bool Variable::isLeafMember(Node n){
 }
 
 VarList::VarList(Node n) : NodeWrapper(n) { Assert(isSorted(begin(), end())); }
+
+bool Variable::isIAndMember(Node n)
+{
+  return n.getKind() == kind::IAND && Polynomial::isMember(n[0])
+         && Polynomial::isMember(n[1]);
+}
+
+bool Variable::isPow2Member(Node n)
+{
+  return n.getKind() == kind::POW2 && Polynomial::isMember(n[0]);
+}
 
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
@@ -810,6 +822,64 @@ DeltaRational Comparison::normalizedDeltaRational() const {
   }
 }
 
+std::tuple<Polynomial, Kind, Constant> Comparison::decompose(
+    bool split_constant) const
+{
+  Kind rel = getNode().getKind();
+  if (rel == Kind::NOT)
+  {
+    switch (getNode()[0].getKind())
+    {
+      case kind::LEQ: rel = Kind::GT; break;
+      case kind::LT: rel = Kind::GEQ; break;
+      case kind::EQUAL: rel = Kind::DISTINCT; break;
+      case kind::DISTINCT: rel = Kind::EQUAL; break;
+      case kind::GEQ: rel = Kind::LT; break;
+      case kind::GT: rel = Kind::LEQ; break;
+      default:
+        Assert(false) << "Unsupported relation: " << getNode()[0].getKind();
+    }
+  }
+
+  Polynomial poly = getLeft() - getRight();
+
+  if (!split_constant)
+  {
+    return std::tuple<Polynomial, Kind, Constant>{
+        poly, rel, Constant::mkZero()};
+  }
+
+  Constant right = Constant::mkZero();
+  if (poly.containsConstant())
+  {
+    right = -poly.getHead().getConstant();
+    poly = poly + Polynomial::mkPolynomial(right);
+  }
+
+  Constant lcoeff = poly.getHead().getConstant();
+  if (!lcoeff.isOne())
+  {
+    Constant invlcoeff = lcoeff.inverse();
+    if (lcoeff.isNegative())
+    {
+      switch (rel)
+      {
+        case kind::LEQ: rel = Kind::GEQ; break;
+        case kind::LT: rel = Kind::GT; break;
+        case kind::EQUAL: break;
+        case kind::DISTINCT: break;
+        case kind::GEQ: rel = Kind::LEQ; break;
+        case kind::GT: rel = Kind::LT; break;
+        default: Assert(false) << "Unsupported relation: " << rel;
+      }
+    }
+    poly = poly * invlcoeff;
+    right = right * invlcoeff;
+  }
+
+  return std::tuple<Polynomial, Kind, Constant>{poly, rel, right};
+}
+
 Comparison Comparison::parseNormalForm(TNode n) {
   Debug("polynomial") << "Comparison::parseNormalForm(" << n << ")";
   Comparison result(n);
@@ -1348,4 +1418,4 @@ bool Polynomial::isNonlinear() const {
 
 } //namespace arith
 } //namespace theory
-} //namespace CVC4
+}  // namespace cvc5

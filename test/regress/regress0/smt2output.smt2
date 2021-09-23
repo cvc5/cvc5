@@ -8,7 +8,7 @@
 (check-sat)
 ; EXPECT: sat
 (get-model)
-; EXPECT: (model
+; EXPECT: (
 ; EXPECT: (define-fun toto () Bool true)
 ; EXPECT: (define-fun |to to| () Bool true)
 ; EXPECT: )

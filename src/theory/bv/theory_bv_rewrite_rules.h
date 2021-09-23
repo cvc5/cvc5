@@ -1,33 +1,37 @@
-/*********************                                                        */
-/*! \file theory_bv_rewrite_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #pragma once
 
 #include <sstream>
 
 #include "context/context.h"
-#include "smt/command.h"
+#include "printer/printer.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace bv {
 
@@ -66,9 +70,12 @@ enum RewriteRuleId
   NorEliminate,
   XnorEliminate,
   SdivEliminate,
+  SdivEliminateFewerBitwiseOps,
   UdivEliminate,
   SmodEliminate,
+  SmodEliminateFewerBitwiseOps,
   SremEliminate,
+  SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
   SignExtendEliminate,
   BVToNatEliminate,
@@ -82,7 +89,7 @@ enum RewriteRuleId
   EvalXor,
   EvalNot,
   EvalMult,
-  EvalPlus,
+  EvalAdd,
   EvalUdiv,
   EvalUrem,
   EvalShl,
@@ -101,6 +108,7 @@ enum RewriteRuleId
   EvalSle,
   EvalITEBv,
   EvalComp,
+  EvalEagerAtom,
 
   /// simplification rules
   /// all of these rules decrease formula size
@@ -120,6 +128,9 @@ enum RewriteRuleId
   AndZero,
   AndOne,
   AndOrXorConcatPullUp,
+  NegEliminate,
+  OrEliminate,
+  XorEliminate,
   OrZero,
   OrOne,
   XorDuplicate,
@@ -150,6 +161,7 @@ enum RewriteRuleId
   UremOne,
   UremSelf,
   ShiftZero,
+  UgtUrem,
 
   UltOne,
   SltZero,
@@ -169,14 +181,14 @@ enum RewriteRuleId
   DoubleNeg,
   NegMult,
   NegSub,
-  NegPlus,
+  NegAdd,
   NotConcat,
   NotAnd,  // not sure why this would help (not done)
   NotOr,   // not sure why this would help (not done)
   NotXor,  // not sure why this would help (not done)
   FlattenAssocCommut,
   FlattenAssocCommutNoDuplicates,
-  PlusCombineLikeTerms,
+  AddCombineLikeTerms,
   MultSimplify,
   MultDistribConst,
   MultDistrib,
@@ -186,13 +198,13 @@ enum RewriteRuleId
   OrSimplify,
   XorSimplify,
   BitwiseSlicing,
-  NormalizeEqPlusNeg,
+  NormalizeEqAddNeg,
   // rules to simplify bitblasting
-  BBPlusNeg,
-  UltPlusOne,
+  BBAddNeg,
+  UltAddOne,
   ConcatToMult,
-  IsPowerOfTwo,
   MultSltMult,
+  BitOfConst,
 };
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -202,6 +214,9 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ConcatExtractMerge:  out << "ConcatExtractMerge";  return out;
   case ConcatConstantMerge: out << "ConcatConstantMerge"; return out;
   case AndOrXorConcatPullUp:out << "AndOrXorConcatPullUp";return out;
+  case NegEliminate: out << "NegEliminate"; return out;
+  case OrEliminate: out << "OrEliminate"; return out;
+  case XorEliminate: out << "XorEliminate"; return out;
   case ExtractExtract:      out << "ExtractExtract";      return out;
   case ExtractWhole:        out << "ExtractWhole";        return out;
   case ExtractConcat:       out << "ExtractConcat";       return out;
@@ -223,8 +238,17 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NandEliminate:       out << "NandEliminate";       return out;
   case NorEliminate :       out << "NorEliminate";        return out;
   case SdivEliminate :      out << "SdivEliminate";       return out;
+  case SdivEliminateFewerBitwiseOps:
+    out << "SdivEliminateFewerBitwiseOps";
+    return out;
   case SremEliminate :      out << "SremEliminate";       return out;
+  case SremEliminateFewerBitwiseOps:
+    out << "SremEliminateFewerBitwiseOps";
+    return out;
   case SmodEliminate :      out << "SmodEliminate";       return out;
+  case SmodEliminateFewerBitwiseOps:
+    out << "SmodEliminateFewerBitwiseOps";
+    return out;
   case ZeroExtendEliminate :out << "ZeroExtendEliminate"; return out;
   case EvalEquals :         out << "EvalEquals";          return out;
   case EvalConcat :         out << "EvalConcat";          return out;
@@ -233,7 +257,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalXor :            out << "EvalXor";             return out;
   case EvalNot :            out << "EvalNot";             return out;
   case EvalMult :           out << "EvalMult";            return out;
-  case EvalPlus :           out << "EvalPlus";            return out;
+  case EvalAdd: out << "EvalAdd"; return out;
   case EvalUdiv :           out << "EvalUdiv";            return out;
   case EvalUrem :           out << "EvalUrem";            return out;
   case EvalShl :            out << "EvalShl";             return out;
@@ -246,6 +270,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalSltBv:           out << "EvalSltBv";           return out;
   case EvalITEBv:           out << "EvalITEBv";           return out;
   case EvalComp:            out << "EvalComp";            return out;
+  case EvalEagerAtom: out << "EvalEagerAtom"; return out;
   case EvalExtract :        out << "EvalExtract";         return out;
   case EvalSignExtend :     out << "EvalSignExtend";      return out;
   case EvalRotateLeft :     out << "EvalRotateLeft";      return out;
@@ -306,6 +331,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UremOne :            out << "UremOne";             return out;
   case UremSelf :            out << "UremSelf";             return out;
   case ShiftZero :            out << "ShiftZero";             return out;
+  case UgtUrem: out << "UgtUrem"; return out;
   case SubEliminate :            out << "SubEliminate";             return out;
   case CompEliminate :            out << "CompEliminate";             return out;
   case XnorEliminate :            out << "XnorEliminate";             return out;
@@ -313,8 +339,10 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NotIdemp :                  out << "NotIdemp"; return out;
   case UleSelf:                    out << "UleSelf"; return out; 
   case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out;
-  case FlattenAssocCommutNoDuplicates:     out << "FlattenAssocCommutNoDuplicates"; return out; 
-  case PlusCombineLikeTerms: out << "PlusCombineLikeTerms"; return out;
+  case FlattenAssocCommutNoDuplicates:
+    out << "FlattenAssocCommutNoDuplicates";
+    return out;
+  case AddCombineLikeTerms: out << "AddCombineLikeTerms"; return out;
   case MultSimplify: out << "MultSimplify"; return out;
   case MultDistribConst: out << "MultDistribConst"; return out;
   case SolveEq : out << "SolveEq"; return out;
@@ -324,8 +352,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case AndSimplify : out << "AndSimplify"; return out;
   case OrSimplify : out << "OrSimplify"; return out;
   case XorSimplify : out << "XorSimplify"; return out;
-  case NegPlus : out << "NegPlus"; return out;
-  case BBPlusNeg : out << "BBPlusNeg"; return out;
+  case NegAdd: out << "NegAdd"; return out;
+  case BBAddNeg: out << "BBAddNeg"; return out;
   case UltOne : out << "UltOne"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
@@ -339,11 +367,11 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
   case MultDistrib: out << "MultDistrib"; return out;
-  case UltPlusOne: out << "UltPlusOne"; return out;
+  case UltAddOne: out << "UltAddOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
-  case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
-  case NormalizeEqPlusNeg: out << "NormalizeEqPlusNeg"; return out;
+  case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
+  case BitOfConst: out << "BitOfConst"; return out;
   default:
     Unreachable();
   }
@@ -415,28 +443,21 @@ public:
     SuppressWrongNoReturnWarning;
   }
 
-  template<bool checkApplies>
-  static inline Node run(TNode node) {
-    if (!checkApplies || applies(node)) {
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
+  template <bool checkApplies>
+  static inline Node run(TNode node)
+  {
+    if (!checkApplies || applies(node))
+    {
+      Debug("theory::bv::rewrite")
+          << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
       Assert(checkApplies || applies(node));
-      //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
-      if (result != node) {
-        if(Dump.isOn("bv-rewrites")) {
-          std::ostringstream os;
-          os << "RewriteRule <"<<rule<<">; expect unsat";
-
-          Node condition = node.eqNode(result).notNode();
-
-          Dump("bv-rewrites")
-            << CommentCommand(os.str())
-            << CheckSatCommand(condition.toExpr());
-        }
-      }
-      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ") => " << result << std::endl;
+      Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node
+                                   << ") => " << result << std::endl;
       return result;
-    } else {
+    }
+    else
+    {
       return node;
     }
   }
@@ -481,7 +502,7 @@ struct AllRewriteRules {
   RewriteRule<EvalNot>                        rule29;
   RewriteRule<EvalSlt>                        rule30;
   RewriteRule<EvalMult>                       rule31;
-  RewriteRule<EvalPlus>                       rule32;
+  RewriteRule<EvalAdd> rule32;
   RewriteRule<XorSimplify>                    rule33;
   RewriteRule<EvalUdiv>                       rule34;
   RewriteRule<EvalUrem>                       rule35;
@@ -550,13 +571,13 @@ struct AllRewriteRules {
   RewriteRule<NotIdemp>                       rule102;
   RewriteRule<UleSelf>                        rule103;
   RewriteRule<FlattenAssocCommut>             rule104;
-  RewriteRule<PlusCombineLikeTerms>           rule105;
+  RewriteRule<AddCombineLikeTerms> rule105;
   RewriteRule<MultSimplify>                   rule106;
   RewriteRule<MultDistribConst>               rule107;
   RewriteRule<AndSimplify>                    rule108;
   RewriteRule<OrSimplify>                     rule109;
-  RewriteRule<NegPlus>                        rule110;
-  RewriteRule<BBPlusNeg>                      rule111;
+  RewriteRule<NegAdd> rule110;
+  RewriteRule<BBAddNeg> rule111;
   RewriteRule<SolveEq>                        rule112;
   RewriteRule<BitwiseEq>                      rule113;
   RewriteRule<UltOne>                         rule114;
@@ -564,9 +585,8 @@ struct AllRewriteRules {
   RewriteRule<BVToNatEliminate>               rule116;
   RewriteRule<IntToBVEliminate>               rule117;
   RewriteRule<MultDistrib>                    rule118;
-  RewriteRule<UltPlusOne>                     rule119;
+  RewriteRule<UltAddOne> rule119;
   RewriteRule<ConcatToMult>                   rule120;
-  RewriteRule<IsPowerOfTwo>                   rule121;
   RewriteRule<RedorEliminate>                 rule122;
   RewriteRule<RedandEliminate>                rule123;
   RewriteRule<SignExtendEqConst>              rule124;
@@ -574,7 +594,7 @@ struct AllRewriteRules {
   RewriteRule<SignExtendUltConst>             rule126;
   RewriteRule<ZeroExtendUltConst>             rule127;
   RewriteRule<MultSltMult>                    rule128;
-  RewriteRule<NormalizeEqPlusNeg>             rule129;
+  RewriteRule<NormalizeEqAddNeg> rule129;
   RewriteRule<BvComp>                         rule130;
   RewriteRule<BvIteConstCond>                 rule131;
   RewriteRule<BvIteEqualChildren>             rule132;
@@ -585,6 +605,13 @@ struct AllRewriteRules {
   RewriteRule<BvIteMergeThenElse>             rule137;
   RewriteRule<BvIteMergeElseElse>             rule138;
   RewriteRule<AndOrXorConcatPullUp>           rule139;
+  RewriteRule<NegEliminate> rule140;
+  RewriteRule<OrEliminate> rule141;
+  RewriteRule<XorEliminate> rule142;
+  RewriteRule<SdivEliminate> rule143;
+  RewriteRule<SremEliminate> rule144;
+  RewriteRule<SmodEliminate> rule145;
+  RewriteRule<UgtUrem> rule146;
 };
 
 template<> inline
@@ -606,7 +633,7 @@ struct ApplyRuleToChildren {
     if (node.getKind() != kind) {
       return RewriteRule<rule>::template run<true>(node);
     }
-    NodeBuilder<> result(kind);
+    NodeBuilder result(kind);
     for (unsigned i = 0, end = node.getNumChildren(); i < end; ++ i) {
       result << RewriteRule<rule>::template run<true>(node[i]);
     }
@@ -734,4 +761,4 @@ struct FixpointRewriteStrategy {
 
 } // End namespace bv
 } // End namespace theory
-} // End namespace CVC4
+}  // End namespace cvc5

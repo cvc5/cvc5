@@ -1,0 +1,15 @@
+; COMMAND-LINE: -i
+; EXPECT: sat
+(set-logic QF_UFSLIA)
+(set-option :strings-lazy-pp false)
+(declare-fun str0 () String)
+(declare-fun str4 () String)
+(declare-fun str15 () String)
+(push 1)
+(assert (str.in_re (str.replace str0 "gpQrbuIlpcirZXw" "") (str.to_re "")))
+(push 1)
+(check-sat)
+(pop 1)
+(pop 1)
+(assert (distinct str15 str4 (str.replace str0 "gpQrbuIlpcirZXw" "") ""))
+(push 1)

@@ -1,117 +1,59 @@
-/*********************                                                        */
-/*! \file decision_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Decision engine
- **
- ** Decision engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Aina Niemetz, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Decision engine.
+ */
 #include "decision/decision_engine.h"
 
-#include "decision/decision_attributes.h"
-#include "decision/justification_heuristic.h"
-#include "expr/node.h"
+#include "decision/decision_engine_old.h"
 #include "options/decision_options.h"
-#include "options/smt_options.h"
+#include "prop/sat_solver.h"
+#include "util/resource_manager.h"
 
-using namespace std;
+namespace cvc5 {
+namespace decision {
 
-namespace CVC4 {
-
-DecisionEngine::DecisionEngine(context::Context *sc,
-                               context::UserContext *uc) :
-  d_enabledStrategies(),
-  d_needIteSkolemMap(),
-  d_relevancyStrategy(NULL),
-  d_assertions(uc),
-  d_cnfStream(NULL),
-  d_satSolver(NULL),
-  d_satContext(sc),
-  d_userContext(uc),
-  d_result(sc, SAT_VALUE_UNKNOWN),
-  d_engineState(0)
+DecisionEngine::DecisionEngine(context::Context* c, ResourceManager* rm)
+    : d_context(c),
+      d_resourceManager(rm),
+      d_cnfStream(nullptr),
+      d_satSolver(nullptr)
 {
-  Trace("decision") << "Creating decision engine" << std::endl;
 }
 
-void DecisionEngine::init()
+void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
 {
-  Assert(d_engineState == 0);
-  d_engineState = 1;
-
-  Trace("decision-init") << "DecisionEngine::init()" << std::endl;
-  Trace("decision-init") << " * options->decisionMode: "
-                         << options::decisionMode() << std:: endl;
-  Trace("decision-init") << " * options->decisionStopOnly: "
-                         << options::decisionStopOnly() << std::endl;
-
-  if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
-  {
-    ITEDecisionStrategy* ds =
-      new decision::JustificationHeuristic(this, d_userContext, d_satContext);
-    enableStrategy(ds);
-    d_needIteSkolemMap.push_back(ds);
-  }
+  d_satSolver = ss;
+  d_cnfStream = cs;
 }
 
-
-void DecisionEngine::enableStrategy(DecisionStrategy* ds)
+prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
-  d_enabledStrategies.push_back(ds);
+  d_resourceManager->spendResource(Resource::DecisionStep);
+  return getNextInternal(stopSearch);
 }
 
-void DecisionEngine::clearStrategies(){
-  for(unsigned i = 0; i < d_enabledStrategies.size(); ++i){
-    delete d_enabledStrategies[i];
-  }
-  d_enabledStrategies.clear();
-  d_needIteSkolemMap.clear();
-}
-
-bool DecisionEngine::isRelevant(SatVariable var)
+DecisionEngineEmpty::DecisionEngineEmpty(context::Context* sc,
+                                         ResourceManager* rm)
+    : DecisionEngine(sc, rm)
 {
-  Debug("decision") << "isRelevant(" << var <<")" << std::endl;
-  if(d_relevancyStrategy != NULL) {
-    //Assert(d_cnfStream->hasNode(var));
-    return d_relevancyStrategy->isRelevant( d_cnfStream->getNode(SatLiteral(var)) );
-  } else {
-    return true;
-  }
 }
-
-SatValue DecisionEngine::getPolarity(SatVariable var)
+bool DecisionEngineEmpty::isDone() { return false; }
+void DecisionEngineEmpty::addAssertion(TNode assertion) {}
+void DecisionEngineEmpty::addSkolemDefinition(TNode lem, TNode skolem) {}
+prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
 {
-  Debug("decision") << "getPolarity(" << var <<")" << std::endl;
-  if(d_relevancyStrategy != NULL) {
-    Assert(isRelevant(var));
-    return d_relevancyStrategy->getPolarity( d_cnfStream->getNode(SatLiteral(var)) );
-  } else {
-    return SAT_VALUE_UNKNOWN;
-  }
+  return undefSatLiteral;
 }
 
-void DecisionEngine::addAssertions(
-    const preprocessing::AssertionPipeline& assertions)
-{
-  // new assertions, reset whatever result we knew
-  d_result = SAT_VALUE_UNKNOWN;
-
-  for (const Node& assertion : assertions)
-  {
-    d_assertions.push_back(assertion);
-  }
-
-  for(unsigned i = 0; i < d_needIteSkolemMap.size(); ++i)
-  {
-    d_needIteSkolemMap[i]->addAssertions(assertions);
-  }
-}
-
-}/* CVC4 namespace */
+}  // namespace decision
+}  // namespace cvc5

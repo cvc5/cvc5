@@ -1,48 +1,50 @@
-/*********************                                                        */
-/*! \file dump.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Dump utility classes and functions
- **
- ** Dump utility classes and functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Abdalrhman Mohamed
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Dump utility classes and functions.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__DUMP_H
-#define CVC4__DUMP_H
+#ifndef CVC5__DUMP_H
+#define CVC5__DUMP_H
 
 #include "base/output.h"
-#include "smt/command.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
+class Command;
+class NodeCommand;
 
-class CVC4_PUBLIC CVC4dumpstream
+#if defined(CVC5_DUMPING) && !defined(CVC5_MUZZLE)
+
+class CVC5dumpstream
 {
  public:
-  CVC4dumpstream() : d_os(nullptr) {}
-  CVC4dumpstream(std::ostream& os) : d_os(&os) {}
+  CVC5dumpstream() : d_os(nullptr) {}
+  CVC5dumpstream(std::ostream& os) : d_os(&os) {}
 
-  CVC4dumpstream& operator<<(const Command& c) {
-    if (d_os != nullptr)
-    {
-      (*d_os) << c << std::endl;
-    }
-    return *this;
-  }
+  CVC5dumpstream& operator<<(const Command& c);
+
+  /** A convenience function for dumping internal commands.
+   *
+   * Since Commands are now part of the public API, internal code should use
+   * NodeCommands and this function (instead of the one above) to dump them.
+   */
+  CVC5dumpstream& operator<<(const NodeCommand& nc);
 
  private:
   std::ostream* d_os;
-}; /* class CVC4dumpstream */
+}; /* class CVC5dumpstream */
 
 #else
 
@@ -50,33 +52,36 @@ class CVC4_PUBLIC CVC4dumpstream
  * Dummy implementation of the dump stream when dumping is disabled or the
  * build is muzzled.
  */
-class CVC4_PUBLIC CVC4dumpstream
+class CVC5dumpstream
 {
  public:
-  CVC4dumpstream() {}
-  CVC4dumpstream(std::ostream& os) {}
-  CVC4dumpstream& operator<<(const Command& c) { return *this; }
-}; /* class CVC4dumpstream */
+  CVC5dumpstream() {}
+  CVC5dumpstream(std::ostream& os) {}
+  CVC5dumpstream& operator<<(const Command& c);
+  CVC5dumpstream& operator<<(const NodeCommand& nc);
+}; /* class CVC5dumpstream */
 
-#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
+#endif /* CVC5_DUMPING && !CVC5_MUZZLE */
 
 /** The dump class */
-class CVC4_PUBLIC DumpC
+class DumpC
 {
  public:
-  CVC4dumpstream operator()(const char* tag) {
+  CVC5dumpstream operator()(const char* tag)
+  {
     if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
-      return CVC4dumpstream(getStream());
+      return CVC5dumpstream(getStream());
     } else {
-      return CVC4dumpstream();
+      return CVC5dumpstream();
     }
   }
 
-  CVC4dumpstream operator()(std::string tag) {
+  CVC5dumpstream operator()(std::string tag)
+  {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return CVC4dumpstream(getStream());
+      return CVC5dumpstream(getStream());
     } else {
-      return CVC4dumpstream();
+      return CVC5dumpstream();
     }
   }
 
@@ -104,10 +109,10 @@ class CVC4_PUBLIC DumpC
 };/* class DumpC */
 
 /** The dump singleton */
-extern DumpC DumpChannel CVC4_PUBLIC;
+extern DumpC DumpChannel;
 
-#define Dump ::CVC4::DumpChannel
+#define Dump ::cvc5::DumpChannel
 
-}/* CVC4 namespace */
+}  // namespace cvc5
 
-#endif /* CVC4__DUMP_H */
+#endif /* CVC5__DUMP_H */

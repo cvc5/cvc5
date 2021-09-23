@@ -10,7 +10,6 @@
 ; EXPECT: (error "")
 ; EXPECT: (error "")
 ; EXPECT: (error "")
-; EXPECT: (error "")
 ; EXPECT: success
 ; EXPECT: sat
 (set-option :print-success true)
@@ -22,7 +21,6 @@
 (declare-fun p () Bool)
 (get-unsat-core)
 (get-value (p))
-(get-proof)
 (get-model)
 (get-assignment)
 (assert true)

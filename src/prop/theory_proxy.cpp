@@ -1,76 +1,72 @@
-/*********************                                                        */
-/*! \file theory_proxy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 #include "prop/theory_proxy.h"
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
-#include "expr/expr_stream.h"
 #include "options/decision_options.h"
+#include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "proof/cnf_proof.h"
-#include "smt/command.h"
+#include "prop/skolem_def_manager.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/lemma_input_channel.h"
-#include "smt_util/lemma_output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace prop {
 
 TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
-                         DecisionEngine* decisionEngine,
-                         context::Context* context,
-                         CnfStream* cnfStream,
-                         std::ostream* replayLog,
-                         ExprStream* replayStream,
-                         LemmaChannels* channels)
+                         decision::DecisionEngine* decisionEngine,
+                         SkolemDefManager* skdm,
+                         Env& env)
     : d_propEngine(propEngine),
-      d_cnfStream(cnfStream),
+      d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
-      d_channels(channels),
-      d_replayLog(replayLog),
-      d_replayStream(replayStream),
-      d_queue(context),
-      d_replayedDecisions("prop::theoryproxy::replayedDecisions", 0)
+      d_queue(env.getContext()),
+      d_tpp(*theoryEngine, env.getUserContext(), env.getProofNodeManager()),
+      d_skdm(skdm),
+      d_env(env)
 {
-  smtStatisticsRegistry()->registerStat(&d_replayedDecisions);
 }
 
 TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
-  smtStatisticsRegistry()->unregisterStat(&d_replayedDecisions);
 }
 
-/** The lemma input channel we are using. */
-LemmaInputChannel* TheoryProxy::inputChannel() {
-  return d_channels->getLemmaInputChannel();
-}
+void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
-/** The lemma output channel we are using. */
-LemmaOutputChannel* TheoryProxy::outputChannel() {
-  return d_channels->getLemmaOutputChannel();
+void TheoryProxy::notifyAssertion(Node a, TNode skolem)
+{
+  if (skolem.isNull())
+  {
+    d_decisionEngine->addAssertion(a);
+  }
+  else
+  {
+    d_skdm->notifySkolemDefinition(skolem, a);
+    d_decisionEngine->addSkolemDefinition(a, skolem);
+  }
 }
-
 
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
@@ -81,6 +77,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     d_theoryEngine->assertFact(assertion);
+    d_decisionEngine->notifyAsserted(assertion);
   }
   d_theoryEngine->check(effort);
 }
@@ -99,34 +96,38 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
-  LemmaProofRecipe* proofRecipe = NULL;
-  PROOF(proofRecipe = new LemmaProofRecipe;);
-
-  Node theoryExplanation = d_theoryEngine->getExplanationAndRecipe(lNode, proofRecipe);
-
-  PROOF({
-      ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
-      ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
-
-      Debug("pf::sat") << "TheoryProxy::explainPropagation: setting lemma recipe to: "
-                       << std::endl;
-      proofRecipe->dump("pf::sat");
-
-      delete proofRecipe;
-      proofRecipe = NULL;
-    });
-
-  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
-  if (theoryExplanation.getKind() == kind::AND) {
-    Node::const_iterator it = theoryExplanation.begin();
-    Node::const_iterator it_end = theoryExplanation.end();
-    explanation.push_back(l);
-    for (; it != it_end; ++ it) {
-      explanation.push_back(~d_cnfStream->getLiteral(*it));
+  TrustNode tte = d_theoryEngine->getExplanation(lNode);
+  Node theoryExplanation = tte.getNode();
+  if (d_env.isSatProofProducing())
+  {
+    Assert(options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF
+           || tte.getGenerator());
+    d_propEngine->getProofCnfStream()->convertPropagation(tte);
+  }
+  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation
+                        << std::endl;
+  explanation.push_back(l);
+  if (theoryExplanation.getKind() == kind::AND)
+  {
+    for (const Node& n : theoryExplanation)
+    {
+      explanation.push_back(~d_cnfStream->getLiteral(n));
     }
-  } else {
-    explanation.push_back(l);
+  }
+  else
+  {
     explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
+  }
+  if (Trace.isOn("sat-proof"))
+  {
+    std::stringstream ss;
+    ss << "TheoryProxy::explainPropagation: clause for lit is ";
+    for (unsigned i = 0, size = explanation.size(); i < size; ++i)
+    {
+      ss << explanation[i] << " [" << d_cnfStream->getNode(explanation[i])
+         << "] ";
+    }
+    Trace("sat-proof") << ss.str() << "\n";
   }
 }
 
@@ -149,7 +150,7 @@ SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   if(stopSearch) {
     Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
   }
-  return options::decisionStopOnly() ? undefSatLiteral : ret;
+  return ret;
 }
 
 bool TheoryProxy::theoryNeedCheck() const {
@@ -161,105 +162,63 @@ TNode TheoryProxy::getNode(SatLiteral lit) {
 }
 
 void TheoryProxy::notifyRestart() {
-  d_propEngine->spendResource(options::restartStep());
+  d_propEngine->spendResource(Resource::RestartStep);
   d_theoryEngine->notifyRestart();
-
-  static uint32_t lemmaCount = 0;
-
-  if(inputChannel() != NULL) {
-    while(inputChannel()->hasNewLemma()) {
-      Debug("shared") << "shared" << std::endl;
-      Expr lemma = inputChannel()->getNewLemma();
-      Node asNode = lemma.getNode();
-      asNode = theory::Rewriter::rewrite(asNode);
-
-      if(d_shared.find(asNode) == d_shared.end()) {
-        d_shared.insert(asNode);
-        if(asNode.getKind() == kind::OR) {
-          ++lemmaCount;
-          if(lemmaCount % 1 == 0) {
-            Debug("shared") << "=) " << asNode << std::endl;
-          }
-
-          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID);
-        } else {
-          Debug("shared") << "=(" << asNode << std::endl;
-        }
-      } else {
-        Debug("shared") <<"drop shared " << asNode << std::endl;
-      }
-    }
-  }
 }
 
-void TheoryProxy::notifyNewLemma(SatClause& lemma) {
-  Assert(lemma.size() > 0);
-  if(outputChannel() != NULL) {
-    if(lemma.size() == 1) {
-      // cannot share units yet
-      //options::lemmaOutputChannel()->notifyNewLemma(d_cnfStream->getNode(lemma[0]).toExpr());
-    } else {
-      NodeBuilder<> b(kind::OR);
-      for(unsigned i = 0, i_end = lemma.size(); i < i_end; ++i) {
-        b << d_cnfStream->getNode(lemma[i]);
-      }
-      Node n = b;
-
-      if(d_shared.find(n) == d_shared.end()) {
-        d_shared.insert(n);
-        outputChannel()->notifyNewLemma(n.toExpr());
-      } else {
-        Debug("shared") <<"drop new " << n << std::endl;
-      }
-    }
-  }
-}
-
-SatLiteral TheoryProxy::getNextReplayDecision() {
-#ifdef CVC4_REPLAY
-  if(d_replayStream != NULL) {
-    Expr e = d_replayStream->nextExpr();
-    if(!e.isNull()) { // we get null node when out of decisions to replay
-      // convert & return
-      ++d_replayedDecisions;
-      return d_cnfStream->getLiteral(e);
-    }
-  }
-#endif /* CVC4_REPLAY */
-  return undefSatLiteral;
-}
-
-void TheoryProxy::logDecision(SatLiteral lit) {
-#ifdef CVC4_REPLAY
-  if(d_replayLog != NULL) {
-    Assert(lit != undefSatLiteral) << "logging an `undef' decision ?!";
-    (*d_replayLog) << d_cnfStream->getNode(lit) << std::endl;
-  }
-#endif /* CVC4_REPLAY */
-}
-
-void TheoryProxy::spendResource(unsigned amount)
+void TheoryProxy::spendResource(Resource r)
 {
-  d_theoryEngine->spendResource(amount);
+  d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionRelevant(SatVariable var) {
-  return d_decisionEngine->isRelevant(var);
-}
+bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
 
 bool TheoryProxy::isDecisionEngineDone() {
   return d_decisionEngine->isDone();
 }
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return d_decisionEngine->getPolarity(var);
+  return SAT_VALUE_UNKNOWN;
 }
 
-void TheoryProxy::dumpStatePop() {
-  if(Dump.isOn("state")) {
-    Dump("state") << PopCommand();
+CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
+
+TrustNode TheoryProxy::preprocessLemma(TrustNode trn,
+                                       std::vector<TrustNode>& newLemmas,
+                                       std::vector<Node>& newSkolems)
+{
+  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
+}
+
+TrustNode TheoryProxy::preprocess(TNode node,
+                                  std::vector<TrustNode>& newLemmas,
+                                  std::vector<Node>& newSkolems)
+{
+  return d_tpp.preprocess(node, newLemmas, newSkolems);
+}
+
+TrustNode TheoryProxy::removeItes(TNode node,
+                                  std::vector<TrustNode>& newLemmas,
+                                  std::vector<Node>& newSkolems)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  return rtf.run(node, newLemmas, newSkolems, true);
+}
+
+void TheoryProxy::getSkolems(TNode node,
+                             std::vector<Node>& skAsserts,
+                             std::vector<Node>& sks)
+{
+  std::unordered_set<Node> skolems;
+  d_skdm->getSkolems(node, skolems);
+  for (const Node& k : skolems)
+  {
+    sks.push_back(k);
+    skAsserts.push_back(d_skdm->getDefinitionForSkolem(k));
   }
 }
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
+
+}  // namespace prop
+}  // namespace cvc5

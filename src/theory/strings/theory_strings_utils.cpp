@@ -1,29 +1,47 @@
-/*********************                                                        */
-/*! \file theory_strings_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Util functions for theory strings.
- **
- ** Util functions for theory strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Util functions for theory strings.
+ */
 
 #include "theory/strings/theory_strings_utils.h"
 
+#include <sstream>
+
+#include "expr/attribute.h"
+#include "expr/skolem_manager.h"
+#include "options/strings_options.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
+#include "theory/strings/arith_entail.h"
+#include "theory/strings/strings_entail.h"
+#include "theory/strings/word.h"
+#include "util/rational.h"
+#include "util/regexp.h"
+#include "util/string.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 namespace utils {
+
+uint32_t getAlphabetCardinality()
+{
+  // 3*16^4 = 196608 values in the SMT-LIB standard for Unicode strings
+  Assert(196608 <= String::num_codes());
+  return 196608;
+}
 
 Node mkAnd(const std::vector<Node>& a)
 {
@@ -58,8 +76,8 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
     return;
   }
   // otherwise, traverse
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -74,10 +92,12 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
       visited.insert(cur);
       if (cur.getKind() == k)
       {
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        // Add in reverse order, so that we traverse left to right.
+        // This is important so that explantaions aren't reversed when they
+        // are flattened, which is important for proofs involving substitutions.
+        std::vector<Node> newChildren;
+        newChildren.insert(newChildren.end(), cur.begin(), cur.end());
+        visit.insert(visit.end(), newChildren.rbegin(), newChildren.rend());
       }
       else if (std::find(conj.begin(), conj.end(), cur) == conj.end())
       {
@@ -103,12 +123,20 @@ void getConcat(Node n, std::vector<Node>& c)
   }
 }
 
-Node mkConcat(Kind k, const std::vector<Node>& c)
+Node mkConcat(const std::vector<Node>& c, TypeNode tn)
 {
-  Assert(!c.empty() || k == STRING_CONCAT);
-  NodeManager* nm = NodeManager::currentNM();
-  return c.size() > 1 ? nm->mkNode(k, c)
-                      : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
+  Assert(tn.isStringLike() || tn.isRegExp());
+  if (c.empty())
+  {
+    Assert(tn.isStringLike());
+    return Word::mkEmptyWord(tn);
+  }
+  else if (c.size() == 1)
+  {
+    return c[0];
+  }
+  Kind k = tn.isStringLike() ? STRING_CONCAT : REGEXP_CONCAT;
+  return NodeManager::currentNM()->mkNode(k, c);
 }
 
 Node mkNConcat(Node n1, Node n2)
@@ -123,9 +151,9 @@ Node mkNConcat(Node n1, Node n2, Node n3)
       NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
 }
 
-Node mkNConcat(const std::vector<Node>& c)
+Node mkNConcat(const std::vector<Node>& c, TypeNode tn)
 {
-  return Rewriter::rewrite(mkConcat(STRING_CONCAT, c));
+  return Rewriter::rewrite(mkConcat(c, tn));
 }
 
 Node mkNLength(Node t)
@@ -133,14 +161,26 @@ Node mkNLength(Node t)
   return Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
 }
 
+Node mkPrefix(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(STRING_SUBSTR, t, nm->mkConst(Rational(0)), n);
+}
+
+Node mkSuffix(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      STRING_SUBSTR, t, n, nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, t), n));
+}
+
 Node getConstantComponent(Node t)
 {
-  Kind tk = t.getKind();
-  if (tk == STRING_TO_REGEXP)
+  if (t.getKind() == STRING_TO_REGEXP)
   {
     return t[0].isConst() ? t[0] : Node::null();
   }
-  return tk == CONST_STRING ? t : Node::null();
+  return t.isConst() ? t : Node::null();
 }
 
 Node getConstantEndpoint(Node e, bool isSuf)
@@ -157,6 +197,89 @@ Node getConstantEndpoint(Node e, bool isSuf)
   }
   return getConstantComponent(e);
 }
+
+Node decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector<Node>& ls)
+{
+  Assert(ss.empty());
+  Assert(ls.empty());
+  while (s.getKind() == STRING_SUBSTR)
+  {
+    ss.push_back(s[1]);
+    ls.push_back(s[2]);
+    s = s[0];
+  }
+  std::reverse(ss.begin(), ss.end());
+  std::reverse(ls.begin(), ls.end());
+  return s;
+}
+
+Node mkSubstrChain(Node base,
+                   const std::vector<Node>& ss,
+                   const std::vector<Node>& ls)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0, size = ss.size(); i < size; i++)
+  {
+    base = nm->mkNode(STRING_SUBSTR, base, ss[i], ls[i]);
+  }
+  return base;
+}
+
+std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
+{
+  // Collect the equalities of the form (= x "") (sorted)
+  std::set<TNode> emptyNodes;
+  bool allEmptyEqs = true;
+  if (x.getKind() == EQUAL)
+  {
+    if (Word::isEmpty(x[0]))
+    {
+      emptyNodes.insert(x[1]);
+    }
+    else if (Word::isEmpty(x[1]))
+    {
+      emptyNodes.insert(x[0]);
+    }
+    else
+    {
+      allEmptyEqs = false;
+    }
+  }
+  else if (x.getKind() == AND)
+  {
+    for (const Node& c : x)
+    {
+      if (c.getKind() != EQUAL)
+      {
+        allEmptyEqs = false;
+        continue;
+      }
+
+      if (Word::isEmpty(c[0]))
+      {
+        emptyNodes.insert(c[1]);
+      }
+      else if (Word::isEmpty(c[1]))
+      {
+        emptyNodes.insert(c[0]);
+      }
+      else
+      {
+        allEmptyEqs = false;
+      }
+    }
+  }
+
+  if (emptyNodes.size() == 0)
+  {
+    allEmptyEqs = false;
+  }
+
+  return std::make_pair(
+      allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
+}
+
+bool isConstantLike(Node n) { return n.isConst() || n.getKind() == SEQ_UNIT; }
 
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {
@@ -212,11 +335,10 @@ void getRegexpComponents(Node r, std::vector<Node>& result)
   }
   else if (r.getKind() == STRING_TO_REGEXP && r[0].isConst())
   {
-    String s = r[0].getConst<String>();
-    for (size_t i = 0, size = s.size(); i < size; i++)
+    size_t rlen = Word::getLength(r[0]);
+    for (size_t i = 0; i < rlen; i++)
     {
-      result.push_back(
-          nm->mkNode(STRING_TO_REGEXP, nm->mkConst(s.substr(i, 1))));
+      result.push_back(nm->mkNode(STRING_TO_REGEXP, Word::substr(r[0], i, 1)));
     }
   }
   else
@@ -244,7 +366,99 @@ void printConcatTrace(std::vector<Node>& n, const char* c)
   Trace(c) << ss.str();
 }
 
+bool isStringKind(Kind k)
+{
+  return k == STRING_STOI || k == STRING_ITOS || k == STRING_TOLOWER
+         || k == STRING_TOUPPER || k == STRING_LEQ || k == STRING_LT
+         || k == STRING_FROM_CODE || k == STRING_TO_CODE;
+}
+
+bool isRegExpKind(Kind k)
+{
+  return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
+         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
+         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
+         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
+         || k == REGEXP_COMPLEMENT;
+}
+
+TypeNode getOwnerStringType(Node n)
+{
+  TypeNode tn;
+  Kind k = n.getKind();
+  if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_LENGTH
+      || k == STRING_CONTAINS || k == SEQ_NTH || k == STRING_PREFIX
+      || k == STRING_SUFFIX)
+  {
+    // owning string type is the type of first argument
+    tn = n[0].getType();
+  }
+  else if (isStringKind(k))
+  {
+    tn = NodeManager::currentNM()->stringType();
+  }
+  else
+  {
+    tn = n.getType();
+  }
+  AlwaysAssert(tn.isStringLike())
+      << "Unexpected term in getOwnerStringType : " << n << ", type " << tn;
+  return tn;
+}
+
+unsigned getRepeatAmount(TNode node)
+{
+  Assert(node.getKind() == REGEXP_REPEAT);
+  return node.getOperator().getConst<RegExpRepeat>().d_repeatAmount;
+}
+
+unsigned getLoopMaxOccurrences(TNode node)
+{
+  Assert(node.getKind() == REGEXP_LOOP);
+  return node.getOperator().getConst<RegExpLoop>().d_loopMaxOcc;
+}
+
+unsigned getLoopMinOccurrences(TNode node)
+{
+  Assert(node.getKind() == REGEXP_LOOP);
+  return node.getOperator().getConst<RegExpLoop>().d_loopMinOcc;
+}
+
+/**
+ * Mapping to a dummy node for marking an attribute on internal quantified
+ * formulas. This ensures that reductions are deterministic.
+ */
+struct QInternalVarAttributeId
+{
+};
+typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
+
+Node mkForallInternal(Node bvl, Node body)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  QInternalVarAttribute qiva;
+  Node qvar;
+  if (bvl.hasAttribute(qiva))
+  {
+    qvar = bvl.getAttribute(qiva);
+  }
+  else
+  {
+    SkolemManager* sm = nm->getSkolemManager();
+    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
+    // this dummy variable marks that the quantified formula is internal
+    qvar.setAttribute(InternalQuantAttribute(), true);
+    // remember the dummy variable
+    bvl.setAttribute(qiva, qvar);
+  }
+  // make the internal attribute, and put it in a singleton list
+  Node ip = nm->mkNode(INST_ATTRIBUTE, qvar);
+  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
+  // make the overall formula
+  return nm->mkNode(FORALL, bvl, body, ipl);
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

@@ -1,31 +1,37 @@
-/*********************                                                        */
-/*! \file expr_miner.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief expr_miner
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * expr_miner
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
-#define CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
+#define CVC5__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
 
 #include <map>
 #include <memory>
 #include <vector>
-#include "expr/expr_manager.h"
-#include "expr/node.h"
-#include "smt/smt_engine.h"
-#include "theory/quantifiers/sygus_sampler.h"
 
-namespace CVC4 {
+#include "expr/node.h"
+#include "smt/env_obj.h"
+#include "theory/quantifiers/sygus_sampler.h"
+#include "theory/smt_engine_subsolver.h"
+
+namespace cvc5 {
+
+class Env;
+class SmtEngine;
+
 namespace theory {
 namespace quantifiers {
 
@@ -35,10 +41,10 @@ namespace quantifiers {
  * from (enumerated) expressions. This includes:
  * - candidate rewrite rules (--sygus-rr-synth)
  */
-class ExprMiner
+class ExprMiner : protected EnvObj
 {
  public:
-  ExprMiner() : d_sampler(nullptr) {}
+  ExprMiner(Env& env) : EnvObj(env), d_sampler(nullptr) {}
   virtual ~ExprMiner() {}
   /** initialize
    *
@@ -61,13 +67,15 @@ class ExprMiner
  protected:
   /** the set of variables used by this class */
   std::vector<Node> d_vars;
-  /** pointer to the sygus sampler object we are using */
-  SygusSampler* d_sampler;
   /**
-   * Maps to skolems for each free variable that appears in a check. This is
+   * The set of skolems corresponding to the above variables. These are
    * used during initializeChecker so that query (which may contain free
    * variables) is converted to a formula without free variables.
    */
+  std::vector<Node> d_skolems;
+  /** pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
+  /** Maps to skolems for each free variable based on d_vars/d_skolems. */
   std::map<Node, Node> d_fv_to_skolem;
   /** convert */
   Node convertToSkolem(Node n);
@@ -76,22 +84,8 @@ class ExprMiner
    * This function initializes the smt engine smte to check the satisfiability
    * of the argument "query", which is a formula whose free variables (of
    * kind BOUND_VARIABLE) are a subset of d_vars.
-   *
-   * The arguments em and varMap are used for supporting cases where we
-   * want smte to use a different expression manager instead of the current
-   * expression manager. The motivation for this so that different options can
-   * be set for the subcall.
-   *
-   * We update the flag needExport to true if smte is using the expression
-   * manager em. In this case, subsequent expressions extracted from smte
-   * (for instance, model values) must be exported to the current expression
-   * manager.
    */
-  void initializeChecker(std::unique_ptr<SmtEngine>& smte,
-                         ExprManager& em,
-                         ExprManagerMapCollection& varMap,
-                         Node query,
-                         bool& needExport);
+  void initializeChecker(std::unique_ptr<SmtEngine>& smte, Node query);
   /**
    * Run the satisfiability check on query and return the result
    * (sat/unsat/unknown).
@@ -104,6 +98,6 @@ class ExprMiner
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */

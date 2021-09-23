@@ -1,24 +1,22 @@
 id     = "PROP"
-name   = "SAT layer"
-header = "options/prop_options.h"
+name   = "SAT Layer"
 
 [[option]]
   name       = "satRandomFreq"
-  smt_name   = "random-frequency"
+  alias      = ["random-frequency"]
   category   = "regular"
   long       = "random-freq=P"
   type       = "double"
   default    = "0.0"
-  predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
-  read_only  = true
+  minimum    = "0.0"
+  maximum    = "1.0"
   help       = "sets the frequency of random decisions in the sat solver (P=0.0 by default)"
 
 [[option]]
   name       = "satRandomSeed"
-  smt_name   = "random-seed"
   category   = "regular"
   long       = "random-seed=S"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "0"
   help       = "sets the random seed for the sat solver"
 
@@ -27,7 +25,8 @@ header = "options/prop_options.h"
   category   = "regular"
   type       = "double"
   default    = "0.95"
-  predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
+  minimum    = "0.0"
+  maximum    = "1.0"
   help       = "variable activity decay factor for Minisat"
 
 [[option]]
@@ -35,16 +34,16 @@ header = "options/prop_options.h"
   category   = "regular"
   type       = "double"
   default    = "0.999"
-  predicates = ["doubleGreaterOrEqual0", "doubleLessOrEqual1"]
+  minimum    = "0.0"
+  maximum    = "1.0"
   help       = "clause activity decay factor for Minisat"
 
 [[option]]
   name       = "satRestartFirst"
   category   = "regular"
   long       = "restart-int-base=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "25"
-  read_only  = true
   help       = "sets the base restart interval for the sat solver (N=25 by default)"
 
 [[option]]
@@ -53,8 +52,7 @@ header = "options/prop_options.h"
   long       = "restart-int-inc=F"
   type       = "double"
   default    = "3.0"
-  predicates = ["doubleGreaterOrEqual0"]
-  read_only  = true
+  minimum    = "0.0"
   help       = "sets the restart interval increase factor for the sat solver (F=3.0 by default)"
 
 [[option]]
@@ -63,7 +61,6 @@ header = "options/prop_options.h"
   long       = "refine-conflicts"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "refine theory conflict clauses (default false)"
 
 [[option]]
@@ -80,5 +77,4 @@ header = "options/prop_options.h"
   long       = "minisat-dump-dimacs"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "instead of solving minisat dumps the asserted clauses in Dimacs format"

@@ -1,30 +1,35 @@
-/*********************                                                        */
-/*! \file sort_inference.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Pre-process step for performing sort inference
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Pre-process step for performing sort inference.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SORT_INFERENCE_H
-#define CVC4__SORT_INFERENCE_H
+#ifndef CVC5__SORT_INFERENCE_H
+#define CVC5__SORT_INFERENCE_H
 
-#include <iostream>
-#include <string>
-#include <vector>
 #include <map>
+#include <vector>
+
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5 {
+
+class Env;
+
+namespace theory {
 
 /** sort inference
  *
@@ -34,8 +39,9 @@ namespace CVC4 {
  *   "Sort it out with Monotonicity" Claessen 2011
  *   "Non-Cyclic Sorts for First-Order Satisfiability" Korovin 2013.
  */
-class SortInference {
-private:
+class SortInference : protected EnvObj
+{
+ private:
   //all subsorts
   std::vector< int > d_sub_sorts;
   std::map< int, bool > d_non_monotonic_sorts;
@@ -105,7 +111,7 @@ private:
   void reset();
 
  public:
-  SortInference() : d_sortCount(1) {}
+  SortInference(Env& env) : EnvObj(env), d_sortCount(1) {}
   ~SortInference(){}
 
   /** initialize
@@ -154,13 +160,18 @@ public:
   //is well sorted
   bool isWellSortedFormula( Node n );
   bool isWellSorted( Node n );
-  //get constraints for being well-typed according to computed sub-types
-  void getSortConstraints( Node n, SortInference::UnionFind& uf );
 private:
   // store monotonicity for original sorts as well
  std::map<TypeNode, bool> d_non_monotonic_sorts_orig;
+ /**
+  * Returns true if k is the APPLY_UF kind and we are not using higher-order
+  * techniques. This is called in places where we want to know whether to
+  * treat a term as uninterpreted function.
+  */
+ bool isHandledApplyUf(Kind k) const;
 };
 
-}
+}  // namespace theory
+}  // namespace cvc5
 
 #endif

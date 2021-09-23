@@ -13,12 +13,12 @@ INSTALL_BIN_DIR="$INSTALL_DIR/bin"
 mkdir -p "$DEPS_DIR"
 
 if ! [ -e src/parser/cvc/Cvc.g ]; then
-  echo "$(basename $0): I expect to be in the contrib/ of a CVC4 source tree," >&2
+  echo "$(basename $0): I expect to be in the contrib/ of a cvc5 source tree," >&2
   echo "but apparently:" >&2
   echo >&2
   echo "  $(pwd)" >&2
   echo >&2
-  echo "is not a CVC4 source tree ?!" >&2
+  echo "is not a cvc5 source tree ?!" >&2
   exit 1
 fi
 
@@ -50,21 +50,13 @@ function setup_dep
   url="$1"
   directory="$2"
   echo "Setting up $directory ..."
+  rm -rf "$directory"
   mkdir -p "$directory"
   cd "$directory"
   webget "$url" archive
   tar xf archive --strip 1 # Strip top-most directory
   rm archive
 }
-
-function check_dep_dir
-{
-  if [ -e "$1" ]; then
-    echo "error: file or directory '$1' exists; please move it out of the way." >&2
-    exit 1
-  fi
-}
-
 
 # Some of our dependencies do not provide a make install rule. Use the
 # following helper functions to copy libraries/headers/binaries into the
@@ -93,3 +85,29 @@ function install_bin
   [ ! -d "$INSTALL_BIN_DIR" ] && mkdir -p "$INSTALL_BIN_DIR"
   cp "$1" "$INSTALL_BIN_DIR"
 }
+
+function guess_lib_dir
+{
+   #
+   # On some systems the library may be installed to lib64/
+   # instead of lib/
+   #
+   # This function guesses the install lib directory
+   #
+   lib_name="$1"
+   lib_dir="$(dirname "$(find "$INSTALL_DIR" -name "${lib_name}")")"
+   echo ${lib_dir}
+}
+
+function rename_installed_lib
+{
+   #
+   # This function uses the calculated library directory and
+   # then relocates the first argument to the second.
+   #
+   src="$1"
+   dest="$2"
+   lib_dir="$(guess_lib_dir "$src")"
+   mv "$lib_dir/$src" "$lib_dir/$dest"
+}
+

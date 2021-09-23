@@ -18,29 +18,23 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
 #ifndef Minisat_SolverTypes_h
 #define Minisat_SolverTypes_h
 
-#include <assert.h>
+#include "base/check.h"
 #include "base/output.h"
-#include "prop/minisat/mtl/IntTypes.h"
 #include "prop/minisat/mtl/Alg.h"
-#include "prop/minisat/mtl/Vec.h"
-#include "prop/minisat/mtl/Map.h"
 #include "prop/minisat/mtl/Alloc.h"
+#include "prop/minisat/mtl/IntTypes.h"
+#include "prop/minisat/mtl/Map.h"
+#include "prop/minisat/mtl/Vec.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat {
+
 class Solver;
-}
-template <class Solver>
-class TSatProof;
-}  // namespace CVC4
-
-namespace CVC4 {
-namespace Minisat {
 
 //=================================================================================================
 // Variables, literals, lifted booleans, clauses:
@@ -73,9 +67,14 @@ inline  bool sign      (Lit p)              { return p.x & 1; }
 inline  int  var       (Lit p)              { return p.x >> 1; }
 
 // Mapping Literals to and from compact integers suitable for array indexing:
-inline  int  toInt     (Var v)              { return v; } 
-inline  int  toInt     (Lit p)              { return p.x; } 
-inline  Lit  toLit     (int i)              { Lit p; p.x = i; return p; } 
+inline int toInt(Var v) { return v; }
+inline int toInt(Lit p) { return p.x; }
+inline Lit toLit(int i)
+{
+  Lit p;
+  p.x = i;
+  return p;
+}
 
 //const Lit lit_Undef = mkLit(var_Undef, false);  // }- Useful special constants.
 //const Lit lit_Error = mkLit(var_Undef, true );  // }
@@ -83,20 +82,19 @@ inline  Lit  toLit     (int i)              { Lit p; p.x = i; return p; }
 const Lit lit_Undef = { -2 };  // }- Useful special constants.
 const Lit lit_Error = { -1 };  // }
 
-
 //=================================================================================================
 // Lifted booleans:
 //
-// NOTE: this implementation is optimized for the case when comparisons between values are mostly
-//       between one variable and one constant. Some care had to be taken to make sure that gcc 
-//       does enough constant propagation to produce sensible code, and this appears to be somewhat
-//       fragile unfortunately.
+// NOTE: this implementation is optimized for the case when comparisons between
+// values are mostly
+//       between one variable and one constant. Some care had to be taken to
+//       make sure that gcc does enough constant propagation to produce sensible
+//       code, and this appears to be somewhat fragile unfortunately.
 
 /*
-  This is to avoid multiple definitions of l_True, l_False and l_Undef if using multiple copies of
-  Minisat.
-  IMPORTANT: if we you change the value of the constants so that it is not the same in all copies
-  of Minisat this breaks! 
+  This is to avoid multiple definitions of l_True, l_False and l_Undef if using
+  multiple copies of Minisat. IMPORTANT: if we you change the value of the
+  constants so that it is not the same in all copies of Minisat this breaks!
  */
 
 #ifndef l_True
@@ -124,10 +122,12 @@ public:
     bool  operator != (lbool b) const { return !(*this == b); }
     lbool operator ^  (bool  b) const { return lbool((uint8_t)(value^(uint8_t)b)); }
 
-    lbool operator && (lbool b) const { 
-        uint8_t sel = (this->value << 1) | (b.value << 3);
-        uint8_t v   = (0xF7F755F4 >> sel) & 3;
-        return lbool(v); }
+    lbool operator&&(lbool b) const
+    {
+      uint8_t sel = (this->value << 1) | (b.value << 3);
+      uint8_t v = (0xF7F755F4 >> sel) & 3;
+      return lbool(v);
+    }
 
     lbool operator || (lbool b) const {
         uint8_t sel = (this->value << 1) | (b.value << 3);
@@ -163,7 +163,7 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::vec<Minisat::Lit>& 
 }
 
 inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
-  std::string val_str; 
+  std::string val_str;
   if( val == l_False ) {
     val_str = "0";
   } else if (val == l_True ) {
@@ -176,11 +176,10 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
   return out;
 }
 
-} /* namespace CVC4::Minisat */
-} /* namespace CVC4 */
+}  // namespace Minisat
+}  // namespace cvc5
 
-
-namespace CVC4 {
+namespace cvc5 {
 namespace Minisat{
 
 //=================================================================================================
@@ -208,28 +207,33 @@ class Clause {
         header.size      = ps.size();
         header.level     = level;
 
-        for (int i = 0; i < ps.size(); i++) 
-            data[i].lit = ps[i];
+        for (int i = 0; i < ps.size(); i++) data[i].lit = ps[i];
 
         if (header.has_extra){
             if (header.removable)
-                data[header.size].act = 0; 
-            else 
-                calcAbstraction(); }
+              data[header.size].act = 0;
+            else
+              calcAbstraction();
+        }
     }
 
 public:
     void calcAbstraction() {
-        assert(header.has_extra);
-        uint32_t abstraction = 0;
-        for (int i = 0; i < size(); i++)
-            abstraction |= 1 << (var(data[i].lit) & 31);
-        data[header.size].abs = abstraction;  }
-
+      Assert(header.has_extra);
+      uint32_t abstraction = 0;
+      for (int i = 0; i < size(); i++)
+        abstraction |= 1 << (var(data[i].lit) & 31);
+      data[header.size].abs = abstraction;
+    }
 
     int          level       ()      const   { return header.level; }
     int          size        ()      const   { return header.size; }
-    void         shrink      (int i)         { assert(i <= size()); if (header.has_extra) data[header.size-i] = data[header.size]; header.size -= i; }
+    void shrink(int i)
+    {
+      Assert(i <= size());
+      if (header.has_extra) data[header.size - i] = data[header.size];
+      header.size -= i;
+    }
     void         pop         ()              { shrink(1); }
     bool         removable   ()      const   { return header.removable; }
     bool         has_extra   ()      const   { return header.has_extra; }
@@ -247,8 +251,16 @@ public:
     Lit          operator [] (int i) const   { return data[i].lit; }
     operator const Lit* (void) const         { return (Lit*)data; }
 
-    float&       activity    ()              { assert(header.has_extra); return data[header.size].act; }
-    uint32_t     abstraction () const        { assert(header.has_extra); return data[header.size].abs; }
+    float& activity()
+    {
+      Assert(header.has_extra);
+      return data[header.size].act;
+    }
+    uint32_t abstraction() const
+    {
+      Assert(header.has_extra);
+      return data[header.size].abs;
+    }
 
     Lit          subsumes    (const Clause& other) const;
     void         strengthen  (Lit p);
@@ -278,14 +290,15 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     template<class Lits>
     CRef alloc(int level, const Lits& ps, bool removable = false)
     {
-        assert(sizeof(Lit)      == sizeof(uint32_t));
-        assert(sizeof(float)    == sizeof(uint32_t));
-        bool use_extra = removable | extra_clause_field;
+      Assert(sizeof(Lit) == sizeof(uint32_t));
+      Assert(sizeof(float) == sizeof(uint32_t));
+      bool use_extra = removable | extra_clause_field;
 
-        CRef cid = RegionAllocator<uint32_t>::alloc(clauseWord32Size(ps.size(), use_extra));
-        new (lea(cid)) Clause(ps, use_extra, removable, level);
+      CRef cid = RegionAllocator<uint32_t>::alloc(
+          clauseWord32Size(ps.size(), use_extra));
+      new (lea(cid)) Clause(ps, use_extra, removable, level);
 
-        return cid;
+      return cid;
     }
 
     // Deref, Load Effective Address (LEA), Inverse of LEA (AEL):
@@ -301,9 +314,7 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         RegionAllocator<uint32_t>::free(clauseWord32Size(c.size(), c.has_extra()));
     }
 
-    void reloc(CRef& cr,
-               ClauseAllocator& to,
-               CVC4::TSatProof<Solver>* proof = NULL);
+    void reloc(CRef& cr, ClauseAllocator& to);
     // Implementation moved to Solver.cc.
 };
 
@@ -321,7 +332,7 @@ class OccLists
 
  public:
     OccLists(const Deleted& d) : deleted(d) {}
-    
+
     void  init      (const Idx& idx){ occs.growTo(toInt(idx)+1); dirty.growTo(toInt(idx)+1, 0); }
     void  resizeTo  (const Idx& idx);
     // Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
@@ -394,13 +405,12 @@ class CMap
 
     typedef Map<CRef, T, CRefHash> HashTable;
     HashTable map;
-        
+
  public:
     // Size-operations:
     void     clear       ()                           { map.clear(); }
     int      size        ()                const      { return map.elems(); }
 
-    
     // Insert/Remove/Test mapping:
     void     insert      (CRef cr, const T& t){ map.insert(cr, t); }
     void     growTo      (CRef cr, const T& t){ map.insert(cr, t); } // NOTE: for compatibility
@@ -423,15 +433,14 @@ class CMap
         printf(" --- size = %d, bucket_count = %d\n", size(), map.bucket_count()); }
 };
 
-
 /*_________________________________________________________________________________________________
 |
 |  subsumes : (other : const Clause&)  ->  Lit
-|  
+|
 |  Description:
-|       Checks if clause subsumes 'other', and at the same time, if it can be used to simplify 'other'
-|       by subsumption resolution.
-|  
+|       Checks if clause subsumes 'other', and at the same time, if it can be
+used to simplify 'other' |       by subsumption resolution.
+|
 |    Result:
 |       lit_Error  - No subsumption or simplification
 |       lit_Undef  - Clause subsumes 'other'
@@ -446,8 +455,10 @@ inline Lit Clause::subsumes(const Clause& other) const
 
     //if (other.size() < size() || (extra.abst & ~other.extra.abst) != 0)
     //if (other.size() < size() || (!learnt() && !other.learnt() && (extra.abst & ~other.extra.abst) != 0))
-    assert(!header.removable);   assert(!other.header.removable);
-    assert(header.has_extra); assert(other.header.has_extra);
+    Assert(!header.removable);
+    Assert(!other.header.removable);
+    Assert(header.has_extra);
+    Assert(other.header.has_extra);
     if (other.header.size < header.size || (data[header.size].abs & ~other.data[other.header.size].abs) != 0)
         return lit_Error;
 
@@ -481,6 +492,6 @@ inline void Clause::strengthen(Lit p)
 
 //=================================================================================================
 }
-}
+}  // namespace cvc5
 
 #endif

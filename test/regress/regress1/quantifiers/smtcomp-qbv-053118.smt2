@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic BV)
 (set-info :status sat)

@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file ceg_bv_instantiator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief ceg_bv_instantiator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * ceg_bv_instantiator
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
-#define CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#define CVC5__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
 
 #include <unordered_map>
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
@@ -38,7 +39,7 @@ namespace quantifiers {
 class BvInstantiator : public Instantiator
 {
  public:
-  BvInstantiator(TypeNode tn, BvInverter* inv);
+  BvInstantiator(Env& env, TypeNode tn, BvInverter* inv);
   ~BvInstantiator() override;
   /** reset */
   void reset(CegInstantiator* ci,
@@ -107,16 +108,15 @@ class BvInstantiator : public Instantiator
   /** identifier counter, used to allocate ids to each solve form */
   unsigned d_inst_id_counter;
   /** map from variables to list of solved form ids */
-  std::unordered_map<Node, std::vector<unsigned>, NodeHashFunction>
-      d_var_to_inst_id;
+  std::unordered_map<Node, std::vector<unsigned>> d_var_to_inst_id;
   /** for each solved form id, the term for instantiation */
   std::unordered_map<unsigned, Node> d_inst_id_to_term;
   /** for each solved form id, the corresponding asserted literal */
   std::unordered_map<unsigned, Node> d_inst_id_to_alit;
   /** map from variable to current id we are processing */
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_var_to_curr_inst_id;
+  std::unordered_map<Node, unsigned> d_var_to_curr_inst_id;
   /** the amount of slack we added for asserted literals */
-  std::unordered_map<Node, Node, NodeHashFunction> d_alit_to_model_slack;
+  std::unordered_map<Node, Node> d_alit_to_model_slack;
   //--------------------------------end solved forms
   /** rewrite assertion for solve pv
    *
@@ -136,11 +136,10 @@ class BvInstantiator : public Instantiator
    * where we guarantee that all subterms of terms in children
    * appear in the domain of contains_pv.
    */
-  Node rewriteTermForSolvePv(
-      Node pv,
-      Node n,
-      std::vector<Node>& children,
-      std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
+  Node rewriteTermForSolvePv(Node pv,
+                             Node n,
+                             std::vector<Node>& children,
+                             std::unordered_map<Node, bool>& contains_pv);
   /** process literal, called from processAssertion
    *
    * lit is the literal to solve for pv that has been rewritten according to
@@ -168,32 +167,32 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
   ~BvInstantiatorPreprocess() override {}
   /** register counterexample lemma
    *
-   * This method modifies the contents of lems based on the extract terms
-   * it contains when the option --cbqi-bv-rm-extract is enabled. It introduces
+   * This method adds to auxLems based on the extract terms that lem
+   * contains when the option --cbqi-bv-rm-extract is enabled. It introduces
    * a dummy equality so that segments of terms t under extracts can be solved
    * independently.
    *
-   * For example:
+   * For example, if lem is:
    *   P[ ((extract 7 4) t), ((extract 3 0) t)]
-   *     becomes:
-   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *     then we add:
    *   t = concat( x74, x30 )
-   * where x74 and x30 are fresh variables of type BV_4.
+   * to auxLems, where x74 and x30 are fresh variables of type BV_4, which are
+   * added to ceVars.
    *
-   * Another example:
+   * Another example, for:
    *   P[ ((extract 7 3) t), ((extract 4 0) t)]
-   *     becomes:
-   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *     we add:
    *   t = concat( x75, x44, x30 )
-   * where x75, x44 and x30 are fresh variables of type BV_3, BV_1, and BV_4
-   * respectively.
+   * to auxLems where x75, x44 and x30 are fresh variables of type BV_3, BV_1,
+   * and BV_4 respectively, which are added to ceVars.
    *
-   * Notice we leave the original conjecture alone. This is done for performance
+   * Notice we leave the original lem alone. This is done for performance
    * since the added equalities ensure we are able to construct the proper
    * solved forms for variables in t and for the intermediate variables above.
    */
-  void registerCounterexampleLemma(std::vector<Node>& lems,
-                                   std::vector<Node>& ce_vars) override;
+  void registerCounterexampleLemma(Node lem,
+                                   std::vector<Node>& ceVars,
+                                   std::vector<Node>& auxLems) override;
 
  private:
   /** collect extracts
@@ -203,12 +202,12 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
    * visited is the terms we've already visited.
    */
   void collectExtracts(Node lem,
-                       std::map<Node, std::vector<Node> >& extract_map,
-                       std::unordered_set<TNode, TNodeHashFunction>& visited);
+                       std::map<Node, std::vector<Node>>& extract_map,
+                       std::unordered_set<TNode>& visited);
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */

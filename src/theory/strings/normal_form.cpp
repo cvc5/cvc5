@@ -1,33 +1,35 @@
-/*********************                                                        */
-/*! \file normal_form.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of normal form data structure for the theory of
- **  strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of normal form data structure for the theory of strings.
+ */
 
 #include "theory/strings/normal_form.h"
 
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
 void NormalForm::init(Node base)
 {
-  Assert(base.getType().isString());
+  Assert(base.getType().isStringLike());
   Assert(base.getKind() != STRING_CONCAT);
   d_base = base;
   d_nf.clear();
@@ -36,7 +38,7 @@ void NormalForm::init(Node base)
   d_expDep.clear();
 
   // add to normal form
-  if (!base.isConst() || !base.getConst<String>().isEmptyString())
+  if (!base.isConst() || Word::getLength(base) > 0)
   {
     d_nf.push_back(base);
   }
@@ -59,9 +61,9 @@ void NormalForm::splitConstant(unsigned index, Node c1, Node c2)
   // notice this is not critical for soundness: not doing the below incrementing
   // will only lead to overapproximating when antecedants are required in
   // explanations
-  for (const std::pair<Node, std::map<bool, unsigned> >& pe : d_expDep)
+  for (const std::pair<const Node, std::map<bool, unsigned> >& pe : d_expDep)
   {
-    for (const std::pair<bool, unsigned>& pep : pe.second)
+    for (const auto& pep : pe.second)
     {
       // See if this can be incremented: it can if this literal is not relevant
       // to the current index, and hence it is not relevant for both c1 and c2.
@@ -81,6 +83,7 @@ void NormalForm::addToExplanation(Node exp,
                                   unsigned new_val,
                                   unsigned new_rev_val)
 {
+  Assert(!exp.isConst());
   if (std::find(d_exp.begin(), d_exp.end(), exp) == d_exp.end())
   {
     d_exp.push_back(exp);
@@ -135,6 +138,30 @@ void NormalForm::getExplanation(int index, std::vector<Node>& curr_exp)
   }
 }
 
+Node NormalForm::collectConstantStringAt(size_t& index)
+{
+  std::vector<Node> c;
+  while (d_nf.size() > index && d_nf[index].isConst())
+  {
+    c.push_back(d_nf[index]);
+    index++;
+  }
+  if (!c.empty())
+  {
+    if (d_isRev)
+    {
+      std::reverse(c.begin(), c.end());
+    }
+    Node cc = Rewriter::rewrite(utils::mkConcat(c, c[0].getType()));
+    Assert(cc.isConst());
+    return cc;
+  }
+  else
+  {
+    return Node::null();
+  }
+}
+
 void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
                                            NormalForm& nfj,
                                            int index_i,
@@ -151,13 +178,11 @@ void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
   Trace("strings-explain-prefix")
       << "Included " << curr_exp.size() << " / "
       << (nfi.d_exp.size() + nfj.d_exp.size()) << std::endl;
-  if (nfi.d_base != nfj.d_base)
-  {
-    Node eq = nfi.d_base.eqNode(nfj.d_base);
-    curr_exp.push_back(eq);
-  }
+  // add explanation for why they are equal
+  Node eq = nfi.d_base.eqNode(nfj.d_base);
+  curr_exp.push_back(eq);
 }
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5

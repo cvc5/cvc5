@@ -1,29 +1,31 @@
-/*********************                                                        */
-/*! \file skolem_cache.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A cache of skolems for theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A cache of skolems for theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
-#define CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
+#ifndef CVC5__THEORY__STRINGS__SKOLEM_CACHE_H
+#define CVC5__THEORY__STRINGS__SKOLEM_CACHE_H
 
 #include <map>
 #include <tuple>
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "expr/skolem_manager.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace theory {
 namespace strings {
 
@@ -35,7 +37,13 @@ namespace strings {
 class SkolemCache
 {
  public:
-  SkolemCache();
+  /**
+   * Constructor.
+   *
+   * useOpts determines if we aggressively share Skolems or return the constants
+   * they are entailed to be equal to.
+   */
+  SkolemCache(bool useOpts = true);
   /** Identifiers for skolem types
    *
    * The comments below document the properties of each skolem introduced by
@@ -52,21 +60,23 @@ class SkolemCache
     // exists k. k = a
     SK_PURIFY,
     // a != "" ^ b = "ccccd" ^ a ++ "d" ++ a' = b ++ b' =>
-    //    exists k. a = "cccc" + k
+    //    exists k. a = "cccc" ++ k
     SK_ID_C_SPT,
     SK_ID_C_SPT_REV,
     // a != "" ^ b = "c" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
     //    exists k. a = "c" ++ k
     SK_ID_VC_SPT,
     SK_ID_VC_SPT_REV,
-    // a != "" ^ b = "cccccccc" ^ len(a)!=len(b) a ++ a' = b = b' =>
-    //    exists k. a = "cccc" ++ k OR ( len(k) > 0 ^ "cccc" = a ++ k )
-    SK_ID_VC_BIN_SPT,
-    SK_ID_VC_BIN_SPT_REV,
     // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
-    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
+    //    exists k1 k2. len( k1 )>0 ^ len( k2 )>0 ^
+    //                  ( a ++ k1 = b OR a = b ++ k2 )
+    // k1 is the variable for (a,b) and k2 is the skolem for (b,a).
     SK_ID_V_SPT,
     SK_ID_V_SPT_REV,
+    // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
+    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
+    SK_ID_V_UNIFIED_SPT,
+    SK_ID_V_UNIFIED_SPT_REV,
     // a != ""  ^ b = "c" ^ a ++ a' != b ++ b' =>
     //    exists k, k_rem.
     //         len( k ) = 1 ^
@@ -79,7 +89,6 @@ class SkolemCache
     //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) )
     SK_ID_DEQ_X,
     SK_ID_DEQ_Y,
-    SK_ID_DEQ_Z,
     // contains( a, b ) =>
     //    exists k_pre, k_post. a = k_pre ++ b ++ k_post ^
     //                          ~contains(k_pre ++ substr( b, 0, len(b)-1 ), b)
@@ -94,6 +103,21 @@ class SkolemCache
     // of b in a as the witness for contains( a, b ).
     SK_FIRST_CTN_PRE,
     SK_FIRST_CTN_POST,
+    // For sequence a and regular expression b,
+    // in_re(a, re.++(_*, b, _*)) =>
+    //    exists k_pre, k_match, k_post.
+    //       a = k_pre ++ k_match ++ k_post ^
+    //       len(k_pre) = indexof_re(x, y, 0) ^
+    //       (forall l. 0 < l < len(k_match) =>
+    //         ~in_re(substr(k_match, 0, l), r)) ^
+    //       in_re(k_match, b)
+    //
+    // k_pre is the prefix before the first, shortest match of b in a. k_match
+    // is the substring of a matched by b. It is either empty or there is no
+    // shorter string that matches b.
+    SK_FIRST_MATCH_PRE,
+    SK_FIRST_MATCH,
+    SK_FIRST_MATCH_POST,
     // For integer b,
     // len( a ) > b =>
     //    exists k. a = k ++ a' ^ len( k ) = b
@@ -112,6 +136,22 @@ class SkolemCache
     //       k(x) is the end index of the x^th occurrence of b in a
     //   where n is the number of occurrences of b in a, and k(0)=0.
     SK_OCCUR_INDEX,
+    // For function k: Int -> Int
+    //   exists k.
+    //     forall 0 <= x < n,
+    //       k(x) is the length of the x^th occurrence of b in a (excluding
+    //       matches of empty strings)
+    //   where b is a regular expression, n is the number of occurrences of b
+    //   in a, and k(0)=0.
+    SK_OCCUR_LEN,
+    // For function k: ((Seq U) x Int) -> U
+    // exists k.
+    // forall s, n.
+    //  k(s, n) is some undefined value of sort U
+    SK_NTH,
+    // Diff index for disequalities
+    // a != b => substr(a,k,1) != substr(b,k,1)
+    SK_DEQ_DIFF
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
@@ -128,12 +168,35 @@ class SkolemCache
       TypeNode tn, Node a, Node b, SkolemId id, const char* c);
   /** Same as mkTypedSkolemCached above for (a,[null],id) */
   Node mkTypedSkolemCached(TypeNode tn, Node a, SkolemId id, const char* c);
+  /**
+   * Specific version for seq.nth, used for cases where the index is out of
+   * range for sequence type seqType.
+   */
+  static Node mkSkolemSeqNth(TypeNode seqType, const char* c);
   /** Returns a (uncached) skolem of type string with name c */
   Node mkSkolem(const char* c);
-  /** Same as above, but for custom type tn */
-  Node mkTypedSkolem(TypeNode tn, const char* c);
   /** Returns true if n is a skolem allocated by this class */
   bool isSkolem(Node n) const;
+  /** Make index variable
+   *
+   * This returns an integer variable of kind BOUND_VARIABLE that is used
+   * for axiomatizing the behavior of a term or predicate t. Notice that this
+   * index variable does *not* necessarily refer to indices in the term t
+   * itself. Instead, it refers to indices in the relevant string in the
+   * reduction of t. For example, the index variable for the term str.to_int(s)
+   * is used to quantify over the positions in string term s.
+   */
+  static Node mkIndexVar(Node t);
+
+  /** Make length variable
+   *
+   * This returns an integer variable of kind BOUND_VARIABLE that is used for
+   * axiomatizing the behavior of a term or predicate t. It refers to lengths
+   * of strings in the reduction of t. For example, the length variable for the
+   * term str.indexof(s, r, n) is used to quantify over the lengths of strings
+   * that could be matched by r.
+   */
+  static Node mkLengthVar(Node t);
 
  private:
   /**
@@ -153,7 +216,8 @@ class SkolemCache
   std::tuple<SkolemId, Node, Node> normalizeStringSkolem(SkolemId id,
                                                          Node a,
                                                          Node b);
-
+  /** whether we are using optimizations */
+  bool d_useOpts;
   /** string type */
   TypeNode d_strType;
   /** Constant node zero */
@@ -161,11 +225,11 @@ class SkolemCache
   /** map from node pairs and identifiers to skolems */
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
-  std::unordered_set<Node, NodeHashFunction> d_allSkolems;
+  std::unordered_set<Node> d_allSkolems;
 };
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__THEORY__STRINGS__SKOLEM_CACHE_H */
+#endif /* CVC5__THEORY__STRINGS__SKOLEM_CACHE_H */

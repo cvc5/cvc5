@@ -17,24 +17,21 @@
 
 #include "expr/node_view.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace expr {
 
 template <bool ref_count>
 FlatViewTemplate<ref_count>::FlatViewTemplate(NodeTemplate<ref_count> node,
-                                              Kind kind,
                                               bool skipDups)
-    : d_node(node), d_kind(kind), d_skipDups(skipDups)
+    : d_node(node), d_skipDups(skipDups)
 {
-  Assert(node.getKind() == kind);
 }
 
 template <bool ref_count>
 FlatViewTemplate<ref_count>::iterator::iterator(NodeTemplate<ref_count> node,
-                                                Kind kind,
                                                 bool end,
                                                 bool skipDups)
-    : d_kind(kind), d_skipDups(skipDups)
+    : d_kind(node.getKind()), d_skipDups(skipDups)
 {
   if (end)
   {
@@ -96,17 +93,13 @@ FlatViewTemplate<ref_count>::iterator::operator++()
 }
 
 template FlatViewTemplate<true>::FlatViewTemplate(NodeTemplate<true> node,
-                                                  Kind kind,
                                                   bool skipDups);
 template FlatViewTemplate<false>::FlatViewTemplate(NodeTemplate<false> node,
-                                                   Kind kind,
                                                    bool skipDups);
 template FlatViewTemplate<true>::iterator::iterator(NodeTemplate<true> node,
-                                                    Kind kind,
                                                     bool end,
                                                     bool skipDups);
 template FlatViewTemplate<false>::iterator::iterator(NodeTemplate<false> node,
-                                                     Kind kind,
                                                      bool end,
                                                      bool skipDups);
 template typename FlatViewTemplate<true>::iterator&
@@ -115,4 +108,4 @@ template typename FlatViewTemplate<false>::iterator&
 FlatViewTemplate<false>::iterator::operator++();
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5

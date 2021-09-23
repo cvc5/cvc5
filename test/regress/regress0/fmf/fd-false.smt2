@@ -1,6 +1,6 @@
-; COMMAND-LINE: --fmf-fun --no-check-models
+; COMMAND-LINE: --fmf-fun
 ; EXPECT: sat
-(set-logic ALL_SUPPORTED)
+(set-logic ALL)
 (define-fun-rec f ((x Int)) Bool false)
 (assert (not (f 0)))
 (check-sat)
