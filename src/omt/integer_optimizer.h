@@ -38,7 +38,7 @@ class OMTOptimizerInteger : public OMTOptimizer
    * Handles the optimization query specified by objType
    * isMinimize = true will trigger minimization,
    * otherwise trigger maximization
-   **/
+   */
   smt::OptimizationResult optimize(SmtEngine* optChecker,
                                    TNode target,
                                    bool isMinimize);

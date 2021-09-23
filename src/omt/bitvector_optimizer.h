@@ -38,11 +38,11 @@ class OMTOptimizerBitVector : public OMTOptimizer
    * Computes the BitVector version of (a + b) / 2 without overflow,
    * rounding towards -infinity: -1.5 --> -2 and 1.5 --> 1
    * same as the rounding scheme for int32_t
-   **/
+   */
   BitVector computeAverage(const BitVector& a,
                            const BitVector& b,
                            bool isSigned);
-  /** Is the BitVector doing signed comparison? **/
+  /** Is the BitVector doing signed comparison? */
   bool d_isSigned;
 };
 

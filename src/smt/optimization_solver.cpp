@@ -15,8 +15,6 @@
 
 #include "smt/optimization_solver.h"
 
-#include "context/cdhashmap.h"
-#include "context/cdlist.h"
 #include "omt/omt_optimizer.h"
 #include "options/base_options.h"
 #include "options/language.h"
@@ -93,10 +91,7 @@ std::ostream& operator<<(std::ostream& out,
 }
 
 OptimizationSolver::OptimizationSolver(SmtEngine* parent)
-    : d_parent(parent),
-      d_optChecker(),
-      d_objectives(parent->getUserContext()),
-      d_results()
+    : d_parent(parent), d_optChecker(), d_objectives(), d_results()
 {
 }
 
@@ -135,6 +130,19 @@ void OptimizationSolver::addObjective(TNode target,
   }
   d_optChecker.reset();
   d_objectives.emplace_back(target, type, bvSigned);
+}
+
+void OptimizationSolver::resetObjectives() { d_objectives.clear(); }
+
+const std::vector<OptimizationObjective>& OptimizationSolver::getObjectives()
+    const
+{
+  return d_objectives;
+}
+
+std::vector<OptimizationObjective>& OptimizationSolver::getObjectives()
+{
+  return d_objectives;
 }
 
 std::vector<OptimizationResult> OptimizationSolver::getValues()

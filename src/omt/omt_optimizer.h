@@ -33,7 +33,7 @@ class OMTOptimizer
    * Currently supported: BitVectors, Integers (preliminary).
    * @param node the target node to check for optimizability
    * @return whether node supports optimization
-   **/
+   */
   static bool nodeSupportsOptimization(TNode node);
 
   /**
@@ -44,7 +44,7 @@ class OMTOptimizer
    *   and whether it's signed for BV (only applies when the target type is BV)
    * @return a unique_pointer pointing to a derived class of OMTOptimizer
    *   and this is the optimizer for targetNode
-   **/
+   */
   static std::unique_ptr<OMTOptimizer> getOptimizerForObjective(
       const smt::OptimizationObjective& objective);
 
@@ -65,7 +65,7 @@ class OMTOptimizer
    * @param objective the optimization objective
    *   stating whether it's maximize / minimize etc.
    * @return an expression stating lhs `better than` rhs,
-   **/
+   */
   static Node mkStrongIncrementalExpression(
       NodeManager* nm,
       TNode lhs,
@@ -89,7 +89,7 @@ class OMTOptimizer
    * @param objective the optimization objective
    *   stating whether it's maximize / minimize etc.
    * @return an expression stating lhs `better than or equal to` rhs,
-   **/
+   */
   static Node mkWeakIncrementalExpression(
       NodeManager* nm,
       TNode lhs,
@@ -104,7 +104,7 @@ class OMTOptimizer
    * @param target the target expression to optimize
    * @return smt::OptimizationResult the result of optimization, containing
    *   whether it's optimal and the optimized value.
-   **/
+   */
   virtual smt::OptimizationResult minimize(SmtEngine* optChecker,
                                            TNode target) = 0;
   /**
@@ -115,7 +115,7 @@ class OMTOptimizer
    * @param target the target expression to optimize
    * @return smt::OptimizationResult the result of optimization, containing
    *   whether it's optimal and the optimized value.
-   **/
+   */
   virtual smt::OptimizationResult maximize(SmtEngine* optChecker,
                                            TNode target) = 0;
 };

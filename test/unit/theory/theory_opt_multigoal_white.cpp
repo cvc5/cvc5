@@ -235,67 +235,67 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   ASSERT_EQ(possibleResults.size(), 0);
 }
 
-TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
-{
-  d_smtEngine->resetAssertions();
-  Node x = d_nodeManager->mkVar(*d_BV32Type);
-  Node y = d_nodeManager->mkVar(*d_BV32Type);
-  Node z = d_nodeManager->mkVar(*d_BV32Type);
+// TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
+// {
+//   d_smtEngine->resetAssertions();
+//   Node x = d_nodeManager->mkVar(*d_BV32Type);
+//   Node y = d_nodeManager->mkVar(*d_BV32Type);
+//   Node z = d_nodeManager->mkVar(*d_BV32Type);
 
-  // 18 <= x
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(
-      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
+//   // 18 <= x
+//   d_smtEngine->assertFormula(d_nodeManager->mkNode(
+//       kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
 
-  // y <= x
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
+//   // y <= x
+//   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
 
-  OptimizationSolver optSolver(d_smtEngine.get());
+//   OptimizationSolver optSolver(d_smtEngine.get());
 
-  // minimize x
-  optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
+//   // minimize x
+//   optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
 
-  // push
-  d_smtEngine->push();
+//   // push
+//   d_smtEngine->push();
 
-  // maximize y with `signed` comparison over bit-vectors.
-  optSolver.addObjective(y, OptimizationObjective::MAXIMIZE, true);
-  // maximize z
-  optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
+//   // maximize y with `signed` comparison over bit-vectors.
+//   optSolver.addObjective(y, OptimizationObjective::MAXIMIZE, true);
+//   // maximize z
+//   optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
 
-  // Lexico optimization
-  Result r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
+//   // Lexico optimization
+//   Result r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+//   ASSERT_EQ(r.isSat(), Result::SAT);
 
-  std::vector<OptimizationResult> results = optSolver.getValues();
+//   std::vector<OptimizationResult> results = optSolver.getValues();
 
-  // x == 18
-  ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
+//   // x == 18
+//   ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
 
-  // y == 18
-  ASSERT_EQ(results[1].getValue().getConst<BitVector>(), BitVector(32u, 18u));
+//   // y == 18
+//   ASSERT_EQ(results[1].getValue().getConst<BitVector>(), BitVector(32u, 18u));
 
-  // z == 0xFFFFFFFF
-  ASSERT_EQ(results[2].getValue().getConst<BitVector>(),
-            BitVector(32u, (unsigned)0xFFFFFFFF));
+//   // z == 0xFFFFFFFF
+//   ASSERT_EQ(results[2].getValue().getConst<BitVector>(),
+//             BitVector(32u, (unsigned)0xFFFFFFFF));
 
-  // pop
-  d_smtEngine->pop();
+//   // pop
+//   d_smtEngine->pop();
 
-  // now we only have one objective: (minimize x)
-  r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
-  ASSERT_EQ(r.isSat(), Result::SAT);
-  results = optSolver.getValues();
-  ASSERT_EQ(results.size(), 1);
-  ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
+//   // now we only have one objective: (minimize x)
+//   r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
+//   ASSERT_EQ(r.isSat(), Result::SAT);
+//   results = optSolver.getValues();
+//   ASSERT_EQ(results.size(), 1);
+//   ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
 
-  // resetting the assertions also resets the optimization objectives
-  d_smtEngine->resetAssertions();
-  r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
-  ASSERT_EQ(r.isSat(), Result::SAT);
-  results = optSolver.getValues();
-  ASSERT_EQ(results.size(), 0);
-}
+//   // resetting the assertions also resets the optimization objectives
+//   d_smtEngine->resetAssertions();
+//   r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
+//   ASSERT_EQ(r.isSat(), Result::SAT);
+//   results = optSolver.getValues();
+//   ASSERT_EQ(results.size(), 0);
+// }
 
 }  // namespace test
 }  // namespace cvc5
