@@ -61,10 +61,16 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
     // See proof_rule.h for documentation on the SCOPE rule. This comment uses
-    // variable names as introduced there. If the SCOPE conclusion is (not (and
-    // F1 ... Fn)), the transformation below generates (cl (not (and F1
-    // ... Fn))) to be printed, while for the conclusion (=> (and F1 ... Fn) F)
-    // it generates (cl (=> (and F1 ... Fn))).
+    // variable names as introduced there. Since the SCOPE rule originally concludes
+    // (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) but the ANCHOR rule
+    // concludes (cl (not F1) ... (not Fn) F), to keep the original shape of the
+    // proof node it is necessary to rederive the original conclusion. The
+    // transformation is described below, depending on the form of SCOPE's
+    // conclusion.
+    //
+    // Note that after the original conclusion is rederived the new proof node
+    // will actually have to printed, respectively, (cl (=> (and F1 ... Fn) F))
+    // or (cl (not (and F1 ... Fn))).
     //
     // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
     // Fn)) for i times.
