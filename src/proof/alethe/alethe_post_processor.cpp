@@ -188,8 +188,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &=
             addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
 
-        Node vp3 =
-            nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
+        vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
         success &= addAletheStep(
             AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
       }
