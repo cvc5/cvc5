@@ -7841,7 +7841,7 @@ Statistics Solver::getStatistics() const
 
 bool Solver::isOutputOn(const std::string& tag) const
 {
-  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // `isOutputOn(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
@@ -7856,7 +7856,7 @@ bool Solver::isOutputOn(const std::string& tag) const
 
 std::ostream& Solver::getOutput(const std::string& tag) const
 {
-  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // `getOutput(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
