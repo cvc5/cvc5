@@ -156,7 +156,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       std::vector<Node> premisesVP2 = {vp1};
       std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
       Node vp2_i;
-      for (long unsigned int i = 0; i < args.size(); i++)
+      for (size_t i = 0, size = args.size(); i < size; i++)
       {
         vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
         success &=
