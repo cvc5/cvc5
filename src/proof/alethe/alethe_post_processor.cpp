@@ -62,10 +62,24 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
     // See proof_rule.h for documentation on the SCOPE rule. This comment uses
+<<<<<<< HEAD
     // variable names as introduced there. If the SCOPE conclusion is (not (and
     // F1 ... Fn)), the transformation below generates (cl (not (and F1
     // ... Fn))) to be printed, while for the conclusion (=> (and F1 ... Fn) F)
     // it generates (cl (=> (and F1 ... Fn))).
+=======
+    // variable names as introduced there. Since the SCOPE rule originally
+    // concludes
+    // (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) but the ANCHOR rule
+    // concludes (cl (not F1) ... (not Fn) F), to keep the original shape of the
+    // proof node it is necessary to rederive the original conclusion. The
+    // transformation is described below, depending on the form of SCOPE's
+    // conclusion.
+    //
+    // Note that after the original conclusion is rederived the new proof node
+    // will actually have to be printed, respectively, (cl (=> (and F1 ... Fn)
+    // F)) or (cl (not (and F1 ... Fn))).
+>>>>>>> upstream/master
     //
     // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
     // Fn)) for i times.
@@ -144,6 +158,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                sanitized_args,
                                *cdp);
 
+<<<<<<< HEAD
       // Build vp2i
       Node andNode;
       if (args.size() != 1)
@@ -179,6 +194,41 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
       success &= addAletheStep(
           AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
+=======
+      Node vp3 = vp1;
+
+      if (args.size() != 1)
+      {
+        // Build vp2i
+        Node andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
+        std::vector<Node> premisesVP2 = {vp1};
+        std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
+        Node vp2_i;
+        for (size_t i = 0, size = args.size(); i < size; i++)
+        {
+          vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
+          success &=
+              addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
+          premisesVP2.push_back(vp2_i);
+          notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
+        }
+
+        Node vp2a = nm->mkNode(kind::SEXPR, notAnd);
+        success &= addAletheStep(
+            AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
+
+        notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
+        notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
+        Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
+        success &=
+            addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
+
+        Node vp3 =
+            nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
+        success &= addAletheStep(
+            AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
+      }
+>>>>>>> upstream/master
 
       Node vp8 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::IMPLIES, andNode, children[0]));
