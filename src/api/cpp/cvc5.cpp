@@ -63,6 +63,7 @@
 #include "options/outputc.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
+#include "smt/env.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_mode.h"
@@ -7845,7 +7846,7 @@ bool Solver::isOutputOn(const std::string& tag) const
   // here but roll our own.
   try
   {
-    return cvc5::OutputChannel.isOn(d_smtEngine->getOptions(), tag);
+    return d_smtEngine->getEnv().isOutputOn(tag);
   }
   catch (const cvc5::Exception& e)
   {
@@ -7860,7 +7861,7 @@ std::ostream& Solver::getOutput(const std::string& tag) const
   // here but roll our own.
   try
   {
-    return Output(d_smtEngine->getOptions(), tag);
+    return d_smtEngine->getEnv().getOutput(tag);
   }
   catch (const cvc5::Exception& e)
   {
