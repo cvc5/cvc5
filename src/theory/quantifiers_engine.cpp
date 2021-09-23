@@ -622,7 +622,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     {
       if (Trace.isOn("quantifiers-sk-debug"))
       {
-        Node slem = Rewriter::rewrite(lem.getNode());
+        Node slem = rewrite(lem.getNode());
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
