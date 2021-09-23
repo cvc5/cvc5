@@ -89,8 +89,8 @@ void PrintBenchmark::printAssertions(std::ostream& out,
     {
       Assert(defMap.find(defSym) == defMap.end());
       defMap[defSym] = std::pair<bool, Node>(isRec, defBody);
+      defSyms.push_back(defSym);
     }
-    defSyms.push_back(defSym);
   }
   // go back and print the definitions
   std::unordered_set<Node> alreadyPrintedDecl;
@@ -99,11 +99,6 @@ void PrintBenchmark::printAssertions(std::ostream& out,
   std::unordered_map<Node, std::pair<bool, Node>>::const_iterator itd;
   for (const Node& s : defSyms)
   {
-    if (s.isNull())
-    {
-      // if we failed to infer a definition, skip
-      continue;
-    }
     std::vector<Node> recDefs;
     std::vector<Node> ordinaryDefs;
     std::unordered_set<Node> syms;

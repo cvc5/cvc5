@@ -40,9 +40,9 @@ class PrintBenchmark
  public:
   PrintBenchmark(const Printer* p) : d_printer(p) {}
   /**
-   * Print assertions, without special handling of defined functions.
-   * This prints a parsable set of commands on the output stream out that
-   * defines (recursive) functions in defs, and asserts assertions.
+   * Print assertions. This prints a parsable set of commands on the output
+   * stream out that defines (recursive) functions in defs, and asserts
+   * assertions. It does not print a set-logic or check-sat command.
    *
    * Each node in defs is either of the form:
    * (1) (= s t), where s is a (non-recursively) defined function, where
@@ -121,6 +121,7 @@ class PrintBenchmark
    * quantified formula)
    * @param sym Updated to the symbol that a defines
    * @param body Update to the term that defines sym
+   * @return true if the definition was successfully inferred
    */
   bool decomposeDefinition(Node a, bool& isRecDef, Node& sym, Node& body);
   /**
