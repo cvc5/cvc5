@@ -177,7 +177,7 @@ class SEnumLenSet
   SEnumLen* getEnumerator(size_t len, TypeNode tn);
 
  private:
-  /** an enumerator for the elements' type */
+  /** an enumerator for the element's type */
   TypeEnumeratorProperties* d_tep;
   /** for each start length, type */
   std::map<std::pair<size_t, TypeNode>, std::unique_ptr<SEnumLen> > d_sels;
