@@ -232,8 +232,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // The rule is translated according to the theory id tid and the outermost
-    // connective of the conclusion F. This is not an exact translation but
-    // should work in most cases.
+    // connective of the first term in the conclusion F, since F always has the
+    // form (= t1 t2) where t1 is the term being rewritten. This is not an exact
+    // translation but should work in most cases.
     //
     // E.g. if F is (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
     // is correctly guessed as the rule.
