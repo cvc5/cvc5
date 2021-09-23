@@ -25,6 +25,7 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -47,15 +48,16 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
 
-InstStrategyCegqi::InstStrategyCegqi(QuantifiersState& qs,
+InstStrategyCegqi::InstStrategyCegqi(Env& env,
+                                     QuantifiersState& qs,
                                      QuantifiersInferenceManager& qim,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
-      d_added_cbqi_lemma(qs.getUserContext()),
+      d_added_cbqi_lemma(userContext()),
       d_vtsCache(new VtsTermCache(qim)),
       d_bv_invert(nullptr),
       d_small_const_multiplier(
@@ -70,7 +72,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersState& qs,
   }
   if (options::cegqiNestedQE())
   {
-    d_nestedQe.reset(new NestedQe(qs.getEnv()));
+    d_nestedQe.reset(new NestedQe(d_env));
   }
 }
 
@@ -167,10 +169,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     DecisionStrategy* dlds = nullptr;
     if (itds == d_dstrat.end())
     {
-      d_dstrat[q].reset(new DecisionStrategySingleton("CexLiteral",
-                                                      ceLit,
-                                                      d_qstate.getSatContext(),
-                                                      d_qstate.getValuation()));
+      d_dstrat[q].reset(new DecisionStrategySingleton(
+          d_env, "CexLiteral", ceLit, d_qstate.getValuation()));
       dlds = d_dstrat[q].get();
     }
     else
@@ -506,7 +506,7 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(q, d_qstate, d_treg, this));
+    d_cinst[q].reset(new CegInstantiator(d_env, q, d_qstate, d_treg, this));
     return d_cinst[q].get();
   }
   return it->second.get();

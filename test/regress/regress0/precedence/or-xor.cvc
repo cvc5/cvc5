@@ -1,7 +1,0 @@
-% EXPECT: entailed
-% Simple test for right precedence of OR and XOR.
-
-A, B, C: BOOLEAN;
-
-QUERY ((A OR B XOR C) <=> ((A OR B) XOR C))
-  AND ((A XOR B OR C) <=> ((A XOR B) OR C));

@@ -89,8 +89,6 @@ class TheoryArithPrivate : protected EnvObj
 
   TheoryArith& d_containing;
 
-  const Options& options() const { return d_env.getOptions(); }
-
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
    */
@@ -867,7 +865,7 @@ private:
 
     IntStat d_numBranchesFailed;
 
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& reg, const std::string& name);
   };
 
 

@@ -219,7 +219,6 @@ class CVC5_EXPORT Command
 
   virtual void toStream(std::ostream& out,
                         int toDepth = -1,
-
                         size_t dag = 1,
                         Language language = Language::LANG_AUTO) const = 0;
 
@@ -766,7 +765,7 @@ class CVC5_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
 class CVC5_EXPORT SygusConstraintCommand : public Command
 {
  public:
-  SygusConstraintCommand(const api::Term& t);
+  SygusConstraintCommand(const api::Term& t, bool isAssume = false);
   /** returns the declared constraint */
   api::Term getTerm() const;
   /** invokes this command
@@ -788,6 +787,8 @@ class CVC5_EXPORT SygusConstraintCommand : public Command
  protected:
   /** the declared constraint */
   api::Term d_term;
+  /** true if this is a sygus assumption */
+  bool d_isAssume;
 };
 
 /** Declares a sygus invariant constraint
@@ -1189,6 +1190,29 @@ class CVC5_EXPORT GetUnsatCoreCommand : public Command
   std::vector<api::Term> d_result;
 }; /* class GetUnsatCoreCommand */
 
+class CVC5_EXPORT GetDifficultyCommand : public Command
+{
+ public:
+  GetDifficultyCommand();
+  const std::map<api::Term, api::Term>& getDifficultyMap() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(std::ostream& out,
+                int toDepth = -1,
+                size_t dag = 1,
+                Language language = Language::LANG_AUTO) const override;
+
+ protected:
+  /** The symbol manager we were invoked with */
+  SymbolManager* d_sm;
+  /** the result of the get difficulty call */
+  std::map<api::Term, api::Term> d_result;
+};
+
 class CVC5_EXPORT GetAssertionsCommand : public Command
 {
  protected:
@@ -1207,25 +1231,6 @@ class CVC5_EXPORT GetAssertionsCommand : public Command
                 size_t dag = 1,
                 Language language = Language::LANG_AUTO) const override;
 }; /* class GetAssertionsCommand */
-
-class CVC5_EXPORT SetBenchmarkStatusCommand : public Command
-{
- protected:
-  BenchmarkStatus d_status;
-
- public:
-  SetBenchmarkStatusCommand(BenchmarkStatus status);
-
-  BenchmarkStatus getStatus() const;
-
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-  void toStream(std::ostream& out,
-                int toDepth = -1,
-                size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
-}; /* class SetBenchmarkStatusCommand */
 
 class CVC5_EXPORT SetBenchmarkLogicCommand : public Command
 {
@@ -1388,24 +1393,6 @@ class CVC5_EXPORT QuitCommand : public Command
                 size_t dag = 1,
                 Language language = Language::LANG_AUTO) const override;
 }; /* class QuitCommand */
-
-class CVC5_EXPORT CommentCommand : public Command
-{
-  std::string d_comment;
-
- public:
-  CommentCommand(std::string comment);
-
-  std::string getComment() const;
-
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-  void toStream(std::ostream& out,
-                int toDepth = -1,
-                size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
-}; /* class CommentCommand */
 
 class CVC5_EXPORT CommandSequence : public Command
 {

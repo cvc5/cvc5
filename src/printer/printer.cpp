@@ -19,7 +19,6 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "printer/ast/ast_printer.h"
-#include "printer/cvc/cvc_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
@@ -43,9 +42,6 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
 
     case Language::LANG_TPTP:
       return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
-
-    case Language::LANG_CVC:
-      return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
     case Language::LANG_SYGUS_V2:
       // sygus version 2.0 does not have discrepancies with smt2, hence we use
@@ -204,6 +200,13 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
   printUnknownCommand(out, "declare-fun");
 }
 
+void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
+{
+  std::stringstream vs;
+  vs << v;
+  toStreamCmdDeclareFunction(out, vs.str(), v.getType());
+}
+
 void Printer::toStreamCmdDeclarePool(std::ostream& out,
                                      const std::string& id,
                                      TypeNode type,
@@ -235,6 +238,25 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
   printUnknownCommand(out, "define-fun");
 }
 
+void Printer::toStreamCmdDefineFunction(std::ostream& out,
+                                        Node v,
+                                        Node lambda) const
+{
+  std::stringstream vs;
+  vs << v;
+  std::vector<Node> formals;
+  Node body = lambda;
+  TypeNode rangeType = v.getType();
+  if (body.getKind() == kind::LAMBDA)
+  {
+    formals.insert(formals.end(), lambda[0].begin(), lambda[0].end());
+    body = lambda[1];
+    Assert(rangeType.isFunction());
+    rangeType = rangeType.getRangeType();
+  }
+  toStreamCmdDefineFunction(out, vs.str(), formals, rangeType, body);
+}
+
 void Printer::toStreamCmdDefineFunctionRec(
     std::ostream& out,
     const std::vector<Node>& funcs,
@@ -242,6 +264,32 @@ void Printer::toStreamCmdDefineFunctionRec(
     const std::vector<Node>& formulas) const
 {
   printUnknownCommand(out, "define-fun-rec");
+}
+
+void Printer::toStreamCmdDefineFunctionRec(
+    std::ostream& out,
+    const std::vector<Node>& funcs,
+    const std::vector<Node>& lambdas) const
+{
+  std::vector<std::vector<Node>> formals;
+  std::vector<Node> formulas;
+  for (const Node& l : lambdas)
+  {
+    std::vector<Node> formalsVec;
+    Node formula;
+    if (l.getKind() == kind::LAMBDA)
+    {
+      formalsVec.insert(formalsVec.end(), l[0].begin(), l[0].end());
+      formula = l[1];
+    }
+    else
+    {
+      formula = l;
+    }
+    formals.emplace_back(formalsVec);
+    formulas.emplace_back(formula);
+  }
+  toStreamCmdDefineFunctionRec(out, funcs, formals, formulas);
 }
 
 void Printer::toStreamCmdSetUserAttribute(std::ostream& out,
@@ -286,6 +334,11 @@ void Printer::toStreamCmdSynthFun(std::ostream& out,
 void Printer::toStreamCmdConstraint(std::ostream& out, Node n) const
 {
   printUnknownCommand(out, "constraint");
+}
+
+void Printer::toStreamCmdAssume(std::ostream& out, Node n) const
+{
+  printUnknownCommand(out, "assume");
 }
 
 void Printer::toStreamCmdInvConstraint(
@@ -373,15 +426,14 @@ void Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
   printUnknownCommand(out, "get-unsat-core");
 }
 
+void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
+{
+  printUnknownCommand(out, "get-difficulty");
+}
+
 void Printer::toStreamCmdGetAssertions(std::ostream& out) const
 {
   printUnknownCommand(out, "get-assertions");
-}
-
-void Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                            Result::Sat status) const
-{
-  printUnknownCommand(out, "set-info");
 }
 
 void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
@@ -443,12 +495,6 @@ void Printer::toStreamCmdResetAssertions(std::ostream& out) const
 void Printer::toStreamCmdQuit(std::ostream& out) const
 {
   printUnknownCommand(out, "quit");
-}
-
-void Printer::toStreamCmdComment(std::ostream& out,
-                                 const std::string& comment) const
-{
-  printUnknownCommand(out, "comment");
 }
 
 void Printer::toStreamCmdDeclareHeap(std::ostream& out,

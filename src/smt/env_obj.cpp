@@ -33,6 +33,21 @@ Node EnvObj::extendedRewrite(TNode node, bool aggr) const
 {
   return d_env.getRewriter()->extendedRewrite(node, aggr);
 }
+Node EnvObj::evaluate(TNode n,
+                      const std::vector<Node>& args,
+                      const std::vector<Node>& vals,
+                      bool useRewriter) const
+{
+  return d_env.evaluate(n, args, vals, useRewriter);
+}
+Node EnvObj::evaluate(TNode n,
+                      const std::vector<Node>& args,
+                      const std::vector<Node>& vals,
+                      const std::unordered_map<Node, Node>& visited,
+                      bool useRewriter) const
+{
+  return d_env.evaluate(n, args, vals, visited, useRewriter);
+}
 
 const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }
 
@@ -43,6 +58,11 @@ context::Context* EnvObj::context() const { return d_env.getContext(); }
 context::UserContext* EnvObj::userContext() const
 {
   return d_env.getUserContext();
+}
+
+StatisticsRegistry& EnvObj::statisticsRegistry() const
+{
+  return d_env.getStatisticsRegistry();
 }
 
 }  // namespace cvc5

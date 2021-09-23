@@ -292,7 +292,8 @@ ITECompressor::ITECompressor(Env& env, ContainsTermITEVisitor* contains)
     : EnvObj(env),
       d_contains(contains),
       d_assertions(NULL),
-      d_incoming(true, true)
+      d_incoming(true, true),
+      d_statistics(env.getStatisticsRegistry())
 {
   Assert(d_contains != NULL);
 
@@ -310,10 +311,9 @@ void ITECompressor::reset()
 
 void ITECompressor::garbageCollect() { reset(); }
 
-ITECompressor::Statistics::Statistics()
-    : d_compressCalls(
-        smtStatisticsRegistry().registerInt("ite-simp::compressCalls")),
-      d_skolemsAdded(smtStatisticsRegistry().registerInt("ite-simp::skolems"))
+ITECompressor::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_compressCalls(reg.registerInt("ite-simp::compressCalls")),
+      d_skolemsAdded(reg.registerInt("ite-simp::skolems"))
 {
 }
 
@@ -653,7 +653,8 @@ ITESimplifier::ITESimplifier(Env& env, ContainsTermITEVisitor* contains)
       d_leavesConstCache(),
       d_simpConstCache(),
       d_simpContextCache(),
-      d_simpITECache()
+      d_simpITECache(),
+      d_statistics(env.getStatisticsRegistry())
 {
   Assert(d_containsVisitor != NULL);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -702,22 +703,16 @@ bool ITESimplifier::doneALotOfWorkHeuristic() const
   return (d_citeEqConstApplications > SIZE_BOUND);
 }
 
-ITESimplifier::Statistics::Statistics()
+ITESimplifier::Statistics::Statistics(StatisticsRegistry& reg)
     : d_maxNonConstantsFolded(
-        smtStatisticsRegistry().registerInt("ite-simp::maxNonConstantsFolded")),
-      d_unexpected(smtStatisticsRegistry().registerInt("ite-simp::unexpected")),
-      d_unsimplified(
-          smtStatisticsRegistry().registerInt("ite-simp::unsimplified")),
-      d_exactMatchFold(
-          smtStatisticsRegistry().registerInt("ite-simp::exactMatchFold")),
-      d_binaryPredFold(
-          smtStatisticsRegistry().registerInt("ite-simp::binaryPredFold")),
-      d_specialEqualityFolds(smtStatisticsRegistry().registerInt(
-          "ite-simp::specialEqualityFolds")),
-      d_simpITEVisits(
-          smtStatisticsRegistry().registerInt("ite-simp::simpITE.visits")),
-      d_inSmaller(smtStatisticsRegistry().registerHistogram<uint32_t>(
-          "ite-simp::inSmaller"))
+        reg.registerInt("ite-simp::maxNonConstantsFolded")),
+      d_unexpected(reg.registerInt("ite-simp::unexpected")),
+      d_unsimplified(reg.registerInt("ite-simp::unsimplified")),
+      d_exactMatchFold(reg.registerInt("ite-simp::exactMatchFold")),
+      d_binaryPredFold(reg.registerInt("ite-simp::binaryPredFold")),
+      d_specialEqualityFolds(reg.registerInt("ite-simp::specialEqualityFolds")),
+      d_simpITEVisits(reg.registerInt("ite-simp::simpITE.visits")),
+      d_inSmaller(reg.registerHistogram<uint32_t>("ite-simp::inSmaller"))
 {
 }
 
@@ -1456,7 +1451,7 @@ uint32_t countReachable(TNode x, Kind k)
 
 Node ITESimplifier::simpITEAtom(TNode atom)
 {
-  static int CVC5_UNUSED instance = 0;
+  CVC5_UNUSED static int instance = 0;
   Debug("ite::atom") << "still simplifying " << (++instance) << endl;
   Node attempt = transformAtom(atom);
   Debug("ite::atom") << "  finished " << instance << endl;

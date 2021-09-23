@@ -22,6 +22,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/kind.h"
 #include "expr/skolem_manager.h"
+#include "expr/uninterpreted_constant.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -38,6 +39,7 @@
 #include "theory/theory_state.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -325,7 +327,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   if( options::dtBinarySplit() && consIndex!=-1 ){
                     Node test = utils::mkTester(n, consIndex, dt);
                     Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
-                    test = Rewriter::rewrite( test );
+                    test = rewrite(test);
                     NodeBuilder nb(kind::OR);
                     nb << test << test.notNode();
                     Node lemma = nb;
@@ -1007,7 +1009,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     }
     else
     {
-      rrs = Rewriter::rewrite(r);
+      rrs = rewrite(r);
     }
     if (s != rrs)
     {
@@ -1422,7 +1424,7 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
   Node n_ic = utils::getInstCons(k, dt, index);
-  n_ic = Rewriter::rewrite( n_ic );
+  n_ic = rewrite(n_ic);
   // it may be a new term, so we collect terms and add it to the equality engine
   collectTerms( n_ic );
   d_equalityEngine->addTerm(n_ic);

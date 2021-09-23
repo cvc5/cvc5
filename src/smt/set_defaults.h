@@ -115,7 +115,7 @@ class SetDefaults
    * use of other theories to handle certain operators, e.g. UF to handle
    * partial functions.
    */
-  void widenLogic(LogicInfo& logic, Options& opts) const;
+  void widenLogic(LogicInfo& logic, const Options& opts) const;
   //------------------------- options setting, post finalization of logic
   /**
    * Set all default options, after we have finalized the logic.
