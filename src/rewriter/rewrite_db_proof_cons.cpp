@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
+#include "smt/env.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
@@ -33,7 +34,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_trrc(env.getProofNodeManager()),
       d_db(db),
       d_pnm(env.getProofNodeManager()),
-      d_eval(),
+      d_eval(nullptr),
       d_currRecLimit(0),
       d_currFixedPointId(DslPfRule::FAIL),
       d_statTotalInputs(smtStatisticsRegistry().registerInt(
@@ -694,7 +695,7 @@ Node RewriteDbProofCons::doEvaluate(Node n)
   {
     return itv->second;
   }
-  Node nev = d_eval.eval(n, {}, {}, false);
+  Node nev = d_eval.eval(n, {}, {});
   d_evalCache[n] = nev;
   return nev;
 }

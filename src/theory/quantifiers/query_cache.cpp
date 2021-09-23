@@ -16,6 +16,7 @@
 #include "theory/quantifiers/query_cache.h"
 
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
@@ -27,7 +28,7 @@ namespace theory {
 namespace quantifiers {
 
 QueryCache::QueryCache(Env& env, bool checkUnsat, Options* optr)
-    : ExprMiner(env), d_checkUnsat(checkUnsat)
+  : ExprMiner(env), d_checkUnsat(checkUnsat), d_sampler(env)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   if (optr != nullptr)
