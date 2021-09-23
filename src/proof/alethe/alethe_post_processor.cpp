@@ -150,41 +150,39 @@ bool AletheProofPostprocessCallback::update(Node res,
                                sanitized_args,
                                *cdp);
 
-      // Build vp2i
-      Node andNode;
+      Node vp3 = vp1;
+
       if (args.size() != 1)
       {
-        andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
-      }
-      else
-      {
-        andNode = args[0];  // F1
-      }
-      std::vector<Node> premisesVP2 = {vp1};
-      std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
-      Node vp2_i;
-      for (size_t i = 0, size = args.size(); i < size; i++)
-      {
-        vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
+        // Build vp2i
+        Node andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
+        std::vector<Node> premisesVP2 = {vp1};
+        std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
+        Node vp2_i;
+        for (size_t i = 0, size = args.size(); i < size; i++)
+        {
+          vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
+          success &=
+              addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
+          premisesVP2.push_back(vp2_i);
+          notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
+        }
+
+        Node vp2a = nm->mkNode(kind::SEXPR, notAnd);
+        success &= addAletheStep(
+            AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
+
+        notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
+        notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
+        Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
         success &=
-            addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
-        premisesVP2.push_back(vp2_i);
-        notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
+            addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
+
+        Node vp3 =
+            nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
+        success &= addAletheStep(
+            AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
       }
-
-      Node vp2a = nm->mkNode(kind::SEXPR, notAnd);
-      success &= addAletheStep(
-          AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
-
-      notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
-      notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
-      Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
-      success &=
-          addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
-
-      Node vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
-      success &= addAletheStep(
-          AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
 
       Node vp8 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::IMPLIES, andNode, children[0]));
