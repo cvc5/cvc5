@@ -34,7 +34,8 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-HigherOrderTrigger::HigherOrderTrigger(Env& env,
+HigherOrderTrigger::HigherOrderTrigger(
+    Env& env,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,

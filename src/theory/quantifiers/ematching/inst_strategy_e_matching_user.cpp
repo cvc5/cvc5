@@ -26,7 +26,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategyUserPatterns::InstStrategyUserPatterns(Env& env, 
+InstStrategyUserPatterns::InstStrategyUserPatterns(
+    Env& env,
     inst::TriggerDatabase& td,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,

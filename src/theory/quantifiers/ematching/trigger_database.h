@@ -41,7 +41,8 @@ namespace inst {
 class TriggerDatabase : protected EnvObj
 {
  public:
-  TriggerDatabase(Env& env, QuantifiersState& qs,
+  TriggerDatabase(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr);

@@ -92,7 +92,8 @@ class Trigger;
 class HigherOrderTrigger : public Trigger
 {
  public:
-  HigherOrderTrigger(Env& env,QuantifiersState& qs,
+  HigherOrderTrigger(Env& env,
+                     QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
                      TermRegistry& tr,

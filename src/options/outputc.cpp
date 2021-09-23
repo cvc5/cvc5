@@ -6,7 +6,8 @@ namespace cvc5 {
 
 OutputC OutputChannel(&std::cout);
 
-Cvc5ostream OutputC::operator()(const Options& opts, const options::OutputTag tag) const
+Cvc5ostream OutputC::operator()(const Options& opts,
+                                const options::OutputTag tag) const
 {
   if (opts.base.outputTagHolder[static_cast<size_t>(tag)])
   {

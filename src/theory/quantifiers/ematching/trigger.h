@@ -96,12 +96,14 @@ class InstMatchGenerator;
  * required to ensure the correctness of instantiation lemmas we generate.
  *
  */
-class Trigger : protected EnvObj {
+class Trigger : protected EnvObj
+{
   friend class IMGenerator;
 
  public:
   /** trigger constructor */
-  Trigger(Env& env, QuantifiersState& qs,
+  Trigger(Env& env,
+          QuantifiersState& qs,
           QuantifiersInferenceManager& qim,
           QuantifiersRegistry& qr,
           TermRegistry& tr,

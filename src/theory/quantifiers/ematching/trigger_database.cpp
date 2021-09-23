@@ -24,7 +24,8 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-TriggerDatabase::TriggerDatabase(Env& env, QuantifiersState& qs,
+TriggerDatabase::TriggerDatabase(Env& env,
+                                 QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr)
@@ -78,7 +79,8 @@ Trigger* TriggerDatabase::mkTrigger(Node q,
   Trigger* t;
   if (!hoApps.empty())
   {
-    t = new HigherOrderTrigger(d_env, d_qs, d_qim, d_qreg, d_treg, q, trNodes, hoApps);
+    t = new HigherOrderTrigger(
+        d_env, d_qs, d_qim, d_qreg, d_treg, q, trNodes, hoApps);
   }
   else
   {

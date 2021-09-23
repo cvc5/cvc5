@@ -44,7 +44,8 @@ namespace quantifiers {
 namespace inst {
 
 /** trigger class constructor */
-Trigger::Trigger(Env& env, QuantifiersState& qs,
+Trigger::Trigger(Env& env,
+                 QuantifiersState& qs,
                  QuantifiersInferenceManager& qim,
                  QuantifiersRegistry& qr,
                  TermRegistry& tr,
@@ -82,10 +83,11 @@ Trigger::Trigger(Env& env, QuantifiersState& qs,
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
     if (d_env.isOutputOn(options::OutputTag::TRIGGER))
-      {
-        d_env.getOutput(options::OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q)
-                                        << " " << d_trNode << ")" << std::endl;
-      }
+    {
+      d_env.getOutput(options::OutputTag::TRIGGER)
+          << "(trigger " << qa.quantToString(q) << " " << d_trNode << ")"
+          << std::endl;
+    }
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){

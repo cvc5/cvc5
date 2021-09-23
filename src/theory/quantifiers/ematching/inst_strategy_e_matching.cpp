@@ -65,7 +65,8 @@ struct sortTriggers {
 };
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
-    Env& env, inst::TriggerDatabase& td,
+    Env& env,
+    inst::TriggerDatabase& td,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,
@@ -152,7 +153,8 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
       Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
       if (d_env.isOutputOn(options::OutputTag::TRIGGER))
       {
-        d_env.getOutput(options::OutputTag::TRIGGER) << "(no-trigger " << f << ")" << std::endl;
+        d_env.getOutput(options::OutputTag::TRIGGER)
+            << "(no-trigger " << f << ")" << std::endl;
       }
     }
   }

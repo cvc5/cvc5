@@ -21,8 +21,8 @@
 
 #include <memory>
 
-#include "options/options.h"
 #include "options/base_options.h"
+#include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
 #include "util/statistics_registry.h"

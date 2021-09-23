@@ -19,6 +19,7 @@
 #define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_H
 
 #include <vector>
+
 #include "expr/node.h"
 #include "options/quantifiers_options.h"
 #include "smt/env_obj.h"
@@ -52,7 +53,8 @@ enum class InstStrategyStatus
 class InstStrategy : protected EnvObj
 {
  public:
-  InstStrategy(Env& env, inst::TriggerDatabase& td,
+  InstStrategy(Env& env,
+               inst::TriggerDatabase& td,
                QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr,
