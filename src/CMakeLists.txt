@@ -149,8 +149,6 @@ libcvc5_add_sources(
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
   printer/ast/ast_printer.h
-  printer/cvc/cvc_printer.cpp
-  printer/cvc/cvc_printer.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
