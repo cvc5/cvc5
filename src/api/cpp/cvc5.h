@@ -2732,7 +2732,9 @@ class CVC5_EXPORT DriverOptions
 struct CVC5_EXPORT OptionInfo
 {
   /** Has no value information */
-  struct VoidInfo {};
+  struct VoidInfo
+  {
+  };
   /** Has the current and the default value */
   template <typename T>
   struct ValueInfo
@@ -4489,18 +4491,6 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Adds an optimization objective
-   * @param target the target formula to optimize
-   * @param objType whether it's MAXIMIZE / MINIMIZE,
-   *   or BV_SIGNED_MAXIMIZE / BV_SIGNED_MINIMIZE
-   * Note: using MAXIMIZE/MINIMIZE on BitVector type implies
-   *   an **unsigned** optimization.
-   * Please use BV_SIGNED_MAXIMIZE / BV_SIGNED_MINIMIZE
-   *   for signed optimization.
-   */
-  void addObjective(Term target, ObjectiveType objType) const;
-
-  /**
    * Run optimization for the objectives
    * @param objCombination for multi-objective optimization,
    *  indicate whether it's a BOX optimization,
@@ -4517,12 +4507,19 @@ class CVC5_EXPORT Solver
    *  vector<OptimizationResult> stores the results of individual objectives
    */
   std::pair<Result, std::vector<OptimizationResult>> checkOpt(
+      const std::vector<std::pair<Term, ObjectiveType>>& objectives,
       ObjectiveCombination objCombination = LEXICOGRAPHIC) const;
 
   /**
-   * Resets / clears the Pareto optimization state.
+   * Retrive the next Pareto solution,
+   * valid only after checkOpt is called with PARETO and SAT is returned,
+   * otherwise it's undefined behaviour.
+   * @return a pair <Result, vector<OptimizationResult>>,
+   *  where Result indicates the overall optimization result,
+   *  if the possible solutions are exhausted, it's UNSAT.
    */
-  void resetParetoOptimization() const;
+  std::pair<Result, std::vector<OptimizationResult>> nextParetoSolution() const;
+
   /**
    * Whether the output stream for the given tag is enabled. Tags can be enabled
    * with the `output` option (and `-o <tag>` on the command line). Raises an
@@ -4630,6 +4627,18 @@ class CVC5_EXPORT Solver
                       const Sort& sort,
                       bool isInv = false,
                       Grammar* grammar = nullptr) const;
+
+  /**
+   * Adds an optimization objective
+   * @param target the target formula to optimize
+   * @param objType whether it's MAXIMIZE / MINIMIZE,
+   *   or BV_SIGNED_MAXIMIZE / BV_SIGNED_MINIMIZE
+   * Note: using MAXIMIZE/MINIMIZE on BitVector type implies
+   *   an **unsigned** optimization.
+   * Please use BV_SIGNED_MAXIMIZE / BV_SIGNED_MINIMIZE
+   *   for signed optimization.
+   */
+  void addObjective(Term target, ObjectiveType objType) const;
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;

@@ -97,15 +97,10 @@ OptimizationSolver::OptimizationSolver(SmtEngine* parent)
 
 Result OptimizationSolver::checkOpt(ObjectiveCombination combination)
 {
-  // if the results of the previous call have different size than the
-  // objectives, then we should clear the pareto optimization context
-  if (d_results.size() != d_objectives.size()) d_optChecker.reset();
+  // always clear the pareto optimization context
+  d_optChecker.reset();
   // initialize the result vector
-  d_results.clear();
-  for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
-  {
-    d_results.emplace_back();
-  }
+  d_results.assign(d_objectives.size(), OptimizationResult());
   switch (combination)
   {
     case BOX: return optimizeBox(); break;
@@ -119,6 +114,16 @@ Result OptimizationSolver::checkOpt(ObjectiveCombination combination)
   Unreachable();
 }
 
+Result OptimizationSolver::checkOptNextPareto()
+{
+  // assuming that checkOpt has called with Pareto and it returns SAT...
+  // if not, it's undefined behaviour
+
+  // initialize the result vector
+  d_results.assign(d_objectives.size(), OptimizationResult());
+  return optimizeParetoNaiveGIA();
+}
+
 void OptimizationSolver::addObjective(TNode target,
                                       OptimizationObjective::ObjectiveType type,
                                       bool bvSigned)
@@ -128,7 +133,6 @@ void OptimizationSolver::addObjective(TNode target,
     CVC5_FATAL()
         << "Objective failed to add: Target node does not support optimization";
   }
-  d_optChecker.reset();
   d_objectives.emplace_back(target, type, bvSigned);
 }
 
@@ -209,7 +213,6 @@ Result OptimizationSolver::optimizeBox()
         {
           d_results[j] = partialResult;
         }
-        d_optChecker.reset();
         return partialResult.getResult();
       case Result::SAT_UNKNOWN:
         aggregatedResult = partialResult.getResult();
@@ -219,8 +222,6 @@ Result OptimizationSolver::optimizeBox()
 
     d_results[i] = partialResult;
   }
-  // kill optChecker after optimization ends
-  d_optChecker.reset();
   return aggregatedResult;
 }
 
@@ -265,12 +266,8 @@ Result OptimizationSolver::optimizeLexicographicIterative()
         d_optChecker->assertFormula(d_optChecker->getNodeManager()->mkNode(
             kind::EQUAL, d_objectives[i].getTarget(), d_results[i].getValue()));
         break;
-      case Result::UNSAT:
-        d_optChecker.reset();
-        return partialResult.getResult();
-      case Result::SAT_UNKNOWN:
-        d_optChecker.reset();
-        return partialResult.getResult();
+      case Result::UNSAT: return partialResult.getResult();
+      case Result::SAT_UNKNOWN: return partialResult.getResult();
       default: Unreachable();
     }
 
@@ -278,8 +275,6 @@ Result OptimizationSolver::optimizeLexicographicIterative()
     // (result is not finite) then just stop
     if (partialResult.isInfinity() != OptimizationResult::FINITE) break;
   }
-  // kill optChecker in case pareto misuses it
-  d_optChecker.reset();
   // now all objectives are optimal, just return SAT as the overall result
   return partialResult.getResult();
 }
@@ -360,7 +355,6 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
         break;
       case Result::Sat::SAT_UNKNOWN:
         // if result is UNKNOWN, abort the current session and return UNKNOWN
-        d_optChecker.reset();
         return satResult;
       case Result::Sat::SAT:
       {

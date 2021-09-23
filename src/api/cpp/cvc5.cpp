@@ -620,7 +620,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
-        {cvc5::Kind::BAG_MAP,BAG_MAP},
+        {cvc5::Kind::BAG_MAP, BAG_MAP},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -6633,7 +6633,6 @@ void Solver::assertFormula(const Term& term) const
   CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(term, getBooleanSort());
   //////// all checks before this line
   d_smtEngine->assertFormula(*term.d_node);
-  resetParetoOptimization();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6998,8 +6997,13 @@ std::string Solver::getOption(const std::string& option) const
 
 // Supports a visitor from a list of lambdas
 // Taken from https://en.cppreference.com/w/cpp/utility/variant/visit
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+template <class... Ts>
+struct overloaded : Ts...
+{
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 bool OptionInfo::boolValue() const
 {
@@ -7936,6 +7940,7 @@ void Solver::addObjective(Term target, ObjectiveType objType) const
 }
 
 std::pair<Result, std::vector<OptimizationResult>> Solver::checkOpt(
+    const std::vector<std::pair<Term, ObjectiveType>>& objectives,
     ObjectiveCombination objCombination) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7946,7 +7951,11 @@ std::pair<Result, std::vector<OptimizationResult>> Solver::checkOpt(
          "unless incremental solving, produce-assertions and produce-models "
          "are enabled "
          "(try --incremental --produce-models --produce-assertions)";
-
+  d_optSolver->resetObjectives();
+  for (const auto& objPair : objectives)
+  {
+    addObjective(objPair.first, objPair.second);
+  }
   cvc5::Result r;
   switch (objCombination)
   {
@@ -7973,9 +7982,18 @@ std::pair<Result, std::vector<OptimizationResult>> Solver::checkOpt(
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::resetParetoOptimization() const
+std::pair<Result, std::vector<OptimizationResult>> Solver::nextParetoSolution()
+    const
 {
-  d_optSolver->resetParetoOptimization();
+  cvc5::Result r = d_optSolver->checkOptNextPareto();
+  std::vector<smt::OptimizationResult> internalResults =
+      d_optSolver->getValues();
+  std::vector<OptimizationResult> optResults;
+  for (smt::OptimizationResult& rst : internalResults)
+  {
+    optResults.push_back(OptimizationResult(this, rst));
+  }
+  return std::make_pair(Result(r), std::move(optResults));
 }
 
 Statistics Solver::getStatistics() const

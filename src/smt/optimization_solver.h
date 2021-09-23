@@ -228,8 +228,20 @@ class OptimizationSolver
    * For multiple objective combination, it defaults to lexicographic,
    * possible combinations: BOX, LEXICOGRAPHIC, PARETO
    * @param combination BOX / LEXICOGRAPHIC / PARETO
+   * @return SAT/UNSAT/UNKNOWN,
+   *   indicating if the current assertions are satisfiable
    */
   Result checkOpt(ObjectiveCombination combination = LEXICOGRAPHIC);
+
+  /**
+   * Retrive the next Pareto optimal solution,
+   * only after checkOpt is called with PARETO combination and SAT is returned,
+   * otherwise it's undefined behaviour.
+   *
+   * @return SAT/UNSAT/UNKNOWN,
+   *   indicating if we have exhausted the Pareto solutions
+   */
+  Result checkOptNextPareto();
 
   /**
    * Add an optimization objective.

@@ -200,7 +200,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  r = optSolver.checkOptNextPareto();
   ASSERT_EQ(r.isSat(), Result::SAT);
   results = optSolver.getValues();
   res = {
@@ -215,7 +215,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  r = optSolver.checkOptNextPareto();
   ASSERT_EQ(r.isSat(), Result::SAT);
   results = optSolver.getValues();
   res = {
@@ -230,7 +230,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  r = optSolver.checkOptNextPareto();
   ASSERT_EQ(r.isSat(), Result::UNSAT);
   ASSERT_EQ(possibleResults.size(), 0);
 }
