@@ -152,10 +152,20 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       Node vp3 = vp1;
 
+      // Build vp2i
+      Node andNode;
+      if (args.size() != 1)
+      {
+        andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
+      }
+      else
+      {
+        andNode = args[0];  // F1
+      }
+
       if (args.size() != 1)
       {
         // Build vp2i
-        Node andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
         std::vector<Node> premisesVP2 = {vp1};
         std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
         Node vp2_i;
