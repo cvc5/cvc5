@@ -18,6 +18,7 @@
 #ifndef CVC5__PREPROCESSING__PASSES__STATIC_LEARNING_H
 #define CVC5__PREPROCESSING__PASSES__STATIC_LEARNING_H
 
+#include "context/cdhashset.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace cvc5 {
@@ -32,6 +33,13 @@ class StaticLearning : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+
+ private:
+  /** Collect children of flattened AND term. */
+  void flattenAnd(TNode node, std::vector<TNode>& children);
+
+  /** CD-cache for visiting nodes used by `flattenAnd`. */
+  context::CDHashSet<Node> d_cache;
 };
 
 }  // namespace passes
