@@ -311,7 +311,7 @@ bool CegisCoreConnective::constructSolution(
   Assert(candidates.size() == 1 && candidates[0] == d_candidate);
   TNode cval = candidate_values[0];
   Node ets = d_eterm.substitute(d_candidate, cval);
-  Node etsr = Rewriter::rewrite(ets);
+  Node etsr = rewrite(ets);
   Trace("sygus-ccore-debug") << "...predicate is: " << etsr << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned d = 0; d < 2; d++)
@@ -476,7 +476,7 @@ Node CegisCoreConnective::Component::getRefinementPt(
         visited.insert(id);
         Trace("sygus-ccore-ref") << "...eval " << std::endl;
         // check if it is true
-        Node en = p->evaluate(n, id, ctx);
+        Node en = p->evaluatePt(n, id, ctx);
         if (en.isConst() && en.getConst<bool>())
         {
           ss = ctx;
@@ -553,7 +553,7 @@ bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
     for (unsigned i = currIndex, psize = passerts.size(); i < psize; i++)
     {
       Node cn = passerts[i];
-      Node cne = p->evaluate(cn, mvId, mvs);
+      Node cne = p->evaluatePt(cn, mvId, mvs);
       if (cne.isConst() && !cne.getConst<bool>())
       {
         n = cn;
@@ -635,9 +635,9 @@ Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs) const
   return r;
 }
 
-Node CegisCoreConnective::evaluate(Node n,
-                                   Node id,
-                                   const std::vector<Node>& mvs)
+Node CegisCoreConnective::evaluatePt(Node n,
+                                     Node id,
+                                     const std::vector<Node>& mvs)
 {
   Kind nk = n.getKind();
   if (nk == AND || nk == OR)
@@ -647,7 +647,7 @@ Node CegisCoreConnective::evaluate(Node n,
     // split AND/OR
     for (const Node& nc : n)
     {
-      Node enc = evaluate(nc, id, mvs);
+      Node enc = evaluatePt(nc, id, mvs);
       Assert(enc.isConst());
       if (enc.getConst<bool>() == expRes)
       {
@@ -666,12 +666,8 @@ Node CegisCoreConnective::evaluate(Node n,
     }
   }
   // use evaluator
-  Node cn = d_eval.eval(n, d_vars, mvs);
-  if (cn.isNull())
-  {
-    cn = n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
-    cn = Rewriter::rewrite(cn);
-  }
+  Node cn = evaluate(n, d_vars, mvs);
+  Assert(!cn.isNull());
   if (!id.isNull())
   {
     ec[id] = cn;
@@ -844,7 +840,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       mvs.clear();
       getModel(*checkSol, mvs);
       // should evaluate to true
-      Node ean = evaluate(an, Node::null(), mvs);
+      Node ean = evaluatePt(an, Node::null(), mvs);
       Assert(ean.isConst() && ean.getConst<bool>());
       Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
       // In terms of Variant #2, this is the line:
