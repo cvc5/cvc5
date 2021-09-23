@@ -150,20 +150,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                                sanitized_args,
                                *cdp);
 
-      Node vp3 = vp1;
-
-      // Build vp2i
-      Node andNode;
-      if (args.size() != 1)
+      Node andNode, vp3;
+      if (args.size() == 1)
       {
-        andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
-      }
-      else
-      {
+        vp3 = vp1;  
         andNode = args[0];  // F1
       }
-
-      if (args.size() != 1)
+      else
       {
         // Build vp2i
         std::vector<Node> premisesVP2 = {vp1};
