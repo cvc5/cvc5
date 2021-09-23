@@ -19,6 +19,7 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "util/rational.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {
 
