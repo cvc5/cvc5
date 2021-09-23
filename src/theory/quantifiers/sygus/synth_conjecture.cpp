@@ -359,7 +359,7 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  bool printDebug = Output.isOn(options(), options::OutputTag::SYGUS);
+  bool printDebug = d_env.isOutputOn(options::OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
