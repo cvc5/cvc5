@@ -79,15 +79,12 @@ Trigger::Trigger(Env& env,
     extNodes.push_back(ns);
   }
   d_trNode = NodeManager::currentNM()->mkNode(SEXPR, extNodes);
-  if (Output.isOn(options::OutputTag::TRIGGER))
+  if (d_env.isOutputOn(options::OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    if (d_env.isOutputOn(options::OutputTag::TRIGGER))
-    {
-      d_env.getOutput(options::OutputTag::TRIGGER)
-          << "(trigger " << qa.quantToString(q) << " " << d_trNode << ")"
-          << std::endl;
-    }
+    d_env.getOutput(options::OutputTag::TRIGGER)
+        << "(trigger " << qa.quantToString(q) << " " << d_trNode << ")"
+        << std::endl;
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){
