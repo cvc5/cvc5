@@ -24,17 +24,20 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/lazy_trie.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
+#include "util/rational.h"
 #include "util/sampler.h"
+#include "util/string.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusSampler::SygusSampler()
-    : d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+SygusSampler::SygusSampler(Env& env)
+    : d_env(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
@@ -471,21 +474,11 @@ Node SygusSampler::evaluate(Node n, unsigned index)
 {
   Assert(index < d_samples.size());
   // do beta-reductions in n first
-  n = Rewriter::rewrite(n);
+  n = d_env.getRewriter()->rewrite(n);
   // use efficient rewrite for substitution + rewrite
-  Node ev = d_eval.eval(n, d_vars, d_samples[index]);
+  Node ev = d_env.evaluate(n, d_vars, d_samples[index], true);
+  Assert(!ev.isNull());
   Trace("sygus-sample-ev") << "Evaluate ( " << n << ", " << index << " ) -> ";
-  if (!ev.isNull())
-  {
-    Trace("sygus-sample-ev") << ev << std::endl;
-    return ev;
-  }
-  Trace("sygus-sample-ev") << "null" << std::endl;
-  Trace("sygus-sample-ev") << "Rewrite -> ";
-  // substitution + rewrite
-  std::vector<Node>& pt = d_samples[index];
-  ev = n.substitute(d_vars.begin(), d_vars.end(), pt.begin(), pt.end());
-  ev = Rewriter::rewrite(ev);
   Trace("sygus-sample-ev") << ev << std::endl;
   return ev;
 }
@@ -617,7 +610,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
         // negative
         ret = nm->mkNode(kind::UMINUS, ret);
       }
-      ret = Rewriter::rewrite(ret);
+      ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());
       return ret;
     }
@@ -715,7 +708,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
       Node ret = d_tds->mkGeneric(dt, cindex, pre);
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
-      ret = Rewriter::rewrite(ret);
+      ret = d_env.getRewriter()->rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
       // A rare case where we generate a non-constant value from constant
       // leaves is (/ n 0).
