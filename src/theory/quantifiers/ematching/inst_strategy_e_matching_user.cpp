@@ -27,12 +27,13 @@ namespace theory {
 namespace quantifiers {
 
 InstStrategyUserPatterns::InstStrategyUserPatterns(
+    Env& env,
     inst::TriggerDatabase& td,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,
     TermRegistry& tr)
-    : InstStrategy(td, qs, qim, qr, tr)
+    : InstStrategy(env, td, qs, qim, qr, tr)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}

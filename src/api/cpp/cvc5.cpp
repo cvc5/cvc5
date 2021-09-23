@@ -60,9 +60,9 @@
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
-#include "options/outputc.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
+#include "smt/env.h"
 #include "smt/model.h"
 #include "smt/optimization_solver.h"
 #include "smt/smt_engine.h"
@@ -8003,12 +8003,12 @@ Statistics Solver::getStatistics() const
 
 bool Solver::isOutputOn(const std::string& tag) const
 {
-  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // `isOutputOn(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
   {
-    return cvc5::OutputChannel.isOn(tag);
+    return d_smtEngine->getEnv().isOutputOn(tag);
   }
   catch (const cvc5::Exception& e)
   {
@@ -8018,12 +8018,12 @@ bool Solver::isOutputOn(const std::string& tag) const
 
 std::ostream& Solver::getOutput(const std::string& tag) const
 {
-  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // `getOutput(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
   {
-    return Output(tag);
+    return d_smtEngine->getEnv().getOutput(tag);
   }
   catch (const cvc5::Exception& e)
   {
