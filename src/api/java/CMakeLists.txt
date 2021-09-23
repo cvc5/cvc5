@@ -64,6 +64,8 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/RoundingMode.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Solver.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Sort.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Stat.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Statistics.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Term.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
   ${JAVA_KIND_FILE}
@@ -114,6 +116,8 @@ add_library(cvc5jni SHARED
   jni/cvc5_Op.cpp
   jni/cvc5_Result.cpp
   jni/cvc5_Solver.cpp
+  jni/cvc5_Stat.cpp
+  jni/cvc5_Statistics.cpp
   jni/cvc5_Sort.cpp
   jni/cvc5_Term.cpp)
 add_dependencies(cvc5jni generate-jni-headers)

@@ -2477,10 +2477,17 @@ public class Solver implements IPointer
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
 
   /**
-   * Print solution for synthesis conjecture to the given output stream.
-   * @param out the output stream
+   * Returns a snapshot of the current state of the statistic values of this
+   * solver. The returned object is completely decoupled from the solver and
+   * will not change when the solver is used again.
    */
-  // TODO: void printSynthSolution(std::ostream& out)
+  public Statistics getStatistics()
+  {
+    long statisticsPointer = getStatistics(pointer);
+    return new Statistics(this, statisticsPointer);
+  }
+
+  private native long getStatistics(long pointer);
 
   /**
    * @return null term

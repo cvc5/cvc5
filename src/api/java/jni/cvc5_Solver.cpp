@@ -2521,6 +2521,22 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getSynthSolutions(
 
 /*
  * Class:     cvc5_Solver
+ * Method:    getStatistics
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getStatistics(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Statistics* retPointer = new Statistics(solver->getStatistics());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Solver
  * Method:    getNullTerm
  * Signature: (J)J
  */
