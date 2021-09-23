@@ -235,7 +235,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // connective of the conclusion F. This is not an exact translation but
     // should work in most cases.
     //
-    // E.g. if the F: (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
+    // E.g. if F is (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
     // is correctly guessed as the rule.
     case PfRule::THEORY_REWRITE:
     {
