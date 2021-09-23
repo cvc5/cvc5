@@ -44,7 +44,7 @@ namespace quantifiers {
 class ArithInstantiator : public Instantiator
 {
  public:
-  ArithInstantiator(TypeNode tn, VtsTermCache* vtc);
+  ArithInstantiator(Env& env, TypeNode tn, VtsTermCache* vtc);
   virtual ~ArithInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,

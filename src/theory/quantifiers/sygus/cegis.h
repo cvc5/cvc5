@@ -28,6 +28,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+class SygusEvalUnfold;
+
 /** Cegis
  *
  * The default sygus module for synthesis, counterexample-guided inductive

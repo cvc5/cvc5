@@ -1,0 +1,17 @@
+; EXPECT: sat
+(set-option :incremental false)
+(set-logic ALL)
+
+(declare-fun x () (Set (Tuple Int Int)))
+(declare-fun y () (Set (Tuple Int Int)))
+(declare-fun a () Int)
+(declare-fun b () Int)
+(declare-fun c () Int)
+(declare-fun d () Int)
+(assert (member (mkTuple 1 a) x))
+(assert (member (mkTuple 1 c) x))
+(assert (member (mkTuple 1 d) x))
+(assert (member (mkTuple b 1) x))
+(assert (= b d))
+(assert (= y (tclosure x)))
+(check-sat)

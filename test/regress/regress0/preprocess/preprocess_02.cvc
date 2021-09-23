@@ -1,9 +1,0 @@
-% EXPECT: entailed
-
-a0, a1, a2, a3, a4, a5, a6, a7, a8, a9: BOOLEAN;
-
-ASSERT (NOT a5);
-
-QUERY NOT (a0 AND a1 AND a2 AND a3 AND a4 AND a5 AND a6 AND a7 AND a8 AND a9);
-
-
