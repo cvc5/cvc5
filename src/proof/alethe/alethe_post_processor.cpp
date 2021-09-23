@@ -61,10 +61,10 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
     // See proof_rule.h for documentation on the SCOPE rule. This comment uses
-    // variable names as introduced there. Instead of (not (and F1 ... Fn))
-    // (cl (not (and F1 ... Fn))) is printed and instead of (=> (and F1 ... Fn)
-    // F) the term (cl (=> (and F1 ... Fn))) is printed while the proof node
-    // remains the same.
+    // variable names as introduced there. If the SCOPE conclusion is (not (and
+    // F1 ... Fn)), the transformation below generates (cl (not (and F1
+    // ... Fn))) to be printed, while for the conclusion (=> (and F1 ... Fn) F)
+    // it generates (cl (=> (and F1 ... Fn))).
     //
     // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
     // Fn)) for i times.
@@ -95,8 +95,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP6: (cl (=> (and F1 ... Fn) F) (not F))
     // VP7: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
     //
-    // The reorder step is not necessary if n = 1, because in that case VP2a is
-    // (cl (not F1 F) which is the same as VP2b.
+    // Note that if n = 1, then the ANCHOR step yields (cl (not F1) F), which is
+    // the same as VP3. Since VP1 = VP3, the steps for that transformation are
+    // not generated.
     //
     //
     // If F = false:
@@ -126,15 +127,14 @@ bool AletheProofPostprocessCallback::update(Node res,
       bool success = true;
 
       // Build vp1
-      std::vector<Node> negNode;
+      std::vector<Node> negNode{d_cl};
       std::vector<Node> sanitized_args;
       for (Node arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
         sanitized_args.push_back(d_anc.convert(arg));
       }
-      negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
-      negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
+      negNode.push_back(children[0]);         // (cl (not F1) ... (not Fn) F)
       Node vp1 = nm->mkNode(kind::SEXPR, negNode);
       success &= addAletheStep(AletheRule::ANCHOR_SUBPROOF,
                                vp1,
