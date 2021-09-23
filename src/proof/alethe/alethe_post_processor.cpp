@@ -243,7 +243,13 @@ bool AletheProofPostprocessCallback::update(Node res,
       AletheRule vrule = AletheRule::UNDEFINED;
       Node t = res[0];
 
-      switch (static_cast<theory::TheoryId>(std::stoul(args[1].toString())))
+      theory::TheoryId tid;
+      if (!theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid))
+      {
+        return addAletheStep(
+            vrule, res, nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
+      }
+      switch (tid)
       {
         case theory::TheoryId::THEORY_BUILTIN:
         {
