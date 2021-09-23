@@ -18,11 +18,6 @@ Cvc5ostream OutputC::operator()(const Options& opts, const options::OutputTag ta
   }
 }
 
-Cvc5ostream OutputC::operator()(const Options& opts, const std::string& tag) const
-{
-  return (*this)(opts, options::stringToOutputTag(tag));
-}
-
 Cvc5ostream OutputC::operator()(const options::OutputTag tag) const
 {
   return (*this)(Options::current(), tag);
@@ -31,10 +26,6 @@ Cvc5ostream OutputC::operator()(const options::OutputTag tag) const
 bool OutputC::isOn(const Options& opts, const options::OutputTag tag) const
 {
   return opts.base.outputTagHolder[static_cast<size_t>(tag)];
-}
-bool OutputC::isOn(const Options& opts, const std::string& tag) const
-{
-  return (*this).isOn(opts, options::stringToOutputTag(tag));
 }
 bool OutputC::isOn(const options::OutputTag tag) const
 {
