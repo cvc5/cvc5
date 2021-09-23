@@ -38,7 +38,6 @@ int main()
 {
   Solver slv;
   slv.setOption("produce-models", "true");  // Produce Models
-  slv.setOption("output-language", "cvc"); // Set the output-language to CVC's
   slv.setOption("dag-thresh", "0"); // Disable dagifying the output
   slv.setOption("output-language", "smt2"); // use smt-lib v2 as output language
   slv.setLogic(string("QF_UFLIRA"));

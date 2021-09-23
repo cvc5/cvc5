@@ -1,6 +1,0 @@
-% EXPECT: entailed
-% Simple test for right precedence of AND and NOT.
-
-A, B, C: BOOLEAN;
-
-QUERY (NOT A AND B) <=> ((NOT A) AND B);

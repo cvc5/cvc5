@@ -910,8 +910,6 @@ std::unordered_set<TypeNode> DType::getSubfieldTypes() const
 
 std::ostream& operator<<(std::ostream& os, const DType& dt)
 {
-  // can only output datatypes in the cvc5 native language
-  language::SetLanguage::Scope ls(os, Language::LANG_CVC);
   dt.toStream(os);
   return os;
 }
