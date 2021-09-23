@@ -1,19 +1,18 @@
-/*********************                                                        */
-/*! \file node_view.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Classes that provide different views on nodes
- **
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
  ** The classes in this file provide different views on a given node (e.g. an
  ** iterator that treats a certain kind as flattened).
- **/
+ */
 
 #include "cvc5_private.h"
 
@@ -54,8 +53,7 @@ class FlatViewTemplate
    * @param kind The kind to treat as flattened
    * @param skipDups If true, then duplicate children are skipped
    */
-  FlatViewTemplate(NodeTemplate<ref_count> node,
-                   bool skipDups = false);
+  FlatViewTemplate(NodeTemplate<ref_count> node, bool skipDups = false);
 
   class iterator
   {

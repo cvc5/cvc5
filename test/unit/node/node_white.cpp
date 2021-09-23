@@ -17,8 +17,8 @@
 
 #include "base/check.h"
 #include "expr/node_builder.h"
-#include "test_node.h"
 #include "expr/node_view.h"
+#include "test_node.h"
 #include "util/rational.h"
 
 namespace cvc5 {
@@ -82,76 +82,81 @@ TEST_F(TestNodeWhiteNode, iterators)
 }
 
 TEST_F(TestNodeWhiteNode, flatView)
+{
+  Node one = d_nodeManager->mkConst(Rational(1));
+  Node two = d_nodeManager->mkConst(Rational(2));
+  Node three = d_nodeManager->mkConst(Rational(3));
+  Node four = d_nodeManager->mkConst(Rational(4));
+  Node five = d_nodeManager->mkConst(Rational(5));
+
+  std::vector<Node> flatv = {one, two, three, four, five};
+  std::vector<TNode> flattv = {one, two, three, four, five};
+
   {
-    Node one = d_nodeManager->mkConst(Rational(1));
-    Node two = d_nodeManager->mkConst(Rational(2));
-    Node three = d_nodeManager->mkConst(Rational(3));
-    Node four = d_nodeManager->mkConst(Rational(4));
-    Node five = d_nodeManager->mkConst(Rational(5));
+    // (1 + 2) + (3 + 4) + 5
+    Node nested =
+        d_nodeManager->mkNode(PLUS,
+                              d_nodeManager->mkNode(PLUS, one, two),
+                              d_nodeManager->mkNode(PLUS, three, four),
+                              five);
 
-    std::vector<Node> flatv = {one, two, three, four, five};
-    std::vector<TNode> flattv = {one, two, three, four, five};
+    FlatView fv(nested);
+    ASSERT_EQ(flatv, std::vector<Node>(fv.begin(), fv.end()));
 
-    {
-      // (1 + 2) + (3 + 4) + 5
-      Node nested = d_nodeManager->mkNode(PLUS,
-                                 d_nodeManager->mkNode(PLUS, one, two),
-                                 d_nodeManager->mkNode(PLUS, three, four),
-                                 five);
-
-      FlatView fv(nested);
-      ASSERT_EQ(flatv, std::vector<Node>(fv.begin(), fv.end()));
-
-      FlatTView ftv { TNode(nested) };
-      ASSERT_EQ(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
-    }
-
-    {
-      // ((((1 + 2) + 3) + 4) + 5)
-      Node nested = d_nodeManager->mkNode(
-          PLUS,
-          d_nodeManager->mkNode(PLUS,
-                       d_nodeManager->mkNode(PLUS, d_nodeManager->mkNode(PLUS, one, two), three),
-                       four),
-          five);
-
-      FlatView fv(nested);
-      ASSERT_EQ(flatv, std::vector<Node>(fv.begin(), fv.end()));
-
-      FlatTView ftv {TNode(nested)};
-      ASSERT_EQ(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
-    }
-
-    {
-      // (1 + (2 + (3 + (4 + 5))))
-      Node nested = d_nodeManager->mkNode(
-          PLUS,
-          one,
-          d_nodeManager->mkNode(
-              PLUS,
-              two,
-              d_nodeManager->mkNode(PLUS, three, d_nodeManager->mkNode(PLUS, four, five))));
-
-      FlatView fv(nested);
-      ASSERT_EQ(flatv, std::vector<Node>(fv.begin(), fv.end()));
-
-      FlatTView ftv {TNode(nested) };
-      ASSERT_EQ(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
-    }
-
-    {
-      // ((1 + 2) + 3 + 1 + 4 + ((1 + 2) + 5)
-      Node onetwo = d_nodeManager->mkNode(PLUS, one, two);
-      Node nested = d_nodeManager->mkNode(
-          PLUS, { onetwo, three, one, four, d_nodeManager->mkNode(PLUS, onetwo, five)});
-
-      FlatView fv(nested, true);
-      ASSERT_EQ(flatv, std::vector<Node>(fv.begin(), fv.end()));
-
-      FlatTView ftv(TNode(nested), true);
-      ASSERT_EQ(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
-    }
+    FlatTView ftv{TNode(nested)};
+    ASSERT_EQ(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
   }
+
+  {
+    // ((((1 + 2) + 3) + 4) + 5)
+    Node nested = d_nodeManager->mkNode(
+        PLUS,
+        d_nodeManager->mkNode(
+            PLUS,
+            d_nodeManager->mkNode(
+                PLUS, d_nodeManager->mkNode(PLUS, one, two), three),
+            four),
+        five);
+
+    FlatView fv(nested);
+    ASSERT_EQ(flatv, std::vector<Node>(fv.begin(), fv.end()));
+
+    FlatTView ftv{TNode(nested)};
+    ASSERT_EQ(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
+  }
+
+  {
+    // (1 + (2 + (3 + (4 + 5))))
+    Node nested = d_nodeManager->mkNode(
+        PLUS,
+        one,
+        d_nodeManager->mkNode(
+            PLUS,
+            two,
+            d_nodeManager->mkNode(
+                PLUS, three, d_nodeManager->mkNode(PLUS, four, five))));
+
+    FlatView fv(nested);
+    ASSERT_EQ(flatv, std::vector<Node>(fv.begin(), fv.end()));
+
+    FlatTView ftv{TNode(nested)};
+    ASSERT_EQ(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
+  }
+
+  {
+    // ((1 + 2) + 3 + 1 + 4 + ((1 + 2) + 5)
+    Node onetwo = d_nodeManager->mkNode(PLUS, one, two);
+    Node nested = d_nodeManager->mkNode(
+        PLUS,
+        {onetwo, three, one, four, d_nodeManager->mkNode(PLUS, onetwo, five)});
+
+    FlatView fv(nested, true);
+    ASSERT_EQ(flatv, std::vector<Node>(fv.begin(), fv.end()));
+
+    FlatTView ftv(TNode(nested), true);
+    ASSERT_EQ(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
+  }
+}
 
 }  // namespace test
 }  // namespace cvc5
