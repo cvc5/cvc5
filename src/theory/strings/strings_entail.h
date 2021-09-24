@@ -21,9 +21,13 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
+
+class Rewriter;
+
 namespace strings {
 
 class SequencesRewriter;
@@ -36,7 +40,7 @@ class SequencesRewriter;
 class StringsEntail
 {
  public:
-  StringsEntail(SequencesRewriter& rewriter);
+  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter& rewriter);
 
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -64,7 +68,7 @@ class StringsEntail
   /** can constant contain concat
    * same as above but with n = str.++( l ) instead of l
    */
-  static bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
+  bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
 
   /** strip symbolic length
    *
@@ -106,11 +110,11 @@ class StringsEntail
    *    nr is updated to { "abc", y }
    *    curr is updated to str.len(y)+1
    */
-  static bool stripSymbolicLength(std::vector<Node>& n1,
-                                  std::vector<Node>& nr,
-                                  int dir,
-                                  Node& curr,
-                                  bool strict = false);
+  bool stripSymbolicLength(std::vector<Node>& n1,
+                           std::vector<Node>& nr,
+                           int dir,
+                           Node& curr,
+                           bool strict = false);
   /** component contains
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1
@@ -222,7 +226,7 @@ class StringsEntail
    * Checks whether string a is entailed to be non-empty. Is equivalent to
    * the call checkArithEntail( len( a ), true ).
    */
-  static bool checkNonEmpty(Node a);
+  bool checkNonEmpty(Node a);
 
   /**
    * Checks whether string has at most/exactly length one. Length one strings
@@ -234,7 +238,7 @@ class StringsEntail
    * at most length one
    * @return True if the string has at most/exactly length one, false otherwise
    */
-  static bool checkLengthOne(Node s, bool strict = false);
+  bool checkLengthOne(Node s, bool strict = false);
 
   /**
    * Checks whether it is always true that `a` is a strict subset of `b` in the
@@ -282,7 +286,7 @@ class StringsEntail
    * getStringOrEmpty( (str.substr "ABC" x y) ) --> (str.substr "ABC" x y)
    * because the function could not compute a simpler
    */
-  static Node getStringOrEmpty(Node n);
+  Node getStringOrEmpty(Node n);
 
   /**
    * Infers a conjunction of equalities that correspond to (str.contains x y)
@@ -298,7 +302,7 @@ class StringsEntail
    * y) if the function can infer that str.len(y) >= str.len(x) but cannot
    * infer that any of the yi must be empty.
    */
-  static Node inferEqsFromContains(Node x, Node y);
+  Node inferEqsFromContains(Node x, Node y);
 
  private:
   /** component contains base
@@ -371,6 +375,10 @@ class StringsEntail
   static Node getMultisetApproximation(Node a);
 
  private:
+  /** Pointer to the full rewriter */
+  Rewriter* d_rr;
+  /** The arithmetic entailment module */
+  ArithEntail& d_arithEntail;
   /**
    * Reference to the sequences rewriter that owns this `StringsEntail`
    * instance.
