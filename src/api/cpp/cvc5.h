@@ -3031,6 +3031,7 @@ class CVC5_EXPORT Solver
      * added:
      *   v_x = max(x) s.t. phi(x, y) = sat
      *   v_y = max(y) s.t. phi(v_x, y) = sat
+     * Note: v_x is substituted into x when performing max(y)
      */
     LEXICOGRAPHIC,
     /**
