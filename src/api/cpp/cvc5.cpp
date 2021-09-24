@@ -1006,26 +1006,25 @@ Term OptimizationResult::getValue() const
   return Term(d_solver, d_optResult->getValue());
 }
 
-OptimizationResult::IsInfinity OptimizationResult::isInfinity() const
+bool OptimizationResult::isInfinity() const
 {
-  switch (d_optResult->isInfinity())
-  {
-    case cvc5::smt::OptimizationResult::FINITE: return FINITE;
-    case cvc5::smt::OptimizationResult::POSTITIVE_INF: return POSTITIVE_INF;
-    case cvc5::smt::OptimizationResult::NEGATIVE_INF: return NEGATIVE_INF;
-    default:
-      CVC5_API_CHECK(false)
-          << "Unknown value: " << static_cast<int>(d_optResult->isInfinity())
-          << ", possible values are FINITE("
-          << static_cast<int>(cvc5::smt::OptimizationResult::FINITE)
-          << "), POSITIVE_INF("
-          << static_cast<int>(cvc5::smt::OptimizationResult::POSTITIVE_INF)
-          << "), NEGATIVE_INF("
-          << static_cast<int>(cvc5::smt::OptimizationResult::NEGATIVE_INF)
-          << ")";
-      // to avoid the no-return error
-      return static_cast<OptimizationResult::IsInfinity>(0);
-  }
+  return (d_optResult->isInfinity() == cvc5::smt::OptimizationResult::POSTITIVE_INF) ||
+    (d_optResult->isInfinity() == cvc5::smt::OptimizationResult::NEGATIVE_INF);
+}
+
+bool OptimizationResult::isFinite() const
+{
+  return d_optResult->isInfinity() == cvc5::smt::OptimizationResult::FINITE;
+}
+
+bool OptimizationResult::isPositiveInf() const
+{
+  return d_optResult->isInfinity() == cvc5::smt::OptimizationResult::POSTITIVE_INF;
+}
+
+bool OptimizationResult::isNegativeInf() const
+{
+  return d_optResult->isInfinity() == cvc5::smt::OptimizationResult::NEGATIVE_INF;
 }
 
 std::string OptimizationResult::toString() const

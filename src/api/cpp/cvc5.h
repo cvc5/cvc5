@@ -321,10 +321,28 @@ class CVC5_EXPORT OptimizationResult
   Term getValue() const;
 
   /**
-   * Whether the result is +Inf/-Inf/Finite
-   * @return OptimizationResult::FINITE/POSITIVE_INF/NEGATIVE_INF
+   * Whether the result is +Inf/-Inf
+   * @return true if result is +Inf or -Inf
    **/
-  IsInfinity isInfinity() const;
+  bool isInfinity() const;
+
+  /**
+   * Whether the result is finite
+   * @return true if result is finite
+   **/
+  bool isFinite() const;
+
+  /**
+   * Whether the result is +Inf
+   * @return true if result is +Inf
+   **/
+  bool isPositiveInf() const;
+
+  /**
+   * Whether the result is -Inf
+   * @return true if result is -Inf
+   **/
+  bool isNegativeInf() const;
 
   /**
    * @return a string representation of this optimization result.
