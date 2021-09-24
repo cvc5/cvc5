@@ -81,6 +81,8 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
 
    private native long increment(long pointer, long iteratorPointer) throws CVC5ApiException;
 
+   private native void deleteIteratorPointer(long iteratorPointer);
+
    public class ConstIterator implements Iterator<Pair<String, Stat>>
    {
      private long iteratorPointer = 0;
@@ -110,6 +112,12 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
        {
          throw new NoSuchElementException(e.getMessage());
        }
+     }
+
+     @Override
+     public void finalize()
+     {
+       deleteIteratorPointer(iteratorPointer);
      }
    }
 
