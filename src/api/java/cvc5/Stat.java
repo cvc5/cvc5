@@ -19,8 +19,8 @@ import java.util.Map;
 
 /**
  * Represents a snapshot of a single statistic value.
- * A value can be of type `int64_t`, `double`, `std::string` or a histogram
- * (`std::map<std::string, uint64_t>`).
+ * A value can be of type `long`, `double`, `String` or a histogram
+ * (`Map<String, Long>`).
  * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
  * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
  * It is possible to query whether this statistic is an expert statistic by
@@ -52,10 +52,7 @@ public class Stat extends AbstractPointer
   /**
    * @return a string representation of this Stat
    */
-  protected String toString(long pointer)
-  {
-    throw new UnsupportedOperationException("Not implemented in the cpp api");
-  }
+  protected native String toString(long pointer);
 
   /**
    * Is this value intended for experts only?

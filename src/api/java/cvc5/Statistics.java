@@ -44,10 +44,8 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
   /**
    * @return a string representation of this Statistics
    */
-  protected String toString(long pointer)
-  {
-    throw new UnsupportedOperationException("Not implemented in the cpp api");
-  }
+  protected native String toString(long pointer);
+
 
   /**
    * Retrieve the statistic with the given name.

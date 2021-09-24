@@ -17,6 +17,7 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
+#include <sstream>
 
 using namespace cvc5::api;
 
@@ -30,6 +31,24 @@ JNIEXPORT void JNICALL Java_cvc5_Statistics_deletePointer(JNIEnv*,
                                                           jlong pointer)
 {
   delete reinterpret_cast<Statistics*>(pointer);
+}
+
+/*
+ * Class:     cvc5_Statistics
+ * Method:    toString
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_cvc5_Statistics_toString(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+
+  Statistics* current = reinterpret_cast<Statistics*>(pointer);
+  std::stringstream ss;
+  ss << *current;
+  return env->NewStringUTF(ss.str().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*
