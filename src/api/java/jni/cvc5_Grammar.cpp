@@ -22,6 +22,22 @@ using namespace cvc5::api;
 
 /*
  * Class:     cvc5_Grammar
+ * Method:    copyGrammar
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Grammar_copyGrammar(JNIEnv* env,
+                                                      jclass,
+                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Grammar* current = reinterpret_cast<Grammar*>(pointer);
+  Grammar* retPointer = new Grammar(*current);
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Grammar
  * Method:    deletePointer
  * Signature: (J)V
  */

@@ -21,6 +21,13 @@ public class Grammar extends AbstractPointer {
     super(solver, pointer);
   }
 
+  public Grammar(Grammar grammar)
+  {
+    super(grammar.solver, copyGrammar(grammar.pointer));
+  }
+
+  private static native long copyGrammar(long pointer);
+
   protected static native void deletePointer(long pointer);
 
   public long getPointer() {
