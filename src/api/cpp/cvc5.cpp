@@ -620,7 +620,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
-        {cvc5::Kind::BAG_MAP, BAG_MAP},
+        {cvc5::Kind::BAG_MAP,BAG_MAP},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -1969,7 +1969,10 @@ size_t Op::getNumIndicesHelper() const
   return size;
 }
 
-Term Op::operator[](size_t index) const { return getIndexHelper(index); }
+Term Op::operator[](size_t index) const
+{
+  return getIndexHelper(index);
+}
 
 Term Op::getIndexHelper(size_t index) const
 {
@@ -3359,7 +3362,7 @@ std::vector<Term> Term::getSequenceValue() const
   //////// all checks before this line
   std::vector<Term> res;
   const Sequence& seq = d_node->getConst<Sequence>();
-  for (const auto& node : seq.getVec())
+  for (const auto& node: seq.getVec())
   {
     res.emplace_back(Term(d_solver, node));
   }
@@ -6997,13 +7000,8 @@ std::string Solver::getOption(const std::string& option) const
 
 // Supports a visitor from a list of lambdas
 // Taken from https://en.cppreference.com/w/cpp/utility/variant/visit
-template <class... Ts>
-struct overloaded : Ts...
-{
-  using Ts::operator()...;
-};
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 bool OptionInfo::boolValue() const
 {

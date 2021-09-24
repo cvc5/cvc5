@@ -2732,9 +2732,7 @@ class CVC5_EXPORT DriverOptions
 struct CVC5_EXPORT OptionInfo
 {
   /** Has no value information */
-  struct VoidInfo
-  {
-  };
+  struct VoidInfo {};
   /** Has the current and the default value */
   template <typename T>
   struct ValueInfo
