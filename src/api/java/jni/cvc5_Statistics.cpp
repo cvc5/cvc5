@@ -138,6 +138,7 @@ JNIEXPORT jlong JNICALL Java_cvc5_Statistics_increment(JNIEnv* env,
   Statistics::iterator it = *itPointer;
   if (it == current->end())
   {
+    delete itPointer;
     std::string message = "Reached the end of Statistics::iterator";
     throw CVC5ApiException(message);
   }
@@ -146,4 +147,15 @@ JNIEXPORT jlong JNICALL Java_cvc5_Statistics_increment(JNIEnv* env,
   delete itPointer;
   return reinterpret_cast<jlong>(nextIt);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Statistics
+ * Method:    deleteIteratorPointer
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_cvc5_Statistics_deleteIteratorPointer(
+    JNIEnv*, jobject, jlong iteratorPointer)
+{
+  delete reinterpret_cast<Statistics::iterator*>(iteratorPointer);
 }
