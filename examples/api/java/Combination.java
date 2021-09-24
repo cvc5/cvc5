@@ -18,15 +18,13 @@
  */
 
 import cvc5.*;
-
 import java.util.Iterator;
 
 public class Combination
 {
-
   private static void prefixPrintGetValue(Solver slv, Term t)
   {
-     prefixPrintGetValue(slv, t,0);
+    prefixPrintGetValue(slv, t, 0);
   }
 
   private static void prefixPrintGetValue(Solver slv, Term t, int level)
@@ -42,7 +40,7 @@ public class Combination
   public static void main(String[] args) throws CVC5ApiException
   {
     Solver slv = new Solver();
-    slv.setOption("produce-models", "true");  // Produce Models
+    slv.setOption("produce-models", "true"); // Produce Models
     slv.setOption("output-language", "cvc"); // Set the output-language to CVC's
     slv.setOption("dag-thresh", "0"); // Disable dagifying the output
     slv.setOption("output-language", "smt2"); // use smt-lib v2 as output language
@@ -76,24 +74,22 @@ public class Combination
 
     // Construct the assertions
     Term assertions = slv.mkTerm(Kind.AND,
-            new Term[]{
-                    slv.mkTerm(Kind.LEQ, zero, f_x),  // 0 <= f(x)
-                    slv.mkTerm(Kind.LEQ, zero, f_y),  // 0 <= f(y)
-                    slv.mkTerm(Kind.LEQ, sum, one),   // f(x) + f(y) <= 1
-                    p_0.notTerm(),               // not p(0)
-                    p_f_y                        // p(f(y))
-            });
+        new Term[] {
+            slv.mkTerm(Kind.LEQ, zero, f_x), // 0 <= f(x)
+            slv.mkTerm(Kind.LEQ, zero, f_y), // 0 <= f(y)
+            slv.mkTerm(Kind.LEQ, sum, one), // f(x) + f(y) <= 1
+            p_0.notTerm(), // not p(0)
+            p_f_y // p(f(y))
+        });
     slv.assertFormula(assertions);
 
     System.out.println("Given the following assertions:\n" + assertions + "\n");
 
     System.out.println("Prove x /= y is entailed. \n"
-            + "cvc5: " + slv.checkEntailed(slv.mkTerm(Kind.DISTINCT, x, y)) + ".\n"
-           );
+        + "cvc5: " + slv.checkEntailed(slv.mkTerm(Kind.DISTINCT, x, y)) + ".\n");
 
     System.out.println("Call checkSat to show that the assertions are satisfiable. \n"
-            + "cvc5: "
-            + slv.checkSat() + ".\n");
+        + "cvc5: " + slv.checkSat() + ".\n");
 
     System.out.println("Call slv.getValue(...) on terms of interest.");
     System.out.println("slv.getValue(" + f_x + "): " + slv.getValue(f_x));
@@ -103,19 +99,18 @@ public class Combination
     System.out.println("slv.getValue(" + p_f_y + "): " + slv.getValue(p_f_y) + "\n");
 
     System.out.println("Alternatively, iterate over assertions and call slv.getValue(...) "
-            + "on all terms."
-           );
+        + "on all terms.");
     prefixPrintGetValue(slv, assertions);
 
     System.out.println();
     System.out.println("You can also use nested loops to iterate over terms.");
     Iterator<Term> it1 = assertions.iterator();
-    while(it1.hasNext())
+    while (it1.hasNext())
     {
       Term t = it1.next();
       System.out.println("term: " + t);
       Iterator<Term> it2 = t.iterator();
-      while(it2.hasNext())
+      while (it2.hasNext())
       {
         System.out.println(" + child: " + it2.next());
       }

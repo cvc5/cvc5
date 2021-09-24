@@ -13,15 +13,16 @@
  * An example of accessing CVC4's statistics using the Java API.
  */
 
-import cvc5.*;
+import static cvc5.Kind.*;
 
+import cvc5.*;
 import java.util.List;
 import java.util.Map;
 
-import static cvc5.Kind.*;
-
-public class StatisticsExample {
-  public static void main(String[] args) {
+public class StatisticsExample
+{
+  public static void main(String[] args)
+  {
     Solver slv = new Solver();
     // String type
     Sort string = slv.getStringSort();
@@ -50,13 +51,12 @@ public class StatisticsExample {
 
     // Regular expression: (ab[c-e]*f)|g|h
     Term r = slv.mkTerm(REGEXP_UNION,
-            slv.mkTerm(REGEXP_CONCAT,
-                    slv.mkTerm(STRING_TO_REGEXP, slv.mkString("ab")),
-                    slv.mkTerm(REGEXP_STAR,
-                            slv.mkTerm(REGEXP_RANGE, slv.mkString("c"), slv.mkString("e"))),
-                    slv.mkTerm(STRING_TO_REGEXP, slv.mkString("f"))),
-            slv.mkTerm(STRING_TO_REGEXP, slv.mkString("g")),
-            slv.mkTerm(STRING_TO_REGEXP, slv.mkString("h")));
+        slv.mkTerm(REGEXP_CONCAT,
+            slv.mkTerm(STRING_TO_REGEXP, slv.mkString("ab")),
+            slv.mkTerm(REGEXP_STAR, slv.mkTerm(REGEXP_RANGE, slv.mkString("c"), slv.mkString("e"))),
+            slv.mkTerm(STRING_TO_REGEXP, slv.mkString("f"))),
+        slv.mkTerm(STRING_TO_REGEXP, slv.mkString("g")),
+        slv.mkTerm(STRING_TO_REGEXP, slv.mkString("h")));
 
     // String variables
     Term s1 = slv.mkConst(string, "s1");
@@ -68,14 +68,10 @@ public class StatisticsExample {
     Term formula3 = slv.mkTerm(STRING_IN_REGEXP, s, r);
 
     // Make a query
-    Term q = slv.mkTerm(AND,
-            formula1,
-            formula2,
-            formula3);
+    Term q = slv.mkTerm(AND, formula1, formula2, formula3);
 
     // check sat
     Result result = slv.checkSatAssuming(q);
-
 
     // Get the statistics from the `SmtEngine` and iterate over them. The
     // `Statistics` class implements the `Iterable<Statistic>` interface. A
@@ -85,23 +81,23 @@ public class StatisticsExample {
     for (Pair<String, Stat> pair : stats)
     {
       Stat stat = pair.second;
-      if(stat.isInt())
+      if (stat.isInt())
       {
         System.out.println(pair.first + " = " + stat.getInt());
       }
-      else if(stat.isDouble())
+      else if (stat.isDouble())
       {
         System.out.println(pair.first + " = " + stat.getDouble());
       }
-      else if(stat.isString())
+      else if (stat.isString())
       {
         System.out.println(pair.first + " = " + stat.getString());
       }
-      else if(stat.isHistogram())
+      else if (stat.isHistogram())
       {
         System.out.println("-------------------------------------------------------");
         System.out.println(pair.first + " : Map");
-        for (Map.Entry<String, Long> entry: stat.getHistogram().entrySet())
+        for (Map.Entry<String, Long> entry : stat.getHistogram().entrySet())
         {
           System.out.println(entry.getKey() + " = " + entry.getValue());
         }

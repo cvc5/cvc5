@@ -17,39 +17,48 @@
 
 import cvc5.*;
 
-public class Exceptions {
-  public static void main(String[] args) {
-    
+public class Exceptions
+{
+  public static void main(String[] args)
+  {
     Solver solver = new Solver();
 
     solver.setOption("produce-models", "true");
 
     // Setting an invalid option
-    try {
+    try
+    {
       solver.setOption("non-existing", "true");
       System.exit(1);
-    } catch (Exception e)
+    }
+    catch (Exception e)
     {
       System.out.println(e.toString());
     }
 
     // Creating a term with an invalid type
-    try {
+    try
+    {
       Sort integer = solver.getIntegerSort();
       Term x = solver.mkVar(integer, "x");
       Term invalidTerm = solver.mkTerm(Kind.AND, x, x);
       solver.checkSatAssuming(invalidTerm);
       System.exit(1);
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       System.out.println(e.toString());
     }
 
     // Asking for a model after unsat result
-    try {
+    try
+    {
       solver.checkSatAssuming(solver.mkBoolean(false));
-      solver.getModel(new Sort[]{}, new Term[]{});
+      solver.getModel(new Sort[] {}, new Term[] {});
       System.exit(1);
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       System.out.println(e.toString());
     }
   }

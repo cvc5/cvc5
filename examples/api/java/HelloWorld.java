@@ -15,9 +15,10 @@
 
 import cvc5.*;
 
-public class HelloWorld {
-  public static void main(String[] args) {
-
+public class HelloWorld
+{
+  public static void main(String[] args)
+  {
     Solver slv = new Solver();
     Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
 

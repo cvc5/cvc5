@@ -28,9 +28,9 @@ public class BitVectorsAndArrays
   public static void main(String[] args) throws CVC5ApiException
   {
     Solver slv = new Solver();
-    slv.setOption("produce-models", "true");      // Produce Models
+    slv.setOption("produce-models", "true"); // Produce Models
     slv.setOption("output-language", "smtlib"); // output-language
-    slv.setLogic("QF_AUFBV");                   // Set the logic
+    slv.setLogic("QF_AUFBV"); // Set the logic
 
     // Consider the following code (where size is some previously defined constant):
     //
@@ -45,9 +45,8 @@ public class BitVectorsAndArrays
     // throughout the loop.
 
     // Setting up the problem parameters
-    int k = 4;                // number of unrollings (should be a power of 2)
+    int k = 4; // number of unrollings (should be a power of 2)
     int index_size = log2(k); // size of the index
-
 
     // Sorts
     Sort elementSort = slv.mkBitVectorSort(32);
@@ -62,8 +61,8 @@ public class BitVectorsAndArrays
 
     // Asserting that current_array[0] > 0
     Term current_array0 = slv.mkTerm(Kind.SELECT, current_array, zero);
-    Term current_array0_gt_0 = slv.mkTerm(
-            Kind.BITVECTOR_SGT, current_array0, slv.mkBitVector(32, 0));
+    Term current_array0_gt_0 =
+        slv.mkTerm(Kind.BITVECTOR_SGT, current_array0, slv.mkBitVector(32, 0));
     slv.assertFormula(current_array0_gt_0);
 
     // Building the assertions in the loop unrolling
@@ -72,7 +71,8 @@ public class BitVectorsAndArrays
     Term two = slv.mkBitVector(32, 2);
 
     List<Term> assertions = new ArrayList<Term>();
-    for (int i = 1; i < k; ++i) {
+    for (int i = 1; i < k; ++i)
+    {
       index = slv.mkBitVector(index_size, i);
       Term new_current = slv.mkTerm(Kind.BITVECTOR_MULT, two, old_current);
       // current[i] = 2 * current[i-1]

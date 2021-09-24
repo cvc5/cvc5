@@ -19,10 +19,12 @@
  * IEEE 754-2008 bit-vector to a floating-point number.
  */
 
-import cvc5.*;
 import static cvc5.Kind.*;
 
-public class FloatingPointArith {
+import cvc5.*;
+
+public class FloatingPointArith
+{
   public static void main(String[] args) throws CVC5ApiException
   {
     Solver solver = new Solver();
@@ -30,23 +32,19 @@ public class FloatingPointArith {
 
     // Make single precision floating-point variables
     Sort fpt32 = solver.mkFloatingPointSort(8, 24);
-    Term a = solver.mkConst(fpt32,"a");
-    Term b = solver.mkConst(fpt32,"b");
-    Term c = solver.mkConst(fpt32,"c");
-    Term d = solver.mkConst(fpt32,"d");
-    Term e = solver.mkConst(fpt32,"e");
+    Term a = solver.mkConst(fpt32, "a");
+    Term b = solver.mkConst(fpt32, "b");
+    Term c = solver.mkConst(fpt32, "c");
+    Term d = solver.mkConst(fpt32, "d");
+    Term e = solver.mkConst(fpt32, "e");
 
     // Assert that floating-point addition is not associative:
     // (a + (b + c)) != ((a + b) + c)
     Term rm = solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN);
-    Term lhs = solver.mkTerm(Kind.FLOATINGPOINT_ADD,
-        rm,
-        a,
-        solver.mkTerm(Kind.FLOATINGPOINT_ADD, rm, b, c));
-    Term rhs = solver.mkTerm(Kind.FLOATINGPOINT_ADD,
-        rm,
-        solver.mkTerm(Kind.FLOATINGPOINT_ADD, rm, a, b),
-        c);
+    Term lhs = solver.mkTerm(
+        Kind.FLOATINGPOINT_ADD, rm, a, solver.mkTerm(Kind.FLOATINGPOINT_ADD, rm, b, c));
+    Term rhs = solver.mkTerm(
+        Kind.FLOATINGPOINT_ADD, rm, solver.mkTerm(Kind.FLOATINGPOINT_ADD, rm, a, b), c);
     solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.EQUAL, a, b)));
 
     Result r = solver.checkSat(); // result is sat

@@ -14,11 +14,12 @@
  */
 
 import cvc5.*;
-
 import java.util.Arrays;
 
-public class UnsatCores {
-  public static void main(String[] args) throws CVC5ApiException {
+public class UnsatCores
+{
+  public static void main(String[] args) throws CVC5ApiException
+  {
     Solver solver = new Solver();
 
     // Enable the production of unsat cores
@@ -37,13 +38,14 @@ public class UnsatCores {
 
     // Retrieve the unsat core
     Term[] unsatCore = solver.getUnsatCore();
-    
+
     // Print the unsat core
     System.out.println("Unsat Core: " + Arrays.asList(unsatCore));
 
     // Iterate over expressions in the unsat core.
     System.out.println("--- Unsat Core ---");
-    for (Term e : unsatCore) {
+    for (Term e : unsatCore)
+    {
       System.out.println(e);
     }
   }

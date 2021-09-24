@@ -13,8 +13,9 @@
  * A simple demonstration of reasoning about relations with CVC4 via Java API.
  */
 
-import cvc5.*;
 import static cvc5.Kind.*;
+
+import cvc5.*;
 
 /*
 This file uses the API to make a sat call equivalent to the following benchmark:
@@ -64,9 +65,10 @@ This file uses the API to make a sat call equivalent to the following benchmark:
 (get-model)
  */
 
-public class Relations {
-  public static void main(String[] args) throws CVC5ApiException {
-
+public class Relations
+{
+  public static void main(String[] args) throws CVC5ApiException
+  {
     Solver solver = new Solver();
 
     // Set the logic
@@ -82,26 +84,26 @@ public class Relations {
     Sort personSort = solver.mkUninterpretedSort("Person");
 
     // (Tuple Person)
-    Sort tupleArity1 = solver.mkTupleSort(new Sort[]{personSort});
+    Sort tupleArity1 = solver.mkTupleSort(new Sort[] {personSort});
     // (Set (Tuple Person))
     Sort relationArity1 = solver.mkSetSort(tupleArity1);
-    
+
     // (Tuple Person Person)
-    Sort tupleArity2 = solver.mkTupleSort(new Sort[]{personSort, personSort});
+    Sort tupleArity2 = solver.mkTupleSort(new Sort[] {personSort, personSort});
     // (Set (Tuple Person Person))
     Sort relationArity2 = solver.mkSetSort(tupleArity2);
 
-    // empty set    
+    // empty set
     Term emptySetTerm = solver.mkEmptySet(relationArity1);
 
-    // empty relation    
+    // empty relation
     Term emptyRelationTerm = solver.mkEmptySet(relationArity2);
 
     // universe set
     Term universeSet = solver.mkUniverseSet(relationArity1);
 
     // variables
-    Term people = solver.mkConst(relationArity1,"people");
+    Term people = solver.mkConst(relationArity1, "people");
     Term males = solver.mkConst(relationArity1, "males");
     Term females = solver.mkConst(relationArity1, "females");
     Term father = solver.mkConst(relationArity2, "father");
@@ -122,10 +124,8 @@ public class Relations {
 
     // (assert (= (intersection males females) (as emptyset (Set (Tuple
     // Person)))))
-    Term malesFemalesIntersection =
-        solver.mkTerm(INTERSECTION, males, females);
-    Term malesAndFemalesAreDisjoint =
-        solver.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);
+    Term malesFemalesIntersection = solver.mkTerm(INTERSECTION, males, females);
+    Term malesAndFemalesAreDisjoint = solver.mkTerm(EQUAL, malesFemalesIntersection, emptySetTerm);
 
     // (assert (not (= father (as emptyset (Set (Tuple Person Person))))))
     // (assert (not (= mother (as emptyset (Set (Tuple Person Person))))))
@@ -146,13 +146,11 @@ public class Relations {
 
     // (assert (= parent (union father mother)))
     Term unionFatherMother = solver.mkTerm(UNION, father, mother);
-    Term parentIsFatherOrMother =
-        solver.mkTerm(EQUAL, parent, unionFatherMother);
+    Term parentIsFatherOrMother = solver.mkTerm(EQUAL, parent, unionFatherMother);
 
     // (assert (= parent (union father mother)))
     Term transitiveClosure = solver.mkTerm(TCLOSURE, parent);
-    Term descendantFormula =
-        solver.mkTerm(EQUAL, descendant, transitiveClosure);
+    Term descendantFormula = solver.mkTerm(EQUAL, descendant, transitiveClosure);
 
     // (assert (= parent (union father mother)))
     Term transpose = solver.mkTerm(TRANSPOSE, descendant);
@@ -166,8 +164,7 @@ public class Relations {
     Term notMember = solver.mkTerm(NOT, member);
 
     Term quantifiedVariables = solver.mkTerm(BOUND_VAR_LIST, x);
-    Term noSelfAncestor =
-        solver.mkTerm(FORALL, quantifiedVariables, notMember);
+    Term noSelfAncestor = solver.mkTerm(FORALL, quantifiedVariables, notMember);
 
     // formulas
     solver.assertFormula(peopleAreTheUniverse);

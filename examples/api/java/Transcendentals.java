@@ -13,37 +13,40 @@
  * A simple demonstration of the transcendental extension.
  */
 
-import cvc5.*;
 import static cvc5.Kind.*;
 
-public class Transcendentals {
-    public static void main(String args[]) throws CVC5ApiException{
-        Solver slv = new Solver();
-        slv.setLogic("QF_NRAT");
+import cvc5.*;
 
-        Sort real = slv.getRealSort();
+public class Transcendentals
+{
+  public static void main(String args[]) throws CVC5ApiException
+  {
+    Solver slv = new Solver();
+    slv.setLogic("QF_NRAT");
 
-        // Variables
-        Term x = slv.mkConst(real, "x");
-        Term y = slv.mkConst(real, "y");
+    Sort real = slv.getRealSort();
 
-        // Helper terms
-        Term two = slv.mkReal(2);
-        Term pi = slv.mkPi();
-        Term twopi = slv.mkTerm(MULT, two, pi);
-        Term ysq = slv.mkTerm(MULT, y, y);
-        Term sinx = slv.mkTerm(SINE, x);
+    // Variables
+    Term x = slv.mkConst(real, "x");
+    Term y = slv.mkConst(real, "y");
 
-        // Formulas
-        Term x_gt_pi = slv.mkTerm(GT, x, pi);
-        Term x_lt_tpi = slv.mkTerm(LT, x, twopi);
-        Term ysq_lt_sinx = slv.mkTerm(LT, ysq, sinx);
+    // Helper terms
+    Term two = slv.mkReal(2);
+    Term pi = slv.mkPi();
+    Term twopi = slv.mkTerm(MULT, two, pi);
+    Term ysq = slv.mkTerm(MULT, y, y);
+    Term sinx = slv.mkTerm(SINE, x);
 
-        slv.assertFormula(x_gt_pi);
-        slv.assertFormula(x_lt_tpi);
-        slv.assertFormula(ysq_lt_sinx);
+    // Formulas
+    Term x_gt_pi = slv.mkTerm(GT, x, pi);
+    Term x_lt_tpi = slv.mkTerm(LT, x, twopi);
+    Term ysq_lt_sinx = slv.mkTerm(LT, ysq, sinx);
 
-        System.out.println("cvc5 should report UNSAT.");
-        System.out.println("Result from cvc5 is: " + slv.checkSat());
-    }
+    slv.assertFormula(x_gt_pi);
+    slv.assertFormula(x_lt_tpi);
+    slv.assertFormula(ysq_lt_sinx);
+
+    System.out.println("cvc5 should report UNSAT.");
+    System.out.println("Result from cvc5 is: " + slv.checkSat());
+  }
 }
