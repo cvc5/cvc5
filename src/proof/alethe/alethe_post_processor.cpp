@@ -416,7 +416,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // -------------------------------------- RESOLUTION
     // (cl (or F2 F3))
     //
-    // (cl F1 F2 F3)        (cl (not F1))
+    // (cl F1 F2 F3)         (cl (not F1))
     // -------------------------------------- RESOLUTION
     // (cl F2 F3)
     //
@@ -460,23 +460,21 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Otherwise, if C = false
     //
-    //  VP1           VP2
-    // --------------------
-    //    (cl)**
+    //    VP1           VP2
+    //  ---------------------
+    //     (cl)**
     //
     // Otherwise,
     //
-    //  VP1           VP2
-    // --------------------
-    //    (cl C)***
+    //    VP1           VP2
+    //  ---------------------
+    //     (cl C)***
     //
     //  *   the corresponding proof node is (not (and F1 ... Fn))
     //  **  the corresponding proof node is False
     //  *** the corresponding proof node is C
     case PfRule::RESOLUTION:
-    {  // This can be simplified
-      // The only way that or steps can be added is if one child is the negation
-      // of the other, i.e. they resolve to (cl)
+    {
       bool success = true;
       std::vector<Node> vps = children;
 
@@ -492,16 +490,10 @@ bool AletheProofPostprocessCallback::update(Node res,
             || cdp->getProofFor(children[i])->getRule() == PfRule::EQ_RESOLVE)
         {
           // The current child is not a singleton if its the negation of the
-          // other child.
-          Node child2;
-          if (i == 0)
-          {
-            child2 = children[1];
-          }
-          else
-          {
-            child2 = children[0];
-          }
+          // other child. Then, they will resolve to (cl). In this case, an
+          // additional or step is necessary to.
+          Node child2 = children[1 - i];
+
           if (children[i].getKind() == kind::OR
               && children[i] != child2.notNode())
           {
