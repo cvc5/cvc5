@@ -366,7 +366,8 @@ class CVC5_EXPORT OptimizationResult
 
   /**
    * The interal optimization result wrapped by this result.
-   * Note: This is a shared_ptr for the same reason as in Result
+   * Note: This is a shared_ptr rather than a unique_ptr 
+   *   since one of its members cvc5::Result is not ref counted.
    */
   std::shared_ptr<cvc5::smt::OptimizationResult> d_optResult;
 };
@@ -3011,12 +3012,35 @@ class CVC5_EXPORT Solver
 
  public:
   /**
-   * Multiple-objective combination for optimization
+   * An enum specifying how multiple objectives are dealt with.
    */
   enum ObjectiveCombination
   {
+    /**
+     * Definition:
+     *   phi(x, y): set of assertions with variables x and y
+     * Box: treat the objectives as independent objectives
+     *   v_x = max(x) s.t. phi(x, y) = sat
+     *   v_y = max(y) s.t. phi(x, y) = sat
+     */
     BOX,
+    /**
+     * Definition:
+     *   phi(x, y): set of assertions with variables x and y
+     * Lexicographic: optimize the objectives one-by-one, in the order they are
+     * added:
+     *   v_x = max(x) s.t. phi(x, y) = sat
+     *   v_y = max(y) s.t. phi(v_x, y) = sat
+     */
     LEXICOGRAPHIC,
+    /**
+     * Definition:
+     *   phi(x, y): set of assertions with variables x and y
+     * Pareto: optimize multiple goals to a state such that
+     * further optimization of one goal will worsen the other goal(s)
+     *   (v_x, v_y) s.t. phi(v_x, v_y) = sat, and
+     *     forall (x, y), (phi(x, y) = sat) -> (x <= v_x or y <= v_y)
+     */
     PARETO,
   };
 
@@ -3025,9 +3049,29 @@ class CVC5_EXPORT Solver
    */
   enum ObjectiveType
   {
+    /**
+     * The objective is minimized,
+     * For BitVector: 
+     *   the objective is minimized in an unsigned manner
+     */
     MINIMIZE,
+    /**
+     * The objective is minimized,
+     * For BitVector: 
+     *   the objective is maximized in an unsigned manner
+     */
     MAXIMIZE,
+    /**
+     * Exclusively for BitVector:
+     *   the objective is minimized in an unsigned manner
+     * Do not use if the objective is not BitVector
+     */
     BV_SIGNED_MINIMIZE,
+    /**
+     * Exclusively for BitVector:
+     *   the objective is maximized in an unsigned manner
+     * Do not use if the objective is not BitVector
+     */
     BV_SIGNED_MAXIMIZE,
   };
 
@@ -4515,11 +4559,8 @@ class CVC5_EXPORT Solver
    *  where Result indicates the overall optimization result,
    *  for BOX, if any of the objective is UNSAT or UNKNOWN,
    *    it's UNSAT/UNKNOWN,
-   *  for LEXICOGRAPHIC, if the assertions are UNSAT/UNKNOWN,
+   *  for LEXICOGRAPHIC/PARETO, if the assertions are UNSAT/UNKNOWN,
    *    it's UNSAT/UNKNOWN,
-   *  for PARETO, if the assertions are UNSAT
-   *  or the possible solutions are exhausted, it's UNSAT,
-   *    if the assertions are UNKNOWN, it's UNKNOWN;
    *  vector<OptimizationResult> stores the results of individual objectives
    */
   std::pair<Result, std::vector<OptimizationResult>> checkOpt(
@@ -4528,8 +4569,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Retrive the next Pareto solution,
-   * valid only after checkOpt is called with PARETO and SAT is returned,
-   * otherwise it's undefined behaviour.
+   * valid only after checkOpt is called with PARETO and SAT is returned.
    * @return a pair <Result, vector<OptimizationResult>>,
    *  where Result indicates the overall optimization result,
    *  if the possible solutions are exhausted, it's UNSAT.
