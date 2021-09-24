@@ -102,7 +102,7 @@ cvc5_option(ENABLE_STATISTICS     "Enable statistics")
 cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
-cvc5_option(ENABLE_SHARED         "Build as shared library")
+cvc5_option(ENABLE_STATIC_LIBRARY "Enable building static library")
 cvc5_option(ENABLE_STATIC_BINARY
             "Build static binaries with statically linked system libraries")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
@@ -251,9 +251,8 @@ endif()
 # already set the option, which we don't want to overwrite.
 
 if(ENABLE_STATIC_BINARY)
-  cvc5_set_option(ENABLE_SHARED OFF)
-else()
-  cvc5_set_option(ENABLE_SHARED ON)
+  message(STATUS "Enable static library for static binary build.")
+  cvc5_set_option(ENABLE_STATIC_LIBRARY ON)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -271,19 +270,7 @@ endif()
 # This needs to be set before any find_package(...) command since we want to
 # search for static libraries with suffix .a.
 
-if(ENABLE_SHARED)
-  set(BUILD_SHARED_LIBS ON)
-  if(ENABLE_STATIC_BINARY)
-    set(ENABLE_STATIC_BINARY OFF)
-    message(STATUS "Disabling static binary since shared build is enabled.")
-  endif()
-
-  # Set visibility to default if unit tests are enabled
-  if(ENABLE_UNIT_TESTING)
-    set(CMAKE_CXX_VISIBILITY_PRESET default)
-    set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
-  endif()
-
+if(NOT ENABLE_STATIC_BINARY)
   # Embed the installation prefix as an RPATH in the executable such that the
   # linker can find our libraries (such as libcvc5parser) when executing the
   # cvc5 binary. This is for example useful when installing cvc5 with a custom
@@ -301,27 +288,12 @@ if(ENABLE_SHARED)
   # More information on RPATH in CMake:
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
-else()
-  # When building statically, we *only* want static archives/libraries
-  if (WIN32)
-      set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)
-  else()
-      set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-  endif()
-  set(BUILD_SHARED_LIBS OFF)
-  cvc5_set_option(ENABLE_STATIC_BINARY ON)
+endif()
 
-  # Never build unit tests as static binaries, otherwise we'll end up with
-  # ~300MB per unit test.
-  if(ENABLE_UNIT_TESTING)
-    message(STATUS "Disabling unit tests since static build is enabled.")
-    set(ENABLE_UNIT_TESTING OFF)
-  endif()
-
-  if (BUILD_BINDINGS_PYTHON)
-    message(FATAL_ERROR "Building Python bindings is not possible "
-                        "when building statically")
-  endif()
+# Set visibility to default if unit tests are enabled
+if(ENABLE_UNIT_TESTING)
+  set(CMAKE_CXX_VISIBILITY_PRESET default)
+  set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -515,7 +487,7 @@ include(IWYU)
 #-----------------------------------------------------------------------------#
 
 include(ConfigureCvc5)
-if(NOT ENABLE_SHARED)
+if(ENABLE_STATIC_BINARY)
   set(CVC5_STATIC_BUILD ON)
 endif()
 
@@ -665,7 +637,7 @@ print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
 print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
 print_config("Valgrind                  " ${ENABLE_VALGRIND})
 message("")
-print_config("Shared libs               " ${ENABLE_SHARED})
+print_config("Static library            " ${ENABLE_STATIC_LIBRARY})
 print_config("Static binary             " ${ENABLE_STATIC_BINARY})
 print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
 print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})

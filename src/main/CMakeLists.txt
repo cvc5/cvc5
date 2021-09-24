@@ -36,9 +36,7 @@ set_source_files_properties(${libmain_gen_src_files} PROPERTIES GENERATED TRUE)
 
 add_library(main OBJECT ${libmain_src_files} ${libmain_gen_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC5DRIVER)
-if(ENABLE_SHARED)
-  set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
+set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # We can't use target_link_libraries(main ...) here since this is only
 # supported for cmake version >= 3.12. Hence, we have to manually add the

@@ -84,8 +84,6 @@ set_source_files_properties(
 )
 
 add_library(cvc5base OBJECT ${LIBBASE_SOURCES})
-if(ENABLE_SHARED)
-  set_target_properties(cvc5base PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
+set_target_properties(cvc5base PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(cvc5base PRIVATE -D__BUILDING_CVC5LIB)
 add_dependencies(cvc5base gen-gitinfo gen-tags)
