@@ -18,6 +18,7 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
+#include "options/smt_options.h"
 #include "smt/env.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/error_set.h"
@@ -55,7 +56,7 @@ SimplexDecisionProcedure::SimplexDecisionProcedure(
 {
   d_heuristicRule = options().arith.arithErrorSelectionRule;
   d_errorSet.setSelectionRule(d_heuristicRule);
-  d_conflictBuilder = new FarkasConflictBuilder();
+  d_conflictBuilder = new FarkasConflictBuilder(options().smt.produceProofs);
 }
 
 SimplexDecisionProcedure::~SimplexDecisionProcedure(){
