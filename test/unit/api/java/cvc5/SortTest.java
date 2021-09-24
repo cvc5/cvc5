@@ -64,10 +64,7 @@ class SortTest
   {
     assertDoesNotThrow(() -> d_solver.getIntegerSort() == d_solver.getNullSort());
     assertDoesNotThrow(() -> d_solver.getIntegerSort() != d_solver.getNullSort());
-    assertDoesNotThrow(() -> d_solver.getIntegerSort().compareTo(d_solver.getNullSort()));
-    //   assertDoesNotThrow(() -> d_solver.getIntegerSort() <=d_solver.getNullSort());
-    //   assertDoesNotThrow(() -> d_solver.getIntegerSort() >d_solver.getNullSort());
-    //   assertDoesNotThrow(() -> d_solver.getIntegerSort() >=d_solver.getNullSort());
+    assertDoesNotThrow(() -> d_solver.getIntegerSort().compareTo(d_solver.getNullSort()));    
   }
 
   @Test void isBoolean()
