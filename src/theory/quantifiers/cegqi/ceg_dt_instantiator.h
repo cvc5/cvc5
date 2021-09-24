@@ -33,7 +33,7 @@ namespace quantifiers {
 class DtInstantiator : public Instantiator
 {
  public:
-  DtInstantiator(TypeNode tn) : Instantiator(tn) {}
+  DtInstantiator(Env& env, TypeNode tn) : Instantiator(env, tn) {}
   virtual ~DtInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,

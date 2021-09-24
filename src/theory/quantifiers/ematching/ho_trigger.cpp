@@ -35,6 +35,7 @@ namespace quantifiers {
 namespace inst {
 
 HigherOrderTrigger::HigherOrderTrigger(
+    Env& env,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,
@@ -42,7 +43,7 @@ HigherOrderTrigger::HigherOrderTrigger(
     Node q,
     std::vector<Node>& nodes,
     std::map<Node, std::vector<Node> >& ho_apps)
-    : Trigger(qs, qim, qr, tr, q, nodes), d_ho_var_apps(ho_apps)
+    : Trigger(env, qs, qim, qr, tr, q, nodes), d_ho_var_apps(ho_apps)
 {
   NodeManager* nm = NodeManager::currentNM();
   // process the higher-order variable applications

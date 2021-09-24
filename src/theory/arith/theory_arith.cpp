@@ -167,7 +167,15 @@ void TheoryArith::postCheck(Effort level)
   {
     if (d_nonlinearExtension != nullptr)
     {
-      d_nonlinearExtension->check(level);
+      // If we computed lemmas in the last FULL_EFFORT check, send them now.
+      if (d_im.hasPendingLemma())
+      {
+        d_im.doPendingFacts();
+        d_im.doPendingLemmas();
+        d_im.doPendingPhaseRequirements();
+        return;
+      }
+      d_nonlinearExtension->finalizeModel(getValuation().getModel());
     }
     return;
   }
@@ -189,8 +197,7 @@ void TheoryArith::postCheck(Effort level)
     {
       std::set<Node> termSet;
       updateModelCache(termSet);
-      d_nonlinearExtension->check(level);
-      d_nonlinearExtension->interceptModel(d_arithModelCache, termSet);
+      d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
     else if (d_internal->foundNonlinear())
     {
@@ -223,7 +230,7 @@ bool TheoryArith::preNotifyFact(
 bool TheoryArith::needsCheckLastEffort() {
   if (d_nonlinearExtension != nullptr)
   {
-    return d_nonlinearExtension->needsCheckLastEffort();
+    return d_nonlinearExtension->hasNlTerms();
   }
   return false;
 }
@@ -313,10 +320,6 @@ void TheoryArith::notifyRestart(){
 
 void TheoryArith::presolve(){
   d_internal->presolve();
-  if (d_nonlinearExtension != nullptr)
-  {
-    d_nonlinearExtension->presolve();
-  }
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {

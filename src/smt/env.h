@@ -21,7 +21,9 @@
 
 #include <memory>
 
+#include "options/base_options.h"
 #include "options/options.h"
+#include "proof/method_id.h"
 #include "theory/logic_info.h"
 #include "util/statistics_registry.h"
 
@@ -44,6 +46,7 @@ class PfManager;
 }
 
 namespace theory {
+class Evaluator;
 class Rewriter;
 class TrustSubstitutionMap;
 }
@@ -137,6 +140,63 @@ class Env
    */
   std::ostream& getDumpOut();
 
+  /**
+   * Check whether the output for the given output tag is enabled. Output tags
+   * are enabled via the `output` option (or `-o` on the command line).
+   */
+  bool isOutputOn(options::OutputTag tag) const;
+  /**
+   * Check whether the output for the given output tag (as a string) is enabled.
+   * Output tags are enabled via the `output` option (or `-o` on the command
+   * line).
+   */
+  bool isOutputOn(const std::string& tag) const;
+  /**
+   * Return the output stream for the given output tag. If the output tag is
+   * enabled, this returns the output stream from the `out` option. Otherwise,
+   * a null stream (`cvc5::null_os`) is returned.
+   */
+  std::ostream& getOutput(options::OutputTag tag) const;
+  /**
+   * Return the output stream for the given output tag (as a string). If the
+   * output tag is enabled, this returns the output stream from the `out`
+   * option. Otherwise, a null stream (`cvc5::null_os`) is returned.
+   */
+  std::ostream& getOutput(const std::string& tag) const;
+
+  /* Rewrite helpers--------------------------------------------------------- */
+  /**
+   * Evaluate node n under the substitution args -> vals. For details, see
+   * theory/evaluator.h.
+   *
+   * @param n The node to evaluate
+   * @param args The domain of the substitution
+   * @param vals The range of the substitution
+   * @param useRewriter if true, we use this rewriter to rewrite subterms of
+   * n that cannot be evaluated to a constant.
+   * @return the rewritten, evaluated form of n under the given substitution.
+   */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                bool useRewriter) const;
+  /** Same as above, with a visited cache. */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                const std::unordered_map<Node, Node>& visited,
+                bool useRewriter = true) const;
+  /**
+   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
+   * This encapsulates the exact behavior of a REWRITE step in a proof.
+   *
+   * @param n The node to rewrite,
+   * @param idr The method identifier of the rewriter, by default RW_REWRITE
+   * specifying a call to rewrite.
+   * @return The rewritten form of n.
+   */
+  Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -173,6 +233,10 @@ class Env
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+  /** Evaluator that also invokes the rewriter */
+  std::unique_ptr<theory::Evaluator> d_evalRew;
+  /** Evaluator that does not invoke the rewriter */
+  std::unique_ptr<theory::Evaluator> d_eval;
   /** The top level substitutions */
   std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
   /** The dump manager */

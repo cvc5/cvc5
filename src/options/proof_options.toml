@@ -15,9 +15,9 @@ name   = "Proof"
 [[option.mode.DOT]]
   name       = "dot"
   help       = "Output DOT proof"
-[[option.mode.VERIT]]
-  name       = "verit"
-  help       = "Output veriT proof"
+[[option.mode.ALETHE]]
+  name       = "alethe"
+  help       = "Output Alethe proof"
 [[option.mode.TPTP]]
   name       = "tptp"
   help       = "Output TPTP proof (work in progress)"

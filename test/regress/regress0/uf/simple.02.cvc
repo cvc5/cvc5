@@ -1,7 +1,0 @@
-% EXPECT: not_entailed
-A: TYPE;
-B: TYPE;
-x, y: A;
-f: A -> B;
-QUERY (f(x) = f(y));
-
