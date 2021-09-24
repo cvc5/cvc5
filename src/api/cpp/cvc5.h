@@ -286,13 +286,13 @@ class Term;
 
 /**
  * Encapsulation of the optimization result
- **/
+ */
 class CVC5_EXPORT OptimizationResult
 {
   friend class Solver;
 
  public:
-  /** Denotes whether the result is +Inf, -Inf or finite **/
+  /** Denotes whether the result is +Inf, -Inf or finite */
   enum IsInfinity
   {
     FINITE = 0,
@@ -300,14 +300,14 @@ class CVC5_EXPORT OptimizationResult
     NEGATIVE_INF
   };
 
-  /** Constructor **/
+  /** Constructor */
   OptimizationResult();
 
   /**
    * Gets the optimization outcome (SAT/UNSAT/UNKNOWN)
    * @return an instance of Result
    *   denoting whether the optimization is SAT/UNSAT/UNKNOWN
-   **/
+   */
   Result getResult() const;
 
   /**
@@ -317,36 +317,36 @@ class CVC5_EXPORT OptimizationResult
    *   or something suboptimal,
    *   If the outcome is UNSAT or result is +-Inf,
    *   it will be a null term
-   **/
+   */
   Term getValue() const;
 
   /**
    * Whether the result is +Inf/-Inf
    * @return true if result is +Inf or -Inf
-   **/
+   */
   bool isInfinity() const;
 
   /**
    * Whether the result is finite
    * @return true if result is finite
-   **/
+   */
   bool isFinite() const;
 
   /**
    * Whether the result is +Inf
    * @return true if result is +Inf
-   **/
+   */
   bool isPositiveInf() const;
 
   /**
    * Whether the result is -Inf
    * @return true if result is -Inf
-   **/
+   */
   bool isNegativeInf() const;
 
   /**
    * @return a string representation of this optimization result.
-   **/
+   */
   std::string toString() const;
 
  private:
@@ -354,14 +354,14 @@ class CVC5_EXPORT OptimizationResult
    * Constructor
    * @param optResult the internal optimization result
    *   that is wrapped by this result
-   **/
+   */
   OptimizationResult(const Solver* solver,
                      const cvc5::smt::OptimizationResult& optResult);
 
   /**
    * The associated Solver object,
    * used by the Term returned by getValue
-   **/
+   */
   const Solver* d_solver;
 
   /**
