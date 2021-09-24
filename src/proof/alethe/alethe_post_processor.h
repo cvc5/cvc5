@@ -97,7 +97,7 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @return True if the step could be added, or false if not.
    */
   bool addAletheStepFromOr(AletheRule rule,
-		           Node res,
+                           Node res,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);

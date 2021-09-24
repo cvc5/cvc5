@@ -18,8 +18,8 @@
 #include "expr/node_algorithm.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
-#include "util/rational.h"
 #include "theory/builtin/proof_checker.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
@@ -62,12 +62,6 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
     // See proof_rule.h for documentation on the SCOPE rule. This comment uses
-<<<<<<< HEAD
-    // variable names as introduced there. If the SCOPE conclusion is (not (and
-    // F1 ... Fn)), the transformation below generates (cl (not (and F1
-    // ... Fn))) to be printed, while for the conclusion (=> (and F1 ... Fn) F)
-    // it generates (cl (=> (and F1 ... Fn))).
-=======
     // variable names as introduced there. Since the SCOPE rule originally
     // concludes
     // (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) but the ANCHOR rule
@@ -79,7 +73,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Note that after the original conclusion is rederived the new proof node
     // will actually have to be printed, respectively, (cl (=> (and F1 ... Fn)
     // F)) or (cl (not (and F1 ... Fn))).
->>>>>>> upstream/master
     //
     // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
     // Fn)) for i times.
@@ -157,44 +150,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                children,
                                sanitized_args,
                                *cdp);
-<<<<<<< HEAD
 
-      // Build vp2i
-      Node andNode;
-      if (args.size() != 1)
-      {
-        andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
-      }
-      else
-      {
-        andNode = args[0];  // F1
-      }
-      std::vector<Node> premisesVP2 = {vp1};
-      std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
-      Node vp2_i;
-      for (long unsigned int i = 0; i < args.size(); i++)
-      {
-        vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
-        success &=
-            addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
-        premisesVP2.push_back(vp2_i);
-        notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
-      }
-
-      Node vp2a = nm->mkNode(kind::SEXPR, notAnd);
-      success &= addAletheStep(
-          AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
-
-      notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
-      notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
-      Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
-      success &=
-          addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
-
-      Node vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
-      success &= addAletheStep(
-          AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
-=======
       Node andNode, vp3;
       if (args.size() == 1)
       {
@@ -231,7 +187,6 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &= addAletheStep(
             AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
       }
->>>>>>> upstream/master
 
       Node vp8 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::IMPLIES, andNode, children[0]));
@@ -286,27 +241,17 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // The rule is translated according to the theory id tid and the outermost
-<<<<<<< HEAD
-    // connective of the conclusion F. This is not an exact translation but
-    // should work in most cases.
-    //
-    // E.g. if the F: (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
-=======
     // connective of the first term in the conclusion F, since F always has the
     // form (= t1 t2) where t1 is the term being rewritten. This is not an exact
     // translation but should work in most cases.
     //
     // E.g. if F is (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
->>>>>>> upstream/master
     // is correctly guessed as the rule.
     case PfRule::THEORY_REWRITE:
     {
       AletheRule vrule = AletheRule::UNDEFINED;
       Node t = res[0];
 
-<<<<<<< HEAD
-      switch (static_cast<theory::TheoryId>(std::stoul(args[1].toString())))
-=======
       theory::TheoryId tid;
       if (!theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid))
       {
@@ -314,7 +259,6 @@ bool AletheProofPostprocessCallback::update(Node res,
             vrule, res, nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
       }
       switch (tid)
->>>>>>> upstream/master
       {
         case theory::TheoryId::THEORY_BUILTIN:
         {
