@@ -34,6 +34,24 @@ JNIEXPORT void JNICALL Java_cvc5_Stat_deletePointer(JNIEnv*,
 
 /*
  * Class:     cvc5_Stat
+ * Method:    toString
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_cvc5_Stat_toString(JNIEnv* env,
+                                                  jobject,
+                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+
+  Stat* current = reinterpret_cast<Stat*>(pointer);
+  std::stringstream ss;
+  ss << *current;
+  return env->NewStringUTF(ss.str().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     cvc5_Stat
  * Method:    isExpert
  * Signature: (J)Z
  */
