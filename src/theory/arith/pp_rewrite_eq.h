@@ -46,8 +46,6 @@ class PreprocessRewriteEq : protected EnvObj
   TrustNode ppRewriteEq(TNode eq);
 
  private:
-  /** Are proofs enabled? */
-  bool proofsEnabled() const;
   /** Used to prove pp-rewrites */
   EagerProofGenerator d_ppPfGen;
 };

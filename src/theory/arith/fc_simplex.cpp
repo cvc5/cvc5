@@ -341,7 +341,7 @@ UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, Linear
     }
   }
 
-  CompPenaltyColLength colCmp(&d_linEq, options::havePenalties());
+  CompPenaltyColLength colCmp(&d_linEq, options().arith.havePenalties);
   CandVector::iterator i = candidates.begin();
   CandVector::iterator end = candidates.end();
   std::make_heap(i, end, colCmp);

@@ -44,7 +44,7 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   Debug("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << std::endl;
   // don't need to rewrite terms since rewritten is not a non-standard op
-  if (proofsEnabled())
+  if (d_env.isTheoryProofProducing())
   {
     Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_ARITH);
     return d_ppPfGen.mkTrustedRewrite(
@@ -54,11 +54,6 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
             PfRule::THEORY_INFERENCE, {}, {atom.eqNode(rewritten), t}));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
-}
-
-bool PreprocessRewriteEq::proofsEnabled() const
-{
-  return d_env.isTheoryProofProducing();
 }
 
 }  // namespace arith
