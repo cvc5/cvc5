@@ -63,8 +63,6 @@ libcvc5_add_sources(
   options/options_handler.h
   options/options_listener.h
   options/options_public.h
-  options/outputc.cpp
-  options/outputc.h
   options/set_language.cpp
   options/set_language.h
   preprocessing/assertion_pipeline.cpp
@@ -149,8 +147,6 @@ libcvc5_add_sources(
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
   printer/ast/ast_printer.h
-  printer/cvc/cvc_printer.cpp
-  printer/cvc/cvc_printer.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
@@ -547,6 +543,7 @@ libcvc5_add_sources(
   theory/arrays/theory_arrays_type_rules.cpp
   theory/arrays/theory_arrays_type_rules.h
   theory/arrays/type_enumerator.h
+  theory/arrays/type_enumerator.cpp
   theory/arrays/union_find.cpp
   theory/arrays/union_find.h
   theory/assertion.cpp
