@@ -344,7 +344,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::ARITH_MULT_POS:
     case PfRule::ARITH_MULT_NEG:
     {
-      // do not pass type (as[0].getType())
       pf << h << as[0] << as[1];
     }
     break;
