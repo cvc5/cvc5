@@ -20,6 +20,7 @@
 #include "expr/node_traversal.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 
@@ -28,12 +29,13 @@ namespace preprocessing {
 namespace passes {
 
 using namespace cvc5::theory;
-ForeignTheoryRewrite::ForeignTheoryRewrite(
-    PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
-      d_cache(userContext()){};
 
-Node ForeignTheoryRewrite::simplify(Node n)
+ForeignTheoryRewriter::ForeignTheoryRewriter(Env& env)
+    : EnvObj(env), d_cache(userContext())
+{
+}
+
+Node ForeignTheoryRewriter::simplify(Node n)
 {
   std::vector<Node> toVisit;
   n = rewrite(n);
@@ -87,7 +89,7 @@ Node ForeignTheoryRewrite::simplify(Node n)
   return d_cache[n];
 }
 
-Node ForeignTheoryRewrite::foreignRewrite(Node n)
+Node ForeignTheoryRewriter::foreignRewrite(Node n)
 {
   // n is a rewritten node, and so GT, LT, LEQ
   // should have been eliminated
@@ -102,18 +104,19 @@ Node ForeignTheoryRewrite::foreignRewrite(Node n)
   return n;
 }
 
-Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
+Node ForeignTheoryRewriter::rewriteStringsGeq(Node n)
 {
+  theory::strings::ArithEntail ae(d_env.getRewriter());
   // check if the node can be simplified to true
-  if (theory::strings::ArithEntail::check(n[0], n[1], false))
+  if (ae.check(n[0], n[1], false))
   {
     return NodeManager::currentNM()->mkConst(true);
   }
   return n;
 }
 
-Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
-                                           std::vector<Node> newChildren)
+Node ForeignTheoryRewriter::reconstructNode(Node originalNode,
+                                            std::vector<Node> newChildren)
 {
   // Nodes with no children are reconstructed to themselves
   if (originalNode.getNumChildren() == 0)
@@ -137,15 +140,22 @@ Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
   return builder.constructNode();
 }
 
+ForeignTheoryRewrite::ForeignTheoryRewrite(
+    PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
+      d_ftr(preprocContext->getEnv())
+{
+}
+
 PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
+       ++i)
   {
     assertionsToPreprocess->replace(
-        i, rewrite(simplify((*assertionsToPreprocess)[i])));
+        i, rewrite(d_ftr.simplify((*assertionsToPreprocess)[i])));
   }
-
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
