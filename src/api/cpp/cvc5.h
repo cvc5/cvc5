@@ -312,11 +312,11 @@ class CVC5_EXPORT OptimizationResult
 
   /**
    * Gets the optimization value if the result finite
-   * @return a Term encapsulating the optimimal value
+   * @return a Term encapsulating the optimal value
    *   If the outcome is UNKNOWN, it may be an empty term
    *   or something suboptimal,
    *   If the outcome is UNSAT or result is +-Inf,
-   *   it will be an empty term
+   *   it will be a null term
    **/
   Term getValue() const;
 
@@ -3005,7 +3005,7 @@ class CVC5_EXPORT Solver
   };
 
   /**
-   * Maximization / Minimization for optmization
+   * Maximization / Minimization for optimization
    */
   enum ObjectiveType
   {
