@@ -33,16 +33,14 @@ public class Result extends AbstractPointer
     return pointer;
   }
 
-  @Override
-  public void finalize()
+  @Override public void finalize()
   {
     deletePointer(pointer);
   }
 
   // endregion
 
-  public enum UnknownExplanation
-  {
+  public enum UnknownExplanation {
     REQUIRES_FULL_CHECK(0),
     INCOMPLETE(1),
     TIMEOUT(2),
