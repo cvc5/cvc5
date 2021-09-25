@@ -10,13 +10,12 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of solving floating-point problems with CVC4's Java API
+ * An example of solving floating-point problems with cvc5's Java API
  *
- * This example shows how to check whether CVC4 was built with floating-point
- * support, how to create floating-point types, variables and expressions, and
- * how to create rounding mode constants by solving toy problems. The example
- * also shows making special values (such as NaN and +oo) and converting an
- * IEEE 754-2008 bit-vector to a floating-point number.
+ * This example shows to create floating-point types, variables and expressions,
+ * and how to create rounding mode constants by solving toy problems. The
+ * example also shows making special values (such as NaN and +oo) and converting
+ * an IEEE 754-2008 bit-vector to a floating-point number.
  */
 
 import static cvc5.Kind.*;
