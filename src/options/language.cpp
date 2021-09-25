@@ -26,7 +26,6 @@ std::ostream& operator<<(std::ostream& out, Language lang)
     case Language::LANG_AUTO: out << "LANG_AUTO"; break;
     case Language::LANG_SMTLIB_V2_6: out << "LANG_SMTLIB_V2_6"; break;
     case Language::LANG_TPTP: out << "LANG_TPTP"; break;
-    case Language::LANG_CVC: out << "LANG_CVC"; break;
     case Language::LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
     default: out << "undefined_language";
   }
@@ -37,15 +36,9 @@ namespace language {
 
 Language toLanguage(const std::string& language)
 {
-  if (language == "cvc" || language == "pl" || language == "presentation"
-      || language == "native" || language == "LANG_CVC")
-  {
-    return Language::LANG_CVC;
-  }
-  else if (language == "smtlib" || language == "smt" || language == "smtlib2"
-           || language == "smt2" || language == "smtlib2.6"
-           || language == "smt2.6" || language == "LANG_SMTLIB_V2_6"
-           || language == "LANG_SMTLIB_V2")
+  if (language == "smtlib" || language == "smt" || language == "smtlib2"
+      || language == "smt2" || language == "smtlib2.6" || language == "smt2.6"
+      || language == "LANG_SMTLIB_V2_6" || language == "LANG_SMTLIB_V2")
   {
     return Language::LANG_SMTLIB_V2_6;
   }

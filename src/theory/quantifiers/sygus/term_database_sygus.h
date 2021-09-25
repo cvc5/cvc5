@@ -22,7 +22,6 @@
 
 #include "expr/dtype.h"
 #include "smt/env_obj.h"
-#include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/fun_def_evaluator.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
@@ -80,8 +79,6 @@ class TermDbSygus : protected EnvObj
   //------------------------------utilities
   /** get the explanation utility */
   SygusExplain* getExplain() { return d_syexp.get(); }
-  /** get the evaluator */
-  Evaluator* getEvaluator() { return d_eval.get(); }
   /** (recursive) function evaluator utility */
   FunDefEvaluator* getFunDefEvaluator() { return d_funDefEval.get(); }
   /** evaluation unfolding utility */
@@ -309,8 +306,6 @@ class TermDbSygus : protected EnvObj
   //------------------------------utilities
   /** sygus explanation */
   std::unique_ptr<SygusExplain> d_syexp;
-  /** evaluator */
-  std::unique_ptr<Evaluator> d_eval;
   /** (recursive) function evaluator utility */
   std::unique_ptr<FunDefEvaluator> d_funDefEval;
   /** evaluation function unfolding utility */

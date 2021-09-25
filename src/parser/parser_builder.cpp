@@ -20,7 +20,6 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
-#include "cvc/cvc.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
@@ -58,17 +57,14 @@ void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
 Parser* ParserBuilder::build()
 {
   Parser* parser = NULL;
-  if (d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6")
-  {
-    parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
-  }
-  else if (d_lang == "LANG_TPTP")
+  if (d_lang == "LANG_TPTP")
   {
     parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
   }
   else
   {
-    parser = new Cvc(d_solver, d_symman, d_strictMode, d_parseOnly);
+    Assert(d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6");
+    parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
   }
 
   if( d_checksEnabled ) {
