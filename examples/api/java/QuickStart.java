@@ -15,6 +15,8 @@
  */
 
 import cvc5.*;
+
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -105,39 +107,11 @@ public class QuickStart
     Term xMinusY = solver.mkTerm(Kind.MINUS, x, y);
     Term xMinusYVal = solver.getValue(xMinusY);
 
-    // We can now obtain the string representations of the values.
-    String xStr = xVal.getRealValue();
-    String yStr = yVal.getRealValue();
-    String xMinusYStr = xMinusYVal.getRealValue();
-
-    System.out.println("value for x: " + xStr);
-    System.out.println("value for y: " + yStr);
-    System.out.println("value for x - y: " + xMinusYStr);
-
     // Further, we can convert the values to java types,
-    Pair<Long, Long> xRational = xVal.getReal64Value();
-    Pair<Long, Long> yRational = yVal.getReal64Value();
-    double xDouble = (double) xRational.first / (double) xRational.second;
-    double yDouble = (double) yRational.first / (double) yRational.second;
-    double xMinusYDouble = Double.parseDouble(xMinusYStr);
-
-    System.out.println("value for x: " + xDouble);
-    System.out.println("value for y: " + yDouble);
-    System.out.println("value for x - y: " + xMinusYDouble);
-
-    // Another way to independently compute the value of x - y would be
-    // to use the cpp minus operator instead of asking the solver.
-    // However, for more complex terms,
-    // it is easier to let the solver do the evaluation.
-    double xMinusYComputed = xDouble - yDouble;
-    if (xMinusYComputed == xMinusYDouble)
-    {
-      System.out.println("computed correctly");
-    }
-    else
-    {
-      System.out.println("computed incorrectly");
-    }
+    Pair<BigInteger, BigInteger> xRational = xVal.getRealValue();
+    Pair<BigInteger, BigInteger> yRational = yVal.getRealValue();
+    System.out.println("value for x: " + xRational.first +"/" + xRational.second);
+    System.out.println("value for y: " + yRational.first +"/" + yRational.second);
 
     // Next, we will check satisfiability of the same formula,
     // only this time over integer variables a and b.

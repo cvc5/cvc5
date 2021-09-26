@@ -18,6 +18,7 @@ package cvc5;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigInteger;
 
 public class Utils
 {
@@ -138,6 +139,19 @@ public class Utils
       pointers[i] = new Pair<>(abstractPointers[i].first, abstractPointers[i].second.getPointer());
     }
     return pointers;
+  }
+
+  /**
+    Convert a rational string a/b to a pair of BigIntegers
+  */
+  public static Pair<BigInteger, BigInteger> getRational(String rational)
+  {
+    if(rational.contains("/"))
+    {
+      String[] pair = rational.split("/");
+      return new Pair<>(new BigInteger(pair[0]), new BigInteger(pair[1]));
+    }
+    return new Pair<>(new BigInteger(rational), new BigInteger("1"));
   }
 
   /**

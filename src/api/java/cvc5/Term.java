@@ -18,6 +18,7 @@ package cvc5;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.math.BigInteger;
 
 public class Term extends AbstractPointer implements Comparable<Term>, Iterable<Term>
 {
@@ -436,54 +437,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getString(long pointer);
 
   /**
-   * @return true if the term is a rational value whose numerator and
-   * denominator fit within int and int, respectively.
-   */
-  public boolean isReal32Value()
-  {
-    return isReal32Value(pointer);
-  }
-
-  private native boolean isReal32Value(long pointer);
-
-  /**
-   * Asserts isReal32Value().
-   * @return the representation of a rational value as a pair of its numerator
-   * and denominator.
-   */
-  public Pair<Integer, Integer> getReal32Value()
-  {
-    int[] pair = getReal32Value(pointer);
-    return new Pair<Integer, Integer>(pair[0], pair[1]);
-  }
-
-  private native int[] getReal32Value(long pointer);
-
-  /**
-   * @return true if the term is a rational value whose numerator and
-   * denominator fit within long and long, respectively.
-   */
-  public boolean isReal64Value()
-  {
-    return isReal64Value(pointer);
-  }
-
-  private native boolean isReal64Value(long pointer);
-
-  /**
-   * Asserts isReal64Value().
-   * @return the representation of a rational value as a pair of its numerator
-   * and denominator.
-   */
-  public Pair<Long, Long> getReal64Value()
-  {
-    long[] pair = getReal64Value(pointer);
-    return new Pair<Long, Long>(pair[0], pair[1]);
-  }
-
-  private native long[] getReal64Value(long pointer);
-
-  /**
    * @return true if the term is a rational value.
    */
   public boolean isRealValue()
@@ -495,11 +448,13 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isRealValue().
-   * @return the representation of a rational value as a (decimal) string.
+   * @return the representation of a rational value as a pair of its numerator
+   * and denominator.
    */
-  public String getRealValue()
+  public Pair<BigInteger, BigInteger> getRealValue()
   {
-    return getRealValue(pointer);
+    String rational = getRealValue(pointer);
+    return Utils.getRational(rational);
   }
 
   private native String getRealValue(long pointer);
