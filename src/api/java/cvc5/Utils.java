@@ -13,12 +13,12 @@
  * The cvc5 java API.
  */
 
-
 package cvc5;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.math.BigInteger;
 
 public class Utils
 {
@@ -142,15 +142,26 @@ public class Utils
   }
 
   /**
+    Convert a rational string a/b to a pair of BigIntegers
+  */
+  public static Pair<BigInteger, BigInteger> getRational(String rational)
+  {
+    if(rational.contains("/"))
+    {
+      String[] pair = rational.split("/");
+      return new Pair<>(new BigInteger(pair[0]), new BigInteger(pair[1]));
+    }
+    return new Pair<>(new BigInteger(rational), new BigInteger("1"));
+  }
+
+  /**
    * Get the string version of define-fun command.
    * @param f the function to print
    * @param params the function parameters
    * @param body the function body
    * @return a string version of define-fun
    */
-  private static String defineFunToString(Term f,
-                                Term[] params,
-                                Term body)
+  private static String defineFunToString(Term f, Term[] params, Term body)
   {
     Sort sort = f.getSort();
     if (sort.isFunction())
@@ -165,7 +176,7 @@ public class Utils
       {
         ss.append(' ');
       }
-      ss.append('(').append(params[i]).append(' ').append(params[i].getSort()).append( ')');
+      ss.append('(').append(params[i]).append(' ').append(params[i].getSort()).append(')');
     }
     ss.append(") ").append(sort).append(' ').append(body).append(')');
     return ss.toString();
@@ -179,24 +190,24 @@ public class Utils
   public static void printSynthSolutions(Term[] terms, Term[] sols) throws CVC5ApiException
   {
     System.out.println('(');
-  
+
     for (int i = 0; i < terms.length; ++i)
     {
       List<Term> params = new ArrayList<>();
       Term body = null;
       if (sols[i].getKind() == Kind.LAMBDA)
       {
-        for(Term t : sols[i].getChild(0))
+        for (Term t : sols[i].getChild(0))
         {
           params.add(t);
         }
         body = sols[i].getChild(1);
       }
-      if(body != null)
+      if (body != null)
       {
         System.out.println("  " + defineFunToString(terms[i], params.toArray(new Term[0]), body));
       }
     }
-    System.out.println(')' );
+    System.out.println(')');
   }
 }
