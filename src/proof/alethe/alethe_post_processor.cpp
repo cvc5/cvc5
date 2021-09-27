@@ -826,16 +826,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== Split
-    // Children: none
-    // Arguments: (F)
-    // ---------------------
-    // Conclusion: (or F (not F))
+    // See proof_rule.h for documentation on the SPLIT rule. This comment
+    // uses variable names as introduced there.
     //
-    
     // --------- NOT_NOT      --------- NOT_NOT
-    //    VP1                    VP2   
+    //    VP1                    VP2
     // -------------------------------- RESOLUTION
-    //          (cl F (not F))
+    //          (cl F (not F))*
     //
     // VP1: (cl (not (not (not F))) F)
     // VP2: (cl (not (not (not (not F)))) (not F))
