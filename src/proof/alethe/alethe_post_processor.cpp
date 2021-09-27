@@ -822,6 +822,35 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    // ======== Split
+    // Children: none
+    // Arguments: (F)
+    // ---------------------
+    // Conclusion: (or F (not F))
+    //
+    
+    // --------- NOT_NOT      --------- NOT_NOT
+    //    VP1                    VP2   
+    // -------------------------------- RESOLUTION
+    //          (cl F (not F))
+    //
+    // VP1: (cl (not (not (not F))) F)
+    // VP2: (cl (not (not (not (not F)))) (not F))
+    //
+    // * the corresponding proof node is (or F (not F))
+    case PfRule::SPLIT:
+    {
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, args[0].notNode().notNode().notNode(), args[0]);
+      Node vp2 = nm->mkNode(kind::SEXPR,
+                              d_cl,
+                              args[0].notNode().notNode().notNode().notNode(),
+                              args[0].notNode());
+
+      return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
+          && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
+          && addAletheStepFromOr(AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
