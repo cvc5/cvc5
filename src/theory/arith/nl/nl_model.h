@@ -118,8 +118,8 @@ class NlModel
   //------------------------------ recording model substitutions and bounds
   /**
    * Adds the model substitution v -> s. This applies the substitution
-   * { v -> s } to each term in d_check_model_subs and adds v,s to
-   * d_check_model_vars and d_check_model_subs respectively.
+   * { v -> s } to each term in d_substitutions and then adds v,s to
+   * d_substitutions.
    * If this method returns false, then the substitution v -> s is inconsistent
    * with the current substitution and bounds.
    */
@@ -199,14 +199,31 @@ class NlModel
   /** The current model */
   TheoryModel* d_model;
 
+  /**
+   * The values that the arithmetic theory solver assigned in the model. This
+   * corresponds to the set of equalities that linear solver (via TheoryArith)
+   * is currently sending to TheoryModel during collectModelValues, plus
+   * additional entries x -> 0 for variables that were unassigned by the linear
+   * solver.
+   */
+  std::map<Node, Node> d_arithVal;
+
+  /**
+   * A substitution from variables that appear in assertions to a solved form
+   * term. These vectors are ordered in the form:
+   *   x_1 -> t_1 ... x_n -> t_n
+   * where x_i is not in the free variables of t_j for j>=i.
+   */
+  std::map<Node, Node> d_substitutions;
+
   /** Get the model value of n from the model object above */
   Node getValueInternal(TNode n);
-  
+
   /**
    * Have we assigned v in the current checkModel(...) call?
    *
    * This method returns true if variable v is in the domain of
-   * d_check_model_bounds or if it occurs in d_check_model_vars.
+   * d_check_model_bounds or if it occurs in d_substitutions.
    */
   bool hasAssignment(Node v) const;
 
@@ -215,7 +232,7 @@ class NlModel
    * This method is used during checkModel(...). It takes as input an
    * equality eq. If it returns true, then eq is correct-by-construction based
    * on the information stored in our model representation (see
-   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
+   * d_substitutions, d_check_model_bounds), and eq
    * is added to d_check_model_solved. The equality eq may involve any
    * number of variables, and monomials of arbitrary degree. If this method
    * returns false, then we did not show that the equality was true in the
@@ -270,22 +287,6 @@ class NlModel
   Node d_true;
   Node d_false;
   Node d_null;
-  /**
-   * The values that the arithmetic theory solver assigned in the model. This
-   * corresponds to the set of equalities that linear solver (via TheoryArith)
-   * is currently sending to TheoryModel during collectModelValues, plus
-   * additional entries x -> 0 for variables that were unassigned by the linear
-   * solver.
-   */
-  std::map<Node, Node> d_arithVal;
-  /**
-   * A substitution from variables that appear in assertions to a solved form
-   * term. These vectors are ordered in the form:
-   *   x_1 -> t_1 ... x_n -> t_n
-   * where x_i is not in the free variables of t_j for j>=i.
-   */
-  std::vector<Node> d_check_model_vars;
-  std::vector<Node> d_check_model_subs;
   /**
    * lower and upper bounds for check model
    *

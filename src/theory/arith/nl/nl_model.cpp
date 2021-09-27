@@ -57,8 +57,7 @@ void NlModel::resetCheck()
   d_check_model_solved.clear();
   d_check_model_bounds.clear();
   d_check_model_witnesses.clear();
-  d_check_model_vars.clear();
-  d_check_model_subs.clear();
+  d_substitutions.clear();
 }
 
 Node NlModel::computeConcreteModelValue(TNode n)
@@ -246,10 +245,9 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     {
       Node av = a;
       // apply the substitution to a
-      if (!d_check_model_vars.empty())
+      if (!d_substitutions.empty())
       {
-        av = arithSubstitute(av, d_check_model_vars, d_check_model_subs);
-        av = Rewriter::rewrite(av);
+        av = Rewriter::rewrite(arithSubstitute(av, d_substitutions));
       }
       // simple check literal
       if (!simpleCheckModelLit(av))
@@ -279,8 +277,7 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s
                         << std::endl;
   // should not set exact bound more than once
-  if (std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
-      != d_check_model_vars.end())
+  if (d_substitutions.find(v) != d_substitutions.end())
   {
     Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
     // this should never happen since substitutions should be applied eagerly
@@ -304,22 +301,16 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   Assert(d_check_model_witnesses.find(v) == d_check_model_witnesses.end())
       << "We tried to add a substitution where we already had a witness term."
       << std::endl;
-  std::vector<Node> varsTmp;
-  varsTmp.push_back(v);
-  std::vector<Node> subsTmp;
-  subsTmp.push_back(s);
-  for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
+  std::map<Node, Node> tmp = { std::make_pair(v, s) };
+  for (auto& [var, sub]: d_substitutions)
   {
-    Node ms = d_check_model_subs[i];
-    Node mss = arithSubstitute(ms, varsTmp, subsTmp);
-    if (mss != ms)
+    Node ms = arithSubstitute(sub, tmp);
+    if (ms != sub)
     {
-      mss = Rewriter::rewrite(mss);
+      sub = Rewriter::rewrite(ms);
     }
-    d_check_model_subs[i] = mss;
   }
-  d_check_model_vars.push_back(v);
-  d_check_model_subs.push_back(s);
+  d_substitutions.emplace(v, s);
   return true;
 }
 
@@ -333,8 +324,7 @@ bool NlModel::addBound(TNode v, TNode l, TNode u)
     return addSubstitution(v, l);
   }
   // should not set a bound for a value that is exact
-  if (std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
-      != d_check_model_vars.end())
+  if (d_substitutions.find(v) != d_substitutions.end())
   {
     Trace("nl-ext-model")
         << "...ERROR: setting bound for variable that already has exact value."
@@ -362,8 +352,7 @@ bool NlModel::addWitness(TNode v, TNode w)
   Trace("nl-ext-model") << "* check model witness : " << v << " -> " << w
                         << std::endl;
   // should not set a witness for a value that is already set
-  if (std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
-      != d_check_model_vars.end())
+  if (d_substitutions.find(v) != d_substitutions.end())
   {
     Trace("nl-ext-model") << "...ERROR: setting witness for variable that "
                              "already has a constant value."
@@ -384,9 +373,9 @@ bool NlModel::solveEqualitySimple(Node eq,
                                   std::vector<NlLemma>& lemmas)
 {
   Node seq = eq;
-  if (!d_check_model_vars.empty())
+  if (!d_substitutions.empty())
   {
-    seq = arithSubstitute(eq, d_check_model_vars, d_check_model_subs);
+    seq = arithSubstitute(eq, d_substitutions);
     seq = Rewriter::rewrite(seq);
     if (seq.isConst())
     {
@@ -767,8 +756,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
                                                 ? vs_invalid[0]
                                                 : nm->mkNode(PLUS, vs_invalid));
   // substitution to try
-  std::vector<Node> qvars;
-  std::vector<Node> qsubs;
+  std::map<Node, Node> qsub;
   for (const Node& v : vs)
   {
     // is it a valid variable?
@@ -820,7 +808,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
         Assert(boundn[0].getConst<Rational>()
                <= boundn[1].getConst<Rational>());
         Node s;
-        qvars.push_back(v);
+        auto qsubit = qsub.emplace(v, Node()).first;
         if (cmp[0] != cmp[1])
         {
           Assert(!cmp[0] && cmp[1]);
@@ -837,10 +825,9 @@ bool NlModel::simpleCheckModelLit(Node lit)
             Node tcmpn[2];
             for (unsigned r = 0; r < 2; r++)
             {
-              qsubs.push_back(boundn[r]);
-              Node ts = arithSubstitute(t, qvars, qsubs);
+              qsubit->second = boundn[r];
+              Node ts = arithSubstitute(t, qsub);
               tcmpn[r] = Rewriter::rewrite(ts);
-              qsubs.pop_back();
             }
             Node tcmp = nm->mkNode(LT, tcmpn[0], tcmpn[1]);
             Trace("nl-ext-cms-debug")
@@ -870,16 +857,15 @@ bool NlModel::simpleCheckModelLit(Node lit)
           s = boundn[bindex_use];
         }
         Assert(!s.isNull());
-        qsubs.push_back(s);
+        qsubit->second = s;
         Trace("nl-ext-cms") << "* set bound based on quadratic : " << v
                             << " -> " << s << std::endl;
       }
     }
   }
-  if (!qvars.empty())
+  if (!qsub.empty())
   {
-    Assert(qvars.size() == qsubs.size());
-    Node slit = arithSubstitute(lit, qvars, qsubs);
+    Node slit = arithSubstitute(lit, qsub);
     slit = Rewriter::rewrite(slit);
     return simpleCheckModelLit(slit);
   }
@@ -1259,10 +1245,8 @@ void NlModel::getModelValueRepair(
   // special kind approximation of the form (witness x. x = exact_value).
   // Notice that the above term gets rewritten such that the choice function
   // is eliminated.
-  for (size_t i = 0, num = d_check_model_vars.size(); i < num; i++)
+  for (const auto& [v, s]: d_substitutions)
   {
-    Node v = d_check_model_vars[i];
-    Node s = d_check_model_subs[i];
     // overwrite
     arithModel[v] = s;
     Trace("nl-model") << v << " solved is " << s << std::endl;
@@ -1313,8 +1297,7 @@ bool NlModel::hasAssignment(Node v) const
   {
     return true;
   }
-  return std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
-         != d_check_model_vars.end();
+  return d_substitutions.find(v) != d_substitutions.end();
 }
 
 }  // namespace nl
