@@ -9,11 +9,22 @@
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
 # #############################################################################
+#
+# Responsible to identify the version of this source tree, expose this version
+# information to the rest of cmake and properly update the versioninfo.cpp. 
+#
+# Note that the above responsibilities are split among configure and build
+# time. To achieve this, this file is both executed as a part of the regular
+# cmake setup during configure time, but also adds a special target to call
+# itself during build time to always keep versioninfo.cpp updated.
 ##
 
 if(CMAKE_SCRIPT_MODE_FILE)
+  # was run as standalone script
   set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 else()
+  # was run within the overall cmake project
+  # add target to update versioninfo.cpp at build time
   add_custom_target(gen-versioninfo
     BYPRODUCTS
       ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp
@@ -23,13 +34,15 @@ else()
       -P ${PROJECT_SOURCE_DIR}/cmake/version.cmake)
 endif()
 
+# include basic version information
 include(version-base)
 
+# now use git to retrieve additional version information
 find_package(Git)
 if(GIT_FOUND)
   # git is available
 
-  # Get git describe, result is != 0 if this is not a git repository
+  # call git describe. If result is not 0 this is not a git repository
   execute_process(
       COMMAND ${GIT_EXECUTABLE} describe --long --tags --match cvc5-*
       RESULT_VARIABLE GIT_RESULT
@@ -41,15 +54,15 @@ if(GIT_FOUND)
     # it is a git working copy
 
     set(GIT_BUILD "true")
-    # Get current git branch
+    # get current git branch
     execute_process(
         COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
         RESULT_VARIABLE GIT_RESULT
         OUTPUT_VARIABLE GIT_BRANCH
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-    # Result is != 0 if worktree is dirty
-    # Note: git diff HEAD shows both staged and unstaged changes.
+    # result is != 0 if worktree is dirty
+    # note: git diff HEAD shows both staged and unstaged changes.
     execute_process(
       COMMAND ${GIT_EXECUTABLE} diff HEAD --quiet
       RESULT_VARIABLE GIT_RESULT
@@ -60,6 +73,7 @@ if(GIT_FOUND)
       set(GIT_DIRTY_MSG " with local modifications")
     endif()
 
+    # now analyze the output of git describe (relative to last tag)
     if(GIT_DESCRIBE MATCHES "^.*-0-g[0-9a-f]+$")
       # this version *is* a tag
       set(CVC5_IS_RELEASE "true")
@@ -81,5 +95,6 @@ if(GIT_FOUND)
   endif()
 endif()
 
+# actually configure versioninfo.cpp
 configure_file(
     ${PROJECT_SOURCE_DIR}/src/base/versioninfo.cpp.in ${CMAKE_BINARY_DIR}/src/base/versioninfo.cpp)
