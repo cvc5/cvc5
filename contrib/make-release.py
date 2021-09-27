@@ -10,15 +10,22 @@ import sys
 
 args = None
 
+
 def exec(cmd):
+    """Execute given command"""
     return subprocess.check_output(cmd).decode().strip()
 
+
 def parse_options():
+    """Handle command line options"""
     ap = argparse.ArgumentParser(description='Make a new release')
-    ap.add_argument('bump', choices=[
-                        'major', 'minor', 'patch'], help='which version part to bump')
-    ap.add_argument('-v', '--verbose',
-                        action='store_true', help='be more verbose')
+    ap.add_argument('bump',
+                    choices=['major', 'minor', 'patch'],
+                    help='which version part to bump')
+    ap.add_argument('-v',
+                    '--verbose',
+                    action='store_true',
+                    help='be more verbose')
     global args
     args = ap.parse_args()
 
@@ -29,8 +36,8 @@ def parse_options():
         logging.getLogger().setLevel(level=logging.INFO)
 
 
-
 def identify_next_version():
+    """Figure out the new version number"""
     try:
         curversion = exec(['git', 'describe', '--tags', '--match', 'cvc5-*'])
     except:
@@ -54,12 +61,16 @@ def identify_next_version():
         version = "{}.{}.{}".format(major, minor, patch)
         logging.debug('target version: {}'.format(version))
         return version
-    
-    logging.error("Did not understand current git version: '{}'".format(curversion))
+
+    logging.error(
+        "Did not understand current git version: '{}'".format(curversion))
     sys.exit(1)
 
+
 def generate_cmake_version_file(version, is_release):
-    filename = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'cmake/version-base.cmake')
+    """Update the cmake version file"""
+    filename = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                            'cmake/version-base.cmake')
     tpl = open(filename + '.template').read()
     tpl = tpl.replace('{{VERSION}}', version)
     tpl = tpl.replace('{{IS_RELEASE}}', 'true' if is_release else 'false')
@@ -67,13 +78,16 @@ def generate_cmake_version_file(version, is_release):
 
 
 def make_release_commit(version):
+    """Make the release commit"""
     tagname = 'cvc5-{}'.format(version)
     exec(['git', 'add', 'cmake/version-base.cmake'])
     exec(['git', 'commit', '-m', 'Bump version to {}'.format(version)])
     exec(['git', 'tag', tagname])
     return tagname
 
+
 def make_post_release_commit(version):
+    """Make the post-release commit"""
     exec(['git', 'add', 'cmake/version-base.cmake'])
     exec(['git', 'commit', '-m', 'Start post-release for {}'.format(version)])
     return exec(['git', 'rev-parse', 'HEAD'])
@@ -94,11 +108,13 @@ if __name__ == '__main__':
     logging.info('Performing post-release commit')
     generate_cmake_version_file(version, False)
     postcommit = make_post_release_commit(version)
-    
+
     # Show commits and ask user to push
     print('Please check the following commits carefully:')
     subprocess.call(['git', 'show', tagname])
     subprocess.call(['git', 'show', postcommit])
 
-    print('If you are sure you want to push this release, use the following command:')
+    print(
+        'If you are sure you want to push this release, use the following command:'
+    )
     print('\tgit push --tags origin master')
