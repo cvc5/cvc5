@@ -77,8 +77,8 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
   {
     return it->second;
   }
-  Trace("nl-ext-mv-debug") << "computeModelValue " << n << ", isConcrete=" << isConcrete
-                           << std::endl;
+  Trace("nl-ext-mv-debug") << "computeModelValue " << n
+                           << ", isConcrete=" << isConcrete << std::endl;
   Node ret;
   if (n.isConst())
   {
@@ -301,8 +301,8 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   Assert(d_check_model_witnesses.find(v) == d_check_model_witnesses.end())
       << "We tried to add a substitution where we already had a witness term."
       << std::endl;
-  std::map<Node, Node> tmp = { std::make_pair(v, s) };
-  for (auto& [var, sub]: d_substitutions)
+  std::map<Node, Node> tmp = {std::make_pair(v, s)};
+  for (auto& [var, sub] : d_substitutions)
   {
     Node ms = arithSubstitute(sub, tmp);
     if (ms != sub)
@@ -657,8 +657,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
     Trace("nl-ext-cm") << std::endl;
   }
-  bool ret =
-      addBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
+  bool ret = addBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
   if (ret)
   {
     d_check_model_solved[eq] = var;
@@ -1245,7 +1244,7 @@ void NlModel::getModelValueRepair(
   // special kind approximation of the form (witness x. x = exact_value).
   // Notice that the above term gets rewritten such that the choice function
   // is eliminated.
-  for (const auto& [v, s]: d_substitutions)
+  for (const auto& [v, s] : d_substitutions)
   {
     // overwrite
     arithModel[v] = s;

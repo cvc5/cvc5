@@ -137,8 +137,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
             Trace("nl-ext-cm")
                 << "...bound for " << stf << " : [" << bounds.first << ", "
                 << bounds.second << "]" << std::endl;
-            success = d_tstate.d_model.addBound(
-                stf, bounds.first, bounds.second);
+            success =
+                d_tstate.d_model.addBound(stf, bounds.first, bounds.second);
           }
         }
       }
