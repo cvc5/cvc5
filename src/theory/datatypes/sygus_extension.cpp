@@ -602,7 +602,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
     {
       Node szl = nm->mkNode(DT_SIZE, n);
       Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
-      szr = Rewriter::rewrite(szr);
+      szr = rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
     if (isVarAgnostic)

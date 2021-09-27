@@ -1232,25 +1232,6 @@ class CVC5_EXPORT GetAssertionsCommand : public Command
                 Language language = Language::LANG_AUTO) const override;
 }; /* class GetAssertionsCommand */
 
-class CVC5_EXPORT SetBenchmarkStatusCommand : public Command
-{
- protected:
-  BenchmarkStatus d_status;
-
- public:
-  SetBenchmarkStatusCommand(BenchmarkStatus status);
-
-  BenchmarkStatus getStatus() const;
-
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-  void toStream(std::ostream& out,
-                int toDepth = -1,
-                size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
-}; /* class SetBenchmarkStatusCommand */
-
 class CVC5_EXPORT SetBenchmarkLogicCommand : public Command
 {
  protected:
@@ -1412,24 +1393,6 @@ class CVC5_EXPORT QuitCommand : public Command
                 size_t dag = 1,
                 Language language = Language::LANG_AUTO) const override;
 }; /* class QuitCommand */
-
-class CVC5_EXPORT CommentCommand : public Command
-{
-  std::string d_comment;
-
- public:
-  CommentCommand(std::string comment);
-
-  std::string getComment() const;
-
-  void invoke(api::Solver* solver, SymbolManager* sm) override;
-  Command* clone() const override;
-  std::string getCommandName() const override;
-  void toStream(std::ostream& out,
-                int toDepth = -1,
-                size_t dag = 1,
-                Language language = Language::LANG_AUTO) const override;
-}; /* class CommentCommand */
 
 class CVC5_EXPORT CommandSequence : public Command
 {

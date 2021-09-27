@@ -436,12 +436,6 @@ void Printer::toStreamCmdGetAssertions(std::ostream& out) const
   printUnknownCommand(out, "get-assertions");
 }
 
-void Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                            Result::Sat status) const
-{
-  printUnknownCommand(out, "set-info");
-}
-
 void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                            const std::string& logic) const
 {
@@ -501,12 +495,6 @@ void Printer::toStreamCmdResetAssertions(std::ostream& out) const
 void Printer::toStreamCmdQuit(std::ostream& out) const
 {
   printUnknownCommand(out, "quit");
-}
-
-void Printer::toStreamCmdComment(std::ostream& out,
-                                 const std::string& comment) const
-{
-  printUnknownCommand(out, "comment");
 }
 
 void Printer::toStreamCmdDeclareHeap(std::ostream& out,
