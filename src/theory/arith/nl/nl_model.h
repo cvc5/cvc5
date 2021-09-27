@@ -101,10 +101,10 @@ class NlModel
    * otherwise, we consider their abstract model values. For definitions of
    * concrete vs abstract model values, see NlModel::computeModelValue.
    *
-   * If isAbsolute is true, we compare the absolute value of thee above
+   * If isAbsolute is true, we compare the absolute value of the above
    * values.
    */
-  int compare(Node i, Node j, bool isConcrete, bool isAbsolute);
+  int compare(TNode i, TNode j, bool isConcrete, bool isAbsolute);
   /**
    * Compare arithmetic terms i and j based an ordering.
    *
@@ -113,7 +113,7 @@ class NlModel
    *
    * If isAbsolute is true, we compare the absolute value of i and j
    */
-  int compareValue(Node i, Node j, bool isAbsolute) const;
+  int compareValue(TNode i, TNode j, bool isAbsolute) const;
 
   //------------------------------ recording model substitutions and bounds
   /**
@@ -198,14 +198,15 @@ class NlModel
       bool witnessToValue);
 
  private:
+  /** Cache for concrete model values */
+  std::map<Node, Node> d_concreteModelCache;
+  /** Cache for abstract model values */
+  std::map<Node, Node> d_abstractModelCache;
+
   /** The current model */
   TheoryModel* d_model;
   /** Get the model value of n from the model object above */
   Node getValueInternal(Node n);
-  /** Does the equality engine of the model have term n? */
-  bool hasTerm(Node n) const;
-  /** Get the representative of n in the model */
-  Node getRepresentative(Node n) const;
 
   //---------------------------check model
   /**
@@ -275,13 +276,6 @@ class NlModel
    * solver.
    */
   std::map<Node, Node> d_arithVal;
-  /**
-   * cache of model values
-   *
-   * Stores the the concrete/abstract model values. This is a cache of the
-   * computeModelValue method.
-   */
-  std::map<Node, Node> d_mv[2];
   /**
    * A substitution from variables that appear in assertions to a solved form
    * term. These vectors are ordered in the form:

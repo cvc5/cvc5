@@ -46,8 +46,8 @@ NlModel::~NlModel() {}
 void NlModel::reset(TheoryModel* m, std::map<Node, Node>& arithModel)
 {
   d_model = m;
-  d_mv[0].clear();
-  d_mv[1].clear();
+  d_concreteModelCache.clear();
+  d_abstractModelCache.clear();
   d_arithVal.clear();
   // process arithModel
   std::map<Node, Node>::iterator it;
@@ -79,30 +79,28 @@ Node NlModel::computeAbstractModelValue(Node n)
 
 Node NlModel::computeModelValue(Node n, bool isConcrete)
 {
-  unsigned index = isConcrete ? 0 : 1;
-  std::map<Node, Node>::iterator it = d_mv[index].find(n);
-  if (it != d_mv[index].end())
+  auto& cache = isConcrete ? d_concreteModelCache : d_abstractModelCache;
+  if (auto it = cache.find(n); it != cache.end())
   {
     return it->second;
   }
-  Trace("nl-ext-mv-debug") << "computeModelValue " << n << ", index=" << index
+  Trace("nl-ext-mv-debug") << "computeModelValue " << n << ", isConcrete=" << isConcrete
                            << std::endl;
   Node ret;
-  Kind nk = n.getKind();
   if (n.isConst())
   {
     ret = n;
   }
-  else if (!isConcrete && hasTerm(n))
+  else if (auto it = d_arithVal.find(n); !isConcrete && it != d_arithVal.end())
   {
     // use model value for abstraction
-    ret = getRepresentative(n);
+    ret = it->second;
   }
   else if (n.getNumChildren() == 0)
   {
     // we are interested in the exact value of PI, which cannot be computed.
     // hence, we return PI itself when asked for the concrete value.
-    if (nk == PI)
+    if (n.getKind() == PI)
     {
       ret = n;
     }
@@ -114,7 +112,7 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
   else
   {
     // otherwise, compute true value
-    TheoryId ctid = theory::kindToTheoryId(nk);
+    TheoryId ctid = theory::kindToTheoryId(n.getKind());
     if (ctid != THEORY_ARITH && ctid != THEORY_BOOL && ctid != THEORY_BUILTIN)
     {
       // we directly look up terms not belonging to arithmetic
@@ -125,41 +123,20 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
       std::vector<Node> children;
       if (n.getMetaKind() == metakind::PARAMETERIZED)
       {
-        children.push_back(n.getOperator());
+        children.emplace_back(n.getOperator());
       }
-      for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+      for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
       {
-        Node mc = computeModelValue(n[i], isConcrete);
-        children.push_back(mc);
+        children.emplace_back(computeModelValue(n[i], isConcrete));
       }
-      ret = NodeManager::currentNM()->mkNode(nk, children);
+      ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
       ret = Rewriter::rewrite(ret);
     }
   }
-  Trace("nl-ext-mv-debug") << "computed " << (index == 0 ? "M" : "M_A") << "["
+  Trace("nl-ext-mv-debug") << "computed " << (isConcrete ? "M" : "M_A") << "["
                            << n << "] = " << ret << std::endl;
-  d_mv[index][n] = ret;
+  cache[n] = ret;
   return ret;
-}
-
-bool NlModel::hasTerm(Node n) const
-{
-  return d_arithVal.find(n) != d_arithVal.end();
-}
-
-Node NlModel::getRepresentative(Node n) const
-{
-  if (n.isConst())
-  {
-    return n;
-  }
-  std::map<Node, Node>::const_iterator it = d_arithVal.find(n);
-  if (it != d_arithVal.end())
-  {
-    AlwaysAssert(it->second.isConst());
-    return it->second;
-  }
-  return d_model->getRepresentative(n);
 }
 
 Node NlModel::getValueInternal(Node n)
@@ -182,7 +159,7 @@ Node NlModel::getValueInternal(Node n)
   return d_zero;
 }
 
-int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
+int NlModel::compare(TNode i, TNode j, bool isConcrete, bool isAbsolute)
 {
   Node ci = computeModelValue(i, isConcrete);
   Node cj = computeModelValue(j, isConcrete);
@@ -197,27 +174,24 @@ int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
   return cj.isConst() ? -1 : 0;
 }
 
-int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
+int NlModel::compareValue(TNode i, TNode j, bool isAbsolute) const
 {
   Assert(i.isConst() && j.isConst());
-  int ret;
   if (i == j)
   {
-    ret = 0;
+    return 0;
   }
-  else if (!isAbsolute)
+  if (!isAbsolute)
   {
-    ret = i.getConst<Rational>() < j.getConst<Rational>() ? 1 : -1;
+    return i.getConst<Rational>() < j.getConst<Rational>() ? 1 : -1;
   }
-  else
+  Rational iabs = i.getConst<Rational>().abs();
+  Rational jabs = j.getConst<Rational>().abs();
+  if (iabs == jabs)
   {
-    ret = (i.getConst<Rational>().abs() == j.getConst<Rational>().abs()
-               ? 0
-               : (i.getConst<Rational>().abs() < j.getConst<Rational>().abs()
-                      ? 1
-                      : -1));
+    return 0;
   }
-  return ret;
+  return iabs < jabs ? 1 : -1;
 }
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
@@ -1242,21 +1216,26 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   if (Trace.isOn(c))
   {
     Trace(c) << "  " << n << " -> ";
-    for (int i = 1; i >= 0; --i)
+    const Node& aval = d_abstractModelCache.at(n);
+    if (aval.isConst())
     {
-      std::map<Node, Node>::const_iterator it = d_mv[i].find(n);
-      Assert(it != d_mv[i].end());
-      if (it->second.isConst())
-      {
-        printRationalApprox(c, it->second, prec);
-      }
-      else
-      {
-        Trace(c) << "?";
-      }
-      Trace(c) << (i == 1 ? " [actual: " : " ]");
+      printRationalApprox(c, aval, prec);
     }
-    Trace(c) << std::endl;
+    else
+    {
+      Trace(c) << "?";
+    }
+    Trace(c) << " [actual: ";
+    const Node& cval = d_concreteModelCache.at(n);
+    if (cval.isConst())
+    {
+      printRationalApprox(c, cval, prec);
+    }
+    else
+    {
+      Trace(c) << "?";
+    }
+    Trace(c) << " ]" << std::endl;
   }
 }
 
