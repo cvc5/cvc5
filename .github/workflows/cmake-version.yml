@@ -1,0 +1,144 @@
+on: [workflow_dispatch]
+name: cmake-version
+
+jobs:
+  build:
+    continue-on-error: true
+    name: ubuntu:production-dbg
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cmake_version: [
+          "3.12", "3.13", "3.14", "3.15", "3.16",
+          "3.17", "3.18", "3.19", "3.20", "3.21"
+        ]
+
+    steps:
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: ${{ matrix.cmake_version }}
+
+    - uses: actions/checkout@v2
+
+    - name: Install Packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          ccache \
+          libbsd-dev \
+          libcln-dev \
+          libedit-dev \
+          libgmp-dev \
+          libgtest-dev \
+          libtinfo-dev \
+          flex \
+          libfl-dev \
+          flexc++
+        python3 -m pip install toml
+        python3 -m pip install setuptools
+        python3 -m pip install pexpect
+        cd /usr/src/googletest
+        sudo cmake .
+        sudo cmake --build . --target install
+        cd -
+        echo "num_proc=2" >> $GITHUB_ENV
+        echo "/usr/lib/ccache" >> $GITHUB_PATH
+
+    - name: Install Python Dependencies
+      run: |
+        python3 -m pip install pytest
+        python3 -m pytest --version
+        python3 -m pip install scikit-build
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+    
+    - name: Install Documentation Dependencies
+      run: |
+        sudo apt-get install -y doxygen python3-docutils python3-jinja2
+        python3 -m pip install \
+          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe
+
+    - name: Restore ccache
+      id: ccache
+      uses: actions/cache@v2
+      with:
+        path: ccache-dir
+        key: cvc5-cmake-ccache-${{ github.sha }}
+        restore-keys: cvc5-cmake-ccache-
+
+    - name: Configure ccache
+      run: |
+        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
+        ccache --set-config=compression=true
+        ccache --set-config=compression_level=6
+        ccache -M 500M
+        ccache -z
+
+    - name: Restore Dependencies
+      id: restore-deps
+      uses: actions/cache@v2
+      with:
+        path: build/deps
+        # The cache depends on the image version to make sure that we do not
+        # restore the dependencies if the build environment has changed.
+        key: cvc5-cmake-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/cmake.yml') }}
+
+    - name: Configure
+      run: |
+        ./configure.sh production --auto-download --static --python-bindings --assertions --tracing --unit-testing --editline --docs \
+          --prefix=$(pwd)/build/install \
+          --werror
+
+    - name: Build
+      run: make -j${{ env.num_proc }}
+      working-directory: build
+
+    - name: ccache Statistics
+      run: ccache -s
+
+    - name: Run CTest
+      run: make -j${{ env.num_proc }} check
+      env:
+        ARGS: --output-on-failure -LE regress[3-4]
+        CVC5_REGRESSION_ARGS: --no-early-exit
+        RUN_REGRESSION_ARGS: --no-check-unsat-cores
+      working-directory: build
+
+    - name: Run Unit Tests
+      run: make -j${{ env.num_proc }} apitests units
+      working-directory: build
+
+    - name: Install Check
+      run: |
+        make -j${{ env.num_proc }} install
+        echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
+        g++ -std=c++17 /tmp/test.cpp -I install/include -L install/lib -lcvc5
+      working-directory: build
+
+    - name: Python Install Check
+      run: |
+       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc5" -type d))"
+       python3 -c "import pycvc5"
+
+      # Examples are built for non-symfpu builds
+    - name: Check Examples
+      if: matrix.check-examples && runner.os == 'Linux'
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
+        make -j${{ env.num_proc }}
+        ctest -j${{ env.num_proc }} --output-on-failure
+      working-directory: examples
+
+    - name: Build Documentation
+      run: |
+        make -j${{ env.num_proc }} docs-gh
+        if [ "${{ github.event_name }}" == "pull_request" ] ; then
+          echo "${{ github.event.number }}" > docs/sphinx-gh/prnum
+        fi
+      working-directory: build
+    
