@@ -59,7 +59,7 @@ class NlModel
    * where m is the model of the theory of arithmetic. This method resets the
    * cache of computed model values.
    */
-  void reset(TheoryModel* m, std::map<Node, Node>& arithModel);
+  void reset(TheoryModel* m, const std::map<Node, Node>& arithModel);
   /**
    * This method is called when the non-linear arithmetic solver restarts
    * its computation of lemmas and models during a last call effort check.
@@ -87,9 +87,9 @@ class NlModel
    * whereas:
    *   computeModelValue( a*b, false ) = 5
    */
-  Node computeConcreteModelValue(Node n);
-  Node computeAbstractModelValue(Node n);
-  Node computeModelValue(Node n, bool isConcrete);
+  Node computeConcreteModelValue(TNode n);
+  Node computeAbstractModelValue(TNode n);
+  Node computeModelValue(TNode n, bool isConcrete);
 
   /**
    * Compare arithmetic terms i and j based an ordering.
@@ -206,7 +206,7 @@ class NlModel
   /** The current model */
   TheoryModel* d_model;
   /** Get the model value of n from the model object above */
-  Node getValueInternal(Node n);
+  Node getValueInternal(TNode n);
 
   //---------------------------check model
   /**

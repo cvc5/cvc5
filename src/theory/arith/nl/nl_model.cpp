@@ -43,18 +43,12 @@ NlModel::NlModel() : d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(TheoryModel* m, std::map<Node, Node>& arithModel)
+void NlModel::reset(TheoryModel* m, const std::map<Node, Node>& arithModel)
 {
   d_model = m;
   d_concreteModelCache.clear();
   d_abstractModelCache.clear();
-  d_arithVal.clear();
-  // process arithModel
-  std::map<Node, Node>::iterator it;
-  for (const std::pair<const Node, Node>& m2 : arithModel)
-  {
-    d_arithVal[m2.first] = m2.second;
-  }
+  d_arithVal = arithModel;
 }
 
 void NlModel::resetCheck()
@@ -67,17 +61,17 @@ void NlModel::resetCheck()
   d_check_model_subs.clear();
 }
 
-Node NlModel::computeConcreteModelValue(Node n)
+Node NlModel::computeConcreteModelValue(TNode n)
 {
   return computeModelValue(n, true);
 }
 
-Node NlModel::computeAbstractModelValue(Node n)
+Node NlModel::computeAbstractModelValue(TNode n)
 {
   return computeModelValue(n, false);
 }
 
-Node NlModel::computeModelValue(Node n, bool isConcrete)
+Node NlModel::computeModelValue(TNode n, bool isConcrete)
 {
   auto& cache = isConcrete ? d_concreteModelCache : d_abstractModelCache;
   if (auto it = cache.find(n); it != cache.end())
@@ -139,14 +133,13 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
   return ret;
 }
 
-Node NlModel::getValueInternal(Node n)
+Node NlModel::getValueInternal(TNode n)
 {
   if (n.isConst())
   {
     return n;
   }
-  std::map<Node, Node>::const_iterator it = d_arithVal.find(n);
-  if (it != d_arithVal.end())
+  if (auto it = d_arithVal.find(n); it != d_arithVal.end())
   {
     AlwaysAssert(it->second.isConst());
     return it->second;
