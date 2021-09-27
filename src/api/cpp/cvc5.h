@@ -4491,7 +4491,7 @@ class CVC5_EXPORT Solver
   /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<Options> d_originalOptions;
   /** The node manager of this solver. */
-  std::unique_ptr<NodeManager> d_nodeMgr;
+  NodeManager* d_nodeMgr;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */

@@ -786,15 +786,24 @@ void Smt2Printer::toStream(std::ostream& out,
   break;
   case kind::APPLY_UPDATER:
   {
+    stillNeedToPrintParams = false;
     Node op = n.getOperator();
     size_t index = DType::indexOf(op);
     const DType& dt = DType::datatypeOf(op);
     size_t cindex = DType::cindexOf(op);
-    out << "(_ update ";
-    toStream(out,
-             dt[cindex][index].getSelector(),
-             toDepth < 0 ? toDepth : toDepth - 1);
-    out << ") ";
+    if (dt.isTuple())
+    {
+      stillNeedToPrintParams = false;
+      out << "(_ tuple_update " << DType::indexOf(op) << ") ";
+    }
+    else
+    {
+      out << "(_ update ";
+      toStream(out,
+               dt[cindex][index].getSelector(),
+               toDepth < 0 ? toDepth : toDepth - 1);
+      out << ") ";
+    }
   }
   break;
   case kind::APPLY_SELECTOR_TOTAL:

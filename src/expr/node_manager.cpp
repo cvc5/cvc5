@@ -41,8 +41,6 @@ using namespace cvc5::expr;
 
 namespace cvc5 {
 
-thread_local NodeManager* NodeManager::s_current = NULL;
-
 namespace {
 
 /**
@@ -97,6 +95,7 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAtt
 NodeManager::NodeManager()
     : d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
+      d_initialized(false),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
@@ -104,7 +103,12 @@ NodeManager::NodeManager()
       d_abstractValueCount(0),
       d_skolemCounter(0)
 {
-  init();
+}
+
+NodeManager* NodeManager::currentNM()
+{
+  thread_local static NodeManager nm;
+  return &nm;
 }
 
 bool NodeManager::isNAryKind(Kind k)
@@ -183,10 +187,15 @@ TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
 }
 
 void NodeManager::init() {
-  // `mkConst()` indirectly needs the correct NodeManager in scope because we
-  // call `NodeValue::inc()` which uses `NodeManager::curentNM()`
-  NodeManagerScope nms(this);
+  if (d_initialized)
+  {
+    return;
+  }
+  d_initialized = true;
 
+  // Note: This code cannot be part of the constructor because it indirectly
+  // calls `NodeManager::currentNM()`, which is where the `NodeManager` is
+  // being constructed.
   poolInsert( &expr::NodeValue::null() );
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
@@ -199,11 +208,6 @@ void NodeManager::init() {
 }
 
 NodeManager::~NodeManager() {
-  // have to ensure "this" is the current NodeManager during
-  // destruction of operators, because they get GCed.
-
-  NodeManagerScope nms(this);
-
   // Destroy skolem and bound var manager before cleaning up attributes and
   // zombies
   d_skManager = nullptr;
@@ -253,7 +257,10 @@ NodeManager::~NodeManager() {
     }
   }
 
-  poolRemove( &expr::NodeValue::null() );
+  if (d_initialized)
+  {
+    poolRemove(&expr::NodeValue::null());
+  }
 
   if(Debug.isOn("gc:leaks")) {
     Debug("gc:leaks") << "still in pool:" << endl;
@@ -434,15 +441,6 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
 
 TypeNode NodeManager::getType(TNode n, bool check)
 {
-  // Many theories' type checkers call Node::getType() directly.  This
-  // is incorrect, since "this" might not be the caller's current node
-  // manager.  Rather than force the individual typecheckers not to do
-  // this (by policy, which would be imperfect and lead to
-  // hard-to-find bugs, which it has in the past), we just set this
-  // node manager to be current for the duration of this check.
-  //
-  NodeManagerScope nms(this);
-
   TypeNode typeNode;
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
@@ -562,7 +560,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     const std::set<TypeNode>& unresolvedTypes,
     uint32_t flags)
 {
-  NodeManagerScope nms(this);
   std::map<std::string, TypeNode> nameResolutions;
   std::vector<TypeNode> dtts;
 

@@ -1,7 +1,0 @@
-% EXPECT: sat
-
-x : [# b:BITVECTOR(1) #];
-
-ASSERT FALSE = ((x = (# b := 0bin0 #)) = (x = (# b := 0bin1 #)));
-
-CHECKSAT;

@@ -784,6 +784,7 @@ def _sphinx_help_add(module, option, common, others):
             modes[data[0]['name']] = data[0].get('help', '')
 
     data = {
+        'long_name': option.long_name,
         'name': names,
         'help': option.help,
         'expert': option.category == 'expert',
@@ -805,6 +806,8 @@ def _sphinx_help_render_option(res, opt):
     indent = ' ' * 4
     desc = '``{}``'
     val = indent + '{}'
+    res.append('.. _lbl-option-{}:'.format(opt['long_name']))
+    res.append('')
     if opt['expert']:
         res.append('.. admonition:: This option is intended for Experts only!')
         res.append(indent)

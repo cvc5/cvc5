@@ -29,7 +29,7 @@ AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     : d_pnm(pnm), d_anc(anc)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_cl = nm->mkBoundVar("cl", nm->stringType());
+  d_cl = nm->mkBoundVar("cl", nm->sExprType());
 }
 
 bool AletheProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -60,6 +60,67 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
+    // See proof_rule.h for documentation on the SCOPE rule. This comment uses
+    // variable names as introduced there. Instead of (not (and F1 ... Fn))
+    // (cl (not (and F1 ... Fn))) is printed and instead of (=> (and F1 ... Fn)
+    // F) the term (cl (=> (and F1 ... Fn))) is printed while the proof node
+    // remains the same.
+    //
+    // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
+    // Fn)) for i times.
+    //
+    // T1:
+    //
+    //   P
+    // ----- ANCHOR    ------- ... ------- AND_POS
+    //  VP1             VP2_1  ...  VP2_n
+    // ------------------------------------ RESOLUTION
+    //               VP2a
+    // ------------------------------------ REORDER
+    //  VP2b
+    // ------ DUPLICATED_LITERALS   ------- IMPLIES_NEG1
+    //   VP3                          VP4
+    // ------------------------------------  RESOLUTION    ------- IMPLIES_NEG2
+    //    VP5                                                VP6
+    // ----------------------------------------------------------- RESOLUTION
+    //                               VP7
+    //
+    // VP1: (cl (not F1) ... (not Fn) F)
+    // VP2_i: (cl (not (and F1 ... Fn)) Fi), for i = 1 to n
+    // VP2a: (cl F (not (and F1 ... Fn))^n)
+    // VP2b: (cl (not (and F1 ... Fn))^n F)
+    // VP3: (cl (not (and F1 ... Fn)) F)
+    // VP4: (cl (=> (and F1 ... Fn) F) (and F1 ... Fn)))
+    // VP5: (cl (=> (and F1 ... Fn) F) F)
+    // VP6: (cl (=> (and F1 ... Fn) F) (not F))
+    // VP7: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
+    //
+    // The reorder step is not necessary if n = 1, because in that case VP2a is
+    // (cl (not F1 F) which is the same as VP2b.
+    //
+    //
+    // If F = false:
+    //
+    //                                    --------- IMPLIES_SIMPLIFY
+    //    T1                                 VP9
+    // --------- DUPLICATED_LITERALS      --------- EQUIV_1
+    //    VP8                                VP10
+    // -------------------------------------------- RESOLUTION
+    //          (cl (not (and F1 ... Fn)))*
+    //
+    // VP8: (cl (=> (and F1 ... Fn))) (cl (not (=> (and F1 ... Fn) false))
+    //      (not (and F1 ... Fn)))
+    // VP9: (cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn))))
+    //
+    //
+    // Otherwise,
+    //                T1
+    //  ------------------------------ DUPLICATED_LITERALS
+    //   (cl (=> (and F1 ... Fn) F))**
+    //
+    //
+    // *  the corresponding proof node is (not (and F1 ... Fn))
+    // ** the corresponding proof node is (=> (and F1 ... Fn) F)
     case PfRule::SCOPE:
     {
       bool success = true;
@@ -70,10 +131,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       for (Node arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-        sanitized_args.push_back(removeAttributes(
-            arg, {kind::INST_PATTERN, kind::INST_PATTERN_LIST}, [](Node n) {
-              return expr::hasClosure(n);
-            }));
+        sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
       negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
@@ -100,22 +158,18 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp2_i;
       for (long unsigned int i = 0; i < args.size(); i++)
       {
-        vp2_i = nm->mkNode(kind::SEXPR,
-                           d_cl,
-                           andNode.notNode(),
-                           args[i]);  // (cl (not (and F1 ... Fn)) Fi)
+        vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
         success &=
             addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
         premisesVP2.push_back(vp2_i);
         notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
       }
 
-      Node vp2a =
-          nm->mkNode(kind::SEXPR, notAnd);  // (cl F (not (and F1 ... Fn))^n)
+      Node vp2a = nm->mkNode(kind::SEXPR, notAnd);
       success &= addAletheStep(
           AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
 
-      notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n F)
+      notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
       notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
       Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
       success &=
@@ -177,6 +231,164 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
+    // The rule is translated according to the theory id tid and the outermost
+    // connective of the conclusion F. This is not an exact translation but
+    // should work in most cases.
+    //
+    // E.g. if the F: (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
+    // is correctly guessed as the rule.
+    case PfRule::THEORY_REWRITE:
+    {
+      AletheRule vrule = AletheRule::UNDEFINED;
+      Node t = res[0];
+
+      switch (static_cast<theory::TheoryId>(std::stoul(args[1].toString())))
+      {
+        case theory::TheoryId::THEORY_BUILTIN:
+        {
+          switch (t.getKind())
+          {
+            case kind::ITE:
+            {
+              vrule = AletheRule::ITE_SIMPLIFY;
+              break;
+            }
+            case kind::EQUAL:
+            {
+              vrule = AletheRule::EQ_SIMPLIFY;
+              break;
+            }
+            case kind::AND:
+            {
+              vrule = AletheRule::AND_SIMPLIFY;
+              break;
+            }
+            case kind::OR:
+            {
+              vrule = AletheRule::OR_SIMPLIFY;
+              break;
+            }
+            case kind::NOT:
+            {
+              vrule = AletheRule::NOT_SIMPLIFY;
+              break;
+            }
+            case kind::IMPLIES:
+            {
+              vrule = AletheRule::IMPLIES_SIMPLIFY;
+              break;
+            }
+            case kind::WITNESS:
+            {
+              vrule = AletheRule::QNT_SIMPLIFY;
+              break;
+            }
+            default:
+            {
+              // In this case the rule is undefined
+            }
+          }
+          break;
+        }
+        case theory::TheoryId::THEORY_BOOL:
+        {
+          vrule = AletheRule::BOOL_SIMPLIFY;
+          break;
+        }
+        case theory::TheoryId::THEORY_UF:
+        {
+          if (t.getKind() == kind::EQUAL)
+          {
+            // A lot of these seem to be symmetry rules but not all...
+            vrule = AletheRule::EQUIV_SIMPLIFY;
+          }
+          break;
+        }
+        case theory::TheoryId::THEORY_ARITH:
+        {
+          switch (t.getKind())
+          {
+            case kind::DIVISION:
+            {
+              vrule = AletheRule::DIV_SIMPLIFY;
+              break;
+            }
+            case kind::PRODUCT:
+            {
+              vrule = AletheRule::PROD_SIMPLIFY;
+              break;
+            }
+            case kind::MINUS:
+            {
+              vrule = AletheRule::MINUS_SIMPLIFY;
+              break;
+            }
+            case kind::UMINUS:
+            {
+              vrule = AletheRule::UNARY_MINUS_SIMPLIFY;
+              break;
+            }
+            case kind::PLUS:
+            {
+              vrule = AletheRule::SUM_SIMPLIFY;
+              break;
+            }
+            case kind::MULT:
+            {
+              vrule = AletheRule::PROD_SIMPLIFY;
+              break;
+            }
+            case kind::EQUAL:
+            {
+              vrule = AletheRule::EQUIV_SIMPLIFY;
+              break;
+            }
+            case kind::LT:
+            {
+              [[fallthrough]];
+            }
+            case kind::GT:
+            {
+              [[fallthrough]];
+            }
+            case kind::GEQ:
+            {
+              [[fallthrough]];
+            }
+            case kind::LEQ:
+            {
+              vrule = AletheRule::COMP_SIMPLIFY;
+              break;
+            }
+            case kind::CAST_TO_REAL:
+            {
+              return addAletheStep(AletheRule::LA_GENERIC,
+                                   res,
+                                   nm->mkNode(kind::SEXPR, d_cl, res),
+                                   children,
+                                   {nm->mkConst(Rational(1))},
+                                   *cdp);
+            }
+            default:
+            {
+              // In this case the rule is undefined
+            }
+          }
+          break;
+        }
+        case theory::TheoryId::THEORY_QUANTIFIERS:
+        {
+          vrule = AletheRule::QUANTIFIER_SIMPLIFY;
+          break;
+        }
+        default:
+        {
+          // In this case the rule is undefined
+        };
+      }
+      return addAletheStep(
+          vrule, res, nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
@@ -201,7 +413,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Node sanitized_conclusion = conclusion;
   if (expr::hasClosure(conclusion))
   {
-    sanitized_args.push_back(d_anc.convert(arg));
+    sanitized_conclusion = d_anc.convert(conclusion);
   }
 
   std::vector<Node> new_args = std::vector<Node>();
@@ -216,7 +428,6 @@ bool AletheProofPostprocessCallback::addAletheStep(
   return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
 }
 
-// Replace a node (or F1 ... Fn) by (cl F1 ... Fn)
 bool AletheProofPostprocessCallback::addAletheStepFromOr(
     Node res,
     AletheRule rule,

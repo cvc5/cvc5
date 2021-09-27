@@ -1,0 +1,18 @@
+; EXPECT: unsat
+(set-option :incremental false)
+(set-logic ALL)
+
+(declare-fun x () (Set (Tuple Int Int)))
+(declare-fun y () (Set (Tuple Int Int)))
+(declare-fun r () (Set (Tuple Int Int)))
+(declare-fun z () (Tuple Int Int))
+(assert (= z (mkTuple 1 2)))
+(declare-fun zt () (Tuple Int Int))
+(assert (= zt (mkTuple 2 1)))
+(assert (member zt y))
+(declare-fun w () (Tuple Int Int))
+(assert (= w (mkTuple 2 2)))
+(assert (member w y))
+(assert (member z x))
+(assert (not (member zt (transpose (join x y)))))
+(check-sat)

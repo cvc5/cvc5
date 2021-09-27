@@ -20,7 +20,7 @@ General options;
   --prefix=STR             install directory
   --program-prefix=STR     prefix of binaries prepended on make install
   --name=STR               use custom build directory name (optionally: +path)
-  --best                   turn on dependencies known to give best performance
+  --best                   turn on dependencies and options known to give best performance
   --gpl                    permit GPL dependencies, if available
   --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
@@ -53,6 +53,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
   --werror                 build with -Werror
+  --ipo                    build with interprocedural optimization
 
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
@@ -141,6 +142,7 @@ valgrind=default
 win64=default
 arm64=default
 werror=default
+ipo=default
 
 abc_dir=default
 glpk_dir=default
@@ -171,11 +173,15 @@ do
 
     --werror) werror=ON;;
 
+    --ipo) ipo=ON;;
+    --no-ipo) ipo=OFF;;
+
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
 
     # Best configuration
     --best)
+      ipo=ON
       abc=ON
       cln=ON
       cryptominisat=ON
@@ -330,6 +336,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
 [ $tsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_TSAN=$tsan"
+[ $ipo != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_IPO=$ipo"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $comp_inc != default ] \
