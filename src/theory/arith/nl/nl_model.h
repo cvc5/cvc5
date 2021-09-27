@@ -123,28 +123,21 @@ class NlModel
    * If this method returns false, then the substitution v -> s is inconsistent
    * with the current substitution and bounds.
    */
-  bool addCheckModelSubstitution(TNode v, TNode s);
+  bool addSubstitution(TNode v, TNode s);
   /**
    * Adds the bound x -> < l, u > to the map above, and records the
    * approximation ( x, l <= x <= u ) in the model. This method returns false
    * if the bound is inconsistent with the current model substitution or
    * bounds.
    */
-  bool addCheckModelBound(TNode v, TNode l, TNode u);
+  bool addBound(TNode v, TNode l, TNode u);
   /**
    * Adds a model witness v -> w to the underlying theory model.
    * The witness should only contain a single variable v and evaluate to true
    * for exactly one value of v. The variable v is then (implicitly,
    * declaratively) assigned to this single value that satisfies the witness w.
    */
-  bool addCheckModelWitness(TNode v, TNode w);
-  /**
-   * Have we assigned v in the current checkModel(...) call?
-   *
-   * This method returns true if variable v is in the domain of
-   * d_check_model_bounds or if it occurs in d_check_model_vars.
-   */
-  bool hasCheckModelAssignment(Node v) const;
+  bool addWitness(TNode v, TNode w);
   /**
    * Checks the current model based on solving for equalities, and using error
    * bounds on the Taylor approximation.
@@ -205,8 +198,17 @@ class NlModel
 
   /** The current model */
   TheoryModel* d_model;
+
   /** Get the model value of n from the model object above */
   Node getValueInternal(TNode n);
+  
+  /**
+   * Have we assigned v in the current checkModel(...) call?
+   *
+   * This method returns true if variable v is in the domain of
+   * d_check_model_bounds or if it occurs in d_check_model_vars.
+   */
+  bool hasAssignment(Node v) const;
 
   //---------------------------check model
   /**
