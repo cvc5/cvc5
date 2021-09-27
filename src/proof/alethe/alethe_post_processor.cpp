@@ -775,7 +775,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (!isSingletonClause)
       {
         return addAletheStepFromOr(
-            res, AletheRule::RESOLUTION, new_children, {}, *cdp);
+            AletheRule::RESOLUTION, res, new_children, {}, *cdp);
       }
       if (res == falseNode)
       {
