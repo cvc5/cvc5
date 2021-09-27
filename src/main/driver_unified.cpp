@@ -107,7 +107,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   }
   else if (solver->getOptionInfo("version").boolValue())
   {
-    dopts.out() << Configuration::about().c_str() << flush;
+    dopts.out() << Configuration::about() << std::flush;
     exit(0);
   }
 
@@ -199,7 +199,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
                     << Configuration::getVersionString();
       if (Configuration::isGitBuild())
       {
-        CVC5Message() << " [" << Configuration::getGitId() << "]";
+        CVC5Message() << " [" << Configuration::getGitInfo() << "]";
       }
       CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                     << " assertions:"
