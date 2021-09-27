@@ -176,7 +176,7 @@ int NlModel::compareValue(TNode i, TNode j, bool isAbsolute) const
   }
   if (!isAbsolute)
   {
-    return i.getConst<Rational>() < j.getConst<Rational>() ? 1 : -1;
+    return i.getConst<Rational>() < j.getConst<Rational>() ? -1 : 1;
   }
   Rational iabs = i.getConst<Rational>().abs();
   Rational jabs = j.getConst<Rational>().abs();
@@ -184,7 +184,7 @@ int NlModel::compareValue(TNode i, TNode j, bool isAbsolute) const
   {
     return 0;
   }
-  return iabs < jabs ? 1 : -1;
+  return iabs < jabs ? -1 : 1;
 }
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
