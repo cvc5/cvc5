@@ -775,7 +775,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (!isSingletonClause)
       {
         return addAletheStepFromOr(
-            res, AletheRule::RESOLUTION, new_children, {}, *cdp);
+            AletheRule::RESOLUTION, res, new_children, {}, *cdp);
       }
       if (res == falseNode)
       {
@@ -811,7 +811,7 @@ bool AletheProofPostprocessCallback::update(Node res,
           if (child != res)
           {
             return addAletheStepFromOr(
-                res, AletheRule::DUPLICATED_LITERALS, children, {}, *cdp);
+                AletheRule::DUPLICATED_LITERALS, res, children, {}, *cdp);
           }
         }
       }
