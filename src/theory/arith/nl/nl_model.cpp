@@ -302,12 +302,12 @@ bool NlModel::addSubstitution(TNode v, TNode s)
       << "We tried to add a substitution where we already had a witness term."
       << std::endl;
   std::map<Node, Node> tmp = {std::make_pair(v, s)};
-  for (auto& [var, sub] : d_substitutions)
+  for (auto& sub : d_substitutions)
   {
-    Node ms = arithSubstitute(sub, tmp);
-    if (ms != sub)
+    Node ms = arithSubstitute(sub.second, tmp);
+    if (ms != sub.second)
     {
-      sub = Rewriter::rewrite(ms);
+      sub.second = Rewriter::rewrite(ms);
     }
   }
   d_substitutions.emplace(v, s);
