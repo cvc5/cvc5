@@ -794,6 +794,9 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== Factoring
+    // See proof_rule.h for documentation on the FACTORING rule. This comment
+    // uses variable names as introduced there.
+    //
     // If C2 = (or F1 ... Fn) but C1 != (or C2 ... C2), then VC2 = (cl F1 ...
     // Fn) Otherwise, VC2 = (cl C2).
     //
@@ -823,16 +826,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== Split
-    // Children: none
-    // Arguments: (F)
-    // ---------------------
-    // Conclusion: (or F (not F))
+    // See proof_rule.h for documentation on the SPLIT rule. This comment
+    // uses variable names as introduced there.
     //
-    
     // --------- NOT_NOT      --------- NOT_NOT
-    //    VP1                    VP2   
+    //    VP1                    VP2
     // -------------------------------- RESOLUTION
-    //          (cl F (not F))
+    //          (cl F (not F))*
     //
     // VP1: (cl (not (not (not F))) F)
     // VP2: (cl (not (not (not (not F)))) (not F))
