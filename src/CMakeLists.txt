@@ -1314,7 +1314,7 @@ install(TARGETS cvc5
 set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
 target_compile_definitions(cvc5 PRIVATE -D__BUILDING_CVC5LIB)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+add_dependencies(cvc5 gen-expr gen-versioninfo gen-options gen-tags gen-theory)
 
 # Add library/include dependencies
 if(ENABLE_VALGRIND)

@@ -320,27 +320,19 @@ void OptionsHandler::showConfiguration(const std::string& option,
   std::cout << Configuration::about() << std::endl;
 
   print_config ("version", Configuration::getVersionString());
-
-  if(Configuration::isGitBuild()) {
-    const char* branchName = Configuration::getGitBranchName();
-    if(*branchName == '\0')  { branchName = "-"; }
-    std::stringstream ss;
-    ss << "git ["
-       << branchName << " "
-       << std::string(Configuration::getGitCommit()).substr(0, 8)
-       << (Configuration::hasGitModifications() ? " (with modifications)" : "")
-       << "]";
-    print_config("scm", ss.str());
-  } else {
+  if (Configuration::isGitBuild())
+  {
     print_config_cond("scm", false);
+  }
+  else
+  {
+    print_config("scm", Configuration::getGitInfo());
   }
 
   std::cout << std::endl;
 
   std::stringstream ss;
-  ss << Configuration::getVersionMajor() << "."
-     << Configuration::getVersionMinor() << "."
-     << Configuration::getVersionRelease();
+  ss << Configuration::getVersionString();
   print_config("library", ss.str());
 
   std::cout << std::endl;
