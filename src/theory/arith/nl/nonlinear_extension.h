@@ -97,6 +97,16 @@ class NonlinearExtension : EnvObj
    * (linear) arithmetic model from `arithModel`. This method may already send
    * lemmas, but most lemmas are stored and only sent when finalizeModel
    * is called.
+   *
+   * The argument arithModel is a map of the form { v1 -> c1, ..., vn -> cn }
+   * which represents the linear arithmetic theory solver's contribution to the
+   * current candidate model where v1, ..., vn are arithmetic variables and
+   * c1, ..., cn are constants. Note, that arithmetic variables may be
+   * real-valued terms belonging to other theories, or abstractions of
+   * applications of multiplication (kind NONLINEAR_MULT).
+   *
+   * The argument termSet is the set of terms that is currently appearing in the
+   * assertions.
    */
   void checkFullEffort(std::map<Node, Node>& arithModel,
                        const std::set<Node>& termSet);

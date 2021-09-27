@@ -20,7 +20,6 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
-#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
@@ -359,7 +358,7 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  bool printDebug = Output.isOn(options::OutputTag::SYGUS);
+  bool printDebug = d_env.isOutputOn(options::OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -424,8 +423,11 @@ bool SynthConjecture::doCheck()
           }
         }
         Trace("sygus-engine") << std::endl;
-        Output(options::OutputTag::SYGUS)
-            << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+        if (d_env.isOutputOn(options::OutputTag::SYGUS))
+        {
+          d_env.getOutput(options::OutputTag::SYGUS)
+              << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+        }
       }
       Assert(candidate_values.empty());
       constructed_cand = d_master->constructCandidates(

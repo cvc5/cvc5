@@ -57,6 +57,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_EQ, this, 3);
   pc->registerTrustedChecker(PfRule::THEORY_INFERENCE, this, 3);
+  pc->registerChecker(PfRule::ALETHE_RULE, this);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
