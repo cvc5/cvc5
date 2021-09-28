@@ -128,6 +128,12 @@ protected:
   /** A local copy of -1. */
   const Rational d_negOne;
 
+  /**
+   * Locally cached value of arithStandardCheckVarOrderPivots option. It is
+   * cached here to allow for single runs with a different (lower) limit.
+   */
+  int64_t d_varOrderPivotLimit = -1;
+
   ArithVar constructInfeasiblityFunction(TimerStat& timer);
   ArithVar constructInfeasiblityFunction(TimerStat& timer, ArithVar e);
   ArithVar constructInfeasiblityFunction(TimerStat& timer, const ArithVarVec& set);
@@ -162,7 +168,11 @@ public:
 
 
   uint32_t getPivots() const { return d_pivots; }
-protected:
+
+  /** Set the variable ordering pivot limit */
+  void setVarOrderPivotLimit(int64_t value) { d_varOrderPivotLimit = value; }
+
+ protected:
 
   /** Reports a conflict to on the output channel. */
   void reportConflict(ArithVar basic);

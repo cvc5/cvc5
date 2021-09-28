@@ -36,7 +36,7 @@ class TestNodeWhiteTypeNode : public TestNode
   void SetUp() override
   {
     TestNode::SetUp();
-    d_smt.reset(new SmtEngine(d_nodeManager.get()));
+    d_smt.reset(new SmtEngine(d_nodeManager));
   }
   std::unique_ptr<SmtEngine> d_smt;
 };

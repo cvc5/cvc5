@@ -250,8 +250,8 @@ void parseInternal(api::Solver& solver,
                             + "' missing its required argument");
     case '?':
     default:
-        throw OptionException(std::string("can't understand option `") + option
-                              + "'" + suggestCommandLineOptions(option));
+      throw OptionException(std::string("can't understand option `") + option
+                            + "'" + suggestCommandLineOptions(option));
     }
   }
 

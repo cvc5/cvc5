@@ -23,6 +23,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -409,7 +410,7 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
     QuantifiersInferenceManager& qim,
     TermDbSygus* tds,
     SynthConjecture* parent)
-    : DecisionStrategyFmf(qs.getSatContext(), qs.getValuation()),
+    : DecisionStrategyFmf(env, qs.getValuation()),
       d_qim(qim),
       d_tds(tds),
       d_parent(parent)

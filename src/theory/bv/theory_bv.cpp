@@ -46,17 +46,16 @@ TheoryBV::TheoryBV(Env& env,
   switch (options().bv.bvSolver)
   {
     case options::BVSolver::BITBLAST:
-      d_internal.reset(new BVSolverBitblast(d_env, &d_state, d_im, d_pnm));
+      d_internal.reset(new BVSolverBitblast(env, &d_state, d_im, d_pnm));
       break;
 
     case options::BVSolver::LAYERED:
       d_internal.reset(new BVSolverLayered(
-          *this, d_env, context(), userContext(), d_pnm, name));
+          env, *this, context(), userContext(), d_pnm, name));
       break;
 
     default:
-      AlwaysAssert(options().bv.bvSolver
-                   == options::BVSolver::BITBLAST_INTERNAL);
+      AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
       d_internal.reset(
           new BVSolverBitblastInternal(d_env, &d_state, d_im, d_pnm));
   }

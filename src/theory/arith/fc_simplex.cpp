@@ -113,7 +113,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
 
   Debug("arith::findModel") << "fcFindModel(" << instance <<") start non-trivial" << endl;
 
-  exactResult |= options::arithStandardCheckVarOrderPivots() < 0;
+  exactResult |= d_varOrderPivotLimit < 0;
 
   d_prevWitnessImprovement = HeuristicDegenerate;
   d_witnessImprovementInARow = 0;
@@ -124,7 +124,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
     if(exactResult){
       d_pivotBudget = -1;
     }else{
-      d_pivotBudget = options::arithStandardCheckVarOrderPivots();
+      d_pivotBudget = d_varOrderPivotLimit;
     }
 
     result = dualLike();

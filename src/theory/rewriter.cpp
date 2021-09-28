@@ -479,35 +479,5 @@ void Rewriter::clearCaches()
   clearCachesInternal();
 }
 
-Node Rewriter::rewriteViaMethod(TNode n, MethodId idr)
-{
-  if (idr == MethodId::RW_REWRITE)
-  {
-    return rewrite(n);
-  }
-  if (idr == MethodId::RW_EXT_REWRITE)
-  {
-    return extendedRewrite(n);
-  }
-  if (idr == MethodId::RW_REWRITE_EQ_EXT)
-  {
-    return rewriteEqualityExt(n);
-  }
-  if (idr == MethodId::RW_EVALUATE)
-  {
-    Evaluator eval;
-    return eval.eval(n, {}, {}, false);
-  }
-  if (idr == MethodId::RW_IDENTITY)
-  {
-    // does nothing
-    return n;
-  }
-  // unknown rewriter
-  Unhandled() << "Rewriter::rewriteViaMethod: no rewriter for " << idr
-              << std::endl;
-  return n;
-}
-
 }  // namespace theory
 }  // namespace cvc5

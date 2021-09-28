@@ -19,11 +19,14 @@
 #include "options/main_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
+#include "proof/alethe/alethe_node_converter.h"
+#include "proof/alethe/alethe_post_processor.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/assertions.h"
+#include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
@@ -59,13 +62,13 @@ PfManager::PfManager(Env& env)
   // where A is an available assumption from outside the scope (note
   // that B1 was an assumption of this SCOPE subproof but since it could
   // be inferred from A, it was updated). This shape is problematic for
-  // the veriT reconstruction, so we disable the update of scoped
+  // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
   d_pfpp.reset(new ProofPostproccess(
       env,
       d_pppg.get(),
       nullptr,
-      options::proofFormatMode() != options::ProofFormatMode::VERIT));
+      options::proofFormatMode() != options::ProofFormatMode::ALETHE));
 
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
@@ -170,6 +173,12 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter;
     dotPrinter.print(out, fp.get());
   }
+  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE)
+  {
+    proof::AletheNodeConverter anc;
+    proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
+    vpfpp.process(fp);
+  }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {
     out << "% SZS output start Proof for " << options().driver.filename
@@ -193,6 +202,58 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
   Trace("smt-proof-debug") << "PfManager::checkProof: returned " << *fp.get()
                            << std::endl;
+}
+
+void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
+                                       Assertions& as)
+{
+  Trace("difficulty") << "PfManager::translateDifficultyMap" << std::endl;
+  if (dmap.empty())
+  {
+    return;
+  }
+  std::map<Node, Node> dmapp = dmap;
+  dmap.clear();
+  std::vector<Node> ppAsserts;
+  for (const std::pair<const Node, Node>& ppa : dmapp)
+  {
+    Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
+                        << ppa.first << std::endl;
+    ppAsserts.push_back(ppa.first);
+  }
+  // assume a SAT refutation from all input assertions that were marked
+  // as having a difficulty
+  CDProof cdp(d_pnm.get());
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
+  std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
+  std::shared_ptr<ProofNode> fpf = getFinalProof(pf, as);
+  Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
+  Assert(fpf->getRule() == PfRule::SCOPE);
+  fpf = fpf->getChildren()[0];
+  // analyze proof
+  Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
+  const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
+  DifficultyPostprocessCallback dpc;
+  ProofNodeUpdater dpnu(d_pnm.get(), dpc);
+  // For each child of SAT_REFUTATION, we increment the difficulty on all
+  // "source" free assumptions (see DifficultyPostprocessCallback) by the
+  // difficulty of the preprocessed assertion.
+  for (const std::shared_ptr<ProofNode>& c : children)
+  {
+    Node res = c->getResult();
+    Assert(dmapp.find(res) != dmapp.end());
+    Trace("difficulty-debug") << "  process: " << res << std::endl;
+    Trace("difficulty-debug") << "  .dvalue: " << dmapp[res] << std::endl;
+    Trace("difficulty-debug") << "  ..proof: " << *c.get() << std::endl;
+    if (!dpc.setCurrentDifficulty(dmapp[res]))
+    {
+      continue;
+    }
+    dpnu.process(c);
+  }
+  // get the accumulated difficulty map from the callback
+  dpc.getDifficultyMap(dmap);
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }

@@ -27,7 +27,6 @@ def prefixPrintGetValue(slv, t, level=0):
 if __name__ == "__main__":
     slv = pycvc5.Solver()
     slv.setOption("produce-models", "true")  # Produce Models
-    slv.setOption("output-language", "cvc") # Set the output-language to CVC's
     slv.setOption("dag-thresh", "0") # Disable dagifying the output
     slv.setOption("output-language", "smt2") # use smt-lib v2 as output language
     slv.setLogic("QF_UFLIRA")

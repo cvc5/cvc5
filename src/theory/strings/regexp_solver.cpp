@@ -33,20 +33,22 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-RegExpSolver::RegExpSolver(SolverState& s,
+RegExpSolver::RegExpSolver(Env& env,
+                           SolverState& s,
                            InferenceManager& im,
                            TermRegistry& tr,
                            CoreSolver& cs,
                            ExtfSolver& es,
                            SequencesStatistics& stats)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_csolver(cs),
       d_esolver(es),
       d_statistics(stats),
-      d_regexp_ucached(s.getUserContext()),
-      d_regexp_ccached(s.getSatContext()),
-      d_processed_memberships(s.getSatContext()),
+      d_regexp_ucached(userContext()),
+      d_regexp_ccached(context()),
+      d_processed_memberships(context()),
       d_regexp_opr(tr.getSkolemCache(), tr.getAlphabetCardinality())
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));

@@ -37,8 +37,8 @@ namespace cvc5 {
 namespace theory {
 namespace bv {
 
-BVSolverLayered::BVSolverLayered(TheoryBV& bv,
-                                 Env& env,
+BVSolverLayered::BVSolverLayered(Env& env,
+                                 TheoryBV& bv,
                                  context::Context* c,
                                  context::UserContext* u,
                                  ProofNodeManager* pnm,

@@ -21,6 +21,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "smt/env_obj.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
@@ -38,12 +39,12 @@ namespace strings {
  * current context, and techniques for inferring when equivalence classes
  * are equivalent to constants.
  */
-class BaseSolver
+class BaseSolver : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  BaseSolver(SolverState& s, InferenceManager& im, TermRegistry& tr);
+  BaseSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BaseSolver();
 
   //-----------------------inference steps

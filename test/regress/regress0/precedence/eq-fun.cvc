@@ -1,8 +1,0 @@
-% EXPECT: entailed
-% Simple test for right precedence of function application and =
-
-T : TYPE;
-x , y: T;
-f : T -> T;
-
-QUERY (f(x) = f(y)) <=> ((f(x)) = (f(y)));

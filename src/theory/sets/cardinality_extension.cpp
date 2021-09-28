@@ -35,13 +35,15 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-CardinalityExtension::CardinalityExtension(SolverState& s,
+CardinalityExtension::CardinalityExtension(Env& env,
+                                           SolverState& s,
                                            InferenceManager& im,
                                            TermRegistry& treg)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_treg(treg),
-      d_card_processed(s.getUserContext()),
+      d_card_processed(userContext()),
       d_finite_type_constants_processed(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);

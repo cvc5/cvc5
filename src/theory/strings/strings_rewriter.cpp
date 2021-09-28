@@ -27,9 +27,10 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-StringsRewriter::StringsRewriter(HistogramStat<Rewrite>* statistics,
+StringsRewriter::StringsRewriter(Rewriter* r,
+                                 HistogramStat<Rewrite>* statistics, 
                                  uint32_t alphaCard)
-    : SequencesRewriter(statistics), d_alphaCard(alphaCard)
+    : SequencesRewriter(r, statistics), d_alphaCard(alphaCard)
 {
 }
 

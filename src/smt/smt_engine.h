@@ -416,8 +416,12 @@ class CVC5_EXPORT SmtEngine
    */
   void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
 
-  /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(Node constraint);
+  /**
+   * Add a regular sygus constraint or assumption.
+   * @param n The formula
+   * @param isAssume True if n is an assumption.
+   */
+  void assertSygusConstraint(Node n, bool isAssume = false);
 
   /**
    * Add an invariant constraint.
@@ -696,6 +700,12 @@ class CVC5_EXPORT SmtEngine
    * SmtEngine is set to operate interactively.
    */
   std::vector<Node> getAssertions();
+
+  /**
+   * Get difficulty map, which populates dmap, mapping input assertions
+   * to a value that estimates their difficulty for solving the current problem.
+   */
+  void getDifficultyMap(std::map<Node, Node>& dmap);
 
   /**
    * Push a user-level context.
