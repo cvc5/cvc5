@@ -106,7 +106,7 @@ void ArraySolver::checkTerms(Kind k)
     if (nf.d_nf.empty())
     {
       // updates should have been reduced (UPD_EMPTYSTR)
-      Assert (k != STRING_UPDATE);
+      Assert(k != STRING_UPDATE);
       Trace("seq-array-debug") << "...empty" << std::endl;
       continue;
     }
