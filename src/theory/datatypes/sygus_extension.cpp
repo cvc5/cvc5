@@ -35,6 +35,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
+#include "util/rational.h"
 
 using namespace cvc5;
 using namespace cvc5::kind;
@@ -601,7 +602,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
     {
       Node szl = nm->mkNode(DT_SIZE, n);
       Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
-      szr = Rewriter::rewrite(szr);
+      szr = rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
     if (isVarAgnostic)
@@ -1101,16 +1102,20 @@ Node SygusExtension::registerSearchValue(Node a,
         if (bv != bvr)
         {
           // add to the sampler database object
-          std::map<TypeNode, quantifiers::SygusSampler>::iterator its =
-              d_sampler[a].find(tn);
-          if (its == d_sampler[a].end())
+          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap =
+              d_sampler[a];
+          std::map<TypeNode,
+                   std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
+              smap.find(tn);
+          if (its == smap.end())
           {
-            d_sampler[a][tn].initializeSygus(
+            smap[tn].reset(new quantifiers::SygusSampler(d_env));
+            smap[tn]->initializeSygus(
                 d_tds, nv, options::sygusSamples(), false);
             its = d_sampler[a].find(tn);
           }
           // check equivalent
-          its->second.checkEquivalent(bv, bvr, *options().base.out);
+          its->second->checkEquivalent(bv, bvr, *options().base.out);
         }
       }
 

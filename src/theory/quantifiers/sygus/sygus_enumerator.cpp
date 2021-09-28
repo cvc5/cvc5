@@ -25,6 +25,7 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/type_node_id_trie.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

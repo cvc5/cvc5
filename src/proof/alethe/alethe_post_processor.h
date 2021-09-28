@@ -16,9 +16,9 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
-#include "proof/proof_node_updater.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_proof_rule.h"
+#include "proof/proof_node_updater.h"
 
 namespace cvc5 {
 
@@ -89,15 +89,15 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    * This method internally calls addAletheStep. The kind of the given Node has
    * to be OR.
    *
-   * @param res The expected result of the application in form (or F1 ... Fn),
    * @param rule The id of the Alethe rule,
+   * @param res The expected result of the application in form (or F1 ... Fn),
    * @param children The children of the application,
    * @param args The arguments of the application
    * @param cdp The proof to add to
    * @return True if the step could be added, or false if not.
    */
-  bool addAletheStepFromOr(Node res,
-                           AletheRule rule,
+  bool addAletheStepFromOr(AletheRule rule,
+		           Node res,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);
@@ -118,8 +118,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
  public:
-   AletheProofPostprocessFinalCallback(ProofNodeManager* pnm,
-                                       AletheNodeConverter& anc);
+  AletheProofPostprocessFinalCallback(ProofNodeManager* pnm,
+                                      AletheNodeConverter& anc);
   ~AletheProofPostprocessFinalCallback() {}
   /** Should proof pn be updated? It should, if the last step is printed as (cl
    * false) or if it is an assumption (in that case it is printed as false).
@@ -159,7 +159,7 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 class AletheProofPostprocess
 {
  public:
-   AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
+  AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);

@@ -604,6 +604,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::PRODUCT, "product");
     addOperator(api::TRANSPOSE, "transpose");
     addOperator(api::TCLOSURE, "tclosure");
+    addOperator(api::JOIN_IMAGE, "join_image");
+    addOperator(api::IDEN, "iden");
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
