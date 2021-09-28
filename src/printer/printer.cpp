@@ -19,7 +19,6 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "printer/ast/ast_printer.h"
-#include "printer/cvc/cvc_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
@@ -43,9 +42,6 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
 
     case Language::LANG_TPTP:
       return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
-
-    case Language::LANG_CVC:
-      return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
     case Language::LANG_SYGUS_V2:
       // sygus version 2.0 does not have discrepancies with smt2, hence we use
@@ -440,12 +436,6 @@ void Printer::toStreamCmdGetAssertions(std::ostream& out) const
   printUnknownCommand(out, "get-assertions");
 }
 
-void Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                            Result::Sat status) const
-{
-  printUnknownCommand(out, "set-info");
-}
-
 void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                            const std::string& logic) const
 {
@@ -505,12 +495,6 @@ void Printer::toStreamCmdResetAssertions(std::ostream& out) const
 void Printer::toStreamCmdQuit(std::ostream& out) const
 {
   printUnknownCommand(out, "quit");
-}
-
-void Printer::toStreamCmdComment(std::ostream& out,
-                                 const std::string& comment) const
-{
-  printUnknownCommand(out, "comment");
 }
 
 void Printer::toStreamCmdDeclareHeap(std::ostream& out,

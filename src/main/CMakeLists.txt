@@ -127,7 +127,6 @@ endforeach()
 # Create target used as a dependency for libmain.
 add_custom_target(gen-tokens
   DEPENDS
-    cvc_tokens.h
     smt2_tokens.h
     tptp_tokens.h
 )

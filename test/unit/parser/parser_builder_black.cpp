@@ -26,6 +26,7 @@
 #include "options/language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
+#include "smt/command.h"
 #include "test_api.h"
 
 namespace cvc5 {
@@ -45,13 +46,17 @@ class TestParseBlackParserBuilder : public TestApi
     ASSERT_TRUE(e.isNull());
   }
 
-  void checkTrueInput(Parser* parser)
+  void checkInput(Parser* parser, const std::string& expected)
   {
-    api::Term e = parser->nextExpression();
-    ASSERT_EQ(e, d_solver.mkTrue());
+    Command* cmd = parser->nextCommand();
+    ASSERT_NE(cmd, nullptr);
+    ASSERT_EQ(cmd->toString(), expected);
+    delete cmd;
 
-    e = parser->nextExpression();
-    ASSERT_TRUE(e.isNull());
+    cmd = parser->nextCommand();
+    ASSERT_EQ(cmd, nullptr);
+    // e = parser->nextExpression();
+    // ASSERT_TRUE(e.isNull());
   }
 
   char* mkTemp()
@@ -71,9 +76,9 @@ TEST_F(TestParseBlackParserBuilder, empty_file_input)
   ASSERT_NE(filename, nullptr);
 
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
-                                     .withInputLanguage("LANG_CVC")
+                                     .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newFileInput("LANG_CVC", filename, false));
+  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename, false));
   checkEmptyInput(parser.get());
 
   remove(filename);
@@ -85,14 +90,14 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
   char* filename = mkTemp();
 
   std::fstream fs(filename, std::fstream::out);
-  fs << "TRUE" << std::endl;
+  fs << "(set-logic ALL)" << std::endl;
   fs.close();
 
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
-                                     .withInputLanguage("LANG_CVC")
+                                     .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newFileInput("LANG_CVC", filename, false));
-  checkTrueInput(parser.get());
+  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename, false));
+  checkInput(parser.get(), "(set-logic ALL)\n");
 
   remove(filename);
   free(filename);
@@ -101,39 +106,40 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
 TEST_F(TestParseBlackParserBuilder, empty_string_input)
 {
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
-                                     .withInputLanguage("LANG_CVC")
+                                     .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newStringInput("LANG_CVC", "", "foo"));
+  parser->setInput(Input::newStringInput("LANG_SMTLIB_V2_6", "", "foo"));
   checkEmptyInput(parser.get());
 }
 
 TEST_F(TestParseBlackParserBuilder, true_string_input)
 {
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
-                                     .withInputLanguage("LANG_CVC")
+                                     .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newStringInput("LANG_CVC", "TRUE", "foo"));
-  checkTrueInput(parser.get());
+  parser->setInput(
+      Input::newStringInput("LANG_SMTLIB_V2_6", "(assert true)", "foo"));
+  checkInput(parser.get(), "(assert true)\n");
 }
 
 TEST_F(TestParseBlackParserBuilder, empty_stream_input)
 {
   std::stringstream ss("", std::ios_base::in);
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
-                                     .withInputLanguage("LANG_CVC")
+                                     .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newStreamInput("LANG_CVC", ss, "foo"));
+  parser->setInput(Input::newStreamInput("LANG_SMTLIB_V2_6", ss, "foo"));
   checkEmptyInput(parser.get());
 }
 
 TEST_F(TestParseBlackParserBuilder, true_stream_input)
 {
-  std::stringstream ss("TRUE", std::ios_base::in);
+  std::stringstream ss("(assert false)", std::ios_base::in);
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
-                                     .withInputLanguage("LANG_CVC")
+                                     .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newStreamInput("LANG_CVC", ss, "foo"));
-  checkTrueInput(parser.get());
+  parser->setInput(Input::newStreamInput("LANG_SMTLIB_V2_6", ss, "foo"));
+  checkInput(parser.get(), "(assert false)\n");
 }
 
 }  // namespace test
