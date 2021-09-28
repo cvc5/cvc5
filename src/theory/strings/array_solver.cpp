@@ -148,7 +148,6 @@ void ArraySolver::checkTerms(Kind k)
           d_eqProc.insert(eq);
           d_im.sendInference(exp, eq, iid);
         }
-        // d_im.sendInference(exp, eq, iid);
       }
       // otherwise, the equivalence class is pure wrt concatenation
       d_currTerms[k].push_back(t);
