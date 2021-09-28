@@ -19,15 +19,17 @@
 #define CVC5__THEORY__STRINGS__REGEXP_SOLVER_H
 
 #include <map>
+
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
-#include "theory/strings/skolem_cache.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/sequences_stats.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "util/string.h"
 
@@ -35,7 +37,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-class RegExpSolver
+class RegExpSolver : protected EnvObj
 {
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap<Node, bool> NodeBoolMap;
@@ -45,7 +47,8 @@ class RegExpSolver
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  RegExpSolver(SolverState& s,
+  RegExpSolver(Env& env,
+               SolverState& s,
                InferenceManager& im,
                SkolemCache* skc,
                CoreSolver& cs,

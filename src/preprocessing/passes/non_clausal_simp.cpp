@@ -40,8 +40,8 @@ namespace passes {
 
 /* -------------------------------------------------------------------------- */
 
-NonClausalSimp::Statistics::Statistics()
-    : d_numConstantProps(smtStatisticsRegistry().registerInt(
+NonClausalSimp::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_numConstantProps(reg.registerInt(
         "preprocessing::passes::NonClausalSimp::NumConstantProps"))
 {
 }
@@ -51,6 +51,7 @@ NonClausalSimp::Statistics::Statistics()
 
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp"),
+      d_statistics(statisticsRegistry()),
       d_pnm(preprocContext->getProofNodeManager()),
       d_llpg(d_pnm ? new smt::PreprocessProofGenerator(
                  d_pnm, userContext(), "NonClausalSimp::llpg")

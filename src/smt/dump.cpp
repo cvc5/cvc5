@@ -78,10 +78,7 @@ void DumpC::setDumpFromString(const std::string& optarg) {
     while ((optargPtr = strtok_r(tokstr, ",", &toksave)) != NULL)
     {
       tokstr = NULL;
-      if (!strcmp(optargPtr, "raw-benchmark"))
-      {
-      }
-      else if (!strcmp(optargPtr, "benchmark"))
+      if (!strcmp(optargPtr, "benchmark"))
       {
       }
       else if (!strcmp(optargPtr, "declarations"))
@@ -163,11 +160,6 @@ void DumpC::setDumpFromString(const std::string& optarg) {
       if (strcmp(optargPtr, "benchmark"))
       {
         Dump.on("declarations");
-        if (strcmp(optargPtr, "declarations")
-            && strcmp(optargPtr, "raw-benchmark"))
-        {
-          Dump.on("skolems");
-        }
       }
     }
   }
@@ -189,10 +181,6 @@ benchmark\n\
 \n\
 declarations\n\
 + Dump user declarations.  Implied by all following modes.\n\
-\n\
-raw-benchmark\n\
-+ Dump all user-commands as they are received (including assertions) without\n\
-  any preprocessing and without any internally-created commands.\n\
 \n\
 skolems\n\
 + Dump internally-created skolem variable declarations.  These can\n\
@@ -228,10 +216,9 @@ theory::fullcheck\n\
 + Output completeness queries for all full-check effort-level theory checks\n\
 \n\
 Dump modes can be combined by concatenating the above values with \",\" in\n\
-between them.  Generally you want raw-benchmark or, alternatively, one from\n\
-the assertions category (either assertions or clauses), and perhaps one or more\n\
-other modes for checking correctness and completeness of decision procedure\n\
-implementations.\n\
+between them.  Generally you want one from the assertions category (either\n\
+assertions or clauses), and perhaps one or more other modes for checking\n\
+correctness and completeness of decision procedure implementations.\n\
 \n\
 The --output-language option controls the language used for dumping, and\n\
 this allows you to connect cvc5 to another solver implementation via a UNIX\n\

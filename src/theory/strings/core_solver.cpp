@@ -37,15 +37,18 @@ namespace strings {
 
 CoreInferInfo::CoreInferInfo(InferenceId id) : d_infer(id), d_index(0), d_rev(false) {}
 
-CoreSolver::CoreSolver(SolverState& s,
+CoreSolver::CoreSolver(Env& env,
+                       SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        BaseSolver& bs)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_termReg(tr),
       d_bsolver(bs),
-      d_nfPairs(s.getSatContext())
+      d_nfPairs(context()),
+      d_extDeq(userContext())
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -2078,6 +2081,12 @@ void CoreSolver::processDeq(Node ni, Node nj)
     return;
   }
 
+  if (options::stringsDeqExt())
+  {
+    processDeqExtensionality(ni, nj);
+    return;
+  }
+
   nfi = nfni.d_nf;
   nfj = nfnj.d_nf;
 
@@ -2437,6 +2446,56 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
     index++;
   }
   return false;
+}
+
+void CoreSolver::processDeqExtensionality(Node n1, Node n2)
+{
+  // hash based on equality
+  Node eq = n1 < n2 ? n1.eqNode(n2) : n2.eqNode(n1);
+  NodeSet::const_iterator it = d_extDeq.find(eq);
+  if (it != d_extDeq.end())
+  {
+    // already processed
+    return;
+  }
+  d_extDeq.insert(eq);
+
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemCache* sc = d_termReg.getSkolemCache();
+  TypeNode intType = nm->integerType();
+  Node k = sc->mkTypedSkolemCached(
+      intType, n1, n2, SkolemCache::SK_DEQ_DIFF, "diff");
+  Node deq = eq.negate();
+  Node ss1, ss2;
+  if (n1.getType().isString())
+  {
+    // substring of length 1
+    ss1 = nm->mkNode(STRING_SUBSTR, n1, k, d_one);
+    ss2 = nm->mkNode(STRING_SUBSTR, n2, k, d_one);
+  }
+  else
+  {
+    // as an optimization, for sequences, use seq.nth
+    ss1 = nm->mkNode(SEQ_NTH, n1, k);
+    ss2 = nm->mkNode(SEQ_NTH, n2, k);
+  }
+  // disequality between nth/substr
+  Node conc1 = ss1.eqNode(ss2).negate();
+
+  // The skolem k is in the bounds of at least
+  // one string/sequence
+  Node len1 = nm->mkNode(STRING_LENGTH, n1);
+  Node len2 = nm->mkNode(STRING_LENGTH, n2);
+  Node conc2 = nm->mkNode(LEQ, d_zero, k);
+  Node conc3 = nm->mkNode(LT, k, len1);
+  Node lenDeq = nm->mkNode(EQUAL, len1, len2).negate();
+
+  std::vector<Node> concs = {conc1, conc2, conc3};
+  Node conc = nm->mkNode(OR, lenDeq, nm->mkAnd(concs));
+  // A != B => ( seq.len(A) != seq.len(B) or
+  //             ( seq.nth(A, d) != seq.nth(B, d) ^ 0 <= d < seq.len(A) ) )
+  d_im.sendInference(
+      {deq}, conc, InferenceId::STRINGS_DEQ_EXTENSIONALITY, false, true);
 }
 
 void CoreSolver::addNormalFormPair( Node n1, Node n2 ){

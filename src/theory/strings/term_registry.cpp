@@ -40,25 +40,26 @@ struct StringsProxyVarAttributeId
 typedef expr::Attribute<StringsProxyVarAttributeId, bool>
     StringsProxyVarAttribute;
 
-TermRegistry::TermRegistry(SolverState& s,
+TermRegistry::TermRegistry(Env& env,
+                           SolverState& s,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(nullptr),
       d_statistics(statistics),
       d_hasStrCode(false),
-      d_functionsTerms(s.getSatContext()),
-      d_inputVars(s.getUserContext()),
-      d_preregisteredTerms(s.getSatContext()),
-      d_registeredTerms(s.getUserContext()),
-      d_registeredTypes(s.getUserContext()),
-      d_proxyVar(s.getUserContext()),
-      d_lengthLemmaTermsCache(s.getUserContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
-                      s.getUserContext(),
-                      "strings::TermRegistry::EagerProofGenerator")
-                : nullptr)
+      d_functionsTerms(context()),
+      d_inputVars(userContext()),
+      d_preregisteredTerms(context()),
+      d_registeredTerms(userContext()),
+      d_registeredTypes(userContext()),
+      d_proxyVar(userContext()),
+      d_lengthLemmaTermsCache(userContext()),
+      d_epg(
+          pnm ? new EagerProofGenerator(
+              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
+              : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));

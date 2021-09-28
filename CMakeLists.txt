@@ -20,6 +20,7 @@ cmake_minimum_required(VERSION 3.9)
 
 project(cvc5)
 
+include(CheckIPOSupported)
 include(GNUInstallDirs)
 
 set(CVC5_MAJOR   1) # Major component of the version of cvc5.
@@ -105,6 +106,7 @@ cvc5_option(ENABLE_SHARED         "Build as shared library")
 cvc5_option(ENABLE_STATIC_BINARY
             "Build static binaries with statically linked system libraries")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
+cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_BEST             "Enable dependencies known to give best performance")
@@ -233,6 +235,14 @@ if ("${LD_VERSION}" MATCHES "GNU gold")
   string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
   message(STATUS "Using GNU gold linker.")
 endif ()
+
+#-----------------------------------------------------------------------------#
+# Use interprocedural optimization if requested
+
+if(ENABLE_IPO)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
 
 #-----------------------------------------------------------------------------#
 # Option defaults (three-valued options (cvc5_option(...)))
@@ -660,6 +670,7 @@ print_config("Static binary             " ${ENABLE_STATIC_BINARY})
 print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
 print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})
+print_config("Interprocedural opt.      " ${ENABLE_IPO})
 message("")
 print_config("ABC                       " ${USE_ABC})
 print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT} FOUND_SYSTEM ${CryptoMiniSat_FOUND_SYSTEM})

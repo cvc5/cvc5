@@ -233,6 +233,9 @@ name   = "Base"
 [[option.mode.TRIGGER]]
   name = "trigger"
   help = "print selected triggers for quantified formulas"
+[[option.mode.RAW_BENCHMARK]]
+  name = "raw-benchmark"
+  help = "print the benchmark back on the output verbatim as it is processed"
 
 # Stores then enabled output tags.
 [[option]]

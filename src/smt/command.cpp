@@ -732,7 +732,9 @@ void SynthFunCommand::toStream(std::ostream& out,
 /* class SygusConstraintCommand */
 /* -------------------------------------------------------------------------- */
 
-SygusConstraintCommand::SygusConstraintCommand(const api::Term& t) : d_term(t)
+SygusConstraintCommand::SygusConstraintCommand(const api::Term& t,
+                                               bool isAssume)
+    : d_term(t), d_isAssume(isAssume)
 {
 }
 
@@ -740,7 +742,14 @@ void SygusConstraintCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->addSygusConstraint(d_term);
+    if (d_isAssume)
+    {
+      solver->addSygusAssume(d_term);
+    }
+    else
+    {
+      solver->addSygusConstraint(d_term);
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -753,12 +762,12 @@ api::Term SygusConstraintCommand::getTerm() const { return d_term; }
 
 Command* SygusConstraintCommand::clone() const
 {
-  return new SygusConstraintCommand(d_term);
+  return new SygusConstraintCommand(d_term, d_isAssume);
 }
 
 std::string SygusConstraintCommand::getCommandName() const
 {
-  return "constraint";
+  return d_isAssume ? "assume" : "constraint";
 }
 
 void SygusConstraintCommand::toStream(std::ostream& out,
@@ -766,7 +775,15 @@ void SygusConstraintCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdConstraint(out, termToNode(d_term));
+  if (d_isAssume)
+  {
+    Printer::getPrinter(language)->toStreamCmdAssume(out, termToNode(d_term));
+  }
+  else
+  {
+    Printer::getPrinter(language)->toStreamCmdConstraint(out,
+                                                         termToNode(d_term));
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1002,29 +1019,6 @@ void QuitCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class CommentCommand                                                       */
-/* -------------------------------------------------------------------------- */
-
-CommentCommand::CommentCommand(std::string comment) : d_comment(comment) {}
-std::string CommentCommand::getComment() const { return d_comment; }
-void CommentCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  Dump("benchmark") << *this;
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* CommentCommand::clone() const { return new CommentCommand(d_comment); }
-std::string CommentCommand::getCommandName() const { return "comment"; }
-
-void CommentCommand::toStream(std::ostream& out,
-                              int toDepth,
-                              size_t dag,
-                              Language language) const
-{
-  Printer::getPrinter(language)->toStreamCmdComment(out, d_comment);
-}
-
-/* -------------------------------------------------------------------------- */
 /* class CommandSequence                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -1186,8 +1180,8 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareFunction(
-      out, d_func.toString(), sortToTypeNode(d_sort));
+  Printer::getPrinter(language)->toStreamCmdDeclareFunction(out,
+                                                            termToNode(d_func));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2395,6 +2389,86 @@ void GetUnsatCoreCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
+/* class GetDifficultyCommand */
+/* -------------------------------------------------------------------------- */
+
+GetDifficultyCommand::GetDifficultyCommand() : d_sm(nullptr) {}
+void GetDifficultyCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  try
+  {
+    d_sm = sm;
+    d_result = solver->getDifficulty();
+
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetDifficultyCommand::printResult(std::ostream& out,
+                                       uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    out << "(" << std::endl;
+    for (const std::pair<const api::Term, api::Term>& d : d_result)
+    {
+      out << "(";
+      // use name if it has one
+      std::string name;
+      if (d_sm->getExpressionName(d.first, name, true))
+      {
+        out << name;
+      }
+      else
+      {
+        out << d.first;
+      }
+      out << " " << d.second << ")" << std::endl;
+    }
+    out << ")" << std::endl;
+  }
+}
+
+const std::map<api::Term, api::Term>& GetDifficultyCommand::getDifficultyMap()
+    const
+{
+  return d_result;
+}
+
+Command* GetDifficultyCommand::clone() const
+{
+  GetDifficultyCommand* c = new GetDifficultyCommand;
+  c->d_sm = d_sm;
+  c->d_result = d_result;
+  return c;
+}
+
+std::string GetDifficultyCommand::getCommandName() const
+{
+  return "get-difficulty";
+}
+
+void GetDifficultyCommand::toStream(std::ostream& out,
+                                    int toDepth,
+                                    size_t dag,
+                                    Language language) const
+{
+  Printer::getPrinter(language)->toStreamCmdGetDifficulty(out);
+}
+
+/* -------------------------------------------------------------------------- */
 /* class GetAssertionsCommand                                                 */
 /* -------------------------------------------------------------------------- */
 
@@ -2449,61 +2523,6 @@ void GetAssertionsCommand::toStream(std::ostream& out,
                                     Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetAssertions(out);
-}
-
-/* -------------------------------------------------------------------------- */
-/* class SetBenchmarkStatusCommand                                            */
-/* -------------------------------------------------------------------------- */
-
-SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status)
-    : d_status(status)
-{
-}
-
-BenchmarkStatus SetBenchmarkStatusCommand::getStatus() const
-{
-  return d_status;
-}
-
-void SetBenchmarkStatusCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    stringstream ss;
-    ss << d_status;
-    solver->setInfo("status", ss.str());
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* SetBenchmarkStatusCommand::clone() const
-{
-  return new SetBenchmarkStatusCommand(d_status);
-}
-
-std::string SetBenchmarkStatusCommand::getCommandName() const
-{
-  return "set-info";
-}
-
-void SetBenchmarkStatusCommand::toStream(std::ostream& out,
-                                         int toDepth,
-                                         size_t dag,
-                                         Language language) const
-{
-  Result::Sat status = Result::SAT_UNKNOWN;
-  switch (d_status)
-  {
-    case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;
-    case BenchmarkStatus::SMT_UNSATISFIABLE: status = Result::UNSAT; break;
-    case BenchmarkStatus::SMT_UNKNOWN: status = Result::SAT_UNKNOWN; break;
-  }
-
-  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, status);
 }
 
 /* -------------------------------------------------------------------------- */

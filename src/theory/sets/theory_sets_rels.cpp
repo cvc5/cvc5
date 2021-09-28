@@ -34,15 +34,17 @@ typedef std::map< Node, std::map< kind::Kind_t, std::vector< Node > > >::iterato
 typedef std::map<Node, std::map<Node, std::unordered_set<Node> > >::iterator
     TC_IT;
 
-TheorySetsRels::TheorySetsRels(SolverState& s,
+TheorySetsRels::TheorySetsRels(Env& env,
+                               SolverState& s,
                                InferenceManager& im,
                                SkolemCache& skc,
                                TermRegistry& treg)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_skCache(skc),
       d_treg(treg),
-      d_shared_terms(s.getUserContext())
+      d_shared_terms(userContext())
 {
   d_trueNode = NodeManager::currentNM()->mkConst(true);
   d_falseNode = NodeManager::currentNM()->mkConst(false);

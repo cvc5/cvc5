@@ -20,7 +20,6 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
-#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
@@ -241,11 +240,8 @@ void SynthConjecture::assign(Node q)
   }
 
   // register the strategy
-  d_feasible_strategy.reset(
-      new DecisionStrategySingleton("sygus_feasible",
-                                    d_feasible_guard,
-                                    d_qstate.getSatContext(),
-                                    d_qstate.getValuation()));
+  d_feasible_strategy.reset(new DecisionStrategySingleton(
+      d_env, "sygus_feasible", d_feasible_guard, d_qstate.getValuation()));
   d_qim.getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
@@ -362,7 +358,7 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  bool printDebug = Output.isOn(options::OutputTag::SYGUS);
+  bool printDebug = d_env.isOutputOn(options::OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -427,8 +423,11 @@ bool SynthConjecture::doCheck()
           }
         }
         Trace("sygus-engine") << std::endl;
-        Output(options::OutputTag::SYGUS)
-            << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+        if (d_env.isOutputOn(options::OutputTag::SYGUS))
+        {
+          d_env.getOutput(options::OutputTag::SYGUS)
+              << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+        }
       }
       Assert(candidate_values.empty());
       constructed_cand = d_master->constructCandidates(

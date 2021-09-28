@@ -23,10 +23,13 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "theory/difficulty_manager.h"
 #include "theory/valuation.h"
 
 namespace cvc5 {
 namespace theory {
+
+class TheoryModel;
 
 /**
  * This class manages queries related to relevance of asserted literals.
@@ -100,11 +103,20 @@ class RelevanceManager
    * if not already done so. This call is valid during a full effort check in
    * TheoryEngine, or after TheoryEngine has terminated with "sat". This method
    * sets the flag success to false if we failed to compute relevant
-   * assertions, which can occur if
+   * assertions, which occurs if the values from the SAT solver do not satisfy
+   * the assertions we are notified of. This should never happen.
    *
    * The value of this return is only valid if success was not updated to false.
    */
   const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
+  /** Notify lemma, for difficulty measurements */
+  void notifyLemma(Node n);
+  /** Notify that m is a (candidate) model, for difficulty measurements */
+  void notifyCandidateModel(TheoryModel* m);
+  /**
+   * Get difficulty map
+   */
+  void getDifficultyMap(std::map<Node, Node>& dmap);
 
  private:
   /**
@@ -157,6 +169,22 @@ class RelevanceManager
    * aborts and indicates that all literals are relevant.
    */
   bool d_success;
+  /** Are we tracking the sources of why a literal is relevant */
+  bool d_trackRSetExp;
+  /**
+   * Whether we have miniscoped top-level AND of assertions, which is done
+   * as an optimization. This is disabled if e.g. we are computing difficulty,
+   * which requires preserving the original form of the preprocessed
+   * assertions.
+   */
+  bool d_miniscopeTopLevel;
+  /**
+   * Map from the domain of d_rset to the assertion in d_input that is the
+   * reason why that literal is currently relevant.
+   */
+  std::map<TNode, TNode> d_rsetExp;
+  /** Difficulty module */
+  std::unique_ptr<DifficultyManager> d_dman;
 };
 
 }  // namespace theory

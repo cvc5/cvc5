@@ -84,8 +84,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   Result::Sat result = Result::SAT_UNKNOWN;
 
   static const bool verbose = false;
-  exactResult |= options::arithStandardCheckVarOrderPivots() < 0;
-
+  exactResult |= d_varOrderPivotLimit < 0;
 
   uint32_t checkPeriod = options::arithSimplexCheckPeriod();
   if(result == Result::SAT_UNKNOWN){
@@ -127,9 +126,12 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
           result = Result::UNSAT;
         }
       }
-    }else if( options::arithStandardCheckVarOrderPivots() > 0){
+    }
+    else if (d_varOrderPivotLimit > 0)
+    {
       d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
-      if(searchForFeasibleSolution(options::arithStandardCheckVarOrderPivots())){
+      if (searchForFeasibleSolution(d_varOrderPivotLimit))
+      {
         result = Result::UNSAT;
       }
       if (verbose)

@@ -33,8 +33,8 @@ TermRegistry::TermRegistry(Env& env,
                            QuantifiersState& qs,
                            QuantifiersRegistry& qr)
     : EnvObj(env),
-      d_presolve(qs.getUserContext(), true),
-      d_presolveCache(qs.getUserContext()),
+      d_presolve(userContext(), true),
+      d_presolveCache(userContext()),
       d_termEnum(new TermEnumeration),
       d_termPools(new TermPools(env, qs)),
       d_termDb(logicInfo().isHigherOrder() ? new HoTermDb(env, qs, qr)

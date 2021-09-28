@@ -73,7 +73,8 @@ void traceBackToAssertions(booleans::CircuitPropagator* propagator,
 }  // namespace
 
 MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "miplib-trick")
+    : PreprocessingPass(preprocContext, "miplib-trick"),
+      d_statistics(statisticsRegistry())
 {
   if (!options().base.incrementalSolving)
   {
@@ -655,8 +656,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-MipLibTrick::Statistics::Statistics()
-    : d_numMiplibAssertionsRemoved(smtStatisticsRegistry().registerInt(
+MipLibTrick::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_numMiplibAssertionsRemoved(reg.registerInt(
         "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
 {
 }

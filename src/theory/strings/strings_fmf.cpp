@@ -25,15 +25,8 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-StringsFmf::StringsFmf(context::Context* c,
-                       context::UserContext* u,
-                       Valuation valuation,
-                       TermRegistry& tr)
-    : d_sslds(nullptr),
-      d_satContext(c),
-      d_userContext(u),
-      d_valuation(valuation),
-      d_termReg(tr)
+StringsFmf::StringsFmf(Env& env, Valuation valuation, TermRegistry& tr)
+    : EnvObj(env), d_sslds(nullptr), d_valuation(valuation), d_termReg(tr)
 {
 }
 
@@ -41,8 +34,7 @@ StringsFmf::~StringsFmf() {}
 
 void StringsFmf::presolve()
 {
-  d_sslds.reset(new StringSumLengthDecisionStrategy(
-      d_satContext, d_userContext, d_valuation));
+  d_sslds.reset(new StringSumLengthDecisionStrategy(d_env, d_valuation));
   Trace("strings-dstrat-reg")
       << "presolve: register decision strategy." << std::endl;
   const NodeSet& ivars = d_termReg.getInputVars();
@@ -60,8 +52,8 @@ DecisionStrategy* StringsFmf::getDecisionStrategy() const
 }
 
 StringsFmf::StringSumLengthDecisionStrategy::StringSumLengthDecisionStrategy(
-    context::Context* c, context::UserContext* u, Valuation valuation)
-    : DecisionStrategyFmf(c, valuation), d_inputVarLsum(u)
+    Env& env, Valuation valuation)
+    : DecisionStrategyFmf(env, valuation), d_inputVarLsum(userContext())
 {
 }
 

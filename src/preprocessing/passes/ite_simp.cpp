@@ -80,8 +80,8 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
 
 /* -------------------------------------------------------------------------- */
 
-ITESimp::Statistics::Statistics()
-    : d_arithSubstitutionsAdded(smtStatisticsRegistry().registerInt(
+ITESimp::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_arithSubstitutionsAdded(reg.registerInt(
         "preprocessing::passes::ITESimp::ArithSubstitutionsAdded"))
 {
 }
@@ -222,7 +222,9 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 /* -------------------------------------------------------------------------- */
 
 ITESimp::ITESimp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "ite-simp"), d_iteUtilities(d_env)
+    : PreprocessingPass(preprocContext, "ite-simp"),
+      d_iteUtilities(d_env),
+      d_statistics(statisticsRegistry())
 {
 }
 

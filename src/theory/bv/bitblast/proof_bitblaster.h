@@ -27,6 +27,8 @@ class TConvProofGenerator;
 namespace theory {
 namespace bv {
 
+class BitblastProofGenerator;
+
 class BBProof : protected EnvObj
 {
   using Bits = std::vector<Node>;
@@ -51,11 +53,14 @@ class BBProof : protected EnvObj
   /** Collect model values for all relevant terms given in 'relevantTerms'. */
   bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
 
-  TConvProofGenerator* getProofGenerator();
+  BitblastProofGenerator* getProofGenerator();
 
  private:
   /** Return true if proofs are enabled. */
   bool isProofsEnabled() const;
+
+  /** Helper to reconstruct term `t` based on `d_bbMap`. */
+  Node reconstruct(TNode t);
 
   /** The associated simple bit-blaster. */
   std::unique_ptr<NodeBitblaster> d_bb;
@@ -63,13 +68,16 @@ class BBProof : protected EnvObj
   ProofNodeManager* d_pnm;
   /** Term context for d_tcpg to not rewrite below BV leafs. */
   std::unique_ptr<TermContext> d_tcontext;
-  /** The associated term conversion proof generator. */
+  /** Term conversion proof generator for bit-blast steps. */
   std::unique_ptr<TConvProofGenerator> d_tcpg;
+  /** Bitblast proof generator. */
+  std::unique_ptr<BitblastProofGenerator> d_bbpg;
   /** Map bit-vector nodes to bit-blasted nodes. */
   std::unordered_map<Node, Node> d_bbMap;
-
+  /** Flag to indicate whether fine-grained proofs should be recorded. */
   bool d_recordFineGrainedProofs;
 };
+
 
 }  // namespace bv
 }  // namespace theory

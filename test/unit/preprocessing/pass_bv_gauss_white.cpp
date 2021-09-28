@@ -2053,16 +2053,16 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
           bv::utils::mkExtract(
               d_nodeManager->mkNode(kind::BITVECTOR_CONCAT, zero, zz), 7, 0)));
 
-  NodeBuilder nbx(d_nodeManager.get(), kind::BITVECTOR_MULT);
+  NodeBuilder nbx(d_nodeManager, kind::BITVECTOR_MULT);
   nbx << d_x << d_one << x;
   Node x_mul_one_mul_xx = nbx.constructNode();
-  NodeBuilder nby(d_nodeManager.get(), kind::BITVECTOR_MULT);
+  NodeBuilder nby(d_nodeManager, kind::BITVECTOR_MULT);
   nby << d_y << y << d_one;
   Node y_mul_yy_mul_one = nby.constructNode();
-  NodeBuilder nbz(d_nodeManager.get(), kind::BITVECTOR_MULT);
+  NodeBuilder nbz(d_nodeManager, kind::BITVECTOR_MULT);
   nbz << d_three << d_z << z;
   Node three_mul_z_mul_zz = nbz.constructNode();
-  NodeBuilder nbz2(d_nodeManager.get(), kind::BITVECTOR_MULT);
+  NodeBuilder nbz2(d_nodeManager, kind::BITVECTOR_MULT);
   nbz2 << d_z << d_nine << z;
   Node z_mul_nine_mul_zz = nbz2.constructNode();
 

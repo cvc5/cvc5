@@ -52,7 +52,7 @@ std::ostream& operator<<(std::ostream& out, LearnedRewriteId i)
 
 LearnedRewrite::LearnedRewrite(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "learned-rewrite"),
-      d_lrewCount(smtStatisticsRegistry().registerHistogram<LearnedRewriteId>(
+      d_lrewCount(statisticsRegistry().registerHistogram<LearnedRewriteId>(
           "LearnedRewrite::lrewCount"))
 {
 }
