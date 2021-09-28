@@ -105,8 +105,8 @@ void ArraySolver::checkTerms(Kind k)
     Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
     if (nf.d_nf.empty())
     {
-      // should have been reduced (UPD_EMPTYSTR)
-      if (k == STRING_UPDATE) Assert(false);
+      // updates should have been reduced (UPD_EMPTYSTR)
+      Assert (k != STRING_UPDATE);
       Trace("seq-array-debug") << "...empty" << std::endl;
       continue;
     }
