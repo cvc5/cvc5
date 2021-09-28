@@ -90,7 +90,7 @@ class Rewriter;
 class Evaluator
 {
  public:
-  Evaluator(Rewriter* rr);
+  Evaluator(Rewriter* rr, uint32_t alphaCard);
   /**
    * Evaluates node `n` under the substitution described by the variable names
    * `args` and the corresponding values `vals`. This method uses evaluation
