@@ -19,7 +19,6 @@
 #define CVC5__THEORY__STRINGS__ARRAY_SOLVER_H
 
 #include "context/cdhashset.h"
-#include "theory/strings/arith_entail.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
@@ -56,11 +55,6 @@ class ArraySolver : protected EnvObj
    */
   void checkArrayConcat();
 
-  /** is handled update */
-  static bool isHandledUpdate(Node n);
-  /** get base */
-  static Node getUpdateBase(Node n);
-
  private:
   /** check terms of given kind */
   void checkTerms(Kind k);
@@ -80,8 +74,6 @@ class ArraySolver : protected EnvObj
   Node d_zero;
   /** Equalities we have processed in the current context */
   NodeSet d_eqProc;
-  /** arithmetic entailment */
-  ArithEntail d_aent;
 };
 
 }  // namespace strings

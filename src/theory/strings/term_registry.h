@@ -29,6 +29,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
@@ -156,6 +157,10 @@ class TermRegistry : protected EnvObj
    * @return true if any seq.nth or seq.update terms have been preregistered
    */
   bool hasSeqUpdate() const;
+  /** is handled update */
+  bool isHandledUpdate(Node n);
+  /** get base */
+  Node getUpdateBase(Node n);
   //---------------------------- end queries
   //---------------------------- proxy variables
   /** Get symbolic definition
@@ -224,6 +229,8 @@ class TermRegistry : protected EnvObj
   bool d_hasSeqUpdate;
   /** The cache of all skolems, which is owned by this class. */
   SkolemCache d_skCache;
+  /** arithmetic entailment */
+  ArithEntail d_aent;
   /** All function terms that the theory has seen in the current SAT context */
   context::CDList<TNode> d_functionsTerms;
   /**

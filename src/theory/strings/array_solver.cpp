@@ -39,36 +39,13 @@ ArraySolver::ArraySolver(Env& env,
       d_termReg(tr),
       d_csolver(cs),
       d_esolver(es),
-      d_eqProc(context()),
-      d_aent(env.getRewriter())
+      d_eqProc(context())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
 }
 
 ArraySolver::~ArraySolver() {}
-
-bool ArraySolver::isHandledUpdate(Node n)
-{
-  Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
-  NodeManager* nm = NodeManager::currentNM();
-  Node lenN = n[2];
-  if (n.getKind() == STRING_UPDATE)
-  {
-    lenN = nm->mkNode(STRING_LENGTH, n[2]);
-  }
-  Node one = nm->mkConst(Rational(1));
-  return d_aent.checkEq(lenN, one);
-}
-
-Node ArraySolver::getUpdateBase(Node n)
-{
-  while (n.getKind() == STRING_UPDATE)
-  {
-    n = n[0];
-  }
-  return n;
-}
 
 void ArraySolver::checkArrayConcat()
 {
@@ -95,7 +72,7 @@ void ArraySolver::checkTerms(Kind k)
   {
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
     Assert(t.getKind() == k);
-    if (k == STRING_UPDATE && !isHandledUpdate(t))
+    if (k == STRING_UPDATE && !d_termReg.isHandledUpdate(t))
     {
       // not handled by procedure
       Trace("seq-array-debug") << "...unhandled" << std::endl;
