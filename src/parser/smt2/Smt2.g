@@ -370,20 +370,11 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
+    { if (PARSER_STATE->sygus()) {
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
+      cmd->reset(new CheckSatCommand());
     }
-    ( term[expr, expr2]
-      { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "Extended commands (such as check-sat with an argument) are not "
-              "permitted while operating in strict compliance mode.");
-        }
-      }
-    | { expr = api::Term(); }
-    )
-    { cmd->reset(new CheckSatCommand(expr)); }
   | /* check-sat-assuming */
     CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
