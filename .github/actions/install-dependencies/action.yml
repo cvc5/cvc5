@@ -62,6 +62,7 @@ runs:
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
     - name: Install Python packages
+      shell: bash
       run: |
         if [[ ! ${{ with-python-bindings }} ]]; then exit 0; fi
         python3 -m pip install pytest
@@ -72,6 +73,7 @@ runs:
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
     
     - name: Install software for documentation
+      shell: bash
       run: |
         if [[ ! ${{ with-documentation }} ]]; then exit 0; fi
         sudo apt-get install -y doxygen python3-docutils python3-jinja2
