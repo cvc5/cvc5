@@ -88,18 +88,6 @@ jobs:
         check-python-bindings: ${{ matrix.python-bindings }}
         check-unit-tests: ${{ matrix.check-units }}
 
-    - name: Build Documentation
+    - name: Build documentation
       if: matrix.build-documentation
-      run: |
-        make -j${{ env.num_proc }} docs-gh
-        if [ "${{ github.event_name }}" == "pull_request" ] ; then
-          echo "${{ github.event.number }}" > docs/sphinx-gh/prnum
-        fi
-      working-directory: build
-    
-    - name: Store Documentation
-      if: matrix.build-documentation
-      uses: actions/upload-artifact@v2
-      with:
-        name: documentation
-        path: build/docs/sphinx-gh/
+      uses: ./.github/actions/run-tests
