@@ -43,21 +43,8 @@ if(ENABLE_STATIC_BINARY)
 else()
   target_link_libraries(main PUBLIC cvc5-shared cvc5parser-shared)
 endif()
-if(USE_CLN)
-  target_link_libraries(main PUBLIC CLN)
-endif()
 
 add_dependencies(main gen-tokens)
-
-# Note: This should not be required anymore as soon as we get rid of the
-#       smt_engine.h include in src/main. smt_engine.h has transitive includes
-#       of GMP and CLN via sexpr.h and therefore needs GMP/CLN headers.
-if(USE_CLN)
-  get_target_property(CLN_INCLUDES CLN INTERFACE_INCLUDE_DIRECTORIES)
-  target_include_directories(main PRIVATE ${CLN_INCLUDES})
-endif()
-get_target_property(GMP_INCLUDES GMP_SHARED INTERFACE_INCLUDE_DIRECTORIES)
-target_include_directories(main PRIVATE ${GMP_INCLUDES})
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit
@@ -65,10 +52,6 @@ target_include_directories(main PRIVATE ${GMP_INCLUDES})
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC5DRIVER)
 target_link_libraries(main-test PUBLIC cvc5-shared cvc5parser-shared)
-if(USE_CLN)
-  target_link_libraries(main-test PUBLIC CLN)
-endif()
-target_link_libraries(main-test PUBLIC GMP_SHARED)
 
 #-----------------------------------------------------------------------------#
 # cvc5 binary configuration
