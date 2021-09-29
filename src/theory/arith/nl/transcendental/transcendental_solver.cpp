@@ -83,10 +83,10 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
-  std::vector<std::pair<Node, Node>> subs;
+  Subs subs;
   for (const auto& sub : d_tstate.d_trMaster)
   {
-    subs.emplace_back(sub);
+    subs.add(sub.first, sub.second);
   }
 
   // initialize representation of assertions

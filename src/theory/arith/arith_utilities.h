@@ -24,6 +24,7 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "expr/subs.h"
 #include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -319,7 +320,7 @@ void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
  * treated as atomic variables. For example:
  *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
  */
-Node arithSubstitute(Node n, const std::vector<std::pair<Node, Node>>& sub);
+Node arithSubstitute(Node n, const Subs& sub);
 
 /** Make the node u >= a ^ a >= l */
 Node mkBounded(Node l, Node a, Node u);

@@ -22,6 +22,7 @@
 
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "expr/subs.h"
 
 namespace cvc5 {
 
@@ -210,11 +211,9 @@ class NlModel
 
   /**
    * A substitution from variables that appear in assertions to a solved form
-   * term. These vectors are ordered in the form:
-   *   x_1 -> t_1 ... x_n -> t_n
-   * where x_i is not in the free variables of t_j for j>=i.
+   * term.
    */
-  std::vector<std::pair<Node, Node>> d_substitutions;
+  Subs d_substitutions;
 
   /** Get the model value of n from the model object above */
   Node getValueInternal(TNode n);

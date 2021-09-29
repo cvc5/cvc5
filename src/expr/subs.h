@@ -17,7 +17,9 @@
 #define CVC5__EXPR__SUBS_H
 
 #include <map>
+#include <optional>
 #include <vector>
+
 #include "expr/node.h"
 
 namespace cvc5 {
@@ -41,6 +43,7 @@ class Subs
   bool contains(Node v) const;
   /** Get the substitution for v if it exists, or null otherwise */
   Node getSubs(Node v) const;
+  std::optional<std::pair<Node, Node>> find(TNode v) const;
   /** Add v -> k for fresh skolem of the same type as v */
   void add(Node v);
   /** Add v -> k for fresh skolem of the same type as v for each v in vs */
