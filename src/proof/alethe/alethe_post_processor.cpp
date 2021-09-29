@@ -573,11 +573,11 @@ bool AletheProofPostprocessCallback::update(Node res,
       // printed as (cl C), otherwise as (cl G1 ... Gn)
       if (res.getKind() == kind::OR && current_resolvent.size() != 1)
       {
-        return success &= addAletheStepFromOr(res,
-                                             AletheRule::RESOLUTION,
-                                             vps,
-                                             {},
-                                             *cdp);  //(cl G1 ... Gn)
+        return success &= addAletheStepFromOr(AletheRule::RESOLUTION,
+                                              res,
+                                              vps,
+                                              {},
+                                              *cdp);  //(cl G1 ... Gn)
       }
       else if (res == nm->mkConst(false))
       {
@@ -819,7 +819,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (!isSingletonClause)
       {
         return addAletheStepFromOr(
-            res, AletheRule::RESOLUTION, new_children, {}, *cdp);
+            AletheRule::RESOLUTION, res, new_children, {}, *cdp);
       }
       if (res == falseNode)
       {
@@ -871,7 +871,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         if (!singleton)
         {
           return addAletheStepFromOr(
-              res, AletheRule::DUPLICATED_LITERALS, children, {}, *cdp);
+              AletheRule::DUPLICATED_LITERALS, res, children, {}, *cdp);
         }
       }
       return addAletheStep(AletheRule::DUPLICATED_LITERALS,
@@ -913,10 +913,10 @@ bool AletheProofPostprocessCallback::update(Node res,
                               args[0].notNode().notNode().notNode().notNode(),
                               args[0].notNode());
 
-      return addAletheStep(AletheRule::NOT_NOT, vp2,vp2, {}, {}, *cdp)
-        && addAletheStep(AletheRule::NOT_NOT,vp1,vp1,  {}, {}, *cdp)
+      return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
+             && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
              && addAletheStepFromOr(
-                 res, AletheRule::RESOLUTION, {vp1, vp2}, {}, *cdp);
+                 AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
     }
     // ======== Equality resolution
     // Children: (P1:F1, P2:(= F1 F2))
@@ -1211,7 +1211,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::IMPLIES_ELIM:
     {
-      return addAletheStepFromOr(res, AletheRule::IMPLIES, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::IMPLIES, res, children, {}, *cdp);
     }
     // ======== Not Implication elimination version 1
     // Children: (P:(not (=> F1 F2)))
@@ -1266,7 +1266,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::EQUIV_ELIM1:
     {
-      return addAletheStepFromOr(res, AletheRule::EQUIV1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::EQUIV1, res, children, {}, *cdp);
     }
     // ======== Equivalence elimination version 2
     // Children: (P:(= F1 F2))
@@ -1281,7 +1281,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::EQUIV_ELIM2:
     {
-      return addAletheStepFromOr(res, AletheRule::EQUIV2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::EQUIV2, res, children, {}, *cdp);
     }
     // ======== Not Equivalence elimination version 1
     // Children: (P:(not (= F1 F2)))
@@ -1296,7 +1296,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_EQUIV_ELIM1:
     {
-      return addAletheStepFromOr(res, AletheRule::NOT_EQUIV1, children, {}, *cdp);
+      return addAletheStepFromOr(
+          AletheRule::NOT_EQUIV1, res, children, {}, *cdp);
     }
     // ======== Not Equivalence elimination version 2
     // Children: (P:(not (= F1 F2)))
@@ -1311,7 +1312,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_EQUIV_ELIM2:
     {
-      return addAletheStepFromOr(res, AletheRule::NOT_EQUIV2, children, {}, *cdp);
+      return addAletheStepFromOr(
+          AletheRule::NOT_EQUIV2, res, children, {}, *cdp);
     }
     // ======== XOR elimination version 1
     // Children: (P:(xor F1 F2)))
@@ -1326,7 +1328,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::XOR_ELIM1:
     {
-      return addAletheStepFromOr(res, AletheRule::XOR1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::XOR1, res, children, {}, *cdp);
     }
     // ======== XOR elimination version 2
     // Children: (P:(not (xor F1 F2))))
@@ -1341,7 +1343,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::XOR_ELIM2:
     {
-      return addAletheStepFromOr(res, AletheRule::XOR2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::XOR2, res, children, {}, *cdp);
     }
     // ======== Not XOR elimination version 1
     // Children: (P:(not (xor F1 F2)))
@@ -1356,7 +1358,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_XOR_ELIM1:
     {
-      return addAletheStepFromOr(res, AletheRule::NOT_XOR1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::NOT_XOR1, res, children, {}, *cdp);
     }
     // ======== Not XOR elimination version 2
     // Children: (P:(not (xor F1 F2)))
@@ -1371,7 +1373,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_XOR_ELIM2:
     {
-      return addAletheStepFromOr(res, AletheRule::NOT_XOR2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::NOT_XOR2, res, children, {}, *cdp);
     }
     // ======== ITE elimination version 1
     // Children: (P:(ite C F1 F2))
@@ -1386,7 +1388,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::ITE_ELIM1:
     {
-      return addAletheStepFromOr(res, AletheRule::ITE2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::ITE2, res, children, {}, *cdp);
     }
     // ======== ITE elimination version 2
     // Children: (P:(ite C F1 F2))
@@ -1401,7 +1403,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::ITE_ELIM2:
     {
-      return addAletheStepFromOr(res, AletheRule::ITE1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::ITE1, res, children, {}, *cdp);
     }
     // ======== Not ITE elimination version 1
     // Children: (P:(not (ite C F1 F2)))
@@ -1416,7 +1418,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_ITE_ELIM1:
     {
-      return addAletheStepFromOr(res, AletheRule::NOT_ITE2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::NOT_ITE2, res, children, {}, *cdp);
     }
     // ======== Not ITE elimination version 1
     // Children: (P:(not (ite C F1 F2)))
@@ -1431,7 +1433,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_ITE_ELIM2:
     {
-      return addAletheStepFromOr(res, AletheRule::NOT_ITE1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::NOT_ITE1, res, children, {}, *cdp);
     }
 
     //================================================= De Morgan rules
@@ -1448,7 +1450,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_AND:
     {
-      return addAletheStepFromOr(res, AletheRule::NOT_AND, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::NOT_AND, res, children, {}, *cdp);
     }
 
     //================================================= CNF rules
@@ -1465,7 +1467,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_AND_POS:
     {
-      return addAletheStepFromOr(res, AletheRule::AND_POS, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::AND_POS, res, children, {}, *cdp);
     }
     // ======== CNF And Neg
     // Children: ()
@@ -1480,7 +1482,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_AND_NEG:
     {
-      return addAletheStepFromOr(res, AletheRule::AND_NEG, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::AND_NEG, res, children, {}, *cdp);
     }
     // ======== CNF Or Pos
     // Children: ()
@@ -1495,7 +1497,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_OR_POS:
     {
-      return addAletheStepFromOr(res, AletheRule::OR_POS, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::OR_POS, res, children, {}, *cdp);
     }
     // ======== CNF Or Neg
     // Children: ()
@@ -1510,7 +1512,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_OR_NEG:
     {
-      return addAletheStepFromOr(res, AletheRule::OR_NEG, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::OR_NEG, res, children, {}, *cdp);
     }
     // ======== CNF Implies Pos
     // Children: ()
@@ -1526,7 +1528,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::CNF_IMPLIES_POS:
     {
       return addAletheStepFromOr(
-          res, AletheRule::IMPLIES_POS, children, {}, *cdp);
+          AletheRule::IMPLIES_POS, res, children, {}, *cdp);
     }
     // ======== CNF Implies Neg version 1
     // Children: ()
@@ -1542,7 +1544,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::CNF_IMPLIES_NEG1:
     {
       return addAletheStepFromOr(
-          res, AletheRule::IMPLIES_NEG1, children, {}, *cdp);
+          AletheRule::IMPLIES_NEG1, res, children, {}, *cdp);
     }
     // ======== CNF Implies Neg version 2
     // Children: ()
@@ -1558,7 +1560,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::CNF_IMPLIES_NEG2:
     {
       return addAletheStepFromOr(
-          res, AletheRule::IMPLIES_NEG2, children, {}, *cdp);
+          AletheRule::IMPLIES_NEG2, res, children, {}, *cdp);
     }
     // ======== CNF Equiv Pos version 1
     // Children: ()
@@ -1573,7 +1575,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_EQUIV_POS1:
     {
-      return addAletheStepFromOr(res, AletheRule::EQUIV_POS2, children, {}, *cdp);
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_POS2, res, children, {}, *cdp);
     }
     // ======== CNF Equiv Pos version 2
     // Children: ()
@@ -1588,7 +1591,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_EQUIV_POS2:
     {
-      return addAletheStepFromOr(res, AletheRule::EQUIV_POS1, children, {}, *cdp);
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_POS1, res, children, {}, *cdp);
     }
     // ======== CNF Equiv Neg version 1
     // Children: ()
@@ -1603,7 +1607,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_EQUIV_NEG1:
     {
-      return addAletheStepFromOr(res, AletheRule::EQUIV_NEG2, children, {}, *cdp);
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_NEG2, res, children, {}, *cdp);
     }
     // ======== CNF Equiv Neg version 2
     // Children: ()
@@ -1618,7 +1623,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_EQUIV_NEG2:
     {
-      return addAletheStepFromOr(res, AletheRule::EQUIV_NEG1, children, {}, *cdp);
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_NEG1, res, children, {}, *cdp);
     }
     // ======== CNF Xor Pos version 1
     // Children: ()
@@ -1633,7 +1639,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_XOR_POS1:
     {
-      return addAletheStepFromOr(res, AletheRule::XOR_POS1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::XOR_POS1, res, children, {}, *cdp);
     }
     // ======== CNF Xor Pos version 2
     // Children: ()
@@ -1648,7 +1654,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_XOR_POS2:
     {
-      return addAletheStepFromOr(res, AletheRule::XOR_POS2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::XOR_POS2, res, children, {}, *cdp);
     }
     // ======== CNF Xor Neg version 1
     // Children: ()
@@ -1663,7 +1669,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_XOR_NEG1:
     {
-      return addAletheStepFromOr(res, AletheRule::XOR_NEG2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::XOR_NEG2, res, children, {}, *cdp);
     }
     // ======== CNF Xor Neg version 2
     // Children: ()
@@ -1678,7 +1684,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_XOR_NEG2:
     {
-      return addAletheStepFromOr(res, AletheRule::XOR_NEG1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::XOR_NEG1, res, children, {}, *cdp);
     }
     // ======== CNF ITE Pos version 1
     // Children: ()
@@ -1693,7 +1699,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_POS1:
     {
-      return addAletheStepFromOr(res, AletheRule::ITE_POS2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::ITE_POS2, res, children, {}, *cdp);
     }
     // ======== CNF ITE Pos version 2
     // Children: ()
@@ -1708,7 +1714,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_POS2:
     {
-      return addAletheStepFromOr(res, AletheRule::ITE_POS1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::ITE_POS1, res, children, {}, *cdp);
     }
     // ======== CNF ITE Pos version 3
     // Children: ()
@@ -1761,7 +1767,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                  AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
              && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
-                 res, AletheRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
+                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
     // ======== CNF ITE Neg version 1
     // Children: ()
@@ -1776,7 +1782,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_NEG1:
     {
-      return addAletheStepFromOr(res, AletheRule::ITE_NEG2, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::ITE_NEG2, res, children, {}, *cdp);
     }
     // ======== CNF ITE Neg version 2
     // Children: ()
@@ -1791,7 +1797,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::CNF_ITE_NEG2:
     {
-      return addAletheStepFromOr(res, AletheRule::ITE_NEG1, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::ITE_NEG1, res, children, {}, *cdp);
     }
     // ======== CNF ITE Neg version 3
     // Children: ()
@@ -1838,12 +1844,13 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node vp4 =
           nm->mkNode(kind::SEXPR, {d_cl, res[0], res[0], res[1], res[2]});
 
-      return addAletheStep(AletheRule::ITE_NEG1, vp1,vp1, {}, {}, *cdp)
-        && addAletheStep(AletheRule::ITE_NEG2,vp2,vp2,  {}, {}, *cdp)
-        && addAletheStep(AletheRule::RESOLUTION,vp3,vp3,  {vp1, vp2}, {}, *cdp)
-        && addAletheStep(AletheRule::REORDER,vp4,vp4,  {vp3}, {}, *cdp)
+      return addAletheStep(AletheRule::ITE_NEG1, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::ITE_NEG2, vp2, vp2, {}, {}, *cdp)
+             && addAletheStep(
+                 AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
+             && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
-                 res, AletheRule::DUPLICATED_LITERALS, {vp4}, {}, *cdp);
+                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
 
     //================================================= Equality rules
@@ -2595,7 +2602,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::REORDERING:
     {
-      return addAletheStepFromOr(res, AletheRule::REORDER, children, {}, *cdp);
+      return addAletheStepFromOr(AletheRule::REORDER, res, children, {}, *cdp);
     }
 
     default:  // TBD
@@ -2643,8 +2650,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
 }
 
 bool AletheProofPostprocessCallback::addAletheStepFromOr(
-    Node res,
     AletheRule rule,
+    Node res,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof& cdp)
