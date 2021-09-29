@@ -41,7 +41,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
-      d_evalRew(new theory::Evaluator(d_rewriter.get(), opts->strings.stringsAlphaCard)),
+      d_evalRew(new theory::Evaluator(d_rewriter.get(),
+                                      opts->strings.stringsAlphaCard)),
       d_eval(new theory::Evaluator(nullptr, opts->strings.stringsAlphaCard)),
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
@@ -106,7 +107,7 @@ bool Env::isTheoryProofProducing() const
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
 
-theory::Evaluator * Env::getEvaluator(bool useRewriter)
+theory::Evaluator* Env::getEvaluator(bool useRewriter)
 {
   return useRewriter ? d_evalRew.get() : d_eval.get();
 }

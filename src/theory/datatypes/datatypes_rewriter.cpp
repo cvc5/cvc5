@@ -35,8 +35,11 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval) : d_sygusEval(sygusEval){}
-   
+DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval)
+    : d_sygusEval(sygusEval)
+{
+}
+
 RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 {
   Trace("datatypes-rewrite-debug") << "post-rewriting " << in << std::endl;
@@ -922,10 +925,10 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
   return TrustNode::null();
 }
 
-
-Node DatatypesRewriter::sygusToBuiltinEval(Node n, const std::vector<Node>& args)
+Node DatatypesRewriter::sygusToBuiltinEval(Node n,
+                                           const std::vector<Node>& args)
 {
-  Assert (d_sygusEval!=nullptr);
+  Assert(d_sygusEval != nullptr);
   NodeManager* nm = NodeManager::currentNM();
   // constant arguments?
   bool constArgs = true;
@@ -975,7 +978,8 @@ Node DatatypesRewriter::sygusToBuiltinEval(Node n, const std::vector<Node>& args
         }
         Assert(args.size() == svars.size());
         // try evaluation if we have constant arguments
-        Node ret = constArgs ? d_sygusEval->eval(bt, svars, args) : Node::null();
+        Node ret =
+            constArgs ? d_sygusEval->eval(bt, svars, args) : Node::null();
         if (ret.isNull())
         {
           // if evaluation was not available, use a substitution

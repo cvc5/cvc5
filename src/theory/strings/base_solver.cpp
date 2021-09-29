@@ -31,7 +31,10 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr)
+BaseSolver::BaseSolver(Env& env,
+                       SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& tr)
     : EnvObj(env), d_state(s), d_im(im), d_congruent(context())
 {
   d_false = NodeManager::currentNM()->mkConst(false);

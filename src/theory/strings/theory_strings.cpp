@@ -60,7 +60,9 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
       d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
-      d_rewriter(env.getRewriter(), &d_statistics.d_rewrites, d_termReg.getAlphabetCardinality()),
+      d_rewriter(env.getRewriter(),
+                 &d_statistics.d_rewrites,
+                 d_termReg.getAlphabetCardinality()),
       // the checker depends on the cardinality of the alphabet
       d_checker(d_termReg.getAlphabetCardinality()),
       d_bsolver(env, d_state, d_im, d_termReg),
@@ -74,7 +76,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_rsolver(env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
+      d_rsolver(
+          env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(options::regExpElimAgg(), d_pnm, userContext()),
       d_stringsFmf(env, valuation, d_termReg)
 {
