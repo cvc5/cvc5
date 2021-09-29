@@ -736,7 +736,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
+      out << "tuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
     }
     break;
   }
@@ -768,7 +768,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tupSel " << DType::indexOf(op) << ") ";
+      out << "(_ tuple_select " << DType::indexOf(op) << ") ";
     }
   }
   break;
@@ -1363,23 +1363,9 @@ void Smt2Printer::toStreamCmdPop(std::ostream& out) const
   out << "(pop 1)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
+void Smt2Printer::toStreamCmdCheckSat(std::ostream& out) const
 {
-  if (!n.isNull())
-  {
-    toStreamCmdPush(out);
-    out << std::endl;
-    toStreamCmdAssert(out, n);
-    out << std::endl;
-    toStreamCmdCheckSat(out);
-    out << std::endl;
-    toStreamCmdPop(out);
-  }
-  else
-  {
-    out << "(check-sat)";
-  }
-  out << std::endl;
+  out << "(check-sat)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSatAssuming(

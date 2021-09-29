@@ -131,8 +131,7 @@ class Printer
                                    Node n) const;
 
   /** Print check-sat command */
-  virtual void toStreamCmdCheckSat(std::ostream& out,
-                                   Node n = Node::null()) const;
+  virtual void toStreamCmdCheckSat(std::ostream& out) const;
 
   /** Print check-sat-assuming command */
   virtual void toStreamCmdCheckSatAssuming(
