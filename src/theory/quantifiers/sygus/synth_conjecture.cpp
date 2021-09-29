@@ -64,7 +64,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_proc(new SynthConjectureProcess),
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
-      d_exampleInfer(options().datatypes.sygusSymBreakPbe ? new ExampleInfer(d_tds) : nullptr),
+      d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
       d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
@@ -204,7 +204,16 @@ void SynthConjecture::assign(Node q)
     }
   }
   // initialize the example inference utility
-  if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(d_base_inst, d_candidates))
+  // Notice that we must also consider the side condition when inferring
+  // whether the conjecture is PBE. This ensures we do not prune solutions
+  // that may satisfy the side condition based on equivalence-up-to-examples
+  // with solutions that do not.
+  Node conjForExamples = d_base_inst;
+  if (!d_embedSideCondition.isNull())
+  {
+    conjForExamples = nm->mkNode(AND, d_embedSideCondition, d_base_inst);
+  }
+  if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(conjForExamples, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();

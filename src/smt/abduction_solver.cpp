@@ -69,8 +69,6 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
-  // options that are not compatible with abduction
-  d_subsolver->setOption("sygus-sym-break-pbe", "false");
   // assert the abduction query
   d_subsolver->assertFormula(aconj);
   return getAbductInternal(axioms, abd);
