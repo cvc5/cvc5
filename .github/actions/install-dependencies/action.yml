@@ -1,9 +1,14 @@
 name: Install dependencies
 description: Install necessary dependencies on the target system
+inputs:
+  with-documentation:
+    default: false
+  with-python-bindings:
+    default: false
 runs:
   using: composite
   steps:
-    - name: Install Packages
+    - name: Install Linux software
       shell: bash
       run: |
         if [[ $RUNNER_OS != "Linux" ]]; then exit 0; fi
@@ -34,7 +39,7 @@ runs:
         echo "/usr/lib/ccache" >> $GITHUB_PATH
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
-    - name: Install Packages (macOS)
+    - name: Install macOS software
       shell: bash
       run: |
         if [[ $RUNNER_OS != "macOS" ]]; then exit 0; fi
@@ -55,3 +60,20 @@ runs:
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "num_proc=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
+
+    - name: Install Python packages
+      run: |
+        if [[ ! ${{ with-python-bindings }} ]]; then exit 0; fi
+        python3 -m pip install pytest
+        python3 -m pytest --version
+        python3 -m pip install scikit-build
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+    
+    - name: Install software for documentation
+      run: |
+        if [[ ! ${{ with-documentation }} ]]; then exit 0; fi
+        sudo apt-get install -y doxygen python3-docutils python3-jinja2
+        python3 -m pip install \
+          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe
