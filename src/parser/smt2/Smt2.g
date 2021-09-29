@@ -1764,7 +1764,8 @@ termAtomic[cvc5::api::Term& atomTerm]
 
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
   // as a 32-bit floating-point constant)
-    | CHAR_TOK HEX_LITERAL 
+  | LPAREN_TOK INDEX_TOK
+    ( CHAR_TOK HEX_LITERAL 
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
         atomTerm = PARSER_STATE->mkCharConstant(hexStr);
