@@ -64,7 +64,7 @@ runs:
     - name: Install Python packages
       shell: bash
       run: |
-        if [[ ! ${{ with-python-bindings }} ]]; then exit 0; fi
+        if [[ ! ${{ inputs.with-python-bindings }} ]]; then exit 0; fi
         python3 -m pip install pytest
         python3 -m pytest --version
         python3 -m pip install scikit-build
@@ -75,7 +75,7 @@ runs:
     - name: Install software for documentation
       shell: bash
       run: |
-        if [[ ! ${{ with-documentation }} ]]; then exit 0; fi
+        if [[ ! ${{ inputs.with-documentation }} ]]; then exit 0; fi
         sudo apt-get install -y doxygen python3-docutils python3-jinja2
         python3 -m pip install \
           sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe
