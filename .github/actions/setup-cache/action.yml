@@ -58,7 +58,7 @@ runs:
     - name: Install contrib dependencies
       shell: bash
       run: |
-        if [[ ${{ steps.contrib-cache.outputs.cache-hit }} == "true" ]]; then exit 0; fi
+        if [[ "${{ steps.contrib-cache.outputs.cache-hit }}" == "true" ]]; then exit 0; fi
         ./contrib/get-lfsc-checker
 
     - name: Setup dependencies cache
