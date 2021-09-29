@@ -980,6 +980,28 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    // ======== Double negation elimination
+    // See proof_rule.h for documentation on the NOT_NOT_ELIM rule. This comment
+    // uses variable names as introduced there.
+    //
+    // ---------------------------------- NOT_NOT
+    //  (VP1:(cl (not (not (not F))) F))           (P:(not (not F)))
+    // ------------------------------------------------------------- RESOLUTION
+    //                            (cl F)*
+    //
+    // * the corresponding proof node is F2
+    case PfRule::NOT_NOT_ELIM:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+
+      return addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp1, children[0]},
+                              {},
+                              *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
