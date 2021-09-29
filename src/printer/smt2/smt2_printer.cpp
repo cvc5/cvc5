@@ -1365,7 +1365,7 @@ void Smt2Printer::toStreamCmdPop(std::ostream& out) const
 
 void Smt2Printer::toStreamCmdCheckSat(std::ostream& out) const
 {
-  out << "(check-sat)";
+  out << "(check-sat)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSatAssuming(
