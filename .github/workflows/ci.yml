@@ -57,12 +57,14 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - uses: ./.github/actions/install-dependencies
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
       with:
         with-documentation: ${{ matrix.build-documentation }}
         with-python-bindings: ${{ matrix.python-bindings }}
 
-    - uses: ./.github/actions/setup-cache
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
       with:
         cache-key: ${{ matrix.cache-key }}
 
