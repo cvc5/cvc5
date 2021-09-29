@@ -284,8 +284,7 @@ class DumpTester(Tester):
                 expected_output="",
             )
         )
-        print(tmpf_name)
-        # os.remove(tmpf.name)
+        os.remove(tmpf.name)
         return exit_code
 
 
