@@ -736,7 +736,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
+      out << "tuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
     }
     break;
   }
@@ -768,7 +768,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tupSel " << DType::indexOf(op) << ") ";
+      out << "(_ tuple_select " << DType::indexOf(op) << ") ";
     }
   }
   break;
