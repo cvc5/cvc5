@@ -22,7 +22,6 @@ runs:
 
     - name: Run Unit Tests
       shell: bash
-      if: matrix.check-units
       run: |
         if [[ "${{ inputs.check-unit-tests }}" != "true" ]]; then exit 0; fi
         make -j${{ env.num_proc }} apitests units
