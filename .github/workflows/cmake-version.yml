@@ -45,40 +45,12 @@ jobs:
     - name: ccache Statistics
       run: ccache -s
 
-    - name: Run CTest
-      run: make -j${{ env.num_proc }} check
-      env:
-        ARGS: --output-on-failure -LE regress[3-4]
-        CVC5_REGRESSION_ARGS: --no-early-exit
-        RUN_REGRESSION_ARGS: --no-check-unsat-cores
-      working-directory: build
-
-    - name: Run Unit Tests
-      run: make -j${{ env.num_proc }} apitests units
-      working-directory: build
-
-    - name: Install Check
-      run: |
-        make -j${{ env.num_proc }} install
-        echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
-        g++ -std=c++17 /tmp/test.cpp -I install/include -L install/lib -lcvc5
-      working-directory: build
-
-    - name: Python Install Check
-      run: |
-       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc5" -type d))"
-       python3 -c "import pycvc5"
-
-      # Examples are built for non-symfpu builds
-    - name: Check Examples
-      if: matrix.check-examples && runner.os == 'Linux'
-      run: |
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
-        make -j${{ env.num_proc }}
-        ctest -j${{ env.num_proc }} --output-on-failure
-      working-directory: examples
+    - name: Run tests
+      uses: ./.github/actions/run-tests
+      with:
+        check-examples: true
+        check-python-bindings: true
+        check-unit-tests: true
 
     - name: Build Documentation
       run: |
