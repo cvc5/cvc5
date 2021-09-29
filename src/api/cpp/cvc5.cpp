@@ -5080,20 +5080,24 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 Term Solver::mkTermFromKind(Kind kind) const
 {
   CVC5_API_KIND_CHECK_EXPECTED(
-      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
+      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA || kind==SEP_EMP, kind)
       << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
   //////// all checks before this line
   Node res;
+  cvc5::Kind k = extToIntKind(kind);
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
-    cvc5::Kind k = extToIntKind(kind);
     Assert(isDefinedIntKind(k));
     res = d_nodeMgr->mkNode(k, std::vector<Node>());
+  }
+  else if (kind==SEP_EMP)
+  {
+    res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->booleanType(), k);
   }
   else
   {
     Assert(kind == PI);
-    res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), cvc5::kind::PI);
+    res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), k);
   }
   (void)res.getType(true); /* kick off type checking */
   increment_term_stats(kind);
