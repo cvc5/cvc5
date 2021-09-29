@@ -279,7 +279,7 @@ bool NlModel::addSubstitution(TNode v, TNode s)
   // should not set exact bound more than once
   if (std::find_if(d_substitutions.begin(),
                    d_substitutions.end(),
-                   [&v](const auto& s) { return s.first == v; })
+                   [&v](const auto& p) { return p.first == v; })
       != d_substitutions.end())
   {
     Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
