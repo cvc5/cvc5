@@ -3448,7 +3448,8 @@ class CVC5_EXPORT Solver
   Term mkConstArray(const Sort& sort, const Term& val) const;
 
   /**
-   * Create a positive infinity floating-point constant.
+   * Create a positive infinity floating-point constant. Requires cvc5 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3456,7 +3457,8 @@ class CVC5_EXPORT Solver
   Term mkPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative infinity floating-point constant.
+   * Create a negative infinity floating-point constant. Requires cvc5 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3464,7 +3466,8 @@ class CVC5_EXPORT Solver
   Term mkNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a not-a-number (NaN) floating-point constant.
+   * Create a not-a-number (NaN) floating-point constant. Requires cvc5 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3472,7 +3475,8 @@ class CVC5_EXPORT Solver
   Term mkNaN(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a positive zero (+0.0) floating-point constant.
+   * Create a positive zero (+0.0) floating-point constant. Requires cvc5 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3480,7 +3484,8 @@ class CVC5_EXPORT Solver
   Term mkPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative zero (-0.0) floating-point constant.
+   * Create a negative zero (-0.0) floating-point constant. Requires cvc5 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3515,7 +3520,8 @@ class CVC5_EXPORT Solver
   Term mkAbstractValue(uint64_t index) const;
 
   /**
-   * Create a floating-point constant
+   * Create a floating-point constant (requires cvc5 to be compiled with symFPU
+   * support).
    * @param exp Size of the exponent
    * @param sig Size of the significand
    * @param val Value of the floating-point constant as a bit-vector term
