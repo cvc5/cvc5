@@ -51,7 +51,7 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
                           << std::endl;
   // must expand definitions
   Node conjn = d_env.getTopLevelSubstitutions().apply(conj);
-  std::string name("A");
+  std::string name("__internal_interpol");
 
   quantifiers::SygusInterpol interpolSolver(d_env);
   if (interpolSolver.solveInterpolation(

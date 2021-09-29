@@ -53,7 +53,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   conjn = conjn.negate();
   d_abdConj = conjn;
   asserts.push_back(conjn);
-  std::string name("A");
+  std::string name("__internal_abduct");
   Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
