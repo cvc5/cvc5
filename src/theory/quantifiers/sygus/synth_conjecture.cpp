@@ -64,7 +64,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_proc(new SynthConjectureProcess),
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
-      d_exampleInfer(new ExampleInfer(d_tds)),
+      d_exampleInfer(options().datatypes.sygusSymBreakPbe ? new ExampleInfer(d_tds) : nullptr),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
       d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
@@ -204,7 +204,7 @@ void SynthConjecture::assign(Node q)
     }
   }
   // initialize the example inference utility
-  if (!d_exampleInfer->initialize(d_base_inst, d_candidates))
+  if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(d_base_inst, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();
@@ -761,7 +761,7 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   }
   // otherwise, allocate it
   Node f = d_tds->getSynthFunForEnumerator(e);
-  bool hasExamples = (d_exampleInfer->hasExamples(f)
+  bool hasExamples = (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
   d_enumManager[e].reset(new EnumValueManager(
       d_env, d_qstate, d_qim, d_treg, d_stats, e, hasExamples));
