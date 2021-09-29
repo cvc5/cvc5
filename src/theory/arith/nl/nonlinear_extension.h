@@ -91,54 +91,33 @@ class NonlinearExtension : EnvObj
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  /** Check at effort level e.
-   *
-   * This call may result in (possibly multiple) calls to d_im.lemma(...)
-   * where d_im is the inference manager of TheoryArith.
-   *
-   * If e is FULL, then we add lemmas based on context-depedent
-   * simplification (see Reynolds et al FroCoS 2017).
-   *
-   * If e is LAST_CALL, we add lemmas based on model-based refinement
-   * (see additionally Cimatti et al., TACAS 2017). The lemmas added at this
-   * effort may be computed during a call to interceptModel as described below.
-   */
-  void check(Theory::Effort e);
-  /** intercept model
-   *
-   * This method is called during TheoryArith::collectModelInfo, which is
-   * invoked after the linear arithmetic solver passes a full effort check
-   * with no lemmas.
+
+  /**
+   * Performs the main checks for nonlinear arithmetic, based on the current
+   * (linear) arithmetic model from `arithModel`. This method may already send
+   * lemmas, but most lemmas are stored and only sent when finalizeModel
+   * is called.
    *
    * The argument arithModel is a map of the form { v1 -> c1, ..., vn -> cn }
    * which represents the linear arithmetic theory solver's contribution to the
-   * current candidate model. That is, its collectModelInfo method is requesting
-   * that equalities v1 = c1, ..., vn = cn be added to the current model, where
-   * v1, ..., vn are arithmetic variables and c1, ..., cn are constants. Notice
-   * arithmetic variables may be real-valued terms belonging to other theories,
-   * or abstractions of applications of multiplication (kind NONLINEAR_MULT).
+   * current candidate model where v1, ..., vn are arithmetic variables and
+   * c1, ..., cn are constants. Note, that arithmetic variables may be
+   * real-valued terms belonging to other theories, or abstractions of
+   * applications of multiplication (kind NONLINEAR_MULT).
    *
-   * This method requests that the non-linear solver inspect this model and
-   * do any number of the following:
-   * (1) Construct lemmas based on a model-based refinement procedure inspired
-   * by Cimatti et al., TACAS 2017.,
-   * (2) In the case that the nonlinear solver finds that the current
-   * constraints are satisfiable, it may "repair" the values in the argument
-   * arithModel so that it satisfies certain nonlinear constraints. This may
-   * involve e.g. solving for variables in nonlinear equations.
+   * The argument termSet is the set of terms that is currently appearing in the
+   * assertions.
    */
-  void interceptModel(std::map<Node, Node>& arithModel,
-                      const std::set<Node>& termSet);
+  void checkFullEffort(std::map<Node, Node>& arithModel,
+                       const std::set<Node>& termSet);
+
+  /**
+   * Finalize the given model by adding approximations and witnesses.
+   */
+  void finalizeModel(TheoryModel* tm);
+
   /** Does this class need a call to check(...) at last call effort? */
-  bool needsCheckLastEffort() const { return d_needsLastCall; }
-  /** presolve
-   *
-   * This function is called during TheoryArith's presolve command.
-   * In this function, we send lemmas we accumulated during preprocessing,
-   * for instance, definitional lemmas from expandDefinitions are sent out
-   * on the output channel of TheoryArith in this function.
-   */
-  void presolve();
+  bool hasNlTerms() const { return d_hasNlTerms; }
 
   /** Process side effect se */
   void processSideEffect(const NlLemma& se);
@@ -179,7 +158,8 @@ class NonlinearExtension : EnvObj
    * whose model value cannot be computed is included in the return value of
    * this function.
    */
-  std::vector<Node> checkModelEval(const std::vector<Node>& assertions);
+  std::vector<Node> getUnsatisfiedAssertions(
+      const std::vector<Node>& assertions);
 
   //---------------------------check model
   /** Check model
@@ -227,7 +207,7 @@ class NonlinearExtension : EnvObj
   /** The statistics class */
   NlStats d_stats;
   // needs last call effort
-  bool d_needsLastCall;
+  bool d_hasNlTerms;
   /**
    * The number of times we have the called main check method
    * (modelBasedRefinement). This counter is used for interleaving strategies.

@@ -19,6 +19,7 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "util/rational.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace cvc5 {
 
@@ -61,10 +62,17 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::ASSUME, res, res, children, {}, *cdp);
     }
     // See proof_rule.h for documentation on the SCOPE rule. This comment uses
-    // variable names as introduced there. Instead of (not (and F1 ... Fn))
-    // (cl (not (and F1 ... Fn))) is printed and instead of (=> (and F1 ... Fn)
-    // F) the term (cl (=> (and F1 ... Fn))) is printed while the proof node
-    // remains the same.
+    // variable names as introduced there. Since the SCOPE rule originally
+    // concludes
+    // (=> (and F1 ... Fn) F) or (not (and F1 ... Fn)) but the ANCHOR rule
+    // concludes (cl (not F1) ... (not Fn) F), to keep the original shape of the
+    // proof node it is necessary to rederive the original conclusion. The
+    // transformation is described below, depending on the form of SCOPE's
+    // conclusion.
+    //
+    // Note that after the original conclusion is rederived the new proof node
+    // will actually have to be printed, respectively, (cl (=> (and F1 ... Fn)
+    // F)) or (cl (not (and F1 ... Fn))).
     //
     // Let (not (and F1 ... Fn))^i denote the repetition of (not (and F1 ...
     // Fn)) for i times.
@@ -95,8 +103,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP6: (cl (=> (and F1 ... Fn) F) (not F))
     // VP7: (cl (=> (and F1 ... Fn) F) (=> (and F1 ... Fn) F))
     //
-    // The reorder step is not necessary if n = 1, because in that case VP2a is
-    // (cl (not F1 F) which is the same as VP2b.
+    // Note that if n = 1, then the ANCHOR step yields (cl (not F1) F), which is
+    // the same as VP3. Since VP1 = VP3, the steps for that transformation are
+    // not generated.
     //
     //
     // If F = false:
@@ -126,15 +135,14 @@ bool AletheProofPostprocessCallback::update(Node res,
       bool success = true;
 
       // Build vp1
-      std::vector<Node> negNode;
+      std::vector<Node> negNode{d_cl};
       std::vector<Node> sanitized_args;
       for (Node arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
         sanitized_args.push_back(d_anc.convert(arg));
       }
-      negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
-      negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
+      negNode.push_back(children[0]);  // (cl (not F1) ... (not Fn) F)
       Node vp1 = nm->mkNode(kind::SEXPR, negNode);
       success &= addAletheStep(AletheRule::ANCHOR_SUBPROOF,
                                vp1,
@@ -142,42 +150,42 @@ bool AletheProofPostprocessCallback::update(Node res,
                                children,
                                sanitized_args,
                                *cdp);
-
-      // Build vp2i
-      Node andNode;
-      if (args.size() != 1)
+      Node andNode, vp3;
+      if (args.size() == 1)
       {
-        andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
+        vp3 = vp1;
+        andNode = args[0];  // F1
       }
       else
       {
-        andNode = args[0];  // F1
-      }
-      std::vector<Node> premisesVP2 = {vp1};
-      std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
-      Node vp2_i;
-      for (long unsigned int i = 0; i < args.size(); i++)
-      {
-        vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
+        // Build vp2i
+        andNode = nm->mkNode(kind::AND, args);  // (and F1 ... Fn)
+        std::vector<Node> premisesVP2 = {vp1};
+        std::vector<Node> notAnd = {d_cl, children[0]};  // cl F
+        Node vp2_i;
+        for (size_t i = 0, size = args.size(); i < size; i++)
+        {
+          vp2_i = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), args[i]);
+          success &=
+              addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
+          premisesVP2.push_back(vp2_i);
+          notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
+        }
+
+        Node vp2a = nm->mkNode(kind::SEXPR, notAnd);
+        success &= addAletheStep(
+            AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
+
+        notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
+        notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
+        Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
         success &=
-            addAletheStep(AletheRule::AND_POS, vp2_i, vp2_i, {}, {}, *cdp);
-        premisesVP2.push_back(vp2_i);
-        notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
+            addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
+
+        vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
+        success &= addAletheStep(
+            AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
       }
-
-      Node vp2a = nm->mkNode(kind::SEXPR, notAnd);
-      success &= addAletheStep(
-          AletheRule::RESOLUTION, vp2a, vp2a, premisesVP2, {}, *cdp);
-
-      notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
-      notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
-      Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
-      success &=
-          addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
-
-      Node vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
-      success &= addAletheStep(
-          AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
 
       Node vp8 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::IMPLIES, andNode, children[0]));
@@ -232,17 +240,24 @@ bool AletheProofPostprocessCallback::update(Node res,
       return success;
     }
     // The rule is translated according to the theory id tid and the outermost
-    // connective of the conclusion F. This is not an exact translation but
-    // should work in most cases.
+    // connective of the first term in the conclusion F, since F always has the
+    // form (= t1 t2) where t1 is the term being rewritten. This is not an exact
+    // translation but should work in most cases.
     //
-    // E.g. if the F: (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
+    // E.g. if F is (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
     // is correctly guessed as the rule.
     case PfRule::THEORY_REWRITE:
     {
       AletheRule vrule = AletheRule::UNDEFINED;
       Node t = res[0];
 
-      switch (static_cast<theory::TheoryId>(std::stoul(args[1].toString())))
+      theory::TheoryId tid;
+      if (!theory::builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid))
+      {
+        return addAletheStep(
+            vrule, res, nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
+      }
+      switch (tid)
       {
         case theory::TheoryId::THEORY_BUILTIN:
         {
@@ -429,8 +444,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
 }
 
 bool AletheProofPostprocessCallback::addAletheStepFromOr(
-    Node res,
     AletheRule rule,
+    Node res,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof& cdp)
@@ -440,6 +455,43 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
   Node conclusion = NodeManager::currentNM()->mkNode(kind::SEXPR, subterms);
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
+
+AletheProofPostprocessFinalCallback::AletheProofPostprocessFinalCallback(
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_anc(anc)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  d_cl = nm->mkBoundVar("cl", nm->sExprType());
+}
+
+bool AletheProofPostprocessFinalCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    const std::vector<Node>& fa,
+    bool& continueUpdate)
+{
+  return false;
+}
+
+bool AletheProofPostprocessFinalCallback::update(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate)
+{
+  return true;
+}
+
+AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
+                                               AletheNodeConverter& anc)
+    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc)
+{
+}
+
+AletheProofPostprocess::~AletheProofPostprocess() {}
+
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {}
 
 }  // namespace proof
 

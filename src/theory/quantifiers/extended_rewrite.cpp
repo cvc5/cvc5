@@ -1710,7 +1710,8 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret) const
 
   if (ret.getKind() == EQUAL)
   {
-    new_ret = strings::SequencesRewriter(nullptr).rewriteEqualityExt(ret);
+    strings::SequencesRewriter sr(&d_rew, nullptr);
+    new_ret = sr.rewriteEqualityExt(ret);
   }
 
   return new_ret;

@@ -97,8 +97,8 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
   DeclareFunctionNodeCommand c(id, n, n.getType());
   if (Dump.isOn("skolems") && comment != "")
   {
-    d_outMgr.getPrinter().toStreamCmdComment(d_outMgr.getDumpOut(),
-                                             id + " is " + comment);
+    d_outMgr.getPrinter().toStreamCmdSetInfo(
+        d_outMgr.getDumpOut(), "notes", id + " is " + comment);
   }
   d_dm.addToDump(c, "skolems");
 }

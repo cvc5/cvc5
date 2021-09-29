@@ -331,12 +331,6 @@ void AstPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
   out << "GetUnsatCore()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                               Result::Sat status) const
-{
-  out << "SetBenchmarkStatus(" << status << ')' << std::endl;
-}
-
 void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                               const std::string& logic) const
 {
@@ -378,12 +372,6 @@ void AstPrinter::toStreamCmdDatatypeDeclaration(
     out << t << ";" << endl;
   }
   out << "])" << std::endl;
-}
-
-void AstPrinter::toStreamCmdComment(std::ostream& out,
-                                    const std::string& comment) const
-{
-  out << "CommentCommand([" << comment << "])" << std::endl;
 }
 
 void AstPrinter::toStreamWithLetify(std::ostream& out,
