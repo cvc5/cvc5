@@ -122,12 +122,14 @@ private:
   ConstraintCPVec d_constraints;
   ConstraintCP d_consequent;
   bool d_consequentSet;
-public:
+  bool d_produceProofs;
+
+ public:
 
   /**
    * Constructs a new FarkasConflictBuilder.
    */
-  FarkasConflictBuilder();
+  FarkasConflictBuilder(bool produceProofs);
 
   /**
    * Adds an antecedent constraint to the conflict under construction

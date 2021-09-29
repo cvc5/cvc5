@@ -1,0 +1,13 @@
+; EXPECT: sat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-fun x0 () Int)
+(declare-fun x1 () Int)
+(declare-fun x2 () Int)
+(declare-fun x3 () Int)
+(assert (= (+ (+ (+ (* 19 x0) (* (- 11) x1)) (* (- 19) x2)) (* 5 x3)) 26))
+(assert (< (+ (+ (+ (* 1 x0) (* (- 28) x1)) (* (- 2) x2)) (* 15 x3)) 9))
+(assert (<= (+ (+ (+ (* (- 8) x0) (* (- 1) x1)) (* (- 25) x2)) (* (- 7) x3)) (- 31)))
+(assert (> (+ (+ (+ (* (- 7) x0) (* 11 x1)) (* (- 5) x2)) (* (- 19) x3)) 32))
+(assert (<= (+ (+ (+ (* (- 22) x0) (* 13 x1)) (* (- 16) x2)) (* (- 12) x3)) 32))
+(check-sat-assuming ( (not false) ))

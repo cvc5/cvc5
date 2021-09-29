@@ -1,6 +1,0 @@
-% EXPECT: The exponent of the POW(^) operator can only be a positive integral constant below 67108864. Exception occurred in:
-% EXPECT:   3 ^ x
-% EXIT: 1
-x: INT;
-ASSERT 3^x = 27;
-QUERY x=3;

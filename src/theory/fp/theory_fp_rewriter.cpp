@@ -967,7 +967,11 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     // Can be called with the third argument non-constant
     if (node[2].getMetaKind() == kind::metakind::CONSTANT) {
       BitVector partialValue(node[2].getConst<BitVector>());
-
+      std::cout<< "\nnode[2] = " <<  node[2].toString() << std::endl;
+      std::cout << "rm = " << rm << std::endl;
+      std::cout << "size = " << size << std::endl;
+      std::cout << "arg = " << arg << std::endl;
+      std::cout << "partialValue = " << partialValue << std::endl;
       BitVector folded(arg.convertToBVTotal(size, rm, true, partialValue));
       Node lit = NodeManager::currentNM()->mkConst(folded);
       return RewriteResponse(REWRITE_DONE, lit);

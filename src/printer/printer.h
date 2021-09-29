@@ -219,10 +219,6 @@ class Printer
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
 
-  /** Print set-info :status command */
-  virtual void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                             Result::Sat status) const;
-
   /** Print set-logic command */
   virtual void toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                             const std::string& logic) const;
@@ -263,9 +259,6 @@ class Printer
   /** Print quit command */
   virtual void toStreamCmdQuit(std::ostream& out) const;
 
-  /** Print comment command */
-  virtual void toStreamCmdComment(std::ostream& out,
-                                  const std::string& comment) const;
   /** Declare heap command */
   virtual void toStreamCmdDeclareHeap(std::ostream& out,
                                       TypeNode locType,
