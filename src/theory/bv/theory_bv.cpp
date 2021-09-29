@@ -391,14 +391,6 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
       }
     }
   }
-  // TODO: remove when ppStaticLearn refactor PR #7242 is merged
-  else if (in.getKind() == kind::AND)
-  {
-    for (size_t i = 0, N = in.getNumChildren(); i < N; ++i)
-    {
-      ppStaticLearn(in[i], learned);
-    }
-  }
 
   d_internal->ppStaticLearn(in, learned);
 }
