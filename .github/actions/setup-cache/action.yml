@@ -36,13 +36,13 @@ runs:
       uses: actions/cache@v2
       with:
         path: ccache-dir
-        key: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-$GITHUB_SHA
+        key: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-${{ github.sha }}
         restore-keys: ${{ inputs.cache-key }}-${{ runner.os }}-ccache-
 
     - name: Configure ccache
       shell: bash
       run: |
-        ccache --set-config=cache_dir=$GITHUB_WORKSPACE/ccache-dir
+        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
         ccache --set-config=compression=true
         ccache --set-config=compression_level=6
         ccache -M 500M
