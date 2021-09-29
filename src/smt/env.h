@@ -105,6 +105,14 @@ class Env
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
 
+  /**
+   * Get a pointer to the Evaluator owned by this Env. There are two variants
+   * of the evaluator, one that invokes the rewriter when evaluation is not
+   * applicable, and one that does not. The former evaluator is returned when
+   * useRewriter is true.
+   */
+  theory::Evaluator* getEvaluator(bool useRewriter = false);
+
   /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
 

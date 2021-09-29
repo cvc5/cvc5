@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
 #include "smt/dump_manager.h"
@@ -40,8 +41,9 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
-      d_evalRew(new theory::Evaluator(d_rewriter.get())),
-      d_eval(new theory::Evaluator(nullptr)),
+      d_evalRew(new theory::Evaluator(d_rewriter.get(),
+                                      opts->strings.stringsAlphaCard)),
+      d_eval(new theory::Evaluator(nullptr, opts->strings.stringsAlphaCard)),
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
@@ -104,6 +106,11 @@ bool Env::isTheoryProofProducing() const
 }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
+
+theory::Evaluator* Env::getEvaluator(bool useRewriter)
+{
+  return useRewriter ? d_evalRew.get() : d_eval.get();
+}
 
 theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
 {
