@@ -551,7 +551,6 @@ Language OptionsHandler::stringToLanguage(const std::string& option,
     *d_options->base.out << R"FOOBAR(
 Languages currently supported as arguments to the -L / --lang option:
   auto                           attempt to automatically determine language
-  cvc | presentation | pl        CVC presentation language
   smt | smtlib | smt2 |
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
   tptp                           TPTP format (cnf, fof and tff)
@@ -559,7 +558,6 @@ Languages currently supported as arguments to the -L / --lang option:
 
 Languages currently supported as arguments to the --output-lang option:
   auto                           match output language to input language
-  cvc | presentation | pl        CVC presentation language
   smt | smtlib | smt2 |
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
   tptp                           TPTP format
