@@ -14,7 +14,7 @@ jobs:
             build-documentation: true
             check-examples: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct
 
           - name: macos:production
             os: macos-11
@@ -23,7 +23,7 @@ jobs:
             python-bindings: true
             check-examples: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct
 
           - name: ubuntu:production-clang
             os: ubuntu-18.04
@@ -40,7 +40,7 @@ jobs:
             cache-key: dbg
             check-units: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof
 
           - name: ubuntu:production-dbg-clang
             os: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}

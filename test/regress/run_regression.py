@@ -23,6 +23,7 @@ import re
 import shlex
 import subprocess
 import sys
+import tempfile
 import threading
 
 
@@ -238,6 +239,56 @@ class AbductTester(Tester):
         )
 
 
+class DumpTester(Tester):
+    def applies(self, benchmark_info):
+        return benchmark_info.expected_exit_status == EXIT_OK
+
+    def run(self, benchmark_info):
+        ext_to_lang = {
+            ".smt2": "smt2",
+            ".p": "tptp",
+            ".sy": "sygus",
+        }
+
+        tmpf_name = None
+        with tempfile.NamedTemporaryFile(delete=False) as tmpf:
+            dump_args = [
+                "--parse-only",
+                "-o",
+                "raw-benchmark",
+                f"--output-lang={ext_to_lang[benchmark_info.benchmark_ext]}",
+            ]
+            dump_output, _, _ = run_process(
+                [benchmark_info.cvc5_binary]
+                + benchmark_info.command_line_args
+                + dump_args
+                + [benchmark_info.benchmark_basename],
+                benchmark_info.benchmark_dir,
+                benchmark_info.timeout,
+            )
+
+            tmpf_name = tmpf.name
+            tmpf.write(dump_output)
+
+        if not tmpf_name:
+            return EXIT_FAILURE
+
+        exit_code = super().run(
+            benchmark_info._replace(
+                command_line_args=benchmark_info.command_line_args
+                + [
+                    "--parse-only",
+                    f"--lang={ext_to_lang[benchmark_info.benchmark_ext]}",
+                ],
+                benchmark_basename=tmpf.name,
+                expected_output="",
+            )
+        )
+        print(tmpf_name)
+        # os.remove(tmpf.name)
+        return exit_code
+
+
 g_testers = {
     "base": BaseTester(),
     "unsat-core": UnsatCoreTester(),
@@ -245,14 +296,23 @@ g_testers = {
     "model": ModelTester(),
     "synth": SynthTester(),
     "abduct": AbductTester(),
+    "dump": DumpTester(),
 }
+
+g_default_testers = [
+    "base",
+    "unsat-core",
+    "proof",
+    "model",
+    "synth",
+    "abduct",
+]
 
 ################################################################################
 
 BenchmarkInfo = collections.namedtuple(
     "BenchmarkInfo",
     [
-        "dump",
         "wrapper",
         "scrubber",
         "error_scrubber",
@@ -364,8 +424,7 @@ def run_benchmark(benchmark_info):
     file `benchmark_basename` in the directory `benchmark_dir` using the binary
     `cvc5_binary` with the command line options `command_line_args`. The output
     is scrubbed using `scrubber` and `error_scrubber` for stdout and stderr,
-    respectively. If `dump` is true, the function first uses cvc5 to read in
-    and dump the benchmark file and then uses that as input."""
+    respectively."""
 
     bin_args = benchmark_info.wrapper[:]
     bin_args.append(benchmark_info.cvc5_binary)
@@ -373,27 +432,13 @@ def run_benchmark(benchmark_info):
     output = None
     error = None
     exit_status = None
-    if benchmark_info.dump:
-        dump_args = ["--parse-only", "-o", "raw-benchmark", "--output-lang=smt2"]
-        dump_output, _, _ = run_process(
-            bin_args + command_line + dump_args + [benchmark_info.benchmark_basename],
-            benchmark_info.benchmark_dir,
-            benchmark_info.timeout,
-        )
-        output, error, exit_status = run_process(
-            bin_args + command_line + ["--lang=smt2", "-"],
-            benchmark_info.benchmark_dir,
-            timeout,
-            dump_output,
-        )
-    else:
-        output, error, exit_status = run_process(
-            bin_args
-            + benchmark_info.command_line_args
-            + [benchmark_info.benchmark_basename],
-            benchmark_info.benchmark_dir,
-            benchmark_info.timeout,
-        )
+    output, error, exit_status = run_process(
+        bin_args
+        + benchmark_info.command_line_args
+        + [benchmark_info.benchmark_basename],
+        benchmark_info.benchmark_dir,
+        benchmark_info.timeout,
+    )
 
     # If a scrubber command has been specified then apply it to the output.
     if benchmark_info.scrubber:
@@ -424,7 +469,6 @@ def run_benchmark(benchmark_info):
 
 def run_regression(
     testers,
-    dump,
     use_skip_return_code,
     skip_timeout,
     wrapper,
@@ -434,8 +478,7 @@ def run_regression(
 ):
     """Determines the expected output for a benchmark, runs cvc5 on it using
     all the specified `testers` and then checks whether the output corresponds
-    to the expected output. Optionally uses a wrapper `wrapper` or dumps a
-    benchmark and uses that as the input (if dump is true).
+    to the expected output. Optionally uses a wrapper `wrapper`.
     `use_skip_return_code` enables/disables returning 77 when a test is
     skipped."""
 
@@ -562,7 +605,6 @@ def run_regression(
         command_line_args_configs.append(all_args)
 
         benchmark_info = BenchmarkInfo(
-            dump=dump,
             wrapper=wrapper,
             scrubber=scrubber,
             error_scrubber=error_scrubber,
@@ -607,7 +649,6 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
-    parser.add_argument("--dump", action="store_true")
     parser.add_argument("--use-skip-return-code", action="store_true")
     parser.add_argument("--skip-timeout", action="store_true")
     parser.add_argument("--tester", choices=g_testers.keys(), action="append")
@@ -632,11 +673,10 @@ def main():
 
     testers = args.tester
     if not testers:
-        testers = g_testers.keys()
+        testers = g_default_testers
 
     return run_regression(
         testers,
-        args.dump,
         args.use_skip_return_code,
         args.skip_timeout,
         wrapper,
