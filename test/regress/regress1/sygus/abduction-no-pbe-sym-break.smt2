@@ -8,4 +8,4 @@
 (declare-const B Bool)
 (declare-const C Bool)
 (assert (=> A C))
-(get-abduct D (=> A B)); ((Start Bool)) ((Start Bool ((=> C B)))))
+(get-abduct D (=> A B))
