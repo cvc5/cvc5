@@ -1342,6 +1342,12 @@ include(GenerateExportHeader)
 generate_export_header(cvc5-obj BASE_NAME cvc5)
 
 # Add library/include dependencies
+target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
+target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
+endif()
+
 if(ENABLE_VALGRIND)
   target_include_directories(cvc5-obj PUBLIC ${Valgrind_INCLUDE_DIR})
 endif()
@@ -1373,14 +1379,6 @@ if(USE_COCOA)
 endif()
 
 target_link_libraries(cvc5-obj PUBLIC SymFPU)
-
-# Note: When linked statically GMP needs to be linked after CLN since CLN
-# depends on GMP.
-target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
-target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
-if(ENABLE_STATIC_LIBRARY)
-  target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
-endif()
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have
