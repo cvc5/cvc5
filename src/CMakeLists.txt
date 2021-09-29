@@ -1286,9 +1286,7 @@ set(KINDS_FILES
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
-if (NOT BUILD_LIB_ONLY)
-  add_subdirectory(parser)
-endif()
+add_subdirectory(parser)
 add_subdirectory(theory)
 add_subdirectory(util)
 
@@ -1361,9 +1359,7 @@ target_link_libraries(cvc5 PRIVATE GMP)
 # target_link_libraries(...) with object libraries for cmake versions <= 3.12.
 # Thus, we can only visit main as soon as all dependencies for cvc5 are set up.
 
-if (NOT BUILD_LIB_ONLY)
-  add_subdirectory(main)
-endif()
+add_subdirectory(main)
 
 #-----------------------------------------------------------------------------#
 # Install public API headers
