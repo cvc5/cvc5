@@ -175,7 +175,7 @@ void TheorySep::computeCareGraph() {
 void TheorySep::postProcessModel( TheoryModel* m ){
   Trace("sep-model") << "Printing model for TheorySep..." << std::endl;
 
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector< Node > sep_children;
   Node m_neq;
   Node m_heap;
@@ -229,18 +229,18 @@ void TheorySep::postProcessModel( TheoryModel* m ){
     }
     Node nil = getNilRef( it->first );
     Node vnil = d_valuation.getModel()->getRepresentative( nil );
-    m_neq = nm->mkNode( kind::EQUAL, nil, vnil );
+    m_neq = nm->mkNode(kind::EQUAL, nil, vnil);
     Trace("sep-model") << "sep.nil = " << vnil << std::endl;
     Trace("sep-model") << std::endl;
     if( sep_children.empty() ){
       TypeEnumerator te_domain( it->first );
       TypeEnumerator te_range( d_loc_to_data_type[it->first] );
       TypeNode boolType = nm->booleanType();
-      m_heap = nm>mkNullaryOperator(boolType, kind::SEP_EMP);
+      m_heap = nm > mkNullaryOperator(boolType, kind::SEP_EMP);
     }else if( sep_children.size()==1 ){
       m_heap = sep_children[0];
     }else{
-      m_heap = nm->mkNode( kind::SEP_STAR, sep_children );
+      m_heap = nm->mkNode(kind::SEP_STAR, sep_children);
     }
     m->setHeapModel( m_heap, m_neq );
   }
@@ -935,12 +935,14 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
 }
 
 //for now, assume all constraints are for the same heap type (ensured by logic exceptions thrown in computeReferenceType2)
-TypeNode TheorySep::getReferenceType() const {
+TypeNode TheorySep::getReferenceType() const
+{
   Assert(!d_type_ref.isNull());
   return d_type_ref;
 }
 
-TypeNode TheorySep::getDataType() const {
+TypeNode TheorySep::getDataType() const
+{
   Assert(!d_type_data.isNull());
   return d_type_data;
 }
