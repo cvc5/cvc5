@@ -164,6 +164,40 @@ class InferenceGenerator
    * where skolem is a fresh variable equals (duplicate_removal A)
    */
   InferInfo duplicateRemoval(Node n, Node e);
+  /**
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param e is a node of Type E
+   * @return an inference that represents the following implication
+   * (and
+   *   (= (sum 0) 0)
+   *   (= (sum preImageSize) (bag.count e skolem)))
+   *
+   *   (forall ((i Int))
+   *      (let ((uf_i (uf i)))
+   *        (let ((count_uf_i (bag.count uf_i A)))
+   *          (=>
+   *           (and (>= i 1) (<= i preImageSize))
+   *           (and
+   *            (= (f uf_i) e)
+   *            (> count_uf_i 0)
+   *            (= (sum i) (+ (sum (- i 1)) count_uf_i))))))
+   *
+   *   ; preImage of e has preImageSize distinct elements
+   *   (forall ((i Int) (j Int))
+   *     (=>
+   *        (and (>= i 1) (< i j) (<= j preImageSize))
+   *        (not (= (uf i) (uf j))))))
+   *
+   * where uf: Int -> T is an uninterpreted function from integers to the
+   * type of the elements of the new bag,
+   * preImageSize is the cardinality of the distinct elements in A that are
+   * mapped to e by function f (i.e., preimage of {e})
+   * sum: Int -> Int is a function that aggregates the multiplicities of the
+   * preimage of e,
+   * and skolem is a fresh variable equals (bag.map f A))
+   */
+  InferInfo map(Node n, Node e);
 
   /**
    * @param element of type T

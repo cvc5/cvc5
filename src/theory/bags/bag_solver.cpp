@@ -69,6 +69,7 @@ void BagSolver::postCheck()
         case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case kind::DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
+        case kind::BAG_MAP: checkMap(n); break;
         default: break;
       }
       it++;
@@ -207,6 +208,23 @@ void BagSolver::checkDisequalBagTerms()
   {
     InferInfo info = d_ig.bagDisequality(n);
     d_im.lemmaTheoryInference(&info);
+  }
+}
+
+void BagSolver::checkMap(Node n)
+{
+  Assert(n.getKind() == BAG_MAP);
+  set<Node> elements;
+  const set<Node>& downwards = d_state.getElements(n);
+  const set<Node>& upwards = d_state.getElements(n[0]);
+
+  elements.insert(downwards.begin(), downwards.end());
+  elements.insert(upwards.begin(), upwards.end());
+
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.map(n, e);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 

@@ -73,6 +73,8 @@ class BagSolver
   void checkNonNegativeCountTerms(const Node& bag, const Node& element);
   /** apply inference rules for disequal bag terms */
   void checkDisequalBagTerms();
+  /** apply inference rules for map operator */
+  void checkMap(Node n);
 
   /** The solver state object */
   SolverState& d_state;
