@@ -11,4 +11,4 @@
 (assert (= a_31_1 a_30_0))
 
 (echo "Check unsatisfiability assuming a_31_31 != a_0_0")
-(check-sat (not (= a_31_31 a_0_0)))
+(check-sat-assuming ((not (= a_31_31 a_0_0))))

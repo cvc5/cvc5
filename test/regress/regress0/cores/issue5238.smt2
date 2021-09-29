@@ -10,5 +10,5 @@
 (assert (= (/ 0 a) 1))
 (check-sat)
 (assert (= (+ a b) 0))
-(check-sat (> b 1))
+(check-sat-assuming ((> b 1)))
 (check-sat)
