@@ -214,7 +214,7 @@ class NlModel
    *   x_1 -> t_1 ... x_n -> t_n
    * where x_i is not in the free variables of t_j for j>=i.
    */
-  std::map<Node, Node> d_substitutions;
+  std::vector<std::pair<Node, Node>> d_substitutions;
 
   /** Get the model value of n from the model object above */
   Node getValueInternal(TNode n);

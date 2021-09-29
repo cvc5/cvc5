@@ -83,15 +83,21 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
+  std::vector<std::pair<Node, Node>> subs;
+  for (const auto& sub : d_tstate.d_trMaster)
+  {
+    subs.emplace_back(sub);
+  }
+
   // initialize representation of assertions
   std::vector<Node> passertions;
   for (const Node& a : assertions)
 
   {
     Node pa = a;
-    if (!d_tstate.d_trMaster.empty())
+    if (!subs.empty())
     {
-      pa = arithSubstitute(pa, d_tstate.d_trMaster);
+      pa = arithSubstitute(pa, subs);
       pa = Rewriter::rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
