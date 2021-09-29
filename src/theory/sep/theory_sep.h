@@ -284,12 +284,12 @@ class TheorySep : public Theory {
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
 
-  /** 
+  /**
    * Ensure that reference and data types have been set to something that is
    * non-null, and compatible with separation logic constraint atom.
    */
   void ensureHeapTypesFor(Node atom) const;
-  //get global reference/data type
+  // get global reference/data type
   TypeNode getReferenceType() const;
   TypeNode getDataType() const;
   /**

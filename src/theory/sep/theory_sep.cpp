@@ -181,7 +181,7 @@ void TheorySep::computeCareGraph() {
 void TheorySep::postProcessModel( TheoryModel* m ){
   Trace("sep-model") << "Printing model for TheorySep..." << std::endl;
 
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector< Node > sep_children;
   Node m_neq;
   Node m_heap;
@@ -235,7 +235,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
     }
     Node nil = getNilRef( it->first );
     Node vnil = d_valuation.getModel()->getRepresentative( nil );
-    m_neq = nm->mkNode( kind::EQUAL, nil, vnil );
+    m_neq = nm->mkNode(kind::EQUAL, nil, vnil);
     Trace("sep-model") << "sep.nil = " << vnil << std::endl;
     Trace("sep-model") << std::endl;
     if( sep_children.empty() ){
@@ -246,7 +246,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
     }else if( sep_children.size()==1 ){
       m_heap = sep_children[0];
     }else{
-      m_heap = nm->mkNode( kind::SEP_STAR, sep_children );
+      m_heap = nm->mkNode(kind::SEP_STAR, sep_children);
     }
     m->setHeapModel( m_heap, m_neq );
   }
@@ -941,12 +941,14 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
 }
 
 //for now, assume all constraints are for the same heap type (ensured by logic exceptions thrown in computeReferenceType2)
-TypeNode TheorySep::getReferenceType() const {
+TypeNode TheorySep::getReferenceType() const
+{
   Assert(!d_type_ref.isNull());
   return d_type_ref;
 }
 
-TypeNode TheorySep::getDataType() const {
+TypeNode TheorySep::getDataType() const
+{
   Assert(!d_type_data.isNull());
   return d_type_data;
 }
@@ -1111,7 +1113,7 @@ void TheorySep::ensureHeapTypesFor(Node atom) const
   Assert(!atom.isNull());
   if (!d_type_ref.isNull() && !d_type_data.isNull())
   {
-    if (atom.getKind()==SEP_PTO)
+    if (atom.getKind() == SEP_PTO)
     {
       TypeNode tn1 = atom[0].getType();
       TypeNode tn2 = atom[1].getType();
@@ -1121,15 +1123,15 @@ void TheorySep::ensureHeapTypesFor(Node atom) const
       {
         std::stringstream ss;
         ss << "ERROR: the separation logic heap type has already been set to "
-          << d_type_ref << " -> " << d_type_data
-          << " but we have a constraint that uses different heap types, "
+           << d_type_ref << " -> " << d_type_data
+           << " but we have a constraint that uses different heap types, "
               "offending atom is "
-          << atom << " with associated heap type " << tn1 << " -> " << tn2
-          << std::endl;
+           << atom << " with associated heap type " << tn1 << " -> " << tn2
+           << std::endl;
       }
     }
-  }  
-  else 
+  }
+  else
   {
     // if not declared yet, and we have a separation logic constraint, throw
     // an error.
