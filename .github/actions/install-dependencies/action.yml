@@ -6,7 +6,7 @@ runs:
     - name: Install Packages
       shell: bash
       run: |
-        if [[ $RUNNER_OS != "Linux" ]]; then return 0; fi
+        if [[ $RUNNER_OS != "Linux" ]]; then exit 0; fi
         sudo apt-get update
         sudo apt-get install -y \
           build-essential \
@@ -37,7 +37,7 @@ runs:
     - name: Install Packages (macOS)
       shell: bash
       run: |
-        if [[ $RUNNER_OS != "macOS" ]]; then return 0; fi
+        if [[ $RUNNER_OS != "macOS" ]]; then exit 0; fi
         brew update
         brew install \
           ccache \
