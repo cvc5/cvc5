@@ -24,6 +24,7 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
+#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
@@ -79,6 +80,8 @@ class ArraySolver : protected EnvObj
   Node d_zero;
   /** Equalities we have processed in the current context */
   NodeSet d_eqProc;
+  /** arithmetic entailment */
+  ArithEntail d_aent;
 };
 
 }  // namespace strings

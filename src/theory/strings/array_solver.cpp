@@ -39,7 +39,8 @@ ArraySolver::ArraySolver(Env& env,
       d_termReg(tr),
       d_csolver(cs),
       d_esolver(es),
-      d_eqProc(context())
+      d_eqProc(context()),
+      d_aent(env.getRewriter())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -57,7 +58,7 @@ bool ArraySolver::isHandledUpdate(Node n)
     lenN = nm->mkNode(STRING_LENGTH, n[2]);
   }
   Node one = nm->mkConst(Rational(1));
-  return ArithEntail::checkEq(lenN, one);
+  return d_aent.checkEq(lenN, one);
 }
 
 Node ArraySolver::getUpdateBase(Node n)
