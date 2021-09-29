@@ -19,12 +19,12 @@
 #define CVC5__THEORY__STRINGS__ARRAY_SOLVER_H
 
 #include "context/cdhashset.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
-#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
