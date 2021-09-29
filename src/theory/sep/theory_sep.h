@@ -285,13 +285,8 @@ class TheorySep : public Theory {
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
 
   //get global reference/data type
-  TypeNode getReferenceType( Node n );
-  TypeNode getDataType( Node n );
-  /**
-   * Register reference data types for atom. Calls the method below for
-   * the appropriate types.
-   */
-  void registerRefDataTypesAtom(Node atom);
+  TypeNode getReferenceType() const;
+  TypeNode getDataType() const;
   /**
    * This is called either when:
    * (A) a declare-heap command is issued with tn1/tn2, and atom is null, or

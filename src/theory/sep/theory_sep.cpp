@@ -175,6 +175,7 @@ void TheorySep::computeCareGraph() {
 void TheorySep::postProcessModel( TheoryModel* m ){
   Trace("sep-model") << "Printing model for TheorySep..." << std::endl;
 
+  NodeManager * nm = NodeManager::currentNM();
   std::vector< Node > sep_children;
   Node m_neq;
   Node m_heap;
@@ -228,17 +229,18 @@ void TheorySep::postProcessModel( TheoryModel* m ){
     }
     Node nil = getNilRef( it->first );
     Node vnil = d_valuation.getModel()->getRepresentative( nil );
-    m_neq = NodeManager::currentNM()->mkNode( kind::EQUAL, nil, vnil );
+    m_neq = nm->mkNode( kind::EQUAL, nil, vnil );
     Trace("sep-model") << "sep.nil = " << vnil << std::endl;
     Trace("sep-model") << std::endl;
     if( sep_children.empty() ){
       TypeEnumerator te_domain( it->first );
       TypeEnumerator te_range( d_loc_to_data_type[it->first] );
-      m_heap = NodeManager::currentNM()->mkNode( kind::SEP_EMP, *te_domain, *te_range );
+      TypeNode boolType = nm->booleanType();
+      m_heap = nm>mkNullaryOperator(boolType, kind::SEP_EMP);
     }else if( sep_children.size()==1 ){
       m_heap = sep_children[0];
     }else{
-      m_heap = NodeManager::currentNM()->mkNode( kind::SEP_STAR, sep_children );
+      m_heap = nm->mkNode( kind::SEP_STAR, sep_children );
     }
     m->setHeapModel( m_heap, m_neq );
   }
@@ -317,7 +319,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     Trace("sep-lemma-debug")
         << "Reducing unlabelled assertion " << atom << std::endl;
     // introduce top-level label, add iff
-    TypeNode refType = getReferenceType(satom);
+    TypeNode refType = getReferenceType();
     Trace("sep-lemma-debug")
         << "...reference type is : " << refType << std::endl;
     Node b_lbl = getBaseLabel(refType);
@@ -350,7 +352,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     {
       std::vector<Node> children;
       std::vector<Node> c_lems;
-      TypeNode tn = getReferenceType(satom);
+      TypeNode tn = getReferenceType();
       if (d_reference_bound_max.find(tn) != d_reference_bound_max.end())
       {
         c_lems.push_back(nm->mkNode(SUBSET, slbl, d_reference_bound_max[tn]));
@@ -433,8 +435,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       }
       else
       {
-        Node kl = sm->mkDummySkolem("loc", getReferenceType(satom));
-        Node kd = sm->mkDummySkolem("data", getDataType(satom));
+        Node kl = sm->mkDummySkolem("loc", getReferenceType());
+        Node kd = sm->mkDummySkolem("data", getDataType());
         Node econc = nm->mkNode(
             SEP_LABEL,
             nm->mkNode(SEP_STAR, nm->mkNode(SEP_PTO, kl, kd), d_true),
@@ -718,7 +720,7 @@ void TheorySep::postCheck(Effort level)
         continue;
       }
       needAddLemma = true;
-      TypeNode tn = getReferenceType(satom);
+      TypeNode tn = getReferenceType();
       tn = nm->mkSetType(tn);
       // tn = nm->mkSetType(nm->mkRefType(tn));
       Node o_b_lbl_mval = d_label_model[slbl].getValue(tn);
@@ -933,12 +935,12 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
 }
 
 //for now, assume all constraints are for the same heap type (ensured by logic exceptions thrown in computeReferenceType2)
-TypeNode TheorySep::getReferenceType( Node n ) {
+TypeNode TheorySep::getReferenceType() const {
   Assert(!d_type_ref.isNull());
   return d_type_ref;
 }
 
-TypeNode TheorySep::getDataType( Node n ) {
+TypeNode TheorySep::getDataType() const {
   Assert(!d_type_data.isNull());
   return d_type_data;
 }
@@ -1065,7 +1067,7 @@ int TheorySep::processAssertion(
   }
 
   if( !underSpatial && ( !references[index][n].empty() || card>0 ) ){
-    TypeNode tn = getReferenceType( n );
+    TypeNode tn = getReferenceType();
     Assert(!tn.isNull());
     // add references to overall type
     unsigned bt = d_bound_kind[tn];
@@ -1096,23 +1098,6 @@ int TheorySep::processAssertion(
     }
   }
   return card;
-}
-
-void TheorySep::registerRefDataTypesAtom(Node atom)
-{
-  TypeNode tn1;
-  TypeNode tn2;
-  Kind k = atom.getKind();
-  if (k == SEP_PTO || k == SEP_EMP)
-  {
-    tn1 = atom[0].getType();
-    tn2 = atom[1].getType();
-  }
-  else
-  {
-    Assert(k == SEP_STAR || k == SEP_WAND);
-  }
-  registerRefDataTypes(tn1, tn2, atom);
 }
 
 void TheorySep::registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom)
@@ -1314,7 +1299,7 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
   if( it==d_label_map[atom][lbl].end() ){
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    TypeNode refType = getReferenceType( atom );
+    TypeNode refType = getReferenceType();
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);
