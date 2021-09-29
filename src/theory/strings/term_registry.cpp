@@ -477,7 +477,6 @@ bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
 bool TermRegistry::hasSeqUpdate() const { return d_hasSeqUpdate; }
 
-
 bool TermRegistry::isHandledUpdate(Node n)
 {
   Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);

@@ -24,12 +24,12 @@
 #include "proof/proof_node_manager.h"
 #include "smt/env_obj.h"
 #include "theory/output_channel.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
