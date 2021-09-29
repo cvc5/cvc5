@@ -171,26 +171,26 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (and
    *   (= (sum 0) 0)
-   *   (= (sum preImageSize) (bag.count e skolem)))
+   *   (= (sum preImageSize) (bag.count e skolem))
    *
    *   (forall ((i Int))
-   *      (let ((uf_i (uf i)))
-   *        (let ((count_uf_i (bag.count uf_i A)))
-   *          (=>
-   *           (and (>= i 1) (<= i preImageSize))
-   *           (and
-   *            (= (f uf_i) e)
-   *            (> count_uf_i 0)
-   *            (= (sum i) (+ (sum (- i 1)) count_uf_i))))))
+   *          (let ((uf_i (uf i)))
+   *            (let ((count_uf_i (bag.count uf_i A)))
+   *              (=>
+   *               (and (>= i 1) (<= i preImageSize))
+   *               (and
+   *                 (= (f uf_i) e)
+   *                 (>= count_uf_i 1)
+   *                 (= (sum i) (+ (sum (- i 1)) count_uf_i)))))))
    *
    *   ; preImage of e has preImageSize distinct elements
    *   (forall ((i Int) (j Int))
-   *     (=>
-   *        (and (>= i 1) (< i j) (<= j preImageSize))
-   *        (not (= (uf i) (uf j))))))
+   *          (=>
+   *           (and (>= i 1) (< i j) (<= j preImageSize))
+   *           (not (= (uf i) (uf j))))))
    *
-   * where uf: Int -> T is an uninterpreted function from integers to the
-   * type of the elements of the new bag,
+   * where uf: Int -> E is an uninterpreted function from integers to the
+   * type of the elements of A
    * preImageSize is the cardinality of the distinct elements in A that are
    * mapped to e by function f (i.e., preimage of {e})
    * sum: Int -> Int is a function that aggregates the multiplicities of the
