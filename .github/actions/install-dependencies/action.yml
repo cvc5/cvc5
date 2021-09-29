@@ -43,16 +43,14 @@ runs:
       shell: bash
       run: |
         if [[ $RUNNER_OS != "macOS" ]]; then exit 0; fi
-        brew update
+        brew update --quiet
         brew install \
           ccache \
           cln \
           gmp \
           pkgconfig \
           flex
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
+        python3 -m pip install pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -65,9 +63,8 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.with-python-bindings }}" != "true" ]]; then exit 0; fi
-        python3 -m pip install pytest
+        python3 -m pip install pytest scikit-build
         python3 -m pytest --version
-        python3 -m pip install scikit-build
         python3 -m pip install \
           Cython==0.29.* --install-option="--no-cython-compile"
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
