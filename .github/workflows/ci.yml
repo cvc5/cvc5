@@ -57,56 +57,7 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - name: Install Packages
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          ccache \
-          libcln-dev \
-          libgmp-dev \
-          libgtest-dev \
-          libedit-dev \
-          flex \
-          libfl-dev \
-          flexc++
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
-        cd /usr/src/googletest
-        sudo cmake .
-        sudo cmake --build . --target install
-        cd -
-        # Make ImageVersion accessible as env.image_version. Environment
-        # variables of the runner are not automatically imported:
-        #
-        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
-        echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(nproc)" >> $GITHUB_ENV
-        echo "/usr/lib/ccache" >> $GITHUB_PATH
-
-    # Note: macOS comes with a libedit; it does not need to brew-installed
-    - name: Install Packages (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew update
-        brew install \
-          ccache \
-          cln \
-          gmp \
-          pkgconfig \
-          flex
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
-        # Make ImageVersion accessible as env.image_version. Environment
-        # variables of the runner are not automatically imported:
-        #
-        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
-        echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
-        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
+    - uses: actions/install-dependencies
 
     - name: Install Python Dependencies
       if: matrix.python-bindings
