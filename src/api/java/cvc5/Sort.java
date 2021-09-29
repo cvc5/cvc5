@@ -32,8 +32,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return pointer;
   }
 
-  @Override
-  public void finalize()
+  @Override public void finalize()
   {
     deletePointer(pointer);
   }

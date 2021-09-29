@@ -15,8 +15,7 @@
 
 package cvc5;
 
-public enum RoundingMode
-{
+public enum RoundingMode {
   /**
    * Round to the nearest even number.
    * If the two nearest floating-point numbers bracketing an unrepresentable

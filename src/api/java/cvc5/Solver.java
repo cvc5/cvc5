@@ -36,8 +36,7 @@ public class Solver implements IPointer
 
   private static native void deletePointer(long pointer);
 
-  @Override
-  public void finalize()
+  @Override public void finalize()
   {
     deletePointer(pointer);
   }
@@ -1902,7 +1901,6 @@ public class Solver implements IPointer
   }
 
   private native String getModel(long pointer, long[] sortPointers, long[] varPointers);
-
 
   /**
    * Do quantifier elimination.

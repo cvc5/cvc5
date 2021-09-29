@@ -33,8 +33,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     return pointer;
   }
 
-  @Override
-  public void finalize()
+  @Override public void finalize()
   {
     deletePointer(pointer);
   }
@@ -163,33 +162,36 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   protected native String toString(long pointer);
 
-  public class ConstIterator implements Iterator<DatatypeSelector> {
-        private int currentIndex;
-        private int size;
+  public class ConstIterator implements Iterator<DatatypeSelector>
+  {
+    private int currentIndex;
+    private int size;
 
-        public ConstIterator() {
-          currentIndex = -1;
-          size = getNumSelectors();
-        }
+    public ConstIterator()
+    {
+      currentIndex = -1;
+      size = getNumSelectors();
+    }
 
-        @Override
-        public boolean hasNext() {
-          return currentIndex < size - 1;
-        }
+    @Override public boolean hasNext()
+    {
+      return currentIndex < size - 1;
+    }
 
-        @Override
-        public DatatypeSelector next() {
-          if (currentIndex >= size - 1) {
-            throw new NoSuchElementException();
-          }
-          currentIndex++;
-
-          return getSelector(currentIndex);
-        }
+    @Override public DatatypeSelector next()
+    {
+      if (currentIndex >= size - 1)
+      {
+        throw new NoSuchElementException();
       }
+      currentIndex++;
 
-      @Override
-      public Iterator<DatatypeSelector> iterator() {
-        return new ConstIterator();
-      }
+      return getSelector(currentIndex);
+    }
+  }
+
+  @Override public Iterator<DatatypeSelector> iterator()
+  {
+    return new ConstIterator();
+  }
 }

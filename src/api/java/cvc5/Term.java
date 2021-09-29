@@ -15,10 +15,10 @@
 
 package cvc5;
 
+import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.math.BigInteger;
 
 public class Term extends AbstractPointer implements Comparable<Term>, Iterable<Term>
 {
