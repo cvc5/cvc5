@@ -1,0 +1,12 @@
+; EXPECT: sat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-sort A 0)
+(declare-sort B 0)
+(declare-fun x () A)
+(declare-fun y () A)
+(declare-fun a () A)
+(declare-fun b () A)
+(declare-fun f (A) B)
+(assert (and (or (= x a) (= x b)) (or (= y b) (= y a))))
+(check-sat-assuming ( (= (f x) (f y)) ))

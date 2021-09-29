@@ -48,28 +48,6 @@ ArraySolver::ArraySolver(Env& env,
 
 ArraySolver::~ArraySolver() {}
 
-bool ArraySolver::isHandledUpdate(Node n)
-{
-  Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
-  NodeManager* nm = NodeManager::currentNM();
-  Node lenN = n[2];
-  if (n.getKind() == STRING_UPDATE)
-  {
-    lenN = nm->mkNode(STRING_LENGTH, n[2]);
-  }
-  Node one = nm->mkConst(Rational(1));
-  return ArithEntail::checkEq(lenN, one);
-}
-
-Node ArraySolver::getUpdateBase(Node n)
-{
-  while (n.getKind() == STRING_UPDATE)
-  {
-    n = n[0];
-  }
-  return n;
-}
-
 void ArraySolver::checkArrayConcat()
 {
   if (!d_termReg.hasSeqUpdate())
@@ -83,6 +61,7 @@ void ArraySolver::checkArrayConcat()
   checkTerms(STRING_UPDATE);
   checkTerms(SEQ_NTH);
 }
+
 void ArraySolver::checkArray()
 {
   if (!d_termReg.hasSeqUpdate())
@@ -120,7 +99,7 @@ void ArraySolver::checkTerms(Kind k)
   {
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
     Assert(t.getKind() == k);
-    if (k == STRING_UPDATE && !isHandledUpdate(t))
+    if (k == STRING_UPDATE && !d_termReg.isHandledUpdate(t))
     {
       // not handled by procedure
       Trace("seq-array-debug") << "...unhandled" << std::endl;
@@ -131,8 +110,8 @@ void ArraySolver::checkTerms(Kind k)
     Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
     if (nf.d_nf.empty())
     {
-      // should have been reduced (UPD_EMPTYSTR)
-      if (k == STRING_UPDATE) Assert(false);
+      // updates should have been reduced (UPD_EMPTYSTR)
+      Assert(k != STRING_UPDATE);
       Trace("seq-array-debug") << "...empty" << std::endl;
       continue;
     }
@@ -174,7 +153,6 @@ void ArraySolver::checkTerms(Kind k)
           d_eqProc.insert(eq);
           d_im.sendInference(exp, eq, iid);
         }
-        // d_im.sendInference(exp, eq, iid);
       }
       // otherwise, the equivalence class is pure wrt concatenation
       d_currTerms[k].push_back(t);

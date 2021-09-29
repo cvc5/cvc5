@@ -61,11 +61,6 @@ class ArraySolver : protected EnvObj
   void checkArray();
   void checkArrayEager();
 
-  /** is handled update */
-  static bool isHandledUpdate(Node n);
-  /** get base */
-  static Node getUpdateBase(Node n);
-
   /**
    *
    * @param eqc The sequence equivalence class representative. We can assume
@@ -95,7 +90,7 @@ class ArraySolver : protected EnvObj
   std::map<Kind, std::vector<Node> > d_currTerms;
   /** Common constants */
   Node d_zero;
-  /** The write model */
+  /** The core array solver */
   SequencesArraySolver d_sasolver;
   /** Equalities we have processed in the current context */
   NodeSet d_eqProc;

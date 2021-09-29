@@ -1,0 +1,13 @@
+; EXPECT: unsat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-fun x () (_ BitVec 1024))
+(declare-fun y () (_ BitVec 1024))
+(declare-fun z () (_ BitVec 1024))
+(declare-fun t () (_ BitVec 1024))
+(declare-fun q () (_ BitVec 1024))
+(assert (= x (bvnot x)))
+(assert (= (bvand (bvand (bvand (bvand x y) t) z) q) x))
+(assert (= (bvor x y) t))
+(assert (= (bvxor x (bvnot x)) t))
+(check-sat)
