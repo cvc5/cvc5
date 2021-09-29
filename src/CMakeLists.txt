@@ -1311,7 +1311,6 @@ add_library(cvc5-shared SHARED)
 target_link_libraries(cvc5-shared PRIVATE cvc5-obj)
 set_target_properties(cvc5-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
 set_target_properties(cvc5-shared PROPERTIES OUTPUT_NAME cvc5)
-set_target_properties(cvc5-shared PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(cvc5-shared
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
