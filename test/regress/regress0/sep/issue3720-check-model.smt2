@@ -1,4 +1,4 @@
-; COMMAND-LINE: --quiet
+; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
 (set-logic ALL)
 (declare-heap (Int Int))
