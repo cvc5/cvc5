@@ -239,7 +239,8 @@ SEnumLen* SEnumLenSet::getEnumerator(size_t len, TypeNode tn)
   if (tn.isString())  // string-only
   {
     d_sels[key].reset(
-        new StringEnumLen(len, len, utils::getAlphabetCardinality()));
+        new StringEnumLen(len, len, d_tep ? d_tep->getStringsAlphabetCard()
+                  : utils::getDefaultAlphabetCardinality()));
   }
   else
   {

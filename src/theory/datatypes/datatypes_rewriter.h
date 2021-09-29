@@ -19,6 +19,7 @@
 #define CVC5__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
 #include "theory/theory_rewriter.h"
+#include "theory/evaluator.h"
 
 namespace cvc5 {
 namespace theory {
@@ -37,6 +38,7 @@ namespace datatypes {
 class DatatypesRewriter : public TheoryRewriter
 {
  public:
+   DatatypesRewriter(Evaluator* sygusEval);
   RewriteResponse postRewrite(TNode in) override;
   RewriteResponse preRewrite(TNode in) override;
 
@@ -164,7 +166,32 @@ class DatatypesRewriter : public TheoryRewriter
                               Node orig,
                               TypeNode orig_tn,
                               unsigned depth);
-}; /* class DatatypesRewriter */
+  
+  /** Sygus to builtin eval
+  *
+  * This method returns the rewritten form of (DT_SYGUS_EVAL n args). Notice that
+  * n does not necessarily need to be a constant.
+  *
+  * It does so by (1) converting constant subterms of n to builtin terms and
+  * evaluating them on the arguments args, (2) unfolding non-constant
+  * applications of sygus constructors in n with respect to args and (3)
+  * converting all other non-constant subterms of n to applications of
+  * DT_SYGUS_EVAL.
+  *
+  * For example, if
+  *   n = C_+( C_*( C_x(), C_y() ), n' ), and args = { 3, 4 }
+  * where n' is a variable, then this method returns:
+  *   12 + (DT_SYGUS_EVAL n' 3 4)
+  * Notice that the subterm C_*( C_x(), C_y() ) is converted to its builtin
+  * equivalent x*y and evaluated under the substition { x -> 3, y -> 4 } giving
+  * 12. The subterm n' is non-constant and thus we return its evaluation under
+  * 3,4, giving the term (DT_SYGUS_EVAL n' 3 4). Since the top-level constructor
+  * is C_+, these terms are added together to give the result.
+  */
+  Node sygusToBuiltinEval(Node n, const std::vector<Node>& args);
+  /** Pointer to the evaluator, used as an optimization for the above method */
+  Evaluator* d_sygusEval;
+};
 
 }  // namespace datatypes
 }  // namespace theory
