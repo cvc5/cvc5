@@ -25,6 +25,8 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/theory_engine.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -38,8 +40,8 @@ namespace {
 Node preSkolemEmp(TypeNode locType,
                   TypeNode dataType,
                   Node n,
-                  bool pol,
-                  std::map<bool, std::map<Node, Node>>& visited)
+                         bool pol,
+                         std::map<bool, std::map<Node, Node>>& visited)
 {
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
@@ -55,8 +57,7 @@ Node preSkolemEmp(TypeNode locType,
       {
         Node x =
             sm->mkDummySkolem("ex", locType, "skolem location for negated emp");
-        Node y =
-            sm->mkDummySkolem("ey", dataType, "skolem data for negated emp");
+        Node y = sm->mkDummySkolem("ey", dataType, "skolem data for negated emp");
         return nm
             ->mkNode(kind::SEP_STAR,
                      nm->mkNode(kind::SEP_PTO, x, y),
@@ -109,9 +110,8 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
   TypeNode locType, dataType;
   if (!d_preprocContext->getTheoryEngine()->getSepHeapTypes(locType, dataType))
   {
-    Warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
-                 "heap types during preprocessing"
-              << std::endl;
+    Warning() << "SepSkolemEmp::applyInternal: failed to get separation logic heap types during preprocessing"
+             << std::endl;
     return PreprocessingPassResult::NO_CONFLICT;
   }
   std::map<bool, std::map<Node, Node>> visited;
