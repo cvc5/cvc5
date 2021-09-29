@@ -1029,8 +1029,7 @@ public class Solver implements IPointer
 
   private native long mkConstArray(long pointer, long sortPointer, long valPointer);
   /**
-   * Create a positive infinity floating-point constant. Requires CVC4 to be
-   * compiled with SymFPU support.
+   * Create a positive infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1045,8 +1044,7 @@ public class Solver implements IPointer
 
   private native long mkPosInf(long pointer, int exp, int sig);
   /**
-   * Create a negative infinity floating-point constant. Requires CVC4 to be
-   * compiled with SymFPU support.
+   * Create a negative infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1061,8 +1059,7 @@ public class Solver implements IPointer
 
   private native long mkNegInf(long pointer, int exp, int sig);
   /**
-   * Create a not-a-number (NaN) floating-point constant. Requires CVC4 to
-   * be compiled with SymFPU support.
+   * Create a not-a-number (NaN) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1078,8 +1075,7 @@ public class Solver implements IPointer
   private native long mkNaN(long pointer, int exp, int sig);
 
   /**
-   * Create a positive zero (+0.0) floating-point constant. Requires CVC4 to
-   * be compiled with SymFPU support.
+   * Create a positive zero (+0.0) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1095,8 +1091,7 @@ public class Solver implements IPointer
   private native long mkPosZero(long pointer, int exp, int sig);
 
   /**
-   * Create a negative zero (-0.0) floating-point constant. Requires CVC4 to
-   * be compiled with SymFPU support.
+   * Create a negative zero (-0.0) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1163,8 +1158,7 @@ public class Solver implements IPointer
   private native long mkAbstractValue(long pointer, long index);
 
   /**
-   * Create a floating-point constant (requires CVC4 to be compiled with
-   * symFPU support).
+   * Create a floating-point constant.
    * @param exp Size of the exponent
    * @param sig Size of the significand
    * @param val Value of the floating-point constant as a bit-vector term
