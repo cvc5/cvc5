@@ -4,6 +4,6 @@
 
 (declare-fun x () (Set (Tuple Int Int)))
 (declare-fun y () (Set (Tuple Int Int)))
-(assert (member (mkTuple 2 2) (tclosure x)))
+(assert (member (tuple 2 2) (tclosure x)))
 (assert (= x (as emptyset (Set (Tuple Int Int)))))
 (check-sat)
