@@ -205,7 +205,11 @@ bool solverInvoke(api::Solver* solver,
     cmd->toStream(ss);
   }
 
-  if (solver->getOptionInfo("parse-only").boolValue())
+  // In parse-only mode, we do not execute any of the commands except
+  // set-option commands. We execute set-option commands because the parser may
+  // rely on the options to determine which symbols are defined.
+  if (solver->getOptionInfo("parse-only").boolValue()
+      && dynamic_cast<SetOptionCommand*>(cmd) == nullptr)
   {
     return true;
   }
