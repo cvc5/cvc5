@@ -90,4 +90,4 @@ jobs:
 
     - name: Build documentation
       if: matrix.build-documentation
-      uses: ./.github/actions/run-tests
+      uses: ./.github/actions/build-documentation
