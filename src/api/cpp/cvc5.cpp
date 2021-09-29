@@ -5079,8 +5079,9 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 
 Term Solver::mkTermFromKind(Kind kind) const
 {
-  CVC5_API_KIND_CHECK_EXPECTED(
-      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA || kind==SEP_EMP, kind)
+  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_EMPTY
+                                   || kind == REGEXP_SIGMA || kind == SEP_EMP,
+                               kind)
       << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
   //////// all checks before this line
   Node res;
@@ -5090,7 +5091,7 @@ Term Solver::mkTermFromKind(Kind kind) const
     Assert(isDefinedIntKind(k));
     res = d_nodeMgr->mkNode(k, std::vector<Node>());
   }
-  else if (kind==SEP_EMP)
+  else if (kind == SEP_EMP)
   {
     res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->booleanType(), k);
   }
