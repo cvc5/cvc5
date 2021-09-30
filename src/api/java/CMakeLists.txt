@@ -116,9 +116,9 @@ add_library(cvc5jni SHARED
   jni/cvc5_Op.cpp
   jni/cvc5_Result.cpp
   jni/cvc5_Solver.cpp
+  jni/cvc5_Sort.cpp
   jni/cvc5_Stat.cpp
   jni/cvc5_Statistics.cpp
-  jni/cvc5_Sort.cpp
   jni/cvc5_Term.cpp)
 add_dependencies(cvc5jni generate-jni-headers)
 

@@ -83,7 +83,7 @@ public class Solver implements IPointer
   private native long getBooleanSort(long pointer);
 
   /**
-   * @return sort Integer (in CVC4, Integer is a subtype of Real)
+   * @return sort Integer (in cvc5, Integer is a subtype of Real)
    */
   public Sort getIntegerSort()
   {
@@ -1028,8 +1028,7 @@ public class Solver implements IPointer
 
   private native long mkConstArray(long pointer, long sortPointer, long valPointer);
   /**
-   * Create a positive infinity floating-point constant. Requires CVC4 to be
-   * compiled with SymFPU support.
+   * Create a positive infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1044,8 +1043,7 @@ public class Solver implements IPointer
 
   private native long mkPosInf(long pointer, int exp, int sig);
   /**
-   * Create a negative infinity floating-point constant. Requires CVC4 to be
-   * compiled with SymFPU support.
+   * Create a negative infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1060,8 +1058,7 @@ public class Solver implements IPointer
 
   private native long mkNegInf(long pointer, int exp, int sig);
   /**
-   * Create a not-a-number (NaN) floating-point constant. Requires CVC4 to
-   * be compiled with SymFPU support.
+   * Create a not-a-number (NaN) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1077,8 +1074,7 @@ public class Solver implements IPointer
   private native long mkNaN(long pointer, int exp, int sig);
 
   /**
-   * Create a positive zero (+0.0) floating-point constant. Requires CVC4 to
-   * be compiled with SymFPU support.
+   * Create a positive zero (+0.0) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1094,8 +1090,7 @@ public class Solver implements IPointer
   private native long mkPosZero(long pointer, int exp, int sig);
 
   /**
-   * Create a negative zero (-0.0) floating-point constant. Requires CVC4 to
-   * be compiled with SymFPU support.
+   * Create a negative zero (-0.0) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -1162,8 +1157,7 @@ public class Solver implements IPointer
   private native long mkAbstractValue(long pointer, long index);
 
   /**
-   * Create a floating-point constant (requires CVC4 to be compiled with
-   * symFPU support).
+   * Create a floating-point constant.
    * @param exp Size of the exponent
    * @param sig Size of the significand
    * @param val Value of the floating-point constant as a bit-vector term
@@ -1533,14 +1527,14 @@ public class Solver implements IPointer
    *   ( define-fun <function_def> )
    * \endverbatim
    * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param term the function body
    * @return the function
    */
-  public Term defineFun(String symbol, Term[] bound_vars, Sort sort, Term term)
+  public Term defineFun(String symbol, Term[] boundVars, Sort sort, Term term)
   {
-    return defineFun(symbol, bound_vars, sort, term, false);
+    return defineFun(symbol, boundVars, sort, term, false);
   }
 
   /**
@@ -1550,16 +1544,16 @@ public class Solver implements IPointer
    *   ( define-fun <function_def> )
    * \endverbatim
    * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param term the function body
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
    * @return the function
    */
-  public Term defineFun(String symbol, Term[] bound_vars, Sort sort, Term term, boolean global)
+  public Term defineFun(String symbol, Term[] boundVars, Sort sort, Term term, boolean global)
   {
-    long[] boundVarPointers = Utils.getPointers(bound_vars);
+    long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFun(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
     return new Term(this, termPointer);
@@ -1580,13 +1574,13 @@ public class Solver implements IPointer
    * \endverbatim
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param term the function body
    * @return the function
    */
-  public Term defineFun(Term fun, Term[] bound_vars, Term term)
+  public Term defineFun(Term fun, Term[] boundVars, Term term)
   {
-    return defineFun(fun, bound_vars, term, false);
+    return defineFun(fun, boundVars, term, false);
   }
   /**
    * Define n-ary function.
@@ -1596,15 +1590,15 @@ public class Solver implements IPointer
    * \endverbatim
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param term the function body
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
    * @return the function
    */
-  public Term defineFun(Term fun, Term[] bound_vars, Term term, boolean global)
+  public Term defineFun(Term fun, Term[] boundVars, Term term, boolean global)
   {
-    long[] boundVarPointers = Utils.getPointers(bound_vars);
+    long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFun(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
     return new Term(this, termPointer);
@@ -1620,14 +1614,14 @@ public class Solver implements IPointer
    * ( define-fun-rec <function_def> )
    * \endverbatim
    * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param term the function body
    * @return the function
    */
-  public Term defineFunRec(String symbol, Term[] bound_vars, Sort sort, Term term)
+  public Term defineFunRec(String symbol, Term[] boundVars, Sort sort, Term term)
   {
-    return defineFunRec(symbol, bound_vars, sort, term, false);
+    return defineFunRec(symbol, boundVars, sort, term, false);
   }
 
   /**
@@ -1637,16 +1631,16 @@ public class Solver implements IPointer
    * ( define-fun-rec <function_def> )
    * \endverbatim
    * @param symbol the name of the function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param term the function body
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
    * @return the function
    */
-  public Term defineFunRec(String symbol, Term[] bound_vars, Sort sort, Term term, boolean global)
+  public Term defineFunRec(String symbol, Term[] boundVars, Sort sort, Term term, boolean global)
   {
-    long[] boundVarPointers = Utils.getPointers(bound_vars);
+    long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = defineFunRec(
         pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
     return new Term(this, termPointer);
@@ -1667,14 +1661,14 @@ public class Solver implements IPointer
    * \endverbatim
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param term the function body
    * @return the function
    */
 
-  public Term defineFunRec(Term fun, Term[] bound_vars, Term term)
+  public Term defineFunRec(Term fun, Term[] boundVars, Term term)
   {
-    return defineFunRec(fun, bound_vars, term, false);
+    return defineFunRec(fun, boundVars, term, false);
   }
 
   /**
@@ -1685,15 +1679,15 @@ public class Solver implements IPointer
    * \endverbatim
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
-   * @param bound_vars the parameters to this function
+   * @param boundVars the parameters to this function
    * @param term the function body
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
    * @return the function
    */
-  public Term defineFunRec(Term fun, Term[] bound_vars, Term term, boolean global)
+  public Term defineFunRec(Term fun, Term[] boundVars, Term term, boolean global)
   {
-    long[] boundVarPointers = Utils.getPointers(bound_vars);
+    long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFunRec(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
     return new Term(this, termPointer);
@@ -1710,13 +1704,13 @@ public class Solver implements IPointer
    * \endverbatim
    * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
-   * @param bound_vars the list of parameters to the functions
+   * @param boundVars the list of parameters to the functions
    * @param terms the list of function bodies of the functions
    * @return the function
    */
-  public void defineFunsRec(Term[] funs, Term[][] bound_vars, Term[] terms)
+  public void defineFunsRec(Term[] funs, Term[][] boundVars, Term[] terms)
   {
-    defineFunsRec(funs, bound_vars, terms, false);
+    defineFunsRec(funs, boundVars, terms, false);
   }
   /**
    * Define recursive functions.
@@ -1726,16 +1720,16 @@ public class Solver implements IPointer
    * \endverbatim
    * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
-   * @param bound_vars the list of parameters to the functions
+   * @param boundVars the list of parameters to the functions
    * @param terms the list of function bodies of the functions
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
    * @return the function
    */
-  public void defineFunsRec(Term[] funs, Term[][] bound_vars, Term[] terms, boolean global)
+  public void defineFunsRec(Term[] funs, Term[][] boundVars, Term[] terms, boolean global)
   {
     long[] funPointers = Utils.getPointers(funs);
-    long[][] boundVarPointers = Utils.getPointers(bound_vars);
+    long[][] boundVarPointers = Utils.getPointers(boundVars);
     long[] termPointers = Utils.getPointers(terms);
     defineFunsRec(pointer, funPointers, boundVarPointers, termPointers, global);
   }
@@ -2475,17 +2469,10 @@ public class Solver implements IPointer
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
 
   /**
-   * Returns a snapshot of the current state of the statistic values of this
-   * solver. The returned object is completely decoupled from the solver and
-   * will not change when the solver is used again.
+   * Print solution for synthesis conjecture to the given output stream.
+   * @param out the output stream
    */
-  public Statistics getStatistics()
-  {
-    long statisticsPointer = getStatistics(pointer);
-    return new Statistics(this, statisticsPointer);
-  }
-
-  private native long getStatistics(long pointer);
+  // TODO: void printSynthSolution(std::ostream& out)
 
   /**
    * @return null term

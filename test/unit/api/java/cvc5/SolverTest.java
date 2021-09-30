@@ -319,47 +319,45 @@ class SolverTest
 
   @Test void mkBitVector() throws CVC5ApiException
   {
-      assertDoesNotThrow(() -> d_solver.mkBitVector(8, 2));
-      assertDoesNotThrow(() -> d_solver.mkBitVector(32, 2));
-      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-1111111", 2));
-      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "0101", 2));
-      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "00000101", 2));
-      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-127", 10));
-      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "255", 10));
-      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-7f", 16));
-      assertDoesNotThrow(() -> d_solver.mkBitVector(8, "a0", 16));
-    
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, 2));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, "-127", 10));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, "a0", 16));
-    
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "", 2));
-    
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "101", 5));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "128", 11));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "a0", 21));
-    
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-11111111", 2));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "101010101", 2));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-256", 10));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "257", 10));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-a0", 16));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "fffff", 16));
-    
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "10201010", 2));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-25x", 10));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "2x7", 10));
-      assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "fzff", 16));
-    
-      assertEquals(d_solver.mkBitVector(8, "0101", 2),
-                d_solver.mkBitVector(8, "00000101", 2));
-      assertEquals(d_solver.mkBitVector(4, "-1", 2), d_solver.mkBitVector(4, "1111", 2));
-      assertEquals(d_solver.mkBitVector(4, "-1", 16), d_solver.mkBitVector(4, "1111", 2));
-      assertEquals(d_solver.mkBitVector(4, "-1", 10), d_solver.mkBitVector(4, "1111", 2));
-      assertEquals(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
-      assertEquals(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
-      assertEquals(d_solver.mkBitVector(8, "-1", 10),
-                d_solver.mkBitVector(8, "FF", 16));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(8, 2));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(32, 2));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-1111111", 2));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(8, "0101", 2));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(8, "00000101", 2));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-127", 10));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(8, "255", 10));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(8, "-7f", 16));
+    assertDoesNotThrow(() -> d_solver.mkBitVector(8, "a0", 16));
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, 2));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, "-127", 10));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(0, "a0", 16));
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "", 2));
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "101", 5));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "128", 11));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "a0", 21));
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-11111111", 2));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "101010101", 2));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-256", 10));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "257", 10));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-a0", 16));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "fffff", 16));
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "10201010", 2));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "-25x", 10));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "2x7", 10));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkBitVector(8, "fzff", 16));
+
+    assertEquals(d_solver.mkBitVector(8, "0101", 2), d_solver.mkBitVector(8, "00000101", 2));
+    assertEquals(d_solver.mkBitVector(4, "-1", 2), d_solver.mkBitVector(4, "1111", 2));
+    assertEquals(d_solver.mkBitVector(4, "-1", 16), d_solver.mkBitVector(4, "1111", 2));
+    assertEquals(d_solver.mkBitVector(4, "-1", 10), d_solver.mkBitVector(4, "1111", 2));
+    assertEquals(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
+    assertEquals(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
+    assertEquals(d_solver.mkBitVector(8, "-1", 10), d_solver.mkBitVector(8, "FF", 16));
   }
 
   @Test void mkVar() throws CVC5ApiException
@@ -829,13 +827,13 @@ class SolverTest
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class,
         ()
-            -> slv.mkTuple(
-                new Sort[] {d_solver.mkBitVectorSort(3)}, new Term[] {slv.mkBitVector(3, "101", 2)}));
+            -> slv.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
+                new Term[] {slv.mkBitVector(3, "101", 2)}));
 
     assertThrows(CVC5ApiException.class,
         ()
-            -> slv.mkTuple(
-                new Sort[] {slv.mkBitVectorSort(3)}, new Term[] {d_solver.mkBitVector(3, "101", 2)}));
+            -> slv.mkTuple(new Sort[] {slv.mkBitVectorSort(3)},
+                new Term[] {d_solver.mkBitVector(3, "101", 2)}));
   }
 
   @Test void mkUniverseSet()

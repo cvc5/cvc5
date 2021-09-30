@@ -16,9 +16,9 @@
 package cvc5;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.math.BigInteger;
 
 public class Utils
 {
@@ -146,7 +146,7 @@ public class Utils
   */
   public static Pair<BigInteger, BigInteger> getRational(String rational)
   {
-    if(rational.contains("/"))
+    if (rational.contains("/"))
     {
       String[] pair = rational.split("/");
       return new Pair<>(new BigInteger(pair[0]), new BigInteger(pair[1]));
