@@ -32,7 +32,7 @@ jobs:
             cache-key: productionclang
             check-examples: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct
 
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
