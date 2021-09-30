@@ -572,6 +572,37 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getString(JNIEnv* env,
 
 /*
  * Class:     cvc5_Term
+ * Method:    isRealValue
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cvc5_Term_isRealValue(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->isRealValue());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     cvc5_Term
+ * Method:    getRealValue
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_cvc5_Term_getRealValue(JNIEnv* env,
+                                                      jobject,
+                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  std::string realValue = current->getRealValue();
+  return env->NewStringUTF(realValue.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Term
  * Method:    iterator
  * Signature: (J)J
  */

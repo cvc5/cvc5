@@ -28,26 +28,25 @@ import java.util.Map;
  */
 public class Stat extends AbstractPointer
 {
-   // region construction and destruction
-   Stat(Solver solver, long pointer)
-   {
-     super(solver, pointer);
-   }
+  // region construction and destruction
+  Stat(Solver solver, long pointer)
+  {
+    super(solver, pointer);
+  }
 
-   protected static native void deletePointer(long pointer);
+  protected static native void deletePointer(long pointer);
 
-   public long getPointer()
-   {
-     return pointer;
-   }
+  public long getPointer()
+  {
+    return pointer;
+  }
 
-   @Override
-   public void finalize()
-   {
-     deletePointer(pointer);
-   }
+  @Override public void finalize()
+  {
+    deletePointer(pointer);
+  }
 
-   // endregion
+  // endregion
 
   /**
    * @return a string representation of this Stat
@@ -159,7 +158,7 @@ public class Stat extends AbstractPointer
    */
   public Map<String, Long> getHistogram()
   {
-      return getHistogram(pointer);
+    return getHistogram(pointer);
   }
 
   private native Map<String, Long> getHistogram(long pointer);
