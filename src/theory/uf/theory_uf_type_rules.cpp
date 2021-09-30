@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "util/rational.h"
+#include "expr/cardinality_constraint.h"
 
 namespace cvc5 {
 namespace theory {
@@ -69,7 +70,7 @@ TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    CardinalityConstraint cc = n.getConst<CardinalityConstraint>();
+    const CardinalityConstraint& cc = n.getConst<CardinalityConstraint>();
     if (!cc.getType().isSort())
     {
       throw TypeCheckingExceptionPrivate(
@@ -89,8 +90,7 @@ TypeNode CombinedCardinalityConstraintTypeRule::computeType(
 {
   if (check)
   {
-    CombinedCardinalityConstraint cc =
-        n.getConst<CombinedCardinalityConstraint>();
+    const CombinedCardinalityConstraint& cc = n.getConst<CombinedCardinalityConstraint>();
     if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(

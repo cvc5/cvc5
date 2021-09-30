@@ -40,6 +40,7 @@ class CardinalityConstraint
    */
   CardinalityConstraint(const TypeNode& ufType, const Integer& ub);
   ~CardinalityConstraint();
+  CardinalityConstraint(const CardinalityConstraint& other);
 
   /** Get the type of the cardinality constraint */
   const TypeNode& getType() const;
@@ -50,7 +51,6 @@ class CardinalityConstraint
   bool operator!=(const CardinalityConstraint& cc) const;
 
  private:
-  CardinalityConstraint();
   /** The type that the cardinality constraint is for */
   std::unique_ptr<TypeNode> d_type;
   /** The upper bound on the cardinality of the above type */
@@ -65,9 +65,8 @@ struct CardinalityConstraintHashFunction
 };
 
 /**
- * A combined cardinality constraint, handled in the cardinality extension of
- * the UF solver, used for finite model finding for bounding the sum of
- * cardinalities of all uninterpreted sorts.
+ * A combined cardinality constraint, handled in the cardinality extension of the UF
+ * solver, used for finite model finding for bounding the sum of cardinalities of all uninterpreted sorts.
  */
 class CombinedCardinalityConstraint
 {
@@ -78,6 +77,7 @@ class CombinedCardinalityConstraint
    */
   CombinedCardinalityConstraint(const Integer& ub);
   ~CombinedCardinalityConstraint();
+  CombinedCardinalityConstraint(const CombinedCardinalityConstraint& other);
 
   /** Get the upper bound value of the cardinality constraint */
   const Integer& getUpperBound() const;
@@ -86,13 +86,11 @@ class CombinedCardinalityConstraint
   bool operator!=(const CombinedCardinalityConstraint& cc) const;
 
  private:
-  CombinedCardinalityConstraint();
   /** The upper bound on the cardinality of the above type */
   const Integer d_ubound;
 };
 
-std::ostream& operator<<(std::ostream& out,
-                         const CombinedCardinalityConstraint& cc);
+std::ostream& operator<<(std::ostream& out, const CombinedCardinalityConstraint& cc);
 
 struct CombinedCardinalityConstraintHashFunction
 {
