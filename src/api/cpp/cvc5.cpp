@@ -60,9 +60,9 @@
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/options_public.h"
-#include "options/outputc.h"
 #include "options/smt_options.h"
 #include "proof/unsat_core.h"
+#include "smt/env.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_mode.h"
@@ -5079,21 +5079,26 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 
 Term Solver::mkTermFromKind(Kind kind) const
 {
-  CVC5_API_KIND_CHECK_EXPECTED(
-      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
+  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_EMPTY
+                                   || kind == REGEXP_SIGMA || kind == SEP_EMP,
+                               kind)
       << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
   //////// all checks before this line
   Node res;
+  cvc5::Kind k = extToIntKind(kind);
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
-    cvc5::Kind k = extToIntKind(kind);
     Assert(isDefinedIntKind(k));
     res = d_nodeMgr->mkNode(k, std::vector<Node>());
+  }
+  else if (kind == SEP_EMP)
+  {
+    res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->booleanType(), k);
   }
   else
   {
     Assert(kind == PI);
-    res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), cvc5::kind::PI);
+    res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), k);
   }
   (void)res.getType(true); /* kick off type checking */
   increment_term_stats(kind);
@@ -7840,12 +7845,12 @@ Statistics Solver::getStatistics() const
 
 bool Solver::isOutputOn(const std::string& tag) const
 {
-  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // `isOutputOn(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
   {
-    return cvc5::OutputChannel.isOn(tag);
+    return d_smtEngine->getEnv().isOutputOn(tag);
   }
   catch (const cvc5::Exception& e)
   {
@@ -7855,12 +7860,12 @@ bool Solver::isOutputOn(const std::string& tag) const
 
 std::ostream& Solver::getOutput(const std::string& tag) const
 {
-  // `Output(tag)` may raise an `OptionException`, which we do not want to
+  // `getOutput(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
   {
-    return Output(tag);
+    return d_smtEngine->getEnv().getOutput(tag);
   }
   catch (const cvc5::Exception& e)
   {

@@ -6,7 +6,7 @@
 (declare-fun u () U)
 (declare-heap (U U))
 
-(assert (sep (not (_ emp U U)) (not (_ emp U U))))
+(assert (sep (not sep.emp) (not sep.emp)))
 
 (assert (forall ((x U) (y U)) (= x y)))
 

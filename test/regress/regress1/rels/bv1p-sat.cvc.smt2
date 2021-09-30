@@ -1,0 +1,18 @@
+; EXPECT: sat
+(set-option :incremental false)
+(set-logic ALL)
+
+(declare-fun x () (Set (Tuple (_ BitVec 1) (_ BitVec 1))))
+(declare-fun y () (Set (Tuple (_ BitVec 1) (_ BitVec 1))))
+(declare-fun a () (Tuple (_ BitVec 1) (_ BitVec 1)))
+(declare-fun b () (Tuple (_ BitVec 1) (_ BitVec 1)))
+(declare-fun c () (Tuple (_ BitVec 1) (_ BitVec 1)))
+(declare-fun d () (Tuple (_ BitVec 1) (_ BitVec 1)))
+(assert (distinct a b))
+(assert (distinct c d))
+(assert (member a x))
+(assert (member b x))
+(assert (member a y))
+(assert (member b y))
+(assert (let ((_let_1 (join x y))) (and (not (member c _let_1)) (not (member d _let_1)))))
+(check-sat)

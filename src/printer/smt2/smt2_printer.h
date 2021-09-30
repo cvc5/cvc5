@@ -99,8 +99,7 @@ class Smt2Printer : public cvc5::Printer
       const std::vector<Node>& formulas) const override;
 
   /** Print check-sat command */
-  void toStreamCmdCheckSat(std::ostream& out,
-                           Node n = Node::null()) const override;
+  void toStreamCmdCheckSat(std::ostream& out) const override;
 
   /** Print check-sat-assuming command */
   void toStreamCmdCheckSatAssuming(
@@ -171,10 +170,6 @@ class Smt2Printer : public cvc5::Printer
   /** Print get-assertions command */
   void toStreamCmdGetAssertions(std::ostream& out) const override;
 
-  /** Print set-info :status command */
-  void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                     Result::Sat status) const override;
-
   /** Print set-logic command */
   void toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                     const std::string& logic) const override;
@@ -209,10 +204,6 @@ class Smt2Printer : public cvc5::Printer
 
   /** Print quit command */
   void toStreamCmdQuit(std::ostream& out) const override;
-
-  /** Print comment command */
-  void toStreamCmdComment(std::ostream& out,
-                          const std::string& comment) const override;
 
   /** Print declare-heap command */
   void toStreamCmdDeclareHeap(std::ostream& out,

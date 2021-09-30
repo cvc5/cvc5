@@ -19,14 +19,17 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_SAMPLER_H
 
 #include <map>
-#include "theory/evaluator.h"
 #include "theory/quantifiers/lazy_trie.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** SygusSampler
  *
@@ -65,7 +68,7 @@ namespace quantifiers {
 class SygusSampler : public LazyTrieEvaluator
 {
  public:
-  SygusSampler();
+  SygusSampler(Env& env);
   ~SygusSampler() override {}
 
   /** initialize
@@ -178,14 +181,14 @@ class SygusSampler : public LazyTrieEvaluator
   void checkEquivalent(Node bv, Node bvr, std::ostream& out);
 
  protected:
+  /** The environment we are using to evaluate terms and samples */
+  Env& d_env;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** term enumerator object (used for random sampling) */
   TermEnumeration d_tenum;
   /** samples */
   std::vector<std::vector<Node> > d_samples;
-  /** evaluator class */
-  Evaluator d_eval;
   /** data structure to check duplication of sample points */
   class PtTrie
   {

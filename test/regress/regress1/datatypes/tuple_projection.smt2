@@ -4,7 +4,7 @@
 (declare-fun u () (Tuple String String))
 (declare-fun v () Tuple)
 (declare-fun x () String)
-(assert (= t (mkTuple "a" "b" "c" "d")))
+(assert (= t (tuple "a" "b" "c" "d")))
 (assert (= x ((_ tuple_select 0) t)))
 (assert (= u ((_ tuple_project 2 3) t)))
 (assert (= v (tuple_project t)))

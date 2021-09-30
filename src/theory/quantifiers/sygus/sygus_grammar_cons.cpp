@@ -32,6 +32,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/word.h"
 #include "util/floatingpoint.h"
+#include "util/string.h"
 
 using namespace cvc5::kind;
 

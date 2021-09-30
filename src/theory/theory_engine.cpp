@@ -147,7 +147,7 @@ void TheoryEngine::finishInit()
   // Initialize the theory combination architecture
   if (options::tcMode() == options::TcMode::CARE_GRAPH)
   {
-    d_tc.reset(new CombinationCareGraph(*this, d_env, paraTheories, d_pnm));
+    d_tc.reset(new CombinationCareGraph(d_env, *this, paraTheories));
   }
   else
   {
@@ -203,15 +203,6 @@ void TheoryEngine::finishInit()
     t->finishInit();
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
-}
-
-ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
-
-context::Context* TheoryEngine::getSatContext() const { return context(); }
-
-context::UserContext* TheoryEngine::getUserContext() const
-{
-  return userContext();
 }
 
 TheoryEngine::TheoryEngine(Env& env)
@@ -362,26 +353,26 @@ void TheoryEngine::dumpAssertions(const char* tag) {
   if (Dump.isOn(tag)) {
     const Printer& printer = d_env.getPrinter();
     std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdComment(out, "Starting completeness check");
+    printer.toStreamCmdSetInfo(out, "notes", "Starting completeness check");
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
       Theory* theory = d_theoryTable[theoryId];
       if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-        printer.toStreamCmdComment(out, "Completeness check");
+        printer.toStreamCmdSetInfo(out, "notes", "Completeness check");
         printer.toStreamCmdPush(out);
 
         // Dump the shared terms
         if (d_logicInfo.isSharingEnabled()) {
-          printer.toStreamCmdComment(out, "Shared terms");
+          printer.toStreamCmdSetInfo(out, "notes", "Shared terms");
           context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
           for (unsigned i = 0; it != it_end; ++ it, ++i) {
               stringstream ss;
               ss << (*it);
-              printer.toStreamCmdComment(out, ss.str());
+              printer.toStreamCmdSetInfo(out, "notes", ss.str());
           }
         }
 
         // Dump the assertions
-        printer.toStreamCmdComment(out, "Assertions");
+        printer.toStreamCmdSetInfo(out, "notes", "Assertions");
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (; it != it_end; ++ it) {
           // Get the assertion
@@ -390,11 +381,11 @@ void TheoryEngine::dumpAssertions(const char* tag) {
 
           if ((*it).d_isPreregistered)
           {
-            printer.toStreamCmdComment(out, "Preregistered");
+            printer.toStreamCmdSetInfo(out, "notes", "Preregistered");
           }
           else
           {
-            printer.toStreamCmdComment(out, "Shared assertion");
+            printer.toStreamCmdSetInfo(out, "notes", "Shared assertion");
           }
           printer.toStreamCmdAssert(out, assertionNode);
         }
@@ -1365,8 +1356,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
     Node n = lemma.negate();
     const Printer& printer = d_env.getPrinter();
     std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdComment(out, "theory lemma: expect valid");
-    printer.toStreamCmdCheckSat(out, n);
+    printer.toStreamCmdSetInfo(out, "notes", "theory lemma: expect valid");
+    printer.toStreamCmdCheckSatAssuming(out, {n});
   }
 
   // assert the lemma
@@ -1424,8 +1415,8 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
   if(Dump.isOn("t-conflicts")) {
     const Printer& printer = d_env.getPrinter();
     std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdComment(out, "theory conflict: expect unsat");
-    printer.toStreamCmdCheckSat(out, conflict);
+    printer.toStreamCmdSetInfo(out, "notes", "theory conflict: expect unsat");
+    printer.toStreamCmdCheckSatAssuming(out, {conflict});
   }
 
   // In the multiple-theories case, we need to reconstruct the conflict

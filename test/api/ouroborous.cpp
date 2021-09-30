@@ -66,13 +66,11 @@ std::string parse(std::string instr,
                   std::string input_language,
                   std::string output_language)
 {
-  assert(input_language == "smt2" || input_language == "cvc");
-  assert(output_language == "smt2" || output_language == "cvc");
+  assert(input_language == "smt2");
+  assert(output_language == "smt2");
 
   std::string declarations;
 
-  if (input_language == "smt2")
-  {
     declarations =
         "\
   (declare-sort U 0)\n\
@@ -82,22 +80,9 @@ std::string parse(std::string instr,
   (assert (= (f x) x))\n\
   (declare-fun a () (Array U (Array U U)))\n\
   ";
-  }
-  else
-  {
-    declarations =
-        "\
-      U: TYPE;\n\
-      f: U -> U;\n\
-      x,y: U;\n\
-      a: ARRAY U OF (ARRAY U OF U);\n\
-      ASSERT f(x) = x;\n\
-  ";
-  }
 
   api::Solver solver;
-  std::string ilang =
-      input_language == "smt2" ? "LANG_SMTLIB_V2_6" : "LANG_CVC";
+  std::string ilang = "LANG_SMTLIB_V2_6";
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
@@ -126,25 +111,17 @@ std::string translate(std::string instr,
                       std::string input_language,
                       std::string output_language)
 {
-  assert(input_language == "smt2" || input_language == "cvc");
-  assert(output_language == "smt2" || output_language == "cvc");
+  assert(input_language == "smt2");
+  assert(output_language == "smt2");
 
   std::cout << "==============================================" << std::endl
-            << "translating from "
-            << (input_language == "smt2" ? Language::LANG_SMTLIB_V2_6
-                                         : Language::LANG_CVC)
-            << " to "
-            << (output_language == "smt2" ? Language::LANG_SMTLIB_V2_6
-                                          : Language::LANG_CVC)
-            << " this string:" << std::endl
+            << "translating from " << Language::LANG_SMTLIB_V2_6 << " to "
+            << Language::LANG_SMTLIB_V2_6 << " this string:" << std::endl
             << instr << std::endl;
   std::string outstr = parse(instr, input_language, output_language);
   std::cout << "got this:" << std::endl
             << outstr << std::endl
-            << "reparsing as "
-            << (output_language == "smt2" ? Language::LANG_SMTLIB_V2_6
-                                          : Language::LANG_CVC)
-            << std::endl;
+            << "reparsing as " << Language::LANG_SMTLIB_V2_6 << std::endl;
   std::string poutstr = parse(outstr, output_language, output_language);
   assert(outstr == poutstr);
   std::cout << "got same expressions " << outstr << " and " << poutstr
@@ -160,10 +137,8 @@ void runTestString(std::string instr, std::string instr_language)
             << "   in language " << Language::LANG_SMTLIB_V2_6 << std::endl;
   std::string smt2str = translate(instr, instr_language, "smt2");
   std::cout << "in SMT2      : " << smt2str << std::endl;
-  std::string cvcstr = translate(smt2str, "smt2", "cvc");
-  std::cout << "in CVC       : " << cvcstr << std::endl;
-  std::string outstr = translate(cvcstr, "cvc", "smt2");
-  std::cout << "back to SMT2 : " << outstr << std::endl << std::endl;
+  std::string outstr = translate(smt2str, "smt2", "smt2");
+  std::cout << "to SMT2 : " << outstr << std::endl << std::endl;
 
   assert(outstr == smt2str);  // differences in output
 }
@@ -171,8 +146,9 @@ void runTestString(std::string instr, std::string instr_language)
 int32_t runTest()
 {
   runTestString("(= (f (f y)) x)", "smt2");
-  runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10", "cvc");
-  runTestString("~BVPLUS(3, BVMULT(2, 0bin01, 0bin11), 0bin11)[2:0]", "cvc");
-  runTestString("a[x][y] = a[y][x]", "cvc");
+  runTestString("(= ((_ extract 2 1) (bvnot (bvadd #b000 #b011))) #b10)",
+                "smt2");
+  runTestString("((_ extract 2 0) (bvnot (bvadd (bvmul #b001 #b011) #b011)))",
+                "smt2");
   return 0;
 }

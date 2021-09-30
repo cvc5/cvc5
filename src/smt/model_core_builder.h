@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "options/smt_options.h"
+#include "smt/env_obj.h"
 #include "theory/theory_model.h"
 
 namespace cvc5 {
@@ -29,9 +30,10 @@ namespace cvc5 {
 /**
  * A utility for building model cores.
  */
-class ModelCoreBuilder
+class ModelCoreBuilder : protected EnvObj
 {
  public:
+  ModelCoreBuilder(Env& env);
   /** set model core
    *
    * This function updates model m so that it has information regarding its
@@ -55,9 +57,9 @@ class ModelCoreBuilder
    * If m is not a model for assertions, this method returns false and m is
    * left unchanged.
    */
-  static bool setModelCore(const std::vector<Node>& assertions,
-                           theory::TheoryModel* m,
-                           options::ModelCoresMode mode);
+  bool setModelCore(const std::vector<Node>& assertions,
+                    theory::TheoryModel* m,
+                    options::ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */
 
 }  // namespace cvc5
