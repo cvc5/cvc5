@@ -34,7 +34,7 @@ AletheProofPrinter::AletheProofPrinter(bool extended) : d_extended(extended)
 }
 
 void AletheProofPrinter::alethePrinter(std::ostream& out,
-                                     std::shared_ptr<ProofNode> pfn)
+                                       std::shared_ptr<ProofNode> pfn)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
 
@@ -42,8 +42,8 @@ void AletheProofPrinter::alethePrinter(std::ostream& out,
   // Print assumptions and add them to the list but do not print anchor.
   for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
   {
-    Trace("alethe-printer") << "... print assumption " << pfn->getArguments()[i]
-                           << std::endl;
+    Trace("alethe-printer")
+        << "... print assumption " << pfn->getArguments()[i] << std::endl;
     out << "(assume a" << std::to_string(i - 3) << " " << pfn->getArguments()[i]
         << ")\n";
     assumptions[0][pfn->getArguments()[i]] = i - 3;
@@ -94,9 +94,9 @@ std::string AletheProofPrinter::alethePrinterInternal(
     steps.push_back({});
 
     // Print anchor
-    Trace("alethe-printer") << "... print anchor " << pfn->getResult() << " "
-                           << vrule << " "
-                           << " / " << pfn->getArguments() << std::endl;
+    Trace("alethe-printer")
+        << "... print anchor " << pfn->getResult() << " " << vrule << " "
+        << " / " << pfn->getArguments() << std::endl;
     out << "(anchor :step " << prefix << "t" << step_id << " :args (";
     for (unsigned long int j = 3; j < pfn->getArguments().size(); j++)
     {
@@ -143,9 +143,9 @@ std::string AletheProofPrinter::alethePrinterInternal(
   // of assumptions when an assume is reached
   if (vrule == AletheRule::ASSUME)
   {
-    Trace("alethe-printer") << "... reached assumption " << pfn->getResult()
-                           << " " << vrule << " "
-                           << " / " << pfn->getArguments() << std::endl;
+    Trace("alethe-printer")
+        << "... reached assumption " << pfn->getResult() << " " << vrule << " "
+        << " / " << pfn->getArguments() << std::endl;
 
     auto it = assumptions[nested_level].find(pfn->getArguments()[2]);
 
@@ -158,9 +158,9 @@ std::string AletheProofPrinter::alethePrinterInternal(
     }
 
     Trace("alethe-printer") << "... printing failed! Encountered assumption "
-                              "that has not been printed! "
-                           << pfn->getArguments()[2] << "/"
-                           << assumptions[nested_level] << std::endl;
+                               "that has not been printed! "
+                            << pfn->getArguments()[2] << "/"
+                            << assumptions[nested_level] << std::endl;
     return "";
   }
 
@@ -175,20 +175,21 @@ std::string AletheProofPrinter::alethePrinterInternal(
   // mode if (!d_extended && (vrule == AletheRule::REORDER || vrule ==
   // AletheRule::SYMM)) for now exclude all reorder rules since they cannot be
   // reconstructed in Isabelle yet.
-  if (vrule == AletheRule::REORDER || (!d_extended && vrule == AletheRule::SYMM))
+  if (vrule == AletheRule::REORDER
+      || (!d_extended && vrule == AletheRule::SYMM))
   {
-    Trace("alethe-printer") << "... non-extended mode skip child "
-                           << pfn->getResult() << " " << vrule << " / "
-                           << pfn->getArguments() << std::endl;
+    Trace("alethe-printer")
+        << "... non-extended mode skip child " << pfn->getResult() << " "
+        << vrule << " / " << pfn->getArguments() << std::endl;
     return child_prefixes[0];
   }
 
   // If the rule is a subproof a subproof step needs to be printed
   if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)
   {
-    Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
-                           << vrule << " / " << pfn->getArguments()
-                           << std::endl;
+    Trace("alethe-printer")
+        << "... print node " << pfn->getResult() << " " << vrule << " / "
+        << pfn->getArguments() << std::endl;
 
     prefix.pop_back();  // Remove last .
     // print subproof or bind
@@ -227,15 +228,15 @@ std::string AletheProofPrinter::alethePrinterInternal(
 
   if (it != steps[nested_level].end())
   {
-    Trace("alethe-printer") << "... step is already printed " << pfn->getResult()
-                           << " " << vrule << " / " << pfn->getArguments()
-                           << std::endl;
+    Trace("alethe-printer")
+        << "... step is already printed " << pfn->getResult() << " " << vrule
+        << " / " << pfn->getArguments() << std::endl;
     return prefix + "t" + std::to_string(it->second);
   }
 
   // Print current step
   Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
-                         << vrule << " / " << pfn->getArguments() << std::endl;
+                          << vrule << " / " << pfn->getArguments() << std::endl;
   std::string current_t;
   current_t = "t" + std::to_string(step_id);
   steps[nested_level][pfn->getArguments()[2]] = step_id;

@@ -28,7 +28,7 @@ namespace theory {
 namespace quantifiers {
 
 QueryCache::QueryCache(Env& env, bool checkUnsat, const Options* optr)
-  : ExprMiner(env), d_checkUnsat(checkUnsat), d_sampler(env)
+    : ExprMiner(env), d_checkUnsat(checkUnsat), d_sampler(env)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   if (optr != nullptr)

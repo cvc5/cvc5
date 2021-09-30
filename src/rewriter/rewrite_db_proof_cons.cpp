@@ -41,10 +41,9 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
           "RewriteDbProofCons::totalAttempts")),
       d_statTotalInputSuccess(smtStatisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputSuccess")),
-      d_qcache(
-          env,
-          false,
-          &env.getOptions())  // check for satisfiability
+      d_qcache(env,
+               false,
+               &env.getOptions())  // check for satisfiability
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
