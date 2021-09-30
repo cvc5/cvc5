@@ -24,10 +24,8 @@ public class Statistics
   public static void main(String[] args)
   {
     Solver solver = getSolver();
-    // Get the statistics from the `SmtEngine` and iterate over them. The
-    // `Statistics` class implements the `Iterable<Statistic>` interface. A
-    // `Statistic` is a pair that consists of a name and an `SExpr` that stores
-    // the value of the statistic.
+    // Get the statistics from the `Solver` and iterate over them. The
+    // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.
     cvc5.Statistics stats = solver.getStatistics();
     // short version
     System.out.println("Short version:");
