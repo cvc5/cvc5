@@ -33,7 +33,8 @@
 
 namespace cvc5 {
 
-template <bool ref_count> class NodeTemplate;
+template <bool ref_count>
+class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class TypeNode;
@@ -56,9 +57,9 @@ class Solver;
 /* -------------------------------------------------------------------------- */
 
 namespace context {
-  class Context;
-  class UserContext;
-  }  // namespace context
+class Context;
+class UserContext;
+}  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -69,8 +70,8 @@ class PreprocessingPassContext;
 /* -------------------------------------------------------------------------- */
 
 namespace prop {
-  class PropEngine;
-  }  // namespace prop
+class PropEngine;
+}  // namespace prop
 
 /* -------------------------------------------------------------------------- */
 
@@ -121,8 +122,8 @@ class CVC5_EXPORT SmtEngine
 
   /**
    * Construct an SmtEngine with the given expression manager.
-   * If provided, optr is a pointer to a set of options that should initialize the values
-   * of the options object owned by this class.
+   * If provided, optr is a pointer to a set of options that should initialize
+   * the values of the options object owned by this class.
    */
   SmtEngine(NodeManager* nm, const Options* optr = nullptr);
   /** Destruct the SMT engine.  */

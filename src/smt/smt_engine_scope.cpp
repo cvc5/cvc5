@@ -21,7 +21,7 @@
 #include "base/check.h"
 #include "base/configuration_private.h"
 #include "base/output.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace smt {
