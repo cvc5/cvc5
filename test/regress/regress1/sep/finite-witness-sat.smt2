@@ -5,7 +5,7 @@
 (declare-const l Loc)
 (declare-heap (Loc Loc))
 
-(assert (not (_ emp Loc Loc)))
+(assert (not sep.emp))
 (assert (forall ((x Loc) (y Loc)) (not (pto x y))))
 
 

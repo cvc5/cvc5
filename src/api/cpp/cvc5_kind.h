@@ -2064,17 +2064,10 @@ enum CVC5_EXPORT Kind : int32_t
    */
   SEP_NIL,
   /**
-   * Separation logic empty heap.
-   *
-   * Parameters:
-   *   - 1: Term of the same sort as the sort of the location of the heap
-   *         that is constrained to be empty
-   *   - 2: Term of the same sort as the data sort of the heap that is
-   *         that is constrained to be empty
+   * Separation logic empty heap constraint
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   *   - `Solver::mkTerm(Kind kind) const`
    */
   SEP_EMP,
   /**

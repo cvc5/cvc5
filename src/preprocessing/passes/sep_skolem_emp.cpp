@@ -22,9 +22,11 @@
 #include "expr/node.h"
 #include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_engine.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -35,9 +37,11 @@ using namespace cvc5::theory;
 
 namespace {
 
-Node preSkolemEmp(Node n,
-                         bool pol,
-                         std::map<bool, std::map<Node, Node>>& visited)
+Node preSkolemEmp(TypeNode locType,
+                  TypeNode dataType,
+                  Node n,
+                  bool pol,
+                  std::map<bool, std::map<Node, Node>>& visited)
 {
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
@@ -51,11 +55,10 @@ Node preSkolemEmp(Node n,
     {
       if (!pol)
       {
-        TypeNode tnx = n[0].getType();
-        TypeNode tny = n[1].getType();
         Node x =
-            sm->mkDummySkolem("ex", tnx, "skolem location for negated emp");
-        Node y = sm->mkDummySkolem("ey", tny, "skolem data for negated emp");
+            sm->mkDummySkolem("ex", locType, "skolem location for negated emp");
+        Node y =
+            sm->mkDummySkolem("ey", dataType, "skolem data for negated emp");
         return nm
             ->mkNode(kind::SEP_STAR,
                      nm->mkNode(kind::SEP_PTO, x, y),
@@ -78,7 +81,7 @@ Node preSkolemEmp(Node n,
         Node nc = n[i];
         if (newHasPol)
         {
-          nc = preSkolemEmp(n[i], newPol, visited);
+          nc = preSkolemEmp(locType, dataType, n[i], newPol, visited);
           childChanged = childChanged || nc != n[i];
         }
         children.push_back(nc);
@@ -105,12 +108,20 @@ SepSkolemEmp::SepSkolemEmp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  TypeNode locType, dataType;
+  if (!d_preprocContext->getTheoryEngine()->getSepHeapTypes(locType, dataType))
+  {
+    Warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
+                 "heap types during preprocessing"
+              << std::endl;
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
   std::map<bool, std::map<Node, Node>> visited;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     Node prev = (*assertionsToPreprocess)[i];
     bool pol = true;
-    Node next = preSkolemEmp(prev, pol, visited);
+    Node next = preSkolemEmp(locType, dataType, prev, pol, visited);
     if (next != prev)
     {
       assertionsToPreprocess->replace(i, rewrite(next));

@@ -1366,7 +1366,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
     const Printer& printer = d_env.getPrinter();
     std::ostream& out = d_env.getDumpOut();
     printer.toStreamCmdSetInfo(out, "notes", "theory lemma: expect valid");
-    printer.toStreamCmdCheckSat(out, n);
+    printer.toStreamCmdCheckSatAssuming(out, {n});
   }
 
   // assert the lemma
@@ -1425,7 +1425,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
     const Printer& printer = d_env.getPrinter();
     std::ostream& out = d_env.getDumpOut();
     printer.toStreamCmdSetInfo(out, "notes", "theory conflict: expect unsat");
-    printer.toStreamCmdCheckSat(out, conflict);
+    printer.toStreamCmdCheckSatAssuming(out, {conflict});
   }
 
   // In the multiple-theories case, we need to reconstruct the conflict
