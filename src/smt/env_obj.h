@@ -82,6 +82,9 @@ class EnvObj
   /** Get a pointer to the UserContext via Env. */
   context::UserContext* userContext() const;
 
+  /** Get a pointer to the lemma context via Env. */
+  context::Context* lemmaContext() const;
+  
   /** Get the statistics registry via Env. */
   StatisticsRegistry& statisticsRegistry() const;
 

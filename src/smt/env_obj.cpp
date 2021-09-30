@@ -60,6 +60,11 @@ context::UserContext* EnvObj::userContext() const
   return d_env.getUserContext();
 }
 
+context::Context* EnvObj::lemmaContext() const
+{
+  return d_env.getLemmaContext();
+}
+
 StatisticsRegistry& EnvObj::statisticsRegistry() const
 {
   return d_env.getStatisticsRegistry();
