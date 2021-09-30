@@ -49,9 +49,11 @@ std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc)
              << ')';
 }
 
-size_t CardinalityConstraintHashFunction::operator()(const CardinalityConstraint& cc) const {
+size_t CardinalityConstraintHashFunction::operator()(
+    const CardinalityConstraint& cc) const
+{
   return std::hash<TypeNode>()(cc.getType())
-        * IntegerHashFunction()(cc.getUpperBound());
+         * IntegerHashFunction()(cc.getUpperBound());
 }
 
 CombinedCardinalityConstraint::CombinedCardinalityConstraint(const Integer& ub)
@@ -61,24 +63,32 @@ CombinedCardinalityConstraint::CombinedCardinalityConstraint(const Integer& ub)
 
 CombinedCardinalityConstraint::~CombinedCardinalityConstraint() {}
 
-const Integer& CombinedCardinalityConstraint::getUpperBound() const { return d_ubound; }
+const Integer& CombinedCardinalityConstraint::getUpperBound() const
+{
+  return d_ubound;
+}
 
-bool CombinedCardinalityConstraint::operator==(const CombinedCardinalityConstraint& cc) const
+bool CombinedCardinalityConstraint::operator==(
+    const CombinedCardinalityConstraint& cc) const
 {
   return getUpperBound() == cc.getUpperBound();
 }
 
-bool CombinedCardinalityConstraint::operator!=(const CombinedCardinalityConstraint& cc) const
+bool CombinedCardinalityConstraint::operator!=(
+    const CombinedCardinalityConstraint& cc) const
 {
   return !(*this == cc);
 }
 
-std::ostream& operator<<(std::ostream& out, const CombinedCardinalityConstraint& cc)
+std::ostream& operator<<(std::ostream& out,
+                         const CombinedCardinalityConstraint& cc)
 {
   return out << "fmf.card(" << cc.getUpperBound() << ')';
 }
 
-size_t CombinedCardinalityConstraintHashFunction::operator()(const CombinedCardinalityConstraint& cc) const {
+size_t CombinedCardinalityConstraintHashFunction::operator()(
+    const CombinedCardinalityConstraint& cc) const
+{
   return cc.getUpperBound().hash();
 }
 

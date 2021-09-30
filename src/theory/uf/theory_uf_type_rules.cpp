@@ -89,7 +89,8 @@ TypeNode CombinedCardinalityConstraintTypeRule::computeType(
 {
   if (check)
   {
-    CombinedCardinalityConstraint cc = n.getConst<CombinedCardinalityConstraint>();
+    CombinedCardinalityConstraint cc =
+        n.getConst<CombinedCardinalityConstraint>();
     if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(
