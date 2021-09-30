@@ -370,20 +370,11 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
+    { if (PARSER_STATE->sygus()) {
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
+      cmd->reset(new CheckSatCommand());
     }
-    ( term[expr, expr2]
-      { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "Extended commands (such as check-sat with an argument) are not "
-              "permitted while operating in strict compliance mode.");
-        }
-      }
-    | { expr = api::Term(); }
-    )
-    { cmd->reset(new CheckSatCommand(expr)); }
   | /* check-sat-assuming */
     CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
@@ -1577,12 +1568,13 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
  * - For declared functions f, we return (2).
  * - For indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
- * - For tuple selectors (_ tupSel n), we return (1) and (3). api::Kind is set to
- * APPLY_SELECTOR, and expr is set to n, which is to be interpreted by the
- * caller as the n^th generic tuple selector. We do this since there is no
- * AST expression representing generic tuple select, and we do not have enough
- * type information at this point to know the type of the tuple we will be
- * selecting from.
+ * - For tuple selectors (_ tuple_select n) and updaters (_ tuple_update n), we
+ * return (1) and (3). api::Kind is set to APPLY_SELECTOR or APPLY_UPDATER
+ * respectively, and expr is set to n, which is to be interpreted by the
+ * caller as the n^th generic tuple selector or updater. We do this since there
+ * is no AST expression representing generic tuple select, and we do not have
+ * enough type information at this point to know the type of the tuple we will
+ * be selecting from.
  *
  * (Ascripted Identifiers)
  *
@@ -1703,7 +1695,35 @@ identifier[cvc5::ParseOp& p]
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
-        p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
+        std::string opName = AntlrInput::tokenText($sym);
+        api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
+        if (k == api::APPLY_UPDATER)
+        {
+          // we adopt a special syntax (_ tuple_update n) for tuple updaters
+          if (numerals.size() != 1)
+          {
+            PARSER_STATE->parseError(
+                "Unexpected syntax for tuple selector or updater.");
+          }
+          // The operator is dependent upon inferring the type of the arguments,
+          // and hence the type is not available yet. Hence, we remember the
+          // index as a numeral in the parse operator.
+          p.d_kind = k;
+          p.d_expr = SOLVER->mkInteger(numerals[0]);
+        }
+        else if (numerals.size() == 1)
+        {
+          p.d_op = SOLVER->mkOp(k, numerals[0]);
+        }
+        else if (numerals.size() == 2)
+        {
+          p.d_op = SOLVER->mkOp(k, numerals[0], numerals[1]);
+        }
+        else
+        {
+          PARSER_STATE->parseError(
+              "Unexpected number of numerals for indexed symbol.");
+        }
       }
     )
     RPAREN_TOK
@@ -1736,16 +1756,7 @@ termAtomic[cvc5::api::Term& atomTerm]
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
   // as a 32-bit floating-point constant)
   | LPAREN_TOK INDEX_TOK
-    ( EMP_TOK
-      sortSymbol[type,CHECK_DECLARED]
-      sortSymbol[type2,CHECK_DECLARED]
-      {
-        // Empty heap constant in seperation logic
-        api::Term v1 = SOLVER->mkConst(api::Sort(type), "_emp1");
-        api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
-        atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
-      }
-    | CHAR_TOK HEX_LITERAL 
+    ( CHAR_TOK HEX_LITERAL
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
         atomTerm = PARSER_STATE->mkCharConstant(hexStr);
@@ -2301,10 +2312,9 @@ ATTRIBUTE_QUANTIFIER_ID_TOK : ':qid';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
-EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
-TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
-TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
+TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
+TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_select';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

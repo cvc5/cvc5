@@ -131,7 +131,7 @@ python2=default
 python_bindings=default
 java_bindings=default
 editline=default
-shared=default
+static_library=default
 static_binary=default
 statistics=default
 tracing=default
@@ -146,8 +146,6 @@ ipo=default
 
 abc_dir=default
 glpk_dir=default
-
-lib_only=default
 
 #--------------------------------------------------------------------------#
 
@@ -251,8 +249,8 @@ do
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
-    --static) shared=OFF; static_binary=ON;;
-    --no-static) shared=ON;;
+    --static) static_library=ON; static_binary=ON;;
+    --no-static) static_library=OFF;;
 
     --static-binary) static_binary=ON;;
     --no-static-binary) static_binary=OFF;;
@@ -300,7 +298,6 @@ do
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
-    --lib-only) lib_only=ON ;;
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -359,8 +356,8 @@ fi
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $shared != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
+[ $static_library != default ] \
+  && cmake_opts="$cmake_opts -ENABLE_STATIC_LIBRARY=$static_library"
 [ $static_binary != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
 [ $statistics != default ] \
@@ -403,8 +400,6 @@ fi
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_PREFIX_PATH=$dep_path"
-[ "$lib_only" != default ] \
-    && cmake_opts="$cmake_opts -DBUILD_LIB_ONLY=$lib_only"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

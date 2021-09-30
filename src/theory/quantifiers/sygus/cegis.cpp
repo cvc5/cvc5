@@ -39,6 +39,7 @@ Cegis::Cegis(Env& env,
              SynthConjecture* p)
     : SygusModule(env, qs, qim, tds, p),
       d_eval_unfold(tds->getEvalUnfold()),
+      d_cegis_sampler(env),
       d_usingSymCons(false)
 {
 }
@@ -594,7 +595,6 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
     }
   }
 
-  Evaluator* eval = d_tds->getEvaluator();
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node>& rlemmas =
@@ -603,7 +603,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
     {
       // We may have computed the evaluation of some function applications
       // via example-based symmetry breaking, stored in evalVisited.
-      Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
+      Node lemcsu = evaluate(lem, vs, ms, evalVisited);
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
         return true;

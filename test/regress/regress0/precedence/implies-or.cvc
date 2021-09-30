@@ -1,6 +1,0 @@
-% EXPECT: entailed
-% Simple test for right precedence of => and OR.
-
-A, B, C: BOOLEAN;
-
-QUERY (A => B OR C) <=> (A => (B OR C));

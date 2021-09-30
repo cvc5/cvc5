@@ -17,7 +17,6 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
-#include "options/outputc.h"
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -696,7 +695,7 @@ void Instantiate::notifyEndRound()
           << " * " << i.second << " for " << i.first << std::endl;
     }
   }
-  if (Output.isOn(options::OutputTag::INST))
+  if (d_env.isOutputOn(options::OutputTag::INST))
   {
     bool req = !options::printInstFull();
     for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
@@ -706,8 +705,9 @@ void Instantiate::notifyEndRound()
       {
         continue;
       }
-      Output(options::OutputTag::INST) << "(num-instantiations " << name << " "
-                                       << i.second << ")" << std::endl;
+      d_env.getOutput(options::OutputTag::INST)
+          << "(num-instantiations " << name << " " << i.second << ")"
+          << std::endl;
     }
   }
 }

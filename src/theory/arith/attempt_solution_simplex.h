@@ -65,19 +65,24 @@ namespace arith {
 
 class AttemptSolutionSDP : public SimplexDecisionProcedure {
 public:
-  AttemptSolutionSDP(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc);
+ AttemptSolutionSDP(Env& env,
+                    LinearEqualityModule& linEq,
+                    ErrorSet& errors,
+                    RaiseConflict conflictChannel,
+                    TempVarMalloc tvmalloc);
 
-  Result::Sat attempt(const ApproximateSimplex::Solution& sol);
+ Result::Sat attempt(const ApproximateSimplex::Solution& sol);
 
-  Result::Sat findModel(bool exactResult) override { Unreachable(); }
+ Result::Sat findModel(bool exactResult) override { Unreachable(); }
 
- private:
-  bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
+private:
+ bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
 
-  bool processSignals(){
-    TimerStat &timer = d_statistics.d_queueTime;
-    IntStat& conflictStat  = d_statistics.d_conflicts;
-    return standardProcessSignals(timer, conflictStat);
+ bool processSignals()
+ {
+   TimerStat& timer = d_statistics.d_queueTime;
+   IntStat& conflictStat = d_statistics.d_conflicts;
+   return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
