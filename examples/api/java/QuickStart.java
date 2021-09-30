@@ -15,7 +15,6 @@
  */
 
 import cvc5.*;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -110,8 +109,8 @@ public class QuickStart
     // Further, we can convert the values to java types,
     Pair<BigInteger, BigInteger> xRational = xVal.getRealValue();
     Pair<BigInteger, BigInteger> yRational = yVal.getRealValue();
-    System.out.println("value for x: " + xRational.first +"/" + xRational.second);
-    System.out.println("value for y: " + yRational.first +"/" + yRational.second);
+    System.out.println("value for x: " + xRational.first + "/" + xRational.second);
+    System.out.println("value for y: " + yRational.first + "/" + yRational.second);
 
     // Next, we will check satisfiability of the same formula,
     // only this time over integer variables a and b.
