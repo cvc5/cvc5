@@ -1304,7 +1304,7 @@ target_link_libraries(cvc5-obj PUBLIC $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECT
 # add_dependencies() is necessary for cmake versions before 3.21
 add_dependencies(cvc5-obj cvc5base cvc5context)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5-obj gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-tags gen-theory)
 
 # Link the shared library
 add_library(cvc5-shared SHARED)
