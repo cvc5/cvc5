@@ -59,10 +59,14 @@ class CardinalityConstraint
 
 std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc);
 
+struct CardinalityConstraintHashFunction
+{
+  size_t operator()(const CardinalityConstraint& cc) const;
+};
+
 /**
- * A combined cardinality constraint, handled in the cardinality extension of
- * the UF solver, used for finite model finding for bounding the sum of
- * cardinalities of all uninterpreted sorts.
+ * A combined cardinality constraint, handled in the cardinality extension of the UF
+ * solver, used for finite model finding for bounding the sum of cardinalities of all uninterpreted sorts.
  */
 class CombinedCardinalityConstraint
 {
@@ -86,8 +90,12 @@ class CombinedCardinalityConstraint
   const Integer d_ubound;
 };
 
-std::ostream& operator<<(std::ostream& out,
-                         const CombinedCardinalityConstraint& cc);
+std::ostream& operator<<(std::ostream& out, const CombinedCardinalityConstraint& cc);
+
+struct CombinedCardinalityConstraintHashFunction
+{
+  size_t operator()(const CombinedCardinalityConstraint& cc) const;
+};
 
 }  // namespace cvc5
 
