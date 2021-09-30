@@ -56,6 +56,7 @@
 #include "util/regexp.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
+#include "expr/cardinality_constraint.h"
 
 using namespace std;
 
@@ -331,7 +332,18 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-
+    case kind::CARDINALITY_CONSTRAINT: 
+      out << "(_ fmf.card ";
+      out << n.getConst<CardinalityConstraint>().getType();
+      out << " ";
+      out << n.getConst<CardinalityConstraint>().getUpperBound();
+      out << ")";
+      break;
+    case kind::CARDINALITY_VALUE:
+      out << "(_ fmf.combined_card ";
+      out << n.getConst<CardinalityConstraint>().getUpperBound();
+      out << ")";
+    break;
     case kind::EMPTYSET:
       out << "(as emptyset ";
       toStreamType(out, n.getConst<EmptySet>().getType());
@@ -658,9 +670,6 @@ void Smt2Printer::toStream(std::ostream& out,
     stillNeedToPrintParams = false;
     break;
   }
-
-  case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
-  case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
 
     // bv theory
   case kind::BITVECTOR_CONCAT:

@@ -23,6 +23,7 @@
 #include "smt/smt_engine.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
+#include "expr/cardinality_constraint.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -255,8 +256,9 @@ Node TheoryModel::getModelValue(TNode n) const
     {
       Debug("model-getvalue-debug")
           << "get cardinality constraint " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(getCardinality(ret[0].getType()).getFiniteCardinality()
-                        <= ret[1].getConst<Rational>().getNumerator());
+      const CardinalityConstraint& cc = ret.getConst<CardinalityConstraint>();
+      ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
+                        <= cc.getUpperBound());
     }
     else if (ret.getKind() == kind::CARDINALITY_VALUE)
     {
