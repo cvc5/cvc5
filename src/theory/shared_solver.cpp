@@ -33,10 +33,10 @@ namespace theory {
 SharedSolver::SharedSolver(Env& env, TheoryEngine& te)
     : EnvObj(env),
       d_te(te),
-      d_logicInfo(env.getLogicInfo()),
-      d_sharedTerms(&d_te, env),
-      d_preRegistrationVisitor(&te, env.getSatContext()),
-      d_sharedTermsVisitor(&te, d_sharedTerms, env.getSatContext()),
+      d_logicInfo(logicInfo()),
+      d_sharedTerms(env, &d_te),
+      d_preRegistrationVisitor(&te, context()),
+      d_sharedTermsVisitor(&te, d_sharedTerms, context()),
       d_im(te.theoryOf(THEORY_BUILTIN)->getInferenceManager())
 {
 }
