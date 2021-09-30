@@ -49,7 +49,7 @@ class EqualityEngine;
 class EqEngineManagerDistributed : public EqEngineManager
 {
  public:
-  EqEngineManagerDistributed(TheoryEngine& te, SharedSolver& shs);
+  EqEngineManagerDistributed(Env& env, TheoryEngine& te, SharedSolver& shs);
   ~EqEngineManagerDistributed();
   /**
    * Initialize theories. This method allocates unique equality engines
