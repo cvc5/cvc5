@@ -127,7 +127,7 @@ target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE ${JNI_LIBRARIES})
-target_link_libraries(cvc5jni PRIVATE cvc5)
+target_link_libraries(cvc5jni PRIVATE cvc5-shared)
 
 set(CVC5_JAR "cvc5-${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}.jar")
 
@@ -138,5 +138,6 @@ add_jar(cvc5jar
   VERSION ${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}
   OUTPUT_NAME cvc5
 )
+set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
-add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
+add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5-shared)
