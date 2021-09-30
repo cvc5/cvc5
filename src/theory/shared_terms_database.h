@@ -46,7 +46,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
  private:
   /** Reference to the env */
   Env& d_env;
-  
+
   /** Some statistics */
   IntStat d_statSharedTerms;
 
@@ -162,8 +162,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
    * @param pnm The proof node manager to use, which is non-null if proofs
    * are enabled.
    */
-  SharedTermsDatabase(Env& env,
-                      TheoryEngine* theoryEngine);
+  SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine);
 
   //-------------------------------------------- initialization
   /** Called to set the equality engine. */

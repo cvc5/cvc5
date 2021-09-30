@@ -24,8 +24,7 @@ using namespace cvc5::theory;
 
 namespace cvc5 {
 
-SharedTermsDatabase::SharedTermsDatabase(Env& env,
-                                         TheoryEngine* theoryEngine)
+SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
     : ContextNotifyObj(env.getContext()),
       d_env(env),
       d_statSharedTerms(
@@ -55,7 +54,7 @@ void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
     d_pfee = d_equalityEngine->getProofEqualityEngine();
     if (d_pfee == nullptr)
     {
-      ProofNodeManager * pnm = d_env.getProofNodeManager();
+      ProofNodeManager* pnm = d_env.getProofNodeManager();
       d_pfeeAlloc.reset(
           new eq::ProofEqEngine(d_satContext, d_userContext, *ee, pnm));
       d_pfee = d_pfeeAlloc.get();
