@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "options/base_options.h"
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
@@ -138,6 +139,30 @@ class Env
    * @return the output stream
    */
   std::ostream& getDumpOut();
+
+  /**
+   * Check whether the output for the given output tag is enabled. Output tags
+   * are enabled via the `output` option (or `-o` on the command line).
+   */
+  bool isOutputOn(options::OutputTag tag) const;
+  /**
+   * Check whether the output for the given output tag (as a string) is enabled.
+   * Output tags are enabled via the `output` option (or `-o` on the command
+   * line).
+   */
+  bool isOutputOn(const std::string& tag) const;
+  /**
+   * Return the output stream for the given output tag. If the output tag is
+   * enabled, this returns the output stream from the `out` option. Otherwise,
+   * a null stream (`cvc5::null_os`) is returned.
+   */
+  std::ostream& getOutput(options::OutputTag tag) const;
+  /**
+   * Return the output stream for the given output tag (as a string). If the
+   * output tag is enabled, this returns the output stream from the `out`
+   * option. Otherwise, a null stream (`cvc5::null_os`) is returned.
+   */
+  std::ostream& getOutput(const std::string& tag) const;
 
   /* Rewrite helpers--------------------------------------------------------- */
   /**

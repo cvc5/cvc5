@@ -30,8 +30,8 @@
 #include "expr/node.h"
 #include "expr/symbol_manager.h"
 #include "expr/type_node.h"
-#include "options/options.h"
 #include "options/main_options.h"
+#include "options/options.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -275,7 +275,6 @@ TypeNode Command::grammarToTypeNode(api::Grammar* grammar)
                             : sortToTypeNode(grammar->resolve());
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* class EmptyCommand                                                         */
 /* -------------------------------------------------------------------------- */
@@ -450,20 +449,15 @@ void PopCommand::toStream(std::ostream& out,
 /* class CheckSatCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-CheckSatCommand::CheckSatCommand() : d_term() {}
+CheckSatCommand::CheckSatCommand() {}
 
-CheckSatCommand::CheckSatCommand(const api::Term& term) : d_term(term) {}
-
-api::Term CheckSatCommand::getTerm() const { return d_term; }
 void CheckSatCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   Trace("dtview::command") << "* ~COMMAND: " << getCommandName() << "~"
                            << std::endl;
   try
   {
-    d_result =
-        d_term.isNull() ? solver->checkSat() : solver->checkSatAssuming(d_term);
-
+    d_result = solver->checkSat();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -473,6 +467,7 @@ void CheckSatCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 api::Result CheckSatCommand::getResult() const { return d_result; }
+
 void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -488,7 +483,7 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 
 Command* CheckSatCommand::clone() const
 {
-  CheckSatCommand* c = new CheckSatCommand(d_term);
+  CheckSatCommand* c = new CheckSatCommand();
   c->d_result = d_result;
   return c;
 }
@@ -500,7 +495,7 @@ void CheckSatCommand::toStream(std::ostream& out,
                                size_t dag,
                                Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdCheckSat(out, termToNode(d_term));
+  Printer::getPrinter(language)->toStreamCmdCheckSat(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1016,29 +1011,6 @@ void QuitCommand::toStream(std::ostream& out,
                            Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdQuit(out);
-}
-
-/* -------------------------------------------------------------------------- */
-/* class CommentCommand                                                       */
-/* -------------------------------------------------------------------------- */
-
-CommentCommand::CommentCommand(std::string comment) : d_comment(comment) {}
-std::string CommentCommand::getComment() const { return d_comment; }
-void CommentCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  Dump("benchmark") << *this;
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* CommentCommand::clone() const { return new CommentCommand(d_comment); }
-std::string CommentCommand::getCommandName() const { return "comment"; }
-
-void CommentCommand::toStream(std::ostream& out,
-                              int toDepth,
-                              size_t dag,
-                              Language language) const
-{
-  Printer::getPrinter(language)->toStreamCmdComment(out, d_comment);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2546,61 +2518,6 @@ void GetAssertionsCommand::toStream(std::ostream& out,
                                     Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetAssertions(out);
-}
-
-/* -------------------------------------------------------------------------- */
-/* class SetBenchmarkStatusCommand                                            */
-/* -------------------------------------------------------------------------- */
-
-SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status)
-    : d_status(status)
-{
-}
-
-BenchmarkStatus SetBenchmarkStatusCommand::getStatus() const
-{
-  return d_status;
-}
-
-void SetBenchmarkStatusCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    stringstream ss;
-    ss << d_status;
-    solver->setInfo("status", ss.str());
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* SetBenchmarkStatusCommand::clone() const
-{
-  return new SetBenchmarkStatusCommand(d_status);
-}
-
-std::string SetBenchmarkStatusCommand::getCommandName() const
-{
-  return "set-info";
-}
-
-void SetBenchmarkStatusCommand::toStream(std::ostream& out,
-                                         int toDepth,
-                                         size_t dag,
-                                         Language language) const
-{
-  Result::Sat status = Result::SAT_UNKNOWN;
-  switch (d_status)
-  {
-    case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;
-    case BenchmarkStatus::SMT_UNSATISFIABLE: status = Result::UNSAT; break;
-    case BenchmarkStatus::SMT_UNKNOWN: status = Result::SAT_UNKNOWN; break;
-  }
-
-  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, status);
 }
 
 /* -------------------------------------------------------------------------- */

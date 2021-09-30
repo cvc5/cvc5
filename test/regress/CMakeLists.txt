@@ -1750,6 +1750,7 @@ set(regress_1_tests
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
+  regress1/proofs/quant-alpha-eq.smt2
   regress1/proofs/sat-trivial-cycle.smt2
   regress1/proofs/unsat-cores-proofs.smt2
   regress1/push-pop/arith_lra_01.smt2
@@ -2282,6 +2283,7 @@ set(regress_1_tests
   regress1/sygus/abd-simple-conj-4.smt2
   regress1/sygus/abduction_1255.corecstrs.readable.smt2
   regress1/sygus/abduction_streq.readable.smt2
+  regress1/sygus/abduction-no-pbe-sym-break.smt2
   regress1/sygus/abv.sy
   regress1/sygus/array-grammar-store.sy
   regress1/sygus/array_search_5-Q-easy.sy
