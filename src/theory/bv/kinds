@@ -169,6 +169,7 @@ parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-
 ### type rules for non-parameterized operator kinds ---------------------------
 
 typerule CONST_BITVECTOR ::cvc5::theory::bv::BitVectorConstantTypeRule
+construle CONST_BITVECTOR ::cvc5::theory::bv::BitVectorConstantTypeRule
 
 ## conversion to bit-vector from vector of Booleans kind
 typerule BITVECTOR_BB_TERM ::cvc5::theory::bv::BitVectorToBVTypeRule

@@ -31,6 +31,11 @@ TypeNode UninterpretedConstantTypeRule::computeType(NodeManager* nodeManager,
   return n.getConst<UninterpretedConstant>().getType();
 }
 
+bool UninterpretedConstantTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return true;
+}
+
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the
  * skolem to return for mkGroundTerm.

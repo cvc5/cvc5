@@ -211,6 +211,11 @@ TypeNode EmptyBagTypeRule::computeType(NodeManager* nodeManager,
   return emptyBag.getType();
 }
 
+bool EmptyBagTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return true;
+}
+
 TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check)

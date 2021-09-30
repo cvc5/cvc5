@@ -162,7 +162,8 @@ typerule STRING_REV ::cvc5::theory::strings::StringStrToStrTypeRule
 
 ### string specific operators
 
-typerule CONST_STRING "::cvc5::theory::strings::ConstStringTypeRule"
+typerule CONST_STRING ::cvc5::theory::strings::ConstStringTypeRule
+construle CONST_STRING ::cvc5::theory::strings::ConstStringTypeRule
 typerule STRING_LT "SimpleTypeRule<RBool, AString, AString>"
 typerule STRING_LEQ "SimpleTypeRule<RBool, AString, AString>"
 typerule STRING_IS_DIGIT "SimpleTypeRule<RBool, AString>"
@@ -176,6 +177,7 @@ typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
 ### sequence specific operators
 
 typerule CONST_SEQUENCE ::cvc5::theory::strings::ConstSequenceTypeRule
+construle CONST_SEQUENCE ::cvc5::theory::strings::ConstSequenceTypeRule
 typerule SEQ_UNIT ::cvc5::theory::strings::SeqUnitTypeRule
 typerule SEQ_NTH ::cvc5::theory::strings::SeqNthTypeRule
 typerule SEQ_NTH_TOTAL ::cvc5::theory::strings::SeqNthTypeRule

@@ -91,7 +91,7 @@ bool NodeTemplate<ref_count>::isConst() const {
     return bval;
   }
   bool bval = expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
-  Debug("isConst") << "Node::isConst() computed value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
+  Trace("isConst") << "Node::isConst() computed value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
   const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstAttr(), bval);
   const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstComputedAttr(), true);
   return bval;

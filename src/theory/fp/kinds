@@ -20,6 +20,7 @@ constant CONST_FLOATINGPOINT \
     "util/floatingpoint.h" \
     "a floating-point literal"
 typerule CONST_FLOATINGPOINT    ::cvc5::theory::fp::FloatingPointConstantTypeRule
+construle CONST_FLOATINGPOINT    ::cvc5::theory::fp::FloatingPointConstantTypeRule
 
 
 constant CONST_ROUNDINGMODE \
@@ -29,6 +30,7 @@ constant CONST_ROUNDINGMODE \
     "util/roundingmode.h" \
     "a floating-point rounding mode"    
 typerule CONST_ROUNDINGMODE    ::cvc5::theory::fp::RoundingModeConstantTypeRule
+construle CONST_ROUNDINGMODE    ::cvc5::theory::fp::RoundingModeConstantTypeRule
 
 
 

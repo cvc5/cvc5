@@ -43,6 +43,10 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   }
   return booleanType;
 }
+bool BooleanTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return true;
+}
 
 TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
 {
