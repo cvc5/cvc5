@@ -18,8 +18,6 @@
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
@@ -46,7 +44,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_qcache(
           env,
           false,
-          &smt::currentSmtEngine()->getOptions())  // check for satisfiability
+          &env.getOptions())  // check for satisfiability
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
