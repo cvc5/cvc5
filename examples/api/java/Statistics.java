@@ -19,7 +19,7 @@ import cvc5.*;
 import java.util.List;
 import java.util.Map;
 
-public class StatisticsExample
+public class Statistics
 {
   public static void main(String[] args)
   {
@@ -28,7 +28,7 @@ public class StatisticsExample
     // `Statistics` class implements the `Iterable<Statistic>` interface. A
     // `Statistic` is a pair that consists of a name and an `SExpr` that stores
     // the value of the statistic.
-    Statistics stats = solver.getStatistics();
+    cvc5.Statistics stats = solver.getStatistics();
     // short version
     System.out.println("Short version:");
     System.out.println(stats);
