@@ -3830,7 +3830,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Get info from the solver.
-   * SMT-LIB: \verbatim( get-info <info_flag> )\verbatim
+   * SMT-LIB: \verbatim( get-info <info_flag> )\endverbatim
    * @return the info
    */
   std::string getInfo(const std::string& flag) const;

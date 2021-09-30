@@ -15,10 +15,26 @@
 
 package cvc5;
 
-public class CVC5ApiRecoverableException extends CVC5ApiException
+abstract class AbstractPointer implements IPointer
 {
-  public CVC5ApiRecoverableException(String message)
+  protected final Solver solver;
+  protected final long pointer;
+
+  public long getPointer()
   {
-    super(message);
+    return pointer;
+  }
+
+  @Override public String toString()
+  {
+    return toString(pointer);
+  }
+
+  abstract protected String toString(long pointer);
+
+  AbstractPointer(Solver solver, long pointer)
+  {
+    this.solver = solver;
+    this.pointer = pointer;
   }
 }

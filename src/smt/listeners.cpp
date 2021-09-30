@@ -23,8 +23,8 @@
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
 #include "smt/node_command.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace smt {

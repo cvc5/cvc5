@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace theory {
