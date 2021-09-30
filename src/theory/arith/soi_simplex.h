@@ -67,13 +67,17 @@ namespace arith {
 
 class SumOfInfeasibilitiesSPD : public SimplexDecisionProcedure {
 public:
-  SumOfInfeasibilitiesSPD(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc);
+ SumOfInfeasibilitiesSPD(Env& env,
+                         LinearEqualityModule& linEq,
+                         ErrorSet& errors,
+                         RaiseConflict conflictChannel,
+                         TempVarMalloc tvmalloc);
 
-  Result::Sat findModel(bool exactResult) override;
+ Result::Sat findModel(bool exactResult) override;
 
-  // other error variables are dropping
-  WitnessImprovement dualLikeImproveError(ArithVar evar);
-  WitnessImprovement primalImproveError(ArithVar evar);
+ // other error variables are dropping
+ WitnessImprovement dualLikeImproveError(ArithVar evar);
+ WitnessImprovement primalImproveError(ArithVar evar);
 
 private:
   /** The current sum of infeasibilities variable. */
