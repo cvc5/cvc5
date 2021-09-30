@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/cardinality_constraint.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
@@ -29,7 +30,6 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "util/rational.h"
-#include "expr/cardinality_constraint.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -456,7 +456,7 @@ SortModel::CardinalityDecisionStrategy::CardinalityDecisionStrategy(
 Node SortModel::CardinalityDecisionStrategy::mkLiteral(unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkConst(CardinalityConstraint(d_type, Integer(i+1)));
+  return nm->mkConst(CardinalityConstraint(d_type, Integer(i + 1)));
 }
 
 std::string SortModel::CardinalityDecisionStrategy::identify() const
@@ -1348,54 +1348,73 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       Assert(tn.isSort());
       Assert(d_rep_model[tn]);
       uint32_t nCard = cc.getUpperBound().getUnsignedInt();
-      Trace("uf-ss-debug") << "...check cardinality constraint : " << tn << std::endl;
-      if( options::ufssFairnessMonotone() ){
+      Trace("uf-ss-debug") << "...check cardinality constraint : " << tn
+                           << std::endl;
+      if (options::ufssFairnessMonotone())
+      {
         SortInference* si = d_state.getSortInference();
         Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
-        if( tn!=d_tn_mono_master ){
-          std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );
-          if( it==d_tn_mono_slave.end() ){
+        if (tn != d_tn_mono_master)
+        {
+          std::map<TypeNode, bool>::iterator it = d_tn_mono_slave.find(tn);
+          if (it == d_tn_mono_slave.end())
+          {
             bool isMonotonic;
             if (si != nullptr)
             {
               isMonotonic = si->isMonotonic(tn);
-            }else{
-              //if ground, everything is monotonic
+            }
+            else
+            {
+              // if ground, everything is monotonic
               isMonotonic = true;
             }
-            if( isMonotonic ){
-              if( d_tn_mono_master.isNull() ){
-                Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set master : " << tn << std::endl;
+            if (isMonotonic)
+            {
+              if (d_tn_mono_master.isNull())
+              {
+                Trace("uf-ss-com-card-debug")
+                    << "uf-ss-fair-monotone: Set master : " << tn << std::endl;
                 d_tn_mono_master = tn;
-              }else{
-                Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set slave : " << tn << std::endl;
+              }
+              else
+              {
+                Trace("uf-ss-com-card-debug")
+                    << "uf-ss-fair-monotone: Set slave : " << tn << std::endl;
                 d_tn_mono_slave[tn] = true;
               }
-            }else{
-              Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set non-monotonic : " << tn << std::endl;
+            }
+            else
+            {
+              Trace("uf-ss-com-card-debug")
+                  << "uf-ss-fair-monotone: Set non-monotonic : " << tn
+                  << std::endl;
               d_tn_mono_slave[tn] = false;
             }
           }
         }
-        //set the minimum positive cardinality for master if necessary
-        if( polarity && tn==d_tn_mono_master ){
-          Trace("uf-ss-com-card-debug") << "...set min positive cardinality" << std::endl;
+        // set the minimum positive cardinality for master if necessary
+        if (polarity && tn == d_tn_mono_master)
+        {
+          Trace("uf-ss-com-card-debug")
+              << "...set min positive cardinality" << std::endl;
           if (!d_min_pos_tn_master_card_set.get()
               || nCard < d_min_pos_tn_master_card.get())
           {
             d_min_pos_tn_master_card_set.set(true);
-            d_min_pos_tn_master_card.set( nCard );
+            d_min_pos_tn_master_card.set(nCard);
           }
         }
       }
       Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
       d_rep_model[tn]->assertCardinality(nCard, polarity);
-      //check if combined cardinality is violated
+      // check if combined cardinality is violated
       checkCombinedCardinality();
     }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       if( polarity ){
         //safe to assume int here
-        const CombinedCardinalityConstraint& cc = lit.getConst<CombinedCardinalityConstraint>();
+        const CombinedCardinalityConstraint& cc =
+            lit.getConst<CombinedCardinalityConstraint>();
         uint32_t nCard = cc.getUpperBound().getUnsignedInt();
         if (!d_min_pos_com_card_set.get() || nCard < d_min_pos_com_card.get())
         {

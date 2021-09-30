@@ -18,8 +18,8 @@
 #include <climits>
 #include <sstream>
 
-#include "util/rational.h"
 #include "expr/cardinality_constraint.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -90,7 +90,8 @@ TypeNode CombinedCardinalityConstraintTypeRule::computeType(
 {
   if (check)
   {
-    const CombinedCardinalityConstraint& cc = n.getConst<CombinedCardinalityConstraint>();
+    const CombinedCardinalityConstraint& cc =
+        n.getConst<CombinedCardinalityConstraint>();
     if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(
