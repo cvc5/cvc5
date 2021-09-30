@@ -357,7 +357,7 @@ fi
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $static_library != default ] \
-  && cmake_opts="$cmake_opts -ENABLE_STATIC_LIBRARY=$static_library"
+  && cmake_opts="$cmake_opts -DENABLE_STATIC_LIBRARY=$static_library"
 [ $static_binary != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
 [ $statistics != default ] \
