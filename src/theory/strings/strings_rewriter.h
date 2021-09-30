@@ -34,7 +34,7 @@ class StringsRewriter : public SequencesRewriter
  public:
   StringsRewriter(Rewriter* r,
                   HistogramStat<Rewrite>* statistics,
-                  uint32_t alphaCard);
+                  uint32_t alphaCard = 196608);
 
   RewriteResponse postRewrite(TNode node) override;
 
