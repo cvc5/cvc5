@@ -447,15 +447,14 @@ void Region::debugPrint( const char* c, bool incClique ) {
 }
 
 SortModel::CardinalityDecisionStrategy::CardinalityDecisionStrategy(
-    Env& env, Node t, Valuation valuation)
-    : DecisionStrategyFmf(env, valuation), d_cardinality_term(t)
+    Env& env, Valuation valuation)
+    : DecisionStrategyFmf(env, valuation)
 {
 }
 Node SortModel::CardinalityDecisionStrategy::mkLiteral(unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(
-      CARDINALITY_CONSTRAINT, d_cardinality_term, nm->mkConst(Rational(i + 1)));
+  return nm->mkConst(CardinalityConstraint(d_type, Integer(i+1)));
 }
 std::string SortModel::CardinalityDecisionStrategy::identify() const
 {
@@ -481,7 +480,6 @@ SortModel::SortModel(Node n,
       d_initialized(thss->userContext(), false),
       d_c_dec_strat(nullptr)
 {
-  d_cardinality_term = n;
 
   if (options::ufssMode() == options::UfssMode::FULL)
   {
@@ -1406,8 +1404,8 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
     }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       if( polarity ){
         //safe to assume int here
-        uint32_t nCard =
-            lit[0].getConst<Rational>().getNumerator().getUnsignedInt();
+        CombinedCardinalityConstraint cc = lit.getConst<CombinedCardinalityConstraint>();
+        uint32_t nCard = cc.getUpperBound().getUnsignedInt();
         if (!d_min_pos_com_card_set.get() || nCard < d_min_pos_com_card.get())
         {
           d_min_pos_com_card_set.set(true);
@@ -1570,7 +1568,7 @@ Node CardinalityExtension::CombinedCardinalityDecisionStrategy::mkLiteral(
     unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(COMBINED_CARDINALITY_CONSTRAINT, nm->mkConst(Rational(i)));
+  return nm->mkConst(CombinedCardinalityConstraint(Integer(i)));
 }
 
 std::string

@@ -341,15 +341,11 @@ class CardinalityExtension : protected EnvObj
     class CardinalityDecisionStrategy : public DecisionStrategyFmf
     {
      public:
-      CardinalityDecisionStrategy(Env& env, Node t, Valuation valuation);
+      CardinalityDecisionStrategy(Env& env, Valuation valuation);
       /** make literal (the i^th combined cardinality literal) */
       Node mkLiteral(unsigned i) override;
       /** identify */
       std::string identify() const override;
-
-     private:
-      /** the cardinality term */
-      Node d_cardinality_term;
     };
     /** cardinality decision strategy */
     std::unique_ptr<CardinalityDecisionStrategy> d_c_dec_strat;
