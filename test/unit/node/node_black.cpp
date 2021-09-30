@@ -30,7 +30,7 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options_public.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "test_node.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"

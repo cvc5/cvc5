@@ -343,8 +343,8 @@ libcvc5_add_sources(
   smt/proof_post_processor.h
   smt/set_defaults.cpp
   smt/set_defaults.h
-  smt/smt_engine.cpp
-  smt/smt_engine.h
+  smt/solver_engine.cpp
+  smt/solver_engine.h
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
   smt/smt_engine_state.cpp

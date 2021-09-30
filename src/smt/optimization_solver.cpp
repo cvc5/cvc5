@@ -23,7 +23,7 @@
 #include "options/smt_options.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::theory;

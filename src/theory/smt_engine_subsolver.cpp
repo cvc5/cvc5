@@ -17,8 +17,8 @@
 #include "theory/smt_engine_subsolver.h"
 
 #include "smt/env.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {

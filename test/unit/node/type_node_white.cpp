@@ -19,7 +19,7 @@
 
 #include "expr/node_manager.h"
 #include "expr/type_node.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "test_node.h"
 #include "util/rational.h"
 

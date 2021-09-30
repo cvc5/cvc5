@@ -25,7 +25,7 @@
 #include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
