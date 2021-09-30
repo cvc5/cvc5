@@ -31,7 +31,8 @@ TypeNode UninterpretedConstantTypeRule::computeType(NodeManager* nodeManager,
   return n.getConst<UninterpretedConstant>().getType();
 }
 
-bool UninterpretedConstantTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool UninterpretedConstantTypeRule::computeIsConst(NodeManager* nodeManager,
+                                                   TNode n)
 {
   return true;
 }

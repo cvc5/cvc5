@@ -85,15 +85,22 @@ bool NodeTemplate<ref_count>::isConst() const {
     return false;
   }
 
-  if(getAttribute(IsConstComputedAttr())) {
+  if (getAttribute(IsConstComputedAttr()))
+  {
     bool bval = getAttribute(IsConstAttr());
-    Debug("isConst") << "Node::isConst() returning cached value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
+    Debug("isConst") << "Node::isConst() returning cached value "
+                     << (bval ? "true" : "false") << " for: " << *this
+                     << std::endl;
     return bval;
   }
-  bool bval = expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
-  Trace("isConst") << "Node::isConst() computed value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
-  const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstAttr(), bval);
-  const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstComputedAttr(), true);
+  bool bval =
+      expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
+  Trace("isConst") << "Node::isConst() computed value "
+                   << (bval ? "true" : "false") << " for: " << *this
+                   << std::endl;
+  const_cast<NodeTemplate<ref_count>*>(this)->setAttribute(IsConstAttr(), bval);
+  const_cast<NodeTemplate<ref_count>*>(this)->setAttribute(
+      IsConstComputedAttr(), true);
   return bval;
 }
 

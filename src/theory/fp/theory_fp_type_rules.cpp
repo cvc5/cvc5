@@ -53,7 +53,8 @@ TypeNode FloatingPointConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFloatingPointType(f.getSize());
 }
 
-bool FloatingPointConstantTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool FloatingPointConstantTypeRule::computeIsConst(NodeManager* nodeManager,
+                                                   TNode n)
 {
   return true;
 }
@@ -68,7 +69,8 @@ TypeNode RoundingModeConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->roundingModeType();
 }
 
-bool RoundingModeConstantTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool RoundingModeConstantTypeRule::computeIsConst(NodeManager* nodeManager,
+                                                  TNode n)
 {
   return true;
 }

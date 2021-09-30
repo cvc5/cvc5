@@ -52,7 +52,8 @@ TypeNode BitVectorConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
 }
 
-bool BitVectorConstantTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool BitVectorConstantTypeRule::computeIsConst(NodeManager* nodeManager,
+                                               TNode n)
 {
   return true;
 }

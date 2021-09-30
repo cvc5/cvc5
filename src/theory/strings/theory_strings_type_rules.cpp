@@ -26,8 +26,8 @@ namespace theory {
 namespace strings {
 
 TypeNode ConstStringTypeRule::computeType(NodeManager* nodeManager,
-                                            TNode n,
-                                            bool check)
+                                          TNode n,
+                                          bool check)
 {
   Assert(n.getKind() == kind::CONST_STRING);
   return nodeManager->stringType();
@@ -37,7 +37,7 @@ bool ConstStringTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 {
   return true;
 }
-  
+
 TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check)

@@ -27,7 +27,7 @@ class TypeNode;
 
 namespace theory {
 namespace strings {
-  
+
 class ConstStringTypeRule
 {
  public:
