@@ -1020,6 +1020,24 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    // ======== And elimination
+    // See proof_rule.h for documentation on the AND_ELIM rule. This
+    // comment uses variable names as introduced there.
+    //
+    //      P
+    // ---------- RESOLUTION
+    //  (cl Fi)*
+    //
+    // * the corresponding proof node is Fi
+    case PfRule::AND_ELIM:
+    {
+      return addAletheStep(AletheRule::AND,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
