@@ -347,7 +347,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["bv-eager-atoms"]->apply(&assertions);
   }
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
+  Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
   dumpAssertions("post-everything", assertions);
 
   return noConflict;
@@ -361,7 +361,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
   {
     ScopeCounter depth(d_simplifyAssertionsDepth);
 
-    Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
+    Trace("simplify") << "ProcessAssertions::simplify()" << endl;
 
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
@@ -388,7 +388,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
       }
       else
       {
-        Trace("simplify") << "SmtEnginePrivate::simplify(): "
+        Trace("simplify") << "ProcessAssertions::simplify(): "
                           << "skipping miplib pseudobooleans pass..." << endl;
       }
     }
