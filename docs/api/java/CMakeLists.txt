@@ -30,7 +30,7 @@ if(BUILD_BINDINGS_JAVA)
       --source-path ${CMAKE_SOURCE_DIR}/src/api/java/
       -d ${JAVADOC_OUTPUT_DIR}
       -cp ${CMAKE_BINARY_DIR}/src/api/java/cvc5.jar
-    DEPENDS ${JAVA_FILES}
+    DEPENDS cvc5jar ${JAVA_FILES}
     COMMENT "Generating javadocs"
   )
 
