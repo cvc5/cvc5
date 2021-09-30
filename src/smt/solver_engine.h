@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__SMT_ENGINE_H
-#define CVC5__SMT_ENGINE_H
+#ifndef CVC5__SOLVER_ENGINE_H
+#define CVC5__SOLVER_ENGINE_H
 
 #include <map>
 #include <memory>
