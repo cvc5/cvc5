@@ -25,6 +25,19 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
+TypeNode ConstStringTypeRule::computeType(NodeManager* nodeManager,
+                                            TNode n,
+                                            bool check)
+{
+  Assert(n.getKind() == kind::CONST_STRING);
+  return nodeManager->stringType();
+}
+
+bool ConstStringTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return true;
+}
+  
 TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check)
@@ -298,6 +311,11 @@ TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
 {
   Assert(n.getKind() == kind::CONST_SEQUENCE);
   return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
+}
+
+bool ConstSequenceTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return true;
 }
 
 TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,

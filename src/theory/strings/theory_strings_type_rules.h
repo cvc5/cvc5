@@ -27,6 +27,13 @@ class TypeNode;
 
 namespace theory {
 namespace strings {
+  
+class ConstStringTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
+};
 
 class StringConcatTypeRule
 {
@@ -97,6 +104,7 @@ class ConstSequenceTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
 class SeqUnitTypeRule

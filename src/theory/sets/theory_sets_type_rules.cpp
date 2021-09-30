@@ -158,6 +158,11 @@ TypeNode EmptySetTypeRule::computeType(NodeManager* nodeManager,
   return emptySet.getType();
 }
 
+bool EmptySetTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return true;
+}
+
 TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check)

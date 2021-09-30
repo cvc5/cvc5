@@ -52,6 +52,7 @@ struct SingletonTypeRule
 struct EmptySetTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
 struct CardTypeRule

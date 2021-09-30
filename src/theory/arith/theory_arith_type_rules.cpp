@@ -36,6 +36,11 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
+bool ArithConstantTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return true;
+}
+
 TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)

@@ -162,7 +162,7 @@ typerule STRING_REV ::cvc5::theory::strings::StringStrToStrTypeRule
 
 ### string specific operators
 
-typerule CONST_STRING "SimpleTypeRule<RString>"
+typerule CONST_STRING "::cvc5::theory::strings::ConstStringTypeRule"
 typerule STRING_LT "SimpleTypeRule<RBool, AString, AString>"
 typerule STRING_LEQ "SimpleTypeRule<RBool, AString, AString>"
 typerule STRING_IS_DIGIT "SimpleTypeRule<RBool, AString>"
