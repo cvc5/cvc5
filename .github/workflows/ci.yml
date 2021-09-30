@@ -6,20 +6,20 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: ubuntu:production-static
+          - name: ubuntu:production
             os: ubuntu-latest
             config: production --auto-download --all-bindings --editline --docs --static
-            cache-key: production-static
+            cache-key: production
             python-bindings: true
             build-documentation: true
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
-          - name: macos:production-static
+          - name: macos:production
             os: macos-11
             config: production --auto-download --all-bindings --editline --static
-            cache-key: production-static
+            cache-key: production
             python-bindings: true
             check-examples: true
             exclude_regress: 3-4
