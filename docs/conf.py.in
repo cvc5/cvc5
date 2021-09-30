@@ -72,6 +72,10 @@ html_static_path = ['${CMAKE_CURRENT_SOURCE_DIR}/_static/']
 html_css_files = ['custom.css']
 html_show_sourcelink = False
 
+html_extra_path = [
+        "${CMAKE_BINARY_DIR}/docs/api/java/build/"
+]
+
 # -- Breathe configuration ---------------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
