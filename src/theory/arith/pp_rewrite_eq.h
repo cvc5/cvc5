@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -33,10 +34,10 @@ namespace arith {
  *
  * In particular, we may rewrite (= x y) to (and (>= x y) (<= x y)).
  */
-class PreprocessRewriteEq
+class PreprocessRewriteEq : protected EnvObj
 {
  public:
-  PreprocessRewriteEq(context::Context* c, ProofNodeManager* pnm);
+  PreprocessRewriteEq(Env& env);
   ~PreprocessRewriteEq() {}
   /**
    * Preprocess equality, applies ppRewrite for equalities. This method is
@@ -45,12 +46,8 @@ class PreprocessRewriteEq
   TrustNode ppRewriteEq(TNode eq);
 
  private:
-  /** Are proofs enabled? */
-  bool proofsEnabled() const;
   /** Used to prove pp-rewrites */
   EagerProofGenerator d_ppPfGen;
-  /** Proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace arith
