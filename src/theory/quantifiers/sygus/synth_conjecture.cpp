@@ -204,7 +204,16 @@ void SynthConjecture::assign(Node q)
     }
   }
   // initialize the example inference utility
-  if (!d_exampleInfer->initialize(d_base_inst, d_candidates))
+  // Notice that we must also consider the side condition when inferring
+  // whether the conjecture is PBE. This ensures we do not prune solutions
+  // that may satisfy the side condition based on equivalence-up-to-examples
+  // with solutions that do not.
+  Node conjForExamples = d_base_inst;
+  if (!d_embedSideCondition.isNull())
+  {
+    conjForExamples = nm->mkNode(AND, d_embedSideCondition, d_base_inst);
+  }
+  if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(conjForExamples, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();
@@ -761,7 +770,7 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   }
   // otherwise, allocate it
   Node f = d_tds->getSynthFunForEnumerator(e);
-  bool hasExamples = (d_exampleInfer->hasExamples(f)
+  bool hasExamples = (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
   d_enumManager[e].reset(new EnumValueManager(
       d_env, d_qstate, d_qim, d_treg, d_stats, e, hasExamples));
