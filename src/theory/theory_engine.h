@@ -156,19 +156,6 @@ class TheoryEngine : protected EnvObj
    */
   prop::PropEngine* getPropEngine() const { return d_propEngine; }
 
-  /** Get the proof node manager */
-  ProofNodeManager* getProofNodeManager() const;
-
-  /**
-   * Get a pointer to the underlying sat context.
-   */
-  context::Context* getSatContext() const;
-
-  /**
-   * Get a pointer to the underlying user context.
-   */
-  context::UserContext* getUserContext() const;
-
   /**
    * Get a pointer to the underlying quantifiers engine.
    */

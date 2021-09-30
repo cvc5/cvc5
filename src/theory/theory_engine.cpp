@@ -205,15 +205,6 @@ void TheoryEngine::finishInit()
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
 
-ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
-
-context::Context* TheoryEngine::getSatContext() const { return context(); }
-
-context::UserContext* TheoryEngine::getUserContext() const
-{
-  return userContext();
-}
-
 TheoryEngine::TheoryEngine(Env& env)
     : EnvObj(env),
       d_propEngine(nullptr),
