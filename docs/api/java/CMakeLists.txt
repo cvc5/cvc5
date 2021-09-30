@@ -22,6 +22,8 @@ if(BUILD_BINDINGS_JAVA)
   set(JAVADOC_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/build/api/java)
   # used to trigger the rebuild
   set(JAVADOC_INDEX_FILE ${JAVADOC_OUTPUT_DIR}/index.html)
+
+  get_target_property(SOURCES cvc5jar SOURCES)
   
   add_custom_command(
     OUTPUT "${JAVADOC_INDEX_FILE}"
@@ -30,7 +32,7 @@ if(BUILD_BINDINGS_JAVA)
       --source-path ${CMAKE_SOURCE_DIR}/src/api/java/
       -d ${JAVADOC_OUTPUT_DIR}
       -cp ${CMAKE_BINARY_DIR}/src/api/java/cvc5.jar
-    DEPENDS cvc5jar
+    DEPENDS cvc5jar ${SOURCES}
     COMMENT "Generating javadocs"
   )
 
