@@ -84,6 +84,10 @@ TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
   }
   return nodeManager->booleanType();
 }
+bool CardinalityConstraintTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return false;
+}
 
 TypeNode CombinedCardinalityConstraintTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check)
@@ -99,6 +103,10 @@ TypeNode CombinedCardinalityConstraintTypeRule::computeType(
     }
   }
   return nodeManager->booleanType();
+}
+bool CombinedCardinalityConstraintTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  return false;
 }
 
 TypeNode PartialTypeRule::computeType(NodeManager* nodeManager,
