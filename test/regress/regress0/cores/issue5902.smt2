@@ -1,3 +1,3 @@
 ; COMMAND-LINE: -q
 ; EXPECT: unsat
-(check-sat false)
+(check-sat-assuming (false))

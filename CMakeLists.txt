@@ -146,9 +146,6 @@ set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
-# Build limitations
-option(BUILD_LIB_ONLY         "Only build the library")
-
 # Api documentation
 cvc5_option(BUILD_DOCS "Build Api documentation")
 
@@ -650,8 +647,6 @@ print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FOUND_SYSTEM})
 print_config("LibPoly                   " ${USE_POLY} FOUND_SYSTEM ${Poly_FOUND_SYSTEM})
 print_config("CoCoALib                  " ${USE_COCOA} FOUND_SYSTEM ${CoCoA_FOUND_SYSTEM})
-message("")
-print_config("Build libcvc5 only        " ${BUILD_LIB_ONLY})
 
 if(CVC5_USE_CLN_IMP)
   print_config("MP library                " "cln" FOUND_SYSTEM ${CLN_FOUND_SYSTEM})

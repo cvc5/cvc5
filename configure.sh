@@ -147,8 +147,6 @@ ipo=default
 abc_dir=default
 glpk_dir=default
 
-lib_only=default
-
 #--------------------------------------------------------------------------#
 
 cmake_opts=""
@@ -300,7 +298,6 @@ do
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
-    --lib-only) lib_only=ON ;;
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -403,8 +400,6 @@ fi
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_PREFIX_PATH=$dep_path"
-[ "$lib_only" != default ] \
-    && cmake_opts="$cmake_opts -DBUILD_LIB_ONLY=$lib_only"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \
