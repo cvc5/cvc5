@@ -28,7 +28,7 @@ add_custom_target(
   docs ALL
   DEPENDS docs-cpp docs-java docs-python gen-options
   COMMAND
-    ${SPHINX_EXECUTABLE} -b html -c ${CMAKE_CURRENT_BINARY_DIR}
+    ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
     -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_DIR}
     -Dbreathe_projects.std=${CPP_DOXYGEN_XML_DIR} ${SPHINX_INPUT_DIR}
