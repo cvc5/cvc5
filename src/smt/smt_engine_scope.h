@@ -32,7 +32,7 @@ class StatisticsRegistry;
 
 namespace smt {
 
-SolverEngine* currentSmtEngine();
+SolverEngine* currentSolverEngine();
 bool smtEngineInScope();
 
 /** get the current resource manager */
@@ -51,7 +51,7 @@ class SmtScope
 
  private:
   /** The old SolverEngine, to be restored on destruction. */
-  SolverEngine* d_oldSmtEngine;
+  SolverEngine* d_oldSlvEngine;
   /** Options scope */
   Options::OptionsScope d_optionsScope;
 };/* class SmtScope */
