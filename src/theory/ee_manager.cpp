@@ -20,8 +20,8 @@
 namespace cvc5 {
 namespace theory {
 
-EqEngineManager::EqEngineManager(TheoryEngine& te, SharedSolver& shs)
-    : d_te(te), d_sharedSolver(shs)
+EqEngineManager::EqEngineManager(Env& env, TheoryEngine& te, SharedSolver& shs)
+    : EnvObj(env), d_te(te), d_sharedSolver(shs)
 {
 }
 

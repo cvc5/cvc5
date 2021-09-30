@@ -147,7 +147,7 @@ void TheoryEngine::finishInit()
   // Initialize the theory combination architecture
   if (options::tcMode() == options::TcMode::CARE_GRAPH)
   {
-    d_tc.reset(new CombinationCareGraph(*this, d_env, paraTheories, d_pnm));
+    d_tc.reset(new CombinationCareGraph(d_env, *this, paraTheories));
   }
   else
   {
@@ -203,15 +203,6 @@ void TheoryEngine::finishInit()
     t->finishInit();
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
-}
-
-ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
-
-context::Context* TheoryEngine::getSatContext() const { return context(); }
-
-context::UserContext* TheoryEngine::getUserContext() const
-{
-  return userContext();
 }
 
 TheoryEngine::TheoryEngine(Env& env)
