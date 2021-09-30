@@ -71,7 +71,7 @@ class PropEngine
   void finishInit();
 
   /**
-   * This is called by SmtEngine, at shutdown time, just before
+   * This is called by SolverEngine, at shutdown time, just before
    * destruction.  It is important because there are destruction
    * ordering issues between some parts of the system (notably between
    * PropEngine and Theory).  For now, there's nothing to do here in

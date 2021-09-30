@@ -54,12 +54,12 @@ class TrustSubstitutionMap;
 /**
  * The environment class.
  *
- * This class lives in the SmtEngine and contains all utilities that are
+ * This class lives in the SolverEngine and contains all utilities that are
  * globally available to all internal code.
  */
 class Env
 {
-  friend class SmtEngine;
+  friend class SolverEngine;
   friend class smt::PfManager;
 
  public:
@@ -82,8 +82,8 @@ class Env
 
   /**
    * Get the underlying proof node manager. Note since proofs depend on option
-   * initialization, this is only available after the SmtEngine that owns this
-   * environment is initialized, and only non-null if proofs are enabled.
+   * initialization, this is only available after the SolverEngine that owns
+   * this environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
 
@@ -217,12 +217,12 @@ class Env
   std::unique_ptr<context::UserContext> d_userContext;
   /**
    * A pointer to the node manager of this environment. A node manager is
-   * not necessarily unique to an SmtEngine instance.
+   * not necessarily unique to an SolverEngine instance.
    */
   NodeManager* d_nodeManager;
   /**
    * A pointer to the proof node manager, which is non-null if proofs are
-   * enabled. This is owned by the proof manager of the SmtEngine that owns
+   * enabled. This is owned by the proof manager of the SolverEngine that owns
    * this environment.
    */
   ProofNodeManager* d_proofNodeManager;
@@ -230,7 +230,7 @@ class Env
    * The rewriter owned by this Env. We have a different instance
    * of the rewriter for each Env instance. This is because rewriters may
    * hold references to objects that belong to theory solvers, which are
-   * specific to an SmtEngine/TheoryEngine instance.
+   * specific to an SolverEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
   /** Evaluator that also invokes the rewriter */
@@ -256,7 +256,7 @@ class Env
   std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
   /**
    * The options object, which contains the modified version of the options
-   * provided as input to the SmtEngine that owns this environment. Note
+   * provided as input to the SolverEngine that owns this environment. Note
    * that d_options may be modified by the options manager, e.g. based
    * on the input logic.
    *

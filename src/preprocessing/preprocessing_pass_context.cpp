@@ -25,11 +25,11 @@ namespace cvc5 {
 namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
-    SmtEngine* smt,
+    SolverEngine* slv,
     Env& env,
     theory::booleans::CircuitPropagator* circuitPropagator)
     : EnvObj(env),
-      d_smt(smt),
+      d_slv(slv),
       d_circuitPropagator(circuitPropagator),
       d_llm(
           env.getTopLevelSubstitutions(), userContext(), getProofNodeManager()),
@@ -45,11 +45,11 @@ PreprocessingPassContext::getTopLevelSubstitutions() const
 
 TheoryEngine* PreprocessingPassContext::getTheoryEngine() const
 {
-  return d_smt->getTheoryEngine();
+  return d_slv->getTheoryEngine();
 }
 prop::PropEngine* PreprocessingPassContext::getPropEngine() const
 {
-  return d_smt->getPropEngine();
+  return d_slv->getPropEngine();
 }
 
 void PreprocessingPassContext::spendResource(Resource r)

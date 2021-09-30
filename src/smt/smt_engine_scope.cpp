@@ -26,9 +26,10 @@
 namespace cvc5 {
 namespace smt {
 
-thread_local SmtEngine* s_smtEngine_current = NULL;
+thread_local SolverEngine* s_smtEngine_current = NULL;
 
-SmtEngine* currentSmtEngine() {
+SolverEngine* currentSmtEngine()
+{
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current;
 }
@@ -40,12 +41,13 @@ ResourceManager* currentResourceManager()
   return s_smtEngine_current->getResourceManager();
 }
 
-SmtScope::SmtScope(const SmtEngine* smt)
+SmtScope::SmtScope(const SolverEngine* smt)
     : d_oldSmtEngine(s_smtEngine_current),
-      d_optionsScope(smt ? &const_cast<SmtEngine*>(smt)->getOptions() : nullptr)
+      d_optionsScope(smt ? &const_cast<SolverEngine*>(smt)->getOptions()
+                         : nullptr)
 {
   Assert(smt != NULL);
-  s_smtEngine_current = const_cast<SmtEngine*>(smt);
+  s_smtEngine_current = const_cast<SolverEngine*>(smt);
   Debug("current") << "smt scope: " << s_smtEngine_current << std::endl;
 }
 

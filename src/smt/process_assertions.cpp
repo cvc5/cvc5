@@ -57,10 +57,10 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt,
+ProcessAssertions::ProcessAssertions(SolverEngine& slv,
                                      ResourceManager& rm,
                                      SmtEngineStatistics& stats)
-    : d_smt(smt),
+    : d_slv(slv),
       d_resourceManager(rm),
       d_smtStats(stats),
       d_preprocessingPassContext(nullptr)
@@ -229,7 +229,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["sep-skolem-emp"]->apply(&assertions);
   }
 
-  if (d_smt.getLogicInfo().isQuantified())
+  if (d_slv.getLogicInfo().isQuantified())
   {
     // remove rewrite rules, apply pre-skolemization to existential quantifiers
     d_passes["quantifiers-preprocess"]->apply(&assertions);
@@ -256,7 +256,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (!d_smt.isInternalSubsolver())
+  if (!d_slv.isInternalSubsolver())
   {
     if (options::sygusInference())
     {
@@ -378,7 +378,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
       if (  // check that option is on
           options::arithMLTrick() &&
           // only useful in arith
-          d_smt.getLogicInfo().isTheoryEnabled(THEORY_ARITH) &&
+          d_slv.getLogicInfo().isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
@@ -453,8 +453,8 @@ void ProcessAssertions::dumpAssertions(const char* key,
     for (unsigned i = 0; i < assertionList.size(); ++i)
     {
       TNode n = assertionList[i];
-      d_smt.getOutputManager().getPrinter().toStreamCmdAssert(
-          d_smt.getOutputManager().getDumpOut(), n);
+      d_slv.getOutputManager().getPrinter().toStreamCmdAssert(
+          d_slv.getOutputManager().getDumpOut(), n);
     }
   }
 }
