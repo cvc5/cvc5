@@ -47,7 +47,7 @@ class CardinalityConstraint
   const TypeNode& getType() const;
   /** Get the upper bound value of the cardinality constraint */
   const Integer& getUpperBound() const;
-  
+
   bool operator==(const CardinalityConstraint& cc) const;
   bool operator!=(const CardinalityConstraint& cc) const;
   bool operator<(const CardinalityConstraint& cc) const;
@@ -64,6 +64,6 @@ class CardinalityConstraint
 
 std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc);
 
-}
+}  // namespace cvc5
 
 #endif /* CVC5__EXPR__CARDINALITY_CONSTRAINT_H */

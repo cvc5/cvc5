@@ -21,19 +21,30 @@
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc) {
-  return out << "fmf.card(" << cc.getType() << ", " << cc.getUpperBound() << ')';
+std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc)
+{
+  return out << "fmf.card(" << cc.getType() << ", " << cc.getUpperBound()
+             << ')';
 }
 
 /**
  * Constructs an emptyset of the specified type. Note that the argument
  * is the type of the set itself, NOT the type of the elements.
  */
-CardinalityConstraint::CardinalityConstraint(const TypeNode& setType, const Integer& ub) : d_type(new TypeNode(setType)), d_ubound(ub) {}
+CardinalityConstraint::CardinalityConstraint(const TypeNode& setType,
+                                             const Integer& ub)
+    : d_type(new TypeNode(setType)), d_ubound(ub)
+{
+}
 
-CardinalityConstraint::CardinalityConstraint(const CardinalityConstraint& cc) : d_type(new TypeNode(cc.getType())), d_ubound(cc.getUpperBound()) {}
+CardinalityConstraint::CardinalityConstraint(const CardinalityConstraint& cc)
+    : d_type(new TypeNode(cc.getType())), d_ubound(cc.getUpperBound())
+{
+}
 
-CardinalityConstraint& CardinalityConstraint::operator=(const CardinalityConstraint& cc) {
+CardinalityConstraint& CardinalityConstraint::operator=(
+    const CardinalityConstraint& cc)
+{
   (*d_type) = cc.getType();
   d_ubound = cc.getUpperBound();
   return *this;
@@ -47,10 +58,13 @@ const TypeNode& CardinalityConstraint::getType() const { return *d_type; }
 
 bool CardinalityConstraint::operator==(const CardinalityConstraint& cc) const
 {
-  return getType() == cc.getType() && getUpperBound()==cc.getUpperBound();
+  return getType() == cc.getType() && getUpperBound() == cc.getUpperBound();
 }
 
-bool CardinalityConstraint::operator!=(const CardinalityConstraint& cc) const { return !(*this == cc); }
+bool CardinalityConstraint::operator!=(const CardinalityConstraint& cc) const
+{
+  return !(*this == cc);
+}
 bool CardinalityConstraint::operator<(const CardinalityConstraint& cc) const
 {
   return getType() < cc.getType();
@@ -61,8 +75,14 @@ bool CardinalityConstraint::operator<=(const CardinalityConstraint& cc) const
   return getType() <= cc.getType();
 }
 
-bool CardinalityConstraint::operator>(const CardinalityConstraint& cc) const { return !(*this <= cc); }
+bool CardinalityConstraint::operator>(const CardinalityConstraint& cc) const
+{
+  return !(*this <= cc);
+}
 
-bool CardinalityConstraint::operator>=(const CardinalityConstraint& cc) const { return !(*this < cc); }
+bool CardinalityConstraint::operator>=(const CardinalityConstraint& cc) const
+{
+  return !(*this < cc);
+}
 
 }  // namespace cvc5
