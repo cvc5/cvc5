@@ -24,6 +24,7 @@
 #include "api/cpp/cvc5.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
@@ -56,7 +57,6 @@
 #include "util/regexp.h"
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
-#include "expr/cardinality_constraint.h"
 
 using namespace std;
 
@@ -332,7 +332,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-    case kind::CARDINALITY_CONSTRAINT: 
+    case kind::CARDINALITY_CONSTRAINT:
       out << "(_ fmf.card ";
       out << n.getConst<CardinalityConstraint>().getType();
       out << " ";
@@ -343,7 +343,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ fmf.combined_card ";
       out << n.getConst<CardinalityConstraint>().getUpperBound();
       out << ")";
-    break;
+      break;
     case kind::EMPTYSET:
       out << "(as emptyset ";
       toStreamType(out, n.getConst<EmptySet>().getType());

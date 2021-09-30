@@ -14,6 +14,7 @@
  */
 #include "theory/theory_model.h"
 
+#include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -23,7 +24,6 @@
 #include "smt/smt_engine.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
-#include "expr/cardinality_constraint.h"
 
 using namespace std;
 using namespace cvc5::kind;
