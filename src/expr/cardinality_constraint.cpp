@@ -21,40 +21,17 @@
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc)
-{
-  return out << "fmf.card(" << cc.getType() << ", " << cc.getUpperBound()
-             << ')';
-}
-
-/**
- * Constructs an emptyset of the specified type. Note that the argument
- * is the type of the set itself, NOT the type of the elements.
- */
 CardinalityConstraint::CardinalityConstraint(const TypeNode& setType,
                                              const Integer& ub)
     : d_type(new TypeNode(setType)), d_ubound(ub)
 {
 }
 
-CardinalityConstraint::CardinalityConstraint(const CardinalityConstraint& cc)
-    : d_type(new TypeNode(cc.getType())), d_ubound(cc.getUpperBound())
-{
-}
-
-CardinalityConstraint& CardinalityConstraint::operator=(
-    const CardinalityConstraint& cc)
-{
-  (*d_type) = cc.getType();
-  d_ubound = cc.getUpperBound();
-  return *this;
-}
-
 CardinalityConstraint::~CardinalityConstraint() {}
 
 const TypeNode& CardinalityConstraint::getType() const { return *d_type; }
 
-const TypeNode& CardinalityConstraint::getType() const { return *d_type; }
+const Integer& CardinalityConstraint::getUpperBound() const { return d_ubound; }
 
 bool CardinalityConstraint::operator==(const CardinalityConstraint& cc) const
 {
@@ -65,24 +42,35 @@ bool CardinalityConstraint::operator!=(const CardinalityConstraint& cc) const
 {
   return !(*this == cc);
 }
-bool CardinalityConstraint::operator<(const CardinalityConstraint& cc) const
+
+std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc)
 {
-  return getType() < cc.getType();
+  return out << "fmf.card(" << cc.getType() << ", " << cc.getUpperBound()
+             << ')';
 }
 
-bool CardinalityConstraint::operator<=(const CardinalityConstraint& cc) const
+CombinedCardinalityConstraint::CombinedCardinalityConstraint(const Integer& ub)
+    : d_ubound(ub)
 {
-  return getType() <= cc.getType();
 }
 
-bool CardinalityConstraint::operator>(const CardinalityConstraint& cc) const
+CombinedCardinalityConstraint::~CombinedCardinalityConstraint() {}
+
+const Integer& CombinedCardinalityConstraint::getUpperBound() const { return d_ubound; }
+
+bool CombinedCardinalityConstraint::operator==(const CombinedCardinalityConstraint& cc) const
 {
-  return !(*this <= cc);
+  return getUpperBound() == cc.getUpperBound();
 }
 
-bool CardinalityConstraint::operator>=(const CardinalityConstraint& cc) const
+bool CombinedCardinalityConstraint::operator!=(const CombinedCardinalityConstraint& cc) const
 {
-  return !(*this < cc);
+  return !(*this == cc);
+}
+
+std::ostream& operator<<(std::ostream& out, const CombinedCardinalityConstraint& cc)
+{
+  return out << "fmf.card(" << cc.getUpperBound() << ')';
 }
 
 }  // namespace cvc5

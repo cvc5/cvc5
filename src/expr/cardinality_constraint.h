@@ -38,10 +38,8 @@ class CardinalityConstraint
    * Constructs a cardinality constraint of the specified type, which should
    * be an uninterpreted sort.
    */
-  CardinalityConstraint(const TypeNode& setType, const Integer& ub);
+  CardinalityConstraint(const TypeNode& ufType, const Integer& ub);
   ~CardinalityConstraint();
-  CardinalityConstraint(const CardinalityConstraint& other);
-  CardinalityConstraint& operator=(const CardinalityConstraint& other);
 
   /** Get the type of the cardinality constraint */
   const TypeNode& getType() const;
@@ -50,20 +48,45 @@ class CardinalityConstraint
 
   bool operator==(const CardinalityConstraint& cc) const;
   bool operator!=(const CardinalityConstraint& cc) const;
-  bool operator<(const CardinalityConstraint& cc) const;
-  bool operator<=(const CardinalityConstraint& cc) const;
-  bool operator>(const CardinalityConstraint& cc) const;
-  bool operator>=(const CardinalityConstraint& cc) const;
 
  private:
   CardinalityConstraint();
-
+  /** The type that the cardinality constraint is for */
   std::unique_ptr<TypeNode> d_type;
+  /** The upper bound on the cardinality of the above type */
   const Integer d_ubound;
 };
 
 std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc);
 
+/**
+ * A combined cardinality constraint, handled in the cardinality extension of the UF
+ * solver, used for finite model finding for bounding the sum of cardinalities of all uninterpreted sorts.
+ */
+class CombinedCardinalityConstraint
+{
+ public:
+  /**
+   * Constructs a cardinality constraint of the specified type, which should
+   * be an uninterpreted sort.
+   */
+  CombinedCardinalityConstraint(const Integer& ub);
+  ~CombinedCardinalityConstraint();
+
+  /** Get the upper bound value of the cardinality constraint */
+  const Integer& getUpperBound() const;
+
+  bool operator==(const CombinedCardinalityConstraint& cc) const;
+  bool operator!=(const CombinedCardinalityConstraint& cc) const;
+
+ private:
+  CombinedCardinalityConstraint();
+  /** The upper bound on the cardinality of the above type */
+  const Integer d_ubound;
+};
+
+std::ostream& operator<<(std::ostream& out, const CombinedCardinalityConstraint& cc);
+
 }  // namespace cvc5
 
-#endif /* CVC5__EXPR__CARDINALITY_CONSTRAINT_H */
+#endif
