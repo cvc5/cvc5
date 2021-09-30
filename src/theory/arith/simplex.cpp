@@ -19,6 +19,7 @@
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/error_set.h"
 #include "theory/arith/linear_equality.h"
@@ -31,26 +32,31 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-
-SimplexDecisionProcedure::SimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-  : d_pivots(0)
-  , d_conflictVariables()
-  , d_linEq(linEq)
-  , d_variables(d_linEq.getVariables())
-  , d_tableau(d_linEq.getTableau())
-  , d_errorSet(errors)
-  , d_numVariables(0)
-  , d_conflictChannel(conflictChannel)
-  , d_conflictBuilder(NULL)
-  , d_arithVarMalloc(tvmalloc)
-  , d_errorSize(0)
-  , d_zero(0)
-  , d_posOne(1)
-  , d_negOne(-1)
+SimplexDecisionProcedure::SimplexDecisionProcedure(
+    Env& env,
+    LinearEqualityModule& linEq,
+    ErrorSet& errors,
+    RaiseConflict conflictChannel,
+    TempVarMalloc tvmalloc)
+    : EnvObj(env),
+      d_pivots(0),
+      d_conflictVariables(),
+      d_linEq(linEq),
+      d_variables(d_linEq.getVariables()),
+      d_tableau(d_linEq.getTableau()),
+      d_errorSet(errors),
+      d_numVariables(0),
+      d_conflictChannel(conflictChannel),
+      d_conflictBuilder(NULL),
+      d_arithVarMalloc(tvmalloc),
+      d_errorSize(0),
+      d_zero(0),
+      d_posOne(1),
+      d_negOne(-1)
 {
-  d_heuristicRule = options::arithErrorSelectionRule();
+  d_heuristicRule = options().arith.arithErrorSelectionRule;
   d_errorSet.setSelectionRule(d_heuristicRule);
-  d_conflictBuilder = new FarkasConflictBuilder(options::produceProofs());
+  d_conflictBuilder = new FarkasConflictBuilder(options().smt.produceProofs);
 }
 
 SimplexDecisionProcedure::~SimplexDecisionProcedure(){

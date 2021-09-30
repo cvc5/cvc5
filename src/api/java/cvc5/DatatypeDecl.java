@@ -30,8 +30,7 @@ public class DatatypeDecl extends AbstractPointer
     return pointer;
   }
 
-  @Override
-  public void finalize()
+  @Override public void finalize()
   {
     deletePointer(pointer);
   }

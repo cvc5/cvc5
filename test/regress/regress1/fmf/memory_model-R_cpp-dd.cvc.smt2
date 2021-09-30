@@ -27,5 +27,5 @@
 (declare-fun ev_set () (Set |__cvc5_record_O_MOPERATION_T_TEAR_TYPE_R_ORDER_A_ATOM_B_SDBLOCK_TYPE_M_(Set BINT)_V_VALUE_TYPE|))
 (assert (= ev_set (union (singleton ow1) (singleton or2))))
 (declare-fun RF () (Set (Tuple |__cvc5_record_O_MOPERATION_T_TEAR_TYPE_R_ORDER_A_ATOM_B_SDBLOCK_TYPE_M_(Set BINT)_V_VALUE_TYPE| |__cvc5_record_O_MOPERATION_T_TEAR_TYPE_R_ORDER_A_ATOM_B_SDBLOCK_TYPE_M_(Set BINT)_V_VALUE_TYPE|)))
-(assert (forall ((r |__cvc5_record_O_MOPERATION_T_TEAR_TYPE_R_ORDER_A_ATOM_B_SDBLOCK_TYPE_M_(Set BINT)_V_VALUE_TYPE|) (w |__cvc5_record_O_MOPERATION_T_TEAR_TYPE_R_ORDER_A_ATOM_B_SDBLOCK_TYPE_M_(Set BINT)_V_VALUE_TYPE|)) (=> (and (member r ev_set) (member w ev_set)) (= (member (mkTuple r w) RF) (and (= (O r) R) (= (O w) W))))))
+(assert (forall ((r |__cvc5_record_O_MOPERATION_T_TEAR_TYPE_R_ORDER_A_ATOM_B_SDBLOCK_TYPE_M_(Set BINT)_V_VALUE_TYPE|) (w |__cvc5_record_O_MOPERATION_T_TEAR_TYPE_R_ORDER_A_ATOM_B_SDBLOCK_TYPE_M_(Set BINT)_V_VALUE_TYPE|)) (=> (and (member r ev_set) (member w ev_set)) (= (member (tuple r w) RF) (and (= (O r) R) (= (O w) W))))))
 (check-sat)
