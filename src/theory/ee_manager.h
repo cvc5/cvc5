@@ -21,10 +21,10 @@
 #include <map>
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 

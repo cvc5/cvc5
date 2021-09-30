@@ -26,9 +26,7 @@ namespace cvc5 {
 namespace theory {
 
 CombinationCareGraph::CombinationCareGraph(
-    Env& env,
-    TheoryEngine& te,
-    const std::vector<Theory*>& paraTheories)
+    Env& env, TheoryEngine& te, const std::vector<Theory*>& paraTheories)
     : CombinationEngine(env, te, paraTheories)
 {
 }

@@ -15,24 +15,23 @@
 
 #include "theory/ee_manager_central.h"
 
+#include "smt/env.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_state.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
 
-EqEngineManagerCentral::EqEngineManagerCentral(Env& env, 
+EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
                                                TheoryEngine& te,
                                                SharedSolver& shs)
     : EqEngineManager(env, te, shs),
       d_masterEENotify(nullptr),
       d_masterEqualityEngine(nullptr),
       d_centralEENotify(*this),
-      d_centralEqualityEngine(
-          d_centralEENotify, context(), "central::ee", true)
+      d_centralEqualityEngine(d_centralEENotify, context(), "central::ee", true)
 {
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
