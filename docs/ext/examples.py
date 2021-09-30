@@ -32,6 +32,7 @@ class APIExamples(SphinxDirective):
     logger = logging.getLogger(__name__)
 
     def run(self):
+        self.state.document.settings.env.note_dependency(__file__)
         # collect everything in a list of strings
         content = ['.. tabs::', '']
 
@@ -58,7 +59,7 @@ class APIExamples(SphinxDirective):
             content.append(f'            :linenos:')
 
         for r in remaining:
-            self.logger.warning(f'{location} has no {r} example')
+            self.logger.warning(f'{location} has no {r} example!')
 
         # parse the string list
         node = nodes.Element()
