@@ -186,6 +186,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       Notice() << "SmtEngine: turning off produce-proofs due to "
                << reasonNoProofs.str() << "." << std::endl;
       opts.smt.produceProofs = false;
+      opts.proof.proofReq = false;
       opts.smt.checkProofs = false;
     }
   }
