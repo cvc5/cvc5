@@ -69,27 +69,13 @@ TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    // don't care what it is, but it should be well-typed
-    n[0].getType(check);
-
-    TypeNode valType = n[1].getType(check);
-    if (valType != nodeManager->integerType())
+    CardinalityConstraint cc = n.getConst<CardinalityConstraint>();
+    if (!cc.getType().isSort())
     {
       throw TypeCheckingExceptionPrivate(
-          n, "cardinality constraint must be integer");
+          n, "cardinality constraint must apply to uninterpreted sort");
     }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "cardinality constraint must be a constant");
-    }
-    cvc5::Rational r(INT_MAX);
-    if (n[1].getConst<Rational>() > r)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "Exceeded INT_MAX in cardinality constraint");
-    }
-    if (n[1].getConst<Rational>().getNumerator().sgn() != 1)
+    if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(
           n, "cardinality constraint must be positive");
@@ -103,27 +89,11 @@ TypeNode CombinedCardinalityConstraintTypeRule::computeType(
 {
   if (check)
   {
-    TypeNode valType = n[0].getType(check);
-    if (valType != nodeManager->integerType())
+    CombinedCardinalityConstraint cc = n.getConst<CombinedCardinalityConstraint>();
+    if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be integer");
-    }
-    if (n[0].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be a constant");
-    }
-    cvc5::Rational r(INT_MAX);
-    if (n[0].getConst<Rational>() > r)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "Exceeded INT_MAX in combined cardinality constraint");
-    }
-    if (n[0].getConst<Rational>().getNumerator().sgn() == -1)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be non-negative");
+          n, "combined cardinality constraint must be positive");
     }
   }
   return nodeManager->booleanType();
