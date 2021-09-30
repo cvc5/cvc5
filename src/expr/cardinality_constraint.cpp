@@ -56,19 +56,25 @@ CombinedCardinalityConstraint::CombinedCardinalityConstraint(const Integer& ub)
 
 CombinedCardinalityConstraint::~CombinedCardinalityConstraint() {}
 
-const Integer& CombinedCardinalityConstraint::getUpperBound() const { return d_ubound; }
+const Integer& CombinedCardinalityConstraint::getUpperBound() const
+{
+  return d_ubound;
+}
 
-bool CombinedCardinalityConstraint::operator==(const CombinedCardinalityConstraint& cc) const
+bool CombinedCardinalityConstraint::operator==(
+    const CombinedCardinalityConstraint& cc) const
 {
   return getUpperBound() == cc.getUpperBound();
 }
 
-bool CombinedCardinalityConstraint::operator!=(const CombinedCardinalityConstraint& cc) const
+bool CombinedCardinalityConstraint::operator!=(
+    const CombinedCardinalityConstraint& cc) const
 {
   return !(*this == cc);
 }
 
-std::ostream& operator<<(std::ostream& out, const CombinedCardinalityConstraint& cc)
+std::ostream& operator<<(std::ostream& out,
+                         const CombinedCardinalityConstraint& cc)
 {
   return out << "fmf.card(" << cc.getUpperBound() << ')';
 }
