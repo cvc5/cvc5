@@ -12,5 +12,5 @@
 (assert (or (< a 1) (> c 1)))
 (check-sat)
 (assert (= b (- 1)))
-(check-sat true)
+(check-sat-assuming (true))
 (check-sat)

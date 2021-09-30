@@ -63,8 +63,6 @@ libcvc5_add_sources(
   options/options_handler.h
   options/options_listener.h
   options/options_public.h
-  options/outputc.cpp
-  options/outputc.h
   options/set_language.cpp
   options/set_language.h
   preprocessing/assertion_pipeline.cpp
@@ -1069,6 +1067,8 @@ libcvc5_add_sources(
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/array_solver.cpp
+  theory/strings/array_solver.h
   theory/strings/arith_entail.cpp
   theory/strings/arith_entail.h
   theory/strings/base_solver.cpp
@@ -1309,10 +1309,8 @@ set(REWRITES_FILES
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
-if (NOT BUILD_LIB_ONLY)
-  add_subdirectory(parser)
-endif()
 add_subdirectory(rewriter)
+add_subdirectory(parser)
 add_subdirectory(theory)
 add_subdirectory(util)
 
@@ -1380,20 +1378,13 @@ target_link_libraries(cvc5 PRIVATE SymFPU)
 # depends on GMP.
 target_link_libraries(cvc5 PRIVATE GMP)
 
-# Add rt library
-# Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
-#       RT_LIBRARIES should be empty for glibc >= 2.17
-target_link_libraries(cvc5 PRIVATE ${RT_LIBRARIES})
-
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have
 # to manually add library dependencies since we can't use
 # target_link_libraries(...) with object libraries for cmake versions <= 3.12.
 # Thus, we can only visit main as soon as all dependencies for cvc5 are set up.
 
-if (NOT BUILD_LIB_ONLY)
-  add_subdirectory(main)
-endif()
+add_subdirectory(main)
 
 #-----------------------------------------------------------------------------#
 # Install public API headers

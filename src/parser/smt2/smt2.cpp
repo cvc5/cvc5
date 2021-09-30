@@ -676,6 +676,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
+    defineVar("sep.emp", d_solver->mkTerm(api::SEP_EMP));
 
     addSepOperators();
   }

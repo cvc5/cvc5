@@ -782,7 +782,7 @@ Result SmtEngine::checkSat(const Node& assumption)
 {
   if (Dump.isOn("benchmark"))
   {
-    getPrinter().toStreamCmdCheckSat(d_env->getDumpOut(), assumption);
+    getPrinter().toStreamCmdCheckSatAssuming(d_env->getDumpOut(), {assumption});
   }
   std::vector<Node> assump;
   if (!assumption.isNull())
