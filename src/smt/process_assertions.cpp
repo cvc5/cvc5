@@ -33,8 +33,8 @@
 #include "smt/assertions.h"
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_stats.h"
+#include "smt/solver_engine.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 

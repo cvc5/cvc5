@@ -17,7 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 

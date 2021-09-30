@@ -16,7 +16,7 @@
 #include "smt/output_manager.h"
 
 #include "options/base_options.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 

@@ -15,7 +15,7 @@
 
 #include "expr/node_manager.h"
 #include "preprocessing/passes/foreign_theory_rewrite.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "test_smt.h"
 #include "util/rational.h"
 
