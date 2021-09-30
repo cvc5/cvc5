@@ -1706,7 +1706,6 @@ public class Solver implements IPointer
    * @param funs the sorted functions
    * @param boundVars the list of parameters to the functions
    * @param terms the list of function bodies of the functions
-   * @return the function
    */
   public void defineFunsRec(Term[] funs, Term[][] boundVars, Term[] terms)
   {
@@ -1724,7 +1723,6 @@ public class Solver implements IPointer
    * @param terms the list of function bodies of the functions
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
-   * @return the function
    */
   public void defineFunsRec(Term[] funs, Term[][] boundVars, Term[] terms, boolean global)
   {
@@ -1769,7 +1767,7 @@ public class Solver implements IPointer
 
   /**
    * Get info from the solver.
-   * SMT-LIB: {@code( get-info <info_flag> ){@code
+   * SMT-LIB: {@code ( get-info <info_flag> ) }
    * @return the info
    */
   public String getInfo(String flag)
@@ -1941,16 +1939,16 @@ public class Solver implements IPointer
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
    * @return a formula ret such that, given the current set of formulas A
    * asserted to this solver:
-   *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
+   *   - {@code (A ^ q) => (A ^ ret)} if Q is forall or {@code (A ^ ret) => (A ^ q)} if Q is
    *     exists,
    *   - ret is quantifier-free formula containing only free variables in
    *     y1...yn,
    *   - If Q is exists, let A^Q_n be the formula
-   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
+   *       {@code A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n}
    *     where for each i=1,...n, formula ret^Q_i is the result of calling
    *     getQuantifierEliminationDisjunct for q with the set of assertions
-   *     A^Q_{i-1}. Similarly, if Q is forall, then let A^Q_n be
-   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
+   *     {@code A^Q_{i-1}}. Similarly, if Q is forall, then let {@code A^Q_n} be
+   *       {@code A ^ ret^Q_1 ^ ... ^ ret^Q_n }
    *     where ret^Q_i is the same as above. In either case, we have
    *     that ret^Q_j will eventually be true or false, for some finite j.
    */
@@ -2037,7 +2035,7 @@ public class Solver implements IPointer
    * }
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
-   * @param output a Term I such that A->I and I->B are valid, where A is the
+   * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
@@ -2057,7 +2055,7 @@ public class Solver implements IPointer
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
-   * @param output a Term I such that A->I and I->B are valid, where A is the
+   * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
