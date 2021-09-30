@@ -284,14 +284,14 @@ class TheorySep : public Theory {
   std::map< Node, HeapAssertInfo * > d_eqc_info;
   HeapAssertInfo * getOrMakeEqcInfo( Node n, bool doMake = false );
 
-  //get global reference/data type
-  TypeNode getReferenceType( Node n );
-  TypeNode getDataType( Node n );
   /**
-   * Register reference data types for atom. Calls the method below for
-   * the appropriate types.
+   * Ensure that reference and data types have been set to something that is
+   * non-null, and compatible with separation logic constraint atom.
    */
-  void registerRefDataTypesAtom(Node atom);
+  void ensureHeapTypesFor(Node atom) const;
+  // get global reference/data type
+  TypeNode getReferenceType() const;
+  TypeNode getDataType() const;
   /**
    * This is called either when:
    * (A) a declare-heap command is issued with tn1/tn2, and atom is null, or
