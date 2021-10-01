@@ -26,6 +26,7 @@
 #include "expr/term_context.h"
 #include "proof/trust_node.h"
 #include "util/hash.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -33,9 +34,9 @@ class LazyCDProof;
 class ProofNodeManager;
 class TConvProofGenerator;
 
-class RemoveTermFormulas {
+class RemoveTermFormulas : protected EnvObj {
  public:
-  RemoveTermFormulas(context::UserContext* u, ProofNodeManager* pnm = nullptr);
+  RemoveTermFormulas(Env& env);
   ~RemoveTermFormulas();
 
   /**
@@ -164,8 +165,6 @@ class RemoveTermFormulas {
    */
   inline Node getSkolemForNode(Node node) const;
 
-  /** Pointer to a proof node manager */
-  ProofNodeManager* d_pnm;
   /**
    * A proof generator for the term conversion.
    */
@@ -203,9 +202,6 @@ class RemoveTermFormulas {
    * returns the null node.
    */
   Node runCurrent(std::pair<Node, uint32_t>& curr, TrustNode& newLem);
-
-  /** Whether proofs are enabled */
-  bool isProofEnabled() const;
 };/* class RemoveTTE */
 
 }  // namespace cvc5

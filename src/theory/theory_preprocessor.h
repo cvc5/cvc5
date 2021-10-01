@@ -70,15 +70,14 @@ namespace theory {
  * rewrite a theory atom into a formula, e.g. quantifiers miniscoping. This
  * impacts what the inner traversal is applied to.
  */
-class TheoryPreprocessor
+class TheoryPreprocessor : protected EnvObj
 {
   typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
   /** Constructs a theory preprocessor */
-  TheoryPreprocessor(TheoryEngine& engine,
-                     context::UserContext* userContext,
-                     ProofNodeManager* pnm = nullptr);
+  TheoryPreprocessor(Env& env,
+                     TheoryEngine& engine);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
   /**

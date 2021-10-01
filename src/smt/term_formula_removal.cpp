@@ -28,26 +28,26 @@ using namespace std;
 
 namespace cvc5 {
 
-RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
-                                       ProofNodeManager* pnm)
-    : d_tfCache(u),
-      d_skolem_cache(u),
-      d_pnm(pnm),
+RemoveTermFormulas::RemoveTermFormulas(EnvObj& env)
+    : EnvObj(env),
+      d_tfCache(userContext()),
+      d_skolem_cache(userContext()),
       d_tpg(nullptr),
       d_lp(nullptr)
 {
   // enable proofs if necessary
-  if (d_pnm != nullptr)
+  if (env.isTheoryProofProducing())
   {
+    ProofNodeManager * pnm = env.getProofNodeManager();
     d_tpg.reset(
-        new TConvProofGenerator(d_pnm,
+        new TConvProofGenerator(pnm,
                                 nullptr,
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
                                 "RemoveTermFormulas::TConvProofGenerator",
                                 &d_rtfc));
     d_lp.reset(new LazyCDProof(
-        d_pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
+        pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }
 }
 
@@ -103,7 +103,7 @@ TrustNode RemoveTermFormulas::runLemma(TrustNode lem,
   }
   Assert(trn.getKind() == TrustNodeKind::REWRITE);
   Node newAssertion = trn.getNode();
-  if (!isProofEnabled())
+  if (!d_env.isTheoryProofProducing())
   {
     // proofs not enabled, just take result
     return TrustNode::mkTrustLemma(newAssertion, nullptr);
@@ -536,7 +536,5 @@ ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
 {
   return d_tpg.get();
 }
-
-bool RemoveTermFormulas::isProofEnabled() const { return d_pnm != nullptr; }
 
 }  // namespace cvc5
