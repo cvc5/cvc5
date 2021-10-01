@@ -37,7 +37,7 @@ RemoveTermFormulas::RemoveTermFormulas(EnvObj& env)
 {
   // enable proofs if necessary
   ProofNodeManager* pnm = env.getProofNodeManager();
-  if (pnm!=nullptr)
+  if (pnm != nullptr)
   {
     d_tpg.reset(
         new TConvProofGenerator(pnm,
