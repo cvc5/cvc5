@@ -40,8 +40,9 @@ namespace options {
  *
  * Most functions can throw an OptionException on failure.
  */
-class OptionsHandler {
-public:
+class OptionsHandler
+{
+ public:
   OptionsHandler(Options* options);
 
   template <typename T>
@@ -178,8 +179,8 @@ public:
   void setDumpStream(const std::string& option,
                      const std::string& flag,
                      const ManagedOut& mo);
- private:
 
+ private:
   /** Pointer to the containing Options object.*/
   Options* d_options;
 }; /* class OptionHandler */
