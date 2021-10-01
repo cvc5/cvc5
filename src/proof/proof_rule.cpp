@@ -202,6 +202,7 @@ const char* toString(PfRule id)
     case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
     //================================================= External rules
     case PfRule::LFSC_RULE: return "LFSC_RULE";
+    case PfRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

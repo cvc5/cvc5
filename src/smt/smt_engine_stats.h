@@ -25,7 +25,7 @@ namespace smt {
 
 struct SmtEngineStatistics
 {
-  SmtEngineStatistics(const std::string& name = "smt::SmtEngine::");
+  SmtEngineStatistics(const std::string& name = "smt::SolverEngine::");
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** number of constant propagations found during nonclausal simp */

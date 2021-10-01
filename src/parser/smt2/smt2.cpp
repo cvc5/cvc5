@@ -676,6 +676,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
+    defineVar("sep.emp", d_solver->mkTerm(api::SEP_EMP));
 
     addSepOperators();
   }
@@ -685,7 +686,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     // If not from a command, just set the logic directly. Notice this is
     // important since we do not want to enqueue a set-logic command and
-    // fully initialize the underlying SmtEngine in the meantime before the
+    // fully initialize the underlying SolverEngine in the meantime before the
     // command has a chance to execute, which would lead to an error.
     d_solver->setLogic(logic);
     return nullptr;

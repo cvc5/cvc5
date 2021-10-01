@@ -41,7 +41,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -736,7 +736,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
+      out << "tuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
     }
     break;
   }
@@ -768,7 +768,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tupSel " << DType::indexOf(op) << ") ";
+      out << "(_ tuple_select " << DType::indexOf(op) << ") ";
     }
   }
   break;
@@ -965,7 +965,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
   case kind::IAND: return "iand";
-  case kind::POW2: return "POW2";
+  case kind::POW2: return "int.pow2";
   case kind::EXPONENTIAL: return "exp";
   case kind::SINE: return "sin";
   case kind::COSINE: return "cos";
@@ -1169,6 +1169,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_LT: return "str.<";
   case kind::STRING_FROM_CODE: return "str.from_code";
   case kind::STRING_TO_CODE: return "str.to_code";
+  case Kind::STRING_IS_DIGIT: return "str.is_digit";
   case kind::STRING_ITOS: return "str.from_int";
   case kind::STRING_STOI: return "str.to_int";
   case kind::STRING_IN_REGEXP: return "str.in_re";
@@ -1363,23 +1364,9 @@ void Smt2Printer::toStreamCmdPop(std::ostream& out) const
   out << "(pop 1)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
+void Smt2Printer::toStreamCmdCheckSat(std::ostream& out) const
 {
-  if (!n.isNull())
-  {
-    toStreamCmdPush(out);
-    out << std::endl;
-    toStreamCmdAssert(out, n);
-    out << std::endl;
-    toStreamCmdCheckSat(out);
-    out << std::endl;
-    toStreamCmdPop(out);
-  }
-  else
-  {
-    out << "(check-sat)";
-  }
-  out << std::endl;
+  out << "(check-sat)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSatAssuming(
@@ -1636,7 +1623,8 @@ void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
                                      const std::string& value) const
 {
-    out << "(set-info :" << flag << " |" << value << "|)" << std::endl;
+  out << "(set-info :" << flag << " " << cvc5::quoteSymbol(value) << ")"
+      << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,

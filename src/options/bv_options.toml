@@ -224,3 +224,11 @@ name   = "Bitvector Theory"
   default    = "false"
   help       = "assert input assertions on user-level 0 instead of assuming them in the bit-vector SAT solver"
 
+
+[[option]]
+  name       = "rwExtendEq"
+  category   = "expert"
+  long       = "bv-rw-extend-eq"
+  type       = "bool"
+  default    = "false"
+  help       = "enable additional rewrites over zero/sign extend over equalities with constants (useful on BV/2017-Preiner-scholl-smt08)"

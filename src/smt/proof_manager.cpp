@@ -19,6 +19,8 @@
 #include "options/main_options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
+#include "proof/alethe/alethe_node_converter.h"
+#include "proof/alethe/alethe_post_processor.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -60,13 +62,13 @@ PfManager::PfManager(Env& env)
   // where A is an available assumption from outside the scope (note
   // that B1 was an assumption of this SCOPE subproof but since it could
   // be inferred from A, it was updated). This shape is problematic for
-  // the veriT reconstruction, so we disable the update of scoped
+  // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
   d_pfpp.reset(new ProofPostproccess(
       env,
       d_pppg.get(),
       nullptr,
-      options::proofFormatMode() != options::ProofFormatMode::VERIT));
+      options::proofFormatMode() != options::ProofFormatMode::ALETHE));
 
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
@@ -103,12 +105,12 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
+  Trace("smt-proof") << "SolverEngine::setFinalProof(): get proof body...\n";
 
   if (Trace.isOn("smt-proof-debug"))
   {
     Trace("smt-proof-debug")
-        << "SmtEngine::setFinalProof(): Proof node for false:\n";
+        << "SolverEngine::setFinalProof(): Proof node for false:\n";
     Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
@@ -118,18 +120,19 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 
   if (Trace.isOn("smt-proof"))
   {
-    Trace("smt-proof") << "SmtEngine::setFinalProof(): get free assumptions..."
-                       << std::endl;
+    Trace("smt-proof")
+        << "SolverEngine::setFinalProof(): get free assumptions..."
+        << std::endl;
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
     Trace("smt-proof")
-        << "SmtEngine::setFinalProof(): initial free assumptions are:\n";
+        << "SolverEngine::setFinalProof(): initial free assumptions are:\n";
     for (const Node& a : fassumps)
     {
       Trace("smt-proof") << "- " << a << std::endl;
     }
 
-    Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
+    Trace("smt-proof") << "SolverEngine::setFinalProof(): assertions are:\n";
     for (const Node& n : assertions)
     {
       Trace("smt-proof") << "- " << n << std::endl;
@@ -137,16 +140,16 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
     Trace("smt-proof") << "=====" << std::endl;
   }
 
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
+  Trace("smt-proof") << "SolverEngine::setFinalProof(): postprocess...\n";
   Assert(d_pfpp != nullptr);
   d_pfpp->process(pfn);
 
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
+  Trace("smt-proof") << "SolverEngine::setFinalProof(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves of the
   // proof are the assertions.
   d_finalProof = d_pnm->mkScope(pfn, assertions);
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
+  Trace("smt-proof") << "SolverEngine::setFinalProof(): finished.\n";
 }
 
 void PfManager::printProof(std::ostream& out,
@@ -170,6 +173,12 @@ void PfManager::printProof(std::ostream& out,
   {
     proof::DotPrinter dotPrinter;
     dotPrinter.print(out, fp.get());
+  }
+  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE)
+  {
+    proof::AletheNodeConverter anc;
+    proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
+    vpfpp.process(fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
   {

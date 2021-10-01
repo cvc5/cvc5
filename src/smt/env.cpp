@@ -105,6 +105,11 @@ bool Env::isTheoryProofProducing() const
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
 
+theory::Evaluator* Env::getEvaluator(bool useRewriter)
+{
+  return useRewriter ? d_evalRew.get() : d_eval.get();
+}
+
 theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
 {
   return *d_topLevelSubs.get();
@@ -134,6 +139,27 @@ const Printer& Env::getPrinter()
 }
 
 std::ostream& Env::getDumpOut() { return *d_options.base.out; }
+
+bool Env::isOutputOn(options::OutputTag tag) const
+{
+  return d_options.base.outputTagHolder[static_cast<size_t>(tag)];
+}
+bool Env::isOutputOn(const std::string& tag) const
+{
+  return isOutputOn(options::stringToOutputTag(tag));
+}
+std::ostream& Env::getOutput(options::OutputTag tag) const
+{
+  if (isOutputOn(tag))
+  {
+    return *d_options.base.out;
+  }
+  return cvc5::null_os;
+}
+std::ostream& Env::getOutput(const std::string& tag) const
+{
+  return getOutput(options::stringToOutputTag(tag));
+}
 
 Node Env::evaluate(TNode n,
                    const std::vector<Node>& args,
