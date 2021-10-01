@@ -952,6 +952,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
+      Debug("parser") << "Got builtin kind " << kind << " for name"
+                      << std::endl;
     }
     else
     {
@@ -1028,17 +1030,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     api::Term ret = d_solver->mkConstArray(p.d_type, constVal);
     Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
-    return ret;
-  }
-  else if (p.d_kind == api::CARDINALITY_CONSTRAINT)
-  {
-    if (args.size() != 2)
-    {
-      parseError("Incorrect arguments for cardinality constraint");
-    }
-    api::Sort sort = args[0].getSort();
-    uint64_t ubound = args[1].getUInt32Value();
-    api::Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
     return ret;
   }
   else if ((p.d_kind == api::APPLY_SELECTOR || p.d_kind == api::APPLY_UPDATER)
@@ -1138,6 +1129,21 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       api::Term ret = d_solver->mkTerm(api::SINGLETON, args[0]);
       Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
+      return ret;
+    }
+    else if (kind == api::CARDINALITY_CONSTRAINT)
+    {
+      if (args.size() != 2)
+      {
+        parseError("Incorrect arguments for cardinality constraint");
+      }
+      api::Sort sort = args[0].getSort();
+      if (!sort.isUninterpretedSort())
+      {
+        parseError("Expected uninterpreted sort for cardinality constraint");
+      }
+      uint64_t ubound = args[1].getUInt32Value();
+      api::Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
       return ret;
     }
     api::Term ret = d_solver->mkTerm(kind, args);

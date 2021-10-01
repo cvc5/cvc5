@@ -254,18 +254,11 @@ Node TheoryModel::getModelValue(TNode n) const
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
     {
+      const CardinalityConstraint& cc = ret.getOperator().getConst<CardinalityConstraint>();
       Debug("model-getvalue-debug")
-          << "get cardinality constraint " << ret[0].getType() << std::endl;
-      const CardinalityConstraint& cc = ret.getConst<CardinalityConstraint>();
+          << "get cardinality constraint " << cc.getType() << std::endl;
       ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
                         <= cc.getUpperBound());
-    }
-    else if (ret.getKind() == kind::CARDINALITY_VALUE)
-    {
-      Debug("model-getvalue-debug")
-          << "get cardinality value " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(
-          Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
     }
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we an evaluated kind. This can occur if the

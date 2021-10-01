@@ -465,11 +465,11 @@ std::string SortModel::CardinalityDecisionStrategy::identify() const
   return std::string("uf_card");
 }
 
-SortModel::SortModel(Node n,
+SortModel::SortModel(TypeNode tn,
                      TheoryState& state,
                      TheoryInferenceManager& im,
                      CardinalityExtension* thss)
-    : d_type(n.getType()),
+    : d_type(tn),
       d_state(state),
       d_im(im),
       d_thss(thss),
@@ -1591,31 +1591,46 @@ CardinalityExtension::CombinedCardinalityDecisionStrategy::identify() const
 
 void CardinalityExtension::preRegisterTerm(TNode n)
 {
-  if (options::ufssMode() == options::UfssMode::FULL)
+  if (options::ufssMode() != options::UfssMode::FULL)
   {
-    //initialize combined cardinality
-    initializeCombinedCardinality();
-
-    Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
-    //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
-    TypeNode tn = n.getType();
-    std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
-    if( it==d_rep_model.end() ){
-      SortModel* rm = NULL;
-      if( tn.isSort() ){
-        Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
-        rm = new SortModel(n, d_state, d_im, this);
-      }
-      if( rm ){
-        rm->initialize();
-        d_rep_model[tn] = rm;
-        //d_rep_model_init[tn] = true;
-      }
-    }else{
-      //ensure sort model is initialized
-      it->second->initialize();
-    }
+    return;
   }
+  //initialize combined cardinality
+  initializeCombinedCardinality();
+
+  Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
+  //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
+  TypeNode tn;
+  if (n.getKind()==CARDINALITY_CONSTRAINT)
+  {
+    const CardinalityConstraint& cc = n.getOperator().getConst<CardinalityConstraint>();
+    tn = cc.getType();
+  }
+  else 
+  {
+    tn = n.getType();
+  }
+  if (!tn.isSort())
+  {
+    return;
+  }
+  std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
+  if( it==d_rep_model.end() ){
+    SortModel* rm = NULL;
+    if( tn.isSort() ){
+      Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
+      rm = new SortModel(tn, d_state, d_im, this);
+    }
+    if( rm ){
+      rm->initialize();
+      d_rep_model[tn] = rm;
+      //d_rep_model_init[tn] = true;
+    }
+  }else{
+    //ensure sort model is initialized
+    it->second->initialize();
+  }
+  
 }
 
 SortModel* CardinalityExtension::getSortModel(Node n)

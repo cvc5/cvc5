@@ -281,7 +281,7 @@ class CardinalityExtension : protected EnvObj
     void simpleCheckCardinality();
 
    public:
-    SortModel(Node n,
+    SortModel(TypeNode tn,
               TheoryState& state,
               TheoryInferenceManager& im,
               CardinalityExtension* thss);
