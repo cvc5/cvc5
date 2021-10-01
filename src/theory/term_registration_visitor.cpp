@@ -83,7 +83,7 @@ PreRegisterVisitor::PreRegisterVisitor(Env& env, TheoryEngine* engine)
     : EnvObj(env), d_engine(engine), d_visited(context())
 {
 }
-  
+
 bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
@@ -124,7 +124,8 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   // call the preregistration on current, parent or type theories and update
   // visitedTheories. The set of preregistering theories coincides with
   // visitedTheories here.
-  preRegister(d_env, d_engine, visitedTheories, current, parent, visitedTheories);
+  preRegister(
+      d_env, d_engine, visitedTheories, current, parent, visitedTheories);
 
   Debug("register::internal")
       << "PreRegisterVisitor::visit(" << current << "," << parent
@@ -220,12 +221,15 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
 
 void PreRegisterVisitor::start(TNode node) {}
 
-  SharedTermsVisitor::SharedTermsVisitor(Env& env,
-                     TheoryEngine* te,
-                     SharedTermsDatabase& sharedTerms)
-      : EnvObj(env), d_engine(te), d_sharedTerms(sharedTerms), d_preregistered(context())
-  {
-  }
+SharedTermsVisitor::SharedTermsVisitor(Env& env,
+                                       TheoryEngine* te,
+                                       SharedTermsDatabase& sharedTerms)
+    : EnvObj(env),
+      d_engine(te),
+      d_sharedTerms(sharedTerms),
+      d_preregistered(context())
+{
+}
 
 std::string SharedTermsVisitor::toString() const {
   std::stringstream ss;
