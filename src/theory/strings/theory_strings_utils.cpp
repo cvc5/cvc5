@@ -20,8 +20,8 @@
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
-#include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/strings_entail.h"
@@ -427,7 +427,7 @@ unsigned getLoopMinOccurrences(TNode node)
 
 Node mkForallInternal(Node bvl, Node body)
 {
-  return BoundedIntegers::mkBoundedForall(bvl, body);
+  return quantifiers::BoundedIntegers::mkBoundedForall(bvl, body);
 }
 
 }  // namespace utils
