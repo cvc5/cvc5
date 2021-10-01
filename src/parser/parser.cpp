@@ -609,8 +609,8 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   if (checkSort != s)
   {
     std::stringstream ss;
-    ss << "Type ascription not satisfied, term " << t << " expected (codomain) sort " << s
-       << " but has sort " << t.getSort();
+    ss << "Type ascription not satisfied, term " << t
+       << " expected (codomain) sort " << s << " but has sort " << t.getSort();
     parseError(ss.str());
   }
   return t;
