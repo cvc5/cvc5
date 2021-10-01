@@ -45,7 +45,7 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp);
+  LfscPrinter(LfscNodeConverter& ltp, rewriter::RewriteDb* rdb);
   ~LfscPrinter() {}
 
   /**

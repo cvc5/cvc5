@@ -301,10 +301,12 @@ void LfscPrinter::printProofLetify(
       cparen++;
       out->printProofId(pid);
       // debugging
+      /*
       if (Trace.isOn("lfsc-print-debug"))
       {
         out << "; proves " << p->getResult();
       }
+      */
       out->printEndLine();
     }
     out->printEndLine();
