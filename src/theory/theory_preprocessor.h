@@ -141,8 +141,6 @@ class TheoryPreprocessor : protected EnvObj
                                     bool procLemmas);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
-  /** Logic info of theory engine */
-  const LogicInfo& d_logicInfo;
   /**
    * Cache for theory-preprocessing of theory atoms. The domain of this map
    * are terms that appear within theory atoms given to this class.

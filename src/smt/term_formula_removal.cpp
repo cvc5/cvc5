@@ -23,12 +23,13 @@
 #include "options/smt_options.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/lazy_proof.h"
+#include "smt/env.h"
 
 using namespace std;
 
 namespace cvc5 {
 
-RemoveTermFormulas::RemoveTermFormulas(EnvObj& env)
+RemoveTermFormulas::RemoveTermFormulas(Env& env)
     : EnvObj(env),
       d_tfCache(userContext()),
       d_skolem_cache(userContext()),
@@ -37,7 +38,7 @@ RemoveTermFormulas::RemoveTermFormulas(EnvObj& env)
 {
   // enable proofs if necessary
   ProofNodeManager* pnm = env.getProofNodeManager();
-  if (pnm != nullptr)
+  if (pnm!=nullptr)
   {
     d_tpg.reset(
         new TConvProofGenerator(pnm,
@@ -535,6 +536,11 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
 ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
 {
   return d_tpg.get();
+}
+
+bool RemoveTermFormulas::isProofEnabled() const
+{
+  return d_tpg!=nullptr;
 }
 
 }  // namespace cvc5

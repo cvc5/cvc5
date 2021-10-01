@@ -41,7 +41,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
 {
   // proofs are enabled in the theory preprocessor regardless of the proof mode
   ProofNodeManager* pnm = env.getProofNodeManager();
-  if (pnm != nullptr)
+  if (pnm!=nullptr)
   {
     context::Context* u = userContext();
     d_tpg.reset(
@@ -73,7 +73,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     ts.push_back(d_tpgRew.get());
     ts.push_back(d_tpgRtf.get());
     d_tspg.reset(new TConvSeqProofGenerator(
-        pnm, ts, userContext, "TheoryPreprocessor::sequence"));
+        pnm, ts, userContext(), "TheoryPreprocessor::sequence"));
   }
 }
 
@@ -271,10 +271,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
 
     TheoryId tid = Theory::theoryOf(current);
 
-    if (!d_logicInfo.isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+    if (!logicInfo().isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
     {
       stringstream ss;
-      ss << "The logic was specified as " << d_logicInfo.getLogicString()
+      ss << "The logic was specified as " << logicInfo().getLogicString()
          << ", which doesn't include " << tid
          << ", but got a preprocessing-time fact for that theory." << endl
          << "The fact:" << endl

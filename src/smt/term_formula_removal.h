@@ -203,6 +203,8 @@ class RemoveTermFormulas : protected EnvObj
    * returns the null node.
    */
   Node runCurrent(std::pair<Node, uint32_t>& curr, TrustNode& newLem);
+  /** Is proof enabled? True if proofs are enabled in any mode. */
+  bool isProofEnabled() const;
 }; /* class RemoveTTE */
 
 }  // namespace cvc5
