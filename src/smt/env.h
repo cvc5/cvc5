@@ -204,7 +204,7 @@ class Env
    * @return The rewritten form of n.
    */
   Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
-  
+
   //---------------------- information about cardinality of types
   /**
    * Is the cardinality of type tn finite? This method depends on whether
@@ -222,6 +222,7 @@ class Env
    * based on the assertions.
    */
   bool isFiniteType(TypeNode tn) const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 
