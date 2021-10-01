@@ -372,7 +372,7 @@
 (define emp (# x term (# y term (apply (apply f_emp x) y))))
 
 
-; non-standard definitions (temporary)
+; non-standard definitions to represent internally generated terms
 (declare f_BITVECTOR_EAGER_ATOM term)
 (define BITVECTOR_EAGER_ATOM (# x term (apply f_BITVECTOR_EAGER_ATOM x)))
 (declare f_SEP_LABEL term)
