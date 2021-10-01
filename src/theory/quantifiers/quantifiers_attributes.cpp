@@ -17,8 +17,8 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/rational.h"
 #include "util/string.h"
@@ -300,7 +300,8 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         }
         if (BoundedIntegers::isBoundedForallAttribute(avar))
         {
-          Trace("quant-attr") << "Attribute : bounded quantifiers : " << q << std::endl;
+          Trace("quant-attr")
+              << "Attribute : bounded quantifiers : " << q << std::endl;
           qa.d_isQuantBounded = true;
         }
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
