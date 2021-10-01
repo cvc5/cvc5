@@ -24,6 +24,8 @@ libcvc5_add_sources(
   attribute_unique_id.h
   bound_var_manager.cpp
   bound_var_manager.h
+  cardinality_constraint.cpp
+  cardinality_constraint.h
   emptyset.cpp
   emptyset.h
   emptybag.cpp
