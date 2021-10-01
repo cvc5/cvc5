@@ -102,7 +102,7 @@ void LfscPrinter::printProofInternal(
 {
   // the stack
   std::vector<PExpr> visit;
-  // whether we have process children
+  // whether we have to process children
   std::unordered_set<const ProofNode*> processingChildren;
   // helper iterators
   std::unordered_set<const ProofNode*>::iterator pit;
@@ -140,14 +140,14 @@ void LfscPrinter::printProofInternal(
           LfscRule lr = getLfscRule(cur->getArguments()[0]);
           isLambda = (lr == LfscRule::LAMBDA);
         }
-        if (r == PfRule::ASSUME)
+        else if (r == PfRule::ASSUME)
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
           out->printAssumeId(passumeIt->second);
         }
-        else if (isLambda)
+        if (isLambda)
         {
           Assert(cur->getArguments().size() == 3);
           // lambdas are handled specially. We print in a self contained way
@@ -425,7 +425,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::NOT_AND_REV: pf << h << h << cs[0]; break;
         case LfscRule::PROCESS_SCOPE: pf << h << h << as[2] << cs[0]; break;
         case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;
-        // do not pass type (cs[0]->getResult()[0].getType())
         case LfscRule::ARITH_SUM_UB: pf << h << h << h << cs[0] << cs[1]; break;
         default: return false; break;
       }

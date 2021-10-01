@@ -18,7 +18,7 @@
 #ifndef CVC4__PROOF__LFSC__LFSC_PRINTER_H
 #define CVC4__PROOF__LFSC__LFSC_PRINTER_H
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
 
 #include "expr/node.h"
@@ -74,7 +74,7 @@ class LfscPrinter
    */
   void printInternal(std::ostream& out, Node n);
   /**
-   * Print node b to stream in the expected format of LFSC, with let binding,
+   * Print node n to stream in the expected format of LFSC, with let binding,
    * where n has been processed by the LFSC node converter.
    *
    * @param out The output stream
