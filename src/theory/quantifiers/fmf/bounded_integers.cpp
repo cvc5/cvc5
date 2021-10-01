@@ -949,6 +949,6 @@ bool BoundedIntegers::isBoundedForallAttribute(Node var)
   return var.getAttribute(BoundedQuantAttribute());
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5

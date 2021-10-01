@@ -299,7 +299,8 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         }
         if (BoundedIntegers::isBoundedForallAttribute(avar))
         {
-          Trace("quant-attr") << "Attribute : bounded quantifiers : " << q << std::endl;
+          Trace("quant-attr")
+              << "Attribute : bounded quantifiers : " << q << std::endl;
           qa.d_isQuantBounded = true;
         }
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
