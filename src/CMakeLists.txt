@@ -180,12 +180,16 @@ libcvc5_add_sources(
   proof/lfsc/lfsc_node_converter.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_printer.cpp
+  proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_print_channel.cpp
   proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_util.cpp
   proof/lfsc/lfsc_util.h
   proof/method_id.cpp
   proof/method_id.h
+  proof/print_expr.cpp
+  proof/print_expr.h
   proof/proof.cpp
   proof/proof.h
   proof/proof_checker.cpp
