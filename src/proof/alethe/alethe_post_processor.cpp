@@ -1025,7 +1025,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // comment uses variable names as introduced there.
     //
     //      P
-    // ---------- RESOLUTION
+    // ---------- AND
     //  (cl Fi)*
     //
     // * the corresponding proof node is Fi
