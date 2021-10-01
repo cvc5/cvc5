@@ -4,5 +4,5 @@
 (set-info :status sat)
 (declare-heap (Int Int))
 (declare-fun x () Int)
-(assert (wand (pto x 1) (_ emp Int Int)))
+(assert (wand (pto x 1) sep.emp))
 (check-sat)

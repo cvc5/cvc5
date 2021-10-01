@@ -51,7 +51,7 @@ class BvIntroPow2 : public PreprocessingPass
    * Only to be called on top level assertions.
    */
   Node rewritePowerOfTwo(TNode node);
-  /** Does the traversal of assertions and applies rweritePowerOfTwo. */
+  /** Does the traversal of assertions and applies rewritePowerOfTwo. */
   Node pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache);
 };
 

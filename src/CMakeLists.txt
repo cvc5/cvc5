@@ -343,8 +343,8 @@ libcvc5_add_sources(
   smt/proof_post_processor.h
   smt/set_defaults.cpp
   smt/set_defaults.h
-  smt/smt_engine.cpp
-  smt/smt_engine.h
+  smt/solver_engine.cpp
+  smt/solver_engine.h
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
   smt/smt_engine_state.cpp
@@ -1295,63 +1295,89 @@ add_subdirectory(util)
 # LIBCVC5_GEN_SRCS (via libcvc5_add_sources). We can now build libcvc5.
 
 set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
-add_library(cvc5 ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS}
-  $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
-target_include_directories(cvc5
+
+# First build the object library
+add_library(cvc5-obj OBJECT ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS})
+target_compile_definitions(cvc5-obj PRIVATE -D__BUILDING_CVC5LIB)
+set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(cvc5-obj PUBLIC $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
+# add_dependencies() is necessary for cmake versions before 3.21
+add_dependencies(cvc5-obj cvc5base cvc5context)
+# Add libcvc5 dependencies for generated sources.
+add_dependencies(cvc5-obj gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+
+# Link the shared library
+add_library(cvc5-shared SHARED)
+target_link_libraries(cvc5-shared PRIVATE cvc5-obj)
+set_target_properties(cvc5-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
+set_target_properties(cvc5-shared PROPERTIES OUTPUT_NAME cvc5)
+target_include_directories(cvc5-shared
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
-
-include(GenerateExportHeader)
-generate_export_header(cvc5)
-
-install(TARGETS cvc5
+install(TARGETS cvc5-shared
   EXPORT cvc5-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
-set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc5 PRIVATE -D__BUILDING_CVC5LIB)
-# Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+if(ENABLE_STATIC_LIBRARY)
+  add_library(cvc5-static STATIC)
+  target_link_libraries(cvc5-static PRIVATE cvc5-obj)
+  set_target_properties(cvc5-static PROPERTIES OUTPUT_NAME cvc5)
+  target_include_directories(cvc5-static
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<INSTALL_INTERFACE:include>
+  )
+  install(TARGETS cvc5-obj cvc5-static
+    EXPORT cvc5-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
+
+include(GenerateExportHeader)
+generate_export_header(cvc5-obj BASE_NAME cvc5)
 
 # Add library/include dependencies
+target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
+target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
+endif()
+
 if(ENABLE_VALGRIND)
-  target_include_directories(cvc5 PRIVATE ${Valgrind_INCLUDE_DIR})
+  target_include_directories(cvc5-obj PUBLIC ${Valgrind_INCLUDE_DIR})
 endif()
 if(USE_ABC)
-  target_link_libraries(cvc5 PRIVATE ${ABC_LIBRARIES})
-  target_include_directories(cvc5 PRIVATE ${ABC_INCLUDE_DIR})
+  target_include_directories(cvc5-obj PUBLIC ${ABC_INCLUDE_DIR})
+  target_link_libraries(cvc5-obj PUBLIC ${ABC_LIBRARIES})
 endif()
 
-target_link_libraries(cvc5 PRIVATE CaDiCaL)
+target_link_libraries(cvc5-obj PUBLIC CaDiCaL)
 
 if(USE_CLN)
-  target_link_libraries(cvc5 PRIVATE CLN)
+  target_link_libraries(cvc5-obj PUBLIC CLN)
 endif()
 if(USE_CRYPTOMINISAT)
-  target_link_libraries(cvc5 PRIVATE CryptoMiniSat)
+  target_link_libraries(cvc5-obj PUBLIC CryptoMiniSat)
 endif()
 if(USE_KISSAT)
-  target_link_libraries(cvc5 PRIVATE Kissat)
+  target_link_libraries(cvc5-obj PUBLIC Kissat)
 endif()
 if(USE_GLPK)
-  target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
-  target_include_directories(cvc5 PRIVATE ${GLPK_INCLUDE_DIR})
+  target_link_libraries(cvc5-obj PUBLIC ${GLPK_LIBRARIES})
+  target_include_directories(cvc5-obj PUBLIC ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_POLY)
-  target_link_libraries(cvc5 PRIVATE Polyxx)
+  target_link_libraries(cvc5-obj PUBLIC Polyxx)
 endif()
 if(USE_COCOA)
-  target_link_libraries(cvc5 PRIVATE CoCoA)
+  target_link_libraries(cvc5-obj PUBLIC CoCoA)
 endif()
 
-target_link_libraries(cvc5 PRIVATE SymFPU)
-
-# Note: When linked statically GMP needs to be linked after CLN since CLN
-# depends on GMP.
-target_link_libraries(cvc5 PRIVATE GMP)
+target_link_libraries(cvc5-obj PUBLIC SymFPU)
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have

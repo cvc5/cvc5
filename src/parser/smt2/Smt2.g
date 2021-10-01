@@ -743,7 +743,7 @@ setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new SetOptionCommand(name.c_str() + 1, sexprToString(sexpr)));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
-      // on this until some SmtEngine eventually (if ever) executes it.
+      // on this until some SolverEngine eventually (if ever) executes it.
       if(name == ":global-declarations")
       {
         SYM_MAN->setGlobalDeclarations(sexprToString(sexpr) == "true");
@@ -1756,16 +1756,7 @@ termAtomic[cvc5::api::Term& atomTerm]
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
   // as a 32-bit floating-point constant)
   | LPAREN_TOK INDEX_TOK
-    ( EMP_TOK
-      sortSymbol[type,CHECK_DECLARED]
-      sortSymbol[type2,CHECK_DECLARED]
-      {
-        // Empty heap constant in seperation logic
-        api::Term v1 = SOLVER->mkConst(api::Sort(type), "_emp1");
-        api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
-        atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
-      }
-    | CHAR_TOK HEX_LITERAL 
+    ( CHAR_TOK HEX_LITERAL
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
         atomTerm = PARSER_STATE->mkCharConstant(hexStr);
@@ -2143,7 +2134,7 @@ symbol[std::string& id,
   : SIMPLE_SYMBOL
     { id = AntlrInput::tokenText($SIMPLE_SYMBOL);
       if(!PARSER_STATE->isAbstractValue(id)) {
-        // if an abstract value, SmtEngine handles declaration
+        // if an abstract value, SolverEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
@@ -2152,7 +2143,7 @@ symbol[std::string& id,
       /* strip off the quotes */
       id = id.substr(1, id.size() - 2);
       if(!PARSER_STATE->isAbstractValue(id)) {
-        // if an abstract value, SmtEngine handles declaration
+        // if an abstract value, SolverEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
@@ -2321,7 +2312,6 @@ ATTRIBUTE_QUANTIFIER_ID_TOK : ':qid';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
-EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_select';

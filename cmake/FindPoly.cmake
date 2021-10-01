@@ -66,8 +66,8 @@ if(NOT Poly_FOUND_SYSTEM)
     unset(patchcmd)
   endif()
 
-  get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_INCLUDE_DIRECTORIES)
-  get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
+  get_target_property(GMP_INCLUDE_DIR GMP_SHARED INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(GMP_LIBRARY GMP_SHARED IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
 
   ExternalProject_Add(
@@ -101,7 +101,7 @@ if(NOT Poly_FOUND_SYSTEM)
     DEPENDEES install
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
-  add_dependencies(Poly-EP GMP)
+  add_dependencies(Poly-EP GMP_SHARED)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
   set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
@@ -115,7 +115,11 @@ set_target_properties(Poly PROPERTIES IMPORTED_LOCATION "${Poly_LIBRARIES}")
 set_target_properties(
   Poly PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
 )
-target_link_libraries(Poly INTERFACE GMP)
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(Poly INTERFACE GMP_STATIC)
+else()
+  target_link_libraries(Poly INTERFACE GMP_SHARED)
+endif()
 
 add_library(Polyxx STATIC IMPORTED GLOBAL)
 set_target_properties(Polyxx PROPERTIES IMPORTED_LOCATION "${PolyXX_LIBRARIES}")

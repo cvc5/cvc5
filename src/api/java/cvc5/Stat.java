@@ -19,35 +19,34 @@ import java.util.Map;
 
 /**
  * Represents a snapshot of a single statistic value.
- * A value can be of type `long`, `double`, `String` or a histogram
- * (`Map<String, Long>`).
- * The value type can be queried (using `isInt()`, `isDouble()`, etc.) and
- * the stored value can be accessed (using `getInt()`, `getDouble()`, etc.).
+ * A value can be of type {@code long}, {@code double}, {@code String} or a histogram
+ * ({@code Map<String, Long>}).
+ * The value type can be queried (using {@code isInt()}, {@code isDouble()}, etc.) and
+ * the stored value can be accessed (using {@code getInt()}, {@code getDouble()}, etc.).
  * It is possible to query whether this statistic is an expert statistic by
- * `isExpert()` and whether its value is the default value by `isDefault()`.
+ * {@code isExpert()} and whether its value is the default value by {@code isDefault()}.
  */
 public class Stat extends AbstractPointer
 {
-   // region construction and destruction
-   Stat(Solver solver, long pointer)
-   {
-     super(solver, pointer);
-   }
+  // region construction and destruction
+  Stat(Solver solver, long pointer)
+  {
+    super(solver, pointer);
+  }
 
-   protected static native void deletePointer(long pointer);
+  protected static native void deletePointer(long pointer);
 
-   public long getPointer()
-   {
-     return pointer;
-   }
+  public long getPointer()
+  {
+    return pointer;
+  }
 
-   @Override
-   public void finalize()
-   {
-     deletePointer(pointer);
-   }
+  @Override public void finalize()
+  {
+    deletePointer(pointer);
+  }
 
-   // endregion
+  // endregion
 
   /**
    * @return a string representation of this Stat
@@ -159,7 +158,7 @@ public class Stat extends AbstractPointer
    */
   public Map<String, Long> getHistogram()
   {
-      return getHistogram(pointer);
+    return getHistogram(pointer);
   }
 
   private native Map<String, Long> getHistogram(long pointer);
