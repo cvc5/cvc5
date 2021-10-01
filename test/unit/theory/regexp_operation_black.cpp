@@ -20,7 +20,7 @@
 #include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/solver_engine_scope.h"
 #include "test_smt.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_operation.h"
