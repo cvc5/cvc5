@@ -166,7 +166,7 @@ TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
 
 Rewriter* Rewriter::getInstance()
 {
-  return smt::currentSmtEngine()->getRewriter();
+  return smt::currentSolverEngine()->getRewriter();
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,

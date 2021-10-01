@@ -110,10 +110,10 @@ class Rewriter {
 
  private:
   /**
-   * Get the rewriter associated with the SmtEngine in scope.
+   * Get the rewriter associated with the SolverEngine in scope.
    *
    * TODO(#3468): Get rid of this function (it relies on there being an
-   * singleton with the current SmtEngine in scope)
+   * singleton with the current SolverEngine in scope)
    */
   static Rewriter* getInstance();
 

@@ -140,9 +140,9 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
 
         // Notice we don't set produce-models. rrChecker takes the same
-        // options as the SmtEngine we belong to, where we ensure that
+        // options as the SolverEngine we belong to, where we ensure that
         // produce-models is set.
-        std::unique_ptr<SmtEngine> rrChecker;
+        std::unique_ptr<SolverEngine> rrChecker;
         initializeChecker(rrChecker, crr);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;

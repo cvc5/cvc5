@@ -84,7 +84,7 @@ using namespace cvc5::theory;
 
 namespace cvc5 {
 
-SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
+SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
       d_state(new SmtEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
@@ -105,18 +105,17 @@ SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
       d_pp(nullptr),
       d_scope(nullptr)
 {
-  // !!!!!!!!!!!!!!!!!!!!!! temporary hack: this makes the current SmtEngine
-  // we are constructing the current SmtEngine in scope for the lifetime of
-  // this SmtEngine, or until another SmtEngine is constructed (that SmtEngine
-  // is then in scope during its lifetime). This is mostly to ensure that
-  // options are always in scope, for e.g. printing expressions, which rely
-  // on knowing the output language.
-  // Notice that the SmtEngine may spawn new SmtEngine "subsolvers" internally.
-  // These are created, used, and deleted in a modular fashion while not
-  // interleaving calls to the master SmtEngine. Thus the hack here does not
-  // break this use case.
-  // On the other hand, this hack breaks use cases where multiple SmtEngine
-  // objects are created by the user.
+  // !!!!!!!!!!!!!!!!!!!!!! temporary hack: this makes the current SolverEngine
+  // we are constructing the current SolverEngine in scope for the lifetime of
+  // this SolverEngine, or until another SolverEngine is constructed (that
+  // SolverEngine is then in scope during its lifetime). This is mostly to
+  // ensure that options are always in scope, for e.g. printing expressions,
+  // which rely on knowing the output language. Notice that the SolverEngine may
+  // spawn new SolverEngine "subsolvers" internally. These are created, used,
+  // and deleted in a modular fashion while not interleaving calls to the master
+  // SolverEngine. Thus the hack here does not break this use case. On the other
+  // hand, this hack breaks use cases where multiple SolverEngine objects are
+  // created by the user.
   d_scope.reset(new SmtScope(this));
   // listen to node manager events
   getNodeManager()->subscribeEvents(d_snmListener.get());
@@ -135,39 +134,39 @@ SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
   d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
 }
 
-bool SmtEngine::isFullyInited() const { return d_state->isFullyInited(); }
-bool SmtEngine::isQueryMade() const { return d_state->isQueryMade(); }
-size_t SmtEngine::getNumUserLevels() const
+bool SolverEngine::isFullyInited() const { return d_state->isFullyInited(); }
+bool SolverEngine::isQueryMade() const { return d_state->isQueryMade(); }
+size_t SolverEngine::getNumUserLevels() const
 {
   return d_state->getNumUserLevels();
 }
-SmtMode SmtEngine::getSmtMode() const { return d_state->getMode(); }
-bool SmtEngine::isSmtModeSat() const
+SmtMode SolverEngine::getSmtMode() const { return d_state->getMode(); }
+bool SolverEngine::isSmtModeSat() const
 {
   SmtMode mode = getSmtMode();
   return mode == SmtMode::SAT || mode == SmtMode::SAT_UNKNOWN;
 }
-Result SmtEngine::getStatusOfLastCommand() const
+Result SolverEngine::getStatusOfLastCommand() const
 {
   return d_state->getStatus();
 }
-context::UserContext* SmtEngine::getUserContext()
+context::UserContext* SolverEngine::getUserContext()
 {
   return d_env->getUserContext();
 }
-context::Context* SmtEngine::getContext() { return d_env->getContext(); }
+context::Context* SolverEngine::getContext() { return d_env->getContext(); }
 
-TheoryEngine* SmtEngine::getTheoryEngine()
+TheoryEngine* SolverEngine::getTheoryEngine()
 {
   return d_smtSolver->getTheoryEngine();
 }
 
-prop::PropEngine* SmtEngine::getPropEngine()
+prop::PropEngine* SolverEngine::getPropEngine()
 {
   return d_smtSolver->getPropEngine();
 }
 
-void SmtEngine::finishInit()
+void SolverEngine::finishInit()
 {
   if (d_state->isFullyInited())
   {
@@ -209,7 +208,7 @@ void SmtEngine::finishInit()
     d_pp->setProofGenerator(pppg);
   }
 
-  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
+  Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
   d_smtSolver->finishInit(logic);
 
   // now can construct the SMT-level model object
@@ -262,17 +261,17 @@ void SmtEngine::finishInit()
   d_pp->finishInit();
 
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
-      << "The PropEngine has pushed but the SmtEngine "
+      << "The PropEngine has pushed but the SolverEngine "
          "hasn't finished initializing!";
 
   Assert(getLogicInfo().isLocked());
 
   // store that we are finished initializing
   d_state->finishInit();
-  Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
+  Trace("smt-debug") << "SolverEngine::finishInit done" << std::endl;
 }
 
-void SmtEngine::shutdown()
+void SolverEngine::shutdown()
 {
   d_state->shutdown();
 
@@ -281,7 +280,7 @@ void SmtEngine::shutdown()
   d_env->shutdown();
 }
 
-SmtEngine::~SmtEngine()
+SolverEngine::~SolverEngine()
 {
   SmtScope smts(this);
 
@@ -324,13 +323,13 @@ SmtEngine::~SmtEngine()
   }
 }
 
-void SmtEngine::setLogic(const LogicInfo& logic)
+void SolverEngine::setLogic(const LogicInfo& logic)
 {
   SmtScope smts(this);
   if (d_state->isFullyInited())
   {
     throw ModalException(
-        "Cannot set logic in SmtEngine after the engine has "
+        "Cannot set logic in SolverEngine after the engine has "
         "finished initializing.");
   }
   d_env->d_logic = logic;
@@ -338,7 +337,7 @@ void SmtEngine::setLogic(const LogicInfo& logic)
   setLogicInternal();
 }
 
-void SmtEngine::setLogic(const std::string& s)
+void SolverEngine::setLogic(const std::string& s)
 {
   SmtScope smts(this);
   try
@@ -351,14 +350,14 @@ void SmtEngine::setLogic(const std::string& s)
   }
 }
 
-void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
+void SolverEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 
-const LogicInfo& SmtEngine::getLogicInfo() const
+const LogicInfo& SolverEngine::getLogicInfo() const
 {
   return d_env->getLogicInfo();
 }
 
-LogicInfo SmtEngine::getUserLogicInfo() const
+LogicInfo SolverEngine::getUserLogicInfo() const
 {
   // Lock the logic to make sure that this logic can be queried. We create a
   // copy of the user logic here to keep this method const.
@@ -367,16 +366,16 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::setLogicInternal()
+void SolverEngine::setLogicInternal()
 {
   Assert(!d_state->isFullyInited())
-      << "setting logic in SmtEngine but the engine has already"
+      << "setting logic in SolverEngine but the engine has already"
          " finished initializing for this run";
   d_env->d_logic.lock();
   d_userLogic.lock();
 }
 
-void SmtEngine::setInfo(const std::string& key, const std::string& value)
+void SolverEngine::setInfo(const std::string& key, const std::string& value)
 {
   SmtScope smts(this);
 
@@ -423,7 +422,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
   }
 }
 
-bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
+bool SolverEngine::isValidGetInfoFlag(const std::string& key) const
 {
   if (key == "all-statistics" || key == "error-behavior" || key == "name"
       || key == "version" || key == "authors" || key == "status"
@@ -435,7 +434,7 @@ bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
   return false;
 }
 
-std::string SmtEngine::getInfo(const std::string& key) const
+std::string SolverEngine::getInfo(const std::string& key) const
 {
   SmtScope smts(this);
 
@@ -515,7 +514,8 @@ std::string SmtEngine::getInfo(const std::string& key) const
   return toSExpr(res);
 }
 
-void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
+void SolverEngine::debugCheckFormals(const std::vector<Node>& formals,
+                                     Node func)
 {
   for (std::vector<Node>::const_iterator i = formals.begin();
        i != formals.end();
@@ -534,16 +534,16 @@ void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
   }
 }
 
-void SmtEngine::debugCheckFunctionBody(Node formula,
-                                       const std::vector<Node>& formals,
-                                       Node func)
+void SolverEngine::debugCheckFunctionBody(Node formula,
+                                          const std::vector<Node>& formals,
+                                          Node func)
 {
   TypeNode formulaType = formula.getType(d_env->getOptions().expr.typeChecking);
   TypeNode funcType = func.getType();
   // We distinguish here between definitions of constants and functions,
   // because the type checking for them is subtly different.  Perhaps we
-  // should instead have SmtEngine::defineFunction() and
-  // SmtEngine::defineConstant() for better clarity, although then that
+  // should instead have SolverEngine::defineFunction() and
+  // SolverEngine::defineConstant() for better clarity, although then that
   // doesn't match the SMT-LIBv2 standard...
   if (formals.size() > 0)
   {
@@ -574,10 +574,10 @@ void SmtEngine::debugCheckFunctionBody(Node formula,
   }
 }
 
-void SmtEngine::defineFunction(Node func,
-                               const std::vector<Node>& formals,
-                               Node formula,
-                               bool global)
+void SolverEngine::defineFunction(Node func,
+                                  const std::vector<Node>& formals,
+                                  Node formula,
+                                  bool global)
 {
   SmtScope smts(this);
   finishInit();
@@ -611,7 +611,7 @@ void SmtEngine::defineFunction(Node func,
   d_asserts->addDefineFunDefinition(feq, global);
 }
 
-void SmtEngine::defineFunctionsRec(
+void SolverEngine::defineFunctionsRec(
     const std::vector<Node>& funcs,
     const std::vector<std::vector<Node>>& formals,
     const std::vector<Node>& formulas,
@@ -673,16 +673,16 @@ void SmtEngine::defineFunctionsRec(
     }
     // Assert the quantified formula. Notice we don't call assertFormula
     // directly, since we should call a private member method since we have
-    // already ensuring this SmtEngine is initialized above.
+    // already ensuring this SolverEngine is initialized above.
     // add define recursive definition to the assertions
     d_asserts->addDefineFunDefinition(lem, global);
   }
 }
 
-void SmtEngine::defineFunctionRec(Node func,
-                                  const std::vector<Node>& formals,
-                                  Node formula,
-                                  bool global)
+void SolverEngine::defineFunctionRec(Node func,
+                                     const std::vector<Node>& formals,
+                                     Node formula,
+                                     bool global)
 {
   std::vector<Node> funcs;
   funcs.push_back(func);
@@ -693,7 +693,7 @@ void SmtEngine::defineFunctionRec(Node func,
   defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
-Result SmtEngine::quickCheck()
+Result SolverEngine::quickCheck()
 {
   Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
@@ -702,7 +702,7 @@ Result SmtEngine::quickCheck()
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
 
-TheoryModel* SmtEngine::getAvailableModel(const char* c) const
+TheoryModel* SolverEngine::getAvailableModel(const char* c) const
 {
   if (!d_env->getOptions().theory.assignFunctionValues)
   {
@@ -744,7 +744,8 @@ TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
-QuantifiersEngine* SmtEngine::getAvailableQuantifiersEngine(const char* c) const
+QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
+    const char* c) const
 {
   QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
   if (qe == nullptr)
@@ -756,16 +757,19 @@ QuantifiersEngine* SmtEngine::getAvailableQuantifiersEngine(const char* c) const
   return qe;
 }
 
-void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
+void SolverEngine::notifyPushPre()
+{
+  d_smtSolver->processAssertions(*d_asserts);
+}
 
-void SmtEngine::notifyPushPost()
+void SolverEngine::notifyPushPost()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
   Assert(getPropEngine() != nullptr);
   getPropEngine()->push();
 }
 
-void SmtEngine::notifyPopPre()
+void SolverEngine::notifyPopPre()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
   PropEngine* pe = getPropEngine();
@@ -773,27 +777,27 @@ void SmtEngine::notifyPopPre()
   pe->pop();
 }
 
-void SmtEngine::notifyPostSolvePre()
+void SolverEngine::notifyPostSolvePre()
 {
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   pe->resetTrail();
 }
 
-void SmtEngine::notifyPostSolvePost()
+void SolverEngine::notifyPostSolvePost()
 {
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   te->postsolve();
 }
 
-Result SmtEngine::checkSat()
+Result SolverEngine::checkSat()
 {
   Node nullNode;
   return checkSat(nullNode);
 }
 
-Result SmtEngine::checkSat(const Node& assumption)
+Result SolverEngine::checkSat(const Node& assumption)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -807,7 +811,7 @@ Result SmtEngine::checkSat(const Node& assumption)
   return checkSatInternal(assump, false);
 }
 
-Result SmtEngine::checkSat(const std::vector<Node>& assumptions)
+Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -824,7 +828,7 @@ Result SmtEngine::checkSat(const std::vector<Node>& assumptions)
   return checkSatInternal(assumptions, false);
 }
 
-Result SmtEngine::checkEntailed(const Node& node)
+Result SolverEngine::checkEntailed(const Node& node)
 {
   if (Dump.isOn("benchmark"))
   {
@@ -836,28 +840,29 @@ Result SmtEngine::checkEntailed(const Node& node)
       .asEntailmentResult();
 }
 
-Result SmtEngine::checkEntailed(const std::vector<Node>& nodes)
+Result SolverEngine::checkEntailed(const std::vector<Node>& nodes)
 {
   return checkSatInternal(nodes, true).asEntailmentResult();
 }
 
-Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
-                                   bool isEntailmentCheck)
+Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
+                                      bool isEntailmentCheck)
 {
   try
   {
     SmtScope smts(this);
     finishInit();
 
-    Trace("smt") << "SmtEngine::"
+    Trace("smt") << "SolverEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
     // check the satisfiability with the solver object
     Result r = d_smtSolver->checkSatisfiability(
         *d_asserts.get(), assumptions, isEntailmentCheck);
 
-    Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
-                 << "(" << assumptions << ") => " << r << endl;
+    Trace("smt") << "SolverEngine::"
+                 << (isEntailmentCheck ? "query" : "checkSat") << "("
+                 << assumptions << ") => " << r << endl;
 
     // Check that SAT results generate a model correctly.
     if (d_env->getOptions().smt.checkModels)
@@ -920,7 +925,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
   }
 }
 
-std::vector<Node> SmtEngine::getUnsatAssumptions(void)
+std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 {
   Trace("smt") << "SMT getUnsatAssumptions()" << endl;
   SmtScope smts(this);
@@ -954,20 +959,20 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   return res;
 }
 
-Result SmtEngine::assertFormula(const Node& formula)
+Result SolverEngine::assertFormula(const Node& formula)
 {
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
 
-  Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
+  Trace("smt") << "SolverEngine::assertFormula(" << formula << ")" << endl;
 
   // Substitute out any abstract values in ex
   Node n = d_absValues->substituteAbstractValues(formula);
 
   d_asserts->assertFormula(n);
   return quickCheck().asEntailmentResult();
-} /* SmtEngine::assertFormula() */
+} /* SolverEngine::assertFormula() */
 
 /*
    --------------------------------------------------------------------------
@@ -975,49 +980,49 @@ Result SmtEngine::assertFormula(const Node& formula)
    --------------------------------------------------------------------------
 */
 
-void SmtEngine::declareSygusVar(Node var)
+void SolverEngine::declareSygusVar(Node var)
 {
   SmtScope smts(this);
   d_sygusSolver->declareSygusVar(var);
 }
 
-void SmtEngine::declareSynthFun(Node func,
-                                TypeNode sygusType,
-                                bool isInv,
-                                const std::vector<Node>& vars)
+void SolverEngine::declareSynthFun(Node func,
+                                   TypeNode sygusType,
+                                   bool isInv,
+                                   const std::vector<Node>& vars)
 {
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 }
-void SmtEngine::declareSynthFun(Node func,
-                                bool isInv,
-                                const std::vector<Node>& vars)
+void SolverEngine::declareSynthFun(Node func,
+                                   bool isInv,
+                                   const std::vector<Node>& vars)
 {
   // use a null sygus type
   TypeNode sygusType;
   declareSynthFun(func, sygusType, isInv, vars);
 }
 
-void SmtEngine::assertSygusConstraint(Node n, bool isAssume)
+void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
 {
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusConstraint(n, isAssume);
 }
 
-void SmtEngine::assertSygusInvConstraint(Node inv,
-                                         Node pre,
-                                         Node trans,
-                                         Node post)
+void SolverEngine::assertSygusInvConstraint(Node inv,
+                                            Node pre,
+                                            Node trans,
+                                            Node post)
 {
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
-Result SmtEngine::checkSynth()
+Result SolverEngine::checkSynth()
 {
   SmtScope smts(this);
   finishInit();
@@ -1030,7 +1035,8 @@ Result SmtEngine::checkSynth()
    --------------------------------------------------------------------------
 */
 
-void SmtEngine::declarePool(const Node& p, const std::vector<Node>& initValue)
+void SolverEngine::declarePool(const Node& p,
+                               const std::vector<Node>& initValue)
 {
   Assert(p.isVar() && p.getType().isSet());
   finishInit();
@@ -1038,7 +1044,7 @@ void SmtEngine::declarePool(const Node& p, const std::vector<Node>& initValue)
   qe->declarePool(p, initValue);
 }
 
-Node SmtEngine::simplify(const Node& ex)
+Node SolverEngine::simplify(const Node& ex)
 {
   SmtScope smts(this);
   finishInit();
@@ -1048,7 +1054,7 @@ Node SmtEngine::simplify(const Node& ex)
   return d_pp->simplify(ex);
 }
 
-Node SmtEngine::expandDefinitions(const Node& ex)
+Node SolverEngine::expandDefinitions(const Node& ex)
 {
   getResourceManager()->spendResource(Resource::PreprocessStep);
   SmtScope smts(this);
@@ -1058,7 +1064,7 @@ Node SmtEngine::expandDefinitions(const Node& ex)
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Node SmtEngine::getValue(const Node& ex) const
+Node SolverEngine::getValue(const Node& ex) const
 {
   SmtScope smts(this);
 
@@ -1114,7 +1120,7 @@ Node SmtEngine::getValue(const Node& ex) const
   return resultNode;
 }
 
-std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs) const
+std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs) const
 {
   std::vector<Node> result;
   for (const Node& e : exprs)
@@ -1124,14 +1130,14 @@ std::vector<Node> SmtEngine::getValues(const std::vector<Node>& exprs) const
   return result;
 }
 
-std::vector<Node> SmtEngine::getModelDomainElements(TypeNode tn) const
+std::vector<Node> SolverEngine::getModelDomainElements(TypeNode tn) const
 {
   Assert(tn.isSort());
   TheoryModel* m = getAvailableModel("getModelDomainElements");
   return m->getDomainElements(tn);
 }
 
-bool SmtEngine::isModelCoreSymbol(Node n)
+bool SolverEngine::isModelCoreSymbol(Node n)
 {
   SmtScope smts(this);
   Assert(n.isVar());
@@ -1157,8 +1163,8 @@ bool SmtEngine::isModelCoreSymbol(Node n)
   return tm->isModelCoreSymbol(n);
 }
 
-std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
-                                const std::vector<Node>& declaredFuns)
+std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
+                                   const std::vector<Node>& declaredFuns)
 {
   SmtScope smts(this);
   // !!! Note that all methods called here should have a version at the API
@@ -1202,7 +1208,7 @@ std::string SmtEngine::getModel(const std::vector<TypeNode>& declaredSorts,
   return ssm.str();
 }
 
-Result SmtEngine::blockModel()
+Result SolverEngine::blockModel()
 {
   Trace("smt") << "SMT blockModel()" << endl;
   SmtScope smts(this);
@@ -1231,7 +1237,7 @@ Result SmtEngine::blockModel()
   return assertFormula(eblocker);
 }
 
-Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
+Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
   SmtScope smts(this);
@@ -1253,7 +1259,7 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
   return assertFormula(eblocker);
 }
 
-std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
+std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
 {
   if (!getLogicInfo().isTheoryEnabled(THEORY_SEP))
   {
@@ -1275,7 +1281,7 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
   return std::make_pair(heap, nil);
 }
 
-std::vector<Node> SmtEngine::getAssertionsInternal()
+std::vector<Node> SolverEngine::getAssertionsInternal()
 {
   Assert(d_state->isFullyInited());
   context::CDList<Node>* al = d_asserts->getAssertionList();
@@ -1288,16 +1294,16 @@ std::vector<Node> SmtEngine::getAssertionsInternal()
   return res;
 }
 
-std::vector<Node> SmtEngine::getExpandedAssertions()
+std::vector<Node> SolverEngine::getExpandedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
   d_pp->expandDefinitions(easserts);
   return easserts;
 }
-Env& SmtEngine::getEnv() { return *d_env.get(); }
+Env& SolverEngine::getEnv() { return *d_env.get(); }
 
-void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
+void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
   if (!getLogicInfo().isTheoryEnabled(THEORY_SEP))
   {
@@ -1311,7 +1317,7 @@ void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
   te->declareSepHeap(locT, dataT);
 }
 
-bool SmtEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
+bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
 {
   SmtScope smts(this);
   finishInit();
@@ -1319,11 +1325,11 @@ bool SmtEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
   return te->getSepHeapTypes(locT, dataT);
 }
 
-Node SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
+Node SolverEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
-Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
+Node SolverEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
-void SmtEngine::checkProof()
+void SolverEngine::checkProof()
 {
   Assert(d_env->getOptions().smt.produceProofs);
   // internal check the proof
@@ -1341,12 +1347,12 @@ void SmtEngine::checkProof()
   }
 }
 
-StatisticsRegistry& SmtEngine::getStatisticsRegistry()
+StatisticsRegistry& SolverEngine::getStatisticsRegistry()
 {
   return d_env->getStatisticsRegistry();
 }
 
-UnsatCore SmtEngine::getUnsatCoreInternal()
+UnsatCore SolverEngine::getUnsatCoreInternal()
 {
   if (!d_env->getOptions().smt.unsatCores)
   {
@@ -1384,16 +1390,16 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   return UnsatCore(core);
 }
 
-std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
+std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 {
   Assert(options::unsatCores())
       << "cannot reduce unsat core if unsat cores are turned off";
 
-  Notice() << "SmtEngine::reduceUnsatCore(): reducing unsat core" << endl;
+  Notice() << "SolverEngine::reduceUnsatCore(): reducing unsat core" << endl;
   std::unordered_set<Node> removed;
   for (const Node& skip : core)
   {
-    std::unique_ptr<SmtEngine> coreChecker;
+    std::unique_ptr<SolverEngine> coreChecker;
     initializeSubsolver(coreChecker, *d_env.get());
     coreChecker->setLogic(getLogicInfo());
     coreChecker->getOptions().smt.checkUnsatCores = false;
@@ -1425,9 +1431,10 @@ std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
     }
     else if (r.asSatisfiabilityResult().isUnknown())
     {
-      Warning() << "SmtEngine::reduceUnsatCore(): could not reduce unsat core "
-                   "due to "
-                   "unknown result.";
+      Warning()
+          << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
+             "due to "
+             "unknown result.";
     }
   }
 
@@ -1450,16 +1457,16 @@ std::vector<Node> SmtEngine::reduceUnsatCore(const std::vector<Node>& core)
   }
 }
 
-void SmtEngine::checkUnsatCore()
+void SolverEngine::checkUnsatCore()
 {
   Assert(d_env->getOptions().smt.unsatCores)
       << "cannot check unsat core if unsat cores are turned off";
 
-  Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
+  Notice() << "SolverEngine::checkUnsatCore(): generating unsat core" << endl;
   UnsatCore core = getUnsatCore();
 
   // initialize the core checker
-  std::unique_ptr<SmtEngine> coreChecker;
+  std::unique_ptr<SolverEngine> coreChecker;
   initializeSubsolver(coreChecker, *d_env.get());
   coreChecker->getOptions().smt.checkUnsatCores = false;
   // disable all proof options
@@ -1473,13 +1480,13 @@ void SmtEngine::checkUnsatCore()
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
 
-  Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions"
+  Notice() << "SolverEngine::checkUnsatCore(): pushing core assertions"
            << std::endl;
   theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
   {
     Node assertionAfterExpansion = tls.apply(*i, false);
-    Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
+    Notice() << "SolverEngine::checkUnsatCore(): pushing core member " << *i
              << ", expanded to " << assertionAfterExpansion << "\n";
     coreChecker->assertFormula(assertionAfterExpansion);
   }
@@ -1492,31 +1499,31 @@ void SmtEngine::checkUnsatCore()
   {
     throw;
   }
-  Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
+  Notice() << "SolverEngine::checkUnsatCore(): result is " << r << endl;
   if (r.asSatisfiabilityResult().isUnknown())
   {
-    Warning()
-        << "SmtEngine::checkUnsatCore(): could not check core result unknown."
-        << std::endl;
+    Warning() << "SolverEngine::checkUnsatCore(): could not check core result "
+                 "unknown."
+              << std::endl;
   }
   else if (r.asSatisfiabilityResult().isSat())
   {
     InternalError()
-        << "SmtEngine::checkUnsatCore(): produced core was satisfiable.";
+        << "SolverEngine::checkUnsatCore(): produced core was satisfiable.";
   }
 }
 
-void SmtEngine::checkModel(bool hardFailure)
+void SolverEngine::checkModel(bool hardFailure)
 {
   context::CDList<Node>* al = d_asserts->getAssertionList();
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
   Assert(al != nullptr)
-      << "don't have an assertion list to check in SmtEngine::checkModel()";
+      << "don't have an assertion list to check in SolverEngine::checkModel()";
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
-  Notice() << "SmtEngine::checkModel(): generating model" << endl;
+  Notice() << "SolverEngine::checkModel(): generating model" << endl;
   TheoryModel* m = getAvailableModel("check model");
   Assert(m != nullptr);
 
@@ -1533,7 +1540,7 @@ void SmtEngine::checkModel(bool hardFailure)
   d_checkModels->checkModel(m, al, hardFailure);
 }
 
-UnsatCore SmtEngine::getUnsatCore()
+UnsatCore SolverEngine::getUnsatCore()
 {
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
   SmtScope smts(this);
@@ -1545,7 +1552,7 @@ UnsatCore SmtEngine::getUnsatCore()
   return getUnsatCoreInternal();
 }
 
-void SmtEngine::getRelevantInstantiationTermVectors(
+void SolverEngine::getRelevantInstantiationTermVectors(
     std::map<Node, InstantiationList>& insts, bool getDebugInfo)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
@@ -1558,7 +1565,7 @@ void SmtEngine::getRelevantInstantiationTermVectors(
   d_ucManager->getRelevantInstantiations(pfn, insts, getDebugInfo);
 }
 
-std::string SmtEngine::getProof()
+std::string SolverEngine::getProof()
 {
   Trace("smt") << "SMT getProof()\n";
   SmtScope smts(this);
@@ -1587,7 +1594,7 @@ std::string SmtEngine::getProof()
   return ss.str();
 }
 
-void SmtEngine::printInstantiations(std::ostream& out)
+void SolverEngine::printInstantiations(std::ostream& out)
 {
   SmtScope smts(this);
   finishInit();
@@ -1680,7 +1687,7 @@ void SmtEngine::printInstantiations(std::ostream& out)
   }
 }
 
-void SmtEngine::getInstantiationTermVectors(
+void SolverEngine::getInstantiationTermVectors(
     std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
   SmtScope smts(this);
@@ -1691,14 +1698,14 @@ void SmtEngine::getInstantiationTermVectors(
   qe->getInstantiationTermVectors(insts);
 }
 
-bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)
+bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   SmtScope smts(this);
   finishInit();
   return d_sygusSolver->getSynthSolutions(solMap);
 }
 
-Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
+Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
 {
   SmtScope smts(this);
   finishInit();
@@ -1712,9 +1719,9 @@ Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
       *d_asserts, q, doFull, d_isInternalSubsolver);
 }
 
-bool SmtEngine::getInterpol(const Node& conj,
-                            const TypeNode& grammarType,
-                            Node& interpol)
+bool SolverEngine::getInterpol(const Node& conj,
+                               const TypeNode& grammarType,
+                               Node& interpol)
 {
   SmtScope smts(this);
   finishInit();
@@ -1727,15 +1734,15 @@ bool SmtEngine::getInterpol(const Node& conj,
   return success;
 }
 
-bool SmtEngine::getInterpol(const Node& conj, Node& interpol)
+bool SolverEngine::getInterpol(const Node& conj, Node& interpol)
 {
   TypeNode grammarType;
   return getInterpol(conj, grammarType, interpol);
 }
 
-bool SmtEngine::getAbduct(const Node& conj,
-                          const TypeNode& grammarType,
-                          Node& abd)
+bool SolverEngine::getAbduct(const Node& conj,
+                             const TypeNode& grammarType,
+                             Node& abd)
 {
   SmtScope smts(this);
   finishInit();
@@ -1747,13 +1754,13 @@ bool SmtEngine::getAbduct(const Node& conj,
   return success;
 }
 
-bool SmtEngine::getAbduct(const Node& conj, Node& abd)
+bool SolverEngine::getAbduct(const Node& conj, Node& abd)
 {
   TypeNode grammarType;
   return getAbduct(conj, grammarType, abd);
 }
 
-void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
+void SolverEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   SmtScope smts(this);
   QuantifiersEngine* qe =
@@ -1761,7 +1768,7 @@ void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
   qe->getInstantiatedQuantifiedFormulas(qs);
 }
 
-void SmtEngine::getInstantiationTermVectors(
+void SolverEngine::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node>>& tvecs)
 {
   SmtScope smts(this);
@@ -1770,7 +1777,7 @@ void SmtEngine::getInstantiationTermVectors(
   qe->getInstantiationTermVectors(q, tvecs);
 }
 
-std::vector<Node> SmtEngine::getAssertions()
+std::vector<Node> SolverEngine::getAssertions()
 {
   SmtScope smts(this);
   finishInit();
@@ -1790,7 +1797,7 @@ std::vector<Node> SmtEngine::getAssertions()
   return getAssertionsInternal();
 }
 
-void SmtEngine::getDifficultyMap(std::map<Node, Node>& dmap)
+void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 {
   Trace("smt") << "SMT getDifficultyMap()\n";
   SmtScope smts(this);
@@ -1813,7 +1820,7 @@ void SmtEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   d_pfManager->translateDifficultyMap(dmap, *d_asserts);
 }
 
-void SmtEngine::push()
+void SolverEngine::push()
 {
   SmtScope smts(this);
   finishInit();
@@ -1827,7 +1834,7 @@ void SmtEngine::push()
   d_state->userPush();
 }
 
-void SmtEngine::pop()
+void SolverEngine::pop()
 {
   SmtScope smts(this);
   finishInit();
@@ -1843,13 +1850,13 @@ void SmtEngine::pop()
   // clear the learned literals from the preprocessor
   d_pp->clearLearnedLiterals();
 
-  Trace("userpushpop") << "SmtEngine: popped to level "
+  Trace("userpushpop") << "SolverEngine: popped to level "
                        << getUserContext()->getLevel() << endl;
   // should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
 
-void SmtEngine::resetAssertions()
+void SolverEngine::resetAssertions()
 {
   SmtScope smts(this);
 
@@ -1879,7 +1886,7 @@ void SmtEngine::resetAssertions()
   d_smtSolver->resetAssertions();
 }
 
-void SmtEngine::interrupt()
+void SolverEngine::interrupt()
 {
   if (!d_state->isFullyInited())
   {
@@ -1888,7 +1895,7 @@ void SmtEngine::interrupt()
   d_smtSolver->interrupt();
 }
 
-void SmtEngine::setResourceLimit(uint64_t units, bool cumulative)
+void SolverEngine::setResourceLimit(uint64_t units, bool cumulative)
 {
   if (cumulative)
   {
@@ -1899,43 +1906,43 @@ void SmtEngine::setResourceLimit(uint64_t units, bool cumulative)
     d_env->d_options.base.perCallResourceLimit = units;
   }
 }
-void SmtEngine::setTimeLimit(uint64_t millis)
+void SolverEngine::setTimeLimit(uint64_t millis)
 {
   d_env->d_options.base.perCallMillisecondLimit = millis;
 }
 
-unsigned long SmtEngine::getResourceUsage() const
+unsigned long SolverEngine::getResourceUsage() const
 {
   return getResourceManager()->getResourceUsage();
 }
 
-unsigned long SmtEngine::getTimeUsage() const
+unsigned long SolverEngine::getTimeUsage() const
 {
   return getResourceManager()->getTimeUsage();
 }
 
-unsigned long SmtEngine::getResourceRemaining() const
+unsigned long SolverEngine::getResourceRemaining() const
 {
   return getResourceManager()->getResourceRemaining();
 }
 
-NodeManager* SmtEngine::getNodeManager() const
+NodeManager* SolverEngine::getNodeManager() const
 {
   return d_env->getNodeManager();
 }
 
-void SmtEngine::printStatisticsSafe(int fd) const
+void SolverEngine::printStatisticsSafe(int fd) const
 {
   d_env->getStatisticsRegistry().printSafe(fd);
 }
 
-void SmtEngine::printStatisticsDiff() const
+void SolverEngine::printStatisticsDiff() const
 {
   d_env->getStatisticsRegistry().printDiff(*d_env->getOptions().base.err);
   d_env->getStatisticsRegistry().storeSnapshot();
 }
 
-void SmtEngine::setOption(const std::string& key, const std::string& value)
+void SolverEngine::setOption(const std::string& key, const std::string& value)
 {
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
@@ -1973,11 +1980,11 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
   options::set(getOptions(), key, optionarg);
 }
 
-void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
+void SolverEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 
-bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
+bool SolverEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
-std::string SmtEngine::getOption(const std::string& key) const
+std::string SolverEngine::getOption(const std::string& key) const
 {
   NodeManager* nm = d_env->getNodeManager();
 
@@ -2038,21 +2045,21 @@ std::string SmtEngine::getOption(const std::string& key) const
   return options::get(getOptions(), key);
 }
 
-Options& SmtEngine::getOptions() { return d_env->d_options; }
+Options& SolverEngine::getOptions() { return d_env->d_options; }
 
-const Options& SmtEngine::getOptions() const { return d_env->getOptions(); }
+const Options& SolverEngine::getOptions() const { return d_env->getOptions(); }
 
-ResourceManager* SmtEngine::getResourceManager() const
+ResourceManager* SolverEngine::getResourceManager() const
 {
   return d_env->getResourceManager();
 }
 
-DumpManager* SmtEngine::getDumpManager() { return d_env->getDumpManager(); }
+DumpManager* SolverEngine::getDumpManager() { return d_env->getDumpManager(); }
 
-const Printer& SmtEngine::getPrinter() const { return d_env->getPrinter(); }
+const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
 
-OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
+OutputManager& SolverEngine::getOutputManager() { return d_outMgr; }
 
-theory::Rewriter* SmtEngine::getRewriter() { return d_env->getRewriter(); }
+theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 
 }  // namespace cvc5

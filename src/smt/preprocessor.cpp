@@ -35,17 +35,17 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-Preprocessor::Preprocessor(SmtEngine& smt,
+Preprocessor::Preprocessor(SolverEngine& slv,
                            Env& env,
                            AbstractValues& abs,
                            SmtEngineStatistics& stats)
-    : d_smt(smt),
+    : d_slv(slv),
       d_env(env),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_exDefs(env, stats),
-      d_processor(smt, *env.getResourceManager(), stats),
+      d_processor(slv, *env.getResourceManager(), stats),
       d_pnm(nullptr)
 {
 }
@@ -62,7 +62,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, d_env, &d_propagator));
+      &d_slv, d_env, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -149,8 +149,8 @@ Node Preprocessor::simplify(const Node& node)
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
-        d_smt.getOutputManager().getDumpOut(), node);
+    d_slv.getOutputManager().getPrinter().toStreamCmdSimplify(
+        d_slv.getOutputManager().getDumpOut(), node);
   }
   Node ret = expandDefinitions(node);
   ret = theory::Rewriter::rewrite(ret);

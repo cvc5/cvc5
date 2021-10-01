@@ -51,7 +51,7 @@ Node SygusQePreproc::preprocess(Node q)
     return Node::null();
   }
   // create new smt engine to do quantifier elimination
-  std::unique_ptr<SmtEngine> smt_qe;
+  std::unique_ptr<SolverEngine> smt_qe;
   initializeSubsolver(smt_qe, d_env);
   Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                         "QE to obtain single invocation."

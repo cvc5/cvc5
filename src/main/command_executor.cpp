@@ -60,7 +60,7 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::storeOptionsAsOriginal()
 {
-  d_solver->d_originalOptions->copyValues(d_solver->d_smtEngine->getOptions());
+  d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
