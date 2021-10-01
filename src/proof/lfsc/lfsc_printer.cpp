@@ -26,7 +26,6 @@
 #include "proof/lfsc/lfsc_print_channel.h"
 
 using namespace cvc5::kind;
-using namespace cvc5::rewriter;
 
 namespace cvc5 {
 namespace proof {
@@ -300,13 +299,6 @@ void LfscPrinter::printProofLetify(
       out->printOpenLfscRule(LfscRule::LAMBDA);
       cparen++;
       out->printProofId(pid);
-      // debugging
-      /*
-      if (Trace.isOn("lfsc-print-debug"))
-      {
-        out << "; proves " << p->getResult();
-      }
-      */
       out->printEndLine();
     }
     out->printEndLine();
