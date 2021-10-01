@@ -478,15 +478,6 @@ void OptionsHandler::showTraceTags(const std::string& option,
   std::exit(0);
 }
 
-void OptionsHandler::setProduceAssertions(const std::string& option,
-                                          const std::string& flag,
-                                          bool value)
-{
-  d_options->smt.produceAssertions = value;
-  d_options->smt.interactiveMode = value;
-}
-
-
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepth(const std::string& option,
                                          const std::string& flag,

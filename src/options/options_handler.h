@@ -159,13 +159,14 @@ public:
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& option, const std::string& flag);
 
-  /**
-   * Throws a ModalException if this option is being set after final
-   * initialization.
-   */
-  void setProduceAssertions(const std::string& option,
-                            const std::string& flag,
-                            bool value);
+  /******************************* smt options *******************************/
+
+  void setDumpMode(const std::string& option,
+                   const std::string& flag,
+                   const std::string& optarg);
+  void setDumpStream(const std::string& option,
+                     const std::string& flag,
+                     const ManagedOut& mo);
 
   /* expr/options_handlers.h */
   void setDefaultExprDepth(const std::string& option,
@@ -177,13 +178,6 @@ public:
 
 
   /* options/base_options_handlers.h */
-  void setDumpStream(const std::string& option,
-                     const std::string& flag,
-                     const ManagedOut& mo);
-
-  void setDumpMode(const std::string& option,
-                   const std::string& flag,
-                   const std::string& optarg);
 
  private:
 
