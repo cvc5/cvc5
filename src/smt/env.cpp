@@ -212,4 +212,10 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
   return n;
 }
 
+bool Env::isFiniteType(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  options::finiteModelFind());
+}
+
 }  // namespace cvc5

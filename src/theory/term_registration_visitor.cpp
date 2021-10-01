@@ -41,7 +41,7 @@ std::string PreRegisterVisitor::toString() const {
  * current. This method is used by PreRegisterVisitor and SharedTermsVisitor
  * below.
  */
-bool isAlreadyVisited(TheoryEngine* te,
+bool isAlreadyVisited(Env& env,
                       TheoryIdSet visitedTheories,
                       TNode current,
                       TNode parent)
@@ -70,7 +70,7 @@ bool isAlreadyVisited(TheoryEngine* te,
 
   // do we need to consider the type?
   TypeNode type = current.getType();
-  if (currentTheoryId == parentTheoryId && !te->isFiniteType(type))
+  if (currentTheoryId == parentTheoryId && !env.isFiniteType(type))
   {
     // current and parent are the same theory, and we are infinite, return true
     return true;
@@ -79,6 +79,11 @@ bool isAlreadyVisited(TheoryEngine* te,
   return TheoryIdSetUtil::setContains(typeTheoryId, visitedTheories);
 }
 
+PreRegisterVisitor::PreRegisterVisitor(Env& env, TheoryEngine* engine)
+    : EnvObj(env), d_engine(engine)
+{
+}
+  
 bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
@@ -103,7 +108,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  return isAlreadyVisited(d_engine, visitedTheories, current, parent);
+  return isAlreadyVisited(d_env, visitedTheories, current, parent);
 }
 
 void PreRegisterVisitor::visit(TNode current, TNode parent) {
@@ -119,7 +124,7 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   // call the preregistration on current, parent or type theories and update
   // visitedTheories. The set of preregistering theories coincides with
   // visitedTheories here.
-  preRegister(d_engine, visitedTheories, current, parent, visitedTheories);
+  preRegister(d_env, d_engine, visitedTheories, current, parent, visitedTheories);
 
   Debug("register::internal")
       << "PreRegisterVisitor::visit(" << current << "," << parent
@@ -131,7 +136,8 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   Assert(alreadyVisited(current, parent));
 }
 
-void PreRegisterVisitor::preRegister(TheoryEngine* te,
+void PreRegisterVisitor::preRegister(Env& env,
+                                     TheoryEngine* te,
                                      TheoryIdSet& visitedTheories,
                                      TNode current,
                                      TNode parent,
@@ -152,7 +158,7 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     // Note that if enclosed by different theories it's shared, for example,
     // in read(a, f(a)), f(a) should be shared with integers.
     TypeNode type = current.getType();
-    if (currentTheoryId != parentTheoryId || te->isFiniteType(type))
+    if (currentTheoryId != parentTheoryId || env.isFiniteType(type))
     {
       // preregister with the type's theory, if necessary
       TheoryId typeTheoryId = Theory::theoryOf(type);
@@ -214,6 +220,13 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
 
 void PreRegisterVisitor::start(TNode node) {}
 
+  SharedTermsVisitor::SharedTermsVisitor(Env& env,
+                     TheoryEngine* te,
+                     SharedTermsDatabase& sharedTerms)
+      : EnvObj(env), d_engine(te), d_sharedTerms(sharedTerms), d_preregistered(context())
+  {
+  }
+
 std::string SharedTermsVisitor::toString() const {
   std::stringstream ss;
   TNodeVisitedMap::const_iterator it = d_visited.begin();
@@ -247,7 +260,7 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  return isAlreadyVisited(d_engine, visitedTheories, current, parent);
+  return isAlreadyVisited(d_env, visitedTheories, current, parent);
 }
 
 void SharedTermsVisitor::visit(TNode current, TNode parent) {
@@ -261,7 +274,7 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
 
   // preregister the term with the current, parent or type theories, as needed
   PreRegisterVisitor::preRegister(
-      d_engine, visitedTheories, current, parent, preregTheories);
+      d_env, d_engine, visitedTheories, current, parent, preregTheories);
 
   // Record the new theories that we visited
   d_visited[current] = visitedTheories;
