@@ -1,4 +1,4 @@
 Java API Documentation
 ======================
 
-This documentation was built while java bindings were disabled. This part of the documentation is empty. Please enable :code:`BUILD_BINDINGS_JAVA` in :code:`cmake` and build the documentation again.s
+This documentation was built while java bindings were disabled. This part of the documentation is empty. Please enable :code:`BUILD_BINDINGS_JAVA` in :code:`cmake` and build the documentation again.
