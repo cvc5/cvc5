@@ -322,11 +322,11 @@ void OptionsHandler::showConfiguration(const std::string& option,
   print_config ("version", Configuration::getVersionString());
   if (Configuration::isGitBuild())
   {
-    print_config_cond("scm", false);
+    print_config("scm", Configuration::getGitInfo());
   }
   else
   {
-    print_config("scm", Configuration::getGitInfo());
+    print_config_cond("scm", false);
   }
 
   std::cout << std::endl;
