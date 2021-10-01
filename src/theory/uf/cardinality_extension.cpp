@@ -1344,7 +1344,8 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
   if (options::ufssMode() == options::UfssMode::FULL)
   {
     if( lit.getKind()==CARDINALITY_CONSTRAINT ){
-      const CardinalityConstraint& cc = lit.getOperator().getConst<CardinalityConstraint>();
+      const CardinalityConstraint& cc =
+          lit.getOperator().getConst<CardinalityConstraint>();
       TypeNode tn = cc.getType();
       Assert(tn.isSort());
       Assert(d_rep_model[tn]);
@@ -1595,18 +1596,20 @@ void CardinalityExtension::preRegisterTerm(TNode n)
   {
     return;
   }
-  //initialize combined cardinality
+  // initialize combined cardinality
   initializeCombinedCardinality();
 
   Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
-  //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
+  // shouldn't have to preregister this type (it may be that there are no
+  // quantifiers over tn)
   TypeNode tn;
-  if (n.getKind()==CARDINALITY_CONSTRAINT)
+  if (n.getKind() == CARDINALITY_CONSTRAINT)
   {
-    const CardinalityConstraint& cc = n.getOperator().getConst<CardinalityConstraint>();
+    const CardinalityConstraint& cc =
+        n.getOperator().getConst<CardinalityConstraint>();
     tn = cc.getType();
   }
-  else 
+  else
   {
     tn = n.getType();
   }
@@ -1614,23 +1617,27 @@ void CardinalityExtension::preRegisterTerm(TNode n)
   {
     return;
   }
-  std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
-  if( it==d_rep_model.end() ){
+  std::map<TypeNode, SortModel*>::iterator it = d_rep_model.find(tn);
+  if (it == d_rep_model.end())
+  {
     SortModel* rm = NULL;
-    if( tn.isSort() ){
+    if (tn.isSort())
+    {
       Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
       rm = new SortModel(tn, d_state, d_im, this);
     }
-    if( rm ){
+    if (rm)
+    {
       rm->initialize();
       d_rep_model[tn] = rm;
-      //d_rep_model_init[tn] = true;
+      // d_rep_model_init[tn] = true;
     }
-  }else{
-    //ensure sort model is initialized
+  }
+  else
+  {
+    // ensure sort model is initialized
     it->second->initialize();
   }
-  
 }
 
 SortModel* CardinalityExtension::getSortModel(Node n)

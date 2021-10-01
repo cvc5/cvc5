@@ -25,7 +25,8 @@ CardinalityConstraint::CardinalityConstraint(const TypeNode& type,
                                              const Integer& ub)
     : d_type(new TypeNode(type)), d_ubound(ub)
 {
-  AlwaysAssert(type.isSort()) << "Unexpected cardinality constraints for " << type;
+  AlwaysAssert(type.isSort())
+      << "Unexpected cardinality constraints for " << type;
 }
 
 CardinalityConstraint::CardinalityConstraint(const CardinalityConstraint& other)

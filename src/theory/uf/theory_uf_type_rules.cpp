@@ -65,8 +65,8 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
 }
 
 TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
-                                                    TNode n,
-                                                    bool check)
+                                                      TNode n,
+                                                      bool check)
 {
   if (check)
   {
@@ -92,7 +92,6 @@ TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-
 TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check)
 {
@@ -109,9 +108,8 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
   return nodeManager->booleanType();
 }
 
-TypeNode CombinedCardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
-                                                    TNode n,
-                                                    bool check)
+TypeNode CombinedCardinalityConstraintTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check)
 {
   return nodeManager->booleanType();
 }

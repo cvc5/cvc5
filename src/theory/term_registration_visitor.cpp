@@ -193,13 +193,12 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
       newLogicInfo.lock();
       std::stringstream ss;
       ss << "The logic was specified as " << l.getLogicString()
-          << ", which doesn't include " << id
-          << ", but found a term in that theory." << std::endl
-          << "You might want to extend your logic to "
-          << newLogicInfo.getLogicString() << std::endl;
+         << ", which doesn't include " << id
+         << ", but found a term in that theory." << std::endl
+         << "You might want to extend your logic to "
+         << newLogicInfo.getLogicString() << std::endl;
       throw LogicException(ss.str());
     }
-    
   }
   // call the theory's preRegisterTerm method
   Theory* th = te->theoryOf(id);

@@ -254,7 +254,8 @@ Node TheoryModel::getModelValue(TNode n) const
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
     {
-      const CardinalityConstraint& cc = ret.getOperator().getConst<CardinalityConstraint>();
+      const CardinalityConstraint& cc =
+          ret.getOperator().getConst<CardinalityConstraint>();
       Debug("model-getvalue-debug")
           << "get cardinality constraint " << cc.getType() << std::endl;
       ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()

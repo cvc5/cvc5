@@ -41,13 +41,13 @@
 #include "base/modal_exception.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
 #include "expr/emptybag.h"
 #include "expr/emptyset.h"
 #include "expr/kind.h"
-#include "expr/cardinality_constraint.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
@@ -6046,9 +6046,11 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t ubound) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isUninterpretedSort(), sort) << "an uninterpreted sort";
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isUninterpretedSort(), sort)
+      << "an uninterpreted sort";
   //////// all checks before this line
-  Node cco = d_nodeMgr->mkConst(cvc5::CardinalityConstraint(*sort.d_type, ubound));
+  Node cco =
+      d_nodeMgr->mkConst(cvc5::CardinalityConstraint(*sort.d_type, ubound));
   Node cc = d_nodeMgr->mkNode(cvc5::Kind::CARDINALITY_CONSTRAINT, cco);
   return Term(this, cc);
   ////////
