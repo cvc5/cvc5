@@ -41,9 +41,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
-      d_evalRew(new theory::Evaluator(d_rewriter.get(),
-                                      opts->strings.stringsAlphaCard)),
-      d_eval(new theory::Evaluator(nullptr, opts->strings.stringsAlphaCard)),
+      d_evalRew(nullptr),
+      d_eval(nullptr),
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
@@ -56,6 +55,10 @@ Env::Env(NodeManager* nm, const Options* opts)
   {
     d_options.copyValues(*opts);
   }
+  // make the evaluators, which depend on the alphabet of strings
+  d_evalRew.reset(new theory::Evaluator(d_rewriter.get(),
+                                  d_options.strings.stringsAlphaCard));
+  d_eval.reset(new theory::Evaluator(nullptr, d_options.strings.stringsAlphaCard));
   d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
