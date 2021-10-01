@@ -298,9 +298,10 @@ void TheoryUF::preRegisterTerm(TNode node)
     // constants. However, they may be exported via models to API users.
     // It is thus possible that these uninterpreted constants are asserted
     // back in constraints, hence this check is necessary.
-    throw LogicException("An uninterpreted constant was preregistered to the UF theory.");
+    throw LogicException(
+        "An uninterpreted constant was preregistered to the UF theory.");
   }
-    break;
+  break;
   default:
     // Variables etc
     d_equalityEngine->addTerm(node);
