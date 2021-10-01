@@ -128,18 +128,6 @@ public:
                          const std::string& flag,
                          const std::string& optarg);
 
-  /******************************* main options *******************************/
-  /** Show the solver build configuration and exit */
-  void showConfiguration(const std::string& option, const std::string& flag);
-  /** Show copyright information and exit */
-  void showCopyright(const std::string& option, const std::string& flag);
-  /** Show version information and exit */
-  void showVersion(const std::string& option, const std::string& flag);
-  /** Show all debug tags and exit */
-  void showDebugTags(const std::string& option, const std::string& flag);
-  /** Show all trace tags and exit */
-  void showTraceTags(const std::string& option, const std::string& flag);
-
   /******************************* bv options *******************************/
 
   /** Check that abc is enabled */
@@ -158,6 +146,18 @@ public:
   void setBitblastAig(const std::string& option,
                       const std::string& flag,
                       bool arg);
+
+  /******************************* main options *******************************/
+  /** Show the solver build configuration and exit */
+  void showConfiguration(const std::string& option, const std::string& flag);
+  /** Show copyright information and exit */
+  void showCopyright(const std::string& option, const std::string& flag);
+  /** Show version information and exit */
+  void showVersion(const std::string& option, const std::string& flag);
+  /** Show all debug tags and exit */
+  void showDebugTags(const std::string& option, const std::string& flag);
+  /** Show all trace tags and exit */
+  void showTraceTags(const std::string& option, const std::string& flag);
 
   /**
    * Throws a ModalException if this option is being set after final

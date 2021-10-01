@@ -271,6 +271,104 @@ void OptionsHandler::setResourceWeight(const std::string& option,
   d_options->base.resourceWeightHolder.emplace_back(optarg);
 }
 
+void OptionsHandler::abcEnabledBuild(const std::string& option,
+                                     const std::string& flag,
+                                     bool value)
+{
+#ifndef CVC5_USE_ABC
+  if(value) {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires an abc-enabled build of cvc5; this binary was not built "
+          "with abc support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC5_USE_ABC */
+}
+
+void OptionsHandler::abcEnabledBuild(const std::string& option,
+                                     const std::string& flag,
+                                     const std::string& value)
+{
+#ifndef CVC5_USE_ABC
+  if(!value.empty()) {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires an abc-enabled build of cvc5; this binary was not built "
+          "with abc support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC5_USE_ABC */
+}
+
+void OptionsHandler::checkBvSatSolver(const std::string& option,
+                                      const std::string& flag,
+                                      SatSolverMode m)
+{
+  if (m == SatSolverMode::CRYPTOMINISAT
+      && !Configuration::isBuiltWithCryptominisat())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a CryptoMiniSat build of cvc5; this binary was not built "
+          "with CryptoMiniSat support";
+    throw OptionException(ss.str());
+  }
+
+  if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a Kissat build of cvc5; this binary was not built with "
+          "Kissat support";
+    throw OptionException(ss.str());
+  }
+
+  if (d_options->bv.bvSolver != options::BVSolver::BITBLAST
+      && (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
+          || m == SatSolverMode::KISSAT))
+  {
+    if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
+        && d_options->bv.bitblastModeWasSetByUser)
+    {
+      std::string sat_solver;
+      if (m == options::SatSolverMode::CADICAL)
+      {
+        sat_solver = "CaDiCaL";
+      }
+      else if (m == options::SatSolverMode::KISSAT)
+      {
+        sat_solver = "Kissat";
+      }
+      else
+      {
+        Assert(m == options::SatSolverMode::CRYPTOMINISAT);
+        sat_solver = "CryptoMiniSat";
+      }
+      throw OptionException(sat_solver
+                            + " does not support lazy bit-blasting.\n"
+                            + "Try --bv-sat-solver=minisat");
+    }
+    options::bv::setDefaultBitvectorToBool(*d_options, true);
+  }
+}
+
+void OptionsHandler::setBitblastAig(const std::string& option,
+                                    const std::string& flag,
+                                    bool arg)
+{
+  if(arg) {
+    if (d_options->bv.bitblastModeWasSetByUser) {
+      if (d_options->bv.bitblastMode != options::BitblastMode::EAGER)
+      {
+        throw OptionException("bitblast-aig must be used with eager bitblaster");
+      }
+    } else {
+      d_options->bv.bitblastMode = options::BitblastMode::EAGER;
+    }
+  }
+}
+
 static void print_config (const char * str, std::string config) {
   std::string s(str);
   unsigned sz = 14;
@@ -378,105 +476,6 @@ void OptionsHandler::showTraceTags(const std::string& option,
   }
   printTags(Configuration::getTraceTags());
   std::exit(0);
-}
-
-// theory/bv/options_handlers.h
-void OptionsHandler::abcEnabledBuild(const std::string& option,
-                                     const std::string& flag,
-                                     bool value)
-{
-#ifndef CVC5_USE_ABC
-  if(value) {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires an abc-enabled build of cvc5; this binary was not built "
-          "with abc support";
-    throw OptionException(ss.str());
-  }
-#endif /* CVC5_USE_ABC */
-}
-
-void OptionsHandler::abcEnabledBuild(const std::string& option,
-                                     const std::string& flag,
-                                     const std::string& value)
-{
-#ifndef CVC5_USE_ABC
-  if(!value.empty()) {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires an abc-enabled build of cvc5; this binary was not built "
-          "with abc support";
-    throw OptionException(ss.str());
-  }
-#endif /* CVC5_USE_ABC */
-}
-
-void OptionsHandler::checkBvSatSolver(const std::string& option,
-                                      const std::string& flag,
-                                      SatSolverMode m)
-{
-  if (m == SatSolverMode::CRYPTOMINISAT
-      && !Configuration::isBuiltWithCryptominisat())
-  {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires a CryptoMiniSat build of cvc5; this binary was not built "
-          "with CryptoMiniSat support";
-    throw OptionException(ss.str());
-  }
-
-  if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
-  {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires a Kissat build of cvc5; this binary was not built with "
-          "Kissat support";
-    throw OptionException(ss.str());
-  }
-
-  if (d_options->bv.bvSolver != options::BVSolver::BITBLAST
-      && (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
-          || m == SatSolverMode::KISSAT))
-  {
-    if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
-        && d_options->bv.bitblastModeWasSetByUser)
-    {
-      std::string sat_solver;
-      if (m == options::SatSolverMode::CADICAL)
-      {
-        sat_solver = "CaDiCaL";
-      }
-      else if (m == options::SatSolverMode::KISSAT)
-      {
-        sat_solver = "Kissat";
-      }
-      else
-      {
-        Assert(m == options::SatSolverMode::CRYPTOMINISAT);
-        sat_solver = "CryptoMiniSat";
-      }
-      throw OptionException(sat_solver
-                            + " does not support lazy bit-blasting.\n"
-                            + "Try --bv-sat-solver=minisat");
-    }
-    options::bv::setDefaultBitvectorToBool(*d_options, true);
-  }
-}
-
-void OptionsHandler::setBitblastAig(const std::string& option,
-                                    const std::string& flag,
-                                    bool arg)
-{
-  if(arg) {
-    if (d_options->bv.bitblastModeWasSetByUser) {
-      if (d_options->bv.bitblastMode != options::BitblastMode::EAGER)
-      {
-        throw OptionException("bitblast-aig must be used with eager bitblaster");
-      }
-    } else {
-      d_options->bv.bitblastMode = options::BitblastMode::EAGER;
-    }
-  }
 }
 
 void OptionsHandler::setProduceAssertions(const std::string& option,
