@@ -509,7 +509,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
     {
       addOperator(api::CARDINALITY_CONSTRAINT, "fmf.card");
-      addOperator(api::CARDINALITY_VALUE, "fmf.card.val");
     }
   }
 
@@ -1029,6 +1028,17 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     api::Term ret = d_solver->mkConstArray(p.d_type, constVal);
     Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
+    return ret;
+  }
+  else if (p.d_kind == api::CARDINALITY_CONSTRAINT)
+  {
+    if (args.size() != 2)
+    {
+      parseError("Incorrect arguments for cardinality constraint");
+    }
+    api::Sort sort = args[0].getSort();
+    uint64_t ubound = args[1].getUInt32Value();
+    api::Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
     return ret;
   }
   else if ((p.d_kind == api::APPLY_SELECTOR || p.d_kind == api::APPLY_UPDATER)

@@ -331,22 +331,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   CARDINALITY_CONSTRAINT,
-  /**
-   * Cardinality value for uninterpreted sort S.
-   * An operator that returns an integer indicating the value of the cardinality
-   * of sort S.
-   *
-   * Parameters:
-   *   - 1: Term of sort S
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  CARDINALITY_VALUE,
 #if 0
-  /* Combined cardinality constraint.  */
-  COMBINED_CARDINALITY_CONSTRAINT,
   /* Partial uninterpreted function application.  */
   PARTIAL_APPLY_UF,
 #endif
