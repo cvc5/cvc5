@@ -27,8 +27,7 @@ using namespace std;
 namespace cvc5 {
 namespace theory {
 
-TheoryPreprocessor::TheoryPreprocessor(Env& env,
-                                       TheoryEngine& engine)
+TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     : EnvObj(env),
       d_engine(engine),
       d_ppCache(userContext()),
@@ -42,30 +41,28 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env,
 {
   if (env.isTheoryProofEnabled())
   {
-    context::Context * u = userContext();
-    ProofNodeManager * pnm = env.getProofNodeManager();
-    d_tpg.reset(new TConvProofGenerator(
-                    pnm,
-                    u,
-                    TConvPolicy::FIXPOINT,
-                    TConvCachePolicy::NEVER,
-                    "TheoryPreprocessor::preprocess_rewrite",
-                    &d_iqtc));
-    d_tpgRtf.reset(new TConvProofGenerator(pnm,
-                                            u,
-                                            TConvPolicy::FIXPOINT,
-                                            TConvCachePolicy::NEVER,
-                                            "TheoryPreprocessor::rtf",
-                                            &d_iqtc));
-    d_tpgRew.reset(new TConvProofGenerator(pnm,
-                                            u,
-                                            TConvPolicy::ONCE,
-                                            TConvCachePolicy::NEVER,
-                                            "TheoryPreprocessor::pprew"));
-    d_lp.reset(new LazyCDProof(pnm,
-                                nullptr,
+    context::Context* u = userContext();
+    ProofNodeManager* pnm = env.getProofNodeManager();
+    d_tpg.reset(
+        new TConvProofGenerator(pnm,
                                 u,
-                                "TheoryPreprocessor::LazyCDProof"));
+                                TConvPolicy::FIXPOINT,
+                                TConvCachePolicy::NEVER,
+                                "TheoryPreprocessor::preprocess_rewrite",
+                                &d_iqtc));
+    d_tpgRtf.reset(new TConvProofGenerator(pnm,
+                                           u,
+                                           TConvPolicy::FIXPOINT,
+                                           TConvCachePolicy::NEVER,
+                                           "TheoryPreprocessor::rtf",
+                                           &d_iqtc));
+    d_tpgRew.reset(new TConvProofGenerator(pnm,
+                                           u,
+                                           TConvPolicy::ONCE,
+                                           TConvCachePolicy::NEVER,
+                                           "TheoryPreprocessor::pprew"));
+    d_lp.reset(
+        new LazyCDProof(pnm, nullptr, u, "TheoryPreprocessor::LazyCDProof"));
     // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
     // (1) rewriting

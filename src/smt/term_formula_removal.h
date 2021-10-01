@@ -25,8 +25,8 @@
 #include "expr/node.h"
 #include "expr/term_context.h"
 #include "proof/trust_node.h"
-#include "util/hash.h"
 #include "smt/env_obj.h"
+#include "util/hash.h"
 
 namespace cvc5 {
 
@@ -34,7 +34,8 @@ class LazyCDProof;
 class ProofNodeManager;
 class TConvProofGenerator;
 
-class RemoveTermFormulas : protected EnvObj {
+class RemoveTermFormulas : protected EnvObj
+{
  public:
   RemoveTermFormulas(Env& env);
   ~RemoveTermFormulas();
@@ -202,6 +203,6 @@ class RemoveTermFormulas : protected EnvObj {
    * returns the null node.
    */
   Node runCurrent(std::pair<Node, uint32_t>& curr, TrustNode& newLem);
-};/* class RemoveTTE */
+}; /* class RemoveTTE */
 
 }  // namespace cvc5

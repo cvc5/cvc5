@@ -76,8 +76,7 @@ class TheoryPreprocessor : protected EnvObj
 
  public:
   /** Constructs a theory preprocessor */
-  TheoryPreprocessor(Env& env,
-                     TheoryEngine& engine);
+  TheoryPreprocessor(Env& env, TheoryEngine& engine);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
   /**
