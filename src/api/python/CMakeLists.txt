@@ -111,11 +111,7 @@ python_extension_module(pycvc5)
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file
 configure_file(setup.py.in setup.py)
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/pycvc5/__init__.py
-"import sys
-from .pycvc5 import *
-# fake a submodule for dotted imports, e.g. from pycvc5.kinds import *
-sys.modules['%s.%s'%(__name__, kinds.__name__)] = kinds")
+configure_file(__init__.py.in pycvc5/__init__.py)
 
 # figure out if we're in a virtualenv
 execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
