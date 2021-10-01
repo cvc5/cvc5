@@ -1,0 +1,103 @@
+; Sorts and terms:
+(declare sort type)
+(declare term type)
+
+; Theory holds: term t holds, where t should have Boolean type
+(declare holds (! t term type))
+
+; function constructor :
+(declare arrow (! s1 sort (! s2 sort sort)))
+
+; high-order apply :
+(declare apply (! t1 term (! t2 term term)))
+
+; Booleans :
+(declare true term)
+(declare false term)
+
+; Negation
+(declare f_not term)
+(define not (# t term (apply f_not t)))
+
+; Conjunction
+(declare f_and term)
+(define and (# t1 term (# t2 term (apply (apply f_and t1) t2))))
+
+; Disjunction
+(declare f_or term)
+(define or (# t1 term (# t2 term (apply (apply f_or t1) t2))))
+
+; Implication
+(declare f_=> term)
+(define => (# t1 term (# t2 term (apply (apply f_=> t1) t2))))
+
+; Xor
+(declare f_xor term)
+(define xor (# t1 term (# t2 term (apply (apply f_xor t1) t2))))
+
+; ITE
+(declare f_ite term)
+(define ite (# c term (# t1 term (# t2 term (apply (apply (apply f_ite c) t1) t2)))))
+
+; Equality:
+; f_= is an equality symbol, which is a term, to be used with an apply
+(declare f_=  term)
+; this macro enables writing (= t1 t2)
+(define = (# t1 term (# t2 term (apply (apply f_= t1) t2))))
+
+; Disequality:
+; f_distinct is a disequality symbol, which is a term, to be used with an apply
+(declare f_distinct term)
+; this macro enables writing (distinct t1 t2)
+(define distinct (# t1 term (# t2 term (apply (apply f_distinct t1) t2))))
+
+; Free constants :
+(declare var (! v mpz (! s sort term)))
+
+; BOUND_VARIABLE, i.e. a variable
+(declare bvar (! v mpz (! s sort term)))
+
+; Quantifiers : 
+; universals
+(declare f_forall (! v mpz (! s sort term)))
+(define forall (# v mpz (# s sort (# t term (apply (f_forall v s) t)))))
+
+; existentials
+(declare f_exists (! v mpz (! s sort term)))
+(define exists (# v mpz (# s sort (# t term (apply (f_exists v s) t)))))
+
+; witness
+(declare f_witness (! v mpz (! s sort term)))
+(define witness (# v mpz (# s sort (# t term (apply (f_witness v s) t)))))
+
+; lambda
+(declare f_lambda (! v mpz (! s sort term)))
+(define lambda (# v mpz (# s sort (# t term (apply (f_lambda v s) t)))))
+
+(declare skolem (! w term term))
+
+;;;; To write (forall ((x Int)) (P x)): (apply (forall v Int) (apply P (bvar v Int)))
+
+; proof-let
+(declare plet (! f term (! g term (! p (holds g) (! u (! v (holds g) (holds f)) (holds f))))))
+; scope, where note that this assumes f is in n-ary, null-terminated form
+(declare scope (! f term (! g term (! u (! v (holds g) (holds f)) (holds (or (not g) f))))))
+; trust
+(declare trust (! f term (holds f)))
+
+; replaces all skolems in t with their original form
+(program sc_to_original ((t term)) term
+  (match t
+    ((apply t1 t2) (apply (sc_to_original t1) (sc_to_original t2)))
+    ((skolem w)
+      ; witness terms stay beneath skolems, other terms are converted
+      (match w
+        ((apply w1 w2)
+          (match w1
+            ((f_witness v s) t)
+            (default w)))
+        (default w)))
+    (default t)
+  ))
+; make a skolem, which ensures that the given term is in original form
+(program sc_mk_skolem ((t term)) term (skolem (sc_to_original t)))

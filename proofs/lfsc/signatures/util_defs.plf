@@ -1,0 +1,29 @@
+; depends: core_defs.plf
+
+(declare flag type)
+(declare tt flag)
+(declare ff flag)
+
+(declare Ok type)
+(declare ok Ok)
+
+
+(declare termPair type)
+(declare pair (! first term (! second term termPair)))
+
+; bits
+(declare bit type)
+(declare b0 bit)
+(declare b1 bit)
+; bit vector type used for constants
+(declare bitvec type)
+(declare bvn bitvec)
+(declare bvc (! b bit (! v bitvec bitvec)))
+
+; get argument from f application, fail otherwise
+(program getarg ((f term) (t term)) term
+  (match t ((apply t1 t2) (ifequal t1 f t2 (fail term)))))
+
+; get argument from f application, return self otherwise
+(program try_getarg ((f term) (t term)) term
+  (match t ((apply t1 t2) (ifequal t1 f t2 t)) (default t)))
