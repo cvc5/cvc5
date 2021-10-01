@@ -112,7 +112,6 @@ typerule DIVISION ::cvc5::theory::arith::ArithOperatorTypeRule
 typerule POW ::cvc5::theory::arith::ArithOperatorTypeRule
 
 typerule CONST_RATIONAL ::cvc5::theory::arith::ArithConstantTypeRule
-construle CONST_RATIONAL ::cvc5::theory::arith::ArithConstantTypeRule
 
 typerule LT "SimpleTypeRule<RBool, AReal, AReal>"
 typerule LEQ "SimpleTypeRule<RBool, AReal, AReal>"

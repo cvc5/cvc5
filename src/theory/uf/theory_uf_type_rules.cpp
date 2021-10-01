@@ -64,7 +64,7 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
   return fType.getRangeType();
 }
 
-TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
+TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
                                                     bool check)
 {
@@ -84,13 +84,16 @@ TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
   }
   return nodeManager->booleanType();
 }
-bool CardinalityConstraintTypeRule::computeIsConst(NodeManager* nodeManager,
-                                                   TNode n)
+
+TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
+                                                    TNode n,
+                                                    bool check)
 {
-  return false;
+  return nodeManager->booleanType();
 }
 
-TypeNode CombinedCardinalityConstraintTypeRule::computeType(
+
+TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check)
 {
   if (check)
@@ -105,10 +108,12 @@ TypeNode CombinedCardinalityConstraintTypeRule::computeType(
   }
   return nodeManager->booleanType();
 }
-bool CombinedCardinalityConstraintTypeRule::computeIsConst(
-    NodeManager* nodeManager, TNode n)
+
+TypeNode CombinedCardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
+                                                    TNode n,
+                                                    bool check)
 {
-  return false;
+  return nodeManager->booleanType();
 }
 
 TypeNode PartialTypeRule::computeType(NodeManager* nodeManager,

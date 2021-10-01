@@ -94,7 +94,6 @@ typerule BAG_FROM_SET        ::cvc5::theory::bags::FromSetTypeRule
 typerule BAG_TO_SET          ::cvc5::theory::bags::ToSetTypeRule
 typerule BAG_MAP            ::cvc5::theory::bags::BagMapTypeRule
 
-construle EMPTYBAG           ::cvc5::theory::bags::EmptyBagTypeRule
 construle UNION_DISJOINT     ::cvc5::theory::bags::BinaryOperatorTypeRule
 construle MK_BAG             ::cvc5::theory::bags::MkBagTypeRule
 

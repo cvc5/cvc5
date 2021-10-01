@@ -110,7 +110,6 @@ typerule TCLOSURE 	    ::cvc5::theory::sets::RelTransClosureTypeRule
 typerule JOIN_IMAGE	    ::cvc5::theory::sets::JoinImageTypeRule
 typerule IDEN 			::cvc5::theory::sets::RelIdenTypeRule
 
-construle EMPTYSET       ::cvc5::theory::sets::EmptySetTypeRule
 construle UNION         ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
 construle SINGLETON     ::cvc5::theory::sets::SingletonTypeRule
 

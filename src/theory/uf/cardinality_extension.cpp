@@ -456,7 +456,8 @@ SortModel::CardinalityDecisionStrategy::CardinalityDecisionStrategy(
 Node SortModel::CardinalityDecisionStrategy::mkLiteral(unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkConst(CardinalityConstraint(d_type, Integer(i + 1)));
+  Node cco = nm->mkConst(CardinalityConstraint(d_type, Integer(i + 1)));
+  return nm->mkNode(CARDINALITY_CONSTRAINT, cco);
 }
 
 std::string SortModel::CardinalityDecisionStrategy::identify() const
@@ -1343,7 +1344,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
   if (options::ufssMode() == options::UfssMode::FULL)
   {
     if( lit.getKind()==CARDINALITY_CONSTRAINT ){
-      const CardinalityConstraint& cc = lit.getConst<CardinalityConstraint>();
+      const CardinalityConstraint& cc = lit.getOperator().getConst<CardinalityConstraint>();
       TypeNode tn = cc.getType();
       Assert(tn.isSort());
       Assert(d_rep_model[tn]);
@@ -1414,7 +1415,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       if( polarity ){
         //safe to assume int here
         const CombinedCardinalityConstraint& cc =
-            lit.getConst<CombinedCardinalityConstraint>();
+            lit.getOperator().getConst<CombinedCardinalityConstraint>();
         uint32_t nCard = cc.getUpperBound().getUnsignedInt();
         if (!d_min_pos_com_card_set.get() || nCard < d_min_pos_com_card.get())
         {
@@ -1578,7 +1579,8 @@ Node CardinalityExtension::CombinedCardinalityDecisionStrategy::mkLiteral(
     unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkConst(CombinedCardinalityConstraint(Integer(i)));
+  Node cco = nm->mkConst(CombinedCardinalityConstraint(Integer(i)));
+  return nm->mkNode(COMBINED_CARDINALITY_CONSTRAINT, cco);
 }
 
 std::string

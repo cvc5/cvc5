@@ -271,7 +271,6 @@ constant UNINTERPRETED_CONSTANT \
     "expr/uninterpreted_constant.h" \
     "the kind of expressions representing uninterpreted constants; payload is an instance of the cvc5::UninterpretedConstant class (used in models)"
 typerule UNINTERPRETED_CONSTANT ::cvc5::theory::builtin::UninterpretedConstantTypeRule
-construle UNINTERPRETED_CONSTANT ::cvc5::theory::builtin::UninterpretedConstantTypeRule
 enumerator SORT_TYPE \
     ::cvc5::theory::builtin::UninterpretedSortEnumerator \
     "theory/builtin/type_enumerator.h"

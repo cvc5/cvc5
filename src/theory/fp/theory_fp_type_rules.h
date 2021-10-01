@@ -33,7 +33,6 @@ class FloatingPointConstantTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
 /** Type rule for roundingmode values. */
@@ -41,7 +40,6 @@ class RoundingModeConstantTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
 /** Type rule for (fp ...) operator. */
