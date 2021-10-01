@@ -39,10 +39,11 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
       d_tspg(nullptr),
       d_lp(nullptr)
 {
-  if (env.isTheoryProofEnabled())
+  // proofs are enabled in the theory preprocessor regardless of the proof mode
+  ProofNodeManager* pnm = env.getProofNodeManager();
+  if (pnm!=nullptr)
   {
     context::Context* u = userContext();
-    ProofNodeManager* pnm = env.getProofNodeManager();
     d_tpg.reset(
         new TConvProofGenerator(pnm,
                                 u,
