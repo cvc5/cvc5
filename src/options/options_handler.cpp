@@ -83,6 +83,40 @@ void OptionsHandler::setErrStream(const std::string& option,
   Trace.setStream(me);
 }
 
+Language OptionsHandler::stringToLanguage(const std::string& option,
+                                          const std::string& flag,
+                                          const std::string& optarg)
+{
+  if(optarg == "help") {
+    *d_options->base.out << R"FOOBAR(
+Languages currently supported as arguments to the -L / --lang option:
+  auto                           attempt to automatically determine language
+  smt | smtlib | smt2 |
+  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
+  tptp                           TPTP format (cnf, fof and tff)
+  sygus | sygus2                 SyGuS version 2.0
+
+Languages currently supported as arguments to the --output-lang option:
+  auto                           match output language to input language
+  smt | smtlib | smt2 |
+  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
+  tptp                           TPTP format
+  ast                            internal format (simple syntax trees)
+)FOOBAR" << std::endl;
+    std::exit(1);
+    return Language::LANG_AUTO;
+  }
+
+  try {
+    return language::toLanguage(optarg);
+  } catch(OptionException& oe) {
+    throw OptionException("Error in " + option + ": " + oe.getMessage()
+                          + "\nTry --lang help");
+  }
+
+  Unreachable();
+}
+
 void OptionsHandler::languageIsNotAST(const std::string& option,
                                       const std::string& flag,
                                       Language lang)
@@ -369,6 +403,31 @@ void OptionsHandler::setBitblastAig(const std::string& option,
   }
 }
 
+void OptionsHandler::setDefaultExprDepth(const std::string& option,
+                                         const std::string& flag,
+                                         int depth)
+{
+  Debug.getStream() << expr::ExprSetDepth(depth);
+  Trace.getStream() << expr::ExprSetDepth(depth);
+  Notice.getStream() << expr::ExprSetDepth(depth);
+  Chat.getStream() << expr::ExprSetDepth(depth);
+  CVC5Message.getStream() << expr::ExprSetDepth(depth);
+  Warning.getStream() << expr::ExprSetDepth(depth);
+}
+
+void OptionsHandler::setDefaultDagThresh(const std::string& option,
+                                         const std::string& flag,
+                                         int dag)
+{
+  Debug.getStream() << expr::ExprDag(dag);
+  Trace.getStream() << expr::ExprDag(dag);
+  Notice.getStream() << expr::ExprDag(dag);
+  Chat.getStream() << expr::ExprDag(dag);
+  CVC5Message.getStream() << expr::ExprDag(dag);
+  Warning.getStream() << expr::ExprDag(dag);
+  Dump.getStream() << expr::ExprDag(dag);
+}
+
 static void print_config (const char * str, std::string config) {
   std::string s(str);
   unsigned sz = 14;
@@ -478,66 +537,16 @@ void OptionsHandler::showTraceTags(const std::string& option,
   std::exit(0);
 }
 
-// expr/options_handlers.h
-void OptionsHandler::setDefaultExprDepth(const std::string& option,
-                                         const std::string& flag,
-                                         int depth)
+void OptionsHandler::setDumpMode(const std::string& option,
+                                 const std::string& flag,
+                                 const std::string& optarg)
 {
-  Debug.getStream() << expr::ExprSetDepth(depth);
-  Trace.getStream() << expr::ExprSetDepth(depth);
-  Notice.getStream() << expr::ExprSetDepth(depth);
-  Chat.getStream() << expr::ExprSetDepth(depth);
-  CVC5Message.getStream() << expr::ExprSetDepth(depth);
-  Warning.getStream() << expr::ExprSetDepth(depth);
-}
-
-void OptionsHandler::setDefaultDagThresh(const std::string& option,
-                                         const std::string& flag,
-                                         int dag)
-{
-  Debug.getStream() << expr::ExprDag(dag);
-  Trace.getStream() << expr::ExprDag(dag);
-  Notice.getStream() << expr::ExprDag(dag);
-  Chat.getStream() << expr::ExprDag(dag);
-  CVC5Message.getStream() << expr::ExprDag(dag);
-  Warning.getStream() << expr::ExprDag(dag);
-  Dump.getStream() << expr::ExprDag(dag);
-}
-
-// main/options_handlers.h
-
-Language OptionsHandler::stringToLanguage(const std::string& option,
-                                          const std::string& flag,
-                                          const std::string& optarg)
-{
-  if(optarg == "help") {
-    *d_options->base.out << R"FOOBAR(
-Languages currently supported as arguments to the -L / --lang option:
-  auto                           attempt to automatically determine language
-  smt | smtlib | smt2 |
-  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
-  tptp                           TPTP format (cnf, fof and tff)
-  sygus | sygus2                 SyGuS version 2.0
-
-Languages currently supported as arguments to the --output-lang option:
-  auto                           match output language to input language
-  smt | smtlib | smt2 |
-  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard
-  tptp                           TPTP format
-  ast                            internal format (simple syntax trees)
-)FOOBAR" << std::endl;
-    std::exit(1);
-    return Language::LANG_AUTO;
-  }
-
-  try {
-    return language::toLanguage(optarg);
-  } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage()
-                          + "\nTry --lang help");
-  }
-
-  Unreachable();
+#ifdef CVC5_DUMPING
+  Dump.setDumpFromString(optarg);
+#else  /* CVC5_DUMPING */
+  throw OptionException(
+      "The dumping feature was disabled in this build of cvc5.");
+#endif /* CVC5_DUMPING */
 }
 
 void OptionsHandler::setDumpStream(const std::string& option,
@@ -550,13 +559,6 @@ void OptionsHandler::setDumpStream(const std::string& option,
   throw OptionException(
       "The dumping feature was disabled in this build of cvc5.");
 #endif /* CVC5_DUMPING */
-}
-/* options/base_options_handlers.h */
-void OptionsHandler::setDumpMode(const std::string& option,
-                                 const std::string& flag,
-                                 const std::string& optarg)
-{
-  Dump.setDumpFromString(optarg);
 }
 
 }  // namespace options

@@ -147,6 +147,16 @@ public:
                       const std::string& flag,
                       bool arg);
 
+  /******************************* expr options *******************************/
+  /** Set ExprSetDepth on all output streams */
+  void setDefaultExprDepth(const std::string& option,
+                           const std::string& flag,
+                           int depth);
+  /** Set ExprDag on all output streams */
+  void setDefaultDagThresh(const std::string& option,
+                           const std::string& flag,
+                           int dag);
+
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */
   void showConfiguration(const std::string& option, const std::string& flag);
@@ -160,25 +170,14 @@ public:
   void showTraceTags(const std::string& option, const std::string& flag);
 
   /******************************* smt options *******************************/
-
+  /** Set a mode on the dumping output stream. */
   void setDumpMode(const std::string& option,
                    const std::string& flag,
                    const std::string& optarg);
+  /** Set the dumping output stream. */
   void setDumpStream(const std::string& option,
                      const std::string& flag,
                      const ManagedOut& mo);
-
-  /* expr/options_handlers.h */
-  void setDefaultExprDepth(const std::string& option,
-                           const std::string& flag,
-                           int depth);
-  void setDefaultDagThresh(const std::string& option,
-                           const std::string& flag,
-                           int dag);
-
-
-  /* options/base_options_handlers.h */
-
  private:
 
   /** Pointer to the containing Options object.*/
