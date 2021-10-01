@@ -18,11 +18,11 @@
 
 #pragma once
 
-#include <unordered_map>
-
 #include "context/context.h"
-#include "smt/env_obj.h"
 #include "theory/shared_terms_database.h"
+#include "smt/env_obj.h"
+
+#include <unordered_map>
 
 namespace cvc5 {
 
@@ -39,8 +39,9 @@ class TheoryEngine;
  * Computation of the set of theories in the original term are computed in the alreadyVisited method
  * so as no to skip any theories.
  */
-class PreRegisterVisitor
+class PreRegisterVisitor : protected EnvObj
 {
+
   /** The engine */
   TheoryEngine* d_engine;
 
@@ -120,13 +121,13 @@ class PreRegisterVisitor
                                     theory::TheoryIdSet preregTheories);
 };
 
+
 /**
  * The reason why we need to make this outside of the pre-registration loop is because we need a shared term x to 
  * be associated with every atom that contains it. For example, if given f(x) >= 0 and f(x) + 1 >= 0, although f(x) has
  * been visited already, we need to visit it again, since we need to associate it with both atoms.
  */
-class SharedTermsVisitor : protected EnvObj
-{
+class SharedTermsVisitor : protected EnvObj {
   using TNodeVisitedMap = std::unordered_map<TNode, theory::TheoryIdSet>;
   using TNodeToTheorySetMap = context::CDHashMap<TNode, theory::TheoryIdSet>;
   /**

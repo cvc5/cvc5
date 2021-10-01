@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
+#include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
 #include "smt/dump_manager.h"
@@ -215,7 +216,7 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
 bool Env::isFiniteType(TypeNode tn) const
 {
   return isCardinalityClassFinite(tn.getCardinalityClass(),
-                                  options::finiteModelFind());
+                                  d_options.quantifiers.finiteModelFind);
 }
 
 }  // namespace cvc5
