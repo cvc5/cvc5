@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The preprocessor of the SmtEngine.
+ * The preprocessor of the SolverEngine.
  */
 
 #include "cvc5_private.h"
@@ -46,7 +46,7 @@ class PreprocessProofGenerator;
 class Preprocessor
 {
  public:
-  Preprocessor(SmtEngine& smt,
+  Preprocessor(SolverEngine& smt,
                Env& env,
                AbstractValues& abs,
                SmtEngineStatistics& stats);
@@ -67,7 +67,7 @@ class Preprocessor
   /**
    * Cleanup, which deletes the processing passes owned by this module. This
    * is required to be done explicitly so that passes are deleted before the
-   * objects they refer to in the SmtEngine destructor.
+   * objects they refer to in the SolverEngine destructor.
    */
   void cleanup();
   /**
@@ -98,8 +98,8 @@ class Preprocessor
   void setProofGenerator(PreprocessProofGenerator* pppg);
 
  private:
-  /** Reference to the parent SmtEngine */
-  SmtEngine& d_smt;
+  /** Reference to the parent SolverEngine */
+  SolverEngine& d_slv;
   /** Reference to the env */
   Env& d_env;
   /** Reference to the abstract values utility */

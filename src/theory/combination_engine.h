@@ -46,10 +46,9 @@ class SharedSolver;
 class CombinationEngine : protected EnvObj
 {
  public:
-  CombinationEngine(TheoryEngine& te,
-                    Env& env,
-                    const std::vector<Theory*>& paraTheories,
-                    ProofNodeManager* pnm);
+  CombinationEngine(Env& env,
+                    TheoryEngine& te,
+                    const std::vector<Theory*>& paraTheories);
   virtual ~CombinationEngine();
 
   /** Finish initialization */

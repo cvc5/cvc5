@@ -1,0 +1,42 @@
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Build system configuration for java API documentation.
+#
+
+add_custom_target(docs-java)
+
+if(BUILD_BINDINGS_JAVA)
+  find_package(Java REQUIRED)
+
+  # put generated doc in a place where sphinx can easily copy from
+  set(JAVADOC_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/build/api/java)
+  # used to trigger the rebuild
+  set(JAVADOC_INDEX_FILE ${JAVADOC_OUTPUT_DIR}/index.html)
+
+  get_target_property(SOURCES cvc5jar SOURCES)
+  
+  add_custom_command(
+    OUTPUT "${JAVADOC_INDEX_FILE}"
+    COMMAND 
+      ${Java_JAVADOC_EXECUTABLE} cvc5
+      --source-path ${CMAKE_SOURCE_DIR}/src/api/java/
+      -d ${JAVADOC_OUTPUT_DIR}
+      -cp ${CMAKE_BINARY_DIR}/src/api/java/cvc5.jar
+    DEPENDS cvc5jar ${SOURCES}
+    COMMENT "Generating javadocs"
+  )
+
+  add_custom_target(docs-java-javadoc DEPENDS ${JAVADOC_INDEX_FILE})
+  add_dependencies(docs-java docs-java-javadoc)
+endif()
+
