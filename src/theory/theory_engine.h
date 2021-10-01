@@ -205,7 +205,7 @@ class TheoryEngine : protected EnvObj
    */
   bool isRelevant(Node lit) const;
   /**
-   * This is called at shutdown time by the SmtEngine, just before
+   * This is called at shutdown time by the SolverEngine, just before
    * destruction.  It is important because there are destruction
    * ordering issues between PropEngine and Theory.
    */

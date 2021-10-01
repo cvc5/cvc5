@@ -22,8 +22,8 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
 #include "test_smt.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -46,7 +46,7 @@ class TestPPWhiteBVGauss : public TestSmt
     TestSmt::SetUp();
 
     d_preprocContext.reset(new preprocessing::PreprocessingPassContext(
-        d_smtEngine.get(), d_smtEngine->getEnv(), nullptr));
+        d_slvEngine.get(), d_slvEngine->getEnv(), nullptr));
 
     d_bv_gauss.reset(new BVGauss(d_preprocContext.get()));
 

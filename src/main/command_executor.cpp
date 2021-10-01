@@ -27,7 +27,7 @@
 
 #include "main/main.h"
 #include "smt/command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace main {
@@ -60,7 +60,7 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::storeOptionsAsOriginal()
 {
-  d_solver->d_originalOptions->copyValues(d_solver->d_smtEngine->getOptions());
+  d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
