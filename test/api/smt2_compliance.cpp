@@ -22,7 +22,7 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 using namespace cvc5;
 using namespace cvc5::parser;

@@ -105,6 +105,11 @@ bool Env::isTheoryProofProducing() const
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
 
+theory::Evaluator* Env::getEvaluator(bool useRewriter)
+{
+  return useRewriter ? d_evalRew.get() : d_eval.get();
+}
+
 theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
 {
   return *d_topLevelSubs.get();
