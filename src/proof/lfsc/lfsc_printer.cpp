@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file lfsc_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for printing Lfsc proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The printer for LFSC proofs
+ */
 
 #include "proof/lfsc/lfsc_printer.h"
 
@@ -302,7 +303,7 @@ void LfscPrinter::printProofLetify(
       // debugging
       if (Trace.isOn("lfsc-print-debug"))
       {
-        // out << "; proves " << p->getResult();
+        out << "; proves " << p->getResult();
       }
       out->printEndLine();
     }
@@ -325,7 +326,7 @@ void LfscPrinter::printProofInternal(
 {
   // the stack
   std::vector<PExpr> visit;
-  // whether we have process children
+  // whether we have to process children
   std::unordered_set<const ProofNode*> processingChildren;
   // helper iterators
   std::unordered_set<const ProofNode*>::iterator pit;
@@ -490,6 +491,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     Assert(!ac.isNull());
     as.push_back(ac);
   }
+  // The proof expression stream, which packs the next expressions (proofs,
+  // terms, sorts, LFSC datatypes) into a print-expression vector pargs. This
+  // stream can be used via "pf << e" which appends an expression to the
+  // vector maintained by this stream.
   PExprStream pf(pargs, d_tt, d_ff);
   // hole
   PExpr h;
@@ -568,7 +573,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::ARITH_MULT_POS:
     case PfRule::ARITH_MULT_NEG:
     {
-      // do not pass type (as[0].getType())
       pf << h << as[0] << as[1];
     }
     break;
@@ -650,7 +654,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::NOT_AND_REV: pf << h << h << cs[0]; break;
         case LfscRule::PROCESS_SCOPE: pf << h << h << as[2] << cs[0]; break;
         case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;
-        // do not pass type (cs[0]->getResult()[0].getType())
         case LfscRule::ARITH_SUM_UB: pf << h << h << h << cs[0] << cs[1]; break;
         default: return false; break;
       }

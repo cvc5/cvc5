@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file lfsc_printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for printing Lfsc proof nodes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The printer for LFSC proofs
+ */
 
 #include "cvc5_private.h"
 
 #ifndef CVC4__PROOF__LFSC__LFSC_PRINTER_H
 #define CVC4__PROOF__LFSC__LFSC_PRINTER_H
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
 
 #include "expr/node.h"
@@ -33,14 +34,22 @@ namespace proof {
 
 class LfscPrintChannel;
 
+/**
+ * The LFSC printer, which prints proof nodes in a proof that is checkable
+ * by LFSC using the signature, currently located at:
+ * https://github.com/CVC4/signatures/tree/master/lfsc/new.
+ *
+ * It expects to print proof nodes that have been processed by the LFSC
+ * proof post processor.
+ */
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp, rewriter::RewriteDb* rdb);
+  LfscPrinter(LfscNodeConverter& ltp);
   ~LfscPrinter() {}
 
   /**
-   * Print the full proof of assertions => false by pn.
+   * Print the full proof of assertions => false by pn on output stream out.
    */
   void print(std::ostream& out,
              const std::vector<Node>& assertions,
@@ -61,11 +70,19 @@ class LfscPrinter
    */
   void printLetify(std::ostream& out, Node n);
   /**
-   * Print node to stream in the expected format of LFSC.
+   * Print node to stream in the expected format of LFSC, where n has been
+   * processed by the LFSC node converter.
    */
   void printInternal(std::ostream& out, Node n);
   /**
-   * Print node to stream in the expected format of LFSC.
+   * Print node n to stream in the expected format of LFSC, with let binding,
+   * where n has been processed by the LFSC node converter.
+   *
+   * @param out The output stream
+   * @param n The node to print
+   * @param lbind The let binding to consider
+   * @param letTop Whether we should consider the top-most application in n
+   * for the let binding (see LetBinding::convert).
    */
   void printInternal(std::ostream& out,
                      Node n,
@@ -97,7 +114,10 @@ class LfscPrinter
                           const std::map<const ProofNode*, size_t>& pletMap,
                           std::map<Node, size_t>& passumeMap);
   /**
-   * Get the arguments for the proof node application
+   * Get the arguments for the proof node application. This adds the arguments
+   * of the given proof to the vector pargs.
+   *
+   * @return false if the proof cannot be printed in LFSC format.
    */
   bool computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
   /**
