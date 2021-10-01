@@ -46,7 +46,7 @@ bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
   // First, must be unique up to rewriting
   if (bterms.find(bnr) != bterms.end())
   {
-    Trace("sygus-enum-exc") << "Exclude: " << bn << std::endl;
+    Trace("sygus-enum-exc") << "Exclude (by rewriting): " << bn << std::endl;
     return false;
   }
   // insert to builtin term cache, regardless of whether it is redundant
@@ -55,8 +55,6 @@ bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
   // callback-specific add term
   if (!addTermInternal(n, bn, bnr))
   {
-    Trace("sygus-enum-exc")
-        << "Exclude: " << bn << " due to callback" << std::endl;
     return false;
   }
   Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;

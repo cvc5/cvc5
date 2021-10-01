@@ -51,7 +51,6 @@ BVSolverLayered::BVSolverLayered(Env& env,
       d_subtheories(),
       d_subtheoryMap(),
       d_statistics(),
-      d_staticLearnCache(),
       d_lemmasAdded(c, false),
       d_conflict(c, false),
       d_invalidateModelCache(c, true),
@@ -391,103 +390,6 @@ void BVSolverLayered::propagate(Theory::Effort e)
   }
 }
 
-TrustNode BVSolverLayered::ppRewrite(TNode t)
-{
-  Debug("bv-pp-rewrite") << "BVSolverLayered::ppRewrite " << t << "\n";
-  Node res = t;
-  if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
-  {
-    Node result = RewriteRule<BitwiseEq>::run<false>(t);
-    res = rewrite(result);
-  }
-  else if (RewriteRule<UltAddOne>::applies(t))
-  {
-    Node result = RewriteRule<UltAddOne>::run<false>(t);
-    res = rewrite(result);
-  }
-  else if (res.getKind() == kind::EQUAL
-           && ((res[0].getKind() == kind::BITVECTOR_ADD
-                && RewriteRule<ConcatToMult>::applies(res[1]))
-               || (res[1].getKind() == kind::BITVECTOR_ADD
-                   && RewriteRule<ConcatToMult>::applies(res[0]))))
-  {
-    Node mult = RewriteRule<ConcatToMult>::applies(res[0])
-                    ? RewriteRule<ConcatToMult>::run<false>(res[0])
-                    : RewriteRule<ConcatToMult>::run<true>(res[1]);
-    Node factor = mult[0];
-    Node sum = RewriteRule<ConcatToMult>::applies(res[0]) ? res[1] : res[0];
-    Node new_eq = NodeManager::currentNM()->mkNode(kind::EQUAL, sum, mult);
-    Node rewr_eq = RewriteRule<SolveEq>::run<true>(new_eq);
-    if (rewr_eq[0].isVar() || rewr_eq[1].isVar())
-    {
-      res = rewrite(rewr_eq);
-    }
-    else
-    {
-      res = t;
-    }
-  }
-  else if (RewriteRule<SignExtendEqConst>::applies(t))
-  {
-    res = RewriteRule<SignExtendEqConst>::run<false>(t);
-  }
-  else if (RewriteRule<ZeroExtendEqConst>::applies(t))
-  {
-    res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
-  }
-  else if (RewriteRule<NormalizeEqAddNeg>::applies(t))
-  {
-    res = RewriteRule<NormalizeEqAddNeg>::run<false>(t);
-  }
-
-  // if(t.getKind() == kind::EQUAL &&
-  //    ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() ==
-  //    kind::BITVECTOR_ADD) ||
-  //     (t[1].getKind() == kind::BITVECTOR_MULT && t[0].getKind() ==
-  //     kind::BITVECTOR_ADD))) {
-  //   // if we have an equality between a multiplication and addition
-  //   // try to express multiplication in terms of addition
-  //   Node mult = t[0].getKind() == kind::BITVECTOR_MULT? t[0] : t[1];
-  //   Node add = t[0].getKind() == kind::BITVECTOR_ADD? t[0] : t[1];
-  //   if (RewriteRule<MultSlice>::applies(mult)) {
-  //     Node new_mult = RewriteRule<MultSlice>::run<false>(mult);
-  //     Node new_eq =
-  //     rewrite(NodeManager::currentNM()->mkNode(kind::EQUAL,
-  //     new_mult, add));
-
-  //     // the simplification can cause the formula to blow up
-  //     // only apply if formula reduced
-  //     if (d_subtheoryMap.find(SUB_BITBLAST) != d_subtheoryMap.end()) {
-  //       BitblastSolver* bv = (BitblastSolver*)d_subtheoryMap[SUB_BITBLAST];
-  //       uint64_t old_size = bv->computeAtomWeight(t);
-  //       Assert (old_size);
-  //       uint64_t new_size = bv->computeAtomWeight(new_eq);
-  //       double ratio = ((double)new_size)/old_size;
-  //       if (ratio <= 0.4) {
-  //         ++(d_statistics.d_numMultSlice);
-  //         return new_eq;
-  //       }
-  //     }
-
-  //     if (new_eq.getKind() == kind::CONST_BOOLEAN) {
-  //       ++(d_statistics.d_numMultSlice);
-  //       return new_eq;
-  //     }
-  //   }
-  // }
-
-  if (options().bv.bvAbstraction && t.getType().isBoolean())
-  {
-    d_abstractionModule->addInputAtom(res);
-  }
-  Debug("bv-pp-rewrite") << "to   " << res << "\n";
-  if (res != t)
-  {
-    return TrustNode::mkTrustRewrite(t, res, nullptr);
-  }
-  return TrustNode::null();
-}
-
 void BVSolverLayered::presolve()
 {
   Debug("bitvector") << "BVSolverLayered::presolve" << std::endl;
@@ -609,56 +511,6 @@ EqualityStatus BVSolverLayered::getEqualityStatus(TNode a, TNode b)
   }
   return EQUALITY_UNKNOWN;
   ;
-}
-
-void BVSolverLayered::ppStaticLearn(TNode in, NodeBuilder& learned)
-{
-  if (d_staticLearnCache.find(in) != d_staticLearnCache.end())
-  {
-    return;
-  }
-  d_staticLearnCache.insert(in);
-
-  if (in.getKind() == kind::EQUAL)
-  {
-    if ((in[0].getKind() == kind::BITVECTOR_ADD
-         && in[1].getKind() == kind::BITVECTOR_SHL)
-        || (in[1].getKind() == kind::BITVECTOR_ADD
-            && in[0].getKind() == kind::BITVECTOR_SHL))
-    {
-      TNode p = in[0].getKind() == kind::BITVECTOR_ADD ? in[0] : in[1];
-      TNode s = in[0].getKind() == kind::BITVECTOR_ADD ? in[1] : in[0];
-
-      if (p.getNumChildren() == 2 && p[0].getKind() == kind::BITVECTOR_SHL
-          && p[1].getKind() == kind::BITVECTOR_SHL)
-      {
-        unsigned size = utils::getSize(s);
-        Node one = utils::mkConst(size, 1u);
-        if (s[0] == one && p[0][0] == one && p[1][0] == one)
-        {
-          Node zero = utils::mkConst(size, 0u);
-          TNode b = p[0];
-          TNode c = p[1];
-          // (s : 1 << S) = (b : 1 << B) + (c : 1 << C)
-          Node b_eq_0 = b.eqNode(zero);
-          Node c_eq_0 = c.eqNode(zero);
-          Node b_eq_c = b.eqNode(c);
-
-          Node dis = NodeManager::currentNM()->mkNode(
-              kind::OR, b_eq_0, c_eq_0, b_eq_c);
-          Node imp = in.impNode(dis);
-          learned << imp;
-        }
-      }
-    }
-  }
-  else if (in.getKind() == kind::AND)
-  {
-    for (size_t i = 0, N = in.getNumChildren(); i < N; ++i)
-    {
-      ppStaticLearn(in[i], learned);
-    }
-  }
 }
 
 bool BVSolverLayered::applyAbstraction(const std::vector<Node>& assertions,

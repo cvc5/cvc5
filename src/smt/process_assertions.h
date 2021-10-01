@@ -26,7 +26,7 @@
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 
 namespace preprocessing {
 class AssertionPipeline;
@@ -60,7 +60,7 @@ class ProcessAssertions
   typedef std::unordered_map<Node, bool> NodeToBoolHashMap;
 
  public:
-  ProcessAssertions(SmtEngine& smt,
+  ProcessAssertions(SolverEngine& smt,
                     ResourceManager& rm,
                     SmtEngineStatistics& stats);
   ~ProcessAssertions();
@@ -82,7 +82,7 @@ class ProcessAssertions
 
  private:
   /** Reference to the SMT engine */
-  SmtEngine& d_smt;
+  SolverEngine& d_slv;
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
   /** Reference to the SMT stats */

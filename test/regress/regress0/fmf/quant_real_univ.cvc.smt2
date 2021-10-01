@@ -9,5 +9,5 @@
 (assert (= REAL_UNIVERSE (as univset (Set (Tuple Real)))))
 (assert (= ATOM_UNIVERSE (as univset (Set (Tuple Atom)))))
 (declare-fun levelVal () (Set (Tuple Atom Real)))
-(assert (forall ((s Atom) (v1 Real) (v2 Real)) (=> (and (and (member (mkTuple s) ATOM_UNIVERSE) (member (mkTuple v1) REAL_UNIVERSE)) (member (mkTuple v2) REAL_UNIVERSE)) (=> (and (member (mkTuple s v1) levelVal) (member (mkTuple s v2) levelVal)) (= v1 v2)))))
+(assert (forall ((s Atom) (v1 Real) (v2 Real)) (=> (and (and (member (tuple s) ATOM_UNIVERSE) (member (tuple v1) REAL_UNIVERSE)) (member (tuple v2) REAL_UNIVERSE)) (=> (and (member (tuple s v1) levelVal) (member (tuple s v2) levelVal)) (= v1 v2)))))
 (check-sat)

@@ -182,17 +182,9 @@ void AstPrinter::toStreamCmdPop(std::ostream& out) const {
   out << "Pop()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
+void AstPrinter::toStreamCmdCheckSat(std::ostream& out) const
 {
-  if (n.isNull())
-  {
-    out << "CheckSat()";
-  }
-  else
-  {
-    out << "CheckSat(" << n << ')';
-  }
-  out << std::endl;
+  out << "CheckSat()" << std::endl;
 }
 
 void AstPrinter::toStreamCmdCheckSatAssuming(
