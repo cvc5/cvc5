@@ -32,7 +32,7 @@ namespace datatypes {
  * the conversion from external to internal selectors is done in
  * expandDefinition. This invariant ensures that the rewritten form of a node
  * does not mix multiple option settings, which would lead to e.g. shared
- * selectors being used in an SmtEngine instance where they are disabled.
+ * selectors being used in an SolverEngine instance where they are disabled.
  */
 class DatatypesRewriter : public TheoryRewriter
 {
