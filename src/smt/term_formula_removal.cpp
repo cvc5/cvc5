@@ -38,7 +38,7 @@ RemoveTermFormulas::RemoveTermFormulas(Env& env)
 {
   // enable proofs if necessary
   ProofNodeManager* pnm = env.getProofNodeManager();
-  if (pnm!=nullptr)
+  if (pnm != nullptr)
   {
     d_tpg.reset(
         new TConvProofGenerator(pnm,
@@ -538,9 +538,6 @@ ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
   return d_tpg.get();
 }
 
-bool RemoveTermFormulas::isProofEnabled() const
-{
-  return d_tpg!=nullptr;
-}
+bool RemoveTermFormulas::isProofEnabled() const { return d_tpg != nullptr; }
 
 }  // namespace cvc5
