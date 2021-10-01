@@ -20,9 +20,6 @@ variable BOOLEAN_TERM_VARIABLE "Boolean term variable"
 parameterized PARTIAL_APPLY_UF APPLY_UF 1: "partial uninterpreted function application"
 typerule PARTIAL_APPLY_UF ::cvc5::theory::uf::PartialTypeRule
 
-operator CARDINALITY_VALUE 1 "cardinality value of sort S: first parameter is (any) term of sort S"
-typerule CARDINALITY_VALUE ::cvc5::theory::uf::CardinalityValueTypeRule
-
 operator HO_APPLY 2 "higher-order (partial) function application"
 typerule HO_APPLY ::cvc5::theory::uf::HoApplyTypeRule
 

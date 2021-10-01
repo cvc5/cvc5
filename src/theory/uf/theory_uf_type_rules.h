@@ -61,12 +61,6 @@ class PartialTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-class CardinalityValueTypeRule
-{
- public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
 // class with the typing rule for HO_APPLY terms
 class HoApplyTypeRule
 {

@@ -339,11 +339,6 @@ void Smt2Printer::toStream(std::ostream& out,
       out << n.getConst<CardinalityConstraint>().getUpperBound();
       out << ")";
       break;
-    case kind::CARDINALITY_VALUE:
-      out << "(_ fmf.combined_card ";
-      out << n.getConst<CardinalityConstraint>().getUpperBound();
-      out << ")";
-      break;
     case kind::EMPTYSET:
       out << "(as emptyset ";
       toStreamType(out, n.getConst<EmptySet>().getType());

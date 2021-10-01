@@ -426,7 +426,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
         }
       }
       break;
-    default: Unhandled() << parent;
+    default: Unhandled();
   }
 }
 
