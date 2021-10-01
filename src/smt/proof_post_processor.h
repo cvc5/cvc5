@@ -37,7 +37,7 @@ class Env;
 namespace smt {
 
 /**
- * A callback class used by SmtEngine for post-processing proof nodes by
+ * A callback class used by SolverEngine for post-processing proof nodes by
  * connecting proofs of preprocessing, and expanding macro PfRule applications.
  */
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
@@ -244,7 +244,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 
 /**
  * The proof postprocessor module. This postprocesses the final proof
- * produced by an SmtEngine. Its main two tasks are to:
+ * produced by an SolverEngine. Its main two tasks are to:
  * (1) Connect proofs of preprocessing,
  * (2) Expand macro PfRule applications.
  */

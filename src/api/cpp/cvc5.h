@@ -44,7 +44,7 @@ class DType;
 class DTypeConstructor;
 class DTypeSelector;
 class NodeManager;
-class SmtEngine;
+class SolverEngine;
 class TypeNode;
 class Options;
 class Random;
@@ -4489,7 +4489,7 @@ class CVC5_EXPORT Solver
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */
-  std::unique_ptr<SmtEngine> d_smtEngine;
+  std::unique_ptr<SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
 };

@@ -295,7 +295,7 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
   // make a separate smt call
-  std::unique_ptr<SmtEngine> rrSygus;
+  std::unique_ptr<SolverEngine> rrSygus;
   theory::initializeSubsolver(rrSygus, options(), logicInfo());
   rrSygus->assertFormula(body);
   Trace("sygus-infer") << "*** Check sat..." << std::endl;

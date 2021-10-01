@@ -71,7 +71,7 @@ class DecisionEngine
   virtual prop::SatLiteral getNextInternal(bool& stopSearch) = 0;
   /** Pointer to the SAT context */
   context::Context* d_context;
-  /** Pointer to resource manager for associated SmtEngine */
+  /** Pointer to resource manager for associated SolverEngine */
   ResourceManager* d_resourceManager;
   /** Pointer to the CNF stream */
   prop::CnfStream* d_cnfStream;

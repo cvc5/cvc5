@@ -26,30 +26,32 @@
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 class Env;
 
 namespace smt {
 
 /**
- * This utility is responsible for maintaining the basic state of the SmtEngine.
+ * This utility is responsible for maintaining the basic state of the
+ * SolverEngine.
  *
- * It has no concept of anything related to the assertions of the SmtEngine,
+ * It has no concept of anything related to the assertions of the SolverEngine,
  * or more generally it does not depend on Node.
  *
  * This class has three sets of interfaces:
- * (1) notification methods that are used by SmtEngine to notify when an event
- * occurs (e.g. the beginning of a check-sat call),
- * (2) maintaining the SAT and user contexts to be used by the SmtEngine,
- * (3) general information queries, including the mode that the SmtEngine is
- * in, based on the notifications it has received.
+ * (1) notification methods that are used by SolverEngine to notify when an
+ * event occurs (e.g. the beginning of a check-sat call), (2) maintaining the
+ * SAT and user contexts to be used by the SolverEngine, (3) general information
+ * queries, including the mode that the SolverEngine is in, based on the
+ * notifications it has received.
  *
- * It maintains a reference to the SmtEngine for the sake of making callbacks.
+ * It maintains a reference to the SolverEngine for the sake of making
+ * callbacks.
  */
 class SmtEngineState
 {
  public:
-  SmtEngineState(Env& env, SmtEngine& smt);
+  SmtEngineState(Env& env, SolverEngine& smt);
   ~SmtEngineState() {}
   /**
    * Notify that the expected status of the next check-sat is given by the
@@ -57,7 +59,7 @@ class SmtEngineState
    */
   void notifyExpectedStatus(const std::string& status);
   /**
-   * Notify that the SmtEngine is fully initialized, which is called when
+   * Notify that the SolverEngine is fully initialized, which is called when
    * options are finalized.
    */
   void notifyFullyInited();
@@ -89,7 +91,7 @@ class SmtEngineState
    * Notify that we finished an abduction query, where success is whether the
    * command was successful. This is managed independently of the above
    * calls for notifying check-sat. In other words, if a get-abduct command
-   * is issued to an SmtEngine, it may use a satisfiability call (if desired)
+   * is issued to an SolverEngine, it may use a satisfiability call (if desired)
    * to solve the abduction query. This method is called *in addition* to
    * the above calls to notifyCheckSat / notifyCheckSatResult in this case.
    * In particular, it is called after these two methods are completed.
@@ -101,7 +103,7 @@ class SmtEngineState
    * Notify that we finished an interpolation query, where success is whether
    * the command was successful. This is managed independently of the above
    * calls for notifying check-sat. In other words, if a get-interpol command
-   * is issued to an SmtEngine, it may use a satisfiability call (if desired)
+   * is issued to an SolverEngine, it may use a satisfiability call (if desired)
    * to solve the interpolation query. This method is called *in addition* to
    * the above calls to notifyCheckSat / notifyCheckSatResult in this case.
    * In particular, it is called after these two methods are completed.
@@ -119,7 +121,7 @@ class SmtEngineState
    */
   void finishInit();
   /**
-   * Prepare for a shutdown of the SmtEngine, which does pending pops and
+   * Prepare for a shutdown of the SolverEngine, which does pending pops and
    * pops the user context to zero.
    */
   void shutdown();
@@ -131,17 +133,17 @@ class SmtEngineState
   //---------------------------- context management
   /**
    * Do all pending pops, which ensures that the context levels are up-to-date.
-   * This method should be called by the SmtEngine before using any of its
+   * This method should be called by the SolverEngine before using any of its
    * members that rely on the context (e.g. PropEngine or TheoryEngine).
    */
   void doPendingPops();
   /**
-   * Called when the user of SmtEngine issues a push. This corresponds to
+   * Called when the user of SolverEngine issues a push. This corresponds to
    * the SMT-LIB command push.
    */
   void userPush();
   /**
-   * Called when the user of SmtEngine issues a pop. This corresponds to
+   * Called when the user of SolverEngine issues a pop. This corresponds to
    * the SMT-LIB command pop.
    */
   void userPop();
@@ -149,20 +151,20 @@ class SmtEngineState
 
   //---------------------------- queries
   /**
-   * Return true if the SmtEngine is fully initialized (post-construction).
+   * Return true if the SolverEngine is fully initialized (post-construction).
    * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine; e.g. when the first formula is asserted, a call
+   * use of the SolverEngine; e.g. when the first formula is asserted, a call
    * to simplify() is issued, a scope is pushed, etc.
    */
   bool isFullyInited() const;
   /**
-   * Return true if the SmtEngine is fully initialized and there are no
+   * Return true if the SolverEngine is fully initialized and there are no
    * pending pops.
    */
   bool isFullyReady() const;
   /**
    * Return true if a notifyCheckSat call has been made, e.g. a query has been
-   * issued to the SmtEngine.
+   * issued to the SolverEngine.
    */
   bool isQueryMade() const;
   /** Return the user context level.  */
@@ -195,9 +197,9 @@ class SmtEngineState
    * counter and does nothing.
    */
   void internalPop(bool immediate = false);
-  /** Reference to the SmtEngine */
-  SmtEngine& d_smt;
-  /** Reference to the env of the parent SmtEngine */
+  /** Reference to the SolverEngine */
+  SolverEngine& d_slv;
+  /** Reference to the env of the parent SolverEngine */
   Env& d_env;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
@@ -208,9 +210,9 @@ class SmtEngineState
   unsigned d_pendingPops;
 
   /**
-   * Whether or not the SmtEngine is fully initialized (post-construction).
+   * Whether or not the SolverEngine is fully initialized (post-construction).
    * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine which calls the finishInit method above; e.g. when
+   * use of the SolverEngine which calls the finishInit method above; e.g. when
    * the first formula is asserted, a call to simplify() is issued, a scope is
    * pushed, etc.
    */
@@ -219,7 +221,7 @@ class SmtEngineState
   /**
    * Whether or not a notifyCheckSat call has been made, which corresponds to
    * when a checkEntailed() or checkSatisfiability() has already been
-   * made through the SmtEngine.  If true, and incrementalSolving is false,
+   * made through the SolverEngine.  If true, and incrementalSolving is false,
    * then attempting an additional checks for satisfiability will fail with
    * a ModalException during notifyCheckSat.
    */
@@ -228,13 +230,13 @@ class SmtEngineState
   /**
    * Internal status flag to indicate whether we have been issued a
    * notifyCheckSat call and have yet to process the "postsolve" methods of
-   * SmtEngine via SmtEngine::notifyPostSolvePre/notifyPostSolvePost.
+   * SolverEngine via SolverEngine::notifyPostSolvePre/notifyPostSolvePost.
    */
   bool d_needPostsolve;
 
   /**
    * Most recent result of last checkSatisfiability/checkEntailed in the
-   * SmtEngine.
+   * SolverEngine.
    */
   Result d_status;
 

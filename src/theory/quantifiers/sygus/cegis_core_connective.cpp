@@ -595,7 +595,7 @@ bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
   return true;
 }
 
-void CegisCoreConnective::getModel(SmtEngine& smt,
+void CegisCoreConnective::getModel(SolverEngine& smt,
                                    std::vector<Node>& vals) const
 {
   for (const Node& v : d_vars)
@@ -607,7 +607,7 @@ void CegisCoreConnective::getModel(SmtEngine& smt,
 }
 
 bool CegisCoreConnective::getUnsatCore(
-    SmtEngine& smt,
+    SolverEngine& smt,
     const std::unordered_set<Node>& queryAsserts,
     std::vector<Node>& uasserts) const
 {
@@ -733,7 +733,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
   {
     addSuccess = false;
     // try a new core
-    std::unique_ptr<SmtEngine> checkSol;
+    std::unique_ptr<SolverEngine> checkSol;
     initializeSubsolver(checkSol, d_env);
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
     std::vector<Node> rasserts = asserts;
@@ -773,7 +773,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         {
           // In terms of Variant #2, this is the check "if S ^ U is unsat"
           Trace("sygus-ccore") << "----- Check side condition" << std::endl;
-          std::unique_ptr<SmtEngine> checkSc;
+          std::unique_ptr<SolverEngine> checkSc;
           initializeSubsolver(checkSc, d_env);
           std::vector<Node> scasserts;
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());

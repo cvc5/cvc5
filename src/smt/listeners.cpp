@@ -29,13 +29,13 @@
 namespace cvc5 {
 namespace smt {
 
-ResourceOutListener::ResourceOutListener(SmtEngine& smt) : d_smt(smt) {}
+ResourceOutListener::ResourceOutListener(SolverEngine& slv) : d_slv(slv) {}
 
 void ResourceOutListener::notify()
 {
-  SmtScope scope(&d_smt);
+  SmtScope scope(&d_slv);
   Assert(smt::smtEngineInScope());
-  d_smt.interrupt();
+  d_slv.interrupt();
 }
 
 SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm,

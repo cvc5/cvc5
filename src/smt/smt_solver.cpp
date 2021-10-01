@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The solver for SMT queries in an SmtEngine.
+ * The solver for SMT queries in an SolverEngine.
  */
 
 #include "smt/smt_solver.h"

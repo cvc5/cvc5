@@ -34,12 +34,12 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("cegqi-full", "true");
-    d_smtEngine->setOption("produce-models", "true");
+    d_slvEngine->setOption("cegqi-full", "true");
+    d_slvEngine->setOption("produce-models", "true");
     // don't insist on proofs here !!!! will not be necessary on master, since
     // proof is not default true
-    d_smtEngine->setOption("produce-proofs", "false");
-    d_smtEngine->finishInit();
+    d_slvEngine->setOption("produce-proofs", "false");
+    d_slvEngine->finishInit();
 
     d_s = d_nodeManager->mkVar("s", d_nodeManager->mkBitVectorType(4));
     d_t = d_nodeManager->mkVar("t", d_nodeManager->mkBitVectorType(4));
@@ -91,7 +91,7 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node body = d_nodeManager->mkNode(k, x, d_t);
     Node scr = d_nodeManager->mkNode(EXISTS, d_bvarlist, body);
     Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
-    Result res = d_smtEngine->checkSat(a);
+    Result res = d_slvEngine->checkSat(a);
     ASSERT_EQ(res.d_sat, Result::UNSAT);
   }
 
@@ -120,13 +120,13 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node scr =
         d_nodeManager->mkNode(EXISTS, d_bvarlist, pol ? body : body.notNode());
     Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
-    Result res = d_smtEngine->checkSat(a);
+    Result res = d_slvEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
-      std::cout << "s " << d_smtEngine->getValue(d_s) << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(d_t) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(d_x) << std::endl;
+      std::cout << "s " << d_slvEngine->getValue(d_s) << std::endl;
+      std::cout << "t " << d_slvEngine->getValue(d_t) << std::endl;
+      std::cout << "x " << d_slvEngine->getValue(d_x) << std::endl;
     }
     ASSERT_EQ(res.d_sat, Result::UNSAT);
   }
@@ -176,16 +176,16 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node scr =
         d_nodeManager->mkNode(EXISTS, bvarlist, pol ? body : body.notNode());
     Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
-    Result res = d_smtEngine->checkSat(a);
+    Result res = d_slvEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
       if (!s1.isNull())
-        std::cout << "s1 " << d_smtEngine->getValue(s1) << std::endl;
+        std::cout << "s1 " << d_slvEngine->getValue(s1) << std::endl;
       if (!s2.isNull())
-        std::cout << "s2 " << d_smtEngine->getValue(s2) << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(t) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(x) << std::endl;
+        std::cout << "s2 " << d_slvEngine->getValue(s2) << std::endl;
+      std::cout << "t " << d_slvEngine->getValue(t) << std::endl;
+      std::cout << "x " << d_slvEngine->getValue(x) << std::endl;
     }
     ASSERT_TRUE(res.d_sat == Result::UNSAT);
   }
@@ -216,12 +216,12 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node scr =
         d_nodeManager->mkNode(EXISTS, bvarlist, pol ? body : body.notNode());
     Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
-    Result res = d_smtEngine->checkSat(a);
+    Result res = d_slvEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(t) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(x) << std::endl;
+      std::cout << "t " << d_slvEngine->getValue(t) << std::endl;
+      std::cout << "x " << d_slvEngine->getValue(x) << std::endl;
     }
     ASSERT_TRUE(res.d_sat == Result::UNSAT);
   }
