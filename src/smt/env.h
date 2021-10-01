@@ -21,7 +21,9 @@
 
 #include <memory>
 
+#include "options/base_options.h"
 #include "options/options.h"
+#include "proof/method_id.h"
 #include "theory/logic_info.h"
 #include "util/statistics_registry.h"
 
@@ -44,6 +46,7 @@ class PfManager;
 }
 
 namespace theory {
+class Evaluator;
 class Rewriter;
 class TrustSubstitutionMap;
 }
@@ -51,12 +54,12 @@ class TrustSubstitutionMap;
 /**
  * The environment class.
  *
- * This class lives in the SmtEngine and contains all utilities that are
+ * This class lives in the SolverEngine and contains all utilities that are
  * globally available to all internal code.
  */
 class Env
 {
-  friend class SmtEngine;
+  friend class SolverEngine;
   friend class smt::PfManager;
 
  public:
@@ -79,8 +82,8 @@ class Env
 
   /**
    * Get the underlying proof node manager. Note since proofs depend on option
-   * initialization, this is only available after the SmtEngine that owns this
-   * environment is initialized, and only non-null if proofs are enabled.
+   * initialization, this is only available after the SolverEngine that owns
+   * this environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
 
@@ -101,6 +104,14 @@ class Env
 
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
+
+  /**
+   * Get a pointer to the Evaluator owned by this Env. There are two variants
+   * of the evaluator, one that invokes the rewriter when evaluation is not
+   * applicable, and one that does not. The former evaluator is returned when
+   * useRewriter is true.
+   */
+  theory::Evaluator* getEvaluator(bool useRewriter = false);
 
   /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
@@ -137,6 +148,63 @@ class Env
    */
   std::ostream& getDumpOut();
 
+  /**
+   * Check whether the output for the given output tag is enabled. Output tags
+   * are enabled via the `output` option (or `-o` on the command line).
+   */
+  bool isOutputOn(options::OutputTag tag) const;
+  /**
+   * Check whether the output for the given output tag (as a string) is enabled.
+   * Output tags are enabled via the `output` option (or `-o` on the command
+   * line).
+   */
+  bool isOutputOn(const std::string& tag) const;
+  /**
+   * Return the output stream for the given output tag. If the output tag is
+   * enabled, this returns the output stream from the `out` option. Otherwise,
+   * a null stream (`cvc5::null_os`) is returned.
+   */
+  std::ostream& getOutput(options::OutputTag tag) const;
+  /**
+   * Return the output stream for the given output tag (as a string). If the
+   * output tag is enabled, this returns the output stream from the `out`
+   * option. Otherwise, a null stream (`cvc5::null_os`) is returned.
+   */
+  std::ostream& getOutput(const std::string& tag) const;
+
+  /* Rewrite helpers--------------------------------------------------------- */
+  /**
+   * Evaluate node n under the substitution args -> vals. For details, see
+   * theory/evaluator.h.
+   *
+   * @param n The node to evaluate
+   * @param args The domain of the substitution
+   * @param vals The range of the substitution
+   * @param useRewriter if true, we use this rewriter to rewrite subterms of
+   * n that cannot be evaluated to a constant.
+   * @return the rewritten, evaluated form of n under the given substitution.
+   */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                bool useRewriter) const;
+  /** Same as above, with a visited cache. */
+  Node evaluate(TNode n,
+                const std::vector<Node>& args,
+                const std::vector<Node>& vals,
+                const std::unordered_map<Node, Node>& visited,
+                bool useRewriter = true) const;
+  /**
+   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
+   * This encapsulates the exact behavior of a REWRITE step in a proof.
+   *
+   * @param n The node to rewrite,
+   * @param idr The method identifier of the rewriter, by default RW_REWRITE
+   * specifying a call to rewrite.
+   * @return The rewritten form of n.
+   */
+  Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
+
  private:
   /* Private initialization ------------------------------------------------- */
 
@@ -157,12 +225,12 @@ class Env
   std::unique_ptr<context::UserContext> d_userContext;
   /**
    * A pointer to the node manager of this environment. A node manager is
-   * not necessarily unique to an SmtEngine instance.
+   * not necessarily unique to an SolverEngine instance.
    */
   NodeManager* d_nodeManager;
   /**
    * A pointer to the proof node manager, which is non-null if proofs are
-   * enabled. This is owned by the proof manager of the SmtEngine that owns
+   * enabled. This is owned by the proof manager of the SolverEngine that owns
    * this environment.
    */
   ProofNodeManager* d_proofNodeManager;
@@ -170,9 +238,13 @@ class Env
    * The rewriter owned by this Env. We have a different instance
    * of the rewriter for each Env instance. This is because rewriters may
    * hold references to objects that belong to theory solvers, which are
-   * specific to an SmtEngine/TheoryEngine instance.
+   * specific to an SolverEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+  /** Evaluator that also invokes the rewriter */
+  std::unique_ptr<theory::Evaluator> d_evalRew;
+  /** Evaluator that does not invoke the rewriter */
+  std::unique_ptr<theory::Evaluator> d_eval;
   /** The top level substitutions */
   std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
   /** The dump manager */
@@ -192,7 +264,7 @@ class Env
   std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
   /**
    * The options object, which contains the modified version of the options
-   * provided as input to the SmtEngine that owns this environment. Note
+   * provided as input to the SolverEngine that owns this environment. Note
    * that d_options may be modified by the options manager, e.g. based
    * on the input logic.
    *

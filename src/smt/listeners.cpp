@@ -23,19 +23,19 @@
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
 #include "smt/node_command.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace smt {
 
-ResourceOutListener::ResourceOutListener(SmtEngine& smt) : d_smt(smt) {}
+ResourceOutListener::ResourceOutListener(SolverEngine& slv) : d_slv(slv) {}
 
 void ResourceOutListener::notify()
 {
-  SmtScope scope(&d_smt);
+  SmtScope scope(&d_slv);
   Assert(smt::smtEngineInScope());
-  d_smt.interrupt();
+  d_slv.interrupt();
 }
 
 SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm,
@@ -97,8 +97,8 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
   DeclareFunctionNodeCommand c(id, n, n.getType());
   if (Dump.isOn("skolems") && comment != "")
   {
-    d_outMgr.getPrinter().toStreamCmdComment(d_outMgr.getDumpOut(),
-                                             id + " is " + comment);
+    d_outMgr.getPrinter().toStreamCmdSetInfo(
+        d_outMgr.getDumpOut(), "notes", id + " is " + comment);
   }
   d_dm.addToDump(c, "skolems");
 }

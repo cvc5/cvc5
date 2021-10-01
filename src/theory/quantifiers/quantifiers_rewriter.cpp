@@ -89,6 +89,8 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s)
   return out;
 }
 
+QuantifiersRewriter::QuantifiersRewriter(const Options& opts) : d_opts(opts) {}
+
 bool QuantifiersRewriter::isLiteral( Node n ){
   switch( n.getKind() ){
   case NOT:
@@ -109,17 +111,6 @@ bool QuantifiersRewriter::isLiteral( Node n ){
     break;
   }
   return true;
-}
-
-void QuantifiersRewriter::addNodeToOrBuilder(Node n, NodeBuilder& t)
-{
-  if( n.getKind()==OR ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      t << n[i];
-    }
-  }else{
-    t << n;
-  }
 }
 
 void QuantifiersRewriter::computeArgs(const std::vector<Node>& args,
@@ -263,8 +254,14 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
   return RewriteResponse( status, ret );
 }
 
-bool QuantifiersRewriter::addCheckElimChild( std::vector< Node >& children, Node c, Kind k, std::map< Node, bool >& lit_pol, bool& childrenChanged ){
-  if( ( k==OR || k==AND ) && options::elimTautQuant() ){
+bool QuantifiersRewriter::addCheckElimChild(std::vector<Node>& children,
+                                            Node c,
+                                            Kind k,
+                                            std::map<Node, bool>& lit_pol,
+                                            bool& childrenChanged) const
+{
+  if ((k == OR || k == AND) && d_opts.quantifiers.elimTautQuant)
+  {
     Node lit = c.getKind()==NOT ? c[0] : c;
     bool pol = c.getKind()!=NOT;
     std::map< Node, bool >::iterator it = lit_pol.find( lit );
@@ -277,14 +274,16 @@ bool QuantifiersRewriter::addCheckElimChild( std::vector< Node >& children, Node
         return false;
       }
     }
-  }else{
+  }
+  else
+  {
     children.push_back( c );
   }
   return true;
 }
 
-// eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR, and computes NNF
-Node QuantifiersRewriter::computeElimSymbols( Node body ) {
+Node QuantifiersRewriter::computeElimSymbols(Node body) const
+{
   Kind ok = body.getKind();
   Kind k = ok;
   bool negAllCh = false;
@@ -426,7 +425,12 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
   }
 }
 
-Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa ){
+Node QuantifiersRewriter::computeProcessTerms(Node body,
+                                              std::vector<Node>& new_vars,
+                                              std::vector<Node>& new_conds,
+                                              Node q,
+                                              QAttributes& qa) const
+{
   std::map< Node, Node > cache;
   if( qa.isFunDef() ){
     Node h = QuantAttributes::getFunDefHead( q );
@@ -447,10 +451,11 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
   return computeProcessTerms2(body, cache, new_vars, new_conds);
 }
 
-Node QuantifiersRewriter::computeProcessTerms2(Node body,
-                                               std::map<Node, Node>& cache,
-                                               std::vector<Node>& new_vars,
-                                               std::vector<Node>& new_conds)
+Node QuantifiersRewriter::computeProcessTerms2(
+    Node body,
+    std::map<Node, Node>& cache,
+    std::vector<Node>& new_vars,
+    std::vector<Node>& new_conds) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2")
@@ -488,7 +493,7 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
       << "Returning " << ret << " for " << body << std::endl;
   // do context-independent rewriting
   if (ret.getKind() == EQUAL
-      && options::iteLiftQuant() != options::IteLiftQuantMode::NONE)
+      && d_opts.quantifiers.iteLiftQuant != options::IteLiftQuantMode::NONE)
   {
     for (size_t i = 0; i < 2; i++)
     {
@@ -498,7 +503,7 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
         if (no.getKind() != ITE)
         {
           bool doRewrite =
-              options::iteLiftQuant() == options::IteLiftQuantMode::ALL;
+              d_opts.quantifiers.iteLiftQuant == options::IteLiftQuantMode::ALL;
           std::vector<Node> childrenIte;
           childrenIte.push_back(ret[i][0]);
           for (size_t j = 1; j <= 2; j++)
@@ -565,11 +570,11 @@ Node QuantifiersRewriter::computeExtendedRewrite(Node q)
 
 Node QuantifiersRewriter::computeCondSplit(Node body,
                                            const std::vector<Node>& args,
-                                           QAttributes& qa)
+                                           QAttributes& qa) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind bk = body.getKind();
-  if (options::iteDtTesterSplitQuant() && bk == ITE
+  if (d_opts.quantifiers.iteDtTesterSplitQuant && bk == ITE
       && body[0].getKind() == APPLY_TESTER)
   {
     Trace("quantifiers-rewrite-ite-debug") << "DTT split : " << body << std::endl;
@@ -586,7 +591,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
       return nm->mkNode(AND, conj);
     }
   }
-  if (!options::condVarSplitQuant())
+  if (!d_opts.quantifiers.condVarSplitQuant)
   {
     return body;
   }
@@ -595,7 +600,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
 
   if (bk == ITE
       || (bk == EQUAL && body[0].getType().isBoolean()
-          && options::condVarSplitQuantAgg()))
+          && d_opts.quantifiers.condVarSplitQuantAgg))
   {
     Assert(!qa.isFunDef());
     bool do_split = false;
@@ -655,7 +660,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
             // Figure out if we should split
             // Currently we split if the aggressive option is set, or
             // if the top-level OR is binary.
-            if (options::condVarSplitQuantAgg() || size == 2)
+            if (d_opts.quantifiers.condVarSplitQuantAgg || size == 2)
             {
               do_split = true;
             }
@@ -864,7 +869,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
                                         bool pol,
                                         std::vector<Node>& args,
                                         std::vector<Node>& vars,
-                                        std::vector<Node>& subs)
+                                        std::vector<Node>& subs) const
 {
   if (lit.getKind() == NOT)
   {
@@ -876,7 +881,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
   Trace("var-elim-quant-debug")
       << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
   if (lit.getKind() == APPLY_TESTER && pol && lit[0].getKind() == BOUND_VARIABLE
-      && options::dtVarExpandQuant())
+      && d_opts.quantifiers.dtVarExpandQuant)
   {
     Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
                          << std::endl;
@@ -911,7 +916,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
     }
   }
   // all eliminations below guarded by varElimQuant()
-  if (!options::varElimQuant())
+  if (!d_opts.quantifiers.varElimQuant)
   {
     return false;
   }
@@ -991,7 +996,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
 bool QuantifiersRewriter::getVarElim(Node body,
                                      std::vector<Node>& args,
                                      std::vector<Node>& vars,
-                                     std::vector<Node>& subs)
+                                     std::vector<Node>& subs) const
 {
   return getVarElimInternal(body, body, false, args, vars, subs);
 }
@@ -1001,7 +1006,7 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
                                              bool pol,
                                              std::vector<Node>& args,
                                              std::vector<Node>& vars,
-                                             std::vector<Node>& subs)
+                                             std::vector<Node>& subs) const
 {
   Kind nk = n.getKind();
   if (nk == NOT)
@@ -1025,7 +1030,9 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
   return getVarElimLit(body, n, pol, args, vars, subs);
 }
 
-bool QuantifiersRewriter::hasVarElim(Node n, bool pol, std::vector<Node>& args)
+bool QuantifiersRewriter::hasVarElim(Node n,
+                                     bool pol,
+                                     std::vector<Node>& args) const
 {
   std::vector< Node > vars;
   std::vector< Node > subs;
@@ -1263,9 +1270,12 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   return ret;
 }
 
-Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa ){
-  if (!options::varElimQuant() && !options::dtVarExpandQuant()
-      && !options::varIneqElimQuant())
+Node QuantifiersRewriter::computeVarElimination(Node body,
+                                                std::vector<Node>& args,
+                                                QAttributes& qa) const
+{
+  if (!d_opts.quantifiers.varElimQuant && !d_opts.quantifiers.dtVarExpandQuant
+      && !d_opts.quantifiers.varIneqElimQuant)
   {
     return body;
   }
@@ -1279,12 +1289,12 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
     std::vector<Node> vars;
     std::vector<Node> subs;
     // standard variable elimination
-    if (options::varElimQuant())
+    if (d_opts.quantifiers.varElimQuant)
     {
       getVarElim(body, args, vars, subs);
     }
     // variable elimination based on one-direction inequalities
-    if (vars.empty() && options::varIneqElimQuant())
+    if (vars.empty() && d_opts.quantifiers.varIneqElimQuant)
     {
       getVarElimIneq(body, args, vars, subs, qa);
     }
@@ -1314,14 +1324,15 @@ Node QuantifiersRewriter::computePrenex(Node q,
                                         std::unordered_set<Node>& args,
                                         std::unordered_set<Node>& nargs,
                                         bool pol,
-                                        bool prenexAgg)
+                                        bool prenexAgg) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = body.getKind();
   if (k == FORALL)
   {
     if ((pol || prenexAgg)
-        && (options::prenexQuantUser() || !QuantAttributes::hasPattern(body)))
+        && (d_opts.quantifiers.prenexQuantUser
+            || !QuantAttributes::hasPattern(body)))
     {
       std::vector< Node > terms;
       std::vector< Node > subs;
@@ -1406,7 +1417,10 @@ Node QuantifiersRewriter::computePrenex(Node q,
   return body;
 }
 
-Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QAttributes& qa ) {
+Node QuantifiersRewriter::computeSplit(std::vector<Node>& args,
+                                       Node body,
+                                       QAttributes& qa) const
+{
   Assert(body.getKind() == OR);
   size_t var_found_count = 0;
   size_t eqc_count = 0;
@@ -1566,7 +1580,7 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
 }
 
 //computes miniscoping, also eliminates variables that do not occur free in body
-Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
+Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa) const
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args(q[0].begin(), q[0].end());
@@ -1582,7 +1596,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
   }else if( body.getKind()==AND ){
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
-    if (options::miniscopeQuant() || options::aggressiveMiniscopeQuant())
+    if (d_opts.quantifiers.miniscopeQuant
+        || d_opts.quantifiers.aggressiveMiniscopeQuant)
     {
       BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
@@ -1626,12 +1641,13 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
       return retVal;
     }
   }else if( body.getKind()==OR ){
-    if( options::quantSplit() ){
+    if (d_opts.quantifiers.quantSplit)
+    {
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
     }
-    else if (options::miniscopeQuantFreeVar()
-             || options::aggressiveMiniscopeQuant())
+    else if (d_opts.quantifiers.miniscopeQuantFreeVar
+             || d_opts.quantifiers.aggressiveMiniscopeQuant)
     {
       // aggressive miniscoping implies that free variable miniscoping should
       // be applied first
@@ -1666,7 +1682,9 @@ Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
   return mkForAll( activeArgs, body, qa );
 }
 
-Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& args, Node body ){
+Node QuantifiersRewriter::computeAggressiveMiniscoping(std::vector<Node>& args,
+                                                       Node body) const
+{
   std::map<Node, std::vector<Node> > varLits;
   std::map<Node, std::vector<Node> > litVars;
   if (body.getKind() == OR) {
@@ -1777,11 +1795,11 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
 
 bool QuantifiersRewriter::doOperation(Node q,
                                       RewriteStep computeOption,
-                                      QAttributes& qa)
+                                      QAttributes& qa) const
 {
   bool is_strict_trigger =
       qa.d_hasPattern
-      && options::userPatternsQuant() == options::UserPatMode::STRICT;
+      && d_opts.quantifiers.userPatternsQuant == options::UserPatMode::STRICT;
   bool is_std = qa.isStandard() && !is_strict_trigger;
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
@@ -1793,29 +1811,34 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_AGGRESSIVE_MINISCOPING)
   {
-    return options::aggressiveMiniscopeQuant() && is_std;
+    return d_opts.quantifiers.aggressiveMiniscopeQuant && is_std;
   }
   else if (computeOption == COMPUTE_EXT_REWRITE)
   {
-    return options::extRewriteQuant();
+    return d_opts.quantifiers.extRewriteQuant;
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    return is_std && options::iteLiftQuant() != options::IteLiftQuantMode::NONE;
+    return is_std
+           && d_opts.quantifiers.iteLiftQuant
+                  != options::IteLiftQuantMode::NONE;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
-    return (options::iteDtTesterSplitQuant() || options::condVarSplitQuant())
+    return (d_opts.quantifiers.iteDtTesterSplitQuant
+            || d_opts.quantifiers.condVarSplitQuant)
            && !is_strict_trigger;
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
-    return options::prenexQuant() != options::PrenexQuantMode::NONE
-           && !options::aggressiveMiniscopeQuant() && is_std;
+    return d_opts.quantifiers.prenexQuant != options::PrenexQuantMode::NONE
+           && !d_opts.quantifiers.aggressiveMiniscopeQuant && is_std;
   }
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
   {
-    return (options::varElimQuant() || options::dtVarExpandQuant()) && is_std;
+    return (d_opts.quantifiers.varElimQuant
+            || d_opts.quantifiers.dtVarExpandQuant)
+           && is_std;
   }
   else
   {
@@ -1826,12 +1849,12 @@ bool QuantifiersRewriter::doOperation(Node q,
 //general method for computing various rewrites
 Node QuantifiersRewriter::computeOperation(Node f,
                                            RewriteStep computeOption,
-                                           QAttributes& qa)
+                                           QAttributes& qa) const
 {
   Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
   if (computeOption == COMPUTE_MINISCOPING)
   {
-    if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+    if (d_opts.quantifiers.prenexQuant == options::PrenexQuantMode::NORMAL)
     {
       if( !qa.d_qid_num.isNull() ){
         //already processed this, return self
@@ -1868,7 +1891,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
-    if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+    if (d_opts.quantifiers.prenexQuant == options::PrenexQuantMode::NORMAL)
     {
       //will rewrite at preprocess time
       return f;

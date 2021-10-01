@@ -22,6 +22,9 @@
 #include "theory/theory_rewriter.h"
 
 namespace cvc5 {
+
+class Options;
+
 namespace theory {
 namespace quantifiers {
 
@@ -60,6 +63,12 @@ std::ostream& operator<<(std::ostream& out, RewriteStep s);
 class QuantifiersRewriter : public TheoryRewriter
 {
  public:
+  QuantifiersRewriter(const Options& opts);
+  /** Pre-rewrite n */
+  RewriteResponse preRewrite(TNode in) override;
+  /** Post-rewrite n */
+  RewriteResponse postRewrite(TNode in) override;
+
   static bool isLiteral( Node n );
   //-------------------------------------variable elimination utilities
   /** is variable elimination
@@ -75,12 +84,12 @@ class QuantifiersRewriter : public TheoryRewriter
    * then this method removes v from args, adds v to vars, adds s to subs, and
    * returns true. Otherwise, it returns false.
    */
-  static bool getVarElimLit(Node body,
-                            Node n,
-                            bool pol,
-                            std::vector<Node>& args,
-                            std::vector<Node>& vars,
-                            std::vector<Node>& subs);
+  bool getVarElimLit(Node body,
+                     Node n,
+                     bool pol,
+                     std::vector<Node>& args,
+                     std::vector<Node>& vars,
+                     std::vector<Node>& subs) const;
   /**
    * Get variable eliminate for an equality based on theory-specific reasoning.
    */
@@ -116,16 +125,16 @@ class QuantifiersRewriter : public TheoryRewriter
    * getVarElimLit, we return true. In this case, we update args/vars/subs
    * based on eliminating v.
    */
-  static bool getVarElim(Node body,
-                         std::vector<Node>& args,
-                         std::vector<Node>& vars,
-                         std::vector<Node>& subs);
+  bool getVarElim(Node body,
+                  std::vector<Node>& args,
+                  std::vector<Node>& vars,
+                  std::vector<Node>& subs) const;
   /** has variable elimination
    *
    * Returns true if n asserted with polarity pol entails a literal for
    * which variable elimination is possible.
    */
-  static bool hasVarElim(Node n, bool pol, std::vector<Node>& args);
+  bool hasVarElim(Node n, bool pol, std::vector<Node>& args) const;
   /** compute variable elimination inequality
    *
    * This method eliminates variables from the body of quantified formula
@@ -145,23 +154,67 @@ class QuantifiersRewriter : public TheoryRewriter
                              std::vector<Node>& subs,
                              QAttributes& qa);
   //-------------------------------------end variable elimination utilities
+  /**
+   * Eliminates IMPLIES/XOR, removes duplicates/infers tautologies of AND/OR,
+   * and computes NNF.
+   */
+  Node computeElimSymbols(Node body) const;
+  /**
+   * Compute miniscoping in quantified formula q with attributes in qa.
+   */
+  Node computeMiniscoping(Node q, QAttributes& qa) const;
+  Node computeAggressiveMiniscoping(std::vector<Node>& args, Node body) const;
+  /**
+   * This function removes top-level quantifiers from subformulas of body
+   * appearing with overall polarity pol. It adds quantified variables that
+   * appear in positive polarity positions into args, and those at negative
+   * polarity positions in nargs.
+   *
+   * If prenexAgg is true, we ensure that all top-level quantifiers are
+   * eliminated from subformulas. This means that we must expand ITE and
+   * Boolean equalities to ensure that quantifiers are at fixed polarities.
+   *
+   * For example, calling this function on:
+   *   (or (forall ((x Int)) (P x z)) (not (forall ((y Int)) (Q y z))))
+   * would return:
+   *   (or (P x z) (not (Q y z)))
+   * and add {x} to args, and {y} to nargs.
+   */
+  Node computePrenex(Node q,
+                     Node body,
+                     std::unordered_set<Node>& args,
+                     std::unordered_set<Node>& nargs,
+                     bool pol,
+                     bool prenexAgg) const;
+  Node computeSplit(std::vector<Node>& args, Node body, QAttributes& qa) const;
+
+  static bool isPrenexNormalForm(Node n);
+  static Node mkForAll(const std::vector<Node>& args,
+                       Node body,
+                       QAttributes& qa);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       bool marked = false);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       std::vector<Node>& iplc,
+                       bool marked = false);
+
  private:
   /**
    * Helper method for getVarElim, called when n has polarity pol in body.
    */
-  static bool getVarElimInternal(Node body,
-                                 Node n,
-                                 bool pol,
-                                 std::vector<Node>& args,
-                                 std::vector<Node>& vars,
-                                 std::vector<Node>& subs);
-  static int getPurifyIdLit2(Node n, std::map<Node, int>& visited);
-  static bool addCheckElimChild(std::vector<Node>& children,
-                                Node c,
-                                Kind k,
-                                std::map<Node, bool>& lit_pol,
-                                bool& childrenChanged);
-  static void addNodeToOrBuilder(Node n, NodeBuilder& t);
+  bool getVarElimInternal(Node body,
+                          Node n,
+                          bool pol,
+                          std::vector<Node>& args,
+                          std::vector<Node>& vars,
+                          std::vector<Node>& subs) const;
+  bool addCheckElimChild(std::vector<Node>& children,
+                         Node c,
+                         Kind k,
+                         std::map<Node, bool>& lit_pol,
+                         bool& childrenChanged) const;
   static void computeArgs(const std::vector<Node>& args,
                           std::map<Node, bool>& activeMap,
                           Node n,
@@ -173,10 +226,10 @@ class QuantifiersRewriter : public TheoryRewriter
                              std::vector<Node>& activeArgs,
                              Node n,
                              Node ipl);
-  static Node computeProcessTerms2(Node body,
-                                   std::map<Node, Node>& cache,
-                                   std::vector<Node>& new_vars,
-                                   std::vector<Node>& new_conds);
+  Node computeProcessTerms2(Node body,
+                            std::map<Node, Node>& cache,
+                            std::vector<Node>& new_vars,
+                            std::vector<Node>& new_conds) const;
   static void computeDtTesterIteSplit(
       Node n,
       std::map<Node, Node>& pcons,
@@ -192,9 +245,9 @@ class QuantifiersRewriter : public TheoryRewriter
    * (forall args'. body'). An example of a variable elimination rewrite is:
    *   forall xy. x != a V P( x,y ) ---> forall y. P( a, y )
    */
-  static Node computeVarElimination(Node body,
-                                    std::vector<Node>& args,
-                                    QAttributes& qa);
+  Node computeVarElimination(Node body,
+                             std::vector<Node>& args,
+                             QAttributes& qa) const;
   //-------------------------------------end variable elimination
   //-------------------------------------conditional splitting
   /** compute conditional splitting
@@ -208,9 +261,9 @@ class QuantifiersRewriter : public TheoryRewriter
    *   ( x!=a ^ P(x) ) V Q(x) ---> ( x!=a V Q(x) ) ^ ( P(x) V Q(x) )
    * where in each case, x can be eliminated in the first conjunct.
    */
-  static Node computeCondSplit(Node body,
-                               const std::vector<Node>& args,
-                               QAttributes& qa);
+  Node computeCondSplit(Node body,
+                        const std::vector<Node>& args,
+                        QAttributes& qa) const;
   //-------------------------------------end conditional splitting
   //------------------------------------- process terms
   /** compute process terms
@@ -230,11 +283,11 @@ class QuantifiersRewriter : public TheoryRewriter
    * is equivalent to:
    *   forall X, V. ( C => retBody )
    */
-  static Node computeProcessTerms(Node body,
-                                  std::vector<Node>& new_vars,
-                                  std::vector<Node>& new_conds,
-                                  Node q,
-                                  QAttributes& qa);
+  Node computeProcessTerms(Node body,
+                           std::vector<Node>& new_vars,
+                           std::vector<Node>& new_conds,
+                           Node q,
+                           QAttributes& qa) const;
   //------------------------------------- end process terms
   //------------------------------------- extended rewrite
   /** compute extended rewrite
@@ -244,61 +297,19 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   static Node computeExtendedRewrite(Node q);
   //------------------------------------- end extended rewrite
- public:
-  static Node computeElimSymbols( Node body );
   /**
-   * Compute miniscoping in quantified formula q with attributes in qa.
+   * Return true if we should do operation computeOption on quantified formula
+   * q with attributes qa.
    */
-  static Node computeMiniscoping(Node q, QAttributes& qa);
-  static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
+  bool doOperation(Node q, RewriteStep computeOption, QAttributes& qa) const;
   /**
-   * This function removes top-level quantifiers from subformulas of body
-   * appearing with overall polarity pol. It adds quantified variables that
-   * appear in positive polarity positions into args, and those at negative
-   * polarity positions in nargs.
-   *
-   * If prenexAgg is true, we ensure that all top-level quantifiers are
-   * eliminated from subformulas. This means that we must expand ITE and
-   * Boolean equalities to ensure that quantifiers are at fixed polarities.
-   *
-   * For example, calling this function on:
-   *   (or (forall ((x Int)) (P x z)) (not (forall ((y Int)) (Q y z))))
-   * would return:
-   *   (or (P x z) (not (Q y z)))
-   * and add {x} to args, and {y} to nargs.
+   * Return the rewritten form of q after applying operator computeOption to it.
    */
-  static Node computePrenex(Node q,
-                            Node body,
-                            std::unordered_set<Node>& args,
-                            std::unordered_set<Node>& nargs,
-                            bool pol,
-                            bool prenexAgg);
-  static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
-private:
- static Node computeOperation(Node f,
-                              RewriteStep computeOption,
-                              QAttributes& qa);
-
-public:
- RewriteResponse preRewrite(TNode in) override;
- RewriteResponse postRewrite(TNode in) override;
-
-private:
-  /** options */
- static bool doOperation(Node f, RewriteStep computeOption, QAttributes& qa);
-
-public:
-  static bool isPrenexNormalForm( Node n );
-  static Node mkForAll(const std::vector<Node>& args,
-                       Node body,
-                       QAttributes& qa);
-  static Node mkForall(const std::vector<Node>& args,
-                       Node body,
-                       bool marked = false);
-  static Node mkForall(const std::vector<Node>& args,
-                       Node body,
-                       std::vector<Node>& iplc,
-                       bool marked = false);
+  Node computeOperation(Node q,
+                        RewriteStep computeOption,
+                        QAttributes& qa) const;
+  /** Reference to the options */
+  const Options& d_opts;
 }; /* class QuantifiersRewriter */
 
 }  // namespace quantifiers

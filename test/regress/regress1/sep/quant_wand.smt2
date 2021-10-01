@@ -6,7 +6,7 @@
 
 (declare-const u Int)
 
-(assert (_ emp Int Int))
+(assert sep.emp)
 
 (assert 
 (forall ((y Int)) 

@@ -59,7 +59,7 @@ void CheckModels::checkModel(TheoryModel* m,
   // Now go through all our user assertions checking if they're satisfied.
   for (const Node& assertion : *al)
   {
-    Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
+    Notice() << "SolverEngine::checkModel(): checking assertion " << assertion
              << std::endl;
 
     // Apply any define-funs from the problem. We do not expand theory symbols
@@ -68,16 +68,17 @@ void CheckModels::checkModel(TheoryModel* m,
     // is not trustworthy, since the UF introduced by expanding definitions may
     // not be properly constrained.
     Node n = sm.apply(assertion, false);
-    Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << std::endl;
+    Notice() << "SolverEngine::checkModel(): -- substitutes to " << n
+             << std::endl;
 
     n = Rewriter::rewrite(n);
-    Notice() << "SmtEngine::checkModel(): -- rewrites to " << n << std::endl;
+    Notice() << "SolverEngine::checkModel(): -- rewrites to " << n << std::endl;
 
     // We look up the value before simplifying. If n contains quantifiers,
     // this may increases the chance of finding its value before the node is
     // altered by simplification below.
     n = m->getValue(n);
-    Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
+    Notice() << "SolverEngine::checkModel(): -- get value : " << n << std::endl;
 
     if (n.isConst() && n.getConst<bool>())
     {
@@ -103,18 +104,19 @@ void CheckModels::checkModel(TheoryModel* m,
     if (!n.isConst())
     {
       // Not constant, print a less severe warning message here.
-      Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified "
-                   "assertion : "
-                << n << std::endl;
+      Warning()
+          << "Warning : SolverEngine::checkModel(): cannot check simplified "
+             "assertion : "
+          << n << std::endl;
       noCheckList.push_back(n);
       continue;
     }
     // Assertions that simplify to false result in an InternalError or
     // Warning being thrown below (when hardFailure is false).
-    Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
+    Notice() << "SolverEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
              << std::endl;
     std::stringstream ss;
-    ss << "SmtEngine::checkModel(): "
+    ss << "SolverEngine::checkModel(): "
        << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << std::endl
        << "assertion:     " << assertion << std::endl
        << "simplifies to: " << n << std::endl
@@ -132,7 +134,7 @@ void CheckModels::checkModel(TheoryModel* m,
   }
   if (noCheckList.empty())
   {
-    Notice() << "SmtEngine::checkModel(): all assertions checked out OK !"
+    Notice() << "SolverEngine::checkModel(): all assertions checked out OK !"
              << std::endl;
     return;
   }

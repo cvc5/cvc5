@@ -42,7 +42,7 @@ InstantiationEngine::InstantiationEngine(Env& env,
       d_isup(),
       d_i_ag(),
       d_quants(),
-      d_trdb(qs, qim, qr, tr),
+      d_trdb(d_env, qs, qim, qr, tr),
       d_quant_rel(nullptr)
 {
   if (options::relevantTriggers())
@@ -54,13 +54,14 @@ InstantiationEngine::InstantiationEngine(Env& env,
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_trdb, qs, qim, qr, tr));
+      d_isup.reset(
+          new InstStrategyUserPatterns(d_env, d_trdb, qs, qim, qr, tr));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
     d_i_ag.reset(new InstStrategyAutoGenTriggers(
-        d_trdb, qs, qim, qr, tr, d_quant_rel.get()));
+        d_env, d_trdb, qs, qim, qr, tr, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }

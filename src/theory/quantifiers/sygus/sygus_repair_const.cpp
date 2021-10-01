@@ -228,7 +228,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
 
   Trace("sygus-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
-  std::unique_ptr<SmtEngine> repcChecker;
+  std::unique_ptr<SolverEngine> repcChecker;
   // initialize the subsolver using the standard method
   initializeSubsolver(
       repcChecker,

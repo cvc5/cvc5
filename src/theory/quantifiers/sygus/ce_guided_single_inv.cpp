@@ -226,7 +226,7 @@ bool CegSingleInv::solve()
     siq = nm->mkNode(FORALL, siq[0], siq[1], n_attr);
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
-  std::unique_ptr<SmtEngine> siSmt;
+  std::unique_ptr<SolverEngine> siSmt;
   initializeSubsolver(siSmt, d_env);
   // do not use shared selectors in subsolver, since this leads to solutions
   // with non-user symbols
@@ -506,7 +506,8 @@ bool CegSingleInv::solveTrivial(Node q)
 
     std::vector<Node> varsTmp;
     std::vector<Node> subsTmp;
-    QuantifiersRewriter::getVarElim(body, args, varsTmp, subsTmp);
+    QuantifiersRewriter qrew(options());
+    qrew.getVarElim(body, args, varsTmp, subsTmp);
     // if we eliminated a variable, update body and reprocess
     if (!varsTmp.empty())
     {

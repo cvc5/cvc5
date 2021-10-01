@@ -1,7 +1,0 @@
-% EXPECT: sat
-
-x : [# b:BOOLEAN #];
-
-ASSERT x = x;
-
-CHECKSAT;

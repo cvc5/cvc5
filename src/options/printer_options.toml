@@ -2,21 +2,6 @@ id     = "PRINTER"
 name   = "Printing"
 
 [[option]]
-  name       = "modelFormatMode"
-  category   = "regular"
-  long       = "model-format=MODE"
-  type       = "ModelFormatMode"
-  default    = "DEFAULT"
-  help       = "print format mode for models, see --model-format=help"
-  help_mode  = "Model format modes."
-[[option.mode.DEFAULT]]
-  name = "default"
-  help = "Print model as expressions in the output language format."
-[[option.mode.TABLE]]
-  name = "table"
-  help = "Print functional expressions over finite domains in a table format."
-
-[[option]]
   name       = "flattenHOChains"
   category   = "regular"
   long       = "flatten-ho-chains"

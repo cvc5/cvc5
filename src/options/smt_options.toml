@@ -162,14 +162,6 @@ name   = "SMT Layer"
   help = "Print based on SyGuS standard."
 
 [[option]]
-  name       = "sygusPrintCallbacks"
-  category   = "regular"
-  long       = "sygus-print-callbacks"
-  type       = "bool"
-  default    = "true"
-  help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
-
-[[option]]
   name       = "unsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"

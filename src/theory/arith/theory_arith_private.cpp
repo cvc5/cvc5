@@ -37,6 +37,7 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/base_options.h"
+#include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
@@ -45,7 +46,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/approx_simplex.h"
-#include "theory/arith/arith_ite_utils.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
@@ -97,13 +97,11 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                            : nullptr),
       d_checker(),
       d_pfGen(new EagerProofGenerator(d_pnm, userContext())),
-      d_constraintDatabase(context(),
-                           userContext(),
+      d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
                            RaiseConflict(*this),
-                           d_pfGen.get(),
-                           d_pnm),
+                           d_pfGen.get()),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -123,7 +121,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
-      d_diosolver(context()),
+      d_diosolver(env),
       d_restartsCounter(0),
       d_tableauSizeHasBeenModified(false),
       d_tableauResetDensity(1.6),
@@ -131,23 +129,21 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_conflicts(context()),
       d_blackBoxConflict(context(), Node::null()),
       d_blackBoxConflictPf(context(), std::shared_ptr<ProofNode>(nullptr)),
-      d_congruenceManager(context(),
-                          userContext(),
+      d_congruenceManager(d_env,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
-                          RaiseEqualityEngineConflict(*this),
-                          d_pnm),
+                          RaiseEqualityEngineConflict(*this)),
       d_cmEnabled(context(), options().arith.arithCongMan),
 
       d_dualSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_fcSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_soiSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(context(), -1),
@@ -1749,7 +1745,7 @@ void TheoryArithPrivate::outputConflicts(){
       const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (Debug.isOn("arith::conflict"))
       {
-        pf.print(std::cout);
+        pf.print(std::cout, options().smt.produceProofs);
         std::cout << std::endl;
       }
       if (Debug.isOn("arith::pf::tree"))
@@ -2899,11 +2895,9 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
 
   if(d_qflraStatus != Result::UNSAT){
     static const int64_t pass2Limit = 20;
-    int64_t oldCap = options().arith.arithStandardCheckVarOrderPivots;
-    Options::current().arith.arithStandardCheckVarOrderPivots = pass2Limit;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
+    simplex.setVarOrderPivotLimit(pass2Limit);
     d_qflraStatus = simplex.findModel(false);
-    Options::current().arith.arithStandardCheckVarOrderPivots = oldCap;
   }
 
   if(Debug.isOn("arith::importSolution")){
@@ -4132,7 +4126,7 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
-        d_linEq.propagateBasicFromRow(bestImplied);
+        d_linEq.propagateBasicFromRow(bestImplied, options().smt.produceProofs);
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
         if(Debug.isOn("arith::prop")){
@@ -4437,8 +4431,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
   if( !assertedToTheTheory && canBePropagated && !hasProof ){
     ConstraintCPVec explain;
-    ARITH_PROOF(d_farkasBuffer.clear());
-    RationalVectorP coeffs = ARITH_NULLPROOF(&d_farkasBuffer);
+    if (options().smt.produceProofs)
+    {
+      d_farkasBuffer.clear();
+    }
+    RationalVectorP coeffs =
+        options().smt.produceProofs ? &d_farkasBuffer : nullptr;
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied

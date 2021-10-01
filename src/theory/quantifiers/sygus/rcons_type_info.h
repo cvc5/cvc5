@@ -20,7 +20,6 @@
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/quantifiers/sygus_sampler.h"
 
 namespace cvc5 {
 namespace theory {
@@ -28,6 +27,7 @@ namespace quantifiers {
 
 class RConsObligation;
 class CandidateRewriteDatabase;
+class SygusSampler;
 
 /**
  * A utility class for Sygus Reconstruct datatype types (grammar non-terminals).
@@ -93,7 +93,7 @@ class RConsTypeInfo
   /** Candidate rewrite database for this class' sygus datatype type */
   std::unique_ptr<CandidateRewriteDatabase> d_crd;
   /** Sygus sampler needed for initializing the candidate rewrite database */
-  SygusSampler d_sygusSampler;
+  std::unique_ptr<SygusSampler> d_sygusSampler;
   /** A map from a builtin term to its obligation.
    *
    * Each sygus datatype type has its own version of this map because it is
