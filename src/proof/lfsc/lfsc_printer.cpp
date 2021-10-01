@@ -221,12 +221,6 @@ void LfscPrinter::print(std::ostream& out,
   }
 
   // [4] print the DSL rewrite rule declarations
-  const std::unordered_set<DslPfRule>& dslrs = lpcp.getDslRewrites();
-  for (DslPfRule dslr : dslrs)
-  {
-    // also computes the format for the rule
-    printDslRule(out, dslr, d_dslFormat[dslr]);
-  }
 
   // [5] print the check command and term lets
   out << preamble.str();
