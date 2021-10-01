@@ -94,7 +94,7 @@ class InterpolationSolver;
 class QuantElimSolver;
 
 struct SmtEngineStatistics;
-class SmtScope;
+class SolverEngineScope;
 class PfManager;
 class UnsatCoreManager;
 
@@ -114,7 +114,7 @@ class CVC5_EXPORT SolverEngine
 {
   friend class ::cvc5::api::Solver;
   friend class ::cvc5::smt::SmtEngineState;
-  friend class ::cvc5::smt::SmtScope;
+  friend class ::cvc5::smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -1115,7 +1115,7 @@ class CVC5_EXPORT SolverEngine
    * SolverEngine in scope. It says the SolverEngine in scope until it is
    * destructed, or another SolverEngine is created.
    */
-  std::unique_ptr<smt::SmtScope> d_scope;
+  std::unique_ptr<smt::SolverEngineScope> d_scope;
 }; /* class SolverEngine */
 
 /* -------------------------------------------------------------------------- */
