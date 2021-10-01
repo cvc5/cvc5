@@ -57,8 +57,9 @@ Env::Env(NodeManager* nm, const Options* opts)
   }
   // make the evaluators, which depend on the alphabet of strings
   d_evalRew.reset(new theory::Evaluator(d_rewriter.get(),
-                                  d_options.strings.stringsAlphaCard));
-  d_eval.reset(new theory::Evaluator(nullptr, d_options.strings.stringsAlphaCard));
+                                        d_options.strings.stringsAlphaCard));
+  d_eval.reset(
+      new theory::Evaluator(nullptr, d_options.strings.stringsAlphaCard));
   d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
 }
