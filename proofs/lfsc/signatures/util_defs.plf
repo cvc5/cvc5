@@ -7,7 +7,6 @@
 (declare Ok type)
 (declare ok Ok)
 
-
 (declare termPair type)
 (declare pair (! first term (! second term termPair)))
 
