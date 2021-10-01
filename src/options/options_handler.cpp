@@ -47,27 +47,6 @@ namespace options {
 // helper functions
 namespace {
 
-void throwLazyBBUnsupported(options::SatSolverMode m)
-{
-  std::string sat_solver;
-  if (m == options::SatSolverMode::CADICAL)
-  {
-    sat_solver = "CaDiCaL";
-  }
-  else if (m == options::SatSolverMode::KISSAT)
-  {
-    sat_solver = "Kissat";
-  }
-  else
-  {
-    Assert(m == options::SatSolverMode::CRYPTOMINISAT);
-    sat_solver = "CryptoMiniSat";
-  }
-  std::string indent(25, ' ');
-  throw OptionException(sat_solver + " does not support lazy bit-blasting.\n"
-                        + indent + "Try --bv-sat-solver=minisat");
-}
-
 static void printTags(const std::vector<std::string>& tags)
 {
   std::cout << "available tags:";
@@ -462,29 +441,24 @@ void OptionsHandler::checkBvSatSolver(const std::string& option,
     if (d_options->bv.bitblastMode == options::BitblastMode::LAZY
         && d_options->bv.bitblastModeWasSetByUser)
     {
-      throwLazyBBUnsupported(m);
+      std::string sat_solver;
+      if (m == options::SatSolverMode::CADICAL)
+      {
+        sat_solver = "CaDiCaL";
+      }
+      else if (m == options::SatSolverMode::KISSAT)
+      {
+        sat_solver = "Kissat";
+      }
+      else
+      {
+        Assert(m == options::SatSolverMode::CRYPTOMINISAT);
+        sat_solver = "CryptoMiniSat";
+      }
+      throw OptionException(sat_solver
+                            + " does not support lazy bit-blasting.\n"
+                            + "Try --bv-sat-solver=minisat");
     }
-    options::bv::setDefaultBitvectorToBool(*d_options, true);
-  }
-}
-
-void OptionsHandler::checkBitblastMode(const std::string& option,
-                                       const std::string& flag,
-                                       BitblastMode m)
-{
-  if (m == options::BitblastMode::LAZY)
-  {
-    options::bv::setDefaultBitvectorPropagate(*d_options, true);
-    options::bv::setDefaultBitvectorEqualitySolver(*d_options, true);
-    options::bv::setDefaultBitvectorInequalitySolver(*d_options, true);
-    options::bv::setDefaultBitvectorAlgebraicSolver(*d_options, true);
-    if (d_options->bv.bvSatSolver != options::SatSolverMode::MINISAT)
-    {
-      throwLazyBBUnsupported(d_options->bv.bvSatSolver);
-    }
-  }
-  else if (m == BitblastMode::EAGER)
-  {
     options::bv::setDefaultBitvectorToBool(*d_options, true);
   }
 }
@@ -500,8 +474,7 @@ void OptionsHandler::setBitblastAig(const std::string& option,
         throw OptionException("bitblast-aig must be used with eager bitblaster");
       }
     } else {
-      options::BitblastMode mode = stringToBitblastMode("eager");
-      d_options->bv.bitblastMode = mode;
+      d_options->bv.bitblastMode = options::BitblastMode::EAGER;
     }
   }
 }

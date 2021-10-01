@@ -140,21 +140,21 @@ public:
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& option, const std::string& flag);
 
-  // theory/bv/options_handlers.h
+  /******************************* bv options *******************************/
+
+  /** Check that abc is enabled */
   void abcEnabledBuild(const std::string& option,
                        const std::string& flag,
                        bool value);
+  /** Check that abc is enabled */
   void abcEnabledBuild(const std::string& option,
                        const std::string& flag,
                        const std::string& value);
-
+  /** Check that abc is enabled */
   void checkBvSatSolver(const std::string& option,
                         const std::string& flag,
                         SatSolverMode m);
-  void checkBitblastMode(const std::string& option,
-                         const std::string& flag,
-                         BitblastMode m);
-
+  /** Check that we use eager bitblasting for aig */
   void setBitblastAig(const std::string& option,
                       const std::string& flag,
                       bool arg);
