@@ -67,7 +67,7 @@ if(NOT CLN_FOUND_SYSTEM)
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcln.a
   )
 
-  add_dependencies(CLN-EP GMP)
+  add_dependencies(CLN-EP GMP_SHARED)
 
   set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
   set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
@@ -76,10 +76,15 @@ endif()
 set(CLN_FOUND TRUE)
 
 add_library(CLN STATIC IMPORTED GLOBAL)
-set_target_properties(CLN PROPERTIES IMPORTED_LOCATION "${CLN_LIBRARIES}")
-set_target_properties(
-  CLN PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
+set_target_properties(CLN PROPERTIES
+  IMPORTED_LOCATION "${CLN_LIBRARIES}"
+  INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
 )
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(CLN INTERFACE GMP_STATIC)
+else()
+  target_link_libraries(CLN INTERFACE GMP_SHARED)
+endif()
 
 mark_as_advanced(AUTORECONF)
 mark_as_advanced(CLN_FOUND)

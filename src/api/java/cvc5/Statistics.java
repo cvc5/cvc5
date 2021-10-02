@@ -20,32 +20,30 @@ import java.util.NoSuchElementException;
 
 public class Statistics extends AbstractPointer implements Iterable<Pair<String, Stat>>
 {
-   // region construction and destruction
-   Statistics(Solver solver, long pointer)
-   {
-     super(solver, pointer);
-   }
+  // region construction and destruction
+  Statistics(Solver solver, long pointer)
+  {
+    super(solver, pointer);
+  }
 
-   protected static native void deletePointer(long pointer);
+  protected static native void deletePointer(long pointer);
 
-   public long getPointer()
-   {
-     return pointer;
-   }
+  public long getPointer()
+  {
+    return pointer;
+  }
 
-   @Override
-   public void finalize()
-   {
-     deletePointer(pointer);
-   }
+  @Override public void finalize()
+  {
+    deletePointer(pointer);
+  }
 
-   // endregion
+  // endregion
 
   /**
    * @return a string representation of this Statistics
    */
   protected native String toString(long pointer);
-
 
   /**
    * Retrieve the statistic with the given name.
@@ -70,58 +68,54 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
 
+  private native long getIterator(long pointer);
 
-   private native long getIterator(long pointer);
+  private native boolean hasNext(long pointer, long iteratorPointer);
 
-   private native boolean hasNext(long pointer, long iteratorPointer);
+  private native Pair<String, Long> getNext(long pointer, long iteratorPointer)
+      throws CVC5ApiException;
 
-   private native Pair<String, Long> getNext(long pointer, long iteratorPointer) throws CVC5ApiException;
+  private native long increment(long pointer, long iteratorPointer) throws CVC5ApiException;
 
-   private native long increment(long pointer, long iteratorPointer) throws CVC5ApiException;
+  private native void deleteIteratorPointer(long iteratorPointer);
 
-   private native void deleteIteratorPointer(long iteratorPointer);
+  public class ConstIterator implements Iterator<Pair<String, Stat>>
+  {
+    private long iteratorPointer = 0;
 
-   public class ConstIterator implements Iterator<Pair<String, Stat>>
-   {
-     private long iteratorPointer = 0;
+    public ConstIterator()
+    {
+      iteratorPointer = getIterator(pointer);
+    }
 
-     public ConstIterator()
-     {
-       iteratorPointer = getIterator(pointer);
-     }
+    @Override public boolean hasNext()
+    {
+      return Statistics.this.hasNext(pointer, iteratorPointer);
+    }
 
-     @Override
-     public boolean hasNext()
-     {
-       return Statistics.this.hasNext(pointer, iteratorPointer);
-     }
+    @Override public Pair<String, Stat> next()
+    {
+      try
+      {
+        Pair<String, Long> pair = Statistics.this.getNext(pointer, iteratorPointer);
+        Stat stat = new Stat(solver, pair.second);
+        this.iteratorPointer = Statistics.this.increment(pointer, iteratorPointer);
+        return new Pair<>(pair.first, stat);
+      }
+      catch (CVC5ApiException e)
+      {
+        throw new NoSuchElementException(e.getMessage());
+      }
+    }
 
-     @Override
-     public Pair<String, Stat> next()
-     {
-       try
-       {
-         Pair<String, Long> pair = Statistics.this.getNext(pointer, iteratorPointer);
-         Stat stat = new Stat(solver, pair.second);
-         this.iteratorPointer = Statistics.this.increment(pointer, iteratorPointer);
-         return new Pair<>(pair.first, stat);
-       }
-       catch(CVC5ApiException e)
-       {
-         throw new NoSuchElementException(e.getMessage());
-       }
-     }
+    @Override public void finalize()
+    {
+      deleteIteratorPointer(iteratorPointer);
+    }
+  }
 
-     @Override
-     public void finalize()
-     {
-       deleteIteratorPointer(iteratorPointer);
-     }
-   }
-
-   @Override
-   public Iterator<Pair<String, Stat>> iterator()
-   {
-     return new ConstIterator();
-   }
+  @Override public Iterator<Pair<String, Stat>> iterator()
+  {
+    return new ConstIterator();
+  }
 };

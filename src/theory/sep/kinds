@@ -14,7 +14,7 @@ rewriter ::cvc5::theory::sep::TheorySepRewriter "theory/sep/theory_sep_rewriter.
 
 nullaryoperator SEP_NIL "separation nil"
 
-operator SEP_EMP 2 "separation empty heap"
+nullaryoperator SEP_EMP "separation logic empty heap constraint"
 operator SEP_PTO 2 "points to relation"
 operator SEP_STAR 2: "separation star"
 operator SEP_WAND 2 "separation magic wand"

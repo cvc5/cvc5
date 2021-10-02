@@ -10,7 +10,7 @@
 (declare-fun a () (Tuple Int Int))
 (assert (member a x))
 (declare-fun e () (Tuple Int Int))
-(assert (= e (mkTuple 4 3)))
+(assert (= e (tuple 4 3)))
 (assert (= r (join x y)))
 (assert (not (member e r)))
 (check-sat)

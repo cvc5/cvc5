@@ -299,7 +299,7 @@ void Printer::toStreamCmdSetUserAttribute(std::ostream& out,
   printUnknownCommand(out, "set-user-attribute");
 }
 
-void Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
+void Printer::toStreamCmdCheckSat(std::ostream& out) const
 {
   printUnknownCommand(out, "check-sat");
 }
