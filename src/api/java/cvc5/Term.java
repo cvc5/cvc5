@@ -314,12 +314,12 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long iteTerm(long pointer, long thenPointer, long elsePointer);
 
   /**
-   * @return true if the term is an integer value.
+   * @return a string representation of this term.
    */
   protected native String toString(long pointer);
 
   /**
-   * @return true if the term is an integer that fits within a Java integer.
+   * @return true if the term is an integer value.
    */
   public boolean isIntegerValue()
   {
