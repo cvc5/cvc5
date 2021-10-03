@@ -330,7 +330,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts isIntegerValue().
-   * @return the integer term in (decimal) string representation.
+   * @return the integer represented by this term.
    */
   public BigInteger getIntegerValue()
   {
