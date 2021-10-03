@@ -67,6 +67,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Stat.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Statistics.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Term.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
   ${JAVA_KIND_FILE}
 )
