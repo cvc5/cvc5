@@ -23,9 +23,9 @@ import java.math.BigInteger;
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
  * - VoidInfo if the option holds no value (or the value has no native type)
- * - ValueInfo<T> if the option is of type boolean or String, holds the
+ * - ValueInfo if the option is of type boolean or String, holds the
  *   current value and the default value.
- * - NumberInfo<T> if the option is of type BigInteger or double, holds
+ * - NumberInfo if the option is of type BigInteger or double, holds
  *   the current and default value, as well as the minimum and maximum.
  * - ModeInfo if the option is a mode option, holds the current and default
  *   values, as well as a list of valid modes.
