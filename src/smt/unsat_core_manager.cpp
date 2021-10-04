@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of the unsat core manager of SmtEngine.
+ * Implementation of the unsat core manager of SolverEngine.
  */
 
 #include "unsat_core_manager.h"
