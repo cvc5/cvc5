@@ -80,17 +80,18 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Here, (cl (or b c)) and (cl b c) cannot correspond to the same proof node
     // (or b c). Thus, we use build up a new proof node using the kind SEXPR
     // that is then printed as (cl (or b c)). We denote this wrapping of a proof
-    // node by using an extra pair of parenthesis, i.e. ((cl b c)) is the proof
+    // node by using an extra pair of parenthesis, i.e. ((or b c)) is the proof
     // node printed as (cl (or b c)).
     //
     //
     // Some proof rules have a close correspondence in Alethe. There are two
-    // very frequent patterns that to avoid repetition are described here and
+    // very frequent patterns that, to avoid repetition, are described here and
     // referred to in the comments on the specific proof rules below.
     //
-    // The first adds the orignal proof node F with the corresponding rule R' of
-    // the Alethe calculus and uses the same premises as the original proof node
-    // (P1:F1) ... (Pn:Fn). However, the conclusion is printed as (cl F)
+    // The first pattern which will be called singleton pattern in the
+    // following, adds the original proof node F with the corresponding rule R'
+    // of the Alethe calculus and uses the same premises as the original proof
+    // node (P1:F1) ... (Pn:Fn). However, the conclusion is printed as (cl F).
     //
     // This means a cvc5 rule R that looks as follows:
     //
@@ -106,11 +107,12 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // * the corresponding proof node is F
     //
-    // The second pattern has a conjunction (or G1 ... Gn) as conclusion. It
-    // also adds the orignal proof node (or G1 ... Gn) with the corresponding
-    // rule R' of the Alethe calculus and uses the same premises as the original
-    // proof node (P1:F1) ... (Pn:Fn). However, the conclusion is printed as (cl
-    // G1 ... Gn), i.e. the or is replaced by the cl operator.
+    // The second pattern which will be called clause pattern in the following,
+    // has a conjunction (or G1 ... Gn) as conclusion. It also adds the orignal
+    // proof node (or G1 ... Gn) with the corresponding rule R' of the Alethe
+    // calculus and uses the same premises as the original proof node (P1:F1)
+    // ... (Pn:Fn). However, the conclusion is printed as (cl G1 ... Gn), i.e.
+    // the or is replaced by the cl operator.
     //
     // This means a cvc5 rule R that looks as follows:
     //
