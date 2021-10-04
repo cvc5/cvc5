@@ -1064,6 +1064,182 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    // ======== Not Or elimination
+    // This rule is translated according to the singleton pattern.
+    case PfRule::NOT_OR_ELIM:
+    {
+      return addAletheStep(AletheRule::NOT_OR,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Implication elimination
+    // This rule is translated according to the clause pattern.
+    case PfRule::IMPLIES_ELIM:
+    {
+      return addAletheStepFromOr(AletheRule::IMPLIES, res, children, {}, *cdp);
+    }
+    // ======== Not Implication elimination version 1
+    // This rule is translated according to the singleton pattern.
+    case PfRule::NOT_IMPLIES_ELIM1:
+    {
+      return addAletheStep(AletheRule::NOT_IMPLIES1,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Not Implication elimination version 2
+    // This rule is translated according to the singleton pattern.
+    case PfRule::NOT_IMPLIES_ELIM2:
+    {
+      return addAletheStep(AletheRule::NOT_IMPLIES2,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Various elimination rules
+    // The following rules are all translated according to the clause pattern.
+    case PfRule::EQUIV_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::EQUIV1, res, children, {}, *cdp);
+    }
+    case PfRule::EQUIV_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::EQUIV2, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_EQUIV_ELIM1:
+    {
+      return addAletheStepFromOr(
+          AletheRule::NOT_EQUIV1, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_EQUIV_ELIM2:
+    {
+      return addAletheStepFromOr(
+          AletheRule::NOT_EQUIV2, res, children, {}, *cdp);
+    }
+    case PfRule::XOR_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::XOR1, res, children, {}, *cdp);
+    }
+    case PfRule::XOR_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::XOR2, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_XOR_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_XOR1, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_XOR_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_XOR2, res, children, {}, *cdp);
+    }
+    case PfRule::ITE_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::ITE2, res, children, {}, *cdp);
+    }
+    case PfRule::ITE_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::ITE1, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_ITE_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_ITE2, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_ITE_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_ITE1, res, children, {}, *cdp);
+    }
+    //================================================= De Morgan rules
+    // ======== Not And
+    // This rule is translated according to the clause pattern.
+    case PfRule::NOT_AND:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_AND, res, children, {}, *cdp);
+    }
+
+    //================================================= CNF rules
+    // The following rules are all translated according to the clause pattern.
+    case PfRule::CNF_AND_POS:
+    {
+      return addAletheStepFromOr(AletheRule::AND_POS, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_AND_NEG:
+    {
+      return addAletheStepFromOr(AletheRule::AND_NEG, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_OR_POS:
+    {
+      return addAletheStepFromOr(AletheRule::OR_POS, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_OR_NEG:
+    {
+      return addAletheStepFromOr(AletheRule::OR_NEG, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_IMPLIES_POS:
+    {
+      return addAletheStepFromOr(
+          AletheRule::IMPLIES_POS, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_IMPLIES_NEG1:
+    {
+      return addAletheStepFromOr(
+          AletheRule::IMPLIES_NEG1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_IMPLIES_NEG2:
+    {
+      return addAletheStepFromOr(
+          AletheRule::IMPLIES_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_EQUIV_POS1:
+    {
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_POS2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_EQUIV_POS2:
+    {
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_POS1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_EQUIV_NEG1:
+    {
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_EQUIV_NEG2:
+    {
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_NEG1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_XOR_POS1:
+    {
+      return addAletheStepFromOr(AletheRule::XOR_POS1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_XOR_POS2:
+    {
+      return addAletheStepFromOr(AletheRule::XOR_POS2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_XOR_NEG1:
+    {
+      return addAletheStepFromOr(AletheRule::XOR_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_XOR_NEG2:
+    {
+      return addAletheStepFromOr(AletheRule::XOR_NEG1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_ITE_POS1:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_POS2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_ITE_POS2:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_POS1, res, children, {}, *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
