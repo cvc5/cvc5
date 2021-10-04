@@ -25,11 +25,9 @@ using namespace std;
 
 namespace cvc5 {
 
-DecisionEngineOld::DecisionEngineOld(context::Context* sc,
-                                     context::UserContext* uc,
-                                     ResourceManager* rm)
-    : DecisionEngine(sc, rm),
-      d_result(sc, SAT_VALUE_UNKNOWN),
+DecisionEngineOld::DecisionEngineOld(Env& env)
+    : DecisionEngine(env),
+      d_result(context(), SAT_VALUE_UNKNOWN),
       d_engineState(0),
       d_enabledITEStrategy(nullptr),
       d_decisionStopOnly(options::decisionMode()
@@ -48,7 +46,7 @@ DecisionEngineOld::DecisionEngineOld(context::Context* sc,
   if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
   {
     d_enabledITEStrategy.reset(
-        new decision::JustificationHeuristic(this, uc, sc));
+        new decision::JustificationHeuristic(env, this));
   }
 }
 

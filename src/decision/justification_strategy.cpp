@@ -23,20 +23,18 @@ using namespace cvc5::prop;
 namespace cvc5 {
 namespace decision {
 
-JustificationStrategy::JustificationStrategy(context::Context* c,
-                                             context::UserContext* u,
-                                             prop::SkolemDefManager* skdm,
-                                             ResourceManager* rm)
-    : DecisionEngine(c, rm),
+JustificationStrategy::JustificationStrategy(Env& env, 
+                                             prop::SkolemDefManager* skdm)
+    : DecisionEngine(env),
       d_skdm(skdm),
       d_assertions(
-          u,
-          c,
+          userContext(),
+          context(),
           options::jhRlvOrder()),  // assertions are user-context dependent
-      d_skolemAssertions(c, c),  // skolem assertions are SAT-context dependent
-      d_justified(c),
-      d_stack(c),
-      d_lastDecisionLit(c),
+      d_skolemAssertions(context(), context()),  // skolem assertions are SAT-context dependent
+      d_justified(context()),
+      d_stack(context()),
+      d_lastDecisionLit(context()),
       d_currStatusDec(false),
       d_useRlvOrder(options::jhRlvOrder()),
       d_decisionStopOnly(options::decisionMode()

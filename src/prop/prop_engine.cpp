@@ -94,11 +94,11 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
   else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
            || dmode == options::DecisionMode::STOPONLY_OLD)
   {
-    d_decisionEngine.reset(new DecisionEngineOld(satContext, userContext, rm));
+    d_decisionEngine.reset(new DecisionEngineOld(env));
   }
   else
   {
-    d_decisionEngine.reset(new decision::DecisionEngineEmpty(satContext, rm));
+    d_decisionEngine.reset(new decision::DecisionEngineEmpty(env));
   }
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
