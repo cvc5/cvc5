@@ -1799,6 +1799,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     //================================================= Arithmetic rules
     default:
     {
+      Trace("alethe-proof")
+          << "... rule not translated yet " << id << " / " << res << " "
+          << children << " " << args << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
@@ -1806,6 +1809,10 @@ bool AletheProofPostprocessCallback::update(Node res,
                            args,
                            *cdp);
     }
+      Trace("alethe-proof")
+          << "... error translating rule " << id << " / " << res << " "
+          << children << " " << args << std::endl;
+      return false;
   }
 }
 
