@@ -304,9 +304,45 @@ bool AletheProofPostprocessFinalCallback::shouldUpdate(
     const std::vector<Node>& fa,
     bool& continueUpdate)
 {
+  // The proof node should not be traversed further
+  continueUpdate = false;
+    
+  // If the last proof rule was not translated yet
+  if (pn->getRule() != PfRule::ALETHE_RULE)
+  {
+    return true;
+  }
+  // This case can only occur if the last step is an assumption
+  if ((pn->getArguments()[2].end() - pn->getArguments()[2].begin()) <= 1)
+  {
+    return true;
+  }
+  // If the proof node has result (false) additional steps have to be added.
+  if (pn->getArguments()[2][1].toString()
+           == NodeManager::currentNM()->mkConst(false).toString())
+  {
+    return true;
+  }
   return false;
 }
 
+// The last step of the proof was:
+//
+// Children:  (P1:C1) ... (Pn:Cn)
+// Arguments: (AletheRule::VRULE,false,(cl false))
+// ---------------------
+// Conclusion: (false)
+//
+// In Alethe:
+//
+//  P1 ... Pn
+// ------------------- VRULE   ---------------------- FALSE
+//  (VP1:(cl false))*           (VP2:(cl (not true)))
+// -------------------------------------------------- RESOLUTION 
+//                       (cl)**
+//
+// *  the corresponding proof node is ((false))
+// ** the corresponding proof node is (false)
 bool AletheProofPostprocessFinalCallback::update(
     Node res,
     PfRule id,
