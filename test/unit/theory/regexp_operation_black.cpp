@@ -40,7 +40,6 @@ class TestTheoryBlackRegexpOperation : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_skolemCache.reset(new SkolemCache());
   }
 
   void includes(Node r1, Node r2)
@@ -58,8 +57,6 @@ class TestTheoryBlackRegexpOperation : public TestSmt
     std::cout << r1 << " does not include " << r2 << std::endl;
     ASSERT_FALSE(RegExpEntail::regExpIncludes(r1, r2));
   }
-
-  std::unique_ptr<SkolemCache> d_skolemCache;
 };
 
 TEST_F(TestTheoryBlackRegexpOperation, basic)
