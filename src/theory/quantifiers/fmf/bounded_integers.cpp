@@ -362,7 +362,7 @@ void BoundedIntegers::checkOwnership(Node f)
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
             Node r = nm->mkNode(MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
-            d_range[f][v] = Rewriter::rewrite(r);
+            d_range[f][v] = rewrite(r);
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }else if( it->second==BOUND_SET_MEMBER ){
@@ -804,9 +804,12 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         //failed, abort the iterator
         return false;
       }else{
+        NodeManager* nm = NodeManager::currentNM();
         Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
-        Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
-        Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
+        Node range = rewrite(nm->mkNode(MINUS, u, l));
+        // 9999 is an arbitrary range past which we do not do exhaustive
+        // bounded instantation, based on the check below.
+        Node ra = rewrite(nm->mkNode(LEQ, range, nm->mkConst(Rational(9999))));
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
@@ -817,8 +820,8 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for (long k = 0; k < rr; k++)
           {
-            Node t = NodeManager::currentNM()->mkNode(PLUS, tl, NodeManager::currentNM()->mkConst( Rational(k) ) );
-            t = Rewriter::rewrite( t );
+            Node t = nm->mkNode(PLUS, tl, nm->mkConst(Rational(k)));
+            t = rewrite(t);
             elements.push_back( t );
           }
           return true;

@@ -303,7 +303,7 @@ bool Instantiate::addInstantiation(Node q,
     // store in the main proof
     d_pfInst->addProof(pfns);
     Node prevLem = lem;
-    lem = Rewriter::rewrite(lem);
+    lem = rewrite(lem);
     if (prevLem != lem)
     {
       d_pfInst->addStep(lem, PfRule::MACRO_SR_PRED_ELIM, {prevLem}, {});
@@ -312,7 +312,7 @@ bool Instantiate::addInstantiation(Node q,
   }
   else
   {
-    lem = Rewriter::rewrite(lem);
+    lem = rewrite(lem);
   }
 
   // added lemma, which checks for lemma duplication
@@ -423,7 +423,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
   InferenceId idNone = InferenceId::UNKNOWN;
   Node nulln;
   Node ibody = getInstantiation(q, vars, terms, idNone, nulln, doVts);
-  ibody = Rewriter::rewrite(ibody);
+  ibody = rewrite(ibody);
   for (size_t i = 0; i < tsize; i++)
   {
     // process consecutively in reverse order, which is important since we use
@@ -452,7 +452,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     if (!success)
     {
       Node ibodyc = getInstantiation(q, vars, terms, idNone, nulln, doVts);
-      ibodyc = Rewriter::rewrite(ibodyc);
+      ibodyc = rewrite(ibodyc);
       success = (ibodyc == ibody);
       Trace("inst-exp-fail") << "  rewrite invariant: " << success << std::endl;
     }
