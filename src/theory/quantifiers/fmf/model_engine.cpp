@@ -136,7 +136,7 @@ void ModelEngine::registerQuantifier( Node f ){
     for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       TypeNode tn = f[0][i].getType();
       if( !tn.isSort() ){
-        if (!d_qstate.isFiniteType(tn))
+        if (!d_env.isFiniteType(tn))
         {
           if( tn.isInteger() ){
             if( !options::fmfBound() ){
@@ -360,6 +360,8 @@ bool ModelEngine::shouldProcess(Node q)
 {
   if (!d_qreg.hasOwnership(q, this))
   {
+    // if we don't have ownership, another module has taken responsibility
+    // for processing q.
     return false;
   }
   // if finite model finding or fmf bound is on, we process everything
@@ -367,10 +369,10 @@ bool ModelEngine::shouldProcess(Node q)
   {
     return true;
   }
-  // otherwise, we are only using model-based instantiation for internal
-  // quantified formulas
+  // otherwise, we are only using model-based instantiation for internally
+  // generated bounded quantified formulas
   QuantAttributes& qattr = d_qreg.getQuantAttributes();
-  return qattr.isInternal(q);
+  return qattr.isQuantBounded(q);
 }
 
 }  // namespace quantifiers

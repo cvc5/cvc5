@@ -1867,7 +1867,7 @@ cdef class Solver:
 
             ( get-unsat-core )
 
-        Requires to enable option :ref:`produce-unsat-cores <lbl-produce-unsat-cores>`.
+        Requires to enable option :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
 
         :return: a set of terms representing the unsatisfiable core
         """
