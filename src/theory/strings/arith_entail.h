@@ -38,8 +38,9 @@ class ArithEntail
 {
  public:
   ArithEntail(Rewriter* r);
-  /** 
-   * Returns the rewritten form a term, intended (although not enforced) to be an arithmetic term.
+  /**
+   * Returns the rewritten form a term, intended (although not enforced) to be
+   * an arithmetic term.
    */
   Node rewrite(Node a);
   /** check arithmetic entailment equal

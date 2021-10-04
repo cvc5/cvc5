@@ -678,8 +678,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
       {
         vec_nodes.push_back(getNormalSymRegExp(cr, nf_exp));
       }
-      ret = rewrite(
-          NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes));
+      ret = rewrite(NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes));
       break;
     }
     default:

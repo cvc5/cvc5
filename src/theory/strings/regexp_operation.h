@@ -24,9 +24,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/strings/skolem_cache.h"
 #include "util/string.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -54,7 +54,8 @@ enum RegExpConstType
   RE_C_UNKNOWN,
 };
 
-class RegExpOpr : protected EnvObj {
+class RegExpOpr : protected EnvObj
+{
   typedef std::pair<Node, cvc5::String> PairNodeStr;
   typedef std::set< Node > SetNodes;
   typedef std::pair< Node, Node > PairNodes;
@@ -107,8 +108,7 @@ class RegExpOpr : protected EnvObj {
   void firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset);
 
  public:
-  RegExpOpr(Env& env, 
-            SkolemCache* sc);
+  RegExpOpr(Env& env, SkolemCache* sc);
   ~RegExpOpr();
 
   /**

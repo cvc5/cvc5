@@ -59,10 +59,11 @@ TermRegistry::TermRegistry(Env& env,
       d_registeredTypes(userContext()),
       d_proxyVar(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(
-          pnm ? new EagerProofGenerator(
-              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
-              : nullptr)
+      d_epg(pnm ? new EagerProofGenerator(
+                      pnm,
+                      userContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
