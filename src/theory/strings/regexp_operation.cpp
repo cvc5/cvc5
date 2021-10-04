@@ -361,13 +361,12 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
                 sm->mkDummySkolem("rsp", nm->stringType(), "Split RegExp");
             retNode = nm->mkNode(kind::STRING_TO_REGEXP, sk);
             if(!rest.isNull()) {
-              retNode = rewrite(nm->mkNode(
-                  kind::REGEXP_CONCAT, retNode, rest));
+              retNode = rewrite(nm->mkNode(kind::REGEXP_CONCAT, retNode, rest));
             }
-            Node exp = tmp.eqNode(nm->mkNode(kind::STRING_CONCAT,
-                        nm->mkConst(c), sk));
-            retNode = rewrite(nm->mkNode(
-                kind::ITE, exp, retNode, d_emptyRegexp));
+            Node exp =
+                tmp.eqNode(nm->mkNode(kind::STRING_CONCAT, nm->mkConst(c), sk));
+            retNode =
+                rewrite(nm->mkNode(kind::ITE, exp, retNode, d_emptyRegexp));
           }
         }
         break;
@@ -396,8 +395,7 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
             Node tmp = vec_nodes2.size()==0 ? d_emptySingleton :
               vec_nodes2.size()==1 ? vec_nodes2[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, vec_nodes2 );
             if(dnode != d_true) {
-              tmp = rewrite(nm->mkNode(
-                  kind::ITE, dnode, tmp, d_emptyRegexp));
+              tmp = rewrite(nm->mkNode(kind::ITE, dnode, tmp, d_emptyRegexp));
               ret = 0;
             }
             if(std::find(vec_nodes.begin(), vec_nodes.end(), tmp) == vec_nodes.end()) {
@@ -407,8 +405,7 @@ int RegExpOpr::derivativeS(Node r, cvc5::String c, Node& retNode)
           Node exp3;
           int rt2 = delta( r[i], exp3 );
           if( rt2 == 0 ) {
-            dnode = rewrite(
-                nm->mkNode(kind::AND, dnode, exp3));
+            dnode = rewrite(nm->mkNode(kind::AND, dnode, exp3));
           } else if( rt2 == 2 ) {
             break;
           }
@@ -1323,11 +1320,10 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
             cacheX[ pp ] = rt;
           }
 
-          rt = rewrite(nm->mkNode(
-              kind::REGEXP_CONCAT,
-              nm->mkNode(
-                  kind::STRING_TO_REGEXP, nm->mkConst(c)),
-              rt));
+          rt = rewrite(
+              nm->mkNode(kind::REGEXP_CONCAT,
+                         nm->mkNode(kind::STRING_TO_REGEXP, nm->mkConst(c)),
+                         rt));
 
           Trace("regexp-int-debug") << "  ... got p(r1,c) && p(r2,c) = " << mkString(rt) << std::endl;
           vec_nodes.push_back(rt);
@@ -1336,8 +1332,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
                             ? d_emptyRegexp
                             : vec_nodes.size() == 1
                                   ? vec_nodes[0]
-                                  : nm->mkNode(
-                                        kind::REGEXP_UNION, vec_nodes));
+                                  : nm->mkNode(kind::REGEXP_UNION, vec_nodes));
         rNode = convert1(cnt, rNode);
         rNode = rewrite(rNode);
       }
