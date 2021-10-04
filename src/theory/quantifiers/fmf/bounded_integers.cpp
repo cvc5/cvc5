@@ -805,8 +805,9 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         return false;
       }else{
         Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
-        Node range = rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
-        Node ra = rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
+        Node range = rewrite(NodeManager::currentNM()->mkNode(MINUS, u, l));
+        Node ra = rewrite(NodeManager::currentNM()->mkNode(
+            LEQ, range, NodeManager::currentNM()->mkConst(Rational(9999))));
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
@@ -818,7 +819,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
           for (long k = 0; k < rr; k++)
           {
             Node t = NodeManager::currentNM()->mkNode(PLUS, tl, NodeManager::currentNM()->mkConst( Rational(k) ) );
-            t = rewrite( t );
+            t = rewrite(t);
             elements.push_back( t );
           }
           return true;

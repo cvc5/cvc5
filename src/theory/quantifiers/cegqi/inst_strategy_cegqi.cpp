@@ -114,7 +114,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       d_qim.addPendingPhaseRequirement(ceLit, true);
       Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
-      lem = rewrite( lem );
+      lem = rewrite(lem);
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
       registerCounterexampleLemma( q, lem );
       
@@ -440,7 +440,7 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       d_check_vts_lemma_lc = false;
       d_small_const = NodeManager::currentNM()->mkNode(
           MULT, d_small_const, d_small_const_multiplier);
-      d_small_const = rewrite( d_small_const );
+      d_small_const = rewrite(d_small_const);
       //heuristic for now, until we know how to do nested quantification
       Node delta = d_vtsCache->getVtsDelta(true, false);
       if( !delta.isNull() ){
