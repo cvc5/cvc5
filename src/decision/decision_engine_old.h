@@ -39,9 +39,7 @@ class DecisionEngineOld : public decision::DecisionEngine
   // Necessary functions
 
   /** Constructor */
-  DecisionEngineOld(context::Context* sc,
-                    context::UserContext* uc,
-                    ResourceManager* rm);
+  DecisionEngineOld(Env& env);
 
   /** Destructor, currently does nothing */
   ~DecisionEngineOld()
