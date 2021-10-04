@@ -999,7 +999,6 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
     }
   }
   Node r2 = nvec.size() == 1 ? nvec[0] : nm->mkNode(REGEXP_CONCAT, nvec);
-  r2 = rewrite(r2);
   Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r2).negate();
   Node conc = nm->mkNode(OR, s1r1, s2r2);
   if (!b1v.isNull())
