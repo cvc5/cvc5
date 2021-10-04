@@ -1979,11 +1979,11 @@ JNIEXPORT jobject JNICALL Java_cvc5_Solver_getDifficulty(JNIEnv* env,
   jclass longClass = env->FindClass("Ljava/lang/Long;");
   jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
 
-  for (const std::pair<Term, Term>& it : map)
+  for (const auto& [k, v] : map)
   {
     // hashmap.put(key, value);
-    Term* termKey = new Term(it.first);
-    Term* termValue = new Term(it.second);
+    Term* termKey = new Term(k);
+    Term* termValue = new Term(v);
     jobject key = env->NewObject(
         longClass, longConstructor, reinterpret_cast<jlong>(termKey));
     jobject value = env->NewObject(
