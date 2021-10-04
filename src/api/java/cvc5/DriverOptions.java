@@ -15,24 +15,11 @@
 
 package cvc5;
 
-import java.util.Optional;
-
 /**
- * Holds some description about a particular option, including its name, its
- * aliases, whether the option was explicitly set by the user, and information
- * concerning its value. The `valueInfo` member holds any of the following
- * alternatives:
- * - VoidInfo if the option holds no value (or the value has no native type)
- * - ValueInfo<T> if the option is of type boolean or String, holds the
- *   current value and the default value.
- * - NumberInfo<T> if the option is of type BigInteger or double, holds
- *   the current and default value, as well as the minimum and maximum.
- * - ModeInfo if the option is a mode option, holds the current and default
- *   values, as well as a list of valid modes.
- * Additionally, this class provides convenience functions to obtain the
- * current value of an option in a type-safe manner using boolValue(),
- * stringValue(), intValue(), and doubleValue(). They assert that
- * the option has the respective type and return the current value.
+ * Provides access to options that can not be communicated via the regular
+ * getOption() or getOptionInfo() methods. This class does not store the options
+ * itself, but only acts as a wrapper to the solver object. It can thus no
+ * longer be used after the solver object has been destroyed.
  */
 public class DriverOptions extends AbstractPointer
 {
@@ -57,7 +44,10 @@ public class DriverOptions extends AbstractPointer
   /**
    * @return a string representation of this optionInfo.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    throw new UnsupportedOperationException();
+  }
 
   // endregion
 };

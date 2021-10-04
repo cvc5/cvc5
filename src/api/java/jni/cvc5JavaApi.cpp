@@ -47,8 +47,6 @@ jobject getBooleanObject(JNIEnv* env, bool cValue)
   jclass booleanClass = env->FindClass("Ljava/lang/Boolean;");
   jmethodID booleanConstructor =
       env->GetMethodID(booleanClass, "<init>", "(Z)V");
-  jobject currentValue =
-      env->NewObject(booleanClass, booleanConstructor, jValue);
   jobject ret = env->NewObject(booleanClass, booleanConstructor, jValue);
   return ret;
 }

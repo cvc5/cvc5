@@ -18,7 +18,6 @@
 
 #include <jni.h>
 
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -103,9 +102,8 @@ jlongArray getPointersFromObjects(JNIEnv* env, std::vector<T> objects)
 template <class T>
 jobject getBigIntegerObject(JNIEnv* env, T value)
 {
-  std::stringstream ss;
-  ss << value;
-  jstring javaString = env->NewStringUTF(ss.str().c_str());
+  std::string s = std::to_string(value);
+  jstring javaString = env->NewStringUTF(s.c_str());
   jclass bigIntegerClass = env->FindClass("java/math/BigInteger");
   jmethodID bigIntegerConstructor =
       env->GetMethodID(bigIntegerClass, "<init>", "(Ljava/lang/String;)V");
