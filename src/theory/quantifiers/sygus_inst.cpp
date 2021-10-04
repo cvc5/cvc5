@@ -539,7 +539,6 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   Node body =
       q[1].substitute(q[0].begin(), q[0].end(), evals.begin(), evals.end());
   Node lem = nm->mkNode(kind::OR, lit.negate(), body.negate());
-  lem = Rewriter::rewrite(lem);
 
   d_ce_lemmas.emplace(std::make_pair(q, lem));
   Trace("sygus-inst") << "Register CE Lemma: " << lem << std::endl;
