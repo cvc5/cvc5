@@ -804,13 +804,12 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         //failed, abort the iterator
         return false;
       }else{
-        NodeManager * nm = NodeManager::currentNM();
+        NodeManager* nm = NodeManager::currentNM();
         Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
         Node range = rewrite(nm->mkNode(MINUS, u, l));
         // 9999 is an arbitrary range past which we do not do exhaustive
         // bounded instantation, based on the check below.
-        Node ra = rewrite(nm->mkNode(
-            LEQ, range, nm->mkConst(Rational(9999))));
+        Node ra = rewrite(nm->mkNode(LEQ, range, nm->mkConst(Rational(9999))));
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
@@ -821,7 +820,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for (long k = 0; k < rr; k++)
           {
-            Node t = nm->mkNode(PLUS, tl, nm->mkConst( Rational(k) ) );
+            Node t = nm->mkNode(PLUS, tl, nm->mkConst(Rational(k)));
             t = rewrite(t);
             elements.push_back( t );
           }
