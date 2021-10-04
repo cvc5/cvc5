@@ -1219,7 +1219,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
     r1 = r2;
     r2 = tmpNode;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("regexp-int") << "Starting INTERSECT(" << cnt << "):\n  "<< mkString(r1) << ",\n  " << mkString(r2) << std::endl;
   std::pair < Node, Node > p(r1, r2);
   std::map < PairNodes, Node >::const_iterator itr = d_inter_cache.find(p);
