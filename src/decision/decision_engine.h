@@ -86,7 +86,7 @@ class DecisionEngine : protected EnvObj
 class DecisionEngineEmpty : public DecisionEngine
 {
  public:
-  DecisionEngineEmpty(context::Context* sc, ResourceManager* rm);
+  DecisionEngineEmpty(Env& env);
   bool isDone() override;
   void addAssertion(TNode assertion) override;
   void addSkolemDefinition(TNode lem, TNode skolem) override;

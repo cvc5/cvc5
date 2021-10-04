@@ -18,6 +18,7 @@
 #include "options/decision_options.h"
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace decision {
