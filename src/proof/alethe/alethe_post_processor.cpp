@@ -1521,7 +1521,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // VP1: (cl (or (not (forall ((x1 T1) ... (xn Tn)) F)
     // VP2: (cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
     //
-    // * the corresponding proof node is F*sigma
+    // ^ the corresponding proof node is F*sigma
     case PfRule::INSTANTIATE:
     {
       for (size_t i = 0, size = args.size(); i < size; i++)
