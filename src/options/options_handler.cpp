@@ -87,7 +87,8 @@ Language OptionsHandler::stringToLanguage(const std::string& option,
                                           const std::string& flag,
                                           const std::string& optarg)
 {
-  if(optarg == "help") {
+  if (optarg == "help")
+  {
     *d_options->base.out << R"FOOBAR(
 Languages currently supported as arguments to the -L / --lang option:
   auto                           attempt to automatically determine language
@@ -107,9 +108,12 @@ Languages currently supported as arguments to the --output-lang option:
     return Language::LANG_AUTO;
   }
 
-  try {
+  try
+  {
     return language::toLanguage(optarg);
-  } catch(OptionException& oe) {
+  }
+  catch (OptionException& oe)
+  {
     throw OptionException("Error in " + option + ": " + oe.getMessage()
                           + "\nTry --lang help");
   }
@@ -428,14 +432,16 @@ void OptionsHandler::setDefaultDagThresh(const std::string& option,
   Dump.getStream() << expr::ExprDag(dag);
 }
 
-static void print_config (const char * str, std::string config) {
+static void print_config(const char* str, std::string config)
+{
   std::string s(str);
   unsigned sz = 14;
   if (s.size() < sz) s.resize(sz, ' ');
   std::cout << s << ": " << config << std::endl;
 }
 
-static void print_config_cond (const char * str, bool cond = false) {
+static void print_config_cond(const char* str, bool cond = false)
+{
   print_config(str, cond ? "yes" : "no");
 }
 
@@ -444,19 +450,24 @@ void OptionsHandler::showConfiguration(const std::string& option,
 {
   std::cout << Configuration::about() << std::endl;
 
-  print_config ("version", Configuration::getVersionString());
+  print_config("version", Configuration::getVersionString());
 
-  if(Configuration::isGitBuild()) {
+  if (Configuration::isGitBuild())
+  {
     const char* branchName = Configuration::getGitBranchName();
-    if(*branchName == '\0')  { branchName = "-"; }
+    if (*branchName == '\0')
+    {
+      branchName = "-";
+    }
     std::stringstream ss;
-    ss << "git ["
-       << branchName << " "
+    ss << "git [" << branchName << " "
        << std::string(Configuration::getGitCommit()).substr(0, 8)
        << (Configuration::hasGitModifications() ? " (with modifications)" : "")
        << "]";
     print_config("scm", ss.str());
-  } else {
+  }
+  else
+  {
     print_config_cond("scm", false);
   }
 
@@ -498,14 +509,14 @@ void OptionsHandler::showConfiguration(const std::string& option,
 }
 
 void OptionsHandler::showCopyright(const std::string& option,
-                               const std::string& flag)
+                                   const std::string& flag)
 {
   std::cout << Configuration::copyright() << std::endl;
   std::exit(0);
 }
 
 void OptionsHandler::showVersion(const std::string& option,
-                                       const std::string& flag)
+                                 const std::string& flag)
 {
   d_options->base.out << Configuration::about() << std::endl;
   std::exit(0);
