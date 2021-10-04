@@ -162,7 +162,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       // require a REFL step.
       Assert(res.getKind() == EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
-      Trace("lfsc-pp-cong") << "Processing congruence for " << res << " " << res[0].getKind() << std::endl;
+      Trace("lfsc-pp-cong") << "Processing congruence for " << res << " "
+                            << res[0].getKind() << std::endl;
       // different for closures
       if (res[0].isClosure())
       {
@@ -215,7 +216,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       // REFL step. Notice this may be for interpreted or uninterpreted
       // function symbols.
       Node op = d_tproc.getOperatorOfTerm(res[0]);
-      Trace("lfsc-pp-cong") << "Processing cong for op " << op << " " << op.getType() << std::endl;
+      Trace("lfsc-pp-cong") << "Processing cong for op " << op << " "
+                            << op.getType() << std::endl;
       Assert(!op.isNull());
       // initial base step is REFL
       Node opEq = op.eqNode(op);
@@ -254,11 +256,12 @@ bool LfscProofPostprocessCallback::update(Node res,
           Node uop = op;
           // special case: each bv concat in the chain has a different type,
           // so remake the operator here.
-          if (k==kind::BITVECTOR_CONCAT)
+          if (k == kind::BITVECTOR_CONCAT)
           {
             // we get the operator of the next argument concatenated with the
             // current accumulated remainder.
-            Node currApp = nm->mkNode(kind::BITVECTOR_CONCAT, children[ii][0], currEq[0]);
+            Node currApp =
+                nm->mkNode(kind::BITVECTOR_CONCAT, children[ii][0], currEq[0]);
             uop = d_tproc.getOperatorOfTerm(currApp);
           }
           Node argAppEq =

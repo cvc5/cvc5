@@ -917,7 +917,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
              && addAletheStepFromOr(
-                 AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
+                    AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
     }
     // ======== Equality resolution
     // Children: (P1:F1, P2:(= F1 F2))
@@ -1768,10 +1768,10 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::ITE_POS1, vp1, vp1, {}, {}, *cdp)
              && addAletheStep(AletheRule::ITE_POS2, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(
-                 AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
+                    AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
              && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
-                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
+                    AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
     // ======== CNF ITE Neg version 1
     // Children: ()
@@ -1851,10 +1851,10 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::ITE_NEG1, vp1, vp1, {}, {}, *cdp)
              && addAletheStep(AletheRule::ITE_NEG2, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(
-                 AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
+                    AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
              && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
-                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
+                    AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
 
     //================================================= Equality rules
@@ -2081,7 +2081,7 @@ bool AletheProofPostprocessCallback::update(Node res,
              && addAletheStep(AletheRule::EQUIV2, vp2, vp2, {vp1}, {}, *cdp)
              && addAletheStep(AletheRule::NOT_NOT, vp3, vp3, {}, {}, *cdp)
              && addAletheStep(
-                 AletheRule::RESOLUTION, vp4, vp4, {vp2, vp3}, {}, *cdp)
+                    AletheRule::RESOLUTION, vp4, vp4, {vp2, vp3}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
@@ -2358,7 +2358,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &=
             addAletheStep(AletheRule::EQUIV_POS2, vpc1, vpc1, {}, {}, *cdp)
             && addAletheStep(
-                AletheRule::COMP_SIMPLIFY, vpc2, vpc2, {}, {}, *cdp)
+                   AletheRule::COMP_SIMPLIFY, vpc2, vpc2, {}, {}, *cdp)
             && addAletheStep(AletheRule::RESOLUTION,
                              vp_child1,
                              vp_child1,
@@ -2441,7 +2441,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 *cdp)
                && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
                && addAletheStep(
-                   AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
+                      AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
                && addAletheStep(AletheRule::RESOLUTION,
                                 res,
                                 nm->mkNode(kind::SEXPR, d_cl, res),
@@ -2484,7 +2484,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 *cdp)
                && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
                && addAletheStep(
-                   AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
+                      AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
                && addAletheStep(AletheRule::RESOLUTION,
                                 res,
                                 nm->mkNode(kind::SEXPR, d_cl, res),
