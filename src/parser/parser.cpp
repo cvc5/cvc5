@@ -598,13 +598,19 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     }
     return t;
   }
-  // otherwise, nothing to do
-  // check that the type is correct
-  if (t.getSort() != s)
+  // Otherwise, check that the type is correct. Type ascriptions in SMT-LIB 2.6
+  // referred to the range of function sorts. Note that this is only a check
+  // and does not impact the returned term.
+  api::Sort checkSort = t.getSort();
+  if (checkSort.isFunction())
+  {
+    checkSort = checkSort.getFunctionCodomainSort();
+  }
+  if (checkSort != s)
   {
     std::stringstream ss;
-    ss << "Type ascription not satisfied, term " << t << " expected sort " << s
-       << " but has sort " << t.getSort();
+    ss << "Type ascription not satisfied, term " << t
+       << " expected (codomain) sort " << s << " but has sort " << t.getSort();
     parseError(ss.str());
   }
   return t;
