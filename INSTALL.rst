@@ -239,8 +239,6 @@ Building the API documentation of cvc5 requires the following dependencies:
 
 To build the documentation, configure cvc5 with ``./configure.sh --docs`` and
 run ``make docs`` from within the build directory.
-Note that, for various reasons, building the documentation may first need to
-build cvc5 itself as well.
 
 The API documentation can then be found at
 ``<build_dir>/docs/sphinx/index.html``.
