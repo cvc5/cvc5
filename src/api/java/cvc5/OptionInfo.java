@@ -16,7 +16,6 @@
 package cvc5;
 
 import java.math.BigInteger;
-import java.util.Optional;
 
 /**
  * Holds some description about a particular option, including its name, its
