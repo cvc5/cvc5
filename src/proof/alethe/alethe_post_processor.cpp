@@ -1769,6 +1769,33 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 *cdp);
       }
     }
+    //================================================= Extended rules
+    // ======== Symmetric
+    // This rule is translated according to the singleton pattern.
+    case PfRule::SYMM:
+    {
+      if (res.getKind() == kind::NOT)
+      {
+        return addAletheStep(AletheRule::NOT_SYMM,
+                             res,
+                             nm->mkNode(kind::SEXPR, d_cl, res),
+                             children,
+                             {},
+                             *cdp);
+      }
+      return addAletheStep(AletheRule::SYMM,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Reordering
+    // This rule is translated according to the clauses pattern.
+    case PfRule::REORDERING:
+    {
+      return addAletheStepFromOr(AletheRule::REORDER, res, children, {}, *cdp);
+    }
     //================================================= Arithmetic rules
     default:
     {
