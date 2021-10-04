@@ -1342,16 +1342,15 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Congruence
     // In the case that the kind of the function symbol ?f is forall, the cong
-    // rule needs to be converted into a bind rule. The first child will be a
-    // refl rule that can be omitted.
+    // rule needs to be converted into a bind rule.
     //
-    //  let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-    //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn))
+    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+    //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
     //
     //    P2
-    //  ----------------------------------------------- bind, args: ((:= v1 w1)
-    //  ... (:= vn wn)) (cl (= (forall ((v1 A1)...(vn An)) t2) (forall
-    //  ((w1 B1)...(wn Bn)) s2)))*
+    //  ----------------------------------- bind, ((:= v1 w1) ... (:= vn wn))
+    //  (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //  (forall ((w1 B1)...(wn Bn)) s2)))*
     //
     // Otherwise, the rule follows the singleton pattern, i.e.:
     //
@@ -1365,7 +1364,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL))
       {
-        std::vector<Node> new_children;
         std::vector<Node> sanitized_args;
         for (size_t i = 0,
                     size = (children[0][0].end() - children[0][0].begin());
