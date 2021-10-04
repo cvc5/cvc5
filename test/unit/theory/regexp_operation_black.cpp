@@ -24,6 +24,7 @@
 #include "test_smt.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
+#include "util/string.h"
 
 namespace cvc5 {
 
