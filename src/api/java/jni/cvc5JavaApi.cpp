@@ -18,8 +18,8 @@
 #include <string>
 #include <vector>
 
-jobjectArray getStringArrayFromStrings(JNIEnv* env,
-                                       const std::vector<std::string>& cStrings)
+jobjectArray getStringArrayFromStringVector(
+    JNIEnv* env, const std::vector<std::string>& cStrings)
 {
   jclass stringClass = env->FindClass("java/lang/String");
   jobjectArray ret =

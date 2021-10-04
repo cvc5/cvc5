@@ -120,7 +120,7 @@ jobject getBigIntegerObject(JNIEnv* env, T value)
  * @param cStrings a vector of strings
  * @return an array of java strings
  */
-jobjectArray getStringArrayFromStrings(
+jobjectArray getStringArrayFromStringVector(
     JNIEnv* env, const std::vector<std::string>& cStrings);
 
 /**

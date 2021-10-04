@@ -75,7 +75,7 @@ JNIEXPORT jobjectArray JNICALL Java_cvc5_OptionInfo_getAliases(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
-  jobjectArray ret = getStringArrayFromStrings(env, current->aliases);
+  jobjectArray ret = getStringArrayFromStringVector(env, current->aliases);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
@@ -270,7 +270,7 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
                          "String;[Ljava/lang/String;)V");
     jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
     jstring currentValue = env->NewStringUTF(info.currentValue.c_str());
-    jobject stringArray = getStringArrayFromStrings(env, info.modes);
+    jobject stringArray = getStringArrayFromStringVector(env, info.modes);
     ret = env->NewObject(modeInfoClass,
                          methodId,
                          optionInfo,

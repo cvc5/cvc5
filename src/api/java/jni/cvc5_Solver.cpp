@@ -1881,7 +1881,7 @@ JNIEXPORT jobjectArray JNICALL Java_cvc5_Solver_getOptionNames(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   std::vector<std::string> options = solver->getOptionNames();
-  jobjectArray ret = getStringArrayFromStrings(env, options);
+  jobjectArray ret = getStringArrayFromStringVector(env, options);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
