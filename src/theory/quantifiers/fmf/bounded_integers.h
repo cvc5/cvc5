@@ -219,7 +219,7 @@ private:
   /**
    * Make internal quantified formula with bound variable list bvl and body.
    * Internally, we get a node corresponding to marking a quantified formula as
-   * a "bounded quantifid formula". This node is provided as the third argument
+   * a "bounded quantified formula". This node is provided as the third argument
    * of the FORALL returned by this method. This ensures that E-matching is not
    * applied to the quantified formula, and that this module is the one that
    * handles it.

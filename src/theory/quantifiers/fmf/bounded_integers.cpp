@@ -900,7 +900,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
  *
  * Currently, this attribute is used for indicating that E-matching should
  * not be applied, as E-matching should not be applied to quantifiers
- * generated for strings reductions.
+ * generated internally.
  *
  * This attribute can potentially be generalized to an identifier indicating
  * the internal source of the quantified formula (of which strings reduction

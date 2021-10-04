@@ -129,7 +129,7 @@ struct QAttributes
   bool d_quant_elim;
   /** is this formula marked for partial quantifier elimination? */
   bool d_quant_elim_partial;
-  /** Is this formula internal generated and belonging to bounded integers? */
+  /** Is this formula internally generated and belonging to bounded integers? */
   bool d_isQuantBounded;
   /** the instantiation pattern list for this quantified formula (its 3rd child)
    */
