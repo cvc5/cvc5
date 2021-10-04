@@ -95,6 +95,60 @@ JNIEXPORT jboolean JNICALL Java_cvc5_OptionInfo_getSetByUser(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
+/**
+ * Convert OptionInfo::NumberInfo cpp object to OptionInfo.NumberInfo java
+ * object
+ * @tparam T cpp integer types int64_t, uint64_t, etc
+ * @param env jni environment
+ * @param optionInfo a java object for this OptionInfo
+ * @param numberInfoClass the java class for OptionInfo.NumberInfo
+ * @param methodId a constructor for OptionInfo.NumberInfo
+ * @param info the cpp OptionInfo::NumberInfo object
+ * @return a java object of class OptionInfo.NumberInfo<BigInteger>
+ */
+template <typename T>
+jobject getNumberInfoFromInteger(JNIEnv* env,
+                                 const _jobject* optionInfo,
+                                 jclass numberInfoClass,
+                                 jmethodID methodId,
+                                 const OptionInfo::NumberInfo<T>& info)
+{
+  jobject defaultValue = getBigIntegerObject<T>(env, info.defaultValue);
+  jobject currentValue = getBigIntegerObject<T>(env, info.currentValue);
+  jobject minimum = nullptr;
+  if (info.minimum)
+  {
+    minimum = getBigIntegerObject<T>(env, *info.minimum);
+  }
+  jobject maximum = nullptr;
+  if (info.maximum)
+  {
+    maximum = getBigIntegerObject<T>(env, *info.maximum);
+  }
+  jobject ret = env->NewObject(numberInfoClass,
+                               methodId,
+                               optionInfo,
+                               defaultValue,
+                               currentValue,
+                               minimum,
+                               maximum);
+  return ret;
+}
+
+template <typename T>
+jobject getNumberInfoFromInteger(JNIEnv* env,
+                                 const _jobject* optionInfo,
+                                 jclass numberInfoClass,
+                                 jmethodID methodId,
+                                 const OptionInfo::NumberInfo<int64_t>& info);
+
+template <typename T>
+jobject getNumberInfoFromInteger(JNIEnv* env,
+                                 const _jobject* optionInfo,
+                                 jclass numberInfoClass,
+                                 jmethodID methodId,
+                                 const OptionInfo::NumberInfo<uint64_t>& info);
+
 /*
  * Class:     cvc5_OptionInfo
  * Method:    getValueInfo
@@ -168,63 +222,20 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
     if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(v))
     {
       auto info = std::get<OptionInfo::NumberInfo<int64_t>>(v);
-
-      jobject defaultValue =
-          getBigIntegerObject<int64_t>(env, info.defaultValue);
-      jobject currentValue =
-          getBigIntegerObject<int64_t>(env, info.currentValue);
-      jobject minimum = nullptr;
-      if (info.minimum)
-      {
-        minimum = getBigIntegerObject<int64_t>(env, *info.minimum);
-      }
-      jobject maximum = nullptr;
-      if (info.maximum)
-      {
-        maximum = getBigIntegerObject<int64_t>(env, *info.maximum);
-      }
-      jobject ret = env->NewObject(numberInfoClass,
-                                   methodId,
-                                   optionInfo,
-                                   defaultValue,
-                                   currentValue,
-                                   minimum,
-                                   maximum);
-      return ret;
+      return getNumberInfoFromInteger(
+          env, optionInfo, numberInfoClass, methodId, info);
     }
 
     if (std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v))
     {
       auto info = std::get<OptionInfo::NumberInfo<uint64_t>>(v);
-
-      jobject defaultValue =
-          getBigIntegerObject<uint64_t>(env, info.defaultValue);
-      jobject currentValue =
-          getBigIntegerObject<uint64_t>(env, info.currentValue);
-      jobject minimum = nullptr;
-      if (info.minimum)
-      {
-        minimum = getBigIntegerObject<uint64_t>(env, *info.minimum);
-      }
-      jobject maximum = nullptr;
-      if (info.maximum)
-      {
-        maximum = getBigIntegerObject<uint64_t>(env, *info.maximum);
-      }
-      jobject ret = env->NewObject(numberInfoClass,
-                                   methodId,
-                                   optionInfo,
-                                   defaultValue,
-                                   currentValue,
-                                   minimum,
-                                   maximum);
-      return ret;
+      return getNumberInfoFromInteger(
+          env, optionInfo, numberInfoClass, methodId, info);
     }
 
     if (std::holds_alternative<OptionInfo::NumberInfo<double>>(v))
     {
       auto info = std::get<OptionInfo::NumberInfo<double>>(v);
-
       jobject defaultValue = getDoubleObject(env, info.defaultValue);
       jobject currentValue = getDoubleObject(env, info.currentValue);
       jobject minimum = nullptr;
@@ -250,13 +261,14 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
 
   if (std::holds_alternative<OptionInfo::ModeInfo>(v))
   {
-    auto info = std::get<OptionInfo::ModeInfo>(v);
     jclass modeInfoClass = env->FindClass("cvc5/OptionInfo$ModeInfo");
     jmethodID methodId =
         env->GetMethodID(modeInfoClass,
                          "<init>",
                          "(Lcvc5/OptionInfo;Ljava/lang/String;Ljava/lang/"
                          "String;[Ljava/lang/String;)V");
+
+    auto info = std::get<OptionInfo::ModeInfo>(v);
     jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
     jstring currentValue = env->NewStringUTF(info.currentValue.c_str());
     jobject stringArray = getStringArrayFromStringVector(env, info.modes);
