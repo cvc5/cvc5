@@ -128,8 +128,8 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
       }
       else
       {
-        solbr = Rewriter::rewrite(solb);
-        eq_solr = Rewriter::rewrite(eq_solb);
+        solbr = rewrite(solb);
+        eq_solr = rewrite(eq_solb);
       }
       bool verified = false;
       Trace("rr-check") << "Check candidate rewrite..." << std::endl;
