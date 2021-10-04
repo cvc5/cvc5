@@ -1387,6 +1387,125 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    // ======== True intro
+    //
+    // ------------------------------- EQUIV_SIMPLIFY
+    //  (VP1:(cl (= (= F true) F)))
+    // ------------------------------- EQUIV2
+    //  (VP2:(cl (= F true) (not F)))           P
+    // -------------------------------------------- RESOLUTION
+    //  (cl (= F true))*
+    //
+    // * the corresponding proof node is (= F true)
+    case PfRule::TRUE_INTRO:
+    {
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res, children[0]));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV2, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
+    // ======== True elim
+    //
+    // ------------------------------- EQUIV_SIMPLIFY
+    //  (VP1:(cl (= (= F true) F)))
+    // ------------------------------- EQUIV1
+    //  (VP2:(cl (not (= F true)) F))           P
+    // -------------------------------------------- RESOLUTION
+    //  (cl F)*
+    //
+    // * the corresponding proof node is F
+    case PfRule::TRUE_ELIM:
+    {
+      bool success = true;
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+      success &=
+          addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+          && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp);
+      return success
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
+    // ======== False intro
+    //
+    // ----- EQUIV_SIMPLIFY
+    //  VP1
+    // ----- EQUIV2     ----- NOT_NOT
+    //  VP2              VP3
+    // ---------------------- RESOLUTION
+    //          VP4                        P
+    // -------------------------------------- RESOLUTION
+    //          (cl (= F false))*
+    //
+    // VP1: (cl (= (= F false) (not F)))
+    // VP2: (cl (= F false) (not (not F)))
+    // VP3: (cl (not (not (not F))) F)
+    // VP4: (cl (= F false) F)
+    //
+    // * the corresponding proof node is (= F false)
+    case PfRule::FALSE_INTRO:
+    {
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res, children[0]));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
+      Node vp3 = nm->mkNode(
+          kind::SEXPR, d_cl, children[0].notNode().notNode(), children[0][0]);
+      Node vp4 = nm->mkNode(kind::SEXPR, d_cl, res, children[0][0]);
+
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV2, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::NOT_NOT, vp3, vp3, {}, {}, *cdp)
+             && addAletheStep(
+                 AletheRule::RESOLUTION, vp4, vp4, {vp2, vp3}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp4, children[0]},
+                              {},
+                              *cdp);
+    }
+    // ======== False elim
+    //
+    // ----- EQUIV_SIMPLIFY
+    //  VP1
+    // ----- EQUIV1
+    //  VP2                P
+    // ---------------------- RESOLUTION
+    //     (cl (not F))*
+    //
+    // VP1: (cl (= (= F false) (not F)))
+    // VP2: (cl (not (= F false)) (not F))
+    // VP3: (cl (not (not (not F))) F)
+    // VP4: (cl (= F false) F)
+    //
+    // * the corresponding proof node is (not F)
+    case PfRule::FALSE_ELIM:
+    {
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
