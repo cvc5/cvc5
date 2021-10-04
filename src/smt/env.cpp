@@ -19,6 +19,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
@@ -210,6 +211,12 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
   Unhandled() << "Env::rewriteViaMethod: no rewriter for " << idr
               << std::endl;
   return n;
+}
+
+bool Env::isFiniteType(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  d_options.quantifiers.finiteModelFind);
 }
 
 }  // namespace cvc5

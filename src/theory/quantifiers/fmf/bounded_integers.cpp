@@ -31,11 +31,11 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5;
-using namespace std;
-using namespace cvc5::theory;
-using namespace cvc5::theory::quantifiers;
 using namespace cvc5::kind;
+
+namespace cvc5 {
+namespace theory {
+namespace quantifiers {
 
 BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     Env& env, Node r, Valuation valuation, bool isProxy)
@@ -323,9 +323,9 @@ void BoundedIntegers::checkOwnership(Node f)
   {
     // only applying it to internal quantifiers
     QuantAttributes& qattr = d_qreg.getQuantAttributes();
-    if (!qattr.isInternal(f))
+    if (!qattr.isQuantBounded(f))
     {
-      Trace("bound-int") << "...not internal, skip" << std::endl;
+      Trace("bound-int") << "...not bounded, skip" << std::endl;
       return;
     }
   }
@@ -370,7 +370,7 @@ void BoundedIntegers::checkOwnership(Node f)
           // supported for finite element types #1123). Regardless, this is
           // typically not a limitation since this variable can be bound in a
           // standard way below since its type is finite.
-          if (!d_qstate.isFiniteType(v.getType()))
+          if (!d_env.isFiniteType(v.getType()))
           {
             setBoundedVar(f, v, BOUND_SET_MEMBER);
             setBoundVar = true;
@@ -430,7 +430,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if ((tn.isSort() && d_qstate.isFiniteType(tn))
+          if ((tn.isSort() && d_env.isFiniteType(tn))
               || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
@@ -895,3 +895,63 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
     return true;
   }
 }
+
+/**
+ * Attribute true for quantifiers that have been internally generated and
+ * should be processed with the bounded integers module, e.g. quantified
+ * formulas from reductions of string operators.
+ *
+ * Currently, this attribute is used for indicating that E-matching should
+ * not be applied, as E-matching should not be applied to quantifiers
+ * generated internally.
+ *
+ * This attribute can potentially be generalized to an identifier indicating
+ * the internal source of the quantified formula (of which strings reduction
+ * is one possibility).
+ */
+struct BoundedQuantAttributeId
+{
+};
+typedef expr::Attribute<BoundedQuantAttributeId, bool> BoundedQuantAttribute;
+/**
+ * Mapping to a dummy node for marking an attribute on internal quantified
+ * formulas. This ensures that reductions are deterministic.
+ */
+struct QInternalVarAttributeId
+{
+};
+typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
+
+Node BoundedIntegers::mkBoundedForall(Node bvl, Node body)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  QInternalVarAttribute qiva;
+  Node qvar;
+  if (bvl.hasAttribute(qiva))
+  {
+    qvar = bvl.getAttribute(qiva);
+  }
+  else
+  {
+    SkolemManager* sm = nm->getSkolemManager();
+    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
+    // this dummy variable marks that the quantified formula is internal
+    qvar.setAttribute(BoundedQuantAttribute(), true);
+    // remember the dummy variable
+    bvl.setAttribute(qiva, qvar);
+  }
+  // make the internal attribute, and put it in a singleton list
+  Node ip = nm->mkNode(INST_ATTRIBUTE, qvar);
+  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
+  // make the overall formula
+  return nm->mkNode(FORALL, bvl, body, ipl);
+}
+
+bool BoundedIntegers::isBoundedForallAttribute(Node var)
+{
+  return var.getAttribute(BoundedQuantAttribute());
+}
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
