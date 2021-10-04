@@ -13,31 +13,38 @@
  * The cvc5 Java API.
  */
 
-#include <jni.h>
-
 #ifndef CVC5__JAVA_API_H
 #define CVC5__JAVA_API_H
+
+#include <jni.h>
+
+#include <string>
+#include <vector>
 
 #define CVC5_JAVA_API_TRY_CATCH_BEGIN \
   try                                 \
   {
-#define CVC5_JAVA_API_TRY_CATCH_END(env)                             \
-  }                                                                  \
-  catch (const CVC5ApiRecoverableException& e)                       \
-  {                                                                  \
-    jclass exceptionClass =                                          \
-        env->FindClass("cvc5/CVC5ApiRecoverableException");          \
-    env->ThrowNew(exceptionClass, e.what());                         \
-  }                                                                  \
-  catch (const CVC5ApiException& e)                                  \
-  {                                                                  \
-    jclass exceptionClass = env->FindClass("cvc5/CVC5ApiException"); \
-    env->ThrowNew(exceptionClass, e.what());                         \
+#define CVC5_JAVA_API_TRY_CATCH_END(env)                                   \
+  }                                                                        \
+  catch (const CVC5ApiOptionException& e)                                  \
+  {                                                                        \
+    jclass exceptionClass = env->FindClass("cvc5/CVC5ApiOptionException"); \
+    env->ThrowNew(exceptionClass, e.what());                               \
+  }                                                                        \
+  catch (const CVC5ApiRecoverableException& e)                             \
+  {                                                                        \
+    jclass exceptionClass =                                                \
+        env->FindClass("cvc5/CVC5ApiRecoverableException");                \
+    env->ThrowNew(exceptionClass, e.what());                               \
+  }                                                                        \
+  catch (const CVC5ApiException& e)                                        \
+  {                                                                        \
+    jclass exceptionClass = env->FindClass("cvc5/CVC5ApiException");       \
+    env->ThrowNew(exceptionClass, e.what());                               \
   }
 #define CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, returnValue) \
   CVC5_JAVA_API_TRY_CATCH_END(env)                           \
   return returnValue;
-#endif  // CVC5__JAVA_API_H
 
 /**
  * Convert pointers coming from Java to cvc5 objects
@@ -84,3 +91,7 @@ jlongArray getPointersFromObjects(JNIEnv* env, std::vector<T> objects)
   env->SetLongArrayRegion(ret, 0, objects.size(), pointers.data());
   return ret;
 }
+
+jobjectArray getStringArrayFromStrings(
+    JNIEnv* env, const std::vector<std::string>& cStrings);
+#endif  // CVC5__JAVA_API_H

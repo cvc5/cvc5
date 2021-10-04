@@ -1871,6 +1871,57 @@ JNIEXPORT jstring JNICALL Java_cvc5_Solver_getOption(JNIEnv* env,
 
 /*
  * Class:     cvc5_Solver
+ * Method:    getOptionNames
+ * Signature: (J)[Ljava/lang/String;
+ */
+JNIEXPORT jobjectArray JNICALL Java_cvc5_Solver_getOptionNames(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<std::string> options = solver->getOptionNames();
+  jobjectArray ret = getStringArrayFromStrings(env, options);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    getOptionInfo
+ * Signature: (JLjava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getOptionInfo(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer,
+                                                       jstring jOption)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::string cOption(env->GetStringUTFChars(jOption, nullptr));
+  OptionInfo* ret = new OptionInfo(solver->getOptionInfo(cOption));
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    getDriverOptions
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_cvc5_Solver_getDriverOptions(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  DriverOptions* ret = new DriverOptions(solver->getDriverOptions());
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Solver
  * Method:    getUnsatAssumptions
  * Signature: (J)[J
  */
@@ -1901,6 +1952,62 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getUnsatCore(JNIEnv* env,
   jlongArray ret = getPointersFromObjects<Term>(env, core);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    getDifficulty
+ * Signature: (J)Ljava/util/Map;
+ */
+JNIEXPORT jobject JNICALL Java_cvc5_Solver_getDifficulty(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::map<Term, Term> map = solver->getDifficulty();
+  // HashMap hashMap = new HashMap();
+  jclass hashMapClass = env->FindClass("Ljava/util/HashMap;");
+  jmethodID constructor = env->GetMethodID(hashMapClass, "<init>", "()V");
+  jobject hashMap = env->NewObject(hashMapClass, constructor);
+  jmethodID putMethod = env->GetMethodID(
+      hashMapClass,
+      "put",
+      "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+  // Long longObject = new Long(statPointer)
+  jclass longClass = env->FindClass("Ljava/lang/Long;");
+  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
+
+  for (const std::pair<Term, Term>& it : map)
+  {
+    // hashmap.put(key, value);
+    Term* termKey = new Term(it.first);
+    Term* termValue = new Term(it.second);
+    jobject key = env->NewObject(
+        longClass, longConstructor, reinterpret_cast<jlong>(termKey));
+    jobject value = env->NewObject(
+        longClass, longConstructor, reinterpret_cast<jlong>(termValue));
+    env->CallObjectMethod(hashMap, putMethod, key, value);
+  }
+  return hashMap;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    getProof
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_cvc5_Solver_getProof(JNIEnv* env,
+                                                    jobject,
+                                                    jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::string proof = solver->getProof();
+  return env->NewStringUTF(proof.c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
@@ -1936,6 +2043,23 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getValue__J_3J(
   jlongArray ret = getPointersFromObjects<Term>(env, values);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    getModelDomainElements
+ * Signature: (JJ)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_cvc5_Solver_getModelDomainElements(
+    JNIEnv* env, jobject, jlong pointer, jlong sortPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Sort* sort = reinterpret_cast<Sort*>(sortPointer);
+  std::vector<Term> terms = solver->getModelDomainElements(*sort);
+  jlongArray ret = getPointersFromObjects<Term>(env, terms);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*
@@ -2441,6 +2565,23 @@ JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusConstraint(JNIEnv* env,
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Term* term = reinterpret_cast<Term*>(termPointer);
   solver->addSygusConstraint(*term);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     cvc5_Solver
+ * Method:    addSygusAssume
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_cvc5_Solver_addSygusAssume(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer,
+                                                       jlong termPointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* term = reinterpret_cast<Term*>(termPointer);
+  solver->addSygusAssume(*term);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 

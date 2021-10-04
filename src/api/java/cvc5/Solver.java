@@ -1794,6 +1794,44 @@ public class Solver implements IPointer
   private native String getOption(long pointer, String option);
 
   /**
+   * Get all option names that can be used with `setOption`, `getOption` and
+   * `getOptionInfo`.
+   * @return all option names
+   */
+  public String[] getOptionNames()
+  {
+    return getOptionNames(pointer);
+  }
+
+  private native String[] getOptionNames(long pointer);
+
+  /**
+   * Get some information about the given option. Check the `OptionInfo` class
+   * for more details on which information is available.
+   * @return information about the given option
+   */
+  public OptionInfo getOptionInfo(String option)
+  {
+    long optionPointer = getOptionInfo(pointer, option);
+    return new OptionInfo(this, optionPointer);
+  }
+
+  private native long getOptionInfo(long pointer, String option);
+
+  /**
+   * Get the driver options, which provide access to options that can not be
+   * communicated properly via getOption() and getOptionInfo().
+   * @return a DriverOptions object.
+   */
+  public DriverOptions getDriverOptions()
+  {
+    long driverPointer = getDriverOptions(pointer);
+    return new DriverOptions(this, driverPointer);
+  }
+
+  private native long getDriverOptions(long pointer);
+
+  /**
    * Get the set of unsat ("failed") assumptions.
    * SMT-LIB:
    * {@code
@@ -1828,7 +1866,47 @@ public class Solver implements IPointer
   private native long[] getUnsatCore(long pointer);
 
   /**
-   * Get the value of the given term.
+   * Get a difficulty estimate for an asserted formula. This method is
+   * intended to be called immediately after any response to a checkSat.
+   *
+   * @return a map from (a subset of) the input assertions to a real value that
+   * is an estimate of how difficult each assertion was to solve. Unmentioned
+   * assertions can be assumed to have zero difficulty.
+   */
+  public Map<Term, Term> getDifficulty()
+  {
+    Map<Long, Long> map = getDifficulty(pointer);
+    Map<Term, Term> ret = new HashMap<>();
+    for (Map.Entry<Long, Long> entry : map.entrySet())
+    {
+      Term key = new Term(this, entry.getKey());
+      Term value = new Term(this, entry.getValue());
+      ret.put(key, value);
+    }
+    return ret;
+  }
+
+  private native Map<Long, Long> getDifficulty(long pointer);
+
+  /**
+   * Get the refutation proof
+   * SMT-LIB:
+   * {@code
+   * ( get-proof )
+   * }
+   * Requires to enable option 'produce-proofs'.
+   * @return a string representing the proof, according to the value of
+   * proof-format-mode.
+   */
+  public String getProof()
+  {
+    return getProof(pointer);
+  }
+
+  private native String getProof(long pointer);
+
+  /**
+   * Get the value of the given term in the current model.
    * SMT-LIB:
    * {@code
    * ( get-value ( <term> ) )
@@ -1845,7 +1923,7 @@ public class Solver implements IPointer
   private native long getValue(long pointer, long termPointer);
 
   /**
-   * Get the values of the given terms.
+   * Get the values of the given terms in the current model.
    * SMT-LIB:
    * {@code
    * ( get-value ( <term>+ ) )
@@ -1861,6 +1939,22 @@ public class Solver implements IPointer
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
+
+  /**
+   * Get the domain elements of uninterpreted sort s in the current model. The
+   * current model interprets s as the finite sort whose domain elements are
+   * given in the return value of this method.
+   *
+   * @param s The uninterpreted sort in question
+   * @return the domain elements of s in the current model
+   */
+  public Term[] getModelDomainElements(Sort s)
+  {
+    long[] pointers = getModelDomainElements(pointer, s.getPointer());
+    return Utils.getTerms(this, pointers);
+  }
+
+  private native long[] getModelDomainElements(long pointer, long sortPointer);
 
   /**
    * This returns false if the model value of free constant v was not essential
@@ -1998,6 +2092,26 @@ public class Solver implements IPointer
   }
 
   private native long getSeparationNilTerm(long pointer);
+
+  /**
+   * Declare a symbolic pool of terms with the given initial value.
+   * SMT-LIB:
+   * \verbatim
+   * ( declare-pool <symbol> <sort> ( <term>* ) )
+   * \endverbatim
+   * @param symbol The name of the pool
+   * @param sort The sort of the elements of the pool.
+   * @param initValue The initial value of the pool
+   */
+  public Term declarePool(String symbol, Sort sort, Term[] initValue)
+  {
+    long[] termPointers = Utils.getPointers(initValue);
+    long termPointer = declarePool(pointer, symbol, sort.getPointer(), termPointers);
+    return new Term(this, termPointer);
+  }
+
+  private native long declarePool(
+      long pointer, String symbol, long sortPointer, long[] termPointers);
 
   /**
    * Pop a level from the assertion stack.
@@ -2398,6 +2512,22 @@ public class Solver implements IPointer
   }
 
   private native void addSygusConstraint(long pointer, long termPointer);
+
+  /**
+   * Add a forumla to the set of Sygus assumptions.
+   * SyGuS v2:
+   * {@code
+   *   ( assume <term> )
+   * }
+   * @param term the formula to add as an assumption
+   */
+  public void addSygusAssume(Term term)
+  {
+    addSygusAssume(pointer, term.getPointer());
+  }
+
+  private native void addSygusAssume(long pointer, long termPointer);
+
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
