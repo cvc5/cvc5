@@ -48,7 +48,7 @@ RegExpSolver::RegExpSolver(Env& env,
       d_regexp_ucached(userContext()),
       d_regexp_ccached(context()),
       d_processed_memberships(context()),
-      d_regexp_opr(skc)
+      d_regexp_opr(env, skc)
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
   d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY);
@@ -158,7 +158,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             << "We have regular expression assertion : " << assertion
             << std::endl;
         Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
-        Assert(atom == Rewriter::rewrite(atom));
+        Assert(atom == rewrite(atom));
         bool polarity = assertion.getKind() != NOT;
         if (polarity != (e == 0))
         {
@@ -205,7 +205,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         if (nx != x || changed)
         {
           // We rewrite the membership nx IN r.
-          Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
+          Node tmp = rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
           Trace("strings-regexp-nf") << "Simplifies to " << tmp << std::endl;
           if (tmp.isConst())
           {
@@ -481,7 +481,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     }
     // rewrite to ensure the equality checks below are precise
     Node mres = nm->mkNode(STRING_IN_REGEXP, mi[0], resR);
-    Node mresr = Rewriter::rewrite(mres);
+    Node mresr = rewrite(mres);
     if (mresr == mi)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
@@ -633,7 +633,7 @@ bool RegExpSolver::deriveRegExp(Node x,
           vec_nodes.push_back(x[i]);
         }
         Node left = utils::mkConcat(vec_nodes, x.getType());
-        left = Rewriter::rewrite(left);
+        left = rewrite(left);
         conc = NodeManager::currentNM()->mkNode(STRING_IN_REGEXP, left, dc);
       }
     }
@@ -678,8 +678,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
       {
         vec_nodes.push_back(getNormalSymRegExp(cr, nf_exp));
       }
-      ret = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes));
+      ret = rewrite(NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes));
       break;
     }
     default:

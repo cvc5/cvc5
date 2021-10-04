@@ -25,7 +25,7 @@ set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
 add_custom_target(
-  docs ALL
+  docs
   DEPENDS docs-cpp docs-java docs-python gen-options
   COMMAND
     ${SPHINX_EXECUTABLE} -b html -c ${CMAKE_CURRENT_BINARY_DIR}
@@ -46,7 +46,7 @@ add_custom_command(
 
 set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)
 add_custom_target(
-  docs-gh ALL
+  docs-gh
   DEPENDS docs
   # remove existing sphinx-gh/ directory
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${SPHINX_GH_OUTPUT_DIR}
