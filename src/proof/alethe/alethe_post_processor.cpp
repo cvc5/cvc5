@@ -1506,6 +1506,41 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    //================================================= Quantifiers rules
+    // ======== Instantiate
+    // See proof_rule.h for documentation on the INSTANTIATE rule. This
+    // comment uses variable names as introduced there.
+    //
+    // ----- FORALL_INST, (= x1 t1) ... (= xn tn)
+    //  VP1
+    // ----- OR
+    //  VP2              P
+    // -------------------- RESOLUTION
+    //     (cl F*sigma)^
+    //
+    // VP1: (cl (or (not (forall ((x1 T1) ... (xn Tn)) F)
+    // VP2: (cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
+    //
+    // * the corresponding proof node is F*sigma
+    case PfRule::INSTANTIATE:
+    {
+      for (size_t i = 0, size = args.size(); i < size; i++)
+      {
+        new_args.push_back(nm->mkNode(kind::EQUAL, args[i], children[0][0][i]));
+      }
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::OR, children[0].notNode(), res));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+      return addAletheStep(AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
+
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
