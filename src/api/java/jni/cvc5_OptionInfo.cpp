@@ -15,9 +15,6 @@
 
 #include "cvc5_OptionInfo.h"
 
-#include <iostream>
-#include <sstream>
-
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
 
@@ -124,7 +121,7 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
     jclass voidInfoClass = env->FindClass("cvc5/OptionInfo$VoidInfo");
     jmethodID methodId =
         env->GetMethodID(voidInfoClass, "<init>", "(Lcvc5/OptionInfo;)V");
-    ret = env->CallObjectMethod(voidInfoClass, methodId, optionInfo);
+    ret = env->NewObject(voidInfoClass, methodId, optionInfo);
     return ret;
   }
 
@@ -136,7 +133,6 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
         valueInfoClass,
         "<init>",
         "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/Object;)V");
-    std::cout << "methodId: " << methodId << std::endl;
     jclass booleanClass = env->FindClass("Ljava/lang/Boolean;");
     jmethodID booleanConstructor =
         env->GetMethodID(booleanClass, "<init>", "(Z)V");
@@ -148,7 +144,7 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
         env->NewObject(booleanClass,
                        booleanConstructor,
                        static_cast<jboolean>(info.defaultValue));
-    ret = env->CallObjectMethod(
+    ret = env->NewObject(
         valueInfoClass, methodId, optionInfo, defaultValue, currentValue);
     return ret;
   }
@@ -161,35 +157,72 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
         valueInfoClass,
         "<init>",
         "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/Object;)V");
-    std::cout << "methodId: " << methodId << std::endl;
+
     jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
     jstring currentValue = env->NewStringUTF(info.currentValue.c_str());
-    ret = env->CallObjectMethod(
+    ret = env->NewObject(
         valueInfoClass, methodId, optionInfo, defaultValue, currentValue);
     return ret;
   }
 
-  if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(v) ||
-      std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v)
-      )
+  if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(v)
+      || std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v))
   {
-    auto info = std::get<OptionInfo::NumberInfo<uint64_t>>(v);
     jclass valueInfoClass = env->FindClass("cvc5/OptionInfo$NumberInfo");
-    jmethodID methodId = env->GetMethodID(
-        valueInfoClass,
-        "<init>",
-        "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V");
-    std::stringstream ssDefault, ssCurrent;
-    ssDefault << info.defaultValue;
-    ssCurrent << info.currentValue;
-    jstring jDefault = env->NewStringUTF(ssDefault.str().c_str());
-    jstring jCurrent = env->NewStringUTF(ssCurrent.str().c_str());
-    jclass bigIntegerClass = env->FindClass("java/math/BigInteger");
-    jmethodID bigIntegerConstructor = env->GetMethodID(bigIntegerClass, "<init>", "(Ljava/lang/String;)V");
-    jobject defaultValue = env->NewObject(bigIntegerClass, bigIntegerConstructor, jDefault);
-    jobject currentValue = env->NewObject(bigIntegerClass, bigIntegerConstructor, jCurrent);
-    ret = env->CallObjectMethod(
-        valueInfoClass, methodId, optionInfo, defaultValue, currentValue, nullptr, nullptr);
+    jmethodID methodId =
+        env->GetMethodID(valueInfoClass,
+                         "<init>",
+                         "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/"
+                         "Object;Ljava/lang/Object;Ljava/lang/Object;)V");
+
+    if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(v))
+    {
+      auto info = std::get<OptionInfo::NumberInfo<int64_t>>(v);
+
+      jobject defaultValue =
+          getBigIntegerObject<int64_t>(env, info.defaultValue);
+      jobject currentValue =
+          getBigIntegerObject<int64_t>(env, info.currentValue);
+      jobject minimum = nullptr;
+      if (info.minimum)
+      {
+        minimum = getBigIntegerObject<int64_t>(env, *info.minimum);
+      }
+      jobject maximum = nullptr;
+      if (info.maximum)
+      {
+        maximum = getBigIntegerObject<int64_t>(env, *info.maximum);
+      }
+      ret = env->NewObject(valueInfoClass,
+                           methodId,
+                           optionInfo,
+                           defaultValue,
+                           currentValue,
+                           minimum,
+                           maximum);
+      return ret;
+    }
+
+    auto info = std::get<OptionInfo::NumberInfo<uint64_t>>(v);
+    jobject defaultValue = getBigIntegerObject<int64_t>(env, info.defaultValue);
+    jobject currentValue = getBigIntegerObject<int64_t>(env, info.currentValue);
+    jobject minimum = nullptr;
+    if (info.minimum)
+    {
+      minimum = getBigIntegerObject<int64_t>(env, *info.minimum);
+    }
+    jobject maximum = nullptr;
+    if (info.maximum)
+    {
+      maximum = getBigIntegerObject<int64_t>(env, *info.maximum);
+    }
+    ret = env->NewObject(valueInfoClass,
+                         methodId,
+                         optionInfo,
+                         defaultValue,
+                         currentValue,
+                         minimum,
+                         maximum);
     return ret;
   }
 
@@ -233,9 +266,17 @@ JNIEXPORT jstring JNICALL Java_cvc5_OptionInfo_stringValue(JNIEnv* env,
  * Method:    intValue
  * Signature: (J)Ljava/math/BigInteger;
  */
-JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_intValue(JNIEnv*,
+JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_intValue(JNIEnv* env,
                                                         jobject,
-                                                        jlong);
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
+  std::int64_t value = current->intValue();
+  jobject ret = getBigIntegerObject<std::int64_t>(env, value);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
 
 /*
  * Class:     cvc5_OptionInfo
