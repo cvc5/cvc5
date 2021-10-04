@@ -70,9 +70,6 @@ class EnvObj
                 const std::unordered_map<Node, Node>& visited,
                 bool useRewriter = true) const;
 
-  /** Get the current logic information. */
-  const LogicInfo& logicInfo() const;
-
   /** Get the options object (const version only) via Env. */
   const Options& options() const;
 
@@ -81,6 +78,12 @@ class EnvObj
 
   /** Get a pointer to the UserContext via Env. */
   context::UserContext* userContext() const;
+
+  /** Get the resource manager owned by this Env. */
+  ResourceManager* resourceManager() const;
+
+  /** Get the current logic information. */
+  const LogicInfo& logicInfo() const;
 
   /** Get the statistics registry via Env. */
   StatisticsRegistry& statisticsRegistry() const;

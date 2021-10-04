@@ -262,7 +262,7 @@ bool InstantiationEngine::shouldProcess(Node q)
   }
   // also ignore internal quantifiers
   QuantAttributes& qattr = d_qreg.getQuantAttributes();
-  if (qattr.isInternal(q))
+  if (qattr.isQuantBounded(q))
   {
     return false;
   }
