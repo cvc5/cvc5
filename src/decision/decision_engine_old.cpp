@@ -45,8 +45,7 @@ DecisionEngineOld::DecisionEngineOld(Env& env)
 
   if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
   {
-    d_enabledITEStrategy.reset(
-        new decision::JustificationHeuristic(env, this));
+    d_enabledITEStrategy.reset(new decision::JustificationHeuristic(env, this));
   }
 }
 

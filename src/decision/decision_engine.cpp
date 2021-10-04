@@ -23,9 +23,7 @@ namespace cvc5 {
 namespace decision {
 
 DecisionEngine::DecisionEngine(Env& env)
-    : EnvObj(env),
-      d_cnfStream(nullptr),
-      d_satSolver(nullptr)
+    : EnvObj(env), d_cnfStream(nullptr), d_satSolver(nullptr)
 {
 }
 
@@ -41,10 +39,7 @@ prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
   return getNextInternal(stopSearch);
 }
 
-DecisionEngineEmpty::DecisionEngineEmpty(Env& env)
-    : DecisionEngine(env)
-{
-}
+DecisionEngineEmpty::DecisionEngineEmpty(Env& env) : DecisionEngine(env) {}
 bool DecisionEngineEmpty::isDone() { return false; }
 void DecisionEngineEmpty::addAssertion(TNode assertion) {}
 void DecisionEngineEmpty::addSkolemDefinition(TNode lem, TNode skolem) {}

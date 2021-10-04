@@ -22,8 +22,8 @@
 
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
-#include "smt/term_formula_removal.h"
 #include "smt/env_obj.h"
+#include "smt/term_formula_removal.h"
 
 namespace cvc5 {
 
@@ -31,8 +31,9 @@ class DecisionEngineOld;
 
 namespace decision {
 
-class DecisionStrategy : protected EnvObj {
-  public:
+class DecisionStrategy : protected EnvObj
+{
+ public:
   DecisionStrategy(Env& env, DecisionEngineOld* de)
       : EnvObj(env), d_decisionEngine(de)
   {
@@ -41,8 +42,9 @@ class DecisionStrategy : protected EnvObj {
   virtual ~DecisionStrategy() { }
 
   virtual prop::SatLiteral getNext(bool&) = 0;
-protected:
- DecisionEngineOld* d_decisionEngine;
+
+ protected:
+  DecisionEngineOld* d_decisionEngine;
 };/* class DecisionStrategy */
 
 class ITEDecisionStrategy : public DecisionStrategy {

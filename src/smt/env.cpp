@@ -81,10 +81,7 @@ context::Context* Env::getContext() { return d_context.get(); }
 
 context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
-context::Context* Env::getLemmaContext()
-{
-  return getUserContext();
-}
+context::Context* Env::getLemmaContext() { return getUserContext(); }
 
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 

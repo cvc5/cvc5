@@ -23,7 +23,7 @@ using namespace cvc5::prop;
 namespace cvc5 {
 namespace decision {
 
-JustificationStrategy::JustificationStrategy(Env& env, 
+JustificationStrategy::JustificationStrategy(Env& env,
                                              prop::SkolemDefManager* skdm)
     : DecisionEngine(env),
       d_skdm(skdm),
@@ -31,7 +31,8 @@ JustificationStrategy::JustificationStrategy(Env& env,
           userContext(),
           context(),
           options::jhRlvOrder()),  // assertions are user-context dependent
-      d_skolemAssertions(context(), context()),  // skolem assertions are SAT-context dependent
+      d_skolemAssertions(
+          context(), context()),  // skolem assertions are SAT-context dependent
       d_justified(context()),
       d_stack(context()),
       d_lastDecisionLit(context()),
