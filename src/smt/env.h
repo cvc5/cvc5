@@ -77,13 +77,6 @@ class Env
   /** Get a pointer to the UserContext owned by this Env. */
   context::UserContext* getUserContext();
 
-  /**
-   * Get a pointer to the context in which lemmas are assumed to be dependent
-   * upon. This can either be the SAT context or the user context, depending
-   * on what options we are using.
-   */
-  context::Context* getLemmaContext();
-
   /** Get a pointer to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
