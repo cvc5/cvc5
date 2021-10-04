@@ -1380,33 +1380,34 @@ class SolverTest
       assertions.add(() -> assertEquals(info.intValue().intValue(), 0));
     }
     assertAll(assertions);
-    //     {
-    //       OptionInfo info = d_solver.getOptionInfo("random-freq");
-    //       assertEquals(info.getName(), "random-freq");
-    //       assertEquals(info.getAliases(), new String[] {"random-frequency"});
-    //       assertTrue(info.getValueInfo().getClass() == OptionInfo.NumberInfo.class);
-    //       OptionInfo.NumberInfo<Double> ni = (OptionInfo.NumberInfo<Double>) info.getValueInfo();
-    //       assertEquals(ni.getCurrentValue(), 0.0);
-    //       assertEquals(ni.getDefaultValue(), 0.0);
-    //       assertTrue(ni.getMinimum() == null && ni.getMaximum() == null);
-    //       assertEquals(ni.getMinimum(), 0.0);
-    //       assertEquals(ni.getMaximum(), 1.0);
-    //       assertEquals(info.doubleValue(), 0.0);
-    //     }
-    //     {
-    //       // mode option
-    //       OptionInfo info = d_solver.getOptionInfo("output");
-    //       assertions.clear();
-    //       assertions.add(() -> assertEquals("output", info.getName()));
-    //       assertions.add(() -> assertEquals(new String[] {}, info.getAliases()));
-    //       assertions.add(() -> assertTrue(info.getValueInfo().getClass() ==
-    //       OptionInfo.ModeInfo.class)); OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo)
-    //       info.getValueInfo(); assertions.add(() -> assertEquals("NONE",
-    //       modeInfo.getDefaultValue())); assertions.add(() -> assertEquals("OutputTag::NONE",
-    //       modeInfo.getCurrentValue())); assertions.add(() ->
-    //       assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));
-    //     }
-    //     assertAll(assertions);
+    {
+      OptionInfo info = d_solver.getOptionInfo("random-freq");
+      assertEquals(info.getName(), "random-freq");
+      assertEquals(
+          Arrays.asList(info.getAliases()), Arrays.asList(new String[] {"random-frequency"}));
+      assertTrue(info.getValueInfo().getClass() == OptionInfo.NumberInfo.class);
+      OptionInfo.NumberInfo<Double> ni = (OptionInfo.NumberInfo<Double>) info.getValueInfo();
+      assertEquals(ni.getCurrentValue(), 0.0);
+      assertEquals(ni.getDefaultValue(), 0.0);
+      assertTrue(ni.getMinimum() != null && ni.getMaximum() != null);
+      assertEquals(ni.getMinimum(), 0.0);
+      assertEquals(ni.getMaximum(), 1.0);
+      assertEquals(info.doubleValue(), 0.0);
+    }
+    {
+      // mode option
+      OptionInfo info = d_solver.getOptionInfo("output");
+      assertions.clear();
+      assertions.add(() -> assertEquals("output", info.getName()));
+      assertions.add(
+          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+      assertions.add(() -> assertTrue(info.getValueInfo().getClass() == OptionInfo.ModeInfo.class));
+      OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getValueInfo();
+      assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
+      assertions.add(() -> assertEquals("OutputTag::NONE", modeInfo.getCurrentValue()));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));
+    }
+    assertAll(assertions);
   }
 
   @Test void getUnsatAssumptions1()

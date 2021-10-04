@@ -226,6 +226,60 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
     return ret;
   }
 
+  if (std::holds_alternative<OptionInfo::NumberInfo<double>>(v))
+  {
+    jclass valueInfoClass = env->FindClass("cvc5/OptionInfo$NumberInfo");
+    jmethodID methodId =
+        env->GetMethodID(valueInfoClass,
+                         "<init>",
+                         "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/"
+                         "Object;Ljava/lang/Object;Ljava/lang/Object;)V");
+
+    auto info = std::get<OptionInfo::NumberInfo<double>>(v);
+
+    jobject defaultValue = getDoubleObject(env, info.defaultValue);
+    jobject currentValue = getDoubleObject(env, info.currentValue);
+    jobject minimum = nullptr;
+    if (info.minimum)
+    {
+      minimum = getDoubleObject(env, *info.minimum);
+    }
+    jobject maximum = nullptr;
+    if (info.maximum)
+    {
+      maximum = getDoubleObject(env, *info.maximum);
+    }
+    ret = env->NewObject(valueInfoClass,
+                         methodId,
+                         optionInfo,
+                         defaultValue,
+                         currentValue,
+                         minimum,
+                         maximum);
+    return ret;
+  }
+
+  if (std::holds_alternative<OptionInfo::ModeInfo>(v))
+  {
+    auto info = std::get<OptionInfo::ModeInfo>(v);
+    jclass modeInfoClass = env->FindClass("cvc5/OptionInfo$ModeInfo");
+    jmethodID methodId =
+        env->GetMethodID(modeInfoClass,
+                         "<init>",
+                         "(Lcvc5/OptionInfo;Ljava/lang/String;Ljava/lang/"
+                         "String;[Ljava/lang/String;)V");
+    jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
+    jstring currentValue = env->NewStringUTF(info.currentValue.c_str());
+    jobject stringArray = getStringArrayFromStrings(env, info.modes);
+    ret = env->NewObject(modeInfoClass,
+                         methodId,
+                         optionInfo,
+                         defaultValue,
+                         currentValue,
+                         stringArray);
+    return ret;
+  }
+
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }

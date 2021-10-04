@@ -31,3 +31,12 @@ jobjectArray getStringArrayFromStrings(JNIEnv* env,
   }
   return ret;
 }
+
+jobject getDoubleObject(JNIEnv* env, double cValue)
+{
+  jdouble jValue = static_cast<jdouble>(cValue);
+  jclass doubleClass = env->FindClass("java/lang/Double");
+  jmethodID methodId = env->GetMethodID(doubleClass, "<init>", "(D)V");
+  jobject ret = env->NewObject(doubleClass, methodId, jValue);
+  return ret;
+}

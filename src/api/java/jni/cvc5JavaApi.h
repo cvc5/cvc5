@@ -93,6 +93,13 @@ jlongArray getPointersFromObjects(JNIEnv* env, std::vector<T> objects)
   return ret;
 }
 
+/**
+ * Convert a cpp signed (unsigned) integer to an object of BigInteger class
+ * @tparam T cpp types (int64_t, uint64_t, int32_t, int32_t, etc)
+ * @param env jni environment
+ * @param value cpp integer value
+ * @return an object of java BigInteger
+ */
 template <class T>
 jobject getBigIntegerObject(JNIEnv* env, T value)
 {
@@ -107,7 +114,21 @@ jobject getBigIntegerObject(JNIEnv* env, T value)
   return ret;
 }
 
+/**
+ * Generate an array of java strings from a vector of cpp strings
+ * @param env jni environment
+ * @param cStrings a vector of strings
+ * @return an array of java strings
+ */
 jobjectArray getStringArrayFromStrings(
     JNIEnv* env, const std::vector<std::string>& cStrings);
+
+/**
+ * Generate a Double object from cpp double value
+ * @param env jni environment
+ * @param value
+ * @return a Double object
+ */
+jobject getDoubleObject(JNIEnv* env, double value);
 
 #endif  // CVC5__JAVA_API_H
