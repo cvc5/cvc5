@@ -226,7 +226,7 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     TypeNode btn = nm->booleanType();
     TypeNode tnv = nm->mkFunctionType(btn, tn);
-    TypeNode btnv = nm->mkFunctionType(btn, btn);
+    TypeNode btnv = nm->mkFunctionType({btn, btn}, btn);
     BitVector bv = n.getConst<BitVector>();
     size_t w = bv.getSize();
     Node ret = getSymbolInternal(k, btn, "bvn");
@@ -358,7 +358,7 @@ Node LfscNodeConverter::postConvert(Node n)
     TypeNode btn = nm->booleanType();
     // (bbT t1 ... tn) is (bbT t1 (bbT t2 ... (bbT tn emptybv)))
     // where notice that each bbT has a different type
-    Node curr = getNullTerminator(k, tn);
+    Node curr = getNullTerminator(BITVECTOR_CONCAT, tn);
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
       TypeNode bvt = nm->mkBitVectorType(i + 1);
