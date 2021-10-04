@@ -294,10 +294,10 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    SkolemCache sc(false);
+    SkolemCache skc(nullptr);
     std::vector<Node> newSkolems;
     Node conc = CoreSolver::getConclusion(
-        atom[0][0], atom[1], id, isRev, &sc, newSkolems);
+        atom[0][0], atom[1], id, isRev, &skc, newSkolems);
     return conc;
   }
   else if (id == PfRule::STRING_REDUCTION
