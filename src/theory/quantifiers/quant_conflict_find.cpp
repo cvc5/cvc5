@@ -598,7 +598,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
     }else{
       Node inst =
           getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
-      inst = rewrite(inst);
+      inst = Rewriter::rewrite(inst);
       Node inst_eval = p->getTermDatabase()->evaluateTerm(
           inst, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
@@ -653,7 +653,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
 
 bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
   Trace("qcf-tconstraint-debug") << "Check : " << lit << std::endl;
-  Node rew = rewrite(lit);
+  Node rew = Rewriter::rewrite(lit);
   if (rew.isConst())
   {
     Trace("qcf-tconstraint-debug") << "...constraint " << lit << " rewrites to "
@@ -664,7 +664,7 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
   // constraint is (not) entailed
   if (!chEnt)
   {
-    rew = rewrite(rew.negate());
+    rew = Rewriter::rewrite(rew.negate());
   }
   // check if it is entailed
   Trace("qcf-tconstraint-debug")
