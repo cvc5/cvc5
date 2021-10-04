@@ -935,9 +935,9 @@ class CVC5_EXPORT Op
   size_t getNumIndicesHelper() const;
 
   /**
-   * Helper for operator[](size_t i).
-   * @param i position of the index. Should be less than getNumIndicesHelper().
-   * @return the index at position i
+   * Helper for operator[](size_t index).
+   * @param index position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position index
    */
   Term getIndexHelper(size_t index) const;
 
