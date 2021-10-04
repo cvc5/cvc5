@@ -36,7 +36,7 @@ void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
 
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
-  d_env.getResourceManager()->spendResource(Resource::DecisionStep);
+  resourceManager()->spendResource(Resource::DecisionStep);
   return getNextInternal(stopSearch);
 }
 
