@@ -115,13 +115,12 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
                OptionInfo::ModeInfo>
       v = current->valueInfo;
 
-  jobject ret;
   if (std::holds_alternative<OptionInfo::VoidInfo>(v))
   {
     jclass voidInfoClass = env->FindClass("cvc5/OptionInfo$VoidInfo");
     jmethodID methodId =
         env->GetMethodID(voidInfoClass, "<init>", "(Lcvc5/OptionInfo;)V");
-    ret = env->NewObject(voidInfoClass, methodId, optionInfo);
+    jobject ret = env->NewObject(voidInfoClass, methodId, optionInfo);
     return ret;
   }
 
@@ -133,18 +132,10 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
         valueInfoClass,
         "<init>",
         "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/Object;)V");
-    jclass booleanClass = env->FindClass("Ljava/lang/Boolean;");
-    jmethodID booleanConstructor =
-        env->GetMethodID(booleanClass, "<init>", "(Z)V");
-    jobject currentValue =
-        env->NewObject(booleanClass,
-                       booleanConstructor,
-                       static_cast<jboolean>(info.currentValue));
-    jobject defaultValue =
-        env->NewObject(booleanClass,
-                       booleanConstructor,
-                       static_cast<jboolean>(info.defaultValue));
-    ret = env->NewObject(
+
+    jobject currentValue = getBooleanObject(env, info.currentValue);
+    jobject defaultValue = getBooleanObject(env, info.defaultValue);
+    jobject ret = env->NewObject(
         valueInfoClass, methodId, optionInfo, defaultValue, currentValue);
     return ret;
   }
@@ -160,17 +151,18 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
 
     jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
     jstring currentValue = env->NewStringUTF(info.currentValue.c_str());
-    ret = env->NewObject(
+    jobject ret = env->NewObject(
         valueInfoClass, methodId, optionInfo, defaultValue, currentValue);
     return ret;
   }
 
   if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(v)
-      || std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v))
+      || std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v)
+      || std::holds_alternative<OptionInfo::NumberInfo<double>>(v))
   {
-    jclass valueInfoClass = env->FindClass("cvc5/OptionInfo$NumberInfo");
+    jclass numberInfoClass = env->FindClass("cvc5/OptionInfo$NumberInfo");
     jmethodID methodId =
-        env->GetMethodID(valueInfoClass,
+        env->GetMethodID(numberInfoClass,
                          "<init>",
                          "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/"
                          "Object;Ljava/lang/Object;Ljava/lang/Object;)V");
@@ -193,70 +185,69 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
       {
         maximum = getBigIntegerObject<int64_t>(env, *info.maximum);
       }
-      ret = env->NewObject(valueInfoClass,
-                           methodId,
-                           optionInfo,
-                           defaultValue,
-                           currentValue,
-                           minimum,
-                           maximum);
+      jobject ret = env->NewObject(numberInfoClass,
+                                   methodId,
+                                   optionInfo,
+                                   defaultValue,
+                                   currentValue,
+                                   minimum,
+                                   maximum);
       return ret;
     }
 
-    auto info = std::get<OptionInfo::NumberInfo<uint64_t>>(v);
-    jobject defaultValue = getBigIntegerObject<int64_t>(env, info.defaultValue);
-    jobject currentValue = getBigIntegerObject<int64_t>(env, info.currentValue);
-    jobject minimum = nullptr;
-    if (info.minimum)
+    if (std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v))
     {
-      minimum = getBigIntegerObject<int64_t>(env, *info.minimum);
-    }
-    jobject maximum = nullptr;
-    if (info.maximum)
-    {
-      maximum = getBigIntegerObject<int64_t>(env, *info.maximum);
-    }
-    ret = env->NewObject(valueInfoClass,
-                         methodId,
-                         optionInfo,
-                         defaultValue,
-                         currentValue,
-                         minimum,
-                         maximum);
-    return ret;
-  }
+      auto info = std::get<OptionInfo::NumberInfo<uint64_t>>(v);
 
-  if (std::holds_alternative<OptionInfo::NumberInfo<double>>(v))
-  {
-    jclass valueInfoClass = env->FindClass("cvc5/OptionInfo$NumberInfo");
-    jmethodID methodId =
-        env->GetMethodID(valueInfoClass,
-                         "<init>",
-                         "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/"
-                         "Object;Ljava/lang/Object;Ljava/lang/Object;)V");
-
-    auto info = std::get<OptionInfo::NumberInfo<double>>(v);
-
-    jobject defaultValue = getDoubleObject(env, info.defaultValue);
-    jobject currentValue = getDoubleObject(env, info.currentValue);
-    jobject minimum = nullptr;
-    if (info.minimum)
-    {
-      minimum = getDoubleObject(env, *info.minimum);
+      jobject defaultValue =
+          getBigIntegerObject<uint64_t>(env, info.defaultValue);
+      jobject currentValue =
+          getBigIntegerObject<uint64_t>(env, info.currentValue);
+      jobject minimum = nullptr;
+      if (info.minimum)
+      {
+        minimum = getBigIntegerObject<uint64_t>(env, *info.minimum);
+      }
+      jobject maximum = nullptr;
+      if (info.maximum)
+      {
+        maximum = getBigIntegerObject<uint64_t>(env, *info.maximum);
+      }
+      jobject ret = env->NewObject(numberInfoClass,
+                                   methodId,
+                                   optionInfo,
+                                   defaultValue,
+                                   currentValue,
+                                   minimum,
+                                   maximum);
+      return ret;
     }
-    jobject maximum = nullptr;
-    if (info.maximum)
+
+    if (std::holds_alternative<OptionInfo::NumberInfo<double>>(v))
     {
-      maximum = getDoubleObject(env, *info.maximum);
+      auto info = std::get<OptionInfo::NumberInfo<double>>(v);
+
+      jobject defaultValue = getDoubleObject(env, info.defaultValue);
+      jobject currentValue = getDoubleObject(env, info.currentValue);
+      jobject minimum = nullptr;
+      if (info.minimum)
+      {
+        minimum = getDoubleObject(env, *info.minimum);
+      }
+      jobject maximum = nullptr;
+      if (info.maximum)
+      {
+        maximum = getDoubleObject(env, *info.maximum);
+      }
+      jobject ret = env->NewObject(numberInfoClass,
+                                   methodId,
+                                   optionInfo,
+                                   defaultValue,
+                                   currentValue,
+                                   minimum,
+                                   maximum);
+      return ret;
     }
-    ret = env->NewObject(valueInfoClass,
-                         methodId,
-                         optionInfo,
-                         defaultValue,
-                         currentValue,
-                         minimum,
-                         maximum);
-    return ret;
   }
 
   if (std::holds_alternative<OptionInfo::ModeInfo>(v))
@@ -271,16 +262,16 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
     jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
     jstring currentValue = env->NewStringUTF(info.currentValue.c_str());
     jobject stringArray = getStringArrayFromStringVector(env, info.modes);
-    ret = env->NewObject(modeInfoClass,
-                         methodId,
-                         optionInfo,
-                         defaultValue,
-                         currentValue,
-                         stringArray);
+    jobject ret = env->NewObject(modeInfoClass,
+                                 methodId,
+                                 optionInfo,
+                                 defaultValue,
+                                 currentValue,
+                                 stringArray);
     return ret;
   }
 
-  return ret;
+  return nullptr;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 

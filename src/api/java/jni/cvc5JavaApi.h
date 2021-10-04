@@ -131,4 +131,12 @@ jobjectArray getStringArrayFromStringVector(
  */
 jobject getDoubleObject(JNIEnv* env, double value);
 
+/**
+ * Generate a Boolean object from cpp bool value
+ * @param env jni environment
+ * @param value
+ * @return a Boolean object
+ */
+jobject getBooleanObject(JNIEnv* env, bool value);
+
 #endif  // CVC5__JAVA_API_H

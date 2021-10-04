@@ -40,3 +40,15 @@ jobject getDoubleObject(JNIEnv* env, double cValue)
   jobject ret = env->NewObject(doubleClass, methodId, jValue);
   return ret;
 }
+
+jobject getBooleanObject(JNIEnv* env, bool cValue)
+{
+  jboolean jValue = static_cast<jboolean>(cValue);
+  jclass booleanClass = env->FindClass("Ljava/lang/Boolean;");
+  jmethodID booleanConstructor =
+      env->GetMethodID(booleanClass, "<init>", "(Z)V");
+  jobject currentValue =
+      env->NewObject(booleanClass, booleanConstructor, jValue);
+  jobject ret = env->NewObject(booleanClass, booleanConstructor, jValue);
+  return ret;
+}
