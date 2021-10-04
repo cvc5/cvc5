@@ -139,7 +139,7 @@ class OptionsHandler
   void abcEnabledBuild(const std::string& option,
                        const std::string& flag,
                        const std::string& value);
-  /** Check that abc is enabled */
+  /** Check that the sat solver mode is compatible with other bv options */
   void checkBvSatSolver(const std::string& option,
                         const std::string& flag,
                         SatSolverMode m);
