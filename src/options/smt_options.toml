@@ -259,7 +259,6 @@ name   = "SMT Layer"
   category   = "common"
   long       = "produce-assertions"
   type       = "bool"
-  alias      = ["interactive-mode"]
   help       = "keep an assertions list (enables get-assertions command)"
 
 [[option]]
