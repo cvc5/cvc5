@@ -43,8 +43,9 @@ class SkolemCache
   /**
    * Constructor.
    *
-   * useOpts determines if we aggressively share Skolems or return the constants
-   * they are entailed to be equal to.
+   * @param rr determines if we aggressively share Skolems based on rewriting or
+   * return the constants they are entailed to be equal to. This argument is
+   * optional.
    */
   SkolemCache(Rewriter* rr);
   /** Identifiers for skolem types
