@@ -34,10 +34,6 @@
   (= (str.substr s n m) "")
   (= s ""))
 
-(define-rule* str-len-concat ((s1 String) (s2 String) (s3 String :list))
-  (str.len (str.++ s1 s2 s3))
-  (+ (str.len s1) (str.len (str.++ s2 s3))))
-
 (define-cond-rule str-len-replace-inv ((t String) (s String) (r String)) 
   (= (str.len s) (str.len r))
   (str.len (str.replace t s r))
@@ -143,3 +139,7 @@
 
 (define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
 
+(define-rule* str-len-concat-rec ((s1 String) (s2 String) (s3 String :list))
+  (str.len (str.++ s1 s2 s3))
+  (str.len (str.++ s2 s3))
+  (+ (str.len s1) _))

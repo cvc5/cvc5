@@ -90,6 +90,8 @@ class Op(Enum):
 
     EQ = auto()
     ITE = auto()
+    LAMBDA = auto()
+    BOUND_VARS = auto()
 
     ###########################################################################
     # Strings
@@ -195,6 +197,20 @@ class Sort(Node):
 
     def is_int(self):
         return self.base == BaseSort.Int
+
+
+class Placeholder(Node):
+    def __init__(self):
+        super().__init__([], None)
+
+    def __eq__(self, other):
+        return isinstance(other, Placeholder)
+
+    def __hash__(self):
+        return hash('_')
+
+    def __repr__(self):
+        return '_'
 
 
 class Var(Node):

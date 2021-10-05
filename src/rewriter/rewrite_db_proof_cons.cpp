@@ -103,7 +103,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
       cdp->addStep(eq, PfRule::ENCODE_PRED_TRANSFORM, {eqi}, {eq});
     }
     ensureProofInternal(cdp, eqi);
-    AlwaysAssert(cdp->hasStep(eqi));
+    AlwaysAssert(cdp->hasStep(eqi)) << eqi;
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
   }
   Trace("rpc") << "..." << (success ? "success" : "fail") << std::endl;
@@ -209,6 +209,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     {
       // successfully proved, store in temporary variable
       d_currFixedPointConc = target;
+      d_currFixedPointSubs = subs;
     }
     // regardless, no further matches, due to semantics of fixed point which
     // limits to first match
@@ -824,7 +825,8 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
     d_currFixedPointId = rpr.getId();
     // check if stgt also rewrites with the same rule?
     bool continueFixedPoint;
-    std::vector<Node> transEq;
+    std::vector<Node> steps;
+    std::vector<std::vector<Node>> stepsSubs;
     // start from the source, match again to start the chain. Notice this is
     // required for uniformity since we want to successfully cache the first
     // step, independent of the target.
@@ -837,13 +839,50 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       if (!d_currFixedPointConc.isNull())
       {
         // currently avoid accidental loops: arbitrarily bound to 1000
-        continueFixedPoint = transEq.size() <= 1000;
+        continueFixedPoint = steps.size() <= 1000;
         Assert(d_currFixedPointConc.getKind() == EQUAL);
-        transEq.push_back(stgt.eqNode(d_currFixedPointConc[1]));
+        steps.push_back(d_currFixedPointConc[1]);
+        stepsSubs.emplace_back(d_currFixedPointSubs.begin(),
+                               d_currFixedPointSubs.end());
         stgt = d_currFixedPointConc[1];
       }
       d_currFixedPointConc = Node::null();
     } while (continueFixedPoint);
+
+    std::vector<Node> transEq;
+    Node prev = ssrc;
+    Node context = rpr.getContext();
+    Node placeholder = context[0][0];
+    Node body = context[1];
+    Node currConc = body;
+    Node currContext = placeholder;
+    for (size_t i = 0, size = steps.size(); i < size; i++)
+    {
+      const std::vector<Node>& stepSubs = stepsSubs[i];
+      Node step = steps[i];
+      Node source = expr::narySubstitute(conc[0], vars, stepSubs);
+      Node target = expr::narySubstitute(body, vars, stepSubs);
+      target = target.substitute(TNode(placeholder), TNode(step));
+      cacheProofSubPlaceholder(currContext, placeholder, source, target);
+
+      ProvenInfo dpi;
+      dpi.d_id = pi.d_id;
+      dpi.d_vars = vars;
+      dpi.d_subs = stepSubs;
+      d_pcache[source.eqNode(target)] = dpi;
+
+      currConc = expr::narySubstitute(currConc, vars, stepSubs);
+      currContext = currConc;
+      Node prevConc = currConc;
+      if (i < size - 1)
+      {
+        currConc = currConc.substitute(TNode(placeholder), TNode(body));
+      }
+      Node stepConc = prevConc.substitute(TNode(placeholder), TNode(step));
+      transEq.push_back(prev.eqNode(stepConc));
+      prev = stepConc;
+    }
+
     d_currFixedPointId = DslPfRule::FAIL;
     // add the transistivity rule here if needed
     if (transEq.size() >= 2)
@@ -853,9 +892,67 @@ Node RewriteDbProofCons::getRuleConclusion(const RewriteProofRule& rpr,
       pi.d_vars = transEq;
     }
     // return the end of the chain, which will be used for constrained matching
-    return stgt;
+    return transEq.back()[1];
   }
   return expr::narySubstitute(conc[1], vars, subs);
+}
+
+void RewriteDbProofCons::cacheProofSubPlaceholder(TNode context,
+                                                  TNode placeholder,
+                                                  TNode source,
+                                                  TNode target)
+{
+  std::vector<TNode> toVisit = {context};
+  std::unordered_map<TNode, TNode> parent;
+  std::vector<Node> congs;
+  parent[context] = TNode::null();
+  while (!toVisit.empty())
+  {
+    TNode curr = toVisit.back();
+    toVisit.pop_back();
+
+    if (curr == placeholder)
+    {
+      while (parent[curr] != Node::null())
+      {
+        Node lhs = parent[curr].substitute(placeholder, source);
+        Node rhs = parent[curr].substitute(placeholder, target);
+        congs.emplace_back(lhs.eqNode(rhs));
+        curr = parent[curr];
+      }
+      break;
+    }
+
+    for (TNode n : curr)
+    {
+      if (parent.find(n) != parent.end())
+      {
+        continue;
+      }
+
+      toVisit.emplace_back(n);
+      parent[n] = curr;
+    }
+  }
+
+  for (const Node& cong : congs)
+  {
+    ProvenInfo cpi;
+    cpi.d_id = DslPfRule::CONG;
+    for (size_t i = 0, size = cong[0].getNumChildren(); i < size; i++)
+    {
+      TNode lhs = cong[0][i];
+      TNode rhs = cong[1][i];
+      if (lhs == rhs)
+      {
+        ProvenInfo pi;
+        pi.d_id = DslPfRule::REFL;
+        d_pcache[lhs.eqNode(rhs)] = pi;
+      }
+      cpi.d_vars.emplace_back(lhs.eqNode(rhs));
+    }
+    d_pcache[cong] = cpi;
+  }
 }
 
 }  // namespace rewriter

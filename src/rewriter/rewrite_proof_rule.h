@@ -61,7 +61,7 @@ class RewriteProofRule
             const std::vector<Node>& fvs,
             const std::vector<Node>& cond,
             Node conc,
-            bool isFixedPoint,
+            Node context,
             bool isFlatForm);
   /** get id */
   DslPfRule getId() const;
@@ -71,6 +71,8 @@ class RewriteProofRule
   const std::vector<Node>& getUserVarList() const;
   /** Get variable list */
   const std::vector<Node>& getVarList() const;
+  /** The context that the rule is applied in */
+  Node getContext() const { return d_context; }
   /** Does this rule have conditions? */
   bool hasConditions() const;
   /** Get (declared) conditions */
@@ -134,8 +136,8 @@ class RewriteProofRule
   std::vector<Node> d_obGen;
   /** The conclusion of the rule (an equality) */
   Node d_conc;
-  /** Is the rule applied until a fixed point is reached? */
-  bool d_isFixedPoint;
+  /** Is the rule applied in some fixed point context? */
+  Node d_context;
   /** Whether the rule is in flat form */
   bool d_isFlatForm;
   /** the ordered list of free variables, provided by the user */
