@@ -1030,6 +1030,39 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    // ======== And introduction
+    // See proof_rule.h for documentation on the AND_INTRO rule. This
+    // comment uses variable names as introduced there.
+    //
+    //
+    // ----- AND_NEG
+    //  VP1            P1 ... Pn
+    // -------------------------- RESOLUTION
+    //   (cl (and F1 ... Fn))*
+    //
+    // VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn))
+    //
+    // * the corresponding proof node is (and F1 ... Fn)
+    case PfRule::AND_INTRO:
+    {
+      std::vector<Node> neg_Nodes = {d_cl,res};
+      for (size_t i = 0, size = children.size(); i < size; i++)
+      {
+        neg_Nodes.push_back(children[i].notNode());
+      }
+      Node vp1 = nm->mkNode(kind::SEXPR, neg_Nodes);
+
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+
+      return addAletheStep(AletheRule::AND_NEG, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
