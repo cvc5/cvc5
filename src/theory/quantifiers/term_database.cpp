@@ -586,7 +586,7 @@ Node TermDb::evaluateTerm2(TNode n,
           args.insert(args.begin(), n.getOperator());
         }
         ret = NodeManager::currentNM()->mkNode(n.getKind(), args);
-        ret = Rewriter::rewrite(ret);
+        ret = rewrite(ret);
         if (ret.getKind() == EQUAL)
         {
           if (d_qstate.areDisequal(ret[0], ret[1]))

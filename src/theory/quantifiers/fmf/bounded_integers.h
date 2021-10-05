@@ -216,6 +216,22 @@ private:
   /** Identify this module */
   std::string identify() const override { return "BoundedIntegers"; }
 
+  /**
+   * Make internal quantified formula with bound variable list bvl and body.
+   * Internally, we get a node corresponding to marking a quantified formula as
+   * a "bounded quantified formula". This node is provided as the third argument
+   * of the FORALL returned by this method. This ensures that E-matching is not
+   * applied to the quantified formula, and that this module is the one that
+   * handles it.
+   */
+  static Node mkBoundedForall(Node bvl, Node body);
+  /**
+   * Has this node been marked as an annotation for a bounded quantified
+   * formula? This is true for the annotation in the formula returned by the
+   * above method.
+   */
+  static bool isBoundedForallAttribute(Node var);
+
  private:
   /**
    * Set that variable v of quantified formula q has a finite bound, where
