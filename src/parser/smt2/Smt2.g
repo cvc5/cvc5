@@ -332,13 +332,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       {
         PARSER_STATE->popScope();
       }
-      // declare the name down here (while parsing term, signature
-      // must not be extended with the name itself; no recursion
-      // permitted)
-      // we allow overloading for function definitions
-      api::Term func = PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DefineFunctionCommand(
-          name, func, terms, expr, SYM_MAN->getGlobalDeclarations()));
+          name, terms, t, expr, SYM_MAN->getGlobalDeclarations()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
@@ -991,9 +986,8 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
       {
-        api::Term func = PARSER_STATE->bindVar(name, e.getSort());
         cmd->reset(new DefineFunctionCommand(
-            name, func, e, SYM_MAN->getGlobalDeclarations()));
+            name, e.getSort(), e, SYM_MAN->getGlobalDeclarations()));
       }
     | // (define (f (v U) ...) t)
       LPAREN_TOK
@@ -1021,9 +1015,8 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
           }
           tt = SOLVER->mkFunctionSort(sorts, tt);
         }
-        api::Term func = PARSER_STATE->bindVar(name, tt);
         cmd->reset(new DefineFunctionCommand(
-            name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
+            name, terms, tt, e, SYM_MAN->getGlobalDeclarations()));
       }
     )
   | // (define-const x U t)
@@ -1036,9 +1029,8 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      api::Term func = PARSER_STATE->bindVar(name, t);
       cmd->reset(new DefineFunctionCommand(
-          name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
+          name, terms, t, e, SYM_MAN->getGlobalDeclarations()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1850,6 +1842,8 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       // notify that expression was given a name
+      PARSER_STATE->preemptCommand(new DefineFunctionCommand(
+          s, expr.getSort(), expr, SYM_MAN->getGlobalDeclarations()));
       PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;

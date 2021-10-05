@@ -494,17 +494,17 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
 {
  public:
   DefineFunctionCommand(const std::string& id,
-                        api::Term func,
+                        api::Sort sort,
                         api::Term formula,
                         bool global);
   DefineFunctionCommand(const std::string& id,
-                        api::Term func,
                         const std::vector<api::Term>& formals,
+                        api::Sort sort,
                         api::Term formula,
                         bool global);
 
-  api::Term getFunction() const;
   const std::vector<api::Term>& getFormals() const;
+  api::Sort getSort() const;
   api::Term getFormula() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
@@ -516,10 +516,10 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
                 Language language = Language::LANG_AUTO) const override;
 
  protected:
-  /** The function we are defining */
-  api::Term d_func;
   /** The formal arguments for the function we are defining */
   std::vector<api::Term> d_formals;
+  /** The co-domain sort of the function we are defining */
+  api::Sort d_sort;
   /** The formula corresponding to the body of the function we are defining */
   api::Term d_formula;
   /**

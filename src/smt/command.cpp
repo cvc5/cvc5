@@ -1313,12 +1313,12 @@ void DefineSortCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
-                                             api::Term func,
+                                             api::Sort sort,
                                              api::Term formula,
                                              bool global)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_formals(),
+      d_sort(sort),
       d_formula(formula),
       d_global(global)
 {
@@ -1326,33 +1326,32 @@ DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
 
 DefineFunctionCommand::DefineFunctionCommand(
     const std::string& id,
-    api::Term func,
     const std::vector<api::Term>& formals,
+    api::Sort sort,
     api::Term formula,
     bool global)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_formals(formals),
+      d_sort(sort),
       d_formula(formula),
       d_global(global)
 {
 }
 
-api::Term DefineFunctionCommand::getFunction() const { return d_func; }
 const std::vector<api::Term>& DefineFunctionCommand::getFormals() const
 {
   return d_formals;
 }
 
+api::Sort DefineFunctionCommand::getSort() const { return d_sort; }
+
 api::Term DefineFunctionCommand::getFormula() const { return d_formula; }
+
 void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    if (!d_func.isNull())
-    {
-      solver->defineFun(d_func, d_formals, d_formula, d_global);
-    }
+    solver->defineFun(d_symbol, d_formals, d_sort, d_formula);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1364,7 +1363,7 @@ void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 Command* DefineFunctionCommand::clone() const
 {
   return new DefineFunctionCommand(
-      d_symbol, d_func, d_formals, d_formula, d_global);
+      d_symbol, d_formals, d_sort, d_formula, d_global);
 }
 
 std::string DefineFunctionCommand::getCommandName() const
@@ -1377,16 +1376,11 @@ void DefineFunctionCommand::toStream(std::ostream& out,
                                      size_t dag,
                                      Language language) const
 {
-  TypeNode rangeType = termToNode(d_func).getType();
-  if (rangeType.isFunction())
-  {
-    rangeType = rangeType.getRangeType();
-  }
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
-      d_func.toString(),
+      d_symbol,
       termVectorToNodes(d_formals),
-      rangeType,
+      sortToTypeNode(d_sort),
       termToNode(d_formula));
 }
 
