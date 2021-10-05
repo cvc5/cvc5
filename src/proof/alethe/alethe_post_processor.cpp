@@ -955,6 +955,30 @@ bool AletheProofPostprocessCallback::update(Node res,
                                       {},
                                       *cdp);
     }
+    // ======== Modus ponens
+    // See proof_rule.h for documentation on the MODUS_PONENS rule. This comment
+    // uses variable names as introduced there.
+    //
+    //    (P2:(=> F1 F2))
+    // --------------------- IMPLIES
+    // (VP1:(cl (not F1) F2))             (P1:F1)
+    // ------------------------------------------- RESOLUTION
+    //                   (cl F2)*
+    //
+    // * the corresponding proof node is F2
+    case PfRule::MODUS_PONENS:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+
+      return addAletheStep(
+                 AletheRule::IMPLIES, vp1, vp1, {children[1]}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp1, children[0]},
+                              {},
+                              *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
