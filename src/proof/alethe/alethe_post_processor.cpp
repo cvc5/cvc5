@@ -1891,7 +1891,19 @@ AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {}
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
+  // Translate proof node
+  ProofNodeUpdater updater(d_pnm, d_cb, false, false);
+  updater.process(pf->getChildren()[0]);
+
+  // In the Alethe proof format the final step has to be (cl). However, after
+  // the translation it might be (cl false). In that case additional steps are
+  // required.
+  // The function has the additional purpose of sanitizing the attributes of the
+  // first SCOPE
+  ProofNodeUpdater finalize(d_pnm, d_fcb, false, false);
+  finalize.process(pf);
+}
 
 }  // namespace proof
 
