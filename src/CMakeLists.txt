@@ -223,6 +223,8 @@ libcvc5_add_sources(
   proof/alethe/alethe_post_processor.h
   proof/alethe/alethe_proof_rule.cpp
   proof/alethe/alethe_proof_rule.h
+  proof/alethe/alethe_printer.cpp
+  proof/alethe/alethe_printer.h
   prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h
