@@ -1001,6 +1001,24 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    // ======== Contradiction
+    // See proof_rule.h for documentation on the CONTRADICTION rule. This
+    // comment uses variable names as introduced there.
+    //
+    //  P1   P2
+    // --------- RESOLUTION
+    //  (cl)*
+    //
+    // * the corresponding proof node is false
+    case PfRule::CONTRA:
+    {
+      return addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl),
+                           children,
+                           {},
+                           *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
