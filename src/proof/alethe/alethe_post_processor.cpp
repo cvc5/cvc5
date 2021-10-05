@@ -792,6 +792,38 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    // ======== Factoring
+    // See proof_rule.h for documentation on the FACTORING rule. This comment
+    // uses variable names as introduced there.
+    //
+    // If C2 = (or F1 ... Fn) but C1 != (or C2 ... C2), then VC2 = (cl F1 ...
+    // Fn) Otherwise, VC2 = (cl C2).
+    //
+    //    P
+    // ------- DUPLICATED_LITERALS
+    //   VC2*
+    //
+    // * the corresponding proof node is C2
+    case PfRule::FACTORING:
+    {
+      if (res.getKind() == kind::OR)
+      {
+        for (auto child : children[0])
+        {
+          if (child != res)
+          {
+            return addAletheStepFromOr(
+                AletheRule::DUPLICATED_LITERALS, res, children, {}, *cdp);
+          }
+        }
+      }
+      return addAletheStep(AletheRule::DUPLICATED_LITERALS,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
