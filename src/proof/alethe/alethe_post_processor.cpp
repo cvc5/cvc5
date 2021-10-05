@@ -150,6 +150,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                children,
                                sanitized_args,
                                *cdp);
+
       Node andNode, vp3;
       if (args.size() == 1)
       {
