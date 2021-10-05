@@ -366,7 +366,7 @@ class IntBlaster
   /** the granularity to use in the translation */
   uint64_t d_granularity;
 
-  /** an SmtEngine for context */
+  /** an SolverEngine for context */
   context::Context* d_context;
 
   /** true iff the translator should introduce

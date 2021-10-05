@@ -607,9 +607,6 @@ class CVC5_EXPORT CheckSatCommand : public Command
 {
  public:
   CheckSatCommand();
-  CheckSatCommand(const api::Term& term);
-
-  api::Term getTerm() const;
   api::Result getResult() const;
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
@@ -621,7 +618,6 @@ class CVC5_EXPORT CheckSatCommand : public Command
                 Language language = Language::LANG_AUTO) const override;
 
  private:
-  api::Term d_term;
   api::Result d_result;
 }; /* class CheckSatCommand */
 

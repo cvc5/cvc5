@@ -498,7 +498,7 @@ bool TheoryStrings::collectModelInfoType(
             c = sel->getCurrent();
             // if we are a sequence with infinite element type
             if (tn.isSequence()
-                && !d_state.isFiniteType(tn.getSequenceElementType()))
+                && !d_env.isFiniteType(tn.getSequenceElementType()))
             {
               // Make a skeleton instead. In particular, this means that
               // a value:
