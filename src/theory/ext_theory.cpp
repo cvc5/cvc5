@@ -81,9 +81,7 @@ bool ExtTheoryCallback::getReduction(int effort,
   return false;
 }
 
-ExtTheory::ExtTheory(Env& env,
-                     ExtTheoryCallback& p,
-                     TheoryInferenceManager& im)
+ExtTheory::ExtTheory(Env& env, ExtTheoryCallback& p, TheoryInferenceManager& im)
     : EnvObj(env),
       d_parent(p),
       d_im(im),
