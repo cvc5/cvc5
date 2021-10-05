@@ -42,6 +42,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/theory_inference_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -163,7 +164,7 @@ class ExtTheoryCallback
  * underlying theory for a "derivable substitution", whereby extended functions
  * may be reducable.
  */
-class ExtTheory
+class ExtTheory : protected EnvObj
 {
   using NodeBoolMap = context::CDHashMap<Node, bool>;
   using NodeExtReducedIdMap = context::CDHashMap<Node, ExtReducedId>;
@@ -174,9 +175,8 @@ class ExtTheory
    *
    * If cacheEnabled is false, we do not cache results of getSubstitutedTerm.
    */
-  ExtTheory(ExtTheoryCallback& p,
-            context::Context* c,
-            context::UserContext* u,
+  ExtTheory(Env& env,
+            ExtTheoryCallback& p,
             TheoryInferenceManager& im);
   virtual ~ExtTheory() {}
   /** Tells this class to treat terms with Kind k as extended functions */
