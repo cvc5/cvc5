@@ -81,8 +81,11 @@ bool ExtTheoryCallback::getReduction(int effort,
   return false;
 }
 
-ExtTheory::ExtTheory(Env& env, ExtTheoryCallback& p, TheoryInferenceManager& im)
-    : d_parent(p),
+ExtTheory::ExtTheory(Env& env,
+                     ExtTheoryCallback& p,
+                     TheoryInferenceManager& im)
+    : EnvObj(env),
+      d_parent(p),
       d_im(im),
       d_ext_func_terms(context()),
       d_extfExtReducedIdMap(context()),
