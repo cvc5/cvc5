@@ -25,8 +25,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::Context* lemContext,
-                                   Valuation val)
+RelevanceManager::RelevanceManager(context::Context* lemContext, Valuation val)
     : d_val(val),
       d_input(lemContext),
       d_computed(false),

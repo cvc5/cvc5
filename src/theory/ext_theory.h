@@ -41,8 +41,8 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/theory_inference_manager.h"
 #include "smt/env_obj.h"
+#include "theory/theory_inference_manager.h"
 
 namespace cvc5 {
 namespace theory {
@@ -175,9 +175,7 @@ class ExtTheory : protected EnvObj
    *
    * If cacheEnabled is false, we do not cache results of getSubstitutedTerm.
    */
-  ExtTheory(Env& env,
-            ExtTheoryCallback& p,
-            TheoryInferenceManager& im);
+  ExtTheory(Env& env, ExtTheoryCallback& p, TheoryInferenceManager& im);
   virtual ~ExtTheory() {}
   /** Tells this class to treat terms with Kind k as extended functions */
   void addFunctionKind(Kind k) { d_extf_kind[k] = true; }

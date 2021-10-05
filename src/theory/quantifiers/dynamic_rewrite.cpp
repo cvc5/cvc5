@@ -25,8 +25,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-DynamicRewriter::DynamicRewriter(const std::string& name,
-                                 context::Context* c)
+DynamicRewriter::DynamicRewriter(const std::string& name, context::Context* c)
     : d_equalityEngine(c, "DynamicRewriter::" + name, true), d_rewrites(c)
 {
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
