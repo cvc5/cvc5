@@ -37,6 +37,16 @@ if(Poly_INCLUDE_DIR
   check_system_version("Poly")
 endif()
 
+if(ENABLE_STATIC_LIBRARY AND Poly_FOUND_SYSTEM)
+  force_static_library()
+  find_library(Poly_STATIC_LIBRARIES NAMES poly)
+  find_library(PolyXX_STATIC_LIBRARIES NAMES polyxx)
+  if(NOT Poly_STATIC_LIBRARIES OR NOT PolyXX_STATIC_LIBRARIES)
+    set(Poly_FOUND_SYSTEM FALSE)
+  endif()
+  reset_force_static_library()
+endif()
+
 if(NOT Poly_FOUND_SYSTEM)
   check_ep_downloaded("Poly-EP")
   if(NOT Poly-EP_DOWNLOADED)
@@ -95,6 +105,8 @@ if(NOT Poly_FOUND_SYSTEM)
             <INSTALL_DIR>/lib/libpicpolyxx.a
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libpicpoly.a
                      <INSTALL_DIR>/lib/libpicpolyxx.a
+                     <INSTALL_DIR>/lib/libpoly.so
+                     <INSTALL_DIR>/lib/libpolyxx.so
   )
   ExternalProject_Add_Step(
     Poly-EP cleanup
@@ -104,29 +116,43 @@ if(NOT Poly_FOUND_SYSTEM)
   add_dependencies(Poly-EP GMP_SHARED)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
-  set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
+  set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly.so")
+  set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx.so")
+  set(Poly_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
+  set(PolyXX_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
 endif()
 
 set(Poly_FOUND TRUE)
 
-add_library(Poly STATIC IMPORTED GLOBAL)
-set_target_properties(Poly PROPERTIES IMPORTED_LOCATION "${Poly_LIBRARIES}")
-set_target_properties(
-  Poly PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+add_library(Poly_SHARED SHARED IMPORTED GLOBAL)
+set_target_properties(Poly_SHARED PROPERTIES
+  IMPORTED_LOCATION "${Poly_LIBRARIES}"
+  INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
 )
-if(ENABLE_STATIC_LIBRARY)
-  target_link_libraries(Poly INTERFACE GMP_STATIC)
-else()
-  target_link_libraries(Poly INTERFACE GMP_SHARED)
-endif()
+target_link_libraries(Poly_SHARED INTERFACE GMP_SHARED)
 
-add_library(Polyxx STATIC IMPORTED GLOBAL)
-set_target_properties(Polyxx PROPERTIES IMPORTED_LOCATION "${PolyXX_LIBRARIES}")
-set_target_properties(
-  Polyxx PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+add_library(Polyxx_SHARED SHARED IMPORTED GLOBAL)
+set_target_properties(Polyxx_SHARED PROPERTIES
+  IMPORTED_LOCATION "${PolyXX_LIBRARIES}"
+  INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+  INTERFACE_LINK_LIBRARIES Poly_SHARED
 )
-set_target_properties(Polyxx PROPERTIES INTERFACE_LINK_LIBRARIES Poly)
+
+if(ENABLE_STATIC_LIBRARY)
+  add_library(Poly_STATIC STATIC IMPORTED GLOBAL)
+  set_target_properties(Poly_STATIC PROPERTIES
+    IMPORTED_LOCATION "${Poly_STATIC_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+  )
+  target_link_libraries(Poly_STATIC INTERFACE GMP_STATIC)
+
+  add_library(Polyxx_STATIC STATIC IMPORTED GLOBAL)
+  set_target_properties(Polyxx_STATIC PROPERTIES
+    IMPORTED_LOCATION "${PolyXX_STATIC_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+    INTERFACE_LINK_LIBRARIES Poly_STATIC
+  )
+endif()
 
 mark_as_advanced(Poly_FOUND)
 mark_as_advanced(Poly_FOUND_SYSTEM)
@@ -138,6 +164,10 @@ if(Poly_FOUND_SYSTEM)
   message(STATUS "Found Poly ${Poly_VERSION}: ${Poly_LIBRARIES}")
 else()
   message(STATUS "Building Poly ${Poly_VERSION}: ${Poly_LIBRARIES}")
-  add_dependencies(Poly Poly-EP)
-  add_dependencies(Polyxx Poly-EP)
+  add_dependencies(Poly_SHARED Poly-EP)
+  add_dependencies(Polyxx_SHARED Poly-EP)
+  if(ENABLE_STATIC_LIBRARY)
+    add_dependencies(Poly_STATIC Poly-EP)
+    add_dependencies(Polyxx_STATIC Poly-EP)
+  endif()
 endif()

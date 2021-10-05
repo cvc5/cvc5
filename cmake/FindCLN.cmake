@@ -33,6 +33,15 @@ if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
   check_system_version("CLN")
 endif()
 
+if(ENABLE_STATIC_LIBRARY AND CLN_FOUND_SYSTEM)
+  force_static_library()
+  find_library(CLN_STATIC_LIBRARIES NAMES cln)
+  if(NOT CLN_STATIC_LIBRARIES)
+    set(CLN_FOUND_SYSTEM FALSE)
+  endif()
+  reset_force_static_library()
+endif()
+
 if(NOT CLN_FOUND_SYSTEM)
   check_ep_downloaded("CLN-EP")
   if(NOT CLN-EP_DOWNLOADED)
@@ -62,28 +71,35 @@ if(NOT CLN_FOUND_SYSTEM)
       ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> ./autogen.sh
     COMMAND
       ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> autoreconf -iv
-    COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-shared
+    COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-shared
             --enable-static --with-pic
-    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcln.a
+    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcln.a <INSTALL_DIR>/lib/libcln.so
   )
 
   add_dependencies(CLN-EP GMP_SHARED)
 
   set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
+  set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln.so")
+  set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
 endif()
 
 set(CLN_FOUND TRUE)
 
-add_library(CLN STATIC IMPORTED GLOBAL)
-set_target_properties(CLN PROPERTIES
+add_library(CLN_SHARED SHARED IMPORTED GLOBAL)
+set_target_properties(CLN_SHARED PROPERTIES
   IMPORTED_LOCATION "${CLN_LIBRARIES}"
   INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
 )
+target_link_libraries(CLN_SHARED INTERFACE GMP_SHARED)
+
+
 if(ENABLE_STATIC_LIBRARY)
-  target_link_libraries(CLN INTERFACE GMP_STATIC)
-else()
-  target_link_libraries(CLN INTERFACE GMP_SHARED)
+  add_library(CLN_STATIC STATIC IMPORTED GLOBAL)
+  set_target_properties(CLN_STATIC PROPERTIES
+    IMPORTED_LOCATION "${CLN_STATIC_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
+  )
+  target_link_libraries(CLN_STATIC INTERFACE GMP_STATIC)
 endif()
 
 mark_as_advanced(AUTORECONF)
@@ -96,5 +112,6 @@ if(CLN_FOUND_SYSTEM)
   message(STATUS "Found CLN ${CLN_VERSION}: ${CLN_LIBRARIES}")
 else()
   message(STATUS "Building CLN ${CLN_VERSION}: ${CLN_LIBRARIES}")
-  add_dependencies(CLN CLN-EP)
+  add_dependencies(CLN_SHARED CLN-EP)
+  add_dependencies(CLN_STATIC CLN-EP)
 endif()
