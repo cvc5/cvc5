@@ -372,6 +372,7 @@ bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,
                                   std::vector<NlLemma>& lemmas)
 {
+  Assert(eq.getType().isBoolean());
   Node seq = eq;
   if (!d_substitutions.empty())
   {
