@@ -84,10 +84,9 @@ Node NlModel::computeModelValue(TNode n, bool isConcrete)
   {
     ret = n;
   }
-  else if (auto it = d_arithVal.find(n); !isConcrete && it != d_arithVal.end())
+  else if (!isConcrete && hasLinearModelValue(n, ret))
   {
     // use model value for abstraction
-    ret = it->second;
   }
   else if (n.getNumChildren() == 0)
   {
@@ -1299,6 +1298,17 @@ bool NlModel::hasAssignment(Node v) const
     return true;
   }
   return (d_substitutions.contains(v));
+}
+
+bool NlModel::hasLinearModelValue(TNode v, Node& val) const
+{
+  auto it = d_arithVal.find(v);
+  if (it != d_arithVal.end())
+  {
+    val = it->second;
+    return true;
+  }
+  return false;
 }
 
 }  // namespace nl

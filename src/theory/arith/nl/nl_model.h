@@ -226,6 +226,13 @@ class NlModel
    */
   bool hasAssignment(Node v) const;
 
+  /**
+   * Checks whether we have a linear model value for v, i.e. whether v is
+   * contained in d_arithVal. If so, we also store the value that v is mapped
+   * to in val.
+   */
+  bool hasLinearModelValue(TNode v, Node& val) const;
+
   //---------------------------check model
   /**
    * This method is used during checkModel(...). It takes as input an
