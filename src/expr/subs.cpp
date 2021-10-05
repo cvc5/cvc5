@@ -44,14 +44,14 @@ Node Subs::getSubs(Node v) const
   return d_subs[i];
 }
 
-std::optional<std::pair<Node, Node>> Subs::find(TNode v) const
+std::optional<Node> Subs::find(TNode v) const
 {
   auto it = std::find(d_vars.begin(), d_vars.end(), v);
   if (it == d_vars.end())
   {
     return {};
   }
-  return std::make_pair(*it, d_subs[std::distance(d_vars.begin(), it)]);
+  return d_subs[std::distance(d_vars.begin(), it)];
 }
 
 void Subs::add(Node v)

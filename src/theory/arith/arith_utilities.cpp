@@ -222,7 +222,7 @@ Node arithSubstitute(Node n, const Subs& sub)
       auto s = sub.find(cur);
       if (s)
       {
-        visited[cur] = s->second;
+        visited[cur] = *s;
       }
       else if (cur.getNumChildren() == 0)
       {
