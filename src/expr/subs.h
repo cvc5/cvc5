@@ -43,6 +43,7 @@ class Subs
   bool contains(Node v) const;
   /** Get the substitution for v if it exists, or null otherwise */
   Node getSubs(Node v) const;
+  /** Find the substitution for v, or return std::nullopt */
   std::optional<Node> find(TNode v) const;
   /** Add v -> k for fresh skolem of the same type as v */
   void add(Node v);
