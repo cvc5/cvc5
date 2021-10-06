@@ -779,6 +779,7 @@ set(regress_0_tests
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
   regress0/parser/issue5163.smt2
+  regress0/parser/issue7274.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -2283,6 +2284,7 @@ set(regress_1_tests
   regress1/sygus/abd-simple-conj-4.smt2
   regress1/sygus/abduction_1255.corecstrs.readable.smt2
   regress1/sygus/abduction_streq.readable.smt2
+  regress1/sygus/abduction-no-pbe-sym-break.smt2
   regress1/sygus/abv.sy
   regress1/sygus/array-grammar-store.sy
   regress1/sygus/array_search_5-Q-easy.sy
