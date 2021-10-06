@@ -35,17 +35,15 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-Preprocessor::Preprocessor(SolverEngine& slv,
-                           Env& env,
+Preprocessor::Preprocessor(Env& env,
                            AbstractValues& abs,
                            SmtEngineStatistics& stats)
-    : d_slv(slv),
-      d_env(env),
+    : EnvObj(env),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_exDefs(env, stats),
-      d_processor(slv, *env.getResourceManager(), stats),
+      d_processor(env, stats),
       d_pnm(nullptr)
 {
 }
@@ -59,10 +57,10 @@ Preprocessor::~Preprocessor()
   }
 }
 
-void Preprocessor::finishInit()
+void Preprocessor::finishInit(SolverEngine * slv)
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_slv, d_env, &d_propagator));
+      slv, d_env, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());

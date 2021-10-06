@@ -124,8 +124,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // reset the preprocessor
-  d_pp.reset(
-      new smt::Preprocessor(*this, *d_env.get(), *d_absValues.get(), *d_stats));
+  d_pp.reset(new smt::Preprocessor(*d_env.get(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
@@ -209,7 +208,7 @@ void SolverEngine::finishInit()
   }
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit(logic);
+  d_smtSolver->finishInit();
 
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
@@ -258,7 +257,7 @@ void SolverEngine::finishInit()
     d_interpolSolver.reset(new InterpolationSolver(*d_env.get()));
   }
 
-  d_pp->finishInit();
+  d_pp->finishInit(this);
 
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SolverEngine "
