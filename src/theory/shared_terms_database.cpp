@@ -54,7 +54,7 @@ void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
     {
       ProofNodeManager* pnm = d_env.getProofNodeManager();
       d_pfeeAlloc.reset(new eq::ProofEqEngine(
-          env.getContext(), env.getUserContext(), *ee, pnm));
+          d_env.getContext(), d_env.getUserContext(), *ee, pnm));
       d_pfee = d_pfeeAlloc.get();
       d_equalityEngine->setProofEqualityEngine(d_pfee);
     }
