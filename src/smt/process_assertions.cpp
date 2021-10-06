@@ -437,9 +437,9 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
   return true;
 }
 
-void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
+void ProcessAssertions::dumpAssertions(const char* key, const Assertions& as)
 {
-  if (Dump.isOn("assertions") && Dump.isOn(key))
+  if (Dump.isOn("assertions") && Dump.isOn(string("assertions:") + key))
   {
     const AssertionPipeline& assertionList = as.getAssertionPipeline();
     // Push the simplified assertions to the dump output stream
