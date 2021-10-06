@@ -166,8 +166,19 @@ else()
   message(STATUS "Building Poly ${Poly_VERSION}: ${Poly_LIBRARIES}")
   add_dependencies(Poly_SHARED Poly-EP)
   add_dependencies(Polyxx_SHARED Poly-EP)
+
+  install(FILES
+    $<TARGET_SONAME_FILE:Poly_SHARED> $<TARGET_SONAME_FILE:Polyxx_SHARED>
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+
   if(ENABLE_STATIC_LIBRARY)
     add_dependencies(Poly_STATIC Poly-EP)
     add_dependencies(Polyxx_STATIC Poly-EP)
+    
+    install(FILES
+      $<TARGET_LINKER_FILE:Poly_STATIC> $<TARGET_LINKER_FILE:Polyxx_STATIC>
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
   endif()
 endif()
