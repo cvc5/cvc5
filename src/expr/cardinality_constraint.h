@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "util/integer.h"
+#include "util/hash.h"
 
 namespace cvc5 {
 
