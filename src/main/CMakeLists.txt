@@ -52,6 +52,12 @@ add_dependencies(main gen-tokens)
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC5DRIVER)
 target_link_libraries(main-test PUBLIC cvc5-shared cvc5parser-shared)
+if(USE_CLN)
+  target_link_libraries(main-test PUBLIC CLN_SHARED)
+endif()
+if(USE_POLY)
+  target_link_libraries(main-test PUBLIC Polyxx_SHARED)
+endif()
 
 #-----------------------------------------------------------------------------#
 # cvc5 binary configuration
