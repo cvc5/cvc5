@@ -202,7 +202,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   return r;
 }
 
-void SmtSolver::processAssertions(Assertions& as)
+void SmtSolver::processAssertions(Assertions& as, bool isInternalSubsolver)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);

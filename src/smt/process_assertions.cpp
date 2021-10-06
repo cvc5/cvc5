@@ -21,7 +21,6 @@
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
-#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
@@ -36,7 +35,6 @@
 #include "smt/expand_definitions.h"
 #include "smt/print_benchmark.h"
 #include "smt/smt_engine_stats.h"
-#include "smt/solver_engine.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
@@ -59,11 +57,9 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SolverEngine& slv,
-                                     ResourceManager& rm,
+ProcessAssertions::ProcessAssertions(Env& env,
                                      SmtEngineStatistics& stats)
     : EnvObj(env),
-      d_slv(slv),
       d_smtStats(stats),
       d_preprocessingPassContext(nullptr)
 {
@@ -234,11 +230,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["sep-skolem-emp"]->apply(&assertions);
   }
 
-<<<<<<< HEAD
   if (logicInfo().isQuantified())
-=======
-  if (d_slv.getLogicInfo().isQuantified())
->>>>>>> 3e98be42bca89a10119352d190af7584bab2f39f
   {
     // remove rewrite rules, apply pre-skolemization to existential quantifiers
     d_passes["quantifiers-preprocess"]->apply(&assertions);
@@ -265,18 +257,16 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (!d_slv.isInternalSubsolver())
+  if (options::sygusInference())
   {
-    if (options::sygusInference())
-    {
-      d_passes["sygus-infer"]->apply(&assertions);
-    }
-    else if (options::sygusRewSynthInput())
-    {
-      // do candidate rewrite rule synthesis
-      d_passes["synth-rr"]->apply(&assertions);
-    }
+    d_passes["sygus-infer"]->apply(&assertions);
   }
+  else if (options::sygusRewSynthInput())
+  {
+    // do candidate rewrite rule synthesis
+    d_passes["synth-rr"]->apply(&assertions);
+  }
+  
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-simplify"
                     << endl;
@@ -360,14 +350,9 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["bv-eager-atoms"]->apply(&assertions);
   }
 
-<<<<<<< HEAD
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("assertions:post-everything", as);
   Trace("assertions:post-everything") << std::endl;
-=======
-  Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
-  dumpAssertions("post-everything", assertions);
->>>>>>> 3e98be42bca89a10119352d190af7584bab2f39f
 
   return noConflict;
 }
@@ -398,11 +383,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       if (  // check that option is on
           options::arithMLTrick() &&
           // only useful in arith
-<<<<<<< HEAD
           logicInfo().isTheoryEnabled(THEORY_ARITH) &&
-=======
-          d_slv.getLogicInfo().isTheoryEnabled(THEORY_ARITH) &&
->>>>>>> 3e98be42bca89a10119352d190af7584bab2f39f
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
@@ -504,12 +485,7 @@ void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
     for (unsigned i = 0; i < assertionList.size(); ++i)
     {
       TNode n = assertionList[i];
-<<<<<<< HEAD
       d_env.getPrinter().toStreamCmdAssert(d_env.getDumpOut(), n);
-=======
-      d_slv.getOutputManager().getPrinter().toStreamCmdAssert(
-          d_slv.getOutputManager().getDumpOut(), n);
->>>>>>> 3e98be42bca89a10119352d190af7584bab2f39f
     }
   }
 }
