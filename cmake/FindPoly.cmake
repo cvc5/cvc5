@@ -175,10 +175,5 @@ else()
   if(ENABLE_STATIC_LIBRARY)
     add_dependencies(Poly_STATIC Poly-EP)
     add_dependencies(Polyxx_STATIC Poly-EP)
-    
-    install(FILES
-      $<TARGET_LINKER_FILE:Poly_STATIC> $<TARGET_LINKER_FILE:Polyxx_STATIC>
-      DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
   endif()
 endif()
