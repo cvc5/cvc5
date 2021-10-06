@@ -87,6 +87,7 @@ if(ENABLE_STATIC_BINARY)
   set_target_properties(cvc5-bin PROPERTIES LINK_FLAGS -static)
   set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
   set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
+  set_target_properties(cvc5-bin PROPERTIES INSTALL_RPATH "")
 endif()
 
 if(USE_EDITLINE)
