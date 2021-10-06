@@ -22,16 +22,16 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace decision {
 
-class DecisionEngine
+class DecisionEngine : protected EnvObj
 {
  public:
   /** Constructor */
-  DecisionEngine(context::Context* sc,
-                 ResourceManager* rm);
+  DecisionEngine(Env& env);
   virtual ~DecisionEngine() {}
 
   /** Finish initialize */
@@ -86,7 +86,7 @@ class DecisionEngine
 class DecisionEngineEmpty : public DecisionEngine
 {
  public:
-  DecisionEngineEmpty(context::Context* sc, ResourceManager* rm);
+  DecisionEngineEmpty(Env& env);
   bool isDone() override;
   void addAssertion(TNode assertion) override;
   void addSkolemDefinition(TNode lem, TNode skolem) override;

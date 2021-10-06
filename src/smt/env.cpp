@@ -19,6 +19,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "printer/printer.h"
@@ -83,9 +84,9 @@ void Env::shutdown()
   d_resourceManager.reset(nullptr);
 }
 
-context::UserContext* Env::getUserContext() { return d_userContext.get(); }
-
 context::Context* Env::getContext() { return d_context.get(); }
+
+context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
@@ -216,6 +217,12 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
   Unhandled() << "Env::rewriteViaMethod: no rewriter for " << idr
               << std::endl;
   return n;
+}
+
+bool Env::isFiniteType(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  d_options.quantifiers.finiteModelFind);
 }
 
 }  // namespace cvc5

@@ -44,7 +44,7 @@ class BaseSolver : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  BaseSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
+  BaseSolver(Env& env, SolverState& s, InferenceManager& im);
   ~BaseSolver();
 
   //-----------------------inference steps
