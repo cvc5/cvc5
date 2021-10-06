@@ -77,7 +77,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     opts.smt.produceAssignments = true;
   }
   // unsat cores and proofs shenanigans
-  if (opts.driver.dumpUnsatCoresFull)
+  if (opts.driver.printUnsatCoresFull)
   {
     opts.driver.dumpUnsatCores = true;
   }
