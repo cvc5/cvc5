@@ -53,8 +53,6 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_setupLiteral(setup),
       d_avariables(avars),
       d_ee(nullptr),
-      d_satContext(context()),
-      d_userContext(userContext()),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
       // Construct d_pfGenEe with the SAT context, since its proof include
@@ -84,13 +82,13 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   {
     // use our own copy
     d_allocEe.reset(
-        new eq::EqualityEngine(d_notify, d_satContext, "arithCong::ee", true));
+        new eq::EqualityEngine(d_notify, context(), "arithCong::ee", true));
     d_ee = d_allocEe.get();
     if (d_pnm != nullptr)
     {
       // allocate an internal proof equality engine
       d_allocPfee.reset(
-          new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
+          new eq::ProofEqEngine(context(), userContext(), *d_ee, d_pnm));
       d_ee->setProofEqualityEngine(d_allocPfee.get());
     }
   }

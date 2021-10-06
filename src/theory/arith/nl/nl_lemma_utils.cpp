@@ -45,7 +45,7 @@ bool SortNlModel::operator()(Node i, Node j)
   {
     return i < j;
   }
-  return d_reverse_order ? cv < 0 : cv > 0;
+  return d_reverse_order ? cv > 0 : cv < 0;
 }
 
 bool SortNonlinearDegree::operator()(Node i, Node j)
