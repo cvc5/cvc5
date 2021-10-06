@@ -45,7 +45,7 @@ Cross-compiling cvc5 with Mingw-w64 can be done as follows:
 
 .. code:: bash
 
-  ./configure.sh --win64 --static <configure options...>
+  ./configure.sh --win64 --static-binary <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -434,6 +434,6 @@ linked LGPL libraries perform the following steps:
 
 .. code::
   
-  ./configure.sh --static <options>
+  ./configure.sh --static-binary <options>
 
 7. Follow remaining steps from `build instructions <#building-cvc5>`_
