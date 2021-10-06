@@ -97,7 +97,6 @@ bool ProcessAssertions::apply(Assertions& as)
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
   dumpAssertions("assertions:pre-everything", as);
-  Trace("assertions:pre-everything") << std::endl;
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
@@ -129,7 +128,6 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
   dumpAssertions("pre-definition-expansion", as);
-  Trace("assertions:pre-definition-expansion") << std::endl;
   // Apply substitutions first. If we are non-incremental, this has only the
   // effect of replacing defined functions with their definitions.
   // We do not call theory-specific expand definitions here, since we want
@@ -139,7 +137,6 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
   dumpAssertions("assertions:post-definition-expansion", as);
-  Trace("assertions:post-definition-expansion") << std::endl;
 
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
@@ -267,7 +264,6 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-simplify"
                     << endl;
   dumpAssertions("assertions:pre-simplify", as);
-  Trace("assertions:pre-simplify") << std::endl;
   Chat() << "simplifying assertions..." << endl;
   noConflict = simplifyAssertions(as);
   if (!noConflict)
@@ -277,7 +273,6 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
   dumpAssertions("assertions:post-simplify", as);
-  Trace("assertions:post-simplify") << std::endl;
 
   if (options::doStaticLearning())
   {
@@ -302,7 +297,6 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   dumpAssertions("assertions:pre-repeat-simplify", as);
-  Trace("assertions:pre-repeat-simplify") << std::endl;
   if (options::repeatSimp())
   {
     Trace("smt-proc")
@@ -316,7 +310,6 @@ bool ProcessAssertions::apply(Assertions& as)
         << endl;
   }
   dumpAssertions("assertions:post-repeat-simplify", as);
-  Trace("assertions:post-repeat-simplify") << std::endl;
 
   if (options::ufHo())
   {
@@ -348,7 +341,6 @@ bool ProcessAssertions::apply(Assertions& as)
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("assertions:post-everything", as);
-  Trace("assertions:post-everything") << std::endl;
 
   return noConflict;
 }
@@ -447,33 +439,6 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
 void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
 {
-  if (Trace.isOn(key))
-  {
-    PrintBenchmark pb(&d_env.getPrinter());
-    context::CDList<Node>* asl = as.getAssertionList();
-    context::CDList<Node>* asld = as.getAssertionListDefinitions();
-    if (asl != nullptr)
-    {
-      std::vector<Node> assertions;
-      std::vector<Node> defs;
-      std::unordered_set<Node> defSet;
-      if (asld != nullptr)
-      {
-        defs.insert(defs.end(), asld->begin(), asld->end());
-        defSet.insert(asld->begin(), asld->end());
-      }
-      for (const Node& a : *asl)
-      {
-        if (defSet.find(a) == defSet.end())
-        {
-          assertions.push_back(a);
-        }
-      }
-      std::stringstream ss;
-      pb.printBenchmark(ss, logicInfo().getLogicString(), defs, assertions);
-      Trace(key) << ss.str();
-    }
-  }
   if (Dump.isOn("assertions") && Dump.isOn(key))
   {
     const AssertionPipeline& assertionList = as.getAssertionPipeline();
