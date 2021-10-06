@@ -313,7 +313,6 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         }
       }
 
-      t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       if (sortedVarNames.size() > 0)
       {
         PARSER_STATE->pushScope();
@@ -979,46 +978,6 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
     )+
     RPAREN_TOK
     { cmd->reset(seq.release()); }
-
-  | DEFINE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    ( // (define f t)
-      symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
-      term[e,e2]
-      {
-        cmd->reset(new DefineFunctionCommand(
-            name, e.getSort(), e, SYM_MAN->getGlobalDeclarations()));
-      }
-    | // (define (f (v U) ...) t)
-      LPAREN_TOK
-      symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
-      { PARSER_STATE->checkUserSymbol(name); }
-      sortedVarList[sortedVarNames] RPAREN_TOK
-      { /* add variables to parser state before parsing term */
-        Debug("parser") << "define fun: '" << name << "'" << std::endl;
-        PARSER_STATE->pushScope();
-        terms = PARSER_STATE->bindBoundVars(sortedVarNames);
-      }
-      term[e,e2]
-      {
-        PARSER_STATE->popScope();
-        // declare the name down here (while parsing term, signature
-        // must not be extended with the name itself; no recursion
-        // permitted)
-        api::Sort tt = e.getSort();
-        if( sortedVarNames.size() > 0 ) {
-          sorts.reserve(sortedVarNames.size());
-          for(std::vector<std::pair<std::string, api::Sort> >::const_iterator
-                i = sortedVarNames.begin(), iend = sortedVarNames.end();
-              i != iend; ++i) {
-            sorts.push_back((*i).second);
-          }
-          tt = SOLVER->mkFunctionSort(sorts, tt);
-        }
-        cmd->reset(new DefineFunctionCommand(
-            name, terms, tt, e, SYM_MAN->getGlobalDeclarations()));
-      }
-    )
   | // (define-const x U t)
     DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -1030,7 +989,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
       // must not be extended with the name itself; no recursion
       // permitted)
       cmd->reset(new DefineFunctionCommand(
-          name, terms, t, e, SYM_MAN->getGlobalDeclarations()));
+          name, t, e, SYM_MAN->getGlobalDeclarations()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -2271,7 +2230,6 @@ ECHO_TOK : 'echo';
 DECLARE_SORTS_TOK : 'declare-sorts';
 DECLARE_FUNS_TOK : 'declare-funs';
 DECLARE_PREDS_TOK : 'declare-preds';
-DEFINE_TOK : 'define';
 DECLARE_CONST_TOK : 'declare-const';
 DEFINE_CONST_TOK : 'define-const';
 SIMPLIFY_TOK : 'simplify';

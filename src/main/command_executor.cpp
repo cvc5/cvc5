@@ -204,7 +204,8 @@ bool solverInvoke(api::Solver* solver,
     cmd->toStream(ss);
   }
 
-  if (solver->getOptionInfo("parse-only").boolValue())
+  if (solver->getOptionInfo("parse-only").boolValue()
+      && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr)
   {
     return true;
   }

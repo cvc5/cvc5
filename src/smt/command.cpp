@@ -1351,7 +1351,9 @@ void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->defineFun(d_symbol, d_formals, d_sort, d_formula);
+    api::Term fun = solver->defineFun(d_symbol, d_formals, d_sort, d_formula);
+    bool globalDecls = sm->getGlobalDeclarations();
+    sm->getSymbolTable()->bind(fun.toString(), fun, globalDecls);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
