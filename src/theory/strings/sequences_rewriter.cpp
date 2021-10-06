@@ -90,11 +90,12 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
   TypeNode stype = node[0].getType();
-  
+
   bool hasStrTerm = false;
-  for (size_t r=0; r<2; r++)
+  for (size_t r = 0; r < 2; r++)
   {
-    if (!node[0].isConst() && kindToTheoryId(node[0].getKind())==THEORY_STRINGS)
+    if (!node[0].isConst()
+        && kindToTheoryId(node[0].getKind()) == THEORY_STRINGS)
     {
       hasStrTerm = true;
       break;
