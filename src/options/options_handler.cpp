@@ -407,12 +407,15 @@ void OptionsHandler::setBitblastAig(const std::string& option,
   }
 }
 void OptionsHandler::checkStringsAlphaCard(const std::string& option,
-                      const std::string& flag,
-                      uint64_t value)
+                                           const std::string& flag,
+                                           uint64_t value)
 {
-  if (value>196608)
+  if (value > 196608)
   {
-    throw OptionException("strings-alpha-card cannot specify a cardinality greater than the cardinality of the alphabet of strings in the SMT-LIB standard, which is 196608.");
+    throw OptionException(
+        "strings-alpha-card cannot specify a cardinality greater than the "
+        "cardinality of the alphabet of strings in the SMT-LIB standard, which "
+        "is 196608.");
   }
 }
 

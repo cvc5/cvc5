@@ -60,7 +60,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
       d_extTheory(env, d_extTheoryCb, d_im),
-      d_rewriter(env.getRewriter(), &d_statistics.d_rewrites,
+      d_rewriter(env.getRewriter(),
+                 &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
       // the checker depends on the cardinality of the alphabet
       d_checker(d_termReg.getAlphabetCardinality()),
