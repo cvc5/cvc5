@@ -437,7 +437,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
   return true;
 }
 
-void ProcessAssertions::dumpAssertions(const char* key, const Assertions& as)
+void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
 {
   if (Dump.isOn("assertions") && Dump.isOn(string("assertions:") + key))
   {

@@ -111,7 +111,7 @@ class ProcessAssertions : protected EnvObj
    * Dump assertions. Print the current assertion list to the dump
    * assertions:`key` if it is enabled.
    */
-  void dumpAssertions(const char* key, const Assertions& as);
+  void dumpAssertions(const char* key, Assertions& as);
 };
 
 }  // namespace smt
