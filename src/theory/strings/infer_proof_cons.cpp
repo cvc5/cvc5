@@ -192,8 +192,6 @@ void InferProofCons::convert(InferenceId infer,
       {
         std::vector<Node> exps(ps.d_children.begin(), ps.d_children.end() - 1);
         Node src = ps.d_children[ps.d_children.size() - 1];
-        // we apply the substitution on the purified form to get the
-        // original conclusion
         if (psb.applyPredTransform(src, conc, exps))
         {
           useBuffer = true;
