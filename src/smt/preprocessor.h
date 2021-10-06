@@ -20,15 +20,15 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 
 class SolverEngine;
-  
+
 namespace preprocessing {
 class PreprocessingPassContext;
 }
@@ -49,9 +49,7 @@ class PreprocessProofGenerator;
 class Preprocessor : protected EnvObj
 {
  public:
-  Preprocessor(Env& env,
-               AbstractValues& abs,
-               SmtEngineStatistics& stats);
+  Preprocessor(Env& env, AbstractValues& abs, SmtEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization
