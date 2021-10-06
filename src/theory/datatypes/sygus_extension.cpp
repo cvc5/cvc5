@@ -788,7 +788,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           TypeNode tnc = children[c1].getType();
           // we may only apply this symmetry breaking scheme (which introduces
           // disequalities) if the types are infinite.
-          if (tnc == children[c2].getType() && !d_state.isFiniteType(tnc))
+          if (tnc == children[c2].getType() && !d_env.isFiniteType(tnc))
           {
             Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
             // notice that this symmetry breaking still allows for

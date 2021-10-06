@@ -2338,7 +2338,7 @@ class SolverTest
       assertEquals(elements[indices[i]], simplifiedTerm);
     }
 
-    assertEquals("((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
+    assertEquals("((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (singleton "
             + "\"Z\")))",
         projection.toString());
   }

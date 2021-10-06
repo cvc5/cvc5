@@ -79,7 +79,6 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
       d_assumptions(d_env.getUserContext())
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
-  context::Context* satContext = d_env.getContext();
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   ResourceManager* rm = d_env.getResourceManager();
@@ -88,17 +87,17 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
   if (dmode == options::DecisionMode::JUSTIFICATION
       || dmode == options::DecisionMode::STOPONLY)
   {
-    d_decisionEngine.reset(new decision::JustificationStrategy(
-        satContext, userContext, d_skdm.get(), rm));
+    d_decisionEngine.reset(
+        new decision::JustificationStrategy(env, d_skdm.get()));
   }
   else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
            || dmode == options::DecisionMode::STOPONLY_OLD)
   {
-    d_decisionEngine.reset(new DecisionEngineOld(satContext, userContext, rm));
+    d_decisionEngine.reset(new DecisionEngineOld(env));
   }
   else
   {
-    d_decisionEngine.reset(new decision::DecisionEngineEmpty(satContext, rm));
+    d_decisionEngine.reset(new decision::DecisionEngineEmpty(env));
   }
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());

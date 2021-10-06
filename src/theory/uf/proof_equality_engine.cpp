@@ -30,10 +30,10 @@ namespace theory {
 namespace eq {
 
 ProofEqEngine::ProofEqEngine(context::Context* c,
-                             context::UserContext* u,
+                             context::Context* lc,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm)
-    : EagerProofGenerator(pnm, u, "pfee::" + ee.identify()),
+    : EagerProofGenerator(pnm, lc, "pfee::" + ee.identify()),
       d_ee(ee),
       d_factPg(c, pnm),
       d_assumpPg(pnm),

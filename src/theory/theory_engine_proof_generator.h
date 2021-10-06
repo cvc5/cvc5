@@ -42,7 +42,7 @@ class TheoryEngineProofGenerator : public ProofGenerator
       NodeLazyCDProofMap;
 
  public:
-  TheoryEngineProofGenerator(ProofNodeManager* pnm, context::UserContext* u);
+  TheoryEngineProofGenerator(ProofNodeManager* pnm, context::Context* c);
   ~TheoryEngineProofGenerator() {}
   /**
    * Make trust explanation. Called when lpf has a proof of lit from free
