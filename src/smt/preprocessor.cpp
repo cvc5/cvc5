@@ -147,8 +147,8 @@ Node Preprocessor::simplify(const Node& node)
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    d_slv.getOutputManager().getPrinter().toStreamCmdSimplify(
-        d_slv.getOutputManager().getDumpOut(), node);
+    d_env.getPrinter().toStreamCmdSimplify(
+        d_env.getDumpOut(), node);
   }
   Node ret = expandDefinitions(node);
   ret = theory::Rewriter::rewrite(ret);
@@ -160,7 +160,7 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
   Assert(pppg != nullptr);
   d_pnm = pppg->getManager();
   d_exDefs.setProofNodeManager(d_pnm);
-  d_propagator.setProof(d_pnm, d_env.getUserContext(), pppg);
+  d_propagator.setProof(d_pnm, userContext(), pppg);
 }
 
 }  // namespace smt
