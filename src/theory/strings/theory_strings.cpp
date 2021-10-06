@@ -59,7 +59,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_termReg(env, d_state, d_statistics, d_pnm),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
-      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
+      d_extTheory(env, d_extTheoryCb, d_im),
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_bsolver(env, d_state, d_im),
       d_csolver(env, d_state, d_im, d_termReg, d_bsolver),
