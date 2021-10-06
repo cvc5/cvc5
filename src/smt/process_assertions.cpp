@@ -96,7 +96,7 @@ bool ProcessAssertions::apply(Assertions& as)
   AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
-  dumpAssertions("assertions:pre-everything", as);
+  dumpAssertions("pre-everything", as);
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
@@ -136,7 +136,7 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
-  dumpAssertions("assertions:post-definition-expansion", as);
+  dumpAssertions("post-definition-expansion", as);
 
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
@@ -263,7 +263,7 @@ bool ProcessAssertions::apply(Assertions& as)
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-simplify"
                     << endl;
-  dumpAssertions("assertions:pre-simplify", as);
+  dumpAssertions("pre-simplify", as);
   Chat() << "simplifying assertions..." << endl;
   noConflict = simplifyAssertions(as);
   if (!noConflict)
@@ -272,7 +272,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
-  dumpAssertions("assertions:post-simplify", as);
+  dumpAssertions("post-simplify", as);
 
   if (options::doStaticLearning())
   {
@@ -296,7 +296,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_smtStats.d_numAssertionsPost += assertions.size();
   }
 
-  dumpAssertions("assertions:pre-repeat-simplify", as);
+  dumpAssertions("pre-repeat-simplify", as);
   if (options::repeatSimp())
   {
     Trace("smt-proc")
@@ -309,7 +309,7 @@ bool ProcessAssertions::apply(Assertions& as)
         << "ProcessAssertions::processAssertions() : post-repeat-simplify"
         << endl;
   }
-  dumpAssertions("assertions:post-repeat-simplify", as);
+  dumpAssertions("post-repeat-simplify", as);
 
   if (options::ufHo())
   {
@@ -340,7 +340,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
-  dumpAssertions("assertions:post-everything", as);
+  dumpAssertions("post-everything", as);
 
   return noConflict;
 }
