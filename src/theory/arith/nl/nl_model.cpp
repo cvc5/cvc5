@@ -19,6 +19,7 @@
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/env.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
@@ -32,7 +33,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlModel::NlModel() : d_used_approx(false)
+NlModel::NlModel(Env& env) : EnvObj(env), d_used_approx(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
