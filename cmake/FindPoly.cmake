@@ -105,8 +105,8 @@ if(NOT Poly_FOUND_SYSTEM)
             <INSTALL_DIR>/lib/libpicpolyxx.a
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libpicpoly.a
                      <INSTALL_DIR>/lib/libpicpolyxx.a
-                     <INSTALL_DIR>/lib/libpoly.so
-                     <INSTALL_DIR>/lib/libpolyxx.so
+                     <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+                     <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
   ExternalProject_Add_Step(
     Poly-EP cleanup
@@ -116,8 +116,8 @@ if(NOT Poly_FOUND_SYSTEM)
   add_dependencies(Poly-EP GMP_SHARED)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly.so")
-  set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx.so")
+  set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
   set(Poly_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
   set(PolyXX_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
 endif()

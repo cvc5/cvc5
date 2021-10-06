@@ -73,13 +73,14 @@ if(NOT CLN_FOUND_SYSTEM)
       ${CMAKE_COMMAND} -E chdir <SOURCE_DIR> autoreconf -iv
     COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-shared
             --enable-static --with-pic
-    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcln.a <INSTALL_DIR>/lib/libcln.so
+    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcln.a
+                     <INSTALL_DIR>/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
 
   add_dependencies(CLN-EP GMP_SHARED)
 
   set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln.so")
+  set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
   set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
 endif()
 
