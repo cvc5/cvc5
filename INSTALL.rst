@@ -240,14 +240,11 @@ Building the API documentation of cvc5 requires the following dependencies:
   `sphinxcontrib-bibtex <https://sphinxcontrib-bibtex.readthedocs.io>`_
 - `Breathe <https://breathe.readthedocs.io>`_
 
-To build the documentation, configure cvc5 with ``./configure.sh --docs``.
-Building cvc5 will then include building the API documentation.
+To build the documentation, configure cvc5 with ``./configure.sh --docs`` and
+run ``make docs`` from within the build directory.
 
 The API documentation can then be found at
 ``<build_dir>/docs/sphinx/index.html``.
-
-To only build the documentation, change to the build directory and call
-``make docs``.
 
 To build the documentation for GitHub pages, change to the build directory and
 call ``make docs-gh``. The content of directory ``<build_dir>/docs/sphinx-gh``

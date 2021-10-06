@@ -335,7 +335,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   for (Node conj : conjs)
   {
     // Start new SMT engine to check solutions
-    std::unique_ptr<SmtEngine> solChecker;
+    std::unique_ptr<SolverEngine> solChecker;
     initializeSubsolver(solChecker, d_env);
     solChecker->getOptions().smt.checkSynthSol = false;
     solChecker->getOptions().quantifiers.sygusRecFun = false;

@@ -206,7 +206,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
         if( d_pto_model[l].isNull() ){
           Trace("sep-model") << "_";
           TypeEnumerator te_range( data_type );
-          if (d_state.isFiniteType(data_type))
+          if (d_env.isFiniteType(data_type))
           {
             pto_children.push_back( *te_range );
           }else{
@@ -826,7 +826,7 @@ void TheorySep::postCheck(Effort level)
   {
     TypeNode data_type = d_loc_to_data_type[it->first];
     // if the data type is finite
-    if (!d_state.isFiniteType(data_type))
+    if (!d_env.isFiniteType(data_type))
     {
       continue;
     }

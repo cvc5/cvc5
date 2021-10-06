@@ -22,16 +22,16 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace decision {
 
-class DecisionEngine
+class DecisionEngine : protected EnvObj
 {
  public:
   /** Constructor */
-  DecisionEngine(context::Context* sc,
-                 ResourceManager* rm);
+  DecisionEngine(Env& env);
   virtual ~DecisionEngine() {}
 
   /** Finish initialize */
@@ -71,7 +71,7 @@ class DecisionEngine
   virtual prop::SatLiteral getNextInternal(bool& stopSearch) = 0;
   /** Pointer to the SAT context */
   context::Context* d_context;
-  /** Pointer to resource manager for associated SmtEngine */
+  /** Pointer to resource manager for associated SolverEngine */
   ResourceManager* d_resourceManager;
   /** Pointer to the CNF stream */
   prop::CnfStream* d_cnfStream;
@@ -86,7 +86,7 @@ class DecisionEngine
 class DecisionEngineEmpty : public DecisionEngine
 {
  public:
-  DecisionEngineEmpty(context::Context* sc, ResourceManager* rm);
+  DecisionEngineEmpty(Env& env);
   bool isDone() override;
   void addAssertion(TNode assertion) override;
   void addSkolemDefinition(TNode lem, TNode skolem) override;

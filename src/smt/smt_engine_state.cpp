@@ -26,8 +26,8 @@
 namespace cvc5 {
 namespace smt {
 
-SmtEngineState::SmtEngineState(Env& env, SmtEngine& smt)
-    : d_smt(smt),
+SmtEngineState::SmtEngineState(Env& env, SolverEngine& slv)
+    : d_slv(slv),
       d_env(env),
       d_pendingPops(0),
       d_fullyInited(false),
@@ -256,11 +256,11 @@ void SmtEngineState::internalPush()
   doPendingPops();
   if (options::incrementalSolving())
   {
-    // notifies the SmtEngine to process the assertions immediately
-    d_smt.notifyPushPre();
+    // notifies the SolverEngine to process the assertions immediately
+    d_slv.notifyPushPre();
     getUserContext()->push();
     // the context push is done inside of the SAT solver
-    d_smt.notifyPushPost();
+    d_slv.notifyPushPost();
   }
 }
 
@@ -285,12 +285,12 @@ void SmtEngineState::doPendingPops()
   // check to see if a postsolve() is pending
   if (d_needPostsolve)
   {
-    d_smt.notifyPostSolvePre();
+    d_slv.notifyPostSolvePre();
   }
   while (d_pendingPops > 0)
   {
     // the context pop is done inside of the SAT solver
-    d_smt.notifyPopPre();
+    d_slv.notifyPopPre();
     // pop the context
     getUserContext()->pop();
     --d_pendingPops;
@@ -298,7 +298,7 @@ void SmtEngineState::doPendingPops()
   }
   if (d_needPostsolve)
   {
-    d_smt.notifyPostSolvePost();
+    d_slv.notifyPostSolvePost();
     d_needPostsolve = false;
   }
 }

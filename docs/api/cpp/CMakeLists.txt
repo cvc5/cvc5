@@ -39,7 +39,7 @@ add_custom_command(
           ${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h
   COMMENT "Generating doxygen API docs"
 )
-add_custom_target(docs-cpp ALL DEPENDS ${DOXYGEN_INDEX_FILE})
+add_custom_target(docs-cpp DEPENDS ${DOXYGEN_INDEX_FILE})
 
 # tell parent scope where to find the output xml
 set(CPP_DOXYGEN_XML_DIR

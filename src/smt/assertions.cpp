@@ -155,8 +155,7 @@ void Assertions::addFormula(TNode n,
     // true, nothing to do
     return;
   }
-  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
-               << ", inInput = " << inInput
+  Trace("smt") << "Assertions::addFormula(" << n << ", inInput = " << inInput
                << ", isAssumption = " << isAssumption
                << ", isFunDef = " << isFunDef << std::endl;
   if (isFunDef)

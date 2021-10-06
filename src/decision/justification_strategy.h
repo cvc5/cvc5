@@ -122,10 +122,7 @@ class JustificationStrategy : public DecisionEngine
 {
  public:
   /** Constructor */
-  JustificationStrategy(context::Context* c,
-                        context::UserContext* u,
-                        prop::SkolemDefManager* skdm,
-                        ResourceManager* rm);
+  JustificationStrategy(Env& env, prop::SkolemDefManager* skdm);
 
   /** Presolve, called at the beginning of each check-sat call */
   void presolve() override;

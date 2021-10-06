@@ -19,6 +19,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
@@ -77,9 +78,9 @@ void Env::shutdown()
   d_resourceManager.reset(nullptr);
 }
 
-context::UserContext* Env::getUserContext() { return d_userContext.get(); }
-
 context::Context* Env::getContext() { return d_context.get(); }
+
+context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
@@ -104,6 +105,11 @@ bool Env::isTheoryProofProducing() const
 }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
+
+theory::Evaluator* Env::getEvaluator(bool useRewriter)
+{
+  return useRewriter ? d_evalRew.get() : d_eval.get();
+}
 
 theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
 {
@@ -205,6 +211,12 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
   Unhandled() << "Env::rewriteViaMethod: no rewriter for " << idr
               << std::endl;
   return n;
+}
+
+bool Env::isFiniteType(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  d_options.quantifiers.finiteModelFind);
 }
 
 }  // namespace cvc5
