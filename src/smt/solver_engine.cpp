@@ -124,8 +124,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // reset the preprocessor
-  d_pp.reset(
-      new smt::Preprocessor(*d_env.get(), *d_absValues.get(), *d_stats));
+  d_pp.reset(new smt::Preprocessor(*d_env.get(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
   // make the SyGuS solver

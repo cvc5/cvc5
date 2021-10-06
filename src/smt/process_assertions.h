@@ -74,7 +74,7 @@ class ProcessAssertions : protected EnvObj
   /**
    * Process the formulas in as. Returns true if there was no conflict when
    * processing the assertions.
-   * 
+   *
    * @param as The assertions.
    */
   bool apply(Assertions& as);

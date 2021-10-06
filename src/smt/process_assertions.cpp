@@ -57,11 +57,8 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(Env& env,
-                                     SmtEngineStatistics& stats)
-    : EnvObj(env),
-      d_smtStats(stats),
-      d_preprocessingPassContext(nullptr)
+ProcessAssertions::ProcessAssertions(Env& env, SmtEngineStatistics& stats)
+    : EnvObj(env), d_smtStats(stats), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -266,7 +263,6 @@ bool ProcessAssertions::apply(Assertions& as)
     // do candidate rewrite rule synthesis
     d_passes["synth-rr"]->apply(&assertions);
   }
-  
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-simplify"
                     << endl;

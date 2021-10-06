@@ -57,10 +57,10 @@ Preprocessor::~Preprocessor()
   }
 }
 
-void Preprocessor::finishInit(SolverEngine * slv)
+void Preprocessor::finishInit(SolverEngine* slv)
 {
-  d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      slv, d_env, &d_propagator));
+  d_ppContext.reset(
+      new preprocessing::PreprocessingPassContext(slv, d_env, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -147,8 +147,7 @@ Node Preprocessor::simplify(const Node& node)
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    d_env.getPrinter().toStreamCmdSimplify(
-        d_env.getDumpOut(), node);
+    d_env.getPrinter().toStreamCmdSimplify(d_env.getDumpOut(), node);
   }
   Node ret = expandDefinitions(node);
   ret = theory::Rewriter::rewrite(ret);

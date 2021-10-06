@@ -20,10 +20,10 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -50,18 +50,16 @@ class PreprocessProofGenerator;
 class Preprocessor : protected EnvObj
 {
  public:
-  Preprocessor(Env& env,
-               AbstractValues& abs,
-               SmtEngineStatistics& stats);
+  Preprocessor(Env& env, AbstractValues& abs, SmtEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization
    */
-  void finishInit(SolverEngine * slv);
+  void finishInit(SolverEngine* slv);
   /**
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
-   * 
+   *
    * @param as The assertions.
    */
   bool process(Assertions& as);
