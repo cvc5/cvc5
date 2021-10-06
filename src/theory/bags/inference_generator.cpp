@@ -20,6 +20,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/uf/equality_engine.h"
 #include "util/rational.h"
 
@@ -298,6 +299,8 @@ InferInfo InferenceGenerator::map(Node n, Node e)
          && n[0].getType().getArgTypes().size() == 1);
   Assert(e.getType() == n[0].getType().getRangeType());
 
+
+
   InferInfo inferInfo(d_im, InferenceId::BAGS_MAP);
   Node f = n[0];
   Node A = n[1];
@@ -361,7 +364,7 @@ InferInfo InferenceGenerator::map(Node n, Node e)
   Node geqOne = d_nm->mkNode(kind::GEQ, count_uf_i, d_one);
   Node andNode = d_nm->mkNode(kind::AND, f_iEqualE, geqOne, inductiveCase);
   Node body1 = d_nm->mkNode(kind::OR, interval1.negate(), andNode);
-  Node forAll1 = d_nm->mkNode(kind::FORALL, iList, body1);
+  Node forAll1 = quantifiers::BoundedIntegers::mkBoundedForall(iList, body1);
 
   // (forall ((i Int) (j Int))
   //   (=>
@@ -374,7 +377,7 @@ InferInfo InferenceGenerator::map(Node n, Node e)
   Node uf_i_equals_uf_j = d_nm->mkNode(kind::EQUAL, uf_i, uf_j);
   Node notEqual = d_nm->mkNode(kind::EQUAL, uf_i, uf_j).negate();
   Node body2 = d_nm->mkNode(kind::OR, interval2.negate(), notEqual);
-  Node forAll2 = d_nm->mkNode(kind::FORALL, ijList, body2);
+  Node forAll2 = quantifiers::BoundedIntegers::mkBoundedForall(ijList, body2);
   Node conclusion = d_nm->mkNode(
       kind::AND, {baseCase, totalSumEqualCountE, forAll1, forAll2});
   std::cout << "conclusion: " << conclusion << std::endl << std::endl;
