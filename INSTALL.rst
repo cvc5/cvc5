@@ -31,8 +31,11 @@ Compilation on macOS
 On macOS, we recommend using `Homebrew <https://brew.sh/>`_ to install the
 dependencies.  We also have a Homebrew Tap available at
 https://github.com/CVC4/homebrew-cvc4 .
-To build a static binary for macOS, use:
-``./configure.sh --static --no-static-binary``.
+Note that linking system libraries statically is
+`strongly discouraged <https://developer.apple.com/library/archive/qa/qa1118/_index.html>`_
+on macOS. Using ``./configure.sh --static-binary`` will thus produce a binary
+that uses static versions of all our dependencies, but is still a dynamically
+linked binary.
 
 
 Cross-compiling for Windows
