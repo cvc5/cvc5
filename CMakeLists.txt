@@ -697,11 +697,11 @@ else()
   "\n"
   "Note that this configuration is NOT built against any GPL'ed libraries, so"
   "\n"
-  "it is covered by the (modified) BSD license.  This is, however, not the best"
+  "it is covered by the (modified) BSD license.  To build against GPL'ed"
   "\n"
-  "performing configuration of cvc5.  To build against GPL'ed libraries which"
+  "libraries which can improve cvc5's performance on arithmetic and bitvector"
   "\n"
-  "improve cvc5's performance, re-configure with '-DENABLE_GPL -DENABLE_BEST'."
+  "logics, re-configure with '-DENABLE_GPL -DENABLE_BEST'."
   )
 endif()
 

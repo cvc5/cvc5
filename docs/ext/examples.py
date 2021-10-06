@@ -24,6 +24,7 @@ class APIExamples(SphinxDirective):
         '.java': {'title': 'Java', 'lang': 'java'},
         '.py': {'title': 'Python', 'lang': 'python'},
         '.smt2': {'title': 'SMT-LIBv2', 'lang': 'smtlib'},
+        '.sy': {'title': 'SyGuS', 'lang': 'smtlib'},
     }
 
     # The "arguments" are actually the content of the directive
@@ -36,7 +37,7 @@ class APIExamples(SphinxDirective):
         # collect everything in a list of strings
         content = ['.. tabs::', '']
 
-        remaining = set(self.exts.keys())
+        remaining = set([self.exts[e]['lang'] for e in self.exts])
         location = '{}:{}'.format(*self.get_source_info())
 
         for file in self.content:
@@ -45,7 +46,7 @@ class APIExamples(SphinxDirective):
             if ext in self.exts:
                 title = self.exts[ext]['title']
                 lang = self.exts[ext]['lang']
-                remaining.remove(ext)
+                remaining.remove(lang)
             else:
                 self.logger.warning(f'{location} is using unknown file extension "{ext}"')
                 title = ext

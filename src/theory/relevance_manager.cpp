@@ -25,10 +25,9 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::UserContext* userContext,
-                                   Valuation val)
+RelevanceManager::RelevanceManager(context::Context* lemContext, Valuation val)
     : d_val(val),
-      d_input(userContext),
+      d_input(lemContext),
       d_computed(false),
       d_success(false),
       d_trackRSetExp(false),
@@ -36,7 +35,7 @@ RelevanceManager::RelevanceManager(context::UserContext* userContext,
 {
   if (options::produceDifficulty())
   {
-    d_dman.reset(new DifficultyManager(userContext, val));
+    d_dman.reset(new DifficultyManager(lemContext, val));
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
