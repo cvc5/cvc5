@@ -106,7 +106,7 @@ class Tester:
 ################################################################################
 # The testers
 #
-# Testers use `Tester` as a base class and implement `applies()` and a `run()`
+# Testers use `Tester` as a base class and implement `applies()` and `run()`
 # methods. The `applies()` method returns `True` if a tester applies to a given
 # benchmark and `run()` runs the actual test. Most testers can invoke the
 # `run()` method in the base class, which calls the cvc5 binary with a set of
