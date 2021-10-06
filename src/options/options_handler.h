@@ -148,6 +148,12 @@ class OptionsHandler
                       const std::string& flag,
                       bool arg);
 
+  /******************************* bv options *******************************/
+  /** Set the cardinality of the alphabet for strings */
+  void checkStringsAlphaCard(const std::string& option,
+                       const std::string& flag,
+                       uint64_t value);
+  
   /******************************* expr options *******************************/
   /** Set ExprSetDepth on all output streams */
   void setDefaultExprDepth(const std::string& option,
