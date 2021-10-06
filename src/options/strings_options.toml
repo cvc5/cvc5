@@ -189,7 +189,7 @@ name   = "Strings Theory"
   long       = "strings-alpha-card=N"
   type       = "uint64_t"
   default    = "196608"
-  predicates = ["checkStringsAlphaCard"]
+  maximum    = "196608"
   help       = "the assumed cardinality of the alphabet of characters for strings, which is a prefix of the interval of unicode code points in the SMT-LIB standard"
   
 [[option]]
