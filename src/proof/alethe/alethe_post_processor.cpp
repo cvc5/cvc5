@@ -1540,6 +1540,44 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    // ======== Sum Upper Bounds
+    // Children: (P1, ... , Pn)
+    //           where each Pi has form (><i, Li, Ri)
+    //           for ><i in {<, <=, ==}
+    // Conclusion: (>< L R)
+    //           where >< is < if any ><i is <, and <= otherwise.
+    //                 L is (+ L1 ... Ln)
+    //                 R is (+ R1 ... Rn)
+    //
+    // ----- LA_GENERIC
+    //  VP1                P1 ... Pn
+    // ------------------------------ RESOLUTION
+    //  (cl (>< L R))
+    //
+    // VP1: (cl (not P1) ... (not Pn) (>< L R))
+    case PfRule::ARITH_SUM_UB:
+    {
+      std::vector<Node> vp1s{d_cl};
+      for (auto child : children)
+      {
+        vp1s.push_back(child.notNode());
+      }
+      vp1s.push_back(res);
+      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+      // TODO: Understand arguments, LA_GENERIC
+      new_args.insert(
+          new_args.begin(), children.size() + 1, nm->mkConst<Rational>(0));
+      return addAletheStep(
+                 AletheRule::LIA_GENERIC, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
     // ======== Trichotomy of the reals
     // See proof_rule.h for documentation on the ARITH_TRICHOTOMY rule. This
     // comment uses variable names as introduced there.
@@ -1556,7 +1594,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // cases resolution on VP2 A B yields (not (<=x c)) or (not (<= c x)) and
     // comp_simplify is used to transform it into C. Otherwise,
     //
-    //  VP2   A   B 
+    //  VP2   A   B
     // ---------------- RESOLUTION
     //  (cl C)*
     //
@@ -1802,6 +1840,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       Trace("alethe-proof")
           << "... rule not translated yet " << id << " / " << res << " "
           << children << " " << args << std::endl;
+      std::cout << id << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
