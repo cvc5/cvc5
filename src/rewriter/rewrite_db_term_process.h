@@ -28,14 +28,13 @@ namespace cvc5 {
 namespace rewriter {
 
 /**
- * The AST structure of terms in the proof checker and in CVC4 is different.
+ * The AST structure of terms in the proof checker and in cvc5 is different.
  * This class converts between the two expected AST structures. These
  * differences include:
- * (1) CVC4 has n-ary associative operators; the proof checker assumes binary
- * applications only,
- * (2) CVC4 has (word) string literals; the proof checker assumes these are
- * concatenations of constants, e.g. "ABC" is (str.++ "A" (str.++ "B" "C")).
- *
+ * (1) cvc5 has (word) string literals; the proof checker assumes these are
+ * concatenations of constants, e.g. "ABC" is the term (str.++ "A" "B" "C").
+ * Notice that we do not convert to n-ary form (as required by e.g. LFSC)
+ * here.
  */
 class RewriteDbNodeConverter : public NodeConverter
 {
