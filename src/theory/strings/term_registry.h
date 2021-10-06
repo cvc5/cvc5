@@ -22,7 +22,9 @@
 #include "context/cdlist.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env_obj.h"
 #include "theory/output_channel.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
@@ -44,14 +46,15 @@ class InferenceManager;
  * (5) Maintaining a skolem cache. Notice that this skolem cache is the
  * official skolem cache that should be used by all modules in TheoryStrings.
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  TermRegistry(SolverState& s,
+  TermRegistry(Env& env,
+               SolverState& s,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();
@@ -150,6 +153,14 @@ class TermRegistry
   const context::CDHashSet<Node>& getInputVars() const;
   /** Returns true if any str.code terms have been preregistered */
   bool hasStringCode() const;
+  /**
+   * @return true if any seq.nth or seq.update terms have been preregistered
+   */
+  bool hasSeqUpdate() const;
+  /** is handled update */
+  bool isHandledUpdate(Node n);
+  /** get base */
+  Node getUpdateBase(Node n);
   //---------------------------- end queries
   //---------------------------- proxy variables
   /** Get symbolic definition
@@ -214,8 +225,12 @@ class TermRegistry
   SequencesStatistics& d_statistics;
   /** have we asserted any str.code terms? */
   bool d_hasStrCode;
+  /** have we asserted any seq.update/seq.nth terms? */
+  bool d_hasSeqUpdate;
   /** The cache of all skolems, which is owned by this class. */
   SkolemCache d_skCache;
+  /** arithmetic entailment */
+  ArithEntail d_aent;
   /** All function terms that the theory has seen in the current SAT context */
   context::CDList<TNode> d_functionsTerms;
   /**

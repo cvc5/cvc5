@@ -27,7 +27,7 @@
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 
 namespace preprocessing {
 class AssertionPipeline;
@@ -81,7 +81,7 @@ class ProcessAssertions : protected EnvObj
 
  private:
   /** Reference to the SMT engine */
-  SmtEngine& d_smt;
+  SolverEngine& d_slv;
   /** Reference to the SMT stats */
   SmtEngineStatistics& d_smtStats;
   /** The preprocess context */

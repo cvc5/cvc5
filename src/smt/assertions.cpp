@@ -25,7 +25,7 @@
 #include "options/smt_options.h"
 #include "smt/abstract_values.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory;
@@ -163,7 +163,7 @@ void Assertions::addFormula(TNode n,
     // true, nothing to do
     return;
   }
-  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
+  Trace("smt") << "Assertions::addFormula(" << n
                << ", isAssumption = " << isAssumption
                << ", isFunDef = " << isFunDef << std::endl;
   if (isFunDef)

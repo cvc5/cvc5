@@ -40,23 +40,28 @@ struct StringsProxyVarAttributeId
 typedef expr::Attribute<StringsProxyVarAttributeId, bool>
     StringsProxyVarAttribute;
 
-TermRegistry::TermRegistry(SolverState& s,
+TermRegistry::TermRegistry(Env& env,
+                           SolverState& s,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(nullptr),
       d_statistics(statistics),
       d_hasStrCode(false),
-      d_functionsTerms(s.getSatContext()),
-      d_inputVars(s.getUserContext()),
-      d_preregisteredTerms(s.getSatContext()),
-      d_registeredTerms(s.getUserContext()),
-      d_registeredTypes(s.getUserContext()),
-      d_proxyVar(s.getUserContext()),
-      d_lengthLemmaTermsCache(s.getUserContext()),
+      d_hasSeqUpdate(false),
+      d_skCache(env.getRewriter()),
+      d_aent(env.getRewriter()),
+      d_functionsTerms(context()),
+      d_inputVars(userContext()),
+      d_preregisteredTerms(context()),
+      d_registeredTerms(userContext()),
+      d_registeredTypes(userContext()),
+      d_proxyVar(userContext()),
+      d_lengthLemmaTermsCache(userContext()),
       d_epg(pnm ? new EagerProofGenerator(
                       pnm,
-                      s.getUserContext(),
+                      userContext(),
                       "strings::TermRegistry::EagerProofGenerator")
                 : nullptr)
 {
@@ -183,6 +188,10 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (k == STRING_TO_CODE)
   {
     d_hasStrCode = true;
+  }
+  else if (k == SEQ_NTH || k == STRING_UPDATE)
+  {
+    d_hasSeqUpdate = true;
   }
   else if (k == REGEXP_RANGE)
   {
@@ -468,6 +477,30 @@ const context::CDHashSet<Node>& TermRegistry::getInputVars() const
 }
 
 bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
+
+bool TermRegistry::hasSeqUpdate() const { return d_hasSeqUpdate; }
+
+bool TermRegistry::isHandledUpdate(Node n)
+{
+  Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
+  NodeManager* nm = NodeManager::currentNM();
+  Node lenN = n[2];
+  if (n.getKind() == STRING_UPDATE)
+  {
+    lenN = nm->mkNode(STRING_LENGTH, n[2]);
+  }
+  Node one = nm->mkConst(Rational(1));
+  return d_aent.checkEq(lenN, one);
+}
+
+Node TermRegistry::getUpdateBase(Node n)
+{
+  while (n.getKind() == STRING_UPDATE)
+  {
+    n = n[0];
+  }
+  return n;
+}
 
 TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Node n, LengthStatus s, std::map<Node, bool>& reqPhase)

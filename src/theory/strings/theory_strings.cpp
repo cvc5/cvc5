@@ -56,14 +56,15 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(),
       d_state(env, d_valuation),
       d_eagerSolver(d_state),
-      d_termReg(d_state, d_statistics, d_pnm),
+      d_termReg(env, d_state, d_statistics, d_pnm),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
-      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
-      d_rewriter(&d_statistics.d_rewrites),
-      d_bsolver(d_state, d_im),
-      d_csolver(d_state, d_im, d_termReg, d_bsolver),
-      d_esolver(d_state,
+      d_extTheory(env, d_extTheoryCb, d_im),
+      d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
+      d_bsolver(env, d_state, d_im),
+      d_csolver(env, d_state, d_im, d_termReg, d_bsolver),
+      d_esolver(env,
+                d_state,
                 d_im,
                 d_termReg,
                 d_rewriter,
@@ -71,14 +72,15 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_rsolver(d_state,
+      d_rsolver(env,
+                d_state,
                 d_im,
                 d_termReg.getSkolemCache(),
                 d_csolver,
                 d_esolver,
                 d_statistics),
       d_regexp_elim(options::regExpElimAgg(), d_pnm, userContext()),
-      d_stringsFmf(context(), userContext(), valuation, d_termReg)
+      d_stringsFmf(env, valuation, d_termReg)
 {
   d_termReg.finishInit(&d_im);
 
@@ -496,7 +498,7 @@ bool TheoryStrings::collectModelInfoType(
             c = sel->getCurrent();
             // if we are a sequence with infinite element type
             if (tn.isSequence()
-                && !d_state.isFiniteType(tn.getSequenceElementType()))
+                && !d_env.isFiniteType(tn.getSequenceElementType()))
             {
               // Make a skeleton instead. In particular, this means that
               // a value:

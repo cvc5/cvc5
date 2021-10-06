@@ -1,7 +1,0 @@
-% EXPECT: sat
-
-x : [ INT, BOOLEAN ];
-
-ASSERT x /= ( 0, FALSE );
-
-CHECKSAT;

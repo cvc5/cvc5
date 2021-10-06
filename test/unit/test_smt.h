@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Common header for unit tests that need an SmtEngine.
+ * Common header for unit tests that need an SolverEngine.
  */
 
 #ifndef CVC5__TEST__UNIT__TEST_SMT_H
@@ -21,8 +21,8 @@
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
 #include "test.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
@@ -44,17 +44,16 @@ class TestSmt : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager.reset(new NodeManager());
+    d_nodeManager = NodeManager::currentNM();
+    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
-    d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
-    d_smtEngine->finishInit();
+    d_slvEngine.reset(new SolverEngine(d_nodeManager));
+    d_slvEngine->finishInit();
   }
 
-  std::unique_ptr<NodeManagerScope> d_nmScope;
-  std::unique_ptr<NodeManager> d_nodeManager;
+  NodeManager* d_nodeManager;
   SkolemManager* d_skolemManager;
-  std::unique_ptr<SmtEngine> d_smtEngine;
+  std::unique_ptr<SolverEngine> d_slvEngine;
 };
 
 class TestSmtNoFinishInit : public TestInternal
@@ -62,16 +61,15 @@ class TestSmtNoFinishInit : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager.reset(new NodeManager());
+    d_nodeManager = NodeManager::currentNM();
+    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_nmScope.reset(new NodeManagerScope(d_nodeManager.get()));
-    d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
+    d_slvEngine.reset(new SolverEngine(d_nodeManager));
   }
 
-  std::unique_ptr<NodeManagerScope> d_nmScope;
-  std::unique_ptr<NodeManager> d_nodeManager;
+  NodeManager* d_nodeManager;
   SkolemManager* d_skolemManager;
-  std::unique_ptr<SmtEngine> d_smtEngine;
+  std::unique_ptr<SolverEngine> d_slvEngine;
 };
 
 /* -------------------------------------------------------------------------- */

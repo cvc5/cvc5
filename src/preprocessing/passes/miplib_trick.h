@@ -46,8 +46,11 @@ class MipLibTrick : public PreprocessingPass, public NodeManagerListener
   {
     /** number of assertions removed by miplib pass */
     IntStat d_numMiplibAssertionsRemoved;
-    Statistics();
+    Statistics(StatisticsRegistry& reg);
   };
+
+  size_t removeFromConjunction(
+      Node& n, const std::unordered_set<unsigned long>& toRemove);
 
   Statistics d_statistics;
 

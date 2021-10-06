@@ -36,9 +36,10 @@ class TptpPrinter : public cvc5::Printer
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
-  /** print unsat core to stream
-   * We use the expression names stored in the SMT engine associated with the
-   * unsat core with UnsatCore::getSmtEngine.
+  /**
+   * Print unsat core to stream.
+   * We use the expression names associated with the unsat core
+   * (UnsatCore::getCoreNames).
    */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
 

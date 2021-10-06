@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Accessor for the SmtEngine's StatisticsRegistry.
+ * Accessor for the SolverEngine's StatisticsRegistry.
  */
 
 #include "smt/smt_statistics_registry.h"

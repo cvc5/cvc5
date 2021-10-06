@@ -20,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "context/context.h"
+#include "smt/env_obj.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
 #include "theory/sets/term_registry.h"
@@ -60,7 +61,7 @@ namespace sets {
  * normal forms, where the normal form for Set terms is a set of (equivalence
  * class representatives of) Venn regions that do not contain the empty set.
  */
-class CardinalityExtension
+class CardinalityExtension : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
@@ -69,7 +70,8 @@ class CardinalityExtension
    * Constructs a new instance of the cardinality solver w.r.t. the provided
    * contexts.
    */
-  CardinalityExtension(SolverState& s,
+  CardinalityExtension(Env& env,
+                       SolverState& s,
                        InferenceManager& im,
                        TermRegistry& treg);
 

@@ -58,7 +58,7 @@ cvc5 can be built on Linux and macOS.  For Windows, cvc5 can be cross-compiled
 using Mingw-w64.
 
 For detailed build and installation instructions on these platforms,
-see file [INSTALL.md](https://github.com/cvc5/cvc5/blob/master/INSTALL.md).
+see file [INSTALL.rst](https://github.com/cvc5/cvc5/blob/master/INSTALL.rst).
 
 
 Bug Reports

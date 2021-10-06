@@ -29,8 +29,9 @@ namespace smt {
  * A solver for interpolation queries.
  *
  * This class is responsible for responding to get-interpol commands. It spawns
- * a subsolver SmtEngine for a sygus conjecture that captures the interpolation
- * query, and implements supporting utility methods such as checkInterpol.
+ * a subsolver SolverEngine for a sygus conjecture that captures the
+ * interpolation query, and implements supporting utility methods such as
+ * checkInterpol.
  */
 class InterpolationSolver : protected EnvObj
 {

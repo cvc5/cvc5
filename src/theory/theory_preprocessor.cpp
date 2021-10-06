@@ -27,44 +27,43 @@ using namespace std;
 namespace cvc5 {
 namespace theory {
 
-TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
-                                       context::UserContext* userContext,
-                                       ProofNodeManager* pnm)
-    : d_engine(engine),
-      d_logicInfo(engine.getLogicInfo()),
-      d_ppCache(userContext),
-      d_rtfCache(userContext),
-      d_tfr(userContext, pnm),
-      d_tpg(pnm ? new TConvProofGenerator(
-                      pnm,
-                      userContext,
-                      TConvPolicy::FIXPOINT,
-                      TConvCachePolicy::NEVER,
-                      "TheoryPreprocessor::preprocess_rewrite",
-                      &d_iqtc)
-                : nullptr),
-      d_tpgRtf(pnm ? new TConvProofGenerator(pnm,
-                                             userContext,
-                                             TConvPolicy::FIXPOINT,
-                                             TConvCachePolicy::NEVER,
-                                             "TheoryPreprocessor::rtf",
-                                             &d_iqtc)
-                   : nullptr),
-      d_tpgRew(pnm ? new TConvProofGenerator(pnm,
-                                             userContext,
-                                             TConvPolicy::ONCE,
-                                             TConvCachePolicy::NEVER,
-                                             "TheoryPreprocessor::pprew")
-                   : nullptr),
+TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
+    : EnvObj(env),
+      d_engine(engine),
+      d_ppCache(userContext()),
+      d_rtfCache(userContext()),
+      d_tfr(env),
+      d_tpg(nullptr),
+      d_tpgRtf(nullptr),
+      d_tpgRew(nullptr),
       d_tspg(nullptr),
-      d_lp(pnm ? new LazyCDProof(pnm,
-                                 nullptr,
-                                 userContext,
-                                 "TheoryPreprocessor::LazyCDProof")
-               : nullptr)
+      d_lp(nullptr)
 {
-  if (isProofEnabled())
+  // proofs are enabled in the theory preprocessor regardless of the proof mode
+  ProofNodeManager* pnm = env.getProofNodeManager();
+  if (pnm != nullptr)
   {
+    context::Context* u = userContext();
+    d_tpg.reset(
+        new TConvProofGenerator(pnm,
+                                u,
+                                TConvPolicy::FIXPOINT,
+                                TConvCachePolicy::NEVER,
+                                "TheoryPreprocessor::preprocess_rewrite",
+                                &d_iqtc));
+    d_tpgRtf.reset(new TConvProofGenerator(pnm,
+                                           u,
+                                           TConvPolicy::FIXPOINT,
+                                           TConvCachePolicy::NEVER,
+                                           "TheoryPreprocessor::rtf",
+                                           &d_iqtc));
+    d_tpgRew.reset(new TConvProofGenerator(pnm,
+                                           u,
+                                           TConvPolicy::ONCE,
+                                           TConvCachePolicy::NEVER,
+                                           "TheoryPreprocessor::pprew"));
+    d_lp.reset(
+        new LazyCDProof(pnm, nullptr, u, "TheoryPreprocessor::LazyCDProof"));
     // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
     // (1) rewriting
@@ -74,7 +73,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     ts.push_back(d_tpgRew.get());
     ts.push_back(d_tpgRtf.get());
     d_tspg.reset(new TConvSeqProofGenerator(
-        pnm, ts, userContext, "TheoryPreprocessor::sequence"));
+        pnm, ts, userContext(), "TheoryPreprocessor::sequence"));
   }
 }
 
@@ -272,10 +271,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
 
     TheoryId tid = Theory::theoryOf(current);
 
-    if (!d_logicInfo.isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+    if (!logicInfo().isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
     {
       stringstream ss;
-      ss << "The logic was specified as " << d_logicInfo.getLogicString()
+      ss << "The logic was specified as " << logicInfo().getLogicString()
          << ", which doesn't include " << tid
          << ", but got a preprocessing-time fact for that theory." << endl
          << "The fact:" << endl

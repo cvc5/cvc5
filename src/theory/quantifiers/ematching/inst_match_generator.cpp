@@ -29,6 +29,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -271,6 +272,9 @@ void InstMatchGenerator::initialize(Node q,
     Trace("inst-match-gen-warn")
         << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
   }
+  Trace("inst-match-gen") << "Candidate generator is "
+                          << (d_cg != nullptr ? d_cg->identify() : "null")
+                          << std::endl;
   gens.insert( gens.end(), d_children.begin(), d_children.end() );
 }
 

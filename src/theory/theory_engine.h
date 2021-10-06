@@ -156,19 +156,6 @@ class TheoryEngine : protected EnvObj
    */
   prop::PropEngine* getPropEngine() const { return d_propEngine; }
 
-  /** Get the proof node manager */
-  ProofNodeManager* getProofNodeManager() const;
-
-  /**
-   * Get a pointer to the underlying sat context.
-   */
-  context::Context* getSatContext() const;
-
-  /**
-   * Get a pointer to the underlying user context.
-   */
-  context::UserContext* getUserContext() const;
-
   /**
    * Get a pointer to the underlying quantifiers engine.
    */
@@ -218,7 +205,7 @@ class TheoryEngine : protected EnvObj
    */
   bool isRelevant(Node lit) const;
   /**
-   * This is called at shutdown time by the SmtEngine, just before
+   * This is called at shutdown time by the SolverEngine, just before
    * destruction.  It is important because there are destruction
    * ordering issues between PropEngine and Theory.
    */
@@ -390,29 +377,18 @@ class TheoryEngine : protected EnvObj
   const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
 
   /**
+   * Get difficulty map, which populates dmap, mapping preprocessed assertions
+   * to a value that estimates their difficulty for solving the current problem.
+   *
+   * For details, see theory/difficuly_manager.h.
+   */
+  void getDifficultyMap(std::map<Node, Node>& dmap);
+
+  /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
   std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
-
-  //---------------------- information about cardinality of types
-  /**
-   * Is the cardinality of type tn finite? This method depends on whether
-   * finite model finding is enabled. If finite model finding is enabled, then
-   * we assume that all uninterpreted sorts have finite cardinality.
-   *
-   * Notice that if finite model finding is enabled, this method returns true
-   * if tn is an uninterpreted sort. It also returns true for the sort
-   * (Array Int U) where U is an uninterpreted sort. This type
-   * is finite if and only if U has cardinality one; for cases like this,
-   * we conservatively return that tn has finite cardinality.
-   *
-   * This method does *not* depend on the state of the theory engine, e.g.
-   * if U in the above example currently is entailed to have cardinality >1
-   * based on the assertions.
-   */
-  bool isFiniteType(TypeNode tn) const;
-  //---------------------- end information about cardinality of types
 
   theory::SortInference* getSortInference() { return d_sortInfer.get(); }
 

@@ -27,31 +27,31 @@
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 class StatisticsRegistry;
 
 namespace smt {
 
-SmtEngine* currentSmtEngine();
+SolverEngine* currentSolverEngine();
 bool smtEngineInScope();
 
 /** get the current resource manager */
 ResourceManager* currentResourceManager();
 
-class SmtScope : public NodeManagerScope
+class SmtScope
 {
  public:
-  SmtScope(const SmtEngine* smt);
+  SmtScope(const SolverEngine* smt);
   ~SmtScope();
   /**
    * This returns the StatisticsRegistry attached to the currently in scope
-   * SmtEngine.
+   * SolverEngine.
    */
   static StatisticsRegistry& currentStatisticsRegistry();
 
  private:
-  /** The old SmtEngine, to be restored on destruction. */
-  SmtEngine* d_oldSmtEngine;
+  /** The old SolverEngine, to be restored on destruction. */
+  SolverEngine* d_oldSlvEngine;
   /** Options scope */
   Options::OptionsScope d_optionsScope;
 };/* class SmtScope */

@@ -36,7 +36,7 @@ namespace quantifiers {
  * of this class are to perform the "equivalence checking" and "congruence
  * and matching filtering" in Figure 1. The equivalence checking is done
  * through a combination of the sygus sampler object owned by this class
- * and the calls made to copies of the SmtEngine in ::addTerm. The rewrite
+ * and the calls made to copies of the SolverEngine in ::addTerm. The rewrite
  * rule filtering (based on congruence, matching, variable ordering) is also
  * managed by the sygus sampler object.
  */

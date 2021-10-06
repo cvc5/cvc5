@@ -23,6 +23,7 @@
 
 #include "context/cdhashmap.h"
 #include "proof/eager_proof_generator.h"
+#include "smt/env_obj.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
@@ -35,12 +36,13 @@ namespace sets {
  * Term registry, the purpose of this class is to maintain a database of
  * commonly used terms, and mappings from sets to their "proxy variables".
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
   typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
-  TermRegistry(SolverState& state,
+  TermRegistry(Env& env,
+               SolverState& state,
                InferenceManager& im,
                SkolemCache& skc,
                ProofNodeManager* pnm);

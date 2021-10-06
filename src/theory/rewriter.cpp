@@ -17,9 +17,9 @@
 
 #include "options/theory_options.h"
 #include "proof/conv_proof_generator.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
@@ -166,7 +166,7 @@ TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
 
 Rewriter* Rewriter::getInstance()
 {
-  return smt::currentSmtEngine()->getRewriter();
+  return smt::currentSolverEngine()->getRewriter();
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,
@@ -477,36 +477,6 @@ void Rewriter::clearCaches()
 #endif
 
   clearCachesInternal();
-}
-
-Node Rewriter::rewriteViaMethod(TNode n, MethodId idr)
-{
-  if (idr == MethodId::RW_REWRITE)
-  {
-    return rewrite(n);
-  }
-  if (idr == MethodId::RW_EXT_REWRITE)
-  {
-    return extendedRewrite(n);
-  }
-  if (idr == MethodId::RW_REWRITE_EQ_EXT)
-  {
-    return rewriteEqualityExt(n);
-  }
-  if (idr == MethodId::RW_EVALUATE)
-  {
-    Evaluator eval;
-    return eval.eval(n, {}, {}, false);
-  }
-  if (idr == MethodId::RW_IDENTITY)
-  {
-    // does nothing
-    return n;
-  }
-  // unknown rewriter
-  Unhandled() << "Rewriter::rewriteViaMethod: no rewriter for " << idr
-              << std::endl;
-  return n;
 }
 
 }  // namespace theory

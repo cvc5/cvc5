@@ -33,6 +33,9 @@ namespace cvc5 {
 class EagerProofGenerator;
 
 namespace theory {
+
+class Rewriter;
+
 namespace arrays {
 
 Node getMostFrequentValue(TNode store);
@@ -47,7 +50,7 @@ static inline Node mkEqNode(Node a, Node b) {
 class TheoryArraysRewriter : public TheoryRewriter
 {
  public:
-  TheoryArraysRewriter(ProofNodeManager* pnm);
+  TheoryArraysRewriter(Rewriter* rewriter, ProofNodeManager* pnm);
 
   /** Normalize a constant whose index type has cardinality indexCard */
   static Node normalizeConstant(TNode node, Cardinality indexCard);
@@ -73,6 +76,9 @@ class TheoryArraysRewriter : public TheoryRewriter
    * that are distinct nodes are semantically disequal.
    */
   static Node normalizeConstant(TNode node);
+
+  /** The associated rewriter. */
+  Rewriter* d_rewriter;
 
   std::unique_ptr<EagerProofGenerator> d_epg;
 }; /* class TheoryArraysRewriter */

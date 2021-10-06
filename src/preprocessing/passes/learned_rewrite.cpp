@@ -52,7 +52,7 @@ std::ostream& operator<<(std::ostream& out, LearnedRewriteId i)
 
 LearnedRewrite::LearnedRewrite(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "learned-rewrite"),
-      d_lrewCount(smtStatisticsRegistry().registerHistogram<LearnedRewriteId>(
+      d_lrewCount(statisticsRegistry().registerHistogram<LearnedRewriteId>(
           "LearnedRewrite::lrewCount"))
 {
 }
@@ -233,7 +233,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("learned-rewrite-rr-debug") << "Rewrite " << n << std::endl;
-  Node nr = Rewriter::rewrite(n);
+  Node nr = rewrite(n);
   Kind k = nr.getKind();
   if (k == INTS_DIVISION || k == INTS_MODULUS || k == DIVISION)
   {
@@ -278,7 +278,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
       children.insert(children.end(), n.begin(), n.end());
       Node ret = nm->mkNode(nk, children);
       nr = returnRewriteLearned(nr, ret, LearnedRewriteId::NON_ZERO_DEN);
-      nr = Rewriter::rewrite(nr);
+      nr = rewrite(nr);
       k = nr.getKind();
     }
   }

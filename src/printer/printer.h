@@ -131,8 +131,7 @@ class Printer
                                    Node n) const;
 
   /** Print check-sat command */
-  virtual void toStreamCmdCheckSat(std::ostream& out,
-                                   Node n = Node::null()) const;
+  virtual void toStreamCmdCheckSat(std::ostream& out) const;
 
   /** Print check-sat-assuming command */
   virtual void toStreamCmdCheckSatAssuming(
@@ -155,6 +154,9 @@ class Printer
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
+
+  /** Print assume command */
+  virtual void toStreamCmdAssume(std::ostream& out, Node n) const;
 
   /** Print inv-constraint command */
   virtual void toStreamCmdInvConstraint(
@@ -210,12 +212,11 @@ class Printer
   /** Print get-unsat-core command */
   virtual void toStreamCmdGetUnsatCore(std::ostream& out) const;
 
+  /** Print get-difficulty command */
+  virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
-
-  /** Print set-info :status command */
-  virtual void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                             Result::Sat status) const;
 
   /** Print set-logic command */
   virtual void toStreamCmdSetBenchmarkLogic(std::ostream& out,
@@ -257,9 +258,6 @@ class Printer
   /** Print quit command */
   virtual void toStreamCmdQuit(std::ostream& out) const;
 
-  /** Print comment command */
-  virtual void toStreamCmdComment(std::ostream& out,
-                                  const std::string& comment) const;
   /** Declare heap command */
   virtual void toStreamCmdDeclareHeap(std::ostream& out,
                                       TypeNode locType,

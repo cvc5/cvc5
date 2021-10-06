@@ -46,11 +46,12 @@ FirstOrderModel::FirstOrderModel(Env& env,
                                  QuantifiersState& qs,
                                  QuantifiersRegistry& qr,
                                  TermRegistry& tr)
-    : d_model(nullptr),
+    : EnvObj(env),
+      d_model(nullptr),
       d_qreg(qr),
       d_treg(tr),
       d_eq_query(env, qs, this),
-      d_forall_asserts(qs.getSatContext()),
+      d_forall_asserts(context()),
       d_forallRlvComputed(false)
 {
 }

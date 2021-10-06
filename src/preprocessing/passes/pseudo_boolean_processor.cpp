@@ -210,7 +210,7 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
                                                Node orig)
 {
   Assert(assertion.getKind() == kind::GEQ);
-  Assert(assertion == Rewriter::rewrite(assertion));
+  Assert(assertion == rewrite(assertion));
 
   // assume assertion is rewritten
   Node l = assertion[0];
@@ -264,7 +264,7 @@ void PseudoBooleanProcessor::learnInternal(Node assertion,
     case kind::LEQ:
     case kind::LT:
     {
-      Node rw = Rewriter::rewrite(assertion);
+      Node rw = rewrite(assertion);
       if (assertion == rw)
       {
         if (assertion.getKind() == kind::GEQ)
@@ -320,7 +320,7 @@ void PseudoBooleanProcessor::addSub(Node from, Node to)
 {
   if (!d_subCache.hasSubstitution(from))
   {
-    Node rw_to = Rewriter::rewrite(to);
+    Node rw_to = rewrite(to);
     d_subCache.addSubstitution(from, rw_to);
   }
 }
@@ -386,7 +386,7 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
 
 Node PseudoBooleanProcessor::applyReplacements(Node pre)
 {
-  Node assertion = Rewriter::rewrite(pre);
+  Node assertion = rewrite(pre);
 
   Node result = d_subCache.apply(assertion);
   if (Debug.isOn("pbs::rewrites") && result != assertion)

@@ -92,7 +92,6 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
 bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 {
   Assert(n.getKind() == kind::STORE);
-  NodeManagerScope nms(nodeManager);
 
   TNode store = n[0];
   TNode index = n[1];

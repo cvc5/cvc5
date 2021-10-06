@@ -19,7 +19,7 @@
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "options/language.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "test_smt.h"
 #include "util/regexp.h"
 #include "util/string.h"

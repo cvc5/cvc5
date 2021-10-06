@@ -23,11 +23,11 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-DecisionStrategyFmf::DecisionStrategyFmf(context::Context* satContext,
-                                         Valuation valuation)
-    : d_valuation(valuation),
-      d_has_curr_literal(false, satContext),
-      d_curr_literal(0, satContext)
+DecisionStrategyFmf::DecisionStrategyFmf(Env& env, Valuation valuation)
+    : DecisionStrategy(env),
+      d_valuation(valuation),
+      d_has_curr_literal(false, context()),
+      d_curr_literal(0, context())
 {
 }
 
@@ -127,12 +127,11 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
   return ret;
 }
 
-DecisionStrategySingleton::DecisionStrategySingleton(
-    const char* name,
-    Node lit,
-    context::Context* satContext,
-    Valuation valuation)
-    : DecisionStrategyFmf(satContext, valuation), d_name(name), d_literal(lit)
+DecisionStrategySingleton::DecisionStrategySingleton(Env& env,
+                                                     const char* name,
+                                                     Node lit,
+                                                     Valuation valuation)
+    : DecisionStrategyFmf(env, valuation), d_name(name), d_literal(lit)
 {
 }
 

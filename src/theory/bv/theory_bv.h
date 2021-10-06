@@ -137,7 +137,7 @@ class TheoryBV : public Theory
   /** TheoryBV statistics. */
   struct Statistics
   {
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& reg, const std::string& name);
     IntStat d_solveSubstitutions;
   } d_stats;
 

@@ -31,17 +31,17 @@ class SetDefaults
  public:
   /**
    * @param isInternalSubsolver Whether we are setting the options for an
-   * internal subsolver (see SmtEngine::isInternalSubsolver).
+   * internal subsolver (see SolverEngine::isInternalSubsolver).
    */
   SetDefaults(bool isInternalSubsolver);
   /**
    * The purpose of this method is to set the default options and update the
    * logic info for an SMT engine.
    *
-   * @param logic A reference to the logic of SmtEngine, which can be
+   * @param logic A reference to the logic of SolverEngine, which can be
    * updated by this method based on the current options and the logic itself.
    * @param opts The options to modify, typically the main options of the
-   * SmtEngine in scope.
+   * SolverEngine in scope.
    */
   void setDefaults(LogicInfo& logic, Options& opts);
 
@@ -115,7 +115,7 @@ class SetDefaults
    * use of other theories to handle certain operators, e.g. UF to handle
    * partial functions.
    */
-  void widenLogic(LogicInfo& logic, Options& opts) const;
+  void widenLogic(LogicInfo& logic, const Options& opts) const;
   //------------------------- options setting, post finalization of logic
   /**
    * Set all default options, after we have finalized the logic.

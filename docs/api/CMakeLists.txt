@@ -13,6 +13,7 @@
 # The build system configuration.
 #
 add_subdirectory(cpp)
+add_subdirectory(java)
 add_subdirectory(python)
 
 # tell parent scope where to find the output xml
