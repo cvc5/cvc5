@@ -59,7 +59,10 @@ class CardinalityConstraint
 
 std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc);
 
-using CardinalityConstraintHashFunction = PairHashFunction<TypeNode, Integer, std::hash<TypeNode>, IntegerHashFunction>;
+using CardinalityConstraintHashFunction = PairHashFunction<TypeNode,
+                                                           Integer,
+                                                           std::hash<TypeNode>,
+                                                           IntegerHashFunction>;
 
 /**
  * A combined cardinality constraint, handled in the cardinality extension of
