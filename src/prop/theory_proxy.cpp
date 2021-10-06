@@ -79,23 +79,18 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     d_queue.pop();
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
-    if (d_dmNeedsActiveDefs || d_satRlv != nullptr)
+    if (d_dmNeedsActiveDefs)
     {
       Assert(d_skdm != nullptr);
       Trace("sat-rlv-assert")
           << "Assert to theory engine: " << assertion << std::endl;
-      // assertion processed makes all skolems in assertion active,
-      // which triggers their definitions to becoming relevant
+      // Assertion makes all skolems in assertion active,
+      // which triggers their definitions to becoming active.
       std::vector<TNode> activeSkolemDefs;
       d_skdm->notifyAsserted(assertion, activeSkolemDefs, true);
-      if (d_satRlv != nullptr)
-      {
-        d_satRlv->notifyActivatedSkolemDefs(activeSkolemDefs, d_queue);
-      }
-      if (dmNeedsActiveDefs)
-      {
-        d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
-      }
+      // notify the decision engine of the skolem definitions that have become
+      // active due to the assertion.
+      d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
     }
   }
   d_theoryEngine->check(effort);
