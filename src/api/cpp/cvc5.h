@@ -1338,7 +1338,7 @@ class CVC5_EXPORT Term
   bool isRealValue() const;
   /**
    * Asserts isRealValue().
-   * @return the representation of a rational value as a (decimal) string.
+   * @return the representation of a rational value as a (rational) string.
    */
   std::string getRealValue() const;
 
