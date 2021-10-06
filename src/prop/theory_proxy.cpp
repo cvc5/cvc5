@@ -56,6 +56,12 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
+void TheoryProxy::presolve()
+{
+  d_decisionEngine->presolve();
+  d_theoryEngine->presolve();
+}
+
 void TheoryProxy::notifyAssertion(Node a, TNode skolem)
 {
   if (skolem.isNull())

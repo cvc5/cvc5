@@ -87,7 +87,8 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
   if (dmode == options::DecisionMode::JUSTIFICATION
       || dmode == options::DecisionMode::STOPONLY)
   {
-    d_decisionEngine.reset(new decision::JustificationStrategy(env));
+    d_decisionEngine.reset(
+        new decision::JustificationStrategy(env));
   }
   else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
            || dmode == options::DecisionMode::STOPONLY_OLD)
@@ -321,7 +322,6 @@ void PropEngine::assertLemmasInternal(TrustNode trn,
     Assert(ppSkolems.size() == ppLemmas.size());
     for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
     {
-      Node lem = ppLemmas[i].getProven();
       d_theoryProxy->notifyAssertion(ppLemmas[i].getProven(), ppSkolems[i]);
     }
   }
@@ -382,9 +382,8 @@ Result PropEngine::checkSat() {
   ScopedBool scopedBool(d_inCheckSat);
   d_inCheckSat = true;
 
-  // TODO This currently ignores conflicts (a dangerous practice).
-  d_decisionEngine->presolve();
-  d_theoryEngine->presolve();
+  // Note this currently ignores conflicts (a dangerous practice).
+  d_theoryProxy->presolve();
 
   if(options::preprocessOnly()) {
     return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);

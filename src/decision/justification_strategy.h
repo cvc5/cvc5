@@ -152,12 +152,16 @@ class JustificationStrategy : public DecisionEngine
    */
   void addSkolemDefinition(TNode lem, TNode skolem) override;
   /**
-   * Notify this class that literal n has been asserted. This is triggered when
-   * n is sent to TheoryEngine. This activates skolem definitions for skolems
-   * k that occur in n.
+   * Notify this class that the list of lemmas defs are now active in the
+   * current SAT context. This is triggered when a literal lit is sent to
+   * TheoryEngine that contains skolems we have yet to see in the current SAT
+   * context, where defs are the skolem definitions for each such skolem.
    */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs) override;
-  /** */
+  /** 
+   * We need notification of active skolem definitions when our skolem
+   * relevance policy is JutificationSkolemRlvMode::ASSERT.
+   */
   bool needsActiveSkolemDefs() const override;
 
  private:
