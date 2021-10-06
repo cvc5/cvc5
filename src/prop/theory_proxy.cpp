@@ -41,6 +41,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
     : d_propEngine(propEngine),
       d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
+      d_dmNeedsActiveDefs(d_decisionEngine->needsActiveSkolemDefs()),
       d_theoryEngine(theoryEngine),
       d_queue(env.getContext()),
       d_tpp(env, *theoryEngine),
@@ -76,8 +77,26 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();
+    // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
-    d_decisionEngine->notifyAsserted(assertion);
+    if (d_dmNeedsActiveDefs || d_satRlv != nullptr)
+    {
+      Assert(d_skdm != nullptr);
+      Trace("sat-rlv-assert")
+          << "Assert to theory engine: " << assertion << std::endl;
+      // assertion processed makes all skolems in assertion active,
+      // which triggers their definitions to becoming relevant
+      std::vector<TNode> activeSkolemDefs;
+      d_skdm->notifyAsserted(assertion, activeSkolemDefs, true);
+      if (d_satRlv != nullptr)
+      {
+        d_satRlv->notifyActivatedSkolemDefs(activeSkolemDefs, d_queue);
+      }
+      if (dmNeedsActiveDefs)
+      {
+        d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+      }
+    }
   }
   d_theoryEngine->check(effort);
 }
