@@ -17,8 +17,8 @@
 #include <cvc5/cvc5.h>
 
 #include <iostream>
+#include <numeric>
 
-using namespace std;
 using namespace cvc5::api;
 
 int main()
@@ -118,21 +118,22 @@ int main()
   std::pair<int64_t, uint64_t> xPair = xVal.getReal64Value();
   std::pair<int64_t, uint64_t> yPair = yVal.getReal64Value();
   std::pair<int64_t, uint64_t> xMinusYPair = xMinusYVal.getReal64Value();
-  double xDouble = xPair.first / static_cast<double>(xPair.second);
-  double yDouble = yPair.first / static_cast<double>(yPair.second);
-  double xMinusYDouble =
-      xMinusYPair.first / static_cast<double>(xMinusYPair.second);
 
-  std::cout << "value for x: " << xDouble << std::endl;
-  std::cout << "value for y: " << yDouble << std::endl;
-  std::cout << "value for x - y: " << xMinusYDouble << std::endl;
+  std::cout << "value for x: " << xPair.first << "/" << xPair.second << std::endl;
+  std::cout << "value for y: " << yPair.first << "/" << yPair.second << std::endl;
+  std::cout << "value for x - y: " << xMinusYPair.first << "/" << xMinusYPair.second << std::endl;
 
   // Another way to independently compute the value of x - y would be
-  // to use the cpp minus operator instead of asking the solver.
+  // to perform the (rational) arithmetic manually within C++.
   // However, for more complex terms,
   // it is easier to let the solver do the evaluation.
-  double xMinusYComputed = xDouble - yDouble;
-  if (xMinusYComputed == xMinusYDouble)
+  std::pair<int64_t, uint64_t> xMinusYComputed = {
+    xPair.first * yPair.second - xPair.second * yPair.first,
+    xPair.second * yPair.second
+  };
+  uint64_t g = std::gcd(xMinusYComputed.first, xMinusYComputed.second);
+  xMinusYComputed = { xMinusYComputed.first / g, xMinusYComputed.second / g };
+  if (xMinusYComputed == xMinusYPair)
   {
     std::cout << "computed correctly" << std::endl;
   }
