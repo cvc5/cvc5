@@ -251,11 +251,11 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (options::sygusInference())
+  if (options().quantifiers.sygusInference)
   {
     d_passes["sygus-infer"]->apply(&assertions);
   }
-  else if (options::sygusRewSynthInput())
+  else if (options().quantifiers.sygusRewSynthInput)
   {
     // do candidate rewrite rule synthesis
     d_passes["synth-rr"]->apply(&assertions);

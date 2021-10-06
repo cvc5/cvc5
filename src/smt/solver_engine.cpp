@@ -124,9 +124,9 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // reset the preprocessor
-  d_pp.reset(new smt::Preprocessor(*d_env.get(), *d_absValues.get(), *d_stats));
+  d_pp.reset(new smt::Preprocessor(*d_env, *d_absValues, *d_stats));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver, *d_pp));
   // make the quantifier elimination solver
@@ -254,7 +254,7 @@ void SolverEngine::finishInit()
   if (d_env->getOptions().smt.produceInterpols
       != options::ProduceInterpols::NONE)
   {
-    d_interpolSolver.reset(new InterpolationSolver(*d_env.get()));
+    d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
 
   d_pp->finishInit(this);
