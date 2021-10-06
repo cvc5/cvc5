@@ -209,7 +209,7 @@ void SolverEngine::finishInit()
   }
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit(logic);
+  d_smtSolver->finishInit();
 
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
@@ -258,7 +258,7 @@ void SolverEngine::finishInit()
     d_interpolSolver.reset(new InterpolationSolver(*d_env.get()));
   }
 
-  d_pp->finishInit();
+  d_pp->finishInit(this);
 
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SolverEngine "

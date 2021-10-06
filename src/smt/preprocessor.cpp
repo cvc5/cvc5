@@ -35,8 +35,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-Preprocessor::Preprocessor(SolverEngine& slv,
-                           Env& env,
+Preprocessor::Preprocessor(Env& env,
                            AbstractValues& abs,
                            SmtEngineStatistics& stats)
     : EnvObj(env),
@@ -44,7 +43,7 @@ Preprocessor::Preprocessor(SolverEngine& slv,
       d_propagator(true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_exDefs(env, stats),
-      d_processor(slv, env, stats),
+      d_processor(env, stats),
       d_pnm(nullptr)
 {
 }

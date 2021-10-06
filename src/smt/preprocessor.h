@@ -103,8 +103,6 @@ class Preprocessor : protected EnvObj
   void setProofGenerator(PreprocessProofGenerator* pppg);
 
  private:
-  /** Reference to the env */
-  Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
   /**
