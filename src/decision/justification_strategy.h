@@ -158,7 +158,7 @@ class JustificationStrategy : public DecisionEngine
    * context, where defs are the skolem definitions for each such skolem.
    */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs) override;
-  /** 
+  /**
    * We need notification of active skolem definitions when our skolem
    * relevance policy is JutificationSkolemRlvMode::ASSERT.
    */
