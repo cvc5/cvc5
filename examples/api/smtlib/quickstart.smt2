@@ -5,7 +5,7 @@
 ; necessary to print in the unsat core assertions that do not have names
 (set-option :dump-unsat-cores-full true)
 
-; Declare real constanst x,y
+; Declare real constants x,y
 (declare-const x Real)
 (declare-const y Real)
 
@@ -27,7 +27,7 @@
 
 (echo "We will reset the solver with the (reset-assertions) command and check satisfiability of the same assertions but with the integers constants rather than with the real ones.")
 (reset-assertions)
-; Declare integer constanst a,b
+; Declare integer constants a,b
 (declare-const a Int)
 (declare-const b Int)
 (assert (< 0 a))
