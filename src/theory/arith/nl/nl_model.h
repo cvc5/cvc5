@@ -234,6 +234,8 @@ class NlModel : protected EnvObj
    */
   bool hasLinearModelValue(TNode v, Node& val) const;
 
+  std::optional<bool> solveEquality(Node eq);
+
   //---------------------------check model
   /**
    * This method is used during checkModel(...). It takes as input an

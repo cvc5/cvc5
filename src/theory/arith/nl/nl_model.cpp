@@ -181,6 +181,11 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     // see if it corresponds to a univariate polynomial equation of degree two
     if (atom.getKind() == EQUAL)
     {
+      std::optional<bool> solved = solveEquality(atom);
+      if (solved && !(*solved))
+      {
+        return false;
+      }
       if (!solveEqualitySimple(atom, d, lemmas))
       {
         // no chance we will satisfy this equality
@@ -373,15 +378,13 @@ bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,
                                   std::vector<NlLemma>& lemmas)
 {
-  Assert(eq.getType().isBoolean());
-  Node seq = eq;
   if (!d_substitutions.empty())
   {
-    seq = arithSubstitute(eq, d_substitutions);
-    seq = Rewriter::rewrite(seq);
-    if (seq.isConst())
+    eq = arithSubstitute(eq, d_substitutions);
+    eq = Rewriter::rewrite(eq);
+    if (eq.isConst())
     {
-      if (seq.getConst<bool>())
+      if (eq.getConst<bool>())
       {
         // already true
         d_check_model_solved[eq] = Node::null();
@@ -390,10 +393,10 @@ bool NlModel::solveEqualitySimple(Node eq,
       return false;
     }
   }
-  Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
-  Assert(seq.getKind() == EQUAL);
+  Trace("nl-ext-cms") << "simple solve equality " << eq << "..." << std::endl;
+  Assert(eq.getKind() == EQUAL);
   std::map<Node, Node> msum;
-  if (!ArithMSum::getMonomialSumLit(seq, msum))
+  if (!ArithMSum::getMonomialSumLit(eq, msum))
   {
     Trace("nl-ext-cms") << "...fail, could not determine monomial sum."
                         << std::endl;
@@ -555,7 +558,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     }
     return ret;
   }
-  Trace("nl-ext-quad") << "Solve quadratic : " << seq << std::endl;
+  Trace("nl-ext-quad") << "Solve quadratic : " << eq << std::endl;
   Trace("nl-ext-quad") << "  a : " << a << std::endl;
   Trace("nl-ext-quad") << "  b : " << b << std::endl;
   Trace("nl-ext-quad") << "  c : " << c << std::endl;
@@ -569,7 +572,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   // if it is negative, then we are in conflict
   if (sqrt_val.getConst<Rational>().sgn() == -1)
   {
-    Node conf = seq.negate();
+    Node conf = eq.negate();
     Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : " << conf
                           << std::endl;
     lemmas.emplace_back(InferenceId::ARITH_NL_CM_QUADRATIC_EQ, conf);
@@ -1311,6 +1314,169 @@ bool NlModel::hasLinearModelValue(TNode v, Node& val) const
     return true;
   }
   return false;
+}
+
+namespace
+{
+  void categorize_term(TNode mon, Node coeff, Node& constant, std::map<Node, std::tuple<Node, Node, bool>>& map)
+  {
+    if (mon.isNull())
+    {
+      Assert(constant.isNull());
+      constant = coeff;
+    }
+    else if (mon.getKind() == Kind::NONLINEAR_MULT)
+    {
+      Assert(mon.getKind() == Kind::NONLINEAR_MULT);
+      if (mon.getNumChildren() == 2 && mon[0] == mon[1])
+      {
+        auto ins = map.try_emplace(mon[0], std::make_tuple(Node(), coeff, true));
+        if (!ins.second)
+        {
+          Assert(std::get<1>(ins.first->second).isNull());
+          std::get<1>(ins.first->second) = coeff;
+        }
+      }
+      else
+      {
+        for (const auto& child: mon)
+        {
+          auto it = map.find(child);
+          if (it != map.end())
+          {
+            std::get<2>(it->second) = false;
+          }
+        }
+      }
+    }
+    else
+    {
+      auto ins = map.try_emplace(mon, std::make_tuple(coeff, Node(), true));
+      if (!ins.second)
+      {
+        Assert(std::get<0>(ins.first->second).isNull());
+        std::get<0>(ins.first->second) = coeff;
+      }
+    }
+  }
+
+  std::pair<Rational, Rational> approxSqrt(const Rational& r, uint64_t iterations)
+  {
+    if (r == 0 || r == 1)
+    {
+      return {r, r};
+    }
+    Rational curl = 0;
+    Rational curu = 1;
+    if (r > 1)
+    {
+    }
+    return {curl, curu};
+  }
+}
+
+std::optional<bool> NlModel::solveEquality(Node eq)
+{
+  return {};
+  if (!d_substitutions.empty())
+  {
+    eq = rewrite(arithSubstitute(eq, d_substitutions));
+    if (eq.isConst())
+    {
+      return eq.getConst<bool>();
+    }
+  }
+  Assert(eq.getKind() == EQUAL);
+  std::map<Node, Node> msum;
+  if (!ArithMSum::getMonomialSumLit(eq, msum))
+  {
+    return false;
+  }
+  Trace("nl-ext::solve-equality") << eq << std::endl;
+  Node constant;
+  // variable -> (lin coeff, quad coeff, is okay)
+  std::map<Node, std::tuple<Node, Node, bool>> map;
+  for (auto [mon, coeff]: msum)
+  {
+    if (coeff.isNull())
+    {
+      coeff = NodeManager::currentNM()->mkConst(Rational(1));
+    }
+    Trace("nl-ext::solve-equality") << "Categorize " << coeff << " * " << mon << std::endl;
+    categorize_term(mon, coeff, constant, map);
+  }
+
+  Trace("nl-ext::solve-equality") << "constant = " << constant << std::endl;
+  for (const auto& [var, data]: map)
+  {
+    Trace("nl-ext::solve-equality") << var << " -> " << constant << " + " << var << " * " << std::get<0>(data) << " + " << var << "^2 * " << std::get<1>(data) << " / valid: " << std::get<2>(data) << std::endl;
+  }
+
+  for (const auto& [var, data]: map)
+  {
+    if (hasAssignment(var) || !std::get<2>(data))
+    {
+      continue;
+    }
+    if (std::get<1>(data).isNull())
+    {
+      Assert(!std::get<0>(data).isNull());
+      Node slv;
+      Node veqc;
+      if (ArithMSum::isolate(var, msum, veqc, slv, Kind::EQUAL) != 0)
+      {
+        Trace("nl-ext::solve-equality") << "Found " << var << " -> " << veqc << " / " << slv << std::endl;
+        if (veqc.isNull() && !expr::hasSubterm(slv, var) && slv.getType().isSubtypeOf(var.getType()))
+        {
+          return addSubstitution(var, slv);
+        }
+      }
+    }
+  }
+
+  for (const auto& [var, data]: map)
+  {
+    if (hasAssignment(var) || !std::get<2>(data) || std::get<1>(data).isNull())
+    {
+      continue;
+    }
+    auto nm = NodeManager::currentNM();
+    Node an = std::get<1>(data);
+    Node bn = std::get<0>(data);
+    if (bn.isNull()) bn = nm->mkConst(Rational(0));
+    Node cn = constant;
+    if (cn.isNull()) cn = nm->mkConst(Rational(0));
+    if (!an.isConst() || !bn.isConst() || !cn.isConst())
+    {
+      continue;
+    }
+    auto localeq = rewrite(nm->mkNode(Kind::EQUAL,
+        nm->mkNode(Kind::PLUS,
+          cn,
+          nm->mkNode(Kind::MULT, var, bn),
+          nm->mkNode(Kind::NONLINEAR_MULT, var, var, an)
+        ),
+        nm->mkConst(Rational(0))
+      ));
+    //std::cout << eq << " // " << localeq << std::endl;
+    Assert(localeq == eq);
+    Rational a = an.getConst<Rational>();
+    Rational b = bn.getConst<Rational>();
+    Rational c = cn.getConst<Rational>();
+    Rational disc = b*b - Rational(4)*a*c;
+    if (disc < 0)
+    {
+      // Send lemma about eq having no solution
+      continue;
+    }
+    if (disc == 0)
+    {
+      return addSubstitution(var, nm->mkConst(-b / (Rational(2)*a)));
+    }
+
+  }
+
+  return {};
 }
 
 }  // namespace nl
