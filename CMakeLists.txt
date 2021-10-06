@@ -267,25 +267,23 @@ endif()
 # This needs to be set before any find_package(...) command since we want to
 # search for static libraries with suffix .a.
 
-if(NOT ENABLE_STATIC_BINARY)
-  # Embed the installation prefix as an RPATH in the executable such that the
-  # linker can find our libraries (such as libcvc5parser) when executing the
-  # cvc5 binary. This is for example useful when installing cvc5 with a custom
-  # prefix on macOS (e.g. when using homebrew in a non-standard directory). If
-  # we do not set this option, then the linker will not be able to find the
-  # required libraries when trying to run cvc5.
-  #
-  # Also embed the installation prefix of the installed contrib libraries as an
-  # RPATH. This allows to install a dynamically linked binary that depends on
-  # dynamically linked libraries. This is dangerous, as the installed binary
-  # breaks if the contrib library is removed or changes in other ways, we thus
-  # print a big warning and only allow if installing to a custom installation
-  # prefix.
-  #
-  # More information on RPATH in CMake:
-  # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
-endif()
+# Embed the installation prefix as an RPATH in the executable such that the
+# linker can find our libraries (such as libcvc5parser) when executing the
+# cvc5 binary. This is for example useful when installing cvc5 with a custom
+# prefix on macOS (e.g. when using homebrew in a non-standard directory). If
+# we do not set this option, then the linker will not be able to find the
+# required libraries when trying to run cvc5.
+#
+# Also embed the installation prefix of the installed contrib libraries as an
+# RPATH. This allows to install a dynamically linked binary that depends on
+# dynamically linked libraries. This is dangerous, as the installed binary
+# breaks if the contrib library is removed or changes in other ways, we thus
+# print a big warning and only allow if installing to a custom installation
+# prefix.
+#
+# More information on RPATH in CMake:
+# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 
 # Set visibility to default if unit tests are enabled
 if(ENABLE_UNIT_TESTING)
