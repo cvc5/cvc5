@@ -90,7 +90,11 @@ class Rewriter;
 class Evaluator
 {
  public:
-  Evaluator(Rewriter* rr);
+  /**
+   * @param rr (optional) the rewriter to use when a node cannot be evaluated.
+   * @param strAlphaCard The assumed cardinality of the alphabet for strings.
+   */
+  Evaluator(Rewriter* rr, uint32_t strAlphaCard = 196608);
   /**
    * Evaluates node `n` under the substitution described by the variable names
    * `args` and the corresponding values `vals`. This method uses evaluation

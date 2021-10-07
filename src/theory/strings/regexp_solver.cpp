@@ -20,6 +20,7 @@
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/ext_theory.h"
+#include "theory/strings/term_registry.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 #include "util/statistics_value.h"
@@ -35,7 +36,7 @@ namespace strings {
 RegExpSolver::RegExpSolver(Env& env,
                            SolverState& s,
                            InferenceManager& im,
-                           SkolemCache* skc,
+                           TermRegistry& tr,
                            CoreSolver& cs,
                            ExtfSolver& es,
                            SequencesStatistics& stats)
@@ -48,7 +49,7 @@ RegExpSolver::RegExpSolver(Env& env,
       d_regexp_ucached(userContext()),
       d_regexp_ccached(context()),
       d_processed_memberships(context()),
-      d_regexp_opr(env, skc)
+      d_regexp_opr(env, tr.getSkolemCache())
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
   d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY);

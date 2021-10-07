@@ -58,6 +58,8 @@ class TermRegistry : protected EnvObj
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();
+  /** get the cardinality of the alphabet used, based on the options */
+  uint32_t getAlphabetCardinality() const;
   /** Finish initialize, which sets the inference manager */
   void finishInit(InferenceManager* im);
   /** The eager reduce routine
@@ -69,9 +71,10 @@ class TermRegistry : protected EnvObj
    *
    * @param t The node to reduce,
    * @param sc The Skolem cache to use for new variables,
+   * @param alphaCard The cardinality of the alphabet we are assuming
    * @return The eager reduction for t.
    */
-  static Node eagerReduce(Node t, SkolemCache* sc);
+  static Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
   /**
    * Returns a lemma indicating that the length of a term t whose type is
    * string-like has positive length. The exact form of this lemma depends
@@ -216,7 +219,7 @@ class TermRegistry : protected EnvObj
   Node d_one;
   Node d_negOne;
   /** the cardinality of the alphabet */
-  uint32_t d_cardSize;
+  uint32_t d_alphaCard;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Pointer to the inference manager of the theory of strings. */
