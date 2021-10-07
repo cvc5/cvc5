@@ -49,7 +49,7 @@ RegExpOpr::RegExpOpr(Env& env, SkolemCache* sc)
 
   d_emptySingleton =
       NodeManager::currentNM()->mkNode(STRING_TO_REGEXP, d_emptyString);
-  d_lastchar = utils::getAlphabetCardinality() - 1;
+  d_lastchar = options().strings.stringsAlphaCard - 1;
 }
 
 RegExpOpr::~RegExpOpr() {}

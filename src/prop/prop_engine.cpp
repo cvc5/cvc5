@@ -648,7 +648,7 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
   return true;
 }
 
-void PropEngine::checkProof(context::CDList<Node>* assertions)
+void PropEngine::checkProof(const context::CDList<Node>& assertions)
 {
   if (!d_env.isSatProofProducing())
   {

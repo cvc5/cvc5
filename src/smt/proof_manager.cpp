@@ -279,12 +279,12 @@ std::shared_ptr<ProofNode> PfManager::getFinalProof(
 void PfManager::getAssertions(Assertions& as,
                               std::vector<Node>& assertions)
 {
-  context::CDList<Node>* al = as.getAssertionList();
-  Assert(al != nullptr);
-  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
-       ++i)
+  const context::CDList<Node>& al = as.getAssertionList();
+  Assert(options().smt.produceAssertions)
+      << "Expected produce assertions to be true when checking proof";
+  for (const Node& a : al)
   {
-    assertions.push_back(*i);
+    assertions.push_back(a);
   }
 }
 

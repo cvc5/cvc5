@@ -91,6 +91,22 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
   TypeNode stype = node[0].getType();
 
+  bool hasStrTerm = false;
+  for (size_t r = 0; r < 2; r++)
+  {
+    if (!node[r].isConst()
+        && kindToTheoryId(node[r].getKind()) == THEORY_STRINGS)
+    {
+      hasStrTerm = true;
+      break;
+    }
+  }
+  if (!hasStrTerm)
+  {
+    // equality between variables and constants, no rewrites apply
+    return node;
+  }
+
   NodeManager* nm = NodeManager::currentNM();
   // ( ~contains( s, t ) V ~contains( t, s ) ) => ( s == t ---> false )
   for (unsigned r = 0; r < 2; r++)
