@@ -60,8 +60,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeSelector.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Grammar.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/ModeInfo.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/NumberInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Pair.java
@@ -74,8 +72,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Term.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/ValueInfo.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/VoidInfo.java
   ${JAVA_KIND_FILE}
 )
 

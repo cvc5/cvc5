@@ -65,6 +65,69 @@ public class OptionInfo extends AbstractPointer
 
   // endregion
 
+  class ModeInfo extends ValueInfo<String>
+  {
+    private final String[] modes;
+
+    public ModeInfo(String defaultValue, String currentValue, String[] modes)
+    {
+      super(defaultValue, currentValue);
+      this.modes = modes;
+    }
+    public String[] getModes()
+    {
+      return modes;
+    }
+  }
+
+  /** Has no value information */
+  public static class VoidInfo extends BaseInfo
+  {
+    public static final VoidInfo VOID_INFO = new VoidInfo();
+    private VoidInfo() {}
+  }
+
+  /** Has the current and the default value */
+  public abstract class ValueInfo<T> extends BaseInfo
+  {
+    private final T defaultValue;
+    private final T currentValue;
+    public ValueInfo(T defaultValue, T currentValue)
+    {
+      this.defaultValue = defaultValue;
+      this.currentValue = currentValue;
+    }
+    public T getDefaultValue()
+    {
+      return defaultValue;
+    }
+    public T getCurrentValue()
+    {
+      return currentValue;
+    }
+  }
+
+  /** Default value, current value, minimum and maximum of a numeric value */
+  public class NumberInfo<T> extends ValueInfo<T>
+  {
+    private final T minimum;
+    private final T maximum;
+    public NumberInfo(T defaultValue, T currentValue, T minimum, T maximum)
+    {
+      super(defaultValue, currentValue);
+      this.minimum = minimum;
+      this.maximum = maximum;
+    }
+    public T getMinimum()
+    {
+      return minimum;
+    }
+    public T getMaximum()
+    {
+      return maximum;
+    }
+  }
+
   private native String getName(long pointer);
 
   private native String[] getAliases(long pointer);
