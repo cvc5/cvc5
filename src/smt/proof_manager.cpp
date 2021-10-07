@@ -280,6 +280,8 @@ void PfManager::getAssertions(Assertions& as,
                               std::vector<Node>& assertions)
 {
   const context::CDList<Node>& al = as.getAssertionList();
+  Assert(options().smt.produceAssertions)
+      << "Expected produce assertions to be true when checking proof";
   for (const Node& a : al)
   {
     assertions.push_back(a);
