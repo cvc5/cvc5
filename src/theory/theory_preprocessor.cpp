@@ -16,12 +16,12 @@
 #include "theory/theory_preprocessor.h"
 
 #include "expr/skolem_manager.h"
-#include "expr/term_context_stack.h"
 #include "proof/lazy_proof.h"
 #include "smt/logic_exception.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "expr/term_context_stack.h"
 
 using namespace std;
 
@@ -226,6 +226,7 @@ RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()
 TrustNode TheoryPreprocessor::theoryPreprocess(
     TNode assertion, std::vector<SkolemLemma>& newLemmas)
 {
+  std::unordered_set< std::pair<Node, uint32_t>, PairHashFunction<Node, uint32_t, std::hash<Node>> > wasPreprocessed;
   NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
   std::vector<bool> processedChildren;
@@ -248,6 +249,15 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       Trace("rtf-debug") << "...already computed" << std::endl;
       ctx.pop();
       processedChildren.pop_back();
+      if (wasPreprocessed.find(curr)!=wasPreprocessed.end())
+      {
+        // we preprocessed it to something else, carry that
+        std::pair<Node, uint32_t> key(itc->second, nodeVal);
+        itc = d_tfCache.find(key);
+        Assert (itc!=d_tfCache.end());
+        d_tfCache[curr] = itc->second;
+        wasPreprocessed.erase(curr);
+      }
       // already computed
       continue;
     }
@@ -311,16 +321,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // and compute the result
     ctx.pop();
     processedChildren.pop_back();
-    if (!itc->second.isNull())
-    {
-      // we preprocessed it to something else, carry that
-      std::pair<Node, uint32_t> key(itc->second, nodeVal);
-      itc = d_tfCache.find(key);
-      Assert(itc != d_tfCache.end());
-      d_tfCache[curr] = itc->second;
-      continue;
-    }
-
+    
     // if we have not already computed the result
     std::vector<Node> newChildren;
     bool childChanged = false;
@@ -349,7 +350,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       ret = nm->mkNode(node.getKind(), newChildren);
     }
     Node pret = preprocessWithProof(ret, newLemmas);
-    if (pret != ret)
+    if (pret!=ret)
     {
       // must restart
       ctx.push(node, nodeVal);
@@ -357,6 +358,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       ctx.push(pret, nodeVal);
       processedChildren.push_back(false);
       d_tfCache[curr] = pret;
+      wasPreprocessed.insert(curr);
     }
     else
     {
