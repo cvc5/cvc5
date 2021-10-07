@@ -43,7 +43,7 @@ public class OptionInfo extends AbstractPointer
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);
-    this.variantInfo = getVariantInfo(pointer);
+    this.baseInfo = getBaseInfo(pointer);
   }
 
   protected static native void deletePointer(long pointer);
@@ -71,7 +71,7 @@ public class OptionInfo extends AbstractPointer
 
   private native boolean getSetByUser(long pointer);
 
-  private native VariantInfo getVariantInfo(long pointer);
+  private native BaseInfo getBaseInfo(long pointer);
 
   /** The option name */
   private final String name;
@@ -93,10 +93,10 @@ public class OptionInfo extends AbstractPointer
   }
 
   /** The option variant information */
-  private final VariantInfo variantInfo;
-  public VariantInfo getVariantInfo()
+  private final BaseInfo baseInfo;
+  public BaseInfo getBaseInfo()
   {
-    return variantInfo;
+    return baseInfo;
   }
 
   /**

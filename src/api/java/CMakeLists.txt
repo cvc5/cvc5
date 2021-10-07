@@ -49,6 +49,7 @@ include(UseJava)
 # specify java source files
 set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/AbstractPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/BaseInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiOptionException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiRecoverableException.java
@@ -74,7 +75,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/ValueInfo.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/VariantInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/VoidInfo.java
   ${JAVA_KIND_FILE}
 )

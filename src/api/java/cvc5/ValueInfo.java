@@ -16,7 +16,7 @@
 package cvc5;
 
 /** Has the current and the default value */
-public abstract class ValueInfo<T> extends VariantInfo
+public abstract class ValueInfo<T> extends BaseInfo
 {
   private final T defaultValue;
   private final T currentValue;

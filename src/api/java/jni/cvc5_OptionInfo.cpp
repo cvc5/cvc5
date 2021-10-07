@@ -143,12 +143,12 @@ jobject getNumberInfoFromInteger(JNIEnv* env,
 
 /*
  * Class:     cvc5_OptionInfo
- * Method:    getVariantInfo
- * Signature: (J)Lcvc5/VariantInfo;
+ * Method:    getBaseInfo
+ * Signature: (J)Lcvc5/BaseInfo;
  */
-JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getVariantInfo(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer)
+JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getBaseInfo(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);

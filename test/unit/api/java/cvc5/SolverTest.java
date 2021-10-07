@@ -1362,8 +1362,8 @@ class SolverTest
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(()
-                         -> assertTrue(info.getVariantInfo() instanceof VoidInfo
-                             && info.getVariantInfo() == VoidInfo.VOID_INFO));
+                         -> assertTrue(info.getBaseInfo() instanceof VoidInfo
+                             && info.getBaseInfo() == VoidInfo.VOID_INFO));
     }
     {
       // int64 type with default
@@ -1371,8 +1371,8 @@ class SolverTest
       assertions.add(() -> assertEquals("verbosity", info.getName()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
-      assertions.add(() -> assertTrue(info.getVariantInfo().getClass() == NumberInfo.class));
-      NumberInfo<BigInteger> numInfo = (NumberInfo<BigInteger>) info.getVariantInfo();
+      assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == NumberInfo.class));
+      NumberInfo<BigInteger> numInfo = (NumberInfo<BigInteger>) info.getBaseInfo();
       assertions.add(() -> assertEquals(0, numInfo.getDefaultValue().intValue()));
       assertions.add(() -> assertEquals(0, numInfo.getCurrentValue().intValue()));
       assertions.add(
@@ -1385,8 +1385,8 @@ class SolverTest
       assertEquals(info.getName(), "random-freq");
       assertEquals(
           Arrays.asList(info.getAliases()), Arrays.asList(new String[] {"random-frequency"}));
-      assertTrue(info.getVariantInfo().getClass() == NumberInfo.class);
-      NumberInfo<Double> ni = (NumberInfo<Double>) info.getVariantInfo();
+      assertTrue(info.getBaseInfo().getClass() == NumberInfo.class);
+      NumberInfo<Double> ni = (NumberInfo<Double>) info.getBaseInfo();
       assertEquals(ni.getCurrentValue(), 0.0);
       assertEquals(ni.getDefaultValue(), 0.0);
       assertTrue(ni.getMinimum() != null && ni.getMaximum() != null);
@@ -1401,8 +1401,8 @@ class SolverTest
       assertions.add(() -> assertEquals("output", info.getName()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
-      assertions.add(() -> assertTrue(info.getVariantInfo().getClass() == ModeInfo.class));
-      ModeInfo modeInfo = (ModeInfo) info.getVariantInfo();
+      assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == ModeInfo.class));
+      ModeInfo modeInfo = (ModeInfo) info.getBaseInfo();
       assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
       assertions.add(() -> assertEquals("OutputTag::NONE", modeInfo.getCurrentValue()));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));

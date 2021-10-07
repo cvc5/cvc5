@@ -15,7 +15,7 @@
 
 package cvc5;
 /** Has no value information */
-public class VoidInfo extends VariantInfo
+public class VoidInfo extends BaseInfo
 {
   public static final VoidInfo VOID_INFO = new VoidInfo();
   private VoidInfo() {}
