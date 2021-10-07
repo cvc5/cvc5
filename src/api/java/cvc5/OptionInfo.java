@@ -43,7 +43,7 @@ public class OptionInfo extends AbstractPointer
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);
-    this.valueInfo = getValueInfo(pointer);
+    this.variantInfo = getVariantInfo(pointer);
   }
 
   protected static native void deletePointer(long pointer);
@@ -71,73 +71,7 @@ public class OptionInfo extends AbstractPointer
 
   private native boolean getSetByUser(long pointer);
 
-  private native ValueInfo getValueInfo(long pointer);
-
-  /** Has no value information */
-  public class VoidInfo extends ValueInfo<Object>
-  {
-    public VoidInfo()
-    {
-      super(null, null);
-    }
-  }
-
-  /** Has the current and the default value */
-  public abstract class ValueInfo<T>
-  {
-    private final T defaultValue;
-    private final T currentValue;
-    public ValueInfo(T defaultValue, T currentValue)
-    {
-      this.defaultValue = defaultValue;
-      this.currentValue = currentValue;
-    }
-    public T getDefaultValue()
-    {
-      return defaultValue;
-    }
-    public T getCurrentValue()
-    {
-      return currentValue;
-    }
-  }
-
-  /** Default value, current value, minimum and maximum of a numeric value */
-  public class NumberInfo<T> extends ValueInfo<T>
-  {
-    private final T minimum;
-    private final T maximum;
-    public NumberInfo(T defaultValue, T currentValue, T minimum, T maximum)
-    {
-      super(defaultValue, currentValue);
-      this.minimum = minimum;
-      this.maximum = maximum;
-    }
-    public T getMinimum()
-    {
-      return minimum;
-    }
-    public T getMaximum()
-    {
-      return maximum;
-    }
-  }
-
-  /** Default value, current value and choices of a mode option */
-  public class ModeInfo extends ValueInfo<String>
-  {
-    private final String[] modes;
-
-    public ModeInfo(String defaultValue, String currentValue, String[] modes)
-    {
-      super(defaultValue, currentValue);
-      this.modes = modes;
-    }
-    public String[] getModes()
-    {
-      return modes;
-    }
-  }
+  private native VariantInfo getVariantInfo(long pointer);
 
   /** The option name */
   private final String name;
@@ -158,11 +92,11 @@ public class OptionInfo extends AbstractPointer
     return setByUser;
   }
 
-  /** The option value information */
-  private final ValueInfo valueInfo;
-  public ValueInfo getValueInfo()
+  /** The option variant information */
+  private final VariantInfo variantInfo;
+  public VariantInfo getVariantInfo()
   {
-    return valueInfo;
+    return variantInfo;
   }
 
   /**

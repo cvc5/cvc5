@@ -1361,7 +1361,9 @@ class SolverTest
       assertions.add(() -> assertEquals("verbose", info.getName()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
-      assertions.add(() -> assertTrue(info.getValueInfo().getClass() == OptionInfo.VoidInfo.class));
+      assertions.add(()
+                         -> assertTrue(info.getVariantInfo() instanceof VoidInfo
+                             && info.getVariantInfo() == VoidInfo.VOID_INFO));
     }
     {
       // int64 type with default
@@ -1369,10 +1371,8 @@ class SolverTest
       assertions.add(() -> assertEquals("verbosity", info.getName()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
-      assertions.add(
-          () -> assertTrue(info.getValueInfo().getClass() == OptionInfo.NumberInfo.class));
-      OptionInfo.NumberInfo<BigInteger> numInfo =
-          (OptionInfo.NumberInfo<BigInteger>) info.getValueInfo();
+      assertions.add(() -> assertTrue(info.getVariantInfo().getClass() == NumberInfo.class));
+      NumberInfo<BigInteger> numInfo = (NumberInfo<BigInteger>) info.getVariantInfo();
       assertions.add(() -> assertEquals(0, numInfo.getDefaultValue().intValue()));
       assertions.add(() -> assertEquals(0, numInfo.getCurrentValue().intValue()));
       assertions.add(
@@ -1385,8 +1385,8 @@ class SolverTest
       assertEquals(info.getName(), "random-freq");
       assertEquals(
           Arrays.asList(info.getAliases()), Arrays.asList(new String[] {"random-frequency"}));
-      assertTrue(info.getValueInfo().getClass() == OptionInfo.NumberInfo.class);
-      OptionInfo.NumberInfo<Double> ni = (OptionInfo.NumberInfo<Double>) info.getValueInfo();
+      assertTrue(info.getVariantInfo().getClass() == NumberInfo.class);
+      NumberInfo<Double> ni = (NumberInfo<Double>) info.getVariantInfo();
       assertEquals(ni.getCurrentValue(), 0.0);
       assertEquals(ni.getDefaultValue(), 0.0);
       assertTrue(ni.getMinimum() != null && ni.getMaximum() != null);
@@ -1401,8 +1401,8 @@ class SolverTest
       assertions.add(() -> assertEquals("output", info.getName()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
-      assertions.add(() -> assertTrue(info.getValueInfo().getClass() == OptionInfo.ModeInfo.class));
-      OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getValueInfo();
+      assertions.add(() -> assertTrue(info.getVariantInfo().getClass() == ModeInfo.class));
+      ModeInfo modeInfo = (ModeInfo) info.getVariantInfo();
       assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
       assertions.add(() -> assertEquals("OutputTag::NONE", modeInfo.getCurrentValue()));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));

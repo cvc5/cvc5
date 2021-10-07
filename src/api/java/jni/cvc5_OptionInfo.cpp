@@ -108,7 +108,6 @@ JNIEXPORT jboolean JNICALL Java_cvc5_OptionInfo_getSetByUser(JNIEnv* env,
  */
 template <typename T>
 jobject getNumberInfoFromInteger(JNIEnv* env,
-                                 const _jobject* optionInfo,
                                  jclass numberInfoClass,
                                  jmethodID methodId,
                                  const OptionInfo::NumberInfo<T>& info)
@@ -125,38 +124,31 @@ jobject getNumberInfoFromInteger(JNIEnv* env,
   {
     maximum = getBigIntegerObject<T>(env, *info.maximum);
   }
-  jobject ret = env->NewObject(numberInfoClass,
-                               methodId,
-                               optionInfo,
-                               defaultValue,
-                               currentValue,
-                               minimum,
-                               maximum);
+  jobject ret = env->NewObject(
+      numberInfoClass, methodId, defaultValue, currentValue, minimum, maximum);
   return ret;
 }
 
 template <typename T>
 jobject getNumberInfoFromInteger(JNIEnv* env,
-                                 const _jobject* optionInfo,
                                  jclass numberInfoClass,
                                  jmethodID methodId,
                                  const OptionInfo::NumberInfo<int64_t>& info);
 
 template <typename T>
 jobject getNumberInfoFromInteger(JNIEnv* env,
-                                 const _jobject* optionInfo,
                                  jclass numberInfoClass,
                                  jmethodID methodId,
                                  const OptionInfo::NumberInfo<uint64_t>& info);
 
 /*
  * Class:     cvc5_OptionInfo
- * Method:    getValueInfo
- * Signature: (J)Lcvc5/OptionInfo/ValueInfo;
+ * Method:    getVariantInfo
+ * Signature: (J)Lcvc5/VariantInfo;
  */
-JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
-                                                            jobject optionInfo,
-                                                            jlong pointer)
+JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getVariantInfo(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   OptionInfo* current = reinterpret_cast<OptionInfo*>(pointer);
@@ -171,29 +163,27 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
 
   if (std::holds_alternative<OptionInfo::VoidInfo>(v))
   {
-    jclass voidInfoClass = env->FindClass("cvc5/OptionInfo$VoidInfo");
-    jmethodID methodId =
-        env->GetMethodID(voidInfoClass, "<init>", "(Lcvc5/OptionInfo;)V");
-    jobject ret = env->NewObject(voidInfoClass, methodId, optionInfo);
+    jclass voidInfoClass = env->FindClass("cvc5/VoidInfo");
+    jfieldID fieldId =
+        env->GetStaticFieldID(voidInfoClass, "VOID_INFO", "Lcvc5/VoidInfo;");
+    jobject ret = env->GetStaticObjectField(voidInfoClass, fieldId);
     return ret;
   }
 
   if (std::holds_alternative<OptionInfo::ValueInfo<bool>>(v)
       || std::holds_alternative<OptionInfo::ValueInfo<std::string>>(v))
   {
-    jclass valueInfoClass = env->FindClass("cvc5/OptionInfo$ValueInfo");
+    jclass valueInfoClass = env->FindClass("cvc5/ValueInfo");
     jmethodID methodId = env->GetMethodID(
-        valueInfoClass,
-        "<init>",
-        "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/Object;)V");
+        valueInfoClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
 
     if (std::holds_alternative<OptionInfo::ValueInfo<bool>>(v))
     {
       auto info = std::get<OptionInfo::ValueInfo<bool>>(v);
       jobject currentValue = getBooleanObject(env, info.currentValue);
       jobject defaultValue = getBooleanObject(env, info.defaultValue);
-      jobject ret = env->NewObject(
-          valueInfoClass, methodId, optionInfo, defaultValue, currentValue);
+      jobject ret =
+          env->NewObject(valueInfoClass, methodId, defaultValue, currentValue);
       return ret;
     }
 
@@ -202,8 +192,8 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
       auto info = std::get<OptionInfo::ValueInfo<std::string>>(v);
       jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
       jstring currentValue = env->NewStringUTF(info.currentValue.c_str());
-      jobject ret = env->NewObject(
-          valueInfoClass, methodId, optionInfo, defaultValue, currentValue);
+      jobject ret =
+          env->NewObject(valueInfoClass, methodId, defaultValue, currentValue);
       return ret;
     }
   }
@@ -212,25 +202,23 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
       || std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v)
       || std::holds_alternative<OptionInfo::NumberInfo<double>>(v))
   {
-    jclass numberInfoClass = env->FindClass("cvc5/OptionInfo$NumberInfo");
+    jclass numberInfoClass = env->FindClass("cvc5/NumberInfo");
     jmethodID methodId =
         env->GetMethodID(numberInfoClass,
                          "<init>",
-                         "(Lcvc5/OptionInfo;Ljava/lang/Object;Ljava/lang/"
-                         "Object;Ljava/lang/Object;Ljava/lang/Object;)V");
+                         "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/"
+                         "Object;Ljava/lang/Object;)V");
 
     if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(v))
     {
       auto info = std::get<OptionInfo::NumberInfo<int64_t>>(v);
-      return getNumberInfoFromInteger(
-          env, optionInfo, numberInfoClass, methodId, info);
+      return getNumberInfoFromInteger(env, numberInfoClass, methodId, info);
     }
 
     if (std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v))
     {
       auto info = std::get<OptionInfo::NumberInfo<uint64_t>>(v);
-      return getNumberInfoFromInteger(
-          env, optionInfo, numberInfoClass, methodId, info);
+      return getNumberInfoFromInteger(env, numberInfoClass, methodId, info);
     }
 
     if (std::holds_alternative<OptionInfo::NumberInfo<double>>(v))
@@ -250,7 +238,6 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
       }
       jobject ret = env->NewObject(numberInfoClass,
                                    methodId,
-                                   optionInfo,
                                    defaultValue,
                                    currentValue,
                                    minimum,
@@ -261,23 +248,18 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getValueInfo(JNIEnv* env,
 
   if (std::holds_alternative<OptionInfo::ModeInfo>(v))
   {
-    jclass modeInfoClass = env->FindClass("cvc5/OptionInfo$ModeInfo");
-    jmethodID methodId =
-        env->GetMethodID(modeInfoClass,
-                         "<init>",
-                         "(Lcvc5/OptionInfo;Ljava/lang/String;Ljava/lang/"
-                         "String;[Ljava/lang/String;)V");
+    jclass modeInfoClass = env->FindClass("cvc5/ModeInfo");
+    jmethodID methodId = env->GetMethodID(
+        modeInfoClass,
+        "<init>",
+        "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
 
     auto info = std::get<OptionInfo::ModeInfo>(v);
     jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
     jstring currentValue = env->NewStringUTF(info.currentValue.c_str());
     jobject stringArray = getStringArrayFromStringVector(env, info.modes);
-    jobject ret = env->NewObject(modeInfoClass,
-                                 methodId,
-                                 optionInfo,
-                                 defaultValue,
-                                 currentValue,
-                                 stringArray);
+    jobject ret = env->NewObject(
+        modeInfoClass, methodId, defaultValue, currentValue, stringArray);
     return ret;
   }
 
