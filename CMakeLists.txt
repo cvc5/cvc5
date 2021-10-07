@@ -22,26 +22,10 @@ project(cvc5)
 
 include(CheckIPOSupported)
 include(GNUInstallDirs)
-
-set(CVC5_MAJOR   1) # Major component of the version of cvc5.
-set(CVC5_MINOR   0) # Minor component of the version of cvc5.
-set(CVC5_RELEASE 0) # Release component of the version of cvc5.
-
-# Extraversion component of the version of cvc5.
-set(CVC5_EXTRAVERSION "-prerelease")
-
-# Shared library versioning. Increment SOVERSION for every new cvc5 release.
-set(CVC5_SOVERSION 1)
-
-# Full release string for cvc5.
-if(CVC5_RELEASE)
-  set(CVC5_RELEASE_STRING
-      "${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}${CVC5_EXTRAVERSION}")
-else()
-  set(CVC5_RELEASE_STRING "${CVC5_MAJOR}.${CVC5_MINOR}${CVC5_EXTRAVERSION}")
-endif()
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+include(version)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -574,7 +558,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5ConfigVersion.cmake
-  VERSION ${CVC5_RELEASE_STRING}
+  VERSION ${CVC5_VERSION}
   COMPATIBILITY ExactVersion
 )
 
@@ -604,7 +588,7 @@ get_directory_property(CVC5_DEFINITIONS COMPILE_DEFINITIONS)
 string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 
 message("")
-print_info("cvc5 ${CVC5_RELEASE_STRING}")
+print_info("cvc5 ${CVC5_VERSION}")
 message("")
 if(ENABLE_COMP_INC_TRACK)
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (incremental)")
