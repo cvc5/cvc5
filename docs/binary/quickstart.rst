@@ -6,7 +6,7 @@ The primary input language for cvc5 is
 We give a short explanation of the SMT-LIB v2 quickstart
 example here.
 
-First, we set the logic..
+First, we set the logic.
 The simplest way to set a logic for the solver is to choose "ALL".
 This enables all logics in the solver.
 Alternatively, ``"QF_ALL"`` enables all logics without quantifiers.
