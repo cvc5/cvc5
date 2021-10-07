@@ -1811,7 +1811,7 @@ cdef class Solver:
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
-    def defineFun(self, str symbol, List[Term] bound_vars, Sort sort, Term term, global=False):
+    def defineFun(self, str symbol, List[Term] bound_vars, Sort sort, Term term, glbl=False):
         """Define n-ary function.
 
         SMT-LIB:
@@ -1824,7 +1824,7 @@ cdef class Solver:
         :param bound_vars: the parameters to this function
         :param sort: the sort of the return value of this function
         :param term: the function body
-        :param global: determines whether this definition is global (i.e. persists when popping the context)
+        :param glbl: determines whether this definition is global (i.e. persists when popping the context)
         :return: the function
         """
         cdef Term fun = Term(self)
@@ -1833,10 +1833,10 @@ cdef class Solver:
             v.push_back(bv.cterm)
 
         fun.cterm = self.csolver.defineFun(symbol.encode(),
-                                            <const vector[c_Term] &> v,
-                                            sort.csort,
-                                            term.cterm,
-                                            <bint> global)
+                                           <const vector[c_Term] &> v,
+                                           sort.csort,
+                                           term.cterm,
+                                           <bint> glbl)
         return fun
 
     def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
