@@ -93,9 +93,7 @@ class TheoryPreprocessor : protected EnvObj
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  TrustNode preprocess(TNode node,
-                       std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems);
+  TrustNode preprocess(TNode node, std::vector<SkolemLemma>& newLemmas);
   /**
    * Same as above, but transforms the proof of node into a proof of the
    * preprocessed node and returns the LEMMA trust node.
@@ -107,8 +105,7 @@ class TheoryPreprocessor : protected EnvObj
    * form of the proven field of node.
    */
   TrustNode preprocessLemma(TrustNode node,
-                            std::vector<TrustNode>& newLemmas,
-                            std::vector<Node>& newSkolems);
+                            std::vector<SkolemLemma>& newLemmas);
 
   /** Get the term formula removal utility */
   RemoveTermFormulas& getRemoveTermFormulas();
@@ -118,17 +115,14 @@ class TheoryPreprocessor : protected EnvObj
    * Runs theory specific preprocessing (Theory::ppRewrite) on the non-Boolean
    * parts of the node.
    */
-  TrustNode theoryPreprocess(TNode node,
-                             std::vector<TrustNode>& newLemmas,
-                             std::vector<Node>& newSkolems);
+  TrustNode theoryPreprocess(TNode node, std::vector<SkolemLemma>& newLemmas);
   /**
    * Internal helper for preprocess, which also optionally preprocesses the
    * new lemmas generated until a fixed point is reached based on argument
    * procLemmas.
    */
   TrustNode preprocessInternal(TNode node,
-                               std::vector<TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems,
+                               std::vector<SkolemLemma>& newLemmas,
                                bool procLemmas);
   /**
    * Internal helper for preprocessLemma, which also optionally preprocesses the
@@ -136,8 +130,7 @@ class TheoryPreprocessor : protected EnvObj
    * procLemmas.
    */
   TrustNode preprocessLemmaInternal(TrustNode node,
-                                    std::vector<TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems,
+                                    std::vector<SkolemLemma>& newLemmas,
                                     bool procLemmas);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
