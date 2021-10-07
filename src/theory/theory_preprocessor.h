@@ -136,7 +136,7 @@ class TheoryPreprocessor : protected EnvObj
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
 
-  typedef context::CDInsertHashMap<
+  typedef context::CDHashMap<
       std::pair<Node, uint32_t>,
       Node,
       PairHashFunction<Node, uint32_t, std::hash<Node>>>

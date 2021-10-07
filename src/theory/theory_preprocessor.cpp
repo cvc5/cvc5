@@ -311,6 +311,16 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // and compute the result
     ctx.pop();
     processedChildren.pop_back();
+    if (!itc->second.isNull())
+    {
+      // we preprocessed it to something else, carry that
+      std::pair<Node, uint32_t> key(itc->second, nodeVal);
+      itc = d_tfCache.find(key);
+      Assert (itc!=d_tfCache.end());
+      d_tfCache[curr] = itc->second;
+      continue;
+    }
+    
     // if we have not already computed the result
     std::vector<Node> newChildren;
     bool childChanged = false;
@@ -338,9 +348,21 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     {
       ret = nm->mkNode(node.getKind(), newChildren);
     }
-    ret = preprocessWithProof(ret, newLemmas);
-    // cache
-    d_tfCache.insert(curr, ret);
+    Node pret = preprocessWithProof(ret, newLemmas);
+    if (pret!=ret)
+    {
+      // must restart
+      ctx.push(node, nodeVal);
+      processedChildren.push_back(true);
+      ctx.push(pret, nodeVal);
+      processedChildren.push_back(false);
+      d_tfCache[curr] = pret;
+    }
+    else
+    {
+      // cache
+      d_tfCache[curr] = ret;
+    }
   }
   itc = d_tfCache.find(initial);
   Assert(itc != d_tfCache.end());
