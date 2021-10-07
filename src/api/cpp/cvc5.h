@@ -3813,24 +3813,6 @@ class CVC5_EXPORT Solver
                  const Sort& sort,
                  const Term& term,
                  bool global = false) const;
-  /**
-   * Define n-ary function.
-   * SMT-LIB:
-   * \verbatim
-   * ( define-fun <function_def> )
-   * \endverbatim
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param bound_vars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
-   */
-  Term defineFun(const Term& fun,
-                 const std::vector<Term>& bound_vars,
-                 const Term& term,
-                 bool global = false) const;
 
   /**
    * Define recursive function.

@@ -495,13 +495,11 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
  public:
   DefineFunctionCommand(const std::string& id,
                         api::Sort sort,
-                        api::Term formula,
-                        bool global);
+                        api::Term formula);
   DefineFunctionCommand(const std::string& id,
                         const std::vector<api::Term>& formals,
                         api::Sort sort,
-                        api::Term formula,
-                        bool global);
+                        api::Term formula);
 
   const std::vector<api::Term>& getFormals() const;
   api::Sort getSort() const;
@@ -522,11 +520,6 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
   api::Sort d_sort;
   /** The formula corresponding to the body of the function we are defining */
   api::Term d_formula;
-  /**
-   * Stores whether this definition is global (i.e. should persist when
-   * popping the user context.
-   */
-  bool d_global;
 }; /* class DefineFunctionCommand */
 
 /**
@@ -539,12 +532,10 @@ class CVC5_EXPORT DefineFunctionRecCommand : public Command
  public:
   DefineFunctionRecCommand(api::Term func,
                            const std::vector<api::Term>& formals,
-                           api::Term formula,
-                           bool global);
+                           api::Term formula);
   DefineFunctionRecCommand(const std::vector<api::Term>& funcs,
                            const std::vector<std::vector<api::Term> >& formals,
-                           const std::vector<api::Term>& formula,
-                           bool global);
+                           const std::vector<api::Term>& formula);
 
   const std::vector<api::Term>& getFunctions() const;
   const std::vector<std::vector<api::Term> >& getFormals() const;
@@ -565,11 +556,6 @@ class CVC5_EXPORT DefineFunctionRecCommand : public Command
   std::vector<std::vector<api::Term> > d_formals;
   /** formulas corresponding to the bodies of the functions we are defining */
   std::vector<api::Term> d_formulas;
-  /**
-   * Stores whether this definition is global (i.e. should persist when
-   * popping the user context.
-   */
-  bool d_global;
 }; /* class DefineFunctionRecCommand */
 
 /**

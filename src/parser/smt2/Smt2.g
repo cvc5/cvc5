@@ -313,6 +313,11 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         }
       }
 
+      t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
+      if (t.isFunction())
+      {
+        t = t.getFunctionCodomainSort();
+      }
       if (sortedVarNames.size() > 0)
       {
         PARSER_STATE->pushScope();
@@ -331,8 +336,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
       {
         PARSER_STATE->popScope();
       }
-      cmd->reset(new DefineFunctionCommand(
-          name, terms, t, expr, SYM_MAN->getGlobalDeclarations()));
+      cmd->reset(new DefineFunctionCommand(name, terms, t, expr));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
@@ -828,8 +832,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
       if( !flattenVars.empty() ){
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      cmd->reset(new DefineFunctionRecCommand(
-          func, bvs, expr, SYM_MAN->getGlobalDeclarations()));
+      cmd->reset(new DefineFunctionRecCommand(func, bvs, expr));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -892,8 +895,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
             "Number of functions defined does not match number listed in "
             "define-funs-rec"));
       }
-      cmd->reset(new DefineFunctionRecCommand(
-          funcs, formals, func_defs, SYM_MAN->getGlobalDeclarations()));
+      cmd->reset(new DefineFunctionRecCommand(funcs, formals, func_defs));
     }
   ;
 
@@ -988,8 +990,7 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      cmd->reset(new DefineFunctionCommand(
-          name, t, e, SYM_MAN->getGlobalDeclarations()));
+      cmd->reset(new DefineFunctionCommand(name, t, e));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1801,9 +1802,9 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       // notify that expression was given a name
-      PARSER_STATE->preemptCommand(new DefineFunctionCommand(
-          s, expr.getSort(), expr, SYM_MAN->getGlobalDeclarations()));
-      PARSER_STATE->notifyNamedExpression(expr, s);
+      PARSER_STATE->preemptCommand(
+          new DefineFunctionCommand(s, expr.getSort(), expr));
+      PARSER_STATE->notifyNamedExpression(expr, sexprToString(sexpr));
     }
   ;
 
