@@ -36,10 +36,11 @@ class CVC5_EXPORT Configuration
   Configuration();
 
   // these constants are filled in by the build system
-  static const bool IS_GIT_BUILD;
-  static const char* const GIT_BRANCH_NAME;
-  static const char* const GIT_COMMIT;
-  static const bool GIT_HAS_MODIFICATIONS;
+  static const bool GIT_BUILD;
+  static const bool CVC5_IS_RELEASE;
+  static const char* const CVC5_VERSION;
+  static const char* const CVC5_FULL_VERSION;
+  static const char* const CVC5_GIT_INFO;
 
 public:
 
@@ -82,14 +83,6 @@ public:
 
   static std::string getVersionString();
 
-  static unsigned getVersionMajor();
-
-  static unsigned getVersionMinor();
-
-  static unsigned getVersionRelease();
-
-  static std::string getVersionExtra();
-
   static std::string copyright();
 
   static std::string about();
@@ -123,10 +116,7 @@ public:
   static bool isTraceTag(const std::string& tag);
 
   static bool isGitBuild();
-  static const char* getGitBranchName();
-  static const char* getGitCommit();
-  static bool hasGitModifications();
-  static std::string getGitId();
+  static std::string getGitInfo();
 
   static std::string getCompiler();
   static std::string getCompiledDateTime();
