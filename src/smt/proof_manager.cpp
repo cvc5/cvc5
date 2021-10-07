@@ -21,16 +21,12 @@
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
-#include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
-#include "proof/lean/lean_post_processor.h"
-#include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
-#include "rewriter/rewrite_db.h"
 #include "smt/assertions.h"
 #include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
@@ -42,11 +38,9 @@ namespace smt {
 
 PfManager::PfManager(Env& env)
     : EnvObj(env),
-      d_rewriteDb(new rewriter::RewriteDb),
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
-          options().proof.proofPedantic,
-          d_rewriteDb.get())),
+          options().proof.proofPedantic)),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
@@ -75,7 +69,7 @@ PfManager::PfManager(Env& env)
   d_pfpp.reset(new ProofPostproccess(
       env,
       d_pppg.get(),
-      d_rewriteDb.get(),
+      nullptr,
       options::proofFormatMode() != options::ProofFormatMode::ALETHE));
 
   // add rules to eliminate here
@@ -150,7 +144,6 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 
   Trace("smt-proof") << "SolverEngine::setFinalProof(): postprocess...\n";
   Assert(d_pfpp != nullptr);
-  d_pfpp->setAssertions(assertions);
   d_pfpp->process(pfn);
 
   Trace("smt-proof") << "SolverEngine::setFinalProof(): make scope...\n";
