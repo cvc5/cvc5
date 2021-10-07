@@ -1516,7 +1516,7 @@ void SolverEngine::checkModel(bool hardFailure)
   const context::CDList<Node>& al = d_asserts->getAssertionList();
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
-  Assert(d_env.getOptions().smt.produceAssertions)
+  Assert(d_env->getOptions().smt.produceAssertions)
       << "don't have an assertion list to check in SolverEngine::checkModel()";
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
