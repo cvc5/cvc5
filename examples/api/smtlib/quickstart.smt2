@@ -1,8 +1,8 @@
 (set-logic ALL)
 (set-option :produce-models true)
-(set-option :produce-unsat-cores true)
 (set-option :incremental true)
-; necessary to print in the unsat core assertions that do not have names
+; print unsat cores, include assertions in the unsat core that have not been named
+(set-option :produce-unsat-cores true)
 (set-option :dump-unsat-cores-full true)
 
 ; Declare real constants x,y
