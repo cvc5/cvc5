@@ -135,13 +135,14 @@ preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
   return d_assertions;
 }
 
-context::CDList<Node>* Assertions::getAssertionList()
+const context::CDList<Node>& Assertions::getAssertionList() const
 {
-  return d_produceAssertions ? &d_assertionList : nullptr;
+  return d_assertionList;
 }
-context::CDList<Node>* Assertions::getAssertionListDefinitions()
+
+const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
 {
-  return d_produceAssertions ? &d_assertionListDefs : nullptr;
+  return d_assertionListDefs;
 }
 
 void Assertions::addFormula(TNode n,

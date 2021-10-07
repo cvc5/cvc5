@@ -1283,10 +1283,9 @@ std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
 std::vector<Node> SolverEngine::getAssertionsInternal()
 {
   Assert(d_state->isFullyInited());
-  context::CDList<Node>* al = d_asserts->getAssertionList();
-  Assert(al != nullptr);
+  const context::CDList<Node>& al = d_asserts->getAssertionList();
   std::vector<Node> res;
-  for (const Node& n : *al)
+  for (const Node& n : al)
   {
     res.emplace_back(n);
   }
@@ -1514,10 +1513,10 @@ void SolverEngine::checkUnsatCore()
 
 void SolverEngine::checkModel(bool hardFailure)
 {
-  context::CDList<Node>* al = d_asserts->getAssertionList();
+  const context::CDList<Node>& al = d_asserts->getAssertionList();
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
-  Assert(al != nullptr)
+  Assert(d_env.getOptions().smt.produceAssertions)
       << "don't have an assertion list to check in SolverEngine::checkModel()";
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
