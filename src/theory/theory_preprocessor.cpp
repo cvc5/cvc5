@@ -385,46 +385,6 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
   return TrustNode::mkTrustRewrite(assertion, (*itc).second, d_tpg.get());
 }
 
-// Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
-                                         std::vector<SkolemLemma>& lems)
-{
-  /*
-  NodeMap::iterator find = d_ppCache.find(term);
-  if (find != d_ppCache.end())
-  {
-    return (*find).second;
-  }
-  Node newTerm = term;
-  if (term.getNumChildren() > 0)
-  {
-    // should be in rewritten form here
-    Assert(term == Rewriter::rewrite(term));
-    Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-    // do not rewrite inside quantifiers
-    if (!term.isClosure())
-    {
-      NodeBuilder newNode(term.getKind());
-      if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        newNode << term.getOperator();
-      }
-      for (const Node& nt : term)
-      {
-        newNode << ppTheoryRewrite(nt, lems);
-      }
-      newTerm = Node(newNode);
-      newTerm = rewriteWithProof(newTerm, d_tpg.get(), false);
-    }
-  }
-  newTerm = preprocessWithProof(newTerm, lems);
-  d_ppCache[term] = newTerm;
-  Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
-  return newTerm;
-  */
-  return term;
-}
-
 Node TheoryPreprocessor::rewriteWithProof(Node term,
                                           TConvProofGenerator* pg,
                                           bool isPre)

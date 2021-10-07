@@ -183,12 +183,6 @@ class TheoryPreprocessor : protected EnvObj
    */
   RtfTermContext d_rtfc;
   /**
-   * Helper for theoryPreprocess, which traverses the provided term and
-   * applies ppRewrite and rewriting until fixed point on term using
-   * the method preprocessWithProof helper below.
-   */
-  Node ppTheoryRewrite(TNode term, std::vector<SkolemLemma>& lems);
-  /**
    * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.
    *
