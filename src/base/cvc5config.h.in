@@ -1,21 +1,6 @@
 #ifndef CVC5__BASE__CVC5CONFIG_H
 #define CVC5__BASE__CVC5CONFIG_H
 
-/* Major component of the version of cvc5. */
-#define CVC5_MAJOR @CVC5_MAJOR@
-
-/* Minor component of the version of cvc5. */
-#define CVC5_MINOR @CVC5_MINOR@
-
-/* Release component of the version of cvc5. */
-#define CVC5_RELEASE @CVC5_RELEASE@
-
-/* Extraversion component of the version of cvc5. */
-#define CVC5_EXTRAVERSION "@CVC5_EXTRAVERSION@"
-
-/* Full release string for cvc5. */
-#define CVC5_RELEASE_STRING "@CVC5_RELEASE_STRING@"
-
 /* Full name of this package. */
 #define CVC5_PACKAGE_NAME "@CVC5_PACKAGE_NAME@"
 

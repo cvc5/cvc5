@@ -58,7 +58,7 @@ public class Op extends AbstractPointer
   /**
    * @return the kind of this operator
    */
-  Kind getKind()
+  public Kind getKind()
   {
     try
     {

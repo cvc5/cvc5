@@ -239,7 +239,10 @@ SEnumLen* SEnumLenSet::getEnumerator(size_t len, TypeNode tn)
   if (tn.isString())  // string-only
   {
     d_sels[key].reset(
-        new StringEnumLen(len, len, utils::getAlphabetCardinality()));
+        new StringEnumLen(len,
+                          len,
+                          d_tep ? d_tep->getStringsAlphabetCard()
+                                : utils::getDefaultAlphabetCardinality()));
   }
   else
   {
@@ -250,7 +253,9 @@ SEnumLen* SEnumLenSet::getEnumerator(size_t len, TypeNode tn)
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<StringEnumerator>(type),
-      d_wenum(0, utils::getAlphabetCardinality())
+      d_wenum(0,
+              tep ? tep->getStringsAlphabetCard()
+                  : utils::getDefaultAlphabetCardinality())
 {
   Assert(type.getKind() == kind::TYPE_CONSTANT
          && type.getConst<TypeConstant>() == STRING_TYPE);

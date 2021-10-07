@@ -171,7 +171,8 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
       }
       if (concEq[0].getKind() != APPLY_SELECTOR_TOTAL)
       {
-        // can happen for Boolean term variables (TODO)
+        // can happen for Boolean term variables, which are not currently
+        // supported.
         success = false;
       }
       else
