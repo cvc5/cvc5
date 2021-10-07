@@ -80,16 +80,14 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
 TheoryPreprocessor::~TheoryPreprocessor() {}
 
 TrustNode TheoryPreprocessor::preprocess(TNode node,
-                                         std::vector<TrustNode>& newLemmas,
-                                         std::vector<Node>& newSkolems)
+                                         std::vector<SkolemLemma>& newLemmas)
 {
-  return preprocessInternal(node, newLemmas, newSkolems, true);
+  return preprocessInternal(node, newLemmas, true);
 }
 
 TrustNode TheoryPreprocessor::preprocessInternal(
     TNode node,
-    std::vector<TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
+    std::vector<SkolemLemma>& newLemmas,
     bool procLemmas)
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
@@ -104,7 +102,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   Node irNode = rewriteWithProof(node, d_tpgRew.get(), true);
 
   // run theory preprocessing
-  TrustNode tpp = theoryPreprocess(irNode, newLemmas, newSkolems);
+  TrustNode tpp = theoryPreprocess(irNode, newLemmas);
   Node ppNode = tpp.getNode();
 
   if (Trace.isOn("tpp-debug"))
@@ -131,8 +129,8 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     size_t i = 0;
     while (i < newLemmas.size())
     {
-      TrustNode cur = newLemmas[i];
-      newLemmas[i] = preprocessLemmaInternal(cur, newLemmas, newSkolems, false);
+      TrustNode cur = newLemmas[i].d_lemma;
+      newLemmas[i].d_lemma = preprocessLemmaInternal(cur, newLemmas, false);
       Trace("tpp") << "Final lemma : " << newLemmas[i].getProven() << std::endl;
       i++;
     }
@@ -174,22 +172,20 @@ TrustNode TheoryPreprocessor::preprocessInternal(
 }
 
 TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
-                                              std::vector<TrustNode>& newLemmas,
-                                              std::vector<Node>& newSkolems)
+                                              std::vector<SkolemLemma>& newLemmas)
 {
-  return preprocessLemmaInternal(node, newLemmas, newSkolems, true);
+  return preprocessLemmaInternal(node, newLemmas, true);
 }
 
 TrustNode TheoryPreprocessor::preprocessLemmaInternal(
     TrustNode node,
-    std::vector<TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
+    std::vector<SkolemLemma>& newLemmas,
     bool procLemmas)
 {
   // what was originally proven
   Node lemma = node.getProven();
   TrustNode tplemma =
-      preprocessInternal(lemma, newLemmas, newSkolems, procLemmas);
+      preprocessInternal(lemma, newLemmas, procLemmas);
   if (tplemma.isNull())
   {
     // no change needed
@@ -241,8 +237,7 @@ struct preprocess_stack_element
 
 TrustNode TheoryPreprocessor::theoryPreprocess(
     TNode assertion,
-    std::vector<TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems)
+    std::vector<SkolemLemma>& newLemmas)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
@@ -284,13 +279,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (tid != THEORY_BOOL)
     {
-      std::vector<SkolemLemma> lems;
-      Node ppRewritten = ppTheoryRewrite(current, lems);
-      for (const SkolemLemma& lem : lems)
-      {
-        newLemmas.push_back(lem.d_lemma);
-        newSkolems.push_back(lem.d_skolem);
-      }
+      Node ppRewritten = ppTheoryRewrite(current, newLemmas);
       Assert(Rewriter::rewrite(ppRewritten) == ppRewritten);
       if (isProofEnabled() && ppRewritten != current)
       {
@@ -302,7 +291,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       // Term formula removal without fixed point. We do not need to do fixed
       // point since newLemmas are theory-preprocessed until fixed point in
       // preprocessInternal (at top-level, when procLemmas=true).
-      TrustNode ttfr = d_tfr.run(ppRewritten, newLemmas, newSkolems, false);
+      TrustNode ttfr = d_tfr.run(ppRewritten, newLemmas, false);
       Node rtfNode = ppRewritten;
       if (!ttfr.isNull())
       {
