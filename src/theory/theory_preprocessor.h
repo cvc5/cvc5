@@ -93,9 +93,7 @@ class TheoryPreprocessor : protected EnvObj
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  TrustNode preprocess(TNode node,
-                       std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems);
+  TrustNode preprocess(TNode node, std::vector<SkolemLemma>& newLemmas);
   /**
    * Same as above, but transforms the proof of node into a proof of the
    * preprocessed node and returns the LEMMA trust node.
@@ -107,8 +105,7 @@ class TheoryPreprocessor : protected EnvObj
    * form of the proven field of node.
    */
   TrustNode preprocessLemma(TrustNode node,
-                            std::vector<TrustNode>& newLemmas,
-                            std::vector<Node>& newSkolems);
+                            std::vector<SkolemLemma>& newLemmas);
 
   /** Get the term formula removal utility */
   RemoveTermFormulas& getRemoveTermFormulas();
@@ -118,17 +115,14 @@ class TheoryPreprocessor : protected EnvObj
    * Runs theory specific preprocessing (Theory::ppRewrite) on the non-Boolean
    * parts of the node.
    */
-  TrustNode theoryPreprocess(TNode node,
-                             std::vector<TrustNode>& newLemmas,
-                             std::vector<Node>& newSkolems);
+  TrustNode theoryPreprocess(TNode node, std::vector<SkolemLemma>& newLemmas);
   /**
    * Internal helper for preprocess, which also optionally preprocesses the
    * new lemmas generated until a fixed point is reached based on argument
    * procLemmas.
    */
   TrustNode preprocessInternal(TNode node,
-                               std::vector<TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems,
+                               std::vector<SkolemLemma>& newLemmas,
                                bool procLemmas);
   /**
    * Internal helper for preprocessLemma, which also optionally preprocesses the
@@ -136,8 +130,7 @@ class TheoryPreprocessor : protected EnvObj
    * procLemmas.
    */
   TrustNode preprocessLemmaInternal(TrustNode node,
-                                    std::vector<TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems,
+                                    std::vector<SkolemLemma>& newLemmas,
                                     bool procLemmas);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
@@ -146,6 +139,7 @@ class TheoryPreprocessor : protected EnvObj
    * are terms that appear within theory atoms given to this class.
    */
   NodeMap d_ppCache;
+  NodeMap d_ppCacheTerm;
   /**
    * Cache for theory-preprocessing + term formula removal of the Boolean
    * structure of assertions. The domain of this map are the Boolean
@@ -186,7 +180,7 @@ class TheoryPreprocessor : protected EnvObj
    * applies ppRewrite and rewriting until fixed point on term using
    * the method preprocessWithProof helper below.
    */
-  Node ppTheoryRewrite(TNode term, std::vector<SkolemLemma>& lems);
+  Node ppTheoryRewrite(TNode term, bool inTerm, std::vector<SkolemLemma>& lems);
   /**
    * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.
@@ -202,7 +196,9 @@ class TheoryPreprocessor : protected EnvObj
    * the preprocessed and rewritten form of term. It should be the case that
    * term is already in rewritten form.
    */
-  Node preprocessWithProof(Node term, std::vector<SkolemLemma>& lems);
+  Node preprocessWithProof(Node term,
+                           bool inTerm,
+                           std::vector<SkolemLemma>& lems);
   /**
    * Register rewrite trn based on trust node into term conversion generator
    * pg, which uses THEORY_PREPROCESS as a step if no proof generator is

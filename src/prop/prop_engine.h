@@ -25,6 +25,7 @@
 #include "proof/trust_node.h"
 #include "prop/skolem_def_manager.h"
 #include "theory/output_channel.h"
+#include "theory/skolem_lemma.h"
 #include "util/result.h"
 
 namespace cvc5 {
@@ -90,9 +91,7 @@ class PropEngine
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  TrustNode preprocess(TNode node,
-                       std::vector<TrustNode>& ppLemmas,
-                       std::vector<Node>& ppSkolems);
+  TrustNode preprocess(TNode node, std::vector<theory::SkolemLemma>& ppLemmas);
   /**
    * Remove term ITEs (and more generally, term formulas) from the given node.
    * Return the REWRITE trust node corresponding to rewriting node. New lemmas
@@ -339,8 +338,7 @@ class PropEngine
    * removable is whether the lemma is removable.
    */
   void assertLemmasInternal(TrustNode trn,
-                            const std::vector<TrustNode>& ppLemmas,
-                            const std::vector<Node>& ppSkolems,
+                            const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable);
 
   /**

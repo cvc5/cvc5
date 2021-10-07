@@ -109,15 +109,12 @@ class TheoryProxy : public Registrar
    * rewrite.
    */
   TrustNode preprocessLemma(TrustNode trn,
-                            std::vector<TrustNode>& newLemmas,
-                            std::vector<Node>& newSkolems);
+                            std::vector<theory::SkolemLemma>& newLemmas);
   /**
    * Call the preprocessor on node, return trust node corresponding to the
    * rewrite.
    */
-  TrustNode preprocess(TNode node,
-                       std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems);
+  TrustNode preprocess(TNode node, std::vector<theory::SkolemLemma>& newLemmas);
   /**
    * Remove ITEs from the node.
    */
