@@ -309,7 +309,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   std::vector<Node> auxAssertions;
   // expand definitions cache
   std::unordered_map<Node, Node> cache;
-  for (Node assertion : *alist)
+  for (const Node& assertion : alist)
   {
     Notice() << "SygusSolver::checkSynthSolution(): checking assertion "
              << assertion << std::endl;
