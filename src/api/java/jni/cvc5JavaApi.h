@@ -80,7 +80,7 @@ std::vector<T> getObjectsFromPointers(JNIEnv* env, jlongArray jPointers)
  * @return jni array of pointers
  */
 template <class T>
-jlongArray getPointersFromObjects(JNIEnv* env, std::vector<T> objects)
+jlongArray getPointersFromObjects(JNIEnv* env, const std::vector<T>& objects)
 {
   std::vector<jlong> pointers(objects.size());
   for (size_t i = 0; i < objects.size(); i++)

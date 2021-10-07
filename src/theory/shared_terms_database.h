@@ -266,10 +266,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
    * This method gets called on backtracks from the context manager.
    */
   void contextNotifyPop() override { backtrack(); }
-  /** The SAT search context. */
-  context::Context* d_satContext;
-  /** The user level assertion context. */
-  context::UserContext* d_userContext;
   /** Equality engine */
   theory::eq::EqualityEngine* d_equalityEngine;
   /** Proof equality engine, if we allocated one */

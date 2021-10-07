@@ -16,9 +16,12 @@
 package cvc5;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 public class Term extends AbstractPointer implements Comparable<Term>, Iterable<Term>
 {
@@ -213,40 +216,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native boolean isNull(long pointer);
 
   /**
-   * Return the base (element stored at all indices) of a constant array
-   * throws an exception if the kind is not CONST_ARRAY
-   *
-   * @return the base value
-   */
-  public Term getConstArrayBase()
-  {
-    long termPointer = getConstArrayBase(pointer);
-    return new Term(solver, termPointer);
-  }
-
-  private native long getConstArrayBase(long pointer);
-
-  /**
-   * Return the elements of a constant sequence
-   * throws an exception if the kind is not CONST_SEQUENCE
-   *
-   * @return the elements of the constant sequence.
-   */
-  public Term[] getConstSequenceElements()
-  {
-    long[] termPointers = getConstSequenceElements(pointer);
-    Term[] terms = new Term[termPointers.length];
-    for (int i = 0; i < termPointers.length; i++)
-    {
-      terms[i] = new Term(solver, termPointers[i]);
-    }
-
-    return terms;
-  }
-
-  private native long[] getConstSequenceElements(long pointer);
-
-  /**
    * Boolean negation.
    *
    * @return the Boolean negation of this term
@@ -345,82 +314,40 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long iteTerm(long pointer, long thenPointer, long elsePointer);
 
   /**
-   * @return a string representation of this term
+   * @return a string representation of this term.
    */
   protected native String toString(long pointer);
 
   /**
-   * @return true if the term is an integer that fits within a Java integer.
+   * @return true if the term is an integer value.
    */
-  public boolean isInt()
+  public boolean isIntegerValue()
   {
-    return isInt(pointer);
+    return isIntegerValue(pointer);
   }
 
-  private native boolean isInt(long pointer);
+  private native boolean isIntegerValue(long pointer);
 
   /**
-   * @return the stored integer as an int.
-   * Note: Asserts isInt().
+   * Asserts isIntegerValue().
+   * @return the integer represented by this term.
    */
-  public int getInt()
+  public BigInteger getIntegerValue()
   {
-    return getInt(pointer);
+    return new BigInteger(getIntegerValue(pointer));
   }
 
-  private native int getInt(long pointer);
-
-  /**
-   * @return true if the term is an integer that fits within a Java long.
-   */
-  public boolean isLong()
-  {
-    return isLong(pointer);
-  }
-
-  private native boolean isLong(long pointer);
-
-  /**
-   * @return the stored integer as a long.
-   * Note: Asserts isLong().
-   */
-  public long getLong()
-  {
-    return getLong(pointer);
-  }
-
-  private native long getLong(long pointer);
-
-  /**
-   * @return true if the term is an integer.
-   */
-  public boolean isInteger()
-  {
-    return isInteger(pointer);
-  }
-
-  private native boolean isInteger(long pointer);
-
-  /**
-   * @return the stored integer in (decimal) string representation.
-   * Note: Asserts isInteger().
-   */
-  public String getInteger()
-  {
-    return getInteger(pointer);
-  }
-
-  private native String getInteger(long pointer);
+  private native String getIntegerValue(long pointer);
 
   /**
    * @return true if the term is a string constant.
    */
-  public boolean isString()
+  public boolean isStringValue()
   {
-    return isString(pointer);
+    return isStringValue(pointer);
   }
 
-  private native boolean isString(long pointer);
+  private native boolean isStringValue(long pointer);
 
   /**
    * @return the stored string constant.
@@ -429,12 +356,12 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
    * term in some string representation, whatever data it may hold.
    * Asserts isString().
    */
-  public String getString()
+  public String getStringValue()
   {
-    return getString(pointer);
+    return getStringValue(pointer);
   }
 
-  private native String getString(long pointer);
+  private native String getStringValue(long pointer);
 
   /**
    * @return true if the term is a rational value.
@@ -458,6 +385,266 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native String getRealValue(long pointer);
+
+  /**
+   * @return true if the term is a constant array.
+   */
+  public boolean isConstArray()
+  {
+    return isConstArray(pointer);
+  }
+
+  private native boolean isConstArray(long pointer);
+
+  /**
+   * Asserts isConstArray().
+   * @return the base (element stored at all indices) of a constant array
+   */
+  public Term getConstArrayBase()
+  {
+    long termPointer = getConstArrayBase(pointer);
+    return new Term(solver, termPointer);
+  }
+
+  private native long getConstArrayBase(long pointer);
+
+  /**
+   * @return true if the term is a Boolean value.
+   */
+  public boolean isBooleanValue()
+  {
+    return isBooleanValue(pointer);
+  }
+
+  private native boolean isBooleanValue(long pointer);
+  /**
+   * Asserts isBooleanValue().
+   * @return the representation of a Boolean value as a native Boolean value.
+   */
+  public boolean getBooleanValue()
+  {
+    return getBooleanValue(pointer);
+  }
+
+  private native boolean getBooleanValue(long pointer);
+
+  /**
+   * @return true if the term is a bit-vector value.
+   */
+  public boolean isBitVectorValue()
+  {
+    return isBitVectorValue(pointer);
+  }
+
+  private native boolean isBitVectorValue(long pointer);
+
+  /**
+   * Asserts isBitVectorValue().
+   * @return the representation of a bit-vector value in bit string representation.
+   */
+  public String getBitVectorValue() throws CVC5ApiException
+  {
+    return getBitVectorValue(2);
+  }
+
+  /**
+   * Asserts isBitVectorValue().
+   * @return the representation of a bit-vector value in string representation.
+   * Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal
+   * string).
+   */
+  public String getBitVectorValue(int base) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(base, "base");
+    return getBitVectorValue(pointer, base);
+  }
+
+  private native String getBitVectorValue(long pointer, int base);
+
+  /**
+   * @return true if the term is an abstract value.
+   */
+  public boolean isAbstractValue()
+  {
+    return isAbstractValue(pointer);
+  }
+
+  private native boolean isAbstractValue(long pointer);
+
+  /**
+   * Asserts isAbstractValue().
+   * @return the representation of an abstract value as a string.
+   */
+  public String getAbstractValue()
+  {
+    return getAbstractValue(pointer);
+  }
+
+  private native String getAbstractValue(long pointer);
+
+  /**
+   * @return true if the term is a tuple value.
+   */
+  public boolean isTupleValue()
+  {
+    return isTupleValue(pointer);
+  }
+
+  private native boolean isTupleValue(long pointer);
+
+  /**
+   * Asserts isTupleValue().
+   * @return the representation of a tuple value as a vector of terms.
+   */
+  public Term[] getTupleValue()
+  {
+    long[] termPointers = getTupleValue(pointer);
+    return Utils.getTerms(solver, termPointers);
+  }
+
+  private native long[] getTupleValue(long pointer);
+
+  /**
+   * @return true if the term is the floating-point value for positive zero.
+   */
+  public boolean isFloatingPointPosZero()
+  {
+    return isFloatingPointPosZero(pointer);
+  }
+
+  private native boolean isFloatingPointPosZero(long pointer);
+  /**
+   * @return true if the term is the floating-point value for negative zero.
+   */
+  public boolean isFloatingPointNegZero()
+  {
+    return isFloatingPointNegZero(pointer);
+  }
+
+  private native boolean isFloatingPointNegZero(long pointer);
+  /**
+   * @return true if the term is the floating-point value for positive
+   * infinity.
+   */
+  public boolean isFloatingPointPosInf()
+  {
+    return isFloatingPointPosInf(pointer);
+  }
+
+  private native boolean isFloatingPointPosInf(long pointer);
+  /**
+   * @return true if the term is the floating-point value for negative
+   * infinity.
+   */
+  public boolean isFloatingPointNegInf()
+  {
+    return isFloatingPointNegInf(pointer);
+  }
+
+  private native boolean isFloatingPointNegInf(long pointer);
+  /**
+   * @return true if the term is the floating-point value for not a number.
+   */
+  public boolean isFloatingPointNaN()
+  {
+    return isFloatingPointNaN(pointer);
+  }
+
+  private native boolean isFloatingPointNaN(long pointer);
+  /**
+   * @return true if the term is a floating-point value.
+   */
+  public boolean isFloatingPointValue()
+  {
+    return isFloatingPointValue(pointer);
+  }
+
+  private native boolean isFloatingPointValue(long pointer);
+  /**
+   * Asserts isFloatingPointValue().
+   * @return the representation of a floating-point value as a tuple of the
+   * exponent width, the significand width and a bit-vector value.
+   */
+  public Triplet<Long, Long, Term> getFloatingPointValue()
+  {
+    Triplet<Long, Long, Long> triplet = getFloatingPointValue(pointer);
+    return new Triplet(triplet.first, triplet.second, new Term(solver, triplet.third));
+  }
+
+  private native Triplet<Long, Long, Long> getFloatingPointValue(long pointer);
+
+  /**
+   * @return true if the term is a set value.
+   */
+  public boolean isSetValue()
+  {
+    return isSetValue(pointer);
+  }
+
+  private native boolean isSetValue(long pointer);
+  /**
+   * Asserts isSetValue().
+   * @return the representation of a set value as a set of terms.
+   */
+  public Set<Term> getSetValue()
+  {
+    long[] termPointers = getSetValue(pointer);
+    Term[] terms = Utils.getTerms(solver, termPointers);
+    return new HashSet<Term>(Arrays.asList(terms));
+  }
+
+  private native long[] getSetValue(long pointer);
+
+  /**
+   * @return true if the term is a sequence value.
+   */
+  public boolean isSequenceValue()
+  {
+    return isSequenceValue(pointer);
+  }
+
+  private native boolean isSequenceValue(long pointer);
+
+  /**
+   * Asserts isSequenceValue().
+   * Note that it is usually necessary for sequences to call
+   * `Solver::simplify()` to turn a sequence that is constructed by, e.g.,
+   * concatenation of unit sequences, into a sequence value.
+   * @return the representation of a sequence value as a vector of terms.
+   */
+  public Term[] getSequenceValue()
+  {
+    long[] termPointers = getSequenceValue(pointer);
+    return Utils.getTerms(solver, termPointers);
+  }
+
+  private native long[] getSequenceValue(long pointer);
+
+  /**
+   * @return true if the term is a value from an uninterpreted sort.
+   */
+  public boolean isUninterpretedValue()
+  {
+    return isUninterpretedValue(pointer);
+  }
+
+  private native boolean isUninterpretedValue(long pointer);
+
+  /**
+  boolean @return()
+   * Asserts isUninterpretedValue().
+   * @return the representation of an uninterpreted value as a pair of its
+  sort and its
+   * index.
+   */
+  public Pair<Sort, Integer> getUninterpretedValue()
+  {
+    Pair<Long, Integer> pair = getUninterpretedValue(pointer);
+    Sort sort = new Sort(solver, pair.first);
+    return new Pair<Sort, Integer>(sort, pair.second);
+  }
+
+  private native Pair<Long, Integer> getUninterpretedValue(long pointer);
 
   public class ConstIterator implements Iterator<Term>
   {

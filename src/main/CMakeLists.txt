@@ -52,6 +52,12 @@ add_dependencies(main gen-tokens)
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC5DRIVER)
 target_link_libraries(main-test PUBLIC cvc5-shared cvc5parser-shared)
+if(USE_CLN)
+  target_link_libraries(main-test PUBLIC CLN_SHARED)
+endif()
+if(USE_POLY)
+  target_link_libraries(main-test PUBLIC Polyxx_SHARED)
+endif()
 
 #-----------------------------------------------------------------------------#
 # cvc5 binary configuration
@@ -78,9 +84,12 @@ endif()
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_START_STATIC.html
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_END_STATIC.html
 if(ENABLE_STATIC_BINARY)
-  set_target_properties(cvc5-bin PROPERTIES LINK_FLAGS -static)
-  set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
-  set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_target_properties(cvc5-bin PROPERTIES LINK_FLAGS -static)
+    set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
+    set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
+  endif()
+  set_target_properties(cvc5-bin PROPERTIES INSTALL_RPATH "")
 endif()
 
 if(USE_EDITLINE)

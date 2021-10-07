@@ -70,11 +70,9 @@ class SmtSolver
             SmtEngineStatistics& stats);
   ~SmtSolver();
   /**
-   * Create theory engine, prop engine based on the logic info.
-   *
-   * @param logicInfo the logic information
+   * Create theory engine, prop engine based on the environment.
    */
-  void finishInit(const LogicInfo& logicInfo);
+  void finishInit();
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
   /**
