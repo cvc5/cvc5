@@ -287,10 +287,6 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       else
       {
         Trace("rtf-debug") << "...base case" << std::endl;
-        d_tfCache.insert(curr, node);
-        ctx.pop();
-        processedChildren.pop_back();
-        continue;
       }
     }
     Trace("rtf-debug") << "...reconstruct" << std::endl;
@@ -298,33 +294,45 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // and compute the result
     ctx.pop();
     processedChildren.pop_back();
-    // if we have not already computed the result
-    std::vector<Node> newChildren;
-    bool childChanged = false;
-    if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
-    {
-      newChildren.push_back(node.getOperator());
-    }
-    // reconstruct from the children
-    std::pair<Node, uint32_t> currChild;
-    for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
-    {
-      // recompute the value of the child
-      uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
-      currChild = std::pair<Node, uint32_t>(node[i], val);
-      itc = d_tfCache.find(currChild);
-      Assert(itc != d_tfCache.end());
-      Node newChild = (*itc).second;
-      Assert(!newChild.isNull());
-      childChanged |= (newChild != node[i]);
-      newChildren.push_back(newChild);
-    }
-    // If changes, we reconstruct the node
     Node ret = node;
-    if (childChanged)
+    if (!node.isClosure() && node.getNumChildren()>0)
     {
-      ret = nm->mkNode(node.getKind(), newChildren);
+      // if we have not already computed the result
+      std::vector<Node> newChildren;
+      bool childChanged = false;
+      if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        newChildren.push_back(node.getOperator());
+      }
+      // reconstruct from the children
+      std::pair<Node, uint32_t> currChild;
+      for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
+      {
+        // recompute the value of the child
+        uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
+        currChild = std::pair<Node, uint32_t>(node[i], val);
+        itc = d_tfCache.find(currChild);
+        Assert(itc != d_tfCache.end());
+        Node newChild = (*itc).second;
+        Assert(!newChild.isNull());
+        childChanged |= (newChild != node[i]);
+        newChildren.push_back(newChild);
+      }
+      // If changes, we reconstruct the node
+      if (childChanged)
+      {
+        ret = nm->mkNode(node.getKind(), newChildren);
+      }
+      // Finish the conversion by rewriting. Notice that we must consider this a
+      // pre-rewrite since we do not recursively register the rewriting steps
+      // of subterms of rtfNode. For example, if this step rewrites
+      // (not A) ---> B, then if registered a pre-rewrite, it will apply when
+      // reconstructing proofs via d_tpgRtf. However, if it is a post-rewrite
+      // it will fail to apply if another call to this class registers A -> C,
+      // in which case (not C) will be returned instead of B (see issue 6754).
+      ret = rewriteWithProof(ret, d_tpgRtf.get(), true);
     }
+    // now do theory preprocess
     Node pret = preprocessWithProof(ret, newLemmas);
     if (pret!=ret)
     {
