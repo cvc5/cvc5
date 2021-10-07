@@ -132,7 +132,8 @@ bool SkolemDefManager::hasSkolems(TNode n) const
     {
       visit.pop_back();
       bool hasSkolem;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED && cur.getOperator().getAttribute(HasSkolemAttr()))
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED
+          && cur.getOperator().getAttribute(HasSkolemAttr()))
       {
         hasSkolem = true;
       }
