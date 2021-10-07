@@ -94,12 +94,6 @@ class RemoveTermFormulas : protected EnvObj
                 std::vector<theory::SkolemLemma>& newAsserts,
                 bool fixedPoint = false);
   /**
-   * Same as above, but does not track lemmas, and does not run to fixed point.
-   * The relevant lemmas can be extracted by the caller later using getSkolems
-   * and getLemmaForSkolem.
-   */
-  // TrustNode run(TNode assertion);
-  /**
    * Same as above, but transforms a lemma, returning a LEMMA trust node that
    * proves the same formula as lem with term formulas removed.
    */

@@ -81,13 +81,6 @@ TrustNode RemoveTermFormulas::run(TNode assertion,
   // generator d_tpg.
   return TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
-/*
-TrustNode RemoveTermFormulas::run(TNode assertion)
-{
-  std::vector<theory::SkolemLemma> newAsserts;
-  return run(assertion, newAsserts, false);
-}
-*/
 
 TrustNode RemoveTermFormulas::runLemma(
     TrustNode lem,
