@@ -280,7 +280,6 @@ void PfManager::getAssertions(Assertions& as,
                               std::vector<Node>& assertions)
 {
   const context::CDList<Node>& al = as.getAssertionList();
-  Assert(al != nullptr);
   for (const Node& a : al)
   {
     assertions.push_back(a);
