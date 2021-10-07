@@ -175,6 +175,13 @@ void SetDefaults::setDefaultsPre(Options& opts)
       opts.smt.checkProofs = false;
     }
   }
+  if (d_isInternalSubsolver)
+  {
+    // these options must be disabled on internal subsolvers, as they are
+    // used by the user to rephrase the input.
+    opts.quantifiers.sygusInference = false;
+    opts.quantifiers.sygusRewSynthInput = false;
+  }
 }
 
 void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
