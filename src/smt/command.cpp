@@ -2339,7 +2339,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    if (options::dumpUnsatCoresFull())
+    if (options::printUnsatCoresFull())
     {
       // use the assertions
       UnsatCore ucr(termVectorToNodes(d_result));

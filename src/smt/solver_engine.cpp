@@ -124,10 +124,9 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // reset the preprocessor
-  d_pp.reset(
-      new smt::Preprocessor(*this, *d_env.get(), *d_absValues.get(), *d_stats));
+  d_pp.reset(new smt::Preprocessor(*d_env, *d_absValues, *d_stats));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env.get(), *d_state, *d_pp, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver, *d_pp));
   // make the quantifier elimination solver
@@ -209,7 +208,7 @@ void SolverEngine::finishInit()
   }
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit(logic);
+  d_smtSolver->finishInit();
 
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
@@ -255,10 +254,10 @@ void SolverEngine::finishInit()
   if (d_env->getOptions().smt.produceInterpols
       != options::ProduceInterpols::NONE)
   {
-    d_interpolSolver.reset(new InterpolationSolver(*d_env.get()));
+    d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
 
-  d_pp->finishInit();
+  d_pp->finishInit(this);
 
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SolverEngine "
@@ -1284,10 +1283,9 @@ std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
 std::vector<Node> SolverEngine::getAssertionsInternal()
 {
   Assert(d_state->isFullyInited());
-  context::CDList<Node>* al = d_asserts->getAssertionList();
-  Assert(al != nullptr);
+  const context::CDList<Node>& al = d_asserts->getAssertionList();
   std::vector<Node> res;
-  for (const Node& n : *al)
+  for (const Node& n : al)
   {
     res.emplace_back(n);
   }
@@ -1515,10 +1513,10 @@ void SolverEngine::checkUnsatCore()
 
 void SolverEngine::checkModel(bool hardFailure)
 {
-  context::CDList<Node>* al = d_asserts->getAssertionList();
+  const context::CDList<Node>& al = d_asserts->getAssertionList();
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
-  Assert(al != nullptr)
+  Assert(d_env->getOptions().smt.produceAssertions)
       << "don't have an assertion list to check in SolverEngine::checkModel()";
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
