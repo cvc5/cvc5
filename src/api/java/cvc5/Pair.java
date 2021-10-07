@@ -34,8 +34,6 @@ public class Pair<K, V>
 
     Pair<K, V> p = (Pair<K, V>) pair;
 
-    if (!first.equals(p.first))
-      return false;
-    return second.equals(p.second);
+    return first.equals(p.first) && second.equals(p.second);
   }
 }
