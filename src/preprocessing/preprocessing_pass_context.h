@@ -50,7 +50,7 @@ class PreprocessingPassContext : protected EnvObj
   PreprocessingPassContext(
       Env& env,
       TheoryEngine* te,
-      prop::PropEngine * pe,
+      prop::PropEngine* pe,
       theory::booleans::CircuitPropagator* circuitPropagator);
 
   /** Get the associated Environment. */

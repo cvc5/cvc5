@@ -26,7 +26,7 @@ namespace preprocessing {
 PreprocessingPassContext::PreprocessingPassContext(
     Env& env,
     TheoryEngine* te,
-    prop::PropEngine * pe,
+    prop::PropEngine* pe,
     theory::booleans::CircuitPropagator* circuitPropagator)
     : EnvObj(env),
       d_theoryEngine(te),

@@ -57,11 +57,10 @@ Preprocessor::~Preprocessor()
   }
 }
 
-void Preprocessor::finishInit(TheoryEngine* te,
-      prop::PropEngine * pe)
+void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
-  d_ppContext.reset(
-      new preprocessing::PreprocessingPassContext(d_env, te, pe, &d_propagator));
+  d_ppContext.reset(new preprocessing::PreprocessingPassContext(
+      d_env, te, pe, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());

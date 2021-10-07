@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/preprocessor.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
-#include "smt/preprocessor.h"
 
 namespace cvc5 {
 

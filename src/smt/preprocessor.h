@@ -58,8 +58,7 @@ class Preprocessor : protected EnvObj
   /**
    * Finish initialization
    */
-  void finishInit(TheoryEngine* te,
-      prop::PropEngine * pe);
+  void finishInit(TheoryEngine* te, prop::PropEngine* pe);
   /**
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
