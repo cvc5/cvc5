@@ -40,8 +40,9 @@ namespace options {
  *
  * Most functions can throw an OptionException on failure.
  */
-class OptionsHandler {
-public:
+class OptionsHandler
+{
+ public:
   OptionsHandler(Options* options);
 
   template <typename T>
@@ -128,6 +129,35 @@ public:
                          const std::string& flag,
                          const std::string& optarg);
 
+  /******************************* bv options *******************************/
+
+  /** Check that abc is enabled */
+  void abcEnabledBuild(const std::string& option,
+                       const std::string& flag,
+                       bool value);
+  /** Check that abc is enabled */
+  void abcEnabledBuild(const std::string& option,
+                       const std::string& flag,
+                       const std::string& value);
+  /** Check that the sat solver mode is compatible with other bv options */
+  void checkBvSatSolver(const std::string& option,
+                        const std::string& flag,
+                        SatSolverMode m);
+  /** Check that we use eager bitblasting for aig */
+  void setBitblastAig(const std::string& option,
+                      const std::string& flag,
+                      bool arg);
+
+  /******************************* expr options *******************************/
+  /** Set ExprSetDepth on all output streams */
+  void setDefaultExprDepth(const std::string& option,
+                           const std::string& flag,
+                           int depth);
+  /** Set ExprDag on all output streams */
+  void setDefaultDagThresh(const std::string& option,
+                           const std::string& flag,
+                           int dag);
+
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */
   void showConfiguration(const std::string& option, const std::string& flag);
@@ -140,53 +170,17 @@ public:
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& option, const std::string& flag);
 
-  // theory/bv/options_handlers.h
-  void abcEnabledBuild(const std::string& option,
-                       const std::string& flag,
-                       bool value);
-  void abcEnabledBuild(const std::string& option,
-                       const std::string& flag,
-                       const std::string& value);
-
-  void checkBvSatSolver(const std::string& option,
-                        const std::string& flag,
-                        SatSolverMode m);
-  void checkBitblastMode(const std::string& option,
-                         const std::string& flag,
-                         BitblastMode m);
-
-  void setBitblastAig(const std::string& option,
-                      const std::string& flag,
-                      bool arg);
-
-  /**
-   * Throws a ModalException if this option is being set after final
-   * initialization.
-   */
-  void setProduceAssertions(const std::string& option,
-                            const std::string& flag,
-                            bool value);
-
-  /* expr/options_handlers.h */
-  void setDefaultExprDepth(const std::string& option,
-                           const std::string& flag,
-                           int depth);
-  void setDefaultDagThresh(const std::string& option,
-                           const std::string& flag,
-                           int dag);
-
-
-  /* options/base_options_handlers.h */
+  /******************************* smt options *******************************/
+  /** Set a mode on the dumping output stream. */
+  void setDumpMode(const std::string& option,
+                   const std::string& flag,
+                   const std::string& optarg);
+  /** Set the dumping output stream. */
   void setDumpStream(const std::string& option,
                      const std::string& flag,
                      const ManagedOut& mo);
 
-  void setDumpMode(const std::string& option,
-                   const std::string& flag,
-                   const std::string& optarg);
-
  private:
-
   /** Pointer to the containing Options object.*/
   Options* d_options;
 }; /* class OptionHandler */

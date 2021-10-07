@@ -44,19 +44,17 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     Node assertion = (*assertions)[i];
-    std::vector<TrustNode> newAsserts;
-    std::vector<Node> newSkolems;
-    TrustNode trn = propEngine->preprocess(assertion, newAsserts, newSkolems);
+    std::vector<SkolemLemma> newAsserts;
+    TrustNode trn = propEngine->preprocess(assertion, newAsserts);
     if (!trn.isNull())
     {
       // process
       assertions->replaceTrusted(i, trn);
     }
-    Assert(newSkolems.size() == newAsserts.size());
-    for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
+    for (const SkolemLemma& lem : newAsserts)
     {
-      imap[assertions->size()] = newSkolems[j];
-      assertions->pushBackTrusted(newAsserts[j]);
+      imap[assertions->size()] = lem.d_skolem;
+      assertions->pushBackTrusted(lem.d_lemma);
     }
   }
 

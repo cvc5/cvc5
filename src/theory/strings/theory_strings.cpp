@@ -59,8 +59,12 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_termReg(env, d_state, d_statistics, d_pnm),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
-      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
-      d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
+      d_extTheory(env, d_extTheoryCb, d_im),
+      d_rewriter(env.getRewriter(),
+                 &d_statistics.d_rewrites,
+                 d_termReg.getAlphabetCardinality()),
+      // the checker depends on the cardinality of the alphabet
+      d_checker(d_termReg.getAlphabetCardinality()),
       d_bsolver(env, d_state, d_im),
       d_csolver(env, d_state, d_im, d_termReg, d_bsolver),
       d_esolver(env,
@@ -74,13 +78,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_statistics),
       d_asolver(
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_extTheory),
-      d_rsolver(env,
-                d_state,
-                d_im,
-                d_termReg.getSkolemCache(),
-                d_csolver,
-                d_esolver,
-                d_statistics),
+      d_rsolver(
+          env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(options::regExpElimAgg(), d_pnm, userContext()),
       d_stringsFmf(env, valuation, d_termReg)
 {
@@ -91,8 +90,6 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
-
-  d_cardSize = utils::getAlphabetCardinality();
 
   // set up the extended function callback
   d_extTheoryCb.d_esolver = &d_esolver;
@@ -564,7 +561,7 @@ mti.d_nthTerms; for (const Node& t : terms)
       uint32_t currLen =
           lenValue.getConst<Rational>().getNumerator().toUnsignedInt();
       Trace("strings-model") << "Cardinality of alphabet is "
-                             << utils::getAlphabetCardinality() << std::endl;
+                             << d_termReg.getAlphabetCardinality() << std::endl;
       SEnumLen* sel = sels.getEnumerator(currLen, tn);
       for (const Node& eqc : pure_eq)
       {
@@ -616,7 +613,7 @@ mti.d_nthTerms; for (const Node& t : terms)
             c = sel->getCurrent();
             // if we are a sequence with infinite element type
             if (tn.isSequence()
-                && !d_state.isFiniteType(tn.getSequenceElementType()))
+                && !d_env.isFiniteType(tn.getSequenceElementType()))
             {
               // Make a skeleton instead. In particular, this means that
               // a value:
@@ -1123,7 +1120,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
     Node t = atom[0];
-    Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
+    Node card = nm->mkConst(Rational(d_termReg.getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node v = nm->mkBoundVar(nm->stringType());

@@ -155,6 +155,14 @@ public class Utils
   }
 
   /**
+     Convert a pair of BigIntegers to a rational string a/b
+   */
+  public static String getRational(Pair<BigInteger, BigInteger> pair)
+  {
+    return pair.first.toString() + "/" + pair.second.toString();
+  }
+
+  /**
    * Get the string version of define-fun command.
    * @param f the function to print
    * @param params the function parameters

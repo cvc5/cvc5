@@ -52,6 +52,8 @@ class SkolemLemma
   /** The skolem associated with that lemma */
   Node d_skolem;
 
+  /** Get proven from the lemma */
+  Node getProven() const;
   /**
    * Get the lemma for skolem k based on its witness form. If k has witness
    * form (witness ((x T)) (P x)), this is the formula (P k).

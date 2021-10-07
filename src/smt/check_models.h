@@ -46,7 +46,7 @@ class CheckModels
    * given assertion list al based on the model checking policy.
    */
   void checkModel(theory::TheoryModel* m,
-                  context::CDList<Node>* al,
+                  const context::CDList<Node>& al,
                   bool hardFailure);
 
  private:
