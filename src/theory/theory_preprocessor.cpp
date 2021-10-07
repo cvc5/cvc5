@@ -16,12 +16,12 @@
 #include "theory/theory_preprocessor.h"
 
 #include "expr/skolem_manager.h"
-#include "expr/term_context_stack.h"
 #include "proof/lazy_proof.h"
 #include "smt/logic_exception.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "expr/term_context_stack.h"
 
 using namespace std;
 
@@ -226,9 +226,7 @@ RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()
 TrustNode TheoryPreprocessor::theoryPreprocess(
     TNode assertion, std::vector<SkolemLemma>& newLemmas)
 {
-  std::unordered_set<std::pair<Node, uint32_t>,
-                     PairHashFunction<Node, uint32_t, std::hash<Node>>>
-      wasPreprocessed;
+  std::unordered_set< std::pair<Node, uint32_t>, PairHashFunction<Node, uint32_t, std::hash<Node>> > wasPreprocessed;
   NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
   std::vector<bool> processedChildren;
@@ -251,12 +249,12 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       Trace("rtf-debug") << "...already computed" << std::endl;
       ctx.pop();
       processedChildren.pop_back();
-      if (wasPreprocessed.find(curr) != wasPreprocessed.end())
+      if (wasPreprocessed.find(curr)!=wasPreprocessed.end())
       {
         // we preprocessed it to something else, carry that
         std::pair<Node, uint32_t> key(itc->second, nodeVal);
         itc = d_tfCache.find(key);
-        Assert(itc != d_tfCache.end());
+        Assert (itc!=d_tfCache.end());
         d_tfCache[curr] = itc->second;
         wasPreprocessed.erase(curr);
       }
@@ -266,38 +264,14 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // if we have yet to process children
     if (!processedChildren.back())
     {
-      // check if we should replace the current node
-      TrustNode newLem;
-      bool inQuant, inTerm;
-      RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
-      Debug("ite") << "removeITEs(" << node << ")"
-                   << " " << inQuant << " " << inTerm << std::endl;
-      Assert(!inQuant);
-      TrustNode currTrn = d_tfr.runCurrent(node, inTerm, newLem);
-      // if we replaced by a skolem, we do not recurse
-      if (!currTrn.isNull())
+      size_t nchild = node.getNumChildren();
+      if (nchild > 0)
       {
-        Node currt = currTrn.getNode();
-        // if this is the first time we've seen this term, we have a new lemma
-        // which we add to our vectors
-        if (!newLem.isNull())
+        if (node.isClosure())
         {
-          newLemmas.push_back(theory::SkolemLemma(newLem, currt));
+          // currently, we never do any term formula removal in quantifier bodies
         }
-        Trace("rtf-debug") << "...replace by skolem" << std::endl;
-        d_tfCache.insert(curr, currt);
-        ctx.pop();
-        processedChildren.pop_back();
-      }
-      else if (node.isClosure())
-      {
-        // currently, we never do any term formula removal in quantifier bodies
-        d_tfCache.insert(curr, node);
-      }
-      else
-      {
-        size_t nchild = node.getNumChildren();
-        if (nchild > 0)
+        else
         {
           Trace("rtf-debug") << "...recurse to children" << std::endl;
           // recurse if we have children
@@ -307,23 +281,23 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
             ctx.pushChild(node, nodeVal, i);
             processedChildren.push_back(false);
           }
-        }
-        else
-        {
-          Trace("rtf-debug") << "...base case" << std::endl;
-          d_tfCache.insert(curr, node);
-          ctx.pop();
-          processedChildren.pop_back();
+          continue;
         }
       }
-      continue;
+      else
+      {
+        Trace("rtf-debug") << "...base case" << std::endl;
+        d_tfCache.insert(curr, node);
+        ctx.pop();
+        processedChildren.pop_back();
+        continue;
+      }
     }
     Trace("rtf-debug") << "...reconstruct" << std::endl;
     // otherwise, we are now finished processing children, pop the current node
     // and compute the result
     ctx.pop();
     processedChildren.pop_back();
-
     // if we have not already computed the result
     std::vector<Node> newChildren;
     bool childChanged = false;
@@ -352,7 +326,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       ret = nm->mkNode(node.getKind(), newChildren);
     }
     Node pret = preprocessWithProof(ret, newLemmas);
-    if (pret != ret)
+    if (pret!=ret)
     {
       // must restart
       ctx.push(node, nodeVal);
@@ -361,12 +335,31 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       processedChildren.push_back(false);
       d_tfCache[curr] = pret;
       wasPreprocessed.insert(curr);
+      continue;
     }
-    else
+    // check if we should replace the current node
+    TrustNode newLem;
+    bool inQuant, inTerm;
+    RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
+    Debug("ite") << "removeITEs(" << ret << ")"
+                  << " " << inQuant << " " << inTerm << std::endl;
+    Assert(!inQuant);
+    TrustNode currTrn = d_tfr.runCurrent(ret, inTerm, newLem);
+    // if we replaced by a skolem, we do not recurse
+    if (!currTrn.isNull())
     {
-      // cache
-      d_tfCache[curr] = ret;
+      ret = currTrn.getNode();
+      // if this is the first time we've seen this term, we have a new lemma
+      // which we add to our vectors
+      if (!newLem.isNull())
+      {
+        newLemmas.push_back(theory::SkolemLemma(newLem, ret));
+      }
+      Trace("rtf-debug") << "...replace by skolem" << std::endl;
     }
+    // cache
+    d_tfCache[curr] = ret;
+    
   }
   itc = d_tfCache.find(initial);
   Assert(itc != d_tfCache.end());
