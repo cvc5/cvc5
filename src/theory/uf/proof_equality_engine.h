@@ -85,8 +85,14 @@ class ProofEqEngine : public EagerProofGenerator
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;
 
  public:
+  /**
+   * @param c The SAT context
+   * @param lc The context lemmas live in
+   * @param ee The equality engine this is layered on
+   * @param pnm The proof node manager for producing proof nodes.
+   */
   ProofEqEngine(context::Context* c,
-                context::UserContext* u,
+                context::Context* lc,
                 EqualityEngine& ee,
                 ProofNodeManager* pnm);
   ~ProofEqEngine() {}

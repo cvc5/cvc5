@@ -1,4 +1,4 @@
-; COMMAND-LINE: --dump-unsat-cores-full
+; COMMAND-LINE: --print-unsat-cores-full --dump-unsat-cores
 ; EXPECT: unsat
 ; EXPECT: (
 ; EXPECT: (and (= x y) (< x y))

@@ -286,7 +286,7 @@ class PropEngine
 
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */
-  void checkProof(context::CDList<Node>* assertions);
+  void checkProof(const context::CDList<Node>& assertions);
 
   /**
    * Return the prop engine proof. This should be called only when proofs are

@@ -49,6 +49,8 @@ TermRegistry::TermRegistry(Env& env,
       d_im(nullptr),
       d_statistics(statistics),
       d_hasStrCode(false),
+      d_hasSeqUpdate(false),
+      d_skCache(env.getRewriter()),
       d_aent(env.getRewriter()),
       d_functionsTerms(context()),
       d_inputVars(userContext()),
@@ -57,10 +59,11 @@ TermRegistry::TermRegistry(Env& env,
       d_registeredTypes(userContext()),
       d_proxyVar(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(
-          pnm ? new EagerProofGenerator(
-              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
-              : nullptr)
+      d_epg(pnm ? new EagerProofGenerator(
+                      pnm,
+                      userContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -101,7 +104,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
     lemma = nm->mkNode(
         AND,
         nm->mkNode(
-            OR, nm->mkConst(Rational(-1)).eqNode(t), nm->mkNode(GEQ, t, t[2])),
+            OR, t.eqNode(nm->mkConst(Rational(-1))), nm->mkNode(GEQ, t, t[2])),
         nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)

@@ -42,10 +42,10 @@ namespace cvc5 {
 namespace smt {
 
 SygusSolver::SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp)
-    : d_env(env),
+    : EnvObj(env),
       d_smtSolver(sms),
       d_pp(pp),
-      d_sygusConjectureStale(env.getUserContext(), true)
+      d_sygusConjectureStale(userContext(), true)
 {
 }
 
@@ -301,17 +301,15 @@ void SygusSolver::checkSynthSolution(Assertions& as)
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
-  context::CDList<Node>* alist = as.getAssertionList();
-  if (alist == nullptr)
-  {
-    Trace("check-synth-sol") << "No assertions to check\n";
-    return;
-  }
+  const context::CDList<Node>& alist = as.getAssertionList();
+  Assert(options().smt.produceAssertions)
+      << "Expected produce assertions to be true when checking synthesis "
+         "solution";
   // auxiliary assertions
   std::vector<Node> auxAssertions;
   // expand definitions cache
   std::unordered_map<Node, Node> cache;
-  for (Node assertion : *alist)
+  for (const Node& assertion : alist)
   {
     Notice() << "SygusSolver::checkSynthSolution(): checking assertion "
              << assertion << std::endl;

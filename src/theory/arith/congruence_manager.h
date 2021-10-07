@@ -114,11 +114,6 @@ class ArithCongruenceManager : protected EnvObj
   eq::EqualityEngine* d_ee;
   /** The equality engine we allocated */
   std::unique_ptr<eq::EqualityEngine> d_allocEe;
-  /** The sat context */
-  context::Context* d_satContext;
-  /** The user context */
-  context::UserContext* d_userContext;
-
   /** proof manager */
   ProofNodeManager* d_pnm;
   /** A proof generator for storing proofs of facts that are asserted to the EQ

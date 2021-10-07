@@ -35,8 +35,8 @@ SharedSolver::SharedSolver(Env& env, TheoryEngine& te)
       d_te(te),
       d_logicInfo(logicInfo()),
       d_sharedTerms(env, &d_te),
-      d_preRegistrationVisitor(&te, context()),
-      d_sharedTermsVisitor(&te, d_sharedTerms, context()),
+      d_preRegistrationVisitor(env, &te),
+      d_sharedTermsVisitor(env, &te, d_sharedTerms),
       d_im(te.theoryOf(THEORY_BUILTIN)->getInferenceManager())
 {
 }
