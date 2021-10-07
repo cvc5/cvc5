@@ -22,16 +22,16 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace decision {
 
-class DecisionEngine
+class DecisionEngine : protected EnvObj
 {
  public:
   /** Constructor */
-  DecisionEngine(context::Context* sc,
-                 ResourceManager* rm);
+  DecisionEngine(Env& env);
   virtual ~DecisionEngine() {}
 
   /** Finish initialize */
@@ -61,10 +61,15 @@ class DecisionEngine
    */
   virtual void addSkolemDefinition(TNode lem, TNode skolem) = 0;
   /**
-   * Notify this class that the literal n has been asserted, possibly
-   * propagated by the SAT solver.
+   * Notify this class that the list of lemmas defs are now active in the
+   * current SAT context.
    */
-  virtual void notifyAsserted(TNode n) {}
+  virtual void notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
+  /**
+   * Track active skolem defs, whether we need to call the above method
+   * when appropriate.
+   */
+  virtual bool needsActiveSkolemDefs() const { return false; }
 
  protected:
   /** Get next internal, the engine-specific implementation of getNext */
@@ -86,7 +91,7 @@ class DecisionEngine
 class DecisionEngineEmpty : public DecisionEngine
 {
  public:
-  DecisionEngineEmpty(context::Context* sc, ResourceManager* rm);
+  DecisionEngineEmpty(Env& env);
   bool isDone() override;
   void addAssertion(TNode assertion) override;
   void addSkolemDefinition(TNode lem, TNode skolem) override;

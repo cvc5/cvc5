@@ -81,18 +81,16 @@ bool ExtTheoryCallback::getReduction(int effort,
   return false;
 }
 
-ExtTheory::ExtTheory(ExtTheoryCallback& p,
-                     context::Context* c,
-                     context::UserContext* u,
-                     TheoryInferenceManager& im)
-    : d_parent(p),
+ExtTheory::ExtTheory(Env& env, ExtTheoryCallback& p, TheoryInferenceManager& im)
+    : EnvObj(env),
+      d_parent(p),
       d_im(im),
-      d_ext_func_terms(c),
-      d_extfExtReducedIdMap(c),
-      d_ci_inactive(u),
-      d_has_extf(c),
-      d_lemmas(u),
-      d_pp_lemmas(u)
+      d_ext_func_terms(context()),
+      d_extfExtReducedIdMap(context()),
+      d_ci_inactive(userContext()),
+      d_has_extf(context()),
+      d_lemmas(userContext()),
+      d_pp_lemmas(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -260,7 +258,7 @@ bool ExtTheory::doInferencesInternal(int effort,
         bool processed = false;
         if (sterms[i] != terms[i])
         {
-          Node sr = Rewriter::rewrite(sterms[i]);
+          Node sr = rewrite(sterms[i]);
           // ask the theory if this term is reduced, e.g. is it constant or it
           // is a non-extf term.
           ExtReducedId id;

@@ -65,6 +65,9 @@ class TheoryProxy : public Registrar
   /** Finish initialize */
   void finishInit(CnfStream* cnfStream);
 
+  /** Presolve, which calls presolve for the modules managed by this class */
+  void presolve();
+
   /** Notify a lemma, possibly corresponding to a skolem definition */
   void notifyAssertion(Node lem, TNode skolem = TNode::null());
 
@@ -106,21 +109,16 @@ class TheoryProxy : public Registrar
    * rewrite.
    */
   TrustNode preprocessLemma(TrustNode trn,
-                            std::vector<TrustNode>& newLemmas,
-                            std::vector<Node>& newSkolems);
+                            std::vector<theory::SkolemLemma>& newLemmas);
   /**
    * Call the preprocessor on node, return trust node corresponding to the
    * rewrite.
    */
-  TrustNode preprocess(TNode node,
-                       std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems);
+  TrustNode preprocess(TNode node, std::vector<theory::SkolemLemma>& newLemmas);
   /**
    * Remove ITEs from the node.
    */
-  TrustNode removeItes(TNode node,
-                       std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems);
+  TrustNode removeItes(TNode node, std::vector<theory::SkolemLemma>& newLemmas);
   /**
    * Get the skolems within node and their corresponding definitions, store
    * them in sks and skAsserts respectively. Note that this method does not
@@ -144,6 +142,12 @@ class TheoryProxy : public Registrar
 
   /** The decision engine we are using. */
   decision::DecisionEngine* d_decisionEngine;
+
+  /**
+   * Whether the decision engine needs notification of active skolem
+   * definitions, see DecisionEngine::needsActiveSkolemDefs.
+   */
+  bool d_dmNeedsActiveDefs;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;

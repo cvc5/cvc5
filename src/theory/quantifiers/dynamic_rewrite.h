@@ -55,7 +55,7 @@ class DynamicRewriter
   typedef context::CDList<Node> NodeList;
 
  public:
-  DynamicRewriter(const std::string& name, context::UserContext* u);
+  DynamicRewriter(const std::string& name, context::Context* c);
   ~DynamicRewriter() {}
   /** inform this class that the equality a = b holds. */
   void addRewrite(Node a, Node b);

@@ -22,26 +22,10 @@ project(cvc5)
 
 include(CheckIPOSupported)
 include(GNUInstallDirs)
-
-set(CVC5_MAJOR   1) # Major component of the version of cvc5.
-set(CVC5_MINOR   0) # Minor component of the version of cvc5.
-set(CVC5_RELEASE 0) # Release component of the version of cvc5.
-
-# Extraversion component of the version of cvc5.
-set(CVC5_EXTRAVERSION "-prerelease")
-
-# Shared library versioning. Increment SOVERSION for every new cvc5 release.
-set(CVC5_SOVERSION 1)
-
-# Full release string for cvc5.
-if(CVC5_RELEASE)
-  set(CVC5_RELEASE_STRING
-      "${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}${CVC5_EXTRAVERSION}")
-else()
-  set(CVC5_RELEASE_STRING "${CVC5_MAJOR}.${CVC5_MINOR}${CVC5_EXTRAVERSION}")
-endif()
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+include(version)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -267,25 +251,23 @@ endif()
 # This needs to be set before any find_package(...) command since we want to
 # search for static libraries with suffix .a.
 
-if(NOT ENABLE_STATIC_BINARY)
-  # Embed the installation prefix as an RPATH in the executable such that the
-  # linker can find our libraries (such as libcvc5parser) when executing the
-  # cvc5 binary. This is for example useful when installing cvc5 with a custom
-  # prefix on macOS (e.g. when using homebrew in a non-standard directory). If
-  # we do not set this option, then the linker will not be able to find the
-  # required libraries when trying to run cvc5.
-  #
-  # Also embed the installation prefix of the installed contrib libraries as an
-  # RPATH. This allows to install a dynamically linked binary that depends on
-  # dynamically linked libraries. This is dangerous, as the installed binary
-  # breaks if the contrib library is removed or changes in other ways, we thus
-  # print a big warning and only allow if installing to a custom installation
-  # prefix.
-  #
-  # More information on RPATH in CMake:
-  # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
-endif()
+# Embed the installation prefix as an RPATH in the executable such that the
+# linker can find our libraries (such as libcvc5parser) when executing the
+# cvc5 binary. This is for example useful when installing cvc5 with a custom
+# prefix on macOS (e.g. when using homebrew in a non-standard directory). If
+# we do not set this option, then the linker will not be able to find the
+# required libraries when trying to run cvc5.
+#
+# Also embed the installation prefix of the installed contrib libraries as an
+# RPATH. This allows to install a dynamically linked binary that depends on
+# dynamically linked libraries. This is dangerous, as the installed binary
+# breaks if the contrib library is removed or changes in other ways, we thus
+# print a big warning and only allow if installing to a custom installation
+# prefix.
+#
+# More information on RPATH in CMake:
+# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 
 # Set visibility to default if unit tests are enabled
 if(ENABLE_UNIT_TESTING)
@@ -576,7 +558,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5ConfigVersion.cmake
-  VERSION ${CVC5_RELEASE_STRING}
+  VERSION ${CVC5_VERSION}
   COMPATIBILITY ExactVersion
 )
 
@@ -606,7 +588,7 @@ get_directory_property(CVC5_DEFINITIONS COMPILE_DEFINITIONS)
 string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 
 message("")
-print_info("cvc5 ${CVC5_RELEASE_STRING}")
+print_info("cvc5 ${CVC5_VERSION}")
 message("")
 if(ENABLE_COMP_INC_TRACK)
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (incremental)")
@@ -697,11 +679,11 @@ else()
   "\n"
   "Note that this configuration is NOT built against any GPL'ed libraries, so"
   "\n"
-  "it is covered by the (modified) BSD license.  This is, however, not the best"
+  "it is covered by the (modified) BSD license.  To build against GPL'ed"
   "\n"
-  "performing configuration of cvc5.  To build against GPL'ed libraries which"
+  "libraries which can improve cvc5's performance on arithmetic and bitvector"
   "\n"
-  "improve cvc5's performance, re-configure with '-DENABLE_GPL -DENABLE_BEST'."
+  "logics, re-configure with '-DENABLE_GPL -DENABLE_BEST'."
   )
 endif()
 

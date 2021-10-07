@@ -681,7 +681,8 @@ cdef class Solver:
         return sort
 
     def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts = None):
-        """Create a vector of datatype sorts using unresolved sorts. The names of
+        """
+        Create a vector of datatype sorts using unresolved sorts. The names of
         the datatype declarations in dtypedecls must be distinct.
 
         This method is called when the DatatypeDecl objects dtypedecls have been
@@ -1060,7 +1061,8 @@ cdef class Solver:
         return term
 
     def mkString(self, str s, useEscSequences = None):
-        """Create a String constant from a `str` which may contain SMT-LIB
+        """
+        Create a String constant from a `str` which may contain SMT-LIB
         compatible escape sequences like ``\\u1234`` to encode unicode characters.
 
         :param s: the string this constant represents
@@ -1149,7 +1151,8 @@ cdef class Solver:
         return term
 
     def mkConstArray(self, Sort sort, Term val):
-        """ Create a constant array with the provided constant value stored at every
+        """
+        Create a constant array with the provided constant value stored at every
         index
 
         :param sort: the sort of the constant array (must be an array sort)
@@ -1235,7 +1238,8 @@ cdef class Solver:
         return term
 
     def mkAbstractValue(self, index):
-        """Create an abstract value constant.
+        """
+        Create an abstract value constant.
         The given index needs to be positive.
 
         :param index: Index of the abstract value
@@ -1284,7 +1288,8 @@ cdef class Solver:
         return term
 
     def mkVar(self, Sort sort, symbol=None):
-        """Create a bound variable to be used in a binder (i.e. a quantifier, a
+        """
+        Create a bound variable to be used in a binder (i.e. a quantifier, a
         lambda, or a witness binder).
 
         :param sort: the sort of the variable
@@ -1300,7 +1305,8 @@ cdef class Solver:
         return term
 
     def mkDatatypeConstructorDecl(self, str name):
-        """ :return: a datatype constructor declaration
+        """
+        :return: a datatype constructor declaration
         :param: `name` the constructor's name
         """
         cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl(self)
@@ -1358,7 +1364,8 @@ cdef class Solver:
         return dd
 
     def simplify(self, Term t):
-        """Simplify a formula without doing "much" work.  Does not involve the
+        """
+        Simplify a formula without doing "much" work.  Does not involve the
         SAT Engine in the simplification, but uses the current definitions,
         assertions, and the current partial model, if one has been constructed.
         It also involves theory normalization.
@@ -1400,7 +1407,8 @@ cdef class Solver:
         return r
 
     def mkSygusGrammar(self, boundVars, ntSymbols):
-        """Create a SyGuS grammar. The first non-terminal is treated as the
+        """
+        Create a SyGuS grammar. The first non-terminal is treated as the
         starting non-terminal, so the order of non-terminals matters.
 
         :param boundVars: the parameters to corresponding synth-fun/synth-inv
@@ -1449,7 +1457,8 @@ cdef class Solver:
         self.csolver.addSygusConstraint(t.cterm)
 
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
-        """Add a set of SyGuS constraints to the current state that correspond to an
+        """
+        Add a set of SyGuS constraints to the current state that correspond to an
         invariant synthesis problem.
 
         SyGuS v2:
@@ -1510,7 +1519,8 @@ cdef class Solver:
         return r
 
     def getSynthSolution(self, Term term):
-        """Get the synthesis solution of the given term. This method should be
+        """
+        Get the synthesis solution of the given term. This method should be
         called immediately after the solver answers unsat for sygus input.
 
         :param term: the term for which the synthesis solution is queried
@@ -1521,7 +1531,8 @@ cdef class Solver:
         return t
 
     def getSynthSolutions(self, list terms):
-        """Get the synthesis solutions of the given terms. This method should be
+        """
+        Get the synthesis solutions of the given terms. This method should be
         called immediately after the solver answers unsat for sygus input.
 
         :param terms: the terms for which the synthesis solutions is queried
@@ -1856,7 +1867,7 @@ cdef class Solver:
 
             ( get-unsat-core )
 
-        Requires to enable option :ref:`produce-unsat-cores <lbl-produce-unsat-cores>`.
+        Requires to enable option :ref:`produce-unsat-cores <lbl-option-produce-unsat-cores>`.
 
         :return: a set of terms representing the unsatisfiable core
         """
@@ -1901,7 +1912,8 @@ cdef class Solver:
         return result
 
     def isModelCoreSymbol(self, Term v):
-        """This returns false if the model value of free constant v was not
+        """
+        This returns false if the model value of free constant v was not
         essential for showing the satisfiability of the last call to checkSat
         using the current model. This method will only return false (for any v)
         if the model-cores option has been set.

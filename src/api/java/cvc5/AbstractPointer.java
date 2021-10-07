@@ -25,6 +25,11 @@ abstract class AbstractPointer implements IPointer
     return pointer;
   }
 
+  public Solver getSolver()
+  {
+    return solver;
+  }
+
   @Override public String toString()
   {
     return toString(pointer);

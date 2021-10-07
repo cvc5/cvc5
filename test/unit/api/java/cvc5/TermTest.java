@@ -21,8 +21,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -663,7 +666,7 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> tnull.getChild(0));
   }
 
-  @Test void getInteger() throws CVC5ApiException
+  @Test void getIntegerValue() throws CVC5ApiException
   {
     Term int1 = d_solver.mkInteger("-18446744073709551616");
     Term int2 = d_solver.mkInteger("-18446744073709551615");
@@ -688,46 +691,274 @@ class TermTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger("-01"));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkInteger("-00"));
 
-    assertTrue(!int1.isInt() && !int1.isLong() && int1.isInteger());
-    assertEquals(int1.getInteger(), "-18446744073709551616");
-    assertTrue(!int2.isInt() && !int2.isLong() && int2.isInteger());
-    assertEquals(int2.getInteger(), "-18446744073709551615");
-    assertTrue(!int3.isInt() && int3.isLong() && int3.isInteger());
-    assertEquals(int3.getLong(), -4294967296L);
-    assertEquals(int3.getInteger(), "-4294967296");
-    assertTrue(!int4.isInt() && int4.isLong() && int4.isInteger());
-    assertEquals(int4.getLong(), -4294967295L);
-    assertEquals(int4.getInteger(), "-4294967295");
-    assertTrue(int5.isInt() && int5.isLong() && int5.isInteger());
-    assertEquals(int5.getInt(), -10);
-    assertEquals(int5.getLong(), -10);
-    assertEquals(int5.getInteger(), "-10");
-    assertTrue(int6.isInt() && int6.isLong() && int6.isInteger());
-    assertEquals(int6.getInt(), 0);
-    assertEquals(int6.getLong(), 0);
-    assertEquals(int6.getInteger(), "0");
-    assertTrue(int7.isInt() && int7.isLong() && int7.isInteger());
-    assertEquals(int7.getInt(), 10);
-    assertEquals(int7.getLong(), 10);
-    assertEquals(int7.getInteger(), "10");
-    assertTrue(!int8.isInt() && int8.isLong() && int8.isInteger());
-    assertEquals(int8.getLong(), 4294967295L);
-    assertEquals(int8.getInteger(), "4294967295");
-    assertTrue(!int9.isInt() && int9.isLong() && int9.isInteger());
-    assertEquals(int9.getLong(), 4294967296L);
-    assertEquals(int9.getInteger(), "4294967296");
-    assertTrue(!int10.isInt() && !int10.isLong() && int10.isInteger());
+    assertTrue(int1.isIntegerValue());
+    assertEquals(int1.getIntegerValue().toString(), "-18446744073709551616");
+    assertTrue(int2.isIntegerValue());
+    assertEquals(int2.getIntegerValue().toString(), "-18446744073709551615");
+    assertTrue(int3.isIntegerValue());
+    assertEquals(int3.getIntegerValue().longValue(), -4294967296L);
+    assertEquals(int3.getIntegerValue().toString(), "-4294967296");
+    assertTrue(int4.isIntegerValue());
+    assertEquals(int4.getIntegerValue().longValue(), -4294967295L);
+    assertEquals(int4.getIntegerValue().toString(), "-4294967295");
+    assertTrue(int5.isIntegerValue());
+    assertEquals(int5.getIntegerValue().intValue(), -10);
+    assertEquals(int5.getIntegerValue().intValue(), -10);
+    assertEquals(int5.getIntegerValue().toString(), "-10");
+    assertTrue(int6.isIntegerValue());
+    assertEquals(int6.getIntegerValue().intValue(), 0);
+    assertEquals(int6.getIntegerValue().intValue(), 0);
+    assertEquals(int6.getIntegerValue().toString(), "0");
+    assertTrue(int7.isIntegerValue());
+    assertEquals(int7.getIntegerValue().intValue(), 10);
+    assertEquals(int7.getIntegerValue().intValue(), 10);
+    assertEquals(int7.getIntegerValue().toString(), "10");
+    assertTrue(int8.isIntegerValue());
+    assertEquals(int8.getIntegerValue().longValue(), 4294967295L);
+    assertEquals(int8.getIntegerValue().toString(), "4294967295");
+    assertTrue(int9.isIntegerValue());
+    assertEquals(int9.getIntegerValue().longValue(), 4294967296L);
+    assertEquals(int9.getIntegerValue().toString(), "4294967296");
+    assertTrue(int10.isIntegerValue());
 
-    assertEquals(int10.getInteger(), "18446744073709551615");
-    assertTrue(!int11.isInt() && !int11.isLong() && int11.isInteger());
-    assertEquals(int11.getInteger(), "18446744073709551616");
+    assertEquals(int10.getIntegerValue().toString(), "18446744073709551615");
+    assertTrue(int11.isIntegerValue());
+    assertEquals(int11.getIntegerValue().toString(), "18446744073709551616");
   }
 
   @Test void getString()
   {
     Term s1 = d_solver.mkString("abcde");
-    assertTrue(s1.isString());
-    assertEquals(s1.getString(), "abcde");
+    assertTrue(s1.isStringValue());
+    assertEquals(s1.getStringValue(), "abcde");
+  }
+
+  @Test void getReal() throws CVC5ApiException
+  {
+    Term real1 = d_solver.mkReal("0");
+    Term real2 = d_solver.mkReal(".0");
+    Term real3 = d_solver.mkReal("-17");
+    Term real4 = d_solver.mkReal("-3/5");
+    Term real5 = d_solver.mkReal("12.7");
+    Term real6 = d_solver.mkReal("1/4294967297");
+    Term real7 = d_solver.mkReal("4294967297");
+    Term real8 = d_solver.mkReal("1/18446744073709551617");
+    Term real9 = d_solver.mkReal("18446744073709551617");
+    Term real10 = d_solver.mkReal("2343.2343");
+
+    assertTrue(real1.isRealValue());
+    assertTrue(real2.isRealValue());
+    assertTrue(real3.isRealValue());
+    assertTrue(real4.isRealValue());
+    assertTrue(real5.isRealValue());
+    assertTrue(real6.isRealValue());
+    assertTrue(real7.isRealValue());
+    assertTrue(real8.isRealValue());
+    assertTrue(real9.isRealValue());
+    assertTrue(real10.isRealValue());
+
+    assertEquals("0/1", Utils.getRational(real1.getRealValue()));
+    assertEquals("0/1", Utils.getRational(real2.getRealValue()));
+    assertEquals("-17/1", Utils.getRational(real3.getRealValue()));
+    assertEquals("-3/5", Utils.getRational(real4.getRealValue()));
+    assertEquals("127/10", Utils.getRational(real5.getRealValue()));
+    assertEquals("1/4294967297", Utils.getRational(real6.getRealValue()));
+    assertEquals("4294967297/1", Utils.getRational(real7.getRealValue()));
+    assertEquals("1/18446744073709551617", Utils.getRational(real8.getRealValue()));
+    assertEquals("18446744073709551617/1", Utils.getRational(real9.getRealValue()));
+    assertEquals("23432343/10000", Utils.getRational(real10.getRealValue()));
+  }
+
+  @Test void getConstArrayBase()
+  {
+    Sort intsort = d_solver.getIntegerSort();
+    Sort arrsort = d_solver.mkArraySort(intsort, intsort);
+    Term one = d_solver.mkInteger(1);
+    Term constarr = d_solver.mkConstArray(arrsort, one);
+
+    assertTrue(constarr.isConstArray());
+    assertEquals(one, constarr.getConstArrayBase());
+  }
+
+  @Test void getBoolean()
+  {
+    Term b1 = d_solver.mkBoolean(true);
+    Term b2 = d_solver.mkBoolean(false);
+
+    assertTrue(b1.isBooleanValue());
+    assertTrue(b2.isBooleanValue());
+    assertTrue(b1.getBooleanValue());
+    assertFalse(b2.getBooleanValue());
+  }
+
+  @Test void getBitVector() throws CVC5ApiException
+  {
+    Term b1 = d_solver.mkBitVector(8, 15);
+    Term b2 = d_solver.mkBitVector(8, "00001111", 2);
+    Term b3 = d_solver.mkBitVector(8, "15", 10);
+    Term b4 = d_solver.mkBitVector(8, "0f", 16);
+    Term b5 = d_solver.mkBitVector(9, "00001111", 2);
+    Term b6 = d_solver.mkBitVector(9, "15", 10);
+    Term b7 = d_solver.mkBitVector(9, "0f", 16);
+
+    assertTrue(b1.isBitVectorValue());
+    assertTrue(b2.isBitVectorValue());
+    assertTrue(b3.isBitVectorValue());
+    assertTrue(b4.isBitVectorValue());
+    assertTrue(b5.isBitVectorValue());
+    assertTrue(b6.isBitVectorValue());
+    assertTrue(b7.isBitVectorValue());
+
+    assertEquals("00001111", b1.getBitVectorValue(2));
+    assertEquals("15", b1.getBitVectorValue(10));
+    assertEquals("f", b1.getBitVectorValue(16));
+    assertEquals("00001111", b2.getBitVectorValue(2));
+    assertEquals("15", b2.getBitVectorValue(10));
+    assertEquals("f", b2.getBitVectorValue(16));
+    assertEquals("00001111", b3.getBitVectorValue(2));
+    assertEquals("15", b3.getBitVectorValue(10));
+    assertEquals("f", b3.getBitVectorValue(16));
+    assertEquals("00001111", b4.getBitVectorValue(2));
+    assertEquals("15", b4.getBitVectorValue(10));
+    assertEquals("f", b4.getBitVectorValue(16));
+    assertEquals("000001111", b5.getBitVectorValue(2));
+    assertEquals("15", b5.getBitVectorValue(10));
+    assertEquals("f", b5.getBitVectorValue(16));
+    assertEquals("000001111", b6.getBitVectorValue(2));
+    assertEquals("15", b6.getBitVectorValue(10));
+    assertEquals("f", b6.getBitVectorValue(16));
+    assertEquals("000001111", b7.getBitVectorValue(2));
+    assertEquals("15", b7.getBitVectorValue(10));
+    assertEquals("f", b7.getBitVectorValue(16));
+  }
+
+  @Test void getAbstractValue() throws CVC5ApiException
+  {
+    Term v1 = d_solver.mkAbstractValue(1);
+    Term v2 = d_solver.mkAbstractValue("15");
+    Term v3 = d_solver.mkAbstractValue("18446744073709551617");
+
+    assertTrue(v1.isAbstractValue());
+    assertTrue(v2.isAbstractValue());
+    assertTrue(v3.isAbstractValue());
+    assertEquals("1", v1.getAbstractValue());
+    assertEquals("15", v2.getAbstractValue());
+    assertEquals("18446744073709551617", v3.getAbstractValue());
+  }
+
+  @Test void getTuple()
+  {
+    Sort s1 = d_solver.getIntegerSort();
+    Sort s2 = d_solver.getRealSort();
+    Sort s3 = d_solver.getStringSort();
+
+    Term t1 = d_solver.mkInteger(15);
+    Term t2 = d_solver.mkReal(17, 25);
+    Term t3 = d_solver.mkString("abc");
+
+    Term tup = d_solver.mkTuple(new Sort[] {s1, s2, s3}, new Term[] {t1, t2, t3});
+
+    assertTrue(tup.isTupleValue());
+    assertEquals(Arrays.asList((new Term[] {t1, t2, t3})), Arrays.asList(tup.getTupleValue()));
+  }
+
+  @Test void getFloatingPoint() throws CVC5ApiException
+  {
+    Term bvval = d_solver.mkBitVector(16, "0000110000000011", 2);
+    Term fp = d_solver.mkFloatingPoint(5, 11, bvval);
+
+    assertTrue(fp.isFloatingPointValue());
+    assertFalse(fp.isFloatingPointPosZero());
+    assertFalse(fp.isFloatingPointNegZero());
+    assertFalse(fp.isFloatingPointPosInf());
+    assertFalse(fp.isFloatingPointNegInf());
+    assertFalse(fp.isFloatingPointNaN());
+    assertEquals(new Triplet<Long, Long, Term>(5L, 11L, bvval), fp.getFloatingPointValue());
+
+    assertTrue(d_solver.mkPosZero(5, 11).isFloatingPointPosZero());
+    assertTrue(d_solver.mkNegZero(5, 11).isFloatingPointNegZero());
+    assertTrue(d_solver.mkPosInf(5, 11).isFloatingPointPosInf());
+    assertTrue(d_solver.mkNegInf(5, 11).isFloatingPointNegInf());
+    assertTrue(d_solver.mkNaN(5, 11).isFloatingPointNaN());
+  }
+
+  @Test void getSet()
+  {
+    Sort s = d_solver.mkSetSort(d_solver.getIntegerSort());
+
+    Term i1 = d_solver.mkInteger(5);
+    Term i2 = d_solver.mkInteger(7);
+
+    Term s1 = d_solver.mkEmptySet(s);
+    Term s2 = d_solver.mkTerm(Kind.SINGLETON, i1);
+    Term s3 = d_solver.mkTerm(Kind.SINGLETON, i1);
+    Term s4 = d_solver.mkTerm(Kind.SINGLETON, i2);
+    Term s5 = d_solver.mkTerm(Kind.UNION, s2, d_solver.mkTerm(Kind.UNION, s3, s4));
+
+    assertTrue(s1.isSetValue());
+    assertTrue(s2.isSetValue());
+    assertTrue(s3.isSetValue());
+    assertTrue(s4.isSetValue());
+    assertFalse(s5.isSetValue());
+    s5 = d_solver.simplify(s5);
+    assertTrue(s5.isSetValue());
+
+    assertSetsEquality(new Term[] {}, s1.getSetValue());
+    assertSetsEquality(new Term[] {i1}, s2.getSetValue());
+    assertSetsEquality(new Term[] {i1}, s3.getSetValue());
+    assertSetsEquality(new Term[] {i2}, s4.getSetValue());
+    assertSetsEquality(new Term[] {i1, i2}, s5.getSetValue());
+  }
+
+  private void assertSetsEquality(Term[] A, Set<Term> B)
+  {
+    List<Term> a = Arrays.stream(A).sorted().collect(Collectors.toList());
+    List<Term> b = B.stream().sorted().collect(Collectors.toList());
+    assertEquals(a, b);
+  }
+
+  @Test void getSequence()
+  {
+    Sort s = d_solver.mkSequenceSort(d_solver.getIntegerSort());
+
+    Term i1 = d_solver.mkInteger(5);
+    Term i2 = d_solver.mkInteger(7);
+
+    Term s1 = d_solver.mkEmptySequence(s);
+    Term s2 = d_solver.mkTerm(Kind.SEQ_UNIT, i1);
+    Term s3 = d_solver.mkTerm(Kind.SEQ_UNIT, i1);
+    Term s4 = d_solver.mkTerm(Kind.SEQ_UNIT, i2);
+    Term s5 = d_solver.mkTerm(Kind.SEQ_CONCAT, s2, d_solver.mkTerm(Kind.SEQ_CONCAT, s3, s4));
+
+    assertTrue(s1.isSequenceValue());
+    assertTrue(!s2.isSequenceValue());
+    assertTrue(!s3.isSequenceValue());
+    assertTrue(!s4.isSequenceValue());
+    assertTrue(!s5.isSequenceValue());
+
+    s2 = d_solver.simplify(s2);
+    s3 = d_solver.simplify(s3);
+    s4 = d_solver.simplify(s4);
+    s5 = d_solver.simplify(s5);
+
+    assertEquals(Arrays.asList(new Term[] {}), Arrays.asList(s1.getSequenceValue()));
+    assertEquals(Arrays.asList(new Term[] {i1}), Arrays.asList(s2.getSequenceValue()));
+    assertEquals(Arrays.asList(new Term[] {i1}), Arrays.asList(s3.getSequenceValue()));
+    assertEquals(Arrays.asList(new Term[] {i2}), Arrays.asList(s4.getSequenceValue()));
+    assertEquals(Arrays.asList(new Term[] {i1, i1, i2}), Arrays.asList(s5.getSequenceValue()));
+  }
+
+  @Test void getUninterpretedConst() throws CVC5ApiException
+  {
+    Sort s = d_solver.mkUninterpretedSort("test");
+    Term t1 = d_solver.mkUninterpretedConst(s, 3);
+    Term t2 = d_solver.mkUninterpretedConst(s, 5);
+
+    assertTrue(t1.isUninterpretedValue());
+    assertTrue(t2.isUninterpretedValue());
+
+    assertEquals(new Pair<Sort, Integer>(s, 3), t1.getUninterpretedValue());
+    assertEquals(new Pair<Sort, Integer>(s, 5), t2.getUninterpretedValue());
   }
 
   @Test void substitute()
@@ -800,7 +1031,7 @@ class TermTest
     stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
   }
 
-  @Test void constSequenceElements() throws CVC5ApiException
+  @Test void getSequenceValue() throws CVC5ApiException
   {
     Sort realsort = d_solver.getRealSort();
     Sort seqsort = d_solver.mkSequenceSort(realsort);
@@ -808,13 +1039,13 @@ class TermTest
 
     assertEquals(s.getKind(), CONST_SEQUENCE);
     // empty sequence has zero elements
-    List<Term> cs = Arrays.asList(s.getConstSequenceElements());
-    assertTrue(cs.isEmpty());
+    Term[] cs = s.getSequenceValue();
+    assertTrue(cs.length == 0);
 
     // A seq.unit app is not a constant sequence (regardless of whether it is
     // applied to a constant).
     Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
-    assertThrows(CVC5ApiException.class, () -> su.getConstSequenceElements());
+    assertThrows(CVC5ApiException.class, () -> su.getSequenceValue());
   }
 
   @Test void termScopedToString()
