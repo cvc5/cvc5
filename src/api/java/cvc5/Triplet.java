@@ -15,31 +15,27 @@
 
 package cvc5;
 
-abstract class AbstractPointer implements IPointer
+public class Triplet<A, B, C>
 {
-  protected final Solver solver;
-  protected final long pointer;
-
-  public long getPointer()
+  public A first;
+  public B second;
+  public C third;
+  public Triplet(A first, B second, C third)
   {
-    return pointer;
+    this.first = first;
+    this.second = second;
+    this.third = third;
   }
 
-  public Solver getSolver()
+  @Override public boolean equals(Object object)
   {
-    return solver;
-  }
+    if (this == object)
+      return true;
+    if (object == null || getClass() != object.getClass())
+      return false;
 
-  @Override public String toString()
-  {
-    return toString(pointer);
-  }
-
-  abstract protected String toString(long pointer);
-
-  AbstractPointer(Solver solver, long pointer)
-  {
-    this.solver = solver;
-    this.pointer = pointer;
+    Triplet<A, B, C> triplet = (Triplet<A, B, C>) object;
+    return this.first.equals(triplet.first) && this.second.equals(triplet.second)
+        && this.third.equals(triplet.third);
   }
 }
