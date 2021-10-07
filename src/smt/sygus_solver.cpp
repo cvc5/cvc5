@@ -302,7 +302,9 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
   const context::CDList<Node>& alist = as.getAssertionList();
-  Assert (options().smt.produceAssertions) << "Expected produce assertions to be true when checking synthesis solution";
+  Assert(options().smt.produceAssertions)
+      << "Expected produce assertions to be true when checking synthesis "
+         "solution";
   // auxiliary assertions
   std::vector<Node> auxAssertions;
   // expand definitions cache

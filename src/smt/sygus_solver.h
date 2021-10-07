@@ -22,8 +22,8 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "smt/assertions.h"
-#include "util/result.h"
 #include "smt/env_obj.h"
+#include "util/result.h"
 
 namespace cvc5 {
 
