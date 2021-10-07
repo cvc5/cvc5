@@ -23,10 +23,8 @@ using namespace cvc5::prop;
 namespace cvc5 {
 namespace decision {
 
-JustificationStrategy::JustificationStrategy(Env& env,
-                                             prop::SkolemDefManager* skdm)
+JustificationStrategy::JustificationStrategy(Env& env)
     : DecisionEngine(env),
-      d_skdm(skdm),
       d_assertions(
           userContext(),
           context(),
@@ -500,19 +498,20 @@ void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem)
     insertToAssertionList(toProcess, false);
   }
 }
-
-void JustificationStrategy::notifyAsserted(TNode n)
+bool JustificationStrategy::needsActiveSkolemDefs() const
 {
-  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT)
-  {
-    // assertion processed makes all skolems in assertion active,
-    // which triggers their definitions to becoming relevant
-    std::vector<TNode> defs;
-    d_skdm->notifyAsserted(n, defs, true);
-    insertToAssertionList(defs, true);
-  }
-  // NOTE: can update tracking triggers, pop stack to where a child implied
-  // that a node on the current stack is justified.
+  return d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT;
+}
+
+void JustificationStrategy::notifyActiveSkolemDefs(std::vector<TNode>& defs)
+{
+  Assert(d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT);
+  // assertion processed makes all skolems in assertion active,
+  // which triggers their definitions to becoming relevant
+  insertToAssertionList(defs, true);
+  // NOTE: if we had a notifyAsserted callback, we could update tracking
+  // triggers, pop stack to where a child implied that a node on the current
+  // stack is justified.
 }
 
 void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
