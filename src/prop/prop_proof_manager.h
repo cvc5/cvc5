@@ -73,7 +73,7 @@ class PropPfManager
    * engine's proof with the preprocessing proof) and these changes survive for
    * a next check-sat call.
    */
-  void checkProof(context::CDList<Node>* assertions);
+  void checkProof(const context::CDList<Node>& assertions);
 
  private:
   /** A node manager */

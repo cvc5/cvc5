@@ -20,12 +20,15 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
 namespace cvc5 {
-class Env;
+
+class SolverEngine;
+
 namespace preprocessing {
 class PreprocessingPassContext;
 }
@@ -43,18 +46,15 @@ class PreprocessProofGenerator;
  * (2) implementing methods for expanding and simplifying formulas. The latter
  * takes into account the substitutions inferred by this class.
  */
-class Preprocessor
+class Preprocessor : protected EnvObj
 {
  public:
-  Preprocessor(SolverEngine& smt,
-               Env& env,
-               AbstractValues& abs,
-               SmtEngineStatistics& stats);
+  Preprocessor(Env& env, AbstractValues& abs, SmtEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization
    */
-  void finishInit();
+  void finishInit(SolverEngine* slv);
   /**
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
@@ -98,10 +98,6 @@ class Preprocessor
   void setProofGenerator(PreprocessProofGenerator* pppg);
 
  private:
-  /** Reference to the parent SolverEngine */
-  SolverEngine& d_slv;
-  /** Reference to the env */
-  Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
   /**
