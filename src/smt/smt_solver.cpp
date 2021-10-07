@@ -35,11 +35,11 @@ namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
                      SmtEngineState& state,
-                     Preprocessor& pp,
+                     AbstractValues& abs,
                      SmtEngineStatistics& stats)
     : d_env(env),
       d_state(state),
-      d_pp(pp),
+      d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
@@ -78,6 +78,8 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
+  
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
 }
 
 void SmtSolver::resetAssertions()

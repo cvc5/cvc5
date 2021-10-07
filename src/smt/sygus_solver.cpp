@@ -41,10 +41,9 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-SygusSolver::SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp)
+SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
     : EnvObj(env),
       d_smtSolver(sms),
-      d_pp(pp),
       d_sygusConjectureStale(userContext(), true)
 {
 }
@@ -315,7 +314,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
              << assertion << std::endl;
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
-    Node n = d_pp.expandDefinitions(assertion, cache);
+    Node n = d_smtSolver.getPreprocessor()->expandDefinitions(assertion, cache);
     Notice() << "SygusSolver::checkSynthSolution(): -- expands to " << n
              << std::endl;
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
@@ -435,7 +434,7 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       // ensures we don't try to expand e.g. bitvector extract operators,
       // whose type is undefined, and thus should not be passed to
       // expandDefinitions.
-      Node eop = op.isConst() ? op : d_pp.expandDefinitions(op);
+      Node eop = op.isConst() ? op : d_smtSolver.getPreprocessor()->expandDefinitions(op);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments
       for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)
