@@ -180,12 +180,16 @@ libcvc5_add_sources(
   proof/lfsc/lfsc_node_converter.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_printer.cpp
+  proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_print_channel.cpp
   proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_util.cpp
   proof/lfsc/lfsc_util.h
   proof/method_id.cpp
   proof/method_id.h
+  proof/print_expr.cpp
+  proof/print_expr.h
   proof/proof.cpp
   proof/proof.h
   proof/proof_checker.cpp
@@ -343,8 +347,8 @@ libcvc5_add_sources(
   smt/proof_post_processor.h
   smt/set_defaults.cpp
   smt/set_defaults.h
-  smt/smt_engine.cpp
-  smt/smt_engine.h
+  smt/solver_engine.cpp
+  smt/solver_engine.h
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
   smt/smt_engine_state.cpp
@@ -1304,7 +1308,7 @@ target_link_libraries(cvc5-obj PUBLIC $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECT
 # add_dependencies() is necessary for cmake versions before 3.21
 add_dependencies(cvc5-obj cvc5base cvc5context)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5-obj gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-tags gen-theory)
 
 # Link the shared library
 add_library(cvc5-shared SHARED)
@@ -1351,14 +1355,18 @@ if(ENABLE_VALGRIND)
   target_include_directories(cvc5-obj PUBLIC ${Valgrind_INCLUDE_DIR})
 endif()
 if(USE_ABC)
-  target_include_directories(cvc5-obj PUBLIC ${ABC_INCLUDE_DIR})
+  target_include_directories(cvc5-obj PRIVATE ${ABC_INCLUDE_DIR})
   target_link_libraries(cvc5-obj PUBLIC ${ABC_LIBRARIES})
 endif()
 
 target_link_libraries(cvc5-obj PUBLIC CaDiCaL)
 
 if(USE_CLN)
-  target_link_libraries(cvc5-obj PUBLIC CLN)
+  target_include_directories(cvc5-obj PRIVATE ${CLN_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE CLN_SHARED)
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC CLN_STATIC)
+  endif()
 endif()
 if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc5-obj PUBLIC CryptoMiniSat)
@@ -1371,7 +1379,11 @@ if(USE_GLPK)
   target_include_directories(cvc5-obj PUBLIC ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_POLY)
-  target_link_libraries(cvc5-obj PUBLIC Polyxx)
+  target_include_directories(cvc5-obj PRIVATE ${Poly_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE Polyxx_SHARED)
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC Polyxx_STATIC)
+  endif()
 endif()
 if(USE_COCOA)
   target_link_libraries(cvc5-obj PUBLIC CoCoA)

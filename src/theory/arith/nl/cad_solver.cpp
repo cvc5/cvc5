@@ -180,11 +180,11 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     Node value = value_to_node(d_CAC.getModel().get(v), d_ranVariable);
     if (value.isConst())
     {
-      d_model.addCheckModelSubstitution(variable, value);
+      d_model.addSubstitution(variable, value);
     }
     else
     {
-      d_model.addCheckModelWitness(variable, value);
+      d_model.addWitness(variable, value);
     }
     Trace("nl-cad") << "-> " << v << " = " << value << std::endl;
   }

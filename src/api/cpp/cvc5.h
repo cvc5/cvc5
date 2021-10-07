@@ -44,7 +44,7 @@ class DType;
 class DTypeConstructor;
 class DTypeSelector;
 class NodeManager;
-class SmtEngine;
+class SolverEngine;
 class TypeNode;
 class Options;
 class Random;
@@ -935,9 +935,9 @@ class CVC5_EXPORT Op
   size_t getNumIndicesHelper() const;
 
   /**
-   * Helper for operator[](size_t i).
-   * @param i position of the index. Should be less than getNumIndicesHelper().
-   * @return the index at position i
+   * Helper for operator[](size_t index).
+   * @param index position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position index
    */
   Term getIndexHelper(size_t index) const;
 
@@ -1338,7 +1338,7 @@ class CVC5_EXPORT Term
   bool isRealValue() const;
   /**
    * Asserts isRealValue().
-   * @return the representation of a rational value as a (decimal) string.
+   * @return the representation of a rational value as a (rational) string.
    */
   std::string getRealValue() const;
 
@@ -4489,7 +4489,7 @@ class CVC5_EXPORT Solver
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */
-  std::unique_ptr<SmtEngine> d_smtEngine;
+  std::unique_ptr<SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
 };

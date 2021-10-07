@@ -25,7 +25,7 @@
 #include "options/smt_options.h"
 #include "smt/abstract_values.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory;
@@ -35,10 +35,11 @@ namespace cvc5 {
 namespace smt {
 
 Assertions::Assertions(Env& env, AbstractValues& absv)
-    : d_env(env),
+    : EnvObj(env),
       d_absValues(absv),
       d_produceAssertions(false),
-      d_assertionList(env.getUserContext()),
+      d_assertionList(userContext()),
+      d_assertionListDefs(userContext()),
       d_globalNegation(false),
       d_assertions()
 {
@@ -104,7 +105,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
-    addFormula(n, true, true, false, false);
+    addFormula(n, true, false, false);
   }
   if (d_globalDefineFunLemmas != nullptr)
   {
@@ -113,7 +114,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     // zero assertions)
     for (const Node& lemma : *d_globalDefineFunLemmas)
     {
-      addFormula(lemma, true, false, true, false);
+      addFormula(lemma, false, true, false);
     }
   }
 }
@@ -122,7 +123,7 @@ void Assertions::assertFormula(const Node& n)
 {
   ensureBoolean(n);
   bool maybeHasFv = language::isLangSygus(options::inputLanguage());
-  addFormula(n, true, false, false, maybeHasFv);
+  addFormula(n, false, false, maybeHasFv);
 }
 
 std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }
@@ -134,13 +135,17 @@ preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
   return d_assertions;
 }
 
-context::CDList<Node>* Assertions::getAssertionList()
+const context::CDList<Node>& Assertions::getAssertionList() const
 {
-  return d_produceAssertions ? &d_assertionList : nullptr;
+  return d_assertionList;
+}
+
+const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
+{
+  return d_assertionListDefs;
 }
 
 void Assertions::addFormula(TNode n,
-                            bool inInput,
                             bool isAssumption,
                             bool isFunDef,
                             bool maybeHasFv)
@@ -149,14 +154,17 @@ void Assertions::addFormula(TNode n,
   if (d_produceAssertions)
   {
     d_assertionList.push_back(n);
+    if (isFunDef)
+    {
+      d_assertionListDefs.push_back(n);
+    }
   }
   if (n.isConst() && n.getConst<bool>())
   {
     // true, nothing to do
     return;
   }
-  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
-               << ", inInput = " << inInput
+  Trace("smt") << "Assertions::addFormula(" << n
                << ", isAssumption = " << isAssumption
                << ", isFunDef = " << isFunDef << std::endl;
   if (isFunDef)
@@ -216,7 +224,7 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
     // definitions currently. Thus, we should check for free variables if the
     // input language is SyGuS.
     bool maybeHasFv = language::isLangSygus(options::inputLanguage());
-    addFormula(n, true, false, true, maybeHasFv);
+    addFormula(n, false, true, maybeHasFv);
   }
 }
 

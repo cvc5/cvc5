@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The solver for SMT queries in an SmtEngine.
+ * The solver for SMT queries in an SolverEngine.
  */
 
 #include "smt/smt_solver.h"
@@ -21,9 +21,9 @@
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/preprocessor.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
+#include "smt/solver_engine.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
@@ -48,7 +48,7 @@ SmtSolver::SmtSolver(Env& env,
 
 SmtSolver::~SmtSolver() {}
 
-void SmtSolver::finishInit(const LogicInfo& logicInfo)
+void SmtSolver::finishInit()
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)

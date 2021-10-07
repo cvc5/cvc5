@@ -26,7 +26,7 @@
 namespace cvc5 {
 
 class OutputManager;
-class SmtEngine;
+class SolverEngine;
 
 namespace smt {
 
@@ -34,13 +34,13 @@ namespace smt {
 class ResourceOutListener : public Listener
 {
  public:
-  ResourceOutListener(SmtEngine& smt);
-  /** notify method, interupts SmtEngine */
+  ResourceOutListener(SolverEngine& smt);
+  /** notify method, interupts SolverEngine */
   void notify() override;
 
  private:
-  /** Reference to the SmtEngine */
-  SmtEngine& d_smt;
+  /** Reference to the SolverEngine */
+  SolverEngine& d_slv;
 };
 
 class DumpManager;

@@ -16,16 +16,16 @@ runs:
         sudo apt-get install -y \
           build-essential \
           ccache \
+          libbsd-dev \
           libcln-dev \
+          libedit-dev \
           libgmp-dev \
           libgtest-dev \
-          libedit-dev \
+          libtinfo-dev \
           flex \
           libfl-dev \
           flexc++
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
+        python3 -m pip install pexpect setuptools toml
         cd /usr/src/googletest
         sudo cmake .
         sudo cmake --build . --target install

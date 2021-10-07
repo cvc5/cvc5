@@ -25,8 +25,8 @@
 #include "context/context.h"
 #include "printer/printer.h"
 #include "smt/dump.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
@@ -410,7 +410,7 @@ class RewriteRule {
   // // NOTE: Cannot have static fields like this, or else you can't have
   // // two SmtEngines in the process (the second-to-be-destroyed will
   // // have a dangling pointer and segfault).  If this statistic is needed,
-  // // fix the rewriter by making it an instance per-SmtEngine (instead of
+  // // fix the rewriter by making it an instance per-SolverEngine (instead of
   // // static).
   // static RuleStatistics* s_statistics;
 
