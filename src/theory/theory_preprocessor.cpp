@@ -86,9 +86,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
 }
 
 TrustNode TheoryPreprocessor::preprocessInternal(
-    TNode node,
-    std::vector<SkolemLemma>& newLemmas,
-    bool procLemmas)
+    TNode node, std::vector<SkolemLemma>& newLemmas, bool procLemmas)
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
 
@@ -171,21 +169,18 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   return tret;
 }
 
-TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
-                                              std::vector<SkolemLemma>& newLemmas)
+TrustNode TheoryPreprocessor::preprocessLemma(
+    TrustNode node, std::vector<SkolemLemma>& newLemmas)
 {
   return preprocessLemmaInternal(node, newLemmas, true);
 }
 
 TrustNode TheoryPreprocessor::preprocessLemmaInternal(
-    TrustNode node,
-    std::vector<SkolemLemma>& newLemmas,
-    bool procLemmas)
+    TrustNode node, std::vector<SkolemLemma>& newLemmas, bool procLemmas)
 {
   // what was originally proven
   Node lemma = node.getProven();
-  TrustNode tplemma =
-      preprocessInternal(lemma, newLemmas, procLemmas);
+  TrustNode tplemma = preprocessInternal(lemma, newLemmas, procLemmas);
   if (tplemma.isNull())
   {
     // no change needed
@@ -236,8 +231,7 @@ struct preprocess_stack_element
 };
 
 TrustNode TheoryPreprocessor::theoryPreprocess(
-    TNode assertion,
-    std::vector<SkolemLemma>& newLemmas)
+    TNode assertion, std::vector<SkolemLemma>& newLemmas)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
