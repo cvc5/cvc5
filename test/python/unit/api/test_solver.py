@@ -954,7 +954,6 @@ def test_define_fun(solver):
     funSort2 = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
                                      solver.getIntegerSort())
     b1 = solver.mkVar(bvSort, "b1")
-    b11 = solver.mkVar(bvSort, "b1")
     b2 = solver.mkVar(solver.getIntegerSort(), "b2")
     b3 = solver.mkVar(funSort2, "b3")
     v1 = solver.mkConst(bvSort, "v1")
@@ -965,7 +964,6 @@ def test_define_fun(solver):
     f3 = solver.mkConst(bvSort, "f3")
     solver.defineFun("f", [], bvSort, v1)
     solver.defineFun("ff", [b1, b2], bvSort, v1)
-    solver.defineFun(f1, [b1, b11], v1)
     with pytest.raises(RuntimeError):
         solver.defineFun("ff", [v1, b2], bvSort, v1)
     with pytest.raises(RuntimeError):
@@ -974,18 +972,6 @@ def test_define_fun(solver):
         solver.defineFun("ffff", [b1], funSort2, v3)
     # b3 has function sort, which is allowed as an argument
     solver.defineFun("fffff", [b1, b3], bvSort, v1)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f1, [v1, b11], v1)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f1, [b1], v1)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f1, [b1, b11], v2)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f1, [b1, b11], v3)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f2, [b1], v2)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f3, [b1], v1)
 
     slv = pycvc5.Solver()
     bvSort2 = slv.mkBitVectorSort(32)
