@@ -111,16 +111,16 @@ We can convert these values to C++ types.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 117-128
+     :lines: 117-124
 
 Another way to independently compute the value of ``x - y`` would be to
-use the C++ minus operator instead of asking the solver.
+perform the (rational) arithmetic manually.
 However, for more complex terms, it is easier to let the solver do the
 evaluation.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 134-142
+     :lines: 130-143
 
 This will print:
 
@@ -134,7 +134,7 @@ For this, we first reset the assertions added to the solver.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 148
+     :lines: 149
 
 Next, we assert the same assertions as above, but with integers.
 This time, we inline the construction of terms
@@ -142,13 +142,13 @@ to the assertion command.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 153-157
+     :lines: 154-158
 
 Now, we check whether the revised assertion is satisfiable.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 160, 163-164
+     :lines: 161, 164-165
 
 This time the asserted formula is unsatisfiable:
 
@@ -162,7 +162,7 @@ of the assertions that is already unsatisfiable.
 
 .. literalinclude:: ../../../examples/api/cpp/quickstart.cpp
      :language: cpp
-     :lines: 168-174
+     :lines: 169-175
 
 This will print:
 

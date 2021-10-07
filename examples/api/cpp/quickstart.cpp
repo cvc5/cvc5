@@ -124,7 +124,7 @@ int main()
   std::cout << "value for x - y: " << xMinusYPair.first << "/" << xMinusYPair.second << std::endl;
 
   // Another way to independently compute the value of x - y would be
-  // to perform the (rational) arithmetic manually within C++.
+  // to perform the (rational) arithmetic manually.
   // However, for more complex terms,
   // it is easier to let the solver do the evaluation.
   std::pair<int64_t, uint64_t> xMinusYComputed = {
