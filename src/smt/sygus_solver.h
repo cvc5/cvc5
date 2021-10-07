@@ -31,7 +31,6 @@ class OutputManager;
 
 namespace smt {
 
-class Preprocessor;
 class SmtSolver;
 
 /**
@@ -46,7 +45,7 @@ class SmtSolver;
 class SygusSolver : protected EnvObj
 {
  public:
-  SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp);
+  SygusSolver(Env& env, SmtSolver& sms);
   ~SygusSolver();
 
   /**
@@ -173,8 +172,6 @@ class SygusSolver : protected EnvObj
   void expandDefinitionsSygusDt(TypeNode tn) const;
   /** The SMT solver, which is used during checkSynth. */
   SmtSolver& d_smtSolver;
-  /** The preprocessor, used for checkSynthSolution. */
-  Preprocessor& d_pp;
   /**
    * sygus variables declared (from "declare-var" and "declare-fun" commands)
    *
