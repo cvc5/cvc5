@@ -1811,7 +1811,7 @@ cdef class Solver:
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
-    def defineFun(self, str symbol, List[Term] bound_vars, Sort sort, Term term, glbl=False):
+    def defineFun(self, str symbol, list bound_vars, Sort sort, Term term, glbl=False):
         """Define n-ary function.
 
         SMT-LIB:
@@ -1830,7 +1830,7 @@ cdef class Solver:
         cdef Term fun = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
-            v.push_back(bv.cterm)
+            v.push_back((<Term?> bv).cterm)
 
         fun.cterm = self.csolver.defineFun(symbol.encode(),
                                            <const vector[c_Term] &> v,
