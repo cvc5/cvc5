@@ -69,7 +69,7 @@ ProcessAssertions::~ProcessAssertions()
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 {
-  Assert(d_preprocessingPassContext == nullptr);
+  // note that we may be replacing a stale preprocessing pass context here
   d_preprocessingPassContext = pc;
 
   PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
