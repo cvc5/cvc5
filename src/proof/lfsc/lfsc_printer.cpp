@@ -45,6 +45,7 @@ void LfscPrinter::print(std::ostream& out,
                         const ProofNode* pn)
 {
   Trace("lfsc-print-debug") << "; ORIGINAL PROOF: " << *pn << std::endl;
+  Assert (!pn->getChildren().empty());
   // closing parentheses
   std::stringstream cparen;
   const ProofNode* pnBody = pn->getChildren()[0].get();
@@ -162,6 +163,7 @@ void LfscPrinter::print(std::ostream& out,
         // shared selectors are instance of parametric symbol "sel"
         preamble << "; END DATATYPE " << std::endl;
       }
+      // all other sorts are builtin into the LFSC signature
     }
   }
   Trace("lfsc-print-debug") << "; print user symbols" << std::endl;
@@ -221,6 +223,7 @@ void LfscPrinter::print(std::ostream& out,
   }
 
   // [4] print the DSL rewrite rule declarations
+  // TODO cvc5-projects #285.
 
   // [5] print the check command and term lets
   out << preamble.str();
