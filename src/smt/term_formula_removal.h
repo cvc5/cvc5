@@ -26,8 +26,8 @@
 #include "expr/term_context.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
-#include "util/hash.h"
 #include "theory/skolem_lemma.h"
+#include "util/hash.h"
 
 namespace cvc5 {
 
@@ -98,7 +98,7 @@ class RemoveTermFormulas : protected EnvObj
    * The relevant lemmas can be extracted by the caller later using getSkolems
    * and getLemmaForSkolem.
    */
-  //TrustNode run(TNode assertion);
+  // TrustNode run(TNode assertion);
   /**
    * Same as above, but transforms a lemma, returning a LEMMA trust node that
    * proves the same formula as lem with term formulas removed.

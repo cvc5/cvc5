@@ -89,9 +89,10 @@ TrustNode RemoveTermFormulas::run(TNode assertion)
 }
 */
 
-TrustNode RemoveTermFormulas::runLemma(TrustNode lem,
-                                       std::vector<theory::SkolemLemma>& newAsserts,
-                                       bool fixedPoint)
+TrustNode RemoveTermFormulas::runLemma(
+    TrustNode lem,
+    std::vector<theory::SkolemLemma>& newAsserts,
+    bool fixedPoint)
 {
   TrustNode trn = run(lem.getProven(), newAsserts, fixedPoint);
   if (trn.isNull())

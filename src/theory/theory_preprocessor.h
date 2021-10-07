@@ -195,8 +195,7 @@ class TheoryPreprocessor : protected EnvObj
    * the preprocessed and rewritten form of term. It should be the case that
    * term is already in rewritten form.
    */
-  Node preprocessWithProof(Node term,
-                           std::vector<SkolemLemma>& lems);
+  Node preprocessWithProof(Node term, std::vector<SkolemLemma>& lems);
   /**
    * Register rewrite trn based on trust node into term conversion generator
    * pg, which uses THEORY_PREPROCESS as a step if no proof generator is

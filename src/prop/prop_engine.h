@@ -105,8 +105,7 @@ class PropEngine
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  TrustNode removeItes(TNode node,
-                       std::vector<theory::SkolemLemma>& ppLemmas);
+  TrustNode removeItes(TNode node, std::vector<theory::SkolemLemma>& ppLemmas);
 
   /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.

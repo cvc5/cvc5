@@ -31,10 +31,7 @@ SkolemLemma::SkolemLemma(Node k, ProofGenerator* pg) : d_lemma(), d_skolem(k)
   d_lemma = TrustNode::mkTrustLemma(lem, pg);
 }
 
-Node SkolemLemma::getProven() const
-{
-  return d_lemma.getProven();
-}
+Node SkolemLemma::getProven() const { return d_lemma.getProven(); }
 
 Node SkolemLemma::getSkolemLemmaFor(Node k)
 {
