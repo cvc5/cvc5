@@ -39,7 +39,7 @@ We define the following constraints regarding ``x`` and ``y``:
 
   (0 < x) \wedge (0 < y) \wedge (x + y < 1) \wedge (x \leq y)
 
-We construct the required terms and assert them as follows:
+We assert them as follows. Notice that in SMT-LIB v2, terms are written in prefix notation, e.g., we write `(+ x y)` instead of `(x + y)`.
 
 .. literalinclude:: ../../examples/api/smtlib/quickstart.smt2
      :language: smtlib
