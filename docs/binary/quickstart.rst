@@ -54,7 +54,7 @@ the constraints.
      :lines: 24
 
 The result we get from this satisfiability check is either ``sat``, ``unsat``
-or ``unknown``, and it is printed to standard output
+or ``unknown``, and it is printed to standard output.
 In this case, it will print ``sat``.
 
 Now, we query the solver for the values for ``x`` and ``y`` that satisfy
