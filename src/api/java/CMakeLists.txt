@@ -57,7 +57,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeConstructorDecl.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeDecl.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeSelector.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/DriverOptions.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Grammar.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/ModeInfo.java
@@ -121,7 +120,6 @@ add_library(cvc5jni SHARED
   jni/cvc5_DatatypeConstructorDecl.cpp
   jni/cvc5_DatatypeDecl.cpp
   jni/cvc5_DatatypeSelector.cpp
-  jni/cvc5_DriverOptions.cpp
   jni/cvc5_Grammar.cpp
   jni/cvc5_Op.cpp
   jni/cvc5_OptionInfo.cpp

@@ -1819,19 +1819,6 @@ public class Solver implements IPointer
   private native long getOptionInfo(long pointer, String option);
 
   /**
-   * Get the driver options, which provide access to options that can not be
-   * communicated properly via getOption() and getOptionInfo().
-   * @return a DriverOptions object.
-   */
-  public DriverOptions getDriverOptions()
-  {
-    long driverPointer = getDriverOptions(pointer);
-    return new DriverOptions(this, driverPointer);
-  }
-
-  private native long getDriverOptions(long pointer);
-
-  /**
    * Get the set of unsat ("failed") assumptions.
    * SMT-LIB:
    * {@code
