@@ -35,7 +35,7 @@ CheckModels::CheckModels(Env& e) : d_env(e) {}
 CheckModels::~CheckModels() {}
 
 void CheckModels::checkModel(TheoryModel* m,
-                             context::CDList<Node>* al,
+                             const context::CDList<Node>& al,
                              bool hardFailure)
 {
   // Throughout, we use Notice() to give diagnostic output.
@@ -57,7 +57,7 @@ void CheckModels::checkModel(TheoryModel* m,
   // the list of assertions that did not rewrite to true
   std::vector<Node> noCheckList;
   // Now go through all our user assertions checking if they're satisfied.
-  for (const Node& assertion : *al)
+  for (const Node& assertion : al)
   {
     Notice() << "SolverEngine::checkModel(): checking assertion " << assertion
              << std::endl;
