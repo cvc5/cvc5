@@ -66,7 +66,7 @@ formula.
      :language: smtlib
      :lines: 25-26
 
-This will print the following:
+This will print the values of `x`, `y`, and `x-y`, in a key-value format `(<term> <value>)` one after the other:
 
 .. code:: text
 
