@@ -234,7 +234,7 @@ class NlModel : protected EnvObj
    */
   bool hasLinearModelValue(TNode v, Node& val) const;
 
-  std::optional<bool> solveEquality(Node eq);
+  std::optional<bool> solveEquality(Node eq, uint64_t precision, std::vector<NlLemma>& lemmas);
 
   //---------------------------check model
   /**
