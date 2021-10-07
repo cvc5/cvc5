@@ -287,7 +287,7 @@ SolverEngine::~SolverEngine()
     d_state->cleanup();
 
     // destroy all passes before destroying things that they refer to
-    d_smtSolver.->cleanup();
+    d_smtSolver->getPreprocessor()->cleanup();
 
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);

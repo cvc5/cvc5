@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/preprocessor.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
+#include "smt/preprocessor.h"
 
 namespace cvc5 {
 
@@ -128,7 +128,7 @@ class SmtSolver
   Env& d_env;
   /** Reference to the state of the SolverEngine */
   SmtEngineState& d_state;
-  /** Reference to the preprocessor of SolverEngine */
+  /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Reference to the statistics of SolverEngine */
   SmtEngineStatistics& d_stats;

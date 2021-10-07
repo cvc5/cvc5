@@ -78,7 +78,7 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
-
+  
   d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
 }
 
@@ -95,6 +95,8 @@ void SmtSolver::resetAssertions()
   // finishInit again. In particular, TheoryEngine::finishInit does not
   // depend on knowing the associated PropEngine.
   d_propEngine->finishInit();
+  // must reset the preprocessor as well
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
 }
 
 void SmtSolver::interrupt()
