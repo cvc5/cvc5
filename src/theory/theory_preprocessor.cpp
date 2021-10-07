@@ -16,12 +16,12 @@
 #include "theory/theory_preprocessor.h"
 
 #include "expr/skolem_manager.h"
+#include "expr/term_context_stack.h"
 #include "proof/lazy_proof.h"
 #include "smt/logic_exception.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "expr/term_context_stack.h"
 
 using namespace std;
 
@@ -316,11 +316,11 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       // we preprocessed it to something else, carry that
       std::pair<Node, uint32_t> key(itc->second, nodeVal);
       itc = d_tfCache.find(key);
-      Assert (itc!=d_tfCache.end());
+      Assert(itc != d_tfCache.end());
       d_tfCache[curr] = itc->second;
       continue;
     }
-    
+
     // if we have not already computed the result
     std::vector<Node> newChildren;
     bool childChanged = false;
@@ -349,7 +349,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       ret = nm->mkNode(node.getKind(), newChildren);
     }
     Node pret = preprocessWithProof(ret, newLemmas);
-    if (pret!=ret)
+    if (pret != ret)
     {
       // must restart
       ctx.push(node, nodeVal);
