@@ -3011,7 +3011,7 @@ std::string Term::getRealValue() const
   std::string res = rat.toString();
   if (rat.isIntegral())
   {
-    return res + ".0";
+    return res + "/1";
   }
   return res;
   ////////

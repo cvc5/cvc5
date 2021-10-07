@@ -48,7 +48,7 @@ SmtSolver::SmtSolver(Env& env,
 
 SmtSolver::~SmtSolver() {}
 
-void SmtSolver::finishInit(const LogicInfo& logicInfo)
+void SmtSolver::finishInit()
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
