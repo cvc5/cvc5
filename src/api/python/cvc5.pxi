@@ -1811,14 +1811,8 @@ cdef class Solver:
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
-    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
-        """
-        Define n-ary function.
-        Supports two uses:
-
-        - ``Term defineFun(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
-        - ``Term defineFun(Term fun, List[Term] bound_vars, Term term, bool glbl)``
-
+    def defineFun(self, str symbol, List[Term] bound_vars, Sort sort, Term term, global=False):
+        """Define n-ary function.
 
         SMT-LIB:
 
@@ -1833,24 +1827,17 @@ cdef class Solver:
         :param global: determines whether this definition is global (i.e. persists when popping the context)
         :return: the function
         """
-        cdef Term term = Term(self)
+        cdef Term fun = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
-            v.push_back((<Term?> bv).cterm)
+            v.push_back(bv.cterm)
 
-        if t is not None:
-            term.cterm = self.csolver.defineFun((<str?> sym_or_fun).encode(),
-                                                <const vector[c_Term] &> v,
-                                                (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm,
-                                                <bint> glbl)
-        else:
-            term.cterm = self.csolver.defineFun((<Term?> sym_or_fun).cterm,
-                                                <const vector[c_Term]&> v,
-                                                (<Term?> sort_or_term).cterm,
-                                                <bint> glbl)
-
-        return term
+        fun.cterm = self.csolver.defineFun(symbol.encode(),
+                                            <const vector[c_Term] &> v,
+                                            sort.csort,
+                                            term.cterm,
+                                            <bint> global)
+        return fun
 
     def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         """Define recursive functions.
