@@ -29,6 +29,7 @@
 #include "proof/trust_node.h"
 #include "smt/term_formula_removal.h"
 #include "theory/skolem_lemma.h"
+#include "expr/term_context.h"
 
 namespace cvc5 {
 
@@ -134,17 +135,20 @@ class TheoryPreprocessor : protected EnvObj
                                     bool procLemmas);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
-  /**
-   * Cache for theory-preprocessing of theory atoms. The domain of this map
-   * are terms that appear within theory atoms given to this class.
+
+  typedef context::CDInsertHashMap<
+      std::pair<Node, uint32_t>,
+      Node,
+      PairHashFunction<Node, uint32_t, std::hash<Node>>>
+      TermFormulaCache;
+  /** term formula removal cache
+   *
+   * This stores the results of term formula removal for inputs to the run(...)
+   * function below, where the integer in the pair we hash on is the
+   * result of cacheVal below.
    */
-  NodeMap d_ppCache;
-  /**
-   * Cache for theory-preprocessing + term formula removal of the Boolean
-   * structure of assertions. The domain of this map are the Boolean
-   * connectives and theory atoms given to this class.
-   */
-  NodeMap d_rtfCache;
+  TermFormulaCache d_tfCache;
+
   /** The term formula remover */
   RemoveTermFormulas d_tfr;
   /** The term context, which computes hash values for term contexts. */
@@ -174,6 +178,11 @@ class TheoryPreprocessor : protected EnvObj
   std::unique_ptr<TConvSeqProofGenerator> d_tspg;
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
+  /**
+   * The remove term formula context, which computes hash values for term
+   * contexts.
+   */
+  RtfTermContext d_rtfc;
   /**
    * Helper for theoryPreprocess, which traverses the provided term and
    * applies ppRewrite and rewriting until fixed point on term using
