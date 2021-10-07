@@ -167,10 +167,9 @@ TrustNode PropEngine::preprocess(TNode node,
 }
 
 TrustNode PropEngine::removeItes(TNode node,
-                                 std::vector<TrustNode>& newLemmas,
-                                 std::vector<Node>& newSkolems)
+                                 std::vector<theory::SkolemLemma>& newLemmas)
 {
-  return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
+  return d_theoryProxy->removeItes(node, newLemmas);
 }
 
 void PropEngine::assertInputFormulas(
@@ -315,7 +314,7 @@ void PropEngine::assertLemmasInternal(
     }
     for (const theory::SkolemLemma& lem : ppLemmas)
     {
-      d_theoryProxy->notifyAssertion(lem.d_lemma.getProven(), lem.d_skolem);
+      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem);
     }
   }
 }

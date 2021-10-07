@@ -86,8 +86,8 @@ class PropEngine
    * ppSkolems respectively.
    *
    * @param node The assertion to preprocess,
-   * @param ppLemmas The lemmas to add to the set of assertions,
-   * @param ppSkolems The skolems that newLemmas correspond to,
+   * @param ppLemmas The lemmas to add to the set of assertions, which tracks
+   * their corresponding skolems,
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
@@ -100,14 +100,13 @@ class PropEngine
    * preprocessing and rewriting.
    *
    * @param node The assertion to preprocess,
-   * @param ppLemmas The lemmas to add to the set of assertions,
-   * @param ppSkolems The skolems that newLemmas correspond to,
+   * @param ppLemmas The lemmas to add to the set of assertions, which tracks
+   * their corresponding skolems.
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
   TrustNode removeItes(TNode node,
-                       std::vector<TrustNode>& ppLemmas,
-                       std::vector<Node>& ppSkolems);
+                       std::vector<theory::SkolemLemma>& ppLemmas);
 
   /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.
@@ -333,9 +332,9 @@ class PropEngine
                       ProofGenerator* pg = nullptr);
   /**
    * Assert lemmas internal, where trn is a trust node corresponding to a
-   * formula to assert to the CNF stream, ppLemmas and ppSkolems are the
-   * skolem definitions and skolems obtained from preprocessing it, and
-   * removable is whether the lemma is removable.
+   * formula to assert to the CNF stream, ppLemmas are the skolem definitions
+   * obtained from preprocessing it, and removable is whether the lemma is
+   * removable.
    */
   void assertLemmasInternal(TrustNode trn,
                             const std::vector<theory::SkolemLemma>& ppLemmas,

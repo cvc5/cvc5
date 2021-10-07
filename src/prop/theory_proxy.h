@@ -119,8 +119,7 @@ class TheoryProxy : public Registrar
    * Remove ITEs from the node.
    */
   TrustNode removeItes(TNode node,
-                       std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems);
+                       std::vector<theory::SkolemLemma>& newLemmas);
   /**
    * Get the skolems within node and their corresponding definitions, store
    * them in sks and skAsserts respectively. Note that this method does not

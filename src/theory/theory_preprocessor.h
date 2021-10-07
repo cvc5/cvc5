@@ -139,7 +139,6 @@ class TheoryPreprocessor : protected EnvObj
    * are terms that appear within theory atoms given to this class.
    */
   NodeMap d_ppCache;
-  NodeMap d_ppCacheTerm;
   /**
    * Cache for theory-preprocessing + term formula removal of the Boolean
    * structure of assertions. The domain of this map are the Boolean
@@ -180,7 +179,7 @@ class TheoryPreprocessor : protected EnvObj
    * applies ppRewrite and rewriting until fixed point on term using
    * the method preprocessWithProof helper below.
    */
-  Node ppTheoryRewrite(TNode term, bool inTerm, std::vector<SkolemLemma>& lems);
+  Node ppTheoryRewrite(TNode term, std::vector<SkolemLemma>& lems);
   /**
    * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.
@@ -197,7 +196,6 @@ class TheoryPreprocessor : protected EnvObj
    * term is already in rewritten form.
    */
   Node preprocessWithProof(Node term,
-                           bool inTerm,
                            std::vector<SkolemLemma>& lems);
   /**
    * Register rewrite trn based on trust node into term conversion generator
