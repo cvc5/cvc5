@@ -373,28 +373,27 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
   {
     return (*find).second;
   }
-  if (term.getNumChildren() == 0)
-  {
-    return preprocessWithProof(term, lems);
-  }
-  // should be in rewritten form here
-  Assert(term == Rewriter::rewrite(term));
-  Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-  // do not rewrite inside quantifiers
   Node newTerm = term;
-  if (!term.isClosure())
+  if (term.getNumChildren() > 0)
   {
-    NodeBuilder newNode(term.getKind());
-    if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
+    // should be in rewritten form here
+    Assert(term == Rewriter::rewrite(term));
+    Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
+    // do not rewrite inside quantifiers
+    if (!term.isClosure())
     {
-      newNode << term.getOperator();
+      NodeBuilder newNode(term.getKind());
+      if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        newNode << term.getOperator();
+      }
+      for (const Node& nt : term)
+      {
+        newNode << ppTheoryRewrite(nt, lems);
+      }
+      newTerm = Node(newNode);
+      newTerm = rewriteWithProof(newTerm, d_tpg.get(), false);
     }
-    for (const Node& nt : term)
-    {
-      newNode << ppTheoryRewrite(nt, lems);
-    }
-    newTerm = Node(newNode);
-    newTerm = rewriteWithProof(newTerm, d_tpg.get(), false);
   }
   newTerm = preprocessWithProof(newTerm, lems);
   d_ppCache[term] = newTerm;
