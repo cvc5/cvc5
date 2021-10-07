@@ -151,16 +151,6 @@ public class Utils
       String[] pair = rational.split("/");
       return new Pair<>(new BigInteger(pair[0]), new BigInteger(pair[1]));
     }
-    if (rational.contains("."))
-    {
-      String[] pair = rational.split("\\.");
-      if ((new BigInteger(pair[1])).equals(BigInteger.ZERO))
-      {
-        return new Pair<>(new BigInteger(pair[0]), new BigInteger("1"));
-      }
-      BigInteger denominator = BigInteger.TEN.pow(pair[1].length());
-      return new Pair<>(new BigInteger(rational.replace(".", "")), denominator);
-    }
     return new Pair<>(new BigInteger(rational), new BigInteger("1"));
   }
 
