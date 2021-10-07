@@ -226,7 +226,8 @@ RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()
 TrustNode TheoryPreprocessor::theoryPreprocess(
     TNode assertion, std::vector<SkolemLemma>& newLemmas)
 {
-  std::unordered_set< std::pair<Node, uint32_t>, PairHashFunction<Node, uint32_t, std::hash<Node>> > wasPreprocessed;
+  std::unordered_map< std::pair<Node, uint32_t>, Node, PairHashFunction<Node, uint32_t, std::hash<Node>> > wasPreprocessed;
+  std::unordered_map< std::pair<Node, uint32_t>, Node, PairHashFunction<Node, uint32_t, std::hash<Node>> >::iterator itw;
   NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
   std::vector<bool> processedChildren;
@@ -249,15 +250,6 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       Trace("rtf-debug") << "...already computed" << std::endl;
       ctx.pop();
       processedChildren.pop_back();
-      if (wasPreprocessed.find(curr)!=wasPreprocessed.end())
-      {
-        // we preprocessed it to something else, carry that
-        std::pair<Node, uint32_t> key(itc->second, nodeVal);
-        itc = d_tfCache.find(key);
-        Assert (itc!=d_tfCache.end());
-        d_tfCache[curr] = itc->second;
-        wasPreprocessed.erase(curr);
-      }
       // already computed
       continue;
     }
@@ -294,6 +286,18 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // and compute the result
     ctx.pop();
     processedChildren.pop_back();
+    // if this was preprocessed previously
+    itw = wasPreprocessed.find(curr);
+    if (itw!=wasPreprocessed.end())
+    {
+      // we preprocessed it to something else, carry that
+      std::pair<Node, uint32_t> key(itw->second, nodeVal);
+      itc = d_tfCache.find(key);
+      Assert (itc!=d_tfCache.end());
+      d_tfCache[curr] = itc->second;
+      wasPreprocessed.erase(curr);
+      continue;
+    }
     Node ret = node;
     if (!node.isClosure() && node.getNumChildren()>0)
     {
@@ -341,11 +345,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       processedChildren.push_back(true);
       ctx.push(pret, nodeVal);
       processedChildren.push_back(false);
-      d_tfCache[curr] = pret;
-      wasPreprocessed.insert(curr);
+      wasPreprocessed[curr] = pret;
       continue;
     }
-    // check if we should replace the current node
+    // check if we should replace the current node by a Skolem
     TrustNode newLem;
     bool inQuant, inTerm;
     RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
@@ -366,7 +369,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       Trace("rtf-debug") << "...replace by skolem" << std::endl;
     }
     // cache
-    d_tfCache[curr] = ret;
+    d_tfCache.insert(curr, ret);
     
   }
   itc = d_tfCache.find(initial);

@@ -23,13 +23,13 @@
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "expr/term_context.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/conv_seq_proof_generator.h"
 #include "proof/lazy_proof.h"
 #include "proof/trust_node.h"
 #include "smt/term_formula_removal.h"
 #include "theory/skolem_lemma.h"
+#include "expr/term_context.h"
 
 namespace cvc5 {
 
@@ -136,9 +136,10 @@ class TheoryPreprocessor : protected EnvObj
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
 
-  typedef context::CDHashMap<std::pair<Node, uint32_t>,
-                             Node,
-                             PairHashFunction<Node, uint32_t, std::hash<Node>>>
+  typedef context::CDHashMap<
+      std::pair<Node, uint32_t>,
+      Node,
+      PairHashFunction<Node, uint32_t, std::hash<Node>>>
       TermFormulaCache;
   /** term formula removal cache
    *
