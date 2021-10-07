@@ -87,7 +87,7 @@ Next, we assert the same assertions as above, but with integers.
      :language: smtlib
      :lines: 33-36
 
-Now, we check whether the revised assertion is satisfiable.
+Now, we check whether the revised query is satisfiable.
 
 .. literalinclude:: ../../examples/api/smtlib/quickstart.smt2
      :language: smtlib
