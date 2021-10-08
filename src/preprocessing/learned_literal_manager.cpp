@@ -15,9 +15,9 @@
 
 #include "preprocessing/learned_literal_manager.h"
 
+#include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
-#include "smt/env.h"
 
 namespace cvc5 {
 namespace preprocessing {

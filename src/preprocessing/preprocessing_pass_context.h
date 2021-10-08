@@ -26,8 +26,8 @@
 #include "preprocessing/learned_literal_manager.h"
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
-#include "util/resource_manager.h"
 #include "theory/trust_substitutions.h"
+#include "util/resource_manager.h"
 
 namespace cvc5 {
 
