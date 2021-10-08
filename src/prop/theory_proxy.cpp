@@ -203,26 +203,23 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 
-TrustNode TheoryProxy::preprocessLemma(TrustNode trn,
-                                       std::vector<TrustNode>& newLemmas,
-                                       std::vector<Node>& newSkolems)
+TrustNode TheoryProxy::preprocessLemma(
+    TrustNode trn, std::vector<theory::SkolemLemma>& newLemmas)
 {
-  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
+  return d_tpp.preprocessLemma(trn, newLemmas);
 }
 
 TrustNode TheoryProxy::preprocess(TNode node,
-                                  std::vector<TrustNode>& newLemmas,
-                                  std::vector<Node>& newSkolems)
+                                  std::vector<theory::SkolemLemma>& newLemmas)
 {
-  return d_tpp.preprocess(node, newLemmas, newSkolems);
+  return d_tpp.preprocess(node, newLemmas);
 }
 
 TrustNode TheoryProxy::removeItes(TNode node,
-                                  std::vector<TrustNode>& newLemmas,
-                                  std::vector<Node>& newSkolems)
+                                  std::vector<theory::SkolemLemma>& newLemmas)
 {
   RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
-  return rtf.run(node, newLemmas, newSkolems, true);
+  return rtf.run(node, newLemmas, true);
 }
 
 void TheoryProxy::getSkolems(TNode node,
