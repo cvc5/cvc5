@@ -70,7 +70,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
       d_sygus_ccore(new CegisCoreConnective(env, qs, qim, d_tds, this)),
       d_master(nullptr),
-      d_set_ce_sk_vars(false),
+      d_setInnerSksModel(false),
       d_repair_index(0),
       d_guarded_stream_exc(false)
 {
@@ -189,7 +189,7 @@ void SynthConjecture::assign(Node q)
     {
       Node sk = sm->mkDummySkolem("rsk", v.getType());
       bsubs.add(v, sk);
-      d_inner_vars.push_back(v);
+      d_innerVars.push_back(v);
       d_innerSks.push_back(sk);
     }
     d_checkBody = d_checkBody[0][1].negate();
@@ -308,7 +308,7 @@ bool SynthConjecture::needsCheck()
   return true;
 }
 
-bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
+bool SynthConjecture::needsRefinement() const { return d_setInnerSksModel; }
 bool SynthConjecture::doCheck()
 {
   if (isSingleInvocation())
@@ -519,7 +519,7 @@ bool SynthConjecture::doCheck()
     recordSolution(candidate_values);
     return true;
   }
-  Assert(!d_set_ce_sk_vars);
+  Assert(!d_setInnerSksModel);
 
   // introduce the skolem variables
   if (constructed_cand && printDebug)
@@ -538,8 +538,7 @@ bool SynthConjecture::doCheck()
     out << ")" << std::endl;
   }
 
-  d_ce_sk_vars.insert(d_ce_sk_vars.end(), d_innerSks.begin(), d_innerSks.end());
-  d_set_ce_sk_vars = true;
+  d_setInnerSksModel = true;
 
   if (query.isNull())
   {
@@ -551,7 +550,7 @@ bool SynthConjecture::doCheck()
   // here since the result of the satisfiability test may be unknown.
   recordSolution(candidate_values);
 
-  Result r = d_verify.verify(query, d_innerSks, d_ce_sk_var_mvs);
+  Result r = d_verify.verify(query, d_innerSks, d_innerSksModel);
 
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
@@ -614,51 +613,20 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 
 bool SynthConjecture::doRefine()
 {
-  Assert(d_set_ce_sk_vars);
+  Assert(d_setInnerSksModel);
 
   // first, make skolem substitution
-  Trace("cegqi-refine") << "doRefine : construct skolem substitution..."
-                        << std::endl;
-  std::vector<Node> sk_subs;
-  // collect the substitution over all disjuncts
-  if (!d_ce_sk_vars.empty())
-  {
-    Trace("cegqi-refine") << "Get model values for skolems..." << std::endl;
-    Assert(d_inner_vars.size() == d_ce_sk_vars.size());
-    if (d_ce_sk_var_mvs.empty())
-    {
-      std::vector<Node> model_values;
-      for (const Node& v : d_ce_sk_vars)
-      {
-        Node mv = getModelValue(v);
-        Trace("cegqi-refine") << "  " << v << " -> " << mv << std::endl;
-        model_values.push_back(mv);
-      }
-      sk_subs.insert(sk_subs.end(), model_values.begin(), model_values.end());
-    }
-    else
-    {
-      Assert(d_ce_sk_var_mvs.size() == d_ce_sk_vars.size());
-      sk_subs.insert(
-          sk_subs.end(), d_ce_sk_var_mvs.begin(), d_ce_sk_var_mvs.end());
-    }
-  }
-  else
-  {
-    Assert(d_inner_vars.empty());
-  }
-
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..."
                         << std::endl;
   Trace("cegqi-refine-debug")
-      << "  For counterexample skolems : " << d_ce_sk_vars << std::endl;
+      << "  For counterexample skolems : " << d_innerSks << std::endl;
   Node base_lem = d_checkBody.negate();
 
-  Assert(d_innerSks.size() == sk_subs.size());
+  Assert(d_innerSks.size() == d_innerSksModel.size());
 
   Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
   base_lem = base_lem.substitute(
-      d_innerSks.begin(), d_innerSks.end(), sk_subs.begin(), sk_subs.end());
+      d_innerSks.begin(), d_innerSks.end(), d_innerSksModel.begin(), d_innerSksModel.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
@@ -666,9 +634,8 @@ bool SynthConjecture::doRefine()
   size_t prevPending = d_qim.numPendingLemmas();
   d_master->registerRefinementLemma(d_innerSks, base_lem);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
-  d_set_ce_sk_vars = false;
-  d_ce_sk_vars.clear();
-  d_ce_sk_var_mvs.clear();
+  d_setInnerSksModel = false;
+  d_innerSksModel.clear();
 
   // check if we added a lemma
   bool addedLemma = d_qim.numPendingLemmas() > prevPending;
@@ -772,7 +739,7 @@ void SynthConjecture::debugPrint(const char* c)
 {
   Trace(c) << "Synthesis conjecture : " << d_embed_quant << std::endl;
   Trace(c) << "  * Candidate programs : " << d_candidates << std::endl;
-  Trace(c) << "  * Counterexample skolems : " << d_ce_sk_vars << std::endl;
+  Trace(c) << "  * Counterexample skolems : " << d_innerSks << std::endl;
 }
 
 void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
@@ -792,9 +759,8 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
                        << values << std::endl;
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
-  d_set_ce_sk_vars = false;
-  d_ce_sk_vars.clear();
-  d_ce_sk_var_mvs.clear();
+  d_setInnerSksModel = false;
+  d_innerSksModel.clear();
   // However, we need to exclude the current solution using an explicit
   // blocking clause, so that we proceed to the next solution. We do this only
   // for passively-generated enumerators (TermDbSygus::isPassiveEnumerator).

@@ -132,7 +132,7 @@ class SynthConjecture : protected EnvObj
    */
   Node getGuard() const;
   /** is ground */
-  bool isGround() const { return d_inner_vars.empty(); }
+  bool isGround() const { return d_innerVars.empty(); }
   /** are we using single invocation techniques */
   bool isSingleInvocation() const;
   /** preregister conjecture
@@ -271,26 +271,20 @@ class SynthConjecture : protected EnvObj
   /** The skolemized form of the above formula. */
   Node d_checkBody;
   /** list of variables on inner quantification */
-  std::vector<Node> d_inner_vars;
+  std::vector<Node> d_innerVars;
   /** list of skolems on inner quantification */
   std::vector<Node> d_innerSks;
-  /**
-   * The set of skolems for the current "verification" lemma, if one exists.
-   * This may be added to during calls to doCheck(). The model values for these
-   * skolems are analyzed during doRefine().
-   */
-  std::vector<Node> d_ce_sk_vars;
   /**
    * If we have already tested the satisfiability of the current verification
    * lemma, this stores the model values of d_ce_sk_vars in the current
    * (satisfiable, failed) verification lemma.
    */
-  std::vector<Node> d_ce_sk_var_mvs;
+  std::vector<Node> d_innerSksModel;
   /**
    * Whether the above vector has been set. We have this flag since the above
    * vector may be set to empty (e.g. for ground synthesis conjectures).
    */
-  bool d_set_ce_sk_vars;
+  bool d_setInnerSksModel;
 
   /** the asserted (negated) conjecture */
   Node d_quant;
