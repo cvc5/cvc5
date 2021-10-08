@@ -455,8 +455,8 @@ void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
     std::vector<Node> assertions;
     std::vector<Node> defs;
     std::unordered_set<Node> defSet;
-    defs.insert(defs.end(), asld->begin(), asld->end());
-    defSet.insert(asld->begin(), asld->end());
+    defs.insert(defs.end(), asld.begin(), asld.end());
+    defSet.insert(asld.begin(), asld.end());
     for (const Node& a : asl)
     {
       if (defSet.find(a) == defSet.end())

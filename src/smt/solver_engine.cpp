@@ -254,11 +254,6 @@ void SolverEngine::finishInit()
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
 
-<<<<<<< HEAD
-=======
-  d_pp->finishInit(this);
-
->>>>>>> 562adadef3222bf6e706904a3fc226d6543b9f22
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SolverEngine "
          "hasn't finished initializing!";
