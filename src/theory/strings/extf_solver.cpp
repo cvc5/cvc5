@@ -164,7 +164,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
       // don't need to reduce seq.nth when sequence update solver is used
       return false;
     }
-    else if ((k == STRING_UPDATE || k == STRING_SUBSTR) && d_termReg.isHandledUpdate(n))
+    else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
+             && d_termReg.isHandledUpdate(n))
     {
       // don't need to reduce certain seq.update
       // don't need to reduce certain seq.extract with length 1
