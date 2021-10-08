@@ -466,8 +466,6 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  NodeManager* nm = NodeManager::currentNM();
-
   // check the side condition if we constructed a candidate
   if (constructed_cand)
   {
@@ -645,6 +643,7 @@ bool SynthConjecture::doRefine()
       sk_subs.insert(
           sk_subs.end(), d_ce_sk_var_mvs.begin(), d_ce_sk_var_mvs.end());
     }
+    sk_vars.insert(sk_vars.end(), d_inner_vars.begin(), d_inner_vars.end());
   }
   else
   {
