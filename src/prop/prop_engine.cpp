@@ -194,7 +194,7 @@ void PropEngine::assertInputFormulas(
     {
       skolem = it->second;
     }
-    d_theoryProxy->notifyAssertion(assertions[i], skolem);
+    d_theoryProxy->notifyAssertion(assertions[i], skolem, false);
   }
   for (const Node& node : assertions)
   {
@@ -310,11 +310,11 @@ void PropEngine::assertLemmasInternal(
     if (!trn.isNull())
     {
       // notify the theory proxy of the lemma
-      d_theoryProxy->notifyAssertion(trn.getProven());
+      d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true);
     }
     for (const theory::SkolemLemma& lem : ppLemmas)
     {
-      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem);
+      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
   }
 }
