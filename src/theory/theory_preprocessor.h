@@ -136,7 +136,7 @@ class TheoryPreprocessor : protected EnvObj
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
 
-  typedef context::CDHashMap<std::pair<Node, uint32_t>,
+  typedef context::CDInsertHashMap<std::pair<Node, uint32_t>,
                              Node,
                              PairHashFunction<Node, uint32_t, std::hash<Node>>>
       TermFormulaCache;
@@ -147,23 +147,14 @@ class TheoryPreprocessor : protected EnvObj
    * result of cacheVal below.
    */
   TermFormulaCache d_tfCache;
-
   /** The term formula remover */
   RemoveTermFormulas d_tfr;
-  /** The term context, which computes hash values for term contexts. */
-  InQuantTermContext d_iqtc;
   /**
    * A term conversion proof generator storing preprocessing and rewriting
    * steps, which is done until fixed point in the inner traversal of this
    * class for theory atoms in step [2] above.
    */
   std::unique_ptr<TConvProofGenerator> d_tpg;
-  /**
-   * A term conversion proof generator storing large steps from d_tpg (results
-   * of its fixed point) and term formula removal steps for the outer traversal
-   * of this class for theory atoms in step [2] above.
-   */
-  std::unique_ptr<TConvProofGenerator> d_tpgRtf;
   /**
    * A term conversion proof generator storing rewriting steps, which is used
    * for top-level rewriting before the preprocessing pass, step [1] above.

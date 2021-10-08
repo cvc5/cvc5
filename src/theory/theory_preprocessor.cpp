@@ -34,7 +34,6 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
       d_tfCache(userContext()),
       d_tfr(env),
       d_tpg(nullptr),
-      d_tpgRtf(nullptr),
       d_tpgRew(nullptr),
       d_tspg(nullptr),
       d_lp(nullptr)
@@ -50,13 +49,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
                                 "TheoryPreprocessor::preprocess_rewrite",
-                                &d_iqtc));
-    d_tpgRtf.reset(new TConvProofGenerator(pnm,
-                                           u,
-                                           TConvPolicy::FIXPOINT,
-                                           TConvCachePolicy::NEVER,
-                                           "TheoryPreprocessor::rtf",
-                                           &d_iqtc));
+                                &d_rtfc));
     d_tpgRew.reset(new TConvProofGenerator(pnm,
                                            u,
                                            TConvPolicy::ONCE,
@@ -71,7 +64,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     // removal+rewriting.
     std::vector<ProofGenerator*> ts;
     ts.push_back(d_tpgRew.get());
-    ts.push_back(d_tpgRtf.get());
+    ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext(), "TheoryPreprocessor::sequence"));
   }
@@ -280,6 +273,11 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         {
           newLemmas.push_back(theory::SkolemLemma(newLem, ret));
         }
+        // register the rewrite into the proof generator
+        if (isProofEnabled())
+        {
+          registerTrustedRewrite(currTrn, d_tpg.get(), true);
+        }
         Trace("rtf-debug") << "...replace by skolem" << std::endl;
         d_tfCache.insert(curr, ret);
         continue;
@@ -315,7 +313,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // and compute the result
     ctx.pop();
     processedChildren.pop_back();
-    // if this was preprocessed previously
+    // if this was preprocessed previously, we set our result to the final
+    // form of the preprocessed form of this.
     itw = wasPreprocessed.find(curr);
     if (itw != wasPreprocessed.end())
     {
@@ -323,7 +322,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       std::pair<Node, uint32_t> key(itw->second, nodeVal);
       itc = d_tfCache.find(key);
       Assert(itc != d_tfCache.end());
-      d_tfCache[curr] = itc->second;
+      d_tfCache.insert(curr, itc->second);
       wasPreprocessed.erase(curr);
       continue;
     }
@@ -360,10 +359,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       // pre-rewrite since we do not recursively register the rewriting steps
       // of subterms of rtfNode. For example, if this step rewrites
       // (not A) ---> B, then if registered a pre-rewrite, it will apply when
-      // reconstructing proofs via d_tpgRtf. However, if it is a post-rewrite
+      // reconstructing proofs via d_tpg. However, if it is a post-rewrite
       // it will fail to apply if another call to this class registers A -> C,
       // in which case (not C) will be returned instead of B (see issue 6754).
-      ret = rewriteWithProof(ret, d_tpgRtf.get(), true);
+      ret = rewriteWithProof(ret, d_tpg.get(), true);
     }
     // now do theory preprocess
     Node pret = preprocessWithProof(ret, newLemmas);
