@@ -132,7 +132,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
 
     set(ANTLR3_JAR "${DEPS_BASE}/share/java/antlr-3.4-complete.jar")
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
-    set(ANTLR3_RUNTIME "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c.so")
+    set(ANTLR3_RUNTIME "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c${CMAKE_SHARED_LIBRARY_SUFFIX}")
     set(ANTLR3_STATIC_RUNTIME "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a")
 endif()
 
