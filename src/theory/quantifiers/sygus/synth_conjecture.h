@@ -268,7 +268,7 @@ class SynthConjecture : protected EnvObj
    * (exists y. F) is shorthand above for ~( forall y. ~F ).
    */
   Node d_base_inst;
-  /** check body */
+  /** The skolemized form of the above formula. */
   Node d_checkBody;
   /** list of variables on inner quantification */
   std::vector<Node> d_inner_vars;

@@ -493,9 +493,9 @@ bool SynthConjecture::doCheck()
     }
     Assert(candidate_values.size() == d_candidates.size());
     query = d_checkBody.substitute(d_candidates.begin(),
-                                   d_candidates.end(),
-                                   candidate_values.begin(),
-                                   candidate_values.end());
+                                  d_candidates.end(),
+                                  candidate_values.begin(),
+                                  candidate_values.end());
   }
   else
   {
@@ -537,7 +537,7 @@ bool SynthConjecture::doCheck()
     }
     out << ")" << std::endl;
   }
-
+  
   d_ce_sk_vars.insert(d_ce_sk_vars.end(), d_innerSks.begin(), d_innerSks.end());
   d_set_ce_sk_vars = true;
 
@@ -551,7 +551,7 @@ bool SynthConjecture::doCheck()
   // here since the result of the satisfiability test may be unknown.
   recordSolution(candidate_values);
 
-  Result r = d_verify.verify(query, d_ce_sk_vars, d_ce_sk_var_mvs);
+  Result r = d_verify.verify(query, d_innerSks, d_ce_sk_var_mvs);
 
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
@@ -664,7 +664,7 @@ bool SynthConjecture::doRefine()
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
                         << "..." << std::endl;
   size_t prevPending = d_qim.numPendingLemmas();
-  d_master->registerRefinementLemma(sk_vars, base_lem);
+  d_master->registerRefinementLemma(d_innerSks, base_lem);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
   d_set_ce_sk_vars = false;
   d_ce_sk_vars.clear();
