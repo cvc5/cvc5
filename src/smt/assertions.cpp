@@ -144,10 +144,6 @@ const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
 {
   return d_assertionListDefs;
 }
-context::CDList<Node>* Assertions::getAssertionListDefinitions()
-{
-  return d_produceAssertions ? &d_assertionListDefs : nullptr;
-}
 
 void Assertions::addFormula(TNode n,
                             bool isAssumption,
