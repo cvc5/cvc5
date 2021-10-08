@@ -93,8 +93,8 @@ class DecisionEngineEmpty : public DecisionEngine
  public:
   DecisionEngineEmpty(Env& env);
   bool isDone() override;
-  void addAssertion(TNode assertion) override;
-  void addSkolemDefinition(TNode lem, TNode skolem) override;
+  void addAssertion(TNode assertion, bool isLemma) override;
+  void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) override;
 
  protected:
   prop::SatLiteral getNextInternal(bool& stopSearch) override;
