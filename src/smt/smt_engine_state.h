@@ -21,9 +21,9 @@
 #include <string>
 
 #include "context/context.h"
+#include "smt/env_obj.h"
 #include "smt/smt_mode.h"
 #include "util/result.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 

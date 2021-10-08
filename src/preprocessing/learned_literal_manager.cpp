@@ -20,7 +20,7 @@
 namespace cvc5 {
 namespace preprocessing {
 
-LearnedLiteralManager::LearnedLiteralManager(Env& env, 
+LearnedLiteralManager::LearnedLiteralManager(Env& env,
                                              theory::TrustSubstitutionMap& tls)
     : EnvObj(env), d_topLevelSubs(tls), d_learnedLits(userContext())
 {

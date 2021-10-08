@@ -20,8 +20,8 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "theory/trust_substitutions.h"
 #include "smt/env_obj.h"
+#include "theory/trust_substitutions.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -39,8 +39,7 @@ namespace preprocessing {
 class LearnedLiteralManager : protected EnvObj
 {
  public:
-  LearnedLiteralManager(Env& env,
-                        theory::TrustSubstitutionMap& tls);
+  LearnedLiteralManager(Env& env, theory::TrustSubstitutionMap& tls);
   /**
    * Notify learned literal. This method is called when a literal is
    * entailed by the current set of assertions.
