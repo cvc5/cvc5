@@ -176,23 +176,31 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
                          std::vector<NlLemma>& lemmas)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
-  for (const Node& atom : assertions)
+  bool progress = true;
+  while (progress)
   {
-    // see if it corresponds to a univariate polynomial equation of degree two
-    if (atom.getKind() == EQUAL)
+    progress = false;
+    for (const Node& atom : assertions)
     {
-      std::optional<bool> solved = solveEquality(atom, d, lemmas);
-      if (solved && !(*solved))
+      // see if it corresponds to a univariate polynomial equation of degree two
+      if (atom.getKind() == EQUAL)
       {
-        //return false;
+        std::optional<bool> solved = solveEquality(atom, d, lemmas);
+        if (solved)
+        {
+          Trace("nl-ext::solve-equality") << "solved? " << *solved << std::endl;
+          progress = true;
+          //return false;
+        }
+        //if (!solveEqualitySimple(atom, d, lemmas))
+        //{
+        //  // no chance we will satisfy this equality
+        //  Trace("nl-ext-cm") << "...check-model : failed to solve equality : "
+        //                     << atom << std::endl;
+        //}
       }
-      //if (!solveEqualitySimple(atom, d, lemmas))
-      //{
-      //  // no chance we will satisfy this equality
-      //  Trace("nl-ext-cm") << "...check-model : failed to solve equality : "
-      //                     << atom << std::endl;
-      //}
     }
+    Trace("nl-ext::solve-equality") << "done." << std::endl;
   }
 
   // all remaining variables are constrained to their exact model values
@@ -1341,10 +1349,10 @@ namespace
       {
         for (const auto& child: mon)
         {
-          auto it = map.find(child);
-          if (it != map.end())
+          auto ins = map.try_emplace(child, std::make_tuple(Rational(0), Rational(0), false));
+          if (!ins.second)
           {
-            std::get<2>(it->second) = false;
+            std::get<2>(ins.first->second) = false;
           }
         }
       }
@@ -1392,14 +1400,20 @@ namespace
   }
 }
 
-std::optional<bool> NlModel::solveEquality(Node eq, uint64_t precision, std::vector<NlLemma>& lemmas)
+std::optional<bool> NlModel::solveEquality(Node oeq, uint64_t precision, std::vector<NlLemma>& lemmas)
 {
+  Node eq = oeq;
+  if (d_check_model_solved.find(eq) != d_check_model_solved.end())
+  {
+    return {};
+  }
   if (!d_substitutions.empty())
   {
     eq = rewrite(arithSubstitute(eq, d_substitutions));
     if (eq.isConst())
     {
       d_check_model_solved[eq] = Node::null();
+      d_check_model_solved[oeq] = Node::null();
       return eq.getConst<bool>();
     }
   }
@@ -1407,9 +1421,14 @@ std::optional<bool> NlModel::solveEquality(Node eq, uint64_t precision, std::vec
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(eq, msum))
   {
+    Trace("nl-ext::solve-equality") << "failed to analyze " << eq << std::endl;
     return false;
   }
   Trace("nl-ext::solve-equality") << eq << std::endl;
+  for (const auto& s: d_substitutions.toMap())
+  {
+    Trace("nl-ext::solve-equality") << "subs: " << s.first << " -> " << s.second << std::endl;
+  }
   Rational constant;
   // variable -> (lin coeff, quad coeff, is okay)
   std::map<Node, std::tuple<Rational, Rational, bool>> map;
@@ -1434,7 +1453,7 @@ std::optional<bool> NlModel::solveEquality(Node eq, uint64_t precision, std::vec
   {
     const Rational& a = std::get<1>(data);
     const Rational& b = std::get<0>(data);
-    if (hasAssignment(var) || !std::get<2>(data) || !a.isZero())
+    if (hasAssignment(var) || !std::get<2>(data) || !a.isZero() || b.isZero())
     {
       continue;
     }
@@ -1452,8 +1471,10 @@ std::optional<bool> NlModel::solveEquality(Node eq, uint64_t precision, std::vec
         {
           d_check_model_solved[eq] = var;
         }
+        Trace("nl-ext-cm-debug") << "-> returning" << std::endl;
         return ret;
       }
+      Trace("nl-ext-cm-debug") << "-> nope" << std::endl;
     }
   }
 
@@ -1524,6 +1545,18 @@ std::optional<bool> NlModel::solveEquality(Node eq, uint64_t precision, std::vec
       d_check_model_solved[eq] = var;
     }
     return ret;
+  }
+
+  for (const auto& [var, data]: map)
+  {
+    Trace("nl-ext::solve-equality") << "Consider " << var << std::endl;
+    if (hasAssignment(var) || std::get<2>(data))
+    {
+      continue;
+    }
+    auto mv = computeConcreteModelValue(var);
+    Trace("nl-ext::solve-equality") << "Guess " << var << " = " << mv << std::endl;
+    return addSubstitution(var, mv);
   }
 
   return {};
