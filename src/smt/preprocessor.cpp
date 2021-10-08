@@ -57,10 +57,10 @@ Preprocessor::~Preprocessor()
   }
 }
 
-void Preprocessor::finishInit(SolverEngine* slv)
+void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
-  d_ppContext.reset(
-      new preprocessing::PreprocessingPassContext(slv, d_env, &d_propagator));
+  d_ppContext.reset(new preprocessing::PreprocessingPassContext(
+      d_env, te, pe, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());

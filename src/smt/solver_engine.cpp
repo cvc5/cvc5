@@ -102,7 +102,6 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_isInternalSubsolver(false),
       d_stats(nullptr),
       d_outMgr(this),
-      d_pp(nullptr),
       d_scope(nullptr)
 {
   // !!!!!!!!!!!!!!!!!!!!!! temporary hack: this makes the current SolverEngine
@@ -123,12 +122,10 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
-  // reset the preprocessor
-  d_pp.reset(new smt::Preprocessor(*d_env, *d_absValues, *d_stats));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_pp, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_absValues, *d_stats));
   // make the SyGuS solver
-  d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver, *d_pp));
+  d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
   d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
 }
@@ -204,7 +201,7 @@ void SolverEngine::finishInit()
     // enable it in the assertions pipeline
     d_asserts->setProofGenerator(pppg);
     // enabled proofs in the preprocessor
-    d_pp->setProofGenerator(pppg);
+    d_smtSolver->getPreprocessor()->setProofGenerator(pppg);
   }
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
@@ -257,8 +254,6 @@ void SolverEngine::finishInit()
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
 
-  d_pp->finishInit(this);
-
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SolverEngine "
          "hasn't finished initializing!";
@@ -292,7 +287,7 @@ SolverEngine::~SolverEngine()
     d_state->cleanup();
 
     // destroy all passes before destroying things that they refer to
-    d_pp->cleanup();
+    d_smtSolver->getPreprocessor()->cleanup();
 
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
@@ -310,7 +305,6 @@ SolverEngine::~SolverEngine()
     getNodeManager()->unsubscribeEvents(d_snmListener.get());
     d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
-    d_pp.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
     // destroy the environment
@@ -1050,7 +1044,7 @@ Node SolverEngine::simplify(const Node& ex)
   d_state->doPendingPops();
   // ensure we've processed assertions
   d_smtSolver->processAssertions(*d_asserts);
-  return d_pp->simplify(ex);
+  return d_smtSolver->getPreprocessor()->simplify(ex);
 }
 
 Node SolverEngine::expandDefinitions(const Node& ex)
@@ -1059,7 +1053,7 @@ Node SolverEngine::expandDefinitions(const Node& ex)
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  return d_pp->expandDefinitions(ex);
+  return d_smtSolver->getPreprocessor()->expandDefinitions(ex);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -1075,7 +1069,7 @@ Node SolverEngine::getValue(const Node& ex) const
   TypeNode expectedType = ex.getType();
 
   // Substitute out any abstract values in ex and expand
-  Node n = d_pp->expandDefinitions(ex);
+  Node n = d_smtSolver->getPreprocessor()->expandDefinitions(ex);
 
   Trace("smt") << "--- getting value of " << n << endl;
   // There are two ways model values for terms are computed (for historical
@@ -1155,7 +1149,7 @@ bool SolverEngine::isModelCoreSymbol(Node n)
     // we get the assertions using the getAssertionsInternal, which does not
     // impact whether we are in "sat" mode
     std::vector<Node> asserts = getAssertionsInternal();
-    d_pp->expandDefinitions(asserts);
+    d_smtSolver->getPreprocessor()->expandDefinitions(asserts);
     ModelCoreBuilder mcb(*d_env.get());
     mcb.setModelCore(asserts, tm, opts.smt.modelCoresMode);
   }
@@ -1296,7 +1290,7 @@ std::vector<Node> SolverEngine::getExpandedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
-  d_pp->expandDefinitions(easserts);
+  d_smtSolver->getPreprocessor()->expandDefinitions(easserts);
   return easserts;
 }
 Env& SolverEngine::getEnv() { return *d_env.get(); }
@@ -1846,7 +1840,7 @@ void SolverEngine::pop()
   // Clear out assertion queues etc., in case anything is still in there
   d_asserts->clearCurrent();
   // clear the learned literals from the preprocessor
-  d_pp->clearLearnedLiterals();
+  d_smtSolver->getPreprocessor()->clearLearnedLiterals();
 
   Trace("userpushpop") << "SolverEngine: popped to level "
                        << getUserContext()->getLevel() << endl;
