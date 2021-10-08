@@ -496,9 +496,9 @@ bool SynthConjecture::doCheck()
     }
     Assert(candidate_values.size() == d_candidates.size());
     query = d_checkBody.substitute(d_candidates.begin(),
-                                  d_candidates.end(),
-                                  candidate_values.begin(),
-                                  candidate_values.end());
+                                   d_candidates.end(),
+                                   candidate_values.begin(),
+                                   candidate_values.end());
   }
   else
   {
@@ -540,7 +540,7 @@ bool SynthConjecture::doCheck()
     }
     out << ")" << std::endl;
   }
-  
+
   d_ce_sk_vars.insert(d_ce_sk_vars.end(), d_innerSks.begin(), d_innerSks.end());
   d_set_ce_sk_vars = true;
 
