@@ -467,12 +467,15 @@ mti.d_nthTerms; for (const Node& t : terms)
       {
         // determine skeleton based on the write model, if it exists
         const std::map<Node, Node>& writeModel = d_asolver.getWriteModel(eqc);
+        Trace("strings-model") << "write model size " << writeModel.size() << std::endl;
         if (!writeModel.empty())
         {
+          Trace("strings-model") << "Write model for " << tn << " is:" << std::endl;
           std::vector<std::pair<Node, Node> > writes;
           std::unordered_set<Node> usedWrites;
           for (const std::pair<const Node, Node>& w : writeModel)
           {
+            Trace("strings-model") << "  " << w.first << " -> " << w.second << std::endl;
             Node ivalue = d_valuation.getModelValue(w.first);
             Assert(ivalue.getKind() == CONST_RATIONAL);
             // ignore if out of bounds
