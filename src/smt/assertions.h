@@ -95,12 +95,12 @@ class Assertions : protected EnvObj
    * before preprocessing. This includes assertions corresponding to define-fun
    * and define-fun-rec.
    */
-  context::CDList<Node>* getAssertionList();
+  const context::CDList<Node>& getAssertionList() const;
   /**
    * Get assertions list corresponding to the original list of assertions
    * that correspond to definitions (define-fun or define-fun-rec).
    */
-  context::CDList<Node>* getAssertionListDefinitions();
+  const context::CDList<Node>& getAssertionListDefinitions() const;
   /**
    * Get the list of assumptions, which are those registered to this class
    * on initializeCheckSat.

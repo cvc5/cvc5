@@ -35,7 +35,6 @@
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
 #include "smt/print_benchmark.h"
-#include "smt/smt_engine.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
@@ -59,13 +58,8 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt,
-                                     Env& env,
-                                     SmtEngineStatistics& stats)
-    : EnvObj(env),
-      d_smt(smt),
-      d_smtStats(stats),
-      d_preprocessingPassContext(nullptr)
+ProcessAssertions::ProcessAssertions(Env& env, SmtEngineStatistics& stats)
+    : EnvObj(env), d_smtStats(stats), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -76,7 +70,7 @@ ProcessAssertions::~ProcessAssertions()
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 {
-  Assert(d_preprocessingPassContext == nullptr);
+  // note that we may be replacing a stale preprocessing pass context here
   d_preprocessingPassContext = pc;
 
   PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
@@ -95,7 +89,7 @@ void ProcessAssertions::cleanup() { d_passes.clear(); }
 
 void ProcessAssertions::spendResource(Resource r)
 {
-  d_env.getResourceManager()->spendResource(r);
+  resourceManager()->spendResource(r);
 }
 
 bool ProcessAssertions::apply(Assertions& as)
@@ -261,17 +255,14 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (!d_smt.isInternalSubsolver())
+  if (options().quantifiers.sygusInference)
   {
-    if (options::sygusInference())
-    {
-      d_passes["sygus-infer"]->apply(&assertions);
-    }
-    else if (options::sygusRewSynthInput())
-    {
-      // do candidate rewrite rule synthesis
-      d_passes["synth-rr"]->apply(&assertions);
-    }
+    d_passes["sygus-infer"]->apply(&assertions);
+  }
+  else if (options().quantifiers.sygusRewSynthInput)
+  {
+    // do candidate rewrite rule synthesis
+    d_passes["synth-rr"]->apply(&assertions);
   }
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-simplify"
@@ -372,7 +363,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
     AssertionPipeline& assertions = as.getAssertionPipeline();
     ScopeCounter depth(d_simplifyAssertionsDepth);
 
-    Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
+    Trace("simplify") << "ProcessAssertions::simplify()" << endl;
 
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
@@ -399,7 +390,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       }
       else
       {
-        Trace("simplify") << "SmtEnginePrivate::simplify(): "
+        Trace("simplify") << "ProcessAssertions::simplify(): "
                           << "skipping miplib pseudobooleans pass..." << endl;
       }
     }
@@ -460,29 +451,23 @@ void ProcessAssertions::dumpAssertions(const char* key, Assertions& as)
   if (Trace.isOn(key))
   {
     PrintBenchmark pb(&d_env.getPrinter());
-    context::CDList<Node>* asl = as.getAssertionList();
-    context::CDList<Node>* asld = as.getAssertionListDefinitions();
-    if (asl != nullptr)
+    const context::CDList<Node>& asl = as.getAssertionList();
+    const context::CDList<Node>& asld = as.getAssertionListDefinitions();
+    std::vector<Node> assertions;
+    std::vector<Node> defs;
+    std::unordered_set<Node> defSet;
+    defs.insert(defs.end(), asld->begin(), asld->end());
+    defSet.insert(asld->begin(), asld->end());
+    for (const Node& a : asl)
     {
-      std::vector<Node> assertions;
-      std::vector<Node> defs;
-      std::unordered_set<Node> defSet;
-      if (asld != nullptr)
+      if (defSet.find(a) == defSet.end())
       {
-        defs.insert(defs.end(), asld->begin(), asld->end());
-        defSet.insert(asld->begin(), asld->end());
+        assertions.push_back(a);
       }
-      for (const Node& a : *asl)
-      {
-        if (defSet.find(a) == defSet.end())
-        {
-          assertions.push_back(a);
-        }
-      }
-      std::stringstream ss;
-      pb.printBenchmark(ss, logicInfo().getLogicString(), defs, assertions);
-      Trace(key) << ss.str();
     }
+    std::stringstream ss;
+    pb.printBenchmark(ss, logicInfo().getLogicString(), defs, assertions);
+    Trace(key) << ss.str();
   }
   if (Dump.isOn("assertions") && Dump.isOn(key))
   {

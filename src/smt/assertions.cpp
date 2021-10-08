@@ -25,7 +25,7 @@
 #include "options/smt_options.h"
 #include "smt/abstract_values.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 
 using namespace cvc5::theory;
@@ -135,9 +135,14 @@ preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
   return d_assertions;
 }
 
-context::CDList<Node>* Assertions::getAssertionList()
+const context::CDList<Node>& Assertions::getAssertionList() const
 {
-  return d_produceAssertions ? &d_assertionList : nullptr;
+  return d_assertionList;
+}
+
+const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
+{
+  return d_assertionListDefs;
 }
 context::CDList<Node>* Assertions::getAssertionListDefinitions()
 {
@@ -163,7 +168,7 @@ void Assertions::addFormula(TNode n,
     // true, nothing to do
     return;
   }
-  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
+  Trace("smt") << "Assertions::addFormula(" << n
                << ", isAssumption = " << isAssumption
                << ", isFunDef = " << isFunDef << std::endl;
   if (isFunDef)

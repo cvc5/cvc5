@@ -146,7 +146,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "Make synth variables for types..." << std::endl;
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
-  unsigned nvars = options::sygusRewSynthInputNVars();
+  unsigned nvars = options().quantifiers.sygusRewSynthInputNVars;
   // must have at least one variable per type
   nvars = nvars < 1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
@@ -162,7 +162,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // our input does not contain a Boolean variable, we need not allocate any
     // Boolean variables here.
     unsigned useNVars =
-        (options::sygusRewSynthInputUseBool() || !tn.isBoolean())
+        (options().quantifiers.sygusRewSynthInputUseBool || !tn.isBoolean())
             ? nvars
             : (hasBoolVar ? 1 : 0);
     for (unsigned i = 0; i < useNVars; i++)
@@ -276,7 +276,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
     // a Boolean variable.
-    if (!ctt.isBoolean() || options::sygusRewSynthInputUseBool()
+    if (!ctt.isBoolean() || options().quantifiers.sygusRewSynthInputUseBool
         || ct.getKind() == BOUND_VARIABLE)
     {
       for (const Node& v : tvars[ctt])

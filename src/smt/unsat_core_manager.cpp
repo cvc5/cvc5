@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of the unsat core manager of SmtEngine.
+ * Implementation of the unsat core manager of SolverEngine.
  */
 
 #include "unsat_core_manager.h"
@@ -32,16 +32,14 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
   expr::getFreeAssumptions(pfn->getChildren()[0].get(), fassumps);
   Trace("unsat-core") << "UCManager::getUnsatCore: free assumptions: "
                       << fassumps << "\n";
-  context::CDList<Node>* al = as.getAssertionList();
-  Assert(al != nullptr);
-  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
-       ++i)
+  const context::CDList<Node>& al = as.getAssertionList();
+  for (const Node& a : al)
   {
-    Trace("unsat-core") << "is assertion " << *i << " there?\n";
-    if (std::find(fassumps.begin(), fassumps.end(), *i) != fassumps.end())
+    Trace("unsat-core") << "is assertion " << a << " there?\n";
+    if (std::find(fassumps.begin(), fassumps.end(), a) != fassumps.end())
     {
       Trace("unsat-core") << "\tyes\n";
-      core.push_back(*i);
+      core.push_back(a);
     }
   }
   if (Trace.isOn("unsat-core"))

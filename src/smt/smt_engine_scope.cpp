@@ -21,45 +21,46 @@
 #include "base/check.h"
 #include "base/configuration_private.h"
 #include "base/output.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace smt {
 
-thread_local SmtEngine* s_smtEngine_current = NULL;
+thread_local SolverEngine* s_slvEngine_current = nullptr;
 
-SmtEngine* currentSmtEngine() {
-  Assert(s_smtEngine_current != NULL);
-  return s_smtEngine_current;
+SolverEngine* currentSolverEngine()
+{
+  Assert(s_slvEngine_current != nullptr);
+  return s_slvEngine_current;
 }
 
-bool smtEngineInScope() { return s_smtEngine_current != NULL; }
+bool smtEngineInScope() { return s_slvEngine_current != nullptr; }
 
 ResourceManager* currentResourceManager()
 {
-  return s_smtEngine_current->getResourceManager();
+  return s_slvEngine_current->getResourceManager();
 }
 
-SmtScope::SmtScope(const SmtEngine* smt)
-    : NodeManagerScope(smt->getNodeManager()),
-      d_oldSmtEngine(s_smtEngine_current),
-      d_optionsScope(smt ? &const_cast<SmtEngine*>(smt)->getOptions() : nullptr)
+SmtScope::SmtScope(const SolverEngine* smt)
+    : d_oldSlvEngine(s_slvEngine_current),
+      d_optionsScope(smt ? &const_cast<SolverEngine*>(smt)->getOptions()
+                         : nullptr)
 {
-  Assert(smt != NULL);
-  s_smtEngine_current = const_cast<SmtEngine*>(smt);
-  Debug("current") << "smt scope: " << s_smtEngine_current << std::endl;
+  Assert(smt != nullptr);
+  s_slvEngine_current = const_cast<SolverEngine*>(smt);
+  Debug("current") << "smt scope: " << s_slvEngine_current << std::endl;
 }
 
 SmtScope::~SmtScope() {
-  s_smtEngine_current = d_oldSmtEngine;
-  Debug("current") << "smt scope: returning to " << s_smtEngine_current
+  s_slvEngine_current = d_oldSlvEngine;
+  Debug("current") << "smt scope: returning to " << s_slvEngine_current
                    << std::endl;
 }
 
 StatisticsRegistry& SmtScope::currentStatisticsRegistry()
 {
   Assert(smtEngineInScope());
-  return s_smtEngine_current->getStatisticsRegistry();
+  return s_slvEngine_current->getStatisticsRegistry();
 }
 
 }  // namespace smt

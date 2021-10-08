@@ -31,7 +31,6 @@
 namespace cvc5 {
 
 class Env;
-class SmtEngine;
 class TheoryEngine;
 
 namespace theory::booleans {
@@ -49,8 +48,9 @@ class PreprocessingPassContext : protected EnvObj
  public:
   /** Constructor. */
   PreprocessingPassContext(
-      SmtEngine* smt,
       Env& env,
+      TheoryEngine* te,
+      prop::PropEngine* pe,
       theory::booleans::CircuitPropagator* circuitPropagator);
 
   /** Get the associated Environment. */
@@ -120,8 +120,10 @@ class PreprocessingPassContext : protected EnvObj
   ProofNodeManager* getProofNodeManager() const;
 
  private:
-  /** Pointer to the SmtEngine that this context was created in. */
-  SmtEngine* d_smt;
+  /** Pointer to the theory engine associated with this context. */
+  TheoryEngine* d_theoryEngine;
+  /** Pointer to the prop engine associated with this context. */
+  prop::PropEngine* d_propEngine;
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
   /**

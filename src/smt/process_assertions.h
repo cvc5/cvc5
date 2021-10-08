@@ -27,8 +27,6 @@
 
 namespace cvc5 {
 
-class SmtEngine;
-
 namespace preprocessing {
 class AssertionPipeline;
 class PreprocessingPass;
@@ -61,7 +59,7 @@ class ProcessAssertions : protected EnvObj
   typedef std::unordered_map<Node, bool> NodeToBoolHashMap;
 
  public:
-  ProcessAssertions(SmtEngine& smt, Env& env, SmtEngineStatistics& stats);
+  ProcessAssertions(Env& env, SmtEngineStatistics& stats);
   ~ProcessAssertions();
   /** Finish initialize
    *
@@ -76,12 +74,12 @@ class ProcessAssertions : protected EnvObj
   /**
    * Process the formulas in as. Returns true if there was no conflict when
    * processing the assertions.
+   *
+   * @param as The assertions.
    */
   bool apply(Assertions& as);
 
  private:
-  /** Reference to the SMT engine */
-  SmtEngine& d_smt;
   /** Reference to the SMT stats */
   SmtEngineStatistics& d_smtStats;
   /** The preprocess context */

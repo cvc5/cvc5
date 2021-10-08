@@ -28,6 +28,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 using namespace std;
@@ -652,7 +653,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
 
 bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
   Trace("qcf-tconstraint-debug") << "Check : " << lit << std::endl;
-  Node rew = Rewriter::rewrite( lit );
+  Node rew = Rewriter::rewrite(lit);
   if (rew.isConst())
   {
     Trace("qcf-tconstraint-debug") << "...constraint " << lit << " rewrites to "
@@ -1859,7 +1860,7 @@ QuantConflictFind::QuantConflictFind(Env& env,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
-      d_conflict(qs.getSatContext(), false),
+      d_conflict(context(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
       d_effort(EFFORT_INVALID)

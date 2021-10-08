@@ -39,6 +39,7 @@ Cegis::Cegis(Env& env,
              SynthConjecture* p)
     : SygusModule(env, qs, qim, tds, p),
       d_eval_unfold(tds->getEvalUnfold()),
+      d_cegis_sampler(env),
       d_usingSymCons(false)
 {
 }
@@ -365,7 +366,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
                                        std::vector<Node>& waiting)
 {
   Node lem = waiting[wcounter];
-  lem = Rewriter::rewrite(lem);
+  lem = rewrite(lem);
   // apply substitution and rewrite if applicable
   if (lem.isConst())
   {
@@ -594,7 +595,6 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
     }
   }
 
-  Evaluator* eval = d_tds->getEvaluator();
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node>& rlemmas =
@@ -603,7 +603,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
     {
       // We may have computed the evaluation of some function applications
       // via example-based symmetry breaking, stored in evalVisited.
-      Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
+      Node lemcsu = evaluate(lem, vs, ms, evalVisited);
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
         return true;
@@ -632,7 +632,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
       candidates.begin(), candidates.end(), vals.begin(), vals.end());
   Trace("cegis-sample-debug2") << "Sample " << sbody << std::endl;
   // do eager rewriting
-  sbody = Rewriter::rewrite(sbody);
+  sbody = rewrite(sbody);
   Trace("cegis-sample") << "Sample (after rewriting): " << sbody << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
@@ -656,7 +656,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
         Assert(d_base_vars.size() == pt.size());
         Node rlem = d_base_body.substitute(
             d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end());
-        rlem = Rewriter::rewrite(rlem);
+        rlem = rewrite(rlem);
         if (std::find(
                 d_refinement_lemmas.begin(), d_refinement_lemmas.end(), rlem)
             == d_refinement_lemmas.end())

@@ -26,6 +26,7 @@
 #include "expr/type_node.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -63,12 +64,15 @@ class TermRegistry;
  * default and can be enabled by option:
  *   --quant-ind
  */
-class Skolemize
+class Skolemize : protected EnvObj
 {
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersState& qs, TermRegistry& tr, ProofNodeManager* pnm);
+  Skolemize(Env& env,
+            QuantifiersState& qs,
+            TermRegistry& tr,
+            ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust

@@ -74,5 +74,7 @@ int main(int argc, char* argv[])
       main::pExecutor->printStatistics(solver->getDriverOptions().err());
     }
   }
+  // Make sure that the command executor is destroyed before the node manager.
+  main::pExecutor.reset();
   exit(1);
 }

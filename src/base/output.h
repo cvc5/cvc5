@@ -469,10 +469,10 @@ extern DumpOutC DumpOutChannel CVC5_EXPORT;
 // just parenthesize it e.g. !(Debug("foo").isOn())
 class __cvc5_true
 {
-  void operator!() CVC5_UNUSED;
-  void operator~() CVC5_UNUSED;
-  void operator-() CVC5_UNUSED;
-  void operator+() CVC5_UNUSED;
+  CVC5_UNUSED void operator!();
+  CVC5_UNUSED void operator~();
+  CVC5_UNUSED void operator-();
+  CVC5_UNUSED void operator+();
 
  public:
   inline operator bool() { return true; }

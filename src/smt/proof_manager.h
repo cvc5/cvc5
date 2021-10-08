@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The proof manager of SmtEngine.
+ * The proof manager of SolverEngine.
  */
 
 #include "cvc5_private.h"
@@ -27,7 +27,7 @@ namespace cvc5 {
 class ProofChecker;
 class ProofNode;
 class ProofNodeManager;
-class SmtEngine;
+class SolverEngine;
 
 namespace rewriter {
 class RewriteDb;
@@ -40,18 +40,18 @@ class PreprocessProofGenerator;
 class ProofPostproccess;
 
 /**
- * This class is responsible for managing the proof output of SmtEngine, as
+ * This class is responsible for managing the proof output of SolverEngine, as
  * well as setting up the global proof checker and proof node manager.
  *
- * The proof production of an SmtEngine is directly impacted by whether, and
+ * The proof production of an SolverEngine is directly impacted by whether, and
  * how, we are producing unsat cores:
  *
  * - If we are producing unsat cores using the old proof infrastructure, then
- *   SmtEngine will not have proofs in the sense of this proof manager.
+ *   SolverEngine will not have proofs in the sense of this proof manager.
  *
  * - If we are producing unsat cores using this proof infrastructure, then the
- *   SmtEngine will have proofs using this proof manager, according to the unsat
- *   core mode:
+ *   SolverEngine will have proofs using this proof manager, according to the
+ * unsat core mode:
  *
  *   - assumption mode: proofs only for preprocessing, not in sat solver or
  *   theory engine, and level of granularity set to off (unless otherwise
@@ -66,11 +66,11 @@ class ProofPostproccess;
  *   Note that if --produce-proofs is set then full-proof mode of unsat cores is
  *   forced.
  *
- * - If we are not producing unsat cores then the SmtEngine will have proofs as
- *   long as --produce-proofs is on.
+ * - If we are not producing unsat cores then the SolverEngine will have proofs
+ * as long as --produce-proofs is on.
  *
- * - If SmtEngine has been configured in a way that is incompatible with proofs
- *   then unsat core production will be disabled.
+ * - If SolverEngine has been configured in a way that is incompatible with
+ * proofs then unsat core production will be disabled.
  */
 class PfManager : protected EnvObj
 {
@@ -94,6 +94,23 @@ class PfManager : protected EnvObj
    * Check proof, same as above, without printing.
    */
   void checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
+
+  /**
+   * Translate difficulty map. This takes a mapping dmap from preprocessed
+   * assertions to values estimating their difficulty. It translates this
+   * map so that dmap contains a mapping from *input* assertions to values
+   * estimating their difficulty.
+   *
+   * It does this translation by constructing a proof of preprocessing for all
+   * preprocessed assertions marked as having a difficulty, traversing those
+   * proofs, and conditionally incrementing the difficulty of the input
+   * assertion on which they depend. This is based on whether the free
+   * assumption is the "source" of an assertion.
+   *
+   * @param dmap Map estimating the difficulty of preprocessed assertions
+   * @param as The input assertions
+   */
+  void translateDifficultyMap(std::map<Node, Node>& dmap, Assertions& as);
 
   /**
    * Get final proof.
@@ -140,7 +157,7 @@ class PfManager : protected EnvObj
    * connected by setFinalProof().
    */
   std::shared_ptr<ProofNode> d_finalProof;
-}; /* class SmtEngine */
+}; /* class SolverEngine */
 
 }  // namespace smt
 }  // namespace cvc5

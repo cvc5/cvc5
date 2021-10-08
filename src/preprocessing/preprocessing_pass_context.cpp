@@ -17,7 +17,6 @@
 
 #include "expr/node_algorithm.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
@@ -25,11 +24,13 @@ namespace cvc5 {
 namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
-    SmtEngine* smt,
     Env& env,
+    TheoryEngine* te,
+    prop::PropEngine* pe,
     theory::booleans::CircuitPropagator* circuitPropagator)
     : EnvObj(env),
-      d_smt(smt),
+      d_theoryEngine(te),
+      d_propEngine(pe),
       d_circuitPropagator(circuitPropagator),
       d_llm(
           env.getTopLevelSubstitutions(), userContext(), getProofNodeManager()),
@@ -45,11 +46,11 @@ PreprocessingPassContext::getTopLevelSubstitutions() const
 
 TheoryEngine* PreprocessingPassContext::getTheoryEngine() const
 {
-  return d_smt->getTheoryEngine();
+  return d_theoryEngine;
 }
 prop::PropEngine* PreprocessingPassContext::getPropEngine() const
 {
-  return d_smt->getPropEngine();
+  return d_propEngine;
 }
 
 void PreprocessingPassContext::spendResource(Resource r)

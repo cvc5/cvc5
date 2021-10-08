@@ -44,6 +44,16 @@ Node Subs::getSubs(Node v) const
   return d_subs[i];
 }
 
+std::optional<Node> Subs::find(TNode v) const
+{
+  auto it = std::find(d_vars.begin(), d_vars.end(), v);
+  if (it == d_vars.end())
+  {
+    return {};
+  }
+  return d_subs[std::distance(d_vars.begin(), it)];
+}
+
 void Subs::add(Node v)
 {
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
@@ -62,7 +72,7 @@ void Subs::add(const std::vector<Node>& vs)
 
 void Subs::add(Node v, Node s)
 {
-  Assert(v.getType().isComparableTo(s.getType()));
+  Assert(s.isNull() || v.getType().isComparableTo(s.getType()));
   d_vars.push_back(v);
   d_subs.push_back(s);
 }

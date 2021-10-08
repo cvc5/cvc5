@@ -23,12 +23,40 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
 using CDNodeMap = context::CDHashMap<Node, Node>;
+
+class ForeignTheoryRewriter : protected EnvObj
+{
+ public:
+  ForeignTheoryRewriter(Env& env);
+  /** the main function that simplifies n.
+   * does a traversal on n and call rewriting fucntions.
+   */
+  Node simplify(Node n);
+  /** A specific simplification function specific for GEQ
+   * constraints in strings.
+   */
+  Node rewriteStringsGeq(Node n);
+  /** invoke rewrite functions for n.
+   * based on the structure of n (typically its kind)
+   * we invoke rewrites from other theories.
+   * For example: when encountering a `>=` node,
+   * we invoke rewrites from the theory of strings.
+   */
+  Node foreignRewrite(Node n);
+  /** construct a node with the same operator as originalNode whose children are
+   * processedChildren
+   */
+  static Node reconstructNode(Node originalNode, std::vector<Node> newChildren);
+  /** A cache to store the simplified nodes */
+  CDNodeMap d_cache;
+};
 
 class ForeignTheoryRewrite : public PreprocessingPass
 {
@@ -38,27 +66,8 @@ class ForeignTheoryRewrite : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-  /** the main function that simplifies n.
-   * does a traversal on n and call rewriting fucntions.
-   */
-  Node simplify(Node n);
-  /** A specific simplification function specific for GEQ
-   * constraints in strings.
-   */
-  static Node rewriteStringsGeq(Node n);
-  /** invoke rewrite functions for n.
-   * based on the structure of n (typically its kind)
-   * we invoke rewrites from other theories.
-   * For example: when encountering a `>=` node,
-   * we invoke rewrites from the theory of strings.
-   */
-  static Node foreignRewrite(Node n);
-  /** construct a node with the same operator as originalNode whose children are
-   * processedChildren
-   */
-  static Node reconstructNode(Node originalNode, std::vector<Node> newChildren);
-  /** A cache to store the simplified nodes */
-  CDNodeMap d_cache;
+  /** Foreign theory rewriter */
+  ForeignTheoryRewriter d_ftr;
 };
 
 }  // namespace passes
