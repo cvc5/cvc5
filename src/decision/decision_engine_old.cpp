@@ -82,7 +82,9 @@ void DecisionEngineOld::addAssertion(TNode assertion, bool isLemma)
   }
 }
 
-void DecisionEngineOld::addSkolemDefinition(TNode lem, TNode skolem, bool isLemma)
+void DecisionEngineOld::addSkolemDefinition(TNode lem,
+                                            TNode skolem,
+                                            bool isLemma)
 {
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;

@@ -486,7 +486,9 @@ void JustificationStrategy::addAssertion(TNode assertion, bool isLemma)
   insertToAssertionList(toProcess, false);
 }
 
-void JustificationStrategy::addSkolemDefinition(TNode lem, TNode skolem, bool isLemma)
+void JustificationStrategy::addSkolemDefinition(TNode lem,
+                                                TNode skolem,
+                                                bool isLemma)
 {
   Trace("jh-assert") << "addSkolemDefinition " << lem << " / " << skolem
                      << std::endl;

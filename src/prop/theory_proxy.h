@@ -68,11 +68,13 @@ class TheoryProxy : public Registrar
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
 
-  /** 
+  /**
    * Notify a lemma or input assertion, possibly corresponding to a skolem
    * definition.
    */
-  void notifyAssertion(Node lem, TNode skolem = TNode::null(), bool isLemma = false);
+  void notifyAssertion(Node lem,
+                       TNode skolem = TNode::null(),
+                       bool isLemma = false);
 
   void theoryCheck(theory::Theory::Effort effort);
 
