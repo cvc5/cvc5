@@ -619,7 +619,6 @@ bool SynthConjecture::doRefine()
   // first, make skolem substitution
   Trace("cegqi-refine") << "doRefine : construct skolem substitution..."
                         << std::endl;
-  std::vector<Node> sk_vars;
   std::vector<Node> sk_subs;
   // collect the substitution over all disjuncts
   if (!d_ce_sk_vars.empty())
@@ -643,7 +642,6 @@ bool SynthConjecture::doRefine()
       sk_subs.insert(
           sk_subs.end(), d_ce_sk_var_mvs.begin(), d_ce_sk_var_mvs.end());
     }
-    sk_vars.insert(sk_vars.end(), d_inner_vars.begin(), d_inner_vars.end());
   }
   else
   {
@@ -656,11 +654,11 @@ bool SynthConjecture::doRefine()
       << "  For counterexample skolems : " << d_ce_sk_vars << std::endl;
   Node base_lem = d_checkBody.negate();
 
-  Assert(sk_vars.size() == sk_subs.size());
+  Assert(d_innerSks.size() == sk_subs.size());
 
   Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
   base_lem = base_lem.substitute(
-      sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end());
+      d_innerSks.begin(), d_innerSks.end(), sk_subs.begin(), sk_subs.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
