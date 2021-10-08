@@ -108,7 +108,7 @@ void SynthConjecture::assign(Node q)
 
   // initialize the guard
   d_feasible_guard = sm->mkDummySkolem("G", nm->booleanType());
-  d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
+  d_feasible_guard = rewrite(d_feasible_guard);
   d_feasible_guard = d_qstate.getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
 
@@ -187,18 +187,18 @@ void SynthConjecture::assign(Node q)
   {
     for (const Node& v : d_checkBody[0][0])
     {
-      d_inner_vars.push_back(v);
-      d_innerSks.push_back(sk);
       Node sk = sm->mkDummySkolem("rsk", v.getType());
       bsubs.add(v, sk);
+      d_inner_vars.push_back(v);
+      d_innerSks.push_back(sk);
     }
-    d_checkBody = d_checkBody[0][1];
+    d_checkBody = d_checkBody[0][1].negate();
   }
   else
   {
-    d_checkBody = d_checkBody.negate();
+    d_checkBody = d_checkBody;
   }
-  d_checkBody = bsubs.apply(d_checkBody);
+  d_checkBody = rewrite(bsubs.apply(d_checkBody));
   if (!d_embedSideCondition.isNull() && !vars.empty())
   {
     d_embedSideCondition = d_embedSideCondition.substitute(
@@ -436,7 +436,7 @@ bool SynthConjecture::doCheck()
             if (Trace.isOn("sygus-engine-rr"))
             {
               Node bv = d_tds->sygusToBuiltin(nv, tn);
-              bv = Rewriter::rewrite(bv);
+              bv = rewrite(bv);
               Trace("sygus-engine-rr") << " -> " << bv << std::endl;
             }
           }
@@ -467,7 +467,6 @@ bool SynthConjecture::doCheck()
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
 
   // check the side condition if we constructed a candidate
   if (constructed_cand)
@@ -496,9 +495,9 @@ bool SynthConjecture::doCheck()
     }
     Assert(candidate_values.size() == d_candidates.size());
     query = d_checkBody.substitute(d_candidates.begin(),
-                                   d_candidates.end(),
-                                   candidate_values.begin(),
-                                   candidate_values.end());
+                                  d_candidates.end(),
+                                  candidate_values.begin(),
+                                  candidate_values.end());
   }
   else
   {
@@ -540,7 +539,7 @@ bool SynthConjecture::doCheck()
     }
     out << ")" << std::endl;
   }
-
+  
   d_ce_sk_vars.insert(d_ce_sk_vars.end(), d_innerSks.begin(), d_innerSks.end());
   d_set_ce_sk_vars = true;
 
@@ -1061,7 +1060,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
             TNode tsol = sol;
             sol = templ.substitute(templa, tsol);
             Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
-            sol = Rewriter::rewrite(sol);
+            sol = rewrite(sol);
             Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
             // now, reconstruct to the syntax
             sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);
