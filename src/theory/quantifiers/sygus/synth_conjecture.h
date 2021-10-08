@@ -132,7 +132,7 @@ class SynthConjecture : protected EnvObj
    */
   Node getGuard() const;
   /** is ground */
-  bool isGround() { return d_inner_vars.empty(); }
+  bool isGround() const { return d_inner_vars.empty(); }
   /** are we using single invocation techniques */
   bool isSingleInvocation() const;
   /** preregister conjecture
@@ -268,8 +268,12 @@ class SynthConjecture : protected EnvObj
    * (exists y. F) is shorthand above for ~( forall y. ~F ).
    */
   Node d_base_inst;
+  /** check body */
+  Node d_checkBody;
   /** list of variables on inner quantification */
   std::vector<Node> d_inner_vars;
+  /** list of skolems on inner quantification */
+  std::vector<Node> d_innerSks;
   /**
    * The set of skolems for the current "verification" lemma, if one exists.
    * This may be added to during calls to doCheck(). The model values for these

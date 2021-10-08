@@ -57,7 +57,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(options(), qs.getLogicInfo(), d_tds),
+      d_verify(options(), logicInfo(), d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer),
@@ -179,8 +179,26 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant
                  << std::endl;
   // construct base instantiation
-  d_base_inst = Rewriter::rewrite(d_qim.getInstantiate()->getInstantiation(
-      d_embed_quant, vars, d_candidates));
+  Subs bsubs;
+  bsubs.add(vars, d_candidates);
+  d_base_inst = rewrite(bsubs.apply(d_embed_quant[1]));
+  d_checkBody = d_embed_quant[1];
+  if (d_checkBody.getKind() == NOT && d_checkBody[0].getKind() == FORALL)
+  {
+    for (const Node& v : d_checkBody[0][0])
+    {
+      d_inner_vars.push_back(v);
+      d_innerSks.push_back(sk);
+      Node sk = sm->mkDummySkolem("rsk", v.getType());
+      bsubs.add(v, sk);
+    }
+    d_checkBody = d_checkBody[0][1];
+  }
+  else
+  {
+    d_checkBody = d_checkBody.negate();
+  }
+  d_checkBody = bsubs.apply(d_checkBody);
   if (!d_embedSideCondition.isNull() && !vars.empty())
   {
     d_embedSideCondition = d_embedSideCondition.substitute(
@@ -239,14 +257,6 @@ void SynthConjecture::assign(Node q)
   }
 
   Assert(d_qreg.getQuantAttributes().isSygus(q));
-  // if the base instantiation is an existential, store its variables
-  if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
-  {
-    for (const Node& v : d_base_inst[0][0])
-    {
-      d_inner_vars.push_back(v);
-    }
-  }
 
   // register the strategy
   d_feasible_strategy.reset(new DecisionStrategySingleton(
@@ -471,7 +481,7 @@ bool SynthConjecture::doCheck()
   }
 
   // must get a counterexample to the value of the current candidate
-  Node inst;
+  Node query;
   if (constructed_cand)
   {
     if (Trace.isOn("cegqi-check"))
@@ -485,14 +495,14 @@ bool SynthConjecture::doCheck()
       }
     }
     Assert(candidate_values.size() == d_candidates.size());
-    inst = d_base_inst.substitute(d_candidates.begin(),
+    query = d_checkBody.substitute(d_candidates.begin(),
                                   d_candidates.end(),
                                   candidate_values.begin(),
                                   candidate_values.end());
   }
   else
   {
-    inst = d_base_inst;
+    query = d_checkBody;
   }
 
   if (!constructed_cand)
@@ -514,49 +524,24 @@ bool SynthConjecture::doCheck()
   }
   Assert(!d_set_ce_sk_vars);
 
-  // immediately skolemize inner existentials
-  Node query;
   // introduce the skolem variables
-  std::vector<Node> sks;
-  std::vector<Node> vars;
-  if (constructed_cand)
+  if (constructed_cand && printDebug)
   {
-    if (printDebug)
+    const Options& sopts = options();
+    std::ostream& out = *sopts.base.out;
+    out << "(sygus-candidate ";
+    Assert(d_quant[0].getNumChildren() == candidate_values.size());
+    for (unsigned i = 0, ncands = candidate_values.size(); i < ncands; i++)
     {
-      const Options& sopts = options();
-      std::ostream& out = *sopts.base.out;
-      out << "(sygus-candidate ";
-      Assert(d_quant[0].getNumChildren() == candidate_values.size());
-      for (unsigned i = 0, ncands = candidate_values.size(); i < ncands; i++)
-      {
-        Node v = candidate_values[i];
-        std::stringstream ss;
-        TermDbSygus::toStreamSygus(ss, v);
-        out << "(" << d_quant[0][i] << " " << ss.str() << ")";
-      }
-      out << ")" << std::endl;
+      Node v = candidate_values[i];
+      std::stringstream ss;
+      TermDbSygus::toStreamSygus(ss, v);
+      out << "(" << d_quant[0][i] << " " << ss.str() << ")";
     }
-    if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
-    {
-      for (const Node& v : inst[0][0])
-      {
-        Node sk = sm->mkDummySkolem("rsk", v.getType());
-        sks.push_back(sk);
-        vars.push_back(v);
-        Trace("cegqi-check-debug")
-            << "  introduce skolem " << sk << " for " << v << "\n";
-      }
-      query = inst[0][1].substitute(
-          vars.begin(), vars.end(), sks.begin(), sks.end());
-      query = query.negate();
-    }
-    else
-    {
-      // use the instance itself
-      query = inst;
-    }
+    out << ")" << std::endl;
   }
-  d_ce_sk_vars.insert(d_ce_sk_vars.end(), sks.begin(), sks.end());
+  
+  d_ce_sk_vars.insert(d_ce_sk_vars.end(), d_innerSks.begin(), d_innerSks.end());
   d_set_ce_sk_vars = true;
 
   if (query.isNull())
@@ -644,23 +629,10 @@ bool SynthConjecture::doRefine()
   {
     Trace("cegqi-refine") << "Get model values for skolems..." << std::endl;
     Assert(d_inner_vars.size() == d_ce_sk_vars.size());
-    if (d_ce_sk_var_mvs.empty())
-    {
-      std::vector<Node> model_values;
-      for (const Node& v : d_ce_sk_vars)
-      {
-        Node mv = getModelValue(v);
-        Trace("cegqi-refine") << "  " << v << " -> " << mv << std::endl;
-        model_values.push_back(mv);
-      }
-      sk_subs.insert(sk_subs.end(), model_values.begin(), model_values.end());
-    }
-    else
-    {
-      Assert(d_ce_sk_var_mvs.size() == d_ce_sk_vars.size());
-      sk_subs.insert(
-          sk_subs.end(), d_ce_sk_var_mvs.begin(), d_ce_sk_var_mvs.end());
-    }
+    Assert(!d_ce_sk_var_mvs.empty());
+    Assert(d_ce_sk_var_mvs.size() == d_ce_sk_vars.size());
+    sk_subs.insert(
+        sk_subs.end(), d_ce_sk_var_mvs.begin(), d_ce_sk_var_mvs.end());
     sk_vars.insert(sk_vars.end(), d_inner_vars.begin(), d_inner_vars.end());
   }
   else
@@ -672,15 +644,7 @@ bool SynthConjecture::doRefine()
                         << std::endl;
   Trace("cegqi-refine-debug")
       << "  For counterexample skolems : " << d_ce_sk_vars << std::endl;
-  Node base_lem;
-  if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
-  {
-    base_lem = d_base_inst[0][1];
-  }
-  else
-  {
-    base_lem = d_base_inst.negate();
-  }
+  Node base_lem = d_checkBody;
 
   Assert(sk_vars.size() == sk_subs.size());
 
