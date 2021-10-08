@@ -1400,6 +1400,84 @@ namespace
   }
 }
 
+std::optional<bool> NlModel::solveLinearEquality(TNode eq, TNode var, const std::map<Node, Node>& msum)
+{
+  Trace("nl-ext::solve-equality") << "Trying to solve as linear equation in " << var << std::endl;
+  Node slv;
+  Node veqc;
+  if (ArithMSum::isolate(var, msum, veqc, slv, Kind::EQUAL) != 0)
+  {
+    Trace("nl-ext::solve-equality") << "Found " << var << " -> " << veqc << " / " << slv << std::endl;
+    if (veqc.isNull() && !expr::hasSubterm(slv, var) && slv.getType().isSubtypeOf(var.getType()))
+    {
+      return addSubstitution(var, slv);
+    }
+    Trace("nl-ext-cm-debug") << "-> nope" << std::endl;
+  }
+  return {};
+}
+
+std::optional<bool> NlModel::solveQuadraticEquality(TNode eq, TNode var, const Rational& a, const Rational& b, const Rational& c, uint64_t precision, std::vector<NlLemma>& lemmas)
+{
+
+  Trace("nl-ext::solve-equality") << "Considering quadratic equation " << var << " with " << a << " * " << var << "^2 + " << b << " * " << var << " + " << c << std::endl;
+  auto nm = NodeManager::currentNM();
+#ifdef CVC5_ASSERTIONS
+  {
+    Node localeq = rewrite(nm->mkNode(Kind::EQUAL,
+      nm->mkNode(Kind::PLUS,
+        nm->mkConst(c),
+        nm->mkNode(Kind::MULT, var, nm->mkConst(b)),
+        nm->mkNode(Kind::NONLINEAR_MULT, var, var, nm->mkConst(a))
+      ),
+      nm->mkConst(Rational(0))
+    ));
+    Assert(eq == localeq);
+  }
+#endif
+  Rational disc = b*b - Rational(4)*a*c;
+  Trace("nl-ext::solve-equality") << "-> discriminant " << disc << std::endl;
+  if (disc < 0)
+  {
+    // Send lemma about eq having no solution
+    lemmas.emplace_back(InferenceId::ARITH_NL_CM_QUADRATIC_EQ, eq.negate());
+    return false;
+  }
+  if (disc == 0)
+  {
+    Trace("nl-ext::solve-equality") << "-> add " << var << " = " << nm->mkConst(-b / (Rational(2)*a)) << std::endl;
+    return addSubstitution(var, nm->mkConst(-b / (Rational(2)*a)));
+  }
+  auto sqrt = approxSqrt(disc, 10 + 2*precision);
+  Trace("nl-ext::solve-equality") << "-> sqrt is in " << sqrt.first << " .. " << sqrt.second << std::endl;
+  auto varvalue = computeConcreteModelValue(var);
+  Assert(varvalue.isConst());
+  Rational val = varvalue.getConst<Rational>();
+  Rational sqrtmid = (sqrt.first + sqrt.second) / 2;
+  const Rational twoa = Rational(2)*a;
+  d_used_approx = true;
+  Rational diffa = (val - (-b + sqrtmid) / twoa).abs();
+  Rational diffb = (val - (-b - sqrtmid) / twoa).abs();
+
+  Rational lower, upper;
+  if (diffa < diffb)
+  {
+    lower = (-b + sqrt.first) / twoa;
+    upper = (-b + sqrt.second) / twoa;
+  }
+  else
+  {
+    lower = (-b - sqrt.first) / twoa;
+    upper = (-b - sqrt.second) / twoa;
+  }
+  if (lower > upper)
+  {
+    std::swap(lower, upper);
+  }
+  Trace("nl-ext::solve-equality") << "-> " << var << " is in " << lower << " .. " << upper << std::endl;
+  return addBound(var, nm->mkConst(lower), nm->mkConst(upper));
+}
+
 std::optional<bool> NlModel::solveEquality(Node oeq, uint64_t precision, std::vector<NlLemma>& lemmas)
 {
   Node eq = oeq;
@@ -1457,24 +1535,14 @@ std::optional<bool> NlModel::solveEquality(Node oeq, uint64_t precision, std::ve
     {
       continue;
     }
-    Trace("nl-ext::solve-equality") << "Considering linear equation " << var << " with " << b << " * " << var << std::endl;
-    Assert(!b.isZero());
-    Node slv;
-    Node veqc;
-    if (ArithMSum::isolate(var, msum, veqc, slv, Kind::EQUAL) != 0)
+    std::optional<bool> ret = solveLinearEquality(eq, var, msum);
+    if (ret)
     {
-      Trace("nl-ext::solve-equality") << "Found " << var << " -> " << veqc << " / " << slv << std::endl;
-      if (veqc.isNull() && !expr::hasSubterm(slv, var) && slv.getType().isSubtypeOf(var.getType()))
+      if (*ret)
       {
-        bool ret = addSubstitution(var, slv);
-        if (ret)
-        {
-          d_check_model_solved[eq] = var;
-        }
-        Trace("nl-ext-cm-debug") << "-> returning" << std::endl;
-        return ret;
+        d_check_model_solved[eq] = var;
       }
-      Trace("nl-ext-cm-debug") << "-> nope" << std::endl;
+      return *ret;
     }
   }
 
@@ -1487,64 +1555,15 @@ std::optional<bool> NlModel::solveEquality(Node oeq, uint64_t precision, std::ve
     {
       continue;
     }
-    Trace("nl-ext::solve-equality") << "Considering quadratic equation " << var << " with " << a << " * " << var << "^2 + " << b << " * " << var << " + " << c << std::endl;
-    auto nm = NodeManager::currentNM();
-    auto localeq = rewrite(nm->mkNode(Kind::EQUAL,
-        nm->mkNode(Kind::PLUS,
-          nm->mkConst(c),
-          nm->mkNode(Kind::MULT, var, nm->mkConst(b)),
-          nm->mkNode(Kind::NONLINEAR_MULT, var, var, nm->mkConst(a))
-        ),
-        nm->mkConst(Rational(0))
-      ));
-    //std::cout << eq << " // " << localeq << std::endl;
-    Assert(localeq == eq);
-    Rational disc = b*b - Rational(4)*a*c;
-    Trace("nl-ext::solve-equality") << "-> discriminant " << disc << std::endl;
-    if (disc < 0)
-    {
-      // Send lemma about eq having no solution
-      lemmas.emplace_back(InferenceId::ARITH_NL_CM_QUADRATIC_EQ, eq.negate());
-      return false;
-    }
-    if (disc == 0)
-    {
-      Trace("nl-ext::solve-equality") << "-> add " << var << " = " << nm->mkConst(-b / (Rational(2)*a)) << std::endl;
-      return addSubstitution(var, nm->mkConst(-b / (Rational(2)*a)));
-    }
-    auto sqrt = approxSqrt(disc, 10 + 2*precision);
-    Trace("nl-ext::solve-equality") << "-> sqrt is in " << sqrt.first << " .. " << sqrt.second << std::endl;
-    auto varvalue = computeConcreteModelValue(var);
-    Assert(varvalue.isConst());
-    Rational val = varvalue.getConst<Rational>();
-    Rational sqrtmid = (sqrt.first + sqrt.second) / 2;
-    const Rational twoa = Rational(2)*a;
-    d_used_approx = true;
-    Rational diffa = (val - (-b + sqrtmid) / twoa).abs();
-    Rational diffb = (val - (-b - sqrtmid) / twoa).abs();
-
-    Rational lower, upper;
-    if (diffa < diffb)
-    {
-      lower = (-b + sqrt.first) / twoa;
-      upper = (-b + sqrt.second) / twoa;
-    }
-    else
-    {
-      lower = (-b - sqrt.first) / twoa;
-      upper = (-b - sqrt.second) / twoa;
-    }
-    if (lower > upper)
-    {
-      std::swap(lower, upper);
-    }
-    Trace("nl-ext::solve-equality") << "-> " << var << " is in " << lower << " .. " << upper << std::endl;
-    bool ret = addBound(var, nm->mkConst(lower), nm->mkConst(upper));
+    std::optional<bool> ret = solveQuadraticEquality(eq, var, a, b, c, precision, lemmas);
     if (ret)
     {
-      d_check_model_solved[eq] = var;
+      if (*ret)
+      {
+        d_check_model_solved[eq] = var;
+      }
+      return *ret;
     }
-    return ret;
   }
 
   for (const auto& [var, data]: map)

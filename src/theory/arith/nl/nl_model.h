@@ -234,6 +234,27 @@ class NlModel : protected EnvObj
    */
   bool hasLinearModelValue(TNode v, Node& val) const;
 
+  /**
+   * Try to solve a linear equality for a given variable, where msum is the
+   * monomial sum obtained from the equality.
+   * Return true if eq could be solved for var and added as substitution.
+   * Return false if eq could be solved for var, but the substitution is not
+   * compatible with the current model.
+   * Return std::nullopt if the eq could not be solved for var.
+   */
+  std::optional<bool> solveLinearEquality(TNode eq, TNode var, const std::map<Node, Node>& msum);
+
+  /**
+   * Try to solve a quadratic equality for a given variable where a,b and c are
+   * rational coefficients such that eq is equal to a*var^2 + b*var + c = 0.
+   * The precision determines the number of iteration when computing square
+   * roots. In case no solution exists, a lemma may be added to lemmas.
+   * Return true if eq could be solved for var and added to the model.
+   * Return false if eq could be solved for var, but the result is not
+   * compatible with the current model.
+   * Return std::nullopt if the eq could not be solved for var.
+   */
+  std::optional<bool> solveQuadraticEquality(TNode eq, TNode var, const Rational& a, const Rational& b, const Rational& c, uint64_t precision, std::vector<NlLemma>& lemmas);
   std::optional<bool> solveEquality(Node eq, uint64_t precision, std::vector<NlLemma>& lemmas);
 
   //---------------------------check model
