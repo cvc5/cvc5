@@ -20,10 +20,9 @@
 namespace cvc5 {
 namespace preprocessing {
 
-LearnedLiteralManager::LearnedLiteralManager(theory::TrustSubstitutionMap& tls,
-                                             context::UserContext* u,
-                                             ProofNodeManager* pnm)
-    : d_topLevelSubs(tls), d_learnedLits(u)
+LearnedLiteralManager::LearnedLiteralManager(Env& env, 
+                                             theory::TrustSubstitutionMap& tls)
+    : EnvObj(env), d_topLevelSubs(tls), d_learnedLits(userContext())
 {
 }
 
@@ -40,7 +39,7 @@ std::vector<Node> LearnedLiteralManager::getLearnedLiterals() const
   {
     // update based on substitutions
     Node tlsNode = d_topLevelSubs.get().apply(lit);
-    tlsNode = theory::Rewriter::rewrite(tlsNode);
+    tlsNode = rewrite(tlsNode);
     currLearnedLits.push_back(tlsNode);
     Trace("pp-llm") << "Learned literal : " << tlsNode << " from " << lit
                     << std::endl;
