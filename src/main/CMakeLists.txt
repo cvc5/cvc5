@@ -38,7 +38,7 @@ add_library(main OBJECT ${libmain_src_files} ${libmain_gen_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC5DRIVER)
 set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-add_dependencies(main gen-tokens)
+add_dependencies(main gen-tokens cvc5-obj)
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit
