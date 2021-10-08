@@ -643,7 +643,7 @@ bool SynthConjecture::doRefine()
                         << std::endl;
   Trace("cegqi-refine-debug")
       << "  For counterexample skolems : " << d_ce_sk_vars << std::endl;
-  Node base_lem = d_checkBody;
+  Node base_lem = d_checkBody.negate();
 
   Assert(sk_vars.size() == sk_subs.size());
 
