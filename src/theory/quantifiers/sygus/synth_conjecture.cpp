@@ -625,8 +625,10 @@ bool SynthConjecture::doRefine()
   Assert(d_innerSks.size() == d_innerSksModel.size());
 
   Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
-  base_lem = base_lem.substitute(
-      d_innerSks.begin(), d_innerSks.end(), d_innerSksModel.begin(), d_innerSksModel.end());
+  base_lem = base_lem.substitute(d_innerSks.begin(),
+                                 d_innerSks.end(),
+                                 d_innerSksModel.begin(),
+                                 d_innerSksModel.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
