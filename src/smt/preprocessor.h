@@ -58,10 +58,16 @@ class Preprocessor : protected EnvObj
   /**
    * Finish initialization
    */
+<<<<<<< HEAD
   void finishInit(TheoryEngine* te, prop::PropEngine* pe);
+=======
+  void finishInit(SolverEngine* slv);
+>>>>>>> 562adadef3222bf6e706904a3fc226d6543b9f22
   /**
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
+   *
+   * @param as The assertions.
    */
   bool process(Assertions& as);
   /**

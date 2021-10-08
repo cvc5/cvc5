@@ -21,7 +21,6 @@
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
-#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
