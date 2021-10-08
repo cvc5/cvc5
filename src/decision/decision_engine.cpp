@@ -42,8 +42,8 @@ prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 
 DecisionEngineEmpty::DecisionEngineEmpty(Env& env) : DecisionEngine(env) {}
 bool DecisionEngineEmpty::isDone() { return false; }
-void DecisionEngineEmpty::addAssertion(TNode assertion) {}
-void DecisionEngineEmpty::addSkolemDefinition(TNode lem, TNode skolem) {}
+void DecisionEngineEmpty::addAssertion(TNode assertion, bool isLemma) {}
+void DecisionEngineEmpty::addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) {}
 prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
 {
   return undefSatLiteral;

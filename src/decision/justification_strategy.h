@@ -145,12 +145,12 @@ class JustificationStrategy : public DecisionEngine
    * Notify this class that assertion is an (input) assertion, not corresponding
    * to a skolem definition.
    */
-  void addAssertion(TNode assertion) override;
+  void addAssertion(TNode assertion, bool isLemma) override;
   /**
    * Notify this class that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
-  void addSkolemDefinition(TNode lem, TNode skolem) override;
+  void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) override;
   /**
    * Notify this class that the list of lemmas defs are now active in the
    * current SAT context. This is triggered when a literal lit is sent to
