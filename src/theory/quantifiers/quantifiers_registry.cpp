@@ -178,8 +178,7 @@ Node QuantifiersRegistry::substituteBoundVariables(
   Assert(itv != d_vars.end());
   Assert(itv->second.size() == terms.size());
   return n.substitute(
-      itv->second.begin(),
-                      itv->second.end(), terms.begin(), terms.end());
+      itv->second.begin(), itv->second.end(), terms.begin(), terms.end());
 }
 
 Node QuantifiersRegistry::substituteInstConstants(
