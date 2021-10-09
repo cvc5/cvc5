@@ -63,7 +63,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
 
 
   Trace("qcf-qregister") << "- Make match gen structure..." << std::endl;
-  d_mg = new MatchGen( this, qn );
+  d_mg.reset( new MatchGen( this, qn ));
 
   if( d_mg->isValid() ){
     for (size_t j = q[0].getNumChildren(), nvars = d_vars.size(); j < nvars;
@@ -134,7 +134,6 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
 
 QuantInfo::~QuantInfo()
 {
-  delete d_mg;
   for (std::map<int, MatchGen*>::iterator i = d_var_mg.begin(),
                                           iend = d_var_mg.end();
        i != iend;
@@ -604,7 +603,7 @@ bool QuantInfo::isMatchSpurious()
   return false;
 }
 
-bool QuantInfo::isTConstraintSpurious(std::vector<Node>& terms)
+bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
 {
   if( options::qcfEagerTest() ){
     EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
@@ -632,12 +631,12 @@ bool QuantInfo::isTConstraintSpurious(std::vector<Node>& terms)
     }else{
       Node inst =
           getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
-      inst = Rewriter::rewrite(inst);
+      inst = rewrite(inst);
       Node inst_eval =
           echeck->evaluateTerm(inst, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
-        for( unsigned i=0; i<terms.size(); i++ ){
+        for( size_t i=0, nterms = terms.size(); i<nterms; i++ ){
           Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
         }
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
@@ -960,11 +959,9 @@ bool QuantInfo::completeMatch(std::vector<int>& assigned, bool doContinue)
 }
 
 void QuantInfo::getMatch( std::vector< Node >& terms ){
-  for( unsigned i=0; i<d_q[0].getNumChildren(); i++ ){
-    //Node cv = qi->getCurrentValue( qi->d_match[i] );
+  for( size_t i=0, nvars = d_q[0].getNumChildren(); i<nvars; i++ ){
     int repVar = getCurrentRepVar( i );
     Node cv;
-    //std::map< int, TNode >::iterator itmt = qi->d_match_term.find( repVar );
     if( !d_match_term[repVar].isNull() ){
       cv = d_match_term[repVar];
     }else{
@@ -975,7 +972,7 @@ void QuantInfo::getMatch( std::vector< Node >& terms ){
   }
 }
 
-void QuantInfo::revertMatch(std::vector<int>& assigned)
+void QuantInfo::revertMatch(const std::vector<int>& assigned)
 {
   for (int a : assigned)
   {
@@ -2425,9 +2422,8 @@ TNode QuantConflictFind::getZero( Kind k ) {
     }
     d_zero[k] = nn;
     return nn;
-  }else{
-    return it->second;
   }
+  return it->second;
 }
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e) {

@@ -65,7 +65,7 @@ class InstantiationRewriter
    * and its proof generator.
    */
   virtual TrustNode rewriteInstantiation(Node q,
-                                         std::vector<Node>& terms,
+                                         const std::vector<Node>& terms,
                                          Node inst,
                                          bool doVts) = 0;
 };
@@ -225,8 +225,8 @@ class Instantiate : public QuantifiersUtil
    * single INSTANTIATE step concluding the instantiated body of q from q.
    */
   Node getInstantiation(Node q,
-                        std::vector<Node>& vars,
-                        std::vector<Node>& terms,
+                        const std::vector<Node>& vars,
+                        const std::vector<Node>& terms,
                         InferenceId id = InferenceId::UNKNOWN,
                         Node pfArg = Node::null(),
                         bool doVts = false,
@@ -235,7 +235,7 @@ class Instantiate : public QuantifiersUtil
    *
    * Same as above but with vars equal to the bound variables of q.
    */
-  Node getInstantiation(Node q, std::vector<Node>& terms, bool doVts = false);
+  Node getInstantiation(Node q, const std::vector<Node>& terms, bool doVts = false);
   //--------------------------------------end general utilities
 
   /**

@@ -41,7 +41,7 @@ InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
 }
 
 TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
-                                                  std::vector<Node>& terms,
+                                                  const std::vector<Node>& terms,
                                                   Node inst,
                                                   bool doVts)
 {
@@ -345,7 +345,7 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
   }
 }
 TrustNode InstStrategyCegqi::rewriteInstantiation(Node q,
-                                                  std::vector<Node>& terms,
+                                                  const std::vector<Node>& terms,
                                                   Node inst,
                                                   bool doVts)
 {

@@ -522,8 +522,8 @@ bool Instantiate::existsInstantiation(Node q,
 }
 
 Node Instantiate::getInstantiation(Node q,
-                                   std::vector<Node>& vars,
-                                   std::vector<Node>& terms,
+                                   const std::vector<Node>& vars,
+                                   const std::vector<Node>& terms,
                                    InferenceId id,
                                    Node pfArg,
                                    bool doVts,
@@ -578,7 +578,7 @@ Node Instantiate::getInstantiation(Node q,
   return body;
 }
 
-Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
+Node Instantiate::getInstantiation(Node q, const std::vector<Node>& terms, bool doVts)
 {
   Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
   return getInstantiation(

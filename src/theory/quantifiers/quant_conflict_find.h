@@ -152,10 +152,10 @@ class QuantInfo : protected EnvObj
   bool setMatch(int v, TNode n, bool isGroundRep, bool isGround);
   void unsetMatch(int v);
   bool isMatchSpurious();
-  bool isTConstraintSpurious(std::vector<Node>& terms);
+  bool isTConstraintSpurious(const std::vector<Node>& terms);
   bool entailmentTest(Node lit, bool chEnt = true);
   bool completeMatch(std::vector<int>& assigned, bool doContinue = false);
-  void revertMatch(std::vector<int>& assigned);
+  void revertMatch(const std::vector<int>& assigned);
   void debugPrintMatch(const char* c) const;
   bool isConstrainedVar( int v );
   void getMatch( std::vector< Node >& terms );
@@ -175,7 +175,7 @@ class QuantInfo : protected EnvObj
                         std::map<TNode, bool>& visited);
   /** The parent who owns this class */
   QuantConflictFind* d_parent;
-  MatchGen* d_mg;
+  std::unique_ptr<MatchGen> d_mg;
   Node d_q;
   VarMgMap d_var_mg;
   // for completing match
