@@ -123,7 +123,7 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
     else
     {
       // get the (indexed) operator of n, if it exists
-      TNode f = getMatchOperator(n);
+      TNode f = d_tdb.getMatchOperator(n);
       // if it is an indexed term, return the congruent term
       if (!f.isNull())
       {
@@ -268,7 +268,7 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
   {
     if (n.hasOperator())
     {
-      TNode f = getMatchOperator(n);
+      TNode f = d_tdb.getMatchOperator(n);
       if (!f.isNull())
       {
         std::vector<TNode> args;

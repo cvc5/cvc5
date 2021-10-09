@@ -27,6 +27,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_pools.h"
+#include "theory/quantifiers/entailment_check.h"
 
 namespace cvc5 {
 namespace theory {
