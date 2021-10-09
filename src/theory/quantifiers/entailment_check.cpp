@@ -15,6 +15,9 @@
 
 #include "theory/quantifiers/entailment_check.h"
 
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_state.h"
+
 using namespace cvc5::kind;
 using namespace cvc5::context;
 
@@ -25,6 +28,8 @@ namespace quantifiers {
 EntailmentCheck::EntailmentCheck(Env& env, QuantifiersState& qs, TermDb& tdb)
     : EnvObj(env), d_qstate(qs), d_tdb(tdb)
 {
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 EntailmentCheck::~EntailmentCheck() {}
@@ -123,7 +128,7 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
       if (!f.isNull())
       {
         // if f is congruent to a term indexed by this class
-        TNode nn = getCongruentTerm(f, args);
+        TNode nn = d_tdb.getCongruentTerm(f, args);
         Trace("term-db-eval") << "  got congruent term " << nn
                               << " from DB for " << n << std::endl;
         if (!nn.isNull())
@@ -131,7 +136,7 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
           if (computeExp)
           {
             Assert(nn.getNumChildren() == n.getNumChildren());
-            for (unsigned i = 0, nchild = nn.getNumChildren(); i < nchild; i++)
+            for (size_t i = 0, nchild = nn.getNumChildren(); i < nchild; i++)
             {
               if (nn[i] != n[i])
               {
@@ -267,7 +272,7 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
       if (!f.isNull())
       {
         std::vector<TNode> args;
-        for (unsigned i = 0; i < n.getNumChildren(); i++)
+        for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
         {
           TNode c = getEntailedTerm2(n[i], subs, subsRep, hasSubs);
           if (c.isNull())
@@ -278,7 +283,7 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
           Trace("term-db-entail") << "  child " << i << " : " << c << std::endl;
           args.push_back(c);
         }
-        TNode nn = getCongruentTerm(f, args);
+        TNode nn = d_tdb.getCongruentTerm(f, args);
         Trace("term-db-entail")
             << "  got congruent term " << nn << " for " << n << std::endl;
         return nn;
@@ -360,7 +365,7 @@ bool EntailmentCheck::isEntailed2(
   else if (n.getKind() == OR || n.getKind() == AND)
   {
     bool simPol = (pol && n.getKind() == OR) || (!pol && n.getKind() == AND);
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
       if (isEntailed2(n[i], subs, subsRep, hasSubs, pol))
       {
@@ -382,11 +387,11 @@ bool EntailmentCheck::isEntailed2(
   }
   else if (n.getKind() == EQUAL || n.getKind() == ITE)
   {
-    for (unsigned i = 0; i < 2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
       if (isEntailed2(n[0], subs, subsRep, hasSubs, i == 0))
       {
-        unsigned ch = (n.getKind() == EQUAL || i == 0) ? 1 : 2;
+        size_t ch = (n.getKind() == EQUAL || i == 0) ? 1 : 2;
         bool reqPol = (n.getKind() == ITE || i == 0) ? pol : !pol;
         return isEntailed2(n[ch], subs, subsRep, hasSubs, reqPol);
       }

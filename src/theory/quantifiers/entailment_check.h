@@ -112,10 +112,6 @@ class EntailmentCheck : protected EnvObj
                   bool pol);
 
  protected:
-  /** The quantifiers state object */
-  QuantifiersState& d_qstate;
-  /** Reference to the term database */
-  TermDb& d_tdb;
   /** helper for evaluate term */
   Node evaluateTerm2(TNode n,
                      std::map<TNode, Node>& visited,
@@ -134,6 +130,13 @@ class EntailmentCheck : protected EnvObj
                    bool subsRep,
                    bool hasSubs,
                    bool pol);
+  /** The quantifiers state object */
+  QuantifiersState& d_qstate;
+  /** Reference to the term database */
+  TermDb& d_tdb;
+  /** boolean terms */
+  Node d_true;
+  Node d_false;
 }; /* class EntailmentCheck */
 
 }  // namespace quantifiers

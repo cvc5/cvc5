@@ -28,6 +28,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_preprocess.h"
+#include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
@@ -183,7 +184,7 @@ bool Instantiate::addInstantiation(Node q,
 #endif
   }
 
-  TermDb* tdb = d_treg.getTermDatabase();
+  EntailmentCheck* ec = d_treg.getEntailmentCheck();
   // Note we check for entailment before checking for term vector duplication.
   // Although checking for term vector duplication is a faster check, it is
   // included automatically with recordInstantiationInternal, hence we prefer
@@ -206,7 +207,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       subs[q[0][i]] = terms[i];
     }
-    if (tdb->isEntailed(q[1], subs, false, true))
+    if (ec->isEntailed(q[1], subs, false, true))
     {
       Trace("inst-add-debug") << " --> Currently entailed." << std::endl;
       ++(d_statistics.d_inst_duplicate_ent);
@@ -217,6 +218,7 @@ bool Instantiate::addInstantiation(Node q,
   // check based on instantiation level
   if (options::instMaxLevel() != -1)
   {
+    TermDb* tdb = d_treg.getTermDatabase();
     for (Node& t : terms)
     {
       if (!tdb->isTermEligibleForInstantiation(t, q))

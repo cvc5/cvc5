@@ -134,6 +134,11 @@ TermDbSygus* TermRegistry::getTermDatabaseSygus() const
   return d_sygusTdb.get();
 }
 
+EntailmentCheck* TermRegistry::getEntailmentCheck() const
+{
+  return d_echeck.get();
+}
+
 TermEnumeration* TermRegistry::getTermEnumeration() const
 {
   return d_termEnum.get();

@@ -83,6 +83,8 @@ class TermRegistry : protected EnvObj
   TermDb* getTermDatabase() const;
   /** get term database sygus */
   TermDbSygus* getTermDatabaseSygus() const;
+  /** get entailment check utility */
+  EntailmentCheck* getEntailmentCheck() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
   /** get the term pools utility */
