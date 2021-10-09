@@ -613,11 +613,13 @@ bool QuantInfo::isTConstraintSpurious(std::vector<Node>& terms)
     {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
       std::map< TNode, TNode > subs;
-      for( size_t i=0, nterms = terms.size(); i<nterms; i++ ){
+      for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
+      {
         Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
         subs[d_q[0][i]] = terms[i];
       }
-      for( size_t i=0, xvars = d_extra_var.size(); i<xvars; i++ ){
+      for (size_t i = 0, xvars = d_extra_var.size(); i < xvars; i++)
+      {
         Node n = getCurrentExpValue( d_extra_var[i] );
         Trace("qcf-instance-check") << "  " << d_extra_var[i] << " -> " << n << std::endl;
         subs[d_extra_var[i]] = n;
@@ -631,8 +633,8 @@ bool QuantInfo::isTConstraintSpurious(std::vector<Node>& terms)
       Node inst =
           getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
       inst = Rewriter::rewrite(inst);
-      Node inst_eval = echeck->evaluateTerm(
-          inst, options::qcfTConstraint(), true);
+      Node inst_eval =
+          echeck->evaluateTerm(inst, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
@@ -1353,9 +1355,10 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
       //if( ( e==1 && d_tgt ) || ( e==0 && !d_tgt ) ){
       //  d_child_counter = 0;
       //}
-      //modified 
+      //modified
       EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
-      if( echeck->isEntailed( n, d_tgt ) ){ 
+      if (echeck->isEntailed(n, d_tgt))
+      {
         d_child_counter = 0;
       }
     }else{

@@ -244,7 +244,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
       // now, do instantiation-based merging for each of these terms
       Trace("thm-ee-debug") << "Merge equivalence classes based on instantiations of terms..." << std::endl;
       //merge all pending equalities
-      EntailmentCheck * echeck = d_treg.getEntailmentCheck();
+      EntailmentCheck* echeck = d_treg.getEntailmentCheck();
       while( !d_upendingAdds.empty() ){
         Trace("sg-pending") << "Add " << d_upendingAdds.size() << " pending terms..." << std::endl;
         std::vector< Node > pending;
@@ -1362,8 +1362,8 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
   }
   Trace("sg-cconj-debug") << "Evaluate RHS : : " << rhs << std::endl;
   //get the representative of rhs with substitution subs
-  EntailmentCheck * echeck = d_treg.getEntailmentCheck();
-  TNode grhs = echeck->getEntailedTerm( rhs, subs, true );
+  EntailmentCheck* echeck = d_treg.getEntailmentCheck();
+  TNode grhs = echeck->getEntailedTerm(rhs, subs, true);
   Trace("sg-cconj-debug") << "...done evaluating term, got : " << grhs << std::endl;
   if( !grhs.isNull() ){
     if( glhs!=grhs ){

@@ -116,7 +116,7 @@ public:
 class QuantInfo : protected EnvObj
 {
  public:
-  typedef std::map< int, MatchGen * > VarMgMap;
+  typedef std::map<int, MatchGen*> VarMgMap;
   QuantInfo(Env& env, QuantConflictFind* p, Node q);
   ~QuantInfo();
   /** get quantified formula */
