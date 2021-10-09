@@ -164,8 +164,7 @@ Node QuantifiersRegistry::substituteInstConstantsToBoundVariables(Node n,
       d_inst_constants.find(q);
   Assert(itv != d_vars.end());
   Assert(itc != d_inst_constants.end());
-  return n.substitute(
-                      itc->second.begin(),
+  return n.substitute(itc->second.begin(),
                       itc->second.end(),
                       itv->second.begin(),
                       itv->second.end());
