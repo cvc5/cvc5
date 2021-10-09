@@ -57,10 +57,10 @@ Preprocessor::~Preprocessor()
   }
 }
 
-void Preprocessor::finishInit(SolverEngine* slv)
+void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
-  d_ppContext.reset(
-      new preprocessing::PreprocessingPassContext(slv, d_env, &d_propagator));
+  d_ppContext.reset(new preprocessing::PreprocessingPassContext(
+      d_env, te, pe, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -74,7 +74,7 @@ bool Preprocessor::process(Assertions& as)
   Assert(ap.size() != 0)
       << "Can only preprocess a non-empty list of assertions";
 
-  if (d_assertionsProcessed && options::incrementalSolving())
+  if (d_assertionsProcessed && options().base.incrementalSolving)
   {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
@@ -91,7 +91,7 @@ bool Preprocessor::process(Assertions& as)
   // now, post-process the assertions
 
   // if incremental, compute which variables are assigned
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     d_ppContext->recordSymbolsInAssertions(ap.ref());
   }
@@ -121,7 +121,7 @@ Node Preprocessor::expandDefinitions(const Node& node,
   Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
   // Substitute out any abstract values in node.
   Node n = d_absValues.substituteAbstractValues(node);
-  if (options::typeChecking())
+  if (options().expr.typeChecking)
   {
     // Ensure node is type-checked at this point.
     n.getType(true);

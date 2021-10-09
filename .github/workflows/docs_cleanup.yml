@@ -1,7 +1,7 @@
 name: documentation cleanup
 on:
   schedule:
-    - cron: '0 1 * * SUN'
+    - cron: '0 1 * * *'
 
 jobs:
   docs-cleanup:
