@@ -36,41 +36,10 @@ class QuantInfo;
 //match generator
 class MatchGen {
   friend class QuantInfo;
-
  public:
   MatchGen();
   MatchGen(QuantInfo* qi, Node n, bool isVar = false);
 
- private:
-  //current children information
-  int d_child_counter;
-  bool d_use_children;
-  //children of this object
-  std::vector< int > d_children_order;
-  size_t getNumChildren() { return d_children.size(); }
-  MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
-  //current matching information
-  std::vector<TNodeTrie*> d_qn;
-  std::vector<std::map<TNode, TNodeTrie>::iterator> d_qni;
-  bool doMatching( QuantConflictFind * p, QuantInfo * qi );
-  //for matching : each index is either a variable or a ground term
-  unsigned d_qni_size;
-  std::map< int, int > d_qni_var_num;
-  std::map< int, TNode > d_qni_gterm;
-  std::map< int, int > d_qni_bound;
-  std::vector< int > d_qni_bound_except;
-  std::map< int, TNode > d_qni_bound_cons;
-  std::map< int, int > d_qni_bound_cons_var;
-  std::map< int, int >::iterator d_binding_it;
-  //std::vector< int > d_independent;
-  bool d_matched_basis;
-  bool d_binding;
-  //int getVarBindingVar();
-  std::map< int, Node > d_ground_eval;
-  //determine variable order
-  void determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars );
-  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars, std::map< Node, bool >& visited, bool& hasNested );
-public:
   //type of the match generator
   enum {
     typ_invalid,
@@ -84,7 +53,7 @@ public:
     typ_tsym,
   };
   void debugPrintType( const char * c, short typ, bool isTrace = false );
-public:
+
   bool d_tgt;
   bool d_tgt_orig;
   bool d_wasSet;
@@ -110,6 +79,36 @@ public:
   static Node getMatchOperator( QuantConflictFind * p, Node n );
   //can this node be handled by the algorithm
   static bool isHandled( TNode n );
+
+ private:
+  //determine variable order
+  void determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars );
+  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars, std::map< Node, bool >& visited, bool& hasNested );
+  //current children information
+  int d_child_counter;
+  bool d_use_children;
+  //children of this object
+  std::vector< int > d_children_order;
+  size_t getNumChildren() { return d_children.size(); }
+  MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
+  //current matching information
+  std::vector<TNodeTrie*> d_qn;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_qni;
+  bool doMatching( QuantConflictFind * p, QuantInfo * qi );
+  //for matching : each index is either a variable or a ground term
+  unsigned d_qni_size;
+  std::map< int, int > d_qni_var_num;
+  std::map< int, TNode > d_qni_gterm;
+  std::map< int, int > d_qni_bound;
+  std::vector< int > d_qni_bound_except;
+  std::map< int, TNode > d_qni_bound_cons;
+  std::map< int, int > d_qni_bound_cons_var;
+  std::map< int, int >::iterator d_binding_it;
+  //std::vector< int > d_independent;
+  bool d_matched_basis;
+  bool d_binding;
+  //int getVarBindingVar();
+  std::map< int, Node > d_ground_eval;
 };
 
 //info for quantifiers
@@ -133,23 +132,12 @@ class QuantInfo : protected EnvObj
   bool isVar(TNode v) const { return d_var_num.find(v) != d_var_num.end(); }
   size_t getNumVars() const { return d_vars.size(); }
   TNode getVar(int i) const { return d_vars[i]; }
-
- public:
   VarMgMap::const_iterator var_mg_find(int i) const { return d_var_mg.find(i); }
   VarMgMap::const_iterator var_mg_end() const { return d_var_mg.end(); }
   bool containsVarMg(int i) const { return var_mg_find(i) != var_mg_end(); }
-
   bool matchGeneratorIsValid() const { return d_mg->isValid(); }
   bool getNextMatch() { return d_mg->getNextMatch(d_parent, this); }
-
   bool reset_round();
-
- public:
-  //current constraints
-  std::vector< TNode > d_match;
-  std::vector< TNode > d_match_term;
-  std::map< int, std::map< TNode, int > > d_curr_var_deq;
-  std::map< Node, bool > d_tconstraints;
   int getCurrentRepVar( int v );
   TNode getCurrentValue( TNode n );
   TNode getCurrentExpValue( TNode n );
@@ -166,7 +154,12 @@ class QuantInfo : protected EnvObj
   void debugPrintMatch(const char* c) const;
   bool isConstrainedVar( int v );
   void getMatch( std::vector< Node >& terms );
-
+  
+  //current constraints
+  std::vector< TNode > d_match;
+  std::vector< TNode > d_match_term;
+  std::map< int, std::map< TNode, int > > d_curr_var_deq;
+  std::map< Node, bool > d_tconstraints;
  private:
   void registerNode(Node n, bool hasPol, bool pol, bool beneathQuant = false);
   void flatten(Node n, bool beneathQuant);
@@ -209,8 +202,6 @@ class QuantConflictFind : public QuantifiersModule
   std::map< Node, bool > d_irr_quant;
   void setIrrelevantFunction( TNode f );
 public:  //for ground terms
-  Node d_true;
-  Node d_false;
   TNode getZero( Kind k );
 
  public:
@@ -227,10 +218,6 @@ public:  //for ground terms
 
  private:
   Effort d_effort;
-
- public:
-  bool areMatchEqual(TNode n1, TNode n2) const;
-  bool areMatchDisequal(TNode n1, TNode n2) const;
 
  public:
   QuantConflictFind(Env& env,

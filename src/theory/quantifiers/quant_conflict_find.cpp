@@ -444,7 +444,7 @@ int QuantInfo::addConstraint(
                     d_curr_var_deq[vn][dv] = v;
                   }
                 }else{
-                  if (!d_parent->areMatchDisequal(d_match[vn], dv))
+                  if (d_match[vn]==dv)
                   {
                     Debug("qcf-match-debug") << "  -> fail, conflicting disequality" << std::endl;
                     return -1;
@@ -463,7 +463,7 @@ int QuantInfo::addConstraint(
             }else{
               Debug("qcf-match-debug") << "  -> Both variables bound, compare" << std::endl;
               //are they currently equal
-              return d_parent->areMatchEqual(d_match[v], d_match[vn]) ? 0 : -1;
+              return d_match[v]==d_match[vn] ? 0 : -1;
             }
           }
         }else{
@@ -474,7 +474,7 @@ int QuantInfo::addConstraint(
           }else{
             //compare ground values
             Debug("qcf-match-debug") << "  -> Ground value, compare " << d_match[v] << " "<< n << std::endl;
-            return d_parent->areMatchEqual(d_match[v], n) ? 0 : -1;
+            return d_match[v]==n ? 0 : -1;
           }
         }
         if (setMatch(v, n, isGroundRep, isGround))
@@ -505,7 +505,7 @@ int QuantInfo::addConstraint(
           //std::map< int, TNode >::iterator itm = d_match.find( v );
           if( !d_match[v].isNull() ){
             TNode nv = getCurrentValue( n );
-            if (!d_parent->areMatchDisequal(nv, d_match[v]))
+            if (nv==d_match[v])
             {
               Debug("qcf-match-debug") << "  -> fail, conflicting disequality" << std::endl;
               return -1;
@@ -1019,14 +1019,14 @@ void QuantInfo::debugPrintMatch(const char* c) const
 }
 
 MatchGen::MatchGen()
-  : d_matched_basis(),
-    d_binding(),
-    d_tgt(),
+  : d_tgt(),
     d_tgt_orig(),
     d_wasSet(),
     d_n(),
     d_type( typ_invalid ),
-    d_type_not()
+    d_type_not(),
+    d_matched_basis(),
+    d_binding()
 {
   d_qni_size = 0;
   d_child_counter = -1;
@@ -1035,14 +1035,14 @@ MatchGen::MatchGen()
 
 
 MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
-  : d_matched_basis(),
-    d_binding(),
-    d_tgt(),
+  : d_tgt(),
     d_tgt_orig(),
     d_wasSet(),
     d_n(),
     d_type(),
-    d_type_not()
+    d_type_not(),
+    d_matched_basis(),
+    d_binding()
 {
   //initialize temporary
   d_child_counter = -1;
@@ -1286,7 +1286,7 @@ bool MatchGen::reset_round(QuantConflictFind* p)
     {
       if (echeck->isEntailed(d_n, i == 0))
       {
-        d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
+        d_ground_eval[0] = NodeManager::currentNM()->mkConst(i==0);
       }
       if (qs.isInConflict())
       {
@@ -1339,7 +1339,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     d_use_children = false;
   }else if( d_type==typ_ground ){
     d_use_children = false;
-    if( d_ground_eval[0]==( d_tgt ? p->d_true : p->d_false ) ){
+    if( d_ground_eval[0].isConst() && d_ground_eval[0].getConst<bool>()==d_tgt ){
       d_child_counter = 0;
     }
   }else if( qi->isBaseMatchComplete() && options::qcfEagerTest() ){
@@ -1424,12 +1424,12 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
       Debug("qcf-match-debug") << "       reset: check ground values " << nn[0] << " " << nn[1] << " (" << d_tgt << ")" << std::endl;
       //just compare values
       if( d_tgt ){
-        success = p->areMatchEqual( nn[0], nn[1] );
+        success = nn[0]==nn[1];
       }else{
         if (p->atConflictEffort()) {
           success = p->areDisequal( nn[0], nn[1] );
         }else{
-          success = p->areMatchDisequal( nn[0], nn[1] );
+          success = ( nn[0]!=nn[1] );
         }
       }
     }else{
@@ -1978,8 +1978,6 @@ QuantConflictFind::QuantConflictFind(Env& env,
                                      TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
       d_conflict(context(), false),
-      d_true(NodeManager::currentNM()->mkConst<bool>(true)),
-      d_false(NodeManager::currentNM()->mkConst<bool>(false)),
       d_effort(EFFORT_INVALID)
 {
 }
@@ -2027,16 +2025,6 @@ void QuantConflictFind::registerQuantifier( Node q ) {
     }
     Trace("qcf-qregister") << "Done registering quantifier." << std::endl;
   }
-}
-
-bool QuantConflictFind::areMatchEqual(TNode n1, TNode n2) const
-{
-  return n1==n2;
-}
-
-bool QuantConflictFind::areMatchDisequal(TNode n1, TNode n2) const
-{
-  return n1!=n2;
 }
 
 //-------------------------------------------------- check function
