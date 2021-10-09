@@ -517,14 +517,14 @@ bool SynthConjecture::doCheck()
   }
   Assert(!d_setInnerSksModel);
 
-  // introduce the skolem variables
+  // print the candidate solution for debugging
   if (constructed_cand && printDebug)
   {
     const Options& sopts = options();
     std::ostream& out = *sopts.base.out;
     out << "(sygus-candidate ";
     Assert(d_quant[0].getNumChildren() == candidate_values.size());
-    for (unsigned i = 0, ncands = candidate_values.size(); i < ncands; i++)
+    for (size_t i = 0, ncands = candidate_values.size(); i < ncands; i++)
     {
       Node v = candidate_values[i];
       std::stringstream ss;
