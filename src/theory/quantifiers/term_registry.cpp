@@ -24,6 +24,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/entailment_check.h"
 
 namespace cvc5 {
 namespace theory {
@@ -39,6 +40,7 @@ TermRegistry::TermRegistry(Env& env,
       d_termPools(new TermPools(env, qs)),
       d_termDb(logicInfo().isHigherOrder() ? new HoTermDb(env, qs, qr)
                                            : new TermDb(env, qs, qr)),
+      d_echeck(new EntailmentCheck(env, qs, *d_termDb.get())),
       d_sygusTdb(nullptr),
       d_qmodel(nullptr)
 {

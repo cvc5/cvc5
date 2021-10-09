@@ -103,6 +103,8 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<TermPools> d_termPools;
   /** term database */
   std::unique_ptr<TermDb> d_termDb;
+  /** entailment check */
+  std::unique_ptr<EntailmentCheck> d_echeck;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
   /** extended model object */
