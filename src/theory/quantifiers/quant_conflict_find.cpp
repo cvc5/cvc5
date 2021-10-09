@@ -1596,7 +1596,7 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
         //clean up the matches you set
         for( std::map< int, int >::iterator it = d_qni_bound.begin(); it != d_qni_bound.end(); ++it ){
           Debug("qcf-match") << "       Clean up bound var " << it->second << std::endl;
-          Assert(it->second < qi->getNumVars());
+          Assert(it->second < static_cast<int>(qi->getNumVars()));
           qi->unsetMatch(it->second);
           qi->d_match_term[ it->second ] = TNode::null();
         }
@@ -1871,9 +1871,6 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
   } while ((!d_qn.empty() && d_qni.size() != d_qni_size) || invalidMatch);
   if (d_qni.size() == d_qni_size)
   {
-    // Assert( !d_qni[d_qni.size()-1]->second.d_data.empty() );
-    // Debug("qcf-match-debug") << "       We matched " <<
-    // d_qni[d_qni.size()-1]->second.d_children.begin()->first << std::endl;
     Assert(!d_qni[d_qni.size() - 1]->second.d_data.empty());
     TNode t = d_qni[d_qni.size() - 1]->second.d_data.begin()->first;
     Debug("qcf-match-debug")
@@ -1888,15 +1885,12 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
       Debug("qcf-match-debug")
           << "       position " << it->first << " bounded " << it->second
           << " / " << q[0].getNumChildren() << std::endl;
-      // if( it->second<(int)qi->d_q[0].getNumChildren() ){   //if it is an
-      // actual variable, we are interested in knowing the actual term
       if (it->first > 0)
       {
         Assert(!qi->d_match[it->second].isNull());
         Assert(p->areEqual(t[it->first - 1], qi->d_match[it->second]));
         qi->d_match_term[it->second] = t[it->first - 1];
       }
-      //}
     }
   }
   return !d_qn.empty();
