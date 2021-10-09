@@ -36,10 +36,12 @@ class QuantInfo;
 //match generator
 class MatchGen {
   friend class QuantInfo;
-public:
+
+ public:
   MatchGen();
-  MatchGen( QuantInfo * qi, Node n, bool isVar = false );
-private:
+  MatchGen(QuantInfo* qi, Node n, bool isVar = false);
+
+ private:
   //current children information
   int d_child_counter;
   bool d_use_children;
@@ -119,27 +121,26 @@ class QuantInfo : protected EnvObj
   ~QuantInfo();
   /** get quantified formula */
   Node getQuantifiedFormula() const;
-   bool isBaseMatchComplete();
- /** Get quantifiers inference manager */
- QuantifiersInferenceManager& getInferenceManager();
- std::vector<TNode> d_vars;
- std::vector<TypeNode> d_var_types;
- std::map<TNode, int> d_var_num;
- std::vector<int> d_tsym_vars;
- std::map<TNode, bool> d_inMatchConstraint;
- int getVarNum(TNode v) const;
-  bool isVar( TNode v ) const { return d_var_num.find( v )!=d_var_num.end(); }
+  bool isBaseMatchComplete();
+  /** Get quantifiers inference manager */
+  QuantifiersInferenceManager& getInferenceManager();
+  std::vector<TNode> d_vars;
+  std::vector<TypeNode> d_var_types;
+  std::map<TNode, int> d_var_num;
+  std::vector<int> d_tsym_vars;
+  std::map<TNode, bool> d_inMatchConstraint;
+  int getVarNum(TNode v) const;
+  bool isVar(TNode v) const { return d_var_num.find(v) != d_var_num.end(); }
   size_t getNumVars() const { return d_vars.size(); }
-  TNode getVar( int i )  const { return d_vars[i]; }
+  TNode getVar(int i) const { return d_vars[i]; }
+
  public:
   VarMgMap::const_iterator var_mg_find(int i) const { return d_var_mg.find(i); }
   VarMgMap::const_iterator var_mg_end() const { return d_var_mg.end(); }
   bool containsVarMg(int i) const { return var_mg_find(i) != var_mg_end(); }
 
   bool matchGeneratorIsValid() const { return d_mg->isValid(); }
-  bool getNextMatch() {
-    return d_mg->getNextMatch(d_parent, this);
-  }
+  bool getNextMatch() { return d_mg->getNextMatch(d_parent, this); }
 
   bool reset_round();
 
@@ -165,29 +166,30 @@ class QuantInfo : protected EnvObj
   void debugPrintMatch(const char* c) const;
   bool isConstrainedVar( int v );
   void getMatch( std::vector< Node >& terms );
+
  private:
-  void registerNode( Node n, bool hasPol, bool pol, bool beneathQuant = false );
-  void flatten( Node n, bool beneathQuant );
+  void registerNode(Node n, bool hasPol, bool pol, bool beneathQuant = false);
+  void flatten(Node n, bool beneathQuant);
   void getPropagateVars(std::vector<TNode>& vars,
                         TNode n,
                         bool pol,
                         std::map<TNode, bool>& visited);
   /** The parent who owns this class */
   QuantConflictFind* d_parent;
-  MatchGen * d_mg;
+  MatchGen* d_mg;
   Node d_q;
   VarMgMap d_var_mg;
-  //for completing match
-  std::vector< int > d_unassigned;
-  std::vector< TypeNode > d_unassigned_tn;
+  // for completing match
+  std::vector<int> d_unassigned;
+  std::vector<TypeNode> d_unassigned_tn;
   int d_unassigned_nvar;
   int d_una_index;
-  std::vector< int > d_una_eqc_count;
-  //optimization: track which arguments variables appear under UF terms in
-  std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
-  //optimization: number of variables set, to track when we can stop
-  std::map< int, bool > d_vars_set;
-  std::vector< Node > d_extra_var;
+  std::vector<int> d_una_eqc_count;
+  // optimization: track which arguments variables appear under UF terms in
+  std::map<int, std::map<TNode, std::vector<unsigned> > > d_var_rel_dom;
+  // optimization: number of variables set, to track when we can stop
+  std::map<int, bool> d_vars_set;
+  std::vector<Node> d_extra_var;
 };
 
 class QuantConflictFind : public QuantifiersModule
@@ -269,7 +271,7 @@ public:  //for ground terms
   void checkQuantifiedFormula(Node q, bool& isConflict, unsigned& addedLemmas);
 
  private:
-  void debugPrint( const char * c ) const;
+  void debugPrint(const char* c) const;
   //for debugging
   std::vector< Node > d_quants;
   std::map< Node, int > d_quant_id;
@@ -306,11 +308,12 @@ public:  //for ground terms
    * algorithm performed by this class.
    */
   bool isPropagatingInstance(Node n) const;
-private:
+
+ private:
   /** Map from quantified formulas to their info class to compute instances */
-  std::map< Node, std::unique_ptr<QuantInfo> > d_qinfo;
+  std::map<Node, std::unique_ptr<QuantInfo> > d_qinfo;
   /** Map from type -> list(eqc) of that type */
-  std::map< TypeNode, std::vector< TNode > > d_eqcs;
+  std::map<TypeNode, std::vector<TNode> > d_eqcs;
 };
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
