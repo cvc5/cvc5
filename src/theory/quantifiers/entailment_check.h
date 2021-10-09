@@ -29,12 +29,12 @@ namespace quantifiers {
 
 class QuantifiersState;
 class TermDb;
-  
-/**
- * 
- */
-class EntailmentCheck : protected EnvObj {
 
+/**
+ *
+ */
+class EntailmentCheck : protected EnvObj
+{
  public:
   EntailmentCheck(Env& env, QuantifiersState& qs, TermDb& tdb);
   ~EntailmentCheck();
@@ -115,7 +115,7 @@ class EntailmentCheck : protected EnvObj {
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** Reference to the term database */
-  TermDb & d_tdb;
+  TermDb& d_tdb;
   /** helper for evaluate term */
   Node evaluateTerm2(TNode n,
                      std::map<TNode, Node>& visited,
@@ -134,7 +134,7 @@ class EntailmentCheck : protected EnvObj {
                    bool subsRep,
                    bool hasSubs,
                    bool pol);
-};/* class EntailmentCheck */
+}; /* class EntailmentCheck */
 
 }  // namespace quantifiers
 }  // namespace theory

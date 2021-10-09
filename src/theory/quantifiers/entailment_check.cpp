@@ -22,29 +22,30 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EntailmentCheck::EntailmentCheck(Env& env, QuantifiersState& qs, TermDb& tdb) : EnvObj(env), d_qstate(qs), d_tdb(tdb)
+EntailmentCheck::EntailmentCheck(Env& env, QuantifiersState& qs, TermDb& tdb)
+    : EnvObj(env), d_qstate(qs), d_tdb(tdb)
 {
 }
 
-EntailmentCheck::~EntailmentCheck(){
-
-}
+EntailmentCheck::~EntailmentCheck() {}
 Node EntailmentCheck::evaluateTerm2(TNode n,
-                           std::map<TNode, Node>& visited,
-                           std::vector<Node>& exp,
-                           bool useEntailmentTests,
-                           bool computeExp,
-                           bool reqHasTerm)
+                                    std::map<TNode, Node>& visited,
+                                    std::vector<Node>& exp,
+                                    bool useEntailmentTests,
+                                    bool computeExp,
+                                    bool reqHasTerm)
 {
-  std::map< TNode, Node >::iterator itv = visited.find( n );
-  if( itv != visited.end() ){
+  std::map<TNode, Node>::iterator itv = visited.find(n);
+  if (itv != visited.end())
+  {
     return itv->second;
   }
   size_t prevSize = exp.size();
   Trace("term-db-eval") << "evaluate term : " << n << std::endl;
   Node ret = n;
-  if( n.getKind()==FORALL || n.getKind()==BOUND_VARIABLE ){
-    //do nothing
+  if (n.getKind() == FORALL || n.getKind() == BOUND_VARIABLE)
+  {
+    // do nothing
   }
   else if (d_qstate.hasTerm(n))
   {
@@ -67,12 +68,8 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
     std::vector<Node> tempExp;
     for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
-      TNode c = evaluateTerm2(n[i],
-                              visited,
-                              tempExp,
-                              useEntailmentTests,
-                              computeExp,
-                              reqHasTerm);
+      TNode c = evaluateTerm2(
+          n[i], visited, tempExp, useEntailmentTests, computeExp, reqHasTerm);
       if (c.isNull())
       {
         ret = Node::null();
@@ -156,7 +153,8 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
           }
         }
       }
-      if( !ret_set ){
+      if (!ret_set)
+      {
         Trace("term-db-eval") << "return rewrite" << std::endl;
         // a theory symbol or a new UF term
         if (n.getMetaKind() == metakind::PARAMETERIZED)
@@ -222,21 +220,27 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
 }
 
 TNode EntailmentCheck::getEntailedTerm2(TNode n,
-                               std::map<TNode, TNode>& subs,
-                               bool subsRep,
-                               bool hasSubs)
+                                        std::map<TNode, TNode>& subs,
+                                        bool subsRep,
+                                        bool hasSubs)
 {
   Trace("term-db-entail") << "get entailed term : " << n << std::endl;
   if (d_qstate.hasTerm(n))
   {
     Trace("term-db-entail") << "...exists in ee, return rep " << std::endl;
     return n;
-  }else if( n.getKind()==BOUND_VARIABLE ){
-    if( hasSubs ){
-      std::map< TNode, TNode >::iterator it = subs.find( n );
-      if( it!=subs.end() ){
-        Trace("term-db-entail") << "...substitution is : " << it->second << std::endl;
-        if( subsRep ){
+  }
+  else if (n.getKind() == BOUND_VARIABLE)
+  {
+    if (hasSubs)
+    {
+      std::map<TNode, TNode>::iterator it = subs.find(n);
+      if (it != subs.end())
+      {
+        Trace("term-db-entail")
+            << "...substitution is : " << it->second << std::endl;
+        if (subsRep)
+        {
           Assert(d_qstate.hasTerm(it->second));
           Assert(d_qstate.getRepresentative(it->second) == it->second);
           return it->second;
@@ -244,29 +248,39 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
         return getEntailedTerm2(it->second, subs, subsRep, hasSubs);
       }
     }
-  }else if( n.getKind()==ITE ){
-    for( unsigned i=0; i<2; i++ ){
+  }
+  else if (n.getKind() == ITE)
+  {
+    for (unsigned i = 0; i < 2; i++)
+    {
       if (isEntailed2(n[0], subs, subsRep, hasSubs, i == 0))
       {
         return getEntailedTerm2(n[i == 0 ? 1 : 2], subs, subsRep, hasSubs);
       }
     }
-  }else{
-    if( n.hasOperator() ){
-      TNode f = getMatchOperator( n );
-      if( !f.isNull() ){
-        std::vector< TNode > args;
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+  }
+  else
+  {
+    if (n.hasOperator())
+    {
+      TNode f = getMatchOperator(n);
+      if (!f.isNull())
+      {
+        std::vector<TNode> args;
+        for (unsigned i = 0; i < n.getNumChildren(); i++)
+        {
           TNode c = getEntailedTerm2(n[i], subs, subsRep, hasSubs);
-          if( c.isNull() ){
+          if (c.isNull())
+          {
             return TNode::null();
           }
           c = d_qstate.getRepresentative(c);
           Trace("term-db-entail") << "  child " << i << " : " << c << std::endl;
-          args.push_back( c );
+          args.push_back(c);
         }
         TNode nn = getCongruentTerm(f, args);
-        Trace("term-db-entail") << "  got congruent term " << nn << " for " << n << std::endl;
+        Trace("term-db-entail")
+            << "  got congruent term " << nn << " for " << n << std::endl;
         return nn;
       }
     }
@@ -275,99 +289,131 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
 }
 
 Node EntailmentCheck::evaluateTerm(TNode n,
-                          bool useEntailmentTests,
-                          bool reqHasTerm)
+                                   bool useEntailmentTests,
+                                   bool reqHasTerm)
 {
-  std::map< TNode, Node > visited;
+  std::map<TNode, Node> visited;
   std::vector<Node> exp;
   return evaluateTerm2(n, visited, exp, useEntailmentTests, false, reqHasTerm);
 }
 
 Node EntailmentCheck::evaluateTerm(TNode n,
-                          std::vector<Node>& exp,
-                          bool useEntailmentTests,
-                          bool reqHasTerm)
+                                   std::vector<Node>& exp,
+                                   bool useEntailmentTests,
+                                   bool reqHasTerm)
 {
   std::map<TNode, Node> visited;
   return evaluateTerm2(n, visited, exp, useEntailmentTests, true, reqHasTerm);
 }
 
 TNode EntailmentCheck::getEntailedTerm(TNode n,
-                              std::map<TNode, TNode>& subs,
-                              bool subsRep)
+                                       std::map<TNode, TNode>& subs,
+                                       bool subsRep)
 {
   return getEntailedTerm2(n, subs, subsRep, true);
 }
 
 TNode EntailmentCheck::getEntailedTerm(TNode n)
 {
-  std::map< TNode, TNode > subs;
+  std::map<TNode, TNode> subs;
   return getEntailedTerm2(n, subs, false, false);
 }
 
 bool EntailmentCheck::isEntailed2(
     TNode n, std::map<TNode, TNode>& subs, bool subsRep, bool hasSubs, bool pol)
 {
-  Trace("term-db-entail") << "Check entailed : " << n << ", pol = " << pol << std::endl;
+  Trace("term-db-entail") << "Check entailed : " << n << ", pol = " << pol
+                          << std::endl;
   Assert(n.getType().isBoolean());
-  if( n.getKind()==EQUAL && !n[0].getType().isBoolean() ){
+  if (n.getKind() == EQUAL && !n[0].getType().isBoolean())
+  {
     TNode n1 = getEntailedTerm2(n[0], subs, subsRep, hasSubs);
-    if( !n1.isNull() ){
+    if (!n1.isNull())
+    {
       TNode n2 = getEntailedTerm2(n[1], subs, subsRep, hasSubs);
-      if( !n2.isNull() ){
-        if( n1==n2 ){
+      if (!n2.isNull())
+      {
+        if (n1 == n2)
+        {
           return pol;
-        }else{
+        }
+        else
+        {
           Assert(d_qstate.hasTerm(n1));
           Assert(d_qstate.hasTerm(n2));
-          if( pol ){
+          if (pol)
+          {
             return d_qstate.areEqual(n1, n2);
-          }else{
+          }
+          else
+          {
             return d_qstate.areDisequal(n1, n2);
           }
         }
       }
     }
-  }else if( n.getKind()==NOT ){
+  }
+  else if (n.getKind() == NOT)
+  {
     return isEntailed2(n[0], subs, subsRep, hasSubs, !pol);
-  }else if( n.getKind()==OR || n.getKind()==AND ){
-    bool simPol = ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND );
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+  }
+  else if (n.getKind() == OR || n.getKind() == AND)
+  {
+    bool simPol = (pol && n.getKind() == OR) || (!pol && n.getKind() == AND);
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
       if (isEntailed2(n[i], subs, subsRep, hasSubs, pol))
       {
-        if( simPol ){
+        if (simPol)
+        {
           return true;
         }
-      }else{
-        if( !simPol ){
+      }
+      else
+      {
+        if (!simPol)
+        {
           return false;
         }
       }
     }
     return !simPol;
-  //Boolean equality here
-  }else if( n.getKind()==EQUAL || n.getKind()==ITE ){
-    for( unsigned i=0; i<2; i++ ){
+    // Boolean equality here
+  }
+  else if (n.getKind() == EQUAL || n.getKind() == ITE)
+  {
+    for (unsigned i = 0; i < 2; i++)
+    {
       if (isEntailed2(n[0], subs, subsRep, hasSubs, i == 0))
       {
-        unsigned ch = ( n.getKind()==EQUAL || i==0 ) ? 1 : 2;
-        bool reqPol = ( n.getKind()==ITE || i==0 ) ? pol : !pol;
+        unsigned ch = (n.getKind() == EQUAL || i == 0) ? 1 : 2;
+        bool reqPol = (n.getKind() == ITE || i == 0) ? pol : !pol;
         return isEntailed2(n[ch], subs, subsRep, hasSubs, reqPol);
       }
     }
-  }else if( n.getKind()==APPLY_UF ){
+  }
+  else if (n.getKind() == APPLY_UF)
+  {
     TNode n1 = getEntailedTerm2(n, subs, subsRep, hasSubs);
-    if( !n1.isNull() ){
+    if (!n1.isNull())
+    {
       Assert(d_qstate.hasTerm(n1));
-      if( n1==d_true ){
+      if (n1 == d_true)
+      {
         return pol;
-      }else if( n1==d_false ){
+      }
+      else if (n1 == d_false)
+      {
         return !pol;
-      }else{
+      }
+      else
+      {
         return d_qstate.getRepresentative(n1) == (pol ? d_true : d_false);
       }
     }
-  }else if( n.getKind()==FORALL && !pol ){
+  }
+  else if (n.getKind() == FORALL && !pol)
+  {
     return isEntailed2(n[1], subs, subsRep, hasSubs, pol);
   }
   return false;
@@ -376,14 +422,14 @@ bool EntailmentCheck::isEntailed2(
 bool EntailmentCheck::isEntailed(TNode n, bool pol)
 {
   Assert(d_consistent_ee);
-  std::map< TNode, TNode > subs;
+  std::map<TNode, TNode> subs;
   return isEntailed2(n, subs, false, false, pol);
 }
 
 bool EntailmentCheck::isEntailed(TNode n,
-                        std::map<TNode, TNode>& subs,
-                        bool subsRep,
-                        bool pol)
+                                 std::map<TNode, TNode>& subs,
+                                 bool subsRep,
+                                 bool pol)
 {
   Assert(d_consistent_ee);
   return isEntailed2(n, subs, subsRep, true, pol);
