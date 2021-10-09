@@ -426,7 +426,6 @@ bool EntailmentCheck::isEntailed2(
 
 bool EntailmentCheck::isEntailed(TNode n, bool pol)
 {
-  Assert(d_consistent_ee);
   std::map<TNode, TNode> subs;
   return isEntailed2(n, subs, false, false, pol);
 }
@@ -436,7 +435,6 @@ bool EntailmentCheck::isEntailed(TNode n,
                                  bool subsRep,
                                  bool pol)
 {
-  Assert(d_consistent_ee);
   return isEntailed2(n, subs, subsRep, true, pol);
 }
 
