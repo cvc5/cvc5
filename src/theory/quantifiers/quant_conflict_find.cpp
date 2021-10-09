@@ -37,8 +37,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo(Env& env, QuantConflictFind * p, Node q)
-    : EnvObj(env), d_parent(p), d_q(q), d_unassigned_nvar(0), d_una_index(0), d_parent(nullptr), d_mg(nullptr)
+QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
+    : EnvObj(env),
+      d_parent(p),
+      d_q(q),
+      d_unassigned_nvar(0),
+      d_una_index(0),
+      d_parent(nullptr),
+      d_mg(nullptr)
 {
 }
 
@@ -58,19 +64,20 @@ QuantifiersInferenceManager& QuantInfo::getInferenceManager()
   return d_parent->getInferenceManager();
 }
 
-void QuantInfo::initialize() {
+void QuantInfo::initialize()
+{
   Node qn = d_q[1];
   d_extra_var.clear();
 
   //register the variables
-  for( size_t i=0, nvars = d_q[0].getNumChildren(); i<nvars; i++ )
+  for (size_t i = 0, nvars = d_q[0].getNumChildren(); i < nvars; i++)
   {
     Node v = d_q[0][i];
-    d_match.push_back( TNode::null() );
-    d_match_term.push_back( TNode::null() );
+    d_match.push_back(TNode::null());
+    d_match_term.push_back(TNode::null());
     d_var_num[v] = i;
-    d_vars.push_back( v );
-    d_var_types.push_back( v.getType() );
+    d_vars.push_back(v);
+    d_var_types.push_back(v.getType());
   }
 
   registerNode( qn, true, true );
@@ -89,7 +96,9 @@ void QuantInfo::initialize() {
       }
     }
     */
-    for( size_t j=q[0].getNumChildren(), nvars = d_vars.size(); j<nvars; j++ ){
+    for (size_t j = q[0].getNumChildren(), nvars = d_vars.size(); j < nvars;
+         j++)
+    {
       if( d_vars[j].getKind()!=BOUND_VARIABLE ){
         d_var_mg[j] = NULL;
         bool is_tsym = false;
@@ -152,7 +161,11 @@ void QuantInfo::initialize() {
   }
 }
 
-void QuantInfo::getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited ){
+void QuantInfo::getPropagateVars(std::vector<TNode>& vars,
+                                 TNode n,
+                                 bool pol,
+                                 std::map<TNode, bool>& visited)
+{
   std::map< TNode, bool >::iterator itv = visited.find( n );
   if( itv==visited.end() ){
     visited[n] = true;
@@ -161,7 +174,7 @@ void QuantInfo::getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol,
     if( d_var_num.find( n )!=d_var_num.end() ){
       Assert(std::find(vars.begin(), vars.end(), n) == vars.end());
       vars.push_back( n );
-      TNode f = d_parent->getTermDatabase()->getMatchOperator( n );
+      TNode f = d_parent->getTermDatabase()->getMatchOperator(n);
       if( !f.isNull() ){
         if( std::find( p->d_func_rel_dom[f].begin(), p->d_func_rel_dom[f].end(), d_q )==p->d_func_rel_dom[f].end() ){
           p->d_func_rel_dom[f].push_back( d_q );
@@ -173,8 +186,9 @@ void QuantInfo::getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol,
     }
     Trace("qcf-opt-debug") << "getPropagateVars " << n << ", pol = " << pol << ", rec = " << rec << std::endl;
     if( rec ){
-      for (const Node& nc : n){
-        getPropagateVars( vars, nc, pol, visited );
+      for (const Node& nc : n)
+      {
+        getPropagateVars(vars, nc, pol, visited);
       }
     }
   }
@@ -266,17 +280,18 @@ void QuantInfo::flatten( Node n, bool beneathQuant ) {
   }
 }
 
-
-bool QuantInfo::reset_round() {
-  for( size_t i=0, nmatch = d_match.size(); i<nmatch; i++ ){
+bool QuantInfo::reset_round()
+{
+  for (size_t i = 0, nmatch = d_match.size(); i < nmatch; i++)
+  {
     d_match[i] = TNode::null();
     d_match_term[i] = TNode::null();
   }
   d_vars_set.clear();
   d_curr_var_deq.clear();
   d_tconstraints.clear();
-  
-  d_mg->reset_round( d_parent );
+
+  d_mg->reset_round(d_parent);
   for( std::map< int, MatchGen * >::iterator it = d_var_mg.begin(); it != d_var_mg.end(); ++it ){
     if (!it->second->reset_round(p))
     {
@@ -284,7 +299,7 @@ bool QuantInfo::reset_round() {
     }
   }
   //now, reset for matching
-  d_mg->reset( d_parent, false, this );
+  d_mg->reset(d_parent, false, this);
   return true;
 }
 
@@ -333,7 +348,8 @@ TNode QuantInfo::getCurrentExpValue( TNode n ) {
   }
 }
 
-bool QuantInfo::getCurrentCanBeEqual( int v, TNode n, bool chDiseq ) {
+bool QuantInfo::getCurrentCanBeEqual(int v, TNode n, bool chDiseq)
+{
   //check disequalities
   std::map< int, std::map< TNode, int > >::iterator itd = d_curr_var_deq.find( v );
   if( itd!=d_curr_var_deq.end() ){
@@ -355,15 +371,18 @@ bool QuantInfo::getCurrentCanBeEqual( int v, TNode n, bool chDiseq ) {
   return true;
 }
 
-int QuantInfo::addConstraint( int v, TNode n, bool polarity ) {
+int QuantInfo::addConstraint(int v, TNode n, bool polarity)
+{
   v = getCurrentRepVar( v );
   int vn = getVarNum( n );
   vn = vn==-1 ? -1 : getCurrentRepVar( vn );
   n = getCurrentValue( n );
-  return addConstraint( v, n, vn, polarity, false );
+  return addConstraint(v, n, vn, polarity, false);
 }
 
-int QuantInfo::addConstraint( int v, TNode n, int vn, bool polarity, bool doRemove ) {
+int QuantInfo::addConstraint(
+    int v, TNode n, int vn, bool polarity, bool doRemove)
+{
   //for handling equalities between variables, and disequalities involving variables
   Debug("qcf-match-debug") << "- " << (doRemove ? "un" : "" ) << "constrain : " << v << " -> " << n << " (cv=" << getCurrentValue( n ) << ")";
   Debug("qcf-match-debug") << ", (vn=" << vn << "), polarity = " << polarity << std::endl;
@@ -377,7 +396,7 @@ int QuantInfo::addConstraint( int v, TNode n, int vn, bool polarity, bool doRemo
           //if set to this in the opposite direction, clean up opposite instead
           //          std::map< int, TNode >::iterator itmn = d_match.find( vn );
           if( d_match[vn]==d_vars[v] ){
-            return addConstraint( vn, d_vars[v], v, true, true );
+            return addConstraint(vn, d_vars[v], v, true, true);
           }else{
             //unsetting variables equal
             std::map< int, std::map< TNode, int > >::iterator itd = d_curr_var_deq.find( vn );
@@ -395,7 +414,7 @@ int QuantInfo::addConstraint( int v, TNode n, int vn, bool polarity, bool doRemo
             }
           }
         }
-        unsetMatch( v );
+        unsetMatch(v);
         return 1;
       }else{
         //std::map< int, TNode >::iterator itm = d_match.find( v );
@@ -422,7 +441,8 @@ int QuantInfo::addConstraint( int v, TNode n, int vn, bool polarity, bool doRemo
                     d_curr_var_deq[vn][dv] = v;
                   }
                 }else{
-                  if( !d_parent->areMatchDisequal( d_match[vn], dv ) ){
+                  if (!d_parent->areMatchDisequal(d_match[vn], dv))
+                  {
                     Debug("qcf-match-debug") << "  -> fail, conflicting disequality" << std::endl;
                     return -1;
                   }
@@ -520,17 +540,19 @@ bool QuantInfo::isConstrainedVar( int v ) {
   }
 }
 
-bool QuantInfo::setMatch( int v, TNode n, bool isGroundRep, bool isGround ) {
+bool QuantInfo::setMatch(int v, TNode n, bool isGroundRep, bool isGround)
+{
   if( getCurrentCanBeEqual( p, v, n ) ){
     if( isGroundRep ){
       //fail if n does not exist in the relevant domain of each of the argument positions
       std::map< int, std::map< TNode, std::vector< unsigned > > >::iterator it = d_var_rel_dom.find( v );
       if( it!=d_var_rel_dom.end() ){
-        TermDb * tdb = d_parent->getTermDatabase();
+        TermDb* tdb = d_parent->getTermDatabase();
         for( std::map< TNode, std::vector< unsigned > >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
           for( unsigned j=0; j<it2->second.size(); j++ ){
             Debug("qcf-match-debug2") << n << " in relevant domain " <<  it2->first << "." << it2->second[j] << "?" << std::endl;
-            if( !tdb->inRelevantDomain( it2->first, it2->second[j], n ) ){
+            if (!tdb->inRelevantDomain(it2->first, it2->second[j], n))
+            {
               Debug("qcf-match-debug") << "  -> fail, since " << n << " is not in relevant domain of " << it2->first << "." << it2->second[j] << std::endl;
               return false;
             }
@@ -552,7 +574,8 @@ bool QuantInfo::setMatch( int v, TNode n, bool isGroundRep, bool isGround ) {
   }
 }
 
-void QuantInfo::unsetMatch( int v ) {
+void QuantInfo::unsetMatch(int v)
+{
   Debug("qcf-match-debug") << "-- unbind : " << v << std::endl;
   if( d_vars[v].getKind()==BOUND_VARIABLE && d_vars_set.find( v )!=d_vars_set.end() ){
     d_vars_set.erase( v );
@@ -560,11 +583,14 @@ void QuantInfo::unsetMatch( int v ) {
   d_match[ v ] = TNode::null();
 }
 
-bool QuantInfo::isMatchSpurious( ) {
-  for( size_t i=0, nvars = getNumVars(); i<nvars; i++ ){
+bool QuantInfo::isMatchSpurious()
+{
+  for (size_t i = 0, nvars = getNumVars(); i < nvars; i++)
+  {
     //std::map< int, TNode >::iterator it = d_match.find( i );
     if( !d_match[i].isNull() ){
-      if (!getCurrentCanBeEqual(i, d_match[i], p->atConflictEffort())) {
+      if (!getCurrentCanBeEqual(i, d_match[i], p->atConflictEffort()))
+      {
         return true;
       }
     }
@@ -572,11 +598,12 @@ bool QuantInfo::isMatchSpurious( ) {
   return false;
 }
 
-bool QuantInfo::isTConstraintSpurious( std::vector<Node>& terms)
+bool QuantInfo::isTConstraintSpurious(std::vector<Node>& terms)
 {
   if( options::qcfEagerTest() ){
     //check whether the instantiation evaluates as expected
-    if (d_parent->atConflictEffort()) {
+    if (d_parent->atConflictEffort())
+    {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
       std::map< TNode, TNode > subs;
       for( unsigned i=0; i<terms.size(); i++ ){
@@ -650,7 +677,8 @@ bool QuantInfo::isTConstraintSpurious( std::vector<Node>& terms)
   return p->d_qstate.isInConflict();
 }
 
-bool QuantInfo::entailmentTest( Node lit, bool chEnt ) {
+bool QuantInfo::entailmentTest(Node lit, bool chEnt)
+{
   Trace("qcf-tconstraint-debug") << "Check : " << lit << std::endl;
   Node rew = rewrite(lit);
   if (rew.isConst())
@@ -682,7 +710,8 @@ bool QuantInfo::entailmentTest( Node lit, bool chEnt ) {
   return chEnt;
 }
 
-bool QuantInfo::completeMatch( std::vector< int >& assigned, bool doContinue ) {
+bool QuantInfo::completeMatch(std::vector<int>& assigned, bool doContinue)
+{
   //assign values for variables that were unassigned (usually not necessary, but handles corner cases)
   bool doFail = false;
   bool success = true;
@@ -922,9 +951,11 @@ void QuantInfo::getMatch( std::vector< Node >& terms ){
   }
 }
 
-void QuantInfo::revertMatch( std::vector< int >& assigned ) {
-  for (int a : assigned){
-    unsetMatch( a );
+void QuantInfo::revertMatch(std::vector<int>& assigned)
+{
+  for (int a : assigned)
+  {
+    unsetMatch(a);
   }
 }
 
@@ -1873,29 +1904,37 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   {
     return;
   }
-  d_quants.push_back( q );
+  d_quants.push_back(q);
   d_quant_id[q] = d_quants.size();
-  if( Trace.isOn("qcf-qregister") ){
+  if (Trace.isOn("qcf-qregister"))
+  {
     Trace("qcf-qregister") << "Register ";
-    debugPrintQuant( "qcf-qregister", q );
+    debugPrintQuant("qcf-qregister", q);
     Trace("qcf-qregister") << " : " << q << std::endl;
   }
-  //make QcfNode structure
-  Trace("qcf-qregister") << "- Get relevant equality/disequality pairs, calculate flattening..." << std::endl;
-  d_qinfo[q].reset( new QuantInfo(d_env, this, q) );
+  // make QcfNode structure
+  Trace("qcf-qregister")
+      << "- Get relevant equality/disequality pairs, calculate flattening..."
+      << std::endl;
+  d_qinfo[q].reset(new QuantInfo(d_env, this, q));
 
-  //debug print
-  if( Trace.isOn("qcf-qregister") ){
-    QuantInfo * qi = d_qinfo[q].get();
+  // debug print
+  if (Trace.isOn("qcf-qregister"))
+  {
+    QuantInfo* qi = d_qinfo[q].get();
     Trace("qcf-qregister") << "- Flattened structure is :" << std::endl;
     Trace("qcf-qregister") << "    ";
-    debugPrintQuantBody( "qcf-qregister", q, q[1] );
+    debugPrintQuantBody("qcf-qregister", q, q[1]);
     Trace("qcf-qregister") << std::endl;
-    if( qi->d_vars.size()>q[0].getNumChildren() ){
+    if (qi->d_vars.size() > q[0].getNumChildren())
+    {
       Trace("qcf-qregister") << "  with additional constraints : " << std::endl;
-      for( size_t j=q[0].getNumChildren(), nvars = qi->d_vars.size(); j<nvars; j++ ){
+      for (size_t j = q[0].getNumChildren(), nvars = qi->d_vars.size();
+           j < nvars;
+           j++)
+      {
         Trace("qcf-qregister") << "    ?x" << j << " = ";
-        debugPrintQuantBody( "qcf-qregister", q, qi->d_vars[j], false );
+        debugPrintQuantBody("qcf-qregister", q, qi->d_vars[j], false);
         Trace("qcf-qregister") << std::endl;
       }
     }
@@ -1903,11 +1942,13 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   }
 }
 
-bool QuantConflictFind::areMatchEqual( TNode n1, TNode n2 ) const {
+bool QuantConflictFind::areMatchEqual(TNode n1, TNode n2) const
+{
   return n1==n2;
 }
 
-bool QuantConflictFind::areMatchDisequal( TNode n1, TNode n2 ) const {
+bool QuantConflictFind::areMatchDisequal(TNode n1, TNode n2) const
+{
   return n1!=n2;
 }
 
@@ -2218,7 +2259,8 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
 
 //-------------------------------------------------- debugging
 
-void QuantConflictFind::debugPrint( const char * c ) const {
+void QuantConflictFind::debugPrint(const char* c) const
+{
   //print the equivalance classes
   Trace(c) << "----------EQ classes" << std::endl;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( getEqualityEngine() );
@@ -2241,18 +2283,24 @@ void QuantConflictFind::debugPrint( const char * c ) const {
   }
 }
 
-void QuantConflictFind::debugPrintQuant( const char * c, Node q ) const {
+void QuantConflictFind::debugPrintQuant(const char* c, Node q) const
+{
   Trace(c) << "Q" << d_quant_id[q];
 }
 
-void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, bool doVarNum ) const {
+void QuantConflictFind::debugPrintQuantBody(const char* c,
+                                            Node q,
+                                            Node n,
+                                            bool doVarNum) const
+{
   if( n.getNumChildren()==0 ){
     Trace(c) << n;
     return;
   }
-  const QuantInfo * qi = d_qinfo[q].get();
-  std::map< TNode, int >::const_iterator itv = qi->d_var_num.find(n);
-  if( doVarNum && itv!=d_qinfo[q].d_var_num.end() ){
+  const QuantInfo* qi = d_qinfo[q].get();
+  std::map<TNode, int>::const_iterator itv = qi->d_var_num.find(n);
+  if (doVarNum && itv != d_qinfo[q].d_var_num.end())
+  {
     Trace(c) << "?x" << itv->second;
   }else{
     Trace(c) << "(";
@@ -2264,7 +2312,7 @@ void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, boo
     for (const Node& nc : n)
     {
       Trace(c) << " ";
-      debugPrintQuantBody( c, q, nc );
+      debugPrintQuantBody(c, q, nc);
     }
     Trace(c) << ")";
   }

@@ -111,8 +111,9 @@ public:
 };
 
 //info for quantifiers
-class QuantInfo : protected EnvObj {
-private:
+class QuantInfo : protected EnvObj
+{
+ private:
   void registerNode( Node n, bool hasPol, bool pol, bool beneathQuant = false );
   void flatten( Node n, bool beneathQuant );
 private: //for completing match
@@ -123,23 +124,28 @@ private: //for completing match
   std::vector< int > d_una_eqc_count;
   //optimization: track which arguments variables appear under UF terms in
   std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
-  void getPropagateVars( std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
+  void getPropagateVars(std::vector<TNode>& vars,
+                        TNode n,
+                        bool pol,
+                        std::map<TNode, bool>& visited);
   //optimization: number of variables set, to track when we can stop
   std::map< int, bool > d_vars_set;
   std::vector< Node > d_extra_var;
 public:
   bool isBaseMatchComplete();
 public:
-  QuantInfo(Env& env, QuantConflictFind * p, Node q, Node qn);
-  ~QuantInfo();
-  /** Get quantifiers inference manager */
-  QuantifiersInferenceManager& getInferenceManager();
-  std::vector< TNode > d_vars;
-  std::vector< TypeNode > d_var_types;
-  std::map< TNode, int > d_var_num;
-  std::vector< int > d_tsym_vars;
-  std::map< TNode, bool > d_inMatchConstraint;
-  int getVarNum( TNode v ) { return d_var_num.find( v )!=d_var_num.end() ? d_var_num[v] : -1; }
+ QuantInfo(Env& env, QuantConflictFind* p, Node q, Node qn);
+ ~QuantInfo();
+ /** Get quantifiers inference manager */
+ QuantifiersInferenceManager& getInferenceManager();
+ std::vector<TNode> d_vars;
+ std::vector<TypeNode> d_var_types;
+ std::map<TNode, int> d_var_num;
+ std::vector<int> d_tsym_vars;
+ std::map<TNode, bool> d_inMatchConstraint;
+ int getVarNum(TNode v)
+ {
+   return d_var_num.find(v) != d_var_num.end() ? d_var_num[v] : -1; }
   bool isVar( TNode v ) { return d_var_num.find( v )!=d_var_num.end(); }
   size_t getNumVars() { return d_vars.size(); }
   TNode getVar( int i ) { return d_vars[i]; }
@@ -162,7 +168,8 @@ public:
 
   Node d_q;
   bool reset_round();
-public:
+
+ public:
   //current constraints
   std::vector< TNode > d_match;
   std::vector< TNode > d_match_term;
@@ -171,17 +178,17 @@ public:
   int getCurrentRepVar( int v );
   TNode getCurrentValue( TNode n );
   TNode getCurrentExpValue( TNode n );
-  bool getCurrentCanBeEqual( int v, TNode n, bool chDiseq = false );
-  int addConstraint( int v, TNode n, bool polarity );
-  int addConstraint( int v, TNode n, int vn, bool polarity, bool doRemove );
-  bool setMatch(int v, TNode n, bool isGroundRep, bool isGround );
-  void unsetMatch( int v );
+  bool getCurrentCanBeEqual(int v, TNode n, bool chDiseq = false);
+  int addConstraint(int v, TNode n, bool polarity);
+  int addConstraint(int v, TNode n, int vn, bool polarity, bool doRemove);
+  bool setMatch(int v, TNode n, bool isGroundRep, bool isGround);
+  void unsetMatch(int v);
   bool isMatchSpurious();
-  bool isTConstraintSpurious( std::vector< Node >& terms );
-  bool entailmentTest( Node lit, bool chEnt = true );
-  bool completeMatch( std::vector< int >& assigned, bool doContinue = false );
-  void revertMatch( std::vector< int >& assigned );
-  void debugPrintMatch( const char * c ) const;
+  bool isTConstraintSpurious(std::vector<Node>& terms);
+  bool entailmentTest(Node lit, bool chEnt = true);
+  bool completeMatch(std::vector<int>& assigned, bool doContinue = false);
+  void revertMatch(std::vector<int>& assigned);
+  void debugPrintMatch(const char* c) const;
   bool isConstrainedVar( int v );
   void getMatch( std::vector< Node >& terms );
 };
@@ -231,8 +238,8 @@ private:  //for equivalence classes
   Effort d_effort;
 
  public:
-  bool areMatchEqual( TNode n1, TNode n2 ) const;
-  bool areMatchDisequal( TNode n1, TNode n2 ) const;
+  bool areMatchEqual(TNode n1, TNode n2) const;
+  bool areMatchDisequal(TNode n1, TNode n2) const;
 
  public:
   QuantConflictFind(Env& env,
@@ -277,9 +284,13 @@ private:  //for equivalence classes
   //for debugging
   std::vector< Node > d_quants;
   std::map< Node, int > d_quant_id;
-  void debugPrintQuant( const char * c, Node q ) const;
-  void debugPrintQuantBody( const char * c, Node q, Node n, bool doVarNum = true ) const;
-public:
+  void debugPrintQuant(const char* c, Node q) const;
+  void debugPrintQuantBody(const char* c,
+                           Node q,
+                           Node n,
+                           bool doVarNum = true) const;
+
+ public:
   /** statistics class */
   class Statistics {
   public:
