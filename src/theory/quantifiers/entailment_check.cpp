@@ -15,8 +15,8 @@
 
 #include "theory/quantifiers/entailment_check.h"
 
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace cvc5::kind;
 using namespace cvc5::context;
