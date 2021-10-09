@@ -139,7 +139,7 @@ bool QuantifiersMacros::containsBadOp(Node n, Node op, bool reqGround)
 
 bool QuantifiersMacros::preservesTriggerVariables(Node q, Node n)
 {
-  Assert (q.getKind()==FORALL) << "Expected quantified formula, got " << q;
+  Assert(q.getKind() == FORALL) << "Expected quantified formula, got " << q;
   Node icn = d_qreg.substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector<Node> var;
