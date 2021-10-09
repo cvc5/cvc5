@@ -194,10 +194,6 @@ void SynthConjecture::assign(Node q)
     }
     d_checkBody = d_checkBody[0][1].negate();
   }
-  else
-  {
-    d_checkBody = d_checkBody;
-  }
   d_checkBody = rewrite(bsubs.apply(d_checkBody));
   if (!d_embedSideCondition.isNull() && !vars.empty())
   {
@@ -614,8 +610,6 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 bool SynthConjecture::doRefine()
 {
   Assert(d_setInnerSksModel);
-
-  // first, make skolem substitution
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..."
                         << std::endl;
   Trace("cegqi-refine-debug")
