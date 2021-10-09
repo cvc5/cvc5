@@ -63,7 +63,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
 
 
   Trace("qcf-qregister") << "- Make match gen structure..." << std::endl;
-  d_mg.reset( new MatchGen( this, qn ));
+  d_mg.reset(new MatchGen(this, qn));
 
   if( d_mg->isValid() ){
     for (size_t j = q[0].getNumChildren(), nvars = d_vars.size(); j < nvars;
@@ -636,7 +636,8 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
           echeck->evaluateTerm(inst, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
-        for( size_t i=0, nterms = terms.size(); i<nterms; i++ ){
+        for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
+        {
           Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
         }
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
@@ -959,7 +960,8 @@ bool QuantInfo::completeMatch(std::vector<int>& assigned, bool doContinue)
 }
 
 void QuantInfo::getMatch( std::vector< Node >& terms ){
-  for( size_t i=0, nvars = d_q[0].getNumChildren(); i<nvars; i++ ){
+  for (size_t i = 0, nvars = d_q[0].getNumChildren(); i < nvars; i++)
+  {
     int repVar = getCurrentRepVar( i );
     Node cv;
     if( !d_match_term[repVar].isNull() ){
