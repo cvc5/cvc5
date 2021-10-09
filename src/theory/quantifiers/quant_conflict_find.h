@@ -36,15 +36,17 @@ class QuantInfo;
 //match generator
 class MatchGen {
   friend class QuantInfo;
+public:
+  MatchGen();
+  MatchGen( QuantInfo * qi, Node n, bool isVar = false );
 private:
   //current children information
   int d_child_counter;
   bool d_use_children;
   //children of this object
   std::vector< int > d_children_order;
-  unsigned getNumChildren() { return d_children.size(); }
+  size_t getNumChildren() { return d_children.size(); }
   MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
-  //MatchGen * getChild( int i ) { return &d_children[i]; }
   //current matching information
   std::vector<TNodeTrie*> d_qn;
   std::vector<std::map<TNode, TNodeTrie>::iterator> d_qni;
@@ -81,8 +83,6 @@ public:
   };
   void debugPrintType( const char * c, short typ, bool isTrace = false );
 public:
-  MatchGen();
-  MatchGen( QuantInfo * qi, Node n, bool isVar = false );
   bool d_tgt;
   bool d_tgt_orig;
   bool d_wasSet;
@@ -113,29 +113,13 @@ public:
 //info for quantifiers
 class QuantInfo : protected EnvObj
 {
- private:
-  void registerNode( Node n, bool hasPol, bool pol, bool beneathQuant = false );
-  void flatten( Node n, bool beneathQuant );
-private: //for completing match
-  std::vector< int > d_unassigned;
-  std::vector< TypeNode > d_unassigned_tn;
-  int d_unassigned_nvar;
-  int d_una_index;
-  std::vector< int > d_una_eqc_count;
-  //optimization: track which arguments variables appear under UF terms in
-  std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
-  void getPropagateVars(std::vector<TNode>& vars,
-                        TNode n,
-                        bool pol,
-                        std::map<TNode, bool>& visited);
-  //optimization: number of variables set, to track when we can stop
-  std::map< int, bool > d_vars_set;
-  std::vector< Node > d_extra_var;
-public:
-  bool isBaseMatchComplete();
-public:
- QuantInfo(Env& env, QuantConflictFind* p, Node q, Node qn);
- ~QuantInfo();
+ public:
+  typedef std::map< int, MatchGen * > VarMgMap;
+  QuantInfo(Env& env, QuantConflictFind* p, Node q);
+  ~QuantInfo();
+  /** get quantified formula */
+  Node getQuantifiedFormula() const;
+   bool isBaseMatchComplete();
  /** Get quantifiers inference manager */
  QuantifiersInferenceManager& getInferenceManager();
  std::vector<TNode> d_vars;
@@ -143,30 +127,20 @@ public:
  std::map<TNode, int> d_var_num;
  std::vector<int> d_tsym_vars;
  std::map<TNode, bool> d_inMatchConstraint;
- int getVarNum(TNode v)
- {
-   return d_var_num.find(v) != d_var_num.end() ? d_var_num[v] : -1; }
-  bool isVar( TNode v ) { return d_var_num.find( v )!=d_var_num.end(); }
-  size_t getNumVars() { return d_vars.size(); }
-  TNode getVar( int i ) { return d_vars[i]; }
-
-  typedef std::map< int, MatchGen * > VarMgMap;
- private:
-  /** The parent who owns this class */
-  QuantConflictFind* d_parent;
-  MatchGen * d_mg;
-  VarMgMap d_var_mg;
+ int getVarNum(TNode v) const;
+  bool isVar( TNode v ) const { return d_var_num.find( v )!=d_var_num.end(); }
+  size_t getNumVars() const { return d_vars.size(); }
+  TNode getVar( int i )  const { return d_vars[i]; }
  public:
   VarMgMap::const_iterator var_mg_find(int i) const { return d_var_mg.find(i); }
   VarMgMap::const_iterator var_mg_end() const { return d_var_mg.end(); }
   bool containsVarMg(int i) const { return var_mg_find(i) != var_mg_end(); }
 
   bool matchGeneratorIsValid() const { return d_mg->isValid(); }
-  bool getNextMatch( QuantConflictFind * p ) {
-    return d_mg->getNextMatch(p, this);
+  bool getNextMatch() {
+    return d_mg->getNextMatch(d_parent, this);
   }
 
-  Node d_q;
   bool reset_round();
 
  public:
@@ -191,6 +165,29 @@ public:
   void debugPrintMatch(const char* c) const;
   bool isConstrainedVar( int v );
   void getMatch( std::vector< Node >& terms );
+ private:
+  void registerNode( Node n, bool hasPol, bool pol, bool beneathQuant = false );
+  void flatten( Node n, bool beneathQuant );
+  void getPropagateVars(std::vector<TNode>& vars,
+                        TNode n,
+                        bool pol,
+                        std::map<TNode, bool>& visited);
+  /** The parent who owns this class */
+  QuantConflictFind* d_parent;
+  MatchGen * d_mg;
+  Node d_q;
+  VarMgMap d_var_mg;
+  //for completing match
+  std::vector< int > d_unassigned;
+  std::vector< TypeNode > d_unassigned_tn;
+  int d_unassigned_nvar;
+  int d_una_index;
+  std::vector< int > d_una_eqc_count;
+  //optimization: track which arguments variables appear under UF terms in
+  std::map< int, std::map< TNode, std::vector< unsigned > > > d_var_rel_dom;
+  //optimization: number of variables set, to track when we can stop
+  std::map< int, bool > d_vars_set;
+  std::vector< Node > d_extra_var;
 };
 
 class QuantConflictFind : public QuantifiersModule
@@ -209,18 +206,10 @@ class QuantConflictFind : public QuantifiersModule
   std::map< TNode, bool > d_irr_func;
   std::map< Node, bool > d_irr_quant;
   void setIrrelevantFunction( TNode f );
-private:
-  std::map< Node, Node > d_op_node;
-  std::map< Node, int > d_fid;
 public:  //for ground terms
   Node d_true;
   Node d_false;
   TNode getZero( Kind k );
-private:
-  std::map< Node, QuantInfo > d_qinfo;
-private:  //for equivalence classes
-  // type -> list(eqc)
-  std::map< TypeNode, std::vector< TNode > > d_eqcs;
 
  public:
   enum Effort : unsigned {
@@ -280,7 +269,7 @@ private:  //for equivalence classes
   void checkQuantifiedFormula(Node q, bool& isConflict, unsigned& addedLemmas);
 
  private:
-  void debugPrint( const char * c );
+  void debugPrint( const char * c ) const;
   //for debugging
   std::vector< Node > d_quants;
   std::map< Node, int > d_quant_id;
@@ -317,6 +306,11 @@ private:  //for equivalence classes
    * algorithm performed by this class.
    */
   bool isPropagatingInstance(Node n) const;
+private:
+  /** Map from quantified formulas to their info class to compute instances */
+  std::map< Node, std::unique_ptr<QuantInfo> > d_qinfo;
+  /** Map from type -> list(eqc) of that type */
+  std::map< TypeNode, std::vector< TNode > > d_eqcs;
 };
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
