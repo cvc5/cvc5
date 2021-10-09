@@ -255,26 +255,29 @@ class NlModel : protected EnvObj
    * Return std::nullopt if the eq could not be solved for var.
    */
   std::optional<bool> solveQuadraticEquality(TNode eq, TNode var, const Rational& a, const Rational& b, const Rational& c, uint64_t precision, std::vector<NlLemma>& lemmas);
-  std::optional<bool> solveEquality(Node eq, uint64_t precision, std::vector<NlLemma>& lemmas);
+
+  /**
+   * This method tries to solve an equality for some variable to infer new
+   * information about the nonlinear model. It first substitutes the current
+   * model into the equality, and then searches for some variable such that
+   * the equality is linear or quadratic in it.
+   *
+   * If the equality can be solved for some variable and the resulting model
+   * information is consistent with the current model, then the model is
+   * extended and the function returns true.
+   * If the equality can be solved but the model information is inconsistent
+   * with the current model, the function returns false and may create a lemma.
+   * If the equality can not be solved for any variable, the function returns
+   * std::nullopt.
+   *
+   * The additional argument precision is used to determine the accuracy of any
+   * approximative steps, e.g. when computing a square root.
+   */
+  std::optional<bool> solveEquality(Node eq,
+                                    uint64_t precision,
+                                    std::vector<NlLemma>& lemmas);
 
   //---------------------------check model
-  /**
-   * This method is used during checkModel(...). It takes as input an
-   * equality eq. If it returns true, then eq is correct-by-construction based
-   * on the information stored in our model representation (see
-   * d_substitutions, d_check_model_bounds), and eq
-   * is added to d_check_model_solved. The equality eq may involve any
-   * number of variables, and monomials of arbitrary degree. If this method
-   * returns false, then we did not show that the equality was true in the
-   * model. This method uses incomplete techniques based on interval
-   * analysis and quadratic equation solving.
-   *
-   * If it can be shown that the equality must be false in the current
-   * model, then we may add a lemma to lemmas explaining why this is the case.
-   * For instance, if eq reduces to a univariate quadratic equation with no
-   * root, we send a conflict clause of the form a*x^2 + b*x + c != 0.
-   */
-  bool solveEqualitySimple(Node eq, unsigned d, std::vector<NlLemma>& lemmas);
 
   /**
    * simple check model for transcendental functions for literal
