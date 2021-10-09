@@ -73,24 +73,24 @@ class QuantifiersRegistry : public QuantifiersUtil
   /** get number of instantiation constants for q */
   size_t getNumInstantiationConstants(Node q) const;
   /** get the ce body q[e/x] */
-  Node getInstConstantBody(Node q) const;
+  Node getInstConstantBody(Node q);
   /** returns node n with bound vars of q replaced by instantiation constants of
      q node n : is the future pattern node q : is the quantifier containing
      which bind the variable return a pattern where the variable are replaced by
      variable for instantiation.
    */
-  Node substituteBoundVariablesToInstConstants(Node n, Node q) const;
+  Node substituteBoundVariablesToInstConstants(Node n, Node q);
   /** substitute { instantiation constants of q -> bound variables of q } in n
    */
-  Node substituteInstConstantsToBoundVariables(Node n, Node q) const;
+  Node substituteInstConstantsToBoundVariables(Node n, Node q);
   /** substitute { variables of q -> terms } in n */
   Node substituteBoundVariables(Node n,
                                 Node q,
-                                const std::vector<Node>& terms) const;
+                                const std::vector<Node>& terms);
   /** substitute { instantiation constants of q -> terms } in n */
   Node substituteInstConstants(Node n,
                                Node q,
-                               const std::vector<Node>& terms) const;
+                               const std::vector<Node>& terms);
   //----------------------------- end instantiation constants
   /** Get quantifiers attributes utility class */
   QuantAttributes& getQuantAttributes();

@@ -128,7 +128,7 @@ size_t QuantifiersRegistry::getNumInstantiationConstants(Node q) const
   return 0;
 }
 
-Node QuantifiersRegistry::getInstConstantBody(Node q) const
+Node QuantifiersRegistry::getInstConstantBody(Node q)
 {
   std::map<Node, Node>::const_iterator it = d_inst_const_body.find(q);
   if (it == d_inst_const_body.end())
@@ -141,7 +141,7 @@ Node QuantifiersRegistry::getInstConstantBody(Node q) const
 }
 
 Node QuantifiersRegistry::substituteBoundVariablesToInstConstants(Node n,
-                                                                  Node q) const
+                                                                  Node q)
 {
   registerQuantifier(q);
   std::map<Node, std::vector<Node> >::const_iterator itv = d_vars.find(q);
@@ -150,13 +150,13 @@ Node QuantifiersRegistry::substituteBoundVariablesToInstConstants(Node n,
   Assert(itv != d_vars.end());
   Assert(itc != d_inst_constants.end());
   return n.substitute(itv->second.begin(),
-                      itv->second.end()),
+                      itv->second.end(),
                       itc->second.begin(),
                       itc->second.end());
 }
 
 Node QuantifiersRegistry::substituteInstConstantsToBoundVariables(Node n,
-                                                                  Node q) const
+                                                                  Node q)
 {
   registerQuantifier(q);
   std::map<Node, std::vector<Node> >::const_iterator itv = d_vars.find(q);
@@ -168,11 +168,11 @@ Node QuantifiersRegistry::substituteInstConstantsToBoundVariables(Node n,
                       itc->second.begin(),
                       itc->second.end(),
                       itv->second.begin(),
-                      itv->second.end()));
+                      itv->second.end());
 }
 
 Node QuantifiersRegistry::substituteBoundVariables(
-    Node n, Node q, const std::vector<Node>& terms) const
+    Node n, Node q, const std::vector<Node>& terms)
 {
   registerQuantifier(q);
   std::map<Node, std::vector<Node> >::const_iterator itv = d_vars.find(q);
@@ -184,7 +184,7 @@ Node QuantifiersRegistry::substituteBoundVariables(
 }
 
 Node QuantifiersRegistry::substituteInstConstants(
-    Node n, Node q, const std::vector<Node>& terms) const
+    Node n, Node q, const std::vector<Node>& terms)
 {
   registerQuantifier(q);
   std::map<Node, std::vector<Node> >::const_iterator itc =
