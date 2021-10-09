@@ -411,7 +411,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     // will never succeed with 1 variable
     return false;
   }
-  TermDb* tdb = d_treg.getTermDatabase();
+  EntailmentCheck* echeck = d_treg.getEntailmentCheck();
   Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
   // set up information for below
   std::vector<Node>& vars = d_qreg.d_vars[q];
@@ -447,7 +447,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     if (options::instNoEntail())
     {
       Trace("inst-exp-fail") << "  check entailment" << std::endl;
-      success = tdb->isEntailed(q[1], subs, false, true);
+      success = echeck->isEntailed(q[1], subs, false, true);
       Trace("inst-exp-fail") << "  entailed: " << success << std::endl;
     }
     // check whether the instantiation rewrites to the same thing
