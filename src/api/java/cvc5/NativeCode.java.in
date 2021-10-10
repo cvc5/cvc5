@@ -18,7 +18,7 @@ public class NativeCode
   static String[] jniLibraries = new String[] {"cvc5jni"};
 
   /** cvc5 version */
-  public static final String version = "0.0.0";
+  public static final String version = "${CVC5_VERSION}";
 
   /** cvc5 name */
   public static final String cvc5HomeName = "cvc5";

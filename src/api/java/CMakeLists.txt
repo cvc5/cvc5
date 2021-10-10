@@ -20,10 +20,17 @@ file(MAKE_DIRECTORY ${JNI_DIR})
 
 # Generate cvc5/Kind.java
 configure_file(genkinds.py.in genkinds.py)
-
 set(JAVA_KIND_FILE
   "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5/Kind.java"
-)
+  )
+
+# Generate cvc5/NativeCode.java
+set(JAVA_NATIVE_CODE_FILE
+  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5/NativeCode.java"
+  )
+configure_file(cvc5/NativeCode.java.in ${JAVA_NATIVE_CODE_FILE})
+
+
 
 add_custom_command(
   OUTPUT
@@ -60,7 +67,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeSelector.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Grammar.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/NativeCode.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Pair.java
@@ -74,6 +80,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
   ${JAVA_KIND_FILE}
+  ${JAVA_NATIVE_CODE_FILE}
 )
 
 # specify generated jni headers
