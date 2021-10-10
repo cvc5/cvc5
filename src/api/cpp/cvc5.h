@@ -1167,11 +1167,30 @@ class CVC5_EXPORT Term
    *       for example, the term f(x, y) will have Kind APPLY_UF and three
    *       children: f, x, and y
    */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Term>
+  class const_iterator
   {
     friend class Term;
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::input_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Term;
+
+    /** The pointer type of the item */
+    using pointer = Term*;
+
+    /** The reference type of the item */
+    using reference = Term&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /**
      * Null Constructor.
      */
@@ -1951,11 +1970,29 @@ class CVC5_EXPORT DatatypeConstructor
    * Iterator for the selectors of a datatype constructor.
    */
   class const_iterator
-      : public std::iterator<std::input_iterator_tag, DatatypeConstructor>
   {
     friend class DatatypeConstructor;  // to access constructor
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::input_iterator_tag;
+
+    /** The type of the item */
+    using value_type = DatatypeConstructor;
+
+    /** The pointer type of the item */
+    using pointer = DatatypeConstructor*;
+
+    /** The reference type of the item */
+    using reference = DatatypeConstructor&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /** Nullary constructor (required for Cython). */
     const_iterator();
 
@@ -2184,11 +2221,30 @@ class CVC5_EXPORT Datatype
   /**
    * Iterator for the constructors of a datatype.
    */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Datatype>
+  class const_iterator
   {
     friend class Datatype;  // to access constructor
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::input_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Datatype;
+
+    /** The pointer type of the item */
+    using pointer = Datatype*;
+
+    /** The reference type of the item */
+    using reference = Datatype&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /** Nullary constructor (required for Cython). */
     const_iterator();
 
