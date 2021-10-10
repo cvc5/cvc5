@@ -60,6 +60,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeSelector.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Grammar.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/NativeCode.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Pair.java

@@ -28,11 +28,11 @@ public class Utils
   }
 
   /**
-   * load cvc5 jni library
+   * load cvc5 libraries
    */
   public static void loadLibraries()
   {
-    System.loadLibrary("cvc5jni");
+    NativeCode.loadLibraries();
   }
 
   /**
