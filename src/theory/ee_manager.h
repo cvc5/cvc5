@@ -77,7 +77,8 @@ class EqEngineManager : protected EnvObj
   const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
 
   /** Allocate equality engine that is context-dependent on c with info esi */
-  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi);
+  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
+                                             context::Context* c);
   /**
    * Notify this class that we are about to terminate with a model. This method
    * is for debugging only.

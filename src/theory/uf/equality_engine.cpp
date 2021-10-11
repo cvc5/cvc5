@@ -20,9 +20,9 @@
 
 #include "base/output.h"
 #include "options/smt_options.h"
-#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/uf/eq_proof.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace theory {
@@ -80,7 +80,7 @@ void EqualityEngine::init() {
   // If we are not at level zero when we initialize this equality engine, we
   // may remove true/false from the equality engine when we pop to level zero,
   // which leads to issues.
-  Assert(d_env.getContext()->getLevel() == 0);
+  Assert(d_c->getLevel() == 0);
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -100,28 +100,30 @@ EqualityEngine::~EqualityEngine() {
 }
 
 EqualityEngine::EqualityEngine(Env& env,
+                               context::Context* c,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(env.getContext()),
+    : ContextNotifyObj(c),
       d_masterEqualityEngine(0),
       d_env(env),
-      d_done(env.getContext(), false),
+      d_context(c),
+      d_done(c, false),
       d_notify(&s_notifyNone),
-      d_applicationLookupsCount(env.getContext(), 0),
-      d_nodesCount(env.getContext(), 0),
-      d_assertedEqualitiesCount(env.getContext(), 0),
-      d_equalityTriggersCount(env.getContext(), 0),
-      d_subtermEvaluatesSize(env.getContext(), 0),
+      d_applicationLookupsCount(c, 0),
+      d_nodesCount(c, 0),
+      d_assertedEqualitiesCount(c, 0),
+      d_equalityTriggersCount(c, 0),
+      d_subtermEvaluatesSize(c, 0),
       d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
-      d_triggerDatabaseSize(env.getContext(), 0),
-      d_triggerTermSetUpdatesSize(env.getContext(), 0),
-      d_deducedDisequalitiesSize(env.getContext(), 0),
-      d_deducedDisequalityReasonsSize(env.getContext(), 0),
-      d_propagatedDisequalities(env.getContext()),
+      d_triggerDatabaseSize(c, 0),
+      d_triggerTermSetUpdatesSize(c, 0),
+      d_deducedDisequalitiesSize(c, 0),
+      d_deducedDisequalityReasonsSize(c, 0),
+      d_propagatedDisequalities(c),
       d_name(name)
 {
   init();
@@ -132,26 +134,27 @@ EqualityEngine::EqualityEngine(Env& env,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(env.getContext()),
+    : ContextNotifyObj(c),
       d_masterEqualityEngine(nullptr),
       d_proofEqualityEngine(nullptr),
       d_env(env),
-      d_done(env.getContext(), false),
+      d_context(c),
+      d_done(c, false),
       d_notify(&s_notifyNone),
-      d_applicationLookupsCount(env.getContext(), 0),
-      d_nodesCount(env.getContext(), 0),
-      d_assertedEqualitiesCount(env.getContext(), 0),
-      d_equalityTriggersCount(env.getContext(), 0),
-      d_subtermEvaluatesSize(env.getContext(), 0),
+      d_applicationLookupsCount(c, 0),
+      d_nodesCount(c, 0),
+      d_assertedEqualitiesCount(c, 0),
+      d_equalityTriggersCount(c, 0),
+      d_subtermEvaluatesSize(c, 0),
       d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
-      d_triggerDatabaseSize(env.getContext(), 0),
-      d_triggerTermSetUpdatesSize(env.getContext(), 0),
-      d_deducedDisequalitiesSize(env.getContext(), 0),
-      d_deducedDisequalityReasonsSize(env.getContext(), 0),
-      d_propagatedDisequalities(env.getContext()),
+      d_triggerDatabaseSize(c, 0),
+      d_triggerTermSetUpdatesSize(c, 0),
+      d_deducedDisequalitiesSize(c, 0),
+      d_deducedDisequalityReasonsSize(c, 0),
+      d_propagatedDisequalities(c),
       d_name(name)
 {
   init();

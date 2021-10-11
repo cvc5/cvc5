@@ -35,15 +35,16 @@ const EeTheoryInfo* EqEngineManager::getEeTheoryInfo(TheoryId tid) const
   return nullptr;
 }
 
-eq::EqualityEngine* EqEngineManager::allocateEqualityEngine(EeSetupInfo& esi)
+eq::EqualityEngine* EqEngineManager::allocateEqualityEngine(EeSetupInfo& esi,
+                                                            context::Context* c)
 {
   if (esi.d_notify != nullptr)
   {
     return new eq::EqualityEngine(
-        d_env, *esi.d_notify, esi.d_name, esi.d_constantsAreTriggers);
+        d_env, c, *esi.d_notify, esi.d_name, esi.d_constantsAreTriggers);
   }
   // the theory doesn't care about explicit notifications
-  return new eq::EqualityEngine(d_env, esi.d_name, esi.d_constantsAreTriggers);
+  return new eq::EqualityEngine(d_env, c, esi.d_name, esi.d_constantsAreTriggers);
 }
 
 }  // namespace theory

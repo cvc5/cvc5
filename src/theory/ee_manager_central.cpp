@@ -31,7 +31,7 @@ EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
       d_masterEENotify(nullptr),
       d_masterEqualityEngine(nullptr),
       d_centralEENotify(*this),
-      d_centralEqualityEngine(d_centralEENotify, context(), "central::ee", true)
+      d_centralEqualityEngine(d_env, d_centralEENotify, "central::ee", true)
 {
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
@@ -41,8 +41,7 @@ EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
   }
   if (env.isTheoryProofProducing())
   {
-    d_centralPfee.reset(new eq::ProofEqEngine(context(),
-                                              userContext(),
+    d_centralPfee.reset(new eq::ProofEqEngine(d_env,
                                               d_centralEqualityEngine,
                                               env.getProofNodeManager()));
     d_centralEqualityEngine.setProofEqualityEngine(d_centralPfee.get());
@@ -53,7 +52,6 @@ EqEngineManagerCentral::~EqEngineManagerCentral() {}
 
 void EqEngineManagerCentral::initializeTheories()
 {
-  context::Context* c = context();
   // initialize the shared solver
   EeSetupInfo esis;
   if (d_sharedSolver.needsEqualityEngine(esis))
@@ -113,7 +111,7 @@ void EqEngineManagerCentral::initializeTheories()
     if (!masterEqToCentral)
     {
       d_masterEqualityEngineAlloc.reset(new eq::EqualityEngine(
-          *d_masterEENotify.get(), c, "master::ee", false));
+          d_env, *d_masterEENotify.get(), "master::ee", false));
       d_masterEqualityEngine = d_masterEqualityEngineAlloc.get();
     }
     else
@@ -180,7 +178,7 @@ void EqEngineManagerCentral::initializeTheories()
       continue;
     }
     Trace("ee-central") << "...uses new" << std::endl;
-    eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
+    eet.d_allocEe.reset(allocateEqualityEngine(esi, context()));
     // the theory uses the equality engine
     eet.d_usedEe = eet.d_allocEe.get();
     if (!masterEqToCentral)

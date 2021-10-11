@@ -36,12 +36,13 @@ EqEngineManagerDistributed::~EqEngineManagerDistributed()
 
 void EqEngineManagerDistributed::initializeTheories()
 {
+  context::Context* c = context();
   // initialize the shared solver
   EeSetupInfo esis;
   if (d_sharedSolver.needsEqualityEngine(esis))
   {
     // allocate an equality engine for the shared terms database
-    d_stbEqualityEngine.reset(allocateEqualityEngine(esis));
+    d_stbEqualityEngine.reset(allocateEqualityEngine(esis, c));
     d_sharedSolver.setEqualityEngine(d_stbEqualityEngine.get());
   }
   else
@@ -58,7 +59,7 @@ void EqEngineManagerDistributed::initializeTheories()
     Assert(qe != nullptr);
     d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
     d_masterEqualityEngine.reset(new eq::EqualityEngine(
-        d_env, *d_masterEENotify.get(), "theory::master", false));
+        d_env, c, *d_masterEENotify.get(), "theory::master", false));
   }
   // allocate equality engines per theory
   for (TheoryId theoryId = theory::THEORY_FIRST;
@@ -86,7 +87,7 @@ void EqEngineManagerDistributed::initializeTheories()
       continue;
     }
     // allocate the equality engine
-    eet.d_allocEe.reset(allocateEqualityEngine(esi));
+    eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
     // the theory uses the equality engine
     eet.d_usedEe = eet.d_allocEe.get();
     // if there is a master equality engine

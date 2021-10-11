@@ -73,10 +73,15 @@ class EqualityEngine : public context::ContextNotifyObj {
   /**
    * Initialize the equality engine, given the notification class.
    *
+   * @param env The environment, which is used for rewriting
+   * @param c The context which this equality engine depends, which is typically
+   * although not necessarily same as the SAT context of env.
+   * @param name The name of this equality engine, for statistics
    * @param constantTriggers Whether we treat constants as trigger terms
    * @param anyTermTriggers Whether we use any terms as triggers
    */
   EqualityEngine(Env& env,
+                 context::Context* c,
                  EqualityEngineNotify& notify,
                  std::string name,
                  bool constantTriggers,
@@ -86,6 +91,7 @@ class EqualityEngine : public context::ContextNotifyObj {
    * Initialize the equality engine with no notification class.
    */
   EqualityEngine(Env& env,
+                 context::Context* c,
                  std::string name,
                  bool constantsAreTriggers,
                  bool anyTermTriggers = true);
@@ -124,6 +130,7 @@ class EqualityEngine : public context::ContextNotifyObj {
   };/* struct EqualityEngine::statistics */
 
  private:
+
   /** The environment we are using */
   Env& d_env;
 

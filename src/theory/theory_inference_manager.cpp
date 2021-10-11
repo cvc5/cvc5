@@ -45,7 +45,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
       d_pnm(pnm),
       d_cacheLemmas(cacheLemmas),
       d_keep(context()),
-      d_lemmasSent(userContext()),
+      d_lemmasSent(lemmaContext()),
       d_numConflicts(0),
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0),
@@ -78,7 +78,7 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
     if (d_pfee == nullptr)
     {
       d_pfeeAlloc.reset(
-          new eq::ProofEqEngine(context(), userContext(), *d_ee, d_pnm));
+          new eq::ProofEqEngine(d_env, *d_ee, d_pnm));
       d_pfee = d_pfeeAlloc.get();
       d_ee->setProofEqualityEngine(d_pfee);
     }
