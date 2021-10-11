@@ -6047,6 +6047,7 @@ Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t ubound) const
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_ARG_CHECK_EXPECTED(sort.isUninterpretedSort(), sort)
       << "an uninterpreted sort";
+  CVC5_API_ARG_CHECK_EXPECTED(ubound > 0, ubound) << "a value > 0";
   //////// all checks before this line
   Node cco =
       d_nodeMgr->mkConst(cvc5::CardinalityConstraint(*sort.d_type, ubound));
