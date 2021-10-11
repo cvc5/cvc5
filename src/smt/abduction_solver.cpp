@@ -40,7 +40,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
                                 const TypeNode& grammarType,
                                 Node& abd)
 {
-  if (!options::produceAbducts())
+  if (!options().smt.produceAbducts)
   {
     const char* msg = "Cannot get abduct when produce-abducts options is off.";
     throw ModalException(msg);
@@ -129,7 +129,7 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
       }
 
       // if check abducts option is set, we check the correctness
-      if (options::checkAbducts())
+      if (options().smt.checkAbducts)
       {
         checkAbduct(axioms, abd);
       }
