@@ -29,17 +29,16 @@ namespace cvc5 {
 namespace theory {
 namespace eq {
 
-ProofEqEngine::ProofEqEngine(context::Context* c,
-                             context::Context* lc,
+ProofEqEngine::ProofEqEngine(Env& env,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm)
     : EagerProofGenerator(pnm, lc, "pfee::" + ee.identify()),
       d_ee(ee),
-      d_factPg(c, pnm),
+      d_factPg(env.getContext(), pnm),
       d_assumpPg(pnm),
       d_pnm(pnm),
-      d_proof(pnm, nullptr, c, "pfee::LazyCDProof::" + ee.identify()),
-      d_keep(c)
+      d_proof(pnm, nullptr, env.getContext(), "pfee::LazyCDProof::" + ee.identify()),
+      d_keep(env.getContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);

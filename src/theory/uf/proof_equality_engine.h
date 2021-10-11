@@ -86,13 +86,11 @@ class ProofEqEngine : public EagerProofGenerator
 
  public:
   /**
-   * @param c The SAT context
-   * @param lc The context lemmas live in
+   * @param env The environment
    * @param ee The equality engine this is layered on
    * @param pnm The proof node manager for producing proof nodes.
    */
-  ProofEqEngine(context::Context* c,
-                context::Context* lc,
+  ProofEqEngine(Env& env,
                 EqualityEngine& ee,
                 ProofNodeManager* pnm);
   ~ProofEqEngine() {}
