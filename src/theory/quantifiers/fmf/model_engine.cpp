@@ -57,9 +57,12 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
 
 QuantifiersModule::QEffort ModelEngine::needsModel(Theory::Effort e)
 {
-  if( options::mbqiInterleave() ){
+  if (options().quantifiers.mbqiInterleave)
+  {
     return QEFFORT_STANDARD;
-  }else{
+  }
+  else
+  {
     return QEFFORT_MODEL;
   }
 }
@@ -70,7 +73,8 @@ void ModelEngine::reset_round( Theory::Effort e ) {
 void ModelEngine::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
-  if( options::mbqiInterleave() ){
+  if (options().quantifiers.mbqiInterleave)
+  {
     doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
   }
   if( !doCheck ){
@@ -139,7 +143,8 @@ void ModelEngine::registerQuantifier( Node f ){
         if (!d_env.isFiniteType(tn))
         {
           if( tn.isInteger() ){
-            if( !options::fmfBound() ){
+            if (!options().quantifiers.fmfBound)
+            {
               canHandle = false;
             }
           }else{
@@ -211,9 +216,11 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max = options::mbqiMode() == options::MbqiMode::FMC
-                  ? 2
-                  : (options::mbqiMode() == options::MbqiMode::TRUST ? 0 : 1);
+  int e_max =
+      options().quantifiers.mbqiMode == options::MbqiMode::FMC
+          ? 2
+          : (options().quantifiers.mbqiMode == options::MbqiMode::TRUST ? 0
+                                                                        : 1);
   for( int e=0; e<e_max; e++) {
     d_incompleteQuants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -292,7 +299,10 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         int triedLemmas = 0;
         int addedLemmas = 0;
         Instantiate* inst = d_qim.getInstantiate();
-        while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
+        while (
+            !riter.isFinished()
+            && (addedLemmas == 0 || !options().quantifiers.fmfOneInstPerRound))
+        {
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
           for (unsigned i = 0; i < riter.getNumTerms(); i++)
@@ -365,7 +375,7 @@ bool ModelEngine::shouldProcess(Node q)
     return false;
   }
   // if finite model finding or fmf bound is on, we process everything
-  if (options::finiteModelFind() || options::fmfBound())
+  if (options().quantifiers.finiteModelFind || options().quantifiers.fmfBound)
   {
     return true;
   }
