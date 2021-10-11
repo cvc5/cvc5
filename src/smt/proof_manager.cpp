@@ -181,7 +181,7 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
   }
-  else if (options().proof.proofFormatMode() == options::ProofFormatMode::LFSC)
+  else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
   {
     std::vector<Node> assertions;
     getAssertions(as, assertions);
