@@ -327,6 +327,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       continue;
     }
     Node ret = node;
+    Node pret = node;
     if (!node.isClosure() && node.getNumChildren() > 0)
     {
       // if we have not already computed the result
@@ -362,10 +363,14 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       // reconstructing proofs via d_tpg. However, if it is a post-rewrite
       // it will fail to apply if another call to this class registers A -> C,
       // in which case (not C) will be returned instead of B (see issue 6754).
-      ret = rewriteWithProof(ret, d_tpg.get(), true);
+      pret = rewriteWithProof(ret, d_tpg.get(), true);
     }
-    // now do theory preprocess
-    Node pret = preprocessWithProof(ret, newLemmas);
+    // if we did not rewrite above, we are ready to theory preprocess
+    if (pret==ret)
+    {
+      pret = preprocessWithProof(ret, newLemmas);
+    }
+    // if we changed due to rewriting or preprocessing, we traverse again
     if (pret != ret)
     {
       // must restart
