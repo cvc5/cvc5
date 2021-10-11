@@ -55,7 +55,7 @@ void Assertions::finishInit()
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
   // first, some user-context-dependent TNodes might still exist
   // with rc == 0.
-  if (options::produceAssertions() || options::incrementalSolving())
+  if (options().smt.produceAssertions || options().base.incrementalSolving)
   {
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
@@ -122,7 +122,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
 void Assertions::assertFormula(const Node& n)
 {
   ensureBoolean(n);
-  bool maybeHasFv = language::isLangSygus(options::inputLanguage());
+  bool maybeHasFv = language::isLangSygus(options().base.inputLanguage);
   addFormula(n, false, false, maybeHasFv);
 }
 
@@ -193,7 +193,7 @@ void Assertions::addFormula(TNode n,
       else
       {
         se << "Cannot process assertion with free variable.";
-        if (language::isLangSygus(options::inputLanguage()))
+        if (language::isLangSygus(options().base.inputLanguage))
         {
           // Common misuse of SyGuS is to use top-level assert instead of
           // constraint when defining the synthesis conjecture.
@@ -215,7 +215,7 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present
-    Assert(!language::isLangSygus(options::inputLanguage()));
+    Assert(!language::isLangSygus(options().base.inputLanguage));
     d_globalDefineFunLemmas->emplace_back(n);
   }
   else
@@ -223,14 +223,14 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
     // We don't permit functions-to-synthesize within recursive function
     // definitions currently. Thus, we should check for free variables if the
     // input language is SyGuS.
-    bool maybeHasFv = language::isLangSygus(options::inputLanguage());
+    bool maybeHasFv = language::isLangSygus(options().base.inputLanguage);
     addFormula(n, false, true, maybeHasFv);
   }
 }
 
 void Assertions::ensureBoolean(const Node& n)
 {
-  TypeNode type = n.getType(options::typeChecking());
+  TypeNode type = n.getType(options().expr.typeChecking);
   if (!type.isBoolean())
   {
     std::stringstream ss;

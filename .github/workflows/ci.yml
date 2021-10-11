@@ -13,6 +13,7 @@ jobs:
             python-bindings: true
             build-documentation: true
             check-examples: true
+            store-to-release: true
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
@@ -22,6 +23,7 @@ jobs:
             cache-key: production
             python-bindings: true
             check-examples: true
+            store-to-release: true
             exclude_regress: 3-4
             run_regression_args: --no-check-unsat-cores --no-check-proofs
 
@@ -254,3 +256,9 @@ jobs:
       with:
         name: documentation
         path: build/docs/sphinx-gh/
+
+    - name: Add binary to release
+      if: matrix.store-to-release && startsWith(github.ref, 'refs/tags/')
+      uses: ./.github/actions/add-to-release
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
