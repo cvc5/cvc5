@@ -196,36 +196,6 @@ class QuantConflictFind : public QuantifiersModule
 {
   friend class MatchGen;
   friend class QuantInfo;
-  typedef context::CDHashMap<Node, bool> NodeBoolMap;
-
- private:
-  context::CDO< bool > d_conflict;
-  std::map< Kind, Node > d_zero;
-  //for storing nodes created during t-constraint solving (prevents memory leaks)
-  std::vector< Node > d_tempCache;
-  //optimization: list of quantifiers that depend on ground function applications
-  std::map< TNode, std::vector< Node > > d_func_rel_dom;
-  std::map< TNode, bool > d_irr_func;
-  std::map< Node, bool > d_irr_quant;
-  void setIrrelevantFunction( TNode f );
-public:  //for ground terms
-  TNode getZero( Kind k );
-
- public:
-  enum Effort : unsigned {
-    EFFORT_CONFLICT,
-    EFFORT_PROP_EQ,
-    EFFORT_INVALID,
-  };
-  void setEffort(Effort e) { d_effort = e; }
-
-  inline bool atConflictEffort() const {
-    return d_effort == QuantConflictFind::EFFORT_CONFLICT;
-  }
-
- private:
-  Effort d_effort;
-
  public:
   QuantConflictFind(Env& env,
                     QuantifiersState& qs,
@@ -235,8 +205,6 @@ public:  //for ground terms
 
   /** register quantifier */
   void registerQuantifier(Node q) override;
-
- public:
   /** needs check */
   bool needsCheck(Theory::Effort level) override;
   /** reset round */
@@ -249,33 +217,6 @@ public:  //for ground terms
    */
   void check(Theory::Effort level, QEffort quant_e) override;
 
- private:
-  /** check quantified formula
-   *
-   * This method is called by the above check method for each quantified
-   * formula q. It attempts to find a conflicting or propagating instance for
-   * q, depending on the effort level (d_effort).
-   *
-   * isConflict: this is set to true if we discovered a conflicting instance.
-   * This flag may be set instead of d_conflict if --qcf-all-conflict is true,
-   * in which we continuing adding all conflicts.
-   * addedLemmas: tracks the total number of lemmas added, and is incremented by
-   * this method when applicable.
-   */
-  void checkQuantifiedFormula(Node q, bool& isConflict, unsigned& addedLemmas);
-
- private:
-  void debugPrint(const char* c) const;
-  //for debugging
-  std::vector< Node > d_quants;
-  std::map< Node, int > d_quant_id;
-  void debugPrintQuant(const char* c, Node q) const;
-  void debugPrintQuantBody(const char* c,
-                           Node q,
-                           Node n,
-                           bool doVarNum = true) const;
-
- public:
   /** statistics class */
   class Statistics {
   public:
@@ -303,11 +244,57 @@ public:  //for ground terms
    */
   bool isPropagatingInstance(Node n) const;
 
+  enum Effort : unsigned {
+    EFFORT_CONFLICT,
+    EFFORT_PROP_EQ,
+    EFFORT_INVALID,
+  };
+  void setEffort(Effort e) { d_effort = e; }
+
+  inline bool atConflictEffort() const {
+    return d_effort == QuantConflictFind::EFFORT_CONFLICT;
+  }
+  
+  TNode getZero( Kind k );
  private:
+  /** check quantified formula
+   *
+   * This method is called by the above check method for each quantified
+   * formula q. It attempts to find a conflicting or propagating instance for
+   * q, depending on the effort level (d_effort).
+   *
+   * isConflict: this is set to true if we discovered a conflicting instance.
+   * This flag may be set instead of d_conflict if --qcf-all-conflict is true,
+   * in which we continuing adding all conflicts.
+   * addedLemmas: tracks the total number of lemmas added, and is incremented by
+   * this method when applicable.
+   */
+  void checkQuantifiedFormula(Node q, bool& isConflict, unsigned& addedLemmas);
+  void debugPrint(const char* c) const;
+  void debugPrintQuant(const char* c, Node q) const;
+  void debugPrintQuantBody(const char* c,
+                           Node q,
+                           Node n,
+                           bool doVarNum = true) const;
+  void setIrrelevantFunction( TNode f );
+  //for debugging
+  std::vector< Node > d_quants;
+  std::map< Node, size_t > d_quant_id;
   /** Map from quantified formulas to their info class to compute instances */
   std::map<Node, std::unique_ptr<QuantInfo> > d_qinfo;
   /** Map from type -> list(eqc) of that type */
   std::map<TypeNode, std::vector<TNode> > d_eqcs;
+  /** Are we in conflict? */
+  context::CDO< bool > d_conflict;
+  std::map< Kind, Node > d_zero;
+  //for storing nodes created during t-constraint solving (prevents memory leaks)
+  std::vector< Node > d_tempCache;
+  //optimization: list of quantifiers that depend on ground function applications
+  std::map< TNode, std::vector< Node > > d_func_rel_dom;
+  std::map< TNode, bool > d_irr_func;
+  std::map< Node, bool > d_irr_quant;
+  /** The current effort */
+  Effort d_effort;
 };
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);

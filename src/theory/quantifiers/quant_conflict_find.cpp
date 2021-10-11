@@ -344,7 +344,7 @@ TNode QuantInfo::getCurrentExpValue( TNode n ) {
   {
     return n;
   }
-  Assert(m != v);
+  Assert(m != n);
   Node mt = d_match_term[it->second];
   if (mt.isNull())
   {
@@ -2445,7 +2445,7 @@ void QuantConflictFind::debugPrint(const char* c) const
 
 void QuantConflictFind::debugPrintQuant(const char* c, Node q) const
 {
-  std::map<Node, int>::const_iterator it = d_quant_id.find(q);
+  std::map<Node, size_t>::const_iterator it = d_quant_id.find(q);
   if (it == d_quant_id.end())
   {
     Trace(c) << q;
