@@ -42,7 +42,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -1227,12 +1227,6 @@ static bool tryToStream(std::ostream& out, const Command* c);
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c, Variant v);
 
-static std::string quoteSymbol(TNode n) {
-  std::stringstream ss;
-  ss << n;
-  return cvc5::quoteSymbol(ss.str());
-}
-
 template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v);
 
@@ -1321,8 +1315,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
           || options::modelUninterpPrint()
                  == options::ModelUninterpPrintMode::DeclFun)
       {
-        out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
-            << endl;
+        out << "(declare-fun " << trn << " () " << tn << ")" << endl;
       }
     }
     else
@@ -1547,11 +1540,8 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          TypeNode type) const
 {
   Assert(type.isSort() || type.isSortConstructor());
-  std::stringstream id;
-  id << type;
   size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
-  out << "(declare-sort " << cvc5::quoteSymbol(id.str()) << " " << arity << ")"
-      << std::endl;
+  out << "(declare-sort " << type << " " << arity << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
@@ -1818,11 +1808,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
                                       bool isInv,
                                       TypeNode sygusType) const
 {
-  std::stringstream sym;
-  sym << f;
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ")
-      << cvc5::quoteSymbol(sym.str()) << ' ';
-  out << '(';
+  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ' << '(';
   if (!vars.empty())
   {
     // print variable list

@@ -101,7 +101,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
     Node inst = d_inverter->solveBvLit(sv, slit, path, &m);
     if (!inst.isNull())
     {
-      inst = Rewriter::rewrite(inst);
+      inst = rewrite(inst);
       if (inst.isConst() || !ci->hasNestedQuantification())
       {
         Trace("cegqi-bv") << "...solved form is " << inst << std::endl;
@@ -180,7 +180,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     //   (not) s ~ t  --->  s = t + ( s^M - t^M )
     if (sm != tm)
     {
-      Node slack = Rewriter::rewrite(nm->mkNode(BITVECTOR_SUB, sm, tm));
+      Node slack = rewrite(nm->mkNode(BITVECTOR_SUB, sm, tm));
       Assert(slack.isConst());
       // remember the slack value for the asserted literal
       d_alit_to_model_slack[lit] = slack;

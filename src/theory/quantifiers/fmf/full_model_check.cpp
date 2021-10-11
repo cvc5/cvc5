@@ -1342,7 +1342,7 @@ Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals )
     }
     Node nc = NodeManager::currentNM()->mkNode(n.getKind(), children);
     Trace("fmc-eval") << "Evaluate " << nc << " to ";
-    nc = Rewriter::rewrite(nc);
+    nc = rewrite(nc);
     Trace("fmc-eval") << nc << std::endl;
     return nc;
   }

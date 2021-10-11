@@ -104,8 +104,8 @@ class CandidateRewriteFilter
   bool d_use_sygus_type;
 
   //----------------------------congruence filtering
-  /** a (dummy) user context, used for d_drewrite */
-  context::UserContext d_fake_context;
+  /** a (dummy) context, used for d_drewrite */
+  context::Context d_fakeContext;
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;
   //----------------------------end congruence filtering

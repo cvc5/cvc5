@@ -56,13 +56,6 @@ std::ostream& operator<<(std::ostream& out, const CardinalityConstraint& cc)
              << ')';
 }
 
-size_t CardinalityConstraintHashFunction::operator()(
-    const CardinalityConstraint& cc) const
-{
-  return std::hash<TypeNode>()(cc.getType())
-         * IntegerHashFunction()(cc.getUpperBound());
-}
-
 CombinedCardinalityConstraint::CombinedCardinalityConstraint(const Integer& ub)
     : d_ubound(ub)
 {

@@ -1179,10 +1179,10 @@ public class Solver implements IPointer
   /**
    * Create (first-order) constant (0-arity function symbol).
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( declare-const <symbol> <sort> )
    *   ( declare-fun <symbol> ( ) <sort> )
-   * \endverbatim
+   * }
    *
    * @param sort the sort of the constant
    * @param symbol the name of the constant
@@ -1371,9 +1371,9 @@ public class Solver implements IPointer
   /**
    * Assert a formula.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( assert <term> )
-   * \endverbatim
+   * }
    * @param term the formula to assert
    */
   public void assertFormula(Term term)
@@ -1386,9 +1386,9 @@ public class Solver implements IPointer
   /**
    * Check satisfiability.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( check-sat )
-   * \endverbatim
+   * }
    * @return the result of the satisfiability check.
    */
   public Result checkSat()
@@ -1401,9 +1401,9 @@ public class Solver implements IPointer
   /**
    * Check satisfiability assuming the given formula.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( check-sat-assuming ( <prop_literal> ) )
-   * \endverbatim
+   * }
    * @param assumption the formula to assume
    * @return the result of the satisfiability check.
    */
@@ -1418,9 +1418,9 @@ public class Solver implements IPointer
   /**
    * Check satisfiability assuming the given formulas.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( check-sat-assuming ( <prop_literal>+ ) )
-   * \endverbatim
+   * }
    * @param assumptions the formulas to assume
    * @return the result of the satisfiability check.
    */
@@ -1464,9 +1464,9 @@ public class Solver implements IPointer
   /**
    * Create datatype sort.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( declare-datatype <symbol> <datatype_decl> )
-   * \endverbatim
+   * }
    * @param symbol the name of the datatype sort
    * @param ctors the constructor declarations of the datatype sort
    * @return the datatype sort
@@ -1483,9 +1483,9 @@ public class Solver implements IPointer
   /**
    * Declare n-ary function symbol.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( declare-fun <symbol> ( <sort>* ) <sort> )
-   * \endverbatim
+   * }
    * @param symbol the name of the function
    * @param sorts the sorts of the parameters to this function
    * @param sort the sort of the return value of this function
@@ -1504,9 +1504,9 @@ public class Solver implements IPointer
   /**
    * Declare uninterpreted sort.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( declare-sort <symbol> <numeral> )
-   * \endverbatim
+   * }
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -1523,9 +1523,9 @@ public class Solver implements IPointer
   /**
    * Define n-ary function in the current context.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( define-fun <function_def> )
-   * \endverbatim
+   * }
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -1540,9 +1540,9 @@ public class Solver implements IPointer
   /**
    * Define n-ary function.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( define-fun <function_def> )
-   * \endverbatim
+   * }
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -1569,9 +1569,9 @@ public class Solver implements IPointer
   /**
    * Define n-ary function in the current context.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( define-fun <function_def> )
-   * \endverbatim
+   * }
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param boundVars the parameters to this function
@@ -1585,9 +1585,9 @@ public class Solver implements IPointer
   /**
    * Define n-ary function.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( define-fun <function_def> )
-   * \endverbatim
+   * }
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param boundVars the parameters to this function
@@ -1610,9 +1610,9 @@ public class Solver implements IPointer
   /**
    * Define recursive function in the current context.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( define-fun-rec <function_def> )
-   * \endverbatim
+   * }
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -1627,9 +1627,9 @@ public class Solver implements IPointer
   /**
    * Define recursive function.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( define-fun-rec <function_def> )
-   * \endverbatim
+   * }
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -1656,9 +1656,9 @@ public class Solver implements IPointer
   /**
    * Define recursive function in the current context.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( define-fun-rec <function_def> )
-   * \endverbatim
+   * }
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param boundVars the parameters to this function
@@ -1674,9 +1674,9 @@ public class Solver implements IPointer
   /**
    * Define recursive function.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( define-fun-rec <function_def> )
-   * \endverbatim
+   * }
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param boundVars the parameters to this function
@@ -1699,14 +1699,13 @@ public class Solver implements IPointer
   /**
    * Define recursive functions in the current context.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
-   * \endverbatim
+   * }
    * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
    * @param boundVars the list of parameters to the functions
    * @param terms the list of function bodies of the functions
-   * @return the function
    */
   public void defineFunsRec(Term[] funs, Term[][] boundVars, Term[] terms)
   {
@@ -1715,16 +1714,15 @@ public class Solver implements IPointer
   /**
    * Define recursive functions.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
-   * \endverbatim
+   * }
    * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
    * @param boundVars the list of parameters to the functions
    * @param terms the list of function bodies of the functions
    * @param global determines whether this definition is global (i.e. persists
    *               when popping the context)
-   * @return the function
    */
   public void defineFunsRec(Term[] funs, Term[][] boundVars, Term[] terms, boolean global)
   {
@@ -1743,9 +1741,9 @@ public class Solver implements IPointer
   /**
    * Echo a given string to the given output stream.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( echo <std::string> )
-   * \endverbatim
+   * }
    * @param out the output stream
    * @param str the string to echo
    */
@@ -1754,9 +1752,9 @@ public class Solver implements IPointer
   /**
    * Get the list of asserted formulas.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-assertions )
-   * \endverbatim
+   * }
    * @return the list of asserted formulas
    */
   public Term[] getAssertions()
@@ -1769,7 +1767,7 @@ public class Solver implements IPointer
 
   /**
    * Get info from the solver.
-   * SMT-LIB: \verbatim( get-info <info_flag> )\verbatim
+   * SMT-LIB: {@code ( get-info <info_flag> ) }
    * @return the info
    */
   public String getInfo(String flag)
@@ -1782,9 +1780,9 @@ public class Solver implements IPointer
   /**
    * Get the value of a given option.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-option <keyword> )
-   * \endverbatim
+   * }
    * @param option the option for which the value is queried
    * @return a string representation of the option value
    */
@@ -1798,9 +1796,9 @@ public class Solver implements IPointer
   /**
    * Get the set of unsat ("failed") assumptions.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-unsat-assumptions )
-   * \endverbatim
+   * }
    * Requires to enable option 'produce-unsat-assumptions'.
    * @return the set of unsat assumptions.
    */
@@ -1815,9 +1813,9 @@ public class Solver implements IPointer
   /**
    * Get the unsatisfiable core.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-unsat-core )
-   * \endverbatim
+   * }
    * Requires to enable option 'produce-unsat-cores'.
    * @return a set of terms representing the unsatisfiable core
    */
@@ -1832,9 +1830,9 @@ public class Solver implements IPointer
   /**
    * Get the value of the given term.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-value ( <term> ) )
-   * \endverbatim
+   * }
    * @param term the term for which the value is queried
    * @return the value of the given term
    */
@@ -1849,9 +1847,9 @@ public class Solver implements IPointer
   /**
    * Get the values of the given terms.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-value ( <term>+ ) )
-   * \endverbatim
+   * }
    * @param terms the terms for which the value is queried
    * @return the values of the given terms
    */
@@ -1883,9 +1881,9 @@ public class Solver implements IPointer
   /**
    * Get the model
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-model )
-   * \endverbatim
+   * }
    * Requires to enable option 'produce-models'.
    * @param sorts The list of uninterpreted sorts that should be printed in the
    * model.
@@ -1905,9 +1903,9 @@ public class Solver implements IPointer
   /**
    * Do quantifier elimination.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-qe <q> )
-   * \endverbatim
+   * }
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
    * @param q a quantified formula of the form:
@@ -1931,9 +1929,9 @@ public class Solver implements IPointer
    * Do partial quantifier elimination, which can be used for incrementally
    * computing the result of a quantifier elimination.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-qe-disjunct <q> )
-   * \endverbatim
+   * }
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
    * @param q a quantified formula of the form:
@@ -1941,16 +1939,16 @@ public class Solver implements IPointer
    * where P( x1...xn, y1...yn ) is a quantifier-free formula
    * @return a formula ret such that, given the current set of formulas A
    * asserted to this solver:
-   *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
+   *   - {@code (A ^ q) => (A ^ ret)} if Q is forall or {@code (A ^ ret) => (A ^ q)} if Q is
    *     exists,
    *   - ret is quantifier-free formula containing only free variables in
    *     y1...yn,
    *   - If Q is exists, let A^Q_n be the formula
-   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
+   *       {@code A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n}
    *     where for each i=1,...n, formula ret^Q_i is the result of calling
    *     getQuantifierEliminationDisjunct for q with the set of assertions
-   *     A^Q_{i-1}. Similarly, if Q is forall, then let A^Q_n be
-   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
+   *     {@code A^Q_{i-1}}. Similarly, if Q is forall, then let {@code A^Q_n} be
+   *       {@code A ^ ret^Q_1 ^ ... ^ ret^Q_n }
    *     where ret^Q_i is the same as above. In either case, we have
    *     that ret^Q_j will eventually be true or false, for some finite j.
    */
@@ -2004,9 +2002,9 @@ public class Solver implements IPointer
   /**
    * Pop a level from the assertion stack.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( pop <numeral> )
-   * \endverbatim
+   * }
    */
   public void pop() throws CVC5ApiException
   {
@@ -2016,9 +2014,9 @@ public class Solver implements IPointer
   /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( pop <numeral> )
-   * \endverbatim
+   * }
    * @param nscopes the number of levels to pop
    */
   public void pop(int nscopes) throws CVC5ApiException
@@ -2032,12 +2030,12 @@ public class Solver implements IPointer
   /**
    * Get an interpolant
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-interpol <conj> )
-   * \endverbatim
+   * }
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
-   * @param output a Term I such that A->I and I->B are valid, where A is the
+   * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
@@ -2051,13 +2049,13 @@ public class Solver implements IPointer
   /**
    * Get an interpolant
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-interpol <conj> <g> )
-   * \endverbatim
+   * }
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
-   * @param output a Term I such that A->I and I->B are valid, where A is the
+   * @param output a Term I such that {@code A->I} and {@code I->B} are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
@@ -2072,9 +2070,9 @@ public class Solver implements IPointer
   /**
    * Get an abduct.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-abduct <conj> )
-   * \endverbatim
+   * }
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
    * @param output a term C such that A^C is satisfiable, and A^~B^C is
@@ -2091,9 +2089,9 @@ public class Solver implements IPointer
   /**
    * Get an abduct.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( get-abduct <conj> <g> )
-   * \endverbatim
+   * }
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct C
@@ -2114,9 +2112,9 @@ public class Solver implements IPointer
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( block-model )
-   * \endverbatim
+   * }
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
    */
@@ -2131,9 +2129,9 @@ public class Solver implements IPointer
    * Block the current model values of (at least) the values in terms. Can be
    * called only if immediately preceded by a SAT or NOT_ENTAILED query.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( block-model-values ( <terms>+ ) )
-   * \endverbatim
+   * }
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
    */
@@ -2154,9 +2152,9 @@ public class Solver implements IPointer
   /**
    * Push a level to the assertion stack.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( push <numeral> )
-   * \endverbatim
+   * }
    */
   public void push() throws CVC5ApiException
   {
@@ -2166,9 +2164,9 @@ public class Solver implements IPointer
   /**
    * Push (a) level(s) to the assertion stack.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( push <numeral> )
-   * \endverbatim
+   * }
    * @param nscopes the number of levels to push
    */
   public void push(int nscopes) throws CVC5ApiException
@@ -2182,9 +2180,9 @@ public class Solver implements IPointer
   /**
    * Remove all assertions.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( reset-assertions )
-   * \endverbatim
+   * }
    */
   public void resetAssertions()
   {
@@ -2196,9 +2194,9 @@ public class Solver implements IPointer
   /**
    * Set info.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( set-info <attribute> )
-   * \endverbatim
+   * }
    * @param keyword the info flag
    * @param value the value of the info flag
    */
@@ -2212,9 +2210,9 @@ public class Solver implements IPointer
   /**
    * Set logic.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    * ( set-logic <symbol> )
-   * \endverbatim
+   * }
    * @param logic the logic to set
    */
   public void setLogic(String logic) throws CVC5ApiException
@@ -2227,9 +2225,9 @@ public class Solver implements IPointer
   /**
    * Set option.
    * SMT-LIB:
-   * \verbatim
+   * {@code
    *   ( set-option <option> )
-   * \endverbatim
+   * }
    * @param option the option name
    * @param value the option value
    */
@@ -2268,9 +2266,9 @@ public class Solver implements IPointer
   /**
    * Append \p symbol to the current list of universal variables.
    * SyGuS v2:
-   * \verbatim
+   * {@code
    *   ( declare-var <symbol> <sort> )
-   * \endverbatim
+   * }
    * @param sort the sort of the universal variable
    * @param symbol the name of the universal variable
    * @return the universal variable
@@ -2305,9 +2303,9 @@ public class Solver implements IPointer
   /**
    * Synthesize n-ary function.
    * SyGuS v2:
-   * \verbatim
+   * {@code
    *   ( synth-fun <symbol> ( <boundVars>* ) <sort> )
-   * \endverbatim
+   * }
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -2326,9 +2324,9 @@ public class Solver implements IPointer
   /**
    * Synthesize n-ary function following specified syntactic constraints.
    * SyGuS v2:
-   * \verbatim
+   * {@code
    *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
-   * \endverbatim
+   * }
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -2349,9 +2347,9 @@ public class Solver implements IPointer
   /**
    * Synthesize invariant.
    * SyGuS v2:
-   * \verbatim
+   * {@code
    *   ( synth-inv <symbol> ( <boundVars>* ) )
-   * \endverbatim
+   * }
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
    * @return the invariant
@@ -2368,9 +2366,9 @@ public class Solver implements IPointer
   /**
    * Synthesize invariant following specified syntactic constraints.
    * SyGuS v2:
-   * \verbatim
+   * {@code
    *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
-   * \endverbatim
+   * }
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
    * @param grammar the syntactic constraints
@@ -2389,9 +2387,9 @@ public class Solver implements IPointer
   /**
    * Add a forumla to the set of Sygus constraints.
    * SyGuS v2:
-   * \verbatim
+   * {@code
    *   ( constraint <term> )
-   * \endverbatim
+   * }
    * @param term the formula to add as a constraint
    */
   public void addSygusConstraint(Term term)
@@ -2404,9 +2402,9 @@ public class Solver implements IPointer
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
    * SyGuS v2:
-   * \verbatim
+   * {@code
    *   ( inv-constraint <inv> <pre> <trans> <post> )
-   * \endverbatim
+   * }
    * @param inv the function-to-synthesize
    * @param pre the pre-condition
    * @param trans the transition relation
@@ -2426,9 +2424,9 @@ public class Solver implements IPointer
    * current list of functions-to-synthesize, universal variables and
    * constraints.
    * SyGuS v2:
-   * \verbatim
+   * {@code
    *   ( check-synth )
-   * \endverbatim
+   * }
    * @return the result of the synthesis conjecture.
    */
   public Result checkSynth()
@@ -2469,10 +2467,17 @@ public class Solver implements IPointer
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
 
   /**
-   * Print solution for synthesis conjecture to the given output stream.
-   * @param out the output stream
+   * Returns a snapshot of the current state of the statistic values of this
+   * solver. The returned object is completely decoupled from the solver and
+   * will not change when the solver is used again.
    */
-  // TODO: void printSynthSolution(std::ostream& out)
+  public Statistics getStatistics()
+  {
+    long statisticsPointer = getStatistics(pointer);
+    return new Statistics(this, statisticsPointer);
+  }
+
+  private native long getStatistics(long pointer);
 
   /**
    * @return null term

@@ -67,6 +67,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Stat.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Statistics.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Term.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
   ${JAVA_KIND_FILE}
 )
@@ -127,16 +128,17 @@ target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
 target_link_libraries(cvc5jni PRIVATE ${JNI_LIBRARIES})
-target_link_libraries(cvc5jni PRIVATE cvc5)
+target_link_libraries(cvc5jni PRIVATE cvc5-shared)
 
-set(CVC5_JAR "cvc5-${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}.jar")
+set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")
 
 # create cvc5.jar file
 add_jar(cvc5jar
   SOURCES
   ${JAVA_FILES}
-  VERSION ${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}
+  VERSION ${CVC5_VERSION}
   OUTPUT_NAME cvc5
 )
+set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
-add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
+add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5-shared)

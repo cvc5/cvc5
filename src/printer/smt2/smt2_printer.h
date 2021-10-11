@@ -47,8 +47,8 @@ class Smt2Printer : public cvc5::Printer
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
    * Writes the unsat core to the stream out.
-   * We use the expression names that are stored in the SMT engine associated
-   * with the core (UnsatCore::getSmtEngine) for printing named assertions.
+   * We use the expression names that are associated with the core
+   * (UnsatCore::getCoreNames) for printing named assertions.
    */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
 
