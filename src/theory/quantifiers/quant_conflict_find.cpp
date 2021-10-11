@@ -281,7 +281,7 @@ bool QuantInfo::reset_round()
   d_tconstraints.clear();
 
   d_mg->reset_round();
-  for (const std::pair<const int, MatchGen*>& vg : d_var_mg)
+  for (const std::pair<const size_t, MatchGen*>& vg : d_var_mg)
   {
     if (!vg.second->reset_round())
     {
@@ -421,7 +421,7 @@ int QuantInfo::addConstraint(
                   remDeq.push_back(dd.first);
                 }
               }
-              for (const Node& rd : remDeq)
+              for (TNode rd : remDeq)
               {
                 itd->second.erase(rd);
               }
