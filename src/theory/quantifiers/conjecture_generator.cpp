@@ -93,7 +93,8 @@ ConjectureGenerator::ConjectureGenerator(Env& env,
                                          TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
       d_notify(*this),
-      d_uequalityEngine(env, context(), d_notify, "ConjectureGenerator::ee", false),
+      d_uequalityEngine(
+          env, context(), d_notify, "ConjectureGenerator::ee", false),
       d_ee_conjectures(context()),
       d_conj_count(0),
       d_subs_confirmCount(0),

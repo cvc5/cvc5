@@ -90,8 +90,7 @@ class ProofEqEngine : public EagerProofGenerator
    * @param env The environment
    * @param ee The equality engine this is layered on
    */
-  ProofEqEngine(Env& env,
-                EqualityEngine& ee);
+  ProofEqEngine(Env& env, EqualityEngine& ee);
   ~ProofEqEngine() {}
   //-------------------------- assert fact
   /**

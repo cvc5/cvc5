@@ -31,7 +31,8 @@ EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
       d_masterEENotify(nullptr),
       d_masterEqualityEngine(nullptr),
       d_centralEENotify(*this),
-      d_centralEqualityEngine(env, context(), d_centralEENotify, "central::ee", true)
+      d_centralEqualityEngine(
+          env, context(), d_centralEENotify, "central::ee", true)
 {
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
@@ -41,8 +42,7 @@ EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
   }
   if (env.isTheoryProofProducing())
   {
-    d_centralPfee.reset(new eq::ProofEqEngine(env,
-                                              d_centralEqualityEngine));
+    d_centralPfee.reset(new eq::ProofEqEngine(env, d_centralEqualityEngine));
     d_centralEqualityEngine.setProofEqualityEngine(d_centralPfee.get());
   }
 }
