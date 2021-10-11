@@ -21,9 +21,9 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - name: Remove cmake version checks
+    - name: Adapt cmake version checks
       run: |
-        sed -i'orig' 's/cmake_minimum_required/#cmake_minimum_required/' CMakeLists.txt
+        sed -i'orig' 's/cmake_minimum_required/#cmake_minimum_required\ncmake_minimum_required(VERSION ${{ matrix.cmake_version }})/' CMakeLists.txt
 
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
