@@ -18,11 +18,11 @@
 #include "proof/lazy_proof_chain.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
-#include "smt/env.h"
 
 using namespace cvc5::kind;
 
@@ -38,7 +38,10 @@ ProofEqEngine::ProofEqEngine(Env& env,
       d_factPg(env.getContext(), pnm),
       d_assumpPg(pnm),
       d_pnm(pnm),
-      d_proof(pnm, nullptr, env.getContext(), "pfee::LazyCDProof::" + ee.identify()),
+      d_proof(pnm,
+              nullptr,
+              env.getContext(),
+              "pfee::LazyCDProof::" + ee.identify()),
       d_keep(env.getContext())
 {
   NodeManager* nm = NodeManager::currentNM();

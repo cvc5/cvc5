@@ -24,7 +24,7 @@
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5 {
-  
+
 class Env;
 
 namespace theory {

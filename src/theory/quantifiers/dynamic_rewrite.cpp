@@ -16,8 +16,8 @@
 #include "theory/quantifiers/dynamic_rewrite.h"
 
 #include "expr/skolem_manager.h"
-#include "theory/rewriter.h"
 #include "smt/env.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -27,7 +27,8 @@ namespace theory {
 namespace quantifiers {
 
 DynamicRewriter::DynamicRewriter(Env& env, const std::string& name)
-    : d_equalityEngine(env, "DynamicRewriter::" + name, true), d_rewrites(env.getContext())
+    : d_equalityEngine(env, "DynamicRewriter::" + name, true),
+      d_rewrites(env.getContext())
 {
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
