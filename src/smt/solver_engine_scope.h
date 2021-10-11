@@ -18,43 +18,42 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SMT__SMT_ENGINE_SCOPE_H
-#define CVC5__SMT__SMT_ENGINE_SCOPE_H
+#ifndef CVC5__SMT__SOLVER_ENGINE_SCOPE_H
+#define CVC5__SMT__SOLVER_ENGINE_SCOPE_H
 
 #include "expr/node_manager.h"
-
 #include "options/options.h"
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 class StatisticsRegistry;
 
 namespace smt {
 
-SmtEngine* currentSmtEngine();
-bool smtEngineInScope();
+SolverEngine* currentSolverEngine();
+bool solverEngineInScope();
 
 /** get the current resource manager */
 ResourceManager* currentResourceManager();
 
-class SmtScope
+class SolverEngineScope
 {
  public:
-  SmtScope(const SmtEngine* smt);
-  ~SmtScope();
+  SolverEngineScope(const SolverEngine* smt);
+  ~SolverEngineScope();
   /**
    * This returns the StatisticsRegistry attached to the currently in scope
-   * SmtEngine.
+   * SolverEngine.
    */
   static StatisticsRegistry& currentStatisticsRegistry();
 
  private:
-  /** The old SmtEngine, to be restored on destruction. */
-  SmtEngine* d_oldSmtEngine;
+  /** The old SolverEngine, to be restored on destruction. */
+  SolverEngine* d_oldSlvEngine;
   /** Options scope */
   Options::OptionsScope d_optionsScope;
-};/* class SmtScope */
+}; /* class SolverEngineScope */
 
 }  // namespace smt
 }  // namespace cvc5

@@ -60,7 +60,7 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::storeOptionsAsOriginal()
 {
-  d_solver->d_originalOptions->copyValues(d_solver->d_smtEngine->getOptions());
+  d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
@@ -162,8 +162,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if ((d_solver->getOptionInfo("dump-unsat-cores").boolValue()
-         || d_solver->getOptionInfo("dump-unsat-cores-full").boolValue())
+    if (d_solver->getOptionInfo("dump-unsat-cores").boolValue()
         && isResultUnsat)
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());

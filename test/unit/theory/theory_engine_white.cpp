@@ -49,10 +49,10 @@ class TestTheoryWhiteEngine : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_context = d_smtEngine->getContext();
-    d_user_context = d_smtEngine->getUserContext();
+    d_context = d_slvEngine->getContext();
+    d_user_context = d_slvEngine->getUserContext();
 
-    d_theoryEngine = d_smtEngine->getTheoryEngine();
+    d_theoryEngine = d_slvEngine->getTheoryEngine();
     for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id)
     {
       delete d_theoryEngine->d_theoryOut[id];

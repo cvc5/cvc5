@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The solver for SMT queries in an SmtEngine.
+ * The solver for SMT queries in an SolverEngine.
  */
 
 #include "smt/smt_solver.h"
@@ -35,11 +35,11 @@ namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
                      SmtEngineState& state,
-                     Preprocessor& pp,
+                     AbstractValues& abs,
                      SolverEngineStatistics& stats)
     : d_env(env),
       d_state(state),
-      d_pp(pp),
+      d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
@@ -48,7 +48,7 @@ SmtSolver::SmtSolver(Env& env,
 
 SmtSolver::~SmtSolver() {}
 
-void SmtSolver::finishInit(const LogicInfo& logicInfo)
+void SmtSolver::finishInit()
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -78,6 +78,8 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
+
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
 }
 
 void SmtSolver::resetAssertions()
@@ -93,6 +95,8 @@ void SmtSolver::resetAssertions()
   // finishInit again. In particular, TheoryEngine::finishInit does not
   // depend on knowing the associated PropEngine.
   d_propEngine->finishInit();
+  // must reset the preprocessor as well
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
 }
 
 void SmtSolver::interrupt()

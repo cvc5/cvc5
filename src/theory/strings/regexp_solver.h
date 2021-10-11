@@ -31,6 +31,7 @@
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
 #include "util/string.h"
 
 namespace cvc5 {
@@ -50,7 +51,7 @@ class RegExpSolver : protected EnvObj
   RegExpSolver(Env& env,
                SolverState& s,
                InferenceManager& im,
-               SkolemCache* skc,
+               TermRegistry& tr,
                CoreSolver& cs,
                ExtfSolver& es,
                SequencesStatistics& stats);

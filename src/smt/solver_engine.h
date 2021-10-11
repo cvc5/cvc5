@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * SmtEngine: the main public entry point of libcvc5.
+ * SolverEngine: the main public entry point of libcvc5.
  */
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__SMT_ENGINE_H
-#define CVC5__SMT_ENGINE_H
+#ifndef CVC5__SOLVER_ENGINE_H
+#define CVC5__SOLVER_ENGINE_H
 
 #include <map>
 #include <memory>
@@ -94,7 +94,7 @@ class InterpolationSolver;
 class QuantElimSolver;
 
 struct SolverEngineStatistics;
-class SmtScope;
+class SolverEngineScope;
 class PfManager;
 class UnsatCoreManager;
 
@@ -110,29 +110,29 @@ class QuantifiersEngine;
 
 /* -------------------------------------------------------------------------- */
 
-class CVC5_EXPORT SmtEngine
+class CVC5_EXPORT SolverEngine
 {
   friend class ::cvc5::api::Solver;
   friend class ::cvc5::smt::SmtEngineState;
-  friend class ::cvc5::smt::SmtScope;
+  friend class ::cvc5::smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
   /* .......................................................................  */
 
   /**
-   * Construct an SmtEngine with the given expression manager.
+   * Construct an SolverEngine with the given expression manager.
    * If provided, optr is a pointer to a set of options that should initialize
    * the values of the options object owned by this class.
    */
-  SmtEngine(NodeManager* nm, const Options* optr = nullptr);
+  SolverEngine(NodeManager* nm, const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
-  ~SmtEngine();
+  ~SolverEngine();
 
   //--------------------------------------------- concerning the state
 
   /**
-   * This is the main initialization procedure of the SmtEngine.
+   * This is the main initialization procedure of the SolverEngine.
    *
    * Should be called whenever the final options and logic for the problem are
    * set (at least, those options that are not permitted to change after
@@ -143,12 +143,12 @@ class CVC5_EXPORT SmtEngine
    * options being set.
    *
    * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine; e.g. when the first formula is asserted, a call
+   * use of the SolverEngine; e.g. when the first formula is asserted, a call
    * to simplify() is issued, a scope is pushed, etc.
    */
   void finishInit();
   /**
-   * Return true if this SmtEngine is fully initialized (post-construction)
+   * Return true if this SolverEngine is fully initialized (post-construction)
    * by the above call.
    */
   bool isFullyInited() const;
@@ -216,9 +216,10 @@ class CVC5_EXPORT SmtEngine
 
   /** Set is internal subsolver.
    *
-   * This function is called on SmtEngine objects that are created internally.
-   * It is used to mark that this SmtEngine should not perform preprocessing
-   * passes that rephrase the input, such as --sygus-rr-synth-input or
+   * This function is called on SolverEngine objects that are created
+   * internally.  It is used to mark that this SolverEngine should not
+   * perform preprocessing passes that rephrase the input, such as
+   * --sygus-rr-synth-input or
    * --sygus-abduct.
    */
   void setIsInternalSubsolver();
@@ -495,8 +496,8 @@ class CVC5_EXPORT SmtEngine
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
-   * or NOT_ENTAILED query).  Only permitted if the SmtEngine is set to operate
-   * interactively and produce-models is on.
+   * or NOT_ENTAILED query).  Only permitted if the SolverEngine is set to
+   * operate interactively and produce-models is on.
    *
    * @throw ModalException, TypeCheckingException, LogicException,
    *        UnsafeInterruptException
@@ -577,7 +578,7 @@ class CVC5_EXPORT SmtEngine
    * elimination is LRA and LIA.
    *
    * This function returns a formula ret such that, given
-   * the current set of formulas A asserted to this SmtEngine :
+   * the current set of formulas A asserted to this SolverEngine :
    *
    * If doFull = true, then
    *   - ( A ^ q ) and ( A ^ ret ) are equivalent
@@ -698,7 +699,7 @@ class CVC5_EXPORT SmtEngine
 
   /**
    * Get the current set of assertions.  Only permitted if the
-   * SmtEngine is set to operate interactively.
+   * SolverEngine is set to operate interactively.
    */
   std::vector<Node> getAssertions();
 
@@ -725,7 +726,7 @@ class CVC5_EXPORT SmtEngine
 
   /**
    * Interrupt a running query.  This can be called from another thread
-   * or from a signal handler.  Throws a ModalException if the SmtEngine
+   * or from a signal handler.  Throws a ModalException if the SolverEngine
    * isn't currently in a query.
    *
    * @throw ModalException
@@ -733,7 +734,7 @@ class CVC5_EXPORT SmtEngine
   void interrupt();
 
   /**
-   * Set a resource limit for SmtEngine operations.  This is like a time
+   * Set a resource limit for SolverEngine operations.  This is like a time
    * limit, but it's deterministic so that reproducible results can be
    * obtained.  Currently, it's based on the number of conflicts.
    * However, please note that the definition may change between different
@@ -746,42 +747,42 @@ class CVC5_EXPORT SmtEngine
    * cumulative==true replaces any cumulative resource limit currently
    * in effect; a call with cumulative==false replaces any per-call
    * resource limit currently in effect.  Time limits can be set in
-   * addition to resource limits; the SmtEngine obeys both.  That means
-   * that up to four independent limits can control the SmtEngine
+   * addition to resource limits; the SolverEngine obeys both.  That means
+   * that up to four independent limits can control the SolverEngine
    * at the same time.
    *
-   * When an SmtEngine is first created, it has no time or resource
+   * When an SolverEngine is first created, it has no time or resource
    * limits.
    *
-   * Currently, these limits only cause the SmtEngine to stop what its
+   * Currently, these limits only cause the SolverEngine to stop what its
    * doing when the limit expires (or very shortly thereafter); no
    * heuristics are altered by the limits or the threat of them expiring.
    * We reserve the right to change this in the future.
    *
    * @param units the resource limit, or 0 for no limit
    * @param cumulative whether this resource limit is to be a cumulative
-   * resource limit for all remaining calls into the SmtEngine (true), or
+   * resource limit for all remaining calls into the SolverEngine (true), or
    * whether it's a per-call resource limit (false); the default is false
    */
   void setResourceLimit(uint64_t units, bool cumulative = false);
 
   /**
-   * Set a per-call time limit for SmtEngine operations.
+   * Set a per-call time limit for SolverEngine operations.
    *
    * A per-call time limit can be set at the same time and replaces
    * any per-call time limit currently in effect.
    * Resource limits (either per-call or cumulative) can be set in
-   * addition to a time limit; the SmtEngine obeys all three of them.
+   * addition to a time limit; the SolverEngine obeys all three of them.
    *
    * Note that the per-call timer only ticks away when one of the
-   * SmtEngine's workhorse functions (things like assertFormula(),
+   * SolverEngine's workhorse functions (things like assertFormula(),
    * checkEntailed(), checkSat(), and simplify()) are running.
    * Between calls, the timer is still.
    *
-   * When an SmtEngine is first created, it has no time or resource
+   * When an SolverEngine is first created, it has no time or resource
    * limits.
    *
-   * Currently, these limits only cause the SmtEngine to stop what its
+   * Currently, these limits only cause the SolverEngine to stop what its
    * doing when the limit expires (or very shortly thereafter); no
    * heuristics are altered by the limits or the threat of them expiring.
    * We reserve the right to change this in the future.
@@ -791,17 +792,17 @@ class CVC5_EXPORT SmtEngine
   void setTimeLimit(uint64_t millis);
 
   /**
-   * Get the current resource usage count for this SmtEngine.  This
+   * Get the current resource usage count for this SolverEngine.  This
    * function can be used to ascertain reasonable values to pass as
    * resource limits to setResourceLimit().
    */
   unsigned long getResourceUsage() const;
 
-  /** Get the current millisecond count for this SmtEngine.  */
+  /** Get the current millisecond count for this SolverEngine.  */
   unsigned long getTimeUsage() const;
 
   /**
-   * Get the remaining resources that can be consumed by this SmtEngine
+   * Get the remaining resources that can be consumed by this SolverEngine
    * according to the currently-set cumulative resource limit.  If there
    * is not a cumulative resource limit set, this function throws a
    * ModalException.
@@ -815,13 +816,13 @@ class CVC5_EXPORT SmtEngine
 
   /**
    * Print statistics from the statistics registry in the env object owned by
-   * this SmtEngine. Safe to use in a signal handler.
+   * this SolverEngine. Safe to use in a signal handler.
    */
   void printStatisticsSafe(int fd) const;
 
   /**
    * Print the changes to the statistics from the statistics registry in the
-   * env object owned by this SmtEngine since this method was called the last
+   * env object owned by this SolverEngine since this method was called the last
    * time. Internally prints the diff and then stores a snapshot for the next
    * call.
    */
@@ -831,16 +832,16 @@ class CVC5_EXPORT SmtEngine
   Options& getOptions();
   const Options& getOptions() const;
 
-  /** Get a pointer to the UserContext owned by this SmtEngine. */
+  /** Get a pointer to the UserContext owned by this SolverEngine. */
   context::UserContext* getUserContext();
 
-  /** Get a pointer to the Context owned by this SmtEngine. */
+  /** Get a pointer to the Context owned by this SolverEngine. */
   context::Context* getContext();
 
-  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
+  /** Get a pointer to the TheoryEngine owned by this SolverEngine. */
   TheoryEngine* getTheoryEngine();
 
-  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  /** Get a pointer to the PropEngine owned by this SolverEngine. */
   prop::PropEngine* getPropEngine();
 
   /** Get the resource manager of this SMT engine */
@@ -855,7 +856,7 @@ class CVC5_EXPORT SmtEngine
   /** Get the output manager for this SMT engine */
   OutputManager& getOutputManager();
 
-  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  /** Get a pointer to the Rewriter owned by this SolverEngine. */
   theory::Rewriter* getRewriter();
   /**
    * Get expanded assertions.
@@ -874,16 +875,16 @@ class CVC5_EXPORT SmtEngine
   /* .......................................................................  */
 
   // disallow copy/assignment
-  SmtEngine(const SmtEngine&) = delete;
-  SmtEngine& operator=(const SmtEngine&) = delete;
+  SolverEngine(const SolverEngine&) = delete;
+  SolverEngine& operator=(const SolverEngine&) = delete;
 
-  /** Set solver instance that owns this SmtEngine. */
+  /** Set solver instance that owns this SolverEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
-  /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
+  /** Get a pointer to the (new) PfManager owned by this SolverEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
 
-  /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
+  /** Get a pointer to the StatisticsRegistry owned by this SolverEngine. */
   StatisticsRegistry& getStatisticsRegistry();
 
   /**
@@ -1034,7 +1035,7 @@ class CVC5_EXPORT SmtEngine
   std::vector<Node> getAssertionsInternal();
   /* Members -------------------------------------------------------------- */
 
-  /** Solver instance that owns this SmtEngine instance. */
+  /** Solver instance that owns this SolverEngine instance. */
   api::Solver* d_solver = nullptr;
 
   /**
@@ -1043,7 +1044,7 @@ class CVC5_EXPORT SmtEngine
    */
   std::unique_ptr<Env> d_env;
   /**
-   * The state of this SmtEngine, which is responsible for maintaining which
+   * The state of this SolverEngine, which is responsible for maintaining which
    * SMT mode we are in, the contexts, the last result, etc.
    */
   std::unique_ptr<smt::SmtEngineState> d_state;
@@ -1106,16 +1107,12 @@ class CVC5_EXPORT SmtEngine
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
   /**
-   * The preprocessor.
+   * The global scope object. Upon creation of this SolverEngine, it becomes the
+   * SolverEngine in scope. It says the SolverEngine in scope until it is
+   * destructed, or another SolverEngine is created.
    */
-  std::unique_ptr<smt::Preprocessor> d_pp;
-  /**
-   * The global scope object. Upon creation of this SmtEngine, it becomes the
-   * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,
-   * or another SmtEngine is created.
-   */
-  std::unique_ptr<smt::SmtScope> d_scope;
-}; /* class SmtEngine */
+  std::unique_ptr<smt::SolverEngineScope> d_scope;
+}; /* class SolverEngine */
 
 /* -------------------------------------------------------------------------- */
 

@@ -17,9 +17,9 @@
 
 #include "options/theory_options.h"
 #include "proof/conv_proof_generator.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
@@ -166,7 +166,7 @@ TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
 
 Rewriter* Rewriter::getInstance()
 {
-  return smt::currentSmtEngine()->getRewriter();
+  return smt::currentSolverEngine()->getRewriter();
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,
@@ -197,13 +197,14 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
 
   ResourceManager* rm = NULL;
-  bool hasSmtEngine = smt::smtEngineInScope();
-  if (hasSmtEngine) {
+  bool hasSlvEngine = smt::solverEngineInScope();
+  if (hasSlvEngine)
+  {
     rm = smt::currentResourceManager();
   }
   // Rewrite until the stack is empty
   for (;;){
-    if (hasSmtEngine)
+    if (hasSlvEngine)
     {
       rm->spendResource(Resource::RewriteStep);
     }

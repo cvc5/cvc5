@@ -11,14 +11,14 @@
  * ****************************************************************************
  *
  * Implementation of utilities for initializing subsolvers (copies of
- * SmtEngine) during solving.
+ * SolverEngine) during solving.
  */
 
 #include "theory/smt_engine_subsolver.h"
 
 #include "smt/env.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {
@@ -42,14 +42,14 @@ Result quickCheck(Node& query)
   return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          const Options& opts,
                          const LogicInfo& logicInfo,
                          bool needsTimeout,
                          unsigned long timeout)
 {
   NodeManager* nm = NodeManager::currentNM();
-  smte.reset(new SmtEngine(nm, &opts));
+  smte.reset(new SolverEngine(nm, &opts));
   smte->setIsInternalSubsolver();
   smte->setLogic(logicInfo);
   // set the options
@@ -58,7 +58,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
     smte->setTimeLimit(timeout);
   }
 }
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          const Env& env,
                          bool needsTimeout,
                          unsigned long timeout)
@@ -67,7 +67,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
       smte, env.getOptions(), env.getLogicInfo(), needsTimeout, timeout);
 }
 
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
+Result checkWithSubsolver(std::unique_ptr<SolverEngine>& smte,
                           Node query,
                           const Options& opts,
                           const LogicInfo& logicInfo,
@@ -122,7 +122,7 @@ Result checkWithSubsolver(Node query,
     }
     return r;
   }
-  std::unique_ptr<SmtEngine> smte;
+  std::unique_ptr<SolverEngine> smte;
   initializeSubsolver(smte, opts, logicInfo, needsTimeout, timeout);
   smte->assertFormula(query);
   r = smte->checkSat();

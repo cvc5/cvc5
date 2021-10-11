@@ -20,13 +20,13 @@
 
 namespace cvc5 {
 
-OutputManager::OutputManager(SmtEngine* smt) : d_smt(smt) {}
+OutputManager::OutputManager(SolverEngine* slv) : d_slv(slv) {}
 
-const Printer& OutputManager::getPrinter() const { return d_smt->getPrinter(); }
+const Printer& OutputManager::getPrinter() const { return d_slv->getPrinter(); }
 
 std::ostream& OutputManager::getDumpOut() const
 {
-  return *d_smt->getOptions().base.out;
+  return *d_slv->getOptions().base.out;
 }
 
 }  // namespace cvc5

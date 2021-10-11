@@ -69,10 +69,10 @@ class TestNodeBlackNode : public TestNode
     Options opts;
     opts.base.outputLanguage = Language::LANG_AST;
     opts.base.outputLanguageWasSetByUser = true;
-    d_smt.reset(new SmtEngine(d_nodeManager, &opts));
+    d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
   }
 
-  std::unique_ptr<SmtEngine> d_smt;
+  std::unique_ptr<SolverEngine> d_slvEngine;
 
   bool imp(bool a, bool b) const { return (!a) || (b); }
   bool iff(bool a, bool b) const { return (a && b) || ((!a) && (!b)); }

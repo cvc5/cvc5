@@ -21,7 +21,7 @@
 using namespace cvc5::smt;
 namespace cvc5::omt {
 
-OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
+OptimizationResult OMTOptimizerInteger::optimize(SolverEngine* optChecker,
                                                  TNode target,
                                                  bool isMinimize)
 {
@@ -71,12 +71,12 @@ OptimizationResult OMTOptimizerInteger::optimize(SmtEngine* optChecker,
   return OptimizationResult(lastSatResult, value);
 }
 
-OptimizationResult OMTOptimizerInteger::minimize(SmtEngine* optChecker,
+OptimizationResult OMTOptimizerInteger::minimize(SolverEngine* optChecker,
                                                  TNode target)
 {
   return this->optimize(optChecker, target, true);
 }
-OptimizationResult OMTOptimizerInteger::maximize(SmtEngine* optChecker,
+OptimizationResult OMTOptimizerInteger::maximize(SolverEngine* optChecker,
                                                  TNode target)
 {
   return this->optimize(optChecker, target, false);
