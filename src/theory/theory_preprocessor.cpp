@@ -366,7 +366,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       pret = rewriteWithProof(ret, d_tpg.get(), true);
     }
     // if we did not rewrite above, we are ready to theory preprocess
-    if (pret==ret)
+    if (pret == ret)
     {
       pret = preprocessWithProof(ret, newLemmas);
     }
