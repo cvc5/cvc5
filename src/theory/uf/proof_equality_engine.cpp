@@ -18,11 +18,11 @@
 #include "proof/lazy_proof_chain.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
-#include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
+#include "smt/env.h"
 
 using namespace cvc5::kind;
 
@@ -31,23 +31,19 @@ namespace theory {
 namespace eq {
 
 ProofEqEngine::ProofEqEngine(Env& env,
-                             EqualityEngine& ee,
-                             ProofNodeManager* pnm)
+                             EqualityEngine& ee)
     : EagerProofGenerator(pnm, env.getUserContext(), "pfee::" + ee.identify()),
       d_ee(ee),
-      d_factPg(env.getContext(), pnm),
-      d_assumpPg(pnm),
-      d_pnm(pnm),
-      d_proof(pnm,
-              nullptr,
-              env.getContext(),
-              "pfee::LazyCDProof::" + ee.identify()),
+      d_factPg(env.getContext(), env.getProofNodeManager()),
+      d_assumpPg(env.getProofNodeManager()),
+      d_pnm(env.getProofNodeManager()),
+      d_proof(env.getProofNodeManager(), nullptr, env.getContext(), "pfee::LazyCDProof::" + ee.identify()),
       d_keep(env.getContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  AlwaysAssert(pnm != nullptr)
+  AlwaysAssert(env.getProofNodeManager() != nullptr)
       << "Should not construct ProofEqEngine without proof node manager";
 }
 

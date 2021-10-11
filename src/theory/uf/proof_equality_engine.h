@@ -89,9 +89,9 @@ class ProofEqEngine : public EagerProofGenerator
   /**
    * @param env The environment
    * @param ee The equality engine this is layered on
-   * @param pnm The proof node manager for producing proof nodes.
    */
-  ProofEqEngine(Env& env, EqualityEngine& ee, ProofNodeManager* pnm);
+  ProofEqEngine(Env& env,
+                EqualityEngine& ee);
   ~ProofEqEngine() {}
   //-------------------------- assert fact
   /**
