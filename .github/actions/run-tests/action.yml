@@ -11,7 +11,6 @@ inputs:
     default: "--no-check-unsat-cores --no-check-proofs"
   regressions-exclude:
     default: "3-4"
-  
 runs:
   using: composite
   steps:
