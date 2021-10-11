@@ -422,7 +422,7 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
 TEST_F(TestApiBlackSolver, mkCardinalityConstraint)
 {
   Sort su = d_solver.mkUninterpretedSort("u");
-  Sort si = d_solver.getIntegerSort();  
+  Sort si = d_solver.getIntegerSort();
   ASSERT_NO_THROW(d_solver.mkCardinalityConstraint(su, 3));
   ASSERT_THROW(d_solver.mkCardinalityConstraint(si, 3), CVC5ApiException);
   ASSERT_THROW(d_solver.mkCardinalityConstraint(su, 0), CVC5ApiException);
