@@ -130,8 +130,12 @@ class EqualityEngine : public context::ContextNotifyObj {
   };/* struct EqualityEngine::statistics */
 
  private:
+
   /** The environment we are using */
   Env& d_env;
+
+  /** The context we are using */
+  context::Context* d_context;
 
   /** If we are done, we don't except any new assertions */
   context::CDO<bool> d_done;
