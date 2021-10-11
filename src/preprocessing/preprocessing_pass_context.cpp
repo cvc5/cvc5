@@ -32,8 +32,7 @@ PreprocessingPassContext::PreprocessingPassContext(
       d_theoryEngine(te),
       d_propEngine(pe),
       d_circuitPropagator(circuitPropagator),
-      d_llm(
-          env.getTopLevelSubstitutions(), userContext(), getProofNodeManager()),
+      d_llm(env),
       d_symsInAssertions(userContext())
 {
 }
@@ -95,11 +94,6 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const std::vector<Node>& args)
 {
   getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
-}
-
-ProofNodeManager* PreprocessingPassContext::getProofNodeManager() const
-{
-  return d_env.getProofNodeManager();
 }
 
 }  // namespace preprocessing
