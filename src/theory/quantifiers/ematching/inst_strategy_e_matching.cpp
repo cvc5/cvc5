@@ -74,12 +74,15 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
     : InstStrategy(env, td, qs, qim, qr, tr), d_quant_rel(qrlv)
 {
   //how to select trigger terms
-  d_tr_strategy = options::triggerSelMode();
+  d_tr_strategy = options().quantifiers.triggerSelMode;
   //whether to select new triggers during the search
-  if( options::incrementTriggers() ){
+  if (options().quantifiers.incrementTriggers)
+  {
     d_regenerate_frequency = 3;
     d_regenerate = true;
-  }else{
+  }
+  else
+  {
     d_regenerate_frequency = 1;
     d_regenerate = false;
   }
@@ -157,7 +160,8 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
       }
     }
   }
-  if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)
+  if (options().quantifiers.triggerActiveSelMode
+      != options::TriggerActiveSelMode::ALL)
   {
     int max_score = -1;
     Trigger* max_trigger = nullptr;
@@ -167,7 +171,8 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
     {
       Trigger* t = it->first;
       int score = t->getActiveScore();
-      if (options::triggerActiveSelMode() == options::TriggerActiveSelMode::MIN)
+      if (options().quantifiers.triggerActiveSelMode
+          == options::TriggerActiveSelMode::MIN)
       {
         if (score >= 0 && (score < max_score || max_score < 0))
         {
@@ -222,7 +227,8 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
         break;
       }
     }
-    if (d_qstate.isInConflict() || (hasInst && options::multiTriggerPriority()))
+    if (d_qstate.isInConflict()
+        || (hasInst && options().quantifiers.multiTriggerPriority))
     {
       break;
     }
@@ -243,7 +249,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
 
   // then, group them to make triggers
   unsigned rmin = d_patTerms[0][f].empty() ? 1 : 0;
-  unsigned rmax = options::multiTriggerWhenSingle() ? 1 : rmin;
+  unsigned rmax = options().quantifiers.multiTriggerWhenSingle ? 1 : rmin;
   for (unsigned r = rmin; r <= rmax; r++)
   {
     std::vector<Node> patTerms;
@@ -261,7 +267,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     }
     Trace("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
     // sort terms based on relevance
-    if (options::relevantTriggers())
+    if (options().quantifiers.relevantTriggers)
     {
       Assert(d_quant_rel);
       sortQuantifiersForSymbol sqfs;
@@ -305,7 +311,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       // exist
       if (!d_patTerms[0][f].empty())
       {
-        if (options::multiTriggerWhenSingle())
+        if (options().quantifiers.multiTriggerWhenSingle)
         {
           Trace("multi-trigger-debug")
               << "Resort to choosing multi-triggers..." << std::endl;
@@ -350,7 +356,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     {
       // check if similar patterns exist, and if so, add them additionally
       unsigned nqfs_curr = 0;
-      if (options::relevantTriggers())
+      if (options().quantifiers.relevantTriggers)
       {
         nqfs_curr =
             d_quant_rel->getNumQuantifiersForSymbol(patTerms[0].getOperator());
@@ -361,7 +367,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
              && d_is_single_trigger[patTerms[index]])
       {
         success = false;
-        if (!options::relevantTriggers()
+        if (!options().quantifiers.relevantTriggers
             || d_quant_rel->getNumQuantifiersForSymbol(
                    patTerms[index].getOperator())
                    <= nqfs_curr)
@@ -392,12 +398,12 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   // strategy d_tr_strategy
   d_patTerms[0][f].clear();
   d_patTerms[1][f].clear();
-  bool ntrivTriggers = options::relationalTriggers();
+  bool ntrivTriggers = options().quantifiers.relationalTriggers;
   std::vector<Node> patTermsF;
   std::map<Node, inst::TriggerTermInfo> tinfo;
   NodeManager* nm = NodeManager::currentNM();
   // well-defined function: can assume LHS is only pattern
-  if (options::quantFunWellDefined())
+  if (options().quantifiers.quantFunWellDefined)
   {
     Node hd = QuantAttributes::getFunDefHead(f);
     if (!hd.isNull())
@@ -485,7 +491,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     // quantifier elimination.
     QAttributes qa;
     QuantAttributes::computeQuantAttributes(f, qa);
-    if (options::partialTriggers() && qa.isStandard())
+    if (options().quantifiers.partialTriggers && qa.isStandard())
     {
       std::vector<Node> vcs[2];
       for (size_t i = 0, nchild = f[0].getNumChildren(); i < nchild; i++)
@@ -533,11 +539,12 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
         Assert(TriggerTermInfo::isAtomicTrigger(pat));
         if (pat.getType().isBoolean() && rpoleq.isNull())
         {
-          if (options::literalMatchMode() == options::LiteralMatchMode::USE)
+          if (options().quantifiers.literalMatchMode
+              == options::LiteralMatchMode::USE)
           {
             pat = pat.eqNode(nm->mkConst(rpol == -1)).negate();
           }
-          else if (options::literalMatchMode()
+          else if (options().quantifiers.literalMatchMode
                    != options::LiteralMatchMode::NONE)
           {
             pat = pat.eqNode(nm->mkConst(rpol == 1));
@@ -548,7 +555,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
           Assert(!rpoleq.isNull());
           if (rpol == -1)
           {
-            if (options::literalMatchMode() != options::LiteralMatchMode::NONE)
+            if (options().quantifiers.literalMatchMode
+                != options::LiteralMatchMode::NONE)
             {
               // all equivalence classes except rpoleq
               pat = pat.eqNode(rpoleq).negate();
@@ -556,7 +564,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
           }
           else if (rpol == 1)
           {
-            if (options::literalMatchMode() == options::LiteralMatchMode::AGG)
+            if (options().quantifiers.literalMatchMode
+                == options::LiteralMatchMode::AGG)
             {
               // only equivalence class rpoleq
               pat = pat.eqNode(rpoleq);
@@ -603,7 +612,9 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
 
 void InstStrategyAutoGenTriggers::addPatternToPool( Node q, Node pat, unsigned num_fv, Node mpat ) {
   d_pat_to_mpat[pat] = mpat;
-  unsigned num_vars = options::partialTriggers() ? d_num_trigger_vars[q] : q[0].getNumChildren();
+  unsigned num_vars = options().quantifiers.partialTriggers
+                          ? d_num_trigger_vars[q]
+                          : q[0].getNumChildren();
   if (num_fv == num_vars)
   {
     d_patTerms[0][q].push_back( pat );
