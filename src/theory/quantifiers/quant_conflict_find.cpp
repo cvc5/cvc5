@@ -84,13 +84,13 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
           d_mg->setInvalid();
           break;
         }else{
-          std::vector< int > bvars;
+          std::vector< size_t > bvars;
           d_var_mg[j]->determineVariableOrder( this, bvars );
         }
       }
     }
     if( d_mg->isValid() ){
-      std::vector< int > bvars;
+      std::vector< size_t > bvars;
       d_mg->determineVariableOrder( this, bvars );
     }
   }else{
@@ -388,8 +388,10 @@ int QuantInfo::addConstraint(size_t v, TNode n, bool polarity)
 {
   v = getCurrentRepVar( v );
   int vn = getVarNum( n );
-  vn = vn == -1 ? -1
-                : static_cast<int>(getCurrentRepVar(static_cast<size_t>(vn)));
+  if (vn!=-1)
+  {
+    vn = static_cast<int>(getCurrentRepVar(static_cast<size_t>(vn)));
+  }
   n = getCurrentValue( n );
   return addConstraint(v, n, vn, polarity, false);
 }
@@ -916,7 +918,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
              || doFail)
       {
         invalidMatch = false;
-        if( !doFail && d_una_index==(int)d_una_eqc_count.size() ){
+        if( !doFail && d_una_index==d_una_eqc_count.size() ){
           //check if it has now been assigned
           if( d_una_index<d_unassigned_nvar ){
             if( !isConstrainedVar( d_unassigned[d_una_index] ) ){
@@ -951,7 +953,7 @@ bool QuantInfo::completeMatch(std::vector<size_t>& assigned, bool doContinue)
               Assert(doFail || d_una_index + 1 == d_una_eqc_count.size());
               const std::vector<TNode>& eqcs =
                   d_parent->d_eqcs[d_unassigned_tn[d_una_index]];
-              if (d_una_eqc_count[d_una_index] < eqcs.size())
+              if (d_una_eqc_count[d_una_index] < static_cast<int>(eqcs.size()))
               {
                 int currIndex = d_una_eqc_count[d_una_index];
                 d_una_eqc_count[d_una_index]++;
@@ -1233,13 +1235,13 @@ void MatchGen::collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbva
     if( v!=-1 && std::find( cbvars.begin(), cbvars.end(), v )==cbvars.end() ){
       cbvars.push_back( v );
     }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      collectBoundVar( qi, n[i], cbvars, visited, hasNested );
+    for (const Node& nc : n){
+      collectBoundVar( qi, nc, cbvars, visited, hasNested );
     }
   }
 }
 
-void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars ) {
+void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< size_t >& bvars ) {
   Trace("qcf-qregister-debug") << "Determine variable order " << d_n << ", #bvars = " << bvars.size() << std::endl;
   bool isComm = d_type==typ_formula && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==EQUAL );
   if( isComm ){

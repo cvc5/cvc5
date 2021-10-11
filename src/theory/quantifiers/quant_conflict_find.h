@@ -83,7 +83,7 @@ class MatchGen {
 
  private:
   // determine variable order
-  void determineVariableOrder(QuantInfo* qi, std::vector<int>& bvars);
+  void determineVariableOrder(QuantInfo* qi, std::vector<size_t>& bvars);
   void collectBoundVar(QuantInfo* qi,
                        Node n,
                        std::vector<int>& cbvars,
@@ -93,9 +93,9 @@ class MatchGen {
   int d_child_counter;
   bool d_use_children;
   // children of this object
-  std::vector<int> d_children_order;
+  std::vector<size_t> d_children_order;
   size_t getNumChildren() { return d_children.size(); }
-  MatchGen* getChild(int i) { return &d_children[d_children_order[i]]; }
+  MatchGen* getChild(size_t i) { return &d_children[d_children_order[i]]; }
   // current matching information
   std::vector<TNodeTrie*> d_qn;
   std::vector<std::map<TNode, TNodeTrie>::iterator> d_qni;
@@ -112,7 +112,7 @@ class MatchGen {
   bool d_matched_basis;
   bool d_binding;
   // int getVarBindingVar();
-  std::map<int, Node> d_ground_eval;
+  std::map<size_t, Node> d_ground_eval;
 };
 
 //info for quantifiers
@@ -184,7 +184,7 @@ class QuantInfo : protected EnvObj
   std::vector<TypeNode> d_unassigned_tn;
   size_t d_unassigned_nvar;
   size_t d_una_index;
-  std::vector<size_t> d_una_eqc_count;
+  std::vector<int> d_una_eqc_count;
   // optimization: track which arguments variables appear under UF terms in
   std::map<size_t, std::map<TNode, std::vector<size_t> > > d_var_rel_dom;
   // optimization: number of variables set, to track when we can stop
