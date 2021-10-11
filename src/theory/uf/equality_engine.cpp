@@ -22,8 +22,8 @@
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/uf/eq_proof.h"
 #include "theory/rewriter.h"
+#include "theory/uf/eq_proof.h"
 
 namespace cvc5 {
 namespace theory {

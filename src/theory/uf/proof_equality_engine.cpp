@@ -31,7 +31,9 @@ namespace theory {
 namespace eq {
 
 ProofEqEngine::ProofEqEngine(Env& env, EqualityEngine& ee)
-    : EagerProofGenerator(env.getProofNodeManager(), env.getUserContext(), "pfee::" + ee.identify()),
+    : EagerProofGenerator(env.getProofNodeManager(),
+                          env.getUserContext(),
+                          "pfee::" + ee.identify()),
       d_ee(ee),
       d_factPg(env.getContext(), env.getProofNodeManager()),
       d_assumpPg(env.getProofNodeManager()),
