@@ -101,15 +101,14 @@ class MatchGen {
   std::vector<std::map<TNode, TNodeTrie>::iterator> d_qni;
   bool doMatching(QuantConflictFind* p, QuantInfo* qi);
   // for matching : each index is either a variable or a ground term
-  unsigned d_qni_size;
-  std::map<int, int> d_qni_var_num;
-  std::map<int, TNode> d_qni_gterm;
-  std::map<int, int> d_qni_bound;
-  std::vector<int> d_qni_bound_except;
-  std::map<int, TNode> d_qni_bound_cons;
-  std::map<int, int> d_qni_bound_cons_var;
-  std::map<int, int>::iterator d_binding_it;
-  // std::vector< int > d_independent;
+  size_t d_qni_size;
+  std::map<size_t, size_t> d_qni_var_num;
+  std::map<size_t, TNode> d_qni_gterm;
+  std::map<size_t, size_t> d_qni_bound;
+  std::vector<size_t> d_qni_bound_except;
+  std::map<size_t, TNode> d_qni_bound_cons;
+  std::map<size_t, size_t> d_qni_bound_cons_var;
+  std::map<size_t, size_t>::iterator d_binding_it;
   bool d_matched_basis;
   bool d_binding;
   // int getVarBindingVar();
@@ -120,7 +119,7 @@ class MatchGen {
 class QuantInfo : protected EnvObj
 {
  public:
-  typedef std::map<int, MatchGen*> VarMgMap;
+  typedef std::map<size_t, MatchGen*> VarMgMap;
   QuantInfo(Env& env, QuantConflictFind* p, Node q);
   ~QuantInfo();
   /** get quantified formula */
@@ -130,40 +129,39 @@ class QuantInfo : protected EnvObj
   QuantifiersInferenceManager& getInferenceManager();
   std::vector<TNode> d_vars;
   std::vector<TypeNode> d_var_types;
-  std::map<TNode, int> d_var_num;
-  std::vector<int> d_tsym_vars;
-  std::map<TNode, bool> d_inMatchConstraint;
+  std::map<TNode, size_t> d_var_num;
+  std::vector<size_t> d_tsym_vars;
   int getVarNum(TNode v) const;
   bool isVar(TNode v) const { return d_var_num.find(v) != d_var_num.end(); }
   size_t getNumVars() const { return d_vars.size(); }
-  TNode getVar(int i) const { return d_vars[i]; }
-  VarMgMap::const_iterator var_mg_find(int i) const { return d_var_mg.find(i); }
+  TNode getVar(size_t i) const { return d_vars[i]; }
+  VarMgMap::const_iterator var_mg_find(size_t i) const { return d_var_mg.find(i); }
   VarMgMap::const_iterator var_mg_end() const { return d_var_mg.end(); }
-  bool containsVarMg(int i) const { return var_mg_find(i) != var_mg_end(); }
+  bool containsVarMg(size_t i) const { return var_mg_find(i) != var_mg_end(); }
   bool matchGeneratorIsValid() const { return d_mg->isValid(); }
   bool getNextMatch() { return d_mg->getNextMatch(d_parent, this); }
   bool reset_round();
-  int getCurrentRepVar( int v );
+  size_t getCurrentRepVar( size_t v );
   TNode getCurrentValue( TNode n );
   TNode getCurrentExpValue( TNode n );
-  bool getCurrentCanBeEqual(int v, TNode n, bool chDiseq = false);
-  int addConstraint(int v, TNode n, bool polarity);
-  int addConstraint(int v, TNode n, int vn, bool polarity, bool doRemove);
-  bool setMatch(int v, TNode n, bool isGroundRep, bool isGround);
-  void unsetMatch(int v);
+  bool getCurrentCanBeEqual(size_t v, TNode n, bool chDiseq = false);
+  int addConstraint(size_t v, TNode n, bool polarity);
+  int addConstraint(size_t v, TNode n, int vn, bool polarity, bool doRemove);
+  bool setMatch(size_t v, TNode n, bool isGroundRep, bool isGround);
+  void unsetMatch(size_t v);
   bool isMatchSpurious();
   bool isTConstraintSpurious(const std::vector<Node>& terms);
   bool entailmentTest(Node lit, bool chEnt = true);
-  bool completeMatch(std::vector<int>& assigned, bool doContinue = false);
-  void revertMatch(const std::vector<int>& assigned);
+  bool completeMatch(std::vector<size_t>& assigned, bool doContinue = false);
+  void revertMatch(const std::vector<size_t>& assigned);
   void debugPrintMatch(const char* c) const;
-  bool isConstrainedVar( int v );
+  bool isConstrainedVar( size_t v );
   void getMatch( std::vector< Node >& terms );
 
   // current constraints
   std::vector<TNode> d_match;
   std::vector<TNode> d_match_term;
-  std::map<int, std::map<TNode, int> > d_curr_var_deq;
+  std::map<size_t, std::map<TNode, size_t> > d_curr_var_deq;
   std::map<Node, bool> d_tconstraints;
 
  private:
@@ -179,15 +177,15 @@ class QuantInfo : protected EnvObj
   Node d_q;
   VarMgMap d_var_mg;
   // for completing match
-  std::vector<int> d_unassigned;
+  std::vector<size_t> d_unassigned;
   std::vector<TypeNode> d_unassigned_tn;
-  int d_unassigned_nvar;
-  int d_una_index;
-  std::vector<int> d_una_eqc_count;
+  size_t d_unassigned_nvar;
+  size_t d_una_index;
+  std::vector<size_t> d_una_eqc_count;
   // optimization: track which arguments variables appear under UF terms in
-  std::map<int, std::map<TNode, std::vector<unsigned> > > d_var_rel_dom;
+  std::map<size_t, std::map<TNode, std::vector<size_t> > > d_var_rel_dom;
   // optimization: number of variables set, to track when we can stop
-  std::map<int, bool> d_vars_set;
+  std::unordered_set<size_t> d_vars_set;
   std::vector<Node> d_extra_var;
 };
 
