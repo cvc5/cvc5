@@ -235,7 +235,9 @@ class Instantiate : public QuantifiersUtil
    *
    * Same as above but with vars equal to the bound variables of q.
    */
-  Node getInstantiation(Node q, const std::vector<Node>& terms, bool doVts = false);
+  Node getInstantiation(Node q,
+                        const std::vector<Node>& terms,
+                        bool doVts = false);
   //--------------------------------------end general utilities
 
   /**
