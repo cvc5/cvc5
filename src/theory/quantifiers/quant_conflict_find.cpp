@@ -292,7 +292,7 @@ bool QuantInfo::reset_round()
   d_tconstraints.clear();
 
   d_mg->reset_round(d_parent);
-  for (const std::pair<int, MatchGen*>& vg : d_var_mg)
+  for (const std::pair<const int, MatchGen*>& vg : d_var_mg)
   {
     if (!vg.second->reset_round(d_parent))
     {
@@ -997,7 +997,7 @@ void QuantInfo::debugPrintMatch(const char* c) const
     if (!itc->second.empty())
     {
       Trace(c) << ", DEQ{ ";
-      for (const std::pair<TNode, int>& d : itc->second)
+      for (const std::pair<const TNode, int>& d : itc->second)
       {
         Trace(c) << d.first << " ";
       }
@@ -1010,7 +1010,7 @@ void QuantInfo::debugPrintMatch(const char* c) const
   }
   if( !d_tconstraints.empty() ){
     Trace(c) << "ADDITIONAL CONSTRAINTS : " << std::endl;
-    for (const std::pair<Node, bool>& tc : d_tconstraints)
+    for (const std::pair<const Node, bool>& tc : d_tconstraints)
     {
       Trace(c) << "   " << tc.first << " -> " << tc.second << std::endl;
     }
