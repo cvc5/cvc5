@@ -214,17 +214,20 @@ void BagSolver::checkDisequalBagTerms()
 void BagSolver::checkMap(Node n)
 {
   Assert(n.getKind() == BAG_MAP);
-  set<Node> elements;
   const set<Node>& downwards = d_state.getElements(n);
-  const set<Node>& upwards = d_state.getElements(n[0]);
-
-  elements.insert(downwards.begin(), downwards.end());
-  elements.insert(upwards.begin(), upwards.end());
-
-  for (const Node& e : elements)
+  const set<Node>& upwards = d_state.getElements(n[1]);
+  for (const Node& y : downwards)
   {
-    InferInfo i = d_ig.map(n, e);
-    d_im.lemmaTheoryInference(&i);
+    auto [downInference, uf, preImageSize] = d_ig.mapDownwards(n, y);
+    if(!uf.isNull())
+    {
+      d_im.lemmaTheoryInference(&downInference);
+      for (const Node& x : upwards)
+      {
+        InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y, x);
+        d_im.lemmaTheoryInference(&upInference);
+      }
+    }
   }
 }
 

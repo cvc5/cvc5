@@ -1351,7 +1351,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
                     "incompatible with HOL.\n";
       }
 
-      opts.quantifiers.fmfBound = false;
+     // opts.quantifiers.fmfBound = false;
       Trace("smt") << "turning off fmf-bound, since HOL\n";
     }
   }

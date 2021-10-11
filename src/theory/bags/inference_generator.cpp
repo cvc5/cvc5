@@ -292,16 +292,22 @@ Node InferenceGenerator::getMultiplicityTerm(Node element, Node bag)
   return count;
 }
 
-InferInfo InferenceGenerator::map(Node n, Node e)
+std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
+                                                                   Node e)
 {
   Assert(n.getKind() == kind::BAG_MAP && n[1].getType().isBag());
   Assert(n[0].getType().isFunction()
          && n[0].getType().getArgTypes().size() == 1);
   Assert(e.getType() == n[0].getType().getRangeType());
 
-
-
   InferInfo inferInfo(d_im, InferenceId::BAGS_MAP);
+  if (mapInferences.count(n) && mapInferences[n].count(e))
+  {
+    inferInfo.d_conclusion = mapInferences[n][e];
+    Node nop;
+    return std::tuple(inferInfo, nop, nop);
+  }
+
   Node f = n[0];
   Node A = n[1];
   // declare an uninterpreted function uf: Int -> T
@@ -335,14 +341,19 @@ InferInfo InferenceGenerator::map(Node n, Node e)
   //             (and
   //               (= (f uf_i) e)
   //               (>= count_uf_i 1)
-  //               (= (sum i) (+ (sum (- i 1)) count_uf_i)))))))
+  //               (= (sum i) (+ (sum (- i 1)) count_uf_i))
+  //               (forall ((j Int))
+  //                 (=>
+  //                  (and (< i j) (<= j preImageSize))
+  //                  (not (= (uf i) (uf j))))))
+  //               )))))
 
   BoundVarManager* bvm = d_nm->getBoundVarManager();
   Node i = bvm->mkBoundVar<IndexVarAttribute>(n, "i", d_nm->integerType());
   Node j =
       bvm->mkBoundVar<SecondIndexVarAttribute>(n, "j", d_nm->integerType());
   Node iList = d_nm->mkNode(kind::BOUND_VAR_LIST, i);
-  Node ijList = d_nm->mkNode(kind::BOUND_VAR_LIST, i, j);
+  Node jList = d_nm->mkNode(kind::BOUND_VAR_LIST, j);
   Node iPlusOne = d_nm->mkNode(kind::PLUS, i, d_one);
   Node iMinusOne = d_nm->mkNode(kind::MINUS, i, d_one);
   Node uf_i = d_nm->mkNode(kind::APPLY_UF, uf, i);
@@ -350,9 +361,9 @@ InferInfo InferenceGenerator::map(Node n, Node e)
   Node f_uf_i = d_nm->mkNode(kind::APPLY_UF, f, uf_i);
   Node uf_iPlusOne = d_nm->mkNode(kind::APPLY_UF, uf, iPlusOne);
   Node uf_iMinusOne = d_nm->mkNode(kind::APPLY_UF, uf, iMinusOne);
-  Node interval1 = d_nm->mkNode(kind::AND,
-                                d_nm->mkNode(kind::GEQ, i, d_one),
-                                d_nm->mkNode(kind::LEQ, i, preImageSize));
+  Node interval_i = d_nm->mkNode(kind::AND,
+                                 d_nm->mkNode(kind::GEQ, i, d_one),
+                                 d_nm->mkNode(kind::LEQ, i, preImageSize));
   Node sum_i = d_nm->mkNode(kind::APPLY_UF, sum, i);
   Node sum_iPlusOne = d_nm->mkNode(kind::APPLY_UF, sum, iPlusOne);
   Node sum_iMinusOne = d_nm->mkNode(kind::APPLY_UF, sum, iMinusOne);
@@ -362,26 +373,62 @@ InferInfo InferenceGenerator::map(Node n, Node e)
       Kind::EQUAL, sum_i, d_nm->mkNode(kind::PLUS, sum_iMinusOne, count_uf_i));
   Node f_iEqualE = d_nm->mkNode(kind::EQUAL, f_uf_i, e);
   Node geqOne = d_nm->mkNode(kind::GEQ, count_uf_i, d_one);
-  Node andNode = d_nm->mkNode(kind::AND, f_iEqualE, geqOne, inductiveCase);
-  Node body1 = d_nm->mkNode(kind::OR, interval1.negate(), andNode);
-  Node forAll1 = quantifiers::BoundedIntegers::mkBoundedForall(iList, body1);
 
-  // (forall ((i Int) (j Int))
-  //   (=>
-  //    (and (>= i 1) (< i j) (<= j preImageSize))
-  //    (not (= (uf i) (uf j))))))
-  Node interval2 = d_nm->mkNode(kind::AND,
-                                d_nm->mkNode(kind::GEQ, i, d_one),
-                                d_nm->mkNode(kind::LT, i, j),
-                                d_nm->mkNode(kind::LEQ, j, preImageSize));
+  // i < j <= preImageSize
+  Node interval_j = d_nm->mkNode(kind::AND,
+                                 d_nm->mkNode(kind::LT, i, j),
+                                 d_nm->mkNode(kind::LEQ, j, preImageSize));
+  // uf(i) != uf(j)
   Node uf_i_equals_uf_j = d_nm->mkNode(kind::EQUAL, uf_i, uf_j);
   Node notEqual = d_nm->mkNode(kind::EQUAL, uf_i, uf_j).negate();
-  Node body2 = d_nm->mkNode(kind::OR, interval2.negate(), notEqual);
-  Node forAll2 = quantifiers::BoundedIntegers::mkBoundedForall(ijList, body2);
-  Node conclusion = d_nm->mkNode(
-      kind::AND, {baseCase, totalSumEqualCountE, forAll1, forAll2});
-  std::cout << "conclusion: " << conclusion << std::endl << std::endl;
+  Node body_j = d_nm->mkNode(kind::OR, interval_j.negate(), notEqual);
+  Node forAll_j = quantifiers::BoundedIntegers::mkBoundedForall(jList, body_j);
+  Node andNode =
+      d_nm->mkNode(kind::AND, {f_iEqualE, geqOne, inductiveCase, forAll_j});
+  Node body_i = d_nm->mkNode(kind::OR, interval_i.negate(), andNode);
+  Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+  Node preImageGTE_zero = d_nm->mkNode(kind::GEQ, preImageSize, d_zero);
+  Node conclusion =
+      d_nm->mkNode(kind::AND, {baseCase, totalSumEqualCountE, forAll_i, preImageGTE_zero});
+  std::cout << "Downwards conclusion: " << conclusion << std::endl << std::endl;
   inferInfo.d_conclusion = conclusion;
+
+  std::map<Node, Node> m;
+  m[e] = conclusion;
+
+  mapInferences[n] = m;
+
+  return std::tuple(inferInfo, uf, preImageSize);
+}
+
+InferInfo InferenceGenerator::mapUpwards(
+    Node n, Node uf, Node preImageSize, Node y, Node x)
+{
+  Assert(n.getKind() == kind::BAG_MAP && n[1].getType().isBag());
+  Assert(n[0].getType().isFunction()
+         && n[0].getType().getArgTypes().size() == 1);
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP);
+  Node f = n[0];
+  Node A = n[1];
+
+  Node countA = getMultiplicityTerm(x, A);
+  Node xInA = d_nm->mkNode(kind::GEQ, countA, d_one);
+  Node notEqual =
+      d_nm->mkNode(kind::EQUAL, d_nm->mkNode(kind::APPLY_UF, f, x), y).negate();
+
+  Node k = d_sm->mkDummySkolem("k", d_nm->integerType());
+  Node inRange = d_nm->mkNode(kind::AND,
+                              d_nm->mkNode(kind::GEQ, k, d_one),
+                              d_nm->mkNode(kind::LEQ, k, preImageSize));
+  Node equal =
+      d_nm->mkNode(kind::EQUAL, d_nm->mkNode(kind::APPLY_UF, uf, k), x);
+  Node andNode = d_nm->mkNode(kind::AND, inRange, equal);
+  Node orNode = d_nm->mkNode(kind::OR, notEqual, andNode);
+  Node implies = d_nm->mkNode(kind::IMPLIES, xInA, orNode);
+  inferInfo.d_conclusion = implies;
+  std::cout << "Upwards conclusion: " << inferInfo.d_conclusion << std::endl
+            << std::endl;
   return inferInfo;
 }
 
