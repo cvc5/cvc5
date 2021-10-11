@@ -427,7 +427,7 @@ TEST_F(TestApiBlackSolver, mkCardinalityConstraint)
   ASSERT_THROW(d_solver.mkCardinalityConstraint(si, 3), CVC5ApiException);
   ASSERT_THROW(d_solver.mkCardinalityConstraint(su, 0), CVC5ApiException);
   Solver slv;
-  ASSERT_THROW(d_solver.mkCardinalityConstraint(su, 3), CVC5ApiException);
+  ASSERT_THROW(slv.mkCardinalityConstraint(su, 3), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkEmptySet)
