@@ -1735,11 +1735,7 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
                 success = true;
               }
             }else{
-              //if( std::find( d_independent.begin(), d_independent.end(), d_child_counter )!=d_independent.end() ){
-              //  d_child_counter--;
-              //}else{
               d_child_counter--;
-              //}
             }
           }else{
             //one child must match
