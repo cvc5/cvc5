@@ -130,7 +130,6 @@ class EqualityEngine : public context::ContextNotifyObj {
   };/* struct EqualityEngine::statistics */
 
  private:
-
   /** The environment we are using */
   Env& d_env;
 

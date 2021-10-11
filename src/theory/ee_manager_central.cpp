@@ -41,9 +41,8 @@ EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
   }
   if (env.isTheoryProofProducing())
   {
-    d_centralPfee.reset(new eq::ProofEqEngine(d_env,
-                                              d_centralEqualityEngine,
-                                              env.getProofNodeManager()));
+    d_centralPfee.reset(new eq::ProofEqEngine(
+        d_env, d_centralEqualityEngine, env.getProofNodeManager()));
     d_centralEqualityEngine.setProofEqualityEngine(d_centralPfee.get());
   }
 }
