@@ -123,7 +123,7 @@ class EqualityEngine : public context::ContextNotifyObj {
     Statistics(const std::string& name);
   };/* struct EqualityEngine::statistics */
 
-private:
+ private:
 
   /** The environment we are using */
   Env& d_env;
