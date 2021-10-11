@@ -57,12 +57,13 @@ bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
   }
 
   // assign the cegis sampler if applicable
-  if (options::cegisSample() != options::CegisSampleMode::NONE)
+  if (options().quantifiers.cegisSample != options::CegisSampleMode::NONE)
   {
     Trace("cegis-sample") << "Initialize sampler for " << d_base_body << "..."
                           << std::endl;
     TypeNode bt = d_base_body.getType();
-    d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
+    d_cegis_sampler.initialize(
+        bt, d_base_vars, options().quantifiers.sygusSamples);
   }
   return processInitialize(conj, n, candidates);
 }
@@ -83,8 +84,8 @@ bool Cegis::processInitialize(Node conj,
     Trace("cegis") << "...register enumerator " << candidates[i];
     // We use symbolic constants if we are doing repair constants or if the
     // grammar construction was not simple.
-    if (options::sygusRepairConst()
-        || options::sygusGrammarConsMode()
+    if (options().quantifiers.sygusRepairConst
+        || options().quantifiers.sygusGrammarConsMode
                != options::SygusGrammarConsMode::SIMPLE)
     {
       TypeNode ctn = candidates[i].getType();
@@ -173,7 +174,8 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     }
   }
   // we only do evaluation unfolding for passive enumerators
-  bool doEvalUnfold = (doGen && options::sygusEvalUnfold()) || d_usingSymCons;
+  bool doEvalUnfold =
+      (doGen && options().quantifiers.sygusEvalUnfold) || d_usingSymCons;
   if (doEvalUnfold)
   {
     Trace("sygus-engine") << "  *** Do evaluation unfolding..." << std::endl;
@@ -243,7 +245,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     }
   }
   // if we are using grammar-based repair
-  if (d_usingSymCons && options::sygusRepairConst())
+  if (d_usingSymCons && options().quantifiers.sygusRepairConst)
   {
     SygusRepairConst* src = d_parent->getRepairConst();
     Assert(src != nullptr);
@@ -302,7 +304,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     return false;
   }
 
-  if (options::cegisSample() != options::CegisSampleMode::NONE
+  if (options().quantifiers.cegisSample != options::CegisSampleMode::NONE
       && !addedEvalLemmas)
   {
     // if we didn't add a lemma, trying sampling to add a refinement lemma
@@ -673,7 +675,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           Trace("sygus-engine") << "  *** Refine by sampling" << std::endl;
           addRefinementLemma(rlem);
           // if trust, we are not interested in sending out refinement lemmas
-          if (options::cegisSample() != options::CegisSampleMode::TRUST)
+          if (options().quantifiers.cegisSample
+              != options::CegisSampleMode::TRUST)
           {
             Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
             d_qim.addPendingLemma(
