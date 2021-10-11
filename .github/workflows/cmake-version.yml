@@ -23,7 +23,7 @@ jobs:
 
     - name: Adapt cmake version checks
       run: |
-        sed -i'orig' 's/cmake_minimum_required(VERSION [0-9.]+)/cmake_minimum_required(VERSION ${{ matrix.cmake_version }})/' CMakeLists.txt
+        sed -i'orig' 's/cmake_minimum_required\(VERSION [0-9.]+\)/cmake_minimum_required(VERSION ${{ matrix.cmake_version }})/' CMakeLists.txt
 
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
