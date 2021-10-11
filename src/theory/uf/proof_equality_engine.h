@@ -30,6 +30,7 @@
 
 namespace cvc5 {
 
+class Env;
 class ProofNode;
 class ProofNodeManager;
 

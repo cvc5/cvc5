@@ -22,6 +22,7 @@
 #include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
+#include "smt/env.h"
 
 using namespace cvc5::kind;
 
@@ -32,7 +33,7 @@ namespace eq {
 ProofEqEngine::ProofEqEngine(Env& env,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm)
-    : EagerProofGenerator(pnm, lc, "pfee::" + ee.identify()),
+    : EagerProofGenerator(pnm, env.getUserContext(), "pfee::" + ee.identify()),
       d_ee(ee),
       d_factPg(env.getContext(), pnm),
       d_assumpPg(pnm),
