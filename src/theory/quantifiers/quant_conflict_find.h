@@ -135,13 +135,16 @@ class QuantInfo : protected EnvObj
   bool isVar(TNode v) const { return d_var_num.find(v) != d_var_num.end(); }
   size_t getNumVars() const { return d_vars.size(); }
   TNode getVar(size_t i) const { return d_vars[i]; }
-  VarMgMap::const_iterator var_mg_find(size_t i) const { return d_var_mg.find(i); }
+  VarMgMap::const_iterator var_mg_find(size_t i) const
+  {
+    return d_var_mg.find(i);
+  }
   VarMgMap::const_iterator var_mg_end() const { return d_var_mg.end(); }
   bool containsVarMg(size_t i) const { return var_mg_find(i) != var_mg_end(); }
   bool matchGeneratorIsValid() const { return d_mg->isValid(); }
   bool getNextMatch() { return d_mg->getNextMatch(d_parent, this); }
   bool reset_round();
-  size_t getCurrentRepVar( size_t v );
+  size_t getCurrentRepVar(size_t v);
   TNode getCurrentValue( TNode n );
   TNode getCurrentExpValue( TNode n );
   bool getCurrentCanBeEqual(size_t v, TNode n, bool chDiseq = false);
@@ -155,7 +158,7 @@ class QuantInfo : protected EnvObj
   bool completeMatch(std::vector<size_t>& assigned, bool doContinue = false);
   void revertMatch(const std::vector<size_t>& assigned);
   void debugPrintMatch(const char* c) const;
-  bool isConstrainedVar( size_t v );
+  bool isConstrainedVar(size_t v);
   void getMatch( std::vector< Node >& terms );
 
   // current constraints
