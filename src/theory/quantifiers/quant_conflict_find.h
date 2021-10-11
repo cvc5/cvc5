@@ -58,7 +58,7 @@ class MatchGen {
   bool d_tgt_orig;
   bool d_wasSet;
   Node d_n;
-  std::vector< std::unique_ptr<MatchGen> > d_children;
+  std::vector<std::unique_ptr<MatchGen> > d_children;
   short d_type;
   bool d_type_not;
   /** reset round
@@ -70,7 +70,7 @@ class MatchGen {
   bool reset_round();
   void reset(bool tgt);
   bool getNextMatch();
-  bool isValid() const { return d_type!=typ_invalid; }
+  bool isValid() const { return d_type != typ_invalid; }
   void setInvalid();
   Node getNode() const { return d_n; }
 
@@ -88,7 +88,10 @@ class MatchGen {
                        std::map<Node, bool>& visited,
                        bool& hasNested);
   size_t getNumChildren() const { return d_children.size(); }
-  MatchGen* getChild(size_t i) const { return d_children[d_children_order[i]].get(); }
+  MatchGen* getChild(size_t i) const
+  {
+    return d_children[d_children_order[i]].get();
+  }
   bool doMatching();
   /** The parent who owns this class */
   QuantConflictFind* d_parent;
@@ -246,18 +249,21 @@ class QuantConflictFind : public QuantifiersModule
    */
   bool isPropagatingInstance(Node n) const;
 
-  enum Effort : unsigned {
+  enum Effort : unsigned
+  {
     EFFORT_CONFLICT,
     EFFORT_PROP_EQ,
     EFFORT_INVALID,
   };
   void setEffort(Effort e) { d_effort = e; }
 
-  inline bool atConflictEffort() const {
+  inline bool atConflictEffort() const
+  {
     return d_effort == QuantConflictFind::EFFORT_CONFLICT;
   }
-  
-  TNode getZero( Kind k );
+
+  TNode getZero(Kind k);
+
  private:
   /** check quantified formula
    *
@@ -278,23 +284,25 @@ class QuantConflictFind : public QuantifiersModule
                            Node q,
                            Node n,
                            bool doVarNum = true) const;
-  void setIrrelevantFunction( TNode f );
-  //for debugging
-  std::vector< Node > d_quants;
-  std::map< Node, size_t > d_quant_id;
+  void setIrrelevantFunction(TNode f);
+  // for debugging
+  std::vector<Node> d_quants;
+  std::map<Node, size_t> d_quant_id;
   /** Map from quantified formulas to their info class to compute instances */
   std::map<Node, std::unique_ptr<QuantInfo> > d_qinfo;
   /** Map from type -> list(eqc) of that type */
   std::map<TypeNode, std::vector<TNode> > d_eqcs;
   /** Are we in conflict? */
-  context::CDO< bool > d_conflict;
-  std::map< Kind, Node > d_zero;
-  //for storing nodes created during t-constraint solving (prevents memory leaks)
-  std::vector< Node > d_tempCache;
-  //optimization: list of quantifiers that depend on ground function applications
-  std::map< TNode, std::vector< Node > > d_func_rel_dom;
-  std::map< TNode, bool > d_irr_func;
-  std::map< Node, bool > d_irr_quant;
+  context::CDO<bool> d_conflict;
+  std::map<Kind, Node> d_zero;
+  // for storing nodes created during t-constraint solving (prevents memory
+  // leaks)
+  std::vector<Node> d_tempCache;
+  // optimization: list of quantifiers that depend on ground function
+  // applications
+  std::map<TNode, std::vector<Node> > d_func_rel_dom;
+  std::map<TNode, bool> d_irr_func;
+  std::map<Node, bool> d_irr_quant;
   /** The current effort */
   Effort d_effort;
 };

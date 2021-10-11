@@ -77,7 +77,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
           d_tsym_vars.push_back( j );
         }
         if( !is_tsym || options::qcfTConstraint() ){
-          d_var_mg[j] = new MatchGen( p, this, d_vars[j], true );
+          d_var_mg[j] = new MatchGen(p, this, d_vars[j], true);
         }
         if( !d_var_mg[j] || !d_var_mg[j]->isValid() ){
           Trace("qcf-invalid") << "QCF invalid : cannot match for " << d_vars[j] << std::endl;
@@ -85,13 +85,13 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
           break;
         }else{
           std::vector<size_t> bvars;
-          d_var_mg[j]->determineVariableOrder( bvars );
+          d_var_mg[j]->determineVariableOrder(bvars);
         }
       }
     }
     if( d_mg->isValid() ){
       std::vector<size_t> bvars;
-      d_mg->determineVariableOrder( bvars );
+      d_mg->determineVariableOrder(bvars);
     }
   }else{
     Trace("qcf-invalid") << "QCF invalid : body of formula cannot be processed." << std::endl;
@@ -135,9 +135,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
   }
 }
 
-QuantInfo::~QuantInfo()
-{
-}
+QuantInfo::~QuantInfo() {}
 
 Node QuantInfo::getQuantifiedFormula() const { return d_q; }
 
@@ -1151,12 +1149,14 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
         d_type = typ_formula;
         for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
           if( d_n.getKind()!=FORALL || i==1 ){
-            std::unique_ptr<MatchGen> mg = std::make_unique<MatchGen>( p, qi, d_n[i], false );
-            if( !mg->isValid() ){
+            std::unique_ptr<MatchGen> mg =
+                std::make_unique<MatchGen>(p, qi, d_n[i], false);
+            if (!mg->isValid())
+            {
               setInvalid();
               break;
             }
-            d_children.push_back( std::move(mg) );
+            d_children.push_back(std::move(mg));
           }
         }
       }else{
@@ -1205,13 +1205,17 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
 
 }
 
-void MatchGen::collectBoundVar( Node n, std::vector< int >& cbvars, std::map< Node, bool >& visited, bool& hasNested ) {
+void MatchGen::collectBoundVar(Node n,
+                               std::vector<int>& cbvars,
+                               std::map<Node, bool>& visited,
+                               bool& hasNested)
+{
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     if( n.getKind()==FORALL ){
       hasNested = true;
     }
-    int v = d_qi->getVarNum( n );
+    int v = d_qi->getVarNum(n);
     if( v!=-1 && std::find( cbvars.begin(), cbvars.end(), v )==cbvars.end() ){
       cbvars.push_back( v );
     }
@@ -1234,10 +1238,12 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
     std::map< int, bool > has_nested;
     std::vector< bool > assigned;
     Trace("qcf-qregister-debug") << "Calculate bound variables..." << std::endl;
-    for( size_t i=0, nchild = d_children.size(); i<nchild; i++ ){
+    for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
+    {
       std::map< Node, bool > visited;
       has_nested[i] = false;
-      collectBoundVar( d_children[i]->getNode(), c_to_vars[i], visited, has_nested[i] );
+      collectBoundVar(
+          d_children[i]->getNode(), c_to_vars[i], visited, has_nested[i]);
       assigned.push_back( false );
       vb_count[i] = 0;
       vu_count[i] = 0;
@@ -1258,7 +1264,8 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
       int min_score0 = -1;
       int min_score = -1;
       int min_score_index = -1;
-      for( size_t i=0, nchild = d_children.size(); i<nchild; i++ ){
+      for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
+      {
         if( !assigned[i] ){
           Trace("qcf-qregister-debug2") << "Child " << i << " has b/ub : " << vb_count[i] << "/" << vu_count[i] << std::endl;
           int score0 = 0;//has_nested[i] ? 0 : 1;
@@ -1266,7 +1273,9 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
           if( !options::qcfVoExp() ){
             score = vu_count[i];
           }else{
-            score =  vu_count[i]==0 ? 0 : ( 1 + nqvars*( nqvars - vb_count[i] ) + ( nqvars - vu_count[i] )  );
+            score = vu_count[i] == 0 ? 0
+                                     : (1 + nqvars * (nqvars - vb_count[i])
+                                        + (nqvars - vu_count[i]));
           }
           if( min_score==-1 || score0<min_score0 || ( score0==min_score0 && score<min_score ) ){
             min_score0 = score0;
@@ -1275,7 +1284,9 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
           }
         }
       }
-      Trace("qcf-qregister-vo") << "  " << d_children_order.size()+1 << ": " << d_children[min_score_index]->getNode() << " : ";
+      Trace("qcf-qregister-vo")
+          << "  " << d_children_order.size() + 1 << ": "
+          << d_children[min_score_index]->getNode() << " : ";
       Trace("qcf-qregister-vo") << vu_count[min_score_index] << " " << vb_count[min_score_index] << " " << has_nested[min_score_index] << std::endl;
       Trace("qcf-qregister-debug") << "...assign child " << min_score_index << std::endl;
       Trace("qcf-qregister-debug") << "...score : " << min_score << std::endl;
@@ -1284,7 +1295,7 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
       d_children_order.push_back( min_score_index );
       assigned[min_score_index] = true;
       //determine order internal to children
-      d_children[min_score_index]->determineVariableOrder( bvars );
+      d_children[min_score_index]->determineVariableOrder(bvars);
       Trace("qcf-qregister-debug")  << "...bind variables" << std::endl;
       //now, make it a bound variable
       if( vu_count[min_score_index]>0 ){
@@ -1304,14 +1315,15 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
     }while( d_children_order.size()!=d_children.size() );
     Trace("qcf-qregister-debug") << "Done assign variable ordering for " << d_n << std::endl;
   }else{
-    for( size_t i=0, nchild = d_children.size(); i<nchild; i++ ){
+    for (size_t i = 0, nchild = d_children.size(); i < nchild; i++)
+    {
       d_children_order.push_back( i );
-      d_children[i]->determineVariableOrder( bvars );
+      d_children[i]->determineVariableOrder(bvars);
       //now add to bvars
       std::map< Node, bool > visited;
       std::vector< int > cvars;
       bool has_nested = false;
-      collectBoundVar( d_children[i]->getNode(), cvars, visited, has_nested );
+      collectBoundVar(d_children[i]->getNode(), cvars, visited, has_nested);
       for( unsigned j=0; j<cvars.size(); j++ ){
         if( std::find( bvars.begin(), bvars.end(), cvars[j] )==bvars.end() ){
           bvars.push_back( cvars[j] );
@@ -1324,7 +1336,8 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
 bool MatchGen::reset_round()
 {
   d_wasSet = false;
-  for ( std::unique_ptr<MatchGen>& mg : d_children){
+  for (std::unique_ptr<MatchGen>& mg : d_children)
+  {
     if (!mg->reset_round())
     {
       return false;
@@ -1374,7 +1387,8 @@ bool MatchGen::reset_round()
   return true;
 }
 
-void MatchGen::reset( bool tgt ) {
+void MatchGen::reset(bool tgt)
+{
   d_tgt = d_type_not ? !tgt : tgt;
   Debug("qcf-match") << "     Reset for : " << d_n << ", type : ";
   debugPrintType( "qcf-match", d_type );
@@ -1396,17 +1410,22 @@ void MatchGen::reset( bool tgt ) {
     {
       d_child_counter = 0;
     }
-  }else if( d_qi->isBaseMatchComplete() && options::qcfEagerTest() ){
+  }
+  else if (d_qi->isBaseMatchComplete() && options::qcfEagerTest())
+  {
     d_use_children = false;
     d_child_counter = 0;
-  }else if( d_type==typ_bool_var ){
+  }
+  else if (d_type == typ_bool_var)
+  {
     //get current value of the variable
-    TNode n = d_qi->getCurrentValue( d_n );
+    TNode n = d_qi->getCurrentValue(d_n);
     int vnn = d_qi->getVarNum(n);
     if (vnn == -1)
     {
       // evaluate the value, see if it is compatible
-      EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
+      EntailmentCheck* echeck =
+          d_parent->getTermRegistry().getEntailmentCheck();
       if (echeck->isEntailed(n, d_tgt))
       {
         d_child_counter = 0;
@@ -1423,40 +1442,49 @@ void MatchGen::reset( bool tgt ) {
     if( d_child_counter==0 ){
       d_qn.push_back( NULL );
     }
-  }else if( d_type==typ_var ){
+  }
+  else if (d_type == typ_var)
+  {
     Assert(isHandledUfTerm(d_n));
-    TNode f = d_parent->getTermDatabase()->getMatchOperator( d_n );
+    TNode f = d_parent->getTermDatabase()->getMatchOperator(d_n);
     Debug("qcf-match-debug") << "       reset: Var will match operators of " << f << std::endl;
-    TNodeTrie* qni = d_parent->getTermDatabase()->getTermArgTrie(Node::null(), f);
+    TNodeTrie* qni =
+        d_parent->getTermDatabase()->getTermArgTrie(Node::null(), f);
     if (qni == nullptr || qni->empty())
     {
       //inform irrelevant quantifiers
-      d_parent->setIrrelevantFunction( f );
+      d_parent->setIrrelevantFunction(f);
     }
     else
     {
       d_qn.push_back(qni);
     }
     d_matched_basis = false;
-  }else if( d_type==typ_tsym || d_type==typ_tconstraint ){
+  }
+  else if (d_type == typ_tsym || d_type == typ_tconstraint)
+  {
     for (std::pair<const size_t, size_t>& qvn : d_qni_var_num)
     {
       size_t repVar = d_qi->getCurrentRepVar(qvn.second);
-      if( d_qi->d_match[repVar].isNull() ){
+      if (d_qi->d_match[repVar].isNull())
+      {
         Debug("qcf-match-debug") << "Force matching on child #" << qvn.first
                                  << ", which is var #" << repVar << std::endl;
         d_qni_bound[qvn.first] = repVar;
       }
     }
     d_qn.push_back( NULL );
-  }else if( d_type==typ_pred || d_type==typ_eq ){
+  }
+  else if (d_type == typ_pred || d_type == typ_eq)
+  {
     //add initial constraint
     Node nn[2];
     int vn[2];
     if( d_type==typ_pred ){
-      nn[0] = d_qi->getCurrentValue( d_n );
+      nn[0] = d_qi->getCurrentValue(d_n);
       int vnn = d_qi->getVarNum(nn[0]);
-      vn[0] = vnn == -1 ? vnn : d_qi->getCurrentRepVar(static_cast<size_t>(vnn));
+      vn[0] =
+          vnn == -1 ? vnn : d_qi->getCurrentRepVar(static_cast<size_t>(vnn));
       nn[1] = NodeManager::currentNM()->mkConst(d_tgt);
       vn[1] = -1;
       d_tgt = true;
@@ -1470,7 +1498,7 @@ void MatchGen::reset( bool tgt ) {
         }else{
           nc = d_n[i];
         }
-        nn[i] = d_qi->getCurrentValue( nc );
+        nn[i] = d_qi->getCurrentValue(nc);
         int vnn = d_qi->getVarNum(nn[i]);
         vn[i] =
             vnn == -1 ? vnn : d_qi->getCurrentRepVar(static_cast<size_t>(vnn));
@@ -1484,9 +1512,12 @@ void MatchGen::reset( bool tgt ) {
       if( d_tgt ){
         success = nn[0] == nn[1];
       }else{
-        if (d_parent->atConflictEffort()) {
-          success = d_parent->areDisequal( nn[0], nn[1] );
-        }else{
+        if (d_parent->atConflictEffort())
+        {
+          success = d_parent->areDisequal(nn[0], nn[1]);
+        }
+        else
+        {
           success = (nn[0] != nn[1]);
         }
       }
@@ -1521,20 +1552,26 @@ void MatchGen::reset( bool tgt ) {
     if( success ){
       d_qn.push_back( NULL );
     }
-  }else{
+  }
+  else
+  {
     if( d_children.empty() ){
       //add dummy
       d_qn.push_back( NULL );
     }else{
       if( d_tgt && d_n.getKind()==FORALL ){
         //fail
-      } else if (d_n.getKind() == FORALL && d_parent->atConflictEffort() &&
-                 !options::qcfNestedConflict()) {
+      }
+      else if (d_n.getKind() == FORALL && d_parent->atConflictEffort()
+               && !options::qcfNestedConflict())
+      {
         //fail
-      }else{
+      }
+      else
+      {
         //reset the first child to d_tgt
         d_child_counter = 0;
-        getChild( d_child_counter )->reset(d_tgt );
+        getChild(d_child_counter)->reset(d_tgt);
       }
     }
   }
@@ -1543,7 +1580,8 @@ void MatchGen::reset( bool tgt ) {
   Debug("qcf-match") << "     reset: Finished reset for " << d_n << ", success = " << ( !d_qn.empty() || d_child_counter!=-1 ) << std::endl;
 }
 
-bool MatchGen::getNextMatch() {
+bool MatchGen::getNextMatch()
+{
   Debug("qcf-match") << "     Get next match for : " << d_n << ", type = ";
   debugPrintType( "qcf-match", d_type );
   Debug("qcf-match") << ", children = " << d_children.size() << ", binding = " << d_binding << std::endl;
@@ -1562,24 +1600,30 @@ bool MatchGen::getNextMatch() {
       bool doReset = false;
       bool doFail = false;
       if( !d_binding ){
-        if( doMatching() ){
+        if (doMatching())
+        {
           Debug("qcf-match-debug") << "     - Matching succeeded" << std::endl;
           d_binding = true;
           d_binding_it = d_qni_bound.begin();
           doReset = true;
           //for tconstraint, add constraint
           if( d_type==typ_tconstraint ){
-            std::map< Node, bool >::iterator it = d_qi->d_tconstraints.find( d_n );
-            if( it==d_qi->d_tconstraints.end() ){
+            std::map<Node, bool>::iterator it = d_qi->d_tconstraints.find(d_n);
+            if (it == d_qi->d_tconstraints.end())
+            {
               d_qi->d_tconstraints[d_n] = d_tgt;
               //store that we added this constraint
               d_qni_bound_cons[0] = d_n;
-            }else if( d_tgt!=it->second ){
+            }
+            else if (d_tgt != it->second)
+            {
               success = false;
               terminate = true;
             }
           }
-        }else{
+        }
+        else
+        {
           Debug("qcf-match-debug") << "     - Matching failed" << std::endl;
           success = false;
           terminate = true;
@@ -1598,14 +1642,16 @@ bool MatchGen::getNextMatch() {
           QuantInfo::VarMgMap::const_iterator itm;
           if( !doFail ){
             Debug("qcf-match-debug") << "       check variable " << d_binding_it->second << std::endl;
-            itm = d_qi->var_mg_find( d_binding_it->second );
+            itm = d_qi->var_mg_find(d_binding_it->second);
           }
-          if( doFail || ( d_binding_it->first!=0 && itm != d_qi->var_mg_end() ) ){
+          if (doFail || (d_binding_it->first != 0 && itm != d_qi->var_mg_end()))
+          {
             Debug("qcf-match-debug") << "       we had bound variable " << d_binding_it->second << ", reset = " << doReset << std::endl;
             if( doReset ){
-              itm->second->reset(true );
+              itm->second->reset(true);
             }
-            if( doFail || !itm->second->getNextMatch() ){
+            if (doFail || !itm->second->getNextMatch())
+            {
               do {
                 if( d_binding_it==d_qni_bound.begin() ){
                   Debug("qcf-match-debug") << "       failed." << std::endl;
@@ -1614,17 +1660,21 @@ bool MatchGen::getNextMatch() {
                   --d_binding_it;
                   Debug("qcf-match-debug") << "       decrement..." << std::endl;
                 }
-              }while( success &&
-                      ( d_binding_it->first==0 ||
-                        (!d_qi->containsVarMg(d_binding_it->second))));
+              } while (success
+                       && (d_binding_it->first == 0
+                           || (!d_qi->containsVarMg(d_binding_it->second))));
               doReset = false;
               doFail = false;
-            }else{
+            }
+            else
+            {
               Debug("qcf-match-debug") << "       increment..." << std::endl;
               ++d_binding_it;
               doReset = true;
             }
-          }else{
+          }
+          else
+          {
             Debug("qcf-match-debug") << "       skip..." << d_binding_it->second << std::endl;
             ++d_binding_it;
             doReset = true;
@@ -1675,7 +1725,7 @@ bool MatchGen::getNextMatch() {
       if( d_type==typ_tconstraint ){
         //remove constraint if applicable
         if( d_qni_bound_cons.find( 0 )!=d_qni_bound_cons.end() ){
-          d_qi->d_tconstraints.erase( d_n );
+          d_qi->d_tconstraints.erase(d_n);
           d_qni_bound_cons.clear();
         }
       }
@@ -1698,81 +1748,106 @@ bool MatchGen::getNextMatch() {
         if( d_n.getKind()==OR || d_n.getKind()==AND ){
           if( (d_n.getKind()==AND)==d_tgt ){
             //all children must match simultaneously
-            if( getChild( d_child_counter )->getNextMatch() ){
+            if (getChild(d_child_counter)->getNextMatch())
+            {
               if( d_child_counter<(int)(getNumChildren()-1) ){
                 d_child_counter++;
                 Debug("qcf-match-debug") << "       Reset child " << d_child_counter << " of " << d_n << std::endl;
-                getChild( d_child_counter )->reset( d_tgt );
+                getChild(d_child_counter)->reset(d_tgt);
               }else{
                 success = true;
               }
-            }else{
+            }
+            else
+            {
               d_child_counter--;
             }
           }else{
             //one child must match
-            if( !getChild( d_child_counter )->getNextMatch() ){
+            if (!getChild(d_child_counter)->getNextMatch())
+            {
               if( d_child_counter<(int)(getNumChildren()-1) ){
                 d_child_counter++;
                 Debug("qcf-match-debug") << "       Reset child " << d_child_counter << " of " << d_n << ", one match" << std::endl;
-                getChild( d_child_counter )->reset( d_tgt );
+                getChild(d_child_counter)->reset(d_tgt);
               }else{
                 d_child_counter = -1;
               }
-            }else{
+            }
+            else
+            {
               success = true;
             }
           }
         }else if( d_n.getKind()==EQUAL ){
           //construct match based on both children
           if( d_child_counter%2==0 ){
-            if( getChild( 0 )->getNextMatch() ){
+            if (getChild(0)->getNextMatch())
+            {
               d_child_counter++;
-              getChild( 1 )->reset( d_child_counter==1 );
-            }else{
+              getChild(1)->reset(d_child_counter == 1);
+            }
+            else
+            {
               if( d_child_counter==0 ){
                 d_child_counter = 2;
-                getChild( 0 )->reset( !d_tgt );
+                getChild(0)->reset(!d_tgt);
               }else{
                 d_child_counter = -1;
               }
             }
           }
           if( d_child_counter>=0 && d_child_counter%2==1 ){
-            if( getChild( 1 )->getNextMatch() ){
+            if (getChild(1)->getNextMatch())
+            {
               success = true;
-            }else{
+            }
+            else
+            {
               d_child_counter--;
             }
           }
         }else if( d_n.getKind()==ITE ){
           if( d_child_counter%2==0 ){
             int index1 = d_child_counter==4 ? 1 : 0;
-            if( getChild( index1 )->getNextMatch() ){
+            if (getChild(index1)->getNextMatch())
+            {
               d_child_counter++;
-              getChild( d_child_counter==5 ? 2 : (d_tgt==(d_child_counter==1) ? 1 : 2) )->reset( d_tgt );
-            }else{
+              getChild(d_child_counter == 5
+                           ? 2
+                           : (d_tgt == (d_child_counter == 1) ? 1 : 2))
+                  ->reset(d_tgt);
+            }
+            else
+            {
               if (d_child_counter == 4)
               {
                 d_child_counter = -1;
               }else{
                 d_child_counter +=2;
-                getChild( d_child_counter==2 ? 0 : 1 )->reset( d_child_counter==2 ? !d_tgt : d_tgt );
+                getChild(d_child_counter == 2 ? 0 : 1)
+                    ->reset(d_child_counter == 2 ? !d_tgt : d_tgt);
               }
             }
           }
           if( d_child_counter>=0 && d_child_counter%2==1 ){
             int index2 = d_child_counter==5 ? 2 : (d_tgt==(d_child_counter==1) ? 1 : 2);
-            if( getChild( index2 )->getNextMatch() ){
+            if (getChild(index2)->getNextMatch())
+            {
               success = true;
-            }else{
+            }
+            else
+            {
               d_child_counter--;
             }
           }
         }else if( d_n.getKind()==FORALL ){
-          if( getChild( d_child_counter )->getNextMatch() ){
+          if (getChild(d_child_counter)->getNextMatch())
+          {
             success = true;
-          }else{
+          }
+          else
+          {
             d_child_counter = -1;
           }
         }
@@ -1786,7 +1861,8 @@ bool MatchGen::getNextMatch() {
   return false;
 }
 
-bool MatchGen::doMatching() {
+bool MatchGen::doMatching()
+{
   if (d_qn.empty())
   {
     return false;
