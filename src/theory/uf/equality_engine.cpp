@@ -23,6 +23,7 @@
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/uf/eq_proof.h"
+#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace theory {
@@ -80,7 +81,7 @@ void EqualityEngine::init() {
   // If we are not at level zero when we initialize this equality engine, we
   // may remove true/false from the equality engine when we pop to level zero,
   // which leads to issues.
-  Assert(d_c->getLevel() == 0);
+  Assert(d_context->getLevel() == 0);
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -130,6 +131,7 @@ EqualityEngine::EqualityEngine(Env& env,
 }
 
 EqualityEngine::EqualityEngine(Env& env,
+                               context::Context* c,
                                EqualityEngineNotify& notify,
                                std::string name,
                                bool constantsAreTriggers,
@@ -1852,7 +1854,7 @@ Node EqualityEngine::evaluateTerm(TNode node) {
     builder << childRep;
   }
   Node newNode = builder;
-  return d_env.rewrite(newNode);
+  return d_env.getRewriter()->rewrite(newNode);
 }
 
 void EqualityEngine::processEvaluationQueue() {
