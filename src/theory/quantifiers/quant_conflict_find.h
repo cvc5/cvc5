@@ -38,8 +38,7 @@ class MatchGen {
   friend class QuantInfo;
 
  public:
-  MatchGen();
-  MatchGen(QuantInfo* qi, Node n, bool isVar = false);
+  MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar = false);
 
   //type of the match generator
   enum {
@@ -59,7 +58,7 @@ class MatchGen {
   bool d_tgt_orig;
   bool d_wasSet;
   Node d_n;
-  std::vector< MatchGen > d_children;
+  std::vector< std::unique_ptr<MatchGen> > d_children;
   short d_type;
   bool d_type_not;
   /** reset round
@@ -68,38 +67,41 @@ class MatchGen {
    * processing this match generator. This method returns false if the reset
    * failed, e.g. if a conflict was encountered during term indexing.
    */
-  bool reset_round(QuantConflictFind* p);
-  void reset( QuantConflictFind * p, bool tgt, QuantInfo * qi );
-  bool getNextMatch( QuantConflictFind * p, QuantInfo * qi );
-  bool isValid() { return d_type!=typ_invalid; }
+  bool reset_round();
+  void reset(bool tgt);
+  bool getNextMatch();
+  bool isValid() const { return d_type!=typ_invalid; }
   void setInvalid();
+  Node getNode() const { return d_n; }
 
   // is this term treated as UF application?
   static bool isHandledBoolConnective( TNode n );
   static bool isHandledUfTerm( TNode n );
-  static Node getMatchOperator( QuantConflictFind * p, Node n );
   //can this node be handled by the algorithm
   static bool isHandled( TNode n );
 
  private:
   // determine variable order
-  void determineVariableOrder(QuantInfo* qi, std::vector<size_t>& bvars);
-  void collectBoundVar(QuantInfo* qi,
-                       Node n,
+  void determineVariableOrder(std::vector<size_t>& bvars);
+  void collectBoundVar(Node n,
                        std::vector<int>& cbvars,
                        std::map<Node, bool>& visited,
                        bool& hasNested);
+  size_t getNumChildren() const { return d_children.size(); }
+  MatchGen* getChild(size_t i) const { return d_children[d_children_order[i]].get(); }
+  bool doMatching();
+  /** The parent who owns this class */
+  QuantConflictFind* d_parent;
+  /** Quantifier info of the parent */
+  QuantInfo* d_qi;
   // current children information
   int d_child_counter;
   bool d_use_children;
   // children of this object
   std::vector<size_t> d_children_order;
-  size_t getNumChildren() { return d_children.size(); }
-  MatchGen* getChild(size_t i) { return &d_children[d_children_order[i]]; }
   // current matching information
   std::vector<TNodeTrie*> d_qn;
   std::vector<std::map<TNode, TNodeTrie>::iterator> d_qni;
-  bool doMatching(QuantConflictFind* p, QuantInfo* qi);
   // for matching : each index is either a variable or a ground term
   size_t d_qni_size;
   std::map<size_t, size_t> d_qni_var_num;
@@ -142,7 +144,7 @@ class QuantInfo : protected EnvObj
   VarMgMap::const_iterator var_mg_end() const { return d_var_mg.end(); }
   bool containsVarMg(size_t i) const { return var_mg_find(i) != var_mg_end(); }
   bool matchGeneratorIsValid() const { return d_mg->isValid(); }
-  bool getNextMatch() { return d_mg->getNextMatch(d_parent, this); }
+  bool getNextMatch() { return d_mg->getNextMatch(); }
   bool reset_round();
   size_t getCurrentRepVar(size_t v);
   TNode getCurrentValue( TNode n );
@@ -244,21 +246,18 @@ class QuantConflictFind : public QuantifiersModule
    */
   bool isPropagatingInstance(Node n) const;
 
-  enum Effort : unsigned
-  {
+  enum Effort : unsigned {
     EFFORT_CONFLICT,
     EFFORT_PROP_EQ,
     EFFORT_INVALID,
   };
   void setEffort(Effort e) { d_effort = e; }
 
-  inline bool atConflictEffort() const
-  {
+  inline bool atConflictEffort() const {
     return d_effort == QuantConflictFind::EFFORT_CONFLICT;
   }
-
-  TNode getZero(Kind k);
-
+  
+  TNode getZero( Kind k );
  private:
   /** check quantified formula
    *
@@ -279,25 +278,23 @@ class QuantConflictFind : public QuantifiersModule
                            Node q,
                            Node n,
                            bool doVarNum = true) const;
-  void setIrrelevantFunction(TNode f);
-  // for debugging
-  std::vector<Node> d_quants;
-  std::map<Node, size_t> d_quant_id;
+  void setIrrelevantFunction( TNode f );
+  //for debugging
+  std::vector< Node > d_quants;
+  std::map< Node, size_t > d_quant_id;
   /** Map from quantified formulas to their info class to compute instances */
   std::map<Node, std::unique_ptr<QuantInfo> > d_qinfo;
   /** Map from type -> list(eqc) of that type */
   std::map<TypeNode, std::vector<TNode> > d_eqcs;
   /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
-  std::map<Kind, Node> d_zero;
-  // for storing nodes created during t-constraint solving (prevents memory
-  // leaks)
-  std::vector<Node> d_tempCache;
-  // optimization: list of quantifiers that depend on ground function
-  // applications
-  std::map<TNode, std::vector<Node> > d_func_rel_dom;
-  std::map<TNode, bool> d_irr_func;
-  std::map<Node, bool> d_irr_quant;
+  context::CDO< bool > d_conflict;
+  std::map< Kind, Node > d_zero;
+  //for storing nodes created during t-constraint solving (prevents memory leaks)
+  std::vector< Node > d_tempCache;
+  //optimization: list of quantifiers that depend on ground function applications
+  std::map< TNode, std::vector< Node > > d_func_rel_dom;
+  std::map< TNode, bool > d_irr_func;
+  std::map< Node, bool > d_irr_quant;
   /** The current effort */
   Effort d_effort;
 };
