@@ -1251,7 +1251,8 @@ ProofPostproccess::ProofPostproccess(Env& env,
                                      bool updateScopedAssumptions)
     : d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(env.getProofNodeManager(), d_cb, options::proofPpMerge()),
+      d_updater(
+          env.getProofNodeManager(), d_cb, env.getOptions().proof.proofPpMerge),
       d_finalCb(env.getProofNodeManager()),
       d_finalizer(env.getProofNodeManager(), d_finalCb)
 {
