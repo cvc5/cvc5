@@ -144,42 +144,53 @@ Node QuantifiersRegistry::substituteBoundVariablesToInstConstants(Node n,
                                                                   Node q)
 {
   registerQuantifier(q);
-  return n.substitute(d_vars[q].begin(),
-                      d_vars[q].end(),
-                      d_inst_constants[q].begin(),
-                      d_inst_constants[q].end());
+  std::map<Node, std::vector<Node> >::const_iterator itv = d_vars.find(q);
+  std::map<Node, std::vector<Node> >::const_iterator itc =
+      d_inst_constants.find(q);
+  Assert(itv != d_vars.end());
+  Assert(itc != d_inst_constants.end());
+  return n.substitute(itv->second.begin(),
+                      itv->second.end(),
+                      itc->second.begin(),
+                      itc->second.end());
 }
 
 Node QuantifiersRegistry::substituteInstConstantsToBoundVariables(Node n,
                                                                   Node q)
 {
   registerQuantifier(q);
-  return n.substitute(d_inst_constants[q].begin(),
-                      d_inst_constants[q].end(),
-                      d_vars[q].begin(),
-                      d_vars[q].end());
+  std::map<Node, std::vector<Node> >::const_iterator itv = d_vars.find(q);
+  std::map<Node, std::vector<Node> >::const_iterator itc =
+      d_inst_constants.find(q);
+  Assert(itv != d_vars.end());
+  Assert(itc != d_inst_constants.end());
+  return n.substitute(itc->second.begin(),
+                      itc->second.end(),
+                      itv->second.begin(),
+                      itv->second.end());
 }
 
-Node QuantifiersRegistry::substituteBoundVariables(Node n,
-                                                   Node q,
-                                                   std::vector<Node>& terms)
+Node QuantifiersRegistry::substituteBoundVariables(
+    Node n, Node q, const std::vector<Node>& terms)
 {
   registerQuantifier(q);
-  Assert(d_vars[q].size() == terms.size());
+  std::map<Node, std::vector<Node> >::const_iterator itv = d_vars.find(q);
+  Assert(itv != d_vars.end());
+  Assert(itv->second.size() == terms.size());
   return n.substitute(
-      d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end());
+      itv->second.begin(), itv->second.end(), terms.begin(), terms.end());
 }
 
-Node QuantifiersRegistry::substituteInstConstants(Node n,
-                                                  Node q,
-                                                  std::vector<Node>& terms)
+Node QuantifiersRegistry::substituteInstConstants(
+    Node n, Node q, const std::vector<Node>& terms)
 {
   registerQuantifier(q);
-  Assert(d_inst_constants[q].size() == terms.size());
-  return n.substitute(d_inst_constants[q].begin(),
-                      d_inst_constants[q].end(),
-                      terms.begin(),
-                      terms.end());
+  std::map<Node, std::vector<Node> >::const_iterator itc =
+      d_inst_constants.find(q);
+  Assert(itc != d_inst_constants.end());
+  Assert(itc->second.size() == terms.size());
+  return n.substitute(
+      itc->second.begin(), itc->second.end(), terms.begin(), terms.end());
 }
 
 QuantAttributes& QuantifiersRegistry::getQuantAttributes()
