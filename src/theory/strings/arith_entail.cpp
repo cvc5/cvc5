@@ -32,6 +32,8 @@ namespace strings {
 
 ArithEntail::ArithEntail(Rewriter* r) : d_rr(r) {}
 
+Node ArithEntail::rewrite(Node a) { return d_rr->rewrite(a); }
+
 bool ArithEntail::checkEq(Node a, Node b)
 {
   if (a == b)

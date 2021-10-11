@@ -17,16 +17,14 @@
 #include "decision/decision_engine_old.h"
 #include "options/decision_options.h"
 #include "prop/sat_solver.h"
+#include "smt/env.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {
 namespace decision {
 
-DecisionEngine::DecisionEngine(context::Context* c, ResourceManager* rm)
-    : d_context(c),
-      d_resourceManager(rm),
-      d_cnfStream(nullptr),
-      d_satSolver(nullptr)
+DecisionEngine::DecisionEngine(Env& env)
+    : EnvObj(env), d_cnfStream(nullptr), d_satSolver(nullptr)
 {
 }
 
@@ -38,18 +36,18 @@ void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
 
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
-  d_resourceManager->spendResource(Resource::DecisionStep);
+  resourceManager()->spendResource(Resource::DecisionStep);
   return getNextInternal(stopSearch);
 }
 
-DecisionEngineEmpty::DecisionEngineEmpty(context::Context* sc,
-                                         ResourceManager* rm)
-    : DecisionEngine(sc, rm)
+DecisionEngineEmpty::DecisionEngineEmpty(Env& env) : DecisionEngine(env) {}
+bool DecisionEngineEmpty::isDone() { return false; }
+void DecisionEngineEmpty::addAssertion(TNode assertion, bool isLemma) {}
+void DecisionEngineEmpty::addSkolemDefinition(TNode lem,
+                                              TNode skolem,
+                                              bool isLemma)
 {
 }
-bool DecisionEngineEmpty::isDone() { return false; }
-void DecisionEngineEmpty::addAssertion(TNode assertion) {}
-void DecisionEngineEmpty::addSkolemDefinition(TNode lem, TNode skolem) {}
 prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
 {
   return undefSatLiteral;

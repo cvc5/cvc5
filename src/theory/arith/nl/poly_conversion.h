@@ -98,8 +98,8 @@ std::pair<poly::Polynomial, poly::SignCondition> as_poly_constraint(
 /**
  * Transforms a real algebraic number to a node suitable for putting it into a
  * model. The resulting node can be either a constant (suitable for
- * addCheckModelSubstitution) or a witness term (suitable for
- * addCheckModelWitness).
+ * addSubstitution) or a witness term (suitable for
+ * addWitness).
  */
 Node ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable);
 

@@ -402,7 +402,7 @@ bool MonomialCheck::compareMonomial(
   if (a_index == vla.size() && b_index == vlb.size())
   {
     // finished, compare absolute value of abstract model values
-    int modelStatus = d_data->d_model.compare(oa, ob, false, true) * -2;
+    int modelStatus = d_data->d_model.compare(oa, ob, false, true) * 2;
     Trace("nl-ext-comp") << "...finished comparison with " << oa << " <"
                          << status << "> " << ob
                          << ", model status = " << modelStatus << std::endl;
@@ -677,7 +677,7 @@ void MonomialCheck::assignOrderIds(std::vector<Node>& vars,
         {
           Node vv = d_data->d_model.computeModelValue(
               d_order_points[order_index], isConcrete);
-          if (d_data->d_model.compareValue(v, vv, isAbsolute) <= 0)
+          if (d_data->d_model.compareValue(v, vv, isAbsolute) >= 0)
           {
             counter++;
             Trace("nl-ext-mvo") << "O[" << d_order_points[order_index]

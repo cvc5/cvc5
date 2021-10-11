@@ -1107,10 +1107,6 @@ class CVC5_EXPORT SolverEngine
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
   /**
-   * The preprocessor.
-   */
-  std::unique_ptr<smt::Preprocessor> d_pp;
-  /**
    * The global scope object. Upon creation of this SolverEngine, it becomes the
    * SolverEngine in scope. It says the SolverEngine in scope until it is
    * destructed, or another SolverEngine is created.

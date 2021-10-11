@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "smt/assertions.h"
+#include "smt/env_obj.h"
 #include "util/result.h"
 
 namespace cvc5 {
@@ -30,7 +31,6 @@ class OutputManager;
 
 namespace smt {
 
-class Preprocessor;
 class SmtSolver;
 
 /**
@@ -42,10 +42,10 @@ class SmtSolver;
  * It also maintains a reference to a preprocessor for implementing
  * checkSynthSolution.
  */
-class SygusSolver
+class SygusSolver : protected EnvObj
 {
  public:
-  SygusSolver(Env& env, SmtSolver& sms, Preprocessor& pp);
+  SygusSolver(Env& env, SmtSolver& sms);
   ~SygusSolver();
 
   /**
@@ -170,12 +170,8 @@ class SygusSolver
    * expansion.
    */
   void expandDefinitionsSygusDt(TypeNode tn) const;
-  /** Reference to the env class */
-  Env& d_env;
   /** The SMT solver, which is used during checkSynth. */
   SmtSolver& d_smtSolver;
-  /** The preprocessor, used for checkSynthSolution. */
-  Preprocessor& d_pp;
   /**
    * sygus variables declared (from "declare-var" and "declare-fun" commands)
    *

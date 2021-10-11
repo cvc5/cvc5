@@ -27,8 +27,8 @@ namespace cvc5 {
 namespace smt {
 
 SmtEngineState::SmtEngineState(Env& env, SolverEngine& slv)
-    : d_slv(slv),
-      d_env(env),
+    : EnvObj(env),
+      d_slv(slv),
       d_pendingPops(0),
       d_fullyInited(false),
       d_queryMade(false),
@@ -44,7 +44,7 @@ void SmtEngineState::notifyExpectedStatus(const std::string& status)
   Assert(status == "sat" || status == "unsat" || status == "unknown")
       << "SmtEngineState::notifyExpectedStatus: unexpected status string "
       << status;
-  d_expectedStatus = Result(status, d_env.getOptions().driver.filename);
+  d_expectedStatus = Result(status, options().driver.filename);
 }
 
 void SmtEngineState::notifyResetAssertions()
@@ -56,7 +56,7 @@ void SmtEngineState::notifyResetAssertions()
   }
   // Remember the global push/pop around everything when beyond Start mode
   // (see solver execution modes in the SMT-LIB standard)
-  Assert(d_userLevels.size() == 0 && getUserContext()->getLevel() == 1);
+  Assert(d_userLevels.size() == 0 && userContext()->getLevel() == 1);
   popto(0);
 }
 
@@ -64,7 +64,7 @@ void SmtEngineState::notifyCheckSat(bool hasAssumptions)
 {
   // process the pending pops
   doPendingPops();
-  if (d_queryMade && !options::incrementalSolving())
+  if (d_queryMade && !options().base.incrementalSolving)
   {
     throw ModalException(
         "Cannot make multiple queries unless "
@@ -157,7 +157,7 @@ void SmtEngineState::shutdown()
 {
   doPendingPops();
 
-  while (options::incrementalSolving() && getUserContext()->getLevel() > 1)
+  while (options().base.incrementalSolving && userContext()->getLevel() > 1)
   {
     internalPop(true);
   }
@@ -171,7 +171,7 @@ void SmtEngineState::cleanup()
 
 void SmtEngineState::userPush()
 {
-  if (!options::incrementalSolving())
+  if (!options().base.incrementalSolving)
   {
     throw ModalException(
         "Cannot push when not solving incrementally (use --incremental)");
@@ -181,15 +181,15 @@ void SmtEngineState::userPush()
   // staying symmetric with pop.
   d_smtMode = SmtMode::ASSERT;
 
-  d_userLevels.push_back(getUserContext()->getLevel());
+  d_userLevels.push_back(userContext()->getLevel());
   internalPush();
   Trace("userpushpop") << "SmtEngineState: pushed to level "
-                       << getUserContext()->getLevel() << std::endl;
+                       << userContext()->getLevel() << std::endl;
 }
 
 void SmtEngineState::userPop()
 {
-  if (!options::incrementalSolving())
+  if (!options().base.incrementalSolving)
   {
     throw ModalException(
         "Cannot pop when not solving incrementally (use --incremental)");
@@ -206,35 +206,30 @@ void SmtEngineState::userPop()
   // is no longer in scope!).
   d_smtMode = SmtMode::ASSERT;
 
-  AlwaysAssert(getUserContext()->getLevel() > 0);
-  AlwaysAssert(d_userLevels.back() < getUserContext()->getLevel());
-  while (d_userLevels.back() < getUserContext()->getLevel())
+  AlwaysAssert(userContext()->getLevel() > 0);
+  AlwaysAssert(d_userLevels.back() < userContext()->getLevel());
+  while (d_userLevels.back() < userContext()->getLevel())
   {
     internalPop(true);
   }
   d_userLevels.pop_back();
 }
-context::Context* SmtEngineState::getContext() { return d_env.getContext(); }
-context::UserContext* SmtEngineState::getUserContext()
-{
-  return d_env.getUserContext();
-}
 void SmtEngineState::push()
 {
-  getUserContext()->push();
-  getContext()->push();
+  userContext()->push();
+  context()->push();
 }
 
 void SmtEngineState::pop()
 {
-  getUserContext()->pop();
-  getContext()->pop();
+  userContext()->pop();
+  context()->pop();
 }
 
 void SmtEngineState::popto(int toLevel)
 {
-  getContext()->popto(toLevel);
-  getUserContext()->popto(toLevel);
+  context()->popto(toLevel);
+  userContext()->popto(toLevel);
 }
 
 Result SmtEngineState::getStatus() const { return d_status; }
@@ -254,11 +249,11 @@ void SmtEngineState::internalPush()
   Assert(d_fullyInited);
   Trace("smt") << "SmtEngineState::internalPush()" << std::endl;
   doPendingPops();
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     // notifies the SolverEngine to process the assertions immediately
     d_slv.notifyPushPre();
-    getUserContext()->push();
+    userContext()->push();
     // the context push is done inside of the SAT solver
     d_slv.notifyPushPost();
   }
@@ -268,7 +263,7 @@ void SmtEngineState::internalPop(bool immediate)
 {
   Assert(d_fullyInited);
   Trace("smt") << "SmtEngineState::internalPop()" << std::endl;
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     ++d_pendingPops;
   }
@@ -281,7 +276,7 @@ void SmtEngineState::internalPop(bool immediate)
 void SmtEngineState::doPendingPops()
 {
   Trace("smt") << "SmtEngineState::doPendingPops()" << std::endl;
-  Assert(d_pendingPops == 0 || options::incrementalSolving());
+  Assert(d_pendingPops == 0 || options().base.incrementalSolving);
   // check to see if a postsolve() is pending
   if (d_needPostsolve)
   {
@@ -292,7 +287,7 @@ void SmtEngineState::doPendingPops()
     // the context pop is done inside of the SAT solver
     d_slv.notifyPopPre();
     // pop the context
-    getUserContext()->pop();
+    userContext()->pop();
     --d_pendingPops;
     // no need for pop post (for now)
   }

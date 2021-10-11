@@ -33,6 +33,15 @@ if(ANTLR3_JAR AND ANTLR3_INCLUDE_DIR AND ANTLR3_RUNTIME)
     check_system_version("ANTLR3")
 endif()
 
+if(ENABLE_STATIC_LIBRARY AND ANTLR3_FOUND_SYSTEM)
+  force_static_library()
+  find_library(ANTLR3_STATIC_LIBRARIES NAMES antlr3c)
+  if(NOT ANTLR3_STATIC_LIBRARIES)
+    set(ANTLR3_FOUND_SYSTEM FALSE)
+  endif()
+  reset_force_static_library()
+endif()
+
 if(NOT ANTLR3_FOUND_SYSTEM)
     check_ep_downloaded("ANTLR3-EP-jar")
     if(NOT ANTLR3-EP-jar_DOWNLOADED)
@@ -114,7 +123,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
             --prefix=<INSTALL_DIR>
             --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
             --srcdir=<SOURCE_DIR>
-            --disable-shared
+            --enable-shared
             --enable-static
             ${64bit}
             --host=${TOOLCHAIN_PREFIX}
@@ -123,7 +132,8 @@ if(NOT ANTLR3_FOUND_SYSTEM)
 
     set(ANTLR3_JAR "${DEPS_BASE}/share/java/antlr-3.4-complete.jar")
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
-    set(ANTLR3_RUNTIME "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a")
+    set(ANTLR3_RUNTIME "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(ANTLR3_STATIC_RUNTIME "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a")
 endif()
 
 find_package(Java COMPONENTS Runtime REQUIRED)
@@ -135,9 +145,19 @@ set(ANTLR3_FOUND TRUE)
 set(ANTLR3_COMMAND ${Java_JAVA_EXECUTABLE} -cp "${ANTLR3_JAR}" org.antlr.Tool
     CACHE STRING "run ANTLR3" FORCE)
 
-add_library(ANTLR3 STATIC IMPORTED GLOBAL)
-set_target_properties(ANTLR3 PROPERTIES IMPORTED_LOCATION "${ANTLR3_RUNTIME}")
-set_target_properties(ANTLR3 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}")
+add_library(ANTLR3_SHARED SHARED IMPORTED GLOBAL)
+set_target_properties(ANTLR3_SHARED PROPERTIES
+    IMPORTED_LOCATION "${ANTLR3_RUNTIME}"
+    INTERFACE_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}"
+)
+
+if(ENABLE_STATIC_LIBRARY)
+    add_library(ANTLR3_STATIC STATIC IMPORTED GLOBAL)
+    set_target_properties(ANTLR3_STATIC PROPERTIES
+        IMPORTED_LOCATION "${ANTLR3_STATIC_RUNTIME}"
+        INTERFACE_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}"
+    )
+endif()
 
 mark_as_advanced(ANTLR3_BINARY)
 mark_as_advanced(ANTLR3_COMMAND)
@@ -153,5 +173,8 @@ if(ANTLR3_FOUND_SYSTEM)
 else()
     message(STATUS "Building ANTLR3 runtime: ${ANTLR3_RUNTIME}")
     message(STATUS "Downloading ANTLR3 JAR: ${ANTLR3_JAR}")
-    add_dependencies(ANTLR3 ANTLR3-EP-runtime ANTLR3-EP-jar)
+    add_dependencies(ANTLR3_SHARED ANTLR3-EP-runtime ANTLR3-EP-jar)
+    if(ENABLE_STATIC_LIBRARY)
+        add_dependencies(ANTLR3_STATIC ANTLR3-EP-runtime ANTLR3-EP-jar)
+    endif()
 endif()

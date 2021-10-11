@@ -46,7 +46,10 @@ class TestPPWhiteBVGauss : public TestSmt
     TestSmt::SetUp();
 
     d_preprocContext.reset(new preprocessing::PreprocessingPassContext(
-        d_slvEngine.get(), d_slvEngine->getEnv(), nullptr));
+        d_slvEngine->getEnv(),
+        d_slvEngine->getTheoryEngine(),
+        d_slvEngine->getPropEngine(),
+        nullptr));
 
     d_bv_gauss.reset(new BVGauss(d_preprocContext.get()));
 
