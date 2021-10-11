@@ -97,7 +97,7 @@ void Instantiate::addRewriter(InstantiationRewriter* ir)
 }
 
 bool Instantiate::addInstantiation(Node q,
-                                   const std::vector<Node>& terms,
+                                   std::vector<Node>& terms,
                                    InferenceId id,
                                    Node pfArg,
                                    bool mkRep,
@@ -390,7 +390,7 @@ bool Instantiate::addInstantiation(Node q,
 }
 
 bool Instantiate::addInstantiationExpFail(Node q,
-                                          const std::vector<Node>& terms,
+                                          std::vector<Node>& terms,
                                           std::vector<bool>& failMask,
                                           InferenceId id,
                                           Node pfArg,
@@ -576,17 +576,14 @@ Node Instantiate::getInstantiation(Node q,
   return body;
 }
 
-Node Instantiate::getInstantiation(Node q,
-                                   const std::vector<Node>& terms,
-                                   bool doVts)
+Node Instantiate::getInstantiation(Node q, const std::vector<Node>& terms, bool doVts)
 {
   Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
   return getInstantiation(
       q, d_qreg.d_vars[q], terms, InferenceId::UNKNOWN, Node::null(), doVts);
 }
 
-bool Instantiate::recordInstantiationInternal(Node q,
-                                              const std::vector<Node>& terms)
+bool Instantiate::recordInstantiationInternal(Node q, const std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
@@ -604,8 +601,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
   return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);
 }
 
-bool Instantiate::removeInstantiationInternal(Node q,
-                                              const std::vector<Node>& terms)
+bool Instantiate::removeInstantiationInternal(Node q, const std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {

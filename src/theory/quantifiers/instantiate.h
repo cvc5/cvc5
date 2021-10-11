@@ -65,7 +65,7 @@ class InstantiationRewriter
    * and its proof generator.
    */
   virtual TrustNode rewriteInstantiation(Node q,
-                                         std::vector<Node>& terms,
+                                         const std::vector<Node>& terms,
                                          Node inst,
                                          bool doVts) = 0;
 };
@@ -160,7 +160,7 @@ class Instantiate : public QuantifiersUtil
    *
    */
   bool addInstantiation(Node q,
-                        const std::vector<Node>& terms,
+                        std::vector<Node>& terms,
                         InferenceId id,
                         Node pfArg = Node::null(),
                         bool mkRep = false,
@@ -189,7 +189,7 @@ class Instantiate : public QuantifiersUtil
    * "decimal" places to increment their iterator.
    */
   bool addInstantiationExpFail(Node q,
-                               const std::vector<Node>& terms,
+                               std::vector<Node>& terms,
                                std::vector<bool>& failMask,
                                InferenceId id,
                                Node pfArg = Node::null(),
@@ -235,9 +235,7 @@ class Instantiate : public QuantifiersUtil
    *
    * Same as above but with vars equal to the bound variables of q.
    */
-  Node getInstantiation(Node q,
-                        const std::vector<Node>& terms,
-                        bool doVts = false);
+  Node getInstantiation(Node q, const std::vector<Node>& terms, bool doVts = false);
   //--------------------------------------end general utilities
 
   /**
