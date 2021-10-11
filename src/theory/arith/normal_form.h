@@ -481,7 +481,7 @@ public:
     /* The following types are required by trait std::iterator_traits */
 
     /** Iterator tag */
-    using iterator_category = std::input_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
 
     /** The type of the item */
     using value_type = Variable;
@@ -827,7 +827,7 @@ public:
     /* The following types are required by trait std::iterator_traits */
 
     /** Iterator tag */
-    using iterator_category = std::input_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
 
     /** The type of the item */
     using value_type = Monomial;

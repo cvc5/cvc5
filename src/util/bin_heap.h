@@ -100,16 +100,16 @@ public:
     /* The following types are required by trait std::iterator_traits */
 
     /** Iterator tag */
-    using iterator_category = std::input_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
 
     /** The type of the item */
     using value_type = Elem;
 
     /** The pointer type of the item */
-    using pointer = Elem*;
+    using pointer = const Elem*;
 
     /** The reference type of the item */
-    using reference = Elem&;
+    using reference = const Elem&;
 
     /** The type returned when two iterators are subtracted */
     using difference_type = std::ptrdiff_t;

@@ -1175,16 +1175,16 @@ class CVC5_EXPORT Term
     /* The following types are required by trait std::iterator_traits */
 
     /** Iterator tag */
-    using iterator_category = std::input_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
 
     /** The type of the item */
     using value_type = Term;
 
     /** The pointer type of the item */
-    using pointer = Term*;
+    using pointer = const Term*;
 
     /** The reference type of the item */
-    using reference = Term&;
+    using reference = const Term&;
 
     /** The type returned when two iterators are subtracted */
     using difference_type = std::ptrdiff_t;
@@ -1977,16 +1977,16 @@ class CVC5_EXPORT DatatypeConstructor
     /* The following types are required by trait std::iterator_traits */
 
     /** Iterator tag */
-    using iterator_category = std::input_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
 
     /** The type of the item */
     using value_type = DatatypeConstructor;
 
     /** The pointer type of the item */
-    using pointer = DatatypeConstructor*;
+    using pointer = const DatatypeConstructor*;
 
     /** The reference type of the item */
-    using reference = DatatypeConstructor&;
+    using reference = const DatatypeConstructor&;
 
     /** The type returned when two iterators are subtracted */
     using difference_type = std::ptrdiff_t;
@@ -2229,16 +2229,16 @@ class CVC5_EXPORT Datatype
     /* The following types are required by trait std::iterator_traits */
 
     /** Iterator tag */
-    using iterator_category = std::input_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
 
     /** The type of the item */
     using value_type = Datatype;
 
     /** The pointer type of the item */
-    using pointer = Datatype*;
+    using pointer = const Datatype*;
 
     /** The reference type of the item */
-    using reference = Datatype&;
+    using reference = const Datatype&;
 
     /** The type returned when two iterators are subtracted */
     using difference_type = std::ptrdiff_t;
