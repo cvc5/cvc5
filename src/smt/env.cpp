@@ -23,7 +23,7 @@
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
 #include "smt/dump_manager.h"
-#include "smt/smt_engine_stats.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"

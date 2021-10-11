@@ -37,7 +37,7 @@ class PreprocessingPassContext;
 namespace smt {
 
 class Assertions;
-struct SmtEngineStatistics;
+struct SolverEngineStatistics;
 
 /**
  * Module in charge of processing assertions for an SMT engine.
@@ -62,7 +62,7 @@ class ProcessAssertions
  public:
   ProcessAssertions(SmtEngine& smt,
                     ResourceManager& rm,
-                    SmtEngineStatistics& stats);
+                    SolverEngineStatistics& stats);
   ~ProcessAssertions();
   /** Finish initialize
    *
@@ -86,7 +86,7 @@ class ProcessAssertions
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
   /** Reference to the SMT stats */
-  SmtEngineStatistics& d_smtStats;
+  SolverEngineStatistics& d_smtStats;
   /** The preprocess context */
   preprocessing::PreprocessingPassContext* d_preprocessingPassContext;
   /** True node */

@@ -93,7 +93,7 @@ class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
 
-struct SmtEngineStatistics;
+struct SolverEngineStatistics;
 class SmtScope;
 class PfManager;
 class UnsatCoreManager;
@@ -1101,7 +1101,7 @@ class CVC5_EXPORT SmtEngine
   std::map<std::string, int> d_commandVerbosity;
 
   /** The statistics class */
-  std::unique_ptr<smt::SmtEngineStatistics> d_stats;
+  std::unique_ptr<smt::SolverEngineStatistics> d_stats;
 
   /** the output manager for commands */
   mutable OutputManager d_outMgr;

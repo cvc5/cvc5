@@ -22,8 +22,8 @@
 #include "smt/env.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_engine_state.h"
-#include "smt/smt_engine_stats.h"
 #include "smt/solver_engine.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
@@ -36,7 +36,7 @@ namespace smt {
 SmtSolver::SmtSolver(Env& env,
                      SmtEngineState& state,
                      Preprocessor& pp,
-                     SmtEngineStatistics& stats)
+                     SolverEngineStatistics& stats)
     : d_env(env),
       d_state(state),
       d_pp(pp),

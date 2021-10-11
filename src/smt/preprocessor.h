@@ -49,7 +49,7 @@ class Preprocessor
   Preprocessor(SmtEngine& smt,
                Env& env,
                AbstractValues& abs,
-               SmtEngineStatistics& stats);
+               SolverEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization

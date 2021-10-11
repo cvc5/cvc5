@@ -55,8 +55,8 @@
 #include "smt/set_defaults.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_state.h"
-#include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
+#include "smt/solver_engine_stats.h"
 #include "smt/sygus_solver.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
@@ -123,7 +123,7 @@ SmtEngine::SmtEngine(NodeManager* nm, const Options* optr)
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
-  d_stats.reset(new SmtEngineStatistics());
+  d_stats.reset(new SolverEngineStatistics());
   // reset the preprocessor
   d_pp.reset(
       new smt::Preprocessor(*this, *d_env.get(), *d_absValues.get(), *d_stats));

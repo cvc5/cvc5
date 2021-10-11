@@ -33,8 +33,8 @@
 #include "smt/assertions.h"
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
-#include "smt/smt_engine_stats.h"
 #include "smt/solver_engine.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
@@ -59,7 +59,7 @@ class ScopeCounter
 
 ProcessAssertions::ProcessAssertions(SmtEngine& smt,
                                      ResourceManager& rm,
-                                     SmtEngineStatistics& stats)
+                                     SolverEngineStatistics& stats)
     : d_smt(smt),
       d_resourceManager(rm),
       d_smtStats(stats),
