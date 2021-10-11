@@ -29,7 +29,7 @@ if(BUILD_BINDINGS_JAVA)
     OUTPUT "${JAVADOC_INDEX_FILE}"
     COMMAND 
       ${Java_JAVADOC_EXECUTABLE} cvc5
-      --source-path ${CMAKE_SOURCE_DIR}/src/api/java/
+      -sourcepath ${CMAKE_SOURCE_DIR}/src/api/java/
       -d ${JAVADOC_OUTPUT_DIR}
       -cp ${CMAKE_BINARY_DIR}/src/api/java/cvc5.jar
       -notimestamp
