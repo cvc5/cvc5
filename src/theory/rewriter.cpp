@@ -198,7 +198,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
   // Rewrite until the stack is empty
   for (;;){
-    if (d_resourceManager!=nullptr)
+    if (d_resourceManager != nullptr)
     {
       d_resourceManager->spendResource(Resource::RewriteStep);
     }

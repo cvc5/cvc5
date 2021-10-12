@@ -160,8 +160,8 @@ class Rewriter {
   void clearCachesInternal();
 
   /** The resource manager, for tracking resource usage */
-  ResourceManager * d_resourceManager;
-  
+  ResourceManager* d_resourceManager;
+
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
 
