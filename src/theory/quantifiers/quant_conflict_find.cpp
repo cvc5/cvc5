@@ -2171,9 +2171,9 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         Debug("qcf-check-inst")
             << "Check instantiation " << inst << "..." << std::endl;
         Assert(
-            !p->getTermRegistry().getEntailmentCheck()->isEntailed(inst, true));
+            !getTermRegistry().getEntailmentCheck()->isEntailed(inst, true));
         Assert(
-            p->getTermRegistry().getEntailmentCheck()->isEntailed(inst, false)
+            getTermRegistry().getEntailmentCheck()->isEntailed(inst, false)
             || d_effort > EFFORT_CONFLICT);
       }
       // Process the lemma: either add an instantiation or specific lemmas
