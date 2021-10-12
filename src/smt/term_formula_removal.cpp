@@ -164,7 +164,8 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
       Debug("ite") << "removeITEs(" << node << ")"
                    << " " << inQuant << " " << inTerm << std::endl;
       Assert(!inQuant);
-      Node currt = runCurrentInternal(node, inTerm, newLem, nodeVal, d_tpg.get());
+      Node currt =
+          runCurrentInternal(node, inTerm, newLem, nodeVal, d_tpg.get());
       // if we replaced by a skolem, we do not recurse
       if (!currt.isNull())
       {
@@ -262,7 +263,9 @@ TrustNode RemoveTermFormulas::runCurrent(TNode node,
 
 Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             bool inTerm,
-                                            TrustNode& newLem, uint32_t cval, TConvProofGenerator* pg)
+                                            TrustNode& newLem,
+                                            uint32_t cval,
+                                            TConvProofGenerator* pg)
 {
   NodeManager *nodeManager = NodeManager::currentNM();
 
@@ -470,12 +473,12 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       // all purification skolems. We record this equality in the term
       // conversion proof generator.
       pg->addRewriteStep(node,
-                            skolem,
-                            PfRule::MACRO_SR_PRED_INTRO,
-                            {},
-                            {node.eqNode(skolem)},
-                            true,
-                            cval);
+                         skolem,
+                         PfRule::MACRO_SR_PRED_INTRO,
+                         {},
+                         {node.eqNode(skolem)},
+                         true,
+                         cval);
     }
 
     // if the skolem was introduced in this call

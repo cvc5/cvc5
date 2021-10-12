@@ -173,14 +173,19 @@ class TheoryPreprocessor : protected EnvObj
    * @param pg The proof generator to register to
    * @param isPre whether the rewrite is a pre-rewrite.
    */
-  Node rewriteWithProof(Node term, TConvProofGenerator* pg, bool isPre, uint32_t tctx);
+  Node rewriteWithProof(Node term,
+                        TConvProofGenerator* pg,
+                        bool isPre,
+                        uint32_t tctx);
   /**
    * Preprocess with proof, which calls the appropriate ppRewrite method,
    * stores the corresponding rewrite step in d_tpg if necessary and returns
    * the preprocessed and rewritten form of term. It should be the case that
    * term is already in rewritten form.
    */
-  Node preprocessWithProof(Node term, std::vector<SkolemLemma>& lems, uint32_t tctx);
+  Node preprocessWithProof(Node term,
+                           std::vector<SkolemLemma>& lems,
+                           uint32_t tctx);
   /**
    * Register rewrite trn based on trust node into term conversion generator
    * pg, which uses THEORY_PREPROCESS as a step if no proof generator is
@@ -192,8 +197,8 @@ class TheoryPreprocessor : protected EnvObj
    */
   void registerTrustedRewrite(TrustNode trn,
                               TConvProofGenerator* pg,
-                              bool isPre, 
-                                             uint32_t tctx);
+                              bool isPre,
+                              uint32_t tctx);
   /** Proofs enabled */
   bool isProofEnabled() const;
 };

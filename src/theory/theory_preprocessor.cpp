@@ -393,7 +393,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
 
 Node TheoryPreprocessor::rewriteWithProof(Node term,
                                           TConvProofGenerator* pg,
-                                          bool isPre, 
+                                          bool isPre,
                                           uint32_t tctx)
 {
   Node termr = Rewriter::rewrite(term);
@@ -412,7 +412,7 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
 }
 
 Node TheoryPreprocessor::preprocessWithProof(Node term,
-                                             std::vector<SkolemLemma>& lems, 
+                                             std::vector<SkolemLemma>& lems,
                                              uint32_t tctx)
 {
   // Important that it is in rewritten form, to ensure that the rewrite steps
@@ -462,7 +462,7 @@ bool TheoryPreprocessor::isProofEnabled() const { return d_tpg != nullptr; }
 
 void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
                                                 TConvProofGenerator* pg,
-                                                bool isPre, 
+                                                bool isPre,
                                                 uint32_t tctx)
 {
   if (!isProofEnabled() || trn.isNull())
@@ -493,7 +493,8 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
                        PfRule::THEORY_PREPROCESS,
                        {},
                        {term.eqNode(termr)},
-                       isPre, tctx);
+                       isPre,
+                       tctx);
   }
 }
 

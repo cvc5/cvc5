@@ -209,7 +209,11 @@ class RemoveTermFormulas : protected EnvObj
    * Otherwise, if t should not be replaced in the term context, this method
    * returns the null node.
    */
-  Node runCurrentInternal(TNode node, bool inTerm, TrustNode& newLem, uint32_t cval, TConvProofGenerator* pg);
+  Node runCurrentInternal(TNode node,
+                          bool inTerm,
+                          TrustNode& newLem,
+                          uint32_t cval,
+                          TConvProofGenerator* pg);
   /** Is proof enabled? True if proofs are enabled in any mode. */
   bool isProofEnabled() const;
 }; /* class RemoveTTE */
