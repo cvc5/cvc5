@@ -34,7 +34,7 @@
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
 #include "smt/print_benchmark.h"
-#include "smt/smt_engine_stats.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
@@ -57,7 +57,7 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(Env& env, SmtEngineStatistics& stats)
+ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env), d_smtStats(stats), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);

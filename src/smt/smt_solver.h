@@ -45,7 +45,7 @@ namespace smt {
 
 class Assertions;
 class SmtEngineState;
-struct SmtEngineStatistics;
+struct SolverEngineStatistics;
 
 /**
  * A solver for SMT queries.
@@ -67,7 +67,7 @@ class SmtSolver
   SmtSolver(Env& env,
             SmtEngineState& state,
             AbstractValues& abs,
-            SmtEngineStatistics& stats);
+            SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
    * Create theory engine, prop engine based on the environment.
@@ -131,7 +131,7 @@ class SmtSolver
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Reference to the statistics of SolverEngine */
-  SmtEngineStatistics& d_stats;
+  SolverEngineStatistics& d_stats;
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
