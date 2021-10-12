@@ -196,17 +196,11 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   vector<RewriteStackElement> rewriteStack;
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
 
-  ResourceManager* rm = NULL;
-  bool hasSlvEngine = smt::solverEngineInScope();
-  if (hasSlvEngine)
-  {
-    rm = smt::currentResourceManager();
-  }
   // Rewrite until the stack is empty
   for (;;){
-    if (hasSlvEngine)
+    if (d_resourceManager != nullptr)
     {
-      rm->spendResource(Resource::RewriteStep);
+      d_resourceManager->spendResource(Resource::RewriteStep);
     }
 
     // Get the top of the recursion stack
