@@ -28,6 +28,7 @@
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
+#include "smt/solver_engine_scope.h"
 
 using namespace cvc5::kind;
 
