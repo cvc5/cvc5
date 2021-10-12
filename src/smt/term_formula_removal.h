@@ -208,7 +208,7 @@ class RemoveTermFormulas : protected EnvObj
    *
    * Otherwise, if t should not be replaced in the term context, this method
    * returns the null node.
-   * 
+   *
    * @param node The node under consideration
    * @param inTerm Whether we are in a term context (see RtfTermContext)
    * @param newLem The new lemma axiomatizing the return value
