@@ -43,7 +43,6 @@ namespace quantifiers {
 class CegGrammarConstructor;
 class SygusPbe;
 class SygusStatistics;
-class OracleManager;
 class EnumValueManager;
 
 /** a synthesis conjecture
