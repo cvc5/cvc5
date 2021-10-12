@@ -206,8 +206,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     Trace("sygus-engine-debug") << std::endl;
   }
   Trace("sygus-engine-debug") << "Do conjecture check..." << std::endl;
-  Trace("sygus-engine-debug")
-      << "  *** Check candidate phase..." << std::endl;
+  Trace("sygus-engine-debug") << "  *** Check candidate phase..." << std::endl;
   size_t prevPending = d_qim.numPendingLemmas();
   bool ret = conj->doCheck();
   // if we added a lemma, return true
