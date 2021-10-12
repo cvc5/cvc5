@@ -54,9 +54,9 @@
 #include "smt/quant_elim_solver.h"
 #include "smt/set_defaults.h"
 #include "smt/smt_engine_state.h"
-#include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/solver_engine_scope.h"
+#include "smt/solver_engine_stats.h"
 #include "smt/sygus_solver.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
@@ -121,7 +121,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
-  d_stats.reset(new SmtEngineStatistics());
+  d_stats.reset(new SolverEngineStatistics());
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_absValues, *d_stats));
   // make the SyGuS solver
