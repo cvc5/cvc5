@@ -36,9 +36,8 @@
  * )
  */
 
-import static cvc5.Kind.*;
-
-import cvc5.*;
+import io.github.cvc5.api.*;
+import io.github.cvc5.api.Kind.*;
 
 public class SygusInv
 {

@@ -18,9 +18,8 @@
  * an IEEE 754-2008 bit-vector to a floating-point number.
  */
 
-import static cvc5.Kind.*;
-
-import cvc5.*;
+import io.github.cvc5.api.*;
+import io.github.cvc5.api.Kind.*;
 
 public class FloatingPointArith
 {

@@ -13,9 +13,8 @@
  * A simple demonstration of reasoning about strings with cvc5 via C++ API.
  */
 
-import static cvc5.Kind.*;
-
-import cvc5.*;
+import io.github.cvc5.api.*;
+import io.github.cvc5.api.Kind.*;
 
 public class Strings
 {

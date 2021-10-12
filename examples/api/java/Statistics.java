@@ -13,9 +13,8 @@
  * An example of accessing CVC4's statistics using the Java API.
  */
 
-import static cvc5.Kind.*;
-
-import cvc5.*;
+import io.github.cvc5.api.*;
+import io.github.cvc5.api.Kind.*;
 import java.util.List;
 import java.util.Map;
 
