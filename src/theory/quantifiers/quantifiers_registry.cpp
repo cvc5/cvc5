@@ -185,12 +185,9 @@ Node QuantifiersRegistry::substituteInstConstants(
     Node n, Node q, const std::vector<Node>& terms)
 {
   registerQuantifier(q);
-  std::map<Node, std::vector<Node> >::const_iterator itc =
-      d_inst_constants.find(q);
-  Assert(itc != d_inst_constants.end());
-  Assert(itc->second.size() == terms.size());
-  return n.substitute(
-      itc->second.begin(), itc->second.end(), terms.begin(), terms.end());
+  std::vector<Node>& consts = d_inst_constants.at(q);
+  Assert(consts.size() == terms.size());
+  return n.substitute(consts.begin(), consts.end(), terms.begin(), terms.end());
 }
 
 QuantAttributes& QuantifiersRegistry::getQuantAttributes()
