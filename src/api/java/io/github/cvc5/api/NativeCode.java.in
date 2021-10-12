@@ -11,8 +11,11 @@
 package io.github.cvc5.api;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
 
@@ -22,7 +25,6 @@ import java.util.regex.Pattern;
 public class NativeCode
 {
   /** names of native libraries */
-  static String[] copyLibraries = new String[] {"cvc5", "cvc5jni", "poly", "polyxx"};
   static String[] jniLibraries = new String[] {"cvc5jni"};
 
   /** cvc5 version */
@@ -71,45 +73,28 @@ public class NativeCode
   }
 
   /**
-   * Copy the given file from JAR into the destination file; if the destination
-   * file exists, we then do nothing. Returns true iff a file was created and
-   * written.
-   */
-  private static void copy(String source, String destination)
-  {
-    File destinationFile = new File(destination);
-    if (destinationFile.isFile() && destinationFile.length() > 0)
-    {
-      return;
-    }
-    try
-    {
-      URL resourceUrl = NativeCode.class.getClassLoader().getResource(source);
-      if (resourceUrl == null)
-      {
-        throw new RuntimeException("Could not find resource " + source);
-      }
-      Files.copy(
-          resourceUrl.openStream(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-    }
-    catch (IOException e)
-    {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
    * Copy libraries from the jar file to cvc5 home directory
    */
   static void copyLibraries()
   {
-    String prefix = platform.dir + "/";
-    for (String name : copyLibraries)
+    try
     {
-      String libName = System.mapLibraryName(name);
-      String source = prefix + libName;
-      String destination = home() + fs + libName;
-      copy(source, destination);
+      InputStream inputStream = NativeCode.class.getClassLoader().getResourceAsStream(platform.dir);
+      if (dirStream == null)
+      {
+        throw new RuntimeException("Could not find resource " + platform.dir);
+      }
+      String[] files = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).split("\n");
+      for (String file : files)
+      {
+        InputStream fileStream = NativeCode.class.getClassLoader().getResourceAsStream(platform.dir + "/" + file);
+        String destination = home() + fs + file;
+        Files.copy(fileStream, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
+      }
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException(e);
     }
   }
 
