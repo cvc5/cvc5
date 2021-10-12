@@ -513,7 +513,6 @@ bool SynthConjecture::doCheck()
     recordSolution(candidate_values);
     return true;
   }
-  Assert(!d_setInnerSksModel);
 
   // print the candidate solution for debugging
   if (constructed_cand && printDebug)
