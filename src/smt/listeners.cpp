@@ -23,8 +23,8 @@
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
 #include "smt/node_command.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 
 namespace cvc5 {
 namespace smt {
@@ -33,8 +33,8 @@ ResourceOutListener::ResourceOutListener(SolverEngine& slv) : d_slv(slv) {}
 
 void ResourceOutListener::notify()
 {
-  SmtScope scope(&d_slv);
-  Assert(smt::smtEngineInScope());
+  SolverEngineScope scope(&d_slv);
+  Assert(smt::solverEngineInScope());
   d_slv.interrupt();
 }
 
