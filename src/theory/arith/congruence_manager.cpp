@@ -81,8 +81,8 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   if (options().arith.arithEqSolver)
   {
     // use our own copy
-    d_allocEe.reset(new eq::EqualityEngine(
-        d_env, context(), d_notify, "arithCong::ee", true));
+    d_allocEe = std::make_unique<eq::EqualityEngine>(
+        d_env, context(), d_notify, "arithCong::ee", true);
     d_ee = d_allocEe.get();
     if (d_pnm != nullptr)
     {
