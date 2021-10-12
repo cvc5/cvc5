@@ -1289,12 +1289,12 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     TNode n = qi->getCurrentValue( d_n );
     int vn = qi->getCurrentRepVar( qi->getVarNum( n ) );
     if( vn==-1 ){
-      //evaluate the value, see if it is compatible
-      //int e = p->evaluate( n );
-      //if( ( e==1 && d_tgt ) || ( e==0 && !d_tgt ) ){
+      // evaluate the value, see if it is compatible
+      // int e = p->evaluate( n );
+      // if( ( e==1 && d_tgt ) || ( e==0 && !d_tgt ) ){
       //  d_child_counter = 0;
       //}
-      //modified
+      // modified
       EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
       if (echeck->isEntailed(n, d_tgt))
       {
@@ -2170,11 +2170,9 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         Node inst = qinst->getInstantiation(q, terms);
         Debug("qcf-check-inst")
             << "Check instantiation " << inst << "..." << std::endl;
-        Assert(
-            !getTermRegistry().getEntailmentCheck()->isEntailed(inst, true));
-        Assert(
-            getTermRegistry().getEntailmentCheck()->isEntailed(inst, false)
-            || d_effort > EFFORT_CONFLICT);
+        Assert(!getTermRegistry().getEntailmentCheck()->isEntailed(inst, true));
+        Assert(getTermRegistry().getEntailmentCheck()->isEntailed(inst, false)
+               || d_effort > EFFORT_CONFLICT);
       }
       // Process the lemma: either add an instantiation or specific lemmas
       // constructed during the isTConstraintSpurious call, or both.
