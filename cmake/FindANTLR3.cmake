@@ -128,6 +128,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
             ${64bit}
             --host=${TOOLCHAIN_PREFIX}
         BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a
+                         <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c.so
     )
 
     set(ANTLR3_JAR "${DEPS_BASE}/share/java/antlr-3.4-complete.jar")
