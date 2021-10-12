@@ -53,9 +53,9 @@
 #include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
 #include "smt/set_defaults.h"
-#include "smt/smt_engine_state.h"
 #include "smt/smt_solver.h"
 #include "smt/solver_engine_scope.h"
+#include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "smt/sygus_solver.h"
 #include "smt/unsat_core_manager.h"
@@ -86,7 +86,7 @@ namespace cvc5 {
 
 SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
     : d_env(new Env(nm, optr)),
-      d_state(new SmtEngineState(*d_env.get(), *this)),
+      d_state(new SolverEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues(getNodeManager())),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
