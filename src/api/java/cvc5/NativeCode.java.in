@@ -12,10 +12,7 @@ import java.util.regex.Pattern;
 public class NativeCode
 {
   /** names of native libraries */
-  static String[] copyLibraries = new String[] {"cvc5", "cvc5jni"};
-
-  /** names of jni native libraries that need to be loaded*/
-  static String[] jniLibraries = new String[] {"cvc5jni"};
+  static String[] libraries = new String[] {"cvc5", "cvc5jni", "poly", "polyxx"};
 
   /** cvc5 version */
   public static final String version = "${CVC5_VERSION}";
@@ -98,7 +95,7 @@ public class NativeCode
   static void copyLibraries()
   {
     String prefix = platform.dir + "/";
-    for (String name : copyLibraries)
+    for (String name : libraries)
     {
       String libName = System.mapLibraryName(name);
       String source = prefix + libName;
@@ -126,7 +123,7 @@ public class NativeCode
   public static void loadLibraries()
   {
     copyLibraries();
-    for (String name : jniLibraries)
+    for (String name : libraries)
     {
       NativeCode.loadLibrary(name);
     }
