@@ -110,8 +110,8 @@ void EqEngineManagerCentral::initializeTheories()
     d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
     if (!masterEqToCentral)
     {
-      d_masterEqualityEngineAlloc.reset(new eq::EqualityEngine(
-          d_env, c, *d_masterEENotify.get(), "master::ee", false));
+      d_masterEqualityEngineAlloc = std::make_unique<eq::EqualityEngine>(
+          d_env, c, *d_masterEENotify.get(), "master::ee", false);
       d_masterEqualityEngine = d_masterEqualityEngineAlloc.get();
     }
     else
