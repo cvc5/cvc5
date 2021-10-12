@@ -87,7 +87,7 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
     if (d_pnm != nullptr)
     {
       // allocate an internal proof equality engine
-      d_allocPfee.reset(new eq::ProofEqEngine(d_env, *d_ee));
+      d_allocPfee = std::make_unique<eq::ProofEqEngine>(d_env, *d_ee);
       d_ee->setProofEqualityEngine(d_allocPfee.get());
     }
   }

@@ -52,7 +52,7 @@ void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
     d_pfee = d_equalityEngine->getProofEqualityEngine();
     if (d_pfee == nullptr)
     {
-      d_pfeeAlloc.reset(new eq::ProofEqEngine(d_env, *ee));
+      d_pfeeAlloc = std::make_unqiue<eq::ProofEqEngine>(d_env, *ee);
       d_pfee = d_pfeeAlloc.get();
       d_equalityEngine->setProofEqualityEngine(d_pfee);
     }

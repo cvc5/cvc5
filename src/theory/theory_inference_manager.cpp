@@ -77,7 +77,7 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
     d_pfee = d_ee->getProofEqualityEngine();
     if (d_pfee == nullptr)
     {
-      d_pfeeAlloc.reset(new eq::ProofEqEngine(d_env, *d_ee));
+      d_pfeeAlloc = std::make_unique<eq::ProofEqEngine>(d_env, *d_ee);
       d_pfee = d_pfeeAlloc.get();
       d_ee->setProofEqualityEngine(d_pfee);
     }
