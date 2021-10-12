@@ -7,6 +7,7 @@ runs:
   using: composite
   steps:
     - name: Rename binaries for release
+      shell: bash
       run: |
         cp build/bin/cvc5 cvc5-${{ runner.os }}
 
