@@ -108,7 +108,7 @@ class Evaluator
    * rewriter for computing the result of this method.
    *
    * The result of this call is either equivalent to:
-   * (1) Rewriter::rewrite(n.substitute(args,vars))
+   * (1) rewrite(n.substitute(args,vars))
    * (2) Node::null().
    * If d_rr is non-null, then we are always in the first case. If
    * useRewriter is null, then we may be in case (2) if computing the
