@@ -276,7 +276,7 @@ class SynthConjecture : protected EnvObj
   std::vector<Node> d_innerSks;
   /**
    * If we have already tested the satisfiability of the current verification
-   * lemma, this stores the model values of d_ce_sk_vars in the current
+   * lemma, this stores the model values of d_innerSks in the current
    * (satisfiable, failed) verification lemma.
    */
   std::vector<Node> d_innerSksModel;
