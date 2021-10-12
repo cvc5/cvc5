@@ -13,11 +13,14 @@ package io.github.cvc5.api;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * class for loading native libraries
@@ -59,7 +62,7 @@ public class NativeCode
       if (tmpPath == null || tmpPath.length() == 0)
       {
         System.out.println(
-            "Error. JVM need to specify a temporary directory using java.io.tmpdir property.");
+                "Error. JVM need to specify a temporary directory using java.io.tmpdir property.");
       }
       // e.g. /tmp/cvc5/0.0.0/amd64-linux
       String tmp = tmpPath + fs + homeName + fs + version + fs + platform.dir;
@@ -80,11 +83,12 @@ public class NativeCode
     try
     {
       InputStream inputStream = NativeCode.class.getClassLoader().getResourceAsStream(platform.dir);
-      if (dirStream == null)
+      if (inputStream == null)
       {
         throw new RuntimeException("Could not find resource " + platform.dir);
       }
-      String[] files = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).split("\n");
+      List<String> files = new BufferedReader(
+            new InputStreamReader(inputStream, StandardCharsets.UTF_8)) .lines().collect(Collectors.toList());
       for (String file : files)
       {
         InputStream fileStream = NativeCode.class.getClassLoader().getResourceAsStream(platform.dir + "/" + file);
@@ -148,7 +152,7 @@ public class NativeCode
   public static Platform AMD64_LINUX = new Platform("linux", "amd64", "amd64-linux");
   public static Platform X86_LINUX = new Platform("linux", ".*86.*", "x86-linux");
   public static Platform X86_MAC =
-      new Platform("mac\\s*os.*", "ppc|power|powerpc.*|x86.*", "x86-mac");
+          new Platform("mac\\s*os.*", "ppc|power|powerpc.*|x86.*", "x86-mac");
   public static Platform X86_WINDOWS = new Platform("win.*", "x86.*", "x86-windows");
   public static Platform[] platforms = {AMD64_LINUX, X86_LINUX, X86_MAC, X86_WINDOWS};
 
