@@ -29,7 +29,6 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_value_manager.h"
-#include "theory/quantifiers/sygus/oracle_manager.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -58,8 +57,6 @@ SynthConjecture::SynthConjecture(Env& env,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_oman(options::oracles() ? new OracleManager(*tr.getOracleChecker())
-                                : nullptr),
       d_verify(options(), logicInfo(), d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
@@ -620,8 +617,10 @@ bool SynthConjecture::processCounterexmaple(const std::vector<Node>& skModel)
   Assert(d_innerSks.size() == skModel.size());
 
   Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
-  base_lem = base_lem.substitute(
-      d_innerSks.begin(), d_innerSks.end(), skModel.begin(), skModel.end());
+  base_lem = base_lem.substitute(d_innerSks.begin(),
+                                 d_innerSks.end(),
+                                 skModel.begin(),
+                                 skModel.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
@@ -629,7 +628,7 @@ bool SynthConjecture::processCounterexmaple(const std::vector<Node>& skModel)
   size_t prevPending = d_qim.numPendingLemmas();
   d_master->registerRefinementLemma(d_innerSks, base_lem);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
-
+  
   // check if we added a lemma
   bool addedLemma = d_qim.numPendingLemmas() > prevPending;
   if (addedLemma)
