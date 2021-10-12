@@ -77,7 +77,7 @@ class PropEngine;
 
 namespace smt {
 /** Utilities */
-class SmtEngineState;
+class SolverEngineState;
 class AbstractValues;
 class Assertions;
 class DumpManager;
@@ -113,7 +113,7 @@ class QuantifiersEngine;
 class CVC5_EXPORT SolverEngine
 {
   friend class ::cvc5::api::Solver;
-  friend class ::cvc5::smt::SmtEngineState;
+  friend class ::cvc5::smt::SolverEngineState;
   friend class ::cvc5::smt::SolverEngineScope;
 
   /* .......................................................................  */
@@ -1047,7 +1047,7 @@ class CVC5_EXPORT SolverEngine
    * The state of this SolverEngine, which is responsible for maintaining which
    * SMT mode we are in, the contexts, the last result, etc.
    */
-  std::unique_ptr<smt::SmtEngineState> d_state;
+  std::unique_ptr<smt::SolverEngineState> d_state;
 
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
