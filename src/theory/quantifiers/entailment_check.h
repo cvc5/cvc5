@@ -32,7 +32,10 @@ class QuantifiersState;
 class TermDb;
 
 /**
- *
+ * Entailment check utility, which determines whether formulas are entailed
+ * in the current context. The main focus of this class is on UF formulas.
+ * It works by looking at the term argument trie data structures in term
+ * database. For details, see e.g. Section 4.1 of Reynolds et al TACAS 2018.
  */
 class EntailmentCheck : protected EnvObj
 {
