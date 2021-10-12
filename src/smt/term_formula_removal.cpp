@@ -153,7 +153,12 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
     {
       // check if we should replace the current node
       TrustNode newLem;
-      Node currt = runCurrent(curr, newLem);
+      bool inQuant, inTerm;
+      RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
+      Debug("ite") << "removeITEs(" << node << ")"
+                   << " " << inQuant << " " << inTerm << std::endl;
+      Assert(!inQuant);
+      Node currt = runCurrentInternal(node, inTerm, newLem);
       // if we replaced by a skolem, we do not recurse
       if (!currt.isNull())
       {
@@ -237,17 +242,22 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
   return (*itc).second;
 }
 
-Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
-                                    TrustNode& newLem)
+TrustNode RemoveTermFormulas::runCurrent(TNode node,
+                                         bool inTerm,
+                                         TrustNode& newLem)
 {
-  TNode node = curr.first;
-  uint32_t cval = curr.second;
-  bool inQuant, inTerm;
-  RtfTermContext::getFlags(curr.second, inQuant, inTerm);
-  Debug("ite") << "removeITEs(" << node << ")"
-               << " " << inQuant << " " << inTerm << std::endl;
-  Assert(!inQuant);
+  Node k = runCurrentInternal(node, inTerm, newLem);
+  if (!k.isNull())
+  {
+    return TrustNode::mkTrustRewrite(node, k, d_tpg.get());
+  }
+  return TrustNode::null();
+}
 
+Node RemoveTermFormulas::runCurrentInternal(TNode node,
+                                            bool inTerm,
+                                            TrustNode& newLem)
+{
   NodeManager *nodeManager = NodeManager::currentNM();
 
   TypeNode nodeType = node.getType();
@@ -447,6 +457,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
     // since a formula-term may rewrite to the same skolem in multiple contexts.
     if (isProofEnabled())
     {
+      uint32_t cval = RtfTermContext::getValue(false, inTerm);
       // justify the introduction of the skolem
       // ------------------- MACRO_SR_PRED_INTRO
       // t = witness x. x=t
