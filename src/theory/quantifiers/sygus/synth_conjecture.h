@@ -176,7 +176,7 @@ class SynthConjecture : protected EnvObj
    * This method returns true if a lemma was added on the output channel, and
    * false otherwise.
    */
-  bool processCounterexmaple(const std::vector<Node>& skModel);
+  bool processCounterexample(const std::vector<Node>& skModel);
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */

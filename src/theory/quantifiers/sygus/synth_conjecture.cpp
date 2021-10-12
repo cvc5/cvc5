@@ -548,7 +548,7 @@ bool SynthConjecture::doCheck()
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
     // we have a counterexample
-    bool ret = processCounterexmaple(skModel);
+    bool ret = processCounterexample(skModel);
     if (r.asSatisfiabilityResult().isSat() != Result::SAT)
     {
       // In the rare case that the subcall is unknown, we simply exclude the
@@ -604,7 +604,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
   return true;
 }
 
-bool SynthConjecture::processCounterexmaple(const std::vector<Node>& skModel)
+bool SynthConjecture::processCounterexample(const std::vector<Node>& skModel)
 {
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..."
                         << std::endl;
