@@ -23,7 +23,6 @@
 #include "proof/conv_proof_generator.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_stats.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
@@ -35,10 +34,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-ExpandDefs::ExpandDefs(Env& env, SolverEngineStatistics& stats)
-    : d_env(env), d_smtStats(stats), d_tpg(nullptr)
-{
-}
+ExpandDefs::ExpandDefs(Env& env) : d_env(env), d_tpg(nullptr) {}
 
 ExpandDefs::~ExpandDefs() {}
 
