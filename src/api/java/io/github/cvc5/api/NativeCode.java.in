@@ -22,18 +22,19 @@ import java.util.regex.Pattern;
 public class NativeCode
 {
   /** names of native libraries */
-  static String[] libraries = new String[] {"cvc5", "cvc5jni", "poly", "polyxx"};
+  static String[] copyLibraries = new String[] {"cvc5", "cvc5jni", "poly", "polyxx"};
+  static String[] jniLibraries = new String[] {"cvc5jni"};
 
   /** cvc5 version */
   public static final String version = "${CVC5_VERSION}";
 
   /** cvc5 name */
-  public static final String cvc5HomeName = "cvc5";
+  public static final String homeName = "cvc5";
 
   /**
-   * This variable caches the result of cvc5Home() function call.
+   * This variable caches the result of home() function call.
    */
-  private static String cvc5Home = null;
+  private static String home = null;
 
   /**
    * The system-specific file separator (/ or \)
@@ -44,11 +45,11 @@ public class NativeCode
    * Find a temporary directory to store cvc5 files; it's guaranteed to be a
    * canonical absolute path.
    */
-  private static synchronized String cvc5Home()
+  private static synchronized String home()
   {
-    if (cvc5Home != null)
+    if (home != null)
     {
-      return cvc5Home;
+      return home;
     }
     else
     {
@@ -59,14 +60,14 @@ public class NativeCode
             "Error. JVM need to specify a temporary directory using java.io.tmpdir property.");
       }
       // e.g. /tmp/cvc5/0.0.0/amd64-linux
-      String tmp = tmpPath + fs + cvc5HomeName + fs + version + fs + platform.dir;
+      String tmp = tmpPath + fs + homeName + fs + version + fs + platform.dir;
       File tmpDirectory = new File(tmp);
       tmpDirectory.mkdirs();
-      cvc5Home = tmpDirectory.getAbsolutePath();
+      home = tmpDirectory.getAbsolutePath();
     }
-    System.out.println("cvc5 home: " + cvc5Home);
-    System.setProperty("java.library.path", cvc5Home());
-    return cvc5Home;
+    System.out.println("cvc5 home: " + home);
+    System.setProperty("java.library.path", home());
+    return home;
   }
 
   /**
@@ -103,11 +104,11 @@ public class NativeCode
   static void copyLibraries()
   {
     String prefix = platform.dir + "/";
-    for (String name : libraries)
+    for (String name : copyLibraries)
     {
       String libName = System.mapLibraryName(name);
       String source = prefix + libName;
-      String destination = cvc5Home() + fs + libName;
+      String destination = home() + fs + libName;
       copy(source, destination);
     }
   }
@@ -118,7 +119,7 @@ public class NativeCode
     try
     {
       String libraryName = System.mapLibraryName(name);
-      String libraryPath = cvc5Home() + fs + libraryName;
+      String libraryPath = home() + fs + libraryName;
       System.load(libraryPath);
     }
     catch (Exception e)
@@ -131,7 +132,7 @@ public class NativeCode
   public static void loadLibraries()
   {
     copyLibraries();
-    for (String name : libraries)
+    for (String name : jniLibraries)
     {
       NativeCode.loadLibrary(name);
     }
