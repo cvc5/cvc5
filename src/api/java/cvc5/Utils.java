@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package cvc5;
+package io.github.cvc5.api;
 
 import java.io.IOException;
 import java.math.BigInteger;

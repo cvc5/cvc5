@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package cvc5;
+package io.github.cvc5.api;
 
 import java.math.BigInteger;
 
@@ -65,7 +65,7 @@ public class OptionInfo extends AbstractPointer
 
   // endregion
 
-  class ModeInfo extends ValueInfo<String>
+  public class ModeInfo extends ValueInfo<String>
   {
     private final String[] modes;
 

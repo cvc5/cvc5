@@ -13,9 +13,9 @@
  * Black box testing of the guards of the Java API functions.
  */
 
-package cvc5;
+package io.github.cvc5.api;
 
-import static cvc5.Kind.*;
+import static io.github.cvc5.api.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigInteger;

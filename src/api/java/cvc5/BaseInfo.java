@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package cvc5;
+package io.github.cvc5.api;
 
 /** Abstract class for OptionInfo values */
 public abstract class BaseInfo

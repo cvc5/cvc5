@@ -13,34 +13,33 @@
  * The cvc5 Java API.
  */
 
-#include "cvc5_Op.h"
-
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
+#include "io_github_cvc5_api_Op.h"
 
 using namespace cvc5::api;
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Op_deletePointer(JNIEnv*,
-                                                  jclass,
-                                                  jlong pointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_api_Op_deletePointer(JNIEnv*,
+                                                                jclass,
+                                                                jlong pointer)
 {
   delete reinterpret_cast<Op*>(pointer);
 }
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    equals
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Op_equals(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer1,
-                                               jlong pointer2)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_equals(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer1,
+                                                             jlong pointer2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* op1 = reinterpret_cast<Op*>(pointer1);
@@ -51,11 +50,13 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_equals(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    getKind
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Op_getKind(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getKind(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = reinterpret_cast<Op*>(pointer);
@@ -64,13 +65,13 @@ JNIEXPORT jint JNICALL Java_cvc5_Op_getKind(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Op_isNull(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isNull(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = reinterpret_cast<Op*>(pointer);
@@ -79,13 +80,13 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_isNull(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    isIndexed
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Op_isIndexed(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Op_isIndexed(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = reinterpret_cast<Op*>(pointer);
@@ -94,13 +95,13 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Op_isIndexed(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    getNumIndices
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Op_getNumIndices(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Op_getNumIndices(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = reinterpret_cast<Op*>(pointer);
@@ -109,13 +110,12 @@ JNIEXPORT jint JNICALL Java_cvc5_Op_getNumIndices(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    getIntegerIndices
  * Signature: (J)[I
  */
-JNIEXPORT jintArray JNICALL Java_cvc5_Op_getIntegerIndices(JNIEnv* env,
-                                                           jobject,
-                                                           jlong pointer)
+JNIEXPORT jintArray JNICALL Java_io_github_cvc5_api_Op_getIntegerIndices(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = reinterpret_cast<Op*>(pointer);
@@ -148,13 +148,12 @@ JNIEXPORT jintArray JNICALL Java_cvc5_Op_getIntegerIndices(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    getStringIndices
  * Signature: (J)[Ljava/lang/String;
  */
-JNIEXPORT jobjectArray JNICALL Java_cvc5_Op_getStringIndices(JNIEnv* env,
-                                                             jobject,
-                                                             jlong pointer)
+JNIEXPORT jobjectArray JNICALL
+Java_io_github_cvc5_api_Op_getStringIndices(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = reinterpret_cast<Op*>(pointer);
@@ -185,13 +184,13 @@ JNIEXPORT jobjectArray JNICALL Java_cvc5_Op_getStringIndices(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Op
+ * Class:     io_github_cvc5_api_Op
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Op_toString(JNIEnv* env,
-                                                jobject,
-                                                jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Op_toString(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Op* current = reinterpret_cast<Op*>(pointer);

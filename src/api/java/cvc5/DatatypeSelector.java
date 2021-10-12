@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package cvc5;
+package io.github.cvc5.api;
 
 public class DatatypeSelector extends AbstractPointer
 {
@@ -38,7 +38,7 @@ public class DatatypeSelector extends AbstractPointer
   // endregion
 
   /** @return the name of this Datatype selector. */
-  String getName()
+  public String getName()
   {
     return getName(pointer);
   }
@@ -70,7 +70,7 @@ public class DatatypeSelector extends AbstractPointer
   private native long getUpdaterTerm(long pointer);
 
   /** @return the range sort of this selector. */
-  Sort getRangeSort()
+  public Sort getRangeSort()
   {
     long sortPointer = getRangeSort(pointer);
     return new Sort(solver, sortPointer);

@@ -13,30 +13,32 @@
  * The cvc5 Java API.
  */
 
-#include "cvc5_DatatypeConstructorDecl.h"
-
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
+#include "io_github_cvc5_api_DatatypeConstructorDecl.h"
 
 using namespace cvc5::api;
 
 /*
- * Class:     cvc5_DatatypeConstructorDecl
+ * Class:     io_github_cvc5_api_DatatypeConstructorDecl
  * Method:    deletePointer
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_cvc5_DatatypeConstructorDecl_deletePointer(JNIEnv*, jclass, jlong pointer)
+Java_io_github_cvc5_api_DatatypeConstructorDecl_deletePointer(JNIEnv*,
+                                                              jclass,
+                                                              jlong pointer)
 {
   delete ((DatatypeConstructorDecl*)pointer);
 }
 
 /*
- * Class:     cvc5_DatatypeConstructorDecl
+ * Class:     io_github_cvc5_api_DatatypeConstructorDecl
  * Method:    addSelector
  * Signature: (JLjava/lang/String;J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_DatatypeConstructorDecl_addSelector(
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_api_DatatypeConstructorDecl_addSelector(
     JNIEnv* env, jobject, jlong pointer, jstring jName, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -50,12 +52,15 @@ JNIEXPORT void JNICALL Java_cvc5_DatatypeConstructorDecl_addSelector(
 }
 
 /*
- * Class:     cvc5_DatatypeConstructorDecl
+ * Class:     io_github_cvc5_api_DatatypeConstructorDecl
  * Method:    addSelectorSelf
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_cvc5_DatatypeConstructorDecl_addSelectorSelf(
-    JNIEnv* env, jobject, jlong pointer, jstring jName)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_api_DatatypeConstructorDecl_addSelectorSelf(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer,
+                                                                jstring jName)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructorDecl* current = (DatatypeConstructorDecl*)pointer;
@@ -67,12 +72,14 @@ JNIEXPORT void JNICALL Java_cvc5_DatatypeConstructorDecl_addSelectorSelf(
 }
 
 /*
- * Class:     cvc5_DatatypeConstructorDecl
+ * Class:     io_github_cvc5_api_DatatypeConstructorDecl
  * Method:    isNull
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_cvc5_DatatypeConstructorDecl_isNull(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_api_DatatypeConstructorDecl_isNull(JNIEnv* env,
+                                                       jobject,
+                                                       jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructorDecl* current = (DatatypeConstructorDecl*)pointer;
@@ -81,12 +88,14 @@ Java_cvc5_DatatypeConstructorDecl_isNull(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     cvc5_DatatypeConstructorDecl
+ * Class:     io_github_cvc5_api_DatatypeConstructorDecl
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL
-Java_cvc5_DatatypeConstructorDecl_toString(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_api_DatatypeConstructorDecl_toString(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructorDecl* current = (DatatypeConstructorDecl*)pointer;

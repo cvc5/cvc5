@@ -13,34 +13,32 @@
  * The cvc5 Java API.
  */
 
-#include "cvc5_Statistics.h"
+#include <sstream>
 
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
-#include <sstream>
+#include "io_github_cvc5_api_Statistics.h"
 
 using namespace cvc5::api;
 
 /*
- * Class:     cvc5_Statistics
+ * Class:     io_github_cvc5_api_Statistics
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Statistics_deletePointer(JNIEnv*,
-                                                          jclass,
-                                                          jlong pointer)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_api_Statistics_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
   delete reinterpret_cast<Statistics*>(pointer);
 }
 
 /*
- * Class:     cvc5_Statistics
+ * Class:     io_github_cvc5_api_Statistics
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Statistics_toString(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_api_Statistics_toString(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
@@ -52,14 +50,14 @@ JNIEXPORT jstring JNICALL Java_cvc5_Statistics_toString(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Statistics
+ * Class:     io_github_cvc5_api_Statistics
  * Method:    get
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Statistics_get(JNIEnv* env,
-                                                 jobject,
-                                                 jlong pointer,
-                                                 jstring jName)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_get(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer,
+                                                               jstring jName)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics* current = reinterpret_cast<Statistics*>(pointer);
@@ -72,13 +70,12 @@ JNIEXPORT jlong JNICALL Java_cvc5_Statistics_get(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Statistics
+ * Class:     io_github_cvc5_api_Statistics
  * Method:    getIterator
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Statistics_getIterator(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_getIterator(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics* current = reinterpret_cast<Statistics*>(pointer);
@@ -89,14 +86,12 @@ JNIEXPORT jlong JNICALL Java_cvc5_Statistics_getIterator(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Statistics
+ * Class:     io_github_cvc5_api_Statistics
  * Method:    hasNext
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Statistics_hasNext(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer,
-                                                        jlong iteratorPointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Statistics_hasNext(
+    JNIEnv* env, jobject, jlong pointer, jlong iteratorPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics* current = reinterpret_cast<Statistics*>(pointer);
@@ -107,14 +102,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Statistics_hasNext(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Statistics
+ * Class:     io_github_cvc5_api_Statistics
  * Method:    getNext
- * Signature: (JJ)Lcvc5/Pair;
+ * Signature: (JJ)Lio/github/cvc5/api/Pair;
  */
-JNIEXPORT jobject JNICALL Java_cvc5_Statistics_getNext(JNIEnv* env,
-                                                       jobject,
-                                                       jlong,
-                                                       jlong iteratorPointer)
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Statistics_getNext(
+    JNIEnv* env, jobject, jlong, jlong iteratorPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics::iterator it =
@@ -130,7 +123,7 @@ JNIEXPORT jobject JNICALL Java_cvc5_Statistics_getNext(JNIEnv* env,
   jobject longObject = env->NewObject(longClass, longConstructor, statPointer);
 
   // Pair<String, Long> pair = new Pair<String, Long>(jName, longObject)
-  jclass pairClass = env->FindClass("Lcvc5/Pair;");
+  jclass pairClass = env->FindClass("Lio/github/cvc5/api/Pair;");
   jmethodID pairConstructor = env->GetMethodID(
       pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   jobject pair = env->NewObject(pairClass, pairConstructor, jName, longObject);
@@ -141,14 +134,12 @@ JNIEXPORT jobject JNICALL Java_cvc5_Statistics_getNext(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Statistics
+ * Class:     io_github_cvc5_api_Statistics
  * Method:    increment
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Statistics_increment(JNIEnv* env,
-                                                       jobject,
-                                                       jlong pointer,
-                                                       jlong iteratorPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Statistics_increment(
+    JNIEnv* env, jobject, jlong pointer, jlong iteratorPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics* current = reinterpret_cast<Statistics*>(pointer);
@@ -169,11 +160,11 @@ JNIEXPORT jlong JNICALL Java_cvc5_Statistics_increment(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Statistics
+ * Class:     io_github_cvc5_api_Statistics
  * Method:    deleteIteratorPointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Statistics_deleteIteratorPointer(
+JNIEXPORT void JNICALL Java_io_github_cvc5_api_Statistics_deleteIteratorPointer(
     JNIEnv*, jobject, jlong iteratorPointer)
 {
   delete reinterpret_cast<Statistics::iterator*>(iteratorPointer);

@@ -13,21 +13,19 @@
  * The cvc5 Java API.
  */
 
-#include "cvc5_Grammar.h"
-
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
+#include "io_github_cvc5_api_Grammar.h"
 
 using namespace cvc5::api;
 
 /*
- * Class:     cvc5_Grammar
+ * Class:     io_github_cvc5_api_Grammar
  * Method:    copyGrammar
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Grammar_copyGrammar(JNIEnv* env,
-                                                      jclass,
-                                                      jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Grammar_copyGrammar(JNIEnv* env, jclass, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);
@@ -37,27 +35,27 @@ JNIEXPORT jlong JNICALL Java_cvc5_Grammar_copyGrammar(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Grammar
+ * Class:     io_github_cvc5_api_Grammar
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Grammar_deletePointer(JNIEnv*,
-                                                       jclass,
-                                                       jlong pointer)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_api_Grammar_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
   delete reinterpret_cast<Grammar*>(pointer);
 }
 
 /*
- * Class:     cvc5_Grammar
+ * Class:     io_github_cvc5_api_Grammar
  * Method:    addRule
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Grammar_addRule(JNIEnv* env,
-                                                 jobject,
-                                                 jlong pointer,
-                                                 jlong ntSymbolPointer,
-                                                 jlong rulePointer)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_api_Grammar_addRule(JNIEnv* env,
+                                        jobject,
+                                        jlong pointer,
+                                        jlong ntSymbolPointer,
+                                        jlong rulePointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);
@@ -68,15 +66,16 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addRule(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Grammar
+ * Class:     io_github_cvc5_api_Grammar
  * Method:    addRules
  * Signature: (JJ[J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Grammar_addRules(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer,
-                                                  jlong ntSymbolPointer,
-                                                  jlongArray rulePointers)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_api_Grammar_addRules(JNIEnv* env,
+                                         jobject,
+                                         jlong pointer,
+                                         jlong ntSymbolPointer,
+                                         jlongArray rulePointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);
@@ -87,14 +86,12 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addRules(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Grammar
+ * Class:     io_github_cvc5_api_Grammar
  * Method:    addAnyConstant
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Grammar_addAnyConstant(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer,
-                                                        jlong ntSymbolPointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_api_Grammar_addAnyConstant(
+    JNIEnv* env, jobject, jlong pointer, jlong ntSymbolPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);
@@ -104,14 +101,12 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addAnyConstant(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Grammar
+ * Class:     io_github_cvc5_api_Grammar
  * Method:    addAnyVariable
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Grammar_addAnyVariable(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer,
-                                                        jlong ntSymbolPointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_api_Grammar_addAnyVariable(
+    JNIEnv* env, jobject, jlong pointer, jlong ntSymbolPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);
@@ -121,13 +116,12 @@ JNIEXPORT void JNICALL Java_cvc5_Grammar_addAnyVariable(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Grammar
+ * Class:     io_github_cvc5_api_Grammar
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Grammar_toString(JNIEnv* env,
-                                                     jobject,
-                                                     jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_api_Grammar_toString(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* current = reinterpret_cast<Grammar*>(pointer);

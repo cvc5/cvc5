@@ -13,9 +13,9 @@
  * Black box testing of the datatype classes of the Java API.
  */
 
-package cvc5;
+package io.github.cvc5.api;
 
-import static cvc5.Kind.*;
+import static io.github.cvc5.api.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;

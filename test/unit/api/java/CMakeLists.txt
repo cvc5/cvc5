@@ -59,7 +59,7 @@ add_custom_target(
     -Djava.library.path=${CVC5_JNI_PATH}
     -jar ${JUnit_JAR}
     -cp ${JUnit_JAR}:${CVC5_JAR_PATH}:.
-    -select-package cvc5
+    -select-package io.github.cvc5.api
   COMMENT "Run junit tests"
   VERBATIM
 )

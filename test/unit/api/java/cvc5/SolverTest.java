@@ -13,10 +13,10 @@
  * Black box testing of the Solver class of the Java API.
  */
 
-package cvc5;
+package io.github.cvc5.api;
 
-import static cvc5.Kind.*;
-import static cvc5.RoundingMode.*;
+import static io.github.cvc5.api.Kind.*;
+import static io.github.cvc5.api.RoundingMode.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigInteger;

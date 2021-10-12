@@ -13,33 +13,30 @@
  * The cvc5 Java API.
  */
 
-#include "cvc5_DatatypeSelector.h"
-
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
+#include "io_github_cvc5_api_DatatypeSelector.h"
 
 using namespace cvc5::api;
 
 /*
- * Class:     cvc5_DatatypeSelector
+ * Class:     io_github_cvc5_api_DatatypeSelector
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_DatatypeSelector_deletePointer(JNIEnv*,
-                                                                jclass,
-                                                                jlong pointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_api_DatatypeSelector_deletePointer(
+    JNIEnv*, jclass, jlong pointer)
 {
   delete ((DatatypeSelector*)pointer);
 }
 
 /*
- * Class:     cvc5_DatatypeSelector
+ * Class:     io_github_cvc5_api_DatatypeSelector
  * Method:    getName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_DatatypeSelector_getName(JNIEnv* env,
-                                                             jobject,
-                                                             jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_DatatypeSelector_getName(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;
@@ -48,12 +45,14 @@ JNIEXPORT jstring JNICALL Java_cvc5_DatatypeSelector_getName(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_DatatypeSelector
+ * Class:     io_github_cvc5_api_DatatypeSelector
  * Method:    getSelectorTerm
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL
-Java_cvc5_DatatypeSelector_getSelectorTerm(JNIEnv* env, jobject, jlong pointer)
+Java_io_github_cvc5_api_DatatypeSelector_getSelectorTerm(JNIEnv* env,
+                                                         jobject,
+                                                         jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;
@@ -63,13 +62,12 @@ Java_cvc5_DatatypeSelector_getSelectorTerm(JNIEnv* env, jobject, jlong pointer)
 }
 
 /*
- * Class:     cvc5_DatatypeSelector
+ * Class:     io_github_cvc5_api_DatatypeSelector
  * Method:    getUpdaterTerm
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getUpdaterTerm(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_DatatypeSelector_getUpdaterTerm(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;
@@ -79,13 +77,12 @@ JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getUpdaterTerm(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_DatatypeSelector
+ * Class:     io_github_cvc5_api_DatatypeSelector
  * Method:    getRangeSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getRangeSort(JNIEnv* env,
-                                                                jobject,
-                                                                jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_DatatypeSelector_getRangeSort(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;
@@ -95,13 +92,12 @@ JNIEXPORT jlong JNICALL Java_cvc5_DatatypeSelector_getRangeSort(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_DatatypeSelector
+ * Class:     io_github_cvc5_api_DatatypeSelector
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeSelector_isNull(JNIEnv* env,
-                                                             jobject,
-                                                             jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_DatatypeSelector_isNull(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;
@@ -110,13 +106,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_DatatypeSelector_isNull(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_DatatypeSelector
+ * Class:     io_github_cvc5_api_DatatypeSelector
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_DatatypeSelector_toString(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_DatatypeSelector_toString(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeSelector* current = (DatatypeSelector*)pointer;

@@ -13,34 +13,30 @@
  * The cvc5 Java API.
  */
 
-#include "cvc5_Datatype.h"
-
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
+#include "io_github_cvc5_api_Datatype.h"
 
 using namespace cvc5::api;
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Datatype_deletePointer(JNIEnv* env,
-                                                        jclass,
-                                                        jlong pointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_api_Datatype_deletePointer(
+    JNIEnv* env, jclass, jlong pointer)
 {
   delete ((Datatype*)pointer);
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    getConstructor
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructor__JI(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer,
-                                                              jint idx)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Datatype_getConstructor__JI(
+    JNIEnv* env, jobject, jlong pointer, jint idx)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -51,11 +47,12 @@ JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructor__JI(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    getConstructor
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructor__JLjava_lang_String_2(
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Datatype_getConstructor__JLjava_lang_String_2(
     JNIEnv* env, jobject, jlong pointer, jstring jName)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -70,14 +67,12 @@ JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructor__JLjava_lang_String_2(
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    getConstructorTerm
  * Signature: (JLjava/lang/String;)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructorTerm(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer,
-                                                              jstring jName)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Datatype_getConstructorTerm(
+    JNIEnv* env, jobject, jlong pointer, jstring jName)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -90,13 +85,12 @@ JNIEXPORT jlong JNICALL Java_cvc5_Datatype_getConstructorTerm(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    getName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Datatype_getName(JNIEnv* env,
-                                                     jobject,
-                                                     jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_api_Datatype_getName(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -105,13 +99,12 @@ JNIEXPORT jstring JNICALL Java_cvc5_Datatype_getName(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    getNumConstructors
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Datatype_getNumConstructors(JNIEnv* env,
-                                                             jobject,
-                                                             jlong pointer)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Datatype_getNumConstructors(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -120,13 +113,12 @@ JNIEXPORT jint JNICALL Java_cvc5_Datatype_getNumConstructors(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    isParametric
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isParametric(JNIEnv* env,
-                                                           jobject,
-                                                           jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Datatype_isParametric(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -135,13 +127,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isParametric(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    isCodatatype
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isCodatatype(JNIEnv* env,
-                                                           jobject,
-                                                           jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Datatype_isCodatatype(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -150,13 +141,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isCodatatype(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    isTuple
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isTuple(JNIEnv* env,
-                                                      jobject,
-                                                      jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Datatype_isTuple(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -165,13 +155,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isTuple(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    isRecord
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isRecord(JNIEnv* env,
-                                                       jobject,
-                                                       jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Datatype_isRecord(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -180,13 +169,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isRecord(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    isFinite
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isFinite(JNIEnv* env,
-                                                       jobject,
-                                                       jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Datatype_isFinite(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -195,13 +183,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isFinite(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    isWellFounded
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isWellFounded(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Datatype_isWellFounded(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -210,13 +197,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isWellFounded(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    hasNestedRecursion
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_hasNestedRecursion(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Datatype_hasNestedRecursion(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -225,13 +211,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_hasNestedRecursion(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isNull(JNIEnv* env,
-                                                     jobject,
-                                                     jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Datatype_isNull(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;
@@ -240,13 +225,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Datatype_isNull(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Datatype
+ * Class:     io_github_cvc5_api_Datatype
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Datatype_toString(JNIEnv* env,
-                                                      jobject,
-                                                      jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_api_Datatype_toString(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;

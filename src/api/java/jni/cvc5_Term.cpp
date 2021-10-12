@@ -13,34 +13,33 @@
  * The cvc5 Java API.
  */
 
-#include "cvc5_Term.h"
-
 #include "api/cpp/cvc5.h"
 #include "cvc5JavaApi.h"
+#include "io_github_cvc5_api_Term.h"
 
 using namespace cvc5::api;
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_cvc5_Term_deletePointer(JNIEnv* env,
-                                                    jclass,
-                                                    jlong pointer)
+JNIEXPORT void JNICALL Java_io_github_cvc5_api_Term_deletePointer(JNIEnv* env,
+                                                                  jclass,
+                                                                  jlong pointer)
 {
   delete reinterpret_cast<Term*>(pointer);
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    equals
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_equals(JNIEnv* env,
-                                                 jobject,
-                                                 jlong pointer1,
-                                                 jlong pointer2)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_equals(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer1,
+                                                               jlong pointer2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* term1 = reinterpret_cast<Term*>(pointer1);
@@ -51,14 +50,14 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_equals(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    compareTo
  * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Term_compareTo(JNIEnv* env,
-                                                jobject,
-                                                jlong pointer1,
-                                                jlong pointer2)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Term_compareTo(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer1,
+                                                              jlong pointer2)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* term1 = reinterpret_cast<Term*>(pointer1);
@@ -76,13 +75,12 @@ JNIEXPORT jint JNICALL Java_cvc5_Term_compareTo(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getNumChildren
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Term_getNumChildren(JNIEnv* env,
-                                                     jobject,
-                                                     jlong pointer)
+JNIEXPORT jint JNICALL
+Java_io_github_cvc5_api_Term_getNumChildren(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -91,14 +89,14 @@ JNIEXPORT jint JNICALL Java_cvc5_Term_getNumChildren(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getChild
  * Signature: (JI)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getChild(JNIEnv* env,
-                                                jobject,
-                                                jlong pointer,
-                                                jint index)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_getChild(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer,
+                                                              jint index)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -108,13 +106,13 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getChild(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getId
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getId(JNIEnv* env,
-                                             jobject,
-                                             jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_getId(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -123,13 +121,13 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getId(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getKind
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_cvc5_Term_getKind(JNIEnv* env,
-                                              jobject,
-                                              jlong pointer)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Term_getKind(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -138,13 +136,13 @@ JNIEXPORT jint JNICALL Java_cvc5_Term_getKind(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getSort
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getSort(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_getSort(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -154,15 +152,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getSort(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    substitute
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_substitute__JJJ(JNIEnv* env,
-                                                       jobject,
-                                                       jlong pointer,
-                                                       jlong termPointer,
-                                                       jlong replacementPointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_api_Term_substitute__JJJ(JNIEnv* env,
+                                             jobject,
+                                             jlong pointer,
+                                             jlong termPointer,
+                                             jlong replacementPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -174,16 +173,16 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_substitute__JJJ(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    substitute
  * Signature: (J[J[J)J
  */
 JNIEXPORT jlong JNICALL
-Java_cvc5_Term_substitute__J_3J_3J(JNIEnv* env,
-                                   jobject,
-                                   jlong pointer,
-                                   jlongArray termPointers,
-                                   jlongArray replacementPointers)
+Java_io_github_cvc5_api_Term_substitute__J_3J_3J(JNIEnv* env,
+                                                 jobject,
+                                                 jlong pointer,
+                                                 jlongArray termPointers,
+                                                 jlongArray replacementPointers)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -216,13 +215,13 @@ Java_cvc5_Term_substitute__J_3J_3J(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    hasOp
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_hasOp(JNIEnv* env,
-                                                jobject,
-                                                jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_hasOp(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -231,13 +230,13 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_hasOp(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getOp
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getOp(JNIEnv* env,
-                                             jobject,
-                                             jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_getOp(JNIEnv* env,
+                                                           jobject,
+                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -247,13 +246,13 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getOp(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isNull
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isNull(JNIEnv* env,
-                                                 jobject,
-                                                 jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isNull(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -262,13 +261,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isNull(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isConstArray
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isConstArray(JNIEnv* env,
-                                                       jobject,
-                                                       jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Term_isConstArray(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -277,13 +275,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isConstArray(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getConstArrayBase
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_getConstArrayBase(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_getConstArrayBase(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -293,13 +290,13 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_getConstArrayBase(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    notTerm
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_notTerm(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_notTerm(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -309,14 +306,14 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_notTerm(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    andTerm
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_andTerm(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer,
-                                               jlong termPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_andTerm(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer,
+                                                             jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -327,14 +324,14 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_andTerm(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    orTerm
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_orTerm(JNIEnv* env,
-                                              jobject,
-                                              jlong pointer,
-                                              jlong termPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_orTerm(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer,
+                                                            jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -345,14 +342,14 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_orTerm(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    xorTerm
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_xorTerm(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer,
-                                               jlong termPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_xorTerm(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer,
+                                                             jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -363,14 +360,14 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_xorTerm(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    eqTerm
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_eqTerm(JNIEnv* env,
-                                              jobject,
-                                              jlong pointer,
-                                              jlong termPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_eqTerm(JNIEnv* env,
+                                                            jobject,
+                                                            jlong pointer,
+                                                            jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -381,14 +378,14 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_eqTerm(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    impTerm
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_impTerm(JNIEnv* env,
-                                               jobject,
-                                               jlong pointer,
-                                               jlong termPointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_impTerm(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer,
+                                                             jlong termPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -399,11 +396,11 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_impTerm(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    iteTerm
  * Signature: (JJJ)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_iteTerm(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_iteTerm(
     JNIEnv* env, jobject, jlong pointer, jlong thenPointer, jlong elsePointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -416,13 +413,13 @@ JNIEXPORT jlong JNICALL Java_cvc5_Term_iteTerm(
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_toString(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_toString(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -431,13 +428,12 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_toString(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isIntegerValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isIntegerValue(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Term_isIntegerValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -446,13 +442,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isIntegerValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getIntegerValue
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_getIntegerValue(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_getIntegerValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -463,13 +458,12 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getIntegerValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isStringValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isStringValue(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Term_isStringValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -478,13 +472,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isStringValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getStringValue
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_getStringValue(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_api_Term_getStringValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -504,13 +497,12 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getStringValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isRealValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isRealValue(JNIEnv* env,
-                                                      jobject,
-                                                      jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Term_isRealValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -519,13 +511,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isRealValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getRealValue
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_getRealValue(JNIEnv* env,
-                                                      jobject,
-                                                      jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_api_Term_getRealValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -535,13 +526,12 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getRealValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isBooleanValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isBooleanValue(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Term_isBooleanValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -550,13 +540,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isBooleanValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getBooleanValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_getBooleanValue(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_getBooleanValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -565,13 +554,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_getBooleanValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isBitVectorValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isBitVectorValue(JNIEnv* env,
-                                                           jobject,
-                                                           jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isBitVectorValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -580,14 +568,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isBitVectorValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getBitVectorValue
  * Signature: (JI)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_getBitVectorValue(JNIEnv* env,
-                                                           jobject,
-                                                           jlong pointer,
-                                                           jint base)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_getBitVectorValue(
+    JNIEnv* env, jobject, jlong pointer, jint base)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -598,13 +584,12 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getBitVectorValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isAbstractValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isAbstractValue(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isAbstractValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -613,13 +598,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isAbstractValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getAbstractValue
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_cvc5_Term_getAbstractValue(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_getAbstractValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -629,13 +613,12 @@ JNIEXPORT jstring JNICALL Java_cvc5_Term_getAbstractValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isTupleValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isTupleValue(JNIEnv* env,
-                                                       jobject,
-                                                       jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Term_isTupleValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -644,13 +627,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isTupleValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getTupleValue
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getTupleValue(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_api_Term_getTupleValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -661,13 +643,12 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getTupleValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isFloatingPointPosZero
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointPosZero(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isFloatingPointPosZero(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -676,13 +657,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointPosZero(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isFloatingPointNegZero
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointNegZero(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isFloatingPointNegZero(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -691,13 +671,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointNegZero(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isFloatingPointPosInf
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointPosInf(JNIEnv* env,
-                                                                jobject,
-                                                                jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isFloatingPointPosInf(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -706,13 +685,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointPosInf(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isFloatingPointNegInf
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointNegInf(JNIEnv* env,
-                                                                jobject,
-                                                                jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isFloatingPointNegInf(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -721,13 +699,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointNegInf(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isFloatingPointNaN
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointNaN(JNIEnv* env,
-                                                             jobject,
-                                                             jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isFloatingPointNaN(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -736,13 +713,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointNaN(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isFloatingPointValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointValue(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isFloatingPointValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -751,11 +727,11 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isFloatingPointValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getFloatingPointValue
- * Signature: (J)Lcvc5/Triplet;
+ * Signature: (J)Lio/github/cvc5/api/Triplet;
  */
-JNIEXPORT jobject JNICALL Java_cvc5_Term_getFloatingPointValue(
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Term_getFloatingPointValue(
     JNIEnv* env, jobject thisObject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -771,7 +747,7 @@ JNIEXPORT jobject JNICALL Java_cvc5_Term_getFloatingPointValue(
   jobject t = env->NewObject(longClass, longConstructor, termPointer);
 
   // Triplet triplet = new Triplet<Long, Long, Long>(e, s, t);
-  jclass tripletClass = env->FindClass("Lcvc5/Triplet;");
+  jclass tripletClass = env->FindClass("Lio/github/cvc5/api/Triplet;");
   jmethodID tripletConstructor = env->GetMethodID(
       tripletClass,
       "<init>",
@@ -783,13 +759,12 @@ JNIEXPORT jobject JNICALL Java_cvc5_Term_getFloatingPointValue(
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isSetValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isSetValue(JNIEnv* env,
-                                                     jobject,
-                                                     jlong pointer)
+JNIEXPORT jboolean JNICALL
+Java_io_github_cvc5_api_Term_isSetValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -798,13 +773,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isSetValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getSetValue
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getSetValue(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer)
+JNIEXPORT jlongArray JNICALL
+Java_io_github_cvc5_api_Term_getSetValue(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -823,13 +797,12 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getSetValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isSequenceValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isSequenceValue(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isSequenceValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -838,13 +811,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isSequenceValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getSequenceValue
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getSequenceValue(JNIEnv* env,
-                                                             jobject,
-                                                             jlong pointer)
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Term_getSequenceValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -855,13 +827,12 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getSequenceValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    isUninterpretedValue
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUninterpretedValue(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_isUninterpretedValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -870,13 +841,12 @@ JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUninterpretedValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    getUninterpretedValue
- * Signature: (J)Lcvc5/Pair;
+ * Signature: (J)Lio/github/cvc5/api/Pair;
  */
-JNIEXPORT jobject JNICALL Java_cvc5_Term_getUninterpretedValue(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_Term_getUninterpretedValue(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
@@ -898,7 +868,7 @@ JNIEXPORT jobject JNICALL Java_cvc5_Term_getUninterpretedValue(JNIEnv* env,
       integerClass, integerConstructor, static_cast<jint>(value.second));
 
   // Pair<String, Long> pair = new Pair<String, Long>(jName, longObject)
-  jclass pairClass = env->FindClass("Lcvc5/Pair;");
+  jclass pairClass = env->FindClass("Lio/github/cvc5/api/Pair;");
   jmethodID pairConstructor = env->GetMethodID(
       pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   jobject pair =
@@ -909,13 +879,13 @@ JNIEXPORT jobject JNICALL Java_cvc5_Term_getUninterpretedValue(JNIEnv* env,
 }
 
 /*
- * Class:     cvc5_Term
+ * Class:     io_github_cvc5_api_Term
  * Method:    iterator
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_cvc5_Term_iterator(JNIEnv* env,
-                                                jobject,
-                                                jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_iterator(JNIEnv* env,
+                                                              jobject,
+                                                              jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* current = reinterpret_cast<Term*>(pointer);
