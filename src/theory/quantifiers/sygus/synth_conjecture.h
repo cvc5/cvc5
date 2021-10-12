@@ -43,6 +43,7 @@ namespace quantifiers {
 class CegGrammarConstructor;
 class SygusPbe;
 class SygusStatistics;
+class OracleManager;
 class EnumValueManager;
 
 /** a synthesis conjecture
@@ -71,8 +72,6 @@ class SynthConjecture : protected EnvObj
   //-------------------------------for counterexample-guided check/refine
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck();
-  /** whether the conjecture is waiting for a call to doRefine below */
-  bool needsRefinement() const;
   /** do syntax-guided enumerative check
    *
    * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
@@ -87,25 +86,6 @@ class SynthConjecture : protected EnvObj
    * when each of t1, ..., tn fails to satisfy the current refinement lemmas.
    */
   bool doCheck();
-  /** do refinement
-   *
-   * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
-   *
-   * This method is run when needsRefinement() returns true, indicating that
-   * the last call to doCheck found a counterexample to the last candidate.
-   *
-   * This method adds a refinement lemma on the output channel of quantifiers
-   * engine. If the refinement lemma is a duplicate, then we manually
-   * exclude the current candidate via excludeCurrentSolution. This should
-   * only occur when the synthesis conjecture for the current candidate fails
-   * to evaluate to false for a given counterexample point, but regardless its
-   * negation is satisfiable for the current candidate and that point. This is
-   * exclusive to theories with partial functions, e.g. (non-linear) division.
-   *
-   * This method returns true if a lemma was added on the output channel, and
-   * false otherwise.
-   */
-  bool doRefine();
   //-------------------------------end for counterexample-guided check/refine
   /**
    * Prints the current synthesis solution to output stream out. This is
@@ -178,6 +158,25 @@ class SynthConjecture : protected EnvObj
   SygusStatistics& getSygusStatistics() { return d_stats; };
 
  private:
+  /** do refinement
+   *
+   * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
+   *
+   * This method is run when skModel is corresponds to a counterexample to the
+   * last candidate in the doCheck method.
+   *
+   * This method adds a refinement lemma on the output channel of quantifiers
+   * engine. If the refinement lemma is a duplicate, then we manually
+   * exclude the current candidate via excludeCurrentSolution. This should
+   * only occur when the synthesis conjecture for the current candidate fails
+   * to evaluate to false for a given counterexample point, but regardless its
+   * negation is satisfiable for the current candidate and that point. This is
+   * exclusive to theories with partial functions, e.g. (non-linear) division.
+   *
+   * This method returns true if a lemma was added on the output channel, and
+   * false otherwise.
+   */
+  bool processCounterexmaple(const std::vector<Node>& skModel);
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
@@ -190,6 +189,8 @@ class SynthConjecture : protected EnvObj
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */
   TermDbSygus* d_tds;
+  /** The oracle manager */
+  std::unique_ptr<OracleManager> d_oman;
   /** The synthesis verify utility */
   SynthVerify d_verify;
   /** The feasible guard. */
@@ -274,18 +275,6 @@ class SynthConjecture : protected EnvObj
   std::vector<Node> d_innerVars;
   /** list of skolems on inner quantification */
   std::vector<Node> d_innerSks;
-  /**
-   * If we have already tested the satisfiability of the current verification
-   * lemma, this stores the model values of d_innerSks in the current
-   * (satisfiable, failed) verification lemma.
-   */
-  std::vector<Node> d_innerSksModel;
-  /**
-   * Whether the above vector has been set. We have this flag since the above
-   * vector may be set to empty (e.g. for ground synthesis conjectures).
-   */
-  bool d_setInnerSksModel;
-
   /** the asserted (negated) conjecture */
   Node d_quant;
   /**

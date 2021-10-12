@@ -29,6 +29,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_value_manager.h"
+#include "theory/quantifiers/sygus/oracle_manager.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -57,6 +58,8 @@ SynthConjecture::SynthConjecture(Env& env,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
+      d_oman(options::oracles() ? new OracleManager(*tr.getOracleChecker())
+                                : nullptr),
       d_verify(options(), logicInfo(), d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
@@ -70,7 +73,6 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
       d_sygus_ccore(new CegisCoreConnective(env, qs, qim, d_tds, this)),
       d_master(nullptr),
-      d_setInnerSksModel(false),
       d_repair_index(0),
       d_guarded_stream_exc(false)
 {
@@ -304,7 +306,6 @@ bool SynthConjecture::needsCheck()
   return true;
 }
 
-bool SynthConjecture::needsRefinement() const { return d_setInnerSksModel; }
 bool SynthConjecture::doCheck()
 {
   if (isSingleInvocation())
@@ -546,12 +547,13 @@ bool SynthConjecture::doCheck()
   // here since the result of the satisfiability test may be unknown.
   recordSolution(candidate_values);
 
-  Result r = d_verify.verify(query, d_innerSks, d_innerSksModel);
+  std::vector<Node> skModel;
+  Result r = d_verify.verify(query, d_innerSks, skModel);
 
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
     // we have a counterexample
-    return false;
+    return processCounterexmaple(skModel);
   }
   else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
@@ -607,22 +609,21 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
   return true;
 }
 
-bool SynthConjecture::doRefine()
+bool SynthConjecture::processCounterexmaple(const std::vector<Node>& skModel)
 {
-  Assert(d_setInnerSksModel);
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..."
                         << std::endl;
   Trace("cegqi-refine-debug")
       << "  For counterexample skolems : " << d_innerSks << std::endl;
   Node base_lem = d_checkBody.negate();
 
-  Assert(d_innerSks.size() == d_innerSksModel.size());
+  Assert(d_innerSks.size() == skModel.size());
 
   Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
   base_lem = base_lem.substitute(d_innerSks.begin(),
                                  d_innerSks.end(),
-                                 d_innerSksModel.begin(),
-                                 d_innerSksModel.end());
+                                 skModel.begin(),
+                                 skModel.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
@@ -630,9 +631,7 @@ bool SynthConjecture::doRefine()
   size_t prevPending = d_qim.numPendingLemmas();
   d_master->registerRefinementLemma(d_innerSks, base_lem);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
-  d_setInnerSksModel = false;
-  d_innerSksModel.clear();
-
+  
   // check if we added a lemma
   bool addedLemma = d_qim.numPendingLemmas() > prevPending;
   if (addedLemma)
@@ -753,10 +752,6 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
 {
   Trace("cegqi-debug") << "Exclude current solution: " << enums << " / "
                        << values << std::endl;
-  // We will not refine the current candidate solution since it is a solution
-  // thus, we clear information regarding the current refinement
-  d_setInnerSksModel = false;
-  d_innerSksModel.clear();
   // However, we need to exclude the current solution using an explicit
   // blocking clause, so that we proceed to the next solution. We do this only
   // for passively-generated enumerators (TermDbSygus::isPassiveEnumerator).
