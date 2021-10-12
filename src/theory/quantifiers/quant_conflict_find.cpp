@@ -599,8 +599,8 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
       Node inst =
           getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
       inst = Rewriter::rewrite(inst);
-      Node inst_eval = echeck->evaluateTerm(
-          inst, options::qcfTConstraint(), true);
+      Node inst_eval =
+          echeck->evaluateTerm(inst, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
@@ -1294,9 +1294,10 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
       //if( ( e==1 && d_tgt ) || ( e==0 && !d_tgt ) ){
       //  d_child_counter = 0;
       //}
-      //modified 
+      //modified
       EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
-      if( echeck->isEntailed( n, d_tgt ) ){ 
+      if (echeck->isEntailed(n, d_tgt))
+      {
         d_child_counter = 0;
       }
     }else{
@@ -2169,9 +2170,11 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         Node inst = qinst->getInstantiation(q, terms);
         Debug("qcf-check-inst")
             << "Check instantiation " << inst << "..." << std::endl;
-        Assert(!p->getTermRegistry().getEntailmentCheck()->isEntailed(inst, true));
-        Assert(p->getTermRegistry().getEntailmentCheck()->isEntailed(inst, false)
-               || d_effort > EFFORT_CONFLICT);
+        Assert(
+            !p->getTermRegistry().getEntailmentCheck()->isEntailed(inst, true));
+        Assert(
+            p->getTermRegistry().getEntailmentCheck()->isEntailed(inst, false)
+            || d_effort > EFFORT_CONFLICT);
       }
       // Process the lemma: either add an instantiation or specific lemmas
       // constructed during the isTConstraintSpurious call, or both.
