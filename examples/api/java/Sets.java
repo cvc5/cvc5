@@ -13,8 +13,9 @@
  * A simple demonstration of reasoning about sets with cvc5.
  */
 
+import static io.github.cvc5.api.Kind.*;
+
 import io.github.cvc5.api.*;
-import io.github.cvc5.api.Kind.*;
 
 public class Sets
 {

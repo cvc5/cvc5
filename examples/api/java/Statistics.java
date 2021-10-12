@@ -13,8 +13,9 @@
  * An example of accessing CVC4's statistics using the Java API.
  */
 
+import static io.github.cvc5.api.Kind.*;
+
 import io.github.cvc5.api.*;
-import io.github.cvc5.api.Kind.*;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class Statistics
     Solver solver = getSolver();
     // Get the statistics from the `Solver` and iterate over them. The
     // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.
-    cvc5.Statistics stats = solver.getStatistics();
+    io.github.cvc5.api.Statistics stats = solver.getStatistics();
     // short version
     System.out.println("Short version:");
     System.out.println(stats);
