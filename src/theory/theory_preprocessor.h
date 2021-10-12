@@ -134,9 +134,9 @@ class TheoryPreprocessor : protected EnvObj
       TppCache;
   /** term formula removal cache
    *
-   * This stores the results of term formula removal for inputs to the run(...)
-   * function below, where the integer in the pair we hash on is the
-   * result of cacheVal below.
+   * This stores the results of theory preprocessing using the theoryPreprocess
+   * method, where the integer in the pair we hash on is the
+   * result of cacheVal of the rtf term context.
    */
   TppCache d_cache;
   /** The term formula remover */
