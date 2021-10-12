@@ -54,7 +54,8 @@ void CandidateRewriteFilter::initialize(SygusSampler* ss,
   std::stringstream ssn;
   ssn << "_dyn_rewriter_" << drewrite_counter;
   drewrite_counter++;
-  d_drewrite = std::make_unique<DynamicRewriter>(d_env, &d_fakeContext, ssn.str());
+  d_drewrite =
+      std::make_unique<DynamicRewriter>(d_env, &d_fakeContext, ssn.str());
 }
 
 bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
