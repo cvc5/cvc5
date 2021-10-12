@@ -351,8 +351,8 @@ libcvc5_add_sources(
   smt/solver_engine.h
   smt/solver_engine_scope.cpp
   smt/solver_engine_scope.h
-  smt/smt_engine_state.cpp
-  smt/smt_engine_state.h
+  smt/solver_engine_state.cpp
+  smt/solver_engine_state.h
   smt/solver_engine_stats.cpp
   smt/solver_engine_stats.h
   smt/smt_mode.cpp
@@ -1399,8 +1399,12 @@ if(USE_KISSAT)
   endif()
 endif()
 if(USE_GLPK)
+  target_include_directories(cvc5-obj PRIVATE ${GLPK_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE ${GLPK_LIBRARIES})
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC ${GLPK_LIBRARIES})
+  endif()
   target_link_libraries(cvc5-obj PUBLIC ${GLPK_LIBRARIES})
-  target_include_directories(cvc5-obj PUBLIC ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx_SHARED)
