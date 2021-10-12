@@ -117,7 +117,7 @@ cdef class Datatype:
     def getConstructor(self, str name):
         """
             :param name: the name of the constructor.
-            :return: a constructor by name. 
+            :return: a constructor by name.
         """
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         dc.cdc = self.cd.getConstructor(name.encode())
@@ -486,7 +486,7 @@ cdef class Op:
 
     def getIndices(self):
         """
-            :return: the indices used to create this Op (see :cpp:func:`Op::GetIndices() <cvc5::api::Op::GetIndices>`).
+            :return: the indices used to create this Op (see :cpp:func:`Op::getIndices() <cvc5::api::Op::getIndices>`).
         """
         indices = None
         try:
@@ -522,7 +522,7 @@ cdef class Grammar:
 
     def addRule(self, Term ntSymbol, Term rule):
         """
-            Add "``rule``" to the set of rules corresponding to "``ntSymbol``".
+            Add ``rule`` to the set of rules corresponding to ``ntSymbol``.
 
             :param ntSymbol: the non-terminal to which the rule is added.
             :param rule: the rule to add.
@@ -531,7 +531,7 @@ cdef class Grammar:
 
     def addAnyConstant(self, Term ntSymbol):
         """
-            Allow "``ntSymbol``" to be an arbitrary constant.
+            Allow ``ntSymbol`` to be an arbitrary constant.
 
             :param ntSymbol: the non-terminal allowed to be constant.
         """
@@ -539,7 +539,7 @@ cdef class Grammar:
 
     def addAnyVariable(self, Term ntSymbol):
         """
-            Allow "``ntSymbol``" to be any input variable to corresponding synth-fun/synth-inv with the same sort as "``ntSymbol``".
+            Allow ``ntSymbol`` to be any input variable to corresponding synth-fun/synth-inv with the same sort as ``ntSymbol``.
 
             :param ntSymbol: the non-terminal allowed to be any input variable.
         """
@@ -547,9 +547,9 @@ cdef class Grammar:
 
     def addRules(self, Term ntSymbol, rules):
         """
-            Add "``ntSymbol``" to the set of rules corresponding to "``ntSymbol``".
+            Add ``ntSymbol`` to the set of rules corresponding to ``ntSymbol``.
 
-            :param ntSymbol: the non-terminal to which the rules are added. 
+            :param ntSymbol: the non-terminal to which the rules are added.
             :param rules: the rules to add.
         """
         cdef vector[c_Term] crules
@@ -570,31 +570,31 @@ cdef class Result:
     def isNull(self):
         """
             :return: True if Result is empty, i.e., a nullary Result,
-            and not an actual result returned from a checkSat() (and friends) query.
+            and not an actual result returned from a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
         """
         return self.cr.isNull()
 
     def isSat(self):
         """
-            :return: True if query was a satisfiable checkSat() or checkSatAssuming() query.
+            :return: True if query was a satisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
         """
         return self.cr.isSat()
 
     def isUnsat(self):
         """
-            :return: True if query was an usatisfiable checkSat() or checkSatAssuming() query.
+            :return: True if query was an usatisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
         """
         return self.cr.isUnsat()
 
     def isSatUnknown(self):
         """
-            :return: True if query was a checkSat() or checkSatAssuming() query and cvc5 was not able to determine (un)satisfiability. 
+            :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
         """
         return self.cr.isSatUnknown()
 
     def isEntailed(self):
         """
-            :return: True if corresponding query was an entailed checkEntailed() query.
+            :return: True if corresponding query was an entailed :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query.
         """
         return self.cr.isEntailed()
 
@@ -606,7 +606,7 @@ cdef class Result:
 
     def isEntailmentUnknown(self):
         """
-            :return: True if query was a checkEntailed() query and cvc5 was not able to determine if it is entailed.
+            :return: True if query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query  query and cvc5 was not able to determine if it is entailed.
         """
         return self.cr.isEntailmentUnknown()
     
