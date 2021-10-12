@@ -838,7 +838,6 @@ set(regress_0_tests
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
-  regress0/proofs/andy1.smt2
   regress0/proofs/alpha-equivalence.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
