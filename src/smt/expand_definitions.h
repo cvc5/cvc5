@@ -31,7 +31,7 @@ class TConvProofGenerator;
 
 namespace smt {
 
-struct SmtEngineStatistics;
+struct SolverEngineStatistics;
 
 /**
  * Module in charge of expanding definitions for an SMT engine.
@@ -42,7 +42,7 @@ struct SmtEngineStatistics;
 class ExpandDefs
 {
  public:
-  ExpandDefs(Env& env, SmtEngineStatistics& stats);
+  ExpandDefs(Env& env, SolverEngineStatistics& stats);
   ~ExpandDefs();
   /**
    * Expand definitions in term n. Return the expanded form of n.
@@ -70,7 +70,7 @@ class ExpandDefs
   /** Reference to the environment. */
   Env& d_env;
   /** Reference to the SMT stats */
-  SmtEngineStatistics& d_smtStats;
+  SolverEngineStatistics& d_smtStats;
   /** A proof generator for the term conversion. */
   std::unique_ptr<TConvProofGenerator> d_tpg;
 };

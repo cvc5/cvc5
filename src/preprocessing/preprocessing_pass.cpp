@@ -21,8 +21,8 @@
 #include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/output_manager.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine_scope.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
@@ -61,13 +61,11 @@ PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
     : EnvObj(preprocContext->getEnv()),
       d_preprocContext(preprocContext),
       d_name(name),
-      d_timer(smtStatisticsRegistry().registerTimer("preprocessing::" + name))
+      d_timer(statisticsRegistry().registerTimer("preprocessing::" + name))
 {
 }
 
-PreprocessingPass::~PreprocessingPass() {
-  Assert(smt::smtEngineInScope());
-}
+PreprocessingPass::~PreprocessingPass() { Assert(smt::solverEngineInScope()); }
 
 }  // namespace preprocessing
 }  // namespace cvc5

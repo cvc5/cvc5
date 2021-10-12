@@ -27,13 +27,6 @@ TheoryState::TheoryState(Env& env, Valuation val)
 
 void TheoryState::setEqualityEngine(eq::EqualityEngine* ee) { d_ee = ee; }
 
-context::Context* TheoryState::getSatContext() const { return context(); }
-
-context::UserContext* TheoryState::getUserContext() const
-{
-  return userContext();
-}
-
 bool TheoryState::hasTerm(TNode a) const
 {
   Assert(d_ee != nullptr);
@@ -167,11 +160,6 @@ context::CDList<Assertion>::const_iterator TheoryState::factsBegin(TheoryId tid)
 context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
 {
   return d_valuation.factsEnd(tid);
-}
-
-bool TheoryState::isFiniteType(TypeNode tn) const
-{
-  return d_valuation.isFiniteType(tn);
 }
 
 Valuation& TheoryState::getValuation() { return d_valuation; }

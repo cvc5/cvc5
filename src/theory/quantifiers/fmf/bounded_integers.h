@@ -18,13 +18,13 @@
 #ifndef CVC5__BOUNDED_INTEGERS_H
 #define CVC5__BOUNDED_INTEGERS_H
 
-#include "theory/quantifiers/quant_module.h"
-
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/attribute.h"
+#include "smt/env_obj.h"
 #include "theory/decision_strategy.h"
 #include "theory/quantifiers/quant_bound_inference.h"
+#include "theory/quantifiers/quant_module.h"
 
 namespace cvc5 {
 namespace theory {
@@ -100,9 +100,8 @@ private:
  class IntRangeDecisionHeuristic : public DecisionStrategyFmf
  {
   public:
-   IntRangeDecisionHeuristic(Node r,
-                             context::Context* c,
-                             context::Context* u,
+   IntRangeDecisionHeuristic(Env& env,
+                             Node r,
                              Valuation valuation,
                              bool isProxy);
    /** make the n^th literal of this strategy */
@@ -164,7 +163,8 @@ private:
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
 
  public:
-  BoundedIntegers(QuantifiersState& qs,
+  BoundedIntegers(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr);
@@ -215,6 +215,22 @@ private:
                         std::vector<Node>& elements);
   /** Identify this module */
   std::string identify() const override { return "BoundedIntegers"; }
+
+  /**
+   * Make internal quantified formula with bound variable list bvl and body.
+   * Internally, we get a node corresponding to marking a quantified formula as
+   * a "bounded quantified formula". This node is provided as the third argument
+   * of the FORALL returned by this method. This ensures that E-matching is not
+   * applied to the quantified formula, and that this module is the one that
+   * handles it.
+   */
+  static Node mkBoundedForall(Node bvl, Node body);
+  /**
+   * Has this node been marked as an annotation for a bounded quantified
+   * formula? This is true for the annotation in the formula returned by the
+   * above method.
+   */
+  static bool isBoundedForallAttribute(Node var);
 
  private:
   /**

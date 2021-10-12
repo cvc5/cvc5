@@ -15,8 +15,8 @@
 
 #include "theory/theory_inference_manager.h"
 
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -49,11 +49,11 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
       d_numConflicts(0),
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0),
-      d_conflictIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+      d_conflictIdStats(statisticsRegistry().registerHistogram<InferenceId>(
           statsName + "inferencesConflict")),
-      d_factIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+      d_factIdStats(statisticsRegistry().registerHistogram<InferenceId>(
           statsName + "inferencesFact")),
-      d_lemmaIdStats(smtStatisticsRegistry().registerHistogram<InferenceId>(
+      d_lemmaIdStats(statisticsRegistry().registerHistogram<InferenceId>(
           statsName + "inferencesLemma"))
 {
   // don't add true lemma

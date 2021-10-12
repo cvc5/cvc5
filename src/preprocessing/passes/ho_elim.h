@@ -73,10 +73,10 @@ namespace passes {
  *
  * Based on options, this preprocessing pass may apply a subset o the above
  * steps. In particular:
- * * If options::hoElim() is true, then step [2] is taken and extensionality
+ * * If hoElim is true, then step [2] is taken and extensionality
  * axioms are added in step [3].
- * * If options::hoElimStoreAx() is true, then store axioms are added in step 3.
- * The form of these axioms depends on whether options::hoElim() is true. If it
+ * * If hoElimStoreAx is true, then store axioms are added in step 3.
+ * The form of these axioms depends on whether hoElim is true. If it
  * is true, the axiom is given in terms of the uninterpreted functions that
  * encode function sorts. If it is false, then the store axiom is given in terms
  * of the original function sorts.

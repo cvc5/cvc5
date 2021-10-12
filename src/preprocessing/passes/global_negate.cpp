@@ -94,7 +94,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   }
 
   Trace("cegqi-gn-debug") << "...got (pre-rewrite) : " << body << std::endl;
-  body = Rewriter::rewrite(body);
+  body = rewrite(body);
   Trace("cegqi-gn") << "...got (post-rewrite) : " << body << std::endl;
   return body;
 }

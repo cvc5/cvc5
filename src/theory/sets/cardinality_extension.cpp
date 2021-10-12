@@ -35,13 +35,15 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-CardinalityExtension::CardinalityExtension(SolverState& s,
+CardinalityExtension::CardinalityExtension(Env& env,
+                                           SolverState& s,
                                            InferenceManager& im,
                                            TermRegistry& treg)
-    : d_state(s),
+    : EnvObj(env),
+      d_state(s),
       d_im(im),
       d_treg(treg),
-      d_card_processed(s.getUserContext()),
+      d_card_processed(userContext()),
       d_finite_type_constants_processed(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -87,7 +89,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode setType = nm->mkSetType(t);
-  bool finiteType = d_state.isFiniteType(t);
+  bool finiteType = d_env.isFiniteType(t);
   // skip infinite types that do not have univset terms
   if (!finiteType && d_state.getUnivSetEqClass(setType).isNull())
   {
@@ -1000,7 +1002,7 @@ void CardinalityExtension::mkModelValueElementsFor(
     TheoryModel* model)
 {
   TypeNode elementType = eqc.getType().getSetElementType();
-  bool elementTypeFinite = d_state.isFiniteType(elementType);
+  bool elementTypeFinite = d_env.isFiniteType(elementType);
   if (isModelValueBasic(eqc))
   {
     std::map<Node, Node>::iterator it = d_eqc_to_card_term.find(eqc);
@@ -1088,7 +1090,7 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
   }
   for (const Node& set : getOrderedSetsEqClasses())
   {
-    if (!d_state.isFiniteType(set.getType()))
+    if (!d_env.isFiniteType(set.getType()))
     {
       continue;
     }

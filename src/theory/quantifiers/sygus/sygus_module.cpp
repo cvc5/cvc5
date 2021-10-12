@@ -21,11 +21,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusModule::SygusModule(QuantifiersState& qs,
+SygusModule::SygusModule(Env& env,
+                         QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          TermDbSygus* tds,
                          SynthConjecture* p)
-    : EnvObj(qs.getEnv()), d_qstate(qs), d_qim(qim), d_tds(tds), d_parent(p)
+    : EnvObj(env), d_qstate(qs), d_qim(qim), d_tds(tds), d_parent(p)
 {
 }
 

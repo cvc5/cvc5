@@ -86,15 +86,15 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
   }
 }
 
-ConjectureGenerator::ConjectureGenerator(QuantifiersState& qs,
+ConjectureGenerator::ConjectureGenerator(Env& env,
+                                         QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr),
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_notify(*this),
-      d_uequalityEngine(
-          d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
-      d_ee_conjectures(qs.getSatContext()),
+      d_uequalityEngine(d_notify, context(), "ConjectureGenerator::ee", false),
+      d_ee_conjectures(context()),
       d_conj_count(0),
       d_subs_confirmCount(0),
       d_subs_unkCount(0),
@@ -167,7 +167,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
   if( eqc_i!=d_eqc_info.end() ){
     return eqc_i->second;
   }else if( doMake ){
-    EqcInfo* ei = new EqcInfo(d_qstate.getSatContext());
+    EqcInfo* ei = new EqcInfo(context());
     d_eqc_info[n] = ei;
     return ei;
   }else{

@@ -37,27 +37,23 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-namespace {
-
-bool is_bv_const(Node n)
+bool BVGauss::is_bv_const(Node n)
 {
   if (n.isConst()) { return true; }
-  return Rewriter::rewrite(n).getKind() == kind::CONST_BITVECTOR;
+  return rewrite(n).getKind() == kind::CONST_BITVECTOR;
 }
 
-Node get_bv_const(Node n)
+Node BVGauss::get_bv_const(Node n)
 {
   Assert(is_bv_const(n));
-  return Rewriter::rewrite(n);
+  return rewrite(n);
 }
 
-Integer get_bv_const_value(Node n)
+Integer BVGauss::get_bv_const_value(Node n)
 {
   Assert(is_bv_const(n));
   return get_bv_const(n).getConst<BitVector>().getValue();
 }
-
-}  // namespace
 
 /**
  * Determines if an overflow may occur in given 'expr'.
@@ -75,7 +71,7 @@ Integer get_bv_const_value(Node n)
  * will be handled via the default case, which is not incorrect but also not
  * necessarily the minimum.
  */
-unsigned BVGauss::getMinBwExpr(Node expr)
+uint32_t BVGauss::getMinBwExpr(Node expr)
 {
   std::vector<Node> visit;
   /* Maps visited nodes to the determined minimum bit-width required. */
@@ -454,7 +450,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
       Assert(is_bv_const(eq[0]));
       eqrhs = eq[0];
     }
-    if (getMinBwExpr(Rewriter::rewrite(urem[0])) == 0)
+    if (getMinBwExpr(rewrite(urem[0])) == 0)
     {
       Trace("bv-gauss-elim")
           << "Minimum required bit-width exceeds given bit-width, "
@@ -504,7 +500,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         NodeBuilder nb_nonconsts(NodeManager::currentNM(), k);
         for (const Node& nn : n)
         {
-          Node nnrw = Rewriter::rewrite(nn);
+          Node nnrw = rewrite(nn);
           if (is_bv_const(nnrw))
           {
             nb_consts << nnrw;
@@ -519,7 +515,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         unsigned nc = nb_consts.getNumChildren();
         if (nc > 1)
         {
-          n0 = Rewriter::rewrite(nb_consts.constructNode());
+          n0 = rewrite(nb_consts.constructNode());
         }
         else if (nc == 1)
         {
@@ -532,7 +528,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         /* n1 is a mult with non-const operands */
         if (nb_nonconsts.getNumChildren() > 1)
         {
-          n1 = Rewriter::rewrite(nb_nonconsts.constructNode());
+          n1 = rewrite(nb_nonconsts.constructNode());
         }
         else
         {

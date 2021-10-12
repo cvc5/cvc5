@@ -64,7 +64,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
         && (n.getKind() == kind::PLUS || n.getKind() == kind::MINUS))
     {
       // don't do it if it rewrites to a constant
-      Node nr = Rewriter::rewrite(n);
+      Node nr = rewrite(n);
       if (nr.isConst())
       {
         // return the rewritten constant

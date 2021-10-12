@@ -29,11 +29,12 @@ namespace theory {
 namespace arith {
 
 FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
+    Env& env,
     LinearEqualityModule& linEq,
     ErrorSet& errors,
     RaiseConflict conflictChannel,
     TempVarMalloc tvmalloc)
-    : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc),
+    : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
       d_focusSize(0),
       d_focusErrorVar(ARITHVAR_SENTINEL),
       d_focusCoefficients(),
@@ -113,7 +114,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
 
   Debug("arith::findModel") << "fcFindModel(" << instance <<") start non-trivial" << endl;
 
-  exactResult |= options::arithStandardCheckVarOrderPivots() < 0;
+  exactResult |= d_varOrderPivotLimit < 0;
 
   d_prevWitnessImprovement = HeuristicDegenerate;
   d_witnessImprovementInARow = 0;
@@ -124,7 +125,7 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
     if(exactResult){
       d_pivotBudget = -1;
     }else{
-      d_pivotBudget = options::arithStandardCheckVarOrderPivots();
+      d_pivotBudget = d_varOrderPivotLimit;
     }
 
     result = dualLike();
@@ -340,7 +341,7 @@ UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, Linear
     }
   }
 
-  CompPenaltyColLength colCmp(&d_linEq);
+  CompPenaltyColLength colCmp(&d_linEq, options().arith.havePenalties);
   CandVector::iterator i = candidates.begin();
   CandVector::iterator end = candidates.end();
   std::make_heap(i, end, colCmp);

@@ -22,8 +22,8 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/conv_proof_generator.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_stats.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
@@ -35,7 +35,7 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-ExpandDefs::ExpandDefs(Env& env, SmtEngineStatistics& stats)
+ExpandDefs::ExpandDefs(Env& env, SolverEngineStatistics& stats)
     : d_env(env), d_smtStats(stats), d_tpg(nullptr)
 {
 }

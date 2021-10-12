@@ -23,6 +23,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -30,13 +31,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersState& qs,
+CegisUnif::CegisUnif(Env& env,
+                     QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      TermDbSygus* tds,
                      SynthConjecture* p)
-    : Cegis(qs, qim, tds, p),
-      d_sygus_unif(qs.getEnv(), p),
-      d_u_enum_manager(qs, qim, tds, p)
+    : Cegis(env, qs, qim, tds, p),
+      d_sygus_unif(env, p),
+      d_u_enum_manager(env, qs, qim, tds, p)
 {
 }
 
@@ -403,11 +405,12 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
+    Env& env,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     TermDbSygus* tds,
     SynthConjecture* parent)
-    : DecisionStrategyFmf(qs.getSatContext(), qs.getValuation()),
+    : DecisionStrategyFmf(env, qs.getValuation()),
       d_qim(qim),
       d_tds(tds),
       d_parent(parent)

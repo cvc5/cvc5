@@ -60,7 +60,8 @@ class QuantifiersModule : protected EnvObj
   };
 
  public:
-  QuantifiersModule(quantifiers::QuantifiersState& qs,
+  QuantifiersModule(Env& env,
+                    quantifiers::QuantifiersState& qs,
                     quantifiers::QuantifiersInferenceManager& qim,
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr);

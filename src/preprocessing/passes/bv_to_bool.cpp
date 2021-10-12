@@ -43,7 +43,7 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
       d_boolCache(),
       d_one(bv::utils::mkOne(1)),
       d_zero(bv::utils::mkZero(1)),
-      d_statistics(){};
+      d_statistics(statisticsRegistry()){};
 
 PreprocessingPassResult BVToBool::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -53,7 +53,7 @@ PreprocessingPassResult BVToBool::applyInternal(
   liftBvToBool(assertionsToPreprocess->ref(), new_assertions);
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    assertionsToPreprocess->replace(i, Rewriter::rewrite(new_assertions[i]));
+    assertionsToPreprocess->replace(i, rewrite(new_assertions[i]));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
@@ -281,18 +281,18 @@ void BVToBool::liftBvToBool(const std::vector<Node>& assertions,
   for (unsigned i = 0; i < assertions.size(); ++i)
   {
     Node new_assertion = liftNode(assertions[i]);
-    new_assertions.push_back(Rewriter::rewrite(new_assertion));
+    new_assertions.push_back(rewrite(new_assertion));
     Trace("bv-to-bool") << "  " << assertions[i] << " => " << new_assertions[i]
                         << "\n";
   }
 }
 
-BVToBool::Statistics::Statistics()
-    : d_numTermsLifted(smtStatisticsRegistry().registerInt(
-        "preprocessing::passes::BVToBool::NumTermsLifted")),
-      d_numAtomsLifted(smtStatisticsRegistry().registerInt(
-          "preprocessing::passes::BVToBool::NumAtomsLifted")),
-      d_numTermsForcedLifted(smtStatisticsRegistry().registerInt(
+BVToBool::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_numTermsLifted(
+        reg.registerInt("preprocessing::passes::BVToBool::NumTermsLifted")),
+      d_numAtomsLifted(
+          reg.registerInt("preprocessing::passes::BVToBool::NumAtomsLifted")),
+      d_numTermsForcedLifted(reg.registerInt(
           "preprocessing::passes::BVToBool::NumTermsForcedLifted"))
 {
 }

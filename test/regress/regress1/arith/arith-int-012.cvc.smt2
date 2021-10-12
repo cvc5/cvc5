@@ -1,0 +1,10 @@
+; EXPECT: sat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-fun x0 () Int)
+(declare-fun x1 () Int)
+(declare-fun x2 () Int)
+(declare-fun x3 () Int)
+(assert (< (+ (+ (+ (* 18 x0) (* 32 x1)) (* (- 11) x2)) (* 18 x3)) (- 25)))
+(assert (>= (+ (+ (+ (* (- 31) x0) (* 16 x1)) (* 24 x2)) (* 9 x3)) (- 24)))
+(check-sat-assuming ( (not false) ))

@@ -34,7 +34,7 @@ PreprocessingPassResult Rewrite::applyInternal(
   AssertionPipeline* assertionsToPreprocess)
 {
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i) {
-    assertionsToPreprocess->replace(i, Rewriter::rewrite((*assertionsToPreprocess)[i]));
+    assertionsToPreprocess->replace(i, rewrite((*assertionsToPreprocess)[i]));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Utilities for initializing subsolvers (copies of SmtEngine) during solving.
+ * Utilities for initializing subsolvers (copies of SolverEngine) during
+ * solving.
  */
 
 #include "cvc5_private.h"
@@ -22,7 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace theory {
@@ -46,7 +47,7 @@ namespace theory {
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          const Options& opts,
                          const LogicInfo& logicInfo,
                          bool needsTimeout = false,
@@ -55,7 +56,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
 /**
  * Version that uses the options and logicInfo in an environment.
  */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          const Env& env,
                          bool needsTimeout = false,
                          unsigned long timeout = 0);
@@ -66,7 +67,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
  * If necessary, smte is initialized to the SMT engine that checked its
  * satisfiability.
  */
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
+Result checkWithSubsolver(std::unique_ptr<SolverEngine>& smte,
                           Node query,
                           const Options& opts,
                           const LogicInfo& logicInfo,
