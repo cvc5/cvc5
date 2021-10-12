@@ -48,11 +48,11 @@ namespace smt {
  * It maintains a reference to the SolverEngine for the sake of making
  * callbacks.
  */
-class SmtEngineState : protected EnvObj
+class SolverEngineState : protected EnvObj
 {
  public:
-  SmtEngineState(Env& env, SolverEngine& smt);
-  ~SmtEngineState() {}
+  SolverEngineState(Env& env, SolverEngine& smt);
+  ~SolverEngineState() {}
   /**
    * Notify that the expected status of the next check-sat is given by the
    * string status, which should be one of "sat", "unsat" or "unknown".
