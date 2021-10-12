@@ -14,7 +14,7 @@
 ##
 
 # create directories
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java")
 set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/jni")
 file(MAKE_DIRECTORY ${JNI_DIR})
 
@@ -22,7 +22,7 @@ file(MAKE_DIRECTORY ${JNI_DIR})
 configure_file(genkinds.py.in genkinds.py)
 
 set(JAVA_KIND_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5/Kind.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/Kind.java"
 )
 
 add_custom_command(
@@ -34,7 +34,7 @@ add_custom_command(
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
     --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/cvc5/Kind"
+    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/Kind"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
@@ -48,30 +48,30 @@ include(UseJava)
 
 # specify java source files
 set(JAVA_FILES
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/AbstractPointer.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/BaseInfo.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiException.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiOptionException.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiRecoverableException.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Datatype.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeConstructor.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeConstructorDecl.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeDecl.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeSelector.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Grammar.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Op.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/OptionInfo.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Pair.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Result.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/RoundingMode.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Solver.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Sort.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Stat.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Statistics.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Term.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Triplet.java
-  ${CMAKE_CURRENT_LIST_DIR}/cvc5/Utils.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/AbstractPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/BaseInfo.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/CVC5ApiException.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/CVC5ApiOptionException.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/CVC5ApiRecoverableException.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Datatype.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/DatatypeConstructor.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/DatatypeConstructorDecl.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/DatatypeDecl.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/DatatypeSelector.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Grammar.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/IPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Op.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/OptionInfo.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Pair.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Result.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/RoundingMode.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Solver.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Sort.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Stat.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Statistics.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Term.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Triplet.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/Utils.java
   ${JAVA_KIND_FILE}
 )
 
