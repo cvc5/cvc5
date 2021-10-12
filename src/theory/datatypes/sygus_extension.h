@@ -289,7 +289,8 @@ private:
    * This is used for the sygusRewVerify() option to verify the correctness of
    * the rewriter.
    */
-  std::map<Node, std::map<TypeNode, quantifiers::SygusSampler>> d_sampler;
+  std::map<Node, std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>>
+      d_sampler;
   /** Assert tester internal
    *
    * This function is called when the tester with index tindex is asserted for
@@ -555,7 +556,10 @@ private:
   class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SygusSizeDecisionStrategy(InferenceManager& im, Node t, TheoryState& s);
+    SygusSizeDecisionStrategy(Env& env,
+                              InferenceManager& im,
+                              Node t,
+                              TheoryState& s);
     /** the measure term */
     Node d_this;
     /**

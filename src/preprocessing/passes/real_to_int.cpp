@@ -57,7 +57,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           || n.getKind() == kind::GEQ || n.getKind() == kind::LT
           || n.getKind() == kind::GT || n.getKind() == kind::LEQ)
       {
-        ret = Rewriter::rewrite(n);
+        ret = rewrite(n);
         Trace("real-as-int-debug") << "Now looking at : " << ret << std::endl;
         if (!ret.isConst())
         {
@@ -81,13 +81,12 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                     Rational(c.getConst<Rational>().getDenominator())));
               }
             }
-            Node cc =
-                coeffs.empty()
-                    ? Node::null()
-                    : (coeffs.size() == 1
-                           ? coeffs[0]
-                           : Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-                                 kind::MULT, coeffs)));
+            Node cc = coeffs.empty()
+                          ? Node::null()
+                          : (coeffs.size() == 1
+                                 ? coeffs[0]
+                                 : rewrite(NodeManager::currentNM()->mkNode(
+                                     kind::MULT, coeffs)));
             std::vector<Node> sum;
             for (std::map<Node, Node>::iterator itm = msum.begin();
                  itm != msum.end();
@@ -105,7 +104,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               {
                 if (!cc.isNull())
                 {
-                  c = Rewriter::rewrite(
+                  c = rewrite(
                       NodeManager::currentNM()->mkNode(kind::MULT, c, cc));
                 }
               }

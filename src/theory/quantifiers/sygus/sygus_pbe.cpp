@@ -30,11 +30,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusPbe::SygusPbe(QuantifiersState& qs,
+SygusPbe::SygusPbe(Env& env,
+                   QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    TermDbSygus* tds,
                    SynthConjecture* p)
-    : SygusModule(qs, qim, tds, p)
+    : SygusModule(env, qs, qim, tds, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

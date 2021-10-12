@@ -308,7 +308,7 @@ Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult Ackermann::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
 
   /* collect all function applications and generate consistency lemmas
    * accordingly */

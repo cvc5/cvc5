@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The unsat core manager of SmtEngine.
+ * The unsat core manager of SolverEngine.
  */
 
 #include "cvc5_private.h"
@@ -30,7 +30,7 @@ namespace smt {
 class Assertions;
 
 /**
- * This class is responsible for managing the proof output of SmtEngine, as
+ * This class is responsible for managing the proof output of SolverEngine, as
  * well as setting up the global proof checker and proof node manager.
  */
 class UnsatCoreManager

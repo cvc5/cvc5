@@ -19,6 +19,7 @@
 #include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
@@ -275,12 +276,6 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
   return false;
 }
 
-bool TheoryEngineModelBuilder::isFiniteType(TypeNode tn) const
-{
-  return isCardinalityClassFinite(tn.getCardinalityClass(),
-                                  options::finiteModelFind());
-}
-
 bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
 {
   if (tn.isSort())
@@ -402,7 +397,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       << std::endl;
 
   // type enumerator properties
-  TypeEnumeratorProperties tep;
+  bool tepFixUSortCard = options().quantifiers.finiteModelFind;
+  uint32_t tepStrAlphaCard = options().strings.stringsAlphaCard;
+  TypeEnumeratorProperties tep(tepFixUSortCard, tepStrAlphaCard);
 
   // In the first step of model building, we do a traversal of the
   // equality engine and record the information in the following:
@@ -844,8 +841,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       if (t.isDatatype())
       {
         const DType& dt = t.getDType();
-        isCorecursive = dt.isCodatatype()
-                        && (!isFiniteType(t) || dt.isRecursiveSingleton(t));
+        isCorecursive =
+            dt.isCodatatype()
+            && (!d_env.isFiniteType(t) || dt.isRecursiveSingleton(t));
       }
 #ifdef CVC5_ASSERTIONS
       bool isUSortFiniteRestricted = false;
@@ -922,7 +920,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isSort() || !isFiniteType(t))
+          else if (t.isSort() || !d_env.isFiniteType(t))
           {
             // If its interpreted as infinite, we get a fresh value that does
             // not occur in the model.

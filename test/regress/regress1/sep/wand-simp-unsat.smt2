@@ -4,5 +4,5 @@
 (declare-fun x () Int)
 (declare-heap (Int Int))
 (assert (wand (pto x 1) (pto x 3)))
-(assert (_ emp Int Int))
+(assert sep.emp)
 (check-sat)

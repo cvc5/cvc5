@@ -20,7 +20,6 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
-#include "options/outputc.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
@@ -66,10 +65,10 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
-      d_ceg_pbe(new SygusPbe(qs, qim, d_tds, this)),
-      d_ceg_cegis(new Cegis(qs, qim, d_tds, this)),
-      d_ceg_cegisUnif(new CegisUnif(qs, qim, d_tds, this)),
-      d_sygus_ccore(new CegisCoreConnective(qs, qim, d_tds, this)),
+      d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
+      d_ceg_cegis(new Cegis(env, qs, qim, d_tds, this)),
+      d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
+      d_sygus_ccore(new CegisCoreConnective(env, qs, qim, d_tds, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
@@ -205,7 +204,16 @@ void SynthConjecture::assign(Node q)
     }
   }
   // initialize the example inference utility
-  if (!d_exampleInfer->initialize(d_base_inst, d_candidates))
+  // Notice that we must also consider the side condition when inferring
+  // whether the conjecture is PBE. This ensures we do not prune solutions
+  // that may satisfy the side condition based on equivalence-up-to-examples
+  // with solutions that do not.
+  Node conjForExamples = d_base_inst;
+  if (!d_embedSideCondition.isNull())
+  {
+    conjForExamples = nm->mkNode(AND, d_embedSideCondition, d_base_inst);
+  }
+  if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(conjForExamples, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();
@@ -241,11 +249,8 @@ void SynthConjecture::assign(Node q)
   }
 
   // register the strategy
-  d_feasible_strategy.reset(
-      new DecisionStrategySingleton("sygus_feasible",
-                                    d_feasible_guard,
-                                    d_qstate.getSatContext(),
-                                    d_qstate.getValuation()));
+  d_feasible_strategy.reset(new DecisionStrategySingleton(
+      d_env, "sygus_feasible", d_feasible_guard, d_qstate.getValuation()));
   d_qim.getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
@@ -362,7 +367,7 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  bool printDebug = Output.isOn(options::OutputTag::SYGUS);
+  bool printDebug = d_env.isOutputOn(options::OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -427,8 +432,11 @@ bool SynthConjecture::doCheck()
           }
         }
         Trace("sygus-engine") << std::endl;
-        Output(options::OutputTag::SYGUS)
-            << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+        if (d_env.isOutputOn(options::OutputTag::SYGUS))
+        {
+          d_env.getOutput(options::OutputTag::SYGUS)
+              << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+        }
       }
       Assert(candidate_values.empty());
       constructed_cand = d_master->constructCandidates(
@@ -762,7 +770,7 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   }
   // otherwise, allocate it
   Node f = d_tds->getSynthFunForEnumerator(e);
-  bool hasExamples = (d_exampleInfer->hasExamples(f)
+  bool hasExamples = (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
   d_enumManager[e].reset(new EnumValueManager(
       d_env, d_qstate, d_qim, d_treg, d_stats, e, hasExamples));

@@ -27,7 +27,7 @@
 namespace cvc5 {
 
 class Env;
-class SmtEngine;
+class SolverEngine;
 
 namespace smt {
 
@@ -186,7 +186,7 @@ std::ostream& operator<<(std::ostream& out,
  * A solver for optimization queries.
  *
  * This class is responsible for responding to optmization queries. It
- * spawns a subsolver SmtEngine that captures the parent assertions and
+ * spawns a subsolver SolverEngine that captures the parent assertions and
  * implements a linear optimization loop. Supports activateObjective,
  * checkOpt, and objectiveGetValue in that order.
  */
@@ -222,7 +222,7 @@ class OptimizationSolver
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(SmtEngine* parent);
+  OptimizationSolver(SolverEngine* parent);
   ~OptimizationSolver() = default;
 
   /**
@@ -263,8 +263,8 @@ class OptimizationSolver
    * @param timeout the timeout value, given in milliseconds (ms)
    * @return a unique_pointer of SMT subsolver
    **/
-  static std::unique_ptr<SmtEngine> createOptCheckerWithTimeout(
-      SmtEngine* parentSMTSolver,
+  static std::unique_ptr<SolverEngine> createOptCheckerWithTimeout(
+      SolverEngine* parentSMTSolver,
       bool needsTimeout = false,
       unsigned long timeout = 0);
 
@@ -311,10 +311,10 @@ class OptimizationSolver
   Result optimizeParetoNaiveGIA();
 
   /** A pointer to the parent SMT engine **/
-  SmtEngine* d_parent;
+  SolverEngine* d_parent;
 
   /** A subsolver for offline optimization **/
-  std::unique_ptr<SmtEngine> d_optChecker;
+  std::unique_ptr<SolverEngine> d_optChecker;
 
   /** The objectives to optimize for **/
   context::CDList<OptimizationObjective> d_objectives;

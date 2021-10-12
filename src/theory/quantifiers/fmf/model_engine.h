@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__MODEL_ENGINE_H
 #define CVC5__THEORY__QUANTIFIERS__MODEL_ENGINE_H
 
+#include "smt/env_obj.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/theory_model.h"
@@ -42,7 +43,8 @@ private:
   int d_triedLemmas;
   int d_totalLemmas;
 public:
- ModelEngine(QuantifiersState& qs,
+ ModelEngine(Env& env,
+             QuantifiersState& qs,
              QuantifiersInferenceManager& qim,
              QuantifiersRegistry& qr,
              TermRegistry& tr,

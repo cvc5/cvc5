@@ -45,7 +45,7 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
     if (!trn.isNull())
     {
       Node next = trn.getNode();
-      assertionsToPreprocess->replace(i, Rewriter::rewrite(next));
+      assertionsToPreprocess->replace(i, rewrite(next));
       Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
       Trace("quantifiers-preprocess")
           << "   ...got " << (*assertionsToPreprocess)[i] << endl;

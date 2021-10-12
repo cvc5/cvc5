@@ -15,18 +15,20 @@
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
 
+#include "smt/env.h"
 #include "theory/quantifiers/quantifiers_state.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategy::InstStrategy(inst::TriggerDatabase& td,
+InstStrategy::InstStrategy(Env& env,
+                           inst::TriggerDatabase& td,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr,
                            TermRegistry& tr)
-    : d_td(td), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
+    : EnvObj(env), d_td(td), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
 {
 }
 InstStrategy::~InstStrategy() {}
@@ -35,12 +37,13 @@ std::string InstStrategy::identify() const { return std::string("Unknown"); }
 
 options::UserPatMode InstStrategy::getInstUserPatMode() const
 {
-  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
+  if (options().quantifiers.userPatternsQuant
+      == options::UserPatMode::INTERLEAVE)
   {
     return d_qstate.getInstRounds() % 2 == 0 ? options::UserPatMode::USE
                                              : options::UserPatMode::RESORT;
   }
-  return options::userPatternsQuant();
+  return options().quantifiers.userPatternsQuant;
 }
 
 }  // namespace quantifiers

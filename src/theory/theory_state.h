@@ -42,12 +42,6 @@ class TheoryState : protected EnvObj
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
-  /** Get the SAT context */
-  context::Context* getSatContext() const;
-  /** Get the user context */
-  context::UserContext* getUserContext() const;
-  /** Get the environment */
-  Env& getEnv() const { return d_env; }
   //-------------------------------------- equality information
   /** Is t registered as a term in the equality engine of this class? */
   virtual bool hasTerm(TNode a) const;
@@ -106,11 +100,6 @@ class TheoryState : protected EnvObj
   context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
-  /**
-   * Is the cardinality of type tn finite? This method depends on whether
-   * finite model finding is enabled. For details, see theory_engine.h.
-   */
-  bool isFiniteType(TypeNode tn) const;
 
   /** Get the underlying valuation class */
   Valuation& getValuation();

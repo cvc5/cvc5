@@ -238,7 +238,8 @@ private:  //for equivalence classes
   bool areMatchDisequal( TNode n1, TNode n2 );
 
  public:
-  QuantConflictFind(QuantifiersState& qs,
+  QuantConflictFind(Env& env,
+                    QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
                     QuantifiersRegistry& qr,
                     TermRegistry& tr);

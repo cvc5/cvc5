@@ -28,11 +28,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QuantDSplit::QuantDSplit(QuantifiersState& qs,
+QuantDSplit::QuantDSplit(Env& env,
+                         QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(qs, qim, qr, tr), d_added_split(qs.getUserContext())
+    : QuantifiersModule(env, qs, qim, qr, tr), d_added_split(userContext())
 {
 }
 
@@ -53,7 +54,7 @@ void QuantDSplit::checkOwnership(Node q)
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
-      bool isFinite = d_qstate.isFiniteType(tn);
+      bool isFinite = d_env.isFiniteType(tn);
       const DType& dt = tn.getDType();
       if (dt.isRecursiveSingleton(tn))
       {

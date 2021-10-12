@@ -11,22 +11,6 @@ name   = "Uninterpreted Functions Theory"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
-  name       = "ufssTotalityLimited"
-  category   = "regular"
-  long       = "uf-ss-totality-limited=N"
-  type       = "int64_t"
-  default    = "-1"
-  help       = "apply totality axioms, but only up to cardinality N (-1 == do not apply totality axioms, default)"
-
-[[option]]
-  name       = "ufssTotalitySymBreak"
-  category   = "regular"
-  long       = "uf-ss-totality-sym-break"
-  type       = "bool"
-  default    = "false"
-  help       = "apply symmetry breaking for totality axioms"
-
-[[option]]
   name       = "ufssAbortCardinality"
   category   = "regular"
   long       = "uf-ss-abort-card=N"

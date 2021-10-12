@@ -17,6 +17,7 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/error_set.h"
@@ -29,10 +30,15 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-  : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc)
-  , d_pivotsInRound()
-  , d_statistics(d_pivots)
+DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(
+    Env& env,
+    LinearEqualityModule& linEq,
+    ErrorSet& errors,
+    RaiseConflict conflictChannel,
+    TempVarMalloc tvmalloc)
+    : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
+      d_pivotsInRound(),
+      d_statistics(d_pivots)
 { }
 
 DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
@@ -84,13 +90,13 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
   Result::Sat result = Result::SAT_UNKNOWN;
 
   static const bool verbose = false;
-  exactResult |= options::arithStandardCheckVarOrderPivots() < 0;
+  exactResult |= d_varOrderPivotLimit < 0;
 
-
-  uint32_t checkPeriod = options::arithSimplexCheckPeriod();
+  uint32_t checkPeriod = options().arith.arithSimplexCheckPeriod;
   if(result == Result::SAT_UNKNOWN){
-    uint32_t numDifferencePivots = options::arithHeuristicPivots() < 0 ?
-      d_numVariables + 1 : options::arithHeuristicPivots();
+    uint32_t numDifferencePivots = options().arith.arithHeuristicPivots < 0
+                                       ? d_numVariables + 1
+                                       : options().arith.arithHeuristicPivots;
     // The signed to unsigned conversion is safe.
     if(numDifferencePivots > 0){
 
@@ -127,9 +133,12 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
           result = Result::UNSAT;
         }
       }
-    }else if( options::arithStandardCheckVarOrderPivots() > 0){
+    }
+    else if (d_varOrderPivotLimit > 0)
+    {
       d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
-      if(searchForFeasibleSolution(options::arithStandardCheckVarOrderPivots())){
+      if (searchForFeasibleSolution(d_varOrderPivotLimit))
+      {
         result = Result::UNSAT;
       }
       if (verbose)
@@ -185,17 +194,15 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
 
     --remainingIterations;
 
-    bool useVarOrderPivot = d_pivotsInRound.count(x_i) >=  options::arithPivotThreshold();
+    bool useVarOrderPivot =
+        d_pivotsInRound.count(x_i) >= options().arith.arithPivotThreshold;
     if(!useVarOrderPivot){
       d_pivotsInRound.add(x_i);
     }
 
-
-    Debug("arith::update")
-      << "pivots in rounds: " <<  d_pivotsInRound.count(x_i)
-      << " use " << useVarOrderPivot
-      << " threshold " << options::arithPivotThreshold()
-      << endl;
+    Debug("arith::update") << "pivots in rounds: " << d_pivotsInRound.count(x_i)
+                           << " use " << useVarOrderPivot << " threshold "
+                           << options().arith.arithPivotThreshold << std::endl;
 
     LinearEqualityModule::VarPreferenceFunction pf = useVarOrderPivot ?
       &LinearEqualityModule::minVarOrder : &LinearEqualityModule::minBoundAndColLength;

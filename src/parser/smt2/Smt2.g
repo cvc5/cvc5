@@ -370,20 +370,11 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
+    { if (PARSER_STATE->sygus()) {
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
+      cmd->reset(new CheckSatCommand());
     }
-    ( term[expr, expr2]
-      { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "Extended commands (such as check-sat with an argument) are not "
-              "permitted while operating in strict compliance mode.");
-        }
-      }
-    | { expr = api::Term(); }
-    )
-    { cmd->reset(new CheckSatCommand(expr)); }
   | /* check-sat-assuming */
     CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
@@ -408,6 +399,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatCoreCommand); }
+  | /* get-difficulty */
+    GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new GetDifficultyCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { if( PARSER_STATE->sygus() ){
@@ -518,6 +512,7 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
   std::vector<std::pair<std::string, cvc5::api::Sort> > sortedVarNames;
   std::vector<cvc5::api::Term> sygusVars;
   std::string name;
+  bool isAssume;
   bool isInv;
   cvc5::api::Grammar* grammar = nullptr;
 }
@@ -568,14 +563,13 @@ sygusCommand returns [std::unique_ptr<cvc5::Command> cmd]
           new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
   | /* constraint */
-    CONSTRAINT_TOK {
+    ( CONSTRAINT_TOK { isAssume = false; } | ASSUME_TOK { isAssume = true; } )
+    {
       PARSER_STATE->checkThatLogicIsSet();
-      Debug("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
-      Debug("parser-sygus") << "Sygus : read constraint..." << std::endl;
     }
     term[expr, expr2]
     { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
-      cmd.reset(new SygusConstraintCommand(expr));
+      cmd.reset(new SygusConstraintCommand(expr, isAssume));
     }
   | /* inv-constraint */
     INV_CONSTRAINT_TOK
@@ -749,7 +743,7 @@ setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new SetOptionCommand(name.c_str() + 1, sexprToString(sexpr)));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
-      // on this until some SmtEngine eventually (if ever) executes it.
+      // on this until some SolverEngine eventually (if ever) executes it.
       if(name == ":global-declarations")
       {
         SYM_MAN->setGlobalDeclarations(sexprToString(sexpr) == "true");
@@ -784,6 +778,11 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
     { // allow overloading here
+      if( PARSER_STATE->sygus() )
+      {
+        PARSER_STATE->parseErrorLogic("declare-const is not allowed in sygus "
+                                      "version 2.0");
+      }
       api::Term c =
           PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
@@ -1248,7 +1247,7 @@ simpleSymbolicExprNoKeyword[std::string& s]
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
         | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK
         | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_ASSUMPTIONS_TOK
-        | GET_UNSAT_CORE_TOK | EXIT_TOK
+        | GET_UNSAT_CORE_TOK | GET_DIFFICULTY_TOK | EXIT_TOK
         | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
         | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | SIMPLIFY_TOK)
@@ -1569,12 +1568,13 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
  * - For declared functions f, we return (2).
  * - For indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
- * - For tuple selectors (_ tupSel n), we return (1) and (3). api::Kind is set to
- * APPLY_SELECTOR, and expr is set to n, which is to be interpreted by the
- * caller as the n^th generic tuple selector. We do this since there is no
- * AST expression representing generic tuple select, and we do not have enough
- * type information at this point to know the type of the tuple we will be
- * selecting from.
+ * - For tuple selectors (_ tuple_select n) and updaters (_ tuple_update n), we
+ * return (1) and (3). api::Kind is set to APPLY_SELECTOR or APPLY_UPDATER
+ * respectively, and expr is set to n, which is to be interpreted by the
+ * caller as the n^th generic tuple selector or updater. We do this since there
+ * is no AST expression representing generic tuple select, and we do not have
+ * enough type information at this point to know the type of the tuple we will
+ * be selecting from.
  *
  * (Ascripted Identifiers)
  *
@@ -1695,7 +1695,35 @@ identifier[cvc5::ParseOp& p]
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
-        p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
+        std::string opName = AntlrInput::tokenText($sym);
+        api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
+        if (k == api::APPLY_UPDATER)
+        {
+          // we adopt a special syntax (_ tuple_update n) for tuple updaters
+          if (numerals.size() != 1)
+          {
+            PARSER_STATE->parseError(
+                "Unexpected syntax for tuple selector or updater.");
+          }
+          // The operator is dependent upon inferring the type of the arguments,
+          // and hence the type is not available yet. Hence, we remember the
+          // index as a numeral in the parse operator.
+          p.d_kind = k;
+          p.d_expr = SOLVER->mkInteger(numerals[0]);
+        }
+        else if (numerals.size() == 1)
+        {
+          p.d_op = SOLVER->mkOp(k, numerals[0]);
+        }
+        else if (numerals.size() == 2)
+        {
+          p.d_op = SOLVER->mkOp(k, numerals[0], numerals[1]);
+        }
+        else
+        {
+          PARSER_STATE->parseError(
+              "Unexpected number of numerals for indexed symbol.");
+        }
       }
     )
     RPAREN_TOK
@@ -1728,16 +1756,7 @@ termAtomic[cvc5::api::Term& atomTerm]
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
   // as a 32-bit floating-point constant)
   | LPAREN_TOK INDEX_TOK
-    ( EMP_TOK
-      sortSymbol[type,CHECK_DECLARED]
-      sortSymbol[type2,CHECK_DECLARED]
-      {
-        // Empty heap constant in seperation logic
-        api::Term v1 = SOLVER->mkConst(api::Sort(type), "_emp1");
-        api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
-        atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
-      }
-    | CHAR_TOK HEX_LITERAL 
+    ( CHAR_TOK HEX_LITERAL
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
         atomTerm = PARSER_STATE->mkCharConstant(hexStr);
@@ -2115,7 +2134,7 @@ symbol[std::string& id,
   : SIMPLE_SYMBOL
     { id = AntlrInput::tokenText($SIMPLE_SYMBOL);
       if(!PARSER_STATE->isAbstractValue(id)) {
-        // if an abstract value, SmtEngine handles declaration
+        // if an abstract value, SolverEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
@@ -2124,7 +2143,7 @@ symbol[std::string& id,
       /* strip off the quotes */
       id = id.substr(1, id.size() - 2);
       if(!PARSER_STATE->isAbstractValue(id)) {
-        // if an abstract value, SmtEngine handles declaration
+        // if an abstract value, SolverEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
@@ -2217,6 +2236,7 @@ GET_ASSERTIONS_TOK : 'get-assertions';
 GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
+GET_DIFFICULTY_TOK : 'get-difficulty';
 EXIT_TOK : 'exit';
 RESET_TOK : 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
@@ -2272,6 +2292,7 @@ SYNTH_INV_TOK : { PARSER_STATE->sygus()}?'synth-inv';
 CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
 CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
+ASSUME_TOK : { PARSER_STATE->sygus()}?'assume';
 INV_CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'inv-constraint';
 SET_FEATURE_TOK : { PARSER_STATE->sygus() }? 'set-feature';
 SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';
@@ -2291,10 +2312,9 @@ ATTRIBUTE_QUANTIFIER_ID_TOK : ':qid';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
-EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
-TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
-TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
+TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
+TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_select';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

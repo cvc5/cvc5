@@ -16,7 +16,7 @@
 #include "omt/bitvector_optimizer.h"
 
 #include "options/smt_options.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "util/bitvector.h"
 
 using namespace cvc5::smt;
@@ -44,7 +44,7 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
                         + aMod2PlusbMod2Div2));
 }
 
-OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* optChecker,
+OptimizationResult OMTOptimizerBitVector::minimize(SolverEngine* optChecker,
                                                    TNode target)
 {
   // the smt engine to which we send intermediate queries
@@ -133,7 +133,7 @@ OptimizationResult OMTOptimizerBitVector::minimize(SmtEngine* optChecker,
   return OptimizationResult(lastSatResult, value);
 }
 
-OptimizationResult OMTOptimizerBitVector::maximize(SmtEngine* optChecker,
+OptimizationResult OMTOptimizerBitVector::maximize(SolverEngine* optChecker,
                                                    TNode target)
 {
   // the smt engine to which we send intermediate queries

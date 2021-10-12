@@ -53,7 +53,7 @@ PreprocessingPassResult BvAbstraction::applyInternal(
   bv_theory->applyAbstraction(assertions, new_assertions);
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertionsToPreprocess->replace(i, Rewriter::rewrite(new_assertions[i]));
+    assertionsToPreprocess->replace(i, rewrite(new_assertions[i]));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
