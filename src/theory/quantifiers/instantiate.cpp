@@ -487,7 +487,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
 }
 
 void Instantiate::recordInstantiation(Node q,
-                                      std::vector<Node>& terms,
+                                      const std::vector<Node>& terms,
                                       bool doVts)
 {
   Trace("inst-debug") << "Record instantiation for " << q << std::endl;
@@ -499,7 +499,7 @@ void Instantiate::recordInstantiation(Node q,
 }
 
 bool Instantiate::existsInstantiation(Node q,
-                                      std::vector<Node>& terms,
+                                      const std::vector<Node>& terms,
                                       bool modEq)
 {
   if (options::incrementalSolving())
@@ -587,7 +587,8 @@ Node Instantiate::getInstantiation(Node q,
       q, d_qreg.d_vars[q], terms, InferenceId::UNKNOWN, Node::null(), doVts);
 }
 
-bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
+bool Instantiate::recordInstantiationInternal(Node q,
+                                              const std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
@@ -605,7 +606,8 @@ bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
   return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);
 }
 
-bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
+bool Instantiate::removeInstantiationInternal(Node q,
+                                              const std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {

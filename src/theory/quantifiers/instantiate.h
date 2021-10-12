@@ -203,7 +203,7 @@ class Instantiate : public QuantifiersUtil
    * but does not enqueue an instantiation lemma.
    */
   void recordInstantiation(Node q,
-                           std::vector<Node>& terms,
+                           const std::vector<Node>& terms,
                            bool doVts = false);
   /** exists instantiation
    *
@@ -212,7 +212,7 @@ class Instantiate : public QuantifiersUtil
    *   modEq : whether to check for duplication modulo equality
    */
   bool existsInstantiation(Node q,
-                           std::vector<Node>& terms,
+                           const std::vector<Node>& terms,
                            bool modEq = false);
   //--------------------------------------general utilities
   /** get instantiation
@@ -299,9 +299,9 @@ class Instantiate : public QuantifiersUtil
 
  private:
   /** record instantiation, return true if it was not a duplicate */
-  bool recordInstantiationInternal(Node q, std::vector<Node>& terms);
+  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
   /** remove instantiation from the cache */
-  bool removeInstantiationInternal(Node q, std::vector<Node>& terms);
+  bool removeInstantiationInternal(Node q, const std::vector<Node>& terms);
   /**
    * Ensure that n has type tn, return a term equivalent to it for that type
    * if possible.

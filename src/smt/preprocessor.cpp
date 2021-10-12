@@ -37,7 +37,7 @@ namespace smt {
 
 Preprocessor::Preprocessor(Env& env,
                            AbstractValues& abs,
-                           SmtEngineStatistics& stats)
+                           SolverEngineStatistics& stats)
     : EnvObj(env),
       d_absValues(abs),
       d_propagator(true, true),

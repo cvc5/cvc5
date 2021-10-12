@@ -15,14 +15,14 @@
 
 #include "smt/smt_statistics_registry.h"
 
-#include "smt/smt_engine_scope.h"
+#include "smt/solver_engine_scope.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
 
 StatisticsRegistry& smtStatisticsRegistry()
 {
-  return smt::SmtScope::currentStatisticsRegistry();
+  return smt::SolverEngineScope::currentStatisticsRegistry();
 }
 
 }  // namespace cvc5
