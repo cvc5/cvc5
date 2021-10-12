@@ -15,8 +15,8 @@
 
 #include "theory/theory_inference_manager.h"
 
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"

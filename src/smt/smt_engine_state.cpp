@@ -64,7 +64,7 @@ void SmtEngineState::notifyCheckSat(bool hasAssumptions)
 {
   // process the pending pops
   doPendingPops();
-  if (d_queryMade && !options::incrementalSolving())
+  if (d_queryMade && !options().base.incrementalSolving)
   {
     throw ModalException(
         "Cannot make multiple queries unless "
@@ -157,7 +157,7 @@ void SmtEngineState::shutdown()
 {
   doPendingPops();
 
-  while (options::incrementalSolving() && userContext()->getLevel() > 1)
+  while (options().base.incrementalSolving && userContext()->getLevel() > 1)
   {
     internalPop(true);
   }
@@ -171,7 +171,7 @@ void SmtEngineState::cleanup()
 
 void SmtEngineState::userPush()
 {
-  if (!options::incrementalSolving())
+  if (!options().base.incrementalSolving)
   {
     throw ModalException(
         "Cannot push when not solving incrementally (use --incremental)");
@@ -189,7 +189,7 @@ void SmtEngineState::userPush()
 
 void SmtEngineState::userPop()
 {
-  if (!options::incrementalSolving())
+  if (!options().base.incrementalSolving)
   {
     throw ModalException(
         "Cannot pop when not solving incrementally (use --incremental)");
@@ -249,7 +249,7 @@ void SmtEngineState::internalPush()
   Assert(d_fullyInited);
   Trace("smt") << "SmtEngineState::internalPush()" << std::endl;
   doPendingPops();
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     // notifies the SolverEngine to process the assertions immediately
     d_slv.notifyPushPre();
@@ -263,7 +263,7 @@ void SmtEngineState::internalPop(bool immediate)
 {
   Assert(d_fullyInited);
   Trace("smt") << "SmtEngineState::internalPop()" << std::endl;
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     ++d_pendingPops;
   }
@@ -276,7 +276,7 @@ void SmtEngineState::internalPop(bool immediate)
 void SmtEngineState::doPendingPops()
 {
   Trace("smt") << "SmtEngineState::doPendingPops()" << std::endl;
-  Assert(d_pendingPops == 0 || options::incrementalSolving());
+  Assert(d_pendingPops == 0 || options().base.incrementalSolving);
   // check to see if a postsolve() is pending
   if (d_needPostsolve)
   {

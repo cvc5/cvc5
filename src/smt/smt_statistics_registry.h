@@ -25,7 +25,7 @@ namespace cvc5 {
 /**
  * This returns the StatisticsRegistry attached to the currently in scope
  * SolverEngine. This is a synonym for
- * smt::SmtScope::currentStatisticsRegistry().
+ * smt::SolverEngineScope::currentStatisticsRegistry().
  */
 StatisticsRegistry& smtStatisticsRegistry();
 
