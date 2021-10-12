@@ -253,6 +253,8 @@ TrustNode RemoveTermFormulas::runCurrent(TNode node,
                                          bool inTerm,
                                          TrustNode& newLem)
 {
+  // use the term conversion generator that is term context insensitive, with
+  // cval set to 0.
   Node k = runCurrentInternal(node, inTerm, newLem, 0, d_tpgi.get());
   if (!k.isNull())
   {

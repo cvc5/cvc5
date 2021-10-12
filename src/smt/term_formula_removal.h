@@ -208,6 +208,15 @@ class RemoveTermFormulas : protected EnvObj
    *
    * Otherwise, if t should not be replaced in the term context, this method
    * returns the null node.
+   * 
+   * @param node The node under consideration
+   * @param inTerm Whether we are in a term context (see RtfTermContext)
+   * @param newLem The new lemma axiomatizing the return value
+   * @param cval The term context identifier to cache the proof in pg, if it
+   * exists
+   * @param pg The proof generator to store the proof step
+   * @return the skolem that node should be replaced with, if applicable, or
+   * the null node otherwise.
    */
   Node runCurrentInternal(TNode node,
                           bool inTerm,

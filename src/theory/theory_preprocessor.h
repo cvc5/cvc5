@@ -171,7 +171,8 @@ class TheoryPreprocessor : protected EnvObj
    *
    * @param term The term to rewrite
    * @param pg The proof generator to register to
-   * @param isPre whether the rewrite is a pre-rewrite.
+   * @param isPre Whether the rewrite is a pre-rewrite
+   * @param tctx The term context identifier we should store the proof in pg
    */
   Node rewriteWithProof(Node term,
                         TConvProofGenerator* pg,
@@ -193,7 +194,8 @@ class TheoryPreprocessor : protected EnvObj
    *
    * @param trn The REWRITE trust node
    * @param pg The proof generator to register to
-   * @param isPre whether the rewrite is a pre-rewrite.
+   * @param isPre Whether the rewrite is a pre-rewrite
+   * @param tctx The term context identifier we should store the proof in pg
    */
   void registerTrustedRewrite(TrustNode trn,
                               TConvProofGenerator* pg,
