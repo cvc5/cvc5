@@ -111,21 +111,21 @@ message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 add_library(cvc5jni SHARED
-  jni/cvc5_Datatype.cpp
-  jni/cvc5_DatatypeConstructor.cpp
-  jni/cvc5_DatatypeConstructorDecl.cpp
-  jni/cvc5_DatatypeDecl.cpp
-  jni/cvc5_DatatypeSelector.cpp
-  jni/cvc5_Grammar.cpp
-  jni/cvc5_Op.cpp
-  jni/cvc5_OptionInfo.cpp
-  jni/cvc5_Result.cpp
-  jni/cvc5_Solver.cpp
-  jni/cvc5_Sort.cpp
-  jni/cvc5_Stat.cpp
-  jni/cvc5_Statistics.cpp
-  jni/cvc5_Term.cpp
-  jni/cvc5JavaApi.cpp)
+  jni/datatype.cpp
+  jni/datatype_constructor.cpp
+  jni/datatype_constructor_decl.cpp
+  jni/datatype_decl.cpp
+  jni/datatype_selector.cpp
+  jni/grammar.cpp
+  jni/java_api.cpp
+  jni/op.cpp
+  jni/option_info.cpp
+  jni/result.cpp
+  jni/solver.cpp
+  jni/sort.cpp
+  jni/stat.cpp
+  jni/statistics.cpp
+  jni/term.cpp)
 
 add_dependencies(cvc5jni generate-jni-headers)
 
