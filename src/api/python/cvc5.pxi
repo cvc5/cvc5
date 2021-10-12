@@ -436,7 +436,7 @@ cdef class Op:
         A cvc5 operator.
         An operator is a term that represents certain operators,
         instantiated with its required parameters, e.g.,
-        a term of kind BITVECTOR_EXTRACT.
+        a term of kind `:cpp:enumerator:BITVECTOR_EXTRACT`.
         Wrapper class for :cpp:class:`cvc5::api::Op`.
     """
     cdef c_Op cop
@@ -669,7 +669,7 @@ cdef class RoundingMode:
 
 cdef class UnknownExplanation:
     """
-        Wrapper class for :cpp:enum:`cvc5::api::UnknownExplanation`.
+        Wrapper class for :cpp:enum:`cvc5::api::Result::UnknownExplanation`.
     """
     cdef c_UnknownExplanation cue
     cdef str name
