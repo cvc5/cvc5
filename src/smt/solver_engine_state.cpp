@@ -13,7 +13,7 @@
  * Utility for maintaining the state of the SMT engine.
  */
 
-#include "smt/smt_engine_state.h"
+#include "smt/solver_engine_state.h"
 
 #include "base/modal_exception.h"
 #include "options/base_options.h"
@@ -26,7 +26,7 @@
 namespace cvc5 {
 namespace smt {
 
-SmtEngineState::SmtEngineState(Env& env, SolverEngine& slv)
+SolverEngineState::SolverEngineState(Env& env, SolverEngine& slv)
     : EnvObj(env),
       d_slv(slv),
       d_pendingPops(0),
@@ -39,15 +39,15 @@ SmtEngineState::SmtEngineState(Env& env, SolverEngine& slv)
 {
 }
 
-void SmtEngineState::notifyExpectedStatus(const std::string& status)
+void SolverEngineState::notifyExpectedStatus(const std::string& status)
 {
   Assert(status == "sat" || status == "unsat" || status == "unknown")
-      << "SmtEngineState::notifyExpectedStatus: unexpected status string "
+      << "SolverEngineState::notifyExpectedStatus: unexpected status string "
       << status;
   d_expectedStatus = Result(status, options().driver.filename);
 }
 
-void SmtEngineState::notifyResetAssertions()
+void SolverEngineState::notifyResetAssertions()
 {
   doPendingPops();
   while (!d_userLevels.empty())
@@ -60,7 +60,7 @@ void SmtEngineState::notifyResetAssertions()
   popto(0);
 }
 
-void SmtEngineState::notifyCheckSat(bool hasAssumptions)
+void SolverEngineState::notifyCheckSat(bool hasAssumptions)
 {
   // process the pending pops
   doPendingPops();
@@ -83,7 +83,7 @@ void SmtEngineState::notifyCheckSat(bool hasAssumptions)
   }
 }
 
-void SmtEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
+void SolverEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
 {
   d_needPostsolve = true;
 
@@ -113,7 +113,7 @@ void SmtEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   }
 }
 
-void SmtEngineState::notifyGetAbduct(bool success)
+void SolverEngineState::notifyGetAbduct(bool success)
 {
   if (success)
   {
@@ -127,7 +127,7 @@ void SmtEngineState::notifyGetAbduct(bool success)
   }
 }
 
-void SmtEngineState::notifyGetInterpol(bool success)
+void SolverEngineState::notifyGetInterpol(bool success)
 {
   if (success)
   {
@@ -141,19 +141,19 @@ void SmtEngineState::notifyGetInterpol(bool success)
   }
 }
 
-void SmtEngineState::setup()
+void SolverEngineState::setup()
 {
   // push a context
   push();
 }
 
-void SmtEngineState::finishInit()
+void SolverEngineState::finishInit()
 {
   // set the flag to remember that we are fully initialized
   d_fullyInited = true;
 }
 
-void SmtEngineState::shutdown()
+void SolverEngineState::shutdown()
 {
   doPendingPops();
 
@@ -163,13 +163,13 @@ void SmtEngineState::shutdown()
   }
 }
 
-void SmtEngineState::cleanup()
+void SolverEngineState::cleanup()
 {
   // pop to level zero
   popto(0);
 }
 
-void SmtEngineState::userPush()
+void SolverEngineState::userPush()
 {
   if (!options().base.incrementalSolving)
   {
@@ -183,11 +183,11 @@ void SmtEngineState::userPush()
 
   d_userLevels.push_back(userContext()->getLevel());
   internalPush();
-  Trace("userpushpop") << "SmtEngineState: pushed to level "
+  Trace("userpushpop") << "SolverEngineState: pushed to level "
                        << userContext()->getLevel() << std::endl;
 }
 
-void SmtEngineState::userPop()
+void SolverEngineState::userPop()
 {
   if (!options().base.incrementalSolving)
   {
@@ -214,40 +214,43 @@ void SmtEngineState::userPop()
   }
   d_userLevels.pop_back();
 }
-void SmtEngineState::push()
+void SolverEngineState::push()
 {
   userContext()->push();
   context()->push();
 }
 
-void SmtEngineState::pop()
+void SolverEngineState::pop()
 {
   userContext()->pop();
   context()->pop();
 }
 
-void SmtEngineState::popto(int toLevel)
+void SolverEngineState::popto(int toLevel)
 {
   context()->popto(toLevel);
   userContext()->popto(toLevel);
 }
 
-Result SmtEngineState::getStatus() const { return d_status; }
+Result SolverEngineState::getStatus() const { return d_status; }
 
-bool SmtEngineState::isFullyInited() const { return d_fullyInited; }
-bool SmtEngineState::isFullyReady() const
+bool SolverEngineState::isFullyInited() const { return d_fullyInited; }
+bool SolverEngineState::isFullyReady() const
 {
   return d_fullyInited && d_pendingPops == 0;
 }
-bool SmtEngineState::isQueryMade() const { return d_queryMade; }
-size_t SmtEngineState::getNumUserLevels() const { return d_userLevels.size(); }
+bool SolverEngineState::isQueryMade() const { return d_queryMade; }
+size_t SolverEngineState::getNumUserLevels() const
+{
+  return d_userLevels.size();
+}
 
-SmtMode SmtEngineState::getMode() const { return d_smtMode; }
+SmtMode SolverEngineState::getMode() const { return d_smtMode; }
 
-void SmtEngineState::internalPush()
+void SolverEngineState::internalPush()
 {
   Assert(d_fullyInited);
-  Trace("smt") << "SmtEngineState::internalPush()" << std::endl;
+  Trace("smt") << "SolverEngineState::internalPush()" << std::endl;
   doPendingPops();
   if (options().base.incrementalSolving)
   {
@@ -259,10 +262,10 @@ void SmtEngineState::internalPush()
   }
 }
 
-void SmtEngineState::internalPop(bool immediate)
+void SolverEngineState::internalPop(bool immediate)
 {
   Assert(d_fullyInited);
-  Trace("smt") << "SmtEngineState::internalPop()" << std::endl;
+  Trace("smt") << "SolverEngineState::internalPop()" << std::endl;
   if (options().base.incrementalSolving)
   {
     ++d_pendingPops;
@@ -273,9 +276,9 @@ void SmtEngineState::internalPop(bool immediate)
   }
 }
 
-void SmtEngineState::doPendingPops()
+void SolverEngineState::doPendingPops()
 {
-  Trace("smt") << "SmtEngineState::doPendingPops()" << std::endl;
+  Trace("smt") << "SolverEngineState::doPendingPops()" << std::endl;
   Assert(d_pendingPops == 0 || options().base.incrementalSolving);
   // check to see if a postsolve() is pending
   if (d_needPostsolve)
