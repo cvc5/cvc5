@@ -532,8 +532,6 @@ bool SynthConjecture::doCheck()
     out << ")" << std::endl;
   }
 
-  d_setInnerSksModel = true;
-
   if (query.isNull())
   {
     // no lemma to check
@@ -547,22 +545,22 @@ bool SynthConjecture::doCheck()
   std::vector<Node> skModel;
   Result r = d_verify.verify(query, d_innerSks, skModel);
 
-  if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
     // we have a counterexample
-    return processCounterexmaple(skModel);
-  }
-  else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
-  {
-    // In the rare case that the subcall is unknown, we simply exclude the
-    // solution, without adding a counterexample point. This should only
-    // happen if the quantifier free logic is undecidable.
-    excludeCurrentSolution(terms, candidate_values);
-    // We should set incomplete, since a "sat" answer should not be
-    // interpreted as "infeasible", which would make a difference in the rare
-    // case where e.g. we had a finite grammar and exhausted the grammar.
-    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
-    return false;
+    bool ret = processCounterexmaple(skModel);
+    if (r.asSatisfiabilityResult().isSat() != Result::SAT)
+    {
+      // In the rare case that the subcall is unknown, we simply exclude the
+      // solution, without adding a counterexample point. This should only
+      // happen if the quantifier free logic is undecidable.
+      excludeCurrentSolution(terms, candidate_values);
+      // We should set incomplete, since a "sat" answer should not be
+      // interpreted as "infeasible", which would make a difference in the rare
+      // case where e.g. we had a finite grammar and exhausted the grammar.
+      d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
+    }
+    return ret;
   }
   // otherwise we are unsat, and we will process the solution below
 
