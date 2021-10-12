@@ -620,10 +620,8 @@ bool SynthConjecture::processCounterexmaple(const std::vector<Node>& skModel)
   Assert(d_innerSks.size() == skModel.size());
 
   Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
-  base_lem = base_lem.substitute(d_innerSks.begin(),
-                                 d_innerSks.end(),
-                                 skModel.begin(),
-                                 skModel.end());
+  base_lem = base_lem.substitute(
+      d_innerSks.begin(), d_innerSks.end(), skModel.begin(), skModel.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
@@ -631,7 +629,7 @@ bool SynthConjecture::processCounterexmaple(const std::vector<Node>& skModel)
   size_t prevPending = d_qim.numPendingLemmas();
   d_master->registerRefinementLemma(d_innerSks, base_lem);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
-  
+
   // check if we added a lemma
   bool addedLemma = d_qim.numPendingLemmas() > prevPending;
   if (addedLemma)
