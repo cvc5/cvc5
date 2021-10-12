@@ -175,6 +175,10 @@ class RemoveTermFormulas : protected EnvObj
    */
   std::unique_ptr<TConvProofGenerator> d_tpg;
   /**
+   * A proof generator for the term conversion, not text-context sensitive.
+   */
+  std::unique_ptr<TConvProofGenerator> d_tpgi;
+  /**
    * A proof generator for skolems we introduce that are based on axioms that
    * this class is responsible for.
    */
@@ -205,7 +209,7 @@ class RemoveTermFormulas : protected EnvObj
    * Otherwise, if t should not be replaced in the term context, this method
    * returns the null node.
    */
-  Node runCurrentInternal(TNode node, bool inTerm, TrustNode& newLem);
+  Node runCurrentInternal(TNode node, bool inTerm, TrustNode& newLem, uint32_t cval, TConvProofGenerator* pg);
   /** Is proof enabled? True if proofs are enabled in any mode. */
   bool isProofEnabled() const;
 }; /* class RemoveTTE */

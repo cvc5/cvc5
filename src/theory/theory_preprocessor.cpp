@@ -90,7 +90,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   // An example of this is (forall ((x Int)) (and (tail L) (P x))) which
   // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
   // must be preprocessed as a child here.
-  Node irNode = rewriteWithProof(node, d_tpgRew.get(), true);
+  Node irNode = rewriteWithProof(node, d_tpgRew.get(), true, 0);
 
   // run theory preprocessing
   TrustNode tpp = theoryPreprocess(irNode, newLemmas);
@@ -278,7 +278,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         // register the rewrite into the proof generator
         if (isProofEnabled())
         {
-          registerTrustedRewrite(currTrn, d_tpg.get(), true);
+          registerTrustedRewrite(currTrn, d_tpg.get(), true, nodeVal);
         }
         Trace("tpp-debug") << "...replace by skolem" << std::endl;
         d_cache.insert(curr, ret);
@@ -365,12 +365,12 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       // reconstructing proofs via d_tpg. However, if it is a post-rewrite
       // it will fail to apply if another call to this class registers A -> C,
       // in which case (not C) will be returned instead of B (see issue 6754).
-      pret = rewriteWithProof(ret, d_tpg.get(), true);
+      pret = rewriteWithProof(ret, d_tpg.get(), false, nodeVal);
     }
     // if we did not rewrite above, we are ready to theory preprocess
     if (pret == ret)
     {
-      pret = preprocessWithProof(ret, newLemmas);
+      pret = preprocessWithProof(ret, newLemmas, nodeVal);
     }
     // if we changed due to rewriting or preprocessing, we traverse again
     if (pret != ret)
@@ -393,7 +393,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
 
 Node TheoryPreprocessor::rewriteWithProof(Node term,
                                           TConvProofGenerator* pg,
-                                          bool isPre)
+                                          bool isPre, 
+                                          uint32_t tctx)
 {
   Node termr = Rewriter::rewrite(term);
   // store rewrite step if tracking proofs and it rewrites
@@ -404,15 +405,15 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
     {
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) "
                          << term << " -> " << termr << std::endl;
-      // always use term context hash 0 (default)
-      pg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term}, isPre);
+      pg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term}, isPre, tctx);
     }
   }
   return termr;
 }
 
 Node TheoryPreprocessor::preprocessWithProof(Node term,
-                                             std::vector<SkolemLemma>& lems)
+                                             std::vector<SkolemLemma>& lems, 
+                                             uint32_t tctx)
 {
   // Important that it is in rewritten form, to ensure that the rewrite steps
   // recorded in d_tpg are functional. In other words, there should not
@@ -451,17 +452,18 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   Assert(term != termr);
   if (isProofEnabled())
   {
-    registerTrustedRewrite(trn, d_tpg.get(), false);
+    registerTrustedRewrite(trn, d_tpg.get(), false, tctx);
   }
   // Rewrite again here, which notice is a *pre* rewrite.
-  return rewriteWithProof(termr, d_tpg.get(), true);
+  return rewriteWithProof(termr, d_tpg.get(), true, tctx);
 }
 
 bool TheoryPreprocessor::isProofEnabled() const { return d_tpg != nullptr; }
 
 void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
                                                 TConvProofGenerator* pg,
-                                                bool isPre)
+                                                bool isPre, 
+                                                uint32_t tctx)
 {
   if (!isProofEnabled() || trn.isNull())
   {
@@ -479,7 +481,7 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
                          "TheoryPreprocessor::preprocessWithProof");
     // always use term context hash 0 (default)
     pg->addRewriteStep(
-        term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true);
+        term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true, tctx);
   }
   else
   {
@@ -491,7 +493,7 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
                        PfRule::THEORY_PREPROCESS,
                        {},
                        {term.eqNode(termr)},
-                       isPre);
+                       isPre, tctx);
   }
 }
 
