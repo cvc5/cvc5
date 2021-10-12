@@ -76,8 +76,6 @@ public class NativeCode
    */
   private static void copy(String source, String destination)
   {
-    System.out.println("source: " + source);
-    System.out.println("destination: " + destination);
     File destinationFile = new File(destination);
     if (destinationFile.isFile() && destinationFile.length() > 0)
     {
@@ -88,7 +86,7 @@ public class NativeCode
       URL resourceUrl = NativeCode.class.getClassLoader().getResource(source);
       if (resourceUrl == null)
       {
-        throw new RuntimeException("Could not find resource " + resourceUrl);
+        throw new RuntimeException("Could not find resource " + source);
       }
       Files.copy(
           resourceUrl.openStream(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -174,12 +172,11 @@ public class NativeCode
   {
     String os = System.getProperty("os.name");
     String arch = System.getProperty("os.arch");
-    System.out.println("OS _ ARCH = '" + os + "' - '" + arch + "'");
     for (Platform p : platforms)
     {
       if (p.osarch.matcher(arch).matches() && p.osname.matcher(os).matches())
       {
-        System.out.println("Found = '" + p.dir);
+        System.out.println("arch-os: " + p.dir);
         return platform = p;
       }
     }
