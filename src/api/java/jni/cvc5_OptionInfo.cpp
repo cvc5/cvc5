@@ -165,7 +165,8 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_OptionInfo_getBaseInfo(
 
   if (std::holds_alternative<OptionInfo::VoidInfo>(v))
   {
-    jclass voidInfoClass = env->FindClass("io/github/cvc5/api/OptionInfo$VoidInfo");
+    jclass voidInfoClass =
+        env->FindClass("io/github/cvc5/api/OptionInfo$VoidInfo");
     jfieldID fieldId = env->GetStaticFieldID(
         voidInfoClass, "VOID_INFO", "Lio/github/cvc5/api/OptionInfo$VoidInfo;");
     jobject ret = env->GetStaticObjectField(voidInfoClass, fieldId);
@@ -175,11 +176,13 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_OptionInfo_getBaseInfo(
   if (std::holds_alternative<OptionInfo::ValueInfo<bool>>(v)
       || std::holds_alternative<OptionInfo::ValueInfo<std::string>>(v))
   {
-    jclass valueInfoClass = env->FindClass("io/github/cvc5/api/OptionInfo$ValueInfo");
-    jmethodID methodId = env->GetMethodID(
-        valueInfoClass,
-        "<init>",
-        "(Lio/github/cvc5/api/OptionInfo;Ljava/lang/Object;Ljava/lang/Object;)V");
+    jclass valueInfoClass =
+        env->FindClass("io/github/cvc5/api/OptionInfo$ValueInfo");
+    jmethodID methodId =
+        env->GetMethodID(valueInfoClass,
+                         "<init>",
+                         "(Lio/github/cvc5/api/OptionInfo;Ljava/lang/"
+                         "Object;Ljava/lang/Object;)V");
 
     if (std::holds_alternative<OptionInfo::ValueInfo<bool>>(v))
     {
@@ -206,12 +209,13 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_OptionInfo_getBaseInfo(
       || std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(v)
       || std::holds_alternative<OptionInfo::NumberInfo<double>>(v))
   {
-    jclass numberInfoClass = env->FindClass("io/github/cvc5/api/OptionInfo$NumberInfo");
-    jmethodID methodId =
-        env->GetMethodID(numberInfoClass,
-                         "<init>",
-                         "(Lio/github/cvc5/api/OptionInfo;Ljava/lang/Object;Ljava/lang/"
-                         "Object;Ljava/lang/Object;Ljava/lang/Object;)V");
+    jclass numberInfoClass =
+        env->FindClass("io/github/cvc5/api/OptionInfo$NumberInfo");
+    jmethodID methodId = env->GetMethodID(
+        numberInfoClass,
+        "<init>",
+        "(Lio/github/cvc5/api/OptionInfo;Ljava/lang/Object;Ljava/lang/"
+        "Object;Ljava/lang/Object;Ljava/lang/Object;)V");
 
     if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(v))
     {
@@ -255,12 +259,13 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_OptionInfo_getBaseInfo(
 
   if (std::holds_alternative<OptionInfo::ModeInfo>(v))
   {
-    jclass modeInfoClass = env->FindClass("io/github/cvc5/api/OptionInfo$ModeInfo");
-    jmethodID methodId =
-        env->GetMethodID(modeInfoClass,
-                         "<init>",
-                         "(Lio/github/cvc5/api/OptionInfo;Ljava/lang/String;Ljava/lang/"
-                         "String;[Ljava/lang/String;)V");
+    jclass modeInfoClass =
+        env->FindClass("io/github/cvc5/api/OptionInfo$ModeInfo");
+    jmethodID methodId = env->GetMethodID(
+        modeInfoClass,
+        "<init>",
+        "(Lio/github/cvc5/api/OptionInfo;Ljava/lang/String;Ljava/lang/"
+        "String;[Ljava/lang/String;)V");
 
     auto info = std::get<OptionInfo::ModeInfo>(v);
     jstring defaultValue = env->NewStringUTF(info.defaultValue.c_str());
