@@ -13,7 +13,8 @@
  * Black box testing of the Solver class of the Java API.
  */
 
-package io.github.cvc5.api;
+package tests;
+import io.github.cvc5.api.*;
 
 import static io.github.cvc5.api.Kind.*;
 import static io.github.cvc5.api.RoundingMode.*;

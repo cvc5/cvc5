@@ -13,7 +13,8 @@
  * Black box testing of the guards of the Java API functions.
  */
 
-package io.github.cvc5.api;
+package tests;
+import io.github.cvc5.api.*;
 
 import static io.github.cvc5.api.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
