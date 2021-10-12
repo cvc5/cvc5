@@ -31,7 +31,7 @@ namespace theory {
 TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     : EnvObj(env),
       d_engine(engine),
-      d_tfCache(userContext()),
+      d_cache(userContext()),
       d_tfr(env),
       d_tpg(nullptr),
       d_tpgRew(nullptr),
@@ -219,6 +219,10 @@ RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()
 TrustNode TheoryPreprocessor::theoryPreprocess(
     TNode assertion, std::vector<SkolemLemma>& newLemmas)
 {
+  // Map from (term, term context identifier) to the term that it was
+  // theory-preprocessed to. This is used when the result of the current node
+  // should be set to the final result of converting its theory-preprocessed
+  // form.
   std::unordered_map<std::pair<Node, uint32_t>,
                      Node,
                      PairHashFunction<Node, uint32_t, std::hash<Node>>>
@@ -236,17 +240,17 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
   std::pair<Node, uint32_t> curr;
   Node node;
   uint32_t nodeVal;
-  TermFormulaCache::const_iterator itc;
+  TppCache::const_iterator itc;
   while (!ctx.empty())
   {
     curr = ctx.getCurrent();
-    itc = d_tfCache.find(curr);
+    itc = d_cache.find(curr);
     node = curr.first;
     nodeVal = curr.second;
-    Trace("rtf-debug") << "Visit " << node << ", " << nodeVal << std::endl;
-    if (itc != d_tfCache.end())
+    Trace("tpp-debug") << "Visit " << node << ", " << nodeVal << std::endl;
+    if (itc != d_cache.end())
     {
-      Trace("rtf-debug") << "...already computed" << std::endl;
+      Trace("tpp-debug") << "...already computed" << std::endl;
       ctx.pop();
       processedChildren.pop_back();
       // already computed
@@ -259,8 +263,6 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       TrustNode newLem;
       bool inQuant, inTerm;
       RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
-      Debug("ite") << "removeITEs(" << node << ")"
-                   << " " << inQuant << " " << inTerm << std::endl;
       Assert(!inQuant);
       TrustNode currTrn = d_tfr.runCurrent(node, inTerm, newLem);
       // if we replaced by a skolem, we do not recurse
@@ -278,8 +280,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         {
           registerTrustedRewrite(currTrn, d_tpg.get(), true);
         }
-        Trace("rtf-debug") << "...replace by skolem" << std::endl;
-        d_tfCache.insert(curr, ret);
+        Trace("tpp-debug") << "...replace by skolem" << std::endl;
+        d_cache.insert(curr, ret);
         continue;
       }
       size_t nchild = node.getNumChildren();
@@ -292,7 +294,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         }
         else
         {
-          Trace("rtf-debug") << "...recurse to children" << std::endl;
+          Trace("tpp-debug") << "...recurse to children" << std::endl;
           // recurse if we have children
           processedChildren[processedChildren.size() - 1] = true;
           for (size_t i = 0; i < nchild; i++)
@@ -305,10 +307,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       }
       else
       {
-        Trace("rtf-debug") << "...base case" << std::endl;
+        Trace("tpp-debug") << "...base case" << std::endl;
       }
     }
-    Trace("rtf-debug") << "...reconstruct" << std::endl;
+    Trace("tpp-debug") << "...reconstruct" << std::endl;
     // otherwise, we are now finished processing children, pop the current node
     // and compute the result
     ctx.pop();
@@ -320,9 +322,9 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     {
       // we preprocessed it to something else, carry that
       std::pair<Node, uint32_t> key(itw->second, nodeVal);
-      itc = d_tfCache.find(key);
-      Assert(itc != d_tfCache.end());
-      d_tfCache.insert(curr, itc->second);
+      itc = d_cache.find(key);
+      Assert(itc != d_cache.end());
+      d_cache.insert(curr, itc->second);
       wasPreprocessed.erase(curr);
       continue;
     }
@@ -344,8 +346,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         // recompute the value of the child
         uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
         currChild = std::pair<Node, uint32_t>(node[i], val);
-        itc = d_tfCache.find(currChild);
-        Assert(itc != d_tfCache.end());
+        itc = d_cache.find(currChild);
+        Assert(itc != d_cache.end());
         Node newChild = (*itc).second;
         Assert(!newChild.isNull());
         childChanged |= (newChild != node[i]);
@@ -382,10 +384,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       continue;
     }
     // cache
-    d_tfCache.insert(curr, ret);
+    d_cache.insert(curr, ret);
   }
-  itc = d_tfCache.find(initial);
-  Assert(itc != d_tfCache.end());
+  itc = d_cache.find(initial);
+  Assert(itc != d_cache.end());
   return TrustNode::mkTrustRewrite(assertion, (*itc).second, d_tpg.get());
 }
 

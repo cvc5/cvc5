@@ -49,22 +49,13 @@ namespace theory {
  * [2]
  * TRAVERSE(
  *   prerewrite:
- *    if theory atom {
- *      TRAVERSE(
- *        prerewrite:
- *          // nothing
- *        postrewrite:
- *          apply rewriter
- *          apply ppRewrite
- *            if changed
- *              apply rewriter
- *              REPEAT traversal
- *      )
- *      apply term formula removal
- *      apply rewriter
- *    }
- *  postrewrite: // for Boolean connectives
- *    apply rewriter
+ *     apply term formula removal to the current node
+ *   postrewrite:
+ *     apply rewriter
+ *     apply ppRewrite
+ *       if changed
+ *         apply rewriter
+ *         REPEAT traversal
  * )
  *
  * Note that the rewriter must be applied beforehand, since the rewriter may
@@ -140,14 +131,14 @@ class TheoryPreprocessor : protected EnvObj
       std::pair<Node, uint32_t>,
       Node,
       PairHashFunction<Node, uint32_t, std::hash<Node>>>
-      TermFormulaCache;
+      TppCache;
   /** term formula removal cache
    *
    * This stores the results of term formula removal for inputs to the run(...)
    * function below, where the integer in the pair we hash on is the
    * result of cacheVal below.
    */
-  TermFormulaCache d_tfCache;
+  TppCache d_cache;
   /** The term formula remover */
   RemoveTermFormulas d_tfr;
   /**
