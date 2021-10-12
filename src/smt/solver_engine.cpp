@@ -53,10 +53,10 @@
 #include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
 #include "smt/set_defaults.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_state.h"
-#include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
+#include "smt/solver_engine_scope.h"
+#include "smt/solver_engine_stats.h"
 #include "smt/sygus_solver.h"
 #include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
@@ -115,13 +115,13 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // SolverEngine. Thus the hack here does not break this use case. On the other
   // hand, this hack breaks use cases where multiple SolverEngine objects are
   // created by the user.
-  d_scope.reset(new SmtScope(this));
+  d_scope.reset(new SolverEngineScope(this));
   // listen to node manager events
   getNodeManager()->subscribeEvents(d_snmListener.get());
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
-  d_stats.reset(new SmtEngineStatistics());
+  d_stats.reset(new SolverEngineStatistics());
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_absValues, *d_stats));
   // make the SyGuS solver
@@ -276,7 +276,7 @@ void SolverEngine::shutdown()
 
 SolverEngine::~SolverEngine()
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
 
   try
   {
@@ -318,7 +318,7 @@ SolverEngine::~SolverEngine()
 
 void SolverEngine::setLogic(const LogicInfo& logic)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   if (d_state->isFullyInited())
   {
     throw ModalException(
@@ -332,7 +332,7 @@ void SolverEngine::setLogic(const LogicInfo& logic)
 
 void SolverEngine::setLogic(const std::string& s)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   try
   {
     setLogic(LogicInfo(s));
@@ -370,7 +370,7 @@ void SolverEngine::setLogicInternal()
 
 void SolverEngine::setInfo(const std::string& key, const std::string& value)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
 
@@ -429,7 +429,7 @@ bool SolverEngine::isValidGetInfoFlag(const std::string& key) const
 
 std::string SolverEngine::getInfo(const std::string& key) const
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
 
   Trace("smt") << "SMT getInfo(" << key << ")" << endl;
   if (key == "all-statistics")
@@ -572,7 +572,7 @@ void SolverEngine::defineFunction(Node func,
                                   Node formula,
                                   bool global)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
@@ -610,7 +610,7 @@ void SolverEngine::defineFunctionsRec(
     const std::vector<Node>& formulas,
     bool global)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
@@ -843,7 +843,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
 {
   try
   {
-    SmtScope smts(this);
+    SolverEngineScope smts(this);
     finishInit();
 
     Trace("smt") << "SolverEngine::"
@@ -917,7 +917,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 {
   Trace("smt") << "SMT getUnsatAssumptions()" << endl;
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   if (!d_env->getOptions().smt.unsatAssumptions)
   {
     throw ModalException(
@@ -950,7 +950,7 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 
 Result SolverEngine::assertFormula(const Node& formula)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
 
@@ -971,7 +971,7 @@ Result SolverEngine::assertFormula(const Node& formula)
 
 void SolverEngine::declareSygusVar(Node var)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   d_sygusSolver->declareSygusVar(var);
 }
 
@@ -980,7 +980,7 @@ void SolverEngine::declareSynthFun(Node func,
                                    bool isInv,
                                    const std::vector<Node>& vars)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
@@ -996,7 +996,7 @@ void SolverEngine::declareSynthFun(Node func,
 
 void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusConstraint(n, isAssume);
 }
@@ -1006,14 +1006,14 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
                                             Node trans,
                                             Node post)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
 }
 
 Result SolverEngine::checkSynth()
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   return d_sygusSolver->checkSynth(*d_asserts);
 }
@@ -1035,7 +1035,7 @@ void SolverEngine::declarePool(const Node& p,
 
 Node SolverEngine::simplify(const Node& ex)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   // ensure we've processed assertions
@@ -1046,7 +1046,7 @@ Node SolverEngine::simplify(const Node& ex)
 Node SolverEngine::expandDefinitions(const Node& ex)
 {
   getResourceManager()->spendResource(Resource::PreprocessStep);
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   return d_smtSolver->getPreprocessor()->expandDefinitions(ex);
@@ -1055,7 +1055,7 @@ Node SolverEngine::expandDefinitions(const Node& ex)
 // TODO(#1108): Simplify the error reporting of this method.
 Node SolverEngine::getValue(const Node& ex) const
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if (Dump.isOn("benchmark"))
@@ -1128,7 +1128,7 @@ std::vector<Node> SolverEngine::getModelDomainElements(TypeNode tn) const
 
 bool SolverEngine::isModelCoreSymbol(Node n)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   Assert(n.isVar());
   const Options& opts = d_env->getOptions();
   if (opts.smt.modelCoresMode == options::ModelCoresMode::NONE)
@@ -1155,7 +1155,7 @@ bool SolverEngine::isModelCoreSymbol(Node n)
 std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
                                    const std::vector<Node>& declaredFuns)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   // !!! Note that all methods called here should have a version at the API
   // level. This is to ensure that the information associated with a model is
   // completely accessible by the user. This is currently not rigorously
@@ -1200,7 +1200,7 @@ std::string SolverEngine::getModel(const std::vector<TypeNode>& declaredSorts,
 Result SolverEngine::blockModel()
 {
   Trace("smt") << "SMT blockModel()" << endl;
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
 
   finishInit();
 
@@ -1229,7 +1229,7 @@ Result SolverEngine::blockModel()
 Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
 
   finishInit();
 
@@ -1299,7 +1299,7 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
         "Cannot declare heap if not using the separation logic theory.";
     throw RecoverableModalException(msg);
   }
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   TheoryEngine* te = getTheoryEngine();
   te->declareSepHeap(locT, dataT);
@@ -1307,7 +1307,7 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 
 bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   TheoryEngine* te = getTheoryEngine();
   return te->getSepHeapTypes(locT, dataT);
@@ -1539,7 +1539,7 @@ void SolverEngine::checkModel(bool hardFailure)
 UnsatCore SolverEngine::getUnsatCore()
 {
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   if (Dump.isOn("benchmark"))
   {
@@ -1564,7 +1564,7 @@ void SolverEngine::getRelevantInstantiationTermVectors(
 std::string SolverEngine::getProof()
 {
   Trace("smt") << "SMT getProof()\n";
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   if (Dump.isOn("benchmark"))
   {
@@ -1592,7 +1592,7 @@ std::string SolverEngine::getProof()
 
 void SolverEngine::printInstantiations(std::ostream& out)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 
@@ -1686,7 +1686,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
 void SolverEngine::getInstantiationTermVectors(
     std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   QuantifiersEngine* qe =
       getAvailableQuantifiersEngine("getInstantiationTermVectors");
@@ -1696,14 +1696,14 @@ void SolverEngine::getInstantiationTermVectors(
 
 bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   return d_sygusSolver->getSynthSolutions(solMap);
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   const LogicInfo& logic = getLogicInfo();
   if (!logic.isPure(THEORY_ARITH) && strict)
@@ -1719,7 +1719,7 @@ bool SolverEngine::getInterpol(const Node& conj,
                                const TypeNode& grammarType,
                                Node& interpol)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
   bool success =
@@ -1740,7 +1740,7 @@ bool SolverEngine::getAbduct(const Node& conj,
                              const TypeNode& grammarType,
                              Node& abd)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
   bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
@@ -1758,7 +1758,7 @@ bool SolverEngine::getAbduct(const Node& conj, Node& abd)
 
 void SolverEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   QuantifiersEngine* qe =
       getAvailableQuantifiersEngine("getInstantiatedQuantifiedFormulas");
   qe->getInstantiatedQuantifiedFormulas(qs);
@@ -1767,7 +1767,7 @@ void SolverEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 void SolverEngine::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node>>& tvecs)
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   QuantifiersEngine* qe =
       getAvailableQuantifiersEngine("getInstantiationTermVectors");
   qe->getInstantiationTermVectors(q, tvecs);
@@ -1775,7 +1775,7 @@ void SolverEngine::getInstantiationTermVectors(
 
 std::vector<Node> SolverEngine::getAssertions()
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   if (Dump.isOn("benchmark"))
@@ -1796,7 +1796,7 @@ std::vector<Node> SolverEngine::getAssertions()
 void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 {
   Trace("smt") << "SMT getDifficultyMap()\n";
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   if (Dump.isOn("benchmark"))
   {
@@ -1818,7 +1818,7 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 
 void SolverEngine::push()
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
@@ -1832,7 +1832,7 @@ void SolverEngine::push()
 
 void SolverEngine::pop()
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
   if (Dump.isOn("benchmark"))
@@ -1854,7 +1854,7 @@ void SolverEngine::pop()
 
 void SolverEngine::resetAssertions()
 {
-  SmtScope smts(this);
+  SolverEngineScope smts(this);
 
   if (!d_state->isFullyInited())
   {
