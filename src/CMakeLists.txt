@@ -349,12 +349,12 @@ libcvc5_add_sources(
   smt/set_defaults.h
   smt/solver_engine.cpp
   smt/solver_engine.h
-  smt/smt_engine_scope.cpp
-  smt/smt_engine_scope.h
+  smt/solver_engine_scope.cpp
+  smt/solver_engine_scope.h
   smt/smt_engine_state.cpp
   smt/smt_engine_state.h
-  smt/smt_engine_stats.cpp
-  smt/smt_engine_stats.h
+  smt/solver_engine_stats.cpp
+  smt/solver_engine_stats.h
   smt/smt_mode.cpp
   smt/smt_mode.h
   smt/smt_solver.cpp
@@ -1347,6 +1347,14 @@ target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
 if(ENABLE_STATIC_LIBRARY)
   target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
+endif()
+
+# Add rt library
+# Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
+#       RT_LIBRARIES should be empty for glibc >= 2.17
+target_link_libraries(cvc5-shared PRIVATE ${RT_LIBRARIES})
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(cvc5-static PRIVATE ${RT_LIBRARIES})
 endif()
 
 if(ENABLE_VALGRIND)

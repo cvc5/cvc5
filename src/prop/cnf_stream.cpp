@@ -28,8 +28,8 @@
 #include "prop/theory_proxy.h"
 #include "smt/dump.h"
 #include "smt/env.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 

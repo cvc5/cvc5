@@ -16,7 +16,7 @@
  * \todo document this file
  */
 
-#include "smt/smt_engine_scope.h"
+#include "smt/solver_engine_scope.h"
 
 #include "base/check.h"
 #include "base/configuration_private.h"
@@ -34,14 +34,14 @@ SolverEngine* currentSolverEngine()
   return s_slvEngine_current;
 }
 
-bool smtEngineInScope() { return s_slvEngine_current != nullptr; }
+bool solverEngineInScope() { return s_slvEngine_current != nullptr; }
 
 ResourceManager* currentResourceManager()
 {
   return s_slvEngine_current->getResourceManager();
 }
 
-SmtScope::SmtScope(const SolverEngine* smt)
+SolverEngineScope::SolverEngineScope(const SolverEngine* smt)
     : d_oldSlvEngine(s_slvEngine_current),
       d_optionsScope(smt ? &const_cast<SolverEngine*>(smt)->getOptions()
                          : nullptr)
@@ -51,15 +51,16 @@ SmtScope::SmtScope(const SolverEngine* smt)
   Debug("current") << "smt scope: " << s_slvEngine_current << std::endl;
 }
 
-SmtScope::~SmtScope() {
+SolverEngineScope::~SolverEngineScope()
+{
   s_slvEngine_current = d_oldSlvEngine;
   Debug("current") << "smt scope: returning to " << s_slvEngine_current
                    << std::endl;
 }
 
-StatisticsRegistry& SmtScope::currentStatisticsRegistry()
+StatisticsRegistry& SolverEngineScope::currentStatisticsRegistry()
 {
-  Assert(smtEngineInScope());
+  Assert(solverEngineInScope());
   return s_slvEngine_current->getStatisticsRegistry();
 }
 
