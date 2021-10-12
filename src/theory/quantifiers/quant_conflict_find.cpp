@@ -577,6 +577,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
 {
   if( options::qcfEagerTest() ){
     //check whether the instantiation evaluates as expected
+    EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
     if (p->atConflictEffort()) {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
       std::map< TNode, TNode > subs;
@@ -584,13 +585,12 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
         Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
         subs[d_q[0][i]] = terms[i];
       }
-      TermDb* tdb = p->getTermDatabase();
       for( unsigned i=0; i<d_extra_var.size(); i++ ){
         Node n = getCurrentExpValue( d_extra_var[i] );
         Trace("qcf-instance-check") << "  " << d_extra_var[i] << " -> " << n << std::endl;
         subs[d_extra_var[i]] = n;
       }
-      if (!tdb->isEntailed(d_q[1], subs, false, false))
+      if (!echeck->isEntailed(d_q[1], subs, false, false))
       {
         Trace("qcf-instance-check") << "...not entailed to be false." << std::endl;
         return true;
@@ -599,7 +599,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
       Node inst =
           getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
       inst = Rewriter::rewrite(inst);
-      Node inst_eval = p->getTermDatabase()->evaluateTerm(
+      Node inst_eval = echeck->evaluateTerm(
           inst, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
@@ -1219,11 +1219,11 @@ bool MatchGen::reset_round(QuantConflictFind* p)
     //  d_ground_eval[0] = p->d_false;
     //}
     // modified
-    TermDb* tdb = p->getTermDatabase();
+    EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
     QuantifiersState& qs = p->getState();
     for (unsigned i = 0; i < 2; i++)
     {
-      if (tdb->isEntailed(d_n, i == 0))
+      if (echeck->isEntailed(d_n, i == 0))
       {
         d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
       }
@@ -1233,13 +1233,13 @@ bool MatchGen::reset_round(QuantConflictFind* p)
       }
     }
   }else if( d_type==typ_eq ){
-    TermDb* tdb = p->getTermDatabase();
+    EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
     QuantifiersState& qs = p->getState();
     for (unsigned i = 0, size = d_n.getNumChildren(); i < size; i++)
     {
       if (!expr::hasBoundVar(d_n[i]))
       {
-        TNode t = tdb->getEntailedTerm(d_n[i]);
+        TNode t = echeck->getEntailedTerm(d_n[i]);
         if (qs.isInConflict())
         {
           return false;
@@ -1295,7 +1295,8 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
       //  d_child_counter = 0;
       //}
       //modified 
-      if( p->getTermDatabase()->isEntailed( n, d_tgt ) ){ 
+      EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
+      if( echeck->isEntailed( n, d_tgt ) ){ 
         d_child_counter = 0;
       }
     }else{
