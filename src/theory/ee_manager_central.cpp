@@ -42,7 +42,8 @@ EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
   }
   if (env.isTheoryProofProducing())
   {
-    d_centralPfee = std::make_unique<eq::ProofEqEngine>(env, d_centralEqualityEngine);
+    d_centralPfee =
+        std::make_unique<eq::ProofEqEngine>(env, d_centralEqualityEngine);
     d_centralEqualityEngine.setProofEqualityEngine(d_centralPfee.get());
   }
 }

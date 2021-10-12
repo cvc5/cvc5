@@ -132,11 +132,12 @@ void Theory::finishInitStandalone()
   if (needsEqualityEngine(esi))
   {
     // always associated with the same SAT context as the theory
-    d_allocEqualityEngine = std::make_unique<eq::EqualityEngine>(d_env,
-                               context(),
-                               *esi.d_notify,
-                               esi.d_name,
-                               esi.d_constantsAreTriggers);
+    d_allocEqualityEngine =
+        std::make_unique<eq::EqualityEngine>(d_env,
+                                             context(),
+                                             *esi.d_notify,
+                                             esi.d_name,
+                                             esi.d_constantsAreTriggers);
     // use it as the official equality engine
     setEqualityEngine(d_allocEqualityEngine.get());
   }
