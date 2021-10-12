@@ -339,7 +339,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["bv-eager-atoms"]->apply(&assertions);
   }
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
+  Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
   dumpAssertions("post-everything", as);
 
   return noConflict;
