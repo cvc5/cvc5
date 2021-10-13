@@ -13,8 +13,8 @@
  * The cvc5 Java API.
  */
 
-#ifndef CVC5__JAVA_API_H
-#define CVC5__JAVA_API_H
+#ifndef CVC5__API_UTILITIES_H
+#define CVC5__API_UTILITIES_H
 
 #include <jni.h>
 
@@ -139,4 +139,4 @@ jobject getDoubleObject(JNIEnv* env, double value);
  */
 jobject getBooleanObject(JNIEnv* env, bool value);
 
-#endif  // CVC5__JAVA_API_H
+#endif  // CVC5__API_UTILITIES_H

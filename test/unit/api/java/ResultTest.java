@@ -13,6 +13,8 @@
  * Black box testing of the Result class
  */
 
+package tests;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.api.*;

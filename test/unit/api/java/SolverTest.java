@@ -14,12 +14,11 @@
  */
 
 package tests;
-import io.github.cvc5.api.*;
-
 import static io.github.cvc5.api.Kind.*;
 import static io.github.cvc5.api.RoundingMode.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.github.cvc5.api.*;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;

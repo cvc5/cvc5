@@ -13,10 +13,10 @@
  * The cvc5 Java API.
  */
 
-#include "java_api.h"
-
 #include <string>
 #include <vector>
+
+#include "api_utilities.h"
 
 jobjectArray getStringArrayFromStringVector(
     JNIEnv* env, const std::vector<std::string>& cStrings)
