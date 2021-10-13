@@ -1,28 +1,33 @@
 ; depends: core_defs.plf
 
+; This file contains utilities used throughout the proof signatures.
+
+; A "flag" is a Boolean value.
 (declare flag type)
 (declare tt flag)
 (declare ff flag)
 
+; "Ok" is a unit value, used to indicate that e.g. a side condition ran successfully.
 (declare Ok type)
 (declare ok Ok)
 
+; A pair of terms
 (declare termPair type)
 (declare pair (! first term (! second term termPair)))
 
-; bits
+; Bits, used to represent bit-vectors
 (declare bit type)
 (declare b0 bit)
 (declare b1 bit)
-; bit vector type used for constants
+; A bit-vector, which is a list of bits. Used to represent a value of bit-vector type.
 (declare bitvec type)
 (declare bvn bitvec)
 (declare bvc (! b bit (! v bitvec bitvec)))
 
-; get argument from f application, fail otherwise
+; Get the argument from an f-application t, fail if t is not an f-application.
 (program getarg ((f term) (t term)) term
   (match t ((apply t1 t2) (ifequal t1 f t2 (fail term)))))
 
-; get argument from f application, return self otherwise
+; Get the argument from an f-application t, return the term t itself if it is not an f-application.
 (program try_getarg ((f term) (t term)) term
   (match t ((apply t1 t2) (ifequal t1 f t2 t)) (default t)))

@@ -1,3 +1,5 @@
+; This file defines how SMT-LIB sorts and terms are represented in LFSC.
+
 ; Sorts and terms:
 (declare sort type)
 (declare term type)
