@@ -33,6 +33,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
+#include "expr/ascription_type.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -895,7 +896,15 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       const DType& dt = datatypes::utils::datatypeOf(tester);
       const DTypeConstructor& c = dt[index];
       std::vector<Node> newChildren;
-      newChildren.push_back(c.getConstructor());
+      Node cons = c.getConstructor();
+      // take into account if parametric
+      if (dt.isParametric())
+      {
+        cons = nm->mkNode(APPLY_TYPE_ASCRIPTION,
+                                  nm->mkConst(AscriptionType(lit[0].getType())),
+                                  cons);
+      }
+      newChildren.push_back(cons);
       std::vector<Node> newVars;
       BoundVarManager* bvm = nm->getBoundVarManager();
       for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
