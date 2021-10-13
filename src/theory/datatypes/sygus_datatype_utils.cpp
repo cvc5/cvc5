@@ -111,12 +111,6 @@ Kind getOperatorKindForSygusBuiltin(Node op)
   return NodeManager::getKindForFunction(op);
 }
 
-struct SygusOpRewrittenAttributeId
-{
-};
-typedef expr::Attribute<SygusOpRewrittenAttributeId, Node>
-    SygusOpRewrittenAttribute;
-
 Kind getEliminateKind(Kind ok)
 {
   Kind nk = ok;
