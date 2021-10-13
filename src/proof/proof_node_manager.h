@@ -58,7 +58,7 @@ class Rewriter;
 class ProofNodeManager
 {
  public:
-  ProofNodeManager(theory::Rewriter * rr, ProofChecker* pc = nullptr);
+  ProofNodeManager(theory::Rewriter* rr, ProofChecker* pc = nullptr);
   ~ProofNodeManager() {}
   /**
    * This constructs a ProofNode with the given arguments. The expected
@@ -189,7 +189,7 @@ class ProofNodeManager
 
  private:
   /** The rewriter */
-  theory::Rewriter * d_rr;
+  theory::Rewriter* d_rr;
   /** The (optional) proof checker */
   ProofChecker* d_checker;
   /** the true node */

@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/env_obj.h"
 #include "options/smt_options.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 

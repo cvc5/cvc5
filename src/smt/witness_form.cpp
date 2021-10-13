@@ -16,8 +16,8 @@
 #include "smt/witness_form.h"
 
 #include "expr/skolem_manager.h"
-#include "theory/rewriter.h"
 #include "smt/env.h"
+#include "theory/rewriter.h"
 
 namespace cvc5 {
 namespace smt {
@@ -31,8 +31,12 @@ WitnessFormGenerator::WitnessFormGenerator(Env& env)
              "WfGenerator::TConvProofGenerator",
              nullptr,
              true),
-      d_wintroPf(env.getProofNodeManager(), nullptr, nullptr, "WfGenerator::LazyCDProof"),
-      d_pskPf(env.getProofNodeManager(), nullptr, "WfGenerator::PurifySkolemProof")
+      d_wintroPf(env.getProofNodeManager(),
+                 nullptr,
+                 nullptr,
+                 "WfGenerator::LazyCDProof"),
+      d_pskPf(
+          env.getProofNodeManager(), nullptr, "WfGenerator::PurifySkolemProof")
 {
 }
 

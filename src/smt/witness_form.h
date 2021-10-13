@@ -34,7 +34,6 @@ class Rewriter;
 
 namespace smt {
 
-
 /**
  * The witness form proof generator, which acts as a wrapper around a
  * TConvProofGenerator for adding rewrite steps for witness introduction.
@@ -94,7 +93,7 @@ class WitnessFormGenerator : public ProofGenerator
    */
   ProofGenerator* convertExistsInternal(Node exists);
   /** The rewriter we are using */
-  theory::Rewriter * d_rr;
+  theory::Rewriter* d_rr;
   /** The term conversion proof generator */
   TConvProofGenerator d_tcpg;
   /** The nodes we have already added rewrite steps for in d_tcpg */

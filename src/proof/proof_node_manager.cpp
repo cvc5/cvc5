@@ -28,7 +28,8 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-ProofNodeManager::ProofNodeManager(theory::Rewriter * rr, ProofChecker* pc) : d_rr(rr), d_checker(pc)
+ProofNodeManager::ProofNodeManager(theory::Rewriter* rr, ProofChecker* pc)
+    : d_rr(rr), d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   // we always allocate a proof checker, regardless of the proof checking mode
