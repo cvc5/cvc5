@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-info :status sat)
 (declare-datatype Option (par (T) ((none) (some (extractSome T)))))
 (assert
  (forall ((x (Option Int)))
