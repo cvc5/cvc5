@@ -81,7 +81,7 @@ class ProcessAssertions : protected EnvObj
 
  private:
   /** Reference to the SMT stats */
-  SolverEngineStatistics& d_smtStats;
+  SolverEngineStatistics& d_slvStats;
   /** The preprocess context */
   preprocessing::PreprocessingPassContext* d_preprocessingPassContext;
   /** True node */
