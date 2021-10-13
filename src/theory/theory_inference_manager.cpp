@@ -96,8 +96,7 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
     d_pfee = d_ee->getProofEqualityEngine();
     if (d_pfee == nullptr)
     {
-      d_pfeeAlloc.reset(
-          new eq::ProofEqEngine(context(), userContext(), *d_ee, d_pnm));
+      d_pfeeAlloc = std::make_unique<eq::ProofEqEngine>(d_env, *d_ee);
       d_pfee = d_pfeeAlloc.get();
       d_ee->setProofEqualityEngine(d_pfee);
     }
@@ -144,7 +143,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   d_conflictIdStats << id;
-  smt::currentResourceManager()->spendResource(id);
+  resourceManager()->spendResource(id);
   Trace("im") << "(conflict " << id << " " << tconf.getProven() << ")"
               << std::endl;
   // annotate if the annotation proof generator is active
@@ -281,7 +280,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
     }
   }
   d_lemmaIdStats << id;
-  smt::currentResourceManager()->spendResource(id);
+  resourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   // shouldn't send trivially true or false lemmas
   Assert(!Rewriter::rewrite(tlem.getProven()).isConst());
@@ -413,7 +412,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  ProofGenerator* pg)
 {
   d_factIdStats << iid;
-  smt::currentResourceManager()->spendResource(iid);
+  resourceManager()->spendResource(iid);
   // make the node corresponding to the explanation
   Node expn = NodeManager::currentNM()->mkAnd(exp);
   Trace("im") << "(fact " << iid << " " << (pol ? Node(atom) : atom.notNode())

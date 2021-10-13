@@ -361,8 +361,8 @@ libcvc5_add_sources(
   smt/solver_engine.h
   smt/solver_engine_scope.cpp
   smt/solver_engine_scope.h
-  smt/smt_engine_state.cpp
-  smt/smt_engine_state.h
+  smt/solver_engine_state.cpp
+  smt/solver_engine_state.h
   smt/solver_engine_stats.cpp
   smt/solver_engine_stats.h
   smt/smt_mode.cpp
