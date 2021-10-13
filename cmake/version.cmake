@@ -44,7 +44,7 @@ if(GIT_FOUND)
 
   # call git describe. If result is not 0 this is not a git repository
   execute_process(
-      COMMAND ${GIT_EXECUTABLE} describe --long --tags --match cvc5-*
+      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} describe --long --tags --match cvc5-*
       RESULT_VARIABLE GIT_RESULT
       OUTPUT_VARIABLE GIT_DESCRIBE
       OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -56,7 +56,7 @@ if(GIT_FOUND)
     set(GIT_BUILD "true")
     # get current git branch
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+        COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} rev-parse --abbrev-ref HEAD
         RESULT_VARIABLE GIT_RESULT
         OUTPUT_VARIABLE GIT_BRANCH
         OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -64,7 +64,7 @@ if(GIT_FOUND)
     # result is != 0 if worktree is dirty
     # note: git diff HEAD shows both staged and unstaged changes.
     execute_process(
-      COMMAND ${GIT_EXECUTABLE} diff HEAD --quiet
+      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} diff HEAD --quiet
       RESULT_VARIABLE GIT_RESULT
     )
     if(GIT_RESULT EQUAL 0)
@@ -99,10 +99,18 @@ if(GIT_FOUND)
         list(LENGTH VERSION_LIST VERSION_LIST_LENGTH)
       endwhile()
       # increment patch part
-      list(POP_BACK VERSION_LIST VERSION_LAST_NUMBER)
+      list(GET VERSION_LIST 2 VERSION_LAST_NUMBER)
+      list(REMOVE_AT VERSION_LIST 2)
       math(EXPR VERSION_LAST_NUMBER "${VERSION_LAST_NUMBER} + 1")
       list(APPEND VERSION_LIST ${VERSION_LAST_NUMBER})
-      string(JOIN "." GIT_LAST_TAG ${VERSION_LIST})
+      # join version string into GIT_LAST_TAG
+      list(GET VERSION_LIST 0 GIT_LAST_TAG)
+      while(VERSION_LIST_LENGTH GREATER "1")
+        list(REMOVE_AT VERSION_LIST 0)
+        list(GET VERSION_LIST 0 TMP)
+        set(GIT_LAST_TAG "${GIT_LAST_TAG}.${TMP}")
+        list(LENGTH VERSION_LIST VERSION_LIST_LENGTH)
+      endwhile()
 
       set(CVC5_VERSION "${GIT_LAST_TAG}-dev")
       set(CVC5_FULL_VERSION "${GIT_LAST_TAG}-dev.${GIT_COMMITS_SINCE_TAG}.${GIT_COMMIT}")

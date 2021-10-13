@@ -72,7 +72,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
   // We consider this to be an entailment check, which also avoids incorrect
-  // status reporting (see SmtEngineState::d_expectedStatus).
+  // status reporting (see SolverEngineState::d_expectedStatus).
   Result r = d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, true);
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)

@@ -17,9 +17,9 @@
 
 #include "options/theory_options.h"
 #include "proof/conv_proof_generator.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
@@ -196,16 +196,11 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   vector<RewriteStackElement> rewriteStack;
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
 
-  ResourceManager* rm = NULL;
-  bool hasSmtEngine = smt::smtEngineInScope();
-  if (hasSmtEngine) {
-    rm = smt::currentResourceManager();
-  }
   // Rewrite until the stack is empty
   for (;;){
-    if (hasSmtEngine)
+    if (d_resourceManager != nullptr)
     {
-      rm->spendResource(Resource::RewriteStep);
+      d_resourceManager->spendResource(Resource::RewriteStep);
     }
 
     // Get the top of the recursion stack
