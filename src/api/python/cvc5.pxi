@@ -436,7 +436,7 @@ cdef class Op:
         A cvc5 operator.
         An operator is a term that represents certain operators,
         instantiated with its required parameters, e.g.,
-        a term of kind `:cpp:enumerator:BITVECTOR_EXTRACT`.
+        a term of kind :cpp:enumerator:`BITVECTOR_EXTRACT`.
         Wrapper class for :cpp:class:`cvc5::api::Op`.
     """
     cdef c_Op cop
@@ -600,7 +600,7 @@ cdef class Result:
 
     def isNotEntailed(self):
         """
-            :return: True if corresponding query was a checkEntailed() query that is not entailed.
+            :return: True if corresponding query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query that is not entailed.
         """
         return self.cr.isNotEntailed()
 
