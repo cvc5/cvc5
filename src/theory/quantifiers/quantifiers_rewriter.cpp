@@ -901,8 +901,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       // take into account if parametric
       if (dt.isParametric())
       {
-        tspec =
-            dt[index].getSpecializedConstructorType(lit[0].getType());
+        tspec = dt[index].getSpecializedConstructorType(lit[0].getType());
         cons = nm->mkNode(
             APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cons);
       }
