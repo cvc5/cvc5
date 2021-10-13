@@ -1,22 +1,50 @@
 ; depends: core_defs.plf
 
-; sorts :
-(declare Bool sort)
-(declare Int sort)
-(declare Real sort)
-(declare String sort)
-(declare RegLan sort)
-(declare Array (! i sort (! e sort sort)))
-(declare BitVec (! w mpz sort))
-(declare FloatingPoint (! e mpz (! s mpz sort)))
-(declare RoundingMode sort)
-(declare Set (! e sort sort))
-(declare Bag (! e sort sort))
-(declare Seq (! e sort sort))
+; This file defines the sort and function symbols for all SMT-LIB standard
+; theories, as well as extensions supported by cvc5.
 
-; Arithmetic
+;; ---- Sorts
+
+; Booleans
+(declare Bool sort)
+; Integers
+(declare Int sort)
 ; Reals
+(declare Real sort)
+; Arrays, parametrized by index and element sorts
+(declare Array (! i sort (! e sort sort)))
+; Strings
+(declare String sort)
+; Sequences, parametrized by an element sort
+(declare Seq (! e sort sort))
+; Regular languages
+(declare RegLan sort)
+; Bit-vectors, parametrized by an integer bit-width
+(declare BitVec (! w mpz sort))
+; Floating points, parametrized by exponent and significand bit-widths
+(declare FloatingPoint (! e mpz (! s mpz sort)))
+; Rounding modes for floating points
+(declare RoundingMode sort)
+; Sets, parametrized by an element sort
+(declare Set (! e sort sort))
+; Bags (i.e. multi-sets), parametrized by an element sort
+(declare Bag (! e sort sort))
+
+;; ---- Arithmetic
+
+; We define the signature for theories of integer and real arithmetic with
+; extensions here. Apart from real and integer values, the signature does
+; not distinguish between integer and real versions of the overloaded operators
+; of arithmetic. Instead, a single operator is used for both versions, which
+; we prefix its name with `a.` where "a" is for "arithmetic". For example,
+; `f_a.+` denotes the function for arithmetic addition and is used for
+; applications of addition for both real and integer terms. Other non-overloaded
+; operators, e.g. for transcendentals, are not prefixed by `a.`.
+
+; a real-valued constant, indexed by its rational value, represented as an mpq.
 (declare real (! v mpq term))
+; a integer-valued constant, indexed by its integer value, represented as an mpz.
+(declare int (! v mpz term))
 (declare f_a.+ term)
 (define a.+ (# x term (# y term (apply (apply f_a.+ x) y))))
 (declare f_a.- term)
@@ -39,6 +67,7 @@
 (define a.<= (# x term (# y term (apply (apply f_a.<= x) y))))
 (declare f_a.^ term)
 (define a.^ (# x term (# y term (apply (apply f_a.^ x) y))))
+; Transcendentals
 (declare real.pi term)
 (declare f_exp term)
 (define exp (# x term (apply f_exp x)))
@@ -68,8 +97,6 @@
 (define arccot (# x term (apply f_arccot x)))
 (declare f_sqrt term)
 (define sqrt (# x term (apply f_sqrt x)))
-; Integers
-(declare int (! v mpz term))
 (declare f_a.div term)
 (define a.div (# x term (# y term (apply (apply f_a.div x) y))))
 (declare f_a.mod term)
@@ -78,7 +105,7 @@
 (define a.div_total (# x term (# y term (apply (apply f_a.div_total x) y))))
 (declare f_a.mod_total term)
 (define a.mod_total (# x term (# y term (apply (apply f_a.mod_total x) y))))
-; Other
+; Other extended terms
 (declare f_to_real term)
 (define to_real (# x term (apply f_to_real x)))
 (declare f_to_int term)
@@ -87,10 +114,11 @@
 (define is_int (# x term (apply f_is_int x)))
 (declare f_abs term)
 (define abs (# x term (apply f_abs x)))
+; "integer-and", see Zohar et al VMCAI 2022.
 (declare f_iand (! x mpz term))
 (define iand (# x mpz (# y term (# z term (apply (apply (f_iand x) y) z)))))
 
-; Arrays
+;; ---- Arrays
 (declare f_select term)
 (define select (# x term (# y term (apply (apply f_select x) y))))
 (declare f_store term)
@@ -100,16 +128,25 @@
 (declare f_eqrange term)
 (define eqrange (# x term (# y term (# z term (# w term (apply (apply (apply (apply f_eqrange x) y) z) w))))))
 
-; Datatypes
-; tester
+;; ---- Datatypes
+; tester, indexed by the constructor that it tests
 (declare is (! c term term))
-; updater
+; updater, indexed by the selector field that it updates
 (declare update (! s term term))
-; shared selector for (sort, index)
+; "shared selector" for (sort, index), see Reynolds et al IJCAR 2018.
 (declare sel (! s sort (! z mpz term)))
 
-; Strings
+;; ---- Strings
+
+; In strings, values (i.e. word constants) are represented as null-terminated
+; concatenation chains of character constants, indexed by Unicode code points.
+; This means that the SMT-LIB syntax "ABC" denoting a string of length 3 is
+; represented in LFSC as the term:
+;   `(str.++ (char 65) (str.++ (char 66) (str.++ (char 67) emptystr)))`
+
+; The empty string 
 (declare emptystr term)
+; A character constant, indexed by its Unicode code point
 (declare char (! v mpz term))
 (declare f_str.len term)
 (define str.len (# x term (apply f_str.len x)))
@@ -215,7 +252,9 @@
 ; skolem types
 (declare skolem_re_unfold_pos (! t term (! r term (! z mpz term))))
 
-; Bit-vectors
+;; ---- Bit-vectors
+
+; A bit-vector constant, indexed by a bitvec, denoting its value.
 (declare bv (! b bitvec term))
 (declare f_bvnot term)
 (define bvnot (# x term (apply f_bvnot x)))
@@ -291,15 +330,17 @@
 (define bv2nat (# x term (apply f_bv2nat x)))
 (declare f_int2bv (! i mpz term))
 (define int2bv (# x mpz (# y term (apply (f_int2bv x) y))))
-; Bitblasting
+; Internal definitions for Bitblasting
 (declare f_bbT term)
 (define bbT (# x term (# y term (apply (apply f_bbT x) y))))
 (declare f_bitOf (! b mpz term))
 (define bitOf (# b mpz (# x term (apply (f_bitOf b) x))))
+(declare f_BITVECTOR_EAGER_ATOM term)
+(define BITVECTOR_EAGER_ATOM (# x term (apply f_BITVECTOR_EAGER_ATOM x)))
 ; The empty bitvector, which is used as the null terminator of bvconcat chains
 (declare emptybv term)
 
-; Sets
+;; ---- Sets
 (declare emptyset (! s sort term))
 (declare univset (! s sort term))
 (declare f_singleton term)
@@ -337,7 +378,7 @@
 (declare f_insert term)
 (define insert (# x term (# y term (apply (apply f_insert x) y))))
 
-; Bags
+;; ---- Bags
 (declare emptybag (! s sort term))
 (declare f_union_max term)
 (define union_max (# x term (# y term (apply (apply f_union_max x) y))))
@@ -358,7 +399,7 @@
 (declare f_duplicate_removal term)
 (define duplicate_removal (# x term (apply f_duplicate_removal x)))
 
-; Separation Logic
+;; ---- Separation Logic
 (declare sep.nil (! s sort term))
 (declare f_sep term)
 (define sep (# x term (# y term (apply (apply f_sep x) y))))
@@ -368,14 +409,13 @@
 (define wand (# x term (# y term (apply (apply f_wand x) y))))
 (declare f_pto term)
 (define pto (# x term (# y term (apply (apply f_pto x) y))))
-(declare f_emp term)
-(define emp (# x term (# y term (apply (apply f_emp x) y))))
-
-
-; non-standard definitions to represent internally generated terms
-(declare f_BITVECTOR_EAGER_ATOM term)
-(define BITVECTOR_EAGER_ATOM (# x term (apply f_BITVECTOR_EAGER_ATOM x)))
+; the empty heap constraint
+(declare sep.emp term)
+; internally generated in separation logic reductions
 (declare f_SEP_LABEL term)
 (define SEP_LABEL (# x term (# y term (apply (apply f_SEP_LABEL x) y))))
+
+;; ---- UF with cardinality
+; internally generated for finite model finding
 (declare f_fmf.card term)
 (define fmf.card (# x term (# y term (apply (apply f_fmf.card x) y))))
