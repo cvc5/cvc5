@@ -14,8 +14,8 @@
  */
 
 #include "api/cpp/cvc5.h"
+#include "api_utilities.h"
 #include "io_github_cvc5_api_Stat.h"
-#include "java_api.h"
 
 using namespace cvc5::api;
 

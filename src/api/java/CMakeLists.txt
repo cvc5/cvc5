@@ -14,15 +14,15 @@
 ##
 
 # create directories
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api")
 set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/jni")
 file(MAKE_DIRECTORY ${JNI_DIR})
 
-# Generate cvc5/Kind.java
+# Generate Kind.java
 configure_file(genkinds.py.in genkinds.py)
 
 set(JAVA_KIND_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/Kind.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api/Kind.java"
 )
 
 add_custom_command(
@@ -111,13 +111,13 @@ message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
 add_library(cvc5jni SHARED
+  jni/api_utilities.cpp
   jni/datatype.cpp
   jni/datatype_constructor.cpp
   jni/datatype_constructor_decl.cpp
   jni/datatype_decl.cpp
   jni/datatype_selector.cpp
   jni/grammar.cpp
-  jni/java_api.cpp
   jni/op.cpp
   jni/option_info.cpp
   jni/result.cpp
