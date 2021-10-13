@@ -1081,7 +1081,7 @@ Node SolverEngine::getValue(const Node& ex) const
   // AJR : necessary?
   if (!n.getType().isFunction())
   {
-    n = Rewriter::rewrite(n);
+    n = d_env->rewrite(n);
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
@@ -1224,8 +1224,9 @@ Result SolverEngine::blockModel()
 
   // get expanded assertions
   std::vector<Node> eassertsProc = getExpandedAssertions();
-  Node eblocker = ModelBlocker::getModelBlocker(
-      eassertsProc, m, d_env->getOptions().smt.blockModelsMode);
+  ModelBlocker mb(*d_env.get());
+  Node eblocker = mb.getModelBlocker(
+      eassertsProc, m);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
   return assertFormula(eblocker);
 }
