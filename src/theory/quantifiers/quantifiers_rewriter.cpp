@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
+#include "expr/ascription_type.h"
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
@@ -33,7 +34,6 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
-#include "expr/ascription_type.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -900,10 +900,10 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       // take into account if parametric
       if (dt.isParametric())
       {
-        TypeNode tspec = dt[index].getSpecializedConstructorType(lit[0].getType());
-        cons = nm->mkNode(APPLY_TYPE_ASCRIPTION,
-                                  nm->mkConst(AscriptionType(tspec)),
-                                  cons);
+        TypeNode tspec =
+            dt[index].getSpecializedConstructorType(lit[0].getType());
+        cons = nm->mkNode(
+            APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cons);
       }
       newChildren.push_back(cons);
       std::vector<Node> newVars;
