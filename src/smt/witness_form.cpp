@@ -17,20 +17,22 @@
 
 #include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
+#include "smt/env.h"
 
 namespace cvc5 {
 namespace smt {
 
-WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
-    : d_tcpg(pnm,
+WitnessFormGenerator::WitnessFormGenerator(Env& env)
+    : d_rr(env.getRewriter()),
+      d_tcpg(env.getProofNodeManager(),
              nullptr,
              TConvPolicy::FIXPOINT,
              TConvCachePolicy::NEVER,
              "WfGenerator::TConvProofGenerator",
              nullptr,
              true),
-      d_wintroPf(pnm, nullptr, nullptr, "WfGenerator::LazyCDProof"),
-      d_pskPf(pnm, nullptr, "WfGenerator::PurifySkolemProof")
+      d_wintroPf(env.getProofNodeManager(), nullptr, nullptr, "WfGenerator::LazyCDProof"),
+      d_pskPf(env.getProofNodeManager(), nullptr, "WfGenerator::PurifySkolemProof")
 {
 }
 
@@ -114,12 +116,12 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
 
 bool WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s) const
 {
-  return theory::Rewriter::rewrite(t) != theory::Rewriter::rewrite(s);
+  return d_rr->rewrite(t) != d_rr->rewrite(s);
 }
 
 bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
 {
-  Node tr = theory::Rewriter::rewrite(t);
+  Node tr = d_rr->rewrite(t);
   return !tr.isConst() || !tr.getConst<bool>();
 }
 

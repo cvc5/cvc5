@@ -20,7 +20,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "options/smt_options.h"
 
 using namespace cvc5::kind;
 
@@ -30,6 +29,7 @@ ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
 
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
+      options::BlockModelsMode mode,
                                    const std::vector<Node>& exprToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -38,7 +38,6 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
   std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
-  options::BlockModelsMode mode = options().smt.blockModelsMode;
   if (mode == options::BlockModelsMode::LITERALS)
   {
     Assert(nodesToBlock.empty());

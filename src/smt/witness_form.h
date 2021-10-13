@@ -25,7 +25,15 @@
 #include "proof/proof_generator.h"
 
 namespace cvc5 {
+
+class Env;
+
+namespace theory {
+class Rewriter;
+}
+
 namespace smt {
+
 
 /**
  * The witness form proof generator, which acts as a wrapper around a
@@ -37,7 +45,7 @@ namespace smt {
 class WitnessFormGenerator : public ProofGenerator
 {
  public:
-  WitnessFormGenerator(ProofNodeManager* pnm);
+  WitnessFormGenerator(Env& env);
   ~WitnessFormGenerator() {}
   /**
    * Get proof for, which expects an equality of the form t = toWitness(t).
@@ -85,6 +93,8 @@ class WitnessFormGenerator : public ProofGenerator
    * Return a proof generator that can prove the given axiom exists.
    */
   ProofGenerator* convertExistsInternal(Node exists);
+  /** The rewriter we are using */
+  theory::Rewriter * d_rr;
   /** The term conversion proof generator */
   TConvProofGenerator d_tcpg;
   /** The nodes we have already added rewrite steps for in d_tcpg */
