@@ -4,13 +4,13 @@
 (declare sort type)
 (declare term type)
 
-; Theory holds: term t holds, where t should have Boolean type
+; holds: term t holds, where t should have Boolean type
 (declare holds (! t term type))
 
-; function constructor :
+; function type constructor :
 (declare arrow (! s1 sort (! s2 sort sort)))
 
-; high-order apply :
+; higher-order apply :
 (declare apply (! t1 term (! t2 term term)))
 
 ; Booleans :
