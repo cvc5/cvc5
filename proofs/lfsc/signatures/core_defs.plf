@@ -121,7 +121,10 @@
 (declare f_exists (! v mpz (! s sort term)))
 (define exists (# v mpz (# s sort (# t term (apply (f_exists v s) t)))))
 
-; witness
+; witness, similar to Hilbert's choice operator. However, it is not necessarily
+; the case that (witness ((x Int)) (P x)) and (witness ((y Int)) (Q y)) are
+; equivalent when (exists ((x Int)) (P x)) and (exists ((y Int)) (Q y)) are
+; equivalent.
 (declare f_witness (! v mpz (! s sort term)))
 (define witness (# v mpz (# s sort (# t term (apply (f_witness v s) t)))))
 
@@ -133,7 +136,9 @@
 ; A "Skolem variable" is an internally introduced term. Its semantics are the
 ; same as free constants. In contrast to free constants, we identify Skolem
 ; variables by a term, which they are indexed by. Given a Skolem variable
-; (skolem t), we call t the "witness form" of this Skolem. The witness form
+; (skolem t), we call t the "witness term" of this Skolem. The witness term
 ; of a Skolem is often a term that the Skolem was used to abstract during
-; solving.
+; solving. It is *not* necessarily the case that the witness term for a Skolem
+; is an application of witness. Some Skolem variables, e.g. those used for
+; purification, are associated with a quantifier-free term.
 (declare skolem (! w term term))
