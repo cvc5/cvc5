@@ -154,36 +154,26 @@ Node mkSygusTerm(const DType& dt,
   {
     // Get the normalized version of the sygus operator. We do this by
     // expanding definitions, rewriting it, and eliminating partial operators.
-    if (!op.hasAttribute(SygusOpRewrittenAttribute()))
+    if (op.isConst())
     {
-      if (op.isConst())
+      // If it is a builtin operator, convert to total version if necessary.
+      // First, get the kind for the operator.
+      Kind ok = NodeManager::operatorToKind(op);
+      Trace("sygus-grammar-normalize-debug")
+          << "...builtin kind is " << ok << std::endl;
+      Kind nk = getEliminateKind(ok);
+      if (nk != ok)
       {
-        // If it is a builtin operator, convert to total version if necessary.
-        // First, get the kind for the operator.
-        Kind ok = NodeManager::operatorToKind(op);
         Trace("sygus-grammar-normalize-debug")
-            << "...builtin kind is " << ok << std::endl;
-        Kind nk = getEliminateKind(ok);
-        if (nk != ok)
-        {
-          Trace("sygus-grammar-normalize-debug")
-              << "...replace by builtin operator " << nk << std::endl;
-          opn = NodeManager::currentNM()->operatorOf(nk);
-        }
-      }
-      else
-      {
-        // Get the expanded definition form, if it has been marked. This ensures
-        // that user-defined functions have been eliminated from op.
-        opn = getExpandedDefinitionForm(op);
-        opn = Rewriter::rewrite(opn);
-        SygusOpRewrittenAttribute sora;
-        op.setAttribute(sora, opn);
+            << "...replace by builtin operator " << nk << std::endl;
+        opn = NodeManager::currentNM()->operatorOf(nk);
       }
     }
     else
     {
-      opn = op.getAttribute(SygusOpRewrittenAttribute());
+      // Get the expanded definition form, if it has been marked. This ensures
+      // that user-defined functions have been eliminated from op.
+      opn = getExpandedDefinitionForm(op);
     }
   }
   return mkSygusTerm(opn, children, doBetaReduction);
