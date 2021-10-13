@@ -101,6 +101,7 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);
+  void la_generic(std::vector<Node> clauses);
 };
 
 /**
