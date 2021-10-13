@@ -26,7 +26,7 @@ set(JAVA_KIND_FILE
 
 # Generate cvc5/NativeCode.java
 set(JAVA_NATIVE_CODE_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/NativeCode.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api/NativeCode.java"
   )
 configure_file(${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/NativeCode.java.in ${JAVA_NATIVE_CODE_FILE})
 
