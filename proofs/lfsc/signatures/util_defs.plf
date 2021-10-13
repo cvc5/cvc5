@@ -31,3 +31,27 @@
 ; Get the argument from an f-application t, return the term t itself if it is not an f-application.
 (program try_getarg ((f term) (t term)) term
   (match t ((apply t1 t2) (ifequal t1 f t2 t)) (default t)))
+
+; proof-let
+(declare plet (! f term (! g term (! p (holds g) (! u (! v (holds g) (holds f)) (holds f))))))
+; scope, where note that this assumes f is in n-ary, null-terminated form
+(declare scope (! f term (! g term (! u (! v (holds g) (holds f)) (holds (or (not g) f))))))
+; trust
+(declare trust (! f term (holds f)))
+
+; replaces all skolems in t with their original form
+(program sc_to_original ((t term)) term
+  (match t
+    ((apply t1 t2) (apply (sc_to_original t1) (sc_to_original t2)))
+    ((skolem w)
+      ; witness terms stay beneath skolems, other terms are converted
+      (match w
+        ((apply w1 w2)
+          (match w1
+            ((f_witness v s) t)
+            (default w)))
+        (default w)))
+    (default t)
+  ))
+; make a skolem, which ensures that the given term is in original form
+(program sc_mk_skolem ((t term)) term (skolem (sc_to_original t)))
