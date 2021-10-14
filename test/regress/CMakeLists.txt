@@ -965,6 +965,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/ufnia-fv-delta.smt2
+  regress0/quantifiers/veqt-delta.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc.smt2
   regress0/rels/atom_univ2.cvc.smt2
@@ -1843,6 +1844,7 @@ set(regress_1_tests
   regress1/quantifiers/cee-npnt-dd.smt2
   regress1/quantifiers/cee-os-delta.smt2
   regress1/quantifiers/cdt-0208-to.smt2
+  regress1/quantifiers/choice-move-delta-relt.smt2
   regress1/quantifiers/const.cvc.smt2
   regress1/quantifiers/constfunc.cvc.smt2
   regress1/quantifiers/ddatv-delta2.smt2
@@ -1902,6 +1904,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
   regress1/quantifiers/issue6699-nc-shadow.smt2
+  regress1/quantifiers/issue6845-nl-lemma-tc.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
