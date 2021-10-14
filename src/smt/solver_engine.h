@@ -77,7 +77,7 @@ class PropEngine;
 
 namespace smt {
 /** Utilities */
-class SmtEngineState;
+class SolverEngineState;
 class AbstractValues;
 class Assertions;
 class DumpManager;
@@ -93,8 +93,8 @@ class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
 
-struct SmtEngineStatistics;
-class SmtScope;
+struct SolverEngineStatistics;
+class SolverEngineScope;
 class PfManager;
 class UnsatCoreManager;
 
@@ -113,8 +113,8 @@ class QuantifiersEngine;
 class CVC5_EXPORT SolverEngine
 {
   friend class ::cvc5::api::Solver;
-  friend class ::cvc5::smt::SmtEngineState;
-  friend class ::cvc5::smt::SmtScope;
+  friend class ::cvc5::smt::SolverEngineState;
+  friend class ::cvc5::smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -1047,7 +1047,7 @@ class CVC5_EXPORT SolverEngine
    * The state of this SolverEngine, which is responsible for maintaining which
    * SMT mode we are in, the contexts, the last result, etc.
    */
-  std::unique_ptr<smt::SmtEngineState> d_state;
+  std::unique_ptr<smt::SolverEngineState> d_state;
 
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
@@ -1102,7 +1102,7 @@ class CVC5_EXPORT SolverEngine
   std::map<std::string, int> d_commandVerbosity;
 
   /** The statistics class */
-  std::unique_ptr<smt::SmtEngineStatistics> d_stats;
+  std::unique_ptr<smt::SolverEngineStatistics> d_stats;
 
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
@@ -1111,7 +1111,7 @@ class CVC5_EXPORT SolverEngine
    * SolverEngine in scope. It says the SolverEngine in scope until it is
    * destructed, or another SolverEngine is created.
    */
-  std::unique_ptr<smt::SmtScope> d_scope;
+  std::unique_ptr<smt::SolverEngineScope> d_scope;
 }; /* class SolverEngine */
 
 /* -------------------------------------------------------------------------- */

@@ -117,6 +117,18 @@ class RemoveTermFormulas : protected EnvObj
    */
   static Node getAxiomFor(Node n);
 
+  /**
+   * This is called on a term node that occurs in a term context (see
+   * RtfTermContext) if inTerm is true. If node should be replaced by a skolem,
+   * this method returns this skolem k. If this was the first time that node
+   * was encountered, we set newLem to the lemma for the skolem that
+   * axiomatizes k.
+   *
+   * Otherwise, if t should not be replaced in the term context, this method
+   * returns the null node.
+   */
+  TrustNode runCurrent(TNode node, bool inTerm, TrustNode& newLem);
+
  private:
   typedef context::CDInsertHashMap<
       std::pair<Node, uint32_t>,
@@ -184,16 +196,16 @@ class RemoveTermFormulas : protected EnvObj
   Node runInternal(TNode assertion,
                    std::vector<theory::SkolemLemma>& newAsserts);
   /**
-   * This is called on curr of the form (t, val) where t is a term and val is
-   * a term context identifier computed by RtfTermContext. If curr should be
-   * replaced by a skolem, this method returns this skolem k. If this was the
-   * first time that t was encountered, we set newLem to the lemma for the
-   * skolem that axiomatizes k.
+   * This is called on a term node that occurs in a term context (see
+   * RtfTermContext) if inTerm is true. If node should be replaced by a skolem,
+   * this method returns this skolem k. If this was the first time that node
+   * was encountered, we set newLem to the lemma for the skolem that
+   * axiomatizes k.
    *
    * Otherwise, if t should not be replaced in the term context, this method
    * returns the null node.
    */
-  Node runCurrent(std::pair<Node, uint32_t>& curr, TrustNode& newLem);
+  Node runCurrentInternal(TNode node, bool inTerm, TrustNode& newLem);
   /** Is proof enabled? True if proofs are enabled in any mode. */
   bool isProofEnabled() const;
 }; /* class RemoveTTE */

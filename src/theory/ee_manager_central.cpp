@@ -31,7 +31,8 @@ EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
       d_masterEENotify(nullptr),
       d_masterEqualityEngine(nullptr),
       d_centralEENotify(*this),
-      d_centralEqualityEngine(d_centralEENotify, context(), "central::ee", true)
+      d_centralEqualityEngine(
+          env, context(), d_centralEENotify, "central::ee", true)
 {
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
@@ -41,10 +42,8 @@ EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
   }
   if (env.isTheoryProofProducing())
   {
-    d_centralPfee.reset(new eq::ProofEqEngine(context(),
-                                              userContext(),
-                                              d_centralEqualityEngine,
-                                              env.getProofNodeManager()));
+    d_centralPfee =
+        std::make_unique<eq::ProofEqEngine>(env, d_centralEqualityEngine);
     d_centralEqualityEngine.setProofEqualityEngine(d_centralPfee.get());
   }
 }
@@ -112,8 +111,8 @@ void EqEngineManagerCentral::initializeTheories()
     d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
     if (!masterEqToCentral)
     {
-      d_masterEqualityEngineAlloc.reset(new eq::EqualityEngine(
-          *d_masterEENotify.get(), c, "master::ee", false));
+      d_masterEqualityEngineAlloc = std::make_unique<eq::EqualityEngine>(
+          d_env, c, *d_masterEENotify.get(), "master::ee", false);
       d_masterEqualityEngine = d_masterEqualityEngineAlloc.get();
     }
     else

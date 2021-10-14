@@ -34,7 +34,7 @@
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
 #include "smt/print_benchmark.h"
-#include "smt/smt_engine_stats.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
@@ -57,8 +57,8 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(Env& env, SmtEngineStatistics& stats)
-    : EnvObj(env), d_smtStats(stats), d_preprocessingPassContext(nullptr)
+ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
+    : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -268,7 +268,7 @@ bool ProcessAssertions::apply(Assertions& as)
   noConflict = simplifyAssertions(as);
   if (!noConflict)
   {
-    ++(d_smtStats.d_simplifiedToFalse);
+    ++(d_slvStats.d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
@@ -287,13 +287,13 @@ bool ProcessAssertions::apply(Assertions& as)
 
   if (options().smt.earlyIteRemoval)
   {
-    d_smtStats.d_numAssertionsPre += assertions.size();
+    d_slvStats.d_numAssertionsPre += assertions.size();
     d_passes["ite-removal"]->apply(&assertions);
     // This is needed because when solving incrementally, removeITEs may
     // introduce skolems that were solved for earlier and thus appear in the
     // substitution map.
     d_passes["apply-substs"]->apply(&assertions);
-    d_smtStats.d_numAssertionsPost += assertions.size();
+    d_slvStats.d_numAssertionsPost += assertions.size();
   }
 
   dumpAssertions("pre-repeat-simplify", as);
@@ -339,7 +339,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["bv-eager-atoms"]->apply(&assertions);
   }
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
+  Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
   dumpAssertions("post-everything", as);
 
   return noConflict;
