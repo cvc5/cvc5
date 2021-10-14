@@ -2599,7 +2599,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
  * Standard 754.
  * \endverbatim
  */
-enum CVC5_EXPORT RoundingMode
+enum RoundingMode
 {
   /**
    * Round to the nearest even number.
