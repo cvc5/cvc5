@@ -100,34 +100,40 @@ std::istream* openIStream(const std::string& filename)
 }
 }  // namespace detail
 
+ManagedErr::ManagedErr() : ManagedStream() { d_description = "stderr"; }
 std::ostream* ManagedErr::defaultValue() const { return &std::cerr; }
 bool ManagedErr::specialCases(const std::string& value)
 {
   if (value == "stderr" || value == "--")
   {
     d_stream.reset();
+    d_description = "stderr";
     return true;
   }
   return false;
 }
 
+ManagedIn::ManagedIn() : ManagedStream() { d_description = "stdin"; }
 std::istream* ManagedIn::defaultValue() const { return &std::cin; }
 bool ManagedIn::specialCases(const std::string& value)
 {
   if (value == "stdin" || value == "--")
   {
     d_stream.reset();
+    d_description = "stdin";
     return true;
   }
   return false;
 }
 
+ManagedOut::ManagedOut() : ManagedStream() { d_description = "stdout"; }
 std::ostream* ManagedOut::defaultValue() const { return &std::cout; }
 bool ManagedOut::specialCases(const std::string& value)
 {
   if (value == "stdout" || value == "--")
   {
     d_stream.reset();
+    d_description = "stdout";
     return true;
   }
   return false;

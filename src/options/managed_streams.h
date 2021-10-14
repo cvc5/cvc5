@@ -63,10 +63,12 @@ class ManagedStream
     if constexpr (std::is_same<Stream, std::ostream>::value)
     {
       d_stream.reset(detail::openOStream(value));
+      d_description = value;
     }
     else if constexpr (std::is_same<Stream, std::istream>::value)
     {
       d_stream.reset(detail::openIStream(value));
+      d_description = value;
     }
   }
 
@@ -75,8 +77,11 @@ class ManagedStream
   operator Stream&() const { return *getPtr(); }
   operator Stream*() const { return getPtr(); }
 
+  const std::string& description() const { return d_description; }
+
  protected:
   std::shared_ptr<Stream> d_stream;
+  std::string d_description = "<null>";
 
  private:
   /** Returns the value to be used if d_stream is not set. */
@@ -99,7 +104,7 @@ class ManagedStream
 template <typename Stream>
 std::ostream& operator<<(std::ostream& os, const ManagedStream<Stream>& ms)
 {
-  return os << "ManagedStream";
+  return os << ms.description();
 }
 
 /**
@@ -108,6 +113,10 @@ std::ostream& operator<<(std::ostream& os, const ManagedStream<Stream>& ms)
  */
 class ManagedErr : public ManagedStream<std::ostream>
 {
+ public:
+  ManagedErr();
+
+ private:
   std::ostream* defaultValue() const override final;
   bool specialCases(const std::string& value) override final;
 };
@@ -118,6 +127,10 @@ class ManagedErr : public ManagedStream<std::ostream>
  */
 class ManagedIn : public ManagedStream<std::istream>
 {
+ public:
+  ManagedIn();
+
+ private:
   std::istream* defaultValue() const override final;
   bool specialCases(const std::string& value) override final;
 };
@@ -128,6 +141,10 @@ class ManagedIn : public ManagedStream<std::istream>
  */
 class ManagedOut : public ManagedStream<std::ostream>
 {
+ public:
+  ManagedOut();
+
+ private:
   std::ostream* defaultValue() const override final;
   bool specialCases(const std::string& value) override final;
 };
