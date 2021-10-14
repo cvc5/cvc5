@@ -498,6 +498,7 @@ set(regress_0_tests
   regress0/datatypes/is_test.smt2
   regress0/datatypes/issue1433.smt2
   regress0/datatypes/issue2838.cvc.smt2
+  regress0/datatypes/issue4393-cdt-model.smt2
   regress0/datatypes/issue5280-no-nrec.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
@@ -2200,6 +2201,7 @@ set(regress_1_tests
   regress1/strings/issue6653-rre-small.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
+  regress1/strings/issue6973-dup-lemma-conc.smt2 
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
