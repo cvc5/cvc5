@@ -109,13 +109,13 @@ class TriggerTermInfo
   /** Is k a relational trigger kind? */
   static bool isRelationalTriggerKind(Kind k);
   /**
-   * Is n a usable relational trigger, which is true if RelationalMatchGen
+   * Is n a usable relational trigger, which is true if RelationalMatchGenerator
    * can process n.
    */
   static bool isUsableRelationTrigger(Node n);
   /**
    * Same as above, but lit / hasPol / pol are updated to the required
-   * constructor arguments for RelationalMatchGen.
+   * constructor arguments for RelationalMatchGenerator.
    */
   static bool isUsableRelationTrigger(Node n,
                                       bool& hasPol,
