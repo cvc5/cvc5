@@ -2311,7 +2311,6 @@ FORALL_TOK        : 'forall';
 
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
-TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
