@@ -1648,7 +1648,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isConstructor())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for test (_ is X), X must be a constructor.");
+              "Bad syntax for (_ is X), X must be a constructor.");
         }
         // get the datatype that f belongs to
         api::Sort sf = f.getSort().getConstructorCodomainSort();
@@ -1662,7 +1662,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isSelector())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for test (_ update X), X must be a selector.");
+              "Bad syntax for (_ update X), X must be a selector.");
         }
         std::string sname = f.toString();
         // get the datatype that f belongs to
@@ -1672,13 +1672,6 @@ identifier[cvc5::ParseOp& p]
         api::DatatypeSelector ds = d.getSelector(f.toString());
         // get the updater term
         p.d_expr = ds.getUpdaterTerm();
-      }
-    | TUPLE_SEL_TOK m=INTEGER_LITERAL
-      {
-        // we adopt a special syntax (_ tupSel n)
-        p.d_kind = api::APPLY_SELECTOR;
-        // put m in expr so that the caller can deal with this case
-        p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
     | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
@@ -1697,9 +1690,10 @@ identifier[cvc5::ParseOp& p]
       {
         std::string opName = AntlrInput::tokenText($sym);
         api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k == api::APPLY_UPDATER)
+        if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
-          // we adopt a special syntax (_ tuple_update n) for tuple updaters
+          // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
+          // for tuple selectors and updaters
           if (numerals.size() != 1)
           {
             PARSER_STATE->parseError(
@@ -1710,6 +1704,15 @@ identifier[cvc5::ParseOp& p]
           // index as a numeral in the parse operator.
           p.d_kind = k;
           p.d_expr = SOLVER->mkInteger(numerals[0]);
+        }
+        else if (k == api::TUPLE_PROJECT)
+        {
+          std::vector<uint32_t> nums;
+          for (uint64_t i : numerals)
+          {
+            nums.push_back(static_cast<uint32_t>(i));
+          }
+          p.d_op = SOLVER->mkOp(k, nums);
         }
         else if (numerals.size() == 1)
         {
@@ -2314,7 +2317,6 @@ FORALL_TOK        : 'forall';
 
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
-TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_select';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
