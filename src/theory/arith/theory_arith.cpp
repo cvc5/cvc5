@@ -199,7 +199,7 @@ void TheoryArith::postCheck(Effort level)
       updateModelCache(termSet);
       d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
-    else 
+    else
     {
       if (d_internal->foundNonlinear())
       {
