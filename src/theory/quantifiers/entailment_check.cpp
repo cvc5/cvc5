@@ -256,7 +256,7 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
   }
   else if (n.getKind() == ITE)
   {
-    for (unsigned i = 0; i < 2; i++)
+    for (uint32_t i = 0; i < 2; i++)
     {
       if (isEntailed2(n[0], subs, subsRep, hasSubs, i == 0))
       {

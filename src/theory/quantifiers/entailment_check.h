@@ -147,4 +147,4 @@ class EntailmentCheck : protected EnvObj
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__ENTAILMENT_CHECK_H */
