@@ -546,7 +546,7 @@ bool RegExpSolver::checkPDerivative(
       {
         std::vector<Node> noExplain;
         noExplain.push_back(atom);
-        if (x!=d_emptyString)
+        if (x != d_emptyString)
         {
           noExplain.push_back(x.eqNode(d_emptyString));
         }
