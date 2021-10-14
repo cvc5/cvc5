@@ -100,7 +100,7 @@ endforeach()
 
 add_library(cvc5parser-objs OBJECT ${libcvc5parser_src_files})
 set_target_properties(cvc5parser-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB)
+target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB -Dcvc5_obj_EXPORTS)
 
 add_dependencies(cvc5parser-objs ANTLR3_SHARED)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
