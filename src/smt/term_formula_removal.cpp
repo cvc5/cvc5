@@ -23,43 +23,42 @@
 #include "options/smt_options.h"
 #include "proof/conv_proof_generator.h"
 #include "proof/lazy_proof.h"
+#include "smt/env.h"
 
 using namespace std;
 
 namespace cvc5 {
 
-RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
-                                       ProofNodeManager* pnm)
-    : d_tfCache(u),
-      d_skolem_cache(u),
-      d_pnm(pnm),
+RemoveTermFormulas::RemoveTermFormulas(Env& env)
+    : EnvObj(env),
+      d_tfCache(userContext()),
+      d_skolem_cache(userContext()),
       d_tpg(nullptr),
       d_lp(nullptr)
 {
   // enable proofs if necessary
-  if (d_pnm != nullptr)
+  ProofNodeManager* pnm = env.getProofNodeManager();
+  if (pnm != nullptr)
   {
     d_tpg.reset(
-        new TConvProofGenerator(d_pnm,
+        new TConvProofGenerator(pnm,
                                 nullptr,
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
                                 "RemoveTermFormulas::TConvProofGenerator",
                                 &d_rtfc));
     d_lp.reset(new LazyCDProof(
-        d_pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
+        pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }
 }
 
 RemoveTermFormulas::~RemoveTermFormulas() {}
 
 TrustNode RemoveTermFormulas::run(TNode assertion,
-                                  std::vector<TrustNode>& newAsserts,
-                                  std::vector<Node>& newSkolems,
+                                  std::vector<theory::SkolemLemma>& newAsserts,
                                   bool fixedPoint)
 {
-  Node itesRemoved = runInternal(assertion, newAsserts, newSkolems);
-  Assert(newAsserts.size() == newSkolems.size());
+  Node itesRemoved = runInternal(assertion, newAsserts);
   if (itesRemoved == assertion)
   {
     return TrustNode::null();
@@ -71,10 +70,10 @@ TrustNode RemoveTermFormulas::run(TNode assertion,
     size_t i = 0;
     while (i < newAsserts.size())
     {
-      TrustNode trn = newAsserts[i];
+      TrustNode trn = newAsserts[i].d_lemma;
       // do not run to fixed point on subcall, since we are processing all
       // lemmas in this loop
-      newAsserts[i] = runLemma(trn, newAsserts, newSkolems, false);
+      newAsserts[i].d_lemma = runLemma(trn, newAsserts, false);
       i++;
     }
   }
@@ -83,19 +82,12 @@ TrustNode RemoveTermFormulas::run(TNode assertion,
   return TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
-TrustNode RemoveTermFormulas::run(TNode assertion)
+TrustNode RemoveTermFormulas::runLemma(
+    TrustNode lem,
+    std::vector<theory::SkolemLemma>& newAsserts,
+    bool fixedPoint)
 {
-  std::vector<TrustNode> newAsserts;
-  std::vector<Node> newSkolems;
-  return run(assertion, newAsserts, newSkolems, false);
-}
-
-TrustNode RemoveTermFormulas::runLemma(TrustNode lem,
-                                       std::vector<TrustNode>& newAsserts,
-                                       std::vector<Node>& newSkolems,
-                                       bool fixedPoint)
-{
-  TrustNode trn = run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
+  TrustNode trn = run(lem.getProven(), newAsserts, fixedPoint);
   if (trn.isNull())
   {
     // no change
@@ -103,7 +95,7 @@ TrustNode RemoveTermFormulas::runLemma(TrustNode lem,
   }
   Assert(trn.getKind() == TrustNodeKind::REWRITE);
   Node newAssertion = trn.getNode();
-  if (!isProofEnabled())
+  if (!d_env.isTheoryProofProducing())
   {
     // proofs not enabled, just take result
     return TrustNode::mkTrustLemma(newAssertion, nullptr);
@@ -129,8 +121,7 @@ TrustNode RemoveTermFormulas::runLemma(TrustNode lem,
 }
 
 Node RemoveTermFormulas::runInternal(TNode assertion,
-                                     std::vector<TrustNode>& output,
-                                     std::vector<Node>& newSkolems)
+                                     std::vector<theory::SkolemLemma>& output)
 {
   NodeManager* nm = NodeManager::currentNM();
   TCtxStack ctx(&d_rtfc);
@@ -162,7 +153,12 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
     {
       // check if we should replace the current node
       TrustNode newLem;
-      Node currt = runCurrent(curr, newLem);
+      bool inQuant, inTerm;
+      RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
+      Debug("ite") << "removeITEs(" << node << ")"
+                   << " " << inQuant << " " << inTerm << std::endl;
+      Assert(!inQuant);
+      Node currt = runCurrentInternal(node, inTerm, newLem);
       // if we replaced by a skolem, we do not recurse
       if (!currt.isNull())
       {
@@ -170,8 +166,7 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
         // which we add to our vectors
         if (!newLem.isNull())
         {
-          output.push_back(newLem);
-          newSkolems.push_back(currt);
+          output.push_back(theory::SkolemLemma(newLem, currt));
         }
         Trace("rtf-debug") << "...replace by skolem" << std::endl;
         d_tfCache.insert(curr, currt);
@@ -247,17 +242,22 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
   return (*itc).second;
 }
 
-Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
-                                    TrustNode& newLem)
+TrustNode RemoveTermFormulas::runCurrent(TNode node,
+                                         bool inTerm,
+                                         TrustNode& newLem)
 {
-  TNode node = curr.first;
-  uint32_t cval = curr.second;
-  bool inQuant, inTerm;
-  RtfTermContext::getFlags(curr.second, inQuant, inTerm);
-  Debug("ite") << "removeITEs(" << node << ")"
-               << " " << inQuant << " " << inTerm << std::endl;
-  Assert(!inQuant);
+  Node k = runCurrentInternal(node, inTerm, newLem);
+  if (!k.isNull())
+  {
+    return TrustNode::mkTrustRewrite(node, k, d_tpg.get());
+  }
+  return TrustNode::null();
+}
 
+Node RemoveTermFormulas::runCurrentInternal(TNode node,
+                                            bool inTerm,
+                                            TrustNode& newLem)
+{
   NodeManager *nodeManager = NodeManager::currentNM();
 
   TypeNode nodeType = node.getType();
@@ -457,6 +457,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
     // since a formula-term may rewrite to the same skolem in multiple contexts.
     if (isProofEnabled())
     {
+      uint32_t cval = RtfTermContext::getValue(false, inTerm);
       // justify the introduction of the skolem
       // ------------------- MACRO_SR_PRED_INTRO
       // t = witness x. x=t
@@ -537,6 +538,6 @@ ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
   return d_tpg.get();
 }
 
-bool RemoveTermFormulas::isProofEnabled() const { return d_pnm != nullptr; }
+bool RemoveTermFormulas::isProofEnabled() const { return d_tpg != nullptr; }
 
 }  // namespace cvc5

@@ -57,7 +57,8 @@ CVC5dumpstream& CVC5dumpstream::operator<<(const NodeCommand& nc)
 
 DumpC DumpChannel;
 
-std::ostream& DumpC::setStream(std::ostream* os) {
+std::ostream& DumpC::setStream(std::ostream* os)
+{
   ::cvc5::DumpOutChannel.setStream(os);
   return *os;
 }
@@ -67,7 +68,8 @@ std::ostream* DumpC::getStreamPointer()
   return ::cvc5::DumpOutChannel.getStreamPointer();
 }
 
-void DumpC::setDumpFromString(const std::string& optarg) {
+void DumpC::setDumpFromString(const std::string& optarg)
+{
   if (Configuration::isDumpingBuild())
   {
     // Make a copy of optarg for strtok_r to use.

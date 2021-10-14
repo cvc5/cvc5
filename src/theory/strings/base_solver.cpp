@@ -35,7 +35,7 @@ BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env), d_state(s), d_im(im), d_congruent(context())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_cardSize = utils::getAlphabetCardinality();
+  d_cardSize = options().strings.stringsAlphaCard;
 }
 
 BaseSolver::~BaseSolver() {}
@@ -534,7 +534,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
   {
     Assert(tn.isSequence());
     TypeNode etn = tn.getSequenceElementType();
-    if (!d_state.isFiniteType(etn))
+    if (!d_env.isFiniteType(etn))
     {
       // infinite cardinality, we are fine
       return;

@@ -100,16 +100,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     printUsage(dopts, true);
     exit(1);
   }
-  else if (solver->getOptionInfo("language-help").boolValue())
-  {
-    main::printLanguageHelp(dopts.out());
-    exit(1);
-  }
-  else if (solver->getOptionInfo("version").boolValue())
-  {
-    dopts.out() << Configuration::about().c_str() << flush;
-    exit(0);
-  }
 
   segvSpin = solver->getOptionInfo("segv-spin").boolValue();
 
@@ -199,7 +189,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
                     << Configuration::getVersionString();
       if (Configuration::isGitBuild())
       {
-        CVC5Message() << " [" << Configuration::getGitId() << "]";
+        CVC5Message() << " [" << Configuration::getGitInfo() << "]";
       }
       CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                     << " assertions:"

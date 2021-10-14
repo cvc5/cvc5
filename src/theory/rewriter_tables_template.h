@@ -80,7 +80,7 @@ ${post_rewrite_set_cache}
   }
 }
 
-Rewriter::Rewriter() : d_tpg(nullptr) {}
+Rewriter::Rewriter() : d_resourceManager(nullptr), d_tpg(nullptr) {}
 
 void Rewriter::clearCachesInternal()
 {
