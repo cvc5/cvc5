@@ -23,8 +23,12 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 
 /** sort inference
@@ -35,8 +39,9 @@ namespace theory {
  *   "Sort it out with Monotonicity" Claessen 2011
  *   "Non-Cyclic Sorts for First-Order Satisfiability" Korovin 2013.
  */
-class SortInference {
-private:
+class SortInference : protected EnvObj
+{
+ private:
   //all subsorts
   std::vector< int > d_sub_sorts;
   std::map< int, bool > d_non_monotonic_sorts;
@@ -106,7 +111,7 @@ private:
   void reset();
 
  public:
-  SortInference() : d_sortCount(1) {}
+  SortInference(Env& env) : EnvObj(env), d_sortCount(1) {}
   ~SortInference(){}
 
   /** initialize

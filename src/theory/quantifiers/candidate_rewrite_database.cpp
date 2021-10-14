@@ -17,9 +17,9 @@
 
 #include "options/base_options.h"
 #include "printer/printer.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -37,12 +37,13 @@ CandidateRewriteDatabase::CandidateRewriteDatabase(
     Env& env, bool doCheck, bool rewAccel, bool silent, bool filterPairs)
     : ExprMiner(env),
       d_tds(nullptr),
-      d_ext_rewrite(nullptr),
+      d_useExtRewriter(false),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
       d_silent(silent),
       d_filterPairs(filterPairs),
-      d_using_sygus(false)
+      d_using_sygus(false),
+      d_crewrite_filter(env)
 {
 }
 void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
@@ -52,7 +53,7 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
   d_candidate = Node::null();
   d_using_sygus = false;
   d_tds = nullptr;
-  d_ext_rewrite = nullptr;
+  d_useExtRewriter = false;
   if (d_filterPairs)
   {
     d_crewrite_filter.initialize(ss, nullptr, false);
@@ -69,7 +70,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   d_candidate = f;
   d_using_sygus = true;
   d_tds = tds;
-  d_ext_rewrite = nullptr;
+  d_useExtRewriter = false;
   if (d_filterPairs)
   {
     d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
@@ -121,15 +122,15 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
       // get the rewritten form
       Node solbr;
       Node eq_solr;
-      if (d_ext_rewrite != nullptr)
+      if (d_useExtRewriter)
       {
-        solbr = d_ext_rewrite->extendedRewrite(solb);
-        eq_solr = d_ext_rewrite->extendedRewrite(eq_solb);
+        solbr = extendedRewrite(solb);
+        eq_solr = extendedRewrite(eq_solb);
       }
       else
       {
-        solbr = Rewriter::rewrite(solb);
-        eq_solr = Rewriter::rewrite(eq_solb);
+        solbr = rewrite(solb);
+        eq_solr = rewrite(eq_solb);
       }
       bool verified = false;
       Trace("rr-check") << "Check candidate rewrite..." << std::endl;
@@ -140,9 +141,9 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
 
         // Notice we don't set produce-models. rrChecker takes the same
-        // options as the SmtEngine we belong to, where we ensure that
+        // options as the SolverEngine we belong to, where we ensure that
         // produce-models is set.
-        std::unique_ptr<SmtEngine> rrChecker;
+        std::unique_ptr<SolverEngine> rrChecker;
         initializeChecker(rrChecker, crr);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
@@ -289,9 +290,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 
-void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
+void CandidateRewriteDatabase::enableExtendedRewriter()
 {
-  d_ext_rewrite = er;
+  d_useExtRewriter = true;
 }
 
 }  // namespace quantifiers

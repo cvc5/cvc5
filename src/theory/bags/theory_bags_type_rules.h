@@ -123,6 +123,15 @@ struct ToSetTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct ToSetTypeRule */
 
+/**
+ * Type rule for (bag.map f B) to make sure f is a unary function of type
+ * (-> T1 T2) where B is a bag of type (Bag T1)
+ */
+struct BagMapTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagMapTypeRule */
+
 struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type);

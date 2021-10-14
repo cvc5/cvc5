@@ -23,13 +23,14 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5 {
 
 class Env;
-class SmtEngine;
+class SolverEngine;
 
 namespace theory {
 namespace quantifiers {
@@ -40,10 +41,10 @@ namespace quantifiers {
  * from (enumerated) expressions. This includes:
  * - candidate rewrite rules (--sygus-rr-synth)
  */
-class ExprMiner
+class ExprMiner : protected EnvObj
 {
  public:
-  ExprMiner(Env& env) : d_env(env), d_sampler(nullptr) {}
+  ExprMiner(Env& env) : EnvObj(env), d_sampler(nullptr) {}
   virtual ~ExprMiner() {}
   /** initialize
    *
@@ -64,8 +65,6 @@ class ExprMiner
   virtual bool addTerm(Node n, std::ostream& out) = 0;
 
  protected:
-  /** Reference to the env */
-  Env& d_env;
   /** the set of variables used by this class */
   std::vector<Node> d_vars;
   /**
@@ -86,7 +85,7 @@ class ExprMiner
    * of the argument "query", which is a formula whose free variables (of
    * kind BOUND_VARIABLE) are a subset of d_vars.
    */
-  void initializeChecker(std::unique_ptr<SmtEngine>& smte, Node query);
+  void initializeChecker(std::unique_ptr<SolverEngine>& smte, Node query);
   /**
    * Run the satisfiability check on query and return the result
    * (sat/unsat/unknown).

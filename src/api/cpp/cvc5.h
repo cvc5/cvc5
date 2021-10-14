@@ -20,11 +20,13 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 #include "api/cpp/cvc5_kind.h"
@@ -42,7 +44,7 @@ class DType;
 class DTypeConstructor;
 class DTypeSelector;
 class NodeManager;
-class SmtEngine;
+class SolverEngine;
 class TypeNode;
 class Options;
 class Random;
@@ -672,7 +674,7 @@ class CVC5_EXPORT Sort
   std::string getUninterpretedSortName() const;
 
   /**
-   * @return true if an uninterpreted sort is parameterezied
+   * @return true if an uninterpreted sort is parameterized
    */
   bool isUninterpretedSortParameterized() const;
 
@@ -769,7 +771,7 @@ class CVC5_EXPORT Sort
   const Solver* d_solver;
 
   /**
-   * The interal type wrapped by this sort.
+   * The internal type wrapped by this sort.
    * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
    *       to memory allocation (cvc5::Type is already ref counted, so this
    *       could be a unique_ptr instead).
@@ -933,9 +935,9 @@ class CVC5_EXPORT Op
   size_t getNumIndicesHelper() const;
 
   /**
-   * Helper for operator[](size_t i).
-   * @param i position of the index. Should be less than getNumIndicesHelper().
-   * @return the index at position i
+   * Helper for operator[](size_t index).
+   * @param index position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position index
    */
   Term getIndexHelper(size_t index) const;
 
@@ -1083,7 +1085,7 @@ class CVC5_EXPORT Term
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
-   * @return the result of simulatenously replacing 'terms' by 'replacements'
+   * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
    */
   Term substitute(const std::vector<Term>& terms,
@@ -1165,11 +1167,30 @@ class CVC5_EXPORT Term
    *       for example, the term f(x, y) will have Kind APPLY_UF and three
    *       children: f, x, and y
    */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Term>
+  class const_iterator
   {
     friend class Term;
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Term;
+
+    /** The pointer type of the item */
+    using pointer = const Term*;
+
+    /** The reference type of the item */
+    using reference = const Term&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /**
      * Null Constructor.
      */
@@ -1336,7 +1357,7 @@ class CVC5_EXPORT Term
   bool isRealValue() const;
   /**
    * Asserts isRealValue().
-   * @return the representation of a rational value as a (decimal) string.
+   * @return the representation of a rational value as a (rational) string.
    */
   std::string getRealValue() const;
 
@@ -1804,12 +1825,12 @@ class CVC5_EXPORT DatatypeSelector
   Term getSelectorTerm() const;
 
   /**
-   * Get the upater operator of this datatype selector.
+   * Get the updater operator of this datatype selector.
    * @return the updater term
    */
   Term getUpdaterTerm() const;
 
-  /** @return the range sort of this argument. */
+  /** @return the range sort of this selector. */
   Sort getRangeSort() const;
 
   /**
@@ -1949,11 +1970,29 @@ class CVC5_EXPORT DatatypeConstructor
    * Iterator for the selectors of a datatype constructor.
    */
   class const_iterator
-      : public std::iterator<std::input_iterator_tag, DatatypeConstructor>
   {
     friend class DatatypeConstructor;  // to access constructor
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = DatatypeConstructor;
+
+    /** The pointer type of the item */
+    using pointer = const DatatypeConstructor*;
+
+    /** The reference type of the item */
+    using reference = const DatatypeConstructor&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /** Nullary constructor (required for Cython). */
     const_iterator();
 
@@ -2182,11 +2221,30 @@ class CVC5_EXPORT Datatype
   /**
    * Iterator for the constructors of a datatype.
    */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Datatype>
+  class const_iterator
   {
     friend class Datatype;  // to access constructor
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Datatype;
+
+    /** The pointer type of the item */
+    using pointer = const Datatype*;
+
+    /** The reference type of the item */
+    using reference = const Datatype&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /** Nullary constructor (required for Cython). */
     const_iterator();
 
@@ -2619,6 +2677,88 @@ class CVC5_EXPORT DriverOptions
   const Solver& d_solver;
 };
 
+/**
+ * Holds some description about a particular option, including its name, its
+ * aliases, whether the option was explcitly set by the user, and information
+ * concerning its value. The `valueInfo` member holds any of the following
+ * alternatives:
+ * - VoidInfo if the option holds no value (or the value has no native type)
+ * - ValueInfo<T> if the option is of type bool or std::string, holds the
+ *   current value and the default value.
+ * - NumberInfo<T> if the option is of type int64_t, uint64_t or double, holds
+ *   the current and default value, as well as the minimum and maximum.
+ * - ModeInfo if the option is a mode option, holds the current and default
+ *   values, as well as a list of valid modes.
+ * Additionally, this class provides convenience functions to obtain the
+ * current value of an option in a type-safe manner using boolValue(),
+ * stringValue(), intValue(), uintValue() and doubleValue(). They assert that
+ * the option has the respective type and return the current value.
+ */
+struct CVC5_EXPORT OptionInfo
+{
+  /** Has no value information */
+  struct VoidInfo {};
+  /** Has the current and the default value */
+  template <typename T>
+  struct ValueInfo
+  {
+    T defaultValue;
+    T currentValue;
+  };
+  /** Default value, current value, minimum and maximum of a numeric value */
+  template <typename T>
+  struct NumberInfo
+  {
+    T defaultValue;
+    T currentValue;
+    std::optional<T> minimum;
+    std::optional<T> maximum;
+  };
+  /** Default value, current value and choices of a mode option */
+  struct ModeInfo
+  {
+    std::string defaultValue;
+    std::string currentValue;
+    std::vector<std::string> modes;
+  };
+
+  /** The option name */
+  std::string name;
+  /** The option name aliases */
+  std::vector<std::string> aliases;
+  /** Whether the option was explicitly set by the user */
+  bool setByUser;
+  /** The option value information */
+  std::variant<VoidInfo,
+               ValueInfo<bool>,
+               ValueInfo<std::string>,
+               NumberInfo<int64_t>,
+               NumberInfo<uint64_t>,
+               NumberInfo<double>,
+               ModeInfo>
+      valueInfo;
+  /** Obtain the current value as a bool. Asserts that valueInfo holds a bool.
+   */
+  bool boolValue() const;
+  /** Obtain the current value as a string. Asserts that valueInfo holds a
+   * string. */
+  std::string stringValue() const;
+  /** Obtain the current value as as int. Asserts that valueInfo holds an int.
+   */
+  int64_t intValue() const;
+  /** Obtain the current value as a uint. Asserts that valueInfo holds a uint.
+   */
+  uint64_t uintValue() const;
+  /** Obtain the current value as a double. Asserts that valueInfo holds a
+   * double. */
+  double doubleValue() const;
+};
+
+/**
+ * Print a `OptionInfo` object to an ``std::ostream``.
+ */
+std::ostream& operator<<(std::ostream& os, const OptionInfo& oi) CVC5_EXPORT;
+
 /* -------------------------------------------------------------------------- */
 /* Statistics                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -2923,7 +3063,7 @@ class CVC5_EXPORT Solver
    * This method is called when the DatatypeDecl objects dtypedecls have been
    * built using "unresolved" sorts.
    *
-   * We associate each sort in unresolvedSorts with exacly one datatype from
+   * We associate each sort in unresolvedSorts with exactly one datatype from
    * dtypedecls. In particular, it must have the same name as exactly one
    * datatype declaration in dtypedecls.
    *
@@ -2940,7 +3080,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Create function sort.
-   * @param domain the sort of the fuction argument
+   * @param domain the sort of the function argument
    * @param codomain the sort of the function return value
    * @return the function sort
    */
@@ -3364,8 +3504,7 @@ class CVC5_EXPORT Solver
   Term mkConstArray(const Sort& sort, const Term& val) const;
 
   /**
-   * Create a positive infinity floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a positive infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3373,8 +3512,7 @@ class CVC5_EXPORT Solver
   Term mkPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative infinity floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a negative infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3382,8 +3520,7 @@ class CVC5_EXPORT Solver
   Term mkNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a not-a-number (NaN) floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a not-a-number (NaN) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3391,8 +3528,7 @@ class CVC5_EXPORT Solver
   Term mkNaN(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a positive zero (+0.0) floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a positive zero (+0.0) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3400,8 +3536,7 @@ class CVC5_EXPORT Solver
   Term mkPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative zero (-0.0) floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a negative zero (-0.0) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3436,8 +3571,7 @@ class CVC5_EXPORT Solver
   Term mkAbstractValue(uint64_t index) const;
 
   /**
-   * Create a floating-point constant (requires cvc5 to be compiled with symFPU
-   * support).
+   * Create a floating-point constant.
    * @param exp Size of the exponent
    * @param sig Size of the significand
    * @param val Value of the floating-point constant as a bit-vector term
@@ -3752,7 +3886,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Get info from the solver.
-   * SMT-LIB: \verbatim( get-info <info_flag> )\verbatim
+   * SMT-LIB: \verbatim( get-info <info_flag> )\endverbatim
    * @return the info
    */
   std::string getInfo(const std::string& flag) const;
@@ -3774,6 +3908,13 @@ class CVC5_EXPORT Solver
    * @return all option names
    */
   std::vector<std::string> getOptionNames() const;
+
+  /**
+   * Get some information about the given option. Check the `OptionInfo` class
+   * for more details on which information is available.
+   * @return information about the given option
+   */
+  OptionInfo getOptionInfo(const std::string& option) const;
 
   /**
    * Get the driver options, which provide access to options that can not be
@@ -3805,13 +3946,23 @@ class CVC5_EXPORT Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get a difficulty estimate for an asserted formula. This method is
+   * intended to be called immediately after any response to a checkSat.
+   *
+   * @return a map from (a subset of) the input assertions to a real value that
+   * is an estimate of how difficult each assertion was to solve. Unmentioned
+   * assertions can be assumed to have zero difficulty.
+   */
+  std::map<Term, Term> getDifficulty() const;
+
+  /**
    * Get the refutation proof
    * SMT-LIB:
    * \verbatim
    * ( get-proof )
    * \endverbatim
    * Requires to enable option 'produce-proofs'.
-   * @return a string representing the proof, according to the the value of
+   * @return a string representing the proof, according to the value of
    * proof-format-mode.
    */
   std::string getProof() const;
@@ -3858,6 +4009,22 @@ class CVC5_EXPORT Solver
    * @return true if v is a model core symbol
    */
   bool isModelCoreSymbol(const Term& v) const;
+
+  /**
+   * Get the model
+   * SMT-LIB:
+   * \verbatim
+   * ( get-model )
+   * \endverbatim
+   * Requires to enable option 'produce-models'.
+   * @param sorts The list of uninterpreted sorts that should be printed in the
+   * model.
+   * @param vars The list of free constants that should be printed in the
+   * model. A subset of these may be printed based on isModelCoreSymbol.
+   * @return a string representing the model.
+   */
+  std::string getModel(const std::vector<Sort>& sorts,
+                       const std::vector<Term>& vars) const;
 
   /**
    * Do quantifier elimination.
@@ -4197,6 +4364,16 @@ class CVC5_EXPORT Solver
   void addSygusConstraint(const Term& term) const;
 
   /**
+   * Add a forumla to the set of Sygus assumptions.
+   * SyGuS v2:
+   * \verbatim
+   *   ( assume <term> )
+   * \endverbatim
+   * @param term the formula to add as an assumption
+   */
+  void addSygusAssume(const Term& term) const;
+
+  /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
    * SyGuS v2:
@@ -4238,20 +4415,26 @@ class CVC5_EXPORT Solver
    */
   std::vector<Term> getSynthSolutions(const std::vector<Term>& terms) const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  SmtEngine* getSmtEngine(void) const;
-
-  // !!! This is only temporarily available until options are refactored at
-  // the driver level. !!!
-  Options& getOptions(void);
-
   /**
    * Returns a snapshot of the current state of the statistic values of this
    * solver. The returned object is completely decoupled from the solver and
    * will not change when the solver is used again.
    */
   Statistics getStatistics() const;
+
+  /**
+   * Whether the output stream for the given tag is enabled. Tags can be enabled
+   * with the `output` option (and `-o <tag>` on the command line). Raises an
+   * exception when an invalid tag is given.
+   */
+  bool isOutputOn(const std::string& tag) const;
+
+  /**
+   * Returns an output stream for the given tag. Tags can be enabled with the
+   * `output` option (and `-o <tag>` on the command line). Raises an exception
+   * when an invalid tag is given.
+   */
+  std::ostream& getOutput(const std::string& tag) const;
 
  private:
   /** @return the node manager of this solver */
@@ -4358,11 +4541,11 @@ class CVC5_EXPORT Solver
   /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<Options> d_originalOptions;
   /** The node manager of this solver. */
-  std::unique_ptr<NodeManager> d_nodeMgr;
+  NodeManager* d_nodeMgr;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */
-  std::unique_ptr<SmtEngine> d_smtEngine;
+  std::unique_ptr<SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
 };

@@ -33,13 +33,15 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-EnumValueManager::EnumValueManager(Node e,
+EnumValueManager::EnumValueManager(Env& env,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    TermRegistry& tr,
                                    SygusStatistics& s,
+                                   Node e,
                                    bool hasExamples)
-    : d_enum(e),
+    : EnvObj(env),
+      d_enum(e),
       d_qstate(qs),
       d_qim(qim),
       d_treg(tr),
@@ -87,36 +89,40 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       // or basic. The auto mode always prefers the optimized enumerator over
       // the basic one.
       Assert(d_tds->isBasicEnumerator(e));
-      if (options::sygusActiveGenMode()
+      if (options().quantifiers.sygusActiveGenMode
           == options::SygusActiveGenMode::ENUM_BASIC)
       {
         d_evg.reset(new EnumValGeneratorBasic(d_tds, e.getType()));
       }
       else
       {
-        Assert(options::sygusActiveGenMode()
+        Assert(options().quantifiers.sygusActiveGenMode
                    == options::SygusActiveGenMode::ENUM
-               || options::sygusActiveGenMode()
+               || options().quantifiers.sygusActiveGenMode
                       == options::SygusActiveGenMode::AUTO);
         // create the enumerator callback
-        if (options::sygusSymBreakDynamic())
+        if (options().datatypes.sygusSymBreakDynamic)
         {
           std::ostream* out = nullptr;
-          if (options::sygusRewVerify())
+          if (options().quantifiers.sygusRewVerify)
           {
-            d_samplerRrV.reset(new SygusSampler);
+            d_samplerRrV.reset(new SygusSampler(d_env));
             d_samplerRrV->initializeSygus(
-                d_tds, e, options::sygusSamples(), false);
+                d_tds, e, options().quantifiers.sygusSamples, false);
             // use the default output for the output of sygusRewVerify
-            out = d_qstate.options().base.out;
+            out = options().base.out;
           }
           d_secd.reset(new SygusEnumeratorCallbackDefault(
               e, &d_stats, d_eec.get(), d_samplerRrV.get(), out));
         }
         // if sygus repair const is enabled, we enumerate terms with free
         // variables as arguments to any-constant constructors
-        d_evg.reset(new SygusEnumerator(
-            d_tds, d_secd.get(), &d_stats, false, options::sygusRepairConst()));
+        d_evg.reset(
+            new SygusEnumerator(d_tds,
+                                d_secd.get(),
+                                &d_stats,
+                                false,
+                                options().quantifiers.sygusRepairConst));
       }
     }
     Trace("sygus-active-gen")

@@ -34,11 +34,15 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-IAndSolver::IAndSolver(InferenceManager& im, ArithState& state, NlModel& model)
-    : d_im(im),
+IAndSolver::IAndSolver(Env& env,
+                       InferenceManager& im,
+                       ArithState& state,
+                       NlModel& model)
+    : EnvObj(env),
+      d_im(im),
       d_model(model),
       d_astate(state),
-      d_initRefine(state.getUserContext())
+      d_initRefine(userContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);
@@ -152,7 +156,7 @@ void IAndSolver::checkFullRefine()
       }
 
       // ************* additional lemma schemas go here
-      if (d_astate.options().smt.iandMode == options::IandMode::SUM)
+      if (options().smt.iandMode == options::IandMode::SUM)
       {
         Node lem = sumBasedLemma(i);  // add lemmas based on sum mode
         Trace("iand-lemma")
@@ -162,7 +166,7 @@ void IAndSolver::checkFullRefine()
         d_im.addPendingLemma(
             lem, InferenceId::ARITH_NL_IAND_SUM_REFINE, nullptr, true);
       }
-      else if (d_astate.options().smt.iandMode == options::IandMode::BITWISE)
+      else if (options().smt.iandMode == options::IandMode::BITWISE)
       {
         Node lem = bitwiseLemma(i);  // check for violated bitwise axioms
         Trace("iand-lemma")
@@ -245,7 +249,7 @@ Node IAndSolver::sumBasedLemma(Node i)
   Node x = i[0];
   Node y = i[1];
   size_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
-  uint64_t granularity = d_astate.options().smt.BVAndIntegerGranularity;
+  uint64_t granularity = options().smt.BVAndIntegerGranularity;
   NodeManager* nm = NodeManager::currentNM();
   Node lem = nm->mkNode(
       EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
@@ -259,7 +263,7 @@ Node IAndSolver::bitwiseLemma(Node i)
   Node y = i[1];
 
   unsigned bvsize = i.getOperator().getConst<IntAnd>().d_size;
-  uint64_t granularity = d_astate.options().smt.BVAndIntegerGranularity;
+  uint64_t granularity = options().smt.BVAndIntegerGranularity;
 
   Rational absI = d_model.computeAbstractModelValue(i).getConst<Rational>();
   Rational concI = d_model.computeConcreteModelValue(i).getConst<Rational>();

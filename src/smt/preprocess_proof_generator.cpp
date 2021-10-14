@@ -180,8 +180,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         if (!proofStepProcessed)
         {
           // maybe its just an (extended) rewrite?
-          theory::quantifiers::ExtendedRewriter extr(true);
-          Node pr = extr.extendedRewrite(proven[0]);
+          Node pr = theory::Rewriter::callExtendedRewrite(proven[0]);
           if (proven[1] == pr)
           {
             Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
@@ -256,7 +255,7 @@ std::string PreprocessProofGenerator::identify() const { return d_name; }
 
 void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
 {
-  if (options::proofEagerChecking())
+  if (options::proofCheck() == options::ProofCheckMode::EAGER)
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation

@@ -24,8 +24,6 @@
 #include <memory>
 #include <ostream>
 
-#include "options/options_public.h"
-
 namespace cvc5 {
 
 namespace detail {

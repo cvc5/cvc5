@@ -29,7 +29,7 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/quantifiers/extended_rewrite.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/poly_util.h"
@@ -51,7 +51,7 @@ class TestTheoryWhiteArithCAD : public TestSmt
     d_realType.reset(new TypeNode(d_nodeManager->realType()));
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
     Trace.on("cad-check");
-    nodeManager = d_nodeManager.get();
+    nodeManager = d_nodeManager;
   }
 
   Node dummy(int i) const { return d_nodeManager->mkConst(Rational(i)); }
@@ -193,8 +193,7 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
     EXPECT_NE(rewritten, d_nodeManager->mkConst(false));
   }
   {
-    quantifiers::ExtendedRewriter extrew;
-    Node rewritten = extrew.extendedRewrite(orig);
+    Node rewritten = Rewriter::callExtendedRewrite(orig);
     EXPECT_EQ(rewritten, d_nodeManager->mkConst(false));
   }
 }

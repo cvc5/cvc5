@@ -101,8 +101,8 @@ class AbstractValueTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     // An UnknownTypeException means that this node has no type.  For now,
     // only abstract values are like this---and then, only if they are created
-    // by the user and don't actually correspond to one that the SmtEngine gave
-    // them previously.
+    // by the user and don't actually correspond to one that the SolverEngine
+    // gave them previously.
     throw UnknownTypeException(n);
   }
 };/* class AbstractValueTypeRule */

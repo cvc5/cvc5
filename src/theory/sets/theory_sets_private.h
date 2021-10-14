@@ -21,6 +21,7 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
+#include "smt/env_obj.h"
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
@@ -37,7 +38,8 @@ namespace sets {
 /** Internal classes, forward declared here */
 class TheorySets;
 
-class TheorySetsPrivate {
+class TheorySetsPrivate : protected EnvObj
+{
   typedef context::CDHashMap<Node, bool> NodeBoolMap;
   typedef context::CDHashSet<Node> NodeSet;
 
@@ -133,7 +135,8 @@ class TheorySetsPrivate {
    * Constructs a new instance of TheorySetsPrivate w.r.t. the provided
    * contexts.
    */
-  TheorySetsPrivate(TheorySets& external,
+  TheorySetsPrivate(Env& env,
+                    TheorySets& external,
                     SolverState& state,
                     InferenceManager& im,
                     SkolemCache& skc,
@@ -234,7 +237,7 @@ class TheorySetsPrivate {
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */
   std::map<Node, Node> d_isSingletonNodes;
-};/* class TheorySetsPrivate */
+}; /* class TheorySetsPrivate */
 
 }  // namespace sets
 }  // namespace theory

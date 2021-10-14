@@ -25,7 +25,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 using namespace std;
 
@@ -58,16 +58,16 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
 }
 
 void TptpPrinter::toStreamModelSort(std::ostream& out,
-                                    const smt::Model& m,
-                                    TypeNode tn) const
+                                    TypeNode tn,
+                                    const std::vector<Node>& elements) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }
 
 void TptpPrinter::toStreamModelTerm(std::ostream& out,
-                                    const smt::Model& m,
-                                    Node n) const
+                                    const Node& n,
+                                    const Node& value) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();

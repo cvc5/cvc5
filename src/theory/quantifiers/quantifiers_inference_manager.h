@@ -36,7 +36,8 @@ class FirstOrderModel;
 class QuantifiersInferenceManager : public InferenceManagerBuffered
 {
  public:
-  QuantifiersInferenceManager(Theory& t,
+  QuantifiersInferenceManager(Env& env,
+                              Theory& t,
                               QuantifiersState& state,
                               QuantifiersRegistry& qr,
                               TermRegistry& tr,

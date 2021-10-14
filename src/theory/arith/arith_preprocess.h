@@ -19,6 +19,7 @@
 #define CVC5__THEORY__ARITH__ARITH_PREPROCESS_H
 
 #include "context/cdhashmap.h"
+#include "smt/env_obj.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/logic_info.h"
 
@@ -40,10 +41,11 @@ class OperatorElim;
  * extends that utility with the ability to generate lemmas on demand via
  * the provided inference manager.
  */
-class ArithPreprocess
+class ArithPreprocess : protected EnvObj
 {
  public:
-  ArithPreprocess(ArithState& state,
+  ArithPreprocess(Env& env,
+                  ArithState& state,
                   InferenceManager& im,
                   ProofNodeManager* pnm,
                   OperatorElim& oe);

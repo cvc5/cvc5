@@ -58,13 +58,6 @@ class SequencesStatistics
   IntStat d_strategyRuns;
   //--------------- inferences
   /**
-   * Counts the number of applications of each type of inference that were not
-   * processed as a proof step. This is a subset of the statistics in
-   * TheoryInferenceManager, i.e.
-   * (theory::strings::inferences{Facts,Lemmas,Conflicts}).
-   */
-  HistogramStat<InferenceId> d_inferencesNoPf;
-  /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or
    * EXTF_N inferences.

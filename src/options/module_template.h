@@ -16,7 +16,7 @@
  * expands this template and generates a <module>_options.h file.
  */
 
-${visibility_include}$
+#include "cvc5_private.h"
 
 #ifndef CVC5__OPTIONS__${id_cap}$_H
 #define CVC5__OPTIONS__${id_cap}$_H
@@ -42,14 +42,14 @@ ${modes_decl}$
 struct Holder${id_cap}$
 {
 // clang-format off
-${holder_spec}$
+${holder_decl}$
 // clang-format on
 };
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 // clang-format off
-${wrap_funs}$
+${wrapper_functions}$
 // clang-format on
 
 namespace ${id}$
@@ -57,7 +57,7 @@ namespace ${id}$
 // clang-format off
 ${option_names}$
 
-${defaults_decl}$
+${setdefaults_decl}$
 // clang-format on
 }
 

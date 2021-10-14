@@ -1,6 +1,0 @@
-% EXPECT: entailed
-x : REAL;
-y : REAL;
-z : REAL;
-
-QUERY x*(y*z) = (x*y)*z;

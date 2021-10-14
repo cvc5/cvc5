@@ -1,3 +1,4 @@
+; COMMAND-LINE: --no-sygus-inst
 (set-logic NRA)
 (set-info :status sat)
 (declare-fun a () Real)

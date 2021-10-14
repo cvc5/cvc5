@@ -49,7 +49,8 @@ enum class MethodId : uint32_t
   RW_IDENTITY,
   // theory preRewrite, note this is only intended to be used as an argument
   // to THEORY_REWRITE in the final proof. It is not implemented in
-  // applyRewrite below, see documentation in proof_rule.h for THEORY_REWRITE.
+  // Rewriter::rewriteViaMethod, see documentation in proof_rule.h for
+  // THEORY_REWRITE.
   RW_REWRITE_THEORY_PRE,
   // same as above, for theory postRewrite
   RW_REWRITE_THEORY_POST,

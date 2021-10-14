@@ -28,11 +28,14 @@ namespace cvc5 {
 namespace theory {
 namespace uf {
 
-HoExtension::HoExtension(TheoryState& state, TheoryInferenceManager& im)
-    : d_state(state),
+HoExtension::HoExtension(Env& env,
+                         TheoryState& state,
+                         TheoryInferenceManager& im)
+    : EnvObj(env),
+      d_state(state),
       d_im(im),
-      d_extensionality(state.getUserContext()),
-      d_uf_std_skolem(state.getUserContext())
+      d_extensionality(userContext()),
+      d_uf_std_skolem(userContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -212,7 +215,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
-      if (d_state.isFiniteType(tn) != isCollectModel)
+      if (d_env.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -436,7 +439,7 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
   for (std::set<Node>::iterator it = termSet.begin(); it != termSet.end(); ++it)
   {
     Node n = *it;
-    // For model-building with ufHo, we require that APPLY_UF is always
+    // For model-building with higher-order, we require that APPLY_UF is always
     // expanded to HO_APPLY. That is, we always expand to a fully applicative
     // encoding during model construction.
     if (!collectModelInfoHoTerm(n, m))

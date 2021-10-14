@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi-all --no-relational-triggers
+; COMMAND-LINE: --cegqi-all --no-relational-triggers --no-sygus-inst
 ; EXPECT: unsat
 (set-logic NIA)
 (declare-fun a () Int)

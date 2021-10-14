@@ -56,14 +56,19 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(),
       d_state(env, d_valuation),
       d_eagerSolver(d_state),
-      d_termReg(d_state, d_statistics, d_pnm),
+      d_termReg(env, d_state, d_statistics, d_pnm),
       d_extTheoryCb(),
-      d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
-      d_extTheory(d_extTheoryCb, getSatContext(), getUserContext(), d_im),
-      d_rewriter(&d_statistics.d_rewrites),
-      d_bsolver(d_state, d_im),
-      d_csolver(d_state, d_im, d_termReg, d_bsolver),
-      d_esolver(d_state,
+      d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics, d_pnm),
+      d_extTheory(env, d_extTheoryCb, d_im),
+      d_rewriter(env.getRewriter(),
+                 &d_statistics.d_rewrites,
+                 d_termReg.getAlphabetCardinality()),
+      // the checker depends on the cardinality of the alphabet
+      d_checker(d_termReg.getAlphabetCardinality()),
+      d_bsolver(env, d_state, d_im),
+      d_csolver(env, d_state, d_im, d_termReg, d_bsolver),
+      d_esolver(env,
+                d_state,
                 d_im,
                 d_termReg,
                 d_rewriter,
@@ -71,14 +76,10 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_rsolver(d_state,
-                d_im,
-                d_termReg.getSkolemCache(),
-                d_csolver,
-                d_esolver,
-                d_statistics),
-      d_regexp_elim(options::regExpElimAgg(), d_pnm, getUserContext()),
-      d_stringsFmf(getSatContext(), getUserContext(), valuation, d_termReg)
+      d_rsolver(
+          env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
+      d_regexp_elim(options::regExpElimAgg(), d_pnm, userContext()),
+      d_stringsFmf(env, valuation, d_termReg)
 {
   d_termReg.finishInit(&d_im);
 
@@ -87,8 +88,6 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
-
-  d_cardSize = utils::getAlphabetCardinality();
 
   // set up the extended function callback
   d_extTheoryCb.d_esolver = &d_esolver;
@@ -370,7 +369,7 @@ bool TheoryStrings::collectModelInfoType(
               argVal = nfe.d_nf[0][0];
             }
             Assert(!argVal.isNull()) << "No value for " << nfe.d_nf[0][0];
-            Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
+            Node c = rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
             m->getEqualityEngine()->addTerm(c);
@@ -436,11 +435,11 @@ bool TheoryStrings::collectModelInfoType(
           lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt();
       std::unique_ptr<SEnumLen> sel;
       Trace("strings-model") << "Cardinality of alphabet is "
-                             << utils::getAlphabetCardinality() << std::endl;
+                             << d_termReg.getAlphabetCardinality() << std::endl;
       if (tn.isString())  // string-only
       {
         sel.reset(new StringEnumLen(
-            currLen, currLen, utils::getAlphabetCardinality()));
+            currLen, currLen, d_termReg.getAlphabetCardinality()));
       }
       else
       {
@@ -496,7 +495,7 @@ bool TheoryStrings::collectModelInfoType(
             c = sel->getCurrent();
             // if we are a sequence with infinite element type
             if (tn.isSequence()
-                && !d_state.isFiniteType(tn.getSequenceElementType()))
+                && !d_env.isFiniteType(tn.getSequenceElementType()))
             {
               // Make a skeleton instead. In particular, this means that
               // a value:
@@ -914,7 +913,7 @@ void TheoryStrings::checkCodes()
         Trace("strings-code-debug") << "Get proxy variable for " << c
                                     << std::endl;
         Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
-        cc = Rewriter::rewrite(cc);
+        cc = rewrite(cc);
         Assert(cc.isConst());
         Node cp = d_termReg.ensureProxyVariableFor(c);
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
@@ -958,7 +957,7 @@ void TheoryStrings::checkCodes()
           Node eqn = c1[0].eqNode(c2[0]);
           // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
           Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
-          deq = Rewriter::rewrite(deq);
+          deq = rewrite(deq);
           d_im.addPendingPhaseRequirement(deq, false);
           std::vector<Node> emptyVec;
           d_im.sendInference(emptyVec, inj_lem, InferenceId::STRINGS_CODE_INJ);
@@ -1003,7 +1002,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
     Node t = atom[0];
-    Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
+    Node card = nm->mkConst(Rational(d_termReg.getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node v = nm->mkBoundVar(nm->stringType());

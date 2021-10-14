@@ -11,7 +11,7 @@ name   = "Floating-Point"
 
 [[option]]
   name       = "fpLazyWb"
-  category   = "experimental"
+  category   = "expert"
   long       = "fp-lazy-wb"
   type       = "bool"
   default    = "false"

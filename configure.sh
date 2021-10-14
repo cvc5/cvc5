@@ -20,7 +20,7 @@ General options;
   --prefix=STR             install directory
   --program-prefix=STR     prefix of binaries prepended on make install
   --name=STR               use custom build directory name (optionally: +path)
-  --best                   turn on dependencies known to give best performance
+  --best                   turn on dependencies and options known to give best performance
   --gpl                    permit GPL dependencies, if available
   --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
@@ -53,6 +53,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
   --werror                 build with -Werror
+  --ipo                    build with interprocedural optimization
 
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
@@ -130,7 +131,7 @@ python2=default
 python_bindings=default
 java_bindings=default
 editline=default
-shared=default
+static_library=default
 static_binary=default
 statistics=default
 tracing=default
@@ -141,11 +142,10 @@ valgrind=default
 win64=default
 arm64=default
 werror=default
+ipo=default
 
 abc_dir=default
 glpk_dir=default
-
-lib_only=default
 
 #--------------------------------------------------------------------------#
 
@@ -171,11 +171,15 @@ do
 
     --werror) werror=ON;;
 
+    --ipo) ipo=ON;;
+    --no-ipo) ipo=OFF;;
+
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
 
     # Best configuration
     --best)
+      ipo=ON
       abc=ON
       cln=ON
       cryptominisat=ON
@@ -245,8 +249,8 @@ do
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
-    --static) shared=OFF; static_binary=ON;;
-    --no-static) shared=ON;;
+    --static) static_library=ON; static_binary=ON;;
+    --no-static) static_library=OFF;;
 
     --static-binary) static_binary=ON;;
     --no-static-binary) static_binary=OFF;;
@@ -294,7 +298,6 @@ do
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
-    --lib-only) lib_only=ON ;;
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -330,6 +333,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
 [ $tsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_TSAN=$tsan"
+[ $ipo != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_IPO=$ipo"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $comp_inc != default ] \
@@ -351,8 +356,8 @@ fi
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $shared != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
+[ $static_library != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STATIC_LIBRARY=$static_library"
 [ $static_binary != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
 [ $statistics != default ] \
@@ -395,8 +400,6 @@ fi
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_PREFIX_PATH=$dep_path"
-[ "$lib_only" != default ] \
-    && cmake_opts="$cmake_opts -DBUILD_LIB_ONLY=$lib_only"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

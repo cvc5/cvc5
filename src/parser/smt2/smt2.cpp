@@ -17,9 +17,6 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "options/base_options.h"
-#include "options/options.h"
-#include "options/options_public.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
@@ -138,6 +135,7 @@ void Smt2::addDatatypesOperators()
   {
     Parser::addOperator(api::APPLY_UPDATER);
     addOperator(api::DT_SIZE, "dt.size");
+    addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
   }
 }
 
@@ -385,25 +383,15 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
   return api::Term();
 }
 
-api::Op Smt2::mkIndexedOp(const std::string& name,
-                          const std::vector<uint64_t>& numerals)
+api::Kind Smt2::getIndexedOpKind(const std::string& name)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
   if (kIt != d_indexedOpKindMap.end())
   {
-    api::Kind k = (*kIt).second;
-    if (numerals.size() == 1)
-    {
-      return d_solver->mkOp(k, numerals[0]);
-    }
-    else if (numerals.size() == 2)
-    {
-      return d_solver->mkOp(k, numerals[0], numerals[1]);
-    }
+    return (*kIt).second;
   }
-
   parseError(std::string("Unknown indexed function `") + name + "'");
-  return api::Op();
+  return api::UNDEFINED_KIND;
 }
 
 api::Term Smt2::bindDefineFunRec(
@@ -616,6 +604,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::PRODUCT, "product");
     addOperator(api::TRANSPOSE, "transpose");
     addOperator(api::TCLOSURE, "tclosure");
+    addOperator(api::JOIN_IMAGE, "join_image");
+    addOperator(api::IDEN, "iden");
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
@@ -635,6 +625,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");
     addOperator(api::BAG_FROM_SET, "bag.from_set");
     addOperator(api::BAG_TO_SET, "bag.to_set");
+    addOperator(api::BAG_MAP, "bag.map");
   }
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
     defineType("String", d_solver->getStringSort(), true, true);
@@ -685,6 +676,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
+    defineVar("sep.emp", d_solver->mkTerm(api::SEP_EMP));
 
     addSepOperators();
   }
@@ -694,7 +686,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     // If not from a command, just set the logic directly. Notice this is
     // important since we do not want to enqueue a set-logic command and
-    // fully initialize the underlying SmtEngine in the meantime before the
+    // fully initialize the underlying SolverEngine in the meantime before the
     // command has a chance to execute, which would lead to an error.
     d_solver->setLogic(logic);
     return nullptr;
@@ -840,11 +832,6 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
   Assert(isAbstractValue(name));
   // remove the '@'
   return d_solver->mkAbstractValue(name.substr(1));
-}
-
-Language Smt2::getLanguage() const
-{
-  return d_solver->getOptions().base.inputLanguage;
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
@@ -1044,22 +1031,24 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
+  else if ((p.d_kind == api::APPLY_SELECTOR || p.d_kind == api::APPLY_UPDATER)
+           && !p.d_expr.isNull())
   {
     // tuple selector case
     if (!p.d_expr.isUInt64Value())
     {
-      parseError("index of tupSel is larger than size of uint64_t");
+      parseError(
+          "index of tuple select or update is larger than size of uint64_t");
     }
     uint64_t n = p.d_expr.getUInt64Value();
-    if (args.size() != 1)
+    if (args.size() != (p.d_kind == api::APPLY_SELECTOR ? 1 : 2))
     {
-      parseError("tupSel should only be applied to one tuple argument");
+      parseError("wrong number of arguments for tuple select or update");
     }
     api::Sort t = args[0].getSort();
     if (!t.isTuple())
     {
-      parseError("tupSel applied to non-tuple");
+      parseError("tuple select or update applied to non-tuple");
     }
     size_t length = t.getTupleLength();
     if (n >= length)
@@ -1069,8 +1058,17 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const api::Datatype& dt = t.getDatatype();
-    api::Term ret = d_solver->mkTerm(
-        api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+    api::Term ret;
+    if (p.d_kind == api::APPLY_SELECTOR)
+    {
+      ret = d_solver->mkTerm(
+          api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+    }
+    else
+    {
+      ret = d_solver->mkTerm(
+          api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
+    }
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
@@ -1103,7 +1101,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         if ((*i).getSort().isFunction())
         {
           parseError(
-              "Cannot apply equalty to functions unless logic is prefixed by "
+              "Cannot apply equality to functions unless logic is prefixed by "
               "HO_.");
         }
       }

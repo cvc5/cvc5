@@ -26,8 +26,6 @@ SequencesStatistics::SequencesStatistics()
         smtStatisticsRegistry().registerInt("theory::strings::checkRuns")),
       d_strategyRuns(
           smtStatisticsRegistry().registerInt("theory::strings::strategyRuns")),
-      d_inferencesNoPf(smtStatisticsRegistry().registerHistogram<InferenceId>(
-          "theory::strings::inferencesNoPf")),
       d_cdSimplifications(smtStatisticsRegistry().registerHistogram<Kind>(
           "theory::strings::cdSimplifications")),
       d_reductions(smtStatisticsRegistry().registerHistogram<Kind>(

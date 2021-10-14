@@ -36,10 +36,11 @@ struct IsStarAttributeId
 };
 using IsStarAttribute = expr::Attribute<IsStarAttributeId, bool>;
 
-FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,
+FirstOrderModelFmc::FirstOrderModelFmc(Env& env,
+                                       QuantifiersState& qs,
                                        QuantifiersRegistry& qr,
                                        TermRegistry& tr)
-    : FirstOrderModel(qs, qr, tr)
+    : FirstOrderModel(env, qs, qr, tr)
 {
 }
 

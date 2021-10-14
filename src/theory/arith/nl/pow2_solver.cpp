@@ -33,8 +33,11 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-Pow2Solver::Pow2Solver(InferenceManager& im, ArithState& state, NlModel& model)
-    : d_im(im), d_model(model), d_initRefine(state.getUserContext())
+Pow2Solver::Pow2Solver(Env& env,
+                       InferenceManager& im,
+                       ArithState& state,
+                       NlModel& model)
+    : EnvObj(env), d_im(im), d_model(model), d_initRefine(userContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);

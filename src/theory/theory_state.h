@@ -21,6 +21,7 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/valuation.h"
 
 namespace cvc5 {
@@ -30,7 +31,7 @@ namespace eq {
 class EqualityEngine;
 }
 
-class TheoryState
+class TheoryState : protected EnvObj
 {
  public:
   TheoryState(Env& env,
@@ -41,14 +42,6 @@ class TheoryState
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
-  /** Get the SAT context */
-  context::Context* getSatContext() const;
-  /** Get the user context */
-  context::UserContext* getUserContext() const;
-  /** Get the environment */
-  Env& getEnv() const { return d_env; }
-  /** Get the options */
-  const Options& options() const { return getEnv().getOptions(); }
   //-------------------------------------- equality information
   /** Is t registered as a term in the equality engine of this class? */
   virtual bool hasTerm(TNode a) const;
@@ -107,18 +100,11 @@ class TheoryState
   context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
-  /**
-   * Is the cardinality of type tn finite? This method depends on whether
-   * finite model finding is enabled. For details, see theory_engine.h.
-   */
-  bool isFiniteType(TypeNode tn) const;
 
   /** Get the underlying valuation class */
   Valuation& getValuation();
 
  protected:
-  /** Reference to the environment. */
-  Env& d_env;
   /**
    * The valuation proxy for the Theory to communicate back with the
    * theory engine (and other theories).

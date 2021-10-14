@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
 #include "theory/arith/nl/cad/proof_generator.h"
@@ -44,7 +45,7 @@ namespace cad {
  * This class implements Cylindrical Algebraic Coverings as presented in
  * https://arxiv.org/pdf/2003.05633.pdf
  */
-class CDCAC
+class CDCAC : protected EnvObj
 {
  public:
   /** Initialize this method with the given variable ordering. */
@@ -183,9 +184,6 @@ class CDCAC
    * Additionally makes sure to prune proofs for removed intervals.
    */
   void pruneRedundantIntervals(std::vector<CACInterval>& intervals);
-
-  /** A reference to the environment */
-  Env& d_env;
 
   /**
    * The current assignment. When the method terminates with SAT, it contains a

@@ -18,9 +18,10 @@
 #ifndef CVC5__THEORY__COMBINATION_ENGINE__H
 #define CVC5__THEORY__COMBINATION_ENGINE__H
 
-#include <vector>
 #include <memory>
+#include <vector>
 
+#include "smt/env_obj.h"
 #include "theory/ee_manager.h"
 #include "theory/valuation.h"
 
@@ -42,13 +43,12 @@ class SharedSolver;
  * mode, and
  * (2) Implementing the main combination method (combineTheories).
  */
-class CombinationEngine
+class CombinationEngine : protected EnvObj
 {
  public:
-  CombinationEngine(TheoryEngine& te,
-                    Env& env,
-                    const std::vector<Theory*>& paraTheories,
-                    ProofNodeManager* pnm);
+  CombinationEngine(Env& env,
+                    TheoryEngine& te,
+                    const std::vector<Theory*>& paraTheories);
   virtual ~CombinationEngine();
 
   /** Finish initialization */
@@ -107,8 +107,6 @@ class CombinationEngine
   virtual eq::EqualityEngineNotify* getModelEqualityEngineNotify();
   /** Reference to the theory engine */
   TheoryEngine& d_te;
-  /** Reference to the environment */
-  Env& d_env;
   /** Valuation for the engine */
   Valuation d_valuation;
   /** The proof node manager */

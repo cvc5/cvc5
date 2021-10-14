@@ -28,8 +28,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-HoTermDb::HoTermDb(QuantifiersState& qs, QuantifiersRegistry& qr)
-    : TermDb(qs, qr)
+HoTermDb::HoTermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
+    : TermDb(env, qs, qr)
 {
 }
 
@@ -152,7 +152,7 @@ bool HoTermDb::resetInternal(Theory::Effort effort)
 
 bool HoTermDb::finishResetInternal(Theory::Effort effort)
 {
-  if (!d_qstate.options().quantifiers.hoMergeTermDb)
+  if (!options().quantifiers.hoMergeTermDb)
   {
     return true;
   }

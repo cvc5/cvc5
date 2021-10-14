@@ -30,20 +30,24 @@
 
 namespace cvc5 {
 
-class SmtEngine;
+class Env;
+
+namespace rewriter {
+class RewriteDb;
+}
 
 namespace smt {
 
 /**
- * A callback class used by SmtEngine for post-processing proof nodes by
+ * A callback class used by SolverEngine for post-processing proof nodes by
  * connecting proofs of preprocessing, and expanding macro PfRule applications.
  */
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm,
-                           SmtEngine* smte,
+  ProofPostprocessCallback(Env& env,
                            ProofGenerator* pppg,
+                           rewriter::RewriteDb* rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
@@ -73,10 +77,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** Common constants */
   Node d_true;
-  /** The proof node manager */
+  /** Reference to the env */
+  Env& d_env;
+  /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
-  /** Pointer to the SmtEngine, which should have proofs enabled */
-  SmtEngine* d_smte;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The witness form proof generator */
@@ -240,7 +244,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 
 /**
  * The proof postprocessor module. This postprocesses the final proof
- * produced by an SmtEngine. Its main two tasks are to:
+ * produced by an SolverEngine. Its main two tasks are to:
  * (1) Connect proofs of preprocessing,
  * (2) Expand macro PfRule applications.
  */
@@ -248,16 +252,15 @@ class ProofPostproccess
 {
  public:
   /**
-   * @param pnm The proof node manager we are using
-   * @param smte The SMT engine whose proofs are being post-processed
+   * @param env The environment we are using
    * @param pppg The proof generator for pre-processing proofs
    * @param updateScopedAssumptions Whether we post-process assumptions in
    * scope. Since doing so is sound and only problematic depending on who is
    * consuming the proof, it's true by default.
    */
-  ProofPostproccess(ProofNodeManager* pnm,
-                    SmtEngine* smte,
+  ProofPostproccess(Env& env,
                     ProofGenerator* pppg,
+                    rewriter::RewriteDb* rdb,
                     bool updateScopedAssumptions = true);
   ~ProofPostproccess();
   /** post-process */
@@ -266,8 +269,6 @@ class ProofPostproccess
   void setEliminateRule(PfRule rule);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The post process callback */
   ProofPostprocessCallback d_cb;
   /**

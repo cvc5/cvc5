@@ -73,8 +73,7 @@ class TermDb : public QuantifiersUtil {
   using NodeDbListMap = context::CDHashMap<Node, std::shared_ptr<DbList>>;
 
  public:
-  TermDb(QuantifiersState& qs,
-         QuantifiersRegistry& qr);
+  TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
   virtual ~TermDb();
   /** Finish init, which sets the inference manager */
   void finishInit(QuantifiersInferenceManager* qim);

@@ -34,15 +34,16 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
                                      OutputChannel& out,
                                      Valuation valuation)
     : Theory(THEORY_QUANTIFIERS, env, out, valuation),
-      d_qstate(env, valuation, getLogicInfo()),
-      d_qreg(),
-      d_treg(d_qstate, d_qreg),
-      d_qim(*this, d_qstate, d_qreg, d_treg, d_pnm),
+      d_rewriter(env.getOptions()),
+      d_qstate(env, valuation, logicInfo()),
+      d_qreg(env),
+      d_treg(env, d_qstate, d_qreg),
+      d_qim(env, *this, d_qstate, d_qreg, d_treg, d_pnm),
       d_qengine(nullptr)
 {
   // construct the quantifiers engine
   d_qengine.reset(
-      new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, d_pnm));
+      new QuantifiersEngine(env, d_qstate, d_qreg, d_treg, d_qim, d_pnm));
 
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;

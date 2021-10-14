@@ -22,6 +22,7 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
@@ -47,13 +48,13 @@ class TheoryUF;
  *
  * For more details, see "Extending SMT Solvers to Higher-Order", Barbosa et al.
  */
-class HoExtension
+class HoExtension : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  HoExtension(TheoryState& state, TheoryInferenceManager& im);
+  HoExtension(Env& env, TheoryState& state, TheoryInferenceManager& im);
 
   /** ppRewrite
    *

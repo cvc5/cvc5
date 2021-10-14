@@ -37,17 +37,17 @@ namespace arith {
 
 TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_ARITH, env, out, valuation),
-      d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
-          "theory::arith::ppRewriteTimer")),
+      d_ppRewriteTimer(
+          statisticsRegistry().registerTimer("theory::arith::ppRewriteTimer")),
       d_astate(env, valuation),
-      d_im(*this, d_astate, d_pnm),
-      d_ppre(getSatContext(), d_pnm),
-      d_bab(d_astate, d_im, d_ppre, d_pnm),
+      d_im(env, *this, d_astate, d_pnm),
+      d_ppre(d_env),
+      d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
       d_internal(new TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
-      d_opElim(d_pnm, getLogicInfo()),
-      d_arithPreproc(d_astate, d_im, d_pnm, d_opElim),
+      d_opElim(d_env),
+      d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim)
 {
   // currently a cyclic dependency to TheoryArithPrivate
@@ -58,7 +58,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
 
   if (options().arith.arithEqSolver)
   {
-    d_eqSolver.reset(new EqualitySolver(d_astate, d_im));
+    d_eqSolver.reset(new EqualitySolver(env, d_astate, d_im));
   }
 }
 
@@ -87,8 +87,8 @@ bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 }
 void TheoryArith::finishInit()
 {
-  if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
-      && getLogicInfo().areTranscendentalsUsed())
+  const LogicInfo& logic = logicInfo();
+  if (logic.isTheoryEnabled(THEORY_ARITH) && logic.areTranscendentalsUsed())
   {
     // witness is used to eliminate square root
     d_valuation.setUnevaluatedKind(kind::WITNESS);
@@ -98,10 +98,10 @@ void TheoryArith::finishInit()
     d_valuation.setUnevaluatedKind(kind::PI);
   }
   // only need to create nonlinear extension if non-linear logic
-  const LogicInfo& logicInfo = getLogicInfo();
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
-    d_nonlinearExtension.reset(new nl::NonlinearExtension(*this, d_astate));
+    d_nonlinearExtension.reset(
+        new nl::NonlinearExtension(d_env, *this, d_astate));
   }
   if (d_eqSolver != nullptr)
   {
@@ -167,7 +167,15 @@ void TheoryArith::postCheck(Effort level)
   {
     if (d_nonlinearExtension != nullptr)
     {
-      d_nonlinearExtension->check(level);
+      // If we computed lemmas in the last FULL_EFFORT check, send them now.
+      if (d_im.hasPendingLemma())
+      {
+        d_im.doPendingFacts();
+        d_im.doPendingLemmas();
+        d_im.doPendingPhaseRequirements();
+        return;
+      }
+      d_nonlinearExtension->finalizeModel(getValuation().getModel());
     }
     return;
   }
@@ -189,8 +197,7 @@ void TheoryArith::postCheck(Effort level)
     {
       std::set<Node> termSet;
       updateModelCache(termSet);
-      d_nonlinearExtension->check(level);
-      d_nonlinearExtension->interceptModel(d_arithModelCache, termSet);
+      d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
     else if (d_internal->foundNonlinear())
     {
@@ -223,7 +230,7 @@ bool TheoryArith::preNotifyFact(
 bool TheoryArith::needsCheckLastEffort() {
   if (d_nonlinearExtension != nullptr)
   {
-    return d_nonlinearExtension->needsCheckLastEffort();
+    return d_nonlinearExtension->hasNlTerms();
   }
   return false;
 }
@@ -313,10 +320,6 @@ void TheoryArith::notifyRestart(){
 
 void TheoryArith::presolve(){
   d_internal->presolve();
-  if (d_nonlinearExtension != nullptr)
-  {
-    d_nonlinearExtension->presolve();
-  }
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {

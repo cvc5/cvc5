@@ -22,7 +22,9 @@
 #include "context/cdlist.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env_obj.h"
 #include "theory/output_channel.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
@@ -44,17 +46,20 @@ class InferenceManager;
  * (5) Maintaining a skolem cache. Notice that this skolem cache is the
  * official skolem cache that should be used by all modules in TheoryStrings.
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  TermRegistry(SolverState& s,
+  TermRegistry(Env& env,
+               SolverState& s,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
   ~TermRegistry();
+  /** get the cardinality of the alphabet used, based on the options */
+  uint32_t getAlphabetCardinality() const;
   /** Finish initialize, which sets the inference manager */
   void finishInit(InferenceManager* im);
   /** The eager reduce routine
@@ -66,9 +71,10 @@ class TermRegistry
    *
    * @param t The node to reduce,
    * @param sc The Skolem cache to use for new variables,
+   * @param alphaCard The cardinality of the alphabet we are assuming
    * @return The eager reduction for t.
    */
-  static Node eagerReduce(Node t, SkolemCache* sc);
+  static Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
   /**
    * Returns a lemma indicating that the length of a term t whose type is
    * string-like has positive length. The exact form of this lemma depends
@@ -150,6 +156,14 @@ class TermRegistry
   const context::CDHashSet<Node>& getInputVars() const;
   /** Returns true if any str.code terms have been preregistered */
   bool hasStringCode() const;
+  /**
+   * @return true if any seq.nth or seq.update terms have been preregistered
+   */
+  bool hasSeqUpdate() const;
+  /** is handled update */
+  bool isHandledUpdate(Node n);
+  /** get base */
+  Node getUpdateBase(Node n);
   //---------------------------- end queries
   //---------------------------- proxy variables
   /** Get symbolic definition
@@ -205,7 +219,7 @@ class TermRegistry
   Node d_one;
   Node d_negOne;
   /** the cardinality of the alphabet */
-  uint32_t d_cardSize;
+  uint32_t d_alphaCard;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Pointer to the inference manager of the theory of strings. */
@@ -214,8 +228,12 @@ class TermRegistry
   SequencesStatistics& d_statistics;
   /** have we asserted any str.code terms? */
   bool d_hasStrCode;
+  /** have we asserted any seq.update/seq.nth terms? */
+  bool d_hasSeqUpdate;
   /** The cache of all skolems, which is owned by this class. */
   SkolemCache d_skCache;
+  /** arithmetic entailment */
+  ArithEntail d_aent;
   /** All function terms that the theory has seen in the current SAT context */
   context::CDList<TNode> d_functionsTerms;
   /**

@@ -19,7 +19,9 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 
 #include <unordered_set>
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -42,11 +44,11 @@ class TermDbSygus;
  *   forall x. P( (\x. t[x,c']), x )  [***]
  * is satisfiable, where notice that the above formula after beta-reduction may
  * be one in pure first-order logic in a decidable theory (say linear
- * arithmetic). To check this, we invoke a separate instance of the SmtEngine
+ * arithmetic). To check this, we invoke a separate instance of the SolverEngine
  * within repairSolution(...) below, which if satisfiable gives us the
  * valuation for c'.
  */
-class SygusRepairConst
+class SygusRepairConst : protected EnvObj
 {
  public:
   SygusRepairConst(Env& env, TermDbSygus* tds);
@@ -106,8 +108,6 @@ class SygusRepairConst
   static bool mustRepair(Node n);
 
  private:
-  /** Reference to the env */
-  Env& d_env;
   /** pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
   /**

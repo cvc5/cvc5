@@ -37,14 +37,14 @@ class TestTheoryWhite : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->finishInit();
-    delete d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
-    delete d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
-    d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = nullptr;
-    d_smtEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
+    d_slvEngine->finishInit();
+    delete d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
+    delete d_slvEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
+    d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = nullptr;
+    d_slvEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
 
     d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(
-        d_smtEngine->getEnv(), d_outputChannel, Valuation(nullptr)));
+        d_slvEngine->getEnv(), d_outputChannel, Valuation(nullptr)));
     d_outputChannel.clear();
     d_atom0 = d_nodeManager->mkConst(true);
     d_atom1 = d_nodeManager->mkConst(false);
@@ -61,14 +61,8 @@ TEST_F(TestTheoryWhite, effort)
   Theory::Effort s = Theory::EFFORT_STANDARD;
   Theory::Effort f = Theory::EFFORT_FULL;
 
-  ASSERT_TRUE(Theory::standardEffortOnly(s));
-  ASSERT_FALSE(Theory::standardEffortOnly(f));
-
   ASSERT_FALSE(Theory::fullEffort(s));
   ASSERT_TRUE(Theory::fullEffort(f));
-
-  ASSERT_TRUE(Theory::standardEffortOrMore(s));
-  ASSERT_TRUE(Theory::standardEffortOrMore(f));
 }
 
 TEST_F(TestTheoryWhite, done)

@@ -32,7 +32,8 @@ namespace theory {
 class InferenceManagerBuffered : public TheoryInferenceManager
 {
  public:
-  InferenceManagerBuffered(Theory& t,
+  InferenceManagerBuffered(Env& env,
+                           Theory& t,
                            TheoryState& state,
                            ProofNodeManager* pnm,
                            const std::string& statsName,

@@ -12,5 +12,10 @@ Python API Documentation
 .. toctree::
     :maxdepth: 1
 
-    datatype
     quickstart
+    solver
+    datatype
+    datatypeconstructor
+    datatypeconstructordecl
+    datatypedecl
+    datatypeselector

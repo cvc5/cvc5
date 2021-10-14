@@ -29,6 +29,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "smt/env.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 
@@ -880,7 +881,7 @@ bool SortInference::isMonotonic( TypeNode tn ) {
 
 bool SortInference::isHandledApplyUf(Kind k) const
 {
-  return k == APPLY_UF && !options::ufHo();
+  return k == APPLY_UF && !logicInfo().isHigherOrder();
 }
 
 }  // namespace theory

@@ -21,24 +21,11 @@ namespace cvc5 {
 namespace theory {
 
 TheoryState::TheoryState(Env& env, Valuation val)
-    : d_env(env),
-      d_valuation(val),
-      d_ee(nullptr),
-      d_conflict(d_env.getContext(), false)
+    : EnvObj(env), d_valuation(val), d_ee(nullptr), d_conflict(context(), false)
 {
 }
 
 void TheoryState::setEqualityEngine(eq::EqualityEngine* ee) { d_ee = ee; }
-
-context::Context* TheoryState::getSatContext() const
-{
-  return d_env.getContext();
-}
-
-context::UserContext* TheoryState::getUserContext() const
-{
-  return d_env.getUserContext();
-}
 
 bool TheoryState::hasTerm(TNode a) const
 {
@@ -173,11 +160,6 @@ context::CDList<Assertion>::const_iterator TheoryState::factsBegin(TheoryId tid)
 context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
 {
   return d_valuation.factsEnd(tid);
-}
-
-bool TheoryState::isFiniteType(TypeNode tn) const
-{
-  return d_valuation.isFiniteType(tn);
 }
 
 Valuation& TheoryState::getValuation() { return d_valuation; }

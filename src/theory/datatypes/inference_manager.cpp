@@ -30,17 +30,16 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-InferenceManager::InferenceManager(Theory& t,
+InferenceManager::InferenceManager(Env& env,
+                                   Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm, "theory::datatypes::"),
+    : InferenceManagerBuffered(env, t, state, pnm, "theory::datatypes::"),
       d_pnm(pnm),
-      d_ipc(pnm == nullptr ? nullptr
-                           : new InferProofCons(state.getSatContext(), pnm)),
-      d_lemPg(pnm == nullptr
-                  ? nullptr
-                  : new EagerProofGenerator(
-                      pnm, state.getUserContext(), "datatypes::lemPg"))
+      d_ipc(pnm == nullptr ? nullptr : new InferProofCons(context(), pnm)),
+      d_lemPg(pnm == nullptr ? nullptr
+                             : new EagerProofGenerator(
+                                 pnm, userContext(), "datatypes::lemPg"))
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -160,7 +159,7 @@ Node InferenceManager::prepareDtInference(Node conc,
   if (conc.getKind() == EQUAL && conc[0].getType().isBoolean())
   {
     // must turn (= conc false) into (not conc)
-    conc = Rewriter::rewrite(conc);
+    conc = rewrite(conc);
   }
   if (isProofEnabled())
   {

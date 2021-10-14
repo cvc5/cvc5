@@ -530,7 +530,6 @@ set<string> getOptionStrings() {
       "dio-repeat",
       "no-dio-repeat",
       "replay-early-close-depth",
-      "replay-failure-penalty",
       "replay-num-err-penalty",
       "replay-reject-cut",
       "replay-lemma-reject-cut",

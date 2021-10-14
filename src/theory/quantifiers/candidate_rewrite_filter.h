@@ -21,7 +21,9 @@
 #define CVC5__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
 
 #include <map>
+
 #include "expr/match_trie.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/dynamic_rewrite.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus_sampler.h"
@@ -46,10 +48,10 @@ namespace quantifiers {
  * pairs". A relevant pair ( t, s ) typically corresponds to a (candidate)
  * rewrite t = s.
  */
-class CandidateRewriteFilter
+class CandidateRewriteFilter : protected EnvObj
 {
  public:
-  CandidateRewriteFilter();
+  CandidateRewriteFilter(Env& env);
 
   /** initialize
    *
@@ -104,8 +106,8 @@ class CandidateRewriteFilter
   bool d_use_sygus_type;
 
   //----------------------------congruence filtering
-  /** a (dummy) user context, used for d_drewrite */
-  context::UserContext d_fake_context;
+  /** a (dummy) context, used for d_drewrite */
+  context::Context d_fakeContext;
   /** dynamic rewriter class */
   std::unique_ptr<DynamicRewriter> d_drewrite;
   //----------------------------end congruence filtering

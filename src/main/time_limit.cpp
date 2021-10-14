@@ -56,7 +56,6 @@
 #include <cstring>
 
 #include "base/exception.h"
-#include "options/base_options.h"
 #include "signal_handlers.h"
 
 namespace cvc5 {
@@ -78,9 +77,8 @@ TimeLimit::~TimeLimit()
 }
 #endif
 
-TimeLimit install_time_limit(const Options& opts)
+TimeLimit install_time_limit(uint64_t ms)
 {
-  uint64_t ms = opts.base.cumulativeMillisecondLimit;
   // Skip if no time limit shall be set.
   if (ms == 0) {
     return TimeLimit();

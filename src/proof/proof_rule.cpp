@@ -135,6 +135,7 @@ const char* toString(PfRule id)
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
+    case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
     case PfRule::QUANTIFIERS_PREPROCESS: return "QUANTIFIERS_PREPROCESS";
     //================================================= String rules
     case PfRule::CONCAT_EQ: return "CONCAT_EQ";
@@ -157,6 +158,7 @@ const char* toString(PfRule id)
     case PfRule::RE_ELIM: return "RE_ELIM";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case PfRule::STRING_INFERENCE: return "STRING_INFERENCE";
     //================================================= Arith rules
     case PfRule::MACRO_ARITH_SCALE_SUM_UB:
       return "ARITH_SCALE_SUM_UPPER_BOUNDS";
@@ -200,6 +202,7 @@ const char* toString(PfRule id)
     case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
     //================================================= External rules
     case PfRule::LFSC_RULE: return "LFSC_RULE";
+    case PfRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

@@ -123,6 +123,8 @@ class ProofNode
   std::vector<Node> d_args;
   /** The cache of the fact that has been proven, modifiable by ProofChecker */
   Node d_proven;
+  /** Was d_proven actually checked, or is it trusted? */
+  bool d_provenChecked;
 };
 
 inline size_t ProofNodeHashFunction::operator()(

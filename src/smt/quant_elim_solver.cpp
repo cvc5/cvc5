@@ -20,9 +20,7 @@
 #include "expr/subs.h"
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/cegqi/nested_qe.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/string.h"
 
@@ -33,7 +31,7 @@ namespace cvc5 {
 namespace smt {
 
 QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
-    : d_env(env), d_smtSolver(sms)
+    : EnvObj(env), d_smtSolver(sms)
 {
 }
 
@@ -52,7 +50,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   }
   NodeManager* nm = NodeManager::currentNM();
   // ensure the body is rewritten
-  q = nm->mkNode(q.getKind(), q[0], Rewriter::rewrite(q[1]));
+  q = nm->mkNode(q.getKind(), q[0], rewrite(q[1]));
   // do nested quantifier elimination if necessary
   q = quantifiers::NestedQe::doNestedQe(d_env, q, true);
   Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : "
@@ -74,7 +72,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
   // We consider this to be an entailment check, which also avoids incorrect
-  // status reporting (see SmtEngineState::d_expectedStatus).
+  // status reporting (see SolverEngineState::d_expectedStatus).
   Result r = d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, true);
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
@@ -105,12 +103,12 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       std::vector<Node> insts;
       qe->getInstantiations(topq, insts);
       // note we do not convert to witness form here, since we could be
-      // an internal subsolver (SmtEngine::isInternalSubsolver).
+      // an internal subsolver (SolverEngine::isInternalSubsolver).
       ret = nm->mkAnd(insts);
       Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
       if (q.getKind() == EXISTS)
       {
-        ret = Rewriter::rewrite(ret.negate());
+        ret = rewrite(ret.negate());
       }
     }
     else
@@ -118,8 +116,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       ret = nm->mkConst(q.getKind() != EXISTS);
     }
     // do extended rewrite to minimize the size of the formula aggressively
-    theory::quantifiers::ExtendedRewriter extr(true);
-    ret = extr.extendedRewrite(ret);
+    ret = extendedRewrite(ret);
     // if we are not an internal subsolver, convert to witness form, since
     // internally generated skolems should not escape
     if (!isInternalSubsolver)

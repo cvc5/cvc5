@@ -77,7 +77,8 @@ class InferenceManager : public InferenceManagerBuffered
   friend class InferInfo;
 
  public:
-  InferenceManager(Theory& t,
+  InferenceManager(Env& env,
+                   Theory& t,
                    SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,

@@ -1,4 +1,4 @@
-; COMMAND-LINE:
+; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
 (set-logic NIA)
 (set-option :strings-exp true)

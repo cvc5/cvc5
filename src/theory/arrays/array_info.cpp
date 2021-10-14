@@ -22,15 +22,15 @@ namespace cvc5 {
 namespace theory {
 namespace arrays {
 
-Info::Info(context::Context* c, Backtracker<TNode>* bck)
+Info::Info(context::Context* c)
     : isNonLinear(c, false),
       rIntro1Applied(c, false),
-      modelRep(c,TNode()),
-      constArr(c,TNode()),
-      weakEquivPointer(c,TNode()),
-      weakEquivIndex(c,TNode()),
-      weakEquivSecondary(c,TNode()),
-      weakEquivSecondaryReason(c,TNode())
+      modelRep(c, TNode()),
+      constArr(c, TNode()),
+      weakEquivPointer(c, TNode()),
+      weakEquivIndex(c, TNode()),
+      weakEquivSecondary(c, TNode()),
+      weakEquivSecondaryReason(c, TNode())
 {
   indices = new(true)CTNodeList(c);
   stores = new(true)CTNodeList(c);
@@ -44,10 +44,8 @@ Info::~Info() {
 }
 
 ArrayInfo::ArrayInfo(context::Context* c,
-                     Backtracker<TNode>* b,
                      std::string statisticsPrefix)
     : ct(c),
-      bck(b),
       info_map(),
       d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(
           statisticsPrefix + "mergeInfoTimer")),
@@ -67,7 +65,7 @@ ArrayInfo::ArrayInfo(context::Context* c,
           statisticsPrefix + "infoTableSize", info_map))
 {
   emptyList = new(true) CTNodeList(ct);
-  emptyInfo = new Info(ct, bck);
+  emptyInfo = new Info(ct);
 }
 
 ArrayInfo::~ArrayInfo() {
@@ -102,16 +100,6 @@ void printList (CTNodeList* list) {
   Trace("arrays-info")<<"] \n";
 }
 
-void printList (List<TNode>* list) {
-  List<TNode>::const_iterator it = list->begin();
-  Trace("arrays-info")<<"   [ ";
-  for (; it != list->end(); ++it)
-  {
-    Trace("arrays-info")<<(*it)<<" ";
-  }
-  Trace("arrays-info")<<"] \n";
-}
-
 void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
   std::set<TNode> temp;
   CTNodeList::const_iterator it;
@@ -138,7 +126,7 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
 
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_indices = temp_info->indices;
     temp_indices->push_back(i);
     info_map[a] = temp_info;
@@ -163,7 +151,7 @@ void ArrayInfo::addStore(const Node a, const TNode st){
 
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_store = temp_info->stores;
     temp_store->push_back(st);
     info_map[a]=temp_info;
@@ -186,7 +174,7 @@ void ArrayInfo::addInStore(const TNode a, const TNode b){
 
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_inst = temp_info->in_stores;
     temp_inst->push_back(b);
     info_map[a] = temp_info;
@@ -204,7 +192,7 @@ void ArrayInfo::setNonLinear(const TNode a) {
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_info->isNonLinear = true;
     info_map[a] = temp_info;
   } else {
@@ -218,7 +206,7 @@ void ArrayInfo::setRIntro1Applied(const TNode a) {
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_info->rIntro1Applied = true;
     info_map[a] = temp_info;
   } else {
@@ -232,7 +220,7 @@ void ArrayInfo::setModelRep(const TNode a, const TNode b) {
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_info->modelRep = b;
     info_map[a] = temp_info;
   } else {
@@ -246,7 +234,7 @@ void ArrayInfo::setConstArr(const TNode a, const TNode constArr) {
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_info->constArr = constArr;
     info_map[a] = temp_info;
   } else {
@@ -259,7 +247,7 @@ void ArrayInfo::setWeakEquivPointer(const TNode a, const TNode pointer) {
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_info->weakEquivPointer = pointer;
     info_map[a] = temp_info;
   } else {
@@ -272,7 +260,7 @@ void ArrayInfo::setWeakEquivIndex(const TNode a, const TNode index) {
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_info->weakEquivIndex = index;
     info_map[a] = temp_info;
   } else {
@@ -285,7 +273,7 @@ void ArrayInfo::setWeakEquivSecondary(const TNode a, const TNode secondary) {
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_info->weakEquivSecondary = secondary;
     info_map[a] = temp_info;
   } else {
@@ -298,7 +286,7 @@ void ArrayInfo::setWeakEquivSecondaryReason(const TNode a, const TNode reason) {
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
-    temp_info = new Info(ct, bck);
+    temp_info = new Info(ct);
     temp_info->weakEquivSecondaryReason = reason;
     info_map[a] = temp_info;
   } else {
@@ -497,7 +485,7 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
       CTNodeList* listb_st = (*itb).second->stores;
       CTNodeList* listb_inst = (*itb).second->in_stores;
 
-      Info* temp_info = new Info(ct, bck);
+      Info* temp_info = new Info(ct);
 
       mergeLists(temp_info->indices, listb_i);
       mergeLists(temp_info->stores, listb_st);

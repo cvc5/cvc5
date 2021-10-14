@@ -28,7 +28,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::kind;
@@ -38,10 +37,10 @@ namespace theory {
 namespace quantifiers {
 
 CegSingleInv::CegSingleInv(Env& env, TermRegistry& tr, SygusStatistics& s)
-    : d_env(env),
+    : EnvObj(env),
+      d_isSolved(false),
       d_sip(new SingleInvocationPartition),
       d_srcons(new SygusReconstruct(env, tr.getTermDatabaseSygus(), s)),
-      d_isSolved(false),
       d_single_invocation(false),
       d_treg(tr)
 {
@@ -111,7 +110,8 @@ void CegSingleInv::initialize(Node q)
   {
     // We are fully single invocation, set single invocation if we haven't
     // disabled single invocation techniques.
-    if (options::cegqiSingleInvMode() != options::CegqiSingleInvMode::NONE)
+    if (options().quantifiers.cegqiSingleInvMode
+        != options::CegqiSingleInvMode::NONE)
     {
       d_single_invocation = true;
     }
@@ -123,7 +123,8 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   Trace("sygus-si-debug") << "Single invocation: finish init" << std::endl;
   // do not do single invocation if grammar is restricted and
   // options::CegqiSingleInvMode::ALL is not enabled
-  if (options::cegqiSingleInvMode() == options::CegqiSingleInvMode::USE
+  if (options().quantifiers.cegqiSingleInvMode
+          == options::CegqiSingleInvMode::USE
       && d_single_invocation && syntaxRestricted)
   {
     d_single_invocation = false;
@@ -135,7 +136,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   {
     d_single_inv = Node::null();
     Trace("sygus-si") << "Formula is not single invocation." << std::endl;
-    if (options::cegqiSingleInvAbort())
+    if (options().quantifiers.cegqiSingleInvAbort)
     {
       std::stringstream ss;
       ss << "Property is not handled by single invocation." << std::endl;
@@ -227,8 +228,11 @@ bool CegSingleInv::solve()
     siq = nm->mkNode(FORALL, siq[0], siq[1], n_attr);
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
-  std::unique_ptr<SmtEngine> siSmt;
+  std::unique_ptr<SolverEngine> siSmt;
   initializeSubsolver(siSmt, d_env);
+  // do not use shared selectors in subsolver, since this leads to solutions
+  // with non-user symbols
+  siSmt->setOption("dt-share-sel", "false");
   siSmt->assertFormula(siq);
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
@@ -277,7 +281,7 @@ bool CegSingleInv::solve()
       Assert(inst.size() == vars.size());
       Node ilem =
           body.substitute(vars.begin(), vars.end(), inst.begin(), inst.end());
-      ilem = Rewriter::rewrite(ilem);
+      ilem = rewrite(ilem);
       d_instConds.push_back(ilem);
       Trace("sygus-si") << "  Instantiation Lemma: " << ilem << std::endl;
     }
@@ -401,7 +405,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
   }
   //simplify the solution using the extended rewriter
   Trace("csi-sol") << "Solution (pre-simplification): " << s << std::endl;
-  s = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
+  s = extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   // wrap into lambda, as needed
   return SygusUtils::wrapSolutionForSynthFun(prog, s);
@@ -442,20 +446,20 @@ Node CegSingleInv::reconstructToSyntax(Node s,
 
   // reconstruct the solution into sygus if necessary
   reconstructed = 0;
-  if (options::cegqiSingleInvReconstruct()
+  if (options().quantifiers.cegqiSingleInvReconstruct
           != options::CegqiSingleInvRconsMode::NONE
       && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus)
   {
     int64_t enumLimit = -1;
-    if (options::cegqiSingleInvReconstruct()
+    if (options().quantifiers.cegqiSingleInvReconstruct
         == options::CegqiSingleInvRconsMode::TRY)
     {
       enumLimit = 0;
     }
-    else if (options::cegqiSingleInvReconstruct()
+    else if (options().quantifiers.cegqiSingleInvReconstruct
              == options::CegqiSingleInvRconsMode::ALL_LIMIT)
     {
-      enumLimit = options::cegqiSingleInvReconstructLimit();
+      enumLimit = options().quantifiers.cegqiSingleInvReconstructLimit;
     }
     sol = d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
     if (reconstructed == 1)
@@ -468,7 +472,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   {
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = sol;
-    sol = d_treg.getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(sol);
+    sol = extendedRewrite(sol);
     if (prev != sol)
     {
       Trace("csi-sol") << "Solution (after post process) : " << sol
@@ -504,7 +508,8 @@ bool CegSingleInv::solveTrivial(Node q)
 
     std::vector<Node> varsTmp;
     std::vector<Node> subsTmp;
-    QuantifiersRewriter::getVarElim(body, args, varsTmp, subsTmp);
+    QuantifiersRewriter qrew(options());
+    qrew.getVarElim(body, args, varsTmp, subsTmp);
     // if we eliminated a variable, update body and reprocess
     if (!varsTmp.empty())
     {
@@ -512,7 +517,7 @@ bool CegSingleInv::solveTrivial(Node q)
       // remake with eliminated nodes
       body = body.substitute(
           varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
-      body = Rewriter::rewrite(body);
+      body = rewrite(body);
       // apply to subs
       // this ensures we behave correctly if we solve x before y in
       // x = y+1 ^ y = 2.
@@ -520,7 +525,7 @@ bool CegSingleInv::solveTrivial(Node q)
       {
         subs[i] = subs[i].substitute(
             varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
-        subs[i] = Rewriter::rewrite(subs[i]);
+        subs[i] = rewrite(subs[i]);
       }
       vars.insert(vars.end(), varsTmp.begin(), varsTmp.end());
       subs.insert(subs.end(), subsTmp.begin(), subsTmp.end());

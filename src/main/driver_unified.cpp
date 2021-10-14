@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -34,17 +33,10 @@
 #include "main/options.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
-#include "options/base_options.h"
-#include "options/main_options.h"
-#include "options/option_exception.h"
-#include "options/options.h"
-#include "options/options_public.h"
-#include "options/parser_options.h"
-#include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "util/result.h"
 
 using namespace std;
@@ -64,21 +56,8 @@ std::string progName;
 /** A pointer to the CommandExecutor (the signal handlers need it) */
 std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 
-/** The time point the binary started, accessible to signal handlers */
-std::unique_ptr<TotalTimer> totalTime;
-
-TotalTimer::~TotalTimer()
-{
-  if (pExecutor != nullptr)
-  {
-    auto duration = std::chrono::steady_clock::now() - d_start;
-    pExecutor->getSmtEngine()->setTotalTimeStatistic(
-        std::chrono::duration<double>(duration).count());
-  }
-    }
-
-    }  // namespace main
-    }  // namespace cvc5
+}  // namespace main
+}  // namespace cvc5
 
     void printUsage(const api::DriverOptions& dopts, bool full)
     {
@@ -102,8 +81,6 @@ TotalTimer::~TotalTimer()
 
 int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 {
-  main::totalTime = std::make_unique<TotalTimer>();
-
   // Initialize the signal handlers
   signal_handlers::install();
 
@@ -112,30 +89,19 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   // Create the command executor to execute the parsed commands
   pExecutor = std::make_unique<CommandExecutor>(solver);
   api::DriverOptions dopts = solver->getDriverOptions();
-  Options* opts = &pExecutor->getOptions();
 
   // Parse the options
   std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
 
-  auto limit = install_time_limit(*opts);
+  auto limit = install_time_limit(solver->getOptionInfo("tlimit").uintValue());
 
-  if (opts->driver.help)
+  if (solver->getOptionInfo("help").boolValue())
   {
     printUsage(dopts, true);
     exit(1);
   }
-  else if (opts->base.languageHelp)
-  {
-    main::printLanguageHelp(dopts.out());
-    exit(1);
-  }
-  else if (opts->driver.version)
-  {
-    dopts.out() << Configuration::about().c_str() << flush;
-    exit(0);
-  }
 
-  segvSpin = opts->driver.segvSpin;
+  segvSpin = solver->getOptionInfo("segv-spin").boolValue();
 
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC5_COMPETITION_MODE
@@ -151,9 +117,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
   // if we're reading from stdin on a TTY, default to interactive mode
-  if (!opts->driver.interactiveWasSetByUser)
+  if (!solver->getOptionInfo("interactive").setByUser)
   {
-    opts->driver.interactive = inputFromStdin && isatty(fileno(stdin));
+    solver->setOption("interactive", (inputFromStdin && isatty(fileno(stdin))) ? "true" : "false");
   }
 
   // Auto-detect input language by filename extension
@@ -167,7 +133,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      solver->setOption("input-language", "cvc");
+      solver->setOption("input-language", "smt2");
     } else {
       size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
@@ -175,9 +141,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
         solver->setOption("input-language", "tptp");
-      } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
-                || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        solver->setOption("input-language", "cvc");
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
@@ -204,28 +167,29 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   int returnValue = 0;
   {
-    // notify SmtEngine that we are starting to parse
-    pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
+    solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
     std::unique_ptr<Command> cmd;
     bool status = true;
-    if (opts->driver.interactive && inputFromStdin)
+    if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
-      if (!opts->base.incrementalSolvingWasSetByUser)
+      if (!solver->getOptionInfo("incremental").setByUser)
       {
         cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
       }
       InteractiveShell shell(pExecutor->getSolver(),
-                             pExecutor->getSymbolManager());
+                             pExecutor->getSymbolManager(),
+                             dopts.in(),
+                             dopts.out());
 
       CVC5Message() << Configuration::getPackageName() << " "
                     << Configuration::getVersionString();
       if (Configuration::isGitBuild())
       {
-        CVC5Message() << " [" << Configuration::getGitId() << "]";
+        CVC5Message() << " [" << Configuration::getGitInfo() << "]";
       }
       CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                     << " assertions:"
@@ -244,7 +208,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
-        opts = &pExecutor->getOptions();
         if (cmd->interrupted()) {
           break;
         }
@@ -252,7 +215,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     }
     else
     {
-      if (!opts->base.incrementalSolvingWasSetByUser)
+      if (!solver->getOptionInfo("incremental").setByUser)
       {
         cmd.reset(new SetOptionCommand("incremental", "false"));
         cmd->setMuted(true);
@@ -271,7 +234,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         parser->setInput(
             Input::newFileInput(solver->getOption("input-language"),
                                 filename,
-                                solver->getOption("mmap") == "true"));
+                                solver->getOptionInfo("mmap").boolValue()));
       }
 
       bool interrupted = false;
@@ -280,7 +243,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         if (interrupted) {
           dopts.out() << CommandInterrupted();
           pExecutor->reset();
-          opts = &pExecutor->getOptions();
           break;
         }
         try {
@@ -292,7 +254,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
         }
 
         status = pExecutor->doCommand(cmd);
-        opts = &pExecutor->getOptions();
         if (cmd->interrupted() && status == 0) {
           interrupted = true;
           break;
@@ -321,16 +282,18 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     _exit(returnValue);
 #endif /* CVC5_COMPETITION_MODE */
 
-    totalTime.reset();
     pExecutor->flushOutputStreams();
 
 #ifdef CVC5_DEBUG
-    if (opts->driver.earlyExit && opts->driver.earlyExitWasSetByUser)
     {
-      _exit(returnValue);
+      auto info = solver->getOptionInfo("early-exit");
+      if (info.boolValue() && info.setByUser)
+      {
+        _exit(returnValue);
+      }
     }
 #else  /* CVC5_DEBUG */
-    if (opts->driver.earlyExit)
+    if (solver->getOptionInfo("early-exit").boolValue())
     {
       _exit(returnValue);
     }

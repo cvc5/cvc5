@@ -286,11 +286,13 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-FullModelChecker::FullModelChecker(QuantifiersState& qs,
+FullModelChecker::FullModelChecker(Env& env,
+                                   QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr)
-    : QModelBuilder(qs, qim, qr, tr), d_fm(new FirstOrderModelFmc(qs, qr, tr))
+    : QModelBuilder(env, qs, qim, qr, tr),
+      d_fm(new FirstOrderModelFmc(env, qs, qr, tr))
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -1340,7 +1342,7 @@ Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals )
     }
     Node nc = NodeManager::currentNM()->mkNode(n.getKind(), children);
     Trace("fmc-eval") << "Evaluate " << nc << " to ";
-    nc = Rewriter::rewrite(nc);
+    nc = rewrite(nc);
     Trace("fmc-eval") << nc << std::endl;
     return nc;
   }

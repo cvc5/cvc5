@@ -29,8 +29,6 @@
 
 namespace cvc5 {
 
-namespace detail {
-
 std::string cvc5_errno_failreason()
 {
 #if HAVE_STRERROR_R
@@ -71,6 +69,8 @@ std::string cvc5_errno_failreason()
   return "unknown reason";
 #endif /* HAVE_STRERROR_R */
 }
+
+namespace detail {
 
 std::ostream* openOStream(const std::string& filename)
 {

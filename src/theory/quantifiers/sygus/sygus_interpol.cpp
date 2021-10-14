@@ -26,14 +26,13 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusInterpol::SygusInterpol(Env& env) : d_env(env) {}
+SygusInterpol::SygusInterpol(Env& env) : EnvObj(env) {}
 
 void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
                                    const Node& conj)
@@ -255,13 +254,15 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   constraint = constraint.substitute(
       d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
   Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
-  constraint = Rewriter::rewrite(constraint);
+  constraint = rewrite(constraint);
 
   d_sygusConj = constraint;
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
 }
 
-bool SygusInterpol::findInterpol(SmtEngine* subSolver, Node& interpol, Node itp)
+bool SygusInterpol::findInterpol(SolverEngine* subSolver,
+                                 Node& interpol,
+                                 Node itp)
 {
   // get the synthesis solution
   std::map<Node, Node> sols;
@@ -271,12 +272,12 @@ bool SygusInterpol::findInterpol(SmtEngine* subSolver, Node& interpol, Node itp)
   if (its == sols.end())
   {
     Trace("sygus-interpol")
-        << "SmtEngine::getInterpol: could not find solution!" << std::endl;
+        << "SolverEngine::getInterpol: could not find solution!" << std::endl;
     throw RecoverableModalException(
         "Could not find solution for get-interpol.");
     return false;
   }
-  Trace("sygus-interpol") << "SmtEngine::getInterpol: solution is "
+  Trace("sygus-interpol") << "SolverEngine::getInterpol: solution is "
                           << its->second << std::endl;
   interpol = its->second;
   // replace back the created variables to original symbols.
@@ -324,7 +325,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   Node itp = mkPredicate(name);
   mkSygusConjecture(itp, axioms, conj);
 
-  std::unique_ptr<SmtEngine> subSolver;
+  std::unique_ptr<SolverEngine> subSolver;
   initializeSubsolver(subSolver, d_env);
   // get the logic
   LogicInfo l = subSolver->getLogicInfo().getUnlockedCopy();
@@ -338,15 +339,15 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   }
   std::vector<Node> vars_empty;
   subSolver->declareSynthFun(itp, grammarType, false, vars_empty);
-  Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
+  Trace("sygus-interpol") << "SolverEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0] << std::endl;
   subSolver->assertSygusConstraint(d_sygusConj);
 
-  Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
+  Trace("sygus-interpol") << "  SolverEngine::getInterpol check sat..."
                           << std::endl;
   Result r = subSolver->checkSynth();
-  Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
+  Trace("sygus-interpol") << "  SolverEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {

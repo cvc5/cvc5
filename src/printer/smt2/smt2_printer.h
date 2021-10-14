@@ -47,8 +47,8 @@ class Smt2Printer : public cvc5::Printer
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
    * Writes the unsat core to the stream out.
-   * We use the expression names that are stored in the SMT engine associated
-   * with the core (UnsatCore::getSmtEngine) for printing named assertions.
+   * We use the expression names that are associated with the core
+   * (UnsatCore::getCoreNames) for printing named assertions.
    */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
 
@@ -99,8 +99,7 @@ class Smt2Printer : public cvc5::Printer
       const std::vector<Node>& formulas) const override;
 
   /** Print check-sat command */
-  void toStreamCmdCheckSat(std::ostream& out,
-                           Node n = Node::null()) const override;
+  void toStreamCmdCheckSat(std::ostream& out) const override;
 
   /** Print check-sat-assuming command */
   void toStreamCmdCheckSatAssuming(
@@ -123,6 +122,9 @@ class Smt2Printer : public cvc5::Printer
 
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;
+
+  /** Print assume command */
+  void toStreamCmdAssume(std::ostream& out, Node n) const override;
 
   /** Print inv-constraint command */
   void toStreamCmdInvConstraint(std::ostream& out,
@@ -162,12 +164,11 @@ class Smt2Printer : public cvc5::Printer
   /** Print get-unsat-core command */
   void toStreamCmdGetUnsatCore(std::ostream& out) const override;
 
+  /** Print get-difficulty command */
+  void toStreamCmdGetDifficulty(std::ostream& out) const override;
+
   /** Print get-assertions command */
   void toStreamCmdGetAssertions(std::ostream& out) const override;
-
-  /** Print set-info :status command */
-  void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                     Result::Sat status) const override;
 
   /** Print set-logic command */
   void toStreamCmdSetBenchmarkLogic(std::ostream& out,
@@ -203,10 +204,6 @@ class Smt2Printer : public cvc5::Printer
 
   /** Print quit command */
   void toStreamCmdQuit(std::ostream& out) const override;
-
-  /** Print comment command */
-  void toStreamCmdComment(std::ostream& out,
-                          const std::string& comment) const override;
 
   /** Print declare-heap command */
   void toStreamCmdDeclareHeap(std::ostream& out,
@@ -252,16 +249,16 @@ class Smt2Printer : public cvc5::Printer
    * tn declared via declare-sort or declare-datatype.
    */
   void toStreamModelSort(std::ostream& out,
-                         const smt::Model& m,
-                         TypeNode tn) const override;
+                         TypeNode tn,
+                         const std::vector<Node>& elements) const override;
 
   /**
    * To stream model term. This prints the appropriate output for term
    * n declared via declare-fun.
    */
   void toStreamModelTerm(std::ostream& out,
-                         const smt::Model& m,
-                         Node n) const override;
+                         const Node& n,
+                         const Node& value) const override;
 
   /**
    * To stream with let binding. This prints n, possibly in the scope

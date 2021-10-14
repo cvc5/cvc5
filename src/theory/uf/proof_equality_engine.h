@@ -23,12 +23,14 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "proof/assumption_proof_generator.h"
 #include "proof/buffered_proof_generator.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/lazy_proof.h"
 
 namespace cvc5 {
 
+class Env;
 class ProofNode;
 class ProofNodeManager;
 
@@ -84,10 +86,11 @@ class ProofEqEngine : public EagerProofGenerator
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;
 
  public:
-  ProofEqEngine(context::Context* c,
-                context::UserContext* u,
-                EqualityEngine& ee,
-                ProofNodeManager* pnm);
+  /**
+   * @param env The environment
+   * @param ee The equality engine this is layered on
+   */
+  ProofEqEngine(Env& env, EqualityEngine& ee);
   ~ProofEqEngine() {}
   //-------------------------- assert fact
   /**
@@ -278,6 +281,8 @@ class ProofEqEngine : public EagerProofGenerator
   eq::EqualityEngine& d_ee;
   /** The default proof generator (for simple facts) */
   BufferedProofGenerator d_factPg;
+  /** The no-explain proof generator */
+  AssumptionProofGenerator d_assumpPg;
   /** common nodes */
   Node d_true;
   Node d_false;

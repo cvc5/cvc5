@@ -299,16 +299,16 @@ void usortsToBitVectors(const LogicInfo& d_logic,
 
 Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ackermann"),
-      d_funcToSkolem(preprocContext->getUserContext()),
-      d_usVarsToBVVars(preprocContext->getUserContext()),
-      d_logic(preprocContext->getLogicInfo())
+      d_funcToSkolem(userContext()),
+      d_usVarsToBVVars(userContext()),
+      d_logic(logicInfo())
 {
 }
 
 PreprocessingPassResult Ackermann::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
 
   /* collect all function applications and generate consistency lemmas
    * accordingly */

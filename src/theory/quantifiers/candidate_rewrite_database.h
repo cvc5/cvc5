@@ -36,7 +36,7 @@ namespace quantifiers {
  * of this class are to perform the "equivalence checking" and "congruence
  * and matching filtering" in Figure 1. The equivalence checking is done
  * through a combination of the sygus sampler object owned by this class
- * and the calls made to copies of the SmtEngine in ::addTerm. The rewrite
+ * and the calls made to copies of the SolverEngine in ::addTerm. The rewrite
  * rule filtering (based on congruence, matching, variable ordering) is also
  * managed by the sygus sampler object.
  */
@@ -100,14 +100,14 @@ class CandidateRewriteDatabase : public ExprMiner
   bool addTerm(Node sol, std::ostream& out) override;
   /** sets whether this class should output candidate rewrites it finds */
   void setSilent(bool flag);
-  /** set the (extended) rewriter used by this class */
-  void setExtendedRewriter(ExtendedRewriter* er);
+  /** Enable the (extended) rewriter for this class */
+  void enableExtendedRewriter();
 
  private:
   /** (required) pointer to the sygus term database of d_qe */
   TermDbSygus* d_tds;
-  /** an extended rewriter object */
-  ExtendedRewriter* d_ext_rewrite;
+  /** Whether we use the extended rewriter */
+  bool d_useExtRewriter;
   /** the function-to-synthesize we are testing (if sygus) */
   Node d_candidate;
   /** whether we are checking equivalence using subsolver */

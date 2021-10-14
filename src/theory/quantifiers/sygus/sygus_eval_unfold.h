@@ -122,11 +122,6 @@ class SygusEvalUnfold
               std::vector<Node>& exp,
               bool track_exp = true,
               bool doRec = false);
-  /**
-   * Same as above, but without explanation tracking. This is used for concrete
-   * evaluation heads
-   */
-  Node unfold(Node en);
 
  private:
   /** sygus term database associated with this utility */

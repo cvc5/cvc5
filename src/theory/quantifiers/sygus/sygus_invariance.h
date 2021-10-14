@@ -111,9 +111,6 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
    */
   void init(Node conj, Node var, Node res);
 
-  /** do evaluate with unfolding, using the cache of this class */
-  Node doEvaluateWithUnfolding(TermDbSygus* tds, Node n);
-
  protected:
   /** does d_terms{ d_var -> nvn } still rewrite to d_result? */
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
@@ -137,8 +134,6 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
    * disjunctively, i.e. if one child test succeeds, the overall test succeeds.
    */
   bool d_is_conjunctive;
-  /** cache of n -> the simplified form of eval( n ) */
-  std::unordered_map<Node, Node> d_visited;
 };
 
 /** EquivSygusInvarianceTest

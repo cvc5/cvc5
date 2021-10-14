@@ -33,7 +33,10 @@ namespace arrays {
 class InferenceManager : public TheoryInferenceManager
 {
  public:
-  InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
+  InferenceManager(Env& env,
+                   Theory& t,
+                   TheoryState& state,
+                   ProofNodeManager* pnm);
   ~InferenceManager() {}
 
   /**

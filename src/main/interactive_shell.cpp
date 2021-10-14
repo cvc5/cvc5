@@ -42,11 +42,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
-#include "options/base_options.h"
-#include "options/language.h"
-#include "options/main_options.h"
-#include "options/options.h"
-#include "options/parser_options.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -71,10 +66,6 @@ using __gnu_cxx::stdio_filebuf;
 char** commandCompletion(const char* text, int start, int end);
 char* commandGenerator(const char* text, int state);
 
-static const std::string cvc_commands[] = {
-#include "main/cvc_tokens.h"
-};/* cvc_commands */
-
 static const std::string smt2_commands[] = {
 #include "main/smt2_tokens.h"
 };/* smt2_commands */
@@ -90,16 +81,16 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
-    : d_solver(solver),
-      d_in(solver->getDriverOptions().in()),
-      d_out(solver->getDriverOptions().out()),
-      d_quit(false)
+InteractiveShell::InteractiveShell(api::Solver* solver,
+                                   SymbolManager* sm,
+                                   std::istream& in,
+                                   std::ostream& out)
+    : d_solver(solver), d_in(in), d_out(out), d_quit(false)
 {
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.build();
-  if (d_solver->getOptions().parser.forceLogicStringWasSetByUser)
+  if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
     d_parser->forceLogic(tmp.getLogicString());
@@ -117,13 +108,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver, SymbolManager* sm)
     ::using_history();
 
     std::string lang = solver->getOption("input-language");
-    if (lang == "LANG_CVC")
-    {
-      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history";
-      commandsBegin = cvc_commands;
-      commandsEnd = cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
-    }
-    else if (lang == "LANG_TPTP")
+    if (lang == "LANG_TPTP")
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
       commandsBegin = tptp_commands;
@@ -370,7 +355,7 @@ restart:
     }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the
-    // line.  The first ones haven't yet been executed by the SmtEngine,
+    // line.  The first ones haven't yet been executed by the SolverEngine,
     // but the parser state has already made the variables and the mappings
     // in the symbol table.  So unfortunately, either we exit cvc5 entirely,
     // or we commit to the current line up to the command with the parse

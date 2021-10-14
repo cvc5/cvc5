@@ -20,6 +20,7 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "theory/ee_manager.h"
 #include "theory/logic_info.h"
 
@@ -40,10 +41,10 @@ class TheoryModel;
  * method is a manager-specific way for setting up the equality engine of the
  * model in preparation for model building.
  */
-class ModelManager
+class ModelManager : protected EnvObj
 {
  public:
-  ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem);
+  ModelManager(Env& env, TheoryEngine& te, EqEngineManager& eem);
   virtual ~ModelManager();
   /**
    * Finish initializing this class, which allocates the model, the model
@@ -111,8 +112,6 @@ class ModelManager
 
   /** Reference to the theory engine */
   TheoryEngine& d_te;
-  /** Reference to the environment */
-  Env& d_env;
   /** The equality engine manager */
   EqEngineManager& d_eem;
   /**

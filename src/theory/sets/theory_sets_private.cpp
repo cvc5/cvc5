@@ -36,22 +36,24 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
+TheorySetsPrivate::TheorySetsPrivate(Env& env,
+                                     TheorySets& external,
                                      SolverState& state,
                                      InferenceManager& im,
                                      SkolemCache& skc,
                                      ProofNodeManager* pnm)
-    : d_deq(state.getSatContext()),
-      d_termProcessed(state.getUserContext()),
+    : EnvObj(env),
+      d_deq(context()),
+      d_termProcessed(userContext()),
       d_fullCheckIncomplete(false),
       d_fullCheckIncompleteId(IncompleteId::UNKNOWN),
       d_external(external),
       d_state(state),
       d_im(im),
       d_skCache(skc),
-      d_treg(state, im, skc, pnm),
-      d_rels(new TheorySetsRels(state, im, skc, d_treg)),
-      d_cardSolver(new CardinalityExtension(state, im, d_treg)),
+      d_treg(d_env, state, im, skc, pnm),
+      d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
+      d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_rels_enabled(false),
       d_card_enabled(false)
 {
@@ -178,7 +180,7 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
     EqcInfo* ei = NULL;
     if (doMake)
     {
-      ei = new EqcInfo(d_external.getSatContext());
+      ei = new EqcInfo(context());
       d_eqc_info[n] = ei;
     }
     return ei;

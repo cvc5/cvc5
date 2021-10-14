@@ -265,7 +265,7 @@ class SygusUnifIo : public SygusUnif
   friend class UnifContextIo;
 
  public:
-  SygusUnifIo(SynthConjecture* p);
+  SygusUnifIo(Env& env, SynthConjecture* p);
   ~SygusUnifIo();
 
   /** initialize

@@ -36,7 +36,10 @@ void TermPoolQuantInfo::initialize()
   d_skolemAddToPool.clear();
 }
 
-TermPools::TermPools(QuantifiersState& qs) : d_qs(qs) {}
+TermPools::TermPools(Env& env, QuantifiersState& qs)
+    : QuantifiersUtil(env), d_qs(qs)
+{
+}
 
 bool TermPools::reset(Theory::Effort e)
 {
@@ -103,9 +106,9 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
     for (const Node& t : dom.d_terms)
     {
       Node r = d_qs.getRepresentative(t);
-      if (reps.find(r) == reps.end())
+      const auto i = reps.insert(r);
+      if (i.second)
       {
-        reps.insert(r);
         dom.d_currTerms.push_back(t);
       }
     }

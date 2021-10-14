@@ -24,40 +24,34 @@ namespace cvc5 {
 namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
-    SmtEngine* smt,
     Env& env,
+    TheoryEngine* te,
+    prop::PropEngine* pe,
     theory::booleans::CircuitPropagator* circuitPropagator)
-    : d_smt(smt),
-      d_env(env),
+    : EnvObj(env),
+      d_theoryEngine(te),
+      d_propEngine(pe),
       d_circuitPropagator(circuitPropagator),
-      d_llm(env.getTopLevelSubstitutions(),
-            env.getUserContext(),
-            env.getProofNodeManager()),
-      d_symsInAssertions(env.getUserContext())
+      d_llm(env),
+      d_symsInAssertions(userContext())
 {
 }
-const Options& PreprocessingPassContext::getOptions()
-{
-  return d_env.getOptions();
-}
-const LogicInfo& PreprocessingPassContext::getLogicInfo()
-{
-  return d_env.getLogicInfo();
-}
+
 theory::TrustSubstitutionMap&
-PreprocessingPassContext::getTopLevelSubstitutions()
+PreprocessingPassContext::getTopLevelSubstitutions() const
 {
   return d_env.getTopLevelSubstitutions();
 }
 
-context::Context* PreprocessingPassContext::getUserContext()
+TheoryEngine* PreprocessingPassContext::getTheoryEngine() const
 {
-  return d_env.getUserContext();
+  return d_theoryEngine;
 }
-context::Context* PreprocessingPassContext::getDecisionContext()
+prop::PropEngine* PreprocessingPassContext::getPropEngine() const
 {
-  return d_env.getContext();
+  return d_propEngine;
 }
+
 void PreprocessingPassContext::spendResource(Resource r)
 {
   d_env.getResourceManager()->spendResource(r);
@@ -82,7 +76,7 @@ void PreprocessingPassContext::notifyLearnedLiteral(TNode lit)
   d_llm.notifyLearnedLiteral(lit);
 }
 
-std::vector<Node> PreprocessingPassContext::getLearnedLiterals()
+std::vector<Node> PreprocessingPassContext::getLearnedLiterals() const
 {
   return d_llm.getLearnedLiterals();
 }
@@ -100,11 +94,6 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const std::vector<Node>& args)
 {
   getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
-}
-
-ProofNodeManager* PreprocessingPassContext::getProofNodeManager()
-{
-  return d_env.getProofNodeManager();
 }
 
 }  // namespace preprocessing

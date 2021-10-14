@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; COMMAND-LINE: --sygus-inference --no-check-models --nl-rlv=always
+; COMMAND-LINE: --sygus-inference --no-check-models
 (set-logic ALL)
 (declare-fun a () Real)
 (assert (> a 0.000001))

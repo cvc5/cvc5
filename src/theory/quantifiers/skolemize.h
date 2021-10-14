@@ -26,6 +26,7 @@
 #include "expr/type_node.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -63,12 +64,15 @@ class TermRegistry;
  * default and can be enabled by option:
  *   --quant-ind
  */
-class Skolemize
+class Skolemize : protected EnvObj
 {
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersState& qs, TermRegistry& tr, ProofNodeManager* pnm);
+  Skolemize(Env& env,
+            QuantifiersState& qs,
+            TermRegistry& tr,
+            ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust
@@ -89,10 +93,10 @@ class Skolemize
    * The skolem constants/functions we generate by this
    * skolemization are added to sk.
    *
-   * The arguments fvTypes and fvs are used if we are
+   * The argument fvs are used if we are
    * performing skolemization within a nested quantified
    * formula. In this case, skolem constants we introduce
-   * must be parameterized based on fvTypes and must be
+   * must be parameterized based on the types of fvs and must be
    * applied to fvs.
    *
    * The last two arguments sub and sub_vars are used for
@@ -103,7 +107,6 @@ class Skolemize
    */
   static Node mkSkolemizedBody(Node q,
                                Node n,
-                               std::vector<TypeNode>& fvTypes,
                                std::vector<TNode>& fvs,
                                std::vector<Node>& sk,
                                Node& sub,

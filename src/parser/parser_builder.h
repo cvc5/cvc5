@@ -104,8 +104,8 @@ class CVC5_EXPORT ParserBuilder
    */
   ParserBuilder& withParseOnly(bool flag = true);
 
-  /** Derive settings from the given options. */
-  ParserBuilder& withOptions(const Options& opts);
+  /** Derive settings from the solver's options. */
+  ParserBuilder& withOptions();
 
   /**
    * Should the parser use strict mode?

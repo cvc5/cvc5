@@ -26,8 +26,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
-#include "options/base_options.h"
-#include "options/options.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "smt/command.h"
@@ -600,13 +598,19 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     }
     return t;
   }
-  // otherwise, nothing to do
-  // check that the type is correct
-  if (t.getSort() != s)
+  // Otherwise, check that the type is correct. Type ascriptions in SMT-LIB 2.6
+  // referred to the range of function sorts. Note that this is only a check
+  // and does not impact the returned term.
+  api::Sort checkSort = t.getSort();
+  if (checkSort.isFunction())
+  {
+    checkSort = checkSort.getFunctionCodomainSort();
+  }
+  if (checkSort != s)
   {
     std::stringstream ss;
-    ss << "Type ascription not satisfied, term " << t << " expected sort " << s
-       << " but has sort " << t.getSort();
+    ss << "Type ascription not satisfied, term " << t
+       << " expected (codomain) sort " << s << " but has sort " << t.getSort();
     parseError(ss.str());
   }
   return t;
@@ -899,7 +903,7 @@ std::wstring Parser::processAdHocStringEsc(const std::string& s)
 
 api::Term Parser::mkStringConstant(const std::string& s)
 {
-  if (language::isLangSmt2(d_solver->getOptions().base.inputLanguage))
+  if (d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6")
   {
     return d_solver->mkString(s, true);
   }

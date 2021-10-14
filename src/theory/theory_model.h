@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
@@ -79,7 +80,7 @@ namespace theory {
  * above functions such as getRepresentative() when assigning total
  * interpretations for uninterpreted functions.
  */
-class TheoryModel
+class TheoryModel : protected EnvObj
 {
   friend class TheoryEngineModelBuilder;
 
@@ -357,8 +358,6 @@ class TheoryModel
   std::string debugPrintModelEqc() const;
 
  protected:
-  /** Reference to the environmanet */
-  Env& d_env;
   /** Unique name of this model */
   std::string d_name;
   /** equality engine containing all known equalities/disequalities */

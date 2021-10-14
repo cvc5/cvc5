@@ -835,14 +835,24 @@ enum class PfRule : uint32_t
   // has prefix "QUANTIFIERS_INST_E_MATCHING", then t is the trigger that
   // generated the instantiation.
   INSTANTIATE,
+  // ======== Alpha equivalence
+  // Children: none
+  // Arguments: (F, (y1 = z1), ..., (yn = zn) )
+  // ----------------------------------------
+  // Conclusion: (= F F*sigma)
+  // sigma maps y1 ... yn to z1 ... zn, where y1 ... yn are unique bound
+  // variables, and z1 ... zn are unique bound variables. Notice that this
+  // rule is correct only when z1, ..., zn are not contained in
+  // FV(F) \ { y1 ... yn }. The internal quantifiers proof checker does not
+  // currently check that this is the case.
+  ALPHA_EQUIV,
   // ======== (Trusted) quantifiers preprocess
   // Children: ?
   // Arguments: (F)
   // ---------------------------------------------------------------
   // Conclusion: F
-  // where F is an equality of the form t = QuantifiersRewriter::preprocess(t)
+  // where F is an equality of the form t = QuantifiersPreprocess::preprocess(t)
   QUANTIFIERS_PREPROCESS,
-
   //================================================= String rules
   //======================== Core solver
   // ======== Concat eq
@@ -1070,6 +1080,15 @@ enum class PfRule : uint32_t
   // Also applies to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
+  //======================== Trusted
+  // ======== String inference
+  // Children: ?
+  // Arguments: (F id isRev exp)
+  // ---------------------
+  // Conclusion: F
+  // used to bookkeep an inference that has not yet been converted via
+  // strings::InferProofCons::convert.
+  STRING_INFERENCE,
 
   //================================================= Arithmetic rules
   // ======== Adding Inequalities
@@ -1387,6 +1406,15 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   LFSC_RULE,
+  //================================================ Place holder for Alethe
+  // rules
+  // ======== Alethe rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, Q', A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  // where Q' is the representation of Q to be printed by the Alethe printer.
+  ALETHE_RULE,
 
   //================================================= Unknown rule
   UNKNOWN,

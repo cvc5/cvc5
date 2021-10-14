@@ -20,11 +20,11 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
-class Env;
-class SmtEngine;
+class SolverEngine;
 
 namespace smt {
 
@@ -32,13 +32,13 @@ namespace smt {
  * A solver for abduction queries.
  *
  * This class is responsible for responding to get-abduct commands. It spawns
- * a subsolver SmtEngine for a sygus conjecture that captures the abduction
+ * a subsolver SolverEngine for a sygus conjecture that captures the abduction
  * query, and implements supporting utility methods such as checkAbduct.
  */
-class AbductionSolver
+class AbductionSolver : protected EnvObj
 {
  public:
-  AbductionSolver(Env& env, SmtEngine* parent);
+  AbductionSolver(Env& env);
   ~AbductionSolver();
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -46,23 +46,27 @@ class AbductionSolver
    * If this method returns true, then abd is set to a formula C such that
    * A ^ C is satisfiable, and A ^ ~B ^ C is unsatisfiable.
    *
-   * @param goal The goal of the abduction problem.
+   * @param axioms The expanded assertions A of the parent SMT engine
+   * @param goal The goal B of the abduction problem.
    * @param grammarType A sygus datatype type that encodes the syntax
    * restrictions on the shape of possible solutions.
-   * @param abd This argument is updated to contain the solution to the
+   * @param abd This argument is updated to contain the solution C to the
    * abduction problem. Notice that this is a formula whose free symbols
    * are contained in goal + the parent's current assertion stack.
    *
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getAbduct(const Node& goal, const TypeNode& grammarType, Node& abd);
+  bool getAbduct(const std::vector<Node>& axioms,
+                 const Node& goal,
+                 const TypeNode& grammarType,
+                 Node& abd);
 
   /**
    * Same as above, but without user-provided grammar restrictions. A default
    * grammar is chosen internally using the sygus grammar constructor utility.
    */
-  bool getAbduct(const Node& goal, Node& abd);
+  bool getAbduct(const std::vector<Node>& axioms, const Node& goal, Node& abd);
 
   /**
    * Check that a solution to an abduction conjecture is indeed a solution.
@@ -71,8 +75,11 @@ class AbductionSolver
    * solution to the abduction problem (a) is SAT, and the assertions conjoined
    * with the abduct and the goal is UNSAT. If these criteria are not met, an
    * internal error is thrown.
+   *
+   * @param axioms The expanded assertions of the parent SMT engine
+   * @param a The abduct to check.
    */
-  void checkAbduct(Node a);
+  void checkAbduct(const std::vector<Node>& axioms, Node a);
 
  private:
   /**
@@ -84,11 +91,7 @@ class AbductionSolver
    * This method assumes d_subsolver has been initialized to do abduction
    * problems.
    */
-  bool getAbductInternal(Node& abd);
-  /** Reference to the env */
-  Env& d_env;
-  /** The parent SMT engine */
-  SmtEngine* d_parent;
+  bool getAbductInternal(const std::vector<Node>& axioms, Node& abd);
   /** The SMT engine subsolver
    *
    * This is a separate copy of the SMT engine which is used for making
@@ -105,10 +108,10 @@ class AbductionSolver
    * assertion stack unchaged. This copy of the SMT engine can be further
    * queried for information regarding further solutions.
    */
-  std::unique_ptr<SmtEngine> d_subsolver;
+  std::unique_ptr<SolverEngine> d_subsolver;
   /**
    * The conjecture of the current abduction problem. This expression is only
-   * valid while the parent SmtEngine is in mode SMT_MODE_ABDUCT.
+   * valid while the parent SolverEngine is in mode SMT_MODE_ABDUCT.
    */
   Node d_abdConj;
   /**

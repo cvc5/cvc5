@@ -32,8 +32,11 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnifRl::SygusUnifRl(SynthConjecture* p)
-    : d_parent(p), d_useCondPool(false), d_useCondPoolIGain(false)
+SygusUnifRl::SygusUnifRl(Env& env, SynthConjecture* p)
+    : SygusUnif(env),
+      d_parent(p),
+      d_useCondPool(false),
+      d_useCondPoolIGain(false)
 {
 }
 SygusUnifRl::~SygusUnifRl() {}
@@ -55,7 +58,7 @@ void SygusUnifRl::initializeCandidate(
   }
   // register the strategy
   registerStrategy(f, enums, restrictions.d_unused_strategies);
-  d_strategy[f].staticLearnRedundantOps(strategy_lemmas, restrictions);
+  d_strategy.at(f).staticLearnRedundantOps(strategy_lemmas, restrictions);
   // Copy candidates and check whether CegisUnif for any of them
   if (d_unif_candidates.find(f) != d_unif_candidates.end())
   {
@@ -118,7 +121,7 @@ Node SygusUnifRl::purifyLemma(Node n,
         TNode cand = n[0];
         Node tmp = n.substitute(cand, it1->second);
         // should be concrete, can just use the rewriter
-        nv = Rewriter::rewrite(tmp);
+        nv = rewrite(tmp);
         Trace("sygus-unif-rl-purify")
             << "PurifyLemma : model value for " << tmp << " is " << nv << "\n";
       }
@@ -231,7 +234,7 @@ Node SygusUnifRl::purifyLemma(Node n,
     Trace("sygus-unif-rl-purify")
         << "PurifyLemma : adding model eq " << model_guards.back() << "\n";
   }
-  nb = Rewriter::rewrite(nb);
+  nb = rewrite(nb);
   // every non-top level application of function-to-synthesize must be reduced
   // to a concrete constant
   Assert(!ensureConst || nb.isConst());
@@ -262,7 +265,7 @@ Node SygusUnifRl::addRefLemma(Node lemma,
     model_guards.push_back(plem);
     plem = NodeManager::currentNM()->mkNode(OR, model_guards);
   }
-  plem = Rewriter::rewrite(plem);
+  plem = rewrite(plem);
   Trace("sygus-unif-rl-purify") << "Purified lemma : " << plem << "\n";
 
   Trace("sygus-unif-rl-purify") << "Collect new evaluation points...\n";
@@ -316,7 +319,7 @@ bool SygusUnifRl::constructSolution(std::vector<Node>& sols,
     }
     initializeConstructSolFor(c);
     Node v = constructSol(
-        c, d_strategy[c].getRootEnumerator(), role_equal, 0, lemmas);
+        c, d_strategy.at(c).getRootEnumerator(), role_equal, 0, lemmas);
     if (v.isNull())
     {
       // we continue trying to build solutions to accumulate potentitial
@@ -337,7 +340,7 @@ Node SygusUnifRl::constructSol(
   Trace("sygus-unif-sol") << "ConstructSol: SygusRL : " << e << std::endl;
   // retrieve strategy information
   TypeNode etn = e.getType();
-  EnumTypeInfo& tinfo = d_strategy[f].getEnumTypeInfo(etn);
+  EnumTypeInfo& tinfo = d_strategy.at(f).getEnumTypeInfo(etn);
   StrategyNode& snode = tinfo.getStrategyNode(nrole);
   if (nrole != role_equal)
   {
@@ -412,10 +415,10 @@ void SygusUnifRl::registerStrategy(
   {
     Trace("sygus-unif-rl-strat")
         << "Strategy for " << f << " is : " << std::endl;
-    d_strategy[f].debugPrint("sygus-unif-rl-strat");
+    d_strategy.at(f).debugPrint("sygus-unif-rl-strat");
   }
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
-  Node e = d_strategy[f].getRootEnumerator();
+  Node e = d_strategy.at(f).getRootEnumerator();
   std::map<Node, std::map<NodeRole, bool>> visited;
   registerStrategyNode(f, e, role_equal, visited, enums, unused_strats);
 }
@@ -435,7 +438,7 @@ void SygusUnifRl::registerStrategyNode(
   }
   visited[e][nrole] = true;
   TypeNode etn = e.getType();
-  EnumTypeInfo& tinfo = d_strategy[f].getEnumTypeInfo(etn);
+  EnumTypeInfo& tinfo = d_strategy.at(f).getEnumTypeInfo(etn);
   StrategyNode& snode = tinfo.getStrategyNode(nrole);
   for (unsigned j = 0, size = snode.d_strats.size(); j < size; j++)
   {
@@ -497,7 +500,7 @@ void SygusUnifRl::registerConditionalEnumerator(Node f,
     d_cenum_to_stratpt[cond].clear();
   }
   // register that this strategy node has a decision tree construction
-  d_stratpt_to_dt[e].initialize(cond, this, &d_strategy[f], strategy_index);
+  d_stratpt_to_dt[e].initialize(cond, this, &d_strategy.at(f), strategy_index);
   // associate conditional enumerator with strategy node
   d_cenum_to_stratpt[cond].push_back(e);
 }

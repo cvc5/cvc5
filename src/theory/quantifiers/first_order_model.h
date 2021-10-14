@@ -19,6 +19,7 @@
 #define CVC5__FIRST_ORDER_MODEL_H
 
 #include "context/cdlist.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
@@ -36,10 +37,11 @@ class TermRegistry;
 class QuantifiersRegistry;
 
 // TODO (#1301) : document and refactor this class
-class FirstOrderModel
+class FirstOrderModel : protected EnvObj
 {
  public:
-  FirstOrderModel(QuantifiersState& qs,
+  FirstOrderModel(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr);
   virtual ~FirstOrderModel() {}

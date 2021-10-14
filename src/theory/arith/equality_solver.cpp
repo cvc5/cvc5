@@ -23,12 +23,15 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-EqualitySolver::EqualitySolver(ArithState& astate, InferenceManager& aim)
-    : d_astate(astate),
+EqualitySolver::EqualitySolver(Env& env,
+                               ArithState& astate,
+                               InferenceManager& aim)
+    : EnvObj(env),
+      d_astate(astate),
       d_aim(aim),
       d_notify(*this),
       d_ee(nullptr),
-      d_propLits(astate.getSatContext())
+      d_propLits(context())
 {
 }
 

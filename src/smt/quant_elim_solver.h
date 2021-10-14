@@ -20,10 +20,9 @@
 
 #include "expr/node.h"
 #include "smt/assertions.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
-class Env;
-
 namespace smt {
 
 class SmtSolver;
@@ -36,7 +35,7 @@ class SmtSolver;
  * quantifier instantiations used for unsat which are in turn used for
  * constructing the solution for the quantifier elimination query.
  */
-class QuantElimSolver
+class QuantElimSolver : protected EnvObj
 {
  public:
   QuantElimSolver(Env& env, SmtSolver& sms);
@@ -52,7 +51,7 @@ class QuantElimSolver
    * elimination is LRA and LIA.
    *
    * This function returns a formula ret such that, given
-   * the current set of formulas A asserted to this SmtEngine :
+   * the current set of formulas A asserted to this SolverEngine :
    *
    * If doFull = true, then
    *   - ( A ^ q ) and ( A ^ ret ) are equivalent
@@ -83,10 +82,10 @@ class QuantElimSolver
    * for incrementally computing the result of a
    * quantifier elimination.
    *
-   * @param as The assertions of the SmtEngine
+   * @param as The assertions of the SolverEngine
    * @param q The quantified formula we are eliminating quantifiers from
    * @param doFull Whether we are doing full quantifier elimination on q
-   * @param isInternalSubsolver Whether the SmtEngine we belong to is an
+   * @param isInternalSubsolver Whether the SolverEngine we belong to is an
    * internal subsolver. If it is not, then we convert the final result to
    * witness form.
    * @return The result of eliminating quantifiers from q.
@@ -97,8 +96,6 @@ class QuantElimSolver
                                 bool isInternalSubsolver);
 
  private:
-  /** Reference to the env */
-  Env& d_env;
   /** The SMT solver, which is used during doQuantifierElimination. */
   SmtSolver& d_smtSolver;
 };

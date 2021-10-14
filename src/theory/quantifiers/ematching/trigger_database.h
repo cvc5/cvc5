@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
 
 namespace cvc5 {
@@ -37,10 +38,11 @@ namespace inst {
 /**
  * A database of triggers, which manages how triggers are constructed.
  */
-class TriggerDatabase
+class TriggerDatabase : protected EnvObj
 {
  public:
-  TriggerDatabase(QuantifiersState& qs,
+  TriggerDatabase(Env& env,
+                  QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   TermRegistry& tr);
