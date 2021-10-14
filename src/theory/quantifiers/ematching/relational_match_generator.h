@@ -34,7 +34,8 @@ namespace inst {
  * For example, for quantified formula (forall ((x Int)) (=> (> x n) (P x))),
  * we have that (> x n) is a relational trigger with required polarity "true".
  * This generator will try the match `x -> n+1` only, where notice that n+1 is
- * the canonical term chosen to satisfy x>n.
+ * the canonical term chosen to satisfy x>n. Canonical terms for arithmetic
+ * relations (~ x n) are in set { n, n+1, n-1 }.
  *
  * If a relational trigger does not have a required polarity, then up to 2
  * terms are tried, a term that satisfies the relation, and one that does not.
@@ -48,6 +49,12 @@ namespace inst {
 class RelationalMatchGenerator : public InstMatchGenerator
 {
  public:
+  /**
+   * @param tparent The parent trigger that this match generator belongs to
+   * @param rtrigger The relational trigger
+   * @param hasPol Whether the trigger has an entailed polarity
+   * @param pol The entailed polarity of the relational trigger.
+   */
   RelationalMatchGenerator(Trigger* tparent,
                            Node rtrigger,
                            bool hasPol,

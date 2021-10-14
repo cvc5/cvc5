@@ -81,7 +81,7 @@ bool TriggerTermInfo::isUsableRelationTrigger(Node n,
                                               bool& pol,
                                               Node& lit)
 {
-  // relational triggers (not) (= (~ x t) true|false)
+  // relational triggers (not) (= (~ x t) true|false), where ~ in { =, >= }.
   hasPol = false;
   pol = n.getKind() != NOT;
   lit = pol ? n : n[0];
