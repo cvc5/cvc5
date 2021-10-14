@@ -921,7 +921,6 @@ set(regress_0_tests
   regress0/quantifiers/issue6838-qpdt.smt2
   regress0/quantifiers/issue6996-trivial-elim.smt2
   regress0/quantifiers/issue6999-deq-elim.smt2
-  regress0/quantifiers/issue7353-var-elim-par-dt.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1500,6 +1499,7 @@ set(regress_1_tests
   regress1/arith/issue3952-rew-eq.smt2
   regress1/arith/issue4985-model-success.smt2
   regress1/arith/issue4985b-model-success.smt2
+  regress1/arith/issue6774-sanity-int-model.smt2
   regress1/arith/issue789.smt2
   regress1/arith/miplib3.cvc.smt2
   regress1/arith/mod.02.smt2
@@ -2200,6 +2200,7 @@ set(regress_1_tests
   regress1/strings/issue6653-rre-small.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
+  regress1/strings/issue6973-dup-lemma-conc.smt2 
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
