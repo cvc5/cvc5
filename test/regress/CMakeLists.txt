@@ -1499,6 +1499,7 @@ set(regress_1_tests
   regress1/arith/issue3952-rew-eq.smt2
   regress1/arith/issue4985-model-success.smt2
   regress1/arith/issue4985b-model-success.smt2
+  regress1/arith/issue6774-sanity-int-model.smt2
   regress1/arith/issue789.smt2
   regress1/arith/miplib3.cvc.smt2
   regress1/arith/mod.02.smt2
