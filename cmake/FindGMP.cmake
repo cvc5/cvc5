@@ -61,21 +61,75 @@ if(NOT GMP_FOUND_SYSTEM)
 
   set(GMP_VERSION "6.2.1")
 
-  ExternalProject_Add(
-    GMP-EP
-    ${COMMON_EP_CONFIG}
-    URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
-    URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
-    CONFIGURE_COMMAND
-      <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-cxx --with-pic
-      --enable-shared --enable-static --host=${TOOLCHAIN_PREFIX}
-    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp.a
-                     <INSTALL_DIR>/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}
-  )
+  if(CVC5_WINDOWS_BUILD)
+    # on windows, the gmp.h is different for shared and static builds.
+    # we thus need two separate builds...
+    ExternalProject_Add(
+      GMP-EP-download
+      ${COMMON_EP_CONFIG}
+      URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
+      URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
+      INSTALL_COMMAND ""
+    )
+    ExternalProject_Get_Property(GMP-EP-download SOURCE_DIR)
+    ExternalProject_Add(
+      GMP-EP-shared
+      ${COMMON_EP_CONFIG}
+      SOURCE_DIR "${SOURCE_DIR}"
+      DOWNLOAD_COMMAND ""
+      CONFIGURE_COMMAND
+        <SOURCE_DIR>/configure --enable-shared --disable-static
+        --prefix=<INSTALL_DIR> --includedir=<INSTALL_DIR>/include/gmp-shared
+        --enable-cxx --with-pic --host=${TOOLCHAIN_PREFIX}
+      BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}
+      DEPENDS GMP-EP-download
+    )
+    ExternalProject_Add(
+      GMP-EP-static
+      ${COMMON_EP_CONFIG}
+      SOURCE_DIR "${SOURCE_DIR}"
+      DOWNLOAD_COMMAND ""
+      CONFIGURE_COMMAND
+        <SOURCE_DIR>/configure --disable-shared --enable-static
+        --prefix=<INSTALL_DIR> --includedir=<INSTALL_DIR>/include/gmp-static
+        --enable-cxx --with-pic --host=${TOOLCHAIN_PREFIX}
+      BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp.a
+      DEPENDS GMP-EP-download
+    )
 
-  set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(GMP_STATIC_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
+    add_custom_target(GMP-EP DEPENDS GMP-EP-shared)
+    if(ENABLE_STATIC_LIBRARY)
+      add_dependencies(GMP-EP GMP-EP-static)
+    endif()
+
+    set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/gmp-shared/")
+    set(GMP_STATIC_INCLUDE_DIR "${DEPS_BASE}/include/gmp-static/")
+    set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(GMP_STATIC_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
+
+    file(MAKE_DIRECTORY "${GMP_INCLUDE_DIR}")
+    file(MAKE_DIRECTORY "${GMP_STATIC_INCLUDE_DIR}")
+  else()
+    ExternalProject_Add(
+      GMP-EP
+      ${COMMON_EP_CONFIG}
+      URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
+      URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
+      CONFIGURE_COMMAND
+        <SOURCE_DIR>/configure --enable-shared --enable-static
+        --prefix=<INSTALL_DIR>
+        --enable-cxx --with-pic --host=${TOOLCHAIN_PREFIX}
+      BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp.a
+                      <INSTALL_DIR>/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+
+    set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
+    set(GMP_STATIC_INCLUDE_DIR "${DEPS_BASE}/include/")
+    set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(GMP_STATIC_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
+  endif()
 endif()
 
 set(GMP_FOUND TRUE)
@@ -90,7 +144,7 @@ if(ENABLE_STATIC_LIBRARY)
   add_library(GMP_STATIC STATIC IMPORTED GLOBAL)
   set_target_properties(GMP_STATIC PROPERTIES
     IMPORTED_LOCATION "${GMP_STATIC_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
+    INTERFACE_INCLUDE_DIRECTORIES "${GMP_STATIC_INCLUDE_DIR}"
   )
 endif()
 
