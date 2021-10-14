@@ -548,7 +548,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       if (!c.isLargeFinite())
       {
         Integer ci = c.getFiniteCardinality();
-        if (ci.fitsUnsignedInt)
+        if (ci.fitsUnsignedInt())
         {
           smallCardinality = true;
           typeCardSize = ci.toUnsignedInt();
