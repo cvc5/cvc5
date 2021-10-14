@@ -27,7 +27,7 @@
 namespace cvc5 {
 
 class Env;
-class SmtEngine;
+class SolverEngine;
 
 namespace theory {
 namespace quantifiers {
@@ -174,7 +174,7 @@ class SygusInterpol : protected EnvObj
    * @param interpol the solution to the sygus conjecture.
    * @param itp the interpolation predicate.
    */
-  bool findInterpol(SmtEngine* subsolver, Node& interpol, Node itp);
+  bool findInterpol(SolverEngine* subsolver, Node& interpol, Node itp);
   /**
    * symbols from axioms and conjecture.
    */

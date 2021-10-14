@@ -15,17 +15,17 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SMT__SMT_ENGINE_STATS_H
-#define CVC5__SMT__SMT_ENGINE_STATS_H
+#ifndef CVC5__SMT__SOLVER_ENGINE_STATS_H
+#define CVC5__SMT__SOLVER_ENGINE_STATS_H
 
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
 namespace smt {
 
-struct SmtEngineStatistics
+struct SolverEngineStatistics
 {
-  SmtEngineStatistics(const std::string& name = "smt::SmtEngine::");
+  SolverEngineStatistics(const std::string& name = "smt::SolverEngine::");
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** number of constant propagations found during nonclausal simp */
@@ -47,7 +47,7 @@ struct SmtEngineStatistics
 
   /** Has something simplified to false? */
   IntStat d_simplifiedToFalse;
-}; /* struct SmtEngineStatistics */
+}; /* struct SolverEngineStatistics */
 
 }  // namespace smt
 }  // namespace cvc5

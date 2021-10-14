@@ -180,12 +180,16 @@ libcvc5_add_sources(
   proof/lfsc/lfsc_node_converter.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_printer.cpp
+  proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_print_channel.cpp
   proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_util.cpp
   proof/lfsc/lfsc_util.h
   proof/method_id.cpp
   proof/method_id.h
+  proof/print_expr.cpp
+  proof/print_expr.h
   proof/proof.cpp
   proof/proof.h
   proof/proof_checker.cpp
@@ -343,14 +347,14 @@ libcvc5_add_sources(
   smt/proof_post_processor.h
   smt/set_defaults.cpp
   smt/set_defaults.h
-  smt/smt_engine.cpp
-  smt/smt_engine.h
-  smt/smt_engine_scope.cpp
-  smt/smt_engine_scope.h
-  smt/smt_engine_state.cpp
-  smt/smt_engine_state.h
-  smt/smt_engine_stats.cpp
-  smt/smt_engine_stats.h
+  smt/solver_engine.cpp
+  smt/solver_engine.h
+  smt/solver_engine_scope.cpp
+  smt/solver_engine_scope.h
+  smt/solver_engine_state.cpp
+  smt/solver_engine_state.h
+  smt/solver_engine_stats.cpp
+  smt/solver_engine_stats.h
   smt/smt_mode.cpp
   smt/smt_mode.h
   smt/smt_solver.cpp
@@ -1295,63 +1299,133 @@ add_subdirectory(util)
 # LIBCVC5_GEN_SRCS (via libcvc5_add_sources). We can now build libcvc5.
 
 set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
-add_library(cvc5 ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS}
-  $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
-target_include_directories(cvc5
+
+# First build the object library
+add_library(cvc5-obj OBJECT ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS})
+target_compile_definitions(cvc5-obj PRIVATE -D__BUILDING_CVC5LIB)
+set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+# add_dependencies() is necessary for cmake versions before 3.21
+add_dependencies(cvc5-obj cvc5base cvc5context)
+# Add libcvc5 dependencies for generated sources.
+add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-tags gen-theory)
+
+# Link the shared library
+add_library(cvc5-shared SHARED $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
+set_target_properties(cvc5-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
+set_target_properties(cvc5-shared PROPERTIES OUTPUT_NAME cvc5)
+target_include_directories(cvc5-shared
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
-
-include(GenerateExportHeader)
-generate_export_header(cvc5)
-
-install(TARGETS cvc5
+install(TARGETS cvc5-shared
   EXPORT cvc5-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
-set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc5 PRIVATE -D__BUILDING_CVC5LIB)
-# Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
+if(ENABLE_STATIC_LIBRARY)
+  add_library(cvc5-static STATIC $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
+  set_target_properties(cvc5-static PROPERTIES OUTPUT_NAME cvc5)
+  target_include_directories(cvc5-static
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<INSTALL_INTERFACE:include>
+  )
+  install(TARGETS cvc5-static
+    EXPORT cvc5-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
+
+include(GenerateExportHeader)
+generate_export_header(cvc5-obj BASE_NAME cvc5)
 
 # Add library/include dependencies
+add_dependencies(cvc5-obj GMP_SHARED)
+target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
+target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
+endif()
+
+# Add rt library
+# Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
+#       RT_LIBRARIES should be empty for glibc >= 2.17
+target_link_libraries(cvc5-shared PRIVATE ${RT_LIBRARIES})
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(cvc5-static PRIVATE ${RT_LIBRARIES})
+endif()
+
 if(ENABLE_VALGRIND)
-  target_include_directories(cvc5 PRIVATE ${Valgrind_INCLUDE_DIR})
+  target_include_directories(cvc5-obj PUBLIC ${Valgrind_INCLUDE_DIR})
 endif()
 if(USE_ABC)
-  target_link_libraries(cvc5 PRIVATE ${ABC_LIBRARIES})
-  target_include_directories(cvc5 PRIVATE ${ABC_INCLUDE_DIR})
+  target_include_directories(cvc5-obj PRIVATE ${ABC_INCLUDE_DIR})
+  target_link_libraries(cvc5-obj PUBLIC ${ABC_LIBRARIES})
 endif()
 
-target_link_libraries(cvc5 PRIVATE CaDiCaL)
+add_dependencies(cvc5-obj CaDiCaL)
+target_include_directories(cvc5-obj PRIVATE ${CaDiCaL_INCLUDE_DIR})
+target_link_libraries(cvc5-shared PRIVATE CaDiCaL)
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(cvc5-static PUBLIC CaDiCaL)
+endif()
 
 if(USE_CLN)
-  target_link_libraries(cvc5 PRIVATE CLN)
+  add_dependencies(cvc5-obj CLN_SHARED)
+  target_include_directories(cvc5-obj PRIVATE ${CLN_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE CLN_SHARED)
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC CLN_STATIC)
+  endif()
 endif()
 if(USE_CRYPTOMINISAT)
-  target_link_libraries(cvc5 PRIVATE CryptoMiniSat)
+  add_dependencies(cvc5-obj CryptoMiniSat)
+  target_include_directories(cvc5-obj PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE CryptoMiniSat)
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC CryptoMiniSat)
+  endif()
 endif()
 if(USE_KISSAT)
-  target_link_libraries(cvc5 PRIVATE Kissat)
+  add_dependencies(cvc5-obj Kissat)
+  target_include_directories(cvc5-obj PRIVATE ${Kissat_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE Kissat)
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC Kissat)
+  endif()
 endif()
 if(USE_GLPK)
-  target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
-  target_include_directories(cvc5 PRIVATE ${GLPK_INCLUDE_DIR})
+  target_include_directories(cvc5-obj PRIVATE ${GLPK_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE ${GLPK_LIBRARIES})
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC ${GLPK_LIBRARIES})
+  endif()
 endif()
 if(USE_POLY)
-  target_link_libraries(cvc5 PRIVATE Polyxx)
+  add_dependencies(cvc5-obj Polyxx_SHARED)
+  target_include_directories(cvc5-obj PRIVATE ${Poly_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE Polyxx_SHARED)
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC Polyxx_STATIC)
+  endif()
 endif()
 if(USE_COCOA)
-  target_link_libraries(cvc5 PRIVATE CoCoA)
+  add_dependencies(cvc5-obj CoCoA)
+  target_include_directories(cvc5-obj PRIVATE ${CoCoA_INCLUDE_DIR})
+  target_link_libraries(cvc5-shared PRIVATE CoCoA)
+  if(ENABLE_STATIC_LIBRARY)
+    target_link_libraries(cvc5-static PUBLIC CoCoA)
+  endif()
 endif()
 
-target_link_libraries(cvc5 PRIVATE SymFPU)
-
-# Note: When linked statically GMP needs to be linked after CLN since CLN
-# depends on GMP.
-target_link_libraries(cvc5 PRIVATE GMP)
+add_dependencies(cvc5-obj SymFPU)
+target_include_directories(cvc5-obj PRIVATE ${SymFPU_INCLUDE_DIR})
+target_link_libraries(cvc5-shared PRIVATE SymFPU)
+if(ENABLE_STATIC_LIBRARY)
+  target_link_libraries(cvc5-static PUBLIC SymFPU)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have

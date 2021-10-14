@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The dump manager of the SmtEngine.
+ * The dump manager of the SolverEngine.
  */
 
 #include "cvc5_private.h"
@@ -44,12 +44,12 @@ class DumpManager
   DumpManager(context::UserContext* u);
   ~DumpManager();
   /**
-   * Finish init, called during SmtEngine::finishInit, which is triggered
+   * Finish init, called during SolverEngine::finishInit, which is triggered
    * when initialization of options is finished.
    */
   void finishInit();
   /**
-   * Reset assertions, called on SmtEngine::resetAssertions.
+   * Reset assertions, called on SolverEngine::resetAssertions.
    */
   void resetAssertions();
   /**
@@ -68,7 +68,7 @@ class DumpManager
   bool d_fullyInited;
   /**
    * A vector of declaration commands waiting to be dumped out.
-   * Once the SmtEngine is fully initialized, we'll dump them.
+   * Once the SolverEngine is fully initialized, we'll dump them.
    * This ensures the declarations come after the set-logic and
    * any necessary set-option commands are dumped.
    */

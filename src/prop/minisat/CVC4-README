@@ -1,7 +1,7 @@
 ================ CHANGES TO THE ORIGINAL CODE ==================================
 
 The only cvc5 connections passed to minisat are the proxy (defined in sat.h) and
-the context. The context is obtained from the SmtEngine, and the proxy is an 
+the context. The context is obtained from the SolverEngine, and the proxy is an 
 intermediary class that has all-access to the SatSolver so as to simplify the 
 interface to (possible) other sat solvers. These two are passed to minisat at 
 construction time and some additional flags are set. We use the SimpSolver 

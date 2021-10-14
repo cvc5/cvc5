@@ -203,31 +203,26 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
   }
 }
 
-Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs)
+Node arithSubstitute(Node n, const Subs& sub)
 {
-  Assert(vars.size() == subs.size());
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
-  std::unordered_map<TNode, Node>::iterator it;
-  std::vector<Node>::iterator itv;
   std::vector<TNode> visit;
-  TNode cur;
-  Kind ck;
   visit.push_back(n);
   do
   {
-    cur = visit.back();
+    TNode cur = visit.back();
     visit.pop_back();
-    it = visited.find(cur);
+    auto it = visited.find(cur);
 
     if (it == visited.end())
     {
       visited[cur] = Node::null();
-      ck = cur.getKind();
-      itv = std::find(vars.begin(), vars.end(), cur);
-      if (itv != vars.end())
+      Kind ck = cur.getKind();
+      auto s = sub.find(cur);
+      if (s)
       {
-        visited[cur] = subs[std::distance(vars.begin(), itv)];
+        visited[cur] = *s;
       }
       else if (cur.getNumChildren() == 0)
       {
