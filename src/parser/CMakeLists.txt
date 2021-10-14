@@ -132,6 +132,6 @@ endif()
 # -Wl,--export-all-symbols makes sure that all symbols are exported when
 # building a DLL.
 if(CVC5_WINDOWS_BUILD)
-  set_target_properties(cvc5parser
+  set_target_properties(cvc5parser-objs
     PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()
