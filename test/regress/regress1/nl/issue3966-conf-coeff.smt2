@@ -1,4 +1,5 @@
 (set-logic QF_UFNIA)
+(set-info :status sat)
 (set-option :nl-ext-ent-conf true)
 (declare-const v0 Bool)
 (declare-const v1 Bool)
