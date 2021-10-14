@@ -95,11 +95,13 @@
 ;; ---- free constants
 ; A "free constant" is an input variable to an SMT-LIB problem. We identify
 ; each free constant by an integer identifier (argument v:mpz) and a sort
-; (argument s:sort).
+; (argument s:sort). Given a user input, we assign unique integer identifiers
+; to each variable.
 (declare var (! v mpz (! s sort term)))
 
 ;; ---- variables
-; A "bound variable" is a universally quantified variable. In this signature,
+; A "bound variable" is a variable that is explicitly bound by a quantifier
+; (e.g. universal, existential, lambda, witness). In this signature,
 ; bound variables are represented explicitly as free terms. Like free constants,
 ; they are identified by an integer identifier (argument v:mpz) and a sort
 ; (argument s:sort).
