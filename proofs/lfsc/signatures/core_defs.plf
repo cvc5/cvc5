@@ -123,7 +123,7 @@
 
 ; witness, similar to Hilbert's choice operator. However, it is not necessarily
 ; the case that (witness ((x Int)) (P x)) and (witness ((y Int)) (Q y)) are
-; equivalent when (exists ((x Int)) (P x)) and (exists ((y Int)) (Q y)) are
+; equal when (exists ((x Int)) (P x)) and (exists ((y Int)) (Q y)) are
 ; equivalent.
 (declare f_witness (! v mpz (! s sort term)))
 (define witness (# v mpz (# s sort (# t term (apply (f_witness v s) t)))))
