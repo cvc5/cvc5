@@ -135,8 +135,8 @@
 (define lambda (# v mpz (# s sort (# t term (apply (f_lambda v s) t)))))
 
 ; ---- Skolem variables
-; A "Skolem variable" is an internally introduced term. Its semantics are the
-; same as free constants. In contrast to free constants, we identify Skolem
+; A "Skolem variable" is an internally introduced variable. Its semantics are
+; the same as free constants. In contrast to free constants, we identify Skolem
 ; variables by a term, which they are indexed by. Given a Skolem variable
 ; (skolem t), we call t the "witness term" of this Skolem. The witness term
 ; of a Skolem is often a term that the Skolem was used to abstract during
