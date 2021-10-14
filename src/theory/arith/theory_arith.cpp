@@ -193,16 +193,25 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
     {
-      std::set<Node> termSet;
       updateModelCache(termSet);
       d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
-    else if (d_internal->foundNonlinear())
+    else 
     {
-      // set incomplete
-      d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
+      if (d_internal->foundNonlinear())
+      {
+        // set incomplete
+        d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
+      }
+      // sanity check if we are producing models
+      if (option::produceModels())
+      {
+        updateModelCache(termSet);
+        sanityCheckIntegerModel();
+      }
     }
   }
 }
@@ -273,12 +282,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   }
 
   updateModelCache(termSet);
-
-  if (sanityCheckIntegerModel())
-  {
-    // We added a lemma
-    return false;
-  }
 
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : d_arithModelCache)
