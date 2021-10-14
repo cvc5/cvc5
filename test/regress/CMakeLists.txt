@@ -779,6 +779,7 @@ set(regress_0_tests
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
   regress0/parser/issue5163.smt2
+  regress0/parser/issue7274.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -839,6 +840,7 @@ set(regress_0_tests
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
+  regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
@@ -2556,6 +2558,7 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
+  regress2/strings/strings-alpha-card-129.smt2
   regress2/strings/update-ex3.smt2
   regress2/strings/update-ex4-seq.smt2
   regress2/sygus/MPwL_d1s3.sy

@@ -24,8 +24,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 
 TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
-                                                       context::UserContext* u)
-    : d_pnm(pnm), d_proofs(u)
+                                                       context::Context* c)
+    : d_pnm(pnm), d_proofs(c)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }

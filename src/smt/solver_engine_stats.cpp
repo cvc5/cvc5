@@ -13,14 +13,14 @@
  * Implementation of statistics for SMT engine.
  */
 
-#include "smt/smt_engine_stats.h"
+#include "smt/solver_engine_stats.h"
 
 #include "smt/smt_statistics_registry.h"
 
 namespace cvc5 {
 namespace smt {
 
-SmtEngineStatistics::SmtEngineStatistics(const std::string& name)
+SolverEngineStatistics::SolverEngineStatistics(const std::string& name)
     : d_definitionExpansionTime(smtStatisticsRegistry().registerTimer(
         name + "definitionExpansionTime")),
       d_numConstantProps(
