@@ -69,6 +69,8 @@ class InferProofCons : public ProofGenerator
    * only for facts that are explained.
    */
   void notifyFact(const InferInfo& ii);
+  /** Same as above, but may force an overwrite */
+  void notifyLemma(const InferInfo& ii);
 
   /**
    * This returns the proof for fact. This is required for using this class as

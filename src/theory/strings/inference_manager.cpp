@@ -281,7 +281,7 @@ void InferenceManager::processConflict(const InferInfo& ii)
   // setup the fact to reproduce the proof in the call below
   if (d_ipc != nullptr)
   {
-    d_ipc->notifyFact(ii);
+    d_ipc->notifyLemma(ii);
   }
   // make the trust node
   TrustNode tconf = mkConflictExp(ii.d_premises, d_ipc.get());
@@ -337,7 +337,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
   // of the lemma (ii.d_conc).
   if (d_ipc != nullptr)
   {
-    d_ipc->notifyFact(ii);
+    d_ipc->notifyLemma(ii);
   }
   TrustNode tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipc.get());
   Trace("strings-pending") << "Process pending lemma : " << tlem.getNode()
