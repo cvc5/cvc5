@@ -539,8 +539,8 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // infinite cardinality, we are fine
       return;
     }
-    // TODO (cvc4-projects #23): how to handle sequence for finite types?
-    // we 
+    // we check the cardinality class of the type, assuming that FMF is
+    // disabled.
     if (isCardinalityClassFinite(tn.getCardinalityClass(), false))
     {
       Cardinality c = tn.getCardinality();
@@ -564,6 +564,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     }
     else
     {
+      // TODO (cvc4-projects #23): how to handle sequence for finite types?
       // we are in a case where the cardinality of the type is infinite
       // if not FMF, and finite if FMF. In this case, the cardinality is
       // dynamic. We do not know how to handle this case, we set incomplete.
