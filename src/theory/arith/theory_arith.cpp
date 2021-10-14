@@ -199,7 +199,7 @@ void TheoryArith::postCheck(Effort level)
       updateModelCache(termSet);
       d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
-    else
+    else 
     {
       if (d_internal->foundNonlinear())
       {
@@ -207,7 +207,7 @@ void TheoryArith::postCheck(Effort level)
         d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
       }
       // sanity check if we are producing models
-      if (option::produceModels())
+      if (options().smt.produceModels)
       {
         updateModelCache(termSet);
         sanityCheckIntegerModel();
@@ -386,7 +386,7 @@ bool TheoryArith::sanityCheckIntegerModel()
       Trace("arith-check") << p.first << " -> " << p.second << std::endl;
       if (p.first.getType().isInteger() && !p.second.getType().isInteger())
       {
-        Assert(false) << "TheoryArithPrivate generated a bad model value for "
+        Warning() << "TheoryArithPrivate generated a bad model value for "
                         "integer variable "
                       << p.first << " : " << p.second;
         // must branch and bound
