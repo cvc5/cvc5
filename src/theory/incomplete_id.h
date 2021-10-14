@@ -52,6 +52,8 @@ enum class IncompleteId
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership
   STRINGS_REGEXP_NO_SIMPLIFY,
+  // incomplete due to sequence of a dynamic finite type
+  SEQ_FINITE_DYNAMIC_CARDINALITY,
   // HO extensionality axiom was disabled
   UF_HO_EXT_DISABLED,
   // UF+cardinality solver was disabled

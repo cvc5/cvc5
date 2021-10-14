@@ -525,10 +525,10 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
   Trace("strings-card") << "Check cardinality (type " << tn << ")..."
                         << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  uint32_t typeCardSize;
+  uint64_t typeCardSize;
   if (tn.isString())  // string-only
   {
-    typeCardSize = d_cardSize;
+    typeCardSize = static_cast<uint64_t>(d_cardSize);
   }
   else
   {
@@ -540,7 +540,36 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       return;
     }
     // TODO (cvc4-projects #23): how to handle sequence for finite types?
-    return;
+    // we 
+    if (isCardinalityClassFinite(tn.getCardinalityClass(), false))
+    {
+      Cardinality c = tn.getCardinality();
+      bool smallCardinality = false;
+      if (!c.isLargeFinite())
+      {
+        Integer ci = c.getFiniteCardinality();
+        if (ci.fitsUnsignedInt)
+        {
+          smallCardinality = true;
+          typeCardSize = ci.getNumerator();
+        }
+      }
+      if (!smallCardinality)
+      {
+        // if it is large finite, then there is no way we could have
+        // constructed that many terms in memory, hence there is nothing
+        // to do.
+        return;
+      }
+    }
+    else
+    {
+      // we are in a case where the cardinality of the type is infinite
+      // if not FMF, and finite if FMF. In this case, the cardinality is
+      // dynamic. We do not know how to handle this case, we set incomplete.
+      d_im.setIncomplete(IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY);
+      return;
+    }
   }
   // for each collection
   for (unsigned i = 0, csize = cols.size(); i < csize; ++i)
