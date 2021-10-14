@@ -44,7 +44,7 @@ if(GIT_FOUND)
 
   # call git describe. If result is not 0 this is not a git repository
   execute_process(
-      COMMAND ${GIT_EXECUTABLE} describe --long --tags --match cvc5-*
+      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} describe --long --tags --match cvc5-*
       RESULT_VARIABLE GIT_RESULT
       OUTPUT_VARIABLE GIT_DESCRIBE
       OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -56,7 +56,7 @@ if(GIT_FOUND)
     set(GIT_BUILD "true")
     # get current git branch
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+        COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} rev-parse --abbrev-ref HEAD
         RESULT_VARIABLE GIT_RESULT
         OUTPUT_VARIABLE GIT_BRANCH
         OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -64,7 +64,7 @@ if(GIT_FOUND)
     # result is != 0 if worktree is dirty
     # note: git diff HEAD shows both staged and unstaged changes.
     execute_process(
-      COMMAND ${GIT_EXECUTABLE} diff HEAD --quiet
+      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} diff HEAD --quiet
       RESULT_VARIABLE GIT_RESULT
     )
     if(GIT_RESULT EQUAL 0)
