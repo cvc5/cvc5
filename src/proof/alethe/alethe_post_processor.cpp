@@ -240,6 +240,16 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
+    //======================== Builtin theory (common node operations)
+    case PfRule::EVALUATE:
+    {
+      addAletheStep(AletheRule::LIA_GENERIC,
+                    res,
+                    nm->mkNode(kind::SEXPR, d_cl, res),
+                    {},
+                    {},
+                    *cdp);
+    }
     // The rule is translated according to the theory id tid and the outermost
     // connective of the first term in the conclusion F, since F always has the
     // form (= t1 t2) where t1 is the term being rewritten. This is not an exact
@@ -1540,6 +1550,28 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    //================================================= Arithmetic rules
+    // ======== Adding Inequalities
+    //
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+    {
+      std::vector<Node> vp1s{d_cl};
+      for (auto child : children)
+      {
+        vp1s.push_back(child.notNode());
+      }
+      vp1s.push_back(res);
+      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+      return addAletheStep(AletheRule::LIA_GENERIC, vp1, vp1, {}, args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
     // ======== Sum Upper Bounds
     // Children: (P1, ... , Pn)
     //           where each Pi has form (><i, Li, Ri)
@@ -1851,7 +1883,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // (implies (not (and (< m 0) (rel lhs rhs))) (rel_inv (* m lhs) (* m
     // rhs)))) VP11: (cl (implies (not (and (< m 0) (rel lhs rhs))) (rel_inv (*
     // m lhs) (* m rhs))))
-    case PfRule::ARITH_MULT_NEG:
+    /*case PfRule::ARITH_MULT_NEG:
     {
       // not (and a b), a
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res[0].notNode(), res[0][0]);
@@ -1900,7 +1932,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {vp10},
                               {},
                               *cdp);
-    }
+    }*/
     //================================================= Extended rules
     // ======== Symmetric
     // This rule is translated according to the singleton pattern.
@@ -1934,6 +1966,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       Trace("alethe-proof")
           << "... rule not translated yet " << id << " / " << res << " "
           << children << " " << args << std::endl;
+      std::cout << id << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
