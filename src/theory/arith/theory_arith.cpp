@@ -199,7 +199,7 @@ void TheoryArith::postCheck(Effort level)
       updateModelCache(termSet);
       d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
-    else 
+    else
     {
       if (d_internal->foundNonlinear())
       {
@@ -387,8 +387,8 @@ bool TheoryArith::sanityCheckIntegerModel()
       if (p.first.getType().isInteger() && !p.second.getType().isInteger())
       {
         Warning() << "TheoryArithPrivate generated a bad model value for "
-                        "integer variable "
-                      << p.first << " : " << p.second;
+                     "integer variable "
+                  << p.first << " : " << p.second;
         // must branch and bound
         TrustNode lem =
             d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
