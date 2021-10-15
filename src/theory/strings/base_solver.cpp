@@ -541,7 +541,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     }
     // we check the cardinality class of the type, assuming that FMF is
     // disabled.
-    if (isCardinalityClassFinite(tn.getCardinalityClass(), false))
+    if (isCardinalityClassFinite(etn.getCardinalityClass(), false))
     {
       Cardinality c = tn.getCardinality();
       bool smallCardinality = false;
