@@ -1,0 +1,12 @@
+
+set(CTX "@CMAKE_BINARY_DIR@/src/context/CMakeFiles/cvc5base.dir/")
+set(BASE "@CMAKE_BINARY_DIR@/src/base/CMakeFiles/cvc5base.dir/")
+
+set(GRAPHVIZ_IGNORE_TARGETS 
+    main-test
+    @APITESTS@
+    ${CTX}context.cpp.o ${CTX}context_mm.cpp.o
+    ${BASE}check.cpp.o ${BASE}configuration.cpp.o ${BASE}exception.cpp.o
+    ${BASE}git_versioninfo.cpp.o ${BASE}listener.cpp.o ${BASE}output.cpp.o
+)
+set(GRAPHVIZ_GENERATE_DEPENDERS FALSE)
