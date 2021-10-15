@@ -66,10 +66,10 @@ class EntailmentCheck : protected EnvObj
    * (quant_conflict_find.h).
    */
   Node evaluateTerm(TNode n,
-                    std::vector<Node>& exp,
+                    std::map<TNode, TNode>& subs, 
+                    bool subsRep,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
-  /** same as above, without exp */
   Node evaluateTerm(TNode n,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
@@ -119,9 +119,10 @@ class EntailmentCheck : protected EnvObj
   /** helper for evaluate term */
   Node evaluateTerm2(TNode n,
                      std::map<TNode, Node>& visited,
-                     std::vector<Node>& exp,
+                     std::map<TNode, TNode>& subs, 
+                     bool subsRep,
+                     bool hasSubs,
                      bool useEntailmentTests,
-                     bool computeExp,
                      bool reqHasTerm);
   /** helper for get entailed term */
   TNode getEntailedTerm2(TNode n,

@@ -578,29 +578,26 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
   if( options::qcfEagerTest() ){
     //check whether the instantiation evaluates as expected
     EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
+    std::map< TNode, TNode > subs;
+    for( unsigned i=0; i<terms.size(); i++ ){
+      Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
+      subs[d_q[0][i]] = terms[i];
+    }
+    for( unsigned i=0; i<d_extra_var.size(); i++ ){
+      Node n = getCurrentExpValue( d_extra_var[i] );
+      Trace("qcf-instance-check") << "  " << d_extra_var[i] << " -> " << n << std::endl;
+      subs[d_extra_var[i]] = n;
+    }
     if (p->atConflictEffort()) {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
-      std::map< TNode, TNode > subs;
-      for( unsigned i=0; i<terms.size(); i++ ){
-        Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
-        subs[d_q[0][i]] = terms[i];
-      }
-      for( unsigned i=0; i<d_extra_var.size(); i++ ){
-        Node n = getCurrentExpValue( d_extra_var[i] );
-        Trace("qcf-instance-check") << "  " << d_extra_var[i] << " -> " << n << std::endl;
-        subs[d_extra_var[i]] = n;
-      }
       if (!echeck->isEntailed(d_q[1], subs, false, false))
       {
         Trace("qcf-instance-check") << "...not entailed to be false." << std::endl;
         return true;
       }
     }else{
-      Node inst =
-          getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
-      inst = Rewriter::rewrite(inst);
       Node inst_eval =
-          echeck->evaluateTerm(inst, options::qcfTConstraint(), true);
+          echeck->evaluateTerm(d_q[1], subs, false, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
