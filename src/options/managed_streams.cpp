@@ -100,34 +100,54 @@ std::istream* openIStream(const std::string& filename)
 }
 }  // namespace detail
 
-std::ostream* ManagedErr::defaultValue() const { return &std::cerr; }
+ManagedErr::ManagedErr() : ManagedStream(&std::cerr, "stderr") {}
 bool ManagedErr::specialCases(const std::string& value)
 {
   if (value == "stderr" || value == "--")
   {
-    d_stream.reset();
+    d_nonowned = &std::cerr;
+    d_owned.reset();
+    d_description = "stderr";
+    return true;
+  }
+  else if (value == "stdout")
+  {
+    d_nonowned = &std::cout;
+    d_owned.reset();
+    d_description = "stdout";
     return true;
   }
   return false;
 }
 
-std::istream* ManagedIn::defaultValue() const { return &std::cin; }
+ManagedIn::ManagedIn() : ManagedStream(&std::cin, "stdin") {}
 bool ManagedIn::specialCases(const std::string& value)
 {
   if (value == "stdin" || value == "--")
   {
-    d_stream.reset();
+    d_nonowned = &std::cin;
+    d_owned.reset();
+    d_description = "stdin";
     return true;
   }
   return false;
 }
 
-std::ostream* ManagedOut::defaultValue() const { return &std::cout; }
+ManagedOut::ManagedOut() : ManagedStream(&std::cout, "stdout") {}
 bool ManagedOut::specialCases(const std::string& value)
 {
   if (value == "stdout" || value == "--")
   {
-    d_stream.reset();
+    d_nonowned = &std::cout;
+    d_owned.reset();
+    d_description = "stdout";
+    return true;
+  }
+  else if (value == "stderr")
+  {
+    d_nonowned = &std::cerr;
+    d_owned.reset();
+    d_description = "stderr";
     return true;
   }
   return false;
