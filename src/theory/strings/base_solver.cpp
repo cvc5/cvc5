@@ -543,7 +543,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     // disabled.
     if (isCardinalityClassFinite(etn.getCardinalityClass(), false))
     {
-      Cardinality c = tn.getCardinality();
+      Cardinality c = etn.getCardinality();
       bool smallCardinality = false;
       if (!c.isLargeFinite())
       {
