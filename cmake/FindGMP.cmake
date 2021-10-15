@@ -48,6 +48,7 @@ if(GMP_FOUND_SYSTEM)
   if(NOT GMP_STATIC_LIBRARIES)
     set(GMP_FOUND_SYSTEM FALSE)
   endif()
+  set(GMP_STATIC_INCLUDE_DIR "${GMP_INCLUDE_DIR}")
   reset_force_static_library()
 endif()
 
