@@ -128,7 +128,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
             ${64bit}
             --host=${TOOLCHAIN_PREFIX}
         BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a
-                         <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c.so
+                         <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 
     set(ANTLR3_JAR "${DEPS_BASE}/share/java/antlr-3.4-complete.jar")
@@ -151,6 +151,9 @@ set_target_properties(ANTLR3_SHARED PROPERTIES
     IMPORTED_LOCATION "${ANTLR3_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}"
 )
+if(CVC5_WINDOWS_BUILD)
+  set_target_properties(ANTLR3_SHARED PROPERTIES IMPORTED_IMPLIB "${ANTLR3_LIBRARIES}")
+endif()
 
 if(ENABLE_STATIC_LIBRARY)
     add_library(ANTLR3_STATIC STATIC IMPORTED GLOBAL)
