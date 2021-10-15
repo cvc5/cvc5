@@ -197,7 +197,7 @@ class InferenceGenerator
    * preimage of e,
    * and skolem is a fresh variable equals (bag.map f A))
    */
-  std::tuple<InferInfo,Node, Node> mapDownwards(Node n, Node e);
+  std::tuple<InferInfo, Node, Node> mapDownwards(Node n, Node e);
 
   InferInfo mapUpwards(Node n, Node uf, Node preImageSize, Node y, Node x);
 
@@ -217,8 +217,6 @@ class InferenceGenerator
   SolverState* d_state;
   /** Pointer to the inference manager */
   InferenceManager* d_im;
-  /** map from bags of kind BAG_MAP to their inference info" */
-  std::map<Node, std::map<Node, Node>> mapInferences;
   /** Commonly used constants */
   Node d_true;
   Node d_zero;

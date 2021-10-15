@@ -84,6 +84,12 @@ class BagSolver
   InferenceManager& d_im;
   /** Reference to the term registry of theory of bags */
   TermRegistry& d_termReg;
+
+  /** a cache that stores bags of kind BAG_MAP and those element representatives
+   * which we generated their inferences.
+   */
+  std::map<Node, std::vector<Node> > d_mapCache;
+
   /** Commonly used constants */
   Node d_true;
   Node d_false;

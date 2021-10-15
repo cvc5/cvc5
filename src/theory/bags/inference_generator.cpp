@@ -301,12 +301,6 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
   Assert(e.getType() == n[0].getType().getRangeType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_MAP);
-  if (mapInferences.count(n) && mapInferences[n].count(e))
-  {
-    inferInfo.d_conclusion = mapInferences[n][e];
-    Node nop;
-    return std::tuple(inferInfo, nop, nop);
-  }
 
   Node f = n[0];
   Node A = n[1];
@@ -388,16 +382,13 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
   Node body_i = d_nm->mkNode(kind::OR, interval_i.negate(), andNode);
   Node forAll_i = quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
   Node preImageGTE_zero = d_nm->mkNode(kind::GEQ, preImageSize, d_zero);
-  Node conclusion =
-      d_nm->mkNode(kind::AND, {baseCase, totalSumEqualCountE, forAll_i, preImageGTE_zero});
+  Node conclusion = d_nm->mkNode(
+      kind::AND, {baseCase, totalSumEqualCountE, forAll_i, preImageGTE_zero});
   std::cout << "Downwards conclusion: " << conclusion << std::endl << std::endl;
   inferInfo.d_conclusion = conclusion;
 
   std::map<Node, Node> m;
   m[e] = conclusion;
-
-  mapInferences[n] = m;
-
   return std::tuple(inferInfo, uf, preImageSize);
 }
 

@@ -218,16 +218,24 @@ void BagSolver::checkMap(Node n)
   const set<Node>& upwards = d_state.getElements(n[1]);
   for (const Node& y : downwards)
   {
-    auto [downInference, uf, preImageSize] = d_ig.mapDownwards(n, y);
-    if(!uf.isNull())
+    if (d_mapCache.count(n)
+        && std::find(d_mapCache[n].begin(), d_mapCache[n].end(), y)
+               != d_mapCache[n].end())
     {
-      d_im.lemmaTheoryInference(&downInference);
-      for (const Node& x : upwards)
-      {
-        InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y, x);
-        d_im.lemmaTheoryInference(&upInference);
-      }
+      continue;
     }
+    auto [downInference, uf, preImageSize] = d_ig.mapDownwards(n, y);
+    d_im.lemmaTheoryInference(&downInference);
+    for (const Node& x : upwards)
+    {
+      InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y, x);
+      d_im.lemmaTheoryInference(&upInference);
+    }
+    if (!d_mapCache.count(n))
+    {
+      d_mapCache[n] = std::vector<Node>();
+    }
+    d_mapCache[n].push_back(y);
   }
 }
 
