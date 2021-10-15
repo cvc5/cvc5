@@ -116,13 +116,18 @@ if(NOT Poly_FOUND_SYSTEM)
     DEPENDEES install
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
-  add_dependencies(Poly-EP GMP_SHARED)
+  add_dependencies(Poly-EP GMP_SHARED GMP_STATIC)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
   set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
   set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
   set(Poly_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
   set(PolyXX_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
+
+  if(CVC5_WINDOWS_BUILD)
+    set(Poly_LIBRARIES "${DEPS_BASE}/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(PolyXX_LIBRARIES "${DEPS_BASE}/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  endif()
 endif()
 
 set(Poly_FOUND TRUE)
@@ -132,6 +137,9 @@ set_target_properties(Poly_SHARED PROPERTIES
   IMPORTED_LOCATION "${Poly_LIBRARIES}"
   INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
 )
+if(CVC5_WINDOWS_BUILD)
+  set_target_properties(Poly_SHARED PROPERTIES IMPORTED_IMPLIB "${Poly_LIBRARIES}")
+endif()
 target_link_libraries(Poly_SHARED INTERFACE GMP_SHARED)
 
 add_library(Polyxx_SHARED SHARED IMPORTED GLOBAL)
@@ -140,6 +148,9 @@ set_target_properties(Polyxx_SHARED PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
   INTERFACE_LINK_LIBRARIES Poly_SHARED
 )
+if(CVC5_WINDOWS_BUILD)
+  set_target_properties(Polyxx_SHARED PROPERTIES IMPORTED_IMPLIB "${PolyXX_LIBRARIES}")
+endif()
 
 if(ENABLE_STATIC_LIBRARY)
   add_library(Poly_STATIC STATIC IMPORTED GLOBAL)

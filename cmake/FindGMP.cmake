@@ -42,7 +42,7 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
   check_system_version("GMP")
 endif()
 
-if(ENABLE_STATIC_LIBRARY AND GMP_FOUND_SYSTEM)
+if(GMP_FOUND_SYSTEM)
   force_static_library()
   find_library(GMP_STATIC_LIBRARIES NAMES gmp)
   if(NOT GMP_STATIC_LIBRARIES)
@@ -90,10 +90,7 @@ if(NOT GMP_FOUND_SYSTEM)
       BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp.a
     )
 
-    add_custom_target(GMP-EP DEPENDS GMP-EP-shared)
-    if(ENABLE_STATIC_LIBRARY)
-      add_dependencies(GMP-EP GMP-EP-static)
-    endif()
+    add_custom_target(GMP-EP DEPENDS GMP-EP-shared GMP-EP-static)
 
     set(GMP_INCLUDE_DIR "${DEPS_BASE}/gmp-shared/include/")
     set(GMP_STATIC_INCLUDE_DIR "${DEPS_BASE}/gmp-static/include/")
@@ -134,13 +131,11 @@ if(CVC5_WINDOWS_BUILD)
   set_target_properties(GMP_SHARED PROPERTIES IMPORTED_IMPLIB "${GMP_LIBRARIES}")
 endif()
 
-if(ENABLE_STATIC_LIBRARY)
-  add_library(GMP_STATIC STATIC IMPORTED GLOBAL)
-  set_target_properties(GMP_STATIC PROPERTIES
-    IMPORTED_LOCATION "${GMP_STATIC_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${GMP_STATIC_INCLUDE_DIR}"
-  )
-endif()
+add_library(GMP_STATIC STATIC IMPORTED GLOBAL)
+set_target_properties(GMP_STATIC PROPERTIES
+  IMPORTED_LOCATION "${GMP_STATIC_LIBRARIES}"
+  INTERFACE_INCLUDE_DIRECTORIES "${GMP_STATIC_INCLUDE_DIR}"
+)
 
 mark_as_advanced(GMP_FOUND)
 mark_as_advanced(GMP_FOUND_SYSTEM)
@@ -152,7 +147,5 @@ if(GMP_FOUND_SYSTEM)
 else()
   message(STATUS "Building GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
   add_dependencies(GMP_SHARED GMP-EP)
-  if(ENABLE_STATIC_LIBRARY)
-    add_dependencies(GMP_STATIC GMP-EP)
-  endif()
+  add_dependencies(GMP_STATIC GMP-EP)
 endif()
