@@ -295,7 +295,7 @@ bool QuantInfo::reset_round()
 
 size_t QuantInfo::getCurrentRepVar(size_t v)
 {
-  AlwaysAssert(v < d_match.size());
+  Assert(v < d_match.size());
   TNode m = d_match[v];
   if (!m.isNull())
   {
@@ -388,7 +388,7 @@ int QuantInfo::addConstraint(size_t v, TNode n, bool polarity)
 int QuantInfo::addConstraint(
     size_t v, TNode n, int vn, bool polarity, bool doRemove)
 {
-  AlwaysAssert(v < d_match.size());
+  Assert(v < d_match.size());
   //for handling equalities between variables, and disequalities involving variables
   Debug("qcf-match-debug") << "- " << (doRemove ? "un" : "" ) << "constrain : " << v << " -> " << n << " (cv=" << getCurrentValue( n ) << ")";
   Debug("qcf-match-debug") << ", (vn=" << vn << "), polarity = " << polarity << std::endl;
