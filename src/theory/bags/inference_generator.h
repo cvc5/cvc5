@@ -172,7 +172,7 @@ class InferenceGenerator
    * (and
    *   (= (sum 0) 0)
    *   (= (sum preImageSize) (bag.count e skolem))
-   *
+   *   (>= preImageSize 0)
    *   (forall ((i Int))
    *          (let ((uf_i (uf i)))
    *            (let ((count_uf_i (bag.count uf_i A)))
@@ -181,14 +181,12 @@ class InferenceGenerator
    *               (and
    *                 (= (f uf_i) e)
    *                 (>= count_uf_i 1)
-   *                 (= (sum i) (+ (sum (- i 1)) count_uf_i)))))))
-   *
-   *   ; preImage of e has preImageSize distinct elements
-   *   (forall ((i Int) (j Int))
-   *          (=>
-   *           (and (>= i 1) (< i j) (<= j preImageSize))
-   *           (not (= (uf i) (uf j))))))
-   *
+   *                 (= (sum i) (+ (sum (- i 1)) count_uf_i))
+   *                 (forall ((j Int))
+   *                   (or
+   *                     (not (and (< i j) (<= j preImageSize)))
+   *                     (not (= (uf i) (uf j)))) )
+   *                 ))))))
    * where uf: Int -> E is an uninterpreted function from integers to the
    * type of the elements of A
    * preImageSize is the cardinality of the distinct elements in A that are
@@ -199,6 +197,25 @@ class InferenceGenerator
    */
   std::tuple<InferInfo, Node, Node> mapDownwards(Node n, Node e);
 
+  /**
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param uf is an uninterpreted function Int -> E
+   * @param preImageSize is the cardinality of the distinct elements in A that
+   * are mapped to y by function f (i.e., preimage of {y})
+   * @param y is an element of type T
+   * @param e is an element of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   (>= (bag.count x A) 1)
+   *   (or
+   *     (not (= (f x) y)
+   *     (and
+   *       (>= skolem 1)
+   *       (<= skolem preImageSize)
+   *       (= (uf skolem) x)))))
+   * where skolem is a fresh variable
+   */
   InferInfo mapUpwards(Node n, Node uf, Node preImageSize, Node y, Node x);
 
   /**
