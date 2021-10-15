@@ -435,6 +435,7 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       Node eop = op.isConst()
                      ? op
                      : d_smtSolver.getPreprocessor()->expandDefinitions(op);
+      eop = rewrite(eop);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments
       for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)

@@ -42,7 +42,7 @@ Preprocessor::Preprocessor(Env& env,
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(env.getUserContext(), false),
-      d_exDefs(env, stats),
+      d_exDefs(env),
       d_processor(env, stats),
       d_pnm(nullptr)
 {

@@ -1021,9 +1021,10 @@ cdef class Solver:
         - ``Op mkOp(Kind kind, const string& arg)``
         - ``Op mkOp(Kind kind, uint32_t arg)``
         - ``Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)``
+        - ``Op mkOp(Kind kind, [uint32_t arg0, ...])`` (used for the TupleProject kind)
         """
         cdef Op op = Op(self)
-        cdef vector[int] v
+        cdef vector[uint32_t] v
 
         if len(args) == 0:
             op.cop = self.csolver.mkOp(k.k)
@@ -1036,7 +1037,10 @@ cdef class Solver:
                 op.cop = self.csolver.mkOp(k.k, <int?> args[0])
             elif isinstance(args[0], list):
                 for a in args[0]:
-                    v.push_back((<int?> a))
+                    if a < 0 or a >= 2 ** 31:
+                        raise ValueError("Argument {} must fit in a uint32_t".format(a))
+
+                    v.push_back((<uint32_t?> a))
                 op.cop = self.csolver.mkOp(k.k, <const vector[uint32_t]&> v)   
             else:
                 raise ValueError("Unsupported signature"

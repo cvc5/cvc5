@@ -63,6 +63,7 @@ Env::Env(NodeManager* nm, const Options* opts)
       new theory::Evaluator(nullptr, d_options.strings.stringsAlphaCard));
   d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
+  d_rewriter->d_resourceManager = d_resourceManager.get();
 }
 
 Env::~Env() {}
