@@ -599,6 +599,8 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
         return true;
       }
     }else{
+      // see if the body of the quantified formula evaluates to a Boolean
+      // combination of known terms under the current substitution.
       Node inst_eval = echeck->evaluateTerm(
           d_q[1], subs, false, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
