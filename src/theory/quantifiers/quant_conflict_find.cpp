@@ -52,12 +52,6 @@ QuantInfo::~QuantInfo() {
   d_var_mg.clear();
 }
 
-QuantifiersInferenceManager& QuantInfo::getInferenceManager()
-{
-  Assert(d_parent != nullptr);
-  return d_parent->getInferenceManager();
-}
-
 void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
   d_parent = p;
   d_q = q;
