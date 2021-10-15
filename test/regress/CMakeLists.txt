@@ -1907,6 +1907,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
   regress1/quantifiers/issue6607-witness-te.smt2 
+  regress1/quantifiers/issue6638-sygus-inst.smt2
   regress1/quantifiers/issue6699-nc-shadow.smt2
   regress1/quantifiers/issue6775-vts-int.smt2
   regress1/quantifiers/issue6845-nl-lemma-tc.smt2

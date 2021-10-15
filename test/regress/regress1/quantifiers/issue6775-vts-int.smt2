@@ -1,4 +1,4 @@
-; COMMAND-LINE: -i
+; COMMAND-LINE: -i --no-check-models
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic NIA)
@@ -15,3 +15,5 @@
 (assert (or (not v11) x43799))
 (assert (= (+ 3 i (* 13 4 5 (abs i3))) (* 157 4 (- 1) (+ 1 1 i2 i))))
 (check-sat)
+
+; check-models disabled due to intermediate terms from sygus-inst
