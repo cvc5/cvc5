@@ -36,7 +36,7 @@ EntailmentCheck::~EntailmentCheck() {}
 
 Node EntailmentCheck::evaluateTerm2(TNode n,
                                     std::map<TNode, Node>& visited,
-                                    std::map<TNode, TNode>& subs, 
+                                    std::map<TNode, TNode>& subs,
                                     bool subsRep,
                                     bool useEntailmentTests,
                                     bool reqHasTerm)
@@ -53,7 +53,7 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
   {
     // do nothing
   }
-  else if (k== BOUND_VARIABLE)
+  else if (k == BOUND_VARIABLE)
   {
     std::map<TNode, TNode>::iterator it = subs.find(n);
     if (it != subs.end())
@@ -82,8 +82,7 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
     for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
       TNode c = evaluateTerm2(
-          n[i], visited, 
-                              subs, subsRep, useEntailmentTests, reqHasTerm);
+          n[i], visited, subs, subsRep, useEntailmentTests, reqHasTerm);
       if (c.isNull())
       {
         ret = Node::null();
@@ -104,7 +103,8 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
         {
           ret = evaluateTerm2(n[c == d_true ? 1 : 2],
                               visited,
-                              subs, subsRep,
+                              subs,
+                              subsRep,
                               useEntailmentTests,
                               reqHasTerm);
           ret_set = true;
@@ -258,13 +258,14 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
 }
 
 Node EntailmentCheck::evaluateTerm(TNode n,
-                    std::map<TNode, TNode>& subs, 
-                    bool subsRep,
+                                   std::map<TNode, TNode>& subs,
+                                   bool subsRep,
                                    bool useEntailmentTests,
                                    bool reqHasTerm)
 {
   std::map<TNode, Node> visited;
-  return evaluateTerm2(n, visited, subs, subsRep, useEntailmentTests, reqHasTerm);
+  return evaluateTerm2(
+      n, visited, subs, subsRep, useEntailmentTests, reqHasTerm);
 }
 
 Node EntailmentCheck::evaluateTerm(TNode n,
@@ -272,7 +273,7 @@ Node EntailmentCheck::evaluateTerm(TNode n,
                                    bool reqHasTerm)
 {
   std::map<TNode, Node> visited;
-                    std::map<TNode, TNode> subs;
+  std::map<TNode, TNode> subs;
   return evaluateTerm2(n, visited, subs, false, useEntailmentTests, reqHasTerm);
 }
 
@@ -289,8 +290,10 @@ TNode EntailmentCheck::getEntailedTerm(TNode n)
   return getEntailedTerm2(n, subs, false);
 }
 
-bool EntailmentCheck::isEntailed2(
-    TNode n, std::map<TNode, TNode>& subs, bool subsRep, bool pol)
+bool EntailmentCheck::isEntailed2(TNode n,
+                                  std::map<TNode, TNode>& subs,
+                                  bool subsRep,
+                                  bool pol)
 {
   Trace("term-db-entail") << "Check entailed : " << n << ", pol = " << pol
                           << std::endl;
