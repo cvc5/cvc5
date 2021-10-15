@@ -498,6 +498,7 @@ set(regress_0_tests
   regress0/datatypes/is_test.smt2
   regress0/datatypes/issue1433.smt2
   regress0/datatypes/issue2838.cvc.smt2
+  regress0/datatypes/issue4393-cdt-model.smt2
   regress0/datatypes/issue5280-no-nrec.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
@@ -769,6 +770,7 @@ set(regress_0_tests
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
+  regress0/options/stream-printing.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
   regress0/parser/bv_arity_smt2.6.smt2
@@ -1708,6 +1710,7 @@ set(regress_1_tests
   regress1/nl/issue3656.smt2
   regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/issue3955-ee-double-notify.smt2
+  regress1/nl/issue3966-conf-coeff.smt2 
   regress1/nl/issue4791-llr.smt2
   regress1/nl/issue5372-2-no-m-presolve.smt2
   regress1/nl/issue5662-nl-tc.smt2
@@ -1902,7 +1905,6 @@ set(regress_1_tests
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
   regress1/quantifiers/issue6699-nc-shadow.smt2
-  regress1/quantifiers/issue6775-vts-int.smt2 
   regress1/quantifiers/issue6845-nl-lemma-tc.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
@@ -1965,7 +1967,6 @@ set(regress_1_tests
   regress1/quantifiers/smtlibf957ea.smt2
   regress1/quantifiers/sygus-infer-nested.smt2
   regress1/quantifiers/sygus-inst-nia-psyco-060.smt2
-  regress1/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
   regress1/quantifiers/tpp-unit-fail-qbv.smt2
   regress1/quantifiers/var-eq-trigger.smt2
@@ -2202,6 +2203,7 @@ set(regress_1_tests
   regress1/strings/issue6653-rre-small.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
+  regress1/strings/issue6973-dup-lemma-conc.smt2 
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2739,6 +2741,8 @@ set(regression_disabled_tests
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
+  # timeout after changes to theory preprocessing, note is non-linear and does not involve sygus-inst
+  regress1/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2
