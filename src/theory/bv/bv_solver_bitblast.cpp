@@ -342,7 +342,7 @@ void BVSolverBitblast::initSatSolver()
                                         d_bbRegistrar.get(),
                                         d_nullContext.get(),
                                         nullptr,
-                                        smt::currentResourceManager(),
+                                        d_env.getResourceManager(),
                                         prop::FormulaLitPolicy::INTERNAL,
                                         "theory::bv::BVSolverBitblast"));
 }

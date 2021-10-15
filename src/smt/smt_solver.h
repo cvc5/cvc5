@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/preprocessor.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
 
@@ -43,9 +44,8 @@ class QuantifiersEngine;
 namespace smt {
 
 class Assertions;
-class SmtEngineState;
-class Preprocessor;
-struct SmtEngineStatistics;
+class SolverEngineState;
+struct SolverEngineStatistics;
 
 /**
  * A solver for SMT queries.
@@ -65,16 +65,14 @@ class SmtSolver
 {
  public:
   SmtSolver(Env& env,
-            SmtEngineState& state,
-            Preprocessor& pp,
-            SmtEngineStatistics& stats);
+            SolverEngineState& state,
+            AbstractValues& abs,
+            SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
-   * Create theory engine, prop engine based on the logic info.
-   *
-   * @param logicInfo the logic information
+   * Create theory engine, prop engine based on the environment.
    */
-  void finishInit(const LogicInfo& logicInfo);
+  void finishInit();
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
   /**
@@ -129,11 +127,11 @@ class SmtSolver
   /** Reference to the environment */
   Env& d_env;
   /** Reference to the state of the SolverEngine */
-  SmtEngineState& d_state;
-  /** Reference to the preprocessor of SolverEngine */
-  Preprocessor& d_pp;
+  SolverEngineState& d_state;
+  /** The preprocessor of this SMT solver */
+  Preprocessor d_pp;
   /** Reference to the statistics of SolverEngine */
-  SmtEngineStatistics& d_stats;
+  SolverEngineStatistics& d_stats;
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */

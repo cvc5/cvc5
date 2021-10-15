@@ -19,6 +19,7 @@
 #include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
@@ -399,7 +400,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       << std::endl;
 
   // type enumerator properties
-  TypeEnumeratorProperties tep;
+  bool tepFixUSortCard = options().quantifiers.finiteModelFind;
+  uint32_t tepStrAlphaCard = options().strings.stringsAlphaCard;
+  TypeEnumeratorProperties tep(tepFixUSortCard, tepStrAlphaCard);
 
   // In the first step of model building, we do a traversal of the
   // equality engine and record the information in the following:

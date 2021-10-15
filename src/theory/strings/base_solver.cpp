@@ -35,7 +35,7 @@ BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env), d_state(s), d_im(im), d_congruent(context())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_cardSize = utils::getAlphabetCardinality();
+  d_cardSize = options().strings.stringsAlphaCard;
 }
 
 BaseSolver::~BaseSolver() {}

@@ -22,6 +22,8 @@
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/lfsc/lfsc_post_processor.h"
+#include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
@@ -68,10 +70,11 @@ PfManager::PfManager(Env& env)
       env,
       d_pppg.get(),
       nullptr,
-      options::proofFormatMode() != options::ProofFormatMode::ALETHE));
+      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE));
 
   // add rules to eliminate here
-  if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
+  if (options().proof.proofGranularityMode
+      != options::ProofGranularityMode::OFF)
   {
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
@@ -80,12 +83,12 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
     d_pfpp->setEliminateRule(PfRule::MACRO_ARITH_SCALE_SUM_UB);
-    if (options::proofGranularityMode()
+    if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
     {
       d_pfpp->setEliminateRule(PfRule::SUBS);
       d_pfpp->setEliminateRule(PfRule::REWRITE);
-      if (options::proofGranularityMode()
+      if (options().proof.proofGranularityMode
           != options::ProofGranularityMode::THEORY_REWRITE)
       {
         // this eliminates theory rewriting steps with finer-grained DSL rules
@@ -160,27 +163,35 @@ void PfManager::printProof(std::ostream& out,
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
   // if we are in incremental mode, we don't want to invalidate the proof
   // nodes in fp, since these may be reused in further check-sat calls
-  if (options::incrementalSolving()
-      && options::proofFormatMode() != options::ProofFormatMode::NONE)
+  if (options().base.incrementalSolving
+      && options().proof.proofFormatMode != options::ProofFormatMode::NONE)
   {
     fp = d_pnm->clone(fp);
   }
-  // TODO (proj #37) according to the proof format, post process the proof node
-  // TODO (proj #37) according to the proof format, print the proof node
 
   // according to the proof format, post process and print the proof node
-  if (options::proofFormatMode() == options::ProofFormatMode::DOT)
+  if (options().proof.proofFormatMode == options::ProofFormatMode::DOT)
   {
     proof::DotPrinter dotPrinter;
     dotPrinter.print(out, fp.get());
   }
-  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE)
+  else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
   }
-  else if (options::proofFormatMode() == options::ProofFormatMode::TPTP)
+  else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
+  {
+    std::vector<Node> assertions;
+    getAssertions(as, assertions);
+    proof::LfscNodeConverter ltp;
+    proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
+    lpp.process(fp);
+    proof::LfscPrinter lp(ltp);
+    lp.print(out, assertions, fp.get());
+  }
+  else if (options().proof.proofFormatMode == options::ProofFormatMode::TPTP)
   {
     out << "% SZS output start Proof for " << options().driver.filename
         << std::endl;
@@ -279,12 +290,12 @@ std::shared_ptr<ProofNode> PfManager::getFinalProof(
 void PfManager::getAssertions(Assertions& as,
                               std::vector<Node>& assertions)
 {
-  context::CDList<Node>* al = as.getAssertionList();
-  Assert(al != nullptr);
-  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
-       ++i)
+  const context::CDList<Node>& al = as.getAssertionList();
+  Assert(options().smt.produceAssertions)
+      << "Expected produce assertions to be true when checking proof";
+  for (const Node& a : al)
   {
-    assertions.push_back(*i);
+    assertions.push_back(a);
   }
 }
 

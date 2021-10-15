@@ -21,13 +21,13 @@
 #include <string>
 
 #include "context/context.h"
+#include "smt/env_obj.h"
 #include "smt/smt_mode.h"
 #include "util/result.h"
 
 namespace cvc5 {
 
 class SolverEngine;
-class Env;
 
 namespace smt {
 
@@ -48,11 +48,11 @@ namespace smt {
  * It maintains a reference to the SolverEngine for the sake of making
  * callbacks.
  */
-class SmtEngineState
+class SolverEngineState : protected EnvObj
 {
  public:
-  SmtEngineState(Env& env, SolverEngine& smt);
-  ~SmtEngineState() {}
+  SolverEngineState(Env& env, SolverEngine& smt);
+  ~SolverEngineState() {}
   /**
    * Notify that the expected status of the next check-sat is given by the
    * string status, which should be one of "sat", "unsat" or "unknown".
@@ -176,10 +176,6 @@ class SmtEngineState
   //---------------------------- end queries
 
  private:
-  /** get the sat context we are using */
-  context::Context* getContext();
-  /** get the user context we are using */
-  context::UserContext* getUserContext();
   /** Pushes the user and SAT contexts */
   void push();
   /** Pops the user and SAT contexts */
@@ -199,8 +195,6 @@ class SmtEngineState
   void internalPop(bool immediate = false);
   /** Reference to the SolverEngine */
   SolverEngine& d_slv;
-  /** Reference to the env of the parent SolverEngine */
-  Env& d_env;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 

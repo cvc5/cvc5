@@ -84,9 +84,6 @@ TEST_F(TestUtilBlackConfiguration, versions)
 {
   // just test that the functions exist
   Configuration::getVersionString();
-  Configuration::getVersionMajor();
-  Configuration::getVersionMinor();
-  Configuration::getVersionRelease();
 }
 
 TEST_F(TestUtilBlackConfiguration, about)
