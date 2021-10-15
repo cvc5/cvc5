@@ -109,7 +109,11 @@ add_library(cvc5parser-shared SHARED $<TARGET_OBJECTS:cvc5parser-objs>)
 set_target_properties(cvc5parser-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
 set_target_properties(cvc5parser-shared PROPERTIES OUTPUT_NAME cvc5parser)
 target_link_libraries(cvc5parser-shared PRIVATE cvc5-shared)
-target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_SHARED)
+if(CVC5_WINDOWS_BUILD)
+  target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_STATIC)
+else()
+  target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_SHARED)
+endif()
 
 install(TARGETS cvc5parser-shared
   EXPORT cvc5-targets
