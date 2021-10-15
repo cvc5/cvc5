@@ -42,7 +42,8 @@ CandidateRewriteDatabase::CandidateRewriteDatabase(
       d_rewAccel(rewAccel),
       d_silent(silent),
       d_filterPairs(filterPairs),
-      d_using_sygus(false)
+      d_using_sygus(false),
+      d_crewrite_filter(env)
 {
 }
 void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,

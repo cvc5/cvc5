@@ -417,10 +417,10 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
 
 bool SolverEngine::isValidGetInfoFlag(const std::string& key) const
 {
-  if (key == "all-statistics" || key == "error-behavior" || key == "name"
-      || key == "version" || key == "authors" || key == "status"
-      || key == "reason-unknown" || key == "assertion-stack-levels"
-      || key == "all-options" || key == "time")
+  if (key == "all-statistics" || key == "error-behavior" || key == "filename"
+      || key == "name" || key == "version" || key == "authors"
+      || key == "status" || key == "time" || key == "reason-unknown"
+      || key == "assertion-stack-levels" || key == "all-options")
   {
     return true;
   }
@@ -455,7 +455,7 @@ std::string SolverEngine::getInfo(const std::string& key) const
   }
   if (key == "authors")
   {
-    return toSExpr(Configuration::about());
+    return toSExpr("the " + Configuration::getName() + " authors");
   }
   if (key == "status")
   {

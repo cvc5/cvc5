@@ -81,14 +81,13 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   if (options().arith.arithEqSolver)
   {
     // use our own copy
-    d_allocEe.reset(
-        new eq::EqualityEngine(d_notify, context(), "arithCong::ee", true));
+    d_allocEe = std::make_unique<eq::EqualityEngine>(
+        d_env, context(), d_notify, "arithCong::ee", true);
     d_ee = d_allocEe.get();
     if (d_pnm != nullptr)
     {
       // allocate an internal proof equality engine
-      d_allocPfee.reset(
-          new eq::ProofEqEngine(context(), userContext(), *d_ee, d_pnm));
+      d_allocPfee = std::make_unique<eq::ProofEqEngine>(d_env, *d_ee);
       d_ee->setProofEqualityEngine(d_allocPfee.get());
     }
   }

@@ -159,7 +159,7 @@ Node InferenceManager::prepareDtInference(Node conc,
   if (conc.getKind() == EQUAL && conc[0].getType().isBoolean())
   {
     // must turn (= conc false) into (not conc)
-    conc = Rewriter::rewrite(conc);
+    conc = rewrite(conc);
   }
   if (isProofEnabled())
   {
