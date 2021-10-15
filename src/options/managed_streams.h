@@ -50,7 +50,8 @@ template <typename Stream>
 class ManagedStream
 {
  public:
-  ManagedStream() {}
+  ManagedStream(Stream* nonowned, std::string description)
+  : d_nonowned(nonowned), d_description(std::move(description)) {}
   virtual ~ManagedStream() {}
 
   /**
@@ -62,11 +63,15 @@ class ManagedStream
     if (specialCases(value)) return;
     if constexpr (std::is_same<Stream, std::ostream>::value)
     {
-      d_stream.reset(detail::openOStream(value));
+      d_nonowned = nullptr;
+      d_owned.reset(detail::openOStream(value));
+      d_description = value;
     }
     else if constexpr (std::is_same<Stream, std::istream>::value)
     {
-      d_stream.reset(detail::openIStream(value));
+      d_nonowned = nullptr;
+      d_owned.reset(detail::openIStream(value));
+      d_description = value;
     }
   }
 
@@ -75,12 +80,14 @@ class ManagedStream
   operator Stream&() const { return *getPtr(); }
   operator Stream*() const { return getPtr(); }
 
+  const std::string& description() const { return d_description; }
+
  protected:
-  std::shared_ptr<Stream> d_stream;
+  Stream* d_nonowned;
+  std::shared_ptr<Stream> d_owned;
+  std::string d_description = "<null>";
 
  private:
-  /** Returns the value to be used if d_stream is not set. */
-  virtual Stream* defaultValue() const = 0;
   /**
    * Check if there is a special case for this value. If so, the implementation
    * should set d_stream appropriately and return true to skip the default
@@ -88,18 +95,18 @@ class ManagedStream
    */
   virtual bool specialCases(const std::string& value) = 0;
 
-  /** Return the pointer, either from d_stream of from defaultValue(). */
+  /** Return the pointer, either from d_nonowned or d_owned. */
   Stream* getPtr() const
   {
-    if (d_stream) return d_stream.get();
-    return defaultValue();
+    if (d_nonowned != nullptr) return d_nonowned;
+    return d_owned.get();
   }
 };
 
 template <typename Stream>
 std::ostream& operator<<(std::ostream& os, const ManagedStream<Stream>& ms)
 {
-  return os << "ManagedStream";
+  return os << ms.description();
 }
 
 /**
@@ -108,7 +115,10 @@ std::ostream& operator<<(std::ostream& os, const ManagedStream<Stream>& ms)
  */
 class ManagedErr : public ManagedStream<std::ostream>
 {
-  std::ostream* defaultValue() const override final;
+ public:
+  ManagedErr();
+
+ private:
   bool specialCases(const std::string& value) override final;
 };
 
@@ -118,7 +128,10 @@ class ManagedErr : public ManagedStream<std::ostream>
  */
 class ManagedIn : public ManagedStream<std::istream>
 {
-  std::istream* defaultValue() const override final;
+ public:
+  ManagedIn();
+
+ private:
   bool specialCases(const std::string& value) override final;
 };
 
@@ -128,7 +141,10 @@ class ManagedIn : public ManagedStream<std::istream>
  */
 class ManagedOut : public ManagedStream<std::ostream>
 {
-  std::ostream* defaultValue() const override final;
+ public:
+  ManagedOut();
+
+ private:
   bool specialCases(const std::string& value) override final;
 };
 
