@@ -42,7 +42,8 @@ InferenceManager::InferenceManager(Env& env,
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr)
+      d_ipc(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr),
+      d_ipcl(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -279,12 +280,12 @@ void InferenceManager::processConflict(const InferInfo& ii)
 {
   Assert(!d_state.isInConflict());
   // setup the fact to reproduce the proof in the call below
-  if (d_ipc != nullptr)
+  if (d_ipcl != nullptr)
   {
-    d_ipc->notifyFact(ii);
+    d_ipcl->notifyLemma(ii);
   }
   // make the trust node
-  TrustNode tconf = mkConflictExp(ii.d_premises, d_ipc.get());
+  TrustNode tconf = mkConflictExp(ii.d_premises, d_ipcl.get());
   Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("strings-assert") << "(assert (not " << tconf.getNode()
                           << ")) ; conflict " << ii.getId() << std::endl;
@@ -335,11 +336,11 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
   }
   // ensure that the proof generator is ready to explain the final conclusion
   // of the lemma (ii.d_conc).
-  if (d_ipc != nullptr)
+  if (d_ipcl != nullptr)
   {
-    d_ipc->notifyFact(ii);
+    d_ipcl->notifyLemma(ii);
   }
-  TrustNode tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipc.get());
+  TrustNode tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipcl.get());
   Trace("strings-pending") << "Process pending lemma : " << tlem.getNode()
                            << std::endl;
 
