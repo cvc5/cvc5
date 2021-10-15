@@ -1715,6 +1715,7 @@ set(regress_1_tests
   regress1/nl/issue3966-conf-coeff.smt2 
   regress1/nl/issue4791-llr.smt2
   regress1/nl/issue5372-2-no-m-presolve.smt2
+  regress1/nl/issue5660-mb-success.smt2
   regress1/nl/issue5662-nl-tc.smt2
   regress1/nl/issue5662-nl-tc-min.smt2
   regress1/nl/metitarski-1025.smt2
