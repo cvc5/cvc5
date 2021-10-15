@@ -66,7 +66,7 @@ class EntailmentCheck : protected EnvObj
    * (quant_conflict_find.h).
    */
   Node evaluateTerm(TNode n,
-                    std::map<TNode, TNode>& subs,
+                    std::map<TNode, TNode>& subs, 
                     bool subsRep,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
@@ -119,21 +119,18 @@ class EntailmentCheck : protected EnvObj
   /** helper for evaluate term */
   Node evaluateTerm2(TNode n,
                      std::map<TNode, Node>& visited,
-                     std::map<TNode, TNode>& subs,
+                     std::map<TNode, TNode>& subs, 
                      bool subsRep,
-                     bool hasSubs,
                      bool useEntailmentTests,
                      bool reqHasTerm);
   /** helper for get entailed term */
   TNode getEntailedTerm2(TNode n,
                          std::map<TNode, TNode>& subs,
-                         bool subsRep,
-                         bool hasSubs);
+                         bool subsRep);
   /** helper for is entailed */
   bool isEntailed2(TNode n,
                    std::map<TNode, TNode>& subs,
                    bool subsRep,
-                   bool hasSubs,
                    bool pol);
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
