@@ -181,6 +181,12 @@ else()
   add_dependencies(Poly_SHARED Poly-EP)
   add_dependencies(Polyxx_SHARED Poly-EP)
 
+  install(FILES
+    $<TARGET_LINKER_FILE:Poly_SHARED>
+    $<TARGET_LINKER_FILE:Polyxx_SHARED>
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+
   if(ENABLE_STATIC_LIBRARY)
     add_dependencies(Poly_STATIC Poly-EP)
     add_dependencies(Polyxx_STATIC Poly-EP)
