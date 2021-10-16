@@ -115,6 +115,15 @@ if(NOT Poly_FOUND_SYSTEM)
     Poly-EP cleanup
     DEPENDEES install
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
+    COMMAND ${CMAKE_COMMAND} -E remove
+      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+    COMMAND ${CMAKE_COMMAND} -E copy
+      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+    COMMAND ${CMAKE_COMMAND} -E copy
+      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
   add_dependencies(Poly-EP GMP_SHARED GMP_STATIC)
 
