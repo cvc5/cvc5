@@ -89,12 +89,18 @@ public class NativeCode
       }
       List<String> files = new BufferedReader(
             new InputStreamReader(inputStream, StandardCharsets.UTF_8)) .lines().collect(Collectors.toList());
+      String prefix = home() + fs;
       for (String file : files)
       {
         InputStream fileStream = NativeCode.class.getClassLoader().getResourceAsStream(platform.dir + "/" + file);
-        String destination = home() + fs + file;
+        String destination = prefix + file;
         Files.copy(fileStream, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
       }
+      Runtime.getRuntime().exec("ln -s " + prefix + "libcvc5.so.1 " + prefix + "libcvc5.so");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.so.0.1.9 " + prefix + "libpoly.so.0");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpolyxx.so.0.1.9 " + prefix + "libpolyxx.so.0");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.so.0 " + prefix + "libpoly.so");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpolyxx.so.0 " + prefix + "libpolyxx.so");
     }
     catch (Exception e)
     {
