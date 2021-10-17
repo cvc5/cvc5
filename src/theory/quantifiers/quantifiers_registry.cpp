@@ -38,6 +38,7 @@ void QuantifiersRegistry::registerQuantifier(Node q)
   {
     return;
   }
+  Assert(q.getKind() == kind::FORALL);
   NodeManager* nm = NodeManager::currentNM();
   Debug("quantifiers-engine")
       << "Instantiation constants for " << q << " : " << std::endl;
@@ -144,42 +145,42 @@ Node QuantifiersRegistry::substituteBoundVariablesToInstConstants(Node n,
                                                                   Node q)
 {
   registerQuantifier(q);
-  return n.substitute(d_vars[q].begin(),
-                      d_vars[q].end(),
-                      d_inst_constants[q].begin(),
-                      d_inst_constants[q].end());
+  std::vector<Node>& vars = d_vars.at(q);
+  std::vector<Node>& consts = d_inst_constants.at(q);
+  Assert(vars.size() == q[0].getNumChildren());
+  Assert(vars.size() == consts.size());
+  return n.substitute(vars.begin(), vars.end(), consts.begin(), consts.end());
 }
 
 Node QuantifiersRegistry::substituteInstConstantsToBoundVariables(Node n,
                                                                   Node q)
 {
   registerQuantifier(q);
-  return n.substitute(d_inst_constants[q].begin(),
-                      d_inst_constants[q].end(),
-                      d_vars[q].begin(),
-                      d_vars[q].end());
+  std::vector<Node>& vars = d_vars.at(q);
+  std::vector<Node>& consts = d_inst_constants.at(q);
+  Assert(vars.size() == q[0].getNumChildren());
+  Assert(vars.size() == consts.size());
+  return n.substitute(consts.begin(), consts.end(), vars.begin(), vars.end());
 }
 
-Node QuantifiersRegistry::substituteBoundVariables(Node n,
-                                                   Node q,
-                                                   std::vector<Node>& terms)
+Node QuantifiersRegistry::substituteBoundVariables(
+    Node n, Node q, const std::vector<Node>& terms)
 {
   registerQuantifier(q);
-  Assert(d_vars[q].size() == terms.size());
-  return n.substitute(
-      d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end());
+  std::vector<Node>& vars = d_vars.at(q);
+  Assert(vars.size() == q[0].getNumChildren());
+  Assert(vars.size() == terms.size());
+  return n.substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
 }
 
-Node QuantifiersRegistry::substituteInstConstants(Node n,
-                                                  Node q,
-                                                  std::vector<Node>& terms)
+Node QuantifiersRegistry::substituteInstConstants(
+    Node n, Node q, const std::vector<Node>& terms)
 {
   registerQuantifier(q);
-  Assert(d_inst_constants[q].size() == terms.size());
-  return n.substitute(d_inst_constants[q].begin(),
-                      d_inst_constants[q].end(),
-                      terms.begin(),
-                      terms.end());
+  std::vector<Node>& consts = d_inst_constants.at(q);
+  Assert(consts.size() == q[0].getNumChildren());
+  Assert(consts.size() == terms.size());
+  return n.substitute(consts.begin(), consts.end(), terms.begin(), terms.end());
 }
 
 QuantAttributes& QuantifiersRegistry::getQuantAttributes()
