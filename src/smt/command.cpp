@@ -2615,9 +2615,9 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException& e)
+  catch (api::CVC5ApiRecoverableException&)
   {
-    d_commandStatus = new CommandRecoverableFailure(e.what());
+    d_commandStatus = new CommandUnsupported();
   }
   catch (exception& e)
   {
