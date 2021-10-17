@@ -43,6 +43,14 @@ namespace api {
   CVC5_PREDICT_TRUE(cond)                \
   ? (void)0 : OstreamVoider() & CVC5ApiRecoverableExceptionStream().ostream()
 
+/**
+ * The base check macro for throwing unsupported exceptions.
+ * Throws a CVC5ApiUnsupportedException if 'cond' is false.
+ */
+#define CVC5_API_UNSUPPORTED_CHECK(cond) \
+  CVC5_PREDICT_TRUE(cond)                \
+  ? (void)0 : OstreamVoider() & CVC5ApiUnsupportedExceptionStream().ostream()
+
 /* -------------------------------------------------------------------------- */
 /* Not null checks.                                                           */
 /* -------------------------------------------------------------------------- */

@@ -121,6 +121,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
 };
 
 /**
+ * Exception for unsupported command arguments.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiUnsupportedException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiUnsupportedException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiUnsupportedException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
+  {
+  }
+};
+
+/**
  * An option-related API exception.
  * If thrown, API objects can still be used.
  */
