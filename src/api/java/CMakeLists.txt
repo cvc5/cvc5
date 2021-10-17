@@ -154,3 +154,18 @@ add_jar(cvc5jar
 set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5-shared)
+
+get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
+
+# build junit tests
+add_custom_target(
+  jarjar
+  ALL
+  COMMAND
+    "pwd"
+  COMMENT "pwd"
+  VERBATIM
+  )
+
+
+add_dependencies(jarjar cvc5jar)
