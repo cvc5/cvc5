@@ -2623,6 +2623,10 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
   {
     d_commandStatus = new CommandUnsupported();
   }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
+  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());
