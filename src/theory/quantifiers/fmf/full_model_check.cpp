@@ -951,7 +951,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     Node r = n;
     if( !n.isConst() ){
       TypeNode tn = n.getType();
-      if (!fm->hasTerm(n))
+      if (!fm->hasTerm(n) && tn.isFirstClass())
       {
         // if the term is unknown, we do not assume any value for it
         r = Node::null();
