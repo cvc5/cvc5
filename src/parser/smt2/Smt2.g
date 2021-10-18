@@ -358,7 +358,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
                                  "parentheses?");
       }
     )
-    { PARSER_STATE->pushScope(); }
+    { PARSER_STATE->popScope(); }
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssignmentCommand()); }
