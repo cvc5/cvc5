@@ -114,6 +114,7 @@ if(NOT Poly_FOUND_SYSTEM)
   ExternalProject_Add_Step(
     Poly-EP cleanup
     DEPENDEES install
+    COMMAND ls -al <INSTALL_DIR>/lib/
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
