@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class NativeCode
 {
   /** names of native libraries */
+  static String[] nativeLibraries = new String[] {"libcvc5.so.1", "libcvc5jni.so", "libpoly.so.0.1.9", "libpolyxx.so.0.1.9"};
   static String[] jniLibraries = new String[] {"cvc5jni"};
 
   /** cvc5 version */
@@ -82,19 +84,20 @@ public class NativeCode
   {
     try
     {
-      InputStream inputStream = NativeCode.class.getClassLoader().getResourceAsStream(platform.dir);
-      if (inputStream == null)
-      {
-        throw new RuntimeException("Could not find resource " + platform.dir);
-      }
-      List<String> files = new BufferedReader(
-            new InputStreamReader(inputStream, StandardCharsets.UTF_8)) .lines().collect(Collectors.toList());
       String prefix = home() + fs;
-      for (String file : files)
+      for (String library : nativeLibraries)
       {
+        String file = platform.dir + "/" + library;
+        Enumeration<URL> resources = NativeCode.class.getClassLoader().getResources(file);
+        if (!enumeration.hasMoreElements())
+        {
+          System.out.println("Could not find native lib " + file);
+          return null;
+        }
+        URL resource = resources.nextElement();
         InputStream fileStream = NativeCode.class.getClassLoader().getResourceAsStream(platform.dir + "/" + file);
-        String destination = prefix + file;
-        Files.copy(fileStream, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
+        String destination = prefix + library;
+        Files.copy(resource.openStream(), Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
       }
       Runtime.getRuntime().exec("ln -s " + prefix + "libcvc5.so.1 " + prefix + "libcvc5.so");
       Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.so.0.1.9 " + prefix + "libpoly.so.0");
