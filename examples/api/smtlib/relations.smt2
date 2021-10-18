@@ -13,17 +13,17 @@
 (assert
   (= r1
     (insert
-      (mkTuple "a" 1)
-      (mkTuple "b" 2)
-      (mkTuple "c" 3)
-      (singleton (mkTuple "d" 4)))))
+      (tuple "a" 1)
+      (tuple "b" 2)
+      (tuple "c" 3)
+      (singleton (tuple "d" 4)))))
 (assert
   (= r2
     (insert
-      (mkTuple 1 "1")
-      (mkTuple 2 "2")
-      (mkTuple 3 "3")
-      (singleton (mkTuple 17 "17")))))
+      (tuple 1 "1")
+      (tuple 2 "2")
+      (tuple 3 "3")
+      (singleton (tuple 17 "17")))))
 (assert (= r (join r1 r2)))
 (assert (= s (transpose r)))
 (assert (= t (product r1 r2)))
@@ -31,10 +31,10 @@
   (=
     lt1
      (insert
-       (mkTuple 1 2)
-       (mkTuple 2 3)
-       (mkTuple 3 4)
-       (singleton (mkTuple 4 5)))))
+       (tuple 1 2)
+       (tuple 2 3)
+       (tuple 3 4)
+       (singleton (tuple 4 5)))))
 (assert (= lt2 (tclosure lt1)))
 (assert (= i (card t)))
 

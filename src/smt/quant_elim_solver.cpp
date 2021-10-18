@@ -72,7 +72,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
   // We consider this to be an entailment check, which also avoids incorrect
-  // status reporting (see SmtEngineState::d_expectedStatus).
+  // status reporting (see SolverEngineState::d_expectedStatus).
   Result r = d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, true);
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
@@ -103,7 +103,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       std::vector<Node> insts;
       qe->getInstantiations(topq, insts);
       // note we do not convert to witness form here, since we could be
-      // an internal subsolver (SmtEngine::isInternalSubsolver).
+      // an internal subsolver (SolverEngine::isInternalSubsolver).
       ret = nm->mkAnd(insts);
       Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
       if (q.getKind() == EXISTS)

@@ -21,6 +21,7 @@
 #include "expr/bound_var_manager.h"
 #include "options/arith_options.h"
 #include "proof/conv_proof_generator.h"
+#include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
@@ -57,14 +58,14 @@ struct ToIntWitnessVarAttributeId
 using ToIntWitnessVarAttribute
  = expr::Attribute<ToIntWitnessVarAttributeId, Node>;
 
-OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info)
-    : EagerProofGenerator(pnm), d_info(info)
+OperatorElim::OperatorElim(Env& env)
+    : EnvObj(env), EagerProofGenerator(d_env.getProofNodeManager())
 {
 }
 
 void OperatorElim::checkNonLinearLogic(Node term)
 {
-  if (d_info.isLinear())
+  if (d_env.getLogicInfo().isLinear())
   {
     Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << term
                          << std::endl;
@@ -424,7 +425,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
     }
     Node skolem;
     SkolemManager* sm = nm->getSkolemManager();
-    if (options::arithNoPartialFun())
+    if (options().arith.arithNoPartialFun)
     {
       // partial function: division, where we treat the skolem function as
       // a constant
@@ -445,7 +446,7 @@ Node OperatorElim::getArithSkolem(SkolemFunId id)
 Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
 {
   Node skolem = getArithSkolem(id);
-  if (!options::arithNoPartialFun())
+  if (!options().arith.arithNoPartialFun)
   {
     skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
   }

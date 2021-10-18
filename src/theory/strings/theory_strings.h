@@ -245,8 +245,6 @@ class TheoryStrings : public Theory {
   Node d_zero;
   Node d_one;
   Node d_neg_one;
-  /** the cardinality of the alphabet */
-  uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
   /**

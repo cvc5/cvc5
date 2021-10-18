@@ -23,9 +23,10 @@
 namespace cvc5 {
 namespace theory {
 
-EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te,
+EqEngineManagerDistributed::EqEngineManagerDistributed(Env& env,
+                                                       TheoryEngine& te,
                                                        SharedSolver& shs)
-    : EqEngineManager(te, shs), d_masterEENotify(nullptr)
+    : EqEngineManager(env, te, shs), d_masterEENotify(nullptr)
 {
 }
 
@@ -35,7 +36,7 @@ EqEngineManagerDistributed::~EqEngineManagerDistributed()
 
 void EqEngineManagerDistributed::initializeTheories()
 {
-  context::Context* c = d_te.getSatContext();
+  context::Context* c = context();
   // initialize the shared solver
   EeSetupInfo esis;
   if (d_sharedSolver.needsEqualityEngine(esis))
@@ -49,7 +50,7 @@ void EqEngineManagerDistributed::initializeTheories()
     Unhandled() << "Expected shared solver to use equality engine";
   }
 
-  const LogicInfo& logicInfo = d_te.getLogicInfo();
+  const LogicInfo& logicInfo = d_env.getLogicInfo();
   if (logicInfo.isQuantified())
   {
     // construct the master equality engine
@@ -57,10 +58,8 @@ void EqEngineManagerDistributed::initializeTheories()
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
     d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
-    d_masterEqualityEngine.reset(new eq::EqualityEngine(*d_masterEENotify.get(),
-                                                        d_te.getSatContext(),
-                                                        "theory::master",
-                                                        false));
+    d_masterEqualityEngine = std::make_unique<eq::EqualityEngine>(
+        d_env, c, *d_masterEENotify.get(), "theory::master", false);
   }
   // allocate equality engines per theory
   for (TheoryId theoryId = theory::THEORY_FIRST;

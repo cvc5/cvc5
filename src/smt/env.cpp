@@ -19,11 +19,13 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
 #include "smt/dump_manager.h"
-#include "smt/smt_engine_stats.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/trust_substitutions.h"
@@ -40,8 +42,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
-      d_evalRew(new theory::Evaluator(d_rewriter.get())),
-      d_eval(new theory::Evaluator(nullptr)),
+      d_evalRew(nullptr),
+      d_eval(nullptr),
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
@@ -54,8 +56,14 @@ Env::Env(NodeManager* nm, const Options* opts)
   {
     d_options.copyValues(*opts);
   }
+  // make the evaluators, which depend on the alphabet of strings
+  d_evalRew.reset(new theory::Evaluator(d_rewriter.get(),
+                                        d_options.strings.stringsAlphaCard));
+  d_eval.reset(
+      new theory::Evaluator(nullptr, d_options.strings.stringsAlphaCard));
   d_statisticsRegistry->registerTimer("global::totalTime").start();
   d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
+  d_rewriter->d_resourceManager = d_resourceManager.get();
 }
 
 Env::~Env() {}
@@ -77,9 +85,9 @@ void Env::shutdown()
   d_resourceManager.reset(nullptr);
 }
 
-context::UserContext* Env::getUserContext() { return d_userContext.get(); }
-
 context::Context* Env::getContext() { return d_context.get(); }
+
+context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
@@ -104,6 +112,11 @@ bool Env::isTheoryProofProducing() const
 }
 
 theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
+
+theory::Evaluator* Env::getEvaluator(bool useRewriter)
+{
+  return useRewriter ? d_evalRew.get() : d_eval.get();
+}
 
 theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
 {
@@ -205,6 +218,12 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
   Unhandled() << "Env::rewriteViaMethod: no rewriter for " << idr
               << std::endl;
   return n;
+}
+
+bool Env::isFiniteType(TypeNode tn) const
+{
+  return isCardinalityClassFinite(tn.getCardinalityClass(),
+                                  d_options.quantifiers.finiteModelFind);
 }
 
 }  // namespace cvc5
