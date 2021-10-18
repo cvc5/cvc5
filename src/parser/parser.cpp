@@ -760,8 +760,7 @@ void Parser::pushGetValueScope()
         index = en.find(" ", 4);
         en = en.substr(4, index - 4);
       }
-      Trace("parser") << "Get value scope : " << en << " -> " << e
-                      << std::endl;
+      Trace("parser") << "Get value scope : " << en << " -> " << e << std::endl;
       defineVar(en, e);
     }
   }
