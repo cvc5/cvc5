@@ -951,10 +951,14 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     Node r = n;
     if( !n.isConst() ){
       TypeNode tn = n.getType();
-      if( !fm->hasTerm(n) && tn.isFirstClass() ){
-        r = getSomeDomainElement(fm, tn );
+      if( !fm->hasTerm(n) ){
+        // if the term is unknown, we do not assume any value for it
+        r = Node::null();
       }
-      r = fm->getRepresentative( r );
+      else
+      {
+        r = fm->getRepresentative( r );
+      }
     }
     Trace("fmc-debug") << "Add constant entry..." << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), r);
