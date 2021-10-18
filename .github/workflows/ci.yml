@@ -79,6 +79,7 @@ jobs:
     - name: Build
       run: |
         make -j${{ env.num_proc }}
+        ls -al deps/lib/
         ldd src/libcvc5.so
       working-directory: build
 
