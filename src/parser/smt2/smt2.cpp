@@ -438,6 +438,23 @@ void Smt2::pushDefineFunRecScope(
   bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
 }
 
+void Smt2::pushGetValueScope()
+{
+  pushScope();
+  // we must bind all relevant uninterpreted constants, which coincide with
+  // the set of uninterpreted constants that are printed in the definition
+  // of a model.
+  std::vector<api::Sort> declareSorts = d_symman->getModelDeclareSorts();
+  for (const api::Sort& s : declareSorts)
+  {
+    std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
+    for (const api::Term& e : elements)
+    {
+      defineVar(e.toString(), e);
+    }
+  }
+}
+
 void Smt2::reset() {
   d_logicSet = false;
   d_seenSetLogic = false;

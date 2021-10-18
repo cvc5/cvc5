@@ -343,7 +343,13 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | /* value query */
-    GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    GET_VALUE_TOK 
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      // bind all symbols specific to the model, e.g. uninterpreted constant
+      // values
+      PARSER_STATE->pushGetValueScope();
+    }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
       { cmd->reset(new GetValueCommand(terms)); }
     | ~LPAREN_TOK
@@ -352,6 +358,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
                                  "parentheses?");
       }
     )
+    { PARSER_STATE->pushScope(); }
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssignmentCommand()); }
