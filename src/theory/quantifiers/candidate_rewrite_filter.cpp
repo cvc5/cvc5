@@ -30,8 +30,9 @@ namespace quantifiers {
 // the number of d_drewrite objects we have allocated (to avoid name conflicts)
 static unsigned drewrite_counter = 0;
 
-CandidateRewriteFilter::CandidateRewriteFilter()
-    : d_ss(nullptr),
+CandidateRewriteFilter::CandidateRewriteFilter(Env& env)
+    : EnvObj(env),
+      d_ss(nullptr),
       d_tds(nullptr),
       d_use_sygus_type(false),
       d_drewrite(nullptr),
@@ -53,8 +54,8 @@ void CandidateRewriteFilter::initialize(SygusSampler* ss,
   std::stringstream ssn;
   ssn << "_dyn_rewriter_" << drewrite_counter;
   drewrite_counter++;
-  d_drewrite = std::unique_ptr<DynamicRewriter>(
-      new DynamicRewriter(ssn.str(), &d_fake_context));
+  d_drewrite =
+      std::make_unique<DynamicRewriter>(d_env, &d_fakeContext, ssn.str());
 }
 
 bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)

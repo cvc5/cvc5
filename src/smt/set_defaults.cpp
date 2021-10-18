@@ -77,10 +77,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     opts.smt.produceAssignments = true;
   }
   // unsat cores and proofs shenanigans
-  if (opts.driver.dumpUnsatCoresFull)
-  {
-    opts.driver.dumpUnsatCores = true;
-  }
   if (opts.driver.dumpDifficulty)
   {
     opts.smt.produceDifficulty = true;
@@ -178,6 +174,13 @@ void SetDefaults::setDefaultsPre(Options& opts)
       opts.smt.produceProofs = false;
       opts.smt.checkProofs = false;
     }
+  }
+  if (d_isInternalSubsolver)
+  {
+    // these options must be disabled on internal subsolvers, as they are
+    // used by the user to rephrase the input.
+    opts.quantifiers.sygusInference = false;
+    opts.quantifiers.sygusRewSynthInput = false;
   }
 }
 

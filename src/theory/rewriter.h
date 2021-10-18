@@ -35,7 +35,7 @@ class Evaluator;
  * The main rewriter class.
  */
 class Rewriter {
-  friend class cvc5::Env;  // to initialize the evaluators of this class
+  friend class cvc5::Env;  // to set the resource manager
  public:
   Rewriter();
 
@@ -158,6 +158,9 @@ class Rewriter {
   Node callRewriteEquality(theory::TheoryId theoryId, TNode equality);
 
   void clearCachesInternal();
+
+  /** The resource manager, for tracking resource usage */
+  ResourceManager* d_resourceManager;
 
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];

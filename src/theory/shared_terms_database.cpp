@@ -37,8 +37,6 @@ SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
       d_theoryEngine(theoryEngine),
       d_inConflict(env.getContext(), false),
       d_conflictPolarity(),
-      d_satContext(env.getContext()),
-      d_userContext(env.getUserContext()),
       d_equalityEngine(nullptr),
       d_pfee(nullptr)
 {
@@ -54,9 +52,7 @@ void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
     d_pfee = d_equalityEngine->getProofEqualityEngine();
     if (d_pfee == nullptr)
     {
-      ProofNodeManager* pnm = d_env.getProofNodeManager();
-      d_pfeeAlloc.reset(
-          new eq::ProofEqEngine(d_satContext, d_userContext, *ee, pnm));
+      d_pfeeAlloc = std::make_unique<eq::ProofEqEngine>(d_env, *ee);
       d_pfee = d_pfeeAlloc.get();
       d_equalityEngine->setProofEqualityEngine(d_pfee);
     }

@@ -20,7 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "theory/trust_substitutions.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace preprocessing {
@@ -35,12 +35,10 @@ namespace preprocessing {
  * a literal like (> x t) is learned at top-level, it may be useful to remember
  * this information. This class is concerned with the latter kind of literals.
  */
-class LearnedLiteralManager
+class LearnedLiteralManager : protected EnvObj
 {
  public:
-  LearnedLiteralManager(theory::TrustSubstitutionMap& tls,
-                        context::UserContext* u,
-                        ProofNodeManager* pnm);
+  LearnedLiteralManager(Env& env);
   /**
    * Notify learned literal. This method is called when a literal is
    * entailed by the current set of assertions.
@@ -59,8 +57,6 @@ class LearnedLiteralManager
  private:
   /** Learned literal map */
   typedef context::CDHashSet<Node> NodeSet;
-  /* The top level substitutions */
-  theory::TrustSubstitutionMap& d_topLevelSubs;
   /** Learned literals */
   NodeSet d_learnedLits;
 };

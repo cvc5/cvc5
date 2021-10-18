@@ -789,15 +789,15 @@ TEST_F(TestApiBlackTerm, getReal)
 
   ASSERT_EQ((std::pair<int32_t, uint32_t>(0, 1)), real1.getReal32Value());
   ASSERT_EQ((std::pair<int64_t, uint64_t>(0, 1)), real1.getReal64Value());
-  ASSERT_EQ("0.0", real1.getRealValue());
+  ASSERT_EQ("0/1", real1.getRealValue());
 
   ASSERT_EQ((std::pair<int32_t, uint32_t>(0, 1)), real2.getReal32Value());
   ASSERT_EQ((std::pair<int64_t, uint64_t>(0, 1)), real2.getReal64Value());
-  ASSERT_EQ("0.0", real2.getRealValue());
+  ASSERT_EQ("0/1", real2.getRealValue());
 
   ASSERT_EQ((std::pair<int32_t, uint32_t>(-17, 1)), real3.getReal32Value());
   ASSERT_EQ((std::pair<int64_t, uint64_t>(-17, 1)), real3.getReal64Value());
-  ASSERT_EQ("-17.0", real3.getRealValue());
+  ASSERT_EQ("-17/1", real3.getRealValue());
 
   ASSERT_EQ((std::pair<int32_t, uint32_t>(-3, 5)), real4.getReal32Value());
   ASSERT_EQ((std::pair<int64_t, uint64_t>(-3, 5)), real4.getReal64Value());
@@ -811,11 +811,11 @@ TEST_F(TestApiBlackTerm, getReal)
   ASSERT_EQ("1/4294967297", real6.getRealValue());
 
   ASSERT_EQ((std::pair<int64_t, uint64_t>(4294967297, 1)), real7.getReal64Value());
-  ASSERT_EQ("4294967297.0", real7.getRealValue());
+  ASSERT_EQ("4294967297/1", real7.getRealValue());
 
   ASSERT_EQ("1/18446744073709551617", real8.getRealValue());
 
-  ASSERT_EQ("18446744073709551617.0", real9.getRealValue());
+  ASSERT_EQ("18446744073709551617/1", real9.getRealValue());
 
   ASSERT_EQ("23432343/10000", real10.getRealValue());
 }
