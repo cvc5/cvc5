@@ -132,8 +132,8 @@ if(NOT Poly_FOUND_SYSTEM)
         <INSTALL_DIR>/lib/libpolyxx.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
         <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
       COMMAND rm
-        <INSTALL_DIR>/lib/libpoly.*${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpolyxx.*${CMAKE_SHARED_LIBRARY_SUFFIX}
+        "<INSTALL_DIR>/lib/libpoly.*${CMAKE_SHARED_LIBRARY_SUFFIX}"
+        "<INSTALL_DIR>/lib/libpolyxx.*${CMAKE_SHARED_LIBRARY_SUFFIX}"
     )
   else()
     ExternalProject_Add_Step(
@@ -149,8 +149,8 @@ if(NOT Poly_FOUND_SYSTEM)
         <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
         <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
       COMMAND rm
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+        "<INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.*"
+        "<INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.*"
     )
   endif()
 
