@@ -50,7 +50,7 @@ struct LengthVarAttributeId
 };
 typedef expr::Attribute<LengthVarAttributeId, Node> LengthVarAttribute;
 
-SkolemCache::SkolemCache(bool useOpts) : d_useOpts(useOpts)
+SkolemCache::SkolemCache(Rewriter* rr) : d_rr(rr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_strType = nm->stringType();
@@ -75,16 +75,16 @@ Node SkolemCache::mkTypedSkolemCached(
   SkolemId idOrig = id;
   // do not rewrite beforehand if we are not using optimizations, this is so
   // that the proof checker does not depend on the rewriter.
-  if (d_useOpts)
+  if (d_rr != nullptr)
   {
-    a = a.isNull() ? a : Rewriter::rewrite(a);
-    b = b.isNull() ? b : Rewriter::rewrite(b);
+    a = a.isNull() ? a : d_rr->rewrite(a);
+    b = b.isNull() ? b : d_rr->rewrite(b);
   }
   std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
 
   // optimization: if we aren't asking for the purification skolem for constant
   // a, and the skolem is equivalent to a, then we just return a.
-  if (d_useOpts && idOrig != SK_PURIFY && id == SK_PURIFY && a.isConst())
+  if (d_rr != nullptr && idOrig != SK_PURIFY && id == SK_PURIFY && a.isConst())
   {
     Trace("skolem-cache") << "...optimization: return constant " << a
                           << std::endl;
@@ -292,10 +292,10 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     b = Node::null();
   }
 
-  if (d_useOpts)
+  if (d_rr != nullptr)
   {
-    a = a.isNull() ? a : Rewriter::rewrite(a);
-    b = b.isNull() ? b : Rewriter::rewrite(b);
+    a = a.isNull() ? a : d_rr->rewrite(a);
+    b = b.isNull() ? b : d_rr->rewrite(b);
   }
   Trace("skolem-cache") << "normalizeStringSkolem end: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;

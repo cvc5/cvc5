@@ -35,10 +35,9 @@ namespace theory {
 class CombinationCareGraph : public CombinationEngine
 {
  public:
-  CombinationCareGraph(TheoryEngine& te,
-                       Env& env,
-                       const std::vector<Theory*>& paraTheories,
-                       ProofNodeManager* pnm);
+  CombinationCareGraph(Env& env,
+                       TheoryEngine& te,
+                       const std::vector<Theory*>& paraTheories);
   ~CombinationCareGraph();
 
   bool buildModel() override;

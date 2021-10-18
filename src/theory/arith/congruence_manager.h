@@ -25,6 +25,7 @@
 #include "context/cdmaybe.h"
 #include "context/cdtrail_queue.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
@@ -55,8 +56,9 @@ namespace arith {
 
 class ArithVariables;
 
-class ArithCongruenceManager {
-private:
+class ArithCongruenceManager : protected EnvObj
+{
+ private:
   context::CDRaised d_inConflict;
   RaiseEqualityEngineConflict d_raiseConflict;
 
@@ -112,11 +114,6 @@ private:
   eq::EqualityEngine* d_ee;
   /** The equality engine we allocated */
   std::unique_ptr<eq::EqualityEngine> d_allocEe;
-  /** The sat context */
-  context::Context* d_satContext;
-  /** The user context */
-  context::UserContext* d_userContext;
-
   /** proof manager */
   ProofNodeManager* d_pnm;
   /** A proof generator for storing proofs of facts that are asserted to the EQ
@@ -227,13 +224,11 @@ private:
   TrustNode explainInternal(TNode internal);
 
  public:
-  ArithCongruenceManager(context::Context* satContext,
-                         context::UserContext* u,
+  ArithCongruenceManager(Env& env,
                          ConstraintDatabase&,
                          SetupLiteralCallBack,
                          const ArithVariables&,
-                         RaiseEqualityEngineConflict raiseConflict,
-                         ProofNodeManager* pnm);
+                         RaiseEqualityEngineConflict raiseConflict);
   ~ArithCongruenceManager();
 
   //--------------------------------- initialization
@@ -296,7 +291,7 @@ private:
     Statistics();
   } d_statistics;
 
-};/* class ArithCongruenceManager */
+}; /* class ArithCongruenceManager */
 
 std::vector<Node> andComponents(TNode an);
 

@@ -34,28 +34,26 @@ using namespace cvc5::prop;
 namespace cvc5 {
 namespace decision {
 
-JustificationHeuristic::JustificationHeuristic(DecisionEngineOld* de,
-                                               context::UserContext* uc,
-                                               context::Context* c)
-    : ITEDecisionStrategy(de, c),
-      d_justified(c),
-      d_exploredThreshold(c),
-      d_prvsIndex(c, 0),
-      d_threshPrvsIndex(c, 0),
+JustificationHeuristic::JustificationHeuristic(Env& env, DecisionEngineOld* de)
+    : ITEDecisionStrategy(env, de),
+      d_justified(context()),
+      d_exploredThreshold(context()),
+      d_prvsIndex(context(), 0),
+      d_threshPrvsIndex(context(), 0),
       d_helpfulness(
           smtStatisticsRegistry().registerInt("decision::jh::helpfulness")),
       d_giveup(smtStatisticsRegistry().registerInt("decision::jh::giveup")),
       d_timestat(smtStatisticsRegistry().registerTimer("decision::jh::time")),
-      d_assertions(uc),
-      d_skolemAssertions(uc),
-      d_skolemCache(uc),
+      d_assertions(userContext()),
+      d_skolemAssertions(userContext()),
+      d_skolemCache(userContext()),
       d_visited(),
       d_visitedComputeSkolems(),
       d_curDecision(),
       d_curThreshold(0),
-      d_childCache(uc),
-      d_weightCache(uc),
-      d_startIndexCache(c)
+      d_childCache(userContext()),
+      d_weightCache(userContext()),
+      d_startIndexCache(context())
 {
   Trace("decision") << "Justification heuristic enabled" << std::endl;
 }

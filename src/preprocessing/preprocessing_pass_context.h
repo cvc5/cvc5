@@ -26,12 +26,12 @@
 #include "preprocessing/learned_literal_manager.h"
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
+#include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {
 
 class Env;
-class SmtEngine;
 class TheoryEngine;
 
 namespace theory::booleans {
@@ -49,8 +49,9 @@ class PreprocessingPassContext : protected EnvObj
  public:
   /** Constructor. */
   PreprocessingPassContext(
-      SmtEngine* smt,
       Env& env,
+      TheoryEngine* te,
+      prop::PropEngine* pe,
       theory::booleans::CircuitPropagator* circuitPropagator);
 
   /** Get the associated Environment. */
@@ -116,12 +117,12 @@ class PreprocessingPassContext : protected EnvObj
                        PfRule id,
                        const std::vector<Node>& args);
 
-  /** The the proof node manager associated with this context, if it exists */
-  ProofNodeManager* getProofNodeManager() const;
 
  private:
-  /** Pointer to the SmtEngine that this context was created in. */
-  SmtEngine* d_smt;
+  /** Pointer to the theory engine associated with this context. */
+  TheoryEngine* d_theoryEngine;
+  /** Pointer to the prop engine associated with this context. */
+  prop::PropEngine* d_propEngine;
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
   /**

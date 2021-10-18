@@ -15,7 +15,7 @@
 
 #include "expr/node_manager.h"
 #include "preprocessing/passes/foreign_theory_rewrite.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "test_smt.h"
 #include "util/rational.h"
 
@@ -31,7 +31,7 @@ class TestPPWhiteForeignTheoryRewrite : public TestSmt
 
 TEST_F(TestPPWhiteForeignTheoryRewrite, simplify)
 {
-  ForeignTheoryRewriter ftr(d_smtEngine->getEnv());
+  ForeignTheoryRewriter ftr(d_slvEngine->getEnv());
   std::cout << "len(x) >= 0 is simplified to true" << std::endl;
   Node x = d_nodeManager->mkVar("x", d_nodeManager->stringType());
   Node len_x = d_nodeManager->mkNode(kind::STRING_LENGTH, x);
