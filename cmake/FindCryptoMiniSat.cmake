@@ -44,7 +44,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  if(CVC5_WINDOWS_BUILD)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(LIBFILENAME "libcryptominisat5win")
   else()
     set(LIBFILENAME "libcryptominisat5")

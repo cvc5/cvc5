@@ -117,7 +117,7 @@ if(NOT Poly_FOUND_SYSTEM)
     COMMAND ls -al <INSTALL_DIR>/lib/
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
-  if(CVC5_WINDOWS_BUILD)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     ExternalProject_Add_Step(
       Poly-EP cleanup-macos
@@ -156,7 +156,7 @@ if(NOT Poly_FOUND_SYSTEM)
   set(Poly_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
   set(PolyXX_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
 
-  if(CVC5_WINDOWS_BUILD)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(Poly_LIBRARIES "${DEPS_BASE}/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
     set(PolyXX_LIBRARIES "${DEPS_BASE}/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
   endif()
@@ -169,7 +169,7 @@ set_target_properties(Poly_SHARED PROPERTIES
   IMPORTED_LOCATION "${Poly_LIBRARIES}"
   INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
 )
-if(CVC5_WINDOWS_BUILD)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set_target_properties(Poly_SHARED PROPERTIES IMPORTED_IMPLIB "${Poly_LIBRARIES}")
 endif()
 target_link_libraries(Poly_SHARED INTERFACE GMP_SHARED)
@@ -180,7 +180,7 @@ set_target_properties(Polyxx_SHARED PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
   INTERFACE_LINK_LIBRARIES Poly_SHARED
 )
-if(CVC5_WINDOWS_BUILD)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set_target_properties(Polyxx_SHARED PROPERTIES IMPORTED_IMPLIB "${PolyXX_LIBRARIES}")
 endif()
 

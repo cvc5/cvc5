@@ -62,7 +62,7 @@ if(NOT GMP_FOUND_SYSTEM)
 
   set(GMP_VERSION "6.2.1")
 
-  if(CVC5_WINDOWS_BUILD)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # on windows, the gmp.h is different for shared and static builds.
     # we thus need two separate builds. as the configure script taints the
     # source folder, we even need two source folders.
@@ -128,7 +128,7 @@ set_target_properties(GMP_SHARED PROPERTIES
   IMPORTED_LOCATION "${GMP_LIBRARIES}"
   INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
 )
-if(CVC5_WINDOWS_BUILD)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set_target_properties(GMP_SHARED PROPERTIES IMPORTED_IMPLIB "${GMP_LIBRARIES}")
 endif()
 

@@ -109,7 +109,7 @@ add_library(cvc5parser-shared SHARED $<TARGET_OBJECTS:cvc5parser-objs>)
 set_target_properties(cvc5parser-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
 set_target_properties(cvc5parser-shared PROPERTIES OUTPUT_NAME cvc5parser)
 target_link_libraries(cvc5parser-shared PRIVATE cvc5-shared)
-if(CVC5_WINDOWS_BUILD)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_STATIC)
 else()
   target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_SHARED)
@@ -135,7 +135,7 @@ endif()
 # unresolved symbols when linking against libcvc5parser.
 # -Wl,--export-all-symbols makes sure that all symbols are exported when
 # building a DLL.
-if(CVC5_WINDOWS_BUILD)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set_target_properties(cvc5parser-objs
     PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()
