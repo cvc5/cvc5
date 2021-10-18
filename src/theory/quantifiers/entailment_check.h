@@ -47,7 +47,7 @@ class EntailmentCheck : protected EnvObj
    * Returns a term n' such that n * subs = n' is entailed based on the current
    * set of equalities, where ( n * subs ) is term n under the substitution
    * subs.
-   * 
+   *
    * This function may generate new terms. In particular, we typically rewrite
    * subterms of n of maximal size to terms that exist in the equality engine.
    *
@@ -62,7 +62,7 @@ class EntailmentCheck : protected EnvObj
    * of this function to only involve existing terms. This is used e.g. in
    * the "propagating instances" portion of conflict-based instantiation
    * (quant_conflict_find.h).
-   * 
+   *
    * @param n The term under consideration
    * @param subs The substitution under consideration
    * @param subsRep Whether the range of subs are representatives in the current
