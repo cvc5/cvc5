@@ -748,6 +748,7 @@ void Parser::pushGetValueScope()
                   << " declared sorts" << std::endl;
   for (const api::Sort& s : declareSorts)
   {
+    std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
     for (const api::Term& e : elements)
     {
       // Uninterpreted constants are abstract values, which by SMT-LIB are
