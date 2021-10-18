@@ -95,7 +95,10 @@ cdef c_hash[c_Term] ctermhash = c_hash[c_Term]()
 
 
 cdef class Datatype:
-    """Wrapper class for :cpp:class:`cvc5::api::Datatype`."""
+    """
+        A cvc5 datatype.
+        Wrapper class for :cpp:class:`cvc5::api::Datatype`.
+    """
     cdef c_Datatype cd
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -114,7 +117,7 @@ cdef class Datatype:
     def getConstructor(self, str name):
         """
             :param name: the name of the constructor.
-            :return: a constructor by name. 
+            :return: a constructor by name.
         """
         cdef DatatypeConstructor dc = DatatypeConstructor(self.solver)
         dc.cdc = self.cd.getConstructor(name.encode())
@@ -151,34 +154,35 @@ cdef class Datatype:
         return self.cd.getNumConstructors()
 
     def isParametric(self):
-        """:return: whether this datatype is parametric."""
+        """:return: True if this datatype is parametric."""
         return self.cd.isParametric()
 
     def isCodatatype(self):
-        """:return: whether this datatype corresponds to a co-datatype."""
+        """:return: True if this datatype corresponds to a co-datatype."""
         return self.cd.isCodatatype()
 
     def isTuple(self):
-        """:return: whether this datatype corresponds to a tuple."""
+        """:return: True if this datatype corresponds to a tuple."""
         return self.cd.isTuple()
 
     def isRecord(self):
-        """:return: whether this datatype corresponds to a record."""
+        """:return: True if this datatype corresponds to a record."""
         return self.cd.isRecord()
 
     def isFinite(self):
-        """:return: whether this datatype is finite."""
+        """:return: True if this datatype is finite."""
         return self.cd.isFinite()
 
     def isWellFounded(self):
-        """:return: whether this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
+        """:return: True if this datatype is well-founded (see :cpp:func:`Datatype::isWellFounded() <cvc5::api::Datatype::isWellFounded>`)."""
         return self.cd.isWellFounded()
 
     def hasNestedRecursion(self):
-        """:return: whether this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
+        """:return: True if this datatype has nested recursion (see :cpp:func:`Datatype::hasNestedRecursion() <cvc5::api::Datatype::hasNestedRecursion>`)."""
         return self.cd.hasNestedRecursion()
 
     def isNull(self):
+        """:return: True if this Datatype is a null object."""
         return self.cd.isNull()
 
     def __str__(self):
@@ -195,7 +199,10 @@ cdef class Datatype:
 
 
 cdef class DatatypeConstructor:
-    """Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructor`."""
+    """
+        A cvc5 datatype constructor.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructor`.
+    """
     cdef c_DatatypeConstructor cdc
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -270,6 +277,7 @@ cdef class DatatypeConstructor:
         return term
 
     def isNull(self):
+        """:return: True if this DatatypeConstructor is a null object."""
         return self.cdc.isNull()
 
     def __str__(self):
@@ -286,7 +294,10 @@ cdef class DatatypeConstructor:
 
 
 cdef class DatatypeConstructorDecl:
-    """Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructorDecl`."""
+    """
+        A cvc5 datatype constructor declaration.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeConstructorDecl`.
+    """
     cdef c_DatatypeConstructorDecl cddc
     cdef Solver solver
 
@@ -311,6 +322,7 @@ cdef class DatatypeConstructorDecl:
         self.cddc.addSelectorSelf(name.encode())
 
     def isNull(self):
+        """:return: True if this DatatypeConstructorDecl is a null object."""
         return self.cddc.isNull()
 
     def __str__(self):
@@ -321,7 +333,10 @@ cdef class DatatypeConstructorDecl:
 
 
 cdef class DatatypeDecl:
-    """Wrapper class for :cpp:class:`cvc5::api::DatatypeDecl`."""
+    """
+        A cvc5 datatype declaration.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeDecl`.
+    """
     cdef c_DatatypeDecl cdd
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -354,6 +369,7 @@ cdef class DatatypeDecl:
         return self.cdd.getName().decode()
 
     def isNull(self):
+        """:return: True if this DatatypeDecl is a null object."""
         return self.cdd.isNull()
 
     def __str__(self):
@@ -364,7 +380,10 @@ cdef class DatatypeDecl:
 
 
 cdef class DatatypeSelector:
-    """Wrapper class for :cpp:class:`cvc5::api::DatatypeSelector`."""
+    """
+        A cvc5 datatype selector.
+        Wrapper class for :cpp:class:`cvc5::api::DatatypeSelector`.
+    """
     cdef c_DatatypeSelector cds
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -402,6 +421,7 @@ cdef class DatatypeSelector:
         return sort
 
     def isNull(self):
+        """:return: True if this DatatypeSelector is a null object."""
         return self.cds.isNull()
 
     def __str__(self):
@@ -412,6 +432,13 @@ cdef class DatatypeSelector:
 
 
 cdef class Op:
+    """
+        A cvc5 operator.
+        An operator is a term that represents certain operators,
+        instantiated with its required parameters, e.g.,
+        a term of kind :cpp:enumerator:`BITVECTOR_EXTRACT`.
+        Wrapper class for :cpp:class:`cvc5::api::Op`.
+    """
     cdef c_Op cop
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -434,18 +461,33 @@ cdef class Op:
         return cophash(self.cop)
 
     def getKind(self):
+        """
+            :return: the kind of this operator.
+        """
         return kind(<int> self.cop.getKind())
 
     def isIndexed(self):
+        """
+            :return: True iff this operator is indexed.
+        """
         return self.cop.isIndexed()
 
     def isNull(self):
+        """
+            :return: True iff this operator is a null term.
+        """
         return self.cop.isNull()
 
     def getNumIndices(self):
+        """
+            :return: number of indices of this op.
+        """
         return self.cop.getNumIndices()
 
     def getIndices(self):
+        """
+            :return: the indices used to create this Op (see :cpp:func:`Op::getIndices() <cvc5::api::Op::getIndices>`).
+        """
         indices = None
         try:
             indices = self.cop.getIndices[string]().decode()
@@ -468,6 +510,10 @@ cdef class Op:
         return indices
 
 cdef class Grammar:
+    """
+        A Sygus Grammar.
+        Wrapper class for :cpp:class:`cvc5::api::Grammar`.
+    """
     cdef c_Grammar  cgrammar
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -475,55 +521,106 @@ cdef class Grammar:
         self.cgrammar = c_Grammar()
 
     def addRule(self, Term ntSymbol, Term rule):
+        """
+            Add ``rule`` to the set of rules corresponding to ``ntSymbol``.
+
+            :param ntSymbol: the non-terminal to which the rule is added.
+            :param rule: the rule to add.
+        """
         self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
 
     def addAnyConstant(self, Term ntSymbol):
+        """
+            Allow ``ntSymbol`` to be an arbitrary constant.
+
+            :param ntSymbol: the non-terminal allowed to be constant.
+        """
         self.cgrammar.addAnyConstant(ntSymbol.cterm)
 
     def addAnyVariable(self, Term ntSymbol):
+        """
+            Allow ``ntSymbol`` to be any input variable to corresponding synth-fun/synth-inv with the same sort as ``ntSymbol``.
+
+            :param ntSymbol: the non-terminal allowed to be any input variable.
+        """
         self.cgrammar.addAnyVariable(ntSymbol.cterm)
 
     def addRules(self, Term ntSymbol, rules):
+        """
+            Add ``ntSymbol`` to the set of rules corresponding to ``ntSymbol``.
+
+            :param ntSymbol: the non-terminal to which the rules are added.
+            :param rules: the rules to add.
+        """
         cdef vector[c_Term] crules
         for r in rules:
             crules.push_back((<Term?> r).cterm)
         self.cgrammar.addRules(ntSymbol.cterm, crules)
 
 cdef class Result:
+    """
+        Encapsulation of a three-valued solver result, with explanations.
+        Wrapper class for :cpp:class:`cvc5::api::Result`.
+    """
     cdef c_Result cr
     def __cinit__(self):
         # gets populated by solver
         self.cr = c_Result()
 
     def isNull(self):
+        """
+            :return: True if Result is empty, i.e., a nullary Result,
+            and not an actual result returned from a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
+        """
         return self.cr.isNull()
 
     def isSat(self):
+        """
+            :return: True if query was a satisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
+        """
         return self.cr.isSat()
 
     def isUnsat(self):
+        """
+            :return: True if query was an usatisfiable :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query.
+        """
         return self.cr.isUnsat()
 
     def isSatUnknown(self):
+        """
+            :return: True if query was a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` or :cpp:func:`Solver::checkSatAssuming() <cvc5::api::Solver::checkSatAssuming>` query and cvc5 was not able to determine (un)satisfiability.
+        """
         return self.cr.isSatUnknown()
 
     def isEntailed(self):
+        """
+            :return: True if corresponding query was an entailed :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query.
+        """
         return self.cr.isEntailed()
 
     def isNotEntailed(self):
+        """
+            :return: True if corresponding query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query that is not entailed.
+        """
         return self.cr.isNotEntailed()
 
     def isEntailmentUnknown(self):
+        """
+            :return: True if query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query  query and cvc5 was not able to determine if it is entailed.
+        """
         return self.cr.isEntailmentUnknown()
+    
+    def getUnknownExplanation(self):
+        """
+            :return: an explanation for an unknown query result.
+        """
+        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
 
     def __eq__(self, Result other):
         return self.cr == other.cr
 
     def __ne__(self, Result other):
         return self.cr != other.cr
-
-    def getUnknownExplanation(self):
-        return UnknownExplanation(<int> self.cr.getUnknownExplanation())
 
     def __str__(self):
         return self.cr.toString().decode()
@@ -533,6 +630,20 @@ cdef class Result:
 
 
 cdef class RoundingMode:
+    """
+        Rounding modes for floating-point numbers.
+
+        For many floating-point operations, infinitely precise results may not be
+        representable with the number of available bits. Thus, the results are
+        rounded in a certain way to one of the representable floating-point numbers.
+
+        These rounding modes directly follow the SMT-LIB theory for floating-point
+        arithmetic, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
+        The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
+        Standard 754.
+        
+        Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`.
+    """
     cdef c_RoundingMode crm
     cdef str name
     def __cinit__(self, int rm):
@@ -557,6 +668,9 @@ cdef class RoundingMode:
 
 
 cdef class UnknownExplanation:
+    """
+        Wrapper class for :cpp:enum:`cvc5::api::Result::UnknownExplanation`.
+    """
     cdef c_UnknownExplanation cue
     cdef str name
     def __cinit__(self, int ue):
@@ -907,9 +1021,10 @@ cdef class Solver:
         - ``Op mkOp(Kind kind, const string& arg)``
         - ``Op mkOp(Kind kind, uint32_t arg)``
         - ``Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)``
+        - ``Op mkOp(Kind kind, [uint32_t arg0, ...])`` (used for the TupleProject kind)
         """
         cdef Op op = Op(self)
-        cdef vector[int] v
+        cdef vector[uint32_t] v
 
         if len(args) == 0:
             op.cop = self.csolver.mkOp(k.k)
@@ -922,7 +1037,10 @@ cdef class Solver:
                 op.cop = self.csolver.mkOp(k.k, <int?> args[0])
             elif isinstance(args[0], list):
                 for a in args[0]:
-                    v.push_back((<int?> a))
+                    if a < 0 or a >= 2 ** 31:
+                        raise ValueError("Argument {} must fit in a uint32_t".format(a))
+
+                    v.push_back((<uint32_t?> a))
                 op.cop = self.csolver.mkOp(k.k, <const vector[uint32_t]&> v)   
             else:
                 raise ValueError("Unsupported signature"

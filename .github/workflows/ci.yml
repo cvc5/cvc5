@@ -89,6 +89,8 @@ jobs:
         check-examples: ${{ matrix.check-examples }}
         check-python-bindings: ${{ matrix.python-bindings }}
         check-unit-tests: ${{ matrix.check-units }}
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: ${{ matrix.exclude_regress }}
 
     - name: Build documentation
       if: matrix.build-documentation
