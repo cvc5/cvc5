@@ -156,6 +156,7 @@ if(NOT Poly_FOUND_SYSTEM)
         <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
         <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0
         <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+      COMMAND echo "Checking <INSTALL_DIR>/lib"
       COMMAND ls -al <INSTALL_DIR>/lib/
     )
   endif()
