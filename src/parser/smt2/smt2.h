@@ -50,7 +50,7 @@ class Smt2 : public Parser
   bool d_seenSetLogic;
 
   LogicInfo d_logic;
-  std::unordered_map<std::string, api::Kind> operatorKindMap;
+  std::unordered_map<std::string, api::Kind> d_operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
    * BITVECTOR_EXTRACT).

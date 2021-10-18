@@ -19,6 +19,7 @@
 #define CVC5__THEORY__SHARED_SOLVER__H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/inference_id.h"
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
@@ -44,10 +45,10 @@ class TheoryInferenceManager;
  * (2) Be the official interface for equality statuses,
  * (3) Propagate equalities to TheoryEngine when necessary and explain them.
  */
-class SharedSolver
+class SharedSolver : protected EnvObj
 {
  public:
-  SharedSolver(TheoryEngine& te, ProofNodeManager* pnm);
+  SharedSolver(Env& env, TheoryEngine& te);
   virtual ~SharedSolver() {}
   //------------------------------------- initialization
   /**

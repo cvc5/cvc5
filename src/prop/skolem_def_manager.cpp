@@ -121,20 +121,33 @@ bool SkolemDefManager::hasSkolems(TNode n) const
       }
       else
       {
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          visit.push_back(cur.getOperator());
+        }
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
     else
     {
       visit.pop_back();
-      bool hasSkolem = false;
-      for (TNode i : cur)
+      bool hasSkolem;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED
+          && cur.getOperator().getAttribute(HasSkolemAttr()))
       {
-        Assert(i.getAttribute(HasSkolemComputedAttr()));
-        if (i.getAttribute(HasSkolemAttr()))
+        hasSkolem = true;
+      }
+      else
+      {
+        hasSkolem = false;
+        for (TNode i : cur)
         {
-          hasSkolem = true;
-          break;
+          Assert(i.getAttribute(HasSkolemComputedAttr()));
+          if (i.getAttribute(HasSkolemAttr()))
+          {
+            hasSkolem = true;
+            break;
+          }
         }
       }
       cur.setAttribute(HasSkolemAttr(), hasSkolem);
@@ -172,11 +185,13 @@ void SkolemDefManager::getSkolems(TNode n,
         {
           skolems.insert(cur);
         }
+        continue;
       }
-      else
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
-        visit.insert(visit.end(), cur.begin(), cur.end());
+        visit.push_back(cur.getOperator());
       }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
 }

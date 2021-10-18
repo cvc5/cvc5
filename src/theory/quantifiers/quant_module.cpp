@@ -76,5 +76,10 @@ quantifiers::QuantifiersRegistry& QuantifiersModule::getQuantifiersRegistry()
   return d_qreg;
 }
 
+quantifiers::TermRegistry& QuantifiersModule::getTermRegistry()
+{
+  return d_treg;
+}
+
 }  // namespace theory
 }  // namespace cvc5
