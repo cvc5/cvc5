@@ -44,18 +44,16 @@ class EntailmentCheck : protected EnvObj
   ~EntailmentCheck();
   /** evaluate term
    *
-   * Returns a term n' such that n = n' is entailed based on the equality
-   * information ee.  This function may generate new terms. In particular,
-   * we typically rewrite subterms of n of maximal size to terms that exist in
-   * the equality engine specified by ee.
+   * Returns a term n' such that n * subs = n' is entailed based on the current
+   * set of equalities, where ( n * subs ) is term n under the substitution
+   * subs.
+   * 
+   * This function may generate new terms. In particular, we typically rewrite
+   * subterms of n of maximal size to terms that exist in the equality engine.
    *
    * useEntailmentTests is whether to call the theory engine's entailmentTest
    * on literals n for which this call fails to find a term n' that is
    * equivalent to n, for increased precision. This is not frequently used.
-   *
-   * The vector exp stores the explanation for why n evaluates to that term,
-   * that is, if this call returns a non-null node n', then:
-   *   exp => n = n'
    *
    * If reqHasTerm, then we require that the returned term is a Boolean
    * combination of terms that exist in the equality engine used by this call.
@@ -64,12 +62,23 @@ class EntailmentCheck : protected EnvObj
    * of this function to only involve existing terms. This is used e.g. in
    * the "propagating instances" portion of conflict-based instantiation
    * (quant_conflict_find.h).
+   * 
+   * @param n The term under consideration
+   * @param subs The substitution under consideration
+   * @param subsRep Whether the range of subs are representatives in the current
+   * equality engine
+   * @param useEntailmentTests Whether to use entailment tests to show
+   * n * subs is equivalent to true/false.
+   * @param reqHasTerm Whether we require the returned term to be a Boolean
+   * combination of terms known to the current equality engine
+   * @return the term n * subs evaluates to
    */
   Node evaluateTerm(TNode n,
                     std::map<TNode, TNode>& subs,
                     bool subsRep,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
+  /** Same as above, without a substitution */
   Node evaluateTerm(TNode n,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
