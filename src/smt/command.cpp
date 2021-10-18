@@ -302,19 +302,21 @@ void EmptyCommand::toStream(std::ostream& out,
 /* class EchoCommand                                                          */
 /* -------------------------------------------------------------------------- */
 
-EchoCommand::EchoCommand(std::string output)
+EchoCommand::EchoCommand(std::string output) : d_output(output) {}
+
+std::string EchoCommand::getOutput() const
 {
   // escape all double-quotes
+  std::string output = d_output;
   size_t pos = 0;
   while ((pos = output.find('"', pos)) != string::npos)
   {
     output.replace(pos, 1, "\"\"");
     pos += 2;
   }
-  d_output = '"' + output + '"';
+  return '"' + output + '"';
 }
 
-std::string EchoCommand::getOutput() const { return d_output; }
 void EchoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   /* we don't have an output stream here, nothing to do */
