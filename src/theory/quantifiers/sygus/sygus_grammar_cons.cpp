@@ -33,6 +33,8 @@
 #include "theory/strings/word.h"
 #include "util/floatingpoint.h"
 #include "util/string.h"
+#include "expr/node_algorithm.h"
+#include "expr/array_store_all.h"
 
 using namespace cvc5::kind;
 
@@ -420,7 +422,17 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   {
     // generate constant array over the first element of the constituent type
     Node c = type.mkGroundTerm();
-    ops.push_back(c);
+    // note that we must never allow uninterpreted constants, which may
+    // appear e.g. in arrays having uninterpreted sort elements.
+    Node ccheck = c;
+    if (c.getKind()==STORE_ALL)
+    {
+      ccheck = c.getConst<ArrayStoreAll>().getValue();
+    }
+    if (!expr::hasSubtermKind(UNINTERPRETED_CONSTANT, ccheck))
+    {
+      ops.push_back(c);
+    }
   }
   else if (type.isRoundingMode())
   {
