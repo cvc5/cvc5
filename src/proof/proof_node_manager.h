@@ -189,7 +189,7 @@ class ProofNodeManager
 
  private:
   /** The rewriter */
-  theory::Rewriter* d_rr;
+  theory::Rewriter* d_rewriter;
   /** The (optional) proof checker */
   ProofChecker* d_checker;
   /** the true node */

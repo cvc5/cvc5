@@ -23,7 +23,7 @@ namespace cvc5 {
 namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(Env& env)
-    : d_rr(env.getRewriter()),
+    : d_rewriter(env.getRewriter()),
       d_tcpg(env.getProofNodeManager(),
              nullptr,
              TConvPolicy::FIXPOINT,
@@ -120,12 +120,12 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
 
 bool WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s) const
 {
-  return d_rr->rewrite(t) != d_rr->rewrite(s);
+  return d_rewriter->rewrite(t) != d_rewriter->rewrite(s);
 }
 
 bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
 {
-  Node tr = d_rr->rewrite(t);
+  Node tr = d_rewriter->rewrite(t);
   return !tr.isConst() || !tr.getConst<bool>();
 }
 
