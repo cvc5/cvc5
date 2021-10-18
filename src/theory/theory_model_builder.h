@@ -299,11 +299,6 @@ class TheoryEngineModelBuilder : protected EnvObj
   bool isCdtValueMatch(Node v, Node r, Node eqc, Node& eqc_m);
   //------------------------------------end for codatatypes
 
-  /**
-   * Is the given type constrained to be finite? This depends on whether
-   * finite model finding is enabled.
-   */
-  bool isFiniteType(TypeNode tn) const;
   //---------------------------------for debugging finite model finding
   /** does type tn involve an uninterpreted sort? */
   bool involvesUSort(TypeNode tn) const;

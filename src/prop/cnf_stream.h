@@ -307,7 +307,7 @@ class CnfStream {
    */
   SatLiteral convertAtom(TNode node);
 
-  /** Pointer to resource manager for associated SmtEngine */
+  /** Pointer to resource manager for associated SolverEngine */
   ResourceManager* d_resourceManager;
 
  private:

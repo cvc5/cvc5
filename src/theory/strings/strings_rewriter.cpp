@@ -28,8 +28,9 @@ namespace theory {
 namespace strings {
 
 StringsRewriter::StringsRewriter(Rewriter* r,
-                                 HistogramStat<Rewrite>* statistics)
-    : SequencesRewriter(r, statistics)
+                                 HistogramStat<Rewrite>* statistics,
+                                 uint32_t alphaCard)
+    : SequencesRewriter(r, statistics), d_alphaCard(alphaCard)
 {
 }
 
@@ -276,7 +277,7 @@ Node StringsRewriter::rewriteStringFromCode(Node n)
   {
     Integer i = n[0].getConst<Rational>().getNumerator();
     Node ret;
-    if (i >= 0 && i < strings::utils::getAlphabetCardinality())
+    if (i >= 0 && i < d_alphaCard)
     {
       std::vector<unsigned> svec = {i.toUnsignedInt()};
       ret = nm->mkConst(String(svec));

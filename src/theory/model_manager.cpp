@@ -27,7 +27,7 @@
 namespace cvc5 {
 namespace theory {
 
-ModelManager::ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem)
+ModelManager::ModelManager(Env& env, TheoryEngine& te, EqEngineManager& eem)
     : EnvObj(env),
       d_te(te),
       d_eem(eem),

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The preprocessor of the SmtEngine.
+ * The preprocessor of the SolverEngine.
  */
 
 #include "cvc5_private.h"
@@ -20,15 +20,22 @@
 
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
 namespace cvc5 {
-class Env;
+
+class TheoryEngine;
+
 namespace preprocessing {
 class PreprocessingPassContext;
 }
+namespace prop {
+class PropEngine;
+}
+
 namespace smt {
 
 class AbstractValues;
@@ -43,18 +50,15 @@ class PreprocessProofGenerator;
  * (2) implementing methods for expanding and simplifying formulas. The latter
  * takes into account the substitutions inferred by this class.
  */
-class Preprocessor
+class Preprocessor : protected EnvObj
 {
  public:
-  Preprocessor(SmtEngine& smt,
-               Env& env,
-               AbstractValues& abs,
-               SmtEngineStatistics& stats);
+  Preprocessor(Env& env, AbstractValues& abs, SolverEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization
    */
-  void finishInit();
+  void finishInit(TheoryEngine* te, prop::PropEngine* pe);
   /**
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
@@ -67,7 +71,7 @@ class Preprocessor
   /**
    * Cleanup, which deletes the processing passes owned by this module. This
    * is required to be done explicitly so that passes are deleted before the
-   * objects they refer to in the SmtEngine destructor.
+   * objects they refer to in the SolverEngine destructor.
    */
   void cleanup();
   /**
@@ -98,10 +102,6 @@ class Preprocessor
   void setProofGenerator(PreprocessProofGenerator* pppg);
 
  private:
-  /** Reference to the parent SmtEngine */
-  SmtEngine& d_smt;
-  /** Reference to the env */
-  Env& d_env;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
   /**
