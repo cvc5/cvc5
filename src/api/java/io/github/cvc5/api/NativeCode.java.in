@@ -34,7 +34,7 @@ abstract class Platform
   {
     String os = System.getProperty("os.name");
     String arch = System.getProperty("os.arch");
-    Platform[] platforms = {LinuxAmd64.LINUX_AMD64, MacAmd64.MAC_AMD64, Windows64.WINDOWS_AMD64};
+    Platform[] platforms = {LinuxAmd64.LINUX_AMD64, MacX86_64.MAC_X86_64, Windows64.WINDOWS_AMD64};
     for (Platform p : platforms)
     {
       if (p.osArch.matcher(arch).matches() && p.osName.matcher(os).matches())
@@ -114,13 +114,13 @@ class LinuxAmd64 extends Platform
   }
 }
 
-/** MAC AMD 64 */
-class MacAmd64 extends Platform
+/** MAC X86_64 */
+class MacX86_64 extends Platform
 {
-  static MacAmd64 MAC_AMD64 = new MacAmd64();
-  private MacAmd64()
+  static MacX86_64 MAC_X86_64 = new MacX86_64();
+  private MacX86_64()
   {
-    super("Mac os", "amd64", "mac-amd64");
+    super("Mac*", "x86_64", "mac-x86_64");
   }
   @Override String[] getLibraries()
   {
