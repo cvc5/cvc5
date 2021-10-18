@@ -183,7 +183,7 @@ class Smt2 : public Parser
       api::Term func,
       const std::vector<api::Term>& flattenVars,
       std::vector<api::Term>& bvs);
-  /** Push scope for get-value 
+  /** Push scope for get-value
    */
   void pushGetValueScope();
 
