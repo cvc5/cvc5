@@ -748,19 +748,21 @@ void Parser::pushGetValueScope()
                   << " declared sorts" << std::endl;
   for (const api::Sort& s : declareSorts)
   {
-    std::stringstream uprefix;
-    uprefix << "@uc_" << s.toString() << "_";
-    std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
-    for (size_t i = 0, nelements = elements.size(); i < nelements; i++)
+    for (const api::Term& e : elements)
     {
-      std::stringstream en;
-      en << uprefix.str() << i;
       // Uninterpreted constants are abstract values, which by SMT-LIB are
       // required to be annotated with their type, e.g. (as @uc_Foo_0 Foo).
       // Thus, the element is not printed simply as its name.
+      std::string en = e.toString();
+      size_t index = en.find("(as ");
+      if (index==0)
+      {
+        index = en.find(" ", 4);
+        en = en.substr(4, index-4);
+      }
       Trace("parser") << "Get value scope : " << en.str() << " -> "
-                      << elements[i] << std::endl;
-      defineVar(en.str(), elements[i]);
+                      << e << std::endl;
+      defineVar(en.str(), e);
     }
   }
 }
