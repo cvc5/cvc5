@@ -18,8 +18,10 @@
 #include <sstream>
 #include <stack>
 
+#include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/dtype_cons.h"
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -33,8 +35,6 @@
 #include "theory/strings/word.h"
 #include "util/floatingpoint.h"
 #include "util/string.h"
-#include "expr/node_algorithm.h"
-#include "expr/array_store_all.h"
 
 using namespace cvc5::kind;
 
@@ -425,7 +425,7 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     // note that we must never allow uninterpreted constants, which may
     // appear e.g. in arrays having uninterpreted sort elements.
     Node ccheck = c;
-    if (c.getKind()==STORE_ALL)
+    if (c.getKind() == STORE_ALL)
     {
       ccheck = c.getConst<ArrayStoreAll>().getValue();
     }
