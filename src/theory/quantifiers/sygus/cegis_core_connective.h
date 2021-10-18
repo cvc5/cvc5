@@ -28,7 +28,7 @@
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 
 namespace theory {
 namespace quantifiers {
@@ -339,7 +339,7 @@ class CegisCoreConnective : public Cegis
    * Assuming smt has just been called to check-sat and returned "SAT", this
    * method adds the model for d_vars to mvs.
    */
-  void getModel(SmtEngine& smt, std::vector<Node>& mvs) const;
+  void getModel(SolverEngine& smt, std::vector<Node>& mvs) const;
   /**
    * Assuming smt has just been called to check-sat and returned "UNSAT", this
    * method get the unsat core and adds it to uasserts.
@@ -349,7 +349,7 @@ class CegisCoreConnective : public Cegis
    * If one of the formulas in queryAsserts was in the unsat core, then this
    * method returns true. Otherwise, this method returns false.
    */
-  bool getUnsatCore(SmtEngine& smt,
+  bool getUnsatCore(SolverEngine& smt,
                     const std::unordered_set<Node>& queryAsserts,
                     std::vector<Node>& uasserts) const;
   /**

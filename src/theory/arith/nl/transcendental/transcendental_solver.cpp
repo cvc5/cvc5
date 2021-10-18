@@ -83,12 +83,10 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
-  std::vector<Node> pvars;
-  std::vector<Node> psubs;
-  for (const std::pair<const Node, Node>& tb : d_tstate.d_trMaster)
+  Subs subs;
+  for (const auto& sub : d_tstate.d_trMaster)
   {
-    pvars.push_back(tb.first);
-    psubs.push_back(tb.second);
+    subs.add(sub.first, sub.second);
   }
 
   // initialize representation of assertions
@@ -97,9 +95,9 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
 
   {
     Node pa = a;
-    if (!pvars.empty())
+    if (!subs.empty())
     {
-      pa = arithSubstitute(pa, pvars, psubs);
+      pa = arithSubstitute(pa, subs);
       pa = Rewriter::rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
@@ -145,8 +143,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
             Trace("nl-ext-cm")
                 << "...bound for " << stf << " : [" << bounds.first << ", "
                 << bounds.second << "]" << std::endl;
-            success = d_tstate.d_model.addCheckModelBound(
-                stf, bounds.first, bounds.second);
+            success =
+                d_tstate.d_model.addBound(stf, bounds.first, bounds.second);
           }
         }
       }

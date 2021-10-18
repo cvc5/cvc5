@@ -17,8 +17,8 @@
 #include <cvc5/cvc5.h>
 
 #include <iostream>
+#include <numeric>
 
-using namespace std;
 using namespace cvc5::api;
 
 int main()
@@ -114,18 +114,26 @@ int main()
   std::cout << "value for y: " << yStr << std::endl;
   std::cout << "value for x - y: " << xMinusYStr << std::endl;
 
-  // Further, we can convert the values to cpp types,
-  // using standard cpp conversion functions.
-  double xDouble = std::stod(xStr);
-  double yDouble = std::stod(yStr);
-  double xMinusYDouble = std::stod(xMinusYStr);
+  // Further, we can convert the values to cpp types
+  std::pair<int64_t, uint64_t> xPair = xVal.getReal64Value();
+  std::pair<int64_t, uint64_t> yPair = yVal.getReal64Value();
+  std::pair<int64_t, uint64_t> xMinusYPair = xMinusYVal.getReal64Value();
+
+  std::cout << "value for x: " << xPair.first << "/" << xPair.second << std::endl;
+  std::cout << "value for y: " << yPair.first << "/" << yPair.second << std::endl;
+  std::cout << "value for x - y: " << xMinusYPair.first << "/" << xMinusYPair.second << std::endl;
 
   // Another way to independently compute the value of x - y would be
-  // to use the cpp minus operator instead of asking the solver.
+  // to perform the (rational) arithmetic manually.
   // However, for more complex terms,
   // it is easier to let the solver do the evaluation.
-  double xMinusYComputed = xDouble - yDouble;
-  if (xMinusYComputed == xMinusYDouble)
+  std::pair<int64_t, uint64_t> xMinusYComputed = {
+    xPair.first * yPair.second - xPair.second * yPair.first,
+    xPair.second * yPair.second
+  };
+  uint64_t g = std::gcd(xMinusYComputed.first, xMinusYComputed.second);
+  xMinusYComputed = { xMinusYComputed.first / g, xMinusYComputed.second / g };
+  if (xMinusYComputed == xMinusYPair)
   {
     std::cout << "computed correctly" << std::endl;
   }

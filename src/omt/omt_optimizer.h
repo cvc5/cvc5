@@ -105,7 +105,7 @@ class OMTOptimizer
    * @return smt::OptimizationResult the result of optimization, containing
    *   whether it's optimal and the optimized value.
    **/
-  virtual smt::OptimizationResult minimize(SmtEngine* optChecker,
+  virtual smt::OptimizationResult minimize(SolverEngine* optChecker,
                                            TNode target) = 0;
   /**
    * Maximize the target node with constraints encoded in optChecker
@@ -116,7 +116,7 @@ class OMTOptimizer
    * @return smt::OptimizationResult the result of optimization, containing
    *   whether it's optimal and the optimized value.
    **/
-  virtual smt::OptimizationResult maximize(SmtEngine* optChecker,
+  virtual smt::OptimizationResult maximize(SolverEngine* optChecker,
                                            TNode target) = 0;
 };
 

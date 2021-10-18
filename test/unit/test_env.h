@@ -20,8 +20,8 @@
 #include "expr/skolem_manager.h"
 #include "options/options.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "test.h"
 
 namespace cvc5 {

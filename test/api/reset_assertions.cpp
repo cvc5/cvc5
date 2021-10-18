@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple test for SmtEngine::resetAssertions()
+ * A simple test for SolverEngine::resetAssertions()
  *
  * This program indirectly also tests some corner cases w.r.t.
  * context-dependent datastructures: resetAssertions() pops the contexts to
