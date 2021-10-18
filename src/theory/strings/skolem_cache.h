@@ -27,6 +27,9 @@
 
 namespace cvc5 {
 namespace theory {
+
+class Rewriter;
+
 namespace strings {
 
 /**
@@ -40,10 +43,11 @@ class SkolemCache
   /**
    * Constructor.
    *
-   * useOpts determines if we aggressively share Skolems or return the constants
-   * they are entailed to be equal to.
+   * @param rr determines if we aggressively share Skolems based on rewriting or
+   * return the constants they are entailed to be equal to. This argument is
+   * optional.
    */
-  SkolemCache(bool useOpts = true);
+  SkolemCache(Rewriter* rr);
   /** Identifiers for skolem types
    *
    * The comments below document the properties of each skolem introduced by
@@ -216,8 +220,8 @@ class SkolemCache
   std::tuple<SkolemId, Node, Node> normalizeStringSkolem(SkolemId id,
                                                          Node a,
                                                          Node b);
-  /** whether we are using optimizations */
-  bool d_useOpts;
+  /** the optional rewriter */
+  Rewriter* d_rr;
   /** string type */
   TypeNode d_strType;
   /** Constant node zero */

@@ -49,6 +49,9 @@ TermRegistry::TermRegistry(Env& env,
       d_im(nullptr),
       d_statistics(statistics),
       d_hasStrCode(false),
+      d_hasSeqUpdate(false),
+      d_skCache(env.getRewriter()),
+      d_aent(env.getRewriter()),
       d_functionsTerms(context()),
       d_inputVars(userContext()),
       d_preregisteredTerms(context()),
@@ -56,23 +59,27 @@ TermRegistry::TermRegistry(Env& env,
       d_registeredTypes(userContext()),
       d_proxyVar(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(
-          pnm ? new EagerProofGenerator(
-              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
-              : nullptr)
+      d_epg(pnm ? new EagerProofGenerator(
+                      pnm,
+                      userContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
   d_negOne = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_cardSize = utils::getAlphabetCardinality();
+  Assert(options().strings.stringsAlphaCard <= String::num_codes());
+  d_alphaCard = options().strings.stringsAlphaCard;
 }
 
 TermRegistry::~TermRegistry() {}
 
+uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
+
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
-Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
+Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lemma;
@@ -82,11 +89,10 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
     // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
     Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConst(Rational(1)));
     Node code_eq_neg1 = t.eqNode(nm->mkConst(Rational(-1)));
-    Node code_range = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
-        nm->mkNode(
-            LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
+    Node code_range =
+        nm->mkNode(AND,
+                   nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
+                   nm->mkNode(LT, t, nm->mkConst(Rational(alphaCard))));
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
@@ -100,7 +106,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
     lemma = nm->mkNode(
         AND,
         nm->mkNode(
-            OR, nm->mkConst(Rational(-1)).eqNode(t), nm->mkNode(GEQ, t, t[2])),
+            OR, t.eqNode(nm->mkConst(Rational(-1))), nm->mkNode(GEQ, t, t[2])),
         nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)
@@ -185,6 +191,10 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     d_hasStrCode = true;
   }
+  else if (k == SEQ_NTH || k == STRING_UPDATE)
+  {
+    d_hasSeqUpdate = true;
+  }
   else if (k == REGEXP_RANGE)
   {
     for (const Node& nc : n)
@@ -217,7 +227,7 @@ void TermRegistry::preRegisterTerm(TNode n)
       std::vector<unsigned> vec = n.getConst<String>().getVec();
       for (unsigned u : vec)
       {
-        if (u >= d_cardSize)
+        if (u >= d_alphaCard)
         {
           std::stringstream ss;
           ss << "Characters in string \"" << n
@@ -314,7 +324,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   else if (n.getKind() != STRING_CONTAINS)
   {
     // we don't send out eager reduction lemma for str.contains currently
-    Node eagerRedLemma = eagerReduce(n, &d_skCache);
+    Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
     if (!eagerRedLemma.isNull())
     {
       // if there was an eager reduction, we make the trust node for it
@@ -469,6 +479,30 @@ const context::CDHashSet<Node>& TermRegistry::getInputVars() const
 }
 
 bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
+
+bool TermRegistry::hasSeqUpdate() const { return d_hasSeqUpdate; }
+
+bool TermRegistry::isHandledUpdate(Node n)
+{
+  Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
+  NodeManager* nm = NodeManager::currentNM();
+  Node lenN = n[2];
+  if (n.getKind() == STRING_UPDATE)
+  {
+    lenN = nm->mkNode(STRING_LENGTH, n[2]);
+  }
+  Node one = nm->mkConst(Rational(1));
+  return d_aent.checkEq(lenN, one);
+}
+
+Node TermRegistry::getUpdateBase(Node n)
+{
+  while (n.getKind() == STRING_UPDATE)
+  {
+    n = n[0];
+  }
+  return n;
+}
 
 TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Node n, LengthStatus s, std::map<Node, bool>& reqPhase)

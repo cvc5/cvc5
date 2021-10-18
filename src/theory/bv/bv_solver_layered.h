@@ -96,10 +96,6 @@ class BVSolverLayered : public BVSolver
     return std::string("BVSolverLayered");
   }
 
-  TrustNode ppRewrite(TNode t) override;
-
-  void ppStaticLearn(TNode in, NodeBuilder& learned) override;
-
   void presolve() override;
 
   bool applyAbstraction(const std::vector<Node>& assertions,
@@ -127,7 +123,6 @@ class BVSolverLayered : public BVSolver
 
   typedef std::unordered_set<TNode> TNodeSet;
   typedef std::unordered_set<Node> NodeSet;
-  NodeSet d_staticLearnCache;
 
   typedef std::unordered_map<Node, Node> NodeToNode;
 

@@ -55,6 +55,79 @@ bool AletheProofPostprocessCallback::update(Node res,
 
   switch (id)
   {
+    // To keep the original shape of the proof node it is necessary to rederive
+    // the original conclusion. However, the term that should be printed might
+    // be different from that conclusion. Thus, it is stored as an additional
+    // argument in the proof node. Usually, the only difference is an additional
+    // cl operator or the outmost or operator being replaced by a cl operator.
+    //
+    // When steps are added to the proof that have not been there previously,
+    // it is unwise to add them in the same manner. To illustrate this the
+    // following counterexample shows the pitfalls of this approach:
+    //
+    //  (or a (or b c))   (not a)
+    // --------------------------- RESOLUTION
+    //  (or b c)
+    //
+    //  Is converted into an Alethe proof that should be printed as
+    //
+    //  (cl a (or b c))   (cl (not a))
+    // -------------------------------- RESOLUTION
+    //  (cl (or b c))
+    // --------------- OR
+    //  (cl b c)
+    //
+    // Here, (cl (or b c)) and (cl b c) cannot correspond to the same proof node
+    // (or b c). Thus, we use build up a new proof node using the kind SEXPR
+    // that is then printed as (cl (or b c)). We denote this wrapping of a proof
+    // node by using an extra pair of parenthesis, i.e. ((or b c)) is the proof
+    // node printed as (cl (or b c)).
+    //
+    //
+    // Some proof rules have a close correspondence in Alethe. There are two
+    // very frequent patterns that, to avoid repetition, are described here and
+    // referred to in the comments on the specific proof rules below.
+    //
+    // The first pattern which will be called singleton pattern in the
+    // following, adds the original proof node F with the corresponding rule R'
+    // of the Alethe calculus and uses the same premises as the original proof
+    // node (P1:F1) ... (Pn:Fn). However, the conclusion is printed as (cl F).
+    //
+    // This means a cvc5 rule R that looks as follows:
+    //
+    //  (P1:F1) ... (Pn:Fn)
+    // --------------------- R
+    //  F
+    //
+    // Is transformed into:
+    //
+    //  (P1:F1) ... (Pn:Fn)
+    // --------------------- R'
+    //  (cl F)*
+    //
+    // * the corresponding proof node is F
+    //
+    // The second pattern which will be called clause pattern in the following,
+    // has a conjunction (or G1 ... Gn) as conclusion. It also adds the orignal
+    // proof node (or G1 ... Gn) with the corresponding rule R' of the Alethe
+    // calculus and uses the same premises as the original proof node (P1:F1)
+    // ... (Pn:Fn). However, the conclusion is printed as (cl G1 ... Gn), i.e.
+    // the or is replaced by the cl operator.
+    //
+    // This means a cvc5 rule R that looks as follows:
+    //
+    //  (P1:F1) ... (Pn:Fn)
+    // --------------------- R
+    //  (or G1 ... Gn)
+    //
+    // Is transformed into:
+    //
+    //  (P1:F1) ... (Pn:Fn)
+    // --------------------- R'
+    //  (cl G1 ... Gn)*
+    //
+    // * the corresponding proof node is (or G1 ... Gn)
+    //
     //================================================= Core rules
     //======================== Assume and Scope
     case PfRule::ASSUME:
@@ -989,7 +1062,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ------------------------------------------------------------- RESOLUTION
     //                            (cl F)*
     //
-    // * the corresponding proof node is F2
+    // * the corresponding proof node is F
     case PfRule::NOT_NOT_ELIM:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);

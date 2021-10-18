@@ -135,6 +135,11 @@ void Smt2::addDatatypesOperators()
   {
     Parser::addOperator(api::APPLY_UPDATER);
     addOperator(api::DT_SIZE, "dt.size");
+    // Notice that tuple operators, we use the generic APPLY_SELECTOR and
+    // APPLY_UPDATER kinds. These are processed based on the context
+    // in which they are parsed, e.g. when parsing identifiers.
+    addIndexedOperator(
+        api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
     addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
   }
 }
@@ -288,7 +293,7 @@ void Smt2::addOperator(api::Kind kind, const std::string& name)
   Debug("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
                   << std::endl;
   Parser::addOperator(kind);
-  operatorKindMap[name] = kind;
+  d_operatorKindMap[name] = kind;
 }
 
 void Smt2::addIndexedOperator(api::Kind tKind,
@@ -302,11 +307,11 @@ void Smt2::addIndexedOperator(api::Kind tKind,
 api::Kind Smt2::getOperatorKind(const std::string& name) const
 {
   // precondition: isOperatorEnabled(name)
-  return operatorKindMap.find(name)->second;
+  return d_operatorKindMap.find(name)->second;
 }
 
 bool Smt2::isOperatorEnabled(const std::string& name) const {
-  return operatorKindMap.find(name) != operatorKindMap.end();
+  return d_operatorKindMap.find(name) != d_operatorKindMap.end();
 }
 
 bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
@@ -437,7 +442,7 @@ void Smt2::reset() {
   d_logicSet = false;
   d_seenSetLogic = false;
   d_logic = LogicInfo();
-  operatorKindMap.clear();
+  d_operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
 }
 
@@ -676,6 +681,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
+    defineVar("sep.emp", d_solver->mkTerm(api::SEP_EMP));
 
     addSepOperators();
   }
@@ -685,7 +691,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     // If not from a command, just set the logic directly. Notice this is
     // important since we do not want to enqueue a set-logic command and
-    // fully initialize the underlying SmtEngine in the meantime before the
+    // fully initialize the underlying SolverEngine in the meantime before the
     // command has a chance to execute, which would lead to an error.
     d_solver->setLogic(logic);
     return nullptr;

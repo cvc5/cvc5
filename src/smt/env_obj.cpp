@@ -49,8 +49,6 @@ Node EnvObj::evaluate(TNode n,
   return d_env.evaluate(n, args, vals, visited, useRewriter);
 }
 
-const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }
-
 const Options& EnvObj::options() const { return d_env.getOptions(); }
 
 context::Context* EnvObj::context() const { return d_env.getContext(); }
@@ -58,6 +56,13 @@ context::Context* EnvObj::context() const { return d_env.getContext(); }
 context::UserContext* EnvObj::userContext() const
 {
   return d_env.getUserContext();
+}
+
+const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }
+
+ResourceManager* EnvObj::resourceManager() const
+{
+  return d_env.getResourceManager();
 }
 
 StatisticsRegistry& EnvObj::statisticsRegistry() const

@@ -96,9 +96,12 @@ Trigger::Trigger(Env& env,
       ++(stats.d_simple_triggers);
     }
   }else{
-    if( options::multiTriggerCache() ){
+    if (options().quantifiers.multiTriggerCache)
+    {
       d_mg = new InstMatchGeneratorMulti(this, q, d_nodes);
-    }else{
+    }
+    else
+    {
       d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, q, d_nodes);
     }
     if (Trace.isOn("multi-trigger"))

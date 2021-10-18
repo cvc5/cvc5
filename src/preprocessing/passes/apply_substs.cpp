@@ -37,7 +37,7 @@ PreprocessingPassResult ApplySubsts::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   Chat() << "applying substitutions..." << std::endl;
-  Trace("apply-substs") << "SmtEnginePrivate::processAssertions(): "
+  Trace("apply-substs") << "ApplySubsts::processAssertions(): "
                         << "applying substitutions" << std::endl;
   // TODO(#1255): Substitutions in incremental mode should be managed with a
   // proper data structure.

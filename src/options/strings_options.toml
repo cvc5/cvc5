@@ -184,6 +184,15 @@ name   = "Strings Theory"
   help       = "perform eager context-dependent evaluation for applications of string kinds"
 
 [[option]]
+  name       = "stringsAlphaCard"
+  category   = "regular"
+  long       = "strings-alpha-card=N"
+  type       = "uint64_t"
+  default    = "196608"
+  maximum    = "196608"
+  help       = "the assumed cardinality of the alphabet of characters for strings, which is a prefix of the interval of unicode code points in the SMT-LIB standard"
+  
+[[option]]
   name       = "stringsDeqExt"
   category   = "regular"
   long       = "strings-deq-ext"

@@ -19,7 +19,7 @@
 
 #include "expr/node_manager.h"
 #include "expr/type_node.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "test_node.h"
 #include "util/rational.h"
 
@@ -36,9 +36,9 @@ class TestNodeWhiteTypeNode : public TestNode
   void SetUp() override
   {
     TestNode::SetUp();
-    d_smt.reset(new SmtEngine(d_nodeManager));
+    d_slvEngine.reset(new SolverEngine(d_nodeManager));
   }
-  std::unique_ptr<SmtEngine> d_smt;
+  std::unique_ptr<SolverEngine> d_slvEngine;
 };
 
 TEST_F(TestNodeWhiteTypeNode, sub_types)
@@ -55,7 +55,7 @@ TEST_F(TestNodeWhiteTypeNode, sub_types)
   Node lambda = d_nodeManager->mkVar("lambda", funtype);
   std::vector<Node> formals;
   formals.push_back(x);
-  d_smt->defineFunction(lambda, formals, xPos);
+  d_slvEngine->defineFunction(lambda, formals, xPos);
 
   ASSERT_FALSE(realType.isComparableTo(booleanType));
   ASSERT_TRUE(realType.isComparableTo(integerType));
