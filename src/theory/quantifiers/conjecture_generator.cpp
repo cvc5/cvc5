@@ -93,7 +93,8 @@ ConjectureGenerator::ConjectureGenerator(Env& env,
                                          TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
       d_notify(*this),
-      d_uequalityEngine(d_notify, context(), "ConjectureGenerator::ee", false),
+      d_uequalityEngine(
+          env, context(), d_notify, "ConjectureGenerator::ee", false),
       d_ee_conjectures(context()),
       d_conj_count(0),
       d_subs_confirmCount(0),
@@ -244,6 +245,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
       // now, do instantiation-based merging for each of these terms
       Trace("thm-ee-debug") << "Merge equivalence classes based on instantiations of terms..." << std::endl;
       //merge all pending equalities
+      EntailmentCheck* echeck = d_treg.getEntailmentCheck();
       while( !d_upendingAdds.empty() ){
         Trace("sg-pending") << "Add " << d_upendingAdds.size() << " pending terms..." << std::endl;
         std::vector< Node > pending;
@@ -255,7 +257,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
           Trace("thm-ee-add") << "UEE : Add universal term " << t << std::endl;
           std::vector< Node > eq_terms;
           //if occurs modulo equality at ground level, it is equivalent to representative of ground equality engine
-          Node gt = getTermDatabase()->evaluateTerm(t);
+          Node gt = echeck->evaluateTerm(t);
           if( !gt.isNull() && gt!=t ){
             eq_terms.push_back( gt );
           }
@@ -1361,7 +1363,8 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
   }
   Trace("sg-cconj-debug") << "Evaluate RHS : : " << rhs << std::endl;
   //get the representative of rhs with substitution subs
-  TNode grhs = getTermDatabase()->getEntailedTerm( rhs, subs, true );
+  EntailmentCheck* echeck = d_treg.getEntailmentCheck();
+  TNode grhs = echeck->getEntailedTerm(rhs, subs, true);
   Trace("sg-cconj-debug") << "...done evaluating term, got : " << grhs << std::endl;
   if( !grhs.isNull() ){
     if( glhs!=grhs ){

@@ -181,8 +181,8 @@ class TranscendentalSolver
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
    * all transcendental functions is 2*d_taylor_degree. This value is set
-   * initially to options::nlExtTfTaylorDegree() and may be incremented
-   * if the option options::nlExtTfIncPrecision() is enabled.
+   * initially to the nlExtTfTaylorDegree option and may be incremented
+   * if the option nlExtTfIncPrecision is enabled.
    */
   uint64_t d_taylor_degree;
 

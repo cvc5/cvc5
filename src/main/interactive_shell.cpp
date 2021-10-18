@@ -355,7 +355,7 @@ restart:
     }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the
-    // line.  The first ones haven't yet been executed by the SmtEngine,
+    // line.  The first ones haven't yet been executed by the SolverEngine,
     // but the parser state has already made the variables and the mappings
     // in the symbol table.  So unfortunately, either we exit cvc5 entirely,
     // or we commit to the current line up to the command with the parse

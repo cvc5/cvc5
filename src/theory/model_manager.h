@@ -44,7 +44,7 @@ class TheoryModel;
 class ModelManager : protected EnvObj
 {
  public:
-  ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem);
+  ModelManager(Env& env, TheoryEngine& te, EqEngineManager& eem);
   virtual ~ModelManager();
   /**
    * Finish initializing this class, which allocates the model, the model

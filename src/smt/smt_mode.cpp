@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Enumeration type for the mode of an SmtEngine.
+ * Enumeration type for the mode of an SolverEngine.
  */
 
 #include "smt/smt_mode.h"

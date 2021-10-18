@@ -20,7 +20,7 @@
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -40,12 +40,13 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
                                 const TypeNode& grammarType,
                                 Node& abd)
 {
-  if (!options::produceAbducts())
+  if (!options().smt.produceAbducts)
   {
     const char* msg = "Cannot get abduct when produce-abducts options is off.";
     throw ModalException(msg);
   }
-  Trace("sygus-abduct") << "SmtEngine::getAbduct: goal " << goal << std::endl;
+  Trace("sygus-abduct") << "SolverEngine::getAbduct: goal " << goal
+                        << std::endl;
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
   Node conjn = d_env.getTopLevelSubstitutions().apply(goal);
@@ -53,15 +54,15 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   conjn = conjn.negate();
   d_abdConj = conjn;
   asserts.push_back(conjn);
-  std::string name("A");
+  std::string name("__internal_abduct");
   Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
   d_sssf = aconj[0][0];
-  Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
-                        << ", solving for " << d_sssf << std::endl;
+  Trace("sygus-abduct") << "SolverEngine::getAbduct: made conjecture : "
+                        << aconj << ", solving for " << d_sssf << std::endl;
   // we generate a new smt engine to do the abduction query
   initializeSubsolver(d_subsolver, d_env);
   // get the logic
@@ -87,9 +88,11 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
 {
   // should have initialized the subsolver by now
   Assert(d_subsolver != nullptr);
-  Trace("sygus-abduct") << "  SmtEngine::getAbduct check sat..." << std::endl;
+  Trace("sygus-abduct") << "  SolverEngine::getAbduct check sat..."
+                        << std::endl;
   Result r = d_subsolver->checkSat();
-  Trace("sygus-abduct") << "  SmtEngine::getAbduct result: " << r << std::endl;
+  Trace("sygus-abduct") << "  SolverEngine::getAbduct result: " << r
+                        << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     // get the synthesis solution
@@ -99,8 +102,8 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
     std::map<Node, Node>::iterator its = sols.find(d_sssf);
     if (its != sols.end())
     {
-      Trace("sygus-abduct")
-          << "SmtEngine::getAbduct: solution is " << its->second << std::endl;
+      Trace("sygus-abduct") << "SolverEngine::getAbduct: solution is "
+                            << its->second << std::endl;
       abd = its->second;
       if (abd.getKind() == kind::LAMBDA)
       {
@@ -126,13 +129,13 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
       }
 
       // if check abducts option is set, we check the correctness
-      if (options::checkAbducts())
+      if (options().smt.checkAbducts)
       {
         checkAbduct(axioms, abd);
       }
       return true;
     }
-    Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
+    Trace("sygus-abduct") << "SolverEngine::getAbduct: could not find solution!"
                           << std::endl;
     throw RecoverableModalException("Could not find solution for get-abduct.");
   }
@@ -142,7 +145,7 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
 void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
 {
   Assert(a.getType().isBoolean());
-  Trace("check-abduct") << "SmtEngine::checkAbduct: get expanded assertions"
+  Trace("check-abduct") << "SolverEngine::checkAbduct: get expanded assertions"
                         << std::endl;
 
   std::vector<Node> asserts(axioms.begin(), axioms.end());
@@ -152,21 +155,21 @@ void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
   // is unsatisfiable.
   for (unsigned j = 0; j < 2; j++)
   {
-    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+    Trace("check-abduct") << "SolverEngine::checkAbduct: phase " << j
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
-    std::unique_ptr<SmtEngine> abdChecker;
+    std::unique_ptr<SolverEngine> abdChecker;
     initializeSubsolver(abdChecker, d_env);
-    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+    Trace("check-abduct") << "SolverEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Node& e : asserts)
     {
       abdChecker->assertFormula(e);
     }
-    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+    Trace("check-abduct") << "SolverEngine::checkAbduct: phase " << j
                           << ": check the assertions" << std::endl;
     Result r = abdChecker->checkSat();
-    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+    Trace("check-abduct") << "SolverEngine::checkAbduct: phase " << j
                           << ": result is " << r << std::endl;
     std::stringstream serr;
     bool isError = false;
@@ -175,12 +178,13 @@ void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
       if (r.asSatisfiabilityResult().isSat() != Result::SAT)
       {
         isError = true;
-        serr << "SmtEngine::checkAbduct(): produced solution cannot be shown "
-                "to be consisconsistenttent with assertions, result was "
-             << r;
+        serr
+            << "SolverEngine::checkAbduct(): produced solution cannot be shown "
+               "to be consisconsistenttent with assertions, result was "
+            << r;
       }
       Trace("check-abduct")
-          << "SmtEngine::checkAbduct: goal is " << d_abdConj << std::endl;
+          << "SolverEngine::checkAbduct: goal is " << d_abdConj << std::endl;
       // add the goal to the set of assertions
       Assert(!d_abdConj.isNull());
       asserts.push_back(d_abdConj);
@@ -190,7 +194,7 @@ void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
       if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
       {
         isError = true;
-        serr << "SmtEngine::checkAbduct(): negated goal cannot be shown "
+        serr << "SolverEngine::checkAbduct(): negated goal cannot be shown "
                 "unsatisfiable with produced solution, result was "
              << r;
       }
