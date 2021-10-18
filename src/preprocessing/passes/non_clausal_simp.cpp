@@ -52,12 +52,12 @@ NonClausalSimp::Statistics::Statistics(StatisticsRegistry& reg)
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp"),
       d_statistics(statisticsRegistry()),
-      d_pnm(preprocContext->getProofNodeManager()),
+      d_pnm(d_env.getProofNodeManager()),
       d_llpg(d_pnm ? new smt::PreprocessProofGenerator(
-                 d_pnm, userContext(), "NonClausalSimp::llpg")
+                         d_pnm, userContext(), "NonClausalSimp::llpg")
                    : nullptr),
       d_llra(d_pnm ? new LazyCDProof(
-                 d_pnm, nullptr, userContext(), "NonClausalSimp::llra")
+                         d_pnm, nullptr, userContext(), "NonClausalSimp::llra")
                    : nullptr),
       d_tsubsList(userContext())
 {

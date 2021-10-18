@@ -24,6 +24,9 @@
 #include "theory/uf/equality_engine.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace quantifiers {
 
@@ -55,7 +58,7 @@ class DynamicRewriter
   typedef context::CDList<Node> NodeList;
 
  public:
-  DynamicRewriter(const std::string& name, context::UserContext* u);
+  DynamicRewriter(Env& env, context::Context* c, const std::string& name);
   ~DynamicRewriter() {}
   /** inform this class that the equality a = b holds. */
   void addRewrite(Node a, Node b);

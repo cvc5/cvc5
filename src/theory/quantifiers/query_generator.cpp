@@ -157,7 +157,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
   {
     Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
     // make the satisfiability query
-    std::unique_ptr<SmtEngine> queryChecker;
+    std::unique_ptr<SolverEngine> queryChecker;
     initializeChecker(queryChecker, qy);
     Result r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;

@@ -421,7 +421,7 @@ class CDHashMap : public ContextObj
     const Element* d_it;
 
    public:
-    using iterator_category = std::input_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
     using value_type = typename CDOhash_map<Key, Data, HashFcn>::value_type;
     using difference_type = ptrdiff_t;
     using pointer = typename CDOhash_map<Key, Data, HashFcn>::value_type*;

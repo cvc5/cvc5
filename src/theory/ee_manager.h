@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 
+#include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -51,7 +52,7 @@ struct EeTheoryInfo
 };
 
 /** Virtual base class for equality engine managers */
-class EqEngineManager
+class EqEngineManager : protected EnvObj
 {
  public:
    /**
@@ -59,7 +60,7 @@ class EqEngineManager
    * @param sharedSolver The shared solver that is being used in combination
    * with this equality engine manager
     */
-  EqEngineManager(TheoryEngine& te, SharedSolver& shs);
+  EqEngineManager(Env& env, TheoryEngine& te, SharedSolver& shs);
   virtual ~EqEngineManager() {}
   /**
    * Initialize theories, called during TheoryEngine::finishInit after theory

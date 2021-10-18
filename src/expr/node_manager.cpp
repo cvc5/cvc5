@@ -215,8 +215,8 @@ NodeManager::~NodeManager() {
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
-    // hopefully by this point all SmtEngines have been deleted
-    // already, along with all their attributes
+    // By this point, all SolverEngines should have been deleted, along with
+    // all their attributes
     d_attrManager->deleteAllAttributes();
   }
 

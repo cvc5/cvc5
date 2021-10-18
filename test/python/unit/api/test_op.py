@@ -86,6 +86,9 @@ def test_get_num_indices(solver):
     assert 2 == floatingpoint_to_fp_generic.getNumIndices()
     assert 2 == regexp_loop.getNumIndices()
 
+def test_op_indices_list(solver):
+    with_list = solver.mkOp(kinds.TupleProject, [4, 25])
+    assert 2 == with_list.getNumIndices()
 
 def test_get_indices_string(solver):
     x = Op(solver)

@@ -20,11 +20,11 @@
 #include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/solver_engine_scope.h"
 #include "test_smt.h"
 #include "theory/rewriter.h"
-#include "theory/strings/regexp_operation.h"
-#include "theory/strings/skolem_cache.h"
+#include "theory/strings/regexp_entail.h"
+#include "util/string.h"
 
 namespace cvc5 {
 
@@ -40,8 +40,6 @@ class TestTheoryBlackRegexpOperation : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_skolemCache.reset(new SkolemCache());
-    d_regExpOpr.reset(new RegExpOpr(d_skolemCache.get()));
   }
 
   void includes(Node r1, Node r2)
@@ -49,7 +47,7 @@ class TestTheoryBlackRegexpOperation : public TestSmt
     r1 = Rewriter::rewrite(r1);
     r2 = Rewriter::rewrite(r2);
     std::cout << r1 << " includes " << r2 << std::endl;
-    ASSERT_TRUE(d_regExpOpr->regExpIncludes(r1, r2));
+    ASSERT_TRUE(RegExpEntail::regExpIncludes(r1, r2));
   }
 
   void doesNotInclude(Node r1, Node r2)
@@ -57,11 +55,8 @@ class TestTheoryBlackRegexpOperation : public TestSmt
     r1 = Rewriter::rewrite(r1);
     r2 = Rewriter::rewrite(r2);
     std::cout << r1 << " does not include " << r2 << std::endl;
-    ASSERT_FALSE(d_regExpOpr->regExpIncludes(r1, r2));
+    ASSERT_FALSE(RegExpEntail::regExpIncludes(r1, r2));
   }
-
-  std::unique_ptr<SkolemCache> d_skolemCache;
-  std::unique_ptr<RegExpOpr> d_regExpOpr;
 };
 
 TEST_F(TestTheoryBlackRegexpOperation, basic)

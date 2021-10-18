@@ -32,11 +32,6 @@
 #include "prop/sat_solver_types.h"
 
 namespace cvc5 {
-
-namespace prop {
-class SkolemDefManager;
-}
-
 namespace decision {
 
 /**
@@ -122,10 +117,7 @@ class JustificationStrategy : public DecisionEngine
 {
  public:
   /** Constructor */
-  JustificationStrategy(context::Context* c,
-                        context::UserContext* u,
-                        prop::SkolemDefManager* skdm,
-                        ResourceManager* rm);
+  JustificationStrategy(Env& env);
 
   /** Presolve, called at the beginning of each check-sat call */
   void presolve() override;
@@ -153,18 +145,24 @@ class JustificationStrategy : public DecisionEngine
    * Notify this class that assertion is an (input) assertion, not corresponding
    * to a skolem definition.
    */
-  void addAssertion(TNode assertion) override;
+  void addAssertion(TNode assertion, bool isLemma) override;
   /**
    * Notify this class that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
-  void addSkolemDefinition(TNode lem, TNode skolem) override;
+  void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) override;
   /**
-   * Notify this class that literal n has been asserted. This is triggered when
-   * n is sent to TheoryEngine. This activates skolem definitions for skolems
-   * k that occur in n.
+   * Notify this class that the list of lemmas defs are now active in the
+   * current SAT context. This is triggered when a literal lit is sent to
+   * TheoryEngine that contains skolems we have yet to see in the current SAT
+   * context, where defs are the skolem definitions for each such skolem.
    */
-  void notifyAsserted(TNode n) override;
+  void notifyActiveSkolemDefs(std::vector<TNode>& defs) override;
+  /**
+   * We need notification of active skolem definitions when our skolem
+   * relevance policy is JutificationSkolemRlvMode::ASSERT.
+   */
+  bool needsActiveSkolemDefs() const override;
 
  private:
   /**
@@ -224,8 +222,6 @@ class JustificationStrategy : public DecisionEngine
   static bool isTheoryLiteral(TNode n);
   /** Is n a theory atom? */
   static bool isTheoryAtom(TNode n);
-  /** Pointer to the skolem definition manager */
-  prop::SkolemDefManager* d_skdm;
   /** The assertions, which are user-context dependent. */
   AssertionList d_assertions;
   /** The skolem assertions */
