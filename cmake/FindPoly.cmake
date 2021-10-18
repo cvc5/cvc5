@@ -83,6 +83,28 @@ if(NOT Poly_FOUND_SYSTEM)
   get_target_property(GMP_LIBRARY GMP_STATIC IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
 
+  set(POLY_BYPRODUCTS
+    <INSTALL_DIR>/lib/libpicpoly.a
+    <INSTALL_DIR>/lib/libpicpolyxx.a
+    <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+    <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    list(APPEND POLY_BYPRODUCTS
+      <INSTALL_DIR>/lib/libpoly.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpoly.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpolyxx.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpolyxx.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND POLY_BYPRODUCTS
+      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0
+      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0
+      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+    )
+  endif()
+
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
@@ -106,60 +128,13 @@ if(NOT Poly_FOUND_SYSTEM)
             <INSTALL_DIR>/lib/libpicpoly.a
     COMMAND ${CMAKE_COMMAND} -E copy src/libpicpolyxx.a
             <INSTALL_DIR>/lib/libpicpolyxx.a
-    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libpicpoly.a
-                     <INSTALL_DIR>/lib/libpicpolyxx.a
-                     <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-                     <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+    BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
   )
   ExternalProject_Add_Step(
     Poly-EP cleanup
     DEPENDEES install
-    COMMAND ls -al <INSTALL_DIR>/lib/
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
-  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    ExternalProject_Add_Step(
-      Poly-EP cleanup-macos
-      DEPENDEES cleanup
-      COMMAND rm
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
-      COMMAND ${CMAKE_COMMAND} -E copy
-        <INSTALL_DIR>/lib/libpoly.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-      COMMAND ${CMAKE_COMMAND} -E copy
-        <INSTALL_DIR>/lib/libpolyxx.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
-      COMMAND rm
-        <INSTALL_DIR>/lib/libpoly.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpoly.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpolyxx.0${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpolyxx.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
-      COMMAND ls -al <INSTALL_DIR>/lib/
-    )
-  else()
-    ExternalProject_Add_Step(
-      Poly-EP cleanup-linux
-      DEPENDEES cleanup
-      COMMAND rm
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
-      COMMAND ${CMAKE_COMMAND} -E copy
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-      COMMAND ${CMAKE_COMMAND} -E copy
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
-      COMMAND rm
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0
-        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0
-        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
-      COMMAND echo "Checking <INSTALL_DIR>/lib"
-      COMMAND ls -al <INSTALL_DIR>/lib/
-    )
-  endif()
 
   add_dependencies(Poly-EP GMP_SHARED GMP_STATIC)
 
@@ -226,9 +201,10 @@ else()
   add_dependencies(Poly_SHARED Poly-EP)
   add_dependencies(Polyxx_SHARED Poly-EP)
 
+  ExternalProject_Get_Property(Poly-EP BUILD_BYPRODUCTS INSTALL_DIR)
+  string(REPLACE "<INSTALL_DIR>" "${INSTALL_DIR}" BUILD_BYPRODUCTS "${BUILD_BYPRODUCTS}")
   install(FILES
-    $<TARGET_LINKER_FILE:Poly_SHARED>
-    $<TARGET_LINKER_FILE:Polyxx_SHARED>
+    ${BUILD_BYPRODUCTS}
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
