@@ -1620,7 +1620,7 @@ void CardinalityExtension::preRegisterTerm(TNode n)
   std::map<TypeNode, SortModel*>::iterator it = d_rep_model.find(tn);
   if (it == d_rep_model.end())
   {
-    SortModel* rm = NULL;
+    SortModel* rm = nullptr;
     if (tn.isSort())
     {
       Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
