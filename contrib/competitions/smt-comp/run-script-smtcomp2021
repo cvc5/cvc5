@@ -56,7 +56,7 @@ QF_LIA)
   finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites --ite-simp --simp-ite-compress
   ;;
 QF_NIA)
-  trywith 420 --nl-ext-tplanes --decision=justification
+  trywith 420 --nl-ext-tplanes --decision=justification --jh-rlv-order
   trywith 60 --nl-ext-tplanes --decision=internal
   trywith 60 --nl-ext-tplanes --decision=justification-old
   trywith 60 --no-nl-ext-tplanes --decision=internal
@@ -132,7 +132,7 @@ LIA|LRA)
   ;;
 QF_AUFBV)
   trywith 600
-  finishwith --decision=justification-stoponly
+  finishwith --decision=stoponly
   ;;
 QF_ABV)
   trywith 50 --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
@@ -153,7 +153,7 @@ QF_AUFNIA)
   ;;
 QF_ALIA)
   trywith 140 --decision=justification --arrays-weak-equiv
-  finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
+  finishwith --decision=stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_S|QF_SLIA)
   trywith 300 --strings-exp --strings-fmf --no-jh-rlv-order
