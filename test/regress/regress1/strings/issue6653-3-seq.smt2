@@ -1,3 +1,5 @@
+(set-logic QF_SLIA)
+(set-info :status sat)
 (set-option :strings-lazy-pp false)
 (declare-fun z () Int)
 (declare-fun a () (Seq Int))
