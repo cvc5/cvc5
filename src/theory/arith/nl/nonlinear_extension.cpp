@@ -47,7 +47,7 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_hasNlTerms(false),
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
-      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
+      d_extTheory(env, d_extTheoryCb, d_im),
       d_model(),
       d_trSlv(d_im, d_model, d_env),
       d_extState(d_im, d_model, d_env),
@@ -96,17 +96,16 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
 void NonlinearExtension::computeRelevantAssertions(
     const std::vector<Node>& assertions, std::vector<Node>& keep)
 {
-  Trace("nl-ext-rlv") << "Compute relevant assertions..." << std::endl;
-  Valuation v = d_containing.getValuation();
+  const Valuation& v = d_containing.getValuation();
   for (const Node& a : assertions)
   {
     if (v.isRelevant(a))
     {
-      keep.push_back(a);
+      keep.emplace_back(a);
     }
   }
-  Trace("nl-ext-rlv") << "...keep " << keep.size() << "/" << assertions.size()
-                      << " assertions" << std::endl;
+  Trace("nl-ext-rlv") << "...relevant assertions: " << keep.size() << "/"
+                      << assertions.size() << std::endl;
 }
 
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)

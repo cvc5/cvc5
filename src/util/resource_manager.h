@@ -162,7 +162,7 @@ class ResourceManager
   void beginCall();
 
   /**
-   * Marks the end of a SmtEngine check call, stops the per
+   * Marks the end of a SolverEngine check call, stops the per
    * call timer.
    */
   void endCall();
