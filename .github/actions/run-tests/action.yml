@@ -7,6 +7,10 @@ inputs:
     default: false
   check-unit-tests:
     default: true
+  regressions-args:
+    default: "--no-check-unsat-cores --no-check-proofs"
+  regressions-exclude:
+    default: "3-4"
 runs:
   using: composite
   steps:
@@ -15,9 +19,9 @@ runs:
       run: |
         make -j${{ env.num_proc }} check
       env:
-        ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
+        ARGS: --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
         CVC5_REGRESSION_ARGS: --no-early-exit
-        RUN_REGRESSION_ARGS: ${{ matrix.run_regression_args }}
+        RUN_REGRESSION_ARGS: ${{ inputs.regressions-args }}
       working-directory: build
 
     - name: Run Unit Tests

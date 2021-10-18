@@ -59,6 +59,11 @@ void InferProofCons::notifyFact(const InferInfo& ii)
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
+void InferProofCons::notifyLemma(const InferInfo& ii)
+{
+  d_lazyFactMap[ii.d_conc] = std::make_shared<InferInfo>(ii);
+}
+
 bool InferProofCons::addProofTo(CDProof* pf,
                                 Node conc,
                                 InferenceId infer,

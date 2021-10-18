@@ -817,6 +817,8 @@ libcvc5_add_sources(
   theory/quantifiers/ematching/trigger_trie.h
   theory/quantifiers/ematching/var_match_generator.cpp
   theory/quantifiers/ematching/var_match_generator.h
+  theory/quantifiers/entailment_check.cpp
+  theory/quantifiers/entailment_check.h
   theory/quantifiers/equality_query.cpp
   theory/quantifiers/equality_query.h
   theory/quantifiers/expr_miner.cpp
