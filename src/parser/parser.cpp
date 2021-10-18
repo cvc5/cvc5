@@ -755,13 +755,13 @@ void Parser::pushGetValueScope()
       // Thus, the element is not printed simply as its name.
       std::string en = e.toString();
       size_t index = en.find("(as ");
-      if (index==0)
+      if (index == 0)
       {
         index = en.find(" ", 4);
-        en = en.substr(4, index-4);
+        en = en.substr(4, index - 4);
       }
-      Trace("parser") << "Get value scope : " << en.str() << " -> "
-                      << e << std::endl;
+      Trace("parser") << "Get value scope : " << en.str() << " -> " << e
+                      << std::endl;
       defineVar(en.str(), e);
     }
   }
