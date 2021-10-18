@@ -77,7 +77,9 @@ jobs:
           --werror
 
     - name: Build
-      run: make -j${{ env.num_proc }}
+      run: |
+        make -j${{ env.num_proc }}
+        ldd src/libcvc5.so
       working-directory: build
 
     - name: ccache Statistics
