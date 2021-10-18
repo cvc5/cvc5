@@ -20,8 +20,8 @@
 namespace cvc5 {
 namespace theory {
 
-EqEngineManager::EqEngineManager(TheoryEngine& te, SharedSolver& shs)
-    : d_te(te), d_sharedSolver(shs)
+EqEngineManager::EqEngineManager(Env& env, TheoryEngine& te, SharedSolver& shs)
+    : EnvObj(env), d_te(te), d_sharedSolver(shs)
 {
 }
 
@@ -41,10 +41,11 @@ eq::EqualityEngine* EqEngineManager::allocateEqualityEngine(EeSetupInfo& esi,
   if (esi.d_notify != nullptr)
   {
     return new eq::EqualityEngine(
-        *esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers);
+        d_env, c, *esi.d_notify, esi.d_name, esi.d_constantsAreTriggers);
   }
   // the theory doesn't care about explicit notifications
-  return new eq::EqualityEngine(c, esi.d_name, esi.d_constantsAreTriggers);
+  return new eq::EqualityEngine(
+      d_env, c, esi.d_name, esi.d_constantsAreTriggers);
 }
 
 }  // namespace theory

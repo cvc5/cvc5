@@ -20,6 +20,7 @@
 
 #include "base/output.h"
 #include "options/smt_options.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
@@ -99,59 +100,63 @@ EqualityEngine::~EqualityEngine() {
   free(d_triggerDatabase);
 }
 
-EqualityEngine::EqualityEngine(context::Context* context,
+EqualityEngine::EqualityEngine(Env& env,
+                               context::Context* c,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(context),
+    : ContextNotifyObj(c),
       d_masterEqualityEngine(0),
-      d_context(context),
-      d_done(context, false),
+      d_env(env),
+      d_context(c),
+      d_done(c, false),
       d_notify(&s_notifyNone),
-      d_applicationLookupsCount(context, 0),
-      d_nodesCount(context, 0),
-      d_assertedEqualitiesCount(context, 0),
-      d_equalityTriggersCount(context, 0),
-      d_subtermEvaluatesSize(context, 0),
+      d_applicationLookupsCount(c, 0),
+      d_nodesCount(c, 0),
+      d_assertedEqualitiesCount(c, 0),
+      d_equalityTriggersCount(c, 0),
+      d_subtermEvaluatesSize(c, 0),
       d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
-      d_triggerDatabaseSize(context, 0),
-      d_triggerTermSetUpdatesSize(context, 0),
-      d_deducedDisequalitiesSize(context, 0),
-      d_deducedDisequalityReasonsSize(context, 0),
-      d_propagatedDisequalities(context),
+      d_triggerDatabaseSize(c, 0),
+      d_triggerTermSetUpdatesSize(c, 0),
+      d_deducedDisequalitiesSize(c, 0),
+      d_deducedDisequalityReasonsSize(c, 0),
+      d_propagatedDisequalities(c),
       d_name(name)
 {
   init();
 }
 
-EqualityEngine::EqualityEngine(EqualityEngineNotify& notify,
-                               context::Context* context,
+EqualityEngine::EqualityEngine(Env& env,
+                               context::Context* c,
+                               EqualityEngineNotify& notify,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(context),
+    : ContextNotifyObj(c),
       d_masterEqualityEngine(nullptr),
       d_proofEqualityEngine(nullptr),
-      d_context(context),
-      d_done(context, false),
+      d_env(env),
+      d_context(c),
+      d_done(c, false),
       d_notify(&s_notifyNone),
-      d_applicationLookupsCount(context, 0),
-      d_nodesCount(context, 0),
-      d_assertedEqualitiesCount(context, 0),
-      d_equalityTriggersCount(context, 0),
-      d_subtermEvaluatesSize(context, 0),
+      d_applicationLookupsCount(c, 0),
+      d_nodesCount(c, 0),
+      d_assertedEqualitiesCount(c, 0),
+      d_equalityTriggersCount(c, 0),
+      d_subtermEvaluatesSize(c, 0),
       d_stats(name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
-      d_triggerDatabaseSize(context, 0),
-      d_triggerTermSetUpdatesSize(context, 0),
-      d_deducedDisequalitiesSize(context, 0),
-      d_deducedDisequalityReasonsSize(context, 0),
-      d_propagatedDisequalities(context),
+      d_triggerDatabaseSize(c, 0),
+      d_triggerTermSetUpdatesSize(c, 0),
+      d_deducedDisequalitiesSize(c, 0),
+      d_deducedDisequalityReasonsSize(c, 0),
+      d_propagatedDisequalities(c),
       d_name(name)
 {
   init();
@@ -1849,7 +1854,7 @@ Node EqualityEngine::evaluateTerm(TNode node) {
     builder << childRep;
   }
   Node newNode = builder;
-  return Rewriter::rewrite(newNode);
+  return d_env.getRewriter()->rewrite(newNode);
 }
 
 void EqualityEngine::processEvaluationQueue() {

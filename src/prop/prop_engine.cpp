@@ -79,7 +79,6 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
       d_assumptions(d_env.getUserContext())
 {
   Debug("prop") << "Constructing the PropEngine" << std::endl;
-  context::Context* satContext = d_env.getContext();
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   ResourceManager* rm = d_env.getResourceManager();
@@ -88,17 +87,16 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
   if (dmode == options::DecisionMode::JUSTIFICATION
       || dmode == options::DecisionMode::STOPONLY)
   {
-    d_decisionEngine.reset(new decision::JustificationStrategy(
-        satContext, userContext, d_skdm.get(), rm));
+    d_decisionEngine.reset(new decision::JustificationStrategy(env));
   }
   else if (dmode == options::DecisionMode::JUSTIFICATION_OLD
            || dmode == options::DecisionMode::STOPONLY_OLD)
   {
-    d_decisionEngine.reset(new DecisionEngineOld(satContext, userContext, rm));
+    d_decisionEngine.reset(new DecisionEngineOld(env));
   }
   else
   {
-    d_decisionEngine.reset(new decision::DecisionEngineEmpty(satContext, rm));
+    d_decisionEngine.reset(new decision::DecisionEngineEmpty(env));
   }
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
@@ -163,17 +161,15 @@ PropEngine::~PropEngine() {
 }
 
 TrustNode PropEngine::preprocess(TNode node,
-                                 std::vector<TrustNode>& newLemmas,
-                                 std::vector<Node>& newSkolems)
+                                 std::vector<theory::SkolemLemma>& newLemmas)
 {
-  return d_theoryProxy->preprocess(node, newLemmas, newSkolems);
+  return d_theoryProxy->preprocess(node, newLemmas);
 }
 
 TrustNode PropEngine::removeItes(TNode node,
-                                 std::vector<TrustNode>& newLemmas,
-                                 std::vector<Node>& newSkolems)
+                                 std::vector<theory::SkolemLemma>& newLemmas)
 {
-  return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
+  return d_theoryProxy->removeItes(node, newLemmas);
 }
 
 void PropEngine::assertInputFormulas(
@@ -198,7 +194,7 @@ void PropEngine::assertInputFormulas(
     {
       skolem = it->second;
     }
-    d_theoryProxy->notifyAssertion(assertions[i], skolem);
+    d_theoryProxy->notifyAssertion(assertions[i], skolem, false);
   }
   for (const Node& node : assertions)
   {
@@ -212,12 +208,8 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   bool removable = isLemmaPropertyRemovable(p);
 
   // call preprocessor
-  std::vector<TrustNode> ppLemmas;
-  std::vector<Node> ppSkolems;
-  TrustNode tplemma =
-      d_theoryProxy->preprocessLemma(tlemma, ppLemmas, ppSkolems);
-
-  Assert(ppSkolems.size() == ppLemmas.size());
+  std::vector<theory::SkolemLemma> ppLemmas;
+  TrustNode tplemma = d_theoryProxy->preprocessLemma(tlemma, ppLemmas);
 
   // do final checks on the lemmas we are about to send
   if (isProofEnabled()
@@ -226,25 +218,25 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
     Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug
     tplemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
-    for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
+    for (theory::SkolemLemma& lem : ppLemmas)
     {
-      Assert(ppLemmas[i].getGenerator() != nullptr);
-      ppLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
+      Assert(lem.d_lemma.getGenerator() != nullptr);
+      lem.d_lemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
     }
   }
 
   if (Trace.isOn("te-lemma"))
   {
     Trace("te-lemma") << "Lemma, output: " << tplemma.getProven() << std::endl;
-    for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
+    for (const theory::SkolemLemma& lem : ppLemmas)
     {
-      Trace("te-lemma") << "Lemma, new lemma: " << ppLemmas[i].getProven()
-                        << " (skolem is " << ppSkolems[i] << ")" << std::endl;
+      Trace("te-lemma") << "Lemma, new lemma: " << lem.d_lemma.getProven()
+                        << " (skolem is " << lem.d_skolem << ")" << std::endl;
     }
   }
 
   // now, assert the lemmas
-  assertLemmasInternal(tplemma, ppLemmas, ppSkolems, removable);
+  assertLemmasInternal(tplemma, ppLemmas, removable);
 }
 
 void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
@@ -298,18 +290,18 @@ void PropEngine::assertInternal(
   }
 }
 
-void PropEngine::assertLemmasInternal(TrustNode trn,
-                                      const std::vector<TrustNode>& ppLemmas,
-                                      const std::vector<Node>& ppSkolems,
-                                      bool removable)
+void PropEngine::assertLemmasInternal(
+    TrustNode trn,
+    const std::vector<theory::SkolemLemma>& ppLemmas,
+    bool removable)
 {
   if (!trn.isNull())
   {
     assertTrustedLemmaInternal(trn, removable);
   }
-  for (const TrustNode& tnl : ppLemmas)
+  for (const theory::SkolemLemma& lem : ppLemmas)
   {
-    assertTrustedLemmaInternal(tnl, removable);
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
   }
   // assert to decision engine
   if (!removable)
@@ -318,13 +310,11 @@ void PropEngine::assertLemmasInternal(TrustNode trn,
     if (!trn.isNull())
     {
       // notify the theory proxy of the lemma
-      d_theoryProxy->notifyAssertion(trn.getProven());
+      d_theoryProxy->notifyAssertion(trn.getProven(), TNode::null(), true);
     }
-    Assert(ppSkolems.size() == ppLemmas.size());
-    for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
+    for (const theory::SkolemLemma& lem : ppLemmas)
     {
-      Node lem = ppLemmas[i].getProven();
-      d_theoryProxy->notifyAssertion(ppLemmas[i].getProven(), ppSkolems[i]);
+      d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
   }
 }
@@ -384,9 +374,8 @@ Result PropEngine::checkSat() {
   ScopedBool scopedBool(d_inCheckSat);
   d_inCheckSat = true;
 
-  // TODO This currently ignores conflicts (a dangerous practice).
-  d_decisionEngine->presolve();
-  d_theoryEngine->presolve();
+  // Note this currently ignores conflicts (a dangerous practice).
+  d_theoryProxy->presolve();
 
   if(options::preprocessOnly()) {
     return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
@@ -514,12 +503,11 @@ Node PropEngine::ensureLiteral(TNode n)
 Node PropEngine::getPreprocessedTerm(TNode n)
 {
   // must preprocess
-  std::vector<TrustNode> newLemmas;
-  std::vector<Node> newSkolems;
-  TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas, newSkolems);
+  std::vector<theory::SkolemLemma> newLemmas;
+  TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   TrustNode trnNull;
-  assertLemmasInternal(trnNull, newLemmas, newSkolems, false);
+  assertLemmasInternal(trnNull, newLemmas, false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 
@@ -660,7 +648,7 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
   return true;
 }
 
-void PropEngine::checkProof(context::CDList<Node>* assertions)
+void PropEngine::checkProof(const context::CDList<Node>& assertions)
 {
   if (!d_env.isSatProofProducing())
   {

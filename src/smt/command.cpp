@@ -30,8 +30,8 @@
 #include "expr/node.h"
 #include "expr/symbol_manager.h"
 #include "expr/type_node.h"
-#include "options/options.h"
 #include "options/main_options.h"
+#include "options/options.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
@@ -275,7 +275,6 @@ TypeNode Command::grammarToTypeNode(api::Grammar* grammar)
                             : sortToTypeNode(grammar->resolve());
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* class EmptyCommand                                                         */
 /* -------------------------------------------------------------------------- */
@@ -450,20 +449,15 @@ void PopCommand::toStream(std::ostream& out,
 /* class CheckSatCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-CheckSatCommand::CheckSatCommand() : d_term() {}
+CheckSatCommand::CheckSatCommand() {}
 
-CheckSatCommand::CheckSatCommand(const api::Term& term) : d_term(term) {}
-
-api::Term CheckSatCommand::getTerm() const { return d_term; }
 void CheckSatCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   Trace("dtview::command") << "* ~COMMAND: " << getCommandName() << "~"
                            << std::endl;
   try
   {
-    d_result =
-        d_term.isNull() ? solver->checkSat() : solver->checkSatAssuming(d_term);
-
+    d_result = solver->checkSat();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -473,6 +467,7 @@ void CheckSatCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 api::Result CheckSatCommand::getResult() const { return d_result; }
+
 void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -488,7 +483,7 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 
 Command* CheckSatCommand::clone() const
 {
-  CheckSatCommand* c = new CheckSatCommand(d_term);
+  CheckSatCommand* c = new CheckSatCommand();
   c->d_result = d_result;
   return c;
 }
@@ -500,7 +495,7 @@ void CheckSatCommand::toStream(std::ostream& out,
                                size_t dag,
                                Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdCheckSat(out, termToNode(d_term));
+  Printer::getPrinter(language)->toStreamCmdCheckSat(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2344,7 +2339,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    if (options::dumpUnsatCoresFull())
+    if (options::printUnsatCoresFull())
     {
       // use the assertions
       UnsatCore ucr(termVectorToNodes(d_result));
