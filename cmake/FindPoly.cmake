@@ -116,16 +116,38 @@ if(NOT Poly_FOUND_SYSTEM)
     DEPENDEES install
     COMMAND ls -al <INSTALL_DIR>/lib/
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
-    COMMAND ${CMAKE_COMMAND} -E remove
-      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
-    COMMAND ${CMAKE_COMMAND} -E copy
-      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
-      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
-    COMMAND ${CMAKE_COMMAND} -E copy
-      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
-      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
+  if(CVC5_WINDOWS_BUILD)
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    ExternalProject_Add_Step(
+      Poly-EP cleanup-macos
+      DEPENDEES cleanup
+      COMMAND ${CMAKE_COMMAND} -E remove
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMAND ${CMAKE_COMMAND} -E copy
+        <INSTALL_DIR>/lib/libpoly.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMAND ${CMAKE_COMMAND} -E copy
+        <INSTALL_DIR>/lib/libpolyxx.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  else()
+    ExternalProject_Add_Step(
+      Poly-EP cleanup-linux
+      DEPENDEES cleanup
+      COMMAND ${CMAKE_COMMAND} -E remove
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMAND ${CMAKE_COMMAND} -E copy
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+        <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMAND ${CMAKE_COMMAND} -E copy
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+        <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  endif()
+
   add_dependencies(Poly-EP GMP_SHARED GMP_STATIC)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
