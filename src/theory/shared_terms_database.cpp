@@ -24,26 +24,21 @@ using namespace cvc5::theory;
 
 namespace cvc5 {
 
-SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
-                                         context::Context* context,
-                                         context::UserContext* userContext,
-                                         ProofNodeManager* pnm)
-    : ContextNotifyObj(context),
+SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
+    : ContextNotifyObj(env.getContext()),
+      d_env(env),
       d_statSharedTerms(
           smtStatisticsRegistry().registerInt("theory::shared_terms")),
-      d_addedSharedTermsSize(context, 0),
-      d_termsToTheories(context),
-      d_alreadyNotifiedMap(context),
-      d_registeredEqualities(context),
+      d_addedSharedTermsSize(env.getContext(), 0),
+      d_termsToTheories(env.getContext()),
+      d_alreadyNotifiedMap(env.getContext()),
+      d_registeredEqualities(env.getContext()),
       d_EENotify(*this),
       d_theoryEngine(theoryEngine),
-      d_inConflict(context, false),
+      d_inConflict(env.getContext(), false),
       d_conflictPolarity(),
-      d_satContext(context),
-      d_userContext(userContext),
       d_equalityEngine(nullptr),
-      d_pfee(nullptr),
-      d_pnm(pnm)
+      d_pfee(nullptr)
 {
 }
 
@@ -52,13 +47,12 @@ void SharedTermsDatabase::setEqualityEngine(eq::EqualityEngine* ee)
   Assert(ee != nullptr);
   d_equalityEngine = ee;
   // if proofs are enabled, make the proof equality engine if necessary
-  if (d_pnm != nullptr)
+  if (d_env.isTheoryProofProducing())
   {
     d_pfee = d_equalityEngine->getProofEqualityEngine();
     if (d_pfee == nullptr)
     {
-      d_pfeeAlloc.reset(
-          new eq::ProofEqEngine(d_satContext, d_userContext, *ee, d_pnm));
+      d_pfeeAlloc = std::make_unique<eq::ProofEqEngine>(d_env, *ee);
       d_pfee = d_pfeeAlloc.get();
       d_equalityEngine->setProofEqualityEngine(d_pfee);
     }

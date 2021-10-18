@@ -37,8 +37,8 @@ class TestTheoryWhiteBvIntblaster : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("produce-models", "true");
-    d_smtEngine->finishInit();
+    d_slvEngine->setOption("produce-models", "true");
+    d_slvEngine->finishInit();
     d_true = d_nodeManager->mkConst<bool>(true);
     d_one = d_nodeManager->mkConst<Rational>(Rational(1));
   }
@@ -58,7 +58,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
 
   // translating it to integers should yield 7.
   IntBlaster intBlaster(
-      d_smtEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, false);
+      d_slvEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, false);
   Node result = intBlaster.translateNoChildren(bv7_4, lemmas, skolems);
   Node seven = d_nodeManager->mkConst(Rational(7));
   ASSERT_EQ(seven, result);
@@ -80,7 +80,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
 
   // translating it to integers should yield an integer variable.
   IntBlaster intBlaster(
-      d_smtEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
+      d_slvEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
   Node result = intBlaster.translateNoChildren(bv, lemmas, skolems);
   ASSERT_TRUE(result.isVar() && result.getType().isInteger());
 
@@ -107,7 +107,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
 
   // translating it to integers should yield an Int x Int -> Bool function
   IntBlaster intBlaster(
-      d_smtEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
+      d_slvEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
   Node result = intBlaster.translateNoChildren(f, lemmas, skolems);
   TypeNode resultType = result.getType();
   std::vector<TypeNode> resultDomain = resultType.getArgTypes();
@@ -131,7 +131,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   std::vector<Node> lemmas;
   std::map<Node, Node> skolems;
   IntBlaster intBlaster(
-      d_smtEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
+      d_slvEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
 
   // bit-vector variables
   TypeNode bvType = d_nodeManager->mkBitVectorType(4);

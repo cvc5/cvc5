@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The solver for SMT queries in an SmtEngine.
+ * The solver for SMT queries in an SolverEngine.
  */
 
 #include "cvc5_private.h"
@@ -21,12 +21,13 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/preprocessor.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 class Env;
 class TheoryEngine;
 class ResourceManager;
@@ -43,9 +44,8 @@ class QuantifiersEngine;
 namespace smt {
 
 class Assertions;
-class SmtEngineState;
-class Preprocessor;
-struct SmtEngineStatistics;
+class SolverEngineState;
+struct SolverEngineStatistics;
 
 /**
  * A solver for SMT queries.
@@ -65,16 +65,14 @@ class SmtSolver
 {
  public:
   SmtSolver(Env& env,
-            SmtEngineState& state,
-            Preprocessor& pp,
-            SmtEngineStatistics& stats);
+            SolverEngineState& state,
+            AbstractValues& abs,
+            SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
-   * Create theory engine, prop engine based on the logic info.
-   *
-   * @param logicInfo the logic information
+   * Create theory engine, prop engine based on the environment.
    */
-  void finishInit(const LogicInfo& logicInfo);
+  void finishInit();
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
   /**
@@ -84,19 +82,19 @@ class SmtSolver
    */
   void interrupt();
   /**
-   * This is called by the destructor of SmtEngine, just before destroying the
-   * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
-   * is important because there are destruction ordering issues
-   * between PropEngine and Theory.
+   * This is called by the destructor of SolverEngine, just before destroying
+   * the PropEngine, TheoryEngine, and DecisionEngine (in that order).  It is
+   * important because there are destruction ordering issues between PropEngine
+   * and Theory.
    */
   void shutdown();
   /**
    * Check satisfiability (used to check satisfiability and entailment)
-   * in SmtEngine. This is done via adding assumptions (when necessary) to
+   * in SolverEngine. This is done via adding assumptions (when necessary) to
    * assertions as, preprocessing and pushing assertions into the prop engine
    * of this class, and checking for satisfiability via the prop engine.
    *
-   * @param as The object managing the assertions in SmtEngine. This class
+   * @param as The object managing the assertions in SolverEngine. This class
    * maintains a current set of (unprocessed) assertions which are pushed
    * into the internal members of this class (TheoryEngine and PropEngine)
    * during this call.
@@ -128,12 +126,12 @@ class SmtSolver
  private:
   /** Reference to the environment */
   Env& d_env;
-  /** Reference to the state of the SmtEngine */
-  SmtEngineState& d_state;
-  /** Reference to the preprocessor of SmtEngine */
-  Preprocessor& d_pp;
-  /** Reference to the statistics of SmtEngine */
-  SmtEngineStatistics& d_stats;
+  /** Reference to the state of the SolverEngine */
+  SolverEngineState& d_state;
+  /** The preprocessor of this SMT solver */
+  Preprocessor d_pp;
+  /** Reference to the statistics of SolverEngine */
+  SolverEngineStatistics& d_stats;
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */

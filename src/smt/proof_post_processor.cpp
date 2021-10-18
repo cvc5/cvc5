@@ -19,7 +19,7 @@
 #include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_manager.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -1207,7 +1207,8 @@ ProofPostproccess::ProofPostproccess(Env& env,
                                      bool updateScopedAssumptions)
     : d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(env.getProofNodeManager(), d_cb, options::proofPpMerge()),
+      d_updater(
+          env.getProofNodeManager(), d_cb, env.getOptions().proof.proofPpMerge),
       d_finalCb(env.getProofNodeManager()),
       d_finalizer(env.getProofNodeManager(), d_finalCb)
 {

@@ -28,45 +28,44 @@
 namespace cvc5 {
 namespace theory {
 
-CombinationEngine::CombinationEngine(TheoryEngine& te,
-                                     Env& env,
-                                     const std::vector<Theory*>& paraTheories,
-                                     ProofNodeManager* pnm)
+CombinationEngine::CombinationEngine(Env& env,
+                                     TheoryEngine& te,
+                                     const std::vector<Theory*>& paraTheories)
     : EnvObj(env),
       d_te(te),
       d_valuation(&te),
-      d_pnm(pnm),
+      d_pnm(env.isTheoryProofProducing() ? env.getProofNodeManager() : nullptr),
       d_logicInfo(te.getLogicInfo()),
       d_paraTheories(paraTheories),
       d_eemanager(nullptr),
       d_mmanager(nullptr),
       d_sharedSolver(nullptr),
-      d_cmbsPg(pnm ? new EagerProofGenerator(pnm, te.getUserContext())
-                   : nullptr)
+      d_cmbsPg(d_pnm ? new EagerProofGenerator(d_pnm, env.getUserContext())
+                     : nullptr)
 {
   // create the equality engine, model manager, and shared solver
   if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
   {
     // use the distributed shared solver
-    d_sharedSolver.reset(new SharedSolverDistributed(d_te, d_pnm));
+    d_sharedSolver.reset(new SharedSolverDistributed(env, d_te));
     // make the distributed equality engine manager
     d_eemanager.reset(
-        new EqEngineManagerDistributed(d_te, *d_sharedSolver.get()));
+        new EqEngineManagerDistributed(env, d_te, *d_sharedSolver.get()));
     // make the distributed model manager
     d_mmanager.reset(
-        new ModelManagerDistributed(d_te, d_env, *d_eemanager.get()));
+        new ModelManagerDistributed(env, d_te, *d_eemanager.get()));
   }
   else if (options::eeMode() == options::EqEngineMode::CENTRAL)
   {
     // for now, the shared solver is the same in both approaches; use the
     // distributed one for now
-    d_sharedSolver.reset(new SharedSolverDistributed(d_te, d_pnm));
+    d_sharedSolver.reset(new SharedSolverDistributed(env, d_te));
     // make the central equality engine manager
     d_eemanager.reset(
-        new EqEngineManagerCentral(d_te, *d_sharedSolver.get(), d_pnm));
+        new EqEngineManagerCentral(env, d_te, *d_sharedSolver.get()));
     // make the distributed model manager
     d_mmanager.reset(
-        new ModelManagerDistributed(d_te, d_env, *d_eemanager.get()));
+        new ModelManagerDistributed(env, d_te, *d_eemanager.get()));
   }
   else
   {
