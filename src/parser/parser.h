@@ -715,7 +715,7 @@ public:
    * other pushes and pops only have an impact on the symbol table.
    */
   void pushScope(bool isUserContext = false);
-  
+
   /** Push scope for get-value
    */
   void pushGetValueScope();

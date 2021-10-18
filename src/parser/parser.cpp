@@ -744,20 +744,22 @@ void Parser::pushGetValueScope()
   // the set of uninterpreted constants that are printed in the definition
   // of a model.
   std::vector<api::Sort> declareSorts = d_symman->getModelDeclareSorts();
-  Trace("parser") << "Push get value scope, with " << declareSorts.size() << " declared sorts" << std::endl;
+  Trace("parser") << "Push get value scope, with " << declareSorts.size()
+                  << " declared sorts" << std::endl;
   for (const api::Sort& s : declareSorts)
   {
     std::stringstream uprefix;
     uprefix << "@uc_" << s.toString() << "_";
     std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
-    for (size_t i = 0, nelements = elements.size(); i<nelements; i++)
+    for (size_t i = 0, nelements = elements.size(); i < nelements; i++)
     {
       std::stringstream en;
       en << uprefix.str() << i;
       // Uninterpreted constants are abstract values, which by SMT-LIB are
       // required to be annotated with their type, e.g. (as @uc_Foo_0 Foo).
       // Thus, the element is not printed simply as its name.
-      Trace("parser") << "Get value scope : " << en.str() << " -> " << elements[i] << std::endl;
+      Trace("parser") << "Get value scope : " << en.str() << " -> "
+                      << elements[i] << std::endl;
       defineVar(en.str(), elements[i]);
     }
   }
