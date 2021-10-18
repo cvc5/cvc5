@@ -50,7 +50,7 @@ Node ExprMiner::convertToSkolem(Node n)
       d_vars.begin(), d_vars.end(), d_skolems.begin(), d_skolems.end());
 }
 
-void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
+void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query)
 {
   Assert (!query.isNull());
@@ -88,7 +88,7 @@ Result ExprMiner::doCheck(Node query)
       return Result(Result::SAT);
     }
   }
-  std::unique_ptr<SmtEngine> smte;
+  std::unique_ptr<SolverEngine> smte;
   initializeChecker(smte, query);
   return smte->checkSat();
 }

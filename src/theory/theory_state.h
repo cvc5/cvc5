@@ -100,11 +100,6 @@ class TheoryState : protected EnvObj
   context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
-  /**
-   * Is the cardinality of type tn finite? This method depends on whether
-   * finite model finding is enabled. For details, see theory_engine.h.
-   */
-  bool isFiniteType(TypeNode tn) const;
 
   /** Get the underlying valuation class */
   Valuation& getValuation();

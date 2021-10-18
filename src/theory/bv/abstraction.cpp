@@ -19,8 +19,6 @@
 #include "options/bv_options.h"
 #include "printer/printer.h"
 #include "smt/dump.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
