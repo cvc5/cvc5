@@ -573,12 +573,12 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
     //check whether the instantiation evaluates as expected
     EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
     std::map<TNode, TNode> subs;
-    for (unsigned i = 0; i < terms.size(); i++)
+    for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
     {
       Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
       subs[d_q[0][i]] = terms[i];
     }
-    for (unsigned i = 0; i < d_extra_var.size(); i++)
+    for (size_t i = 0, evsize = d_extra_var.size(); i < evsize; i++)
     {
       Node n = getCurrentExpValue(d_extra_var[i]);
       Trace("qcf-instance-check")
