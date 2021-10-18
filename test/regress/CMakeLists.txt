@@ -2206,6 +2206,7 @@ set(regress_1_tests
   regress1/strings/issue6604-2.smt2
   regress1/strings/issue6635-rre.smt2
   regress1/strings/issue6653-2-update-c-len.smt2
+  regress1/strings/issue6653-3-seq.smt2
   regress1/strings/issue6653-4-rre.smt2
   regress1/strings/issue6653-rre.smt2
   regress1/strings/issue6653-rre-small.smt2
