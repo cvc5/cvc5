@@ -298,7 +298,7 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
 {
   // first, check for logic exceptions
   Kind k = term.getKind();
-  if (!options::arraysExp())
+  if (!options().arrays.arraysExp)
   {
     if (k == kind::EQ_RANGE)
     {
