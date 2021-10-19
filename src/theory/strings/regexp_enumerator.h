@@ -46,6 +46,7 @@ class RegExpEnumerator : public TypeEnumeratorBase<RegExpEnumerator>
   RegExpEnumerator& operator++() override;
   /** is this enumerator finished? */
   bool isFinished() override;
+
  private:
   /** underlying string enumerator */
   StringEnumerator d_senum;
