@@ -474,8 +474,8 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
     // "this conjecture has a solution", hence this lemma states:
     // if the parent conjecture has a solution, it satisfies the specification
     // for the given concrete point.
-    Node rlem =
-        NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem);
+    Node rlem = NodeManager::currentNM()->mkNode(
+        OR, d_parent->getGuard().negate(), lem);
     d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
   }
 }
