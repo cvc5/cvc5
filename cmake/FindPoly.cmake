@@ -79,8 +79,8 @@ if(NOT Poly_FOUND_SYSTEM)
     unset(patchcmd)
   endif()
 
-  get_target_property(GMP_INCLUDE_DIR GMP_STATIC INTERFACE_INCLUDE_DIRECTORIES)
-  get_target_property(GMP_LIBRARY GMP_STATIC IMPORTED_LOCATION)
+  get_target_property(GMP_INCLUDE_DIR GMP_SHARED INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(GMP_LIBRARY GMP_SHARED IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
 
   set(POLY_BYPRODUCTS
@@ -135,8 +135,7 @@ if(NOT Poly_FOUND_SYSTEM)
     DEPENDEES install
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
-
-  add_dependencies(Poly-EP GMP_SHARED GMP_STATIC)
+  add_dependencies(Poly-EP GMP_SHARED)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
   set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
