@@ -18,7 +18,6 @@
 #include <sstream>
 #include <stack>
 
-#include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
@@ -423,7 +422,7 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     // generate constant array over the first element of the constituent type
     Node c = type.mkGroundTerm();
     // note that c should never contain an uninterpreted constant
-    Assert(expr::hasSubtermKind(UNINTERPRETED_CONSTANT, c));
+    Assert (expr::hasSubtermKind(UNINTERPRETED_CONSTANT, c));
     ops.push_back(c);
   }
   else if (type.isRoundingMode())
