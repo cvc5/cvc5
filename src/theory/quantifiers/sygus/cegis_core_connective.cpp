@@ -33,41 +33,6 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-bool VariadicTrie::add(Node n, const std::vector<Node>& i)
-{
-  VariadicTrie* curr = this;
-  for (const Node& ic : i)
-  {
-    curr = &(curr->d_children[ic]);
-  }
-  if (curr->d_data.isNull())
-  {
-    curr->d_data = n;
-    return true;
-  }
-  return false;
-}
-
-bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
-{
-  if (!d_data.isNull())
-  {
-    return true;
-  }
-  for (const std::pair<const Node, VariadicTrie>& p : d_children)
-  {
-    Node n = p.first;
-    if (std::find(is.begin(), is.end(), n) != is.end())
-    {
-      if (p.second.hasSubset(is))
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 CegisCoreConnective::CegisCoreConnective(Env& env,
                                          QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,

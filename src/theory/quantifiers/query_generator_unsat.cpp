@@ -36,8 +36,11 @@ void QueryGeneratorUnsat::initialize(const std::vector<Node>& vars,
 bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
 {
   d_terms.push_back(n);
-  Trace("sygus-qgen-check") << "...finished." << std::endl;
-  Trace("sygus-qgen-check") << "Add term: " << n << std::endl;
+  Trace("sygus-qgen") << "Add term: " << n << std::endl;
+  
+  std::unordered_set<size_t> indices;
+  std::unordered_set<size_t> activeIndices;
+  
   return true;
 }
 
