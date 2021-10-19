@@ -16,11 +16,11 @@
 
 #include "theory/smt_engine_subsolver.h"
 
+#include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_scope.h"
 #include "theory/rewriter.h"
-#include "proof/unsat_core.h"
 
 namespace cvc5 {
 namespace theory {
@@ -138,7 +138,9 @@ Result checkWithSubsolver(Node query,
   return r;
 }
 
-void getModelFromSubsolver(SolverEngine& smt, const std::vector<Node>& vars, std::vector<Node>& vals)
+void getModelFromSubsolver(SolverEngine& smt,
+                           const std::vector<Node>& vars,
+                           std::vector<Node>& vals)
 {
   for (const Node& v : vars)
   {

@@ -44,9 +44,10 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   return true;
 }
 
-Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms, std::vector<Node>& unsatCore)
+Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
+                                         std::vector<Node>& unsatCore)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node qy = nm->mkAnd(activeTerms);
   std::unique_ptr<SolverEngine> queryChecker;
   initializeChecker(queryChecker, qy);

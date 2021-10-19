@@ -87,7 +87,8 @@ class ExprMiner : protected EnvObj
    */
   void initializeChecker(std::unique_ptr<SolverEngine>& checker, Node query);
   /** Also with configurable options and logic */
-  void initializeChecker(std::unique_ptr<SolverEngine>& checker, Node query,
+  void initializeChecker(std::unique_ptr<SolverEngine>& checker,
+                         Node query,
                          const Options& opts,
                          const LogicInfo& logicInfo);
   /**

@@ -56,17 +56,16 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
   initializeChecker(checker, query, options(), logicInfo());
 }
 
-void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker, Node query,
-                        const Options& opts,
-                        const LogicInfo& logicInfo)
+void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
+                                  Node query,
+                                  const Options& opts,
+                                  const LogicInfo& logicInfo)
 {
   Assert (!query.isNull());
   if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
-    initializeSubsolver(checker,
-                        opts, logicInfo,
-                        true,
-                        options::sygusExprMinerCheckTimeout());
+    initializeSubsolver(
+        checker, opts, logicInfo, true, options::sygusExprMinerCheckTimeout());
   }
   else
   {
