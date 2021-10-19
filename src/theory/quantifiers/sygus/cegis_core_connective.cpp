@@ -560,38 +560,6 @@ bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
   return true;
 }
 
-void CegisCoreConnective::getModel(SolverEngine& smt,
-                                   std::vector<Node>& vals) const
-{
-  for (const Node& v : d_vars)
-  {
-    Node mv = smt.getValue(v);
-    Trace("sygus-ccore-model") << v << " -> " << mv << " ";
-    vals.push_back(mv);
-  }
-}
-
-bool CegisCoreConnective::getUnsatCore(
-    SolverEngine& smt,
-    const std::unordered_set<Node>& queryAsserts,
-    std::vector<Node>& uasserts) const
-{
-  UnsatCore uc = smt.getUnsatCore();
-  bool hasQuery = false;
-  for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
-  {
-    Node uassert = *i;
-    Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
-    if (queryAsserts.find(uassert) != queryAsserts.end())
-    {
-      hasQuery = true;
-      continue;
-    }
-    uasserts.push_back(uassert);
-  }
-  return hasQuery;
-}
-
 Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs) const
 {
   Trace("sygus-ccore-debug") << "...check-sat " << n << "..." << std::endl;
@@ -723,7 +691,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       std::unordered_set<Node> queryAsserts;
       queryAsserts.insert(ccheck.getFormula());
       queryAsserts.insert(d_sc);
-      bool hasQuery = getUnsatCore(*checkSol, queryAsserts, uasserts);
+      bool hasQuery = getUnsatCoreFromSubsolver(*checkSol, queryAsserts, uasserts);
       // now, check the side condition
       bool falseCore = false;
       if (!d_sc.isNull())
@@ -759,7 +727,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
             uasserts.clear();
             std::unordered_set<Node> queryAsserts2;
             queryAsserts2.insert(d_sc);
-            getUnsatCore(*checkSc, queryAsserts2, uasserts);
+            getUnsatCoreFromSubsolver(*checkSc, queryAsserts2, uasserts);
             falseCore = true;
           }
         }
@@ -803,7 +771,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       // it does not entail the postcondition, add an assertion that blocks
       // the current point
       mvs.clear();
-      getModel(*checkSol, mvs);
+      getModelFromSubsolver(*checkSol, mvs);
       // should evaluate to true
       Node ean = evaluatePt(an, Node::null(), mvs);
       Assert(ean.isConst() && ean.getConst<bool>());

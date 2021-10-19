@@ -137,5 +137,37 @@ Result checkWithSubsolver(Node query,
   return r;
 }
 
+void getModelFromSubsolver(SolverEngine& smt,
+                                   std::vector<Node>& vals)
+{
+  for (const Node& v : d_vars)
+  {
+    Node mv = smt.getValue(v);
+    Trace("sygus-ccore-model") << v << " -> " << mv << " ";
+    vals.push_back(mv);
+  }
+}
+
+bool getUnsatCoreFromSubsolver(
+    SolverEngine& smt,
+    const std::unordered_set<Node>& queryAsserts,
+    std::vector<Node>& uasserts)
+{
+  UnsatCore uc = smt.getUnsatCore();
+  bool hasQuery = false;
+  for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
+  {
+    Node uassert = *i;
+    Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
+    if (queryAsserts.find(uassert) != queryAsserts.end())
+    {
+      hasQuery = true;
+      continue;
+    }
+    uasserts.push_back(uassert);
+  }
+  return hasQuery;
+}
+
 }  // namespace theory
 }  // namespace cvc5

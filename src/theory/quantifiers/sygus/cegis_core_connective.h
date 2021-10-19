@@ -313,23 +313,6 @@ class CegisCoreConnective : public Cegis
   Node d_sc;
   //-----------------------------------for SMT engine calls
   /**
-   * Assuming smt has just been called to check-sat and returned "SAT", this
-   * method adds the model for d_vars to mvs.
-   */
-  void getModel(SolverEngine& smt, std::vector<Node>& mvs) const;
-  /**
-   * Assuming smt has just been called to check-sat and returned "UNSAT", this
-   * method get the unsat core and adds it to uasserts.
-   *
-   * The assertions in the argument queryAsserts (which we are not interested
-   * in tracking in the unsat core) are excluded from uasserts.
-   * If one of the formulas in queryAsserts was in the unsat core, then this
-   * method returns true. Otherwise, this method returns false.
-   */
-  bool getUnsatCore(SolverEngine& smt,
-                    const std::unordered_set<Node>& queryAsserts,
-                    std::vector<Node>& uasserts) const;
-  /**
    * Return the result of checking satisfiability of formula n.
    * If n was satisfiable, then we store the model for d_vars in mvs.
    */
