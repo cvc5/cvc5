@@ -71,7 +71,7 @@ std::string suggestTags(const std::vector<std::string>& validTags,
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::setErrStream(const std::string& option,
+void OptionsHandler::setErrStream(
                                   const std::string& flag,
                                   const ManagedErr& me)
 {
@@ -83,7 +83,7 @@ void OptionsHandler::setErrStream(const std::string& option,
   Trace.setStream(me);
 }
 
-Language OptionsHandler::stringToLanguage(const std::string& option,
+Language OptionsHandler::stringToLanguage(
                                           const std::string& flag,
                                           const std::string& optarg)
 {
@@ -121,7 +121,7 @@ Languages currently supported as arguments to the --output-lang option:
   Unreachable();
 }
 
-void OptionsHandler::languageIsNotAST(const std::string& option,
+void OptionsHandler::languageIsNotAST(
                                       const std::string& flag,
                                       Language lang)
 {
@@ -131,14 +131,14 @@ void OptionsHandler::languageIsNotAST(const std::string& option,
   }
 }
 
-void OptionsHandler::applyOutputLanguage(const std::string& option,
+void OptionsHandler::applyOutputLanguage(
                                          const std::string& flag,
                                          Language lang)
 {
   d_options->base.out << language::SetLanguage(lang);
 }
 
-void OptionsHandler::setVerbosity(const std::string& option,
+void OptionsHandler::setVerbosity(
                                   const std::string& flag,
                                   int value)
 {
@@ -170,21 +170,21 @@ void OptionsHandler::setVerbosity(const std::string& option,
   }
 }
 
-void OptionsHandler::decreaseVerbosity(const std::string& option,
+void OptionsHandler::decreaseVerbosity(
                                        const std::string& flag)
 {
   d_options->base.verbosity -= 1;
-  setVerbosity(option, flag, d_options->base.verbosity);
+  setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::increaseVerbosity(const std::string& option,
+void OptionsHandler::increaseVerbosity(
                                        const std::string& flag)
 {
   d_options->base.verbosity += 1;
-  setVerbosity(option, flag, d_options->base.verbosity);
+  setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::setStats(const std::string& option,
+void OptionsHandler::setStats(
                               const std::string& flag,
                               bool value)
 {
@@ -206,7 +206,7 @@ void OptionsHandler::setStats(const std::string& option,
   }
 }
 
-void OptionsHandler::setStatsDetail(const std::string& option,
+void OptionsHandler::setStatsDetail(
                               const std::string& flag,
                               bool value)
 {
@@ -226,7 +226,7 @@ void OptionsHandler::setStatsDetail(const std::string& option,
   }
 }
 
-void OptionsHandler::enableTraceTag(const std::string& option,
+void OptionsHandler::enableTraceTag(
                                     const std::string& flag,
                                     const std::string& optarg)
 {
@@ -249,7 +249,7 @@ void OptionsHandler::enableTraceTag(const std::string& option,
   Trace.on(optarg);
 }
 
-void OptionsHandler::enableDebugTag(const std::string& option,
+void OptionsHandler::enableDebugTag(
                                     const std::string& flag,
                                     const std::string& optarg)
 {
@@ -281,7 +281,7 @@ void OptionsHandler::enableDebugTag(const std::string& option,
   Trace.on(optarg);
 }
 
-void OptionsHandler::enableOutputTag(const std::string& option,
+void OptionsHandler::enableOutputTag(
                                      const std::string& flag,
                                      const std::string& optarg)
 {
@@ -289,7 +289,7 @@ void OptionsHandler::enableOutputTag(const std::string& option,
       static_cast<size_t>(stringToOutputTag(optarg)));
 }
 
-void OptionsHandler::setPrintSuccess(const std::string& option,
+void OptionsHandler::setPrintSuccess(
                                      const std::string& flag,
                                      bool value)
 {
@@ -302,14 +302,14 @@ void OptionsHandler::setPrintSuccess(const std::string& option,
   *d_options->base.out << Command::printsuccess(value);
 }
 
-void OptionsHandler::setResourceWeight(const std::string& option,
+void OptionsHandler::setResourceWeight(
                                        const std::string& flag,
                                        const std::string& optarg)
 {
   d_options->base.resourceWeightHolder.emplace_back(optarg);
 }
 
-void OptionsHandler::abcEnabledBuild(const std::string& option,
+void OptionsHandler::abcEnabledBuild(
                                      const std::string& flag,
                                      bool value)
 {
@@ -324,7 +324,7 @@ void OptionsHandler::abcEnabledBuild(const std::string& option,
 #endif /* CVC5_USE_ABC */
 }
 
-void OptionsHandler::abcEnabledBuild(const std::string& option,
+void OptionsHandler::abcEnabledBuild(
                                      const std::string& flag,
                                      const std::string& value)
 {
@@ -339,7 +339,7 @@ void OptionsHandler::abcEnabledBuild(const std::string& option,
 #endif /* CVC5_USE_ABC */
 }
 
-void OptionsHandler::checkBvSatSolver(const std::string& option,
+void OptionsHandler::checkBvSatSolver(
                                       const std::string& flag,
                                       SatSolverMode m)
 {
@@ -391,7 +391,7 @@ void OptionsHandler::checkBvSatSolver(const std::string& option,
   }
 }
 
-void OptionsHandler::setBitblastAig(const std::string& option,
+void OptionsHandler::setBitblastAig(
                                     const std::string& flag,
                                     bool arg)
 {
@@ -407,7 +407,7 @@ void OptionsHandler::setBitblastAig(const std::string& option,
   }
 }
 
-void OptionsHandler::setDefaultExprDepth(const std::string& option,
+void OptionsHandler::setDefaultExprDepth(
                                          const std::string& flag,
                                          int depth)
 {
@@ -419,7 +419,7 @@ void OptionsHandler::setDefaultExprDepth(const std::string& option,
   Warning.getStream() << expr::ExprSetDepth(depth);
 }
 
-void OptionsHandler::setDefaultDagThresh(const std::string& option,
+void OptionsHandler::setDefaultDagThresh(
                                          const std::string& flag,
                                          int dag)
 {
@@ -445,7 +445,7 @@ static void print_config_cond(const char* str, bool cond = false)
   print_config(str, cond ? "yes" : "no");
 }
 
-void OptionsHandler::showConfiguration(const std::string& option,
+void OptionsHandler::showConfiguration(
                                        const std::string& flag)
 {
   std::cout << Configuration::about() << std::endl;
@@ -495,21 +495,21 @@ void OptionsHandler::showConfiguration(const std::string& option,
   std::exit(0);
 }
 
-void OptionsHandler::showCopyright(const std::string& option,
+void OptionsHandler::showCopyright(
                                    const std::string& flag)
 {
   std::cout << Configuration::copyright() << std::endl;
   std::exit(0);
 }
 
-void OptionsHandler::showVersion(const std::string& option,
+void OptionsHandler::showVersion(
                                  const std::string& flag)
 {
   d_options->base.out << Configuration::about() << std::endl;
   std::exit(0);
 }
 
-void OptionsHandler::showDebugTags(const std::string& option,
+void OptionsHandler::showDebugTags(
                                    const std::string& flag)
 {
   if (!Configuration::isDebugBuild())
@@ -524,7 +524,7 @@ void OptionsHandler::showDebugTags(const std::string& option,
   std::exit(0);
 }
 
-void OptionsHandler::showTraceTags(const std::string& option,
+void OptionsHandler::showTraceTags(
                                    const std::string& flag)
 {
   if (!Configuration::isTracingBuild())
@@ -535,7 +535,7 @@ void OptionsHandler::showTraceTags(const std::string& option,
   std::exit(0);
 }
 
-void OptionsHandler::setDumpMode(const std::string& option,
+void OptionsHandler::setDumpMode(
                                  const std::string& flag,
                                  const std::string& optarg)
 {
@@ -547,7 +547,7 @@ void OptionsHandler::setDumpMode(const std::string& option,
 #endif /* CVC5_DUMPING */
 }
 
-void OptionsHandler::setDumpStream(const std::string& option,
+void OptionsHandler::setDumpStream(
                                    const std::string& flag,
                                    const ManagedOut& mo)
 {

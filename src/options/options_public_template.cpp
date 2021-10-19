@@ -86,7 +86,7 @@ namespace cvc5::options
 
   /** Default handler that triggers a compiler error */
   template <typename T>
-  T handleOption(const std::string& option,
+  T handleOption(
                  const std::string& flag,
                  const std::string& optionarg)
   {
@@ -96,7 +96,7 @@ namespace cvc5::options
 
   /** Handle a string option by returning it as is. */
   template <>
-  std::string handleOption<std::string>(const std::string& option,
+  std::string handleOption<std::string>(
                                         const std::string& flag,
                                         const std::string& optionarg)
   {
@@ -104,7 +104,7 @@ namespace cvc5::options
   }
   /** Handle a bool option, recognizing "true" or "false". */
   template <>
-  bool handleOption<bool>(const std::string& option,
+  bool handleOption<bool>(
                           const std::string& flag,
                           const std::string& optionarg)
   {
@@ -122,7 +122,7 @@ namespace cvc5::options
 
   /** Handle a double option, using `parseNumber` with `std::stod`. */
   template <>
-  double handleOption<double>(const std::string& option,
+  double handleOption<double>(
                               const std::string& flag,
                               const std::string& optionarg)
   {
@@ -135,7 +135,7 @@ namespace cvc5::options
 
   /** Handle a int64_t option, using `parseNumber` with `std::stoll`. */
   template <>
-  int64_t handleOption<int64_t>(const std::string& option,
+  int64_t handleOption<int64_t>(
                                 const std::string& flag,
                                 const std::string& optionarg)
   {
@@ -148,7 +148,7 @@ namespace cvc5::options
 
   /** Handle a uint64_t option, using `parseNumber` with `std::stoull`. */
   template <>
-  uint64_t handleOption<uint64_t>(const std::string& option,
+  uint64_t handleOption<uint64_t>(
                                   const std::string& flag,
                                   const std::string& optionarg)
   {
@@ -161,7 +161,7 @@ namespace cvc5::options
 
   /** Handle a ManagedIn option. */
   template <>
-  ManagedIn handleOption<ManagedIn>(const std::string& option,
+  ManagedIn handleOption<ManagedIn>(
                                     const std::string& flag,
                                     const std::string& optionarg)
   {
@@ -172,7 +172,7 @@ namespace cvc5::options
 
   /** Handle a ManagedErr option. */
   template <>
-  ManagedErr handleOption<ManagedErr>(const std::string& option,
+  ManagedErr handleOption<ManagedErr>(
                                       const std::string& flag,
                                       const std::string& optionarg)
   {
@@ -183,7 +183,7 @@ namespace cvc5::options
 
   /** Handle a ManagedOut option. */
   template <>
-  ManagedOut handleOption<ManagedOut>(const std::string& option,
+  ManagedOut handleOption<ManagedOut>(
                                       const std::string& flag,
                                       const std::string& optionarg)
   {

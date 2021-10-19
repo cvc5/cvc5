@@ -295,15 +295,15 @@ def _set_handlers(option):
     optname = option.long_name if option.long else ""
     if option.handler:
         if option.type == 'void':
-            return 'opts.handler().{}("{}", name)'.format(
-                option.handler, optname)
+            return 'opts.handler().{}(name)'.format(
+                option.handler)
         else:
-            return 'opts.handler().{}("{}", name, optionarg)'.format(
-                option.handler, optname)
+            return 'opts.handler().{}(name, optionarg)'.format(
+                option.handler)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(
-        option.type, optname)
+    return 'handlers::handleOption<{}>(name, optionarg)'.format(
+        option.type)
 
 
 def _set_predicates(option):
@@ -315,14 +315,14 @@ def _set_predicates(option):
     res = []
     if option.minimum:
         res.append(
-            'opts.handler().checkMinimum("{}", name, value, static_cast<{}>({}));'
-            .format(optname, option.type, option.minimum))
+            'opts.handler().checkMinimum(name, value, static_cast<{}>({}));'
+            .format(option.type, option.minimum))
     if option.maximum:
         res.append(
-            'opts.handler().checkMaximum("{}", name, value, static_cast<{}>({}));'
-            .format(optname, option.type, option.maximum))
+            'opts.handler().checkMaximum(name, value, static_cast<{}>({}));'
+            .format(option.type, option.maximum))
     res += [
-        'opts.handler().{}("{}", name, value);'.format(x, optname)
+        'opts.handler().{}(name, value);'.format(x)
         for x in option.predicates
     ]
     return res
@@ -361,7 +361,7 @@ def generate_set_impl(modules):
                                    name=option.name,
                                    handler=_set_handlers(option)))
         elif option.handler:
-            h = '  opts.handler().{handler}("{smtname}", name'
+            h = '  opts.handler().{handler}(name'
             if option.type not in ['bool', 'void']:
                 h += ', optionarg'
             h += ');'
