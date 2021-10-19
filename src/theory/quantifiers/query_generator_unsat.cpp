@@ -37,7 +37,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
 {
   d_terms.push_back(n);
   Trace("sygus-qgen-check") << "...finished." << std::endl;
-
+  Trace("sygus-qgen-check") << "Add term: " << n << std::endl;
   return true;
 }
 
