@@ -55,8 +55,6 @@ ${wrapper_functions}$
 namespace ${id}$
 {
 // clang-format off
-${option_names}$
-
 ${setdefaults_decl}$
 // clang-format on
 }

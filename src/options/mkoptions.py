@@ -471,15 +471,6 @@ def generate_module_wrapper_functions(module):
     return '\n'.join(res)
 
 
-def generate_module_option_names(module):
-    relevant = [
-        o for o in module.options
-        if not (o.name is None or o.long_name is None)
-    ]
-    return concat_format(
-        'static constexpr const char* {name}__name = "{long_name}";', relevant)
-
-
 def generate_module_setdefaults_decl(module):
     res = []
     for option in module.options:
@@ -874,7 +865,6 @@ def codegen_module(module, dst_dir, tpls):
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
         'wrapper_functions': generate_module_wrapper_functions(module),
-        'option_names': generate_module_option_names(module),
         'setdefaults_decl': generate_module_setdefaults_decl(module),
         # module source
         'header': module.header,
