@@ -18,9 +18,9 @@
 // for array-constant attributes
 #include "expr/array_store_all.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
-#include "theory/builtin/theory_builtin_type_rules.h"
 #include "theory/type_enumerator.h"
 #include "util/cardinality.h"
+#include "theory/builtin/theory_builtin_type_rules.h"
 
 namespace cvc5 {
 namespace theory {
@@ -250,12 +250,16 @@ bool ArraysProperties::isWellFounded(TypeNode type)
 
 Node ArraysProperties::mkGroundTerm(TypeNode type)
 {
+  if (type.isClosedEnumerable())
+  {
+    return *TypeEnumerator(type);
+  }
   // Note the distinction between mkGroundTerm and mkGroundValue. While
-  // an arbitrary value can be obtained by calling the type enumerator here,
-  // that is wrong since it may return a term containing values that should
-  // not appear in e.g. assertions. For example, arrays whose element type
-  // is an uninterpreted sort will incorrectly introduce uninterpreted sort
-  // values if this is done.
+  // an arbitrary value can be obtained by calling the type enumerator here, 
+  // that is wrong for types that are not closed enumerable since it may
+  // return a term containing values that should not appear in e.g. assertions.
+  // For example, arrays whose element type is an uninterpreted sort will
+  // incorrectly introduce uninterpreted sort values if this is done.
   // It is current infeasible to construct an ArrayStoreAll with the element
   // type's mkGroundTerm as an argument, since mkGroundTerm is not necessarily
   // constant, and array constants require constant arguments currently.
