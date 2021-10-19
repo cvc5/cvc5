@@ -249,7 +249,9 @@ bool ArraysProperties::isWellFounded(TypeNode type)
 
 Node ArraysProperties::mkGroundTerm(TypeNode type)
 {
-  return *TypeEnumerator(type);
+  Assert (type.getKind() == kind::ARRAY_TYPE);
+  Node elem = type.getArrayConstituentType().mkGroundTerm();
+  return NodeManager::currentNM()->mkConst<ArrayStoreAll>(type, elem);
 }
 
 TypeNode ArrayPartialSelectTypeRule::computeType(NodeManager* nodeManager,
