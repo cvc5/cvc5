@@ -135,6 +135,9 @@ void getModelFromSubsolver(SolverEngine& smt,
 bool getUnsatCoreFromSubsolver(SolverEngine& smt,
                                const std::unordered_set<Node>& queryAsserts,
                                std::vector<Node>& uasserts);
+/** Same as above, without query asserts */
+void getUnsatCoreFromSubsolver(SolverEngine& smt,
+                               std::vector<Node>& uasserts);
 
 }  // namespace theory
 }  // namespace cvc5
