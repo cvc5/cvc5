@@ -209,7 +209,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       cached = getPreRewriteCache(rewriteStackTop.getTheoryId(),
                                   rewriteStackTop.d_node);
       if (cached.isNull()
-          || (tcpg != nullptr && !hasRewrittenWithProofs(rewriteStackTop.d_node)))
+          || (tcpg != nullptr
+              && !hasRewrittenWithProofs(rewriteStackTop.d_node)))
       {
         // Rewrite until fix-point is reached
         for(;;) {
@@ -468,7 +469,7 @@ void Rewriter::clearCaches()
 
 bool Rewriter::hasRewrittenWithProofs(TNode n) const
 {
-  return d_tpgNodes.find(n)!=d_tpgNodes.end();
+  return d_tpgNodes.find(n) != d_tpgNodes.end();
 }
 
 }  // namespace theory

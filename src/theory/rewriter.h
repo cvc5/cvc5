@@ -158,8 +158,8 @@ class Rewriter {
   Node callRewriteEquality(theory::TheoryId theoryId, TNode equality);
 
   void clearCachesInternal();
-  
-  /** 
+
+  /**
    * Has n been rewritten with proofs? This checks if n is in d_tpgNodes.
    */
   bool hasRewrittenWithProofs(TNode n) const;
