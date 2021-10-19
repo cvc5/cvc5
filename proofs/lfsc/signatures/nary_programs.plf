@@ -2,7 +2,7 @@
 
 ; This file defines a library of methods for reasoning about n-ary functions.
 ; Notice that since LFSC does not have support for n-ary function symbols, we
-; represent n-ary function applications in a null-terminated, curried form.
+; represent n-ary function applications in a null-terminated, Curried form.
 ; In particular, the term `(or A B C)` is represented in LFSC as:
 ; `(apply (apply f_or A) (apply (apply f_or B) (apply (apply f_or C) false)))`
 ; where notice that `false` is the null-terminator for `or`. Many operators
@@ -36,7 +36,7 @@
         ; otherwise not an f-app in n-ary form
 )
 
-; Same as above, but also checks whether t is l itself and returns null if so,
+; Same as `nary_rm_first`, but also checks whether t is l itself and returns null if so,
 ; where null is a null terminator.
 (program nary_rm_first_or_self ((f term) (t term) (l term) (null term)) term
   (ifequal t l null (nary_rm_first f t l))
@@ -52,7 +52,7 @@
     (default ff))
 )
 
-; Same as above, but also checks t == l, returning true if so.
+; Same as nary_ctn, but also checks t == l, returning true if so.
 (program nary_ctn_or_self ((f term) (t term) (l term)) flag
   (ifequal t l tt (nary_ctn f t l))
 )
@@ -81,7 +81,7 @@
 (program nary_insert ((f term) (elem term) (t term) (null term)) term
   (ifequal elem null t (apply (apply f elem) t)))
   
-; Dual to insert. Returns a term pair ( elem, t' ) where elem is the head of
+; Dual to nary_insert. Returns a term pair ( elem, t' ) where elem is the head of
 ; t, and t' is the tail of t.
 (program nary_decompose ((f term) (t term) (null term)) termPair
   (match t
@@ -102,7 +102,7 @@
     (default (ifequal t null t (fail term))))
 )
 
-; N-ary introduction, which is the inverse of above. This turns a term t into
+; N-ary introduction, which is the inverse of nary_elim. This turns a term t into
 ; a (singleton) f-application if it is not already in n-ary form. For example,
 ; this replaces t with (or t false) if t is not already in n-ary form.
 (program nary_intro ((f term) (t term) (null term)) term
