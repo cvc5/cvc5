@@ -20,10 +20,14 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : ExprMiner(env), d_queryCount(0) {}
+QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env)
+    : ExprMiner(env), d_queryCount(0)
+{
+}
 
 void QueryGeneratorUnsat::initialize(const std::vector<Node>& vars,
-                SygusSampler* ss) {
+                                     SygusSampler* ss)
+{
   Assert(ss != nullptr);
   d_queryCount = 0;
   ExprMiner::initialize(vars, ss);
@@ -33,13 +37,10 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
 {
   d_terms.push_back(n);
   Trace("sygus-qgen-check") << "...finished." << std::endl;
-  
-  
-  
+
   return true;
 }
 
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5
-
