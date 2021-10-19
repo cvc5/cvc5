@@ -137,8 +137,7 @@ Result checkWithSubsolver(Node query,
   return r;
 }
 
-void getModelFromSubsolver(SolverEngine& smt,
-                                   std::vector<Node>& vals)
+void getModelFromSubsolver(SolverEngine& smt, std::vector<Node>& vals)
 {
   for (const Node& v : d_vars)
   {
@@ -148,10 +147,9 @@ void getModelFromSubsolver(SolverEngine& smt,
   }
 }
 
-bool getUnsatCoreFromSubsolver(
-    SolverEngine& smt,
-    const std::unordered_set<Node>& queryAsserts,
-    std::vector<Node>& uasserts)
+bool getUnsatCoreFromSubsolver(SolverEngine& smt,
+                               const std::unordered_set<Node>& queryAsserts,
+                               std::vector<Node>& uasserts)
 {
   UnsatCore uc = smt.getUnsatCore();
   bool hasQuery = false;

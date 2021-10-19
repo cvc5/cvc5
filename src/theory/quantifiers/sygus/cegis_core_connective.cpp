@@ -691,7 +691,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       std::unordered_set<Node> queryAsserts;
       queryAsserts.insert(ccheck.getFormula());
       queryAsserts.insert(d_sc);
-      bool hasQuery = getUnsatCoreFromSubsolver(*checkSol, queryAsserts, uasserts);
+      bool hasQuery =
+          getUnsatCoreFromSubsolver(*checkSol, queryAsserts, uasserts);
       // now, check the side condition
       bool falseCore = false;
       if (!d_sc.isNull())
