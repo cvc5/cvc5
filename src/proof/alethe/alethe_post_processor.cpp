@@ -570,8 +570,7 @@ bool AletheProofPostprocessCallback::update(Node res,
           if (children[i].getKind() == kind::OR
               && children[i] != child2.notNode())
           {
-            std::vector<Node> clauses;
-            clauses.push_back(d_cl);
+            std::vector<Node> clauses = {d_cl};
             clauses.insert(
                 clauses.end(), children[i].begin(), children[i].end());
             vps[i] = nm->mkNode(kind::SEXPR, clauses);
