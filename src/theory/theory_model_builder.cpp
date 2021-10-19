@@ -157,9 +157,6 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
     {
       // no functions exist, all functions are fully applied
       Assert(n.getKind() != kind::HO_APPLY);
-      std::cout<<"n: " << n << std::endl;
-      std::cout<<"n.kind: " << n.getKind() << std::endl;
-      std::cout<<"logicInfo(): " << logicInfo() << std::endl;
       Assert(!n.getType().isFunction());
       return n.isVar() || n.getKind() == kind::APPLY_UF;
     }

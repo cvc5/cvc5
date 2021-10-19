@@ -3,7 +3,6 @@
 (set-info :status unsat)
 (declare-fun A () (Bag Int))
 (declare-fun B () (Bag Int))
-;(declare-fun f (Int) Int)
 (define-fun f ((x Int)) Int (+ x 1))
 (assert (= B (bag.map f A)))
 (assert (= (bag.count (- 2) B) 57))
