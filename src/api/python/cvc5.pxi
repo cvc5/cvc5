@@ -2172,6 +2172,9 @@ cdef class Solver:
 
 
 cdef class Sort:
+    """
+    The sort of a cvc5 term.
+    """
     cdef c_Sort csort
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -2205,61 +2208,150 @@ cdef class Sort:
     def __hash__(self):
         return csorthash(self.csort)
 
+    def isNull(self):
+        """:return: True if this Sort is a null sort."""
+	return self.csort.isNull()
+
     def isBoolean(self):
+        """
+            Is this a Boolean sort?
+            :return: True if the sort is the Boolean sort.
+	"""
         return self.csort.isBoolean()
 
     def isInteger(self):
+        """
+            Is this an integer sort?
+            :return: True if the sort is the integer sort.
+	"""
         return self.csort.isInteger()
 
     def isReal(self):
+        """
+            Is this a real sort?
+            :return: True if the sort is the real sort.
+	"""
         return self.csort.isReal()
 
     def isString(self):
+        """
+            Is this a string sort?
+            :return: True if the sort is the string sort.
+	"""
         return self.csort.isString()
 
     def isRegExp(self):
+        """
+            Is this a regexp sort?
+            :return: True if the sort is the regexp sort.
+	"""
         return self.csort.isRegExp()
 
     def isRoundingMode(self):
+        """
+            Is this a rounding mode sort?
+            :return: True if the sort is the rounding mode sort.
+	"""
         return self.csort.isRoundingMode()
 
     def isBitVector(self):
+        """
+            Is this a bit-vector sort?
+            :return: True if the sort is a bit-vector sort.
+	"""
         return self.csort.isBitVector()
 
     def isFloatingPoint(self):
+        """
+            Is this a floating-point sort?
+            :return: True if the sort is a bit-vector sort.
+	"""
         return self.csort.isFloatingPoint()
 
     def isDatatype(self):
+        """
+            Is this a datatype sort?
+            :return: True if the sort is a datatype sort.
+	"""
         return self.csort.isDatatype()
 
     def isParametricDatatype(self):
+        """
+            Is this a parametric datatype sort?
+            :return: True if the sort is a parametric datatype sort.
+	"""
         return self.csort.isParametricDatatype()
 
     def isConstructor(self):
+        """
+            Is this a constructor sort?
+            :return: True if the sort is a constructor sort.
+	"""
         return self.csort.isConstructor()
 
     def isSelector(self):
+        """
+            Is this a selector sort?
+            :return: True if the sort is a selector sort.
+	"""
         return self.csort.isSelector()
 
     def isTester(self):
+        """
+            Is this a tester sort?
+            :return: True if the sort is a selector sort.
+	"""
         return self.csort.isTester()
 
+    def isUpdater(self):
+        """
+            Is this a datatype updater sort?
+            :return: True if the sort is a datatype updater sort.
+	"""
+        return self.csort.isUpdater()
+
     def isFunction(self):
+        """
+            Is this a datatype updater sort?
+            :return: True if the sort is a function sort.
+	"""
         return self.csort.isFunction()
 
     def isPredicate(self):
+        """
+            Is this a predicate sort?
+            That is, is this a function sort mapping to Boolean? All predicate
+            sorts are also function sorts.
+            :return: True if the sort is a predicate sort.
+	"""
         return self.csort.isPredicate()
 
     def isTuple(self):
+        """
+            Is this a tuple sort?
+            :return: True if the sort is a tuple sort.
+	"""
         return self.csort.isTuple()
 
     def isRecord(self):
+        """
+            Is this a record sort?
+            :return: True if the sort is a record sort.
+	"""
         return self.csort.isRecord()
 
     def isArray(self):
+        """
+            Is this an array sort?
+            :return: True if the sort is an array sort.
+	"""
         return self.csort.isArray()
 
     def isSet(self):
+        """
+            Is this a set sort?
+            :return: True if the sort is a set sort.
+	"""
         return self.csort.isSet()
 
     def isBag(self):

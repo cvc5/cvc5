@@ -354,19 +354,19 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this a Boolean sort?
-   * @return true if the sort is a Boolean sort
+   * @return true if the sort is the Boolean sort
    */
   bool isBoolean() const;
 
   /**
    * Is this a integer sort?
-   * @return true if the sort is a integer sort
+   * @return true if the sort is the integer sort
    */
   bool isInteger() const;
 
   /**
    * Is this a real sort?
-   * @return true if the sort is a real sort
+   * @return true if the sort is the real sort
    */
   bool isReal() const;
 
@@ -462,7 +462,7 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this an array sort?
-   * @return true if the sort is a array sort
+   * @return true if the sort is an array sort
    */
   bool isArray() const;
 
