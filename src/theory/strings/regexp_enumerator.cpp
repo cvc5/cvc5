@@ -24,7 +24,8 @@ namespace theory {
 namespace strings {
 
 RegExpEnumerator::RegExpEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
-    : TypeEnumeratorBase<RegExpEnumerator>(type), d_senum(type, tep)
+    : TypeEnumeratorBase<RegExpEnumerator>(type),
+      d_senum(type, tep)
 {
 }
 
@@ -34,15 +35,14 @@ RegExpEnumerator::RegExpEnumerator(const RegExpEnumerator& enumerator)
 {
 }
 
-Node RegExpEnumerator::operator*()
-{
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(STRING_TO_REGEXP, *d_senum);
+Node RegExpEnumerator::operator*() { 
+  NodeManager * nm = NodeManager::currentNM();
+  return nm->mkNode(kind::STRING_TO_REGEXP, *d_senum);
 }
 
 RegExpEnumerator& RegExpEnumerator::operator++()
 {
-  d_senum.increment();
+  ++d_senum;
   return *this;
 }
 

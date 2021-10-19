@@ -55,7 +55,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   activeTerms.push_back(n);
   bool addSuccess = true;
   size_t checkCount = 0;
-  while (checkCount < 10)
+  while (checkCount<10)
   {
     Assert(!activeTerms.empty());
     // if we just successfully added a term, do a satisfiability check
@@ -112,6 +112,7 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
     Trace("sygus-qgen-check")
         << "EXCEPTION: std::invalid_argument" << std::endl;
   }
+  Trace("sygus-qgen-check") << "..finished check got " << r << std::endl;
   /*
   catch (const OptionException& e)
   {
