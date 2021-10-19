@@ -17,8 +17,8 @@
 #include "theory/strings/base_solver.h"
 
 #include "expr/sequence.h"
-#include "options/strings_options.h"
 #include "options/quantifiers_options.h"
+#include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -565,7 +565,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     }
     else
     {
-      Assert (options().quantifiers.finiteModelFind);
+      Assert(options().quantifiers.finiteModelFind);
       // we are in a case where the cardinality of the type is infinite
       // if not FMF, and finite given the Env's option value for FMF. In this
       // case, FMF must be true, and the cardinality is finite and dynamic
