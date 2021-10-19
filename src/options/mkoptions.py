@@ -295,15 +295,12 @@ def _set_handlers(option):
     optname = option.long_name if option.long else ""
     if option.handler:
         if option.type == 'void':
-            return 'opts.handler().{}(name)'.format(
-                option.handler)
+            return 'opts.handler().{}(name)'.format(option.handler)
         else:
-            return 'opts.handler().{}(name, optionarg)'.format(
-                option.handler)
+            return 'opts.handler().{}(name, optionarg)'.format(option.handler)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handlers::handleOption<{}>(name, optionarg)'.format(
-        option.type)
+    return 'handlers::handleOption<{}>(name, optionarg)'.format(option.type)
 
 
 def _set_predicates(option):
