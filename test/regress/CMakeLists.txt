@@ -1505,6 +1505,8 @@ set(regress_1_tests
   regress1/arith/issue3952-rew-eq.smt2
   regress1/arith/issue4985-model-success.smt2
   regress1/arith/issue4985b-model-success.smt2
+  regress1/arith/issue6774-sanity-int-model.smt2
+  regress1/arith/issue7252-arith-sanity.smt2
   regress1/arith/issue789.smt2
   regress1/arith/miplib3.cvc.smt2
   regress1/arith/mod.02.smt2
@@ -1576,6 +1578,7 @@ set(regress_1_tests
   regress1/constarr3.cvc.smt2
   regress1/constarr3.smt2
   regress1/cores/issue5604.smt2
+  regress1/cores/issue6988-arith-sanity.smt2
   regress1/datatypes/acyclicity-sr-ground096.smt2
   regress1/datatypes/cee-prs-small-dd2.smt2
   regress1/datatypes/dt-color-2.6.smt2
@@ -2266,6 +2269,7 @@ set(regress_1_tests
   regress1/strings/rev-ex5.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/rew-check1.smt2
+  regress1/strings/seq-cardinality.smt2
   regress1/strings/seq-quant-infinite-branch.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
