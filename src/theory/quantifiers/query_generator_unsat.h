@@ -1,0 +1,59 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class for mining interesting satisfiability queries from a stream
+ * of generated expressions.
+ */
+
+#include "cvc5_private.h"
+
+#ifndef CVC5__THEORY__QUANTIFIERS__QUERY_GENERATOR_UNSAT_H
+#define CVC5__THEORY__QUANTIFIERS__QUERY_GENERATOR_UNSAT_H
+
+#include <map>
+#include <unordered_set>
+#include "expr/node.h"
+#include "theory/quantifiers/expr_miner.h"
+#include "theory/quantifiers/lazy_trie.h"
+#include "theory/quantifiers/sygus_sampler.h"
+
+namespace cvc5 {
+namespace theory {
+namespace quantifiers {
+
+/**
+ * QueryGeneratorUnsat
+ */
+class QueryGeneratorUnsat : public ExprMiner
+{
+ public:
+  QueryGeneratorUnsat(Env& env);
+  ~QueryGeneratorUnsat() {}
+  /** initialize */
+  void initialize(const std::vector<Node>& vars,
+                  SygusSampler* ss = nullptr) override;
+  /**
+   * Add term to this module. This may trigger the printing and/or checking of
+   * new queries.
+   */
+  bool addTerm(Node n, std::ostream& out) override;
+
+ private:
+  /** cache of all terms registered to this generator */
+  std::unordered_set<Node> d_terms;
+};
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
+
+#endif /* CVC5__THEORY__QUANTIFIERS___H */
