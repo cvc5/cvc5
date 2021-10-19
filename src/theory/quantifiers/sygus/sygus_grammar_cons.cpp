@@ -422,17 +422,9 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   {
     // generate constant array over the first element of the constituent type
     Node c = type.mkGroundTerm();
-    // note that we must never allow uninterpreted constants, which may
-    // appear e.g. in arrays having uninterpreted sort elements.
-    Node ccheck = c;
-    if (c.getKind() == STORE_ALL)
-    {
-      ccheck = c.getConst<ArrayStoreAll>().getValue();
-    }
-    if (!expr::hasSubtermKind(UNINTERPRETED_CONSTANT, ccheck))
-    {
-      ops.push_back(c);
-    }
+    // note that c should never contain an uninterpreted constant
+    Assert (expr::hasSubtermKind(UNINTERPRETED_CONSTANT, c));
+    ops.push_back(c);
   }
   else if (type.isRoundingMode())
   {
