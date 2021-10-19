@@ -558,6 +558,7 @@ set(regress_0_tests
   regress0/distinct.smtv1.smt2
   regress0/dump-unsat-core-full.smt2
   regress0/echo.smt2
+  regress0/eqrange0.smt2
   regress0/eqrange1.smt2
   regress0/eqrange2.smt2
   regress0/eqrange3.smt2
@@ -2206,6 +2207,7 @@ set(regress_1_tests
   regress1/strings/issue6604-2.smt2
   regress1/strings/issue6635-rre.smt2
   regress1/strings/issue6653-2-update-c-len.smt2
+  regress1/strings/issue6653-3-seq.smt2
   regress1/strings/issue6653-4-rre.smt2
   regress1/strings/issue6653-rre.smt2
   regress1/strings/issue6653-rre-small.smt2

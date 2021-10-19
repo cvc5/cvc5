@@ -1124,11 +1124,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
-    if (kind == api::EQ_RANGE && d_solver->getOption("arrays-exp") != "true")
-    {
-      parseError(
-          "eqrange predicate requires option --arrays-exp to be enabled.");
-    }
     if (kind == api::SINGLETON && args.size() == 1)
     {
       api::Term ret = d_solver->mkTerm(api::SINGLETON, args[0]);
