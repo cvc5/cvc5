@@ -7204,7 +7204,7 @@ std::string Solver::getProof(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceProofs)
-      << "Cannot get proof explicitly enabled (try --produce-proofs)";
+      << "Cannot get proof unless proofs are enabled (try --produce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
   return d_slv->getProof();
@@ -7455,6 +7455,8 @@ bool Solver::getAbduct(const Term& conj, Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
+      << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
   Node result;
   bool success = d_slv->getAbduct(*conj.d_node, result);
@@ -7471,6 +7473,8 @@ bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
+      << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
   Node result;
   bool success =
