@@ -18,8 +18,8 @@
 #ifndef CVC5__EXPR__VARIADIC_TRIE_H
 #define CVC5__EXPR__VARIADIC_TRIE_H
 
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "expr/node.h"
 
