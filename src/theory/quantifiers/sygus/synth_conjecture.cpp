@@ -805,7 +805,9 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
       bool is_unique_term = true;
 
       if (status != 0
-          && (options::sygusRewSynth() || options().quantifiers.sygusQueryGen!=options::SygusQueryGenMode::NONE
+          && (options::sygusRewSynth()
+              || options().quantifiers.sygusQueryGen
+                     != options::SygusQueryGenMode::NONE
               || options::sygusFilterSolMode()
                      != options::SygusFilterSolMode::NONE))
       {

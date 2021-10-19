@@ -74,20 +74,17 @@ void ExpressionMinerManager::initializeMinersForOptions()
   {
     enableRewriteRuleSynth();
   }
-  if (options().quantifiers.sygusQueryGen!=options::SygusQueryGenMode::NONE)
+  if (options().quantifiers.sygusQueryGen != options::SygusQueryGenMode::NONE)
   {
     enableQueryGeneration(options().quantifiers.sygusQueryGenThresh);
   }
-  if (options::sygusFilterSolMode()
-      != options::SygusFilterSolMode::NONE)
+  if (options::sygusFilterSolMode() != options::SygusFilterSolMode::NONE)
   {
-    if (options::sygusFilterSolMode()
-        == options::SygusFilterSolMode::STRONG)
+    if (options::sygusFilterSolMode() == options::SygusFilterSolMode::STRONG)
     {
       enableFilterStrongSolutions();
     }
-    else if (options::sygusFilterSolMode()
-              == options::SygusFilterSolMode::WEAK)
+    else if (options::sygusFilterSolMode() == options::SygusFilterSolMode::WEAK)
     {
       enableFilterWeakSolutions();
     }
@@ -129,7 +126,7 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
   options::SygusQueryGenMode mode = options().quantifiers.sygusQueryGen;
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
-  if (mode==options::SygusQueryGenMode::SAT)
+  if (mode == options::SygusQueryGenMode::SAT)
   {
     // must also enable rewrite rule synthesis
     if (!d_doRewSynth)
@@ -143,7 +140,7 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
     d_qg->initialize(vars, &d_sampler);
     d_qg->setThreshold(deqThresh);
   }
-  else if (mode==options::SygusQueryGenMode::UNSAT)
+  else if (mode == options::SygusQueryGenMode::UNSAT)
   {
     d_qgu = std::make_unique<QueryGeneratorUnsat>(d_env);
     // initialize the query generator
@@ -192,11 +189,11 @@ bool ExpressionMinerManager::addTerm(Node sol,
   if (ret && d_doQueryGen)
   {
     options::SygusQueryGenMode mode = options().quantifiers.sygusQueryGen;
-    if (mode==options::SygusQueryGenMode::SAT)
+    if (mode == options::SygusQueryGenMode::SAT)
     {
       d_qg->addTerm(solb, out);
     }
-    else if (mode==options::SygusQueryGenMode::UNSAT)
+    else if (mode == options::SygusQueryGenMode::UNSAT)
     {
       d_qgu->addTerm(solb, out);
     }
