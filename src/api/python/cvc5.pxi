@@ -2355,18 +2355,46 @@ cdef class Sort:
         return self.csort.isSet()
 
     def isBag(self):
+        """
+            Is this a bag sort?
+            :return: True if the sort is a bag sort.
+	"""
         return self.csort.isBag()
 
     def isSequence(self):
+        """
+            Is this a sequence sort?
+            :return: True if the sort is a sequence sort.
+	"""
         return self.csort.isSequence()
 
     def isUninterpretedSort(self):
+        """
+            Is this a sort kind?
+            :return: True if the sort is a sort kind.
+	"""
         return self.csort.isUninterpretedSort()
 
     def isSortConstructor(self):
+        """
+            Is this a sort constructor kind?
+            :return: True if this a sort constructor kind.
+	"""
         return self.csort.isSortConstructor()
 
     def isFirstClass(self):
+        """
+            Is this a first-class sort?                                                       
+            First-class sorts are sorts for which:
+            (1) we handle equalities between terms of that type, and                 	 
+            (2) they are allowed to be parameters of parametric sorts 
+	    (e.g. index or element sorts of arrays).                                            	 
+            
+            Examples of sorts that are not first-class include sort constructor 
+	    sorts and regular expression sorts.                                            	"""
+            
+	    :return: True if the sort is a first-class sort.
+        """
         return self.csort.isFirstClass()
 
     def isFunctionLike(self):

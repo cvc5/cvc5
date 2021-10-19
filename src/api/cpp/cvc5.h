@@ -488,6 +488,7 @@ class CVC5_EXPORT Sort
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
+  // TODO doesn't make sense. ask.
   bool isUninterpretedSort() const;
 
   /**
