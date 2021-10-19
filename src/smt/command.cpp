@@ -38,6 +38,7 @@
 #include "proof/unsat_core.h"
 #include "smt/dump.h"
 #include "smt/model.h"
+#include "util/smt2_quote_string.h"
 #include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
@@ -304,18 +305,7 @@ void EmptyCommand::toStream(std::ostream& out,
 
 EchoCommand::EchoCommand(std::string output) : d_output(output) {}
 
-std::string EchoCommand::getOutput() const
-{
-  // escape all double-quotes
-  std::string output = d_output;
-  size_t pos = 0;
-  while ((pos = output.find('"', pos)) != string::npos)
-  {
-    output.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  return '"' + output + '"';
-}
+std::string EchoCommand::getOutput() const { return d_output; }
 
 void EchoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
@@ -327,7 +317,7 @@ void EchoCommand::invoke(api::Solver* solver,
                          SymbolManager* sm,
                          std::ostream& out)
 {
-  out << d_output << std::endl;
+  out << cvc5::quoteString(d_output) << std::endl;
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
                            << std::endl;
   d_commandStatus = CommandSuccess::instance();
@@ -337,6 +327,7 @@ void EchoCommand::invoke(api::Solver* solver,
 }
 
 Command* EchoCommand::clone() const { return new EchoCommand(d_output); }
+
 std::string EchoCommand::getCommandName() const { return "echo"; }
 
 void EchoCommand::toStream(std::ostream& out,
