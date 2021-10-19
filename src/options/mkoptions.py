@@ -468,17 +468,6 @@ def generate_module_wrapper_functions(module):
     return '\n'.join(res)
 
 
-def generate_module_setdefaults_decl(module):
-    res = []
-    for option in module.options:
-        if option.name is None:
-            continue
-        funcname = option.name[0].capitalize() + option.name[1:]
-        res.append('void setDefault{}(Options& opts, {} value);'.format(
-            funcname, option.type))
-    return '\n'.join(res)
-
-
 ################################################################################
 # for options/<module>.cpp
 
@@ -566,27 +555,6 @@ def generate_module_mode_impl(module):
                                       cases='\n  else '.join(cases),
                                       help=_module_mode_help(option),
                                       long=option.long_name))
-    return '\n'.join(res)
-
-
-TPL_SETDEFAULT_IMPL = '''void setDefault{capname}(Options& opts, {type} value)
-{{
-    if (!opts.{module}.{name}WasSetByUser) opts.{module}.{name} = value;
-}}'''
-
-
-def generate_module_setdefaults_impl(module):
-    res = []
-    for option in module.options:
-        if option.name is None:
-            continue
-        fmt = {
-            'capname': option.name[0].capitalize() + option.name[1:],
-            'type': option.type,
-            'module': module.id,
-            'name': option.name,
-        }
-        res.append(TPL_SETDEFAULT_IMPL.format(**fmt))
     return '\n'.join(res)
 
 
@@ -862,11 +830,9 @@ def codegen_module(module, dst_dir, tpls):
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
         'wrapper_functions': generate_module_wrapper_functions(module),
-        'setdefaults_decl': generate_module_setdefaults_decl(module),
         # module source
         'header': module.header,
         'modes_impl': generate_module_mode_impl(module),
-        'setdefaults_impl': generate_module_setdefaults_impl(module),
     }
     for tpl in tpls:
         filename = tpl['output'].replace('module', module.filename)

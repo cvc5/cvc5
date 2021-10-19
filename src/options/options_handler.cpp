@@ -361,7 +361,10 @@ void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
                             + " does not support lazy bit-blasting.\n"
                             + "Try --bv-sat-solver=minisat");
     }
-    options::bv::setDefaultBitvectorToBool(*d_options, true);
+    if (!d_options->bv.bitvectorToBoolWasSetByUser)
+    {
+      d_options->bv.bitvectorToBool = true;
+    }
   }
 }
 
