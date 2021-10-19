@@ -24,10 +24,10 @@
 
 #include "expr/node.h"
 #include "expr/variadic_trie.h"
+#include "options/options.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "options/options.h"
 
 namespace cvc5 {
 namespace theory {
