@@ -20,6 +20,7 @@
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_scope.h"
 #include "theory/rewriter.h"
+#include "proof/unsat_core.h"
 
 namespace cvc5 {
 namespace theory {
@@ -137,12 +138,11 @@ Result checkWithSubsolver(Node query,
   return r;
 }
 
-void getModelFromSubsolver(SolverEngine& smt, std::vector<Node>& vals)
+void getModelFromSubsolver(SolverEngine& smt, const std::vector<Node>& vars, std::vector<Node>& vals)
 {
-  for (const Node& v : d_vars)
+  for (const Node& v : vars)
   {
     Node mv = smt.getValue(v);
-    Trace("sygus-ccore-model") << v << " -> " << mv << " ";
     vals.push_back(mv);
   }
 }
@@ -156,7 +156,6 @@ bool getUnsatCoreFromSubsolver(SolverEngine& smt,
   for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
   {
     Node uassert = *i;
-    Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
     if (queryAsserts.find(uassert) != queryAsserts.end())
     {
       hasQuery = true;

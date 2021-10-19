@@ -772,7 +772,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       // it does not entail the postcondition, add an assertion that blocks
       // the current point
       mvs.clear();
-      getModelFromSubsolver(*checkSol, mvs);
+      getModelFromSubsolver(*checkSol, d_vars, mvs);
       // should evaluate to true
       Node ean = evaluatePt(an, Node::null(), mvs);
       Assert(ean.isConst() && ean.getConst<bool>());

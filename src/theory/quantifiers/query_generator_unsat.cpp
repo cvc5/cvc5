@@ -44,6 +44,19 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   return true;
 }
 
+Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms, std::vector<Node>& unsatCore)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Node qy = nm->mkAnd(activeTerms);
+  std::unique_ptr<SolverEngine> queryChecker;
+  initializeChecker(queryChecker, qy);
+  Result r = queryChecker->checkSat();
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  {
+    // if unsat, get the unsat core
+  }
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5
