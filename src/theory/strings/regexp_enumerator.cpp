@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of enumerators for strings.
+ * Implementation of enumerator for regular expressions.
  */
 
 #include "theory/strings/regexp_enumerator.h"

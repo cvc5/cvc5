@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Enumerators for strings.
+ * Enumerators for regular expressions.
  */
 
 #include "cvc5_private.h"
@@ -30,7 +30,9 @@ namespace strings {
 
 /**
  * Simple regular expression enumerator, generates only singleton language
- * regular expressions from a string enumeration.
+ * regular expressions from a string enumeration, in other words:
+ *   (str.to_re s1) ... (str.to_re sn) ....
+ * where s1 ... sn ... is the enumeration for strings.
  */
 class RegExpEnumerator : public TypeEnumeratorBase<RegExpEnumerator>
 {
@@ -44,7 +46,6 @@ class RegExpEnumerator : public TypeEnumeratorBase<RegExpEnumerator>
   RegExpEnumerator& operator++() override;
   /** is this enumerator finished? */
   bool isFinished() override;
-
  private:
   /** underlying string enumerator */
   StringEnumerator d_senum;
