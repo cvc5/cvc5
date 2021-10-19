@@ -5,6 +5,8 @@
 ; represent n-ary function applications in a null-terminated, Curried form.
 ; In particular, the term `(or A B C)` is represented in LFSC as:
 ; `(apply (apply f_or A) (apply (apply f_or B) (apply (apply f_or C) false)))`
+; i.e. using the macro definitions in core_defs:
+;   `(or A (or B (or C false)))`
 ; where notice that `false` is the null-terminator for `or`. Many operators
 ; are treated in this way, including Boolean connectives `and` and `or`, 
 ; arithmetic plus and multiplication, string concatenation, and so on.
@@ -12,7 +14,7 @@
 ; When applicable, we simply write "f-application" to refer to a term that is
 ; in n-ary form. We call A, B, C the "elements" of the f-application above.
 ; We say that an f-application is a "singleton" if it consists of a single
-; element, e.g. `(apply (apply f_or A) false)`.
+; element, e.g. `(or A false)`.
 ;
 ; This file defines a set of side conditions that are useful in defining
 ; theory-specific proof rules involving n-ary functions and are agnostic to the
@@ -20,14 +22,14 @@
 ; function `f` as an argument, or its null terminator `null`.
 
 ; Head and tail for n-ary operators with null terminators. These methods 
-; will fail if t is not an f-application.
+; fail if t is not an f-application.
 (program nary_head ((f term) (t term)) term
   (match t ((apply t1 t2) (getarg f t1))))
 (program nary_tail ((f term) (t term)) term
   (match t ((apply t1 t2) (let t12 (getarg f t1) t2))))
 
-; Remove the first occurrence of term l from t, where t is an f-application in
-; n-ary form.
+; Remove the first occurrence of term l from t. This side condition fails if t
+; is not an f-application, or if t does not contain l.
 (program nary_rm_first ((f term) (t term) (l term)) term
   (match t
     ((apply t1 t2)  ; otherwise at end, l not found
@@ -42,7 +44,7 @@
   (ifequal t l null (nary_rm_first f t l))
 )
 
-; Does t contain l? Assumes that t is an f-application in n-ary form.
+; Does t contain l? This side condition may fail if t is not an f-application.
 (program nary_ctn ((f term) (t term) (l term)) flag
   (match t
     ((apply t1 t2)
@@ -52,13 +54,13 @@
     (default ff))
 )
 
-; Same as nary_ctn, but also checks t == l, returning true if so.
+; Same as `nary_ctn`, but also checks if t is l, returning true if so.
 (program nary_ctn_or_self ((f term) (t term) (l term)) flag
   (ifequal t l tt (nary_ctn f t l))
 )
 
-; Returns true if s and t are f-applications. Returns true if t is a subset of
-; s, when these terms were interpreted as sets.
+; Returns true if t is a subset of s, when these terms were interpreted as sets.
+; This side condition may fail if t or s is not an f-application.
 (program nary_is_subset ((f term) (t term) (s term)) flag
   (match t
     ((apply t1 t2) 
@@ -81,8 +83,8 @@
 (program nary_insert ((f term) (elem term) (t term) (null term)) term
   (ifequal elem null t (apply (apply f elem) t)))
   
-; Dual to nary_insert. Returns a term pair ( elem, t' ) where elem is the head of
-; t, and t' is the tail of t.
+; Dual to `nary_insert`. Returns a term pair ( elem, t' ) where elem is the
+; head of t, and t' is the tail of t.
 (program nary_decompose ((f term) (t term) (null term)) termPair
   (match t
     ((apply t1 t2) 
@@ -114,7 +116,8 @@
     (default (ifequal t null t (apply (apply f t) null))))
 )
 
-; Extract the n^th element of f-application t.
+; Extract the n^th element of f-application t. This side condition fails if
+; t is not an f-application, or contains fewer than n elements.
 (program nary_extract ((f term) (t term) (n mpz)) term
   (match t
     ((apply t1 t2)
@@ -129,6 +132,7 @@
 ; adding to the return value. We require an explicit accumulator to ensure
 ; propering ordering for cases like (or A B B A), where (or A B) should be
 ; returned instead of (or B A).
+; This method fails if t is not an f-application.
 (program nary_drop_dups_rec ((f term) (t term) (tacc term)) term
   (match t
     ((apply t1 t2)
@@ -139,7 +143,8 @@
     (default t))
 )
 
-; Drop all duplicates in an f-application t.
+; Drop all duplicates in an f-application t using the helper method
+; `nary_drop_dups_rec`.
 (program nary_drop_dups ((f term) (t term) (null term)) term
   (nary_elim f (nary_drop_dups_rec f t null) null)
 )
@@ -147,6 +152,7 @@
 ; Truncate, which returns the f-application in which the subterm c has been
 ; replaced by the null terminator, where c is an f-application that is a
 ; suffix of t. For example, (or t1 ... tn c) ---> (or t1 ... tn false).
+; This side condition fails if c is not a suffix of f-application t.
 (program nary_truncate ((f term) (t term) (c term) (null term)) term
   (ifequal t c null
     (match t
@@ -156,7 +162,8 @@
 )
 
 ; Helper for reverse, which takes an accumulator of terms we have added in
-; reverse order to the value we will return.
+; reverse order to the value we will return. This side condition fails if
+; t is not an f-application.
 (program nary_reverse_rec ((f term) (t term) (acc term) (null term)) term
   (match t
     ((apply t1 t2)
@@ -165,7 +172,8 @@
     (default (ifequal t null acc (fail term))))
 )
 
-; Reverse the elements in f-application t.
+; Reverse the elements in f-application t using the helper method
+; `nary_reverse_rec`.
 (program nary_reverse ((f term) (t term) (null term)) term
   (nary_reverse_rec f t null null)
 )
