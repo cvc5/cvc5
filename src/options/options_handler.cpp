@@ -71,9 +71,7 @@ std::string suggestTags(const std::vector<std::string>& validTags,
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::setErrStream(
-                                  const std::string& flag,
-                                  const ManagedErr& me)
+void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
 {
   Debug.setStream(me);
   Warning.setStream(me);
@@ -83,8 +81,7 @@ void OptionsHandler::setErrStream(
   Trace.setStream(me);
 }
 
-Language OptionsHandler::stringToLanguage(
-                                          const std::string& flag,
+Language OptionsHandler::stringToLanguage(const std::string& flag,
                                           const std::string& optarg)
 {
   if (optarg == "help")
@@ -121,9 +118,7 @@ Languages currently supported as arguments to the --output-lang option:
   Unreachable();
 }
 
-void OptionsHandler::languageIsNotAST(
-                                      const std::string& flag,
-                                      Language lang)
+void OptionsHandler::languageIsNotAST(const std::string& flag, Language lang)
 {
   if (lang == Language::LANG_AST)
   {
@@ -131,16 +126,12 @@ void OptionsHandler::languageIsNotAST(
   }
 }
 
-void OptionsHandler::applyOutputLanguage(
-                                         const std::string& flag,
-                                         Language lang)
+void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
 {
   d_options->base.out << language::SetLanguage(lang);
 }
 
-void OptionsHandler::setVerbosity(
-                                  const std::string& flag,
-                                  int value)
+void OptionsHandler::setVerbosity(const std::string& flag, int value)
 {
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&cvc5::null_os);
@@ -170,23 +161,19 @@ void OptionsHandler::setVerbosity(
   }
 }
 
-void OptionsHandler::decreaseVerbosity(
-                                       const std::string& flag)
+void OptionsHandler::decreaseVerbosity(const std::string& flag)
 {
   d_options->base.verbosity -= 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::increaseVerbosity(
-                                       const std::string& flag)
+void OptionsHandler::increaseVerbosity(const std::string& flag)
 {
   d_options->base.verbosity += 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::setStats(
-                              const std::string& flag,
-                              bool value)
+void OptionsHandler::setStats(const std::string& flag, bool value)
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -206,9 +193,7 @@ void OptionsHandler::setStats(
   }
 }
 
-void OptionsHandler::setStatsDetail(
-                              const std::string& flag,
-                              bool value)
+void OptionsHandler::setStatsDetail(const std::string& flag, bool value)
 {
 #ifndef CVC5_STATISTICS_ON
   if (value)
@@ -226,8 +211,7 @@ void OptionsHandler::setStatsDetail(
   }
 }
 
-void OptionsHandler::enableTraceTag(
-                                    const std::string& flag,
+void OptionsHandler::enableTraceTag(const std::string& flag,
                                     const std::string& optarg)
 {
   if(!Configuration::isTracingBuild())
@@ -249,8 +233,7 @@ void OptionsHandler::enableTraceTag(
   Trace.on(optarg);
 }
 
-void OptionsHandler::enableDebugTag(
-                                    const std::string& flag,
+void OptionsHandler::enableDebugTag(const std::string& flag,
                                     const std::string& optarg)
 {
   if (!Configuration::isDebugBuild())
@@ -281,17 +264,14 @@ void OptionsHandler::enableDebugTag(
   Trace.on(optarg);
 }
 
-void OptionsHandler::enableOutputTag(
-                                     const std::string& flag,
+void OptionsHandler::enableOutputTag(const std::string& flag,
                                      const std::string& optarg)
 {
   d_options->base.outputTagHolder.set(
       static_cast<size_t>(stringToOutputTag(optarg)));
 }
 
-void OptionsHandler::setPrintSuccess(
-                                     const std::string& flag,
-                                     bool value)
+void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 {
   Debug.getStream() << Command::printsuccess(value);
   Trace.getStream() << Command::printsuccess(value);
@@ -302,16 +282,13 @@ void OptionsHandler::setPrintSuccess(
   *d_options->base.out << Command::printsuccess(value);
 }
 
-void OptionsHandler::setResourceWeight(
-                                       const std::string& flag,
+void OptionsHandler::setResourceWeight(const std::string& flag,
                                        const std::string& optarg)
 {
   d_options->base.resourceWeightHolder.emplace_back(optarg);
 }
 
-void OptionsHandler::abcEnabledBuild(
-                                     const std::string& flag,
-                                     bool value)
+void OptionsHandler::abcEnabledBuild(const std::string& flag, bool value)
 {
 #ifndef CVC5_USE_ABC
   if(value) {
@@ -324,8 +301,7 @@ void OptionsHandler::abcEnabledBuild(
 #endif /* CVC5_USE_ABC */
 }
 
-void OptionsHandler::abcEnabledBuild(
-                                     const std::string& flag,
+void OptionsHandler::abcEnabledBuild(const std::string& flag,
                                      const std::string& value)
 {
 #ifndef CVC5_USE_ABC
@@ -339,9 +315,7 @@ void OptionsHandler::abcEnabledBuild(
 #endif /* CVC5_USE_ABC */
 }
 
-void OptionsHandler::checkBvSatSolver(
-                                      const std::string& flag,
-                                      SatSolverMode m)
+void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
 {
   if (m == SatSolverMode::CRYPTOMINISAT
       && !Configuration::isBuiltWithCryptominisat())
@@ -391,9 +365,7 @@ void OptionsHandler::checkBvSatSolver(
   }
 }
 
-void OptionsHandler::setBitblastAig(
-                                    const std::string& flag,
-                                    bool arg)
+void OptionsHandler::setBitblastAig(const std::string& flag, bool arg)
 {
   if(arg) {
     if (d_options->bv.bitblastModeWasSetByUser) {
@@ -407,9 +379,7 @@ void OptionsHandler::setBitblastAig(
   }
 }
 
-void OptionsHandler::setDefaultExprDepth(
-                                         const std::string& flag,
-                                         int depth)
+void OptionsHandler::setDefaultExprDepth(const std::string& flag, int depth)
 {
   Debug.getStream() << expr::ExprSetDepth(depth);
   Trace.getStream() << expr::ExprSetDepth(depth);
@@ -419,9 +389,7 @@ void OptionsHandler::setDefaultExprDepth(
   Warning.getStream() << expr::ExprSetDepth(depth);
 }
 
-void OptionsHandler::setDefaultDagThresh(
-                                         const std::string& flag,
-                                         int dag)
+void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
 {
   Debug.getStream() << expr::ExprDag(dag);
   Trace.getStream() << expr::ExprDag(dag);
@@ -445,8 +413,7 @@ static void print_config_cond(const char* str, bool cond = false)
   print_config(str, cond ? "yes" : "no");
 }
 
-void OptionsHandler::showConfiguration(
-                                       const std::string& flag)
+void OptionsHandler::showConfiguration(const std::string& flag)
 {
   std::cout << Configuration::about() << std::endl;
 
@@ -495,22 +462,19 @@ void OptionsHandler::showConfiguration(
   std::exit(0);
 }
 
-void OptionsHandler::showCopyright(
-                                   const std::string& flag)
+void OptionsHandler::showCopyright(const std::string& flag)
 {
   std::cout << Configuration::copyright() << std::endl;
   std::exit(0);
 }
 
-void OptionsHandler::showVersion(
-                                 const std::string& flag)
+void OptionsHandler::showVersion(const std::string& flag)
 {
   d_options->base.out << Configuration::about() << std::endl;
   std::exit(0);
 }
 
-void OptionsHandler::showDebugTags(
-                                   const std::string& flag)
+void OptionsHandler::showDebugTags(const std::string& flag)
 {
   if (!Configuration::isDebugBuild())
   {
@@ -524,8 +488,7 @@ void OptionsHandler::showDebugTags(
   std::exit(0);
 }
 
-void OptionsHandler::showTraceTags(
-                                   const std::string& flag)
+void OptionsHandler::showTraceTags(const std::string& flag)
 {
   if (!Configuration::isTracingBuild())
   {
@@ -535,8 +498,7 @@ void OptionsHandler::showTraceTags(
   std::exit(0);
 }
 
-void OptionsHandler::setDumpMode(
-                                 const std::string& flag,
+void OptionsHandler::setDumpMode(const std::string& flag,
                                  const std::string& optarg)
 {
 #ifdef CVC5_DUMPING
@@ -547,8 +509,7 @@ void OptionsHandler::setDumpMode(
 #endif /* CVC5_DUMPING */
 }
 
-void OptionsHandler::setDumpStream(
-                                   const std::string& flag,
+void OptionsHandler::setDumpStream(const std::string& flag,
                                    const ManagedOut& mo)
 {
 #ifdef CVC5_DUMPING
