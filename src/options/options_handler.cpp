@@ -114,7 +114,7 @@ Languages currently supported as arguments to the --output-lang option:
   }
   catch (OptionException& oe)
   {
-    throw OptionException("Error in " + option + ": " + oe.getMessage()
+    throw OptionException("Error in " + flag + ": " + oe.getMessage()
                           + "\nTry --lang help");
   }
 
@@ -316,7 +316,7 @@ void OptionsHandler::abcEnabledBuild(const std::string& option,
 #ifndef CVC5_USE_ABC
   if(value) {
     std::stringstream ss;
-    ss << "option `" << option
+    ss << "option `" << flag
        << "' requires an abc-enabled build of cvc5; this binary was not built "
           "with abc support";
     throw OptionException(ss.str());
@@ -331,7 +331,7 @@ void OptionsHandler::abcEnabledBuild(const std::string& option,
 #ifndef CVC5_USE_ABC
   if(!value.empty()) {
     std::stringstream ss;
-    ss << "option `" << option
+    ss << "option `" << flag
        << "' requires an abc-enabled build of cvc5; this binary was not built "
           "with abc support";
     throw OptionException(ss.str());
@@ -347,7 +347,7 @@ void OptionsHandler::checkBvSatSolver(const std::string& option,
       && !Configuration::isBuiltWithCryptominisat())
   {
     std::stringstream ss;
-    ss << "option `" << option
+    ss << "option `" << flag
        << "' requires a CryptoMiniSat build of cvc5; this binary was not built "
           "with CryptoMiniSat support";
     throw OptionException(ss.str());
@@ -356,7 +356,7 @@ void OptionsHandler::checkBvSatSolver(const std::string& option,
   if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
   {
     std::stringstream ss;
-    ss << "option `" << option
+    ss << "option `" << flag
        << "' requires a Kissat build of cvc5; this binary was not built with "
           "Kissat support";
     throw OptionException(ss.str());
