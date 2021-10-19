@@ -6,4 +6,3 @@
 (assert (= B (bag.map f A)))
 (assert (= (bag.count (- 2) B) 57))
 (check-sat)
-(get-model)
