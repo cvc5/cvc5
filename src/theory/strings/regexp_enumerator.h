@@ -28,7 +28,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-/** 
+/**
  * Simple regular expression enumerator, generates only singleton language
  * regular expressions from a string enumeration.
  */
@@ -44,11 +44,11 @@ class RegExpEnumerator : public TypeEnumeratorBase<RegExpEnumerator>
   RegExpEnumerator& operator++() override;
   /** is this enumerator finished? */
   bool isFinished() override;
+
  private:
   /** underlying string enumerator */
   StringEnumerator d_senum;
-}; 
-
+};
 
 }  // namespace strings
 }  // namespace theory
