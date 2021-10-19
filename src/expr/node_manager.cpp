@@ -1105,9 +1105,7 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
 }
 
 Node NodeManager::mkAbstractValue(const TypeNode& type) {
-  Node n = mkConst(AbstractValue(++d_abstractValueCount));
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
+  Node n = mkConst(AbstractValue(type, ++d_abstractValueCount));
   return n;
 }
 

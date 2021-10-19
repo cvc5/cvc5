@@ -54,7 +54,6 @@
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/option_exception.h"
@@ -108,7 +107,6 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {UNDEFINED_KIND, cvc5::Kind::UNDEFINED_KIND},
     {NULL_EXPR, cvc5::Kind::NULL_EXPR},
     /* Builtin ------------------------------------------------------------- */
-    {UNINTERPRETED_CONSTANT, cvc5::Kind::UNINTERPRETED_CONSTANT},
     {ABSTRACT_VALUE, cvc5::Kind::ABSTRACT_VALUE},
     {EQUAL, cvc5::Kind::EQUAL},
     {DISTINCT, cvc5::Kind::DISTINCT},
@@ -387,7 +385,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::UNDEFINED_KIND, UNDEFINED_KIND},
         {cvc5::Kind::NULL_EXPR, NULL_EXPR},
         /* Builtin --------------------------------------------------------- */
-        {cvc5::Kind::UNINTERPRETED_CONSTANT, UNINTERPRETED_CONSTANT},
         {cvc5::Kind::ABSTRACT_VALUE, ABSTRACT_VALUE},
         {cvc5::Kind::EQUAL, EQUAL},
         {cvc5::Kind::DISTINCT, DISTINCT},
@@ -3103,7 +3100,9 @@ std::string Term::getAbstractValue() const
       << "Term to be an abstract value when calling "
          "getAbstractValue()";
   //////// all checks before this line
-  return d_node->getConst<AbstractValue>().getIndex().toString();
+  std::stringstream ss;
+  ss << d_node->getConst<AbstractValue>();
+  return ss.str();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3305,31 +3304,6 @@ std::vector<Term> Term::getSequenceValue() const
     res.emplace_back(Term(d_solver, node));
   }
   return res;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-bool Term::isUninterpretedValue() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  return d_node->getKind() == cvc5::Kind::UNINTERPRETED_CONSTANT;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-std::pair<Sort, std::int32_t> Term::getUninterpretedValue() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(
-      d_node->getKind() == cvc5::Kind::UNINTERPRETED_CONSTANT, *d_node)
-      << "Term to be an uninterpreted value when calling "
-         "getUninterpretedValue()";
-  //////// all checks before this line
-  const auto& uc = d_node->getConst<UninterpretedConstant>();
-  return std::make_pair(Sort(d_solver, uc.getType()),
-                        uc.getIndex().toUnsignedInt());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5979,46 +5953,6 @@ Term Solver::mkRoundingMode(RoundingMode rm) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper<cvc5::RoundingMode>(s_rmodes.at(rm));
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_SORT(sort);
-  //////// all checks before this line
-  return mkValHelper<cvc5::UninterpretedConstant>(
-      cvc5::UninterpretedConstant(*sort.d_type, index));
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkAbstractValue(const std::string& index) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(!index.empty(), index) << "a non-empty string";
-
-  cvc5::Integer idx(index, 10);
-  CVC5_API_ARG_CHECK_EXPECTED(idx > 0, index)
-      << "a string representing an integer > 0";
-  //////// all checks before this line
-  return Term(this, getNodeManager()->mkConst(cvc5::AbstractValue(idx)));
-  // do not call getType(), for abstract values, type can not be computed
-  // until it is substituted away
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::mkAbstractValue(uint64_t index) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(index > 0, index) << "an integer > 0";
-  //////// all checks before this line
-  return Term(this,
-              getNodeManager()->mkConst(cvc5::AbstractValue(Integer(index))));
-  // do not call getType(), for abstract values, type can not be computed
-  // until it is substituted away
   ////////
   CVC5_API_TRY_CATCH_END;
 }

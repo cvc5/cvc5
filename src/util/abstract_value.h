@@ -18,40 +18,42 @@
 #pragma once
 
 #include <iosfwd>
+#include <memory>
 
 #include "util/integer.h"
 
 namespace cvc5 {
 
+class TypeNode;
+
 class AbstractValue
 {
-  const Integer d_index;
-
  public:
-  AbstractValue(Integer index);
+  AbstractValue(const TypeNode& type, const Integer& index);
+  AbstractValue(const AbstractValue& val);
+  ~AbstractValue();
 
   const Integer& getIndex() const { return d_index; }
-  bool operator==(const AbstractValue& val) const
-  {
-    return d_index == val.d_index;
-  }
+  const TypeNode& getType() const;
+
+  bool operator==(const AbstractValue& val) const;
   bool operator!=(const AbstractValue& val) const { return !(*this == val); }
-  bool operator<(const AbstractValue& val) const
-  {
-    return d_index < val.d_index;
-  }
-  bool operator<=(const AbstractValue& val) const
-  {
-    return d_index <= val.d_index;
-  }
+  bool operator<(const AbstractValue& val) const;
+  bool operator<=(const AbstractValue& val) const;
   bool operator>(const AbstractValue& val) const { return !(*this <= val); }
   bool operator>=(const AbstractValue& val) const { return !(*this < val); }
+
+ private:
+  /** The type of the abstract value */
+  std::unique_ptr<TypeNode> d_type;
+  /** The index of the abstract value */
+  const Integer d_index;
 }; /* class AbstractValue */
 
 std::ostream& operator<<(std::ostream& out, const AbstractValue& val);
 
 /**
- * Hash function for the BitVector constants.
+ * Hash function for abstract values.
  */
 struct AbstractValueHashFunction
 {

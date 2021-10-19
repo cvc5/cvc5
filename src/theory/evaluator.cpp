@@ -42,10 +42,7 @@ EvalResult::EvalResult(const EvalResult& other)
       new (&d_str) String;
       d_str = other.d_str;
       break;
-    case UCONST:
-      new (&d_uc)
-          UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
-      break;
+    case ABSTRACT: new (&d_av) AbstractValue(other.d_av); break;
     case INVALID: break;
   }
 }
@@ -70,10 +67,7 @@ EvalResult& EvalResult::operator=(const EvalResult& other)
         new (&d_str) String;
         d_str = other.d_str;
         break;
-      case UCONST:
-        new (&d_uc)
-            UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
-        break;
+      case ABSTRACT: new (&d_av) AbstractValue(other.d_av); break;
       case INVALID: break;
     }
   }
@@ -99,9 +93,9 @@ EvalResult::~EvalResult()
       d_str.~String();
       break;
     }
-    case UCONST:
+    case ABSTRACT:
     {
-      d_uc.~UninterpretedConstant();
+      d_av.~AbstractValue();
       break;
     }
     default: break;
@@ -117,7 +111,7 @@ Node EvalResult::toNode() const
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
     case EvalResult::RATIONAL: return nm->mkConst(d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
-    case EvalResult::UCONST: return nm->mkConst(d_uc);
+    case EvalResult::ABSTRACT: return nm->mkConst(d_av);
     default:
     {
       Trace("evaluator") << "Missing conversion from " << d_tag << " to node"
@@ -413,11 +407,10 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(r);
           break;
         }
-        case kind::UNINTERPRETED_CONSTANT:
+        case kind::ABSTRACT_VALUE:
         {
-          const UninterpretedConstant& uc =
-              currNodeVal.getConst<UninterpretedConstant>();
-          results[currNode] = EvalResult(uc);
+          const AbstractValue& av = currNodeVal.getConst<AbstractValue>();
+          results[currNode] = EvalResult(av);
           break;
         }
         case kind::PLUS:
@@ -830,9 +823,9 @@ EvalResult Evaluator::evalInternal(
               results[currNode] = EvalResult(lhs.d_str == rhs.d_str);
               break;
             }
-            case EvalResult::UCONST:
+            case EvalResult::ABSTRACT:
             {
-              results[currNode] = EvalResult(lhs.d_uc == rhs.d_uc);
+              results[currNode] = EvalResult(lhs.d_av == rhs.d_av);
               break;
             }
 

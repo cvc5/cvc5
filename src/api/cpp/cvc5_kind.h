@@ -64,18 +64,7 @@ enum CVC5_EXPORT Kind : int32_t
   /* Builtin --------------------------------------------------------------- */
 
   /**
-   * Uninterpreted constant.
-   *
-   * Parameters:
-   *   - 1: Sort of the constant
-   *   - 2: Index of the constant
-   *
-   * Create with:
-   *   - `Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const`
-   */
-  UNINTERPRETED_CONSTANT,
-  /**
-   * Abstract value (other than uninterpreted sort constants).
+   * Abstract value.
    *
    * Parameters:
    *   - 1: Index of the abstract value

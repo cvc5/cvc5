@@ -1345,32 +1345,6 @@ cdef class Solver:
         term.cterm = self.csolver.mkRoundingMode(<c_RoundingMode> rm.crm)
         return term
 
-    def mkUninterpretedConst(self, Sort sort, int index):
-        """Create uninterpreted constant.
-
-        :param sort: Sort of the constant
-        :param index: Index of the constant
-        """
-        cdef Term term = Term(self)
-        term.cterm = self.csolver.mkUninterpretedConst(sort.csort, index)
-        return term
-
-    def mkAbstractValue(self, index):
-        """
-        Create an abstract value constant.
-        The given index needs to be positive.
-
-        :param index: Index of the abstract value
-        """
-        cdef Term term = Term(self)
-        try:
-            term.cterm = self.csolver.mkAbstractValue(str(index).encode())
-        except:
-            raise ValueError(
-                "mkAbstractValue expects a str representing a number"
-                " or an int, but got{}".format(index))
-        return term
-
     def mkFloatingPoint(self, int exp, int sig, Term val):
         """Create a floating-point constant.
 
@@ -2641,16 +2615,6 @@ cdef class Term:
             term.cterm = e
             elems.append(term)
         return elems
-
-    def isUninterpretedValue(self):
-        return self.cterm.isUninterpretedValue()
-
-    def getUninterpretedValue(self):
-        cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedValue()
-        cdef Sort sort = Sort(self.solver)
-        sort.csort = p.first
-        i = p.second
-        return (sort, i)
 
     def isTupleValue(self):
         return self.cterm.isTupleValue()

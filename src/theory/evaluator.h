@@ -26,7 +26,7 @@
 
 #include "base/output.h"
 #include "expr/node.h"
-#include "expr/uninterpreted_constant.h"
+#include "util/abstract_value.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"
@@ -47,7 +47,7 @@ struct EvalResult
     BITVECTOR,
     RATIONAL,
     STRING,
-    UCONST,
+    ABSTRACT,
     INVALID
   } d_tag;
 
@@ -58,7 +58,7 @@ struct EvalResult
     BitVector d_bv;
     Rational d_rat;
     String d_str;
-    UninterpretedConstant d_uc;
+    AbstractValue d_av;
   };
 
   EvalResult(const EvalResult& other);
@@ -67,7 +67,7 @@ struct EvalResult
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
   EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
-  EvalResult(const UninterpretedConstant& u) : d_tag(UCONST), d_uc(u) {}
+  EvalResult(const AbstractValue& av) : d_tag(ABSTRACT), d_av(av) {}
 
   EvalResult& operator=(const EvalResult& other);
 

@@ -32,7 +32,6 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -48,6 +47,7 @@
 #include "theory/datatypes/tuple_project_op.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
+#include "util/abstract_value.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/floatingpoint.h"
@@ -323,11 +323,12 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
-    
-    case kind::UNINTERPRETED_CONSTANT: {
-      const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
+
+    case kind::ABSTRACT_VALUE:
+    {
+      const AbstractValue& av = n.getConst<AbstractValue>();
       std::stringstream ss;
-      ss << "(as @" << uc << " " << n.getType() << ")";
+      ss << "(as " << av << " " << n.getType() << ")";
       out << ss.str();
       break;
     }
@@ -524,7 +525,7 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
     }
-    else
+    else if (k != kind::ABSTRACT_VALUE)
     {
       // use type ascription
       out << "(as ";

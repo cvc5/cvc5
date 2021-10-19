@@ -93,8 +93,6 @@ libcvc5_add_sources(
   subs.h
   sygus_datatype.cpp
   sygus_datatype.h
-  uninterpreted_constant.cpp
-  uninterpreted_constant.h
 )
 
 libcvc5_add_sources(GENERATED

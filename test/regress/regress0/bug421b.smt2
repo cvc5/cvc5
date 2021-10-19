@@ -4,7 +4,7 @@
 ;
 ; COMMAND-LINE: --incremental --abstract-values --check-models
 ; EXPECT: sat
-; EXPECT: ((a (as @1 (Array Int Int))) (b (as @2 (Array Int Int))))
+; EXPECT: ((a (as @a1 (Array Int Int))) (b (as @a2 (Array Int Int))))
 (set-logic QF_AUFLIA)
 (set-option :produce-models true)
 (declare-fun a () (Array Int Int))

@@ -856,60 +856,6 @@ JNIEXPORT jlongArray JNICALL Java_cvc5_Term_getSequenceValue(JNIEnv* env,
 
 /*
  * Class:     cvc5_Term
- * Method:    isUninterpretedValue
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_cvc5_Term_isUninterpretedValue(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = reinterpret_cast<Term*>(pointer);
-  return static_cast<jboolean>(current->isUninterpretedValue());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     cvc5_Term
- * Method:    getUninterpretedValue
- * Signature: (J)Lcvc5/Pair;
- */
-JNIEXPORT jobject JNICALL Java_cvc5_Term_getUninterpretedValue(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = reinterpret_cast<Term*>(pointer);
-  std::pair<Sort, std::int32_t> value = current->getUninterpretedValue();
-
-  Sort* sort = new Sort(value.first);
-  jlong sortPointer = reinterpret_cast<jlong>(sort);
-
-  // Long longObject = new Long(pointer)
-  jclass longClass = env->FindClass("Ljava/lang/Long;");
-  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
-  jobject longObject = env->NewObject(longClass, longConstructor, sortPointer);
-
-  // Integer integerObject = new Integer(pair.second)
-  jclass integerClass = env->FindClass("Ljava/lang/Integer;");
-  jmethodID integerConstructor =
-      env->GetMethodID(integerClass, "<init>", "(I)V");
-  jobject integerObject = env->NewObject(
-      integerClass, integerConstructor, static_cast<jint>(value.second));
-
-  // Pair<String, Long> pair = new Pair<String, Long>(jName, longObject)
-  jclass pairClass = env->FindClass("Lcvc5/Pair;");
-  jmethodID pairConstructor = env->GetMethodID(
-      pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
-  jobject pair =
-      env->NewObject(pairClass, pairConstructor, longObject, integerObject);
-
-  return pair;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     cvc5_Term
  * Method:    iterator
  * Signature: (J)J
  */

@@ -22,10 +22,10 @@
 #include "expr/dtype.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/language.h"
 #include "test_smt.h"
 #include "theory/type_enumerator.h"
+#include "util/abstract_value.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 
@@ -61,13 +61,13 @@ TEST_F(TestTheoryWhiteTypeEnumerator, uf)
   TypeNode sort = d_nodeManager->mkSort("T");
   TypeNode sort2 = d_nodeManager->mkSort("U");
   TypeEnumerator te(sort);
-  ASSERT_EQ(*te, d_nodeManager->mkConst(UninterpretedConstant(sort, 0)));
+  ASSERT_EQ(*te, d_nodeManager->mkConst(AbstractValue(sort, 0)));
   for (size_t i = 1; i < 100; ++i)
   {
-    ASSERT_NE(*te, d_nodeManager->mkConst(UninterpretedConstant(sort, i)));
-    ASSERT_NE(*te, d_nodeManager->mkConst(UninterpretedConstant(sort2, i)));
-    ASSERT_EQ(*++te, d_nodeManager->mkConst(UninterpretedConstant(sort, i)));
-    ASSERT_NE(*te, d_nodeManager->mkConst(UninterpretedConstant(sort, i + 2)));
+    ASSERT_NE(*te, d_nodeManager->mkConst(AbstractValue(sort, i)));
+    ASSERT_NE(*te, d_nodeManager->mkConst(AbstractValue(sort2, i)));
+    ASSERT_EQ(*++te, d_nodeManager->mkConst(AbstractValue(sort, i)));
+    ASSERT_NE(*te, d_nodeManager->mkConst(AbstractValue(sort, i + 2)));
   }
 }
 

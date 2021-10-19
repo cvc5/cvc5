@@ -16,7 +16,6 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -25,6 +24,7 @@
 #include "smt/env.h"
 #include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
+#include "util/abstract_value.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -224,7 +224,7 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
     {
       Trace("model-builder-debug") << "  ...matches with " << eqc << " -> "
                                    << eqc_m << std::endl;
-      if (eqc_m.getKind() == kind::UNINTERPRETED_CONSTANT)
+      if (eqc_m.getKind() == kind::ABSTRACT_VALUE)
       {
         Trace("model-builder-debug") << "*** " << val
                                      << " is excluded datatype for " << eqc
@@ -318,8 +318,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
                                    << tn << std::endl;
       unsigned card = eqc_usort_count[tn];
       Trace("model-builder-debug") << "  Cardinality is " << card << std::endl;
-      unsigned index =
-          v.getConst<UninterpretedConstant>().getIndex().toUnsignedInt();
+      unsigned index = v.getConst<AbstractValue>().getIndex().toUnsignedInt();
       Trace("model-builder-debug") << "  Index is " << index << std::endl;
       return index > 0 && index >= card;
     }

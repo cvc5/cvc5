@@ -22,7 +22,6 @@
 #include "expr/dtype_cons.h"
 #include "expr/kind.h"
 #include "expr/skolem_manager.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -1293,7 +1292,7 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
   if( itv!=vmap.end() ){
     int debruijn = depth - 1 - itv->second;
     return NodeManager::currentNM()->mkConst(
-        UninterpretedConstant(n.getType(), debruijn));
+        AbstractValue(n.getType(), debruijn));
   }else if( n.getType().isDatatype() ){
     Node nc = eqc_cons[n];
     if( !nc.isNull() ){

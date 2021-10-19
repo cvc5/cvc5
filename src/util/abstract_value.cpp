@@ -20,21 +20,49 @@
 #include <string>
 
 #include "base/check.h"
+#include "expr/type_node.h"
 
 using namespace std;
 
 namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const AbstractValue& val) {
-  return out << "@" << val.getIndex();
+  return out << "@a" << val.getIndex();
 }
 
-AbstractValue::AbstractValue(Integer index) : d_index(index)
+AbstractValue::AbstractValue(const TypeNode& type, const Integer& index)
+    : d_type(new TypeNode(type)), d_index(index)
 {
-  PrettyCheckArgument(index >= 1,
+  PrettyCheckArgument(index >= 0,
                       index,
-                      "index >= 1 required for abstract value, not `%s'",
+                      "index >= 0 required for abstract value, not `%s'",
                       index.toString().c_str());
+}
+
+AbstractValue::AbstractValue(const AbstractValue& val)
+    : d_type(new TypeNode(*val.d_type)), d_index(val.d_index)
+{
+}
+
+AbstractValue::~AbstractValue() {}
+
+const TypeNode& AbstractValue::getType() const { return *d_type; }
+
+bool AbstractValue::operator==(const AbstractValue& val) const
+{
+  return getType() == val.getType() && d_index == val.d_index;
+}
+
+bool AbstractValue::operator<(const AbstractValue& val) const
+{
+  return getType() < val.getType()
+         || (getType() == val.getType() && d_index < val.d_index);
+}
+
+bool AbstractValue::operator<=(const AbstractValue& val) const
+{
+  return getType() <= val.getType()
+         || (getType() == val.getType() && d_index <= val.d_index);
 }
 
 }  // namespace cvc5

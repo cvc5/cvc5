@@ -237,7 +237,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkPosZero(uint32_t exp, uint32_t sig) except +
         Term mkNegZero(uint32_t exp, uint32_t sig) except +
         Term mkRoundingMode(RoundingMode rm) except +
-        Term mkUninterpretedConst(Sort sort, int32_t index) except +
         Term mkAbstractValue(const string& index) except +
         Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
         Term mkConst(Sort sort, const string& symbol) except +
@@ -430,8 +429,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         set[Term] getSetValue() except +
         bint isSequenceValue() except +
         vector[Term] getSequenceValue() except +
-        bint isUninterpretedValue() except +
-        pair[Sort, int32_t] getUninterpretedValue() except +
         bint isTupleValue() except +
         vector[Term] getTupleValue() except +
 

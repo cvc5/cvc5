@@ -14,8 +14,8 @@
  */
 
 #include "expr/array_store_all.h"
-#include "expr/uninterpreted_constant.h"
 #include "test_smt.h"
+#include "util/abstract_value.h"
 #include "util/rational.h"
 
 namespace cvc5 {
@@ -32,7 +32,7 @@ TEST_F(TestUtilWhiteArrayStoreAll, store_all)
                                            d_nodeManager->realType()),
                 d_nodeManager->mkConst(Rational(9, 2)));
   ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->mkSort("U"), usort),
-                d_nodeManager->mkConst(UninterpretedConstant(usort, 0)));
+                d_nodeManager->mkConst(AbstractValue(usort, 0)));
   ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
                                            d_nodeManager->realType()),
                 d_nodeManager->mkConst(Rational(0)));
@@ -44,8 +44,8 @@ TEST_F(TestUtilWhiteArrayStoreAll, store_all)
 TEST_F(TestUtilWhiteArrayStoreAll, type_errors)
 {
   ASSERT_THROW(ArrayStoreAll(d_nodeManager->integerType(),
-                             d_nodeManager->mkConst(UninterpretedConstant(
-                                 d_nodeManager->mkSort("U"), 0))),
+                             d_nodeManager->mkConst(
+                                 AbstractValue(d_nodeManager->mkSort("U"), 0))),
                IllegalArgumentException);
   ASSERT_THROW(ArrayStoreAll(d_nodeManager->integerType(),
                              d_nodeManager->mkConst(Rational(9, 2))),

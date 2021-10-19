@@ -620,32 +620,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   private native long[] getSequenceValue(long pointer);
 
-  /**
-   * @return true if the term is a value from an uninterpreted sort.
-   */
-  public boolean isUninterpretedValue()
-  {
-    return isUninterpretedValue(pointer);
-  }
-
-  private native boolean isUninterpretedValue(long pointer);
-
-  /**
-  boolean @return()
-   * Asserts isUninterpretedValue().
-   * @return the representation of an uninterpreted value as a pair of its
-  sort and its
-   * index.
-   */
-  public Pair<Sort, Integer> getUninterpretedValue()
-  {
-    Pair<Long, Integer> pair = getUninterpretedValue(pointer);
-    Sort sort = new Sort(solver, pair.first);
-    return new Pair<Sort, Integer>(sort, pair.second);
-  }
-
-  private native Pair<Long, Integer> getUninterpretedValue(long pointer);
-
   public class ConstIterator implements Iterator<Term>
   {
     private int currentIndex;
