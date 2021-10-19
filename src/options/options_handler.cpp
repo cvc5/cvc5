@@ -285,8 +285,9 @@ void OptionsHandler::enableOutputTag(const std::string& option,
                                      const std::string& flag,
                                      const std::string& optarg)
 {
-  d_options->base.outputTagHolder.set(
-      static_cast<size_t>(stringToOutputTag(optarg)));
+  size_t tagid = static_cast<size_t>(stringToOutputTag(optarg));
+  Assert(d_options->base.outputTagHolder.size() > tagid);
+  d_options->base.outputTagHolder.set(tagid);
 }
 
 void OptionsHandler::setPrintSuccess(const std::string& option,
