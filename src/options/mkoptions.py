@@ -424,7 +424,6 @@ TPL_MODE_DECL = '''enum class {type}
 {{
   {values}
 }};
-static constexpr size_t {type}__numValues = {nvalues};
 std::ostream& operator<<(std::ostream& os, {type} mode);
 {type} stringTo{type}(const std::string& optarg);
 '''
@@ -439,8 +438,7 @@ def generate_module_mode_decl(module):
         res.append(
             TPL_MODE_DECL.format(type=option.type,
                                  values=wrap_line(
-                                     ', '.join(option.mode.keys()), 2),
-                                 nvalues=len(option.mode)))
+                                     ', '.join(option.mode.keys()), 2)))
     return '\n'.join(res)
 
 
