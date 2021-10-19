@@ -32,6 +32,7 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env)
   // we start with the provided options
   d_subOptions.copyValues(d_env.getOriginalOptions());
   d_subOptions.smt.produceProofs = true;
+  d_subOptions.smt.checkProofs = true;
 }
 
 void QueryGeneratorUnsat::initialize(const std::vector<Node>& vars,
@@ -54,7 +55,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   activeTerms.push_back(n);
   bool addSuccess = true;
   size_t checkCount = 0;
-  while (checkCount<3)
+  while (checkCount<10)
   {
     Assert(!activeTerms.empty());
     // if we just successfully added a term, do a satisfiability check
