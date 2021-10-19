@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -14,10 +14,6 @@
  */
 
 #include "theory/strings/regexp_enumerator.h"
-
-#include "expr/sequence.h"
-#include "theory/strings/theory_strings_utils.h"
-#include "util/string.h"
 
 namespace cvc5 {
 namespace theory {
