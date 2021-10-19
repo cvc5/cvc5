@@ -833,7 +833,7 @@ def generate_sphinx_help(modules):
     common = []
     others = {}
     for module, option in all_options(modules, False):
-        if option.type == 'undocumented':
+        if option.category == 'undocumented':
             continue
         if not option.long and not option.short:
             continue
