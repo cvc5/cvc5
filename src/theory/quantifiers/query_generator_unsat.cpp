@@ -53,12 +53,14 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   processed.insert(d_terms.size() - 1);
   activeTerms.push_back(n);
   bool addSuccess = true;
-  while (true)
+  size_t checkCount = 0;
+  while (checkCount<3)
   {
     Assert(!activeTerms.empty());
     // if we just successfully added a term, do a satisfiability check
     if (addSuccess)
     {
+      checkCount++;
       // check the current for satisfiability
       Result r = checkCurrent(activeTerms, out);
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
