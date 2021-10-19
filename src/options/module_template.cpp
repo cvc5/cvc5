@@ -28,11 +28,4 @@ namespace cvc5::options {
 ${modes_impl}$
 // clang-format on
 
-namespace ${id}$
-{
-// clang-format off
-${setdefaults_impl}$
-// clang-format on
-}
-
 }  // namespace cvc5::options
