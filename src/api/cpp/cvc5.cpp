@@ -5827,7 +5827,7 @@ Term Solver::mkSepEmp() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res = getNodeManager()->mkNullaryOperator(d_nodeMgr->booleanType(),
-                                                 ::cvc5::Kind::SEP_EMP);
+                                                 cvc5::Kind::SEP_EMP);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
