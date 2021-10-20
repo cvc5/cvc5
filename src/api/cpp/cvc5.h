@@ -354,19 +354,19 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this a Boolean sort?
-   * @return true if the sort is the Boolean sort
+   * @return true if the sort is a Boolean sort
    */
   bool isBoolean() const;
 
   /**
    * Is this a integer sort?
-   * @return true if the sort is the integer sort
+   * @return true if the sort is a integer sort
    */
   bool isInteger() const;
 
   /**
    * Is this a real sort?
-   * @return true if the sort is the real sort
+   * @return true if the sort is a real sort
    */
   bool isReal() const;
 
@@ -462,7 +462,7 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this an array sort?
-   * @return true if the sort is an array sort
+   * @return true if the sort is a array sort
    */
   bool isArray() const;
 
@@ -488,7 +488,6 @@ class CVC5_EXPORT Sort
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
-  // TODO doesn't make sense. ask Aina
   bool isUninterpretedSort() const;
 
   /**
@@ -555,8 +554,6 @@ class CVC5_EXPORT Sort
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
    */
-  // TODO ask Haniel to add tests in cpp. I will add in python.
-  // TODO ask Haniel to add docum,entation for the return value.
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
   /**
@@ -644,7 +641,7 @@ class CVC5_EXPORT Sort
   Sort getArrayIndexSort() const;
 
   /**
-   * @return the array element sort of an array sort
+   * @return the array element sort of an array element sort
    */
   Sort getArrayElementSort() const;
 
