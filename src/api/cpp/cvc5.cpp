@@ -5082,7 +5082,7 @@ Term Solver::mkTermFromKind(Kind kind) const
   CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_EMPTY
                                    || kind == REGEXP_SIGMA || kind == SEP_EMP,
                                kind)
-      << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
+      << "PI, REGEXP_EMPTY, REGEXP_SIGMA or SEP_EMP";
   //////// all checks before this line
   Node res;
   cvc5::Kind k = extToIntKind(kind);
@@ -5818,6 +5818,18 @@ Term Solver::mkEmptyBag(const Sort& sort) const
       << "bag sort associated with this solver object";
   //////// all checks before this line
   return mkValHelper<cvc5::EmptyBag>(cvc5::EmptyBag(*sort.d_type));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkSepEmp() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Node res = getNodeManager()->mkNullaryOperator(d_nodeMgr->booleanType(),
+                                                 cvc5::Kind::SEP_EMP);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
