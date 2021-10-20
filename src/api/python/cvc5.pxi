@@ -609,7 +609,7 @@ cdef class Result:
             :return: True if query was a :cpp:func:`Solver::checkEntailed() <cvc5::api::Solver::checkEntailed>` query  query and cvc5 was not able to determine if it is entailed.
         """
         return self.cr.isEntailmentUnknown()
-    
+
     def getUnknownExplanation(self):
         """
             :return: an explanation for an unknown query result.
@@ -641,7 +641,7 @@ cdef class RoundingMode:
         arithmetic, which in turn is based on IEEE Standard 754 :cite:`IEEE754`.
         The rounding modes are specified in Sections 4.3.1 and 4.3.2 of the IEEE
         Standard 754.
-        
+
         Wrapper class for :cpp:enum:`cvc5::api::RoundingMode`.
     """
     cdef c_RoundingMode crm
@@ -1338,7 +1338,7 @@ cdef class Solver:
 
     def mkRoundingMode(self, RoundingMode rm):
         """Create a roundingmode constant.
-        
+
         :param rm: the floating point rounding mode this constant represents
         """
         cdef Term term = Term(self)
@@ -2210,111 +2210,111 @@ cdef class Sort:
 
     def isNull(self):
         """:return: True if this Sort is a null sort."""
-	return self.csort.isNull()
+        return self.csort.isNull()
 
     def isBoolean(self):
         """
             Is this a Boolean sort?
             :return: True if the sort is the Boolean sort.
-	"""
+        """
         return self.csort.isBoolean()
 
     def isInteger(self):
         """
             Is this an integer sort?
             :return: True if the sort is the integer sort.
-	"""
+        """
         return self.csort.isInteger()
 
     def isReal(self):
         """
             Is this a real sort?
             :return: True if the sort is the real sort.
-	"""
+        """
         return self.csort.isReal()
 
     def isString(self):
         """
             Is this a string sort?
             :return: True if the sort is the string sort.
-	"""
+        """
         return self.csort.isString()
 
     def isRegExp(self):
         """
             Is this a regexp sort?
             :return: True if the sort is the regexp sort.
-	"""
+        """
         return self.csort.isRegExp()
 
     def isRoundingMode(self):
         """
             Is this a rounding mode sort?
             :return: True if the sort is the rounding mode sort.
-	"""
+        """
         return self.csort.isRoundingMode()
 
     def isBitVector(self):
         """
             Is this a bit-vector sort?
             :return: True if the sort is a bit-vector sort.
-	"""
+        """
         return self.csort.isBitVector()
 
     def isFloatingPoint(self):
         """
             Is this a floating-point sort?
             :return: True if the sort is a bit-vector sort.
-	"""
+        """
         return self.csort.isFloatingPoint()
 
     def isDatatype(self):
         """
             Is this a datatype sort?
             :return: True if the sort is a datatype sort.
-	"""
+        """
         return self.csort.isDatatype()
 
     def isParametricDatatype(self):
         """
             Is this a parametric datatype sort?
             :return: True if the sort is a parametric datatype sort.
-	"""
+        """
         return self.csort.isParametricDatatype()
 
     def isConstructor(self):
         """
             Is this a constructor sort?
             :return: True if the sort is a constructor sort.
-	"""
+        """
         return self.csort.isConstructor()
 
     def isSelector(self):
         """
             Is this a selector sort?
             :return: True if the sort is a selector sort.
-	"""
+        """
         return self.csort.isSelector()
 
     def isTester(self):
         """
             Is this a tester sort?
             :return: True if the sort is a selector sort.
-	"""
+        """
         return self.csort.isTester()
 
     def isUpdater(self):
         """
             Is this a datatype updater sort?
             :return: True if the sort is a datatype updater sort.
-	"""
+        """
         return self.csort.isUpdater()
 
     def isFunction(self):
         """
             Is this a datatype updater sort?
             :return: True if the sort is a function sort.
-	"""
+        """
         return self.csort.isFunction()
 
     def isPredicate(self):
@@ -2323,125 +2323,125 @@ cdef class Sort:
             That is, is this a function sort mapping to Boolean? All predicate
             sorts are also function sorts.
             :return: True if the sort is a predicate sort.
-	"""
+        """
         return self.csort.isPredicate()
 
     def isTuple(self):
         """
             Is this a tuple sort?
             :return: True if the sort is a tuple sort.
-	"""
+        """
         return self.csort.isTuple()
 
     def isRecord(self):
         """
             Is this a record sort?
             :return: True if the sort is a record sort.
-	"""
+        """
         return self.csort.isRecord()
 
     def isArray(self):
         """
             Is this an array sort?
             :return: True if the sort is an array sort.
-	"""
+        """
         return self.csort.isArray()
 
     def isSet(self):
         """
             Is this a set sort?
             :return: True if the sort is a set sort.
-	"""
+        """
         return self.csort.isSet()
 
     def isBag(self):
         """
             Is this a bag sort?
             :return: True if the sort is a bag sort.
-	"""
+        """
         return self.csort.isBag()
 
     def isSequence(self):
         """
             Is this a sequence sort?
             :return: True if the sort is a sequence sort.
-	"""
+        """
         return self.csort.isSequence()
 
     def isUninterpretedSort(self):
         """
             Is this a sort kind?
             :return: True if the sort is a sort kind.
-	"""
+        """
         return self.csort.isUninterpretedSort()
 
     def isSortConstructor(self):
         """
             Is this a sort constructor kind?
             :return: True if this a sort constructor kind.
-	"""
+        """
         return self.csort.isSortConstructor()
 
     def isFirstClass(self):
         """
-            Is this a first-class sort?                                                       
+            Is this a first-class sort?
             First-class sorts are sorts for which:
-            (1) we handle equalities between terms of that type, and                 	 
-            (2) they are allowed to be parameters of parametric sorts 
-	    (e.g. index or element sorts of arrays).                                            	 
-            
+            (1) we handle equalities between terms of that type, and
+            (2) they are allowed to be parameters of parametric sorts
+            (e.g. index or element sorts of arrays).
+
             Examples of sorts that are not first-class include sort constructor 
-	        sorts and regular expression sorts.
-            
-	    :return: True if the sort is a first-class sort.
+                sorts and regular expression sorts.
+
+            :return: True if the sort is a first-class sort.
         """
         return self.csort.isFirstClass()
 
     def isFunctionLike(self):
         """
             Is this a function-LIKE sort?
-            
+
             Anything function-like except arrays (e.g., datatype selectors) is
             considered a function here. Function-like terms can not be the argument
             or return value for any term that is function-like.
             This is mainly to avoid higher order.
-            
+
             Note that arrays are explicitly not considered function-like here.
 
-	    :return: True if this is a function-like sort
+            :return: True if this is a function-like sort
         """
         return self.csort.isFunctionLike()
 
     def isSubsortOf(self, Sort sort):
         """
             Is this sort a subsort of the given sort?
-	    :return: True if this sort is a subsort of s
-	"""
+            :return: True if this sort is a subsort of s
+        """
         return self.csort.isSubsortOf(sort.csort)
 
     def isComparableTo(self, Sort sort):
         """
             Is this sort comparable to the given sort
-	    (i.e., do they share a common ancestor in the subsort tree)?
-	    :return: True if this sort is comparable to s
-	"""
+            (i.e., do they share a common ancestor in the subsort tree)?
+            :return: True if this sort is comparable to s
+        """
         return self.csort.isComparableTo(sort.csort)
 
     def getDatatype(self):
         """
-	    :return: the underlying datatype of a datatype sort
-	"""
+            :return: the underlying datatype of a datatype sort
+        """
         cdef Datatype d = Datatype(self.solver)
         d.cd = self.csort.getDatatype()
         return d
 
     def instantiate(self, params):
         """
-	    Instantiate a parameterized datatype/sort sort.
-	    Create sorts parameter with Solver.mkParamSort().
-	     
-	    :param params: the list of sort parameters to instantiate with
-	"""
+            Instantiate a parameterized datatype/sort sort.
+            Create sorts parameter with Solver.mkParamSort().
+ 
+            :param params: the list of sort parameters to instantiate with
+        """
         cdef Sort sort = Sort(self.solver)
         cdef vector[c_Sort] v
         for s in params:
@@ -2451,11 +2451,11 @@ cdef class Sort:
 
     def substitute(self, term_or_list_1, term_or_list_2):
         """
-	    Substitution of Sorts.
-	    :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
-	    :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
-	"""
-	     
+            Substitution of Sorts.
+            :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
+            :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
+        """
+
         # The resulting sort after substitution
         cdef Sort sort = Sort(self.solver)
         # lists for substitutions
@@ -2485,17 +2485,17 @@ cdef class Sort:
         sort.csort = self.csort.substitute(ces, creplacements)
         return sort
 
-    
+
     def getConstructorArity(self):
         """
-	    :return: the arity of a constructor sort.
-	"""
+            :return: the arity of a constructor sort.
+        """
         return self.csort.getConstructorArity()
 
     def getConstructorDomainSorts(self):
         """
-	    :return: the domain sorts of a constructor sort
-	"""
+            :return: the domain sorts of a constructor sort
+        """
         domain_sorts = []
         for s in self.csort.getConstructorDomainSorts():
             sort = Sort(self.solver)
@@ -2505,54 +2505,54 @@ cdef class Sort:
 
     def getConstructorCodomainSort(self):
         """
-	    :return: the codomain sort of a constructor sort
-	"""
+            :return: the codomain sort of a constructor sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getConstructorCodomainSort()
         return sort
 
     def getSelectorDomainSort(self):
         """
-	    :return: the domain sort of a selector sort
-	"""
+            :return: the domain sort of a selector sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSelectorDomainSort()
         return sort
 
     def getSelectorCodomainSort(self):
         """
-	    :return: the codomain sort of a selector sort
-	"""
+            :return: the codomain sort of a selector sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSelectorCodomainSort()
         return sort
 
     def getTesterDomainSort(self):
         """
-	    :return: the domain sort of a tester sort
-	"""
+            :return: the domain sort of a tester sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getTesterDomainSort()
         return sort
 
     def getTesterCodomainSort(self):
         """
-	    :return: the codomain sort of a tester sort, which is the Boolean sort
-	"""
+            :return: the codomain sort of a tester sort, which is the Boolean sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getTesterCodomainSort()
         return sort
 
     def getFunctionArity(self):
         """
-	    :return: the arity of a function sort
-	"""
+            :return: the arity of a function sort
+        """
         return self.csort.getFunctionArity()
 
     def getFunctionDomainSorts(self):
         """
-	    :return: the domain sorts of a function sort
-	"""
+            :return: the domain sorts of a function sort
+        """
         domain_sorts = []
         for s in self.csort.getFunctionDomainSorts():
             sort = Sort(self.solver)
@@ -2562,68 +2562,68 @@ cdef class Sort:
 
     def getFunctionCodomainSort(self):
         """
-	    :return: the codomain sort of a function sort
-	"""
+            :return: the codomain sort of a function sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getFunctionCodomainSort()
         return sort
 
     def getArrayIndexSort(self):
         """
-	    :return: the array index sort of an array sort
-	"""
+            :return: the array index sort of an array sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getArrayIndexSort()
         return sort
 
     def getArrayElementSort(self):
         """
-	    :return: the array element sort of an array sort
-	"""
+            :return: the array element sort of an array sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getArrayElementSort()
         return sort
 
     def getSetElementSort(self):
         """
-	    :return: the element sort of a set sort
-	"""
+            :return: the element sort of a set sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSetElementSort()
         return sort
 
     def getBagElementSort(self):
         """
-	    :return: the element sort of a bag sort
-	"""
+            :return: the element sort of a bag sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getBagElementSort()
         return sort
 
     def getSequenceElementSort(self):
         """
-	    :return: the element sort of a sequence sort
-	"""
+            :return: the element sort of a sequence sort
+        """
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
     def getUninterpretedSortName(self):
         """
-	    :return: the name of an uninterpreted sort
-	"""
+            :return: the name of an uninterpreted sort
+        """
         return self.csort.getUninterpretedSortName().decode()
 
     def isUninterpretedSortParameterized(self):
         """
-	    :return: True if an uninterpreted sort is parameterized
-	"""
+            :return: True if an uninterpreted sort is parameterized
+        """
         return self.csort.isUninterpretedSortParameterized()
 
     def getUninterpretedSortParamSorts(self):
         """
-	    :return: the parameter sorts of an uninterpreted sort
-	"""
+            :return: the parameter sorts of an uninterpreted sort
+        """
         param_sorts = []
         for s in self.csort.getUninterpretedSortParamSorts():
             sort = Sort(self.solver)
@@ -2633,38 +2633,38 @@ cdef class Sort:
 
     def getSortConstructorName(self):
         """
-	    :return: the name of a sort constructor sort
-	"""
+            :return: the name of a sort constructor sort
+        """
         return self.csort.getSortConstructorName().decode()
 
     def getSortConstructorArity(self):
         """
-	    :return: the arity of a sort constructor sort
-	"""
+            :return: the arity of a sort constructor sort
+        """
         return self.csort.getSortConstructorArity()
 
     def getBVSize(self):
         """
-	    :return: the bit-width of the bit-vector sort
-	"""
+            :return: the bit-width of the bit-vector sort
+        """
         return self.csort.getBVSize()
 
     def getFPExponentSize(self):
         """
-	    :return: the bit-width of the exponent of the floating-point sort
-	"""
+            :return: the bit-width of the exponent of the floating-point sort
+        """
         return self.csort.getFPExponentSize()
 
     def getFPSignificandSize(self):
         """
-	    :return: the width of the significand of the floating-point sort
-	"""
+            :return: the width of the significand of the floating-point sort
+        """
         return self.csort.getFPSignificandSize()
 
     def getDatatypeParamSorts(self):
         """
-	    :return: the parameter sorts of a datatype sort
-	"""
+            :return: the parameter sorts of a datatype sort
+        """
         param_sorts = []
         for s in self.csort.getDatatypeParamSorts():
             sort = Sort(self.solver)
@@ -2674,20 +2674,20 @@ cdef class Sort:
 
     def getDatatypeArity(self):
         """
-	    :return: the arity of a datatype sort
-	"""
+            :return: the arity of a datatype sort
+        """
         return self.csort.getDatatypeArity()
 
     def getTupleLength(self):
         """
-	    :return: the length of a tuple sort
-	"""
+            :return: the length of a tuple sort
+        """
         return self.csort.getTupleLength()
 
     def getTupleSorts(self):
         """
-	    :return: the element sorts of a tuple sort
-	"""
+            :return: the element sorts of a tuple sort
+        """
         tuple_sorts = []
         for s in self.csort.getTupleSorts():
             sort = Sort(self.solver)
