@@ -224,6 +224,10 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
 
 const std::map<Node, Node>& SequencesArraySolver::getWriteModel(Node eqc)
 {
+  Trace("seq-write-model") << "write model of " << eqc << ":" << std::endl; 
+  for (auto& x : d_writeModel[eqc]) {
+      Trace("seq-write-model") << x.first << ": " << x.second << std::endl;
+  }
   return d_writeModel[eqc];
 }
 
