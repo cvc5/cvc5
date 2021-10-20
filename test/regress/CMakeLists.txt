@@ -1909,6 +1909,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5506-qe.smt2
   regress1/quantifiers/issue5507-qe.smt2
   regress1/quantifiers/issue5658-qe.smt2
+  regress1/quantifiers/issue5735-subtypes.smt2
+  regress1/quantifiers/issue5735-2-subtypes.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
   regress1/quantifiers/issue6607-witness-te.smt2 
