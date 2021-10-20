@@ -50,6 +50,12 @@ void CheckModels::checkModel(TheoryModel* m,
     throw RecoverableModalException(
         "Cannot run check-model on a model with approximate values.");
   }
+  Node sepHeap, sepNeq;
+  if (m->getHeapModel(sepHeap, sepNeq))
+  {
+    throw RecoverableModalException(
+        "Cannot run check-model on a model with a separation logic heap.");
+  }
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
