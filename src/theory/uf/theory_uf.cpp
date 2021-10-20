@@ -171,7 +171,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   {
     case kind::EQUAL:
     {
-      if (logicInfo().isHigherOrder() && options::ufHoExt())
+      if (logicInfo().isHigherOrder())
       {
         if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
         {
