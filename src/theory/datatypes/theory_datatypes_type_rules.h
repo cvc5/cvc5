@@ -99,7 +99,8 @@ class TupleProjectTypeRule
   static TypeNode computeType(NodeManager* nm, TNode n, bool check);
 };
 
-class CodatatypeBoundVariableTypeRule {
+class CodatatypeBoundVariableTypeRule
+{
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };

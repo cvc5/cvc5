@@ -598,8 +598,8 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 }
 
 TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,
-                                                    TNode n,
-                                                    bool check)
+                                                      TNode n,
+                                                      bool check)
 {
   return n.getConst<CodatatypeBoundVariable>().getType();
 }
