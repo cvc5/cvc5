@@ -263,7 +263,7 @@ Node ArraysProperties::mkGroundTerm(TypeNode type)
   // return a term containing values that should not appear in e.g. assertions.
   // For example, arrays whose element type is an uninterpreted sort will
   // incorrectly introduce uninterpreted sort values if this is done.
-  // It is current infeasible to construct an ArrayStoreAll with the element
+  // It is currently infeasible to construct an ArrayStoreAll with the element
   // type's mkGroundTerm as an argument when that term is not constant.
   // Thus, we must simply return a fresh Skolem here, using the same utility
   // as that of uninterpreted sorts.
