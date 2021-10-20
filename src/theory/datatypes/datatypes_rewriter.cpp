@@ -16,12 +16,12 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 
 #include "expr/ascription_type.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
-#include "expr/codatatype_bound_variable.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
