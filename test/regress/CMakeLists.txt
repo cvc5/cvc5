@@ -782,6 +782,7 @@ set(regress_0_tests
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
   regress0/parser/issue5163.smt2
+  regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
@@ -1505,6 +1506,8 @@ set(regress_1_tests
   regress1/arith/issue3952-rew-eq.smt2
   regress1/arith/issue4985-model-success.smt2
   regress1/arith/issue4985b-model-success.smt2
+  regress1/arith/issue6774-sanity-int-model.smt2
+  regress1/arith/issue7252-arith-sanity.smt2
   regress1/arith/issue789.smt2
   regress1/arith/miplib3.cvc.smt2
   regress1/arith/mod.02.smt2
@@ -1576,6 +1579,7 @@ set(regress_1_tests
   regress1/constarr3.cvc.smt2
   regress1/constarr3.smt2
   regress1/cores/issue5604.smt2
+  regress1/cores/issue6988-arith-sanity.smt2
   regress1/datatypes/acyclicity-sr-ground096.smt2
   regress1/datatypes/cee-prs-small-dd2.smt2
   regress1/datatypes/dt-color-2.6.smt2
@@ -1644,6 +1648,8 @@ set(regress_1_tests
   regress1/fmf/issue4225-univ-fun.smt2
   regress1/fmf/issue5738-dt-interp-finite.smt2
   regress1/fmf/issue6690-re-enum.smt2
+  regress1/fmf/issue6744-2-unc-bool-var.smt2
+  regress1/fmf/issue6744-3-unc-bool-var.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/loopy_coda.smt2
@@ -1760,6 +1766,7 @@ set(regress_1_tests
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
+  regress1/proofs/qgu-fuzz-1-strings-pp.smt2
   regress1/proofs/quant-alpha-eq.smt2
   regress1/proofs/sat-trivial-cycle.smt2
   regress1/proofs/unsat-cores-proofs.smt2
@@ -2265,6 +2272,7 @@ set(regress_1_tests
   regress1/strings/rev-ex5.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/rew-check1.smt2
+  regress1/strings/seq-cardinality.smt2
   regress1/strings/seq-quant-infinite-branch.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2

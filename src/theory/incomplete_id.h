@@ -52,6 +52,11 @@ enum class IncompleteId
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership
   STRINGS_REGEXP_NO_SIMPLIFY,
+  // incomplete due to sequence of a dynamic finite type (e.g. a type that
+  // we know is finite, but its exact cardinality is not fixed. For example,
+  // when finite model finding is enabled, uninterpreted sorts have a
+  // cardinality that depends on their interpretation in the current model).
+  SEQ_FINITE_DYNAMIC_CARDINALITY,
   // HO extensionality axiom was disabled
   UF_HO_EXT_DISABLED,
   // UF+cardinality solver was disabled
