@@ -69,7 +69,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // --------------------------- RESOLUTION
     //  (or b c)
     //
-    //  Is converted into an Alethe proof that should be printed as
+    //  is converted into an Alethe proof that should be printed as
     //
     //  (cl a (or b c))   (cl (not a))
     // -------------------------------- RESOLUTION
