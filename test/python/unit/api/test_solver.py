@@ -644,6 +644,10 @@ def test_mk_regexp_sigma(solver):
     solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpSigma())
 
 
+def test_mk_sep_emp(solver):
+    solver.mkSepEmp();
+
+
 def test_mk_sep_nil(solver):
     solver.mkSepNil(solver.getBooleanSort())
     with pytest.raises(RuntimeError):
