@@ -111,7 +111,7 @@ if(NOT GMP_FOUND_SYSTEM)
         --prefix=<INSTALL_DIR>
         --enable-cxx --with-pic --host=${TOOLCHAIN_PREFIX}
       BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp.a
-                      <INSTALL_DIR>/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}
+                       <INSTALL_DIR>/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 
     set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
