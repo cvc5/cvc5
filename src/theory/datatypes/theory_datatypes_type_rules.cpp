@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "expr/ascription_type.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/type_matcher.h"
