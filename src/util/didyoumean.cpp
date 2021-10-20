@@ -100,7 +100,7 @@ std::vector<std::string> DidYouMean::getMatch(const std::string& input)
   {
     std::sort(d_words.begin(), d_words.end());
     auto it = std::unique(d_words.begin(), d_words.end());
-    d_words.erase(it);
+    d_words.erase(it, d_words.end());
   }
 
   /** Magic numbers */
