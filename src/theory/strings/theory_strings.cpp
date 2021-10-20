@@ -713,7 +713,7 @@ mti.d_nthTerms; for (const Node& t : terms)
 
 Node TheoryStrings::mkSkeletonFor(Node c)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Assert(c.getKind() == CONST_SEQUENCE);
