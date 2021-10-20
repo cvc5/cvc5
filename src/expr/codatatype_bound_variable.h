@@ -33,7 +33,7 @@ class TypeNode;
  * indices. This is sometimes written:
  *    MU x. (cons 0 x).
  * where the MU binder is label for a term position, which x references.
- * Instead of construct an explicit MU binder (which is problematic for
+ * Instead of constructing an explicit MU binder (which is problematic for
  * canonicity), we use de Bruijn indices for representing bound variables,
  * whose index indicates the level in which it is nested. For example, we
  * represent the above value as:
