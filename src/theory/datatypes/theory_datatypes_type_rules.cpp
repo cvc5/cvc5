@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "expr/ascription_type.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/type_matcher.h"
@@ -595,6 +596,13 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
     types.push_back(constructor.getArgType(index));
   }
   return nm->mkTupleType(types);
+}
+
+TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,
+                                                      TNode n,
+                                                      bool check)
+{
+  return n.getConst<CodatatypeBoundVariable>().getType();
 }
 
 }  // namespace datatypes

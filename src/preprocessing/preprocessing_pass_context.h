@@ -26,6 +26,7 @@
 #include "preprocessing/learned_literal_manager.h"
 #include "smt/env_obj.h"
 #include "theory/logic_info.h"
+#include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {
@@ -116,8 +117,6 @@ class PreprocessingPassContext : protected EnvObj
                        PfRule id,
                        const std::vector<Node>& args);
 
-  /** The the proof node manager associated with this context, if it exists */
-  ProofNodeManager* getProofNodeManager() const;
 
  private:
   /** Pointer to the theory engine associated with this context. */

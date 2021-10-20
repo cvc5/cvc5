@@ -34,7 +34,7 @@
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"
 #include "smt/print_benchmark.h"
-#include "smt/smt_engine_stats.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
@@ -57,8 +57,8 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(Env& env, SmtEngineStatistics& stats)
-    : EnvObj(env), d_smtStats(stats), d_preprocessingPassContext(nullptr)
+ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
+    : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -110,7 +110,7 @@ bool ProcessAssertions::apply(Assertions& as)
     return true;
   }
 
-  if (options::bvGaussElim())
+  if (options().bv.bvGaussElim)
   {
     d_passes["bv-gauss"]->apply(&assertions);
   }
@@ -140,34 +140,34 @@ bool ProcessAssertions::apply(Assertions& as)
 
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
-  if (options::globalNegate())
+  if (options().quantifiers.globalNegate)
   {
     // global negation of the formula
     d_passes["global-negate"]->apply(&assertions);
     as.flipGlobalNegated();
   }
 
-  if (options::nlExtPurify())
+  if (options().arith.nlExtPurify)
   {
     d_passes["nl-ext-purify"]->apply(&assertions);
   }
 
-  if (options::solveRealAsInt())
+  if (options().smt.solveRealAsInt)
   {
     d_passes["real-to-int"]->apply(&assertions);
   }
 
-  if (options::solveIntAsBV() > 0)
+  if (options().smt.solveIntAsBV > 0)
   {
     d_passes["int-to-bv"]->apply(&assertions);
   }
 
-  if (options::ackermann())
+  if (options().smt.ackermann)
   {
     d_passes["ackermann"]->apply(&assertions);
   }
 
-  if (options::bvAbstraction())
+  if (options().bv.bvAbstraction)
   {
     d_passes["bv-abstraction"]->apply(&assertions);
   }
@@ -176,33 +176,33 @@ bool ProcessAssertions::apply(Assertions& as)
 
   bool noConflict = true;
 
-  if (options::extRewPrep())
+  if (options().smt.extRewPrep)
   {
     d_passes["ext-rew-pre"]->apply(&assertions);
   }
 
   // Unconstrained simplification
-  if (options::unconstrainedSimp())
+  if (options().smt.unconstrainedSimp)
   {
     d_passes["rewrite"]->apply(&assertions);
     d_passes["unconstrained-simplifier"]->apply(&assertions);
   }
 
-  if (options::bvIntroducePow2())
+  if (options().bv.bvIntroducePow2)
   {
     d_passes["bv-intro-pow2"]->apply(&assertions);
   }
 
   // Lift bit-vectors of size 1 to bool
-  if (options::bitvectorToBool())
+  if (options().bv.bitvectorToBool)
   {
     d_passes["bv-to-bool"]->apply(&assertions);
   }
-  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
+  if (options().smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
   {
     d_passes["bv-to-int"]->apply(&assertions);
   }
-  if (options::foreignTheoryRewrite())
+  if (options().smt.foreignTheoryRewrite)
   {
     d_passes["foreign-theory-rewrite"]->apply(&assertions);
   }
@@ -215,11 +215,11 @@ bool ProcessAssertions::apply(Assertions& as)
   d_passes["rewrite"]->apply(&assertions);
 
   // Convert non-top-level Booleans to bit-vectors of size 1
-  if (options::boolToBitvector() != options::BoolToBVMode::OFF)
+  if (options().bv.boolToBitvector != options::BoolToBVMode::OFF)
   {
     d_passes["bool-to-bv"]->apply(&assertions);
   }
-  if (options::sepPreSkolemEmp())
+  if (options().sep.sepPreSkolemEmp)
   {
     d_passes["sep-skolem-emp"]->apply(&assertions);
   }
@@ -231,21 +231,21 @@ bool ProcessAssertions::apply(Assertions& as)
 
     // fmf-fun : assume admissible functions, applying preprocessing reduction
     // to FMF
-    if (options::fmfFunWellDefined())
+    if (options().quantifiers.fmfFunWellDefined)
     {
       d_passes["fun-def-fmf"]->apply(&assertions);
     }
   }
-  if (!options::stringLazyPreproc())
+  if (!options().strings.stringLazyPreproc)
   {
     d_passes["strings-eager-pp"]->apply(&assertions);
   }
-  if (options::sortInference() || options::ufssFairnessMonotone())
+  if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
   {
     d_passes["sort-inference"]->apply(&assertions);
   }
 
-  if (options::pbRewrites())
+  if (options().arith.pbRewrites)
   {
     d_passes["pseudo-boolean-processor"]->apply(&assertions);
   }
@@ -268,36 +268,36 @@ bool ProcessAssertions::apply(Assertions& as)
   noConflict = simplifyAssertions(as);
   if (!noConflict)
   {
-    ++(d_smtStats.d_simplifiedToFalse);
+    ++(d_slvStats.d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
   dumpAssertions("post-simplify", as);
 
-  if (options::doStaticLearning())
+  if (options().smt.doStaticLearning)
   {
     d_passes["static-learning"]->apply(&assertions);
   }
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
-  if (options::learnedRewrite())
+  if (options().smt.learnedRewrite)
   {
     d_passes["learned-rewrite"]->apply(&assertions);
   }
 
-  if (options::earlyIteRemoval())
+  if (options().smt.earlyIteRemoval)
   {
-    d_smtStats.d_numAssertionsPre += assertions.size();
+    d_slvStats.d_numAssertionsPre += assertions.size();
     d_passes["ite-removal"]->apply(&assertions);
     // This is needed because when solving incrementally, removeITEs may
     // introduce skolems that were solved for earlier and thus appear in the
     // substitution map.
     d_passes["apply-substs"]->apply(&assertions);
-    d_smtStats.d_numAssertionsPost += assertions.size();
+    d_slvStats.d_numAssertionsPost += assertions.size();
   }
 
   dumpAssertions("pre-repeat-simplify", as);
-  if (options::repeatSimp())
+  if (options().smt.repeatSimp)
   {
     Trace("smt-proc")
         << "ProcessAssertions::processAssertions() : pre-repeat-simplify"
@@ -311,7 +311,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
   dumpAssertions("post-repeat-simplify", as);
 
-  if (options::ufHo())
+  if (options().uf.ufHo)
   {
     d_passes["ho-elim"]->apply(&assertions);
   }
@@ -334,12 +334,12 @@ bool ProcessAssertions::apply(Assertions& as)
   // notice that we do not apply substitutions as a last step here, since
   // the range of substitutions is not theory-preprocessed.
 
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
     d_passes["bv-eager-atoms"]->apply(&assertions);
   }
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
+  Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
   dumpAssertions("post-everything", as);
 
   return noConflict;
@@ -356,7 +356,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
     Trace("simplify") << "ProcessAssertions::simplify()" << endl;
 
-    if (options::simplificationMode() != options::SimplificationMode::NONE)
+    if (options().smt.simplificationMode != options::SimplificationMode::NONE)
     {
       // Perform non-clausal simplification
       PreprocessingPassResult res =
@@ -369,7 +369,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
       // do the miplib trick.
       if (  // check that option is on
-          options::arithMLTrick() &&
+          options().arith.arithMLTrick &&
           // only useful in arith
           logicInfo().isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
@@ -389,8 +389,8 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
     Debug("smt") << " assertions     : " << assertions.size() << endl;
 
     // ITE simplification
-    if (options::doITESimp()
-        && (d_simplifyAssertionsDepth <= 1 || options::doITESimpOnRepeat()))
+    if (options().smt.doITESimp
+        && (d_simplifyAssertionsDepth <= 1 || options().smt.doITESimpOnRepeat))
     {
       PreprocessingPassResult res = d_passes["ite-simp"]->apply(&assertions);
       if (res == PreprocessingPassResult::CONFLICT)
@@ -403,13 +403,14 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
     Debug("smt") << " assertions     : " << assertions.size() << endl;
 
     // Unconstrained simplification
-    if (options::unconstrainedSimp())
+    if (options().smt.unconstrainedSimp)
     {
       d_passes["unconstrained-simplifier"]->apply(&assertions);
     }
 
-    if (options::repeatSimp()
-        && options::simplificationMode() != options::SimplificationMode::NONE)
+    if (options().smt.repeatSimp
+        && options().smt.simplificationMode
+               != options::SimplificationMode::NONE)
     {
       PreprocessingPassResult res =
           d_passes["non-clausal-simp"]->apply(&assertions);

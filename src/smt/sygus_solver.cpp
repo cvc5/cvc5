@@ -178,7 +178,7 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
 
 Result SygusSolver::checkSynth(Assertions& as)
 {
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     // TODO (project #7)
     throw ModalException(
@@ -225,7 +225,7 @@ Result SygusSolver::checkSynth(Assertions& as)
   Result r = d_smtSolver.checkSatisfiability(as, query, false);
 
   // Check that synthesis solutions satisfy the conjecture
-  if (options::checkSynthSol()
+  if (options().smt.checkSynthSol
       && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     checkSynthSolution(as);
@@ -435,6 +435,7 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       Node eop = op.isConst()
                      ? op
                      : d_smtSolver.getPreprocessor()->expandDefinitions(op);
+      eop = rewrite(eop);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments
       for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)

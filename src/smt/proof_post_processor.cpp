@@ -654,7 +654,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
 
-    cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
+    cdp->addStep(eq[1], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
   else if (id == PfRule::MACRO_RESOLUTION
@@ -1207,7 +1207,8 @@ ProofPostproccess::ProofPostproccess(Env& env,
                                      bool updateScopedAssumptions)
     : d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(env.getProofNodeManager(), d_cb, options::proofPpMerge()),
+      d_updater(
+          env.getProofNodeManager(), d_cb, env.getOptions().proof.proofPpMerge),
       d_finalCb(env.getProofNodeManager()),
       d_finalizer(env.getProofNodeManager(), d_finalCb)
 {
