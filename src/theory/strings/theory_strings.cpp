@@ -728,7 +728,7 @@ Node TheoryStrings::mkSkeletonFor(Node c)
     Node kv = sm->mkPurifySkolem(v, "smv");
     skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
   }
-  return utils::mkConcat(skChildren, tn);
+  return utils::mkConcat(skChildren, c.getType());
 }
 
 /////////////////////////////////////////////////////////////////////////////
