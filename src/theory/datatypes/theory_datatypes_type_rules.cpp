@@ -597,6 +597,13 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
   return nm->mkTupleType(types);
 }
 
+TypeNode CodatatypeBoundVariableTypeRule::computeType(NodeManager* nodeManager,
+                                                    TNode n,
+                                                    bool check)
+{
+  return n.getConst<CodatatypeBoundVariable>().getType();
+}
+
 }  // namespace datatypes
 }  // namespace theory
 }  // namespace cvc5
