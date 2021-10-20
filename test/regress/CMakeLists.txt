@@ -782,6 +782,7 @@ set(regress_0_tests
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
   regress0/parser/issue5163.smt2
+  regress0/parser/issue6908-get-value-uc.smt2
   regress0/parser/issue7274.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
@@ -1647,6 +1648,8 @@ set(regress_1_tests
   regress1/fmf/issue4225-univ-fun.smt2
   regress1/fmf/issue5738-dt-interp-finite.smt2
   regress1/fmf/issue6690-re-enum.smt2
+  regress1/fmf/issue6744-2-unc-bool-var.smt2
+  regress1/fmf/issue6744-3-unc-bool-var.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/loopy_coda.smt2
