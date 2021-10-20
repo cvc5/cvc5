@@ -1674,6 +1674,7 @@ set(regress_1_tests
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
   regress1/ho/issue4134-sinf.smt2
+  regress1/ho/issue5741-3.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
   regress1/ho/soundness_fmf_SYO362^5-delta.p
@@ -1904,6 +1905,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4849-nqe.smt2
   regress1/quantifiers/issue5019-cegqi-i.smt2
   regress1/quantifiers/issue5279-nqe.smt2
+  regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
   regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
@@ -1915,6 +1917,8 @@ set(regress_1_tests
   regress1/quantifiers/issue5506-qe.smt2
   regress1/quantifiers/issue5507-qe.smt2
   regress1/quantifiers/issue5658-qe.smt2
+  regress1/quantifiers/issue5735-subtypes.smt2
+  regress1/quantifiers/issue5735-2-subtypes.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
   regress1/quantifiers/issue6607-witness-te.smt2 
@@ -2200,6 +2204,7 @@ set(regress_1_tests
   regress1/strings/issue6101-2.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
+  regress1/strings/issue6184-unsat-core.smt2 
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
   regress1/strings/issue6203-2-re-ccache.smt2

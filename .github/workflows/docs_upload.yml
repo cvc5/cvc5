@@ -81,8 +81,7 @@ jobs:
             mv docs-new target/docs-$NAME-$HASH
             cd target/
 
-            (diff -r -x "*.zip" docs-master/ docs-$NAME-$HASH)
-            issame=$?
+            issame=$(diff -r -x "*.zip" docs-master/ docs-$NAME-$HASH; echo $?; exit 0)
 
             if [[ -n $ISTAG && $issame ]]
             then
