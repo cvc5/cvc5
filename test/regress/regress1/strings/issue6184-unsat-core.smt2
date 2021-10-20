@@ -1,3 +1,5 @@
+; COMMAND-LINE: --strings-exp
+; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :check-unsat-cores true)
