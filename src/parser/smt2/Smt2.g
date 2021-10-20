@@ -735,10 +735,9 @@ setInfoInternal[std::unique_ptr<cvc5::Command>* cmd]
   std::string name;
   api::Term sexpr;
 }
-  : KEYWORD symbolicExpr[sexpr]
-    { name = AntlrInput::tokenText($KEYWORD);
-      cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr)));
-    }
+  : KEYWORD { name = AntlrInput::tokenText($KEYWORD); }
+    symbolicExpr[sexpr]
+    { cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr))); }
   ;
 
 setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
@@ -1247,8 +1246,12 @@ simpleSymbolicExprNoKeyword[std::string& s]
     { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
     { s = AntlrInput::tokenText($BINARY_LITERAL); }
-  | str[s,false]
-  | symbol[s,CHECK_NONE,SYM_SORT]
+  | SIMPLE_SYMBOL
+    { s = AntlrInput::tokenText($SIMPLE_SYMBOL); }
+  | QUOTED_SYMBOL
+    { s = AntlrInput::tokenText($QUOTED_SYMBOL); }
+  | STRING_LITERAL
+    { s = AntlrInput::tokenText($STRING_LITERAL); }
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
         | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
