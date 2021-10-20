@@ -308,6 +308,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint operator>(const Sort&) except +
         bint operator<=(const Sort&) except +
         bint operator>=(const Sort&) except +
+        bint isNull() except +
         bint isBoolean() except +
         bint isInteger() except +
         bint isReal() except +
@@ -321,6 +322,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isConstructor() except +
         bint isSelector() except +
         bint isTester() except +
+        bint isUpdater() except +
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +
