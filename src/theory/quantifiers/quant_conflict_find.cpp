@@ -594,7 +594,8 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
       }
     }else{
       // see if the body of the quantified formula evaluates to a Boolean
-      // combination of known terms under the current substitution.
+      // combination of known terms under the current substitution. We use
+      // the helper method evaluateTerm from the entailment check utility.
       Node inst_eval = echeck->evaluateTerm(
           d_q[1], subs, false, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
@@ -604,6 +605,10 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
         }
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
       }
+      // If it is the case that instantiation can be rewritten to a Boolean
+      // combination of terms that exist in the current context, then inst_eval
+      // is non-null. Moreover, we insist that inst_eval is not true, or else
+      // the instantiation is trivially entailed and hence is spurious.
       if (inst_eval.isNull()
           || (inst_eval.isConst() && inst_eval.getConst<bool>()))
       {

@@ -49,7 +49,8 @@ class EntailmentCheck : protected EnvObj
    * subs.
    *
    * This function may generate new terms. In particular, we typically rewrite
-   * subterms of n of maximal size to terms that exist in the equality engine.
+   * subterms of n of maximal size (in terms of the AST) to terms that exist
+   * in the equality engine.
    *
    * useEntailmentTests is whether to call the theory engine's entailmentTest
    * on literals n for which this call fails to find a term n' that is
