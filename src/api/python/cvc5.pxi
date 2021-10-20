@@ -2391,27 +2391,57 @@ cdef class Sort:
 	    (e.g. index or element sorts of arrays).                                            	 
             
             Examples of sorts that are not first-class include sort constructor 
-	    sorts and regular expression sorts.                                            	"""
+	        sorts and regular expression sorts.
             
 	    :return: True if the sort is a first-class sort.
         """
         return self.csort.isFirstClass()
 
     def isFunctionLike(self):
+        """
+            Is this a function-LIKE sort?
+            
+            Anything function-like except arrays (e.g., datatype selectors) is
+            considered a function here. Function-like terms can not be the argument
+            or return value for any term that is function-like.
+            This is mainly to avoid higher order.
+            
+            Note that arrays are explicitly not considered function-like here.
+
+	    :return: True if this is a function-like sort
+        """
         return self.csort.isFunctionLike()
 
     def isSubsortOf(self, Sort sort):
+        """
+            Is this sort a subsort of the given sort?
+	    :return: True if this sort is a subsort of s
+	"""
         return self.csort.isSubsortOf(sort.csort)
 
     def isComparableTo(self, Sort sort):
+        """
+            Is this sort comparable to the given sort
+	    (i.e., do they share a common ancestor in the subsort tree)?
+	    :return: True if this sort is comparable to s
+	"""
         return self.csort.isComparableTo(sort.csort)
 
     def getDatatype(self):
+        """
+	    :return: the underlying datatype of a datatype sort
+	"""
         cdef Datatype d = Datatype(self.solver)
         d.cd = self.csort.getDatatype()
         return d
 
     def instantiate(self, params):
+        """
+	    Instantiate a parameterized datatype/sort sort.
+	    Create sorts parameter with Solver.mkParamSort().
+	     
+	    :param params: the list of sort parameters to instantiate with
+	"""
         cdef Sort sort = Sort(self.solver)
         cdef vector[c_Sort] v
         for s in params:
