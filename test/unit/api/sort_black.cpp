@@ -65,7 +65,7 @@ TEST_F(TestApiBlackSort, isNull)
 {
   Sort x;
   ASSERT_TRUE(x.isNull());
-  x = d_solver.getBooleanSort());
+  x = d_solver.getBooleanSort();
   ASSERT_FALSE(x.isNull());
 }
 
