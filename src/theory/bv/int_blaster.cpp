@@ -27,6 +27,7 @@
 #include "options/option_exception.h"
 #include "options/uf_options.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/logic_info.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
