@@ -2449,10 +2449,53 @@ cdef class Sort:
         sort.csort = self.csort.instantiate(v)
         return sort
 
+    def substitute(self, term_or_list_1, term_or_list_2):
+        """
+	    Substitution of Sorts.
+	    :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
+	    :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
+	"""
+	     
+        # The resulting sort after substitution
+        cdef Sort sort = Sort(self.solver)
+        # lists for substitutions
+        cdef vector[c_Sort] ces
+        cdef vector[c_Sort] creplacements
+
+        # normalize the input parameters to be lists
+        if isinstance(sort_or_list_1, list):
+            assert isinstance(sort_or_list_2, list)
+            es = sort_or_list_1
+            replacements = sort_or_list_2
+            if len(es) != len(replacements):
+                raise RuntimeError("Expecting list inputs to substitute to "
+                                   "have the same length but got: "
+                                   "{} and {}".format(len(es), len(replacements)))
+
+            for e, r in zip(es, replacements):
+                ces.push_back((<Sort?> e).csort)
+                creplacements.push_back((<Sort?> r).csort)
+
+        else:
+            # add the single elements to the vectors
+            ces.push_back((<Sort?> sort_or_list_1).csort)
+            creplacements.push_back((<Term?> sort_or_list_2).csort)
+
+        # call the API substitute method with lists
+        sort.csort = self.csort.substitute(ces, creplacements)
+        return sort
+
+    
     def getConstructorArity(self):
+        """
+	    :return: the arity of a constructor sort.
+	"""
         return self.csort.getConstructorArity()
 
     def getConstructorDomainSorts(self):
+        """
+	    :return: the domain sorts of a constructor sort
+	"""
         domain_sorts = []
         for s in self.csort.getConstructorDomainSorts():
             sort = Sort(self.solver)
@@ -2461,34 +2504,55 @@ cdef class Sort:
         return domain_sorts
 
     def getConstructorCodomainSort(self):
+        """
+	    :return: the codomain sort of a constructor sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getConstructorCodomainSort()
         return sort
 
     def getSelectorDomainSort(self):
+        """
+	    :return: the domain sort of a selector sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSelectorDomainSort()
         return sort
 
     def getSelectorCodomainSort(self):
+        """
+	    :return: the codomain sort of a selector sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSelectorCodomainSort()
         return sort
 
     def getTesterDomainSort(self):
+        """
+	    :return: the domain sort of a tester sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getTesterDomainSort()
         return sort
 
     def getTesterCodomainSort(self):
+        """
+	    :return: the codomain sort of a tester sort, which is the Boolean sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getTesterCodomainSort()
         return sort
 
     def getFunctionArity(self):
+        """
+	    :return: the arity of a function sort
+	"""
         return self.csort.getFunctionArity()
 
     def getFunctionDomainSorts(self):
+        """
+	    :return: the domain sorts of a function sort
+	"""
         domain_sorts = []
         for s in self.csort.getFunctionDomainSorts():
             sort = Sort(self.solver)
@@ -2497,42 +2561,69 @@ cdef class Sort:
         return domain_sorts
 
     def getFunctionCodomainSort(self):
+        """
+	    :return: the codomain sort of a function sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getFunctionCodomainSort()
         return sort
 
     def getArrayIndexSort(self):
+        """
+	    :return: the array index sort of an array sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getArrayIndexSort()
         return sort
 
     def getArrayElementSort(self):
+        """
+	    :return: the array element sort of an array sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getArrayElementSort()
         return sort
 
     def getSetElementSort(self):
+        """
+	    :return: the element sort of a set sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSetElementSort()
         return sort
 
     def getBagElementSort(self):
+        """
+	    :return: the element sort of a bag sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getBagElementSort()
         return sort
 
     def getSequenceElementSort(self):
+        """
+	    :return: the element sort of a sequence sort
+	"""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
     def getUninterpretedSortName(self):
+        """
+	    :return: the name of an uninterpreted sort
+	"""
         return self.csort.getUninterpretedSortName().decode()
 
     def isUninterpretedSortParameterized(self):
+        """
+	    :return: True if an uninterpreted sort is parameterized
+	"""
         return self.csort.isUninterpretedSortParameterized()
 
     def getUninterpretedSortParamSorts(self):
+        """
+	    :return: the parameter sorts of an uninterpreted sort
+	"""
         param_sorts = []
         for s in self.csort.getUninterpretedSortParamSorts():
             sort = Sort(self.solver)
@@ -2541,21 +2632,39 @@ cdef class Sort:
         return param_sorts
 
     def getSortConstructorName(self):
+        """
+	    :return: the name of a sort constructor sort
+	"""
         return self.csort.getSortConstructorName().decode()
 
     def getSortConstructorArity(self):
+        """
+	    :return: the arity of a sort constructor sort
+	"""
         return self.csort.getSortConstructorArity()
 
     def getBVSize(self):
+        """
+	    :return: the bit-width of the bit-vector sort
+	"""
         return self.csort.getBVSize()
 
     def getFPExponentSize(self):
+        """
+	    :return: the bit-width of the exponent of the floating-point sort
+	"""
         return self.csort.getFPExponentSize()
 
     def getFPSignificandSize(self):
+        """
+	    :return: the width of the significand of the floating-point sort
+	"""
         return self.csort.getFPSignificandSize()
 
     def getDatatypeParamSorts(self):
+        """
+	    :return: the parameter sorts of a datatype sort
+	"""
         param_sorts = []
         for s in self.csort.getDatatypeParamSorts():
             sort = Sort(self.solver)
@@ -2564,12 +2673,21 @@ cdef class Sort:
         return param_sorts
 
     def getDatatypeArity(self):
+        """
+	    :return: the arity of a datatype sort
+	"""
         return self.csort.getDatatypeArity()
 
     def getTupleLength(self):
+        """
+	    :return: the length of a tuple sort
+	"""
         return self.csort.getTupleLength()
 
     def getTupleSorts(self):
+        """
+	    :return: the element sorts of a tuple sort
+	"""
         tuple_sorts = []
         for s in self.csort.getTupleSorts():
             sort = Sort(self.solver)

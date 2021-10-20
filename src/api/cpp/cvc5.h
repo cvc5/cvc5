@@ -555,6 +555,8 @@ class CVC5_EXPORT Sort
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
    */
+  // TODO ask Haniel to add tests in cpp. I will add in python.
+  // TODO ask Haniel to add docum,entation for the return value.
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
   /**
@@ -642,7 +644,7 @@ class CVC5_EXPORT Sort
   Sort getArrayIndexSort() const;
 
   /**
-   * @return the array element sort of an array element sort
+   * @return the array element sort of an array sort
    */
   Sort getArrayElementSort() const;
 
