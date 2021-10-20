@@ -219,6 +219,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkRegexpSigma() except +
         Term mkEmptySet(Sort s) except +
         Term mkEmptyBag(Sort s) except +
+        Term mkSepEmp() except +
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
         Term mkString(const wstring& s) except +
