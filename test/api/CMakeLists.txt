@@ -52,7 +52,6 @@ cvc5_add_api_test(two_solvers)
 cvc5_add_api_test(issue5074)
 cvc5_add_api_test(issue4889)
 cvc5_add_api_test(issue6111)
-cvc5_add_api_test(issue7000)
 
 # if we've built using libedit, then we want the interactive shell tests
 if (USE_EDITLINE)
