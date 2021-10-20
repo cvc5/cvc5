@@ -28,51 +28,67 @@ using namespace std;
 namespace cvc5 {
 
 CodatatypeBoundVariable::CodatatypeBoundVariable(const TypeNode& type,
-                                             Integer index)
+                                                 Integer index)
     : d_type(new TypeNode(type)), d_index(index)
 {
-  PrettyCheckArgument(type.isCodatatype(), type, "codatatype bound variables can only be created for codatatype sorts, not `%s'", type.toString().c_str());
-  PrettyCheckArgument(index >= 0, index, "index >= 0 required for codatatype bound variable index, not `%s'", index.toString().c_str());
+  PrettyCheckArgument(type.isCodatatype(),
+                      type,
+                      "codatatype bound variables can only be created for "
+                      "codatatype sorts, not `%s'",
+                      type.toString().c_str());
+  PrettyCheckArgument(
+      index >= 0,
+      index,
+      "index >= 0 required for codatatype bound variable index, not `%s'",
+      index.toString().c_str());
 }
 
 CodatatypeBoundVariable::~CodatatypeBoundVariable() {}
 
-CodatatypeBoundVariable::CodatatypeBoundVariable(const CodatatypeBoundVariable& other)
+CodatatypeBoundVariable::CodatatypeBoundVariable(
+    const CodatatypeBoundVariable& other)
     : d_type(new TypeNode(other.getType())), d_index(other.getIndex())
 {
 }
 
 const TypeNode& CodatatypeBoundVariable::getType() const { return *d_type; }
 const Integer& CodatatypeBoundVariable::getIndex() const { return d_index; }
-bool CodatatypeBoundVariable::operator==(const CodatatypeBoundVariable& cbv) const
+bool CodatatypeBoundVariable::operator==(
+    const CodatatypeBoundVariable& cbv) const
 {
   return getType() == cbv.getType() && d_index == cbv.d_index;
 }
-bool CodatatypeBoundVariable::operator!=(const CodatatypeBoundVariable& cbv) const
+bool CodatatypeBoundVariable::operator!=(
+    const CodatatypeBoundVariable& cbv) const
 {
   return !(*this == cbv);
 }
 
-bool CodatatypeBoundVariable::operator<(const CodatatypeBoundVariable& cbv) const
+bool CodatatypeBoundVariable::operator<(
+    const CodatatypeBoundVariable& cbv) const
 {
   return getType() < cbv.getType()
          || (getType() == cbv.getType() && d_index < cbv.d_index);
 }
-bool CodatatypeBoundVariable::operator<=(const CodatatypeBoundVariable& cbv) const
+bool CodatatypeBoundVariable::operator<=(
+    const CodatatypeBoundVariable& cbv) const
 {
   return getType() < cbv.getType()
          || (getType() == cbv.getType() && d_index <= cbv.d_index);
 }
-bool CodatatypeBoundVariable::operator>(const CodatatypeBoundVariable& cbv) const
+bool CodatatypeBoundVariable::operator>(
+    const CodatatypeBoundVariable& cbv) const
 {
   return !(*this <= cbv);
 }
-bool CodatatypeBoundVariable::operator>=(const CodatatypeBoundVariable& cbv) const
+bool CodatatypeBoundVariable::operator>=(
+    const CodatatypeBoundVariable& cbv) const
 {
   return !(*this < cbv);
 }
 
-std::ostream& operator<<(std::ostream& out, const CodatatypeBoundVariable& cbv) {
+std::ostream& operator<<(std::ostream& out, const CodatatypeBoundVariable& cbv)
+{
   std::stringstream ss;
   ss << cbv.getType();
   std::string st(ss.str());
