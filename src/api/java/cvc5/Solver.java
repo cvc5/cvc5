@@ -885,13 +885,13 @@ public class Solver implements IPointer
    * Create a separation logic empty term.
    * @return the separation logic empty term
    */
-  public Term mkSepEmp(Sort sort)
+  public Term mkSepEmp()
   {
     long termPointer = mkSepEmp(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkSepEmp(long pointer, long sortPointer);
+  private native long mkSepEmp(long pointer);
 
   /**
    * Create a separation logic nil term.
