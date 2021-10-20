@@ -700,19 +700,19 @@ class CVC5_EXPORT Sort
   /**
    * @return the bit-width of the bit-vector sort
    */
-  uint32_t getBVSize() const;
+  uint32_t getBitVectorSize() const;
 
   /* Floating-point sort ------------------------------------------------- */
 
   /**
    * @return the bit-width of the exponent of the floating-point sort
    */
-  uint32_t getFPExponentSize() const;
+  uint32_t getFloatingPointExponentSize() const;
 
   /**
    * @return the width of the significand of the floating-point sort
    */
-  uint32_t getFPSignificandSize() const;
+  uint32_t getFloatingPointSignificandSize() const;
 
   /* Datatype sort ------------------------------------------------------- */
 
@@ -1167,11 +1167,30 @@ class CVC5_EXPORT Term
    *       for example, the term f(x, y) will have Kind APPLY_UF and three
    *       children: f, x, and y
    */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Term>
+  class const_iterator
   {
     friend class Term;
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Term;
+
+    /** The pointer type of the item */
+    using pointer = const Term*;
+
+    /** The reference type of the item */
+    using reference = const Term&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /**
      * Null Constructor.
      */
@@ -1951,11 +1970,29 @@ class CVC5_EXPORT DatatypeConstructor
    * Iterator for the selectors of a datatype constructor.
    */
   class const_iterator
-      : public std::iterator<std::input_iterator_tag, DatatypeConstructor>
   {
     friend class DatatypeConstructor;  // to access constructor
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = DatatypeConstructor;
+
+    /** The pointer type of the item */
+    using pointer = const DatatypeConstructor*;
+
+    /** The reference type of the item */
+    using reference = const DatatypeConstructor&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /** Nullary constructor (required for Cython). */
     const_iterator();
 
@@ -2184,11 +2221,30 @@ class CVC5_EXPORT Datatype
   /**
    * Iterator for the constructors of a datatype.
    */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Datatype>
+  class const_iterator
   {
     friend class Datatype;  // to access constructor
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Datatype;
+
+    /** The pointer type of the item */
+    using pointer = const Datatype*;
+
+    /** The reference type of the item */
+    using reference = const Datatype&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /** Nullary constructor (required for Cython). */
     const_iterator();
 
@@ -2408,7 +2464,7 @@ class CVC5_EXPORT Grammar
   /**
    * Allow \p ntSymbol to be any input variable to corresponding
    * synth-fun/synth-inv with the same sort as \p ntSymbol.
-   * @param ntSymbol the non-terminal allowed to be any input constant
+   * @param ntSymbol the non-terminal allowed to be any input variable
    */
   void addAnyVariable(const Term& ntSymbol);
 

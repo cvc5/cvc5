@@ -26,11 +26,30 @@
 namespace cvc5 {
 namespace expr {
 
-class NodeSelfIterator : public std::iterator<std::input_iterator_tag, Node> {
+class NodeSelfIterator {
   Node d_node;
   Node::const_iterator d_child;
 
 public:
+  /* The following types are required by trait std::iterator_traits */
+
+  /** Iterator tag */
+  using iterator_category = std::forward_iterator_tag;
+
+  /** The type of the item */
+  using value_type = Node;
+
+  /** The pointer type of the item */
+  using pointer = Node*;
+
+  /** The reference type of the item */
+  using reference = Node&;
+
+  /** The type returned when two iterators are subtracted */
+  using difference_type = std::ptrdiff_t;
+
+  /* End of std::iterator_traits required types */
+
   static NodeSelfIterator self(TNode n);
   static NodeSelfIterator selfEnd(TNode n);
 
