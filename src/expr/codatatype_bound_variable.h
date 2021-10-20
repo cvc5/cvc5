@@ -39,7 +39,7 @@ class TypeNode;
  * represent the above value as:
  *    (cons 0 @cbv_0)
  * In the above value, @cbv_0 is a pointer to its direct parent, so the above
- * value represents the infintite list (cons 0 (cons 0 (cons 0 ... ))).
+ * value represents the infinite list (cons 0 (cons 0 (cons 0 ... ))).
  * Another example, the value:
  *    (cons 0 (cons 1 @cbv_1))
  * @cbv_1 is pointer to the top most node of this value, so this is value
