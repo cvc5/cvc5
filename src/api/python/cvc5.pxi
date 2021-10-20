@@ -2370,8 +2370,8 @@ cdef class Sort:
 
     def isUninterpretedSort(self):
         """
-            Is this a sort kind?
-            :return: True if the sort is a sort kind.
+            Is this a sort uninterpreted?
+            :return: True if the sort is uninterpreted.
         """
         return self.csort.isUninterpretedSort()
 

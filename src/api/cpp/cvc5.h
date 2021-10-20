@@ -485,10 +485,9 @@ class CVC5_EXPORT Sort
   bool isSequence() const;
 
   /**
-   * Is this a sort kind?
-   * @return true if this is a sort kind
+   * Is this an uninterpreted sort?
+   * @return true if this is an uninterpreted sor
    */
-  // TODO doesn't make sense. ask Aina
   bool isUninterpretedSort() const;
 
   /**
