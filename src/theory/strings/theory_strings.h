@@ -243,6 +243,21 @@ class TheoryStrings : public Theory {
    * there does not exist a term of the form str.len(si) in the current context.
    */
   void checkRegisterTermsNormalForms();
+  /**
+   * Turn a sequence constant into a skeleton
+   * In particular, this means that value:
+    *   (seq.++ (seq.unit 0) (seq.unit 1) (seq.unit 2))
+    * becomes:
+    *   (seq.++ (seq.unit k_0) (seq.unit k_1) (seq.unit k_2))
+    * where k_0, k_1, k_2 are fresh integer variables. These
+    * variables will be assigned values in the standard way by the
+    * model. This construction is necessary during model construction since the strings solver
+    * must constrain the length of the model of an equivalence class
+    * (e.g. in this case to length 3); moreover we cannot assign a
+    * concrete value since it may conflict with other skeletons we
+    * have assigned.
+   */
+  Node mkSkeletonFor(Node value);
   //-----------------------end inference steps
   /** run the given inference step */
   void runInferStep(InferStep s, int effort);

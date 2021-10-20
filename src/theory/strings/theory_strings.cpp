@@ -524,6 +524,10 @@ mti.d_nthTerms; for (const Node& t : terms)
               SEnumLen* selGap = sels.getEnumerator(gapSize, tn);
               Assert(!selGap->isFinished());
               Node cgap = selGap->getCurrent();
+              // use a skeleton for the gap and not a concrete value, as we
+              // do not know how which values from the element type are
+              // allowable (i.e. unconstrained) to assign to the gap
+              cgap = mkSkeletonFor(cgap);
               selGap->increment();
               cc.push_back(cgap);
             }
@@ -621,33 +625,8 @@ mti.d_nthTerms; for (const Node& t : terms)
             if (tn.isSequence()
                 && !d_env.isFiniteType(tn.getSequenceElementType()))
             {
-              // Make a skeleton instead. In particular, this means that
-              // a value:
-              //   (seq.++ (seq.unit 0) (seq.unit 1) (seq.unit 2))
-              // becomes:
-              //   (seq.++ (seq.unit k_0) (seq.unit k_1) (seq.unit k_2))
-              // where k_0, k_1, k_2 are fresh integer variables. These
-              // variables will be assigned values in the standard way by the
-              // model. This construction is necessary since the strings solver
-              // must constrain the length of the model of an equivalence class
-              // (e.g. in this case to length 3); moreover we cannot assign a
-              // concrete value since it may conflict with other skeletons we
-              // have assigned, e.g. for the case of (seq.unit argVal) above.
-              SkolemManager* sm = nm->getSkolemManager();
-              BoundVarManager* bvm = nm->getBoundVarManager();
-              Assert(c.getKind() == CONST_SEQUENCE);
-              const Sequence& sn = c.getConst<Sequence>();
-              const std::vector<Node>& snvec = sn.getVec();
-              std::vector<Node> skChildren;
-              for (const Node& snv : snvec)
-              {
-                TypeNode etn = snv.getType();
-                Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
-                // use a skolem, not a bound variable
-                Node kv = sm->mkPurifySkolem(v, "smv");
-                skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
-              }
-              c = utils::mkConcat(skChildren, tn);
+              // Make a skeleton instead.
+              c = mkSkeletonFor(c);
             }
             // increment
             sel->increment();
@@ -730,6 +709,25 @@ mti.d_nthTerms; for (const Node& t : terms)
   //Trace("strings-model") << "String Model : Assigned." << std::endl;
   Trace("strings-model") << "String Model : Finished." << std::endl;
   return true;
+}
+
+Node TheoryStrings::mkSkeletonFor(Node c)
+{
+  SkolemManager* sm = nm->getSkolemManager();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  Assert(c.getKind() == CONST_SEQUENCE);
+  const Sequence& sn = c.getConst<Sequence>();
+  const std::vector<Node>& snvec = sn.getVec();
+  std::vector<Node> skChildren;
+  for (const Node& snv : snvec)
+  {
+    TypeNode etn = snv.getType();
+    Node v = bvm->mkBoundVar<SeqModelVarAttribute>(snv, etn);
+    // use a skolem, not a bound variable
+    Node kv = sm->mkPurifySkolem(v, "smv");
+    skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
+  }
+  return utils::mkConcat(skChildren, tn);
 }
 
 /////////////////////////////////////////////////////////////////////////////
