@@ -71,6 +71,8 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
       checkCount++;
       // check the current for satisfiability
       currModel.clear();
+      // shuffle active terms
+      std::shuffle(activeTerms.begin(), activeTerms.end(), Random::getRandom());
       Result r = checkCurrent(activeTerms, out, currModel);
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
