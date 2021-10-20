@@ -971,6 +971,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/ufnia-fv-delta.smt2
+  regress0/quantifiers/veqt-delta.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc.smt2
   regress0/rels/atom_univ2.cvc.smt2
@@ -1857,6 +1858,7 @@ set(regress_1_tests
   regress1/quantifiers/cee-npnt-dd.smt2
   regress1/quantifiers/cee-os-delta.smt2
   regress1/quantifiers/cdt-0208-to.smt2
+  regress1/quantifiers/choice-move-delta-relt.smt2
   regress1/quantifiers/const.cvc.smt2
   regress1/quantifiers/constfunc.cvc.smt2
   regress1/quantifiers/ddatv-delta2.smt2
@@ -2312,6 +2314,7 @@ set(regress_1_tests
   regress1/sygus/abv.sy
   regress1/sygus/array-grammar-store.sy
   regress1/sygus/array_search_5-Q-easy.sy
+  regress1/sygus/array-uc.sy
   regress1/sygus/bvudiv-by-2.sy
   regress1/sygus/cegar1.sy
   regress1/sygus/cegis-unif-inv-eq-fair.sy

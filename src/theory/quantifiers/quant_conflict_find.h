@@ -132,8 +132,6 @@ public:
 public:
   QuantInfo();
   ~QuantInfo();
-  /** Get quantifiers inference manager */
-  QuantifiersInferenceManager& getInferenceManager();
   std::vector< TNode > d_vars;
   std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
