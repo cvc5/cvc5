@@ -1353,6 +1353,8 @@ class CVC5_EXPORT Term
   std::pair<int64_t, uint64_t> getReal64Value() const;
   /**
    * @return true if the term is a rational value.
+   *
+   * Note that a term of kind PI is not considered to be a real value.
    */
   bool isRealValue() const;
   /**
@@ -1448,6 +1450,17 @@ class CVC5_EXPORT Term
 
   /**
    * @return true if the term is a set value.
+   *
+   * A term is a set value if it is considered to be a (canonical) constant set
+   * value.  A canonical set value is one whose AST is:
+   * ```
+   *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * ```
+   * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
+   * also @ref Term::operator>(const Term&) const).
+   *
+   * Note that a universe set term (kind UNIVERSE_SET) is not considered to be
+   * a set value.
    */
   bool isSetValue() const;
   /**

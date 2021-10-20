@@ -2214,6 +2214,9 @@ cdef class Sort:
     def __hash__(self):
         return csorthash(self.csort)
 
+    def isNull(self):
+        return self.csort.isNull()
+
     def isBoolean(self):
         return self.csort.isBoolean()
 
@@ -2252,6 +2255,9 @@ cdef class Sort:
 
     def isTester(self):
         return self.csort.isTester()
+
+    def isUpdater(self):
+        return self.csort.isUpdater()
 
     def isFunction(self):
         return self.csort.isFunction()
