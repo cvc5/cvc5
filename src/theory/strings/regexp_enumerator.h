@@ -1,6 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
+<<<<<<< HEAD
  *   Andrew Reynolds, Tianyi Liang, Mathias Preiner
+=======
+ *   Andrew Reynolds
+>>>>>>> f047038b1bec31a1ebb89e9d35e3aebb3301eddc
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +14,11 @@
  * directory for licensing information.
  * ****************************************************************************
  *
+<<<<<<< HEAD
  * Enumerators for strings.
+=======
+ * Enumerators for regular expressions.
+>>>>>>> f047038b1bec31a1ebb89e9d35e3aebb3301eddc
  */
 
 #include "cvc5_private.h"
@@ -30,7 +38,9 @@ namespace strings {
 
 /**
  * Simple regular expression enumerator, generates only singleton language
- * regular expressions from a string enumeration.
+ * regular expressions from a string enumeration, in other words:
+ *   (str.to_re s1) ... (str.to_re sn) ....
+ * where s1 ... sn ... is the enumeration for strings.
  */
 class RegExpEnumerator : public TypeEnumeratorBase<RegExpEnumerator>
 {

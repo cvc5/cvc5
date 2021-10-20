@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,22 +10,17 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of enumerators for strings.
+ * Implementation of enumerator for regular expressions.
  */
 
 #include "theory/strings/regexp_enumerator.h"
-
-#include "expr/sequence.h"
-#include "theory/strings/theory_strings_utils.h"
-#include "util/string.h"
 
 namespace cvc5 {
 namespace theory {
 namespace strings {
 
 RegExpEnumerator::RegExpEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
-    : TypeEnumeratorBase<RegExpEnumerator>(type),
-      d_senum(type, tep)
+    : TypeEnumeratorBase<RegExpEnumerator>(type), d_senum(type, tep)
 {
 }
 
@@ -35,8 +30,9 @@ RegExpEnumerator::RegExpEnumerator(const RegExpEnumerator& enumerator)
 {
 }
 
-Node RegExpEnumerator::operator*() { 
-  NodeManager * nm = NodeManager::currentNM();
+Node RegExpEnumerator::operator*()
+{
+  NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(kind::STRING_TO_REGEXP, *d_senum);
 }
 
