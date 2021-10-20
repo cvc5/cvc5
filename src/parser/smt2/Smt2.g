@@ -800,7 +800,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
 
     /* echo */
   | ECHO_TOK
-    ( simpleSymbolicExpr[s]
+    ( str[s, true]
       { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
