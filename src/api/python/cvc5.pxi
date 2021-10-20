@@ -2305,41 +2305,6 @@ cdef class Sort:
         sort.csort = self.csort.instantiate(v)
         return sort
 
-    def substitute(self, sort_or_list_1, sort_or_list_2):
-        """
-            Substitution of Sorts.
-            :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
-            :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
-        """
-
-        # The resulting sort after substitution
-        cdef Sort sort = Sort(self.solver)
-        # lists for substitutions
-        cdef vector[c_Sort] ces
-        cdef vector[c_Sort] creplacements
-
-        # normalize the input parameters to be lists
-        if isinstance(sort_or_list_1, list):
-            assert isinstance(sort_or_list_2, list)
-            es = sort_or_list_1
-            replacements = sort_or_list_2
-            if len(es) != len(replacements):
-                raise RuntimeError("Expecting list inputs to substitute to "
-                                   "have the same length but got: "
-                                   "{} and {}".format(len(es), len(replacements)))
-
-            for e, r in zip(es, replacements):
-                ces.push_back((<Sort?> e).csort)
-                creplacements.push_back((<Sort?> r).csort)
-
-        else:
-            # add the single elements to the vectors
-            ces.push_back((<Sort?> sort_or_list_1).csort)
-            creplacements.push_back((<Sort?> sort_or_list_2).csort)
-
-        # call the API substitute method with lists
-        sort.csort = self.csort.substitute(ces, creplacements)
-        return sort
     def getConstructorArity(self):
         return self.csort.getConstructorArity()
 
