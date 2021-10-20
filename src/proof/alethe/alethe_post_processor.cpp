@@ -78,7 +78,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  (cl b c)
     //
     // Here, (cl (or b c)) and (cl b c) cannot correspond to the same proof node
-    // (or b c). Thus, we use build up a new proof node using the kind SEXPR
+    // (or b c). Thus, we build a new proof node using the kind SEXPR
     // that is then printed as (cl (or b c)). We denote this wrapping of a proof
     // node by using an extra pair of parenthesis, i.e. ((or b c)) is the proof
     // node printed as (cl (or b c)).
@@ -88,7 +88,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // very frequent patterns that, to avoid repetition, are described here and
     // referred to in the comments on the specific proof rules below.
     //
-    // The first pattern which will be called singleton pattern in the
+    // The first pattern, which will be called singleton pattern in the
     // following, adds the original proof node F with the corresponding rule R'
     // of the Alethe calculus and uses the same premises as the original proof
     // node (P1:F1) ... (Pn:Fn). However, the conclusion is printed as (cl F).
@@ -99,7 +99,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // --------------------- R
     //  F
     //
-    // Is transformed into:
+    // is transformed into:
     //
     //  (P1:F1) ... (Pn:Fn)
     // --------------------- R'
@@ -107,8 +107,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // * the corresponding proof node is F
     //
-    // The second pattern which will be called clause pattern in the following,
-    // has a conjunction (or G1 ... Gn) as conclusion. It also adds the orignal
+    // The second pattern, which will be called clause pattern in the following,
+    // has a disjunction (or G1 ... Gn) as conclusion. It also adds the orignal
     // proof node (or G1 ... Gn) with the corresponding rule R' of the Alethe
     // calculus and uses the same premises as the original proof node (P1:F1)
     // ... (Pn:Fn). However, the conclusion is printed as (cl G1 ... Gn), i.e.
