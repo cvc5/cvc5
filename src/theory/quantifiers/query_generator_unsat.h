@@ -52,8 +52,9 @@ class QueryGeneratorUnsat : public ExprMiner
 
  private:
   /** Check current */
-  Result checkCurrent(const std::vector<Node>& activeTerms, std::ostream& out,
-                                         std::vector<Node>& currModel);
+  Result checkCurrent(const std::vector<Node>& activeTerms,
+                      std::ostream& out,
+                      std::vector<Node>& currModel);
   /** Get next random index */
   size_t getNextRandomIndex(const std::unordered_set<size_t>& processed) const;
   /** Constant nodes */

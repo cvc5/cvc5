@@ -48,8 +48,8 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
 {
   d_terms.push_back(n);
   Trace("sygus-qgen") << "Add term: " << n << std::endl;
-  Assert (n.getType().isBoolean());
-  
+  Assert(n.getType().isBoolean());
+
   // the loop below conjoins a random subset of predicates we have enumerated
   // so far C1 ^ ... ^ Cn such that no subset of C1 ... Cn is an unsat core
   // we have encountered so far, and each appended Ci is false on a model for
@@ -62,7 +62,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   activeTerms.push_back(n);
   bool addSuccess = true;
   size_t checkCount = 0;
-  while (checkCount<10)
+  while (checkCount < 10)
   {
     Assert(!activeTerms.empty());
     // if we just successfully added a term, do a satisfiability check
@@ -97,19 +97,24 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
       Node nextTermSk = convertToSkolem(nextTerm);
       newTermEval = evaluate(nextTermSk, d_skolems, currModel);
     }
-    if (newTermEval==d_true)
+    if (newTermEval == d_true)
     {
-      Trace("sygus-qgen-check-debug") << "...already satisfied " << convertToSkolem(nextTerm) << " for model " << d_skolems << " " << currModel << std::endl;
+      Trace("sygus-qgen-check-debug")
+          << "...already satisfied " << convertToSkolem(nextTerm)
+          << " for model " << d_skolems << " " << currModel << std::endl;
       addSuccess = false;
     }
     else
     {
-      Trace("sygus-qgen-check-debug") << "...not satisfied " << convertToSkolem(nextTerm) << " for model " << d_skolems << " " << currModel << std::endl;
+      Trace("sygus-qgen-check-debug")
+          << "...not satisfied " << convertToSkolem(nextTerm) << " for model "
+          << d_skolems << " " << currModel << std::endl;
       activeTerms.push_back(nextTerm);
       addSuccess = !d_cores.hasSubset(activeTerms);
       if (!addSuccess)
       {
-        Trace("sygus-qgen-check-debug") << "...already has unsat core " << nextTerm << std::endl;
+        Trace("sygus-qgen-check-debug")
+            << "...already has unsat core " << nextTerm << std::endl;
         activeTerms.pop_back();
       }
     }
@@ -120,8 +125,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
 
 Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
                                          std::ostream& out,
-                                         std::vector<Node>& currModel
-                                        )
+                                         std::vector<Node>& currModel)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node qy = nm->mkAnd(activeTerms);
@@ -168,7 +172,6 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
   {
     getModelFromSubsolver(*queryChecker.get(), d_skolems, currModel);
     Trace("sygus-qgen-check") << "...model: " << currModel << std::endl;
-    
   }
   return r;
 }
