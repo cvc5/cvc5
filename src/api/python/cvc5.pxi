@@ -1168,6 +1168,15 @@ cdef class Solver:
         term.cterm = self.csolver.mkEmptyBag(s.csort)
         return term
 
+    def mkSepEmp(self):
+        """Create a separation logic empty term.
+
+        :return: the separation logic empty term
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkSepEmp()
+        return term
+
     def mkSepNil(self, Sort sort):
         """Create a separation logic nil term.
 

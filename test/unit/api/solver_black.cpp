@@ -597,6 +597,8 @@ TEST_F(TestApiBlackSolver, mkRegexpSigma)
       d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
 }
 
+TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
+
 TEST_F(TestApiBlackSolver, mkSepNil)
 {
   ASSERT_NO_THROW(d_solver.mkSepNil(d_solver.getBooleanSort()));
