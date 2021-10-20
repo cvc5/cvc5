@@ -2396,14 +2396,14 @@ cdef class Sort:
     def getSortConstructorArity(self):
         return self.csort.getSortConstructorArity()
 
-    def getBVSize(self):
-        return self.csort.getBVSize()
+    def getBitVectorSize(self):
+        return self.csort.getBitVectorSize()
 
-    def getFPExponentSize(self):
-        return self.csort.getFPExponentSize()
+    def getFloatingPointExponentSize(self):
+        return self.csort.getFloatingPointExponentSize()
 
-    def getFPSignificandSize(self):
-        return self.csort.getFPSignificandSize()
+    def getFloatingPointSignificandSize(self):
+        return self.csort.getFloatingPointSignificandSize()
 
     def getDatatypeParamSorts(self):
         param_sorts = []
