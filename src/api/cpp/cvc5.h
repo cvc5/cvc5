@@ -3431,6 +3431,12 @@ class CVC5_EXPORT Solver
   Term mkEmptyBag(const Sort& sort) const;
 
   /**
+   * Create a separation logic empty term.
+   * @return the separation logic empty term
+   */
+  Term mkSepEmp() const;
+
+  /**
    * Create a separation logic nil term.
    * @param sort the sort of the nil term
    * @return the separation logic nil term
