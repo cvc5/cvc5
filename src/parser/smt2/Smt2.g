@@ -343,7 +343,13 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | /* value query */
-    GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    GET_VALUE_TOK 
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      // bind all symbols specific to the model, e.g. uninterpreted constant
+      // values
+      PARSER_STATE->pushGetValueScope();
+    }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
       { cmd->reset(new GetValueCommand(terms)); }
     | ~LPAREN_TOK
@@ -352,6 +358,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
                                  "parentheses?");
       }
     )
+    { PARSER_STATE->popScope(); }
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssignmentCommand()); }
@@ -793,7 +800,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
 
     /* echo */
   | ECHO_TOK
-    ( simpleSymbolicExpr[s]
+    ( str[s, true]
       { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
@@ -1648,7 +1655,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isConstructor())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for test (_ is X), X must be a constructor.");
+              "Bad syntax for (_ is X), X must be a constructor.");
         }
         // get the datatype that f belongs to
         api::Sort sf = f.getSort().getConstructorCodomainSort();
@@ -1662,7 +1669,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isSelector())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for test (_ update X), X must be a selector.");
+              "Bad syntax for (_ update X), X must be a selector.");
         }
         std::string sname = f.toString();
         // get the datatype that f belongs to
@@ -1672,13 +1679,6 @@ identifier[cvc5::ParseOp& p]
         api::DatatypeSelector ds = d.getSelector(f.toString());
         // get the updater term
         p.d_expr = ds.getUpdaterTerm();
-      }
-    | TUPLE_SEL_TOK m=INTEGER_LITERAL
-      {
-        // we adopt a special syntax (_ tupSel n)
-        p.d_kind = api::APPLY_SELECTOR;
-        // put m in expr so that the caller can deal with this case
-        p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
     | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
@@ -1697,9 +1697,10 @@ identifier[cvc5::ParseOp& p]
       {
         std::string opName = AntlrInput::tokenText($sym);
         api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k == api::APPLY_UPDATER)
+        if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
-          // we adopt a special syntax (_ tuple_update n) for tuple updaters
+          // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
+          // for tuple selectors and updaters
           if (numerals.size() != 1)
           {
             PARSER_STATE->parseError(
@@ -2314,7 +2315,6 @@ FORALL_TOK        : 'forall';
 
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
-TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_select';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
