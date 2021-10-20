@@ -1041,7 +1041,7 @@ cdef class Solver:
                         raise ValueError("Argument {} must fit in a uint32_t".format(a))
 
                     v.push_back((<uint32_t?> a))
-                op.cop = self.csolver.mkOp(k.k, <const vector[uint32_t]&> v)   
+                op.cop = self.csolver.mkOp(k.k, <const vector[uint32_t]&> v)
             else:
                 raise ValueError("Unsupported signature"
                                  " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
@@ -2390,7 +2390,7 @@ cdef class Sort:
             (2) they are allowed to be parameters of parametric sorts
             (e.g. index or element sorts of arrays).
 
-            Examples of sorts that are not first-class include sort constructor 
+            Examples of sorts that are not first-class include sort constructor
                 sorts and regular expression sorts.
 
             :return: True if the sort is a first-class sort.
@@ -2439,7 +2439,7 @@ cdef class Sort:
         """
             Instantiate a parameterized datatype/sort sort.
             Create sorts parameter with Solver.mkParamSort().
- 
+
             :param params: the list of sort parameters to instantiate with
         """
         cdef Sort sort = Sort(self.solver)
@@ -2449,7 +2449,7 @@ cdef class Sort:
         sort.csort = self.csort.instantiate(v)
         return sort
 
-    def substitute(self, term_or_list_1, term_or_list_2):
+    def substitute(self, sort_or_list_1, sort_or_list_2):
         """
             Substitution of Sorts.
             :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
@@ -2479,7 +2479,7 @@ cdef class Sort:
         else:
             # add the single elements to the vectors
             ces.push_back((<Sort?> sort_or_list_1).csort)
-            creplacements.push_back((<Term?> sort_or_list_2).csort)
+            creplacements.push_back((<Sort?> sort_or_list_2).csort)
 
         # call the API substitute method with lists
         sort.csort = self.csort.substitute(ces, creplacements)
