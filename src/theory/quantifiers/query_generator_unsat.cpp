@@ -34,6 +34,8 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env)
   d_subOptions.copyValues(d_env.getOriginalOptions());
   d_subOptions.smt.produceProofs = true;
   d_subOptions.smt.checkProofs = true;
+  d_subOptions.smt.produceModels = true;
+  d_subOptions.smt.checkModels = true;
 }
 
 void QueryGeneratorUnsat::initialize(const std::vector<Node>& vars,
