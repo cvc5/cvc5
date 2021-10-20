@@ -654,7 +654,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
 
-    cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
+    cdp->addStep(eq[1], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
   else if (id == PfRule::MACRO_RESOLUTION
