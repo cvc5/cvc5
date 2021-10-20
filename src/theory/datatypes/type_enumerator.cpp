@@ -16,6 +16,7 @@
 #include "theory/datatypes/type_enumerator.h"
 
 #include "expr/ascription_type.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype_cons.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -108,8 +109,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    {
      if (d_child_enum)
      {
-       ret = NodeManager::currentNM()->mkConst(
-           UninterpretedConstant(d_type, d_size_limit));
+       NodeManager* nm = NodeManager::currentNM();
+       ret = nm->mkConst(CodatatypeBoundVariable(d_type, d_size_limit));
      }
      else
      {
