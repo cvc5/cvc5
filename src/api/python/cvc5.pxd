@@ -308,6 +308,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint operator>(const Sort&) except +
         bint operator<=(const Sort&) except +
         bint operator>=(const Sort&) except +
+        bint isNull() except +
         bint isBoolean() except +
         bint isInteger() except +
         bint isReal() except +
@@ -321,6 +322,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isConstructor() except +
         bint isSelector() except +
         bint isTester() except +
+        bint isUpdater() except +
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +
@@ -357,9 +359,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Sort] getUninterpretedSortParamSorts() except +
         string getSortConstructorName() except +
         size_t getSortConstructorArity() except +
-        uint32_t getBVSize() except +
-        uint32_t getFPExponentSize() except +
-        uint32_t getFPSignificandSize() except +
+        uint32_t getBitVectorSize() except +
+        uint32_t getFloatingPointExponentSize() except +
+        uint32_t getFloatingPointSignificandSize() except +
         vector[Sort] getDatatypeParamSorts() except +
         size_t getDatatypeArity() except +
         size_t getTupleLength() except +

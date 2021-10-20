@@ -16,12 +16,12 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 
 #include "expr/ascription_type.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -729,7 +729,7 @@ Node DatatypesRewriter::collectRef(Node n,
       else
       {
         // a loop
-        const Integer& i = n.getConst<UninterpretedConstant>().getIndex();
+        const Integer& i = n.getConst<CodatatypeBoundVariable>().getIndex();
         uint32_t index = i.toUnsignedInt();
         if (index >= sk.size())
         {
@@ -771,7 +771,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       int debruijn = depth - it->second - 1;
       return NodeManager::currentNM()->mkConst(
-          UninterpretedConstant(n.getType(), debruijn));
+          CodatatypeBoundVariable(n.getType(), debruijn));
     }
     std::vector<Node> children;
     bool childChanged = false;
@@ -798,10 +798,10 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
                                         TypeNode orig_tn,
                                         unsigned depth)
 {
-  if (n.getKind() == kind::UNINTERPRETED_CONSTANT && n.getType() == orig_tn)
+  if (n.getKind() == kind::CODATATYPE_BOUND_VARIABLE && n.getType() == orig_tn)
   {
     unsigned index =
-        n.getConst<UninterpretedConstant>().getIndex().toUnsignedInt();
+        n.getConst<CodatatypeBoundVariable>().getIndex().toUnsignedInt();
     if (index == depth)
     {
       return orig;
