@@ -193,9 +193,9 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
     {
-      std::set<Node> termSet;
       updateModelCache(termSet);
       d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
@@ -204,6 +204,15 @@ void TheoryArith::postCheck(Effort level)
       // set incomplete
       d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
     }
+    // If we won't be doing a last call effort check (which implies that
+    // models will be computed), we must sanity check the integer model
+    // from the linear solver now. We also must update the model cache
+    // if we did not do so above.
+    if (d_nonlinearExtension == nullptr)
+    {
+      updateModelCache(termSet);
+    }
+    sanityCheckIntegerModel();
   }
 }
 
@@ -273,12 +282,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   }
 
   updateModelCache(termSet);
-
-  if (sanityCheckIntegerModel())
-  {
-    // We added a lemma
-    return false;
-  }
 
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : d_arithModelCache)
@@ -383,9 +386,9 @@ bool TheoryArith::sanityCheckIntegerModel()
       Trace("arith-check") << p.first << " -> " << p.second << std::endl;
       if (p.first.getType().isInteger() && !p.second.getType().isInteger())
       {
-        Assert(false) << "TheoryArithPrivate generated a bad model value for "
-                        "integer variable "
-                      << p.first << " : " << p.second;
+        Warning() << "TheoryArithPrivate generated a bad model value for "
+                     "integer variable "
+                  << p.first << " : " << p.second;
         // must branch and bound
         TrustNode lem =
             d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());

@@ -381,15 +381,6 @@ def test_mk_rounding_mode(solver):
     solver.mkRoundingMode(pycvc5.RoundTowardZero)
 
 
-def test_mk_uninterpreted_const(solver):
-    solver.mkUninterpretedConst(solver.getBooleanSort(), 1)
-    with pytest.raises(RuntimeError):
-        solver.mkUninterpretedConst(pycvc5.Sort(solver), 1)
-    slv = pycvc5.Solver()
-    with pytest.raises(RuntimeError):
-        slv.mkUninterpretedConst(solver.getBooleanSort(), 1)
-
-
 def test_mk_abstract_value(solver):
     solver.mkAbstractValue("1")
     with pytest.raises(ValueError):
