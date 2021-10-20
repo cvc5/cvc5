@@ -32,7 +32,6 @@
 #include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
-#include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/set_language.h"
@@ -40,6 +39,7 @@
 #include "options/theory_options.h"
 #include "smt/command.h"
 #include "smt/dump.h"
+#include "util/didyoumean.h"
 
 namespace cvc5 {
 namespace options {
