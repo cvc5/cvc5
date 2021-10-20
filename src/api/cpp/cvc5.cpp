@@ -1682,7 +1682,7 @@ size_t Sort::getSortConstructorArity() const
 
 /* Bit-vector sort ----------------------------------------------------- */
 
-uint32_t Sort::getBVSize() const
+uint32_t Sort::getBitVectorSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -1695,7 +1695,7 @@ uint32_t Sort::getBVSize() const
 
 /* Floating-point sort ------------------------------------------------- */
 
-uint32_t Sort::getFPExponentSize() const
+uint32_t Sort::getFloatingPointExponentSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -1706,7 +1706,7 @@ uint32_t Sort::getFPExponentSize() const
   CVC5_API_TRY_CATCH_END;
 }
 
-uint32_t Sort::getFPSignificandSize() const
+uint32_t Sort::getFloatingPointSignificandSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -6030,10 +6030,11 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
   uint32_t bw = exp + sig;
-  CVC5_API_ARG_CHECK_EXPECTED(bw == val.getSort().getBVSize(), val)
+  CVC5_API_ARG_CHECK_EXPECTED(bw == val.d_node->getType().getBitVectorSize(),
+                              val)
       << "a bit-vector constant with bit-width '" << bw << "'";
   CVC5_API_ARG_CHECK_EXPECTED(
-      val.getSort().isBitVector() && val.d_node->isConst(), val)
+      val.d_node->getType().isBitVector() && val.d_node->isConst(), val)
       << "bit-vector constant";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(

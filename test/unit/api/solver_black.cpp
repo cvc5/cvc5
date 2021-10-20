@@ -376,15 +376,6 @@ TEST_F(TestApiBlackSolver, mkRoundingMode)
   ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
 }
 
-TEST_F(TestApiBlackSolver, mkUninterpretedConst)
-{
-  ASSERT_NO_THROW(d_solver.mkUninterpretedConst(d_solver.getBooleanSort(), 1));
-  ASSERT_THROW(d_solver.mkUninterpretedConst(Sort(), 1), CVC5ApiException);
-  Solver slv;
-  ASSERT_THROW(slv.mkUninterpretedConst(d_solver.getBooleanSort(), 1),
-               CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, mkAbstractValue)
 {
   ASSERT_NO_THROW(d_solver.mkAbstractValue(std::string("1")));
