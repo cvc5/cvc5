@@ -376,15 +376,6 @@ TEST_F(TestApiBlackSolver, mkRoundingMode)
   ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
 }
 
-TEST_F(TestApiBlackSolver, mkUninterpretedConst)
-{
-  ASSERT_NO_THROW(d_solver.mkUninterpretedConst(d_solver.getBooleanSort(), 1));
-  ASSERT_THROW(d_solver.mkUninterpretedConst(Sort(), 1), CVC5ApiException);
-  Solver slv;
-  ASSERT_THROW(slv.mkUninterpretedConst(d_solver.getBooleanSort(), 1),
-               CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, mkAbstractValue)
 {
   ASSERT_NO_THROW(d_solver.mkAbstractValue(std::string("1")));
@@ -1232,6 +1223,23 @@ TEST_F(TestApiBlackSolver, getAbduct)
   ASSERT_TRUE(d_solver.getAbduct(conj2, g, output2));
   // abduct must be true
   ASSERT_EQ(output2, truen);
+}
+
+TEST_F(TestApiBlackSolver, getAbduct2)
+{
+  d_solver.setLogic("QF_LIA");
+  d_solver.setOption("incremental", "false");
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  // Assumptions for abduction: x > 0
+  d_solver.assertFormula(d_solver.mkTerm(GT, x, zero));
+  // Conjecture for abduction: y > 0
+  Term conj = d_solver.mkTerm(GT, y, zero);
+  Term output;
+  // Fails due to option not set
+  ASSERT_THROW(d_solver.getAbduct(conj, output), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, getInterpolant)
