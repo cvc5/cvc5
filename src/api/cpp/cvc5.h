@@ -700,19 +700,19 @@ class CVC5_EXPORT Sort
   /**
    * @return the bit-width of the bit-vector sort
    */
-  uint32_t getBVSize() const;
+  uint32_t getBitVectorSize() const;
 
   /* Floating-point sort ------------------------------------------------- */
 
   /**
    * @return the bit-width of the exponent of the floating-point sort
    */
-  uint32_t getFPExponentSize() const;
+  uint32_t getFloatingPointExponentSize() const;
 
   /**
    * @return the width of the significand of the floating-point sort
    */
-  uint32_t getFPSignificandSize() const;
+  uint32_t getFloatingPointSignificandSize() const;
 
   /* Datatype sort ------------------------------------------------------- */
 
@@ -2464,7 +2464,7 @@ class CVC5_EXPORT Grammar
   /**
    * Allow \p ntSymbol to be any input variable to corresponding
    * synth-fun/synth-inv with the same sort as \p ntSymbol.
-   * @param ntSymbol the non-terminal allowed to be any input constant
+   * @param ntSymbol the non-terminal allowed to be any input variable
    */
   void addAnyVariable(const Term& ntSymbol);
 
