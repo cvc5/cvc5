@@ -502,7 +502,7 @@ Node IntBlaster::translateWithChildren(
        * of the bounds that were relevant for the original
        * bit-vectors.
        */
-      if (childrenTypesChanged(original) && options().uf.ufHo)
+      if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
       {
         throw OptionException("bv-to-int does not support higher order logic ");
       }
