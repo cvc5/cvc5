@@ -798,7 +798,7 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
                                         TypeNode orig_tn,
                                         unsigned depth)
 {
-  if (n.getKind() == kind::UNINTERPRETED_CONSTANT && n.getType() == orig_tn)
+  if (n.getKind() == kind::CODATATYPE_BOUND_VARIABLE && n.getType() == orig_tn)
   {
     unsigned index =
         n.getConst<CodatatypeBoundVariable>().getIndex().toUnsignedInt();
