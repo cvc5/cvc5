@@ -6977,16 +6977,14 @@ std::string Solver::getInfo(const std::string& flag) const
 
 std::string Solver::getOption(const std::string& option) const
 {
-  CVC5_API_TRY_CATCH_BEGIN;
-  std::vector<std::string> options = options::getNames();
-  CVC5_API_UNSUPPORTED_CHECK(
-      option.find("command-verbosity") != std::string::npos
-      || std::find(options.cbegin(), options.cend(), option) != options.cend())
-      << "Unrecognized option: " << option << '.';
-  //////// all checks before this line
-  return d_slv->getOption(option);
-  ////////
-  CVC5_API_TRY_CATCH_END;
+  try
+  {
+    return d_slv->getOption(option);
+  }
+  catch (OptionException& e)
+  {
+    throw CVC5ApiUnsupportedException(e.getMessage());
+  }
 }
 
 // Supports a visitor from a list of lambdas
