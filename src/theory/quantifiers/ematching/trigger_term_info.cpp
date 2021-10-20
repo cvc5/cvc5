@@ -70,6 +70,46 @@ bool TriggerTermInfo::isRelationalTriggerKind(Kind k)
   return k == EQUAL || k == GEQ;
 }
 
+bool TriggerTermInfo::isUsableRelationTrigger(Node n)
+{
+  bool hasPol, pol;
+  Node lit;
+  return isUsableRelationTrigger(n, hasPol, pol, lit);
+}
+bool TriggerTermInfo::isUsableRelationTrigger(Node n,
+                                              bool& hasPol,
+                                              bool& pol,
+                                              Node& lit)
+{
+  // relational triggers (not) (= (~ x t) true|false), where ~ in { =, >= }.
+  hasPol = false;
+  pol = n.getKind() != NOT;
+  lit = pol ? n : n[0];
+  if (lit.getKind() == EQUAL && lit[1].getType().isBoolean()
+      && lit[1].isConst())
+  {
+    hasPol = true;
+    pol = lit[1].getConst<bool>() ? pol : !pol;
+    lit = lit[0];
+  }
+  // is it a relational trigger?
+  if ((lit.getKind() == EQUAL && lit[0].getType().isReal())
+      || lit.getKind() == GEQ)
+  {
+    // if one side of the relation is a variable and the other side is a ground
+    // term, we can treat this using the relational match generator
+    for (size_t i = 0; i < 2; i++)
+    {
+      if (lit[i].getKind() == INST_CONSTANT
+          && !quantifiers::TermUtil::hasInstConstAttr(lit[1 - i]))
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool TriggerTermInfo::isSimpleTrigger(Node n)
 {
   Node t = n.getKind() == NOT ? n[0] : n;
@@ -105,7 +145,7 @@ int32_t TriggerTermInfo::getTriggerWeight(Node n)
   {
     return 0;
   }
-  if (isAtomicTrigger(n))
+  if (isAtomicTrigger(n) || isUsableRelationTrigger(n))
   {
     return 1;
   }

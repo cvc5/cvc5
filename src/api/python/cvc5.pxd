@@ -359,9 +359,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Sort] getUninterpretedSortParamSorts() except +
         string getSortConstructorName() except +
         size_t getSortConstructorArity() except +
-        uint32_t getBVSize() except +
-        uint32_t getFPExponentSize() except +
-        uint32_t getFPSignificandSize() except +
+        uint32_t getBitVectorSize() except +
+        uint32_t getFloatingPointExponentSize() except +
+        uint32_t getFloatingPointSignificandSize() except +
         vector[Sort] getDatatypeParamSorts() except +
         size_t getDatatypeArity() except +
         size_t getTupleLength() except +
