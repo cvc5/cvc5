@@ -43,14 +43,14 @@ HoExtension::HoExtension(Env& env,
 Node HoExtension::ppRewrite(Node node)
 {
   // convert HO_APPLY to APPLY_UF if fully applied
-  if (node.getKind()==HO_APPLY)
+  if (node.getKind() == HO_APPLY)
   {
     if (node[0].getType().getNumChildren() == 2)
     {
       Trace("uf-ho") << "uf-ho : expanding definition : " << node << std::endl;
       Node ret = getApplyUfForHoApply(node);
       Trace("uf-ho") << "uf-ho : ppRewrite : " << node << " to " << ret
-                    << std::endl;
+                     << std::endl;
       return ret;
     }
   }
