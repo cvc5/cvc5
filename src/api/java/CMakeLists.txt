@@ -46,6 +46,9 @@ add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 find_package(Java COMPONENTS Development REQUIRED)
 include(UseJava)
 
+#specify the version for source and target
+set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
+
 # specify java source files
 set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/AbstractPointer.java
