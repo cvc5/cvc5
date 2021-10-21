@@ -31,11 +31,12 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-SumOfInfeasibilitiesSPD::SumOfInfeasibilitiesSPD(LinearEqualityModule& linEq,
+SumOfInfeasibilitiesSPD::SumOfInfeasibilitiesSPD(Env& env,
+                                                 LinearEqualityModule& linEq,
                                                  ErrorSet& errors,
                                                  RaiseConflict conflictChannel,
                                                  TempVarMalloc tvmalloc)
-    : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc),
+    : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
       d_soiVar(ARITHVAR_SENTINEL),
       d_pivotBudget(0),
       d_prevWitnessImprovement(AntiProductive),
@@ -253,7 +254,7 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
     }
   }
 
-  CompPenaltyColLength colCmp(&d_linEq);
+  CompPenaltyColLength colCmp(&d_linEq, options().arith.havePenalties);
   CandVector::iterator i = candidates.begin();
   CandVector::iterator end = candidates.end();
   std::make_heap(i, end, colCmp);
@@ -845,10 +846,13 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
   d_soiVar = ARITHVAR_SENTINEL;
 
-  if(options::soiQuickExplain()){
+  if (options().arith.soiQuickExplain)
+  {
     quickExplain();
     generateSOIConflict(d_qeConflict);
-  }else{
+  }
+  else
+  {
     vector<ArithVarVec> subsets = greedyConflictSubsets();
     Assert(d_soiVar == ARITHVAR_SENTINEL);
     bool anySuccess = false;

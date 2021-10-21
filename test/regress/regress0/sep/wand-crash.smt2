@@ -2,5 +2,5 @@
 ; EXPECT: sat
 (set-logic QF_ALL)
 (declare-heap (Int Int))
-(assert (wand (_ emp Int Int) (_ emp Int Int)))
+(assert (wand sep.emp sep.emp))
 (check-sat)

@@ -19,7 +19,7 @@
 #include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_manager.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -42,7 +42,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
     : d_env(env),
       d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
-      d_wfpm(env.getProofNodeManager()),
+      d_wfpm(env),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -654,7 +654,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
 
-    cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
+    cdp->addStep(eq[1], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
   else if (id == PfRule::MACRO_RESOLUTION
@@ -1207,7 +1207,8 @@ ProofPostproccess::ProofPostproccess(Env& env,
                                      bool updateScopedAssumptions)
     : d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(env.getProofNodeManager(), d_cb, options::proofPpMerge()),
+      d_updater(
+          env.getProofNodeManager(), d_cb, env.getOptions().proof.proofPpMerge),
       d_finalCb(env.getProofNodeManager()),
       d_finalizer(env.getProofNodeManager(), d_finalCb)
 {

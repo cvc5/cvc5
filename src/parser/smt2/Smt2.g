@@ -343,7 +343,13 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | /* value query */
-    GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    GET_VALUE_TOK 
+    {
+      PARSER_STATE->checkThatLogicIsSet();
+      // bind all symbols specific to the model, e.g. uninterpreted constant
+      // values
+      PARSER_STATE->pushGetValueScope();
+    }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
       { cmd->reset(new GetValueCommand(terms)); }
     | ~LPAREN_TOK
@@ -352,6 +358,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
                                  "parentheses?");
       }
     )
+    { PARSER_STATE->popScope(); }
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssignmentCommand()); }
@@ -370,20 +377,11 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
+    { if (PARSER_STATE->sygus()) {
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
+      cmd->reset(new CheckSatCommand());
     }
-    ( term[expr, expr2]
-      { if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "Extended commands (such as check-sat with an argument) are not "
-              "permitted while operating in strict compliance mode.");
-        }
-      }
-    | { expr = api::Term(); }
-    )
-    { cmd->reset(new CheckSatCommand(expr)); }
   | /* check-sat-assuming */
     CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
@@ -752,7 +750,7 @@ setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new SetOptionCommand(name.c_str() + 1, sexprToString(sexpr)));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
-      // on this until some SmtEngine eventually (if ever) executes it.
+      // on this until some SolverEngine eventually (if ever) executes it.
       if(name == ":global-declarations")
       {
         SYM_MAN->setGlobalDeclarations(sexprToString(sexpr) == "true");
@@ -802,7 +800,7 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
 
     /* echo */
   | ECHO_TOK
-    ( simpleSymbolicExpr[s]
+    ( str[s, true]
       { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
@@ -1657,7 +1655,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isConstructor())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for test (_ is X), X must be a constructor.");
+              "Bad syntax for (_ is X), X must be a constructor.");
         }
         // get the datatype that f belongs to
         api::Sort sf = f.getSort().getConstructorCodomainSort();
@@ -1671,7 +1669,7 @@ identifier[cvc5::ParseOp& p]
         if (!f.getSort().isSelector())
         {
           PARSER_STATE->parseError(
-              "Bad syntax for test (_ update X), X must be a selector.");
+              "Bad syntax for (_ update X), X must be a selector.");
         }
         std::string sname = f.toString();
         // get the datatype that f belongs to
@@ -1681,13 +1679,6 @@ identifier[cvc5::ParseOp& p]
         api::DatatypeSelector ds = d.getSelector(f.toString());
         // get the updater term
         p.d_expr = ds.getUpdaterTerm();
-      }
-    | TUPLE_SEL_TOK m=INTEGER_LITERAL
-      {
-        // we adopt a special syntax (_ tupSel n)
-        p.d_kind = api::APPLY_SELECTOR;
-        // put m in expr so that the caller can deal with this case
-        p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
     | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
@@ -1706,9 +1697,10 @@ identifier[cvc5::ParseOp& p]
       {
         std::string opName = AntlrInput::tokenText($sym);
         api::Kind k = PARSER_STATE->getIndexedOpKind(opName);
-        if (k == api::APPLY_UPDATER)
+        if (k == api::APPLY_SELECTOR || k == api::APPLY_UPDATER)
         {
-          // we adopt a special syntax (_ tuple_update n) for tuple updaters
+          // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
+          // for tuple selectors and updaters
           if (numerals.size() != 1)
           {
             PARSER_STATE->parseError(
@@ -1765,16 +1757,7 @@ termAtomic[cvc5::api::Term& atomTerm]
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
   // as a 32-bit floating-point constant)
   | LPAREN_TOK INDEX_TOK
-    ( EMP_TOK
-      sortSymbol[type,CHECK_DECLARED]
-      sortSymbol[type2,CHECK_DECLARED]
-      {
-        // Empty heap constant in seperation logic
-        api::Term v1 = SOLVER->mkConst(api::Sort(type), "_emp1");
-        api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
-        atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
-      }
-    | CHAR_TOK HEX_LITERAL 
+    ( CHAR_TOK HEX_LITERAL
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
         atomTerm = PARSER_STATE->mkCharConstant(hexStr);
@@ -2152,7 +2135,7 @@ symbol[std::string& id,
   : SIMPLE_SYMBOL
     { id = AntlrInput::tokenText($SIMPLE_SYMBOL);
       if(!PARSER_STATE->isAbstractValue(id)) {
-        // if an abstract value, SmtEngine handles declaration
+        // if an abstract value, SolverEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
@@ -2161,7 +2144,7 @@ symbol[std::string& id,
       /* strip off the quotes */
       id = id.substr(1, id.size() - 2);
       if(!PARSER_STATE->isAbstractValue(id)) {
-        // if an abstract value, SmtEngine handles declaration
+        // if an abstract value, SolverEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
@@ -2330,10 +2313,8 @@ ATTRIBUTE_QUANTIFIER_ID_TOK : ':qid';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
-EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
-TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
-TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
+TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

@@ -72,13 +72,11 @@ bool BvIntroPow2::isPowerOfTwo(TNode node)
   if (t.getNumChildren() != 2) return false;
   TNode a = t[0];
   TNode b = t[1];
-  unsigned size = bv::utils::getSize(t);
-  if (size < 2) return false;
+  if (bv::utils::getSize(t) < 2) return false;
   Node diff =
       rewrite(NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, a, b));
   return (diff.isConst()
-          && (diff == bv::utils::mkConst(size, 1u)
-              || diff == bv::utils::mkOnes(size)));
+          && (bv::utils::isOne(diff) || bv::utils::isOnes(diff)));
 }
 
 Node BvIntroPow2::rewritePowerOfTwo(TNode node)
@@ -87,11 +85,11 @@ Node BvIntroPow2::rewritePowerOfTwo(TNode node)
   TNode term = bv::utils::isZero(node[0]) ? node[1] : node[0];
   TNode a = term[0];
   TNode b = term[1];
-  unsigned size = bv::utils::getSize(term);
+  uint32_t size = bv::utils::getSize(term);
   Node diff = rewrite(nm->mkNode(kind::BITVECTOR_SUB, a, b));
   Assert(diff.isConst());
-  TNode x = diff == bv::utils::mkConst(size, 1u) ? a : b;
-  Node one = bv::utils::mkConst(size, 1u);
+  Node one = bv::utils::mkOne(size);
+  TNode x = diff == one ? a : b;
   Node sk = bv::utils::mkVar(size);
   Node sh = nm->mkNode(kind::BITVECTOR_SHL, one, sk);
   Node x_eq_sh = nm->mkNode(kind::EQUAL, x, sh);

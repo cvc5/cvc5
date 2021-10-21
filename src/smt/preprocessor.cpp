@@ -25,7 +25,7 @@
 #include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -35,17 +35,15 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-Preprocessor::Preprocessor(SmtEngine& smt,
-                           Env& env,
+Preprocessor::Preprocessor(Env& env,
                            AbstractValues& abs,
-                           SmtEngineStatistics& stats)
-    : d_smt(smt),
-      d_env(env),
+                           SolverEngineStatistics& stats)
+    : EnvObj(env),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(env.getUserContext(), false),
-      d_exDefs(env, stats),
-      d_processor(smt, *env.getResourceManager(), stats),
+      d_exDefs(env),
+      d_processor(env, stats),
       d_pnm(nullptr)
 {
 }
@@ -59,10 +57,10 @@ Preprocessor::~Preprocessor()
   }
 }
 
-void Preprocessor::finishInit()
+void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, d_env, &d_propagator));
+      d_env, te, pe, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -76,7 +74,7 @@ bool Preprocessor::process(Assertions& as)
   Assert(ap.size() != 0)
       << "Can only preprocess a non-empty list of assertions";
 
-  if (d_assertionsProcessed && options::incrementalSolving())
+  if (d_assertionsProcessed && options().base.incrementalSolving)
   {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
@@ -93,7 +91,7 @@ bool Preprocessor::process(Assertions& as)
   // now, post-process the assertions
 
   // if incremental, compute which variables are assigned
-  if (options::incrementalSolving())
+  if (options().base.incrementalSolving)
   {
     d_ppContext->recordSymbolsInAssertions(ap.ref());
   }
@@ -123,7 +121,7 @@ Node Preprocessor::expandDefinitions(const Node& node,
   Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
   // Substitute out any abstract values in node.
   Node n = d_absValues.substituteAbstractValues(node);
-  if (options::typeChecking())
+  if (options().expr.typeChecking)
   {
     // Ensure node is type-checked at this point.
     n.getType(true);
@@ -149,11 +147,10 @@ Node Preprocessor::simplify(const Node& node)
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    d_smt.getOutputManager().getPrinter().toStreamCmdSimplify(
-        d_smt.getOutputManager().getDumpOut(), node);
+    d_env.getPrinter().toStreamCmdSimplify(d_env.getDumpOut(), node);
   }
   Node ret = expandDefinitions(node);
-  ret = theory::Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   return ret;
 }
 
@@ -162,7 +159,7 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
   Assert(pppg != nullptr);
   d_pnm = pppg->getManager();
   d_exDefs.setProofNodeManager(d_pnm);
-  d_propagator.setProof(d_pnm, d_env.getUserContext(), pppg);
+  d_propagator.setProof(d_pnm, userContext(), pppg);
 }
 
 }  // namespace smt

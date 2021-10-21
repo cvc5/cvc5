@@ -169,30 +169,37 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         Node concAtom = concPol ? conc : conc[0];
         concEq = concAtom.eqNode(nm->mkConst(concPol));
       }
-      Assert(concEq.getKind() == EQUAL
-             && concEq[0].getKind() == APPLY_SELECTOR_TOTAL);
-      Assert(exp[0].getType().isDatatype());
-      Node sop = concEq[0].getOperator();
-      Node sl = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[0]);
-      Node sr = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[1]);
-      // exp[0] = exp[1]
-      // --------------------- CONG        ----------------- DT_COLLAPSE
-      // s(exp[0]) = s(exp[1])             s(exp[1]) = r
-      // --------------------------------------------------- TRANS
-      // s(exp[0]) = r
-      Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR_TOTAL);
-      Node seq = sl.eqNode(sr);
-      cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
-      Node sceq = sr.eqNode(concEq[1]);
-      cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
-      cdp->addStep(sl.eqNode(concEq[1]), PfRule::TRANS, {seq, sceq}, {});
-      if (conc.getKind() != EQUAL)
+      if (concEq[0].getKind() != APPLY_SELECTOR_TOTAL)
       {
-        PfRule eid =
-            conc.getKind() == NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
-        cdp->addStep(conc, eid, {concEq}, {});
+        // can happen for Boolean term variables, which are not currently
+        // supported.
+        success = false;
       }
-      success = true;
+      else
+      {
+        Assert(exp[0].getType().isDatatype());
+        Node sop = concEq[0].getOperator();
+        Node sl = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[0]);
+        Node sr = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[1]);
+        // exp[0] = exp[1]
+        // --------------------- CONG        ----------------- DT_COLLAPSE
+        // s(exp[0]) = s(exp[1])             s(exp[1]) = r
+        // --------------------------------------------------- TRANS
+        // s(exp[0]) = r
+        Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR_TOTAL);
+        Node seq = sl.eqNode(sr);
+        cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
+        Node sceq = sr.eqNode(concEq[1]);
+        cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
+        cdp->addStep(sl.eqNode(concEq[1]), PfRule::TRANS, {seq, sceq}, {});
+        if (conc.getKind() != EQUAL)
+        {
+          PfRule eid =
+              conc.getKind() == NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
+          cdp->addStep(conc, eid, {concEq}, {});
+        }
+        success = true;
+      }
     }
     break;
     case InferenceId::DATATYPES_CLASH_CONFLICT:

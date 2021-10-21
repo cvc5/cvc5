@@ -42,20 +42,20 @@ class TestTheoryWhiteBv : public TestSmtNoFinishInit
 
 TEST_F(TestTheoryWhiteBv, bitblaster_core)
 {
-  d_smtEngine->setLogic("QF_BV");
+  d_slvEngine->setLogic("QF_BV");
 
-  d_smtEngine->setOption("bitblast", "eager");
-  d_smtEngine->setOption("bv-solver", "layered");
-  d_smtEngine->setOption("incremental", "false");
+  d_slvEngine->setOption("bitblast", "eager");
+  d_slvEngine->setOption("bv-solver", "layered");
+  d_slvEngine->setOption("incremental", "false");
   // Notice that this unit test uses the theory engine of a created SMT
-  // engine d_smtEngine. We must ensure that d_smtEngine is properly initialized
+  // engine d_slvEngine. We must ensure that d_slvEngine is properly initialized
   // via the following call, which constructs its underlying theory engine.
-  d_smtEngine->finishInit();
+  d_slvEngine->finishInit();
   TheoryBV* tbv = dynamic_cast<TheoryBV*>(
-      d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_BV]);
+      d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_BV]);
   BVSolverLayered* bvsl = dynamic_cast<BVSolverLayered*>(tbv->d_internal.get());
   std::unique_ptr<EagerBitblaster> bb(
-      new EagerBitblaster(bvsl, d_smtEngine->getContext()));
+      new EagerBitblaster(bvsl, d_slvEngine->getContext()));
 
   Node x = d_nodeManager->mkVar("x", d_nodeManager->mkBitVectorType(16));
   Node y = d_nodeManager->mkVar("y", d_nodeManager->mkBitVectorType(16));
@@ -74,10 +74,10 @@ TEST_F(TestTheoryWhiteBv, bitblaster_core)
 
 TEST_F(TestTheoryWhiteBv, mkUmulo)
 {
-  d_smtEngine->setOption("incremental", "true");
+  d_slvEngine->setOption("incremental", "true");
   for (uint32_t w = 1; w < 16; ++w)
   {
-    d_smtEngine->push();
+    d_slvEngine->push();
     Node x = d_nodeManager->mkVar("x", d_nodeManager->mkBitVectorType(w));
     Node y = d_nodeManager->mkVar("y", d_nodeManager->mkBitVectorType(w));
 
@@ -88,10 +88,10 @@ TEST_F(TestTheoryWhiteBv, mkUmulo)
         kind::DISTINCT, mkExtract(mul, 2 * w - 1, w), mkZero(w));
     Node rhs = mkUmulo(x, y);
     Node eq = d_nodeManager->mkNode(kind::DISTINCT, lhs, rhs);
-    d_smtEngine->assertFormula(eq);
-    Result res = d_smtEngine->checkSat();
+    d_slvEngine->assertFormula(eq);
+    Result res = d_slvEngine->checkSat();
     ASSERT_EQ(res.isSat(), Result::UNSAT);
-    d_smtEngine->pop();
+    d_slvEngine->pop();
   }
 }
 }  // namespace test

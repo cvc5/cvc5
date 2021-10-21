@@ -1,0 +1,12 @@
+; The printed output for this example should be equivalent to:
+; (
+;   (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
+; )
+
+(set-logic LIA)
+(synth-inv inv-f ((x Int)))
+(define-fun pre-f ((x Int)) Bool (= x 0))
+(define-fun trans-f ((x Int) (xp Int)) Bool (ite (< x 10) (= xp (+ x 1)) (= xp x)))
+(define-fun post-f ((x Int)) Bool (<= x 10))
+(inv-constraint inv-f pre-f trans-f post-f)
+(check-synth)

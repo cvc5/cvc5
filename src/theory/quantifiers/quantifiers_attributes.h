@@ -94,23 +94,6 @@ struct AbsTypeFunDefAttributeId
 };
 typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
 
-/**
- * Attribute true for quantifiers that have been internally generated, e.g.
- * for reductions of string operators.
- *
- * Currently, this attribute is used for indicating that E-matching should
- * not be applied, as E-matching should not be applied to quantifiers
- * generated for strings reductions.
- *
- * This attribute can potentially be generalized to an identifier indicating
- * the internal source of the quantified formula (of which strings reduction
- * is one possibility).
- */
-struct InternalQuantAttributeId
-{
-};
-typedef expr::Attribute<InternalQuantAttributeId, bool> InternalQuantAttribute;
-
 namespace quantifiers {
 
 /** This struct stores attributes for a single quantified formula */
@@ -124,7 +107,7 @@ struct QAttributes
         d_qinstLevel(-1),
         d_quant_elim(false),
         d_quant_elim_partial(false),
-        d_isInternal(false)
+        d_isQuantBounded(false)
   {
   }
   ~QAttributes(){}
@@ -146,8 +129,8 @@ struct QAttributes
   bool d_quant_elim;
   /** is this formula marked for partial quantifier elimination? */
   bool d_quant_elim_partial;
-  /** Is this formula internally generated? */
-  bool d_isInternal;
+  /** Is this formula internally generated and belonging to bounded integers? */
+  bool d_isQuantBounded;
   /** the instantiation pattern list for this quantified formula (its 3rd child)
    */
   Node d_ipl;
@@ -222,7 +205,7 @@ class QuantAttributes
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
   /** is internal quantifier */
-  bool isInternal(Node q) const;
+  bool isQuantBounded(Node q) const;
   /** get quant name, which is used for :qid */
   Node getQuantName(Node q) const;
   /** Print quantified formula q, possibly using its name, if it has one */

@@ -28,7 +28,8 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc)
+ProofNodeManager::ProofNodeManager(theory::Rewriter* rr, ProofChecker* pc)
+    : d_rewriter(rr), d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   // we always allocate a proof checker, regardless of the proof checking mode
@@ -160,14 +161,14 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         computedAcr = true;
         for (const Node& acc : ac)
         {
-          Node accr = theory::Rewriter::rewrite(acc);
+          Node accr = d_rewriter->rewrite(acc);
           if (accr != acc)
           {
             acr[accr] = acc;
           }
         }
       }
-      Node ar = theory::Rewriter::rewrite(a);
+      Node ar = d_rewriter->rewrite(a);
       std::unordered_map<Node, Node>::iterator itr = acr.find(ar);
       if (itr != acr.end())
       {

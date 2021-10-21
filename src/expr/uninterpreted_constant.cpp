@@ -31,7 +31,11 @@ UninterpretedConstant::UninterpretedConstant(const TypeNode& type,
                                              Integer index)
     : d_type(new TypeNode(type)), d_index(index)
 {
-  //PrettyCheckArgument(type.isSort(), type, "uninterpreted constants can only be created for uninterpreted sorts, not `%s'", type.toString().c_str());
+  PrettyCheckArgument(type.isSort(),
+                      type,
+                      "uninterpreted constants can only be created for "
+                      "uninterpreted sorts, not `%s'",
+                      type.toString().c_str());
   PrettyCheckArgument(index >= 0, index, "index >= 0 required for uninterpreted constant index, not `%s'", index.toString().c_str());
 }
 

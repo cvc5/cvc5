@@ -77,7 +77,7 @@ TheoryArrays::TheoryArrays(Env& env,
           name + "number of setModelVal splits")),
       d_numSetModelValConflicts(statisticsRegistry().registerInt(
           name + "number of setModelVal conflicts")),
-      d_ppEqualityEngine(userContext(), name + "pp", true),
+      d_ppEqualityEngine(d_env, userContext(), name + "pp", true),
       d_ppFacts(userContext()),
       d_rewriter(env.getRewriter(), d_pnm),
       d_state(env, valuation),
@@ -85,7 +85,7 @@ TheoryArrays::TheoryArrays(Env& env,
       d_literalsToPropagate(context()),
       d_literalsToPropagateIndex(context(), 0),
       d_isPreRegistered(context()),
-      d_mayEqualEqualityEngine(context(), name + "mayEqual", true),
+      d_mayEqualEqualityEngine(d_env, context(), name + "mayEqual", true),
       d_notify(*this),
       d_infoMap(context(), name),
       d_mergeQueue(context()),
@@ -296,7 +296,19 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
 
 TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
 {
-  // first, see if we need to expand definitions
+  // first, check for logic exceptions
+  Kind k = term.getKind();
+  if (!options().arrays.arraysExp)
+  {
+    if (k == kind::EQ_RANGE)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << k
+         << " not supported in default mode, try --arrays-exp";
+      throw LogicException(ss.str());
+    }
+  }
+  // see if we need to expand definitions
   TrustNode texp = d_rewriter.expandDefinition(term);
   if (!texp.isNull())
   {
@@ -309,7 +321,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
   d_ppEqualityEngine.addTerm(term);
   NodeManager* nm = NodeManager::currentNM();
   Node ret;
-  switch (term.getKind()) {
+  switch (k)
+  {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j

@@ -98,22 +98,44 @@ endforeach()
 #-----------------------------------------------------------------------------#
 # libcvc5parser configuration
 
-add_library(cvc5parser ${libcvc5parser_src_files})
-set_target_properties(cvc5parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
-target_compile_definitions(cvc5parser PRIVATE -D__BUILDING_CVC5PARSERLIB)
-target_link_libraries(cvc5parser PUBLIC cvc5)
-target_link_libraries(cvc5parser PRIVATE ANTLR3)
+add_library(cvc5parser-objs OBJECT ${libcvc5parser_src_files})
+set_target_properties(cvc5parser-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB -Dcvc5_obj_EXPORTS)
 
-install(TARGETS cvc5parser
+add_dependencies(cvc5parser-objs ANTLR3_SHARED)
+target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
+
+add_library(cvc5parser-shared SHARED $<TARGET_OBJECTS:cvc5parser-objs>)
+set_target_properties(cvc5parser-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
+set_target_properties(cvc5parser-shared PROPERTIES OUTPUT_NAME cvc5parser)
+target_link_libraries(cvc5parser-shared PRIVATE cvc5-shared)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_STATIC)
+else()
+  target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_SHARED)
+endif()
+
+install(TARGETS cvc5parser-shared
   EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+if(ENABLE_STATIC_LIBRARY)
+  add_library(cvc5parser-static STATIC $<TARGET_OBJECTS:cvc5parser-objs>)
+  set_target_properties(cvc5parser-static PROPERTIES OUTPUT_NAME cvc5parser)
+  target_link_libraries(cvc5parser-static PRIVATE cvc5-static)
+  target_link_libraries(cvc5parser-static PRIVATE ANTLR3_STATIC)
+
+  install(TARGETS cvc5parser-objs cvc5parser-static
+    EXPORT cvc5-targets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
 
 # The generated lexer/parser files define some functions as
 # __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of
 # unresolved symbols when linking against libcvc5parser.
 # -Wl,--export-all-symbols makes sure that all symbols are exported when
 # building a DLL.
-if(CVC5_WINDOWS_BUILD)
-  set_target_properties(cvc5parser
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set_target_properties(cvc5parser-objs
     PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()
