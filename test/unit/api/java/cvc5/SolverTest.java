@@ -386,16 +386,6 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
   }
 
-  @Test void mkUninterpretedConst() throws CVC5ApiException
-  {
-    assertDoesNotThrow(() -> d_solver.mkUninterpretedConst(d_solver.getBooleanSort(), 1));
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.mkUninterpretedConst(d_solver.getNullSort(), 1));
-    Solver slv = new Solver();
-    assertThrows(
-        CVC5ApiException.class, () -> slv.mkUninterpretedConst(d_solver.getBooleanSort(), 1));
-  }
-
   @Test void mkAbstractValue() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.mkAbstractValue(("1")));
