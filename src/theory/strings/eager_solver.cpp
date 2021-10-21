@@ -215,10 +215,11 @@ void EagerSolver::notifyFact(TNode atom,
 
 Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 {
-  Assert (e!=nullptr);
-  Assert (!t.isNull());
+  Assert(e != nullptr);
+  Assert(!t.isNull());
   Node tb = t.isConst() ? t : getBoundForLength(t, isLower);
-  Assert (!tb.isNull() && tb.getKind()==CONST_RATIONAL) << "Unexpected bound " << tb << " from " << t;
+  Assert(!tb.isNull() && tb.getKind() == CONST_RATIONAL)
+      << "Unexpected bound " << tb << " from " << t;
   Rational br = tb.getConst<Rational>();
   Node prev = isLower ? e->d_prefixC : e->d_suffixC;
   // check if subsumed
@@ -226,9 +227,9 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   {
     // convert to bound
     Node prevb = prev.isConst() ? prev : getBoundForLength(prev, isLower);
-    Assert (!prevb.isNull() && prevb.getKind()==CONST_RATIONAL);
+    Assert(!prevb.isNull() && prevb.getKind() == CONST_RATIONAL);
     Rational prevbr = prevb.getConst<Rational>();
-    if (prevbr ==br || (prevbr < br) == isLower)
+    if (prevbr == br || (prevbr < br) == isLower)
     {
       // subsumed
       return Node::null();
