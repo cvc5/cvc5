@@ -21,10 +21,10 @@
 #include <map>
 
 #include "expr/node.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/eqc_info.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
-#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
@@ -60,7 +60,7 @@ class EagerSolver
    * for some eqc that is currently equal to z.
    */
   void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
-  /** 
+  /**
    * Check for conflict when merging equivalence classes with the given info,
    * return the node corresponding to the conflict if so.
    */

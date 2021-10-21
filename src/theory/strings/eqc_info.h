@@ -70,7 +70,7 @@ class EqcInfo
    * (2) A membership of the form (str.in.re x R) where x is in this
    * equivalence class and R is a regular expression of the form
    * (str.to.re "ABC") or (re.++ (str.to.re "ABC") ...).
-   * 
+   *
    * If this is an integer equivalence class, this is the lower bound
    * of the value of this equivalence class.
    */

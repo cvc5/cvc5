@@ -23,7 +23,12 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(SolverState& state, TermRegistry& treg, ArithEntail& aent) : d_state(state), d_treg(treg), d_aent(aent) {}
+EagerSolver::EagerSolver(SolverState& state,
+                         TermRegistry& treg,
+                         ArithEntail& aent)
+    : d_state(state), d_treg(treg), d_aent(aent)
+{
+}
 
 EagerSolver::~EagerSolver() {}
 
@@ -67,8 +72,8 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
   Assert(t1.getType().isStringLike());
   // always create it if e2 was non-null
-  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1, e2!=nullptr);
-  if (e1==nullptr)
+  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1, e2 != nullptr);
+  if (e1 == nullptr)
   {
     // neither had equivalence class info, don't set
     return;
@@ -89,7 +94,7 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   {
     e1->d_codeTerm.set(e2->d_codeTerm);
   }
-  
+
   if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
   {
     e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
@@ -139,24 +144,26 @@ void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
   }
 }
 
-Node EagerSolver::checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb)
+Node EagerSolver::checkForMergeConflict(Node a,
+                                        Node b,
+                                        EqcInfo* ea,
+                                        EqcInfo* eb)
 {
-  Assert (a.getType()==b.getType());
+  Assert(a.getType() == b.getType());
   TypeNode tn = a.getType();
   if (tn.isStringLike())
   {
-    if (eb!=nullptr)
+    if (eb != nullptr)
     {
       // we always create ea if eb exists
-      Assert (ea!=nullptr);
+      Assert(ea != nullptr);
       // check prefix, suffix
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
-        Node n = i==0 ? eb->d_prefixC.get() : eb->d_suffixC.get();
+        Node n = i == 0 ? eb->d_prefixC.get() : eb->d_suffixC.get();
         if (!n.isNull())
         {
-          Node conf =
-              ea->addEndpointConst(n, Node::null(), i==1);
+          Node conf = ea->addEndpointConst(n, Node::null(), i == 1);
           if (!conf.isNull())
           {
             return conf;

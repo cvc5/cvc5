@@ -2550,7 +2550,7 @@ void CoreSolver::checkNormalFormsDeq()
   
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
   for (const Node& eq : deqs)
   {
@@ -2565,7 +2565,7 @@ void CoreSolver::checkNormalFormsDeq()
         EqcInfo* ei = d_state.getOrMakeEqcInfo(n[i], false);
         lt[i] = ei ? ei->d_lengthTerm : Node::null();
         if( lt[i].isNull() ){
-          lt[i] = nm->mkNode( STRING_LENGTH, eq[i]);
+          lt[i] = nm->mkNode(STRING_LENGTH, eq[i]);
         }
       }
       if (!d_state.areEqual(lt[0], lt[1]) && !d_state.areDisequal(lt[0], lt[1]))
