@@ -18,6 +18,7 @@
 // for array-constant attributes
 #include "expr/array_store_all.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/builtin/theory_builtin_type_rules.h"
 #include "theory/type_enumerator.h"
 #include "util/cardinality.h"
 
@@ -249,7 +250,24 @@ bool ArraysProperties::isWellFounded(TypeNode type)
 
 Node ArraysProperties::mkGroundTerm(TypeNode type)
 {
-  return *TypeEnumerator(type);
+  Assert(type.getKind() == kind::ARRAY_TYPE);
+  TypeNode elemType = type.getArrayConstituentType();
+  Node elem = elemType.mkGroundTerm();
+  if (elem.isConst())
+  {
+    return NodeManager::currentNM()->mkConst(ArrayStoreAll(type, elem));
+  }
+  // Note the distinction between mkGroundTerm and mkGroundValue. While
+  // an arbitrary value can be obtained by calling the type enumerator here,
+  // that is wrong for types that are not closed enumerable since it may
+  // return a term containing values that should not appear in e.g. assertions.
+  // For example, arrays whose element type is an uninterpreted sort will
+  // incorrectly introduce uninterpreted sort values if this is done.
+  // It is currently infeasible to construct an ArrayStoreAll with the element
+  // type's mkGroundTerm as an argument when that term is not constant.
+  // Thus, we must simply return a fresh Skolem here, using the same utility
+  // as that of uninterpreted sorts.
+  return builtin::SortProperties::mkGroundTerm(type);
 }
 
 TypeNode ArrayPartialSelectTypeRule::computeType(NodeManager* nodeManager,
