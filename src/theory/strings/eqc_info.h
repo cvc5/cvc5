@@ -77,6 +77,10 @@ class EqcInfo
   context::CDO<Node> d_prefixC;
   /** same as above, for suffix. */
   context::CDO<Node> d_suffixC;
+  /** 
+   * Make merge conflict
+   */
+  static Node mkMergeConflict(Node t, Node prev);
 };
 
 }  // namespace strings

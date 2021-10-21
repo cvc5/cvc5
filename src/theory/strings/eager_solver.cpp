@@ -92,9 +92,11 @@ void EagerSolver::eqNotifyNewClass(TNode t)
 
 void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
 {
+  Trace("ajr-temp") << "merge " << t1 << " " << t2 << std::endl;
   EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
   if (e2 == nullptr)
   {
+    Trace("ajr-temp") << "no info for merge " << t1 << " " << t2 << std::endl;
     return;
   }
   // always create it if e2 was non-null
@@ -186,6 +188,7 @@ Node EagerSolver::checkForMergeConflict(Node a,
       }
       else
       {
+        Trace("strings-eager-aconf-debug") << "addArithmeticBound " << n << " into " << a << " from " << b << std::endl;
         conf = addArithmeticBound(ea, n, i == 0);
       }
       if (!conf.isNull())
@@ -229,15 +232,28 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
     Node prevb = prev.isConst() ? prev : getBoundForLength(prev, isLower);
     Assert(!prevb.isNull() && prevb.getKind() == CONST_RATIONAL);
     Rational prevbr = prevb.getConst<Rational>();
-    if (prevbr == br || (prevbr < br) == isLower)
+    if (prevbr == br || (br < prevbr) == isLower)
     {
       // subsumed
       return Node::null();
     }
   }
   Node prevo = isLower ? e->d_suffixC : e->d_prefixC;
+  Trace("strings-eager-aconf-debug") << "Check conflict for bounds " << t << " " << prevo << std::endl;
   if (!prevo.isNull())
   {
+    // are we in conflict?
+    Node prevob = prevo.isConst() ? prevo : getBoundForLength(prevo, !isLower);
+    Assert(!prevob.isNull() && prevob.getKind() == CONST_RATIONAL);
+    Rational prevobr = prevob.getConst<Rational>();
+    if ((prevobr < br) == isLower)
+    {
+      // conflict
+      Node ret = EqcInfo::mkMergeConflict(t, prevo);
+      Trace("strings-eager-aconf")
+          << "String: eager arithmetic bound conflict: " << ret << std::endl;
+      //return ret;
+    }
   }
   if (isLower)
   {
