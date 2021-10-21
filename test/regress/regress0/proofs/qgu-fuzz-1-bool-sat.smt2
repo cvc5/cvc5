@@ -1,3 +1,4 @@
+; EXPECT: unsat
 (set-logic QF_UF)
 (declare-fun b () Bool)
 (declare-fun c () Bool)
