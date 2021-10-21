@@ -41,10 +41,10 @@ InferenceManager::InferenceManager(Env& env,
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(env.getProofNodeManager() ? new InferProofCons(
+      d_ipc(isProofEnabled() ? new InferProofCons(
                 context(), env.getProofNodeManager(), d_statistics)
                                       : nullptr),
-      d_ipcl(env.getProofNodeManager() ? new InferProofCons(
+      d_ipcl(isProofEnabled() ? new InferProofCons(
                  context(), env.getProofNodeManager(), d_statistics)
                                        : nullptr)
 {
