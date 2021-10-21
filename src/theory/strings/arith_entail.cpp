@@ -729,12 +729,12 @@ void ArithEntail::setConstantBoundCache(Node n, Node ret, bool isLower)
   if (isLower)
   {
     ArithEntailConstantBoundLower acbl;
-    a.setAttribute(acbl, ret);
+    n.setAttribute(acbl, ret);
   }
   else
   {
     ArithEntailConstantBoundUpper acbu;
-    a.setAttribute(acbu, ret);
+    n.setAttribute(acbu, ret);
   }
 }
 
@@ -743,17 +743,17 @@ Node ArithEntail::getConstantBoundCache(Node n, bool isLower)
   if (isLower)
   {
     ArithEntailConstantBoundLower acbl;
-    if (a.hasAttribute(acbl))
+    if (n.hasAttribute(acbl))
     {
-      return a.getAttribute(acbl);
+      return n.getAttribute(acbl);
     }
   }
   else
   {
     ArithEntailConstantBoundUpper acbu;
-    if (a.hasAttribute(acbu))
+    if (n.hasAttribute(acbu))
     {
-      return a.getAttribute(acbu);
+      return n.getAttribute(acbu);
     }
   }
   return Node::null();
@@ -856,12 +856,31 @@ Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
   {
     return ret;
   }
+  NodeManager * nm = NodeManager::currentNM();
   if (s.isConst())
   {
     ret = nm->mkConst(Rational(Word::getLength(s)));
   }
-  
-  
+  else if (s.getKind()==STRING_CONCAT)
+  {
+    Rational sum(0);
+    bool success = true;
+    for (const Node& sc : s)
+    {
+      Node b = getConstantBoundLength(sc, isLower);
+      if (b.isNull())
+      {
+        success = false;
+        break;
+      }
+      Assert (b.getKind()==CONST_RATIONAL);
+      sum = sum + b.getConst<Rational>();
+    }
+    if (success)
+    {
+      ret = nm->mkConst(sum);
+    }
+  }
   // cache
   setConstantBoundCache(s, ret, isLower);
   return ret;
