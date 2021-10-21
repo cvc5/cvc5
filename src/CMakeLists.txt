@@ -1277,10 +1277,7 @@ add_custom_command(
     options/options_template.cpp
 )
 
-add_custom_target(gen-options
-  DEPENDS
-    options/options.stamp
-)
+add_custom_target(gen-options DEPENDS options/options.stamp)
 
 
 #-----------------------------------------------------------------------------#
