@@ -479,6 +479,7 @@ set(regress_0_tests
   regress0/datatypes/coda_simp_model.smt2
   regress0/datatypes/conqueue-dt-enum-iloop.smt2
   regress0/datatypes/data-nested-codata.smt2
+  regress0/datatypes/datatype-dump.cvc.smt2
   regress0/datatypes/datatype.cvc.smt2
   regress0/datatypes/datatype0.cvc.smt2
   regress0/datatypes/datatype1.cvc.smt2
