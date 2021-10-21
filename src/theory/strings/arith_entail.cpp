@@ -30,7 +30,9 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-ArithEntail::ArithEntail(Rewriter* r) : d_rr(r) {}
+ArithEntail::ArithEntail(Rewriter* r) : d_rr(r) {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+}
 
 Node ArithEntail::rewrite(Node a) { return d_rr->rewrite(a); }
 
@@ -197,7 +199,7 @@ bool ArithEntail::checkApprox(Node ar)
   }
   // get the current "fixed" sum for the abstraction of ar
   Node aar = aarSum.empty()
-                 ? nm->mkConst(Rational(0))
+                 ? d_zero
                  : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(PLUS, aarSum));
   aar = d_rr->rewrite(aar);
   Trace("strings-ent-approx-debug")
@@ -721,7 +723,7 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
   {
     if (isLower)
     {
-      ret = NodeManager::currentNM()->mkConst(Rational(0));
+      ret = d_zero;
     }
   }
   else if (a.getKind() == kind::PLUS || a.getKind() == kind::MULT)
@@ -767,7 +769,7 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
     {
       if (children.empty())
       {
-        ret = NodeManager::currentNM()->mkConst(Rational(0));
+        ret = d_zero;
       }
       else if (children.size() == 1)
       {
@@ -853,7 +855,7 @@ bool ArithEntail::inferZerosInSumGeq(Node x,
     }
     else
     {
-      sum = ys.size() == 1 ? ys[0] : nm->mkConst(Rational(0));
+      sum = ys.size() == 1 ? ys[0] : d_zero;
     }
 
     if (check(sum, x))

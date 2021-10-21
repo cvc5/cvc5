@@ -175,14 +175,13 @@ Node EagerSolver::checkForMergeConflict(Node a,
   Assert(a.getType() == b.getType());
   Assert(a.getType().isStringLike() || a.getType().isInteger());
   // check prefix, suffix
-  TypeNode tn = a.getType();
   for (size_t i = 0; i < 2; i++)
   {
     Node n = i == 0 ? eb->d_firstBound.get() : eb->d_secondBound.get();
     if (!n.isNull())
     {
       Node conf;
-      if (tn.isStringLike())
+      if (a.getType().isStringLike())
       {
         conf = ea->addEndpointConst(n, Node::null(), i == 1);
       }

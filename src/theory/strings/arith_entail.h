@@ -181,6 +181,8 @@ class ArithEntail
                               bool isOverApprox = false);
   /** The underlying rewriter */
   Rewriter* d_rr;
+  /** Constant zero */
+  Node d_zero;
 };
 
 }  // namespace strings
