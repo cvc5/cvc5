@@ -377,7 +377,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
       // problem are rewritten to true. If this is not the case, then the
       // assertions module of the subsolver will complain about assertions
       // with free variables.
-      Node ar = theory::Rewriter::rewrite(a);
+      Node ar = rewrite(a);
       solChecker->assertFormula(ar);
     }
     Result r = solChecker->checkSat();
