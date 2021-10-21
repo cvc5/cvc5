@@ -834,6 +834,7 @@ set(regress_0_tests
   regress0/preprocess/preprocess_13.cvc.smt2
   regress0/preprocess/preprocess_14.cvc.smt2
   regress0/preprocess/preprocess_15.cvc.smt2
+  regress0/preprocess/proj-issue304-circuit-prop-xor.smt2
   regress0/preprocess/proj-issue305-circuit-prop-ite.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
