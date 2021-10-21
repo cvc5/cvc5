@@ -249,13 +249,13 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
     Node prevob = prevo.isConst() ? prevo : getBoundForLength(prevo, !isLower);
     Assert(!prevob.isNull() && prevob.getKind() == CONST_RATIONAL);
     Rational prevobr = prevob.getConst<Rational>();
-    if ((prevobr < br) == isLower)
+    if (prevobr != br && (prevobr < br) == isLower)
     {
       // conflict
       Node ret = EqcInfo::mkMergeConflict(t, prevo);
       Trace("strings-eager-aconf")
           << "String: eager arithmetic bound conflict: " << ret << std::endl;
-      // return ret;
+      return ret;
     }
   }
   if (isLower)
