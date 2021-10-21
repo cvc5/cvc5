@@ -33,9 +33,7 @@ namespace arrays {
 class InferenceManager : public TheoryInferenceManager
 {
  public:
-  InferenceManager(Env& env,
-                   Theory& t,
-                   TheoryState& state);
+  InferenceManager(Env& env, Theory& t, TheoryState& state);
   ~InferenceManager() {}
 
   /**

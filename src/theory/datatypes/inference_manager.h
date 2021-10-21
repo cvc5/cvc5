@@ -38,9 +38,7 @@ class InferenceManager : public InferenceManagerBuffered
   friend class DatatypesInference;
 
  public:
-  InferenceManager(Env& env,
-                   Theory& t,
-                   TheoryState& state);
+  InferenceManager(Env& env, Theory& t, TheoryState& state);
   ~InferenceManager();
   /**
    * Add pending inference, which may be processed as either a fact or

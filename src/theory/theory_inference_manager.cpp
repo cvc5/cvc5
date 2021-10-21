@@ -86,7 +86,10 @@ void TheoryInferenceManager::setDecisionManager(DecisionManager* dm)
   d_decManager = dm;
 }
 
-bool TheoryInferenceManager::isProofEnabled() const { return d_env.isTheoryProofEnabled(); }
+bool TheoryInferenceManager::isProofEnabled() const
+{
+  return d_env.isTheoryProofEnabled();
+}
 
 void TheoryInferenceManager::reset()
 {

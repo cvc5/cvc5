@@ -54,8 +54,10 @@ Instantiate::Instantiate(Env& env,
       d_treg(tr),
       d_insts(userContext()),
       d_c_inst_match_trie_dom(userContext()),
-      d_pfInst(isProofEnabled() ? new CDProof(env.getProofNodeManager(), userContext(), "Instantiate::pfInst")
-                   : nullptr)
+      d_pfInst(isProofEnabled() ? new CDProof(env.getProofNodeManager(),
+                                              userContext(),
+                                              "Instantiate::pfInst")
+                                : nullptr)
 {
 }
 
@@ -240,8 +242,10 @@ bool Instantiate::addInstantiation(Node q,
   std::shared_ptr<LazyCDProof> pfTmp;
   if (isProofEnabled())
   {
-    pfTmp.reset(new LazyCDProof(
-        d_env.getProofNodeManager(), nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
+    pfTmp.reset(new LazyCDProof(d_env.getProofNodeManager(),
+                                nullptr,
+                                nullptr,
+                                "Instantiate::LazyCDProof::tmp"));
   }
 
   // construct the instantiation
@@ -298,7 +302,8 @@ bool Instantiate::addInstantiation(Node q,
     // make the scope proof to get (=> q body)
     std::vector<Node> assumps;
     assumps.push_back(q);
-    std::shared_ptr<ProofNode> pfns = d_env.getProofNodeManager()->mkScope({pfn}, assumps);
+    std::shared_ptr<ProofNode> pfns =
+        d_env.getProofNodeManager()->mkScope({pfn}, assumps);
     Assert(assumps.size() == 1 && assumps[0] == q);
     // store in the main proof
     d_pfInst->addProof(pfns);
@@ -686,7 +691,10 @@ void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
   }
 }
 
-bool Instantiate::isProofEnabled() const { return d_env.isTheoryProofProducing(); }
+bool Instantiate::isProofEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 void Instantiate::notifyEndRound()
 {

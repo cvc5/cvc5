@@ -69,9 +69,7 @@ class Skolemize : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  Skolemize(Env& env,
-            QuantifiersState& qs,
-            TermRegistry& tr);
+  Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust

@@ -46,9 +46,7 @@ class InferenceManager : public InferenceManagerBuffered
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  InferenceManager(Env& env,
-                   TheoryArith& ta,
-                   ArithState& astate);
+  InferenceManager(Env& env, TheoryArith& ta, ArithState& astate);
 
   /**
    * Add a lemma as pending lemma to this inference manager.

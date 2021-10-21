@@ -41,8 +41,12 @@ InferenceManager::InferenceManager(Env& env,
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(env.getProofNodeManager() ? new InferProofCons(context(), env.getProofNodeManager(), d_statistics) : nullptr),
-      d_ipcl(env.getProofNodeManager() ? new InferProofCons(context(), env.getProofNodeManager(), d_statistics) : nullptr)
+      d_ipc(env.getProofNodeManager() ? new InferProofCons(
+                context(), env.getProofNodeManager(), d_statistics)
+                                      : nullptr),
+      d_ipcl(env.getProofNodeManager() ? new InferProofCons(
+                 context(), env.getProofNodeManager(), d_statistics)
+                                       : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
