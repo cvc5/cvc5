@@ -1168,6 +1168,15 @@ cdef class Solver:
         term.cterm = self.csolver.mkEmptyBag(s.csort)
         return term
 
+    def mkSepEmp(self):
+        """Create a separation logic empty term.
+
+        :return: the separation logic empty term
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkSepEmp()
+        return term
+
     def mkSepNil(self, Sort sort):
         """Create a separation logic nil term.
 
@@ -2205,6 +2214,9 @@ cdef class Sort:
     def __hash__(self):
         return csorthash(self.csort)
 
+    def isNull(self):
+        return self.csort.isNull()
+
     def isBoolean(self):
         return self.csort.isBoolean()
 
@@ -2243,6 +2255,9 @@ cdef class Sort:
 
     def isTester(self):
         return self.csort.isTester()
+
+    def isUpdater(self):
+        return self.csort.isUpdater()
 
     def isFunction(self):
         return self.csort.isFunction()

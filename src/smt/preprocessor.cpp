@@ -150,7 +150,7 @@ Node Preprocessor::simplify(const Node& node)
     d_env.getPrinter().toStreamCmdSimplify(d_env.getDumpOut(), node);
   }
   Node ret = expandDefinitions(node);
-  ret = theory::Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   return ret;
 }
 
