@@ -815,7 +815,6 @@ set(regress_0_tests
   regress0/precedence/xor-assoc.cvc.smt2
   regress0/precedence/xor-or.cvc.smt2
   regress0/preprocess/circuit-prop.smt2
-  regress0/preprocess/circuit-prop-ite-305.smt2
   regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/issue5943-non-clausal-simp.smt2
   regress0/preprocess/issue6754-tpp.smt2
@@ -835,6 +834,7 @@ set(regress_0_tests
   regress0/preprocess/preprocess_13.cvc.smt2
   regress0/preprocess/preprocess_14.cvc.smt2
   regress0/preprocess/preprocess_15.cvc.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
