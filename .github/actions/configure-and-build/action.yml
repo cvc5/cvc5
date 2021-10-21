@@ -1,0 +1,45 @@
+name: Configure and build
+description: Run configure script and build
+inputs:
+  configure-env:
+    default: ""
+  configure-config:
+    default: ""
+  build-shared:
+    default: true
+  build-static:
+    default: true
+runs:
+  using: composite
+  steps:
+    - name: Configure
+      run: |
+        if [[ "${{ inputs.build-shared }}" = "true" ]]; then
+          ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
+            --prefix=$(pwd)/build_shared/install \
+            --werror
+            --name=build_shared
+        fi
+        if [[ "${{ inputs.build-static }}" = "true" ]]; then
+          ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
+            --prefix=$(pwd)/build_static/install \
+            --werror
+            --static
+            --name=build_static
+        fi
+    - name: Build
+      shell: bash
+      run: |
+        if [[ "${{ inputs.build-shared }}" = "true" ]]; then
+          pushd build_shared
+          ccache --set-config=base_dir=$(pwd)
+          make -j${{ env.num_proc }}
+          popd
+        fi
+        if [[ "${{ inputs.build-static }}" = "true" ]]; then
+          pushd build_static
+          ccache --set-config=base_dir=$(pwd)
+          make -j${{ env.num_proc }}
+          popd
+        fi
+        ccache --set-config=base_dir=

@@ -70,15 +70,10 @@ jobs:
       with:
         cache-key: ${{ matrix.cache-key }}
 
-    - name: Configure
-      run: |
-        ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
-          --prefix=$(pwd)/build/install \
-          --werror
-
-    - name: Build
-      run: make -j${{ env.num_proc }}
-      working-directory: build
+    - name: Configure and build
+      uses: ./.github/actions/configure-and-build
+      with:
+        cache-key: ${{ matrix.cache-key }}
 
     - name: ccache Statistics
       run: ccache -s
