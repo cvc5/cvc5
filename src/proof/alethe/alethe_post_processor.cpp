@@ -891,6 +891,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  --------------------------------- RESOLUTION
     //              (cl F2)*
     //
+    // VP1: (cl (not (= F1 F2)) (not F1) F2)
+    //
     // * the corresponding proof node is F2
     case PfRule::EQ_RESOLVE:
     {
@@ -901,7 +903,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node child1 = children[0];
 
       // Transform (cl F1 ... Fn) into (cl (or F1 ... Fn))
-      if (children[0].notNode() != vp1[1] && children[0].getKind() == kind::OR)
+      if (children[0].notNode() != children[1].notNode()
+          && children[0].getKind() == kind::OR)
       {
         PfRule pr = cdp->getProofFor(child1)->getRule();
         if (pr != PfRule::ASSUME && pr != PfRule::EQ_RESOLVE)
