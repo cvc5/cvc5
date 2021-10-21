@@ -712,10 +712,61 @@ bool ArithEntail::checkWithAssumptions(std::vector<Node> assumptions,
   return res;
 }
 
+struct ArithEntailConstantBoundLowerId
+{
+};
+typedef expr::Attribute<ArithEntailConstantBoundLowerId, Node>
+    ArithEntailConstantBoundLower;
+
+struct ArithEntailConstantBoundUpperId
+{
+};
+typedef expr::Attribute<ArithEntailConstantBoundUpperId, Node>
+    ArithEntailConstantBoundUpper;
+
+void ArithEntail::setConstantBoundCache(Node n, Node ret, bool isLower)
+{
+  if (isLower)
+  {
+    ArithEntailConstantBoundLower acbl;
+    a.setAttribute(acbl, ret);
+  }
+  else
+  {
+    ArithEntailConstantBoundUpper acbu;
+    a.setAttribute(acbu, ret);
+  }
+}
+
+Node ArithEntail::getConstantBoundCache(Node n, bool isLower)
+{
+  if (isLower)
+  {
+    ArithEntailConstantBoundLower acbl;
+    if (a.hasAttribute(acbl))
+    {
+      return a.getAttribute(acbl);
+    }
+  }
+  else
+  {
+    ArithEntailConstantBoundUpper acbu;
+    if (a.hasAttribute(acbu))
+    {
+      return a.getAttribute(acbu);
+    }
+  }
+  return Node::null();
+}
+  
 Node ArithEntail::getConstantBound(Node a, bool isLower)
 {
   Assert(d_rr->rewrite(a) == a);
-  Node ret;
+  Node ret = getConstantBoundCache(a, isLower);
+  if (!ret.isNull())
+  {
+    return ret;
+  }
   if (a.isConst())
   {
     ret = a;
@@ -792,6 +843,27 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
          || check(a, false));
   Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() <= 0
          || check(a, true));
+  // cache
+  setConstantBoundCache(a, ret, isLower);
+  return ret;
+}
+
+Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
+{
+  Assert (s.getType().isStringLike());
+  Node ret = getConstantBoundCache(s, isLower);
+  if (!ret.isNull())
+  {
+    return ret;
+  }
+  if (s.isConst())
+  {
+    ret = nm->mkConst(Rational(Word::getLength(s)));
+  }
+  
+  
+  // cache
+  setConstantBoundCache(s, ret, isLower);
   return ret;
 }
 

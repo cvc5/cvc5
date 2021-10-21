@@ -50,7 +50,9 @@ void EagerSolver::eqNotifyNewClass(TNode t)
       EqcInfo* eil = nullptr;
       for (size_t i = 0; i < 2; i++)
       {
+        Trace("ajr-temp") << "Get bound for length " << t << std::endl;
         Node b = getBoundForLength(t, i == 0);
+        Trace("ajr-temp") << "..returns " << b << std::endl;
         if (b.isNull())
         {
           continue;
@@ -278,8 +280,11 @@ Node EagerSolver::getBoundForLength(Node len, bool isLower)
     return it->second;
   }
   // convert to original form
+  Trace("ajr-temp") << "get original form " << len << std::endl;
   Node olen = SkolemManager::getOriginalForm(len);
+  Trace("ajr-temp") << "get original form returns " << olen << std::endl;
   olen = rewrite(olen);
+  Trace("ajr-temp") << "rewrite returns " << olen << std::endl;
   Node c = d_aent.getConstantBound(olen, isLower);
   cache[len] = c;
   Trace("strings-eager-aconf-debug")
