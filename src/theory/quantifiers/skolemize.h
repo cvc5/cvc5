@@ -71,8 +71,7 @@ class Skolemize : protected EnvObj
  public:
   Skolemize(Env& env,
             QuantifiersState& qs,
-            TermRegistry& tr,
-            ProofNodeManager* pnm);
+            TermRegistry& tr);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust

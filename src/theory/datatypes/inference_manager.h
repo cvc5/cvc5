@@ -40,8 +40,7 @@ class InferenceManager : public InferenceManagerBuffered
  public:
   InferenceManager(Env& env,
                    Theory& t,
-                   TheoryState& state,
-                   ProofNodeManager* pnm);
+                   TheoryState& state);
   ~InferenceManager();
   /**
    * Add pending inference, which may be processed as either a fact or
@@ -103,8 +102,6 @@ class InferenceManager : public InferenceManagerBuffered
   Node prepareDtInference(Node conc, Node exp, InferenceId id, InferProofCons* ipc);
   /** The false node */
   Node d_false;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The inference to proof converter */
   std::unique_ptr<InferProofCons> d_ipc;
   /** An eager proof generator for lemmas */

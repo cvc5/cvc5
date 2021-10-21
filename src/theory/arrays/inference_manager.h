@@ -35,8 +35,7 @@ class InferenceManager : public TheoryInferenceManager
  public:
   InferenceManager(Env& env,
                    Theory& t,
-                   TheoryState& state,
-                   ProofNodeManager* pnm);
+                   TheoryState& state);
   ~InferenceManager() {}
 
   /**

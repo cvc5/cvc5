@@ -38,16 +38,14 @@ namespace quantifiers {
 
 Skolemize::Skolemize(Env& env,
                      QuantifiersState& qs,
-                     TermRegistry& tr,
-                     ProofNodeManager* pnm)
+                     TermRegistry& tr)
     : EnvObj(env),
       d_qstate(qs),
       d_treg(tr),
       d_skolemized(userContext()),
-      d_pnm(pnm),
-      d_epg(pnm == nullptr
+      d_epg(!isProofEnabled()
                 ? nullptr
-                : new EagerProofGenerator(pnm, userContext(), "Skolemize::epg"))
+                : new EagerProofGenerator(env.getProofNodeManager(), userContext(), "Skolemize::epg"))
 {
 }
 
@@ -397,7 +395,7 @@ void Skolemize::getSkolemTermVectors(
   }
 }
 
-bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
+bool Skolemize::isProofEnabled() const { return d_env.isTheoryProofProducing(); }
 
 }  // namespace quantifiers
 }  // namespace theory

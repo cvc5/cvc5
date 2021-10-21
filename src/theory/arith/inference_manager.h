@@ -48,8 +48,7 @@ class InferenceManager : public InferenceManagerBuffered
  public:
   InferenceManager(Env& env,
                    TheoryArith& ta,
-                   ArithState& astate,
-                   ProofNodeManager* pnm);
+                   ArithState& astate);
 
   /**
    * Add a lemma as pending lemma to this inference manager.
