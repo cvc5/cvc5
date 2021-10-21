@@ -1242,6 +1242,16 @@ if (BUILD_DOCS)
   )
 endif()
 
+# The mkoptions.py script only updates its output files if their content would
+# actually change. This mechanism makes sure that running the script does not
+# automatically trigger a full rebuild, but only a rebuild of those parts that
+# include files that did actually change.
+# This approach also means that the output files (which gen-options used to
+# depend on) may not actually be updated and thus cmake would keep re-running
+# mkoptions.py over and over again.
+# We thus have an artificial options.stamp file that mkoptions.py always writes
+# to, and can thus be used to communicate that all options files have been
+# proper updated.
 add_custom_command(
   OUTPUT
     options/options.stamp
