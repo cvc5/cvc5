@@ -21,11 +21,11 @@
 #include <map>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/eqc_info.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
-#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -38,7 +38,10 @@ namespace strings {
 class EagerSolver : protected EnvObj
 {
  public:
-  EagerSolver(Env& env, SolverState& state, TermRegistry& treg, ArithEntail& aent);
+  EagerSolver(Env& env,
+              SolverState& state,
+              TermRegistry& treg,
+              ArithEntail& aent);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);

@@ -47,9 +47,9 @@ void EagerSolver::eqNotifyNewClass(TNode t)
       // also assume it as upper/lower bound as applicable for the equivalence
       // class info of t.
       EqcInfo* eil = nullptr;
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
-        Node b = getBoundForLength(t, i==0);
+        Node b = getBoundForLength(t, i == 0);
         if (b.isNull())
         {
           continue;
@@ -58,11 +58,11 @@ void EagerSolver::eqNotifyNewClass(TNode t)
         {
           eil = d_state.getOrMakeEqcInfo(t);
         }
-        if (i==0)
+        if (i == 0)
         {
           eil->d_prefixC = t;
         }
-        else if (i==1)
+        else if (i == 1)
         {
           eil->d_suffixC = t;
         }
@@ -122,7 +122,6 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   {
     e1->d_normalizedLength.set(e2->d_normalizedLength);
   }
-  
 }
 
 void EagerSolver::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
@@ -217,10 +216,10 @@ void EagerSolver::notifyFact(TNode atom,
 
 Node EagerSolver::getBoundForLength(Node len, bool isLower)
 {
-  Assert (len.getKind()==STRING_LENGTH);
+  Assert(len.getKind() == STRING_LENGTH);
   std::map<Node, Node>& cache = d_boundCache[isLower ? 0 : 1];
   std::map<Node, Node>::iterator it = cache.find(len);
-  if (it!=cache.end())
+  if (it != cache.end())
   {
     return it->second;
   }
@@ -229,7 +228,9 @@ Node EagerSolver::getBoundForLength(Node len, bool isLower)
   olen = rewrite(olen);
   Node c = d_aent.getConstantBound(olen, isLower);
   cache[len] = c;
-  Trace("strings-eager-aconf-debug") << "Constant " << (isLower ? "lower" : "upper") << " bound for " << len << " is " << c << std::endl;
+  Trace("strings-eager-aconf-debug")
+      << "Constant " << (isLower ? "lower" : "upper") << " bound for " << len
+      << " is " << c << std::endl;
   return c;
 }
 
