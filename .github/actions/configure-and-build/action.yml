@@ -13,6 +13,7 @@ runs:
   using: composite
   steps:
     - name: Configure
+      shell: bash
       run: |
         if [[ "${{ inputs.build-shared }}" = "true" ]]; then
           ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
