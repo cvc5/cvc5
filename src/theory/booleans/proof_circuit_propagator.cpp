@@ -396,8 +396,10 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
   }
   if (d_parentAssignment)
   {
-    return mkResolution(
-        mkProof(PfRule::ITE_ELIM2, {assume(d_parent)}), d_parent[c + 1], true);
+    return mkResolution(mkProof(c == 0 ? PfRule::ITE_ELIM1 : PfRule::ITE_ELIM2,
+                                {assume(d_parent)}),
+                        d_parent[c + 1],
+                        true);
   }
   return mkResolution(
       mkProof(PfRule::NOT_ITE_ELIM2, {assume(d_parent.notNode())}),
