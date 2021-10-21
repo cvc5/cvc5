@@ -90,7 +90,7 @@ public class OptionInfo extends AbstractPointer
     }
   }
 
-  class ModeInfo extends ValueInfo<String>
+  public class ModeInfo extends ValueInfo<String>
   {
     private final String[] modes;
 
