@@ -17,11 +17,6 @@ package cvc5;
 
 import java.math.BigInteger;
 
-/** Abstract class for OptionInfo values */
-abstract class BaseInfo
-{
-}
-
 /**
  * Holds some description about a particular option, including its name, its
  * aliases, whether the option was explicitly set by the user, and information
@@ -69,6 +64,11 @@ public class OptionInfo extends AbstractPointer
   protected native String toString(long pointer);
 
   // endregion
+
+  /** Abstract class for OptionInfo values */
+  abstract class BaseInfo
+  {
+  }
 
   /** Has the current and the default value */
   public abstract class ValueInfo<T> extends BaseInfo
