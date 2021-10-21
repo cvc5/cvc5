@@ -882,6 +882,18 @@ public class Solver implements IPointer
   private native long mkEmptyBag(long pointer, long sortPointer);
 
   /**
+   * Create a separation logic empty term.
+   * @return the separation logic empty term
+   */
+  public Term mkSepEmp()
+  {
+    long termPointer = mkSepEmp(pointer);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkSepEmp(long pointer);
+
+  /**
    * Create a separation logic nil term.
    * @param sort the sort of the nil term
    * @return the separation logic nil term
