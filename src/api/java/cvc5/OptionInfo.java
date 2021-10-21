@@ -17,6 +17,11 @@ package cvc5;
 
 import java.math.BigInteger;
 
+/** Abstract class for OptionInfo values */
+abstract class BaseInfo
+{
+}
+
 /**
  * Holds some description about a particular option, including its name, its
  * aliases, whether the option was explicitly set by the user, and information
@@ -65,27 +70,6 @@ public class OptionInfo extends AbstractPointer
 
   // endregion
 
-  class ModeInfo extends ValueInfo<String>
-  {
-    private final String[] modes;
-
-    public ModeInfo(String defaultValue, String currentValue, String[] modes)
-    {
-      super(defaultValue, currentValue);
-      this.modes = modes;
-    }
-    public String[] getModes()
-    {
-      return modes;
-    }
-  }
-
-  /** Has no value information */
-  public static class VoidInfo extends BaseInfo
-  {
-    public VoidInfo() {}
-  }
-
   /** Has the current and the default value */
   public abstract class ValueInfo<T> extends BaseInfo
   {
@@ -104,6 +88,26 @@ public class OptionInfo extends AbstractPointer
     {
       return currentValue;
     }
+  }
+
+  class ModeInfo extends ValueInfo<String>
+  {
+    private final String[] modes;
+
+    public ModeInfo(String defaultValue, String currentValue, String[] modes)
+    {
+      super(defaultValue, currentValue);
+      this.modes = modes;
+    }
+    public String[] getModes()
+    {
+      return modes;
+    }
+  }
+
+  /** Has no value information */
+  public class VoidInfo extends BaseInfo
+  {
   }
 
   /** Default value, current value, minimum and maximum of a numeric value */

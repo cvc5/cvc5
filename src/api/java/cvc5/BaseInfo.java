@@ -15,7 +15,4 @@
 
 package cvc5;
 
-/** Abstract class for OptionInfo values */
-public abstract class BaseInfo
-{
-}
+public

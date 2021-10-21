@@ -173,8 +173,9 @@ JNIEXPORT jobject JNICALL Java_cvc5_OptionInfo_getBaseInfo(JNIEnv* env,
   if (std::holds_alternative<OptionInfo::VoidInfo>(v))
   {
     jclass voidInfoClass = env->FindClass("cvc5/OptionInfo$VoidInfo");
-    jmethodID methodId = env->GetMethodID(voidInfoClass, "<init>", "()V");
-    jobject ret = env->NewObject(voidInfoClass, methodId);
+    jmethodID methodId =
+        env->GetMethodID(voidInfoClass, "<init>", "(Lcvc5/OptionInfo;)V");
+    jobject ret = env->NewObject(voidInfoClass, methodId, optionInfo);
     return ret;
   }
 
