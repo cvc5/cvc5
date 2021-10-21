@@ -64,9 +64,9 @@ class SolverState : public TheoryState
   void addDisequality(TNode t1, TNode t2);
   //-------------------------------------- end disequality information
   //------------------------------------------ conflicts
-  /** set pending prefix conflict
+  /** set pending merge conflict
    *
-   * If conf is non-null, this is called when conf is a conjunction of literals
+   * This is called when conf is a conjunction of literals
    * that hold in the current context that are unsatisfiable. It is set as the
    * "pending conflict" to be processed as a conflict lemma on the output
    * channel of this class. It is not sent out immediately since it may require

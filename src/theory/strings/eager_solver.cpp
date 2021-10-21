@@ -61,11 +61,11 @@ void EagerSolver::eqNotifyNewClass(TNode t)
         }
         if (i == 0)
         {
-          eil->d_prefixC = t;
+          eil->d_firstBound = t;
         }
         else if (i == 1)
         {
-          eil->d_suffixC = t;
+          eil->d_secondBound = t;
         }
       }
     }
@@ -80,8 +80,8 @@ void EagerSolver::eqNotifyNewClass(TNode t)
     if (tn.isStringLike() || tn.isInteger())
     {
       EqcInfo* ei = d_state.getOrMakeEqcInfo(t);
-      ei->d_prefixC = t;
-      ei->d_suffixC = t;
+      ei->d_firstBound = t;
+      ei->d_secondBound = t;
     }
   }
   else if (k == STRING_CONCAT)
@@ -178,7 +178,7 @@ Node EagerSolver::checkForMergeConflict(Node a,
   TypeNode tn = a.getType();
   for (size_t i = 0; i < 2; i++)
   {
-    Node n = i == 0 ? eb->d_prefixC.get() : eb->d_suffixC.get();
+    Node n = i == 0 ? eb->d_firstBound.get() : eb->d_secondBound.get();
     if (!n.isNull())
     {
       Node conf;
@@ -226,7 +226,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   Assert(!tb.isNull() && tb.getKind() == CONST_RATIONAL)
       << "Unexpected bound " << tb << " from " << t;
   Rational br = tb.getConst<Rational>();
-  Node prev = isLower ? e->d_prefixC : e->d_suffixC;
+  Node prev = isLower ? e->d_firstBound : e->d_secondBound;
   // check if subsumed
   if (!prev.isNull())
   {
@@ -240,7 +240,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
       return Node::null();
     }
   }
-  Node prevo = isLower ? e->d_suffixC : e->d_prefixC;
+  Node prevo = isLower ? e->d_secondBound : e->d_firstBound;
   Trace("strings-eager-aconf-debug")
       << "Check conflict for bounds " << t << " " << prevo << std::endl;
   if (!prevo.isNull())
@@ -260,11 +260,11 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   }
   if (isLower)
   {
-    e->d_prefixC = t;
+    e->d_firstBound = t;
   }
   else
   {
-    e->d_suffixC = t;
+    e->d_secondBound = t;
   }
   return Node::null();
 }

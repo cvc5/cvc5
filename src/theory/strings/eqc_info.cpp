@@ -31,15 +31,15 @@ EqcInfo::EqcInfo(context::Context* c)
       d_codeTerm(c),
       d_cardinalityLemK(c),
       d_normalizedLength(c),
-      d_prefixC(c),
-      d_suffixC(c)
+      d_firstBound(c),
+      d_secondBound(c)
 {
 }
 
 Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
 {
   // check conflict
-  Node prev = isSuf ? d_suffixC : d_prefixC;
+  Node prev = isSuf ? d_secondBound : d_firstBound;
   if (!prev.isNull())
   {
     Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t
@@ -108,11 +108,11 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
   }
   if (isSuf)
   {
-    d_suffixC = t;
+    d_secondBound = t;
   }
   else
   {
-    d_prefixC = t;
+    d_firstBound = t;
   }
   return Node::null();
 }

@@ -74,11 +74,20 @@ class EqcInfo
    * If this is an integer equivalence class, this is the lower bound
    * of the value of this equivalence class.
    */
-  context::CDO<Node> d_prefixC;
-  /** same as above, for suffix. */
-  context::CDO<Node> d_suffixC;
+  context::CDO<Node> d_firstBound;
+  /** same as above, for suffix and integer upper bounds. */
+  context::CDO<Node> d_secondBound;
   /**
-   * Make merge conflict
+   * Make merge conflict. Let "bound term" refer to a term that is set
+   * as the data member of this class for d_firstBound or d_secondBound.
+   * This method is called when this implies that two terms occur in an
+   * equivalence class that have conflicting properties. For example,
+   * t may be (str.in_re x (re.++ (str.to_re "A") R2)) and prev may be
+   * (str.++ "B" y), where the equivalence class of x has merged into
+   * the equivalence class of (str.++ "B" y). This method would return
+   * the conflict:
+   *   (and (= x (str.++ "B" y)) (str.in_re x (re.++ (str.to_re "A") R2)))
+   * for this input.
    */
   static Node mkMergeConflict(Node t, Node prev);
 };
