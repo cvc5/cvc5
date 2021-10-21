@@ -623,6 +623,11 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
   }
 
+  @Test void mkSepEmp()
+  {
+    assertDoesNotThrow(() -> d_solver.mkSepEmp());
+  }
+
   @Test void mkSepNil()
   {
     assertDoesNotThrow(() -> d_solver.mkSepNil(d_solver.getBooleanSort()));
