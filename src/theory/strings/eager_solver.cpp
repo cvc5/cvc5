@@ -23,7 +23,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(SolverState& state) : d_state(state) {}
+EagerSolver::EagerSolver(SolverState& state, TermRegistry& treg) : d_state(state), d_treg(treg) {}
 
 EagerSolver::~EagerSolver() {}
 
@@ -37,7 +37,7 @@ void EagerSolver::eqNotifyNewClass(TNode t)
     EqcInfo* ei = d_state.getOrMakeEqcInfo(r);
     if (k == STRING_LENGTH)
     {
-      ei->d_lengthTerm = t[0];
+      ei->d_lengthTerm = t;
     }
     else
     {
@@ -129,6 +129,10 @@ void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
       d_state.setPendingPrefixConflictWhen(ei->addEndpointConst(t, c, r == 1));
     }
   }
+}
+
+void EagerSolver::checkLengthConflict(Node t, Node knownLen, Node eqc)
+{
 }
 
 void EagerSolver::notifyFact(TNode atom,

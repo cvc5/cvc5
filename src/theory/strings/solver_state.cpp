@@ -90,6 +90,10 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
     // typically shouldnt be necessary
     lengthTerm = t;
   }
+  else
+  {
+    lengthTerm = lengthTerm[0];
+  }
   Debug("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
                    << std::endl;
   if (te != lengthTerm)
@@ -197,7 +201,6 @@ void SolverState::separateByLength(
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (!lt.isNull())
     {
-      lt = nm->mkNode(STRING_LENGTH, lt);
       Node r = d_ee->getRepresentative(lt);
       std::pair<Node, TypeNode> lkey(r, tnEqc);
       if (eqc_to_leqc.find(lkey) == eqc_to_leqc.end())

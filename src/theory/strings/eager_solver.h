@@ -35,7 +35,7 @@ namespace strings {
 class EagerSolver
 {
  public:
-  EagerSolver(SolverState& state);
+  EagerSolver(SolverState& state, TermRegistry& treg);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
@@ -58,8 +58,12 @@ class EagerSolver
    * for some eqc that is currently equal to z.
    */
   void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
+  /** Check length conflict */
+  void checkLengthConflict(Node t, Node knownLen, Node eqc);
   /** Reference to the solver state */
   SolverState& d_state;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
 };
 
 }  // namespace strings
