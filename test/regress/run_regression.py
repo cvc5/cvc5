@@ -184,7 +184,8 @@ class ModelTester(Tester):
     def applies(self, benchmark_info):
         expected_output_lines = benchmark_info.expected_output.split()
         return (
-            ("sat" in expected_output_lines or "unknown" in expected_output_lines)
+            benchmark_info.benchmark_ext == ".sy"
+            and ("sat" in expected_output_lines or "unknown" in expected_output_lines)
             and "--no-debug-check-models" not in benchmark_info.command_line_args
             and "--no-check-models" not in benchmark_info.command_line_args
             and "--debug-check-models" not in benchmark_info.command_line_args
@@ -226,7 +227,8 @@ class AbductTester(Tester):
 
     def applies(self, benchmark_info):
         return (
-            "--no-check-abducts" not in benchmark_info.command_line_args
+            benchmark_info.benchmark_ext == ".sy"
+            and "--no-check-abducts" not in benchmark_info.command_line_args
             and "--check-abducts" not in benchmark_info.command_line_args
             and "get-abduct" in benchmark_info.benchmark_content
         )
@@ -496,10 +498,7 @@ def run_regression(
     comment_char = "%"
     status_regex = None
     status_to_output = lambda s: s
-    if benchmark_ext == ".smt":
-        status_regex = r":status\s*(sat|unsat)"
-        comment_char = ";"
-    elif benchmark_ext == ".smt2":
+    if benchmark_ext == ".smt2":
         status_regex = r"set-info\s*:status\s*(sat|unsat)"
         comment_char = ";"
     elif benchmark_ext == ".p":
