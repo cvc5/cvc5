@@ -22,6 +22,7 @@ runs:
         
         cd build_shared/
         echo $(pwd)
+        ccache -p
         ccache --set-config=base_dir=$(pwd)
         make -j${{ env.num_proc }}
 
@@ -35,6 +36,7 @@ runs:
 
         cd build_static/
         echo $(pwd)
+        ccache -p
         ccache --set-config=base_dir=$(pwd)
         make -j${{ env.num_proc }}
         
