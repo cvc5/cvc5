@@ -1168,6 +1168,15 @@ cdef class Solver:
         term.cterm = self.csolver.mkEmptyBag(s.csort)
         return term
 
+    def mkSepEmp(self):
+        """Create a separation logic empty term.
+
+        :return: the separation logic empty term
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkSepEmp()
+        return term
+
     def mkSepNil(self, Sort sort):
         """Create a separation logic nil term.
 
@@ -2643,23 +2652,23 @@ cdef class Sort:
         """
         return self.csort.getSortConstructorArity()
 
-    def getBVSize(self):
+    def getBitVectorSize(self):
         """
             :return: the bit-width of the bit-vector sort
         """
-        return self.csort.getBVSize()
+        return self.csort.getBitVectorSize()
 
-    def getFPExponentSize(self):
+    def getFloatingPointExponentSize(self):
         """
             :return: the bit-width of the exponent of the floating-point sort
         """
-        return self.csort.getFPExponentSize()
+        return self.csort.getFloatingPointExponentSize()
 
-    def getFPSignificandSize(self):
+    def getFloatingPointSignificandSize(self):
         """
             :return: the width of the significand of the floating-point sort
         """
-        return self.csort.getFPSignificandSize()
+        return self.csort.getFloatingPointSignificandSize()
 
     def getDatatypeParamSorts(self):
         """

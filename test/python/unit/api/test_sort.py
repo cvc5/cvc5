@@ -449,26 +449,26 @@ def test_get_uninterpreted_sort_constructor_arity(solver):
 
 def test_get_bv_size(solver):
     bvSort = solver.mkBitVectorSort(32)
-    bvSort.getBVSize()
+    bvSort.getBitVectorSize()
     setSort = solver.mkSetSort(solver.getIntegerSort())
     with pytest.raises(RuntimeError):
-        setSort.getBVSize()
+        setSort.getBitVectorSize()
 
 
 def test_get_fp_exponent_size(solver):
     fpSort = solver.mkFloatingPointSort(4, 8)
-    fpSort.getFPExponentSize()
+    fpSort.getFloatingPointExponentSize()
     setSort = solver.mkSetSort(solver.getIntegerSort())
     with pytest.raises(RuntimeError):
-        setSort.getFPExponentSize()
+        setSort.getFloatingPointExponentSize()
 
 
 def test_get_fp_significand_size(solver):
     fpSort = solver.mkFloatingPointSort(4, 8)
-    fpSort.getFPSignificandSize()
+    fpSort.getFloatingPointSignificandSize()
     setSort = solver.mkSetSort(solver.getIntegerSort())
     with pytest.raises(RuntimeError):
-        setSort.getFPSignificandSize()
+        setSort.getFloatingPointSignificandSize()
 
 
 def test_get_datatype_paramsorts(solver):
