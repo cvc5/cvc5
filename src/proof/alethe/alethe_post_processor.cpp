@@ -15,11 +15,14 @@
 
 #include "proof/alethe/alethe_post_processor.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
-#include "util/rational.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "theory/builtin/proof_checker.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 
@@ -311,6 +314,37 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
 
       return success;
+    }
+    case PfRule::DSL_REWRITE:
+    {
+      // get the name
+      rewriter::DslPfRule di;
+      Node rule;
+      if (rewriter::getDslPfRule(args[0], di))
+      {
+        std::stringstream ss;
+        ss << di;
+        rule = nm->mkBoundVar(ss.str(), nm->sExprType());
+      }
+      else
+      {
+        Unreachable();
+      }
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {rule},
+                           *cdp);
+    }
+    case PfRule::EVALUATE:
+    {
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {nm->mkBoundVar("evaluate", nm->sExprType())},
+                           *cdp);
     }
     // The rule is translated according to the theory id tid and the outermost
     // connective of the first term in the conclusion F, since F always has the

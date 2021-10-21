@@ -110,6 +110,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::NARY_ELIM: return "nary_elim";
     case AletheRule::LET: return "let";
     case AletheRule::QNT_SIMPLIFY: return "qnt_simplify";
+    case AletheRule::ALL_SIMPLIFY: return "all_simplify";
     case AletheRule::SKO_EX: return "sko_ex";
     case AletheRule::SKO_FORALL: return "sko_forall";
     case AletheRule::SYMM: return "symm";
