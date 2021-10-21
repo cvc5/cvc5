@@ -43,7 +43,8 @@
     (f_a.>= f_a.<)))
 
 ; A helper for computing the conclusion relation used in the rule
-; PfRule::ARITH_TRICHOTOMY.
+; PfRule::ARITH_TRICHOTOMY. For relations r1 and r2, this returns the
+; third possibility for the relationship between two arithmetic terms.
 (program sc_arith_rel_trichotomy ((r1 term) (r2 term)) term
   (match r1
     (f_= (match r2 (f_a.> f_a.<) (f_a.< f_a.>)))
