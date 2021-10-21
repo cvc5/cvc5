@@ -1,10 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
-<<<<<<< HEAD
- *   Andrew Reynolds, Tianyi Liang, Mathias Preiner
-=======
  *   Andrew Reynolds
->>>>>>> f047038b1bec31a1ebb89e9d35e3aebb3301eddc
  *
  * This file is part of the cvc5 project.
  *
@@ -14,11 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
-<<<<<<< HEAD
- * Enumerators for strings.
-=======
  * Enumerators for regular expressions.
->>>>>>> f047038b1bec31a1ebb89e9d35e3aebb3301eddc
  */
 
 #include "cvc5_private.h"
