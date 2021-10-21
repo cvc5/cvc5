@@ -410,6 +410,17 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   ASSERT_THROW(slv.mkFloatingPoint(3, 5, t1), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, mkCardinalityConstraint)
+{
+  Sort su = d_solver.mkUninterpretedSort("u");
+  Sort si = d_solver.getIntegerSort();
+  ASSERT_NO_THROW(d_solver.mkCardinalityConstraint(su, 3));
+  ASSERT_THROW(d_solver.mkCardinalityConstraint(si, 3), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkCardinalityConstraint(su, 0), CVC5ApiException);
+  Solver slv;
+  ASSERT_THROW(slv.mkCardinalityConstraint(su, 3), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkEmptySet)
 {
   Solver slv;
@@ -596,6 +607,8 @@ TEST_F(TestApiBlackSolver, mkRegexpSigma)
   ASSERT_NO_THROW(
       d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
 }
+
+TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
 
 TEST_F(TestApiBlackSolver, mkSepNil)
 {
@@ -2542,6 +2555,22 @@ TEST_F(TestApiBlackSolver, Output)
   d_solver.setOption("output", "inst");
   ASSERT_TRUE(d_solver.isOutputOn("inst"));
   ASSERT_NE(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+}
+
+
+TEST_F(TestApiBlackSolver, issue7000)
+{
+  Sort s1 = d_solver.getIntegerSort();
+  Sort s2 = d_solver.mkFunctionSort(s1, s1);
+  Sort s3 = d_solver.getRealSort();
+  Term t4 = d_solver.mkPi();
+  Term t7 = d_solver.mkConst(s3, "_x5");
+  Term t37 = d_solver.mkConst(s2, "_x32");
+  Term t59 = d_solver.mkConst(s2, "_x51");
+  Term t72 = d_solver.mkTerm(EQUAL, t37, t59);
+  Term t74 = d_solver.mkTerm(GT, t4, t7);
+  // throws logic exception since logic is not higher order by default
+  ASSERT_THROW(d_solver.checkEntailed({t72, t74, t72, t72}), CVC5ApiException);
 }
 
 }  // namespace test

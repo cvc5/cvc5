@@ -42,7 +42,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
     : d_env(env),
       d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
-      d_wfpm(env.getProofNodeManager()),
+      d_wfpm(env),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
