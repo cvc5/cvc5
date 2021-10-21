@@ -725,34 +725,34 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /**
    * @return the bit-width of the bit-vector sort
    */
-  public int getBVSize()
+  public int getBitVectorSize()
   {
-    return getBVSize(pointer);
+    return getBitVectorSize(pointer);
   }
 
-  private native int getBVSize(long pointer);
+  private native int getBitVectorSize(long pointer);
 
   /* Floating-point sort ------------------------------------------------- */
 
   /**
    * @return the bit-width of the exponent of the floating-point sort
    */
-  public int getFPExponentSize()
+  public int getFloatingPointExponentSize()
   {
-    return getFPExponentSize(pointer);
+    return getFloatingPointExponentSize(pointer);
   }
 
-  private native int getFPExponentSize(long pointer);
+  private native int getFloatingPointExponentSize(long pointer);
 
   /**
    * @return the width of the significand of the floating-point sort
    */
-  public int getFPSignificandSize()
+  public int getFloatingPointSignificandSize()
   {
-    return getFPSignificandSize(pointer);
+    return getFloatingPointSignificandSize(pointer);
   }
 
-  private native int getFPSignificandSize(long pointer);
+  private native int getFloatingPointSignificandSize(long pointer);
 
   /* Datatype sort ------------------------------------------------------- */
 
