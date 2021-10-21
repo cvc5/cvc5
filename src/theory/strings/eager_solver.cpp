@@ -23,10 +23,11 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(SolverState& state,
+EagerSolver::EagerSolver(Env& env,
+                         SolverState& state,
                          TermRegistry& treg,
                          ArithEntail& aent)
-    : d_state(state), d_treg(treg), d_aent(aent)
+    : EnvObj(env), d_state(state), d_treg(treg), d_aent(aent)
 {
 }
 
@@ -43,9 +44,29 @@ void EagerSolver::eqNotifyNewClass(TNode t)
     if (k == STRING_LENGTH)
     {
       ei->d_lengthTerm = t;
-      // also assume it as upper/lower bound
-      ei->d_prefixC = t;
-      ei->d_suffixC = t;
+      // also assume it as upper/lower bound as applicable for the equivalence
+      // class info of t.
+      EqcInfo* eil = nullptr;
+      for (size_t i=0; i<2; i++)
+      {
+        Node b = getBoundForLength(t, i==0);
+        if (b.isNull())
+        {
+          continue;
+        }
+        if (eil == nullptr)
+        {
+          eil = d_state.getOrMakeEqcInfo(t);
+        }
+        if (i==0)
+        {
+          eil->d_prefixC = t;
+        }
+        else if (i==1)
+        {
+          eil->d_suffixC = t;
+        }
+      }
     }
     else
     {
@@ -54,7 +75,8 @@ void EagerSolver::eqNotifyNewClass(TNode t)
   }
   else if (t.isConst())
   {
-    if (t.getType().isStringLike())
+    TypeNode tn = t.getType();
+    if (tn.isStringLike() || tn.isInteger())
     {
       EqcInfo* ei = d_state.getOrMakeEqcInfo(t);
       ei->d_prefixC = t;
@@ -70,14 +92,12 @@ void EagerSolver::eqNotifyNewClass(TNode t)
 void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
 {
   EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
-  Assert(t1.getType().isStringLike());
-  // always create it if e2 was non-null
-  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1, e2 != nullptr);
-  if (e1 == nullptr)
+  if (e2 == nullptr)
   {
-    // neither had equivalence class info, don't set
     return;
   }
+  // always create it if e2 was non-null
+  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
   // check for conflict
   Node conf = checkForMergeConflict(t1, t2, e1, e2);
   if (!conf.isNull())
@@ -94,7 +114,6 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   {
     e1->d_codeTerm.set(e2->d_codeTerm);
   }
-
   if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
   {
     e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
@@ -103,6 +122,7 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   {
     e1->d_normalizedLength.set(e2->d_normalizedLength);
   }
+  
 }
 
 void EagerSolver::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
@@ -193,6 +213,24 @@ void EagerSolver::notifyFact(TNode atom,
       addEndpointsToEqcInfo(atom, atom[1], eqc);
     }
   }
+}
+
+Node EagerSolver::getBoundForLength(Node len, bool isLower)
+{
+  Assert (len.getKind()==STRING_LENGTH);
+  std::map<Node, Node>& cache = d_boundCache[isLower ? 0 : 1];
+  std::map<Node, Node>::iterator it = cache.find(len);
+  if (it!=cache.end())
+  {
+    return it->second;
+  }
+  // convert to original form
+  Node olen = SkolemManager::getOriginalForm(len);
+  olen = rewrite(olen);
+  Node c = d_aent.getConstantBound(olen, isLower);
+  cache[len] = c;
+  Trace("strings-eager-aconf-debug") << "Constant " << (isLower ? "lower" : "upper") << " bound for " << len << " is " << c << std::endl;
+  return c;
 }
 
 }  // namespace strings

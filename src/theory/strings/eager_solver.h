@@ -25,6 +25,7 @@
 #include "theory/strings/eqc_info.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -34,10 +35,10 @@ namespace strings {
  * Eager solver, which is responsible for tracking of eager information and
  * reporting conflicts to the solver state.
  */
-class EagerSolver
+class EagerSolver : protected EnvObj
 {
  public:
-  EagerSolver(SolverState& state, TermRegistry& treg, ArithEntail& aent);
+  EagerSolver(Env& env, SolverState& state, TermRegistry& treg, ArithEntail& aent);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
@@ -65,12 +66,16 @@ class EagerSolver
    * return the node corresponding to the conflict if so.
    */
   Node checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb);
+  /** get bound for length term */
+  Node getBoundForLength(Node len, bool isLower);
   /** Reference to the solver state */
   SolverState& d_state;
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** Arithmetic entailment */
   ArithEntail& d_aent;
+  /** cache of getBoundForLength */
+  std::map<Node, Node> d_boundCache[2];
 };
 
 }  // namespace strings
