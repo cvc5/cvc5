@@ -23,6 +23,7 @@
 #include "expr/node.h"
 #include "theory/strings/eqc_info.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
 
 namespace cvc5 {
 namespace theory {

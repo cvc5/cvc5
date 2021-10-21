@@ -254,10 +254,10 @@ class TheoryStrings : public Theory {
   SequencesStatistics d_statistics;
   /** The solver state object */
   SolverState d_state;
-  /** The eager solver */
-  EagerSolver d_eagerSolver;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** The eager solver */
+  EagerSolver d_eagerSolver;
   /** The extended theory callback */
   StringsExtfCallback d_extTheoryCb;
   /** The (custom) output channel of the theory of strings */
