@@ -37,19 +37,25 @@ class CardinalityConstraintTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+class CardinalityConstraintOpTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
 class CombinedCardinalityConstraintTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-class PartialTypeRule
+class CombinedCardinalityConstraintOpTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-class CardinalityValueTypeRule
+class PartialTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);

@@ -410,6 +410,17 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   ASSERT_THROW(slv.mkFloatingPoint(3, 5, t1), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, mkCardinalityConstraint)
+{
+  Sort su = d_solver.mkUninterpretedSort("u");
+  Sort si = d_solver.getIntegerSort();
+  ASSERT_NO_THROW(d_solver.mkCardinalityConstraint(su, 3));
+  ASSERT_THROW(d_solver.mkCardinalityConstraint(si, 3), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkCardinalityConstraint(su, 0), CVC5ApiException);
+  Solver slv;
+  ASSERT_THROW(slv.mkCardinalityConstraint(su, 3), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkEmptySet)
 {
   Solver slv;
@@ -596,6 +607,8 @@ TEST_F(TestApiBlackSolver, mkRegexpSigma)
   ASSERT_NO_THROW(
       d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
 }
+
+TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
 
 TEST_F(TestApiBlackSolver, mkSepNil)
 {

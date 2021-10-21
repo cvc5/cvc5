@@ -41,6 +41,7 @@
 #include "base/modal_exception.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
@@ -131,7 +132,6 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     /* UF ------------------------------------------------------------------ */
     {APPLY_UF, cvc5::Kind::APPLY_UF},
     {CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT},
-    {CARDINALITY_VALUE, cvc5::Kind::CARDINALITY_VALUE},
     {HO_APPLY, cvc5::Kind::HO_APPLY},
     /* Arithmetic ---------------------------------------------------------- */
     {PLUS, cvc5::Kind::PLUS},
@@ -410,7 +410,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* UF -------------------------------------------------------------- */
         {cvc5::Kind::APPLY_UF, APPLY_UF},
         {cvc5::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
-        {cvc5::Kind::CARDINALITY_VALUE, CARDINALITY_VALUE},
         {cvc5::Kind::HO_APPLY, HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
         {cvc5::Kind::PLUS, PLUS},
@@ -5082,7 +5081,7 @@ Term Solver::mkTermFromKind(Kind kind) const
   CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_EMPTY
                                    || kind == REGEXP_SIGMA || kind == SEP_EMP,
                                kind)
-      << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
+      << "PI, REGEXP_EMPTY, REGEXP_SIGMA or SEP_EMP";
   //////// all checks before this line
   Node res;
   cvc5::Kind k = extToIntKind(kind);
@@ -5822,6 +5821,18 @@ Term Solver::mkEmptyBag(const Sort& sort) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Term Solver::mkSepEmp() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Node res = getNodeManager()->mkNullaryOperator(d_nodeMgr->booleanType(),
+                                                 cvc5::Kind::SEP_EMP);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::mkSepNil(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -6039,6 +6050,22 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       cvc5::FloatingPoint(exp, sig, val.d_node->getConst<BitVector>()));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t ubound) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isUninterpretedSort(), sort)
+      << "an uninterpreted sort";
+  CVC5_API_ARG_CHECK_EXPECTED(ubound > 0, ubound) << "a value > 0";
+  //////// all checks before this line
+  Node cco =
+      d_nodeMgr->mkConst(cvc5::CardinalityConstraint(*sort.d_type, ubound));
+  Node cc = d_nodeMgr->mkNode(cvc5::Kind::CARDINALITY_CONSTRAINT, cco);
+  return Term(this, cc);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
