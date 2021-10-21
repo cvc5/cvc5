@@ -30,7 +30,8 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-ArithEntail::ArithEntail(Rewriter* r) : d_rr(r) {
+ArithEntail::ArithEntail(Rewriter* r) : d_rr(r)
+{
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
 
