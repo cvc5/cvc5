@@ -96,4 +96,5 @@ jobs:
       if: matrix.store-to-release && startsWith(github.ref, 'refs/tags/')
       uses: ./.github/actions/add-to-release
       with:
+        binary: build/bin/cvc5
         github-token: ${{ secrets.GITHUB_TOKEN }}
