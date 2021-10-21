@@ -193,7 +193,6 @@ void SolverState::separateByLength(
   // not have an associated length in the mappings above, if the length of
   // an equivalence class is unknown.
   std::map<unsigned, std::vector<Node> > eqc_to_strings;
-  NodeManager* nm = NodeManager::currentNM();
   for (const Node& eqc : n)
   {
     Assert(d_ee->getRepresentative(eqc) == eqc);

@@ -16,6 +16,7 @@
 #include "theory/strings/eager_solver.h"
 
 #include "theory/strings/theory_strings_utils.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -185,7 +186,7 @@ Node EagerSolver::checkForMergeConflict(Node a,
       }
       else
       {
-        conf = addArithmeticBound(ea, n, i == 1);
+        conf = addArithmeticBound(ea, n, i == 0);
       }
       if (!conf.isNull())
       {
@@ -212,17 +213,38 @@ void EagerSolver::notifyFact(TNode atom,
   }
 }
 
-Node EagerSolver::addArithmeticBound(EqcInfo* e, Node bound, bool isLower)
+Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 {
-  Node prev = isSuf ? d_prefixC : d_suffixC;
-  // check if redundant
+  Assert (e!=nullptr);
+  Assert (!t.isNull());
+  Node tb = t.isConst() ? t : getBoundForLength(t, isLower);
+  Assert (!tb.isNull() && tb.getKind()==CONST_RATIONAL) << "Unexpected bound " << tb << " from " << t;
+  Rational br = tb.getConst<Rational>();
+  Node prev = isLower ? e->d_prefixC : e->d_suffixC;
+  // check if subsumed
   if (!prev.isNull())
   {
-    // convert to
+    // convert to bound
+    Node prevb = prev.isConst() ? prev : getBoundForLength(prev, isLower);
+    Assert (!prevb.isNull() && prevb.getKind()==CONST_RATIONAL);
+    Rational prevbr = prevb.getConst<Rational>();
+    if (prevbr ==br || (prevbr < br) == isLower)
+    {
+      // subsumed
+      return Node::null();
+    }
   }
-  Node prevo = isSuf ? d_prefixC : d_suffixC;
+  Node prevo = isLower ? e->d_suffixC : e->d_prefixC;
   if (!prevo.isNull())
   {
+  }
+  if (isLower)
+  {
+    e->d_prefixC = t;
+  }
+  else
+  {
+    e->d_suffixC = t;
   }
   return Node::null();
 }

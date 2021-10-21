@@ -70,7 +70,7 @@ class EagerSolver : protected EnvObj
    */
   Node checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb);
   /** add arithmetic bound */
-  Node addArithmeticBound(EqcInfo* ea, Node bound, bool isLower);
+  Node addArithmeticBound(EqcInfo* ea, Node t, bool isLower);
   /** get bound for length term */
   Node getBoundForLength(Node len, bool isLower);
   /** Reference to the solver state */
