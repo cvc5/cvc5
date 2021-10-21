@@ -21,6 +21,7 @@ runs:
           --werror --name=build_shared
         
         cd build_shared/
+        echo $(pwd)
         ccache --set-config=base_dir=$(pwd)
         make -j${{ env.num_proc }}
 
@@ -33,6 +34,7 @@ runs:
           --werror --static --name=build_static
 
         cd build_static/
+        echo $(pwd)
         ccache --set-config=base_dir=$(pwd)
         make -j${{ env.num_proc }}
         
