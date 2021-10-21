@@ -223,11 +223,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::xorYFromX(bool negated,
   }
   if (x)
   {
-    return mkResolution(
+    return mkNot(mkResolution(
         mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM2,
                 {assume(negated ? parent.notNode() : Node(parent))}),
         parent[0],
-        false);
+        false));
   }
   return mkNot(
       mkResolution(mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
@@ -397,7 +397,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
   if (d_parentAssignment)
   {
     return mkResolution(
-        mkProof(PfRule::ITE_ELIM2, {assume(d_parent)}), d_parent[c + 1], false);
+        mkProof(PfRule::ITE_ELIM2, {assume(d_parent)}), d_parent[c + 1], true);
   }
   return mkResolution(
       mkProof(PfRule::NOT_ITE_ELIM2, {assume(d_parent.notNode())}),

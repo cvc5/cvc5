@@ -251,7 +251,8 @@ void TheoryUF::preRegisterTerm(TNode node)
 {
   Debug("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
 
-  if (d_thss != NULL) {
+  if (d_thss != nullptr)
+  {
     d_thss->preRegisterTerm(node);
   }
 
