@@ -74,7 +74,7 @@ class Tester:
             print()
             print("Error output difference")
             print("=" * 80)
-            print_diff(error, expected_error)
+            print_diff(error, benchmark_info.expected_error)
             print("=" * 80)
             print()
         elif exit_status != benchmark_info.expected_exit_status:
