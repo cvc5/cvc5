@@ -377,7 +377,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
       // problem are rewritten to true. If this is not the case, then the
       // assertions module of the subsolver will complain about assertions
       // with free variables.
-      Node ar = theory::Rewriter::rewrite(a);
+      Node ar = rewrite(a);
       solChecker->assertFormula(ar);
     }
     Result r = solChecker->checkSat();
@@ -435,6 +435,7 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       Node eop = op.isConst()
                      ? op
                      : d_smtSolver.getPreprocessor()->expandDefinitions(op);
+      eop = rewrite(eop);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments
       for (unsigned j = 0, nargs = c->getNumArgs(); j < nargs; ++j)

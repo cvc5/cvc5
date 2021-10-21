@@ -43,7 +43,7 @@ namespace api {
  * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
  * bits, see expr/node_value.h).
  */
-enum CVC5_EXPORT Kind : int32_t
+enum Kind : int32_t
 {
   /**
    * Internal kind.
@@ -750,6 +750,9 @@ enum CVC5_EXPORT Kind : int32_t
   TO_REAL,
   /**
    * Pi constant.
+   *
+   * Note that PI is considered a special symbol of sort Real, but is not
+   * a real value, i.e., `Term::isRealValue() const` will return false.
    *
    * Create with:
    *   - `Solver::mkPi() const`
@@ -2212,6 +2215,10 @@ enum CVC5_EXPORT Kind : int32_t
   /**
    * Finite universe set.
    * All set variables must be interpreted as subsets of it.
+   *
+   * Note that UNIVERSE_SET is considered a special symbol of the theory of
+   * sets and is not considered as a set value,
+   * i.e., `Term::isSetValue() const` will return false.
    *
    * Create with:
    *   - `Solver::mkUniverseSet(const Sort& sort) const`

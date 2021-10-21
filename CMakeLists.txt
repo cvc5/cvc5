@@ -247,9 +247,6 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Shared/static libraries
-#
-# This needs to be set before any find_package(...) command since we want to
-# search for static libraries with suffix .a.
 
 # Embed the installation prefix as an RPATH in the executable such that the
 # linker can find our libraries (such as libcvc5parser) when executing the
@@ -490,6 +487,8 @@ if(BUILD_DOCS)
 endif()
 
 add_subdirectory(test)
+
+include(target-graphs)
 
 #-----------------------------------------------------------------------------#
 # Package configuration

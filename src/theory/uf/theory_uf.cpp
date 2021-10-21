@@ -212,7 +212,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
                       << std::endl;
   Kind k = node.getKind();
-  if (k == kind::HO_APPLY)
+  if (k == kind::HO_APPLY || (node.isVar() && node.getType().isFunction()))
   {
     if (!logicInfo().isHigherOrder())
     {

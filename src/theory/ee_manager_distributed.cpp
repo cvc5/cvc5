@@ -58,8 +58,8 @@ void EqEngineManagerDistributed::initializeTheories()
     QuantifiersEngine* qe = d_te.getQuantifiersEngine();
     Assert(qe != nullptr);
     d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
-    d_masterEqualityEngine.reset(new eq::EqualityEngine(
-        *d_masterEENotify.get(), c, "theory::master", false));
+    d_masterEqualityEngine = std::make_unique<eq::EqualityEngine>(
+        d_env, c, *d_masterEENotify.get(), "theory::master", false);
   }
   // allocate equality engines per theory
   for (TheoryId theoryId = theory::THEORY_FIRST;

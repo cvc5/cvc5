@@ -1727,15 +1727,7 @@ void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
 void Smt2Printer::toStreamCmdEcho(std::ostream& out,
                                   const std::string& output) const
 {
-  std::string s = output;
-  // escape all double-quotes
-  size_t pos = 0;
-  while ((pos = s.find('"', pos)) != string::npos)
-  {
-    s.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(echo \"" << s << "\")" << std::endl;
+  out << "(echo " << cvc5::quoteString(output) << ')' << std::endl;
 }
 
 /*
@@ -1934,14 +1926,9 @@ static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
 #endif /* CVC5_COMPETITION_MODE */
 }
 
-static void errorToStream(std::ostream& out, std::string message, Variant v) {
-  // escape all double-quotes
-  size_t pos = 0;
-  while((pos = message.find('"', pos)) != string::npos) {
-    message.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(error \"" << message << "\")" << endl;
+static void errorToStream(std::ostream& out, std::string message, Variant v)
+{
+  out << "(error " << cvc5::quoteString(message) << ')' << endl;
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, Variant v) {

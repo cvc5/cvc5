@@ -22,6 +22,8 @@
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/lfsc/lfsc_post_processor.h"
+#include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
@@ -39,7 +41,7 @@ PfManager::PfManager(Env& env)
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
           options().proof.proofPedantic)),
-      d_pnm(new ProofNodeManager(d_pchecker.get())),
+      d_pnm(new ProofNodeManager(env.getRewriter(), d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
       d_pfpp(nullptr),
@@ -166,8 +168,6 @@ void PfManager::printProof(std::ostream& out,
   {
     fp = d_pnm->clone(fp);
   }
-  // TODO (proj #37) according to the proof format, post process the proof node
-  // TODO (proj #37) according to the proof format, print the proof node
 
   // according to the proof format, post process and print the proof node
   if (options().proof.proofFormatMode == options::ProofFormatMode::DOT)
@@ -180,6 +180,16 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
+  }
+  else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
+  {
+    std::vector<Node> assertions;
+    getAssertions(as, assertions);
+    proof::LfscNodeConverter ltp;
+    proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
+    lpp.process(fp);
+    proof::LfscPrinter lp(ltp);
+    lp.print(out, assertions, fp.get());
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::TPTP)
   {

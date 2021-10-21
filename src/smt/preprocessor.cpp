@@ -37,12 +37,12 @@ namespace smt {
 
 Preprocessor::Preprocessor(Env& env,
                            AbstractValues& abs,
-                           SmtEngineStatistics& stats)
+                           SolverEngineStatistics& stats)
     : EnvObj(env),
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(env.getUserContext(), false),
-      d_exDefs(env, stats),
+      d_exDefs(env),
       d_processor(env, stats),
       d_pnm(nullptr)
 {
@@ -150,7 +150,7 @@ Node Preprocessor::simplify(const Node& node)
     d_env.getPrinter().toStreamCmdSimplify(d_env.getDumpOut(), node);
   }
   Node ret = expandDefinitions(node);
-  ret = theory::Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   return ret;
 }
 
