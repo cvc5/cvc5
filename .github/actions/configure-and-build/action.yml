@@ -37,7 +37,7 @@ runs:
         cd build_static/
         echo $(pwd)
         ccache -p
-        ccache --set-config=base_dir="$(pwd)"
+        gdb -ex r -ex bt --args ccache --set-config=base_dir="$(pwd)"
         make -j${{ env.num_proc }}
         
     - name: Reset ccache base_dir
