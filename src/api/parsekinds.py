@@ -34,7 +34,7 @@ US = '_'
 NL = '\n'
 
 # Expected C++ Enum Declarations
-ENUM_START = 'enum CVC5_EXPORT Kind'
+ENUM_START = 'enum Kind'
 ENUM_END = CCB + SC
 
 # Comments and Macro Tokens

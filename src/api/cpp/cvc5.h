@@ -1167,7 +1167,7 @@ class CVC5_EXPORT Term
    *       for example, the term f(x, y) will have Kind APPLY_UF and three
    *       children: f, x, and y
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class Term;
 
@@ -1353,6 +1353,8 @@ class CVC5_EXPORT Term
   std::pair<int64_t, uint64_t> getReal64Value() const;
   /**
    * @return true if the term is a rational value.
+   *
+   * Note that a term of kind PI is not considered to be a real value.
    */
   bool isRealValue() const;
   /**
@@ -1448,6 +1450,17 @@ class CVC5_EXPORT Term
 
   /**
    * @return true if the term is a set value.
+   *
+   * A term is a set value if it is considered to be a (canonical) constant set
+   * value.  A canonical set value is one whose AST is:
+   * ```
+   *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * ```
+   * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
+   * also @ref Term::operator>(const Term&) const).
+   *
+   * Note that a universe set term (kind UNIVERSE_SET) is not considered to be
+   * a set value.
    */
   bool isSetValue() const;
   /**
@@ -2599,7 +2612,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
  * Standard 754.
  * \endverbatim
  */
-enum CVC5_EXPORT RoundingMode
+enum RoundingMode
 {
   /**
    * Round to the nearest even number.
@@ -2874,7 +2887,7 @@ class CVC5_EXPORT Statistics
   using BaseType = std::map<std::string, Stat>;
 
   /** Custom iterator to hide certain statistics from regular iteration */
-  class iterator
+  class CVC5_EXPORT iterator
   {
    public:
     friend class Statistics;
@@ -3429,6 +3442,12 @@ class CVC5_EXPORT Solver
    * @return the empty bag constant
    */
   Term mkEmptyBag(const Sort& sort) const;
+
+  /**
+   * Create a separation logic empty term.
+   * @return the separation logic empty term
+   */
+  Term mkSepEmp() const;
 
   /**
    * Create a separation logic nil term.
