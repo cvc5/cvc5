@@ -184,7 +184,7 @@ class ModelTester(Tester):
     def applies(self, benchmark_info):
         expected_output_lines = benchmark_info.expected_output.split()
         return (
-            benchmark_info.benchmark_ext == ".sy"
+            benchmark_info.benchmark_ext != ".sy"
             and ("sat" in expected_output_lines or "unknown" in expected_output_lines)
             and "--no-debug-check-models" not in benchmark_info.command_line_args
             and "--no-check-models" not in benchmark_info.command_line_args
@@ -227,7 +227,7 @@ class AbductTester(Tester):
 
     def applies(self, benchmark_info):
         return (
-            benchmark_info.benchmark_ext == ".sy"
+            benchmark_info.benchmark_ext != ".sy"
             and "--no-check-abducts" not in benchmark_info.command_line_args
             and "--check-abducts" not in benchmark_info.command_line_args
             and "get-abduct" in benchmark_info.benchmark_content
