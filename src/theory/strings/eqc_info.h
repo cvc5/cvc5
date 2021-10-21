@@ -62,13 +62,17 @@ class EqcInfo
   context::CDO<unsigned> d_cardinalityLemK;
   context::CDO<Node> d_normalizedLength;
   /**
-   * A node that explains the longest constant prefix known of this
+   * If this is a string equivalence class, this is
+   * a node that explains the longest constant prefix known of this
    * equivalence class. This can either be:
    * (1) A term from this equivalence class, including a constant "ABC" or
    * concatenation term (str.++ "ABC" ...), or
    * (2) A membership of the form (str.in.re x R) where x is in this
    * equivalence class and R is a regular expression of the form
    * (str.to.re "ABC") or (re.++ (str.to.re "ABC") ...).
+   * 
+   * If this is an integer equivalence class, this is the lower bound
+   * of the value of this equivalence class.
    */
   context::CDO<Node> d_prefixC;
   /** same as above, for suffix. */

@@ -24,6 +24,7 @@
 #include "theory/strings/eqc_info.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
+#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
@@ -36,7 +37,7 @@ namespace strings {
 class EagerSolver
 {
  public:
-  EagerSolver(SolverState& state, TermRegistry& treg);
+  EagerSolver(SolverState& state, TermRegistry& treg, ArithEntail& aent);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
@@ -59,12 +60,17 @@ class EagerSolver
    * for some eqc that is currently equal to z.
    */
   void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
-  /** Check length conflict */
-  void checkLengthConflict(Node t, Node knownLen, Node eqc);
+  /** 
+   * Check for conflict when merging equivalence classes with the given info,
+   * return the node corresponding to the conflict if so.
+   */
+  Node checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb);
   /** Reference to the solver state */
   SolverState& d_state;
   /** Reference to the term registry */
   TermRegistry& d_treg;
+  /** Arithmetic entailment */
+  ArithEntail& d_aent;
 };
 
 }  // namespace strings

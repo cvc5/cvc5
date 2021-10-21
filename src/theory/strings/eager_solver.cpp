@@ -23,7 +23,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(SolverState& state, TermRegistry& treg) : d_state(state), d_treg(treg) {}
+EagerSolver::EagerSolver(SolverState& state, TermRegistry& treg, ArithEntail& aent) : d_state(state), d_treg(treg), d_aent(aent) {}
 
 EagerSolver::~EagerSolver() {}
 
@@ -38,6 +38,9 @@ void EagerSolver::eqNotifyNewClass(TNode t)
     if (k == STRING_LENGTH)
     {
       ei->d_lengthTerm = t;
+      // also assume it as upper/lower bound
+      ei->d_prefixC = t;
+      ei->d_suffixC = t;
     }
     else
     {
@@ -62,12 +65,21 @@ void EagerSolver::eqNotifyNewClass(TNode t)
 void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
 {
   EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
-  if (e2 == nullptr)
+  Assert(t1.getType().isStringLike());
+  // always create it if e2 was non-null
+  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1, e2!=nullptr);
+  if (e1==nullptr)
   {
+    // neither had equivalence class info, don't set
     return;
   }
-  Assert(t1.getType().isStringLike());
-  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
+  // check for conflict
+  Node conf = checkForMergeConflict(t1, t2, e1, e2);
+  if (!conf.isNull())
+  {
+    d_state.setPendingMergeConflict(conf);
+    return;
+  }
   // add information from e2 to e1
   if (!e2->d_lengthTerm.get().isNull())
   {
@@ -77,16 +89,7 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   {
     e1->d_codeTerm.set(e2->d_codeTerm);
   }
-  if (!e2->d_prefixC.get().isNull())
-  {
-    d_state.setPendingPrefixConflictWhen(
-        e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
-  }
-  if (!e2->d_suffixC.get().isNull())
-  {
-    d_state.setPendingPrefixConflictWhen(
-        e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
-  }
+  
   if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
   {
     e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
@@ -126,13 +129,47 @@ void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
       Trace("strings-eager-pconf-debug")
           << "New term: " << concat << " for " << t << " with prefix " << c
           << " (" << (r == 1) << ")" << std::endl;
-      d_state.setPendingPrefixConflictWhen(ei->addEndpointConst(t, c, r == 1));
+      Node conf = ei->addEndpointConst(t, c, r == 1);
+      if (!conf.isNull())
+      {
+        d_state.setPendingMergeConflict(conf);
+        return;
+      }
     }
   }
 }
 
-void EagerSolver::checkLengthConflict(Node t, Node knownLen, Node eqc)
+Node EagerSolver::checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb)
 {
+  Assert (a.getType()==b.getType());
+  TypeNode tn = a.getType();
+  if (tn.isStringLike())
+  {
+    if (eb!=nullptr)
+    {
+      // we always create ea if eb exists
+      Assert (ea!=nullptr);
+      // check prefix, suffix
+      for (size_t i=0; i<2; i++)
+      {
+        Node n = i==0 ? eb->d_prefixC.get() : eb->d_suffixC.get();
+        if (!n.isNull())
+        {
+          Node conf =
+              ea->addEndpointConst(n, Node::null(), i==1);
+          if (!conf.isNull())
+          {
+            return conf;
+          }
+        }
+      }
+    }
+  }
+  else if (tn.isInteger())
+  {
+    // TODO
+  }
+  return Node::null();
 }
 
 void EagerSolver::notifyFact(TNode atom,

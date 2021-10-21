@@ -139,10 +139,11 @@ bool SolverState::isEqualEmptyWord(Node s, Node& emps)
   return false;
 }
 
-void SolverState::setPendingPrefixConflictWhen(Node conf)
+void SolverState::setPendingMergeConflict(Node conf)
 {
-  if (conf.isNull() || d_pendingConflictSet.get())
+  if (d_pendingConflictSet.get())
   {
+    // already set conflict
     return;
   }
   InferInfo iiPrefixConf(InferenceId::STRINGS_PREFIX_CONFLICT);
