@@ -18,15 +18,12 @@ runs:
         if [[ "${{ inputs.build-shared }}" = "true" ]]; then
           ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
             --prefix=$(pwd)/build_shared/install \
-            --werror
-            --name=build_shared
+            --werror --name=build_shared
         fi
         if [[ "${{ inputs.build-static }}" = "true" ]]; then
           ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
             --prefix=$(pwd)/build_static/install \
-            --werror
-            --static
-            --name=build_static
+            --werror --static --name=build_static
         fi
     - name: Build
       shell: bash
