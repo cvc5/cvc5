@@ -15,6 +15,7 @@ runs:
     - name: Shared build
       shell: bash
       run: |
+        sudo apt-get install -y gdb
         if [[ "${{ inputs.build-shared }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build_shared/install \
