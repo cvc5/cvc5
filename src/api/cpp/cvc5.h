@@ -1167,7 +1167,7 @@ class CVC5_EXPORT Term
    *       for example, the term f(x, y) will have Kind APPLY_UF and three
    *       children: f, x, and y
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class Term;
 
@@ -2612,7 +2612,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
  * Standard 754.
  * \endverbatim
  */
-enum CVC5_EXPORT RoundingMode
+enum RoundingMode
 {
   /**
    * Round to the nearest even number.
@@ -2887,7 +2887,7 @@ class CVC5_EXPORT Statistics
   using BaseType = std::map<std::string, Stat>;
 
   /** Custom iterator to hide certain statistics from regular iteration */
-  class iterator
+  class CVC5_EXPORT iterator
   {
    public:
     friend class Statistics;

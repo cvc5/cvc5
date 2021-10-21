@@ -43,7 +43,7 @@ namespace api {
  * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
  * bits, see expr/node_value.h).
  */
-enum CVC5_EXPORT Kind : int32_t
+enum Kind : int32_t
 {
   /**
    * Internal kind.
