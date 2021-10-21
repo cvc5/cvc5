@@ -1366,9 +1366,7 @@ class SolverTest
       assertions.add(() -> assertEquals("verbose", info.getName()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
-      assertions.add(()
-                         -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo
-                             && info.getBaseInfo() == OptionInfo.VoidInfo.VOID_INFO));
+      assertions.add(() -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo));
     }
     {
       // int64 type with default

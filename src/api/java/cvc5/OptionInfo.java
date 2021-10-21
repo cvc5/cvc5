@@ -83,8 +83,7 @@ public class OptionInfo extends AbstractPointer
   /** Has no value information */
   public static class VoidInfo extends BaseInfo
   {
-    public static final VoidInfo VOID_INFO = new VoidInfo();
-    private VoidInfo() {}
+    public VoidInfo() {}
   }
 
   /** Has the current and the default value */
