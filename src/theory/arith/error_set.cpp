@@ -64,7 +64,7 @@ ErrorInformation::~ErrorInformation() {
     Debug("arith::error::mem") << d_amount.get() << endl;
     Debug("arith::error::mem")
         << "destroy " << d_variable << " " << d_amount.get() << endl;
-    d_amount.reset();
+    d_amount = nullptr;
   }
 }
 
@@ -79,11 +79,11 @@ ErrorInformation::ErrorInformation(const ErrorInformation& ei)
 {
   if (ei.d_amount == nullptr)
   {
-    d_amount.reset();
+    d_amount = nullptr;
   }
   else
   {
-    d_amount.reset(new DeltaRational(*ei.d_amount));
+    d_amount = std::make_unique<DeltaRational>(*ei.d_amount);
   }
   Debug("arith::error::mem")
       << "copy const " << d_variable << " " << d_amount.get() << endl;
@@ -105,7 +105,7 @@ ErrorInformation& ErrorInformation::operator=(const ErrorInformation& ei){
   }
   else if (ei.d_amount != nullptr)
   {
-    d_amount.reset(new DeltaRational(*ei.d_amount));
+    d_amount = std::make_unique<DeltaRational>(*ei.d_amount);
     Debug("arith::error::mem")
         << "assignment alloc " << d_variable << " " << d_amount.get() << endl;
   }
@@ -113,11 +113,11 @@ ErrorInformation& ErrorInformation::operator=(const ErrorInformation& ei){
   {
     Debug("arith::error::mem")
         << "assignment release " << d_variable << " " << d_amount.get() << endl;
-    d_amount.reset();
+    d_amount = nullptr;
   }
   else
   {
-    d_amount.reset();
+    d_amount = nullptr;
   }
   return *this;
 }
@@ -132,14 +132,14 @@ void ErrorInformation::reset(ConstraintP c, int sgn){
   {
     Debug("arith::error::mem")
         << "reset " << d_variable << " " << d_amount.get() << endl;
-    d_amount.reset();
+    d_amount = nullptr;
   }
 }
 
 void ErrorInformation::setAmount(const DeltaRational& am){
   if (d_amount == nullptr)
   {
-    d_amount.reset(new DeltaRational);
+    d_amount = std::make_unique<DeltaRational>();
     Debug("arith::error::mem")
         << "setAmount " << d_variable << " " << d_amount.get() << endl;
   }
