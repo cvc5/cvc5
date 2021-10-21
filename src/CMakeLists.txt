@@ -1270,7 +1270,6 @@ add_custom_command(
 add_custom_target(gen-options
   DEPENDS
     options/options.stamp
-    ${options_gen_cpp_files} ${options_gen_h_files} ${options_gen_doc_files}
 )
 
 
