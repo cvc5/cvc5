@@ -16,6 +16,7 @@
 
 #include "theory/smt_engine_subsolver.h"
 
+#include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 #include "smt/solver_engine_scope.h"
@@ -135,6 +136,42 @@ Result checkWithSubsolver(Node query,
     }
   }
   return r;
+}
+
+void getModelFromSubsolver(SolverEngine& smt,
+                           const std::vector<Node>& vars,
+                           std::vector<Node>& vals)
+{
+  for (const Node& v : vars)
+  {
+    Node mv = smt.getValue(v);
+    vals.push_back(mv);
+  }
+}
+
+bool getUnsatCoreFromSubsolver(SolverEngine& smt,
+                               const std::unordered_set<Node>& queryAsserts,
+                               std::vector<Node>& uasserts)
+{
+  UnsatCore uc = smt.getUnsatCore();
+  bool hasQuery = false;
+  for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
+  {
+    Node uassert = *i;
+    if (queryAsserts.find(uassert) != queryAsserts.end())
+    {
+      hasQuery = true;
+      continue;
+    }
+    uasserts.push_back(uassert);
+  }
+  return hasQuery;
+}
+
+void getUnsatCoreFromSubsolver(SolverEngine& smt, std::vector<Node>& uasserts)
+{
+  std::unordered_set<Node> queryAsserts;
+  getUnsatCoreFromSubsolver(smt, queryAsserts, uasserts);
 }
 
 }  // namespace theory
