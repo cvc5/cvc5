@@ -74,7 +74,7 @@ Node DatatypesProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node tester = utils::mkTester(t, i, dt);
-    Node ticons = Rewriter::rewrite(utils::getInstCons(t, dt, i));
+    Node ticons = utils::getInstCons(t, dt, i);
     return tester.eqNode(t.eqNode(ticons));
   }
   else if (id == PfRule::DT_COLLAPSE)

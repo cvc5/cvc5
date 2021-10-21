@@ -161,7 +161,7 @@ class Theory : protected EnvObj
    * Construct a Theory.
    *
    * The pair <id, instance> is assumed to uniquely identify this Theory
-   * w.r.t. the SmtEngine.
+   * w.r.t. the SolverEngine.
    */
   Theory(TheoryId id,
          Env& env,

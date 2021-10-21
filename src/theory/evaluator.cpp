@@ -127,8 +127,8 @@ Node EvalResult::toNode() const
   }
 }
 
-Evaluator::Evaluator(Rewriter* rr)
-    : d_rr(rr), d_alphaCard(strings::utils::getAlphabetCardinality())
+Evaluator::Evaluator(Rewriter* rr, uint32_t alphaCard)
+    : d_rr(rr), d_alphaCard(alphaCard)
 {
 }
 

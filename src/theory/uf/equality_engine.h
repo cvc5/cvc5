@@ -37,6 +37,9 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace eq {
 
@@ -70,11 +73,16 @@ class EqualityEngine : public context::ContextNotifyObj {
   /**
    * Initialize the equality engine, given the notification class.
    *
+   * @param env The environment, which is used for rewriting
+   * @param c The context which this equality engine depends, which is typically
+   * although not necessarily same as the SAT context of env.
+   * @param name The name of this equality engine, for statistics
    * @param constantTriggers Whether we treat constants as trigger terms
    * @param anyTermTriggers Whether we use any terms as triggers
    */
-  EqualityEngine(EqualityEngineNotify& notify,
-                 context::Context* context,
+  EqualityEngine(Env& env,
+                 context::Context* c,
+                 EqualityEngineNotify& notify,
                  std::string name,
                  bool constantTriggers,
                  bool anyTermTriggers = true);
@@ -82,7 +90,8 @@ class EqualityEngine : public context::ContextNotifyObj {
   /**
    * Initialize the equality engine with no notification class.
    */
-  EqualityEngine(context::Context* context,
+  EqualityEngine(Env& env,
+                 context::Context* c,
                  std::string name,
                  bool constantsAreTriggers,
                  bool anyTermTriggers = true);
@@ -120,7 +129,9 @@ class EqualityEngine : public context::ContextNotifyObj {
     Statistics(const std::string& name);
   };/* struct EqualityEngine::statistics */
 
-private:
+ private:
+  /** The environment we are using */
+  Env& d_env;
 
   /** The context we are using */
   context::Context* d_context;

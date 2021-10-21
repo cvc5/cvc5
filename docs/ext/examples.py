@@ -1,11 +1,12 @@
 import os
 
 from docutils import nodes
-from docutils.parsers.rst import Directive
 from docutils.statemachine import StringList
+from sphinx.util import logging
+from sphinx.util.docutils import SphinxDirective
 
 
-class APIExamples(Directive):
+class APIExamples(SphinxDirective):
     """Add directive `api-examples` to be used as follows:
 
         .. api-examples::
@@ -23,14 +24,21 @@ class APIExamples(Directive):
         '.java': {'title': 'Java', 'lang': 'java'},
         '.py': {'title': 'Python', 'lang': 'python'},
         '.smt2': {'title': 'SMT-LIBv2', 'lang': 'smtlib'},
+        '.sy': {'title': 'SyGuS', 'lang': 'smtlib'},
     }
 
     # The "arguments" are actually the content of the directive
     has_content = True
 
+    logger = logging.getLogger(__name__)
+
     def run(self):
+        self.state.document.settings.env.note_dependency(__file__)
         # collect everything in a list of strings
         content = ['.. tabs::', '']
+
+        remaining = set([self.exts[e]['lang'] for e in self.exts])
+        location = '{}:{}'.format(*self.get_source_info())
 
         for file in self.content:
             # detect file extension
@@ -38,7 +46,9 @@ class APIExamples(Directive):
             if ext in self.exts:
                 title = self.exts[ext]['title']
                 lang = self.exts[ext]['lang']
+                remaining.remove(lang)
             else:
+                self.logger.warning(f'{location} is using unknown file extension "{ext}"')
                 title = ext
                 lang = ext
 
@@ -48,6 +58,9 @@ class APIExamples(Directive):
             content.append(f'        .. literalinclude:: {file}')
             content.append(f'            :language: {lang}')
             content.append(f'            :linenos:')
+
+        for r in remaining:
+            self.logger.warning(f'{location} has no {r} example!')
 
         # parse the string list
         node = nodes.Element()

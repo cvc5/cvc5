@@ -22,11 +22,10 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "util/resource_manager.h"
 
 namespace cvc5 {
-
-class SmtEngine;
 
 namespace preprocessing {
 class AssertionPipeline;
@@ -37,7 +36,7 @@ class PreprocessingPassContext;
 namespace smt {
 
 class Assertions;
-struct SmtEngineStatistics;
+struct SolverEngineStatistics;
 
 /**
  * Module in charge of processing assertions for an SMT engine.
@@ -53,16 +52,14 @@ struct SmtEngineStatistics;
  * it processes assertions in a way that assumes that apply(...) could be
  * applied multiple times to different sets of assertions.
  */
-class ProcessAssertions
+class ProcessAssertions : protected EnvObj
 {
   /** The types for the recursive function definitions */
   typedef context::CDList<Node> NodeList;
   typedef std::unordered_map<Node, bool> NodeToBoolHashMap;
 
  public:
-  ProcessAssertions(SmtEngine& smt,
-                    ResourceManager& rm,
-                    SmtEngineStatistics& stats);
+  ProcessAssertions(Env& env, SolverEngineStatistics& stats);
   ~ProcessAssertions();
   /** Finish initialize
    *
@@ -77,16 +74,14 @@ class ProcessAssertions
   /**
    * Process the formulas in as. Returns true if there was no conflict when
    * processing the assertions.
+   *
+   * @param as The assertions.
    */
   bool apply(Assertions& as);
 
  private:
-  /** Reference to the SMT engine */
-  SmtEngine& d_smt;
-  /** Reference to resource manager */
-  ResourceManager& d_resourceManager;
   /** Reference to the SMT stats */
-  SmtEngineStatistics& d_smtStats;
+  SolverEngineStatistics& d_slvStats;
   /** The preprocess context */
   preprocessing::PreprocessingPassContext* d_preprocessingPassContext;
   /** True node */
@@ -111,13 +106,12 @@ class ProcessAssertions
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions(preprocessing::AssertionPipeline& assertions);
+  bool simplifyAssertions(Assertions& as);
   /**
    * Dump assertions. Print the current assertion list to the dump
    * assertions:`key` if it is enabled.
    */
-  void dumpAssertions(const char* key,
-                      const preprocessing::AssertionPipeline& assertionList);
+  void dumpAssertions(const char* key, Assertions& as);
 };
 
 }  // namespace smt
