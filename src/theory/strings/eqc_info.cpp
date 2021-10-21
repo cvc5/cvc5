@@ -139,7 +139,7 @@ Node EqcInfo::mkMergeConflict(Node t, Node prev)
     ccs.push_back(r[0].eqNode(r[1]));
   }
   Assert(!ccs.empty());
-  return NodeManager::currentNM()->mkAnd( ccs);
+  return NodeManager::currentNM()->mkAnd(ccs);
 }
 
 }  // namespace strings

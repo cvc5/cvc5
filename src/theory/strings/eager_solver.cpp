@@ -188,7 +188,9 @@ Node EagerSolver::checkForMergeConflict(Node a,
       }
       else
       {
-        Trace("strings-eager-aconf-debug") << "addArithmeticBound " << n << " into " << a << " from " << b << std::endl;
+        Trace("strings-eager-aconf-debug")
+            << "addArithmeticBound " << n << " into " << a << " from " << b
+            << std::endl;
         conf = addArithmeticBound(ea, n, i == 0);
       }
       if (!conf.isNull())
@@ -239,7 +241,8 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
     }
   }
   Node prevo = isLower ? e->d_suffixC : e->d_prefixC;
-  Trace("strings-eager-aconf-debug") << "Check conflict for bounds " << t << " " << prevo << std::endl;
+  Trace("strings-eager-aconf-debug")
+      << "Check conflict for bounds " << t << " " << prevo << std::endl;
   if (!prevo.isNull())
   {
     // are we in conflict?
@@ -252,7 +255,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
       Node ret = EqcInfo::mkMergeConflict(t, prevo);
       Trace("strings-eager-aconf")
           << "String: eager arithmetic bound conflict: " << ret << std::endl;
-      //return ret;
+      // return ret;
     }
   }
   if (isLower)
