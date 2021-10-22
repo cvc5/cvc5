@@ -1489,7 +1489,22 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
-  regress1/abduct-dt.smt2
+  regress1/abduction/sygus-abduct-test-user.smt2
+  regress1/abduction/issue5848-4.smt2
+  regress1/abduction/issue5848-2.smt2
+  regress1/abduction/issue5848.smt2
+  regress1/abduction/issue6605-1.smt2
+  regress1/abduction/abduct-dt.smt2
+  regress1/abduction/sygus-abduct-test-ccore.smt2
+  regress1/abduction/sygus-abduct-test.smt2
+  regress1/abduction/abd-simple-conj-4.smt2
+  regress1/abduction/abduction_streq.readable.smt2
+  regress1/abduction/yoni-true-sol.smt2
+  regress1/abduction/uf-abduct.smt2
+  regress1/abduction/abduction_1255.corecstrs.readable.smt2
+  regress1/abduction/abduction-no-pbe-sym-break.smt2
+  regress1/abduction/issue5848-3-trivial-no-abduct.smt2
+  regress1/abduction/sygus-abduct-ex1-grammar.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
@@ -2217,6 +2232,8 @@ set(regress_1_tests
   regress1/strings/issue6101-2.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
+  regress1/strings/issue6180-proxy-vars.smt2
+  regress1/strings/issue6180-2-proxy-vars.smt2
   regress1/strings/issue6184-unsat-core.smt2 
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
@@ -2320,15 +2337,7 @@ set(regress_1_tests
   regress1/strings/update-ex1.smt2
   regress1/strings/update-ex2.smt2
   regress1/strings/username_checker_min.smt2
-  regress1/sygus-abduct-ex1-grammar.smt2
-  regress1/sygus-abduct-test.smt2
-  regress1/sygus-abduct-test-ccore.smt2
-  regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
-  regress1/sygus/abd-simple-conj-4.smt2
-  regress1/sygus/abduction_1255.corecstrs.readable.smt2
-  regress1/sygus/abduction_streq.readable.smt2
-  regress1/sygus/abduction-no-pbe-sym-break.smt2
   regress1/sygus/abv.sy
   regress1/sygus/array-grammar-store.sy
   regress1/sygus/array_search_5-Q-easy.sy
@@ -2474,10 +2483,8 @@ set(regress_1_tests
   regress1/sygus/trivial-stream.sy
   regress1/sygus/twolets1.sy
   regress1/sygus/twolets2-orig.sy
-  regress1/sygus/uf-abduct.smt2
   regress1/sygus/unbdd_inv_gen_winf1.sy
   regress1/sygus/univ_2-long-repeat.sy
-  regress1/sygus/yoni-true-sol.smt2
   regress1/sym/q-constant.smt2
   regress1/sym/q-function.smt2
   regress1/sym/qf-function.smt2

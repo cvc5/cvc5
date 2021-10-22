@@ -657,7 +657,7 @@ Node BVToInt::translateWithChildren(Node original,
        * of the bounds that were relevant for the original
        * bit-vectors.
        */
-      if (childrenTypesChanged(original) && options().uf.ufHo)
+      if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
       {
         throw TypeCheckingExceptionPrivate(
             original,
