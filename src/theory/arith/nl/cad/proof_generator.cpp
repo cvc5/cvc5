@@ -104,7 +104,8 @@ void CADProofGenerator::startNewProof()
 void CADProofGenerator::startRecursive() { d_current->openChild(); }
 void CADProofGenerator::endRecursive(size_t intervalId)
 {
-  d_current->setCurrent(intervalId, PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
+  d_current->setCurrent(
+      intervalId, PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
   d_current->closeChild();
 }
 void CADProofGenerator::startScope()
@@ -138,7 +139,10 @@ void CADProofGenerator::addDirect(Node var,
     // "Full conflict", constraint excludes (-inf,inf)
     d_current->openChild();
     d_current->setCurrent(intervalId,
-        PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
+                          PfRule::ARITH_NL_CAD_DIRECT,
+                          {constraint},
+                          {d_false},
+                          d_false);
     d_current->closeChild();
     return;
   }
@@ -175,7 +179,10 @@ void CADProofGenerator::addDirect(Node var,
   startScope();
   d_current->openChild();
   d_current->setCurrent(intervalId,
-      PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
+                        PfRule::ARITH_NL_CAD_DIRECT,
+                        {constraint},
+                        {d_false},
+                        d_false);
   d_current->closeChild();
   endScope(res);
 }

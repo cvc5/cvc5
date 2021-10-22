@@ -138,9 +138,8 @@ class CDCAC : protected EnvObj
    * unsat cover, but merely a list of infeasible intervals.
    */
   std::vector<CACInterval> getUnsatCoverImpl(std::size_t curVariable = 0,
-                                         bool returnFirstInterval = false);
+                                             bool returnFirstInterval = false);
 
-  
   std::vector<CACInterval> getUnsatCover(bool returnFirstInterval = false);
 
   void startNewProof();

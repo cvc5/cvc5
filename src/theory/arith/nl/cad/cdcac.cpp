@@ -161,7 +161,8 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
             d_assignment,
             sc,
             i,
-            n, res.back().d_id);
+            n,
+            res.back().d_id);
       }
     }
   }
@@ -296,16 +297,19 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
 {
   if (Trace.isOn("cdcac::projection"))
   {
-    Trace("cdcac::projection") << "Poly: " << p << " over " << d_assignment << std::endl;
-    Trace("cdcac::projection") << "Lazard:   "
-                   << requiredCoefficientsLazard(p, d_assignment) << std::endl;
-    Trace("cdcac::projection") << "LMod: "
-                   << requiredCoefficientsLazardModified(
-                          p, d_assignment, d_constraints.varMapper())
-                   << std::endl;
-    Trace("cdcac::projection") << "Original: "
-                   << requiredCoefficientsOriginal(p, d_assignment)
-                   << std::endl;
+    Trace("cdcac::projection")
+        << "Poly: " << p << " over " << d_assignment << std::endl;
+    Trace("cdcac::projection")
+        << "Lazard:   " << requiredCoefficientsLazard(p, d_assignment)
+        << std::endl;
+    Trace("cdcac::projection")
+        << "LMod: "
+        << requiredCoefficientsLazardModified(
+               p, d_assignment, d_constraints.varMapper())
+        << std::endl;
+    Trace("cdcac::projection")
+        << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
+        << std::endl;
   }
   switch (options().arith.nlCadProjection)
   {
@@ -347,15 +351,16 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
     }
     for (const auto& p : i.d_mainPolys)
     {
-      Trace("cdcac::projection") << "Discriminant of " << p << " -> " << discriminant(p)
-                     << std::endl;
+      Trace("cdcac::projection")
+          << "Discriminant of " << p << " -> " << discriminant(p) << std::endl;
       // Add all discriminants
       res.add(discriminant(p));
 
       for (const auto& q : requiredCoefficients(p))
       {
         // Add all required coefficients
-        Trace("cdcac::projection") << "Coeff of " << p << " -> " << q << std::endl;
+        Trace("cdcac::projection")
+            << "Coeff of " << p << " -> " << q << std::endl;
         res.add(q);
       }
       for (const auto& q : i.d_lowerPolys)
@@ -363,8 +368,8 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
         if (p == q) continue;
         // Check whether p(s \times a) = 0 for some a <= l
         if (!hasRootBelow(q, get_lower(i.d_interval))) continue;
-        Trace("cdcac::projection") << "Resultant of " << p << " and " << q << " -> "
-                       << resultant(p, q) << std::endl;
+        Trace("cdcac::projection") << "Resultant of " << p << " and " << q
+                                   << " -> " << resultant(p, q) << std::endl;
         res.add(resultant(p, q));
       }
       for (const auto& q : i.d_upperPolys)
@@ -372,8 +377,8 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
         if (p == q) continue;
         // Check whether p(s \times a) = 0 for some a >= u
         if (!hasRootAbove(q, get_upper(i.d_interval))) continue;
-        Trace("cdcac::projection") << "Resultant of " << p << " and " << q << " -> "
-                       << resultant(p, q) << std::endl;
+        Trace("cdcac::projection") << "Resultant of " << p << " and " << q
+                                   << " -> " << resultant(p, q) << std::endl;
         res.add(resultant(p, q));
       }
     }
@@ -386,8 +391,8 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
     {
       for (const auto& q : intervals[i + 1].d_lowerPolys)
       {
-        Trace("cdcac::projection") << "Resultant of " << p << " and " << q << " -> "
-                       << resultant(p, q) << std::endl;
+        Trace("cdcac::projection") << "Resultant of " << p << " and " << q
+                                   << " -> " << resultant(p, q) << std::endl;
         res.add(resultant(p, q));
       }
     }
@@ -478,20 +483,30 @@ CACInterval CDCAC::intervalFromCharacterization(
   if (lower == upper)
   {
     // construct a point interval
-    return CACInterval{d_nextIntervalId++, 
-        poly::Interval(lower, false, upper, false), l, u, m, d, {}};
+    return CACInterval{d_nextIntervalId++,
+                       poly::Interval(lower, false, upper, false),
+                       l,
+                       u,
+                       m,
+                       d,
+                       {}};
   }
   else
   {
     // construct an open interval
     Assert(lower < upper);
-    return CACInterval{d_nextIntervalId++, 
-        poly::Interval(lower, true, upper, true), l, u, m, d, {}};
+    return CACInterval{d_nextIntervalId++,
+                       poly::Interval(lower, true, upper, true),
+                       l,
+                       u,
+                       m,
+                       d,
+                       {}};
   }
 }
 
 std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
-                                              bool returnFirstInterval)
+                                                  bool returnFirstInterval)
 {
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[curVariable] << std::endl;
@@ -648,7 +663,8 @@ CACInterval CDCAC::buildIntegralityInterval(std::size_t cur_variable,
   poly::Integer below = poly::floor(value);
   poly::Integer above = poly::ceil(value);
   // construct var \in (below, above)
-  return CACInterval{d_nextIntervalId++, poly::Interval(below, above),
+  return CACInterval{d_nextIntervalId++,
+                     poly::Interval(below, above),
                      {var - below},
                      {var - above},
                      {var - below, var - above},
@@ -680,9 +696,10 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
   {
     cleanIntervals(intervals);
     d_proof->pruneChildren([&intervals](std::size_t id) {
-      return std::find_if(intervals.begin(), intervals.end(), [id](const CACInterval& i){
-        return i.d_id == id;
-      }) != intervals.end();
+      return std::find_if(intervals.begin(),
+                          intervals.end(),
+                          [id](const CACInterval& i) { return i.d_id == id; })
+             != intervals.end();
     });
   }
   else

@@ -147,7 +147,8 @@ class LazyTreeProofGenerator : public ProofGenerator
    */
   detail::TreeProofNode& getCurrent();
   /** Set the current node / proof step */
-  void setCurrent(size_t objectId, PfRule rule,
+  void setCurrent(size_t objectId,
+                  PfRule rule,
                   const std::vector<Node>& premise,
                   std::vector<Node> args,
                   Node proven);
