@@ -197,55 +197,32 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
-    // literals to be removed from the virtual lhs clause of the resolution
-    std::unordered_map<Node, unsigned> lhsElim;
-    for (std::size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
-    {
-      // whether pivot should occur as is or negated depends on the polarity of
-      // each step in the chain
-      if (args[i] == trueNode)
-      {
-        lhsElim[args[i + 1]]++;
-      }
-      else
-      {
-        Assert(args[i] == falseNode);
-        lhsElim[args[i + 1].notNode()]++;
-      }
-    }
-    if (Trace.isOn("bool-pfcheck"))
-    {
-      Trace("bool-pfcheck")
-          << "Original elimination multiset for lhs clause:\n";
-      for (const auto& pair : lhsElim)
-      {
-        Trace("bool-pfcheck")
-            << "\t- " << pair.first << " {" << pair.second << "}\n";
-      }
-    }
     for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize;
          ++i)
     {
-      // literal to be removed from rhs clause. They will be negated
+      // Literals to be removed from the current clause, according to this
+      // clause being in the lhs or the rhs of a resolution. The first clause
+      // has no rhsElim and the last clause has no lhsElim. The literal to be
+      // eliminated depends ond the pivot and the polarity stored in the
+      // arguments.
+      Node lhsElim = Node::null();
       Node rhsElim = Node::null();
-      if (Trace.isOn("bool-pfcheck"))
+      if (i < childrenSize - 1)
       {
-        Trace("bool-pfcheck") << i << ": current lhsElim:\n";
-        for (const auto& pair : lhsElim)
-        {
-          Trace("bool-pfcheck")
-              << "\t- " << pair.first << " {" << pair.second << "}\n";
-        }
+        std::size_t index = 2 * i;
+        lhsElim = args[index] == trueNode ? args[index + 1]
+                                          : args[index + 1].notNode();
+        Trace("bool-pfcheck") << i << ": lhsElim: " << lhsElim << "\n";
       }
       if (i > 0)
       {
         std::size_t index = 2 * (i - 1);
         rhsElim = args[index] == trueNode ? args[index + 1].notNode()
                                           : args[index + 1];
-        Trace("bool-pfcheck") << i << ": rhs elim: " << rhsElim << "\n";
+        Trace("bool-pfcheck") << i << ": rhsElim: " << rhsElim << "\n";
       }
-      // Only add to conclusion nodes that are not in elimination set. First get
-      // the nodes.
+      // The current set of literals is what we had before plus those in the
+      // current child.
       //
       // Since a Node cannot hold an OR with a single child we need to
       // disambiguate singleton clauses that are OR nodes from non-singleton
@@ -254,10 +231,10 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // If the child is not an OR, it is a singleton clause and we take the
       // child itself as the clause. Otherwise the child can only be a singleton
       // clause if the child itself is used as a resolution literal, i.e. if the
-      // child is in lhsElim or is equal to rhsElim (which means that the
+      // child equal to the lhsElim or to the rhsElim (which means that the
       // negation of the child is in lhsElim).
-      std::vector<Node> lits;
-      if (children[i].getKind() == kind::OR && lhsElim.count(children[i]) == 0
+      std::vector<Node> lits{clauseNodes};
+      if (children[i].getKind() == kind::OR && children[i] != lhsElim
           && children[i] != rhsElim)
       {
         lits.insert(lits.end(), children[i].begin(), children[i].end());
@@ -267,31 +244,28 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
         lits.push_back(children[i]);
       }
       Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
-      std::vector<Node> added;
+      // We now compute the set of literals minus those to be eliminated in this
+      // step
+      std::vector<Node> curr;
       for (std::size_t j = 0, size = lits.size(); j < size; ++j)
       {
+        if (lits[j] == lhsElim)
+        {
+          lhsElim = Node::null();
+          Trace("bool-pfcheck") << "\t removed lit: " << lits[j] << "\n";
+          continue;
+        }
         if (lits[j] == rhsElim)
         {
           rhsElim = Node::null();
+          Trace("bool-pfcheck") << "\t removed lit: " << lits[j] << "\n";
           continue;
         }
-        auto it = lhsElim.find(lits[j]);
-        if (it == lhsElim.end())
-        {
-          clauseNodes.push_back(lits[j]);
-          added.push_back(lits[j]);
-        }
-        else
-        {
-          // remove occurrence
-          it->second--;
-          if (it->second == 0)
-          {
-            lhsElim.erase(it);
-          }
-        }
+        curr.push_back(lits[j]);
       }
-      Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
+      Trace("bool-pfcheck") << "\n";
+      clauseNodes.clear();
+      clauseNodes.insert(clauseNodes.end(), curr.begin(), curr.end());
     }
     Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
     return nm->mkOr(clauseNodes);

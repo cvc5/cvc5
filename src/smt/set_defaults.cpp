@@ -849,15 +849,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (opts.arith.nlCadWasSetByUser)
     {
-      std::stringstream ss;
-      ss << "Cannot use " << options::arith::nlCad__name
-         << " without configuring with --poly.";
-      throw OptionException(ss.str());
+      throw OptionException(
+          "Cannot use --nl-cad without configuring with --poly.");
     }
     else
     {
-      Notice() << "Cannot use --" << options::arith::nlCad__name
-               << " without configuring with --poly." << std::endl;
+      Notice() << "Cannot use --nl-cad without configuring with --poly."
+               << std::endl;
       opts.arith.nlCad = false;
       opts.arith.nlExt = options::NlExtMode::FULL;
     }

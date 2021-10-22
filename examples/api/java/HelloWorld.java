@@ -13,7 +13,7 @@
  * A very simple CVC5 tutorial example.
  */
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 
 public class HelloWorld
 {
