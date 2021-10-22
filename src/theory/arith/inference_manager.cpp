@@ -26,9 +26,8 @@ namespace arith {
 
 InferenceManager::InferenceManager(Env& env,
                                    TheoryArith& ta,
-                                   ArithState& astate,
-                                   ProofNodeManager* pnm)
-    : InferenceManagerBuffered(env, ta, astate, pnm, "theory::arith::"),
+                                   ArithState& astate)
+    : InferenceManagerBuffered(env, ta, astate, "theory::arith::"),
       // currently must track propagated literals if using the equality solver
       d_trackPropLits(options().arith.arithEqSolver),
       d_propLits(context())
