@@ -102,9 +102,9 @@ void CADProofGenerator::startNewProof()
   d_current = d_proofs.allocateProof();
 }
 void CADProofGenerator::startRecursive() { d_current->openChild(); }
-void CADProofGenerator::endRecursive()
+void CADProofGenerator::endRecursive(size_t intervalId)
 {
-  d_current->setCurrent(PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
+  d_current->setCurrent(intervalId, PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
   d_current->closeChild();
 }
 void CADProofGenerator::startScope()
@@ -114,7 +114,7 @@ void CADProofGenerator::startScope()
 }
 void CADProofGenerator::endScope(const std::vector<Node>& args)
 {
-  d_current->setCurrent(PfRule::SCOPE, {}, args, d_false);
+  d_current->setCurrent(0, PfRule::SCOPE, {}, args, d_false);
   d_current->closeChild();
 }
 
@@ -129,14 +129,15 @@ void CADProofGenerator::addDirect(Node var,
                                   const poly::Assignment& a,
                                   poly::SignCondition& sc,
                                   const poly::Interval& interval,
-                                  Node constraint)
+                                  Node constraint,
+                                  size_t intervalId)
 {
   if (is_minus_infinity(get_lower(interval))
       && is_plus_infinity(get_upper(interval)))
   {
     // "Full conflict", constraint excludes (-inf,inf)
     d_current->openChild();
-    d_current->setCurrent(
+    d_current->setCurrent(intervalId,
         PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
     d_current->closeChild();
     return;
@@ -173,7 +174,7 @@ void CADProofGenerator::addDirect(Node var,
   // Add to proof manager
   startScope();
   d_current->openChild();
-  d_current->setCurrent(
+  d_current->setCurrent(intervalId,
       PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
   d_current->closeChild();
   endScope(res);

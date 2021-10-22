@@ -46,6 +46,8 @@ namespace cad {
  */
 struct CACInterval
 {
+  /** Id of this interval to couple it to the proof */
+  size_t d_id;
   /** The actual interval. */
   poly::Interval d_interval;
   /** The polynomials characterizing the lower bound. */

@@ -34,6 +34,8 @@ namespace detail {
  */
 struct TreeProofNode
 {
+  /** Storage for some custom object identifier, used for pruning */
+  size_t d_objectId;
   /** The proof rule */
   PfRule d_rule = PfRule::UNKNOWN;
   /** Assumptions used as premise for this proof step */
@@ -145,7 +147,7 @@ class LazyTreeProofGenerator : public ProofGenerator
    */
   detail::TreeProofNode& getCurrent();
   /** Set the current node / proof step */
-  void setCurrent(PfRule rule,
+  void setCurrent(size_t objectId, PfRule rule,
                   const std::vector<Node>& premise,
                   std::vector<Node> args,
                   Node proven);

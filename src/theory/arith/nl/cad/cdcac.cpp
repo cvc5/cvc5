@@ -55,6 +55,7 @@ void CDCAC::reset()
 {
   d_constraints.reset();
   d_assignment.clear();
+  d_nextIntervalId = 1;
 }
 
 void CDCAC::computeVariableOrdering()
@@ -150,7 +151,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
       m.pushDownPolys(d, d_variableOrdering[cur_variable]);
       if (!is_minus_infinity(get_lower(i))) l = m;
       if (!is_plus_infinity(get_upper(i))) u = m;
-      res.emplace_back(CACInterval{i, l, u, m, d, {n}});
+      res.emplace_back(CACInterval{d_nextIntervalId++, i, l, u, m, d, {n}});
       if (isProofEnabled())
       {
         d_proof->addDirect(
@@ -160,7 +161,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
             d_assignment,
             sc,
             i,
-            n);
+            n, res.back().d_id);
       }
     }
   }
@@ -477,25 +478,21 @@ CACInterval CDCAC::intervalFromCharacterization(
   if (lower == upper)
   {
     // construct a point interval
-    return CACInterval{
+    return CACInterval{d_nextIntervalId++, 
         poly::Interval(lower, false, upper, false), l, u, m, d, {}};
   }
   else
   {
     // construct an open interval
     Assert(lower < upper);
-    return CACInterval{
+    return CACInterval{d_nextIntervalId++, 
         poly::Interval(lower, true, upper, true), l, u, m, d, {}};
   }
 }
 
-std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
+std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
                                               bool returnFirstInterval)
 {
-  if (isProofEnabled())
-  {
-    d_proof->startRecursive();
-  }
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[curVariable] << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
@@ -537,9 +534,10 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
     if (isProofEnabled())
     {
       d_proof->startScope();
+      d_proof->startRecursive();
     }
     // Recurse to next variable
-    auto cov = getUnsatCover(curVariable + 1);
+    auto cov = getUnsatCoverImpl(curVariable + 1);
     if (cov.empty())
     {
       // Found SAT!
@@ -558,6 +556,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
     intervals.emplace_back(newInterval);
     if (isProofEnabled())
     {
+      d_proof->endRecursive(newInterval.d_id);
       auto cell = d_proof->constructCell(
           d_constraints.varMapper()(d_variableOrdering[curVariable]),
           newInterval,
@@ -596,11 +595,21 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "-> " << i.d_interval << std::endl;
     }
   }
+  return intervals;
+}
+
+std::vector<CACInterval> CDCAC::getUnsatCover(bool returnFirstInterval)
+{
   if (isProofEnabled())
   {
-    d_proof->endRecursive();
+    d_proof->startRecursive();
   }
-  return intervals;
+  auto res = getUnsatCoverImpl(0, returnFirstInterval);
+  if (isProofEnabled())
+  {
+    d_proof->endRecursive(0);
+  }
+  return res;
 }
 
 void CDCAC::startNewProof()
@@ -639,7 +648,7 @@ CACInterval CDCAC::buildIntegralityInterval(std::size_t cur_variable,
   poly::Integer below = poly::floor(value);
   poly::Integer above = poly::ceil(value);
   // construct var \in (below, above)
-  return CACInterval{poly::Interval(below, above),
+  return CACInterval{d_nextIntervalId++, poly::Interval(below, above),
                      {var - below},
                      {var - above},
                      {var - below, var - above},
