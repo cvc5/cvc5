@@ -50,9 +50,7 @@ void EagerSolver::eqNotifyNewClass(TNode t)
       EqcInfo* eil = nullptr;
       for (size_t i = 0; i < 2; i++)
       {
-        Trace("ajr-temp") << "Get bound for length " << t << std::endl;
         Node b = getBoundForLength(t, i == 0);
-        Trace("ajr-temp") << "..returns " << b << std::endl;
         if (b.isNull())
         {
           continue;
@@ -94,11 +92,9 @@ void EagerSolver::eqNotifyNewClass(TNode t)
 
 void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
 {
-  Trace("ajr-temp") << "merge " << t1 << " " << t2 << std::endl;
   EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
   if (e2 == nullptr)
   {
-    Trace("ajr-temp") << "no info for merge " << t1 << " " << t2 << std::endl;
     return;
   }
   // always create it if e2 was non-null
@@ -273,14 +269,6 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 Node EagerSolver::getBoundForLength(Node len, bool isLower)
 {
   Assert(len.getKind() == STRING_LENGTH);
-  /*
-  Trace("ajr-temp") << "get original form " << len << std::endl;
-  Node olen = SkolemManager::getOriginalForm(len);
-  Trace("ajr-temp") << "get original form returns " << olen << std::endl;
-  olen = rewrite(olen);
-  Trace("ajr-temp") << "rewrite returns " << olen << std::endl;
-  Node c = d_aent.getConstantBound(olen, isLower);
-  */
   // it is prohibitively expensive to convert to original form and rewrite,
   // since this may invoke the rewriter on lengths of complex terms. Instead,
   // we convert to original term the argument, then call the utility method
