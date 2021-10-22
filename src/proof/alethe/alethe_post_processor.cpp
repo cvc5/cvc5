@@ -882,7 +882,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       if (res.getKind() == kind::OR)
       {
-        for (auto child : children[0])
+        for (const Node& child : children[0])
         {
           if (child != res)
           {
