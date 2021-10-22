@@ -1702,6 +1702,7 @@ set(regress_1_tests
   regress1/model-blocker-simple.smt2
   regress1/model-blocker-values.smt2
   regress1/nl/approx-sqrt.smt2
+  regress1/nl/approx-sqrt-unsat.smt2
   regress1/nl/arctan2-expdef.smt2
   regress1/nl/arrowsmith-050317.smt2
   regress1/nl/bad-050217.smt2
@@ -2753,8 +2754,6 @@ set(regression_disabled_tests
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/SYO056^1.p
-  # times out for non libpoly builds
-  regress1/nl/approx-sqrt-unsat.smt2
   # times out after update to circuit propagator
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   # times out after update to tangent planes

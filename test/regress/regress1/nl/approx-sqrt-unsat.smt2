@@ -1,3 +1,4 @@
+; REQUIRES: libpoly
 ; COMMAND-LINE: --nl-ext-tplanes --no-check-proofs
 ; EXPECT: unsat
 (set-logic QF_NRA)
