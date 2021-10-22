@@ -32,10 +32,10 @@ namespace datatypes {
 
 InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : InferenceManagerBuffered(env, t, state, "theory::datatypes::"),
-      d_ipc(env.getProofNodeManager()
+      d_ipc(isProofEnabled()
                 ? new InferProofCons(context(), env.getProofNodeManager())
                 : nullptr),
-      d_lemPg(env.getProofNodeManager() ? new EagerProofGenerator(
+      d_lemPg(isProofEnabled() ? new EagerProofGenerator(
                   env.getProofNodeManager(), userContext(), "datatypes::lemPg")
                                         : nullptr)
 {
