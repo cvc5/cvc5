@@ -1,5 +1,6 @@
 (set-logic HO_ALL)
 (set-info :status sat)
+(set-option :fmf-bound true)
 (declare-fun A () (Bag Int))
 (declare-fun B () (Bag Int))
 (declare-fun f (Int) Int)

@@ -1,6 +1,6 @@
 (set-logic HO_ALL)
-(set-option :produce-models true)
 (set-info :status unsat)
+(set-option :fmf-bound true)
 (declare-fun A () (Bag Int))
 (declare-fun B () (Bag Int))
 (define-fun f ((x Int)) Int (+ x 1))

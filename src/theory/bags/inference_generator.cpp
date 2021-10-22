@@ -384,7 +384,6 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
   Node preImageGTE_zero = d_nm->mkNode(kind::GEQ, preImageSize, d_zero);
   Node conclusion = d_nm->mkNode(
       kind::AND, {baseCase, totalSumEqualCountE, forAll_i, preImageGTE_zero});
-  std::cout << "Downwards conclusion: " << conclusion << std::endl << std::endl;
   inferInfo.d_conclusion = conclusion;
 
   std::map<Node, Node> m;
