@@ -318,8 +318,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     size_t start = lastElim + 1;
     size_t end = nextGuardedElimPos - 1;
     Trace("smt-proof-pp-debug2")
-        << "res with:\n\t\tlastClause: " << lastClause << "\n\t\tstart: " << start
-        << "\n\t\tend: " << end << "\n";
+        << "res with:\n\t\tlastClause: " << lastClause
+        << "\n\t\tstart: " << start << "\n\t\tend: " << end << "\n";
     childrenRes.push_back(lastClause);
     // note that the interval of insert is exclusive in the end, so we add 1
     childrenRes.insert(childrenRes.end(),

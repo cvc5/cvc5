@@ -210,7 +210,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       if (i < childrenSize - 1)
       {
         std::size_t index = 2 * i;
-        lhsElim = args[index] == trueNode? args[index+1] : args[index+1].notNode();
+        lhsElim = args[index] == trueNode ? args[index + 1]
+                                          : args[index + 1].notNode();
         Trace("bool-pfcheck") << i << ": lhsElim: " << lhsElim << "\n";
       }
       if (i > 0)
@@ -250,8 +251,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       {
         if (lits[j] == lhsElim)
         {
-          lhsElim
-            = Node::null();
+          lhsElim = Node::null();
           Trace("bool-pfcheck") << "\t removed lit: " << lits[j] << "\n";
           continue;
         }
