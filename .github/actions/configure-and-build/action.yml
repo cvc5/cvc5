@@ -23,6 +23,7 @@ runs:
       id: shared-build
       shell: bash
       run: |
+        echo "::group::Shared build"
         if [[ "${{ inputs.build-shared }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build_shared/install \
@@ -40,11 +41,13 @@ runs:
         time make -j${{ env.num_proc }}
 
         echo "::set-output name=build-dir::$pwd"
+        echo "::endgroup::"
 
     - name: Static build
       id: static-build
       shell: bash
       run: |
+        echo "::group::Static build"
         if [[ "${{ inputs.build-static }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build_static/install \
@@ -57,8 +60,11 @@ runs:
         time make -j${{ env.num_proc }}
 
         echo "::set-output name=build-dir::$pwd"
+        echo "::endgroup::"
         
     - name: Reset ccache base_dir
       shell: bash
       run: |
+        echo "::group::Reset ccache base_dir"
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" $CCACHE_CONFIGPATH
+        echo "::endgroup::"
