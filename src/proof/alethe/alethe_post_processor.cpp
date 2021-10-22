@@ -226,6 +226,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                children,
                                sanitized_args,
                                *cdp);
+
       Node andNode, vp3;
       if (args.size() == 1)
       {
@@ -511,268 +512,289 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(
           vrule, res, nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
     }
-    //================================================= Boolean rules
-    // ======== Resolution
-    // Children:
-    //  (P1:C1, P2:C2)
-    // Arguments: (id, L)
-    // ---------------------
-    // Conclusion: C
-    // where
-    //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
-    //     each children viewed as a literal or a node viewed as a literal. Note
-    //     that an OR node could also be a literal.
-    //   - id is either true or false
-    //   - L is the pivot of the resolution, which occurs as is (resp. under a
-    //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
-    //   C is a clause resulting from collecting all the literals in C1, minus
-    //   the first occurrence of the pivot or its negation, and C2, minus the
-    //   first occurrence of the pivot or its negation, according to the policy
-    //   above. If the resulting clause has a single literal, that literal
-    //   itself is the result; if it has no literals, then the result is false;
-    //   otherwise it's an OR node of the resulting literals.
+    // ======== Resolution and N-ary Resolution
+    // See proof_rule.h for documentation on the RESOLUTION and CHAIN_RESOLUTION
+    // rule. This comment uses variable names as introduced there.
     //
+    // Because the RESOLUTION rule is merely a special case of CHAIN_RESOLUTION,
+    // the same translation can be used for both.
     //
-    // In the case that C = (or G1 ... Gn) the result is ambigous. E.g.,
+    // The main complication for the translation is that in the case the
+    // conclusion C is (or G1 ... Gn), the result is ambigous. E.g.,
     //
     // (cl F1 (or F2 F3))    (cl (not F1))
     // -------------------------------------- RESOLUTION
     // (cl (or F2 F3))
     //
-    // (cl F1 F2 F3)        (cl (not F1))
+    // (cl F1 F2 F3)         (cl (not F1))
     // -------------------------------------- RESOLUTION
     // (cl F2 F3)
     //
     // both (cl (or F2 F3)) and (cl F2 F3) correspond to the same proof node (or
-    // F2 F3). Therefore, the translation has to keep track of the current
-    // resolvent that is then compared to the result. E.g. in the first case
+    // F2 F3). One way to deal with this issue is for the translation to keep
+    // track of the current clause generated after each resolution (the
+    // resolvent) and then compare it to the result. E.g. in the first case
     // current_resolvent = {(or F2 F3)} indicates that the result is a singleton
-    // clause, in the second current_resolvent = {F2,F3} that it is an or node.
+    // clause, while in the second current_resolvent = {F2,F3}, indicating the
+    // result is a non-singleton clause.
     //
-    // It is always clear what clauses to add to the current_resolvent, except
-    // for when a child is an assumption or the result of an equality resolution
+    // It is always clear what clauses to add to current_resolvent, except for
+    // when a child is an assumption or the result of an equality resolution
     // step. In these cases it might be necessary to add an additional or step.
-    //
-    //
-    // If rule(C1) = ASSUME or rule(C1) = EQ_RESOLVE:
-    //
-    //  If C1 = (or F1 ... Fn) and C2 != (not (or F1 ... Fn)):
-    //
-    //  proof rule: or
-    //  proof node: (VP1:(cl F1 ... Fn))
-    //  proof term: (cl F1 ... Fn)
-    //  premises: P1
-    //  args: ()
-    //
-    //  Otherwise VP1 = P1
-    //
-    // If rule(C2) = ASSUME or rule(C2) = EQ_RESOLVE:
-    //
-    //  If C2 = (or F1 ... Fn) and C1 != (not (or F1 ... Fn)):
-    //
-    //  proof rule: or
-    //  proof node: (VP2:(cl F1 ... Fn))
-    //  proof term: (cl F1 ... Fn)
-    //  premises: P2
-    //  args: ()
-    //
-    //  Otherwise VP2 = P2
-    //
-    // If C = (or G1 ... Gn) and C is not a singleton:
-    //
-    //  proof rule: resolution
-    //  proof node: (or G1 ... Gn)
-    //  proof term: (cl G1 ... Gn)
-    //  premises: VP1 VP2
-    //  args: ()
-    //
-    // Otherwise if C = false
-    //
-    //  proof rule: resolution
-    //  proof node: C
-    //  proof term: (cl)
-    //  premises: VP1 VP2
-    //  args: ()
-    //
-    // Otherwise,
-    //
-    //  proof rule: resolution
-    //  proof node: C
-    //  proof term: (cl C)
-    //  premises: VP1 VP2
-    //  args: ()
-    case PfRule::RESOLUTION:
-    {  // This can be simplified
-      // The only way that or steps can be added is if one child is the negation
-      // of the other, i.e. they resolve to (cl)
-      bool success = true;
-      std::vector<Node> vps = children;
-
-      // Needed to determine if (cl C) or (cl G1 ... Gn) should be added in the
-      // end.
-      std::vector<Node> current_resolvent;
-
-      // If the rule of the child is ASSUME or EQ_RESOLUTION and additional or
-      // step might be needed.
-      for (unsigned long int i = 0; i < 2; i++)
-      {
-        if (cdp->getProofFor(children[i])->getRule() == PfRule::ASSUME
-            || cdp->getProofFor(children[i])->getRule() == PfRule::EQ_RESOLVE)
-        {
-          // The child is not a singleton but an or-node if the other child is
-          // its negation
-          Node child2;
-          if (i == 0)
-          {
-            child2 = children[1];
-          }
-          else
-          {
-            child2 = children[0];
-          }
-          if (children[i].getKind() == kind::OR
-              && children[i] != child2.notNode())
-          {
-            std::vector<Node> clauses;
-            clauses.push_back(d_cl);
-            clauses.insert(
-                clauses.end(), children[i].begin(), children[i].end());
-            vps[i] = nm->mkNode(kind::SEXPR, clauses);
-            success &= addAletheStep(
-                AletheRule::OR, vps[i], vps[i], {children[i]}, {}, *cdp);
-            // If this is the case the literals in C1 are added to the
-            // current_resolvent.
-            current_resolvent.insert(current_resolvent.end(),
-                                     children[i].begin(),
-                                     children[i].end());
-          }
-          else
-          {
-            // Otherwise, the whole clause is added.
-            current_resolvent.push_back(children[i]);
-          }
-        }
-        // For all other rules it is easy to determine if the whole clause or
-        // the literals in the clause should be added. If the node is an or node
-        // add literals otherwise the whole clause.
-        else
-        {
-          if (children[i].getKind() == kind::OR)
-          {
-            current_resolvent.insert(current_resolvent.end(),
-                                     children[i].begin(),
-                                     children[i].end());
-          }
-          else
-          {
-            current_resolvent.push_back(children[i]);
-          }
-        }
-      }
-
-      // The pivot and its negation are deleted from the current_resolvent
-      current_resolvent.erase(std::find(
-          current_resolvent.begin(), current_resolvent.end(), args[1]));
-      current_resolvent.erase(std::find(current_resolvent.begin(),
-                                        current_resolvent.end(),
-                                        args[1].notNode()));
-      // If there is only one element left in current_resolvent C should be
-      // printed as (cl C), otherwise as (cl G1 ... Gn)
-      if (res.getKind() == kind::OR && current_resolvent.size() != 1)
-      {
-        return success &= addAletheStepFromOr(AletheRule::RESOLUTION,
-                                              res,
-                                              vps,
-                                              {},
-                                              *cdp);  //(cl G1 ... Gn)
-      }
-      else if (res == nm->mkConst(false))
-      {
-        return success &= addAletheStep(AletheRule::RESOLUTION,
-                                        res,
-                                        nm->mkNode(kind::SEXPR, d_cl),
-                                        vps,
-                                        {},
-                                        *cdp);  //(cl)
-      }
-      return success &= addAletheStep(AletheRule::RESOLUTION,
-                                      res,
-                                      nm->mkNode(kind::SEXPR, d_cl, res),
-                                      vps,
-                                      {},
-                                      *cdp);  //(cl C)
-    }
-    // ======== N-ary Resolution
-    // Children: (P1:C_1, ..., Pm:C_n)
-    // Arguments: (id_1, L_1, ..., id_{n-1}, L_{n-1})
-    // ---------------------
-    // Conclusion: C
-    // where
-    //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
-    //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
-    //     pivot L and policy id, as defined above
-    //   - let C_1' = C_1 (from P1),
-    //   - for each i > 1, let C_i' = C_{i-1}' <>_{L_{i-1}, id_{i-1}} C_i
-    //   The result of the chain resolution is C = C_n'
     //
     // If for any Ci, rule(Ci) = ASSUME or rule(Ci) = EQ_RESOLVE and Ci = (or F1
     // ... Fn) and Ci != L_{i-1} (for C1, C1 != L_1) then:
     //
-    //  proof rule: or
-    //  proof node: (VPi:(cl F1 ... Fn))
-    //  proof term: (cl F1 ... Fn)
-    //  premises: Pi
-    //  args: ()
+    //        (Pi:Ci)
+    // ---------------------- OR
+    //  (VPi:(cl F1 ... Fn))
     //
     // Otherwise VPi = Ci.
     //
-    // It is necessary to determine whether C is a singleton clause or not (see
-    // RESOLUTION for more details). However, in contrast to the RESOLUTION rule
-    // it is not necessary to calculate the complete current resolvent. Instead
-    // it suffices to find the last introduction of the conclusion as a subterm
-    // of a child and then check if it is eliminated by a later resolution step.
-    // If the conclusion was not introduced as a subterm it has to be a
+    // However to determine whether C is a singleton clause or not it is not
+    // necessary to calculate the complete current resolvent. Instead it
+    // suffices to find the last introduction of the conclusion as a subterm of
+    // a child and then check if it is eliminated by a later resolution step. If
+    // the conclusion was not introduced as a subterm it has to be a
     // non-singleton clause. If it was introduced but not eliminated, it follows
-    // that it is indeed a singleton clause and should be printed as (cl F1 ...
-    // Fn) instead of (cl (or F1 ... Fn)).
+    // that it is indeed not a singleton clause and should be printed as (cl F1
+    // ... Fn) instead of (cl (or F1 ... Fn)).
     //
     // This procedure is possible since the proof is already structured in a
-    // certain way. It can never contain a second occurrance of a literal when
-    // the first occurrence we found was eliminated from the proof. E.g., note
-    // that constellations as for example:
+    // certain way. It can never contain a second occurrence of a literal when
+    // the first occurrence we found was eliminated from the proof. E.g.,
     //
-    // (cl (not (or a b)))
-    // (cl (or a b) (or a b))
-    // ----------------------
-    // (cl (or a b))
+    // (cl (not (or a b)))   (cl (or a b) (or a b))
+    // ---------------------------------------------
+    //                 (cl (or a b))
     //
-    // are not possible by design of the proof generation.
+    // is not possible because of the semantics of CHAIN_RESOLUTION, which only
+    // removes one occurence of the resolvent in the resolving clauses.
     //
     //
-    // If C = (or F1 ... Fn) is a non-singleton clause then:
+    // If C = (or F1 ... Fn) is a non-singleton clause, then:
     //
-    //  proof rule: resolution
-    //  proof node: C
-    //  proof term: (cl F1 ... Fn)
-    //  premises: VP1 ... VPn
-    //  args: ()
+    //   VP1 ... VPn
+    // ------------------ RESOLUTION
+    //  (cl F1 ... Fn)*
     //
-    // Else if C = false:
+    // Else if, C = false:
     //
-    //  proof rule: resolution
-    //  proof node: C
-    //  proof term: (cl)
-    //  premises: VP1 ... VPn
-    //  args: ()
+    //   VP1 ... VPn
+    // ------------------ RESOLUTION
+    //       (cl)*
     //
     // Otherwise:
     //
-    //  proof rule: resolution
-    //  proof node: C
-    //  proof term: (cl C)
-    //  premises: VP1 ... VPn
-    //  args: ()
+    //   VP1 ... VPn
+    // ------------------ RESOLUTION
+    //      (cl C)*
+    //
+    //  * the corresponding proof node is C
+    case PfRule::RESOLUTION:
     case PfRule::CHAIN_RESOLUTION:
+    {
+      Node trueNode = nm->mkConst(true);
+      Node falseNode = nm->mkConst(false);
+      std::vector<Node> new_children = children;
+
+      // If a child F = (or F1 ... Fn) is the result of ASSUME or
+      // EQ_RESOLVE it might be necessary to add an additional step with the
+      // Alethe or rule since otherwise it will be used as (cl (or F1 ... Fn)).
+
+      // The first child is used as a non-singleton clause if it is not equal
+      // to its pivot L_1. Since it's the first clause in the resolution it can
+      // only be equal to the pivot in the case the polarity is true.
+      if (children[0].getKind() == kind::OR
+          && (args[0] != trueNode || children[0] != args[1]))
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
+        if (childPf->getRule() == PfRule::ASSUME
+            || childPf->getRule() == PfRule::EQ_RESOLVE)
+        {
+          // Add or step
+          std::vector<Node> subterms{d_cl};
+          subterms.insert(
+              subterms.end(), children[0].begin(), children[0].end());
+          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+          addAletheStep(
+              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+          new_children[0] = conclusion;
+        }
+      }
+
+      // For all other children C_i the procedure is similar. There is however a
+      // key difference in the choice of the pivot element which is now the
+      // L_{i-1}, i.e. the pivot of the child with the result of the i-1
+      // resolution steps between the children before it. Therefore, if the
+      // policy id_{i-1} is true, the pivot has to appear negated in the child
+      // in which case it should not be a (cl (or F1 ... Fn)) node. The same is
+      // true if it isn't the pivot element.
+      for (std::size_t i = 1, size = children.size(); i < size; ++i)
+      {
+        if (children[i].getKind() == kind::OR
+            && (args[2 * (i - 1)] != falseNode
+                || args[2 * (i - 1) + 1] != children[i]))
+        {
+          std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
+          if (childPf->getRule() == PfRule::ASSUME
+              || childPf->getRule() == PfRule::EQ_RESOLVE)
+          {
+            // Add or step
+            std::vector<Node> lits{d_cl};
+            lits.insert(lits.end(), children[i].begin(), children[i].end());
+            Node conclusion = nm->mkNode(kind::SEXPR, lits);
+            addAletheStep(AletheRule::OR,
+                          conclusion,
+                          conclusion,
+                          {children[i]},
+                          {},
+                          *cdp);
+            new_children[i] = conclusion;
+          }
+        }
+      }
+
+      // If res is not an or node, then it's necessarily a singleton clause.
+      bool isSingletonClause = res.getKind() != kind::OR;
+      // Otherwise, we need to determine if res, which is of the form (or t1 ...
+      // tn), corresponds to the clause (cl t1 ... tn) or to (cl (OR t1 ...
+      // tn)). The only way in which the latter can happen is if res occurs as a
+      // child in one of the premises, and is not eliminated afterwards. So we
+      // search for res as a subterm of some children, which would mark its last
+      // insertion into the resolution result. If res does not occur as the
+      // pivot to be eliminated in a subsequent premise, then, and only then, it
+      // is a singleton clause.
+      if (!isSingletonClause)
+      {
+        size_t i;
+        // Find out the last child to introduced res, if any. We only need to
+        // look at the last one because any previous introduction would have
+        // been eliminated.
+        //
+        // After the loop finishes i is the index of the child C_i that
+        // introduced res. If i=0 none of the children introduced res as a
+        // subterm and therefore it cannot be a singleton clause.
+        for (i = children.size(); i > 0; --i)
+        {
+          // only non-singleton clauses may be introducing
+          // res, so we only care about non-singleton or nodes. We check then
+          // against the kind and whether the whole or node occurs as a pivot of
+          // the respective resolution
+          if (children[i - 1].getKind() != kind::OR)
+          {
+            continue;
+          }
+          size_t pivotIndex = (i != 1) ? 2 * (i - 1) - 1 : 1;
+          if (args[pivotIndex] == children[i - 1]
+              || args[pivotIndex].notNode() == children[i - 1])
+          {
+            continue;
+          }
+          // if res occurs as a subterm of a non-singleton premise
+          if (std::find(children[i - 1].begin(), children[i - 1].end(), res)
+              != children[i - 1].end())
+          {
+            break;
+          }
+        }
+
+        // If res is a subterm of one of the children we still need to check if
+        // that subterm is eliminated
+        if (i > 0)
+        {
+          bool posFirst = (i == 1) ? (args[0] == trueNode)
+                                   : (args[(2 * (i - 1)) - 2] == trueNode);
+          Node pivot = (i == 1) ? args[1] : args[(2 * (i - 1)) - 1];
+
+          // Check if it is eliminated by the previous resolution step
+          if ((res == pivot && !posFirst)
+              || (res.notNode() == pivot && posFirst)
+              || (pivot.notNode() == res && posFirst))
+          {
+            // We decrease i by one, since it could have been the case that i
+            // was equal to children.size(), so that isSingletonClause is set to
+            // false
+            --i;
+          }
+          else
+          {
+            // Otherwise check if any subsequent premise eliminates it
+            for (; i < children.size(); ++i)
+            {
+              posFirst = args[(2 * i) - 2] == trueNode;
+              pivot = args[(2 * i) - 1];
+              // To eliminate res, the clause must contain it with opposite
+              // polarity. There are three successful cases, according to the
+              // pivot and its sign
+              //
+              // - res is the same as the pivot and posFirst is true, which
+              // means that the clause contains its negation and eliminates it
+              //
+              // - res is the negation of the pivot and posFirst is false, so
+              // the clause contains the node whose negation is res. Note that
+              // this case may either be res.notNode() == pivot or res ==
+              // pivot.notNode().
+              if ((res == pivot && posFirst)
+                  || (res.notNode() == pivot && !posFirst)
+                  || (pivot.notNode() == res && !posFirst))
+              {
+                break;
+              }
+            }
+          }
+        }
+        // if not eliminated (loop went to the end), then it's a singleton
+        // clause
+        isSingletonClause = i == children.size();
+      }
+      if (!isSingletonClause)
+      {
+        return addAletheStepFromOr(
+            AletheRule::RESOLUTION, res, new_children, {}, *cdp);
+      }
+      return addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           res == falseNode
+                               ? nm->mkNode(kind::SEXPR, d_cl)
+                               : nm->mkNode(kind::SEXPR, d_cl, res),
+                           new_children,
+                           {},
+                           *cdp);
+    }
+    // ======== Factoring
+    // See proof_rule.h for documentation on the FACTORING rule. This comment
+    // uses variable names as introduced there.
+    //
+    // If C2 = (or F1 ... Fn) but C1 != (or C2 ... C2), then VC2 = (cl F1 ...
+    // Fn) Otherwise, VC2 = (cl C2).
+    //
+    //    P
+    // ------- DUPLICATED_LITERALS
+    //   VC2*
+    //
+    // * the corresponding proof node is C2
+    case PfRule::FACTORING:
+    {
+      if (res.getKind() == kind::OR)
+      {
+        for (const Node& child : children[0])
+        {
+          if (child != res)
+          {
+            return addAletheStepFromOr(
+                AletheRule::DUPLICATED_LITERALS, res, children, {}, *cdp);
+          }
+        }
+      }
+      return addAletheStep(AletheRule::DUPLICATED_LITERALS,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    default:
     {
       Node trueNode = nm->mkConst(true);
       Node falseNode = nm->mkConst(false);
