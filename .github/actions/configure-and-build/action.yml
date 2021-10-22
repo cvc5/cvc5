@@ -24,6 +24,7 @@ runs:
           --werror --name=build_shared
         
         cd build_shared/
+        ccache -p
         # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
         pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" ~/.ccache/ccache.conf
