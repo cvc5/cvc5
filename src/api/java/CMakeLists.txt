@@ -47,7 +47,7 @@ find_package(Java COMPONENTS Development REQUIRED)
 include(UseJava)
 
 #specify the version for source and target
-set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
+# set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
 
 # specify java source files
 set(JAVA_FILES
