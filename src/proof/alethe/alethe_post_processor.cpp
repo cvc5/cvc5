@@ -485,7 +485,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Because the RESOLUTION rule is merely a special case of CHAIN_RESOLUTION,
     // the same translation can be used for both.
     //
-    // In the case that C = (or G1 ... Gn) the result is ambigous. E.g.,
+    // The main complication for the translation is that in the case the
+    // conclusion C is (or G1 ... Gn), the result is ambigous. E.g.,
     //
     // (cl F1 (or F2 F3))    (cl (not F1))
     // -------------------------------------- RESOLUTION
@@ -496,13 +497,15 @@ bool AletheProofPostprocessCallback::update(Node res,
     // (cl F2 F3)
     //
     // both (cl (or F2 F3)) and (cl F2 F3) correspond to the same proof node (or
-    // F2 F3). Therefore, the translation has to keep track of the current
-    // resolvent that is then compared to the result. E.g. in the first case
+    // F2 F3). One way to deal with this issue is for the translation to keep
+    // track of the current clause generated after each resolution (the
+    // resolvent) and then compare it to the result. E.g. in the first case
     // current_resolvent = {(or F2 F3)} indicates that the result is a singleton
-    // clause, in the second current_resolvent = {F2,F3} that it is an or node.
+    // clause, while in the second current_resolvent = {F2,F3}, indicating the
+    // result is a non-singleton clause.
     //
-    // It is always clear what clauses to add to the current_resolvent, except
-    // for when a child is an assumption or the result of an equality resolution
+    // It is always clear what clauses to add to current_resolvent, except for
+    // when a child is an assumption or the result of an equality resolution
     // step. In these cases it might be necessary to add an additional or step.
     //
     // If for any Ci, rule(Ci) = ASSUME or rule(Ci) = EQ_RESOLVE and Ci = (or F1
@@ -514,13 +517,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Otherwise VPi = Ci.
     //
-    // To determine whether C is a singleton_clause or not it is not necessary
-    // to calculate the complete current resolvent. Instead it suffices to find
-    // the last introduction of the conclusion as a subterm of a child and then
-    // check if it is eliminated by a later resolution step. If the conclusion
-    // was not introduced as a subterm it has to be a non-singleton clause. If
-    // it was introduced but not eliminated, it follows that it is indeed not a
-    // singleton clause and should be printed as (cl F1
+    // However to determine whether C is a singleton clause or not it is not
+    // necessary to calculate the complete current resolvent. Instead it
+    // suffices to find the last introduction of the conclusion as a subterm of
+    // a child and then check if it is eliminated by a later resolution step. If
+    // the conclusion was not introduced as a subterm it has to be a
+    // non-singleton clause. If it was introduced but not eliminated, it follows
+    // that it is indeed not a singleton clause and should be printed as (cl F1
     // ... Fn) instead of (cl (or F1 ... Fn)).
     //
     // This procedure is possible since the proof is already structured in a
