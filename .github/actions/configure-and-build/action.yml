@@ -20,15 +20,15 @@ runs:
           --prefix=$(pwd)/build_shared/install \
           --werror --name=build_shared
         
+        # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
+        touch $CCACHE_CONFIGPATH
         cd build_shared/
         ccache -p
-        # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
-        mkdir -p ~/.ccache/
-        touch ~/.ccache/ccache.conf
         pwd=$(pwd)
-        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" ~/.ccache/ccache.conf
-        cat ~/.ccache/ccache.conf
+        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
+        cat $CCACHE_CONFIGPATH
         ccache -p
+
         make -j${{ env.num_proc }}
 
     - name: Static build
@@ -40,13 +40,12 @@ runs:
           --werror --static --name=build_static
 
         cd build_static/
-        echo $(pwd)
         pwd=$(pwd)
-        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" ~/.ccache/ccache.conf
-        ccache -p
+        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
+
         make -j${{ env.num_proc }}
         
     - name: Reset ccache base_dir
       shell: bash
       run: |
-        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" ~/.ccache/ccache.conf
+        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" $CCACHE_CONFIGPATH
