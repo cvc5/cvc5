@@ -3,6 +3,8 @@
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :status sat)
+(set-option :check-proofs true)
+(set-option :proof-check eager)
 (declare-fun skoX () Real)
 (declare-fun skoY () Real)
 (declare-fun skoZ () Real)
