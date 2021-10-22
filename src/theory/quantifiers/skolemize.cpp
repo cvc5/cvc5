@@ -43,8 +43,9 @@ Skolemize::Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr)
       d_skolemized(userContext()),
       d_epg(!isProofEnabled()
                 ? nullptr
-                : new EagerProofGenerator(
-                    env.getProofNodeManager(), userContext(), "Skolemize::epg"))
+                : new EagerProofGenerator(env.getProofNodeManager(),
+                                          userContext(),
+                                          "Skolemize::epg"))
 {
 }
 

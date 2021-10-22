@@ -56,10 +56,8 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
   Assert (!query.isNull());
   if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
-    initializeSubsolver(checker,
-                        d_env,
-                        true,
-                        options::sygusExprMinerCheckTimeout());
+    initializeSubsolver(
+        checker, d_env, true, options::sygusExprMinerCheckTimeout());
   }
   else
   {

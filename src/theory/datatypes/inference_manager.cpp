@@ -35,9 +35,11 @@ InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
       d_ipc(isProofEnabled()
                 ? new InferProofCons(context(), env.getProofNodeManager())
                 : nullptr),
-      d_lemPg(isProofEnabled() ? new EagerProofGenerator(
-                  env.getProofNodeManager(), userContext(), "datatypes::lemPg")
-                                        : nullptr)
+      d_lemPg(isProofEnabled()
+                  ? new EagerProofGenerator(env.getProofNodeManager(),
+                                            userContext(),
+                                            "datatypes::lemPg")
+                  : nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }

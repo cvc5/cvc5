@@ -1388,8 +1388,8 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCore());
   }
 
-  @Test void getUnsatCore3()
-  {
+  @Test
+  void getUnsatCore3() {
     d_solver.setOption("incremental", "true");
     d_solver.setOption("produce-unsat-cores", "true");
 
