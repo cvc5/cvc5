@@ -1167,7 +1167,7 @@ class CVC5_EXPORT Term
    *       for example, the term f(x, y) will have Kind APPLY_UF and three
    *       children: f, x, and y
    */
-  class const_iterator
+  class CVC5_EXPORT const_iterator
   {
     friend class Term;
 
@@ -2612,7 +2612,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
  * Standard 754.
  * \endverbatim
  */
-enum CVC5_EXPORT RoundingMode
+enum RoundingMode
 {
   /**
    * Round to the nearest even number.
@@ -2692,7 +2692,7 @@ class CVC5_EXPORT DriverOptions
 
 /**
  * Holds some description about a particular option, including its name, its
- * aliases, whether the option was explcitly set by the user, and information
+ * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
  * - VoidInfo if the option holds no value (or the value has no native type)
@@ -2887,7 +2887,7 @@ class CVC5_EXPORT Statistics
   using BaseType = std::map<std::string, Stat>;
 
   /** Custom iterator to hide certain statistics from regular iteration */
-  class iterator
+  class CVC5_EXPORT iterator
   {
    public:
     friend class Statistics;
@@ -3596,6 +3596,14 @@ class CVC5_EXPORT Solver
    * @param val Value of the floating-point constant as a bit-vector term
    */
   Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
+
+  /**
+   * Create a cardinality constraint for an uninterpreted sort.
+   * @param sort the sort the cardinality constraint is for
+   * @param val the upper bound on the cardinality of the sort
+   * @return the cardinality constraint
+   */
+  Term mkCardinalityConstraint(const Sort& sort, uint32_t ubound) const;
 
   /* .................................................................... */
   /* Create Variables                                                     */

@@ -53,6 +53,7 @@ set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.8" "-target" "1.8")
 set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/AbstractPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiException.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiOptionException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/CVC5ApiRecoverableException.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Datatype.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/DatatypeConstructor.java
@@ -62,6 +63,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Grammar.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/IPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Op.java
+  ${CMAKE_CURRENT_LIST_DIR}/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Pair.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/Result.java
   ${CMAKE_CURRENT_LIST_DIR}/cvc5/RoundingMode.java
@@ -118,12 +120,15 @@ add_library(cvc5jni SHARED
   jni/cvc5_DatatypeSelector.cpp
   jni/cvc5_Grammar.cpp
   jni/cvc5_Op.cpp
+  jni/cvc5_OptionInfo.cpp
   jni/cvc5_Result.cpp
   jni/cvc5_Solver.cpp
   jni/cvc5_Sort.cpp
   jni/cvc5_Stat.cpp
   jni/cvc5_Statistics.cpp
-  jni/cvc5_Term.cpp)
+  jni/cvc5_Term.cpp
+  jni/cvc5JavaApi.cpp)
+
 add_dependencies(cvc5jni generate-jni-headers)
 
 target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
