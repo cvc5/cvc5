@@ -23,7 +23,8 @@ runs:
         cd build_shared/
         ccache -p
         # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
-        echo "" >> ~/.ccache/ccache.conf
+        mkdir -p ~/.ccache/
+        touch ~/.ccache/ccache.conf
         pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" ~/.ccache/ccache.conf
         cat ~/.ccache/ccache.conf
