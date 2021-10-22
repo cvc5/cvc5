@@ -19,11 +19,11 @@ import static cvc5.Kind.*;
 import static cvc5.RoundingMode.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.function.Executable;
 
 class SolverTest
 {
@@ -1346,6 +1346,75 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getOption("asdf"));
   }
 
+  @Test void getOptionNames()
+  {
+    String[] names = d_solver.getOptionNames();
+    assertTrue(names.length > 100);
+    assertTrue(Arrays.asList(names).contains("verbose"));
+    assertFalse(Arrays.asList(names).contains("foobar"));
+  }
+
+  @Test void getOptionInfo()
+  {
+    List<Executable> assertions = new ArrayList<>();
+    {
+      assertions.add(
+          () -> assertThrows(CVC5ApiException.class, () -> d_solver.getOptionInfo("asdf-invalid")));
+    }
+    {
+      OptionInfo info = d_solver.getOptionInfo("verbose");
+      assertions.add(() -> assertEquals("verbose", info.getName()));
+      assertions.add(
+          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+      assertions.add(() -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo));
+    }
+    {
+      // int64 type with default
+      OptionInfo info = d_solver.getOptionInfo("verbosity");
+      assertions.add(() -> assertEquals("verbosity", info.getName()));
+      assertions.add(
+          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+      assertions.add(
+          () -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.NumberInfo.class));
+      OptionInfo.NumberInfo<BigInteger> numInfo =
+          (OptionInfo.NumberInfo<BigInteger>) info.getBaseInfo();
+      assertions.add(() -> assertEquals(0, numInfo.getDefaultValue().intValue()));
+      assertions.add(() -> assertEquals(0, numInfo.getCurrentValue().intValue()));
+      assertions.add(
+          () -> assertFalse(numInfo.getMinimum() != null || numInfo.getMaximum() != null));
+      assertions.add(() -> assertEquals(info.intValue().intValue(), 0));
+    }
+    assertAll(assertions);
+    {
+      OptionInfo info = d_solver.getOptionInfo("random-freq");
+      assertEquals(info.getName(), "random-freq");
+      assertEquals(
+          Arrays.asList(info.getAliases()), Arrays.asList(new String[] {"random-frequency"}));
+      assertTrue(info.getBaseInfo().getClass() == OptionInfo.NumberInfo.class);
+      OptionInfo.NumberInfo<Double> ni = (OptionInfo.NumberInfo<Double>) info.getBaseInfo();
+      assertEquals(ni.getCurrentValue(), 0.0);
+      assertEquals(ni.getDefaultValue(), 0.0);
+      assertTrue(ni.getMinimum() != null && ni.getMaximum() != null);
+      assertEquals(ni.getMinimum(), 0.0);
+      assertEquals(ni.getMaximum(), 1.0);
+      assertEquals(info.doubleValue(), 0.0);
+    }
+    {
+      // mode option
+      OptionInfo info = d_solver.getOptionInfo("output");
+      assertions.clear();
+      assertions.add(() -> assertEquals("output", info.getName()));
+      assertions.add(
+          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+      assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ModeInfo.class));
+      OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getBaseInfo();
+      assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
+      assertions.add(() -> assertEquals("OutputTag::NONE", modeInfo.getCurrentValue()));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));
+    }
+    assertAll(assertions);
+  }
+
   @Test void getUnsatAssumptions1()
   {
     d_solver.setOption("incremental", "false");
@@ -1388,17 +1457,17 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCore());
   }
 
-  @Test void getUnsatCore3()
+  @Test void getUnsatCoreAndProof()
   {
     d_solver.setOption("incremental", "true");
     d_solver.setOption("produce-unsat-cores", "true");
+    d_solver.setOption("produce-proofs", "true");
 
     Sort uSort = d_solver.mkUninterpretedSort("u");
     Sort intSort = d_solver.getIntegerSort();
     Sort boolSort = d_solver.getBooleanSort();
     Sort uToIntSort = d_solver.mkFunctionSort(uSort, intSort);
     Sort intPredSort = d_solver.mkFunctionSort(intSort, boolSort);
-    Term[] unsat_core;
 
     Term x = d_solver.mkConst(uSort, "x");
     Term y = d_solver.mkConst(uSort, "y");
@@ -1406,21 +1475,21 @@ class SolverTest
     Term p = d_solver.mkConst(intPredSort, "p");
     Term zero = d_solver.mkInteger(0);
     Term one = d_solver.mkInteger(1);
-    Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
-    Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
-    Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
-    Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
+    Term f_x = d_solver.mkTerm(Kind.APPLY_UF, f, x);
+    Term f_y = d_solver.mkTerm(Kind.APPLY_UF, f, y);
+    Term sum = d_solver.mkTerm(Kind.PLUS, f_x, f_y);
+    Term p_0 = d_solver.mkTerm(Kind.APPLY_UF, p, zero);
     Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
-    d_solver.assertFormula(d_solver.mkTerm(GT, zero, f_x));
-    d_solver.assertFormula(d_solver.mkTerm(GT, zero, f_y));
-    d_solver.assertFormula(d_solver.mkTerm(GT, sum, one));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_x));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, zero, f_y));
+    d_solver.assertFormula(d_solver.mkTerm(Kind.GT, sum, one));
     d_solver.assertFormula(p_0);
     d_solver.assertFormula(p_f_y.notTerm());
     assertTrue(d_solver.checkSat().isUnsat());
 
-    AtomicReference<Term[]> atomic = new AtomicReference<>();
-    assertDoesNotThrow(() -> atomic.set(d_solver.getUnsatCore()));
-    unsat_core = atomic.get();
+    Term[] unsat_core = d_solver.getUnsatCore();
+
+    assertDoesNotThrow(() -> d_solver.getProof());
 
     d_solver.resetAssertions();
     for (Term t : unsat_core)
@@ -1429,6 +1498,42 @@ class SolverTest
     }
     Result res = d_solver.checkSat();
     assertTrue(res.isUnsat());
+    assertDoesNotThrow(() -> d_solver.getProof());
+  }
+
+  @Test void getDifficulty()
+  {
+    d_solver.setOption("produce-difficulty", "true");
+    // cannot ask before a check sat
+    assertThrows(CVC5ApiException.class, () -> d_solver.getDifficulty());
+    d_solver.checkSat();
+    assertDoesNotThrow(() -> d_solver.getDifficulty());
+  }
+
+  @Test void getDifficulty2()
+  {
+    d_solver.checkSat();
+    // option is not set
+    assertThrows(CVC5ApiException.class, () -> d_solver.getDifficulty());
+  }
+
+  @Test void getDifficulty3() throws CVC5ApiException
+  {
+    d_solver.setOption("produce-difficulty", "true");
+    Sort intSort = d_solver.getIntegerSort();
+    Term x = d_solver.mkConst(intSort, "x");
+    Term zero = d_solver.mkInteger(0);
+    Term ten = d_solver.mkInteger(10);
+    Term f0 = d_solver.mkTerm(GEQ, x, ten);
+    Term f1 = d_solver.mkTerm(GEQ, zero, x);
+    d_solver.checkSat();
+    Map<Term, Term> dmap = d_solver.getDifficulty();
+    // difficulty should map assertions to integer values
+    for (Map.Entry<Term, Term> t : dmap.entrySet())
+    {
+      assertTrue(t.getKey() == f0 || t.getKey() == f1);
+      assertTrue(t.getValue().getKind() == Kind.CONST_RATIONAL);
+    }
   }
 
   @Test void getValue1()
@@ -1486,6 +1591,95 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getValue(x));
+  }
+
+  @Test void getModelDomainElements()
+  {
+    d_solver.setOption("produce-models", "true");
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Sort intSort = d_solver.getIntegerSort();
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    Term z = d_solver.mkConst(uSort, "z");
+    Term f = d_solver.mkTerm(DISTINCT, x, y, z);
+    d_solver.assertFormula(f);
+    d_solver.checkSat();
+    assertDoesNotThrow(() -> d_solver.getModelDomainElements(uSort));
+    assertTrue(d_solver.getModelDomainElements(uSort).length >= 3);
+    assertThrows(CVC5ApiException.class, () -> d_solver.getModelDomainElements(intSort));
+  }
+
+  @Test void getModelDomainElements2()
+  {
+    d_solver.setOption("produce-models", "true");
+    d_solver.setOption("finite-model-find", "true");
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Term x = d_solver.mkVar(uSort, "x");
+    Term y = d_solver.mkVar(uSort, "y");
+    Term eq = d_solver.mkTerm(EQUAL, x, y);
+    Term bvl = d_solver.mkTerm(BOUND_VAR_LIST, x, y);
+    Term f = d_solver.mkTerm(FORALL, bvl, eq);
+    d_solver.assertFormula(f);
+    d_solver.checkSat();
+    assertDoesNotThrow(() -> d_solver.getModelDomainElements(uSort));
+    // a model for the above must interpret u as size 1
+    assertTrue(d_solver.getModelDomainElements(uSort).length == 1);
+  }
+
+  @Test void isModelCoreSymbol()
+  {
+    d_solver.setOption("produce-models", "true");
+    d_solver.setOption("model-cores", "simple");
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    Term z = d_solver.mkConst(uSort, "z");
+    Term zero = d_solver.mkInteger(0);
+    Term f = d_solver.mkTerm(NOT, d_solver.mkTerm(EQUAL, x, y));
+    d_solver.assertFormula(f);
+    d_solver.checkSat();
+    assertTrue(d_solver.isModelCoreSymbol(x));
+    assertTrue(d_solver.isModelCoreSymbol(y));
+    assertFalse(d_solver.isModelCoreSymbol(z));
+    assertThrows(CVC5ApiException.class, () -> d_solver.isModelCoreSymbol(zero));
+  }
+
+  @Test void getModel()
+  {
+    d_solver.setOption("produce-models", "true");
+    Sort uSort = d_solver.mkUninterpretedSort("u");
+    Term x = d_solver.mkConst(uSort, "x");
+    Term y = d_solver.mkConst(uSort, "y");
+    Term z = d_solver.mkConst(uSort, "z");
+    Term f = d_solver.mkTerm(NOT, d_solver.mkTerm(EQUAL, x, y));
+    d_solver.assertFormula(f);
+    d_solver.checkSat();
+    Sort[] sorts = new Sort[] {uSort};
+    Term[] terms = new Term[] {x, y};
+    assertDoesNotThrow(() -> d_solver.getModel(sorts, terms));
+    Term nullTerm = d_solver.getNullTerm();
+    Term[] terms2 = new Term[] {x, y, nullTerm};
+    assertThrows(CVC5ApiException.class, () -> d_solver.getModel(sorts, terms2));
+  }
+
+  @Test void getModel2()
+  {
+    d_solver.setOption("produce-models", "true");
+    Sort[] sorts = new Sort[] {};
+    Term[] terms = new Term[] {};
+    assertThrows(CVC5ApiException.class, () -> d_solver.getModel(sorts, terms));
+  }
+
+  @Test void getModel3()
+  {
+    d_solver.setOption("produce-models", "true");
+    Sort[] sorts = new Sort[] {};
+    final Term[] terms = new Term[] {};
+    d_solver.checkSat();
+    assertDoesNotThrow(() -> d_solver.getModel(sorts, terms));
+    Sort integer = d_solver.getIntegerSort();
+    Sort[] sorts2 = new Sort[] {integer};
+    assertThrows(CVC5ApiException.class, () -> d_solver.getModel(sorts2, terms));
   }
 
   @Test void getQuantifierElimination()
@@ -2183,6 +2377,20 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.addSygusConstraint(boolTerm));
+  }
+
+  @Test void addSygusAssume()
+  {
+    Term nullTerm = d_solver.getNullTerm();
+    Term boolTerm = d_solver.mkBoolean(false);
+    Term intTerm = d_solver.mkInteger(1);
+
+    assertDoesNotThrow(() -> d_solver.addSygusAssume(boolTerm));
+    assertThrows(CVC5ApiException.class, () -> d_solver.addSygusAssume(nullTerm));
+    assertThrows(CVC5ApiException.class, () -> d_solver.addSygusAssume(intTerm));
+
+    Solver slv = new Solver();
+    assertThrows(CVC5ApiException.class, () -> slv.addSygusAssume(boolTerm));
   }
 
   @Test void addSygusInvConstraint() throws CVC5ApiException

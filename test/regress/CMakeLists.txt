@@ -834,6 +834,11 @@ set(regress_0_tests
   regress0/preprocess/preprocess_13.cvc.smt2
   regress0/preprocess/preprocess_14.cvc.smt2
   regress0/preprocess/preprocess_15.cvc.smt2
+  regress0/preprocess/proj-issue304-circuit-prop-xor.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite-a.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite-b.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite-c.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite-d.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
@@ -851,6 +856,7 @@ set(regress_0_tests
   regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
+  regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -925,7 +931,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
-  regress0/quantifiers/issue6475-rr-const.smt2 
+  regress0/quantifiers/issue6475-rr-const.smt2
   regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
   regress0/quantifiers/issue6838-qpdt.smt2
   regress0/quantifiers/issue6996-trivial-elim.smt2
@@ -1725,7 +1731,7 @@ set(regress_1_tests
   regress1/nl/issue3656.smt2
   regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/issue3955-ee-double-notify.smt2
-  regress1/nl/issue3966-conf-coeff.smt2 
+  regress1/nl/issue3966-conf-coeff.smt2
   regress1/nl/issue4791-llr.smt2
   regress1/nl/issue5372-2-no-m-presolve.smt2
   regress1/nl/issue5660-mb-success.smt2
@@ -1925,7 +1931,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5735-2-subtypes.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
-  regress1/quantifiers/issue6607-witness-te.smt2 
+  regress1/quantifiers/issue6607-witness-te.smt2
   regress1/quantifiers/issue6638-sygus-inst.smt2
   regress1/quantifiers/issue6642-em-types.smt2
   regress1/quantifiers/issue6699-nc-shadow.smt2
@@ -2234,7 +2240,7 @@ set(regress_1_tests
   regress1/strings/issue6653-rre-small.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
-  regress1/strings/issue6973-dup-lemma-conc.smt2 
+  regress1/strings/issue6973-dup-lemma-conc.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
