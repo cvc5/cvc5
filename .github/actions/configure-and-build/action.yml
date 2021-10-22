@@ -41,12 +41,12 @@ runs:
 
         cd build_static/
         echo $(pwd)
+        pwd=$(pwd)
+        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" ~/.ccache/ccache.conf
         ccache -p
-        gdb -ex r -ex bt --args ccache --set-config=base_dir="$(pwd)"
-        strace ccache --set-config=base_dir="$(pwd)"
         make -j${{ env.num_proc }}
         
     - name: Reset ccache base_dir
       shell: bash
       run: |
-        ccache --set-config=base_dir=
+        $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" ~/.ccache/ccache.conf
