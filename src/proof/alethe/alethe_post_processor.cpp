@@ -941,9 +941,9 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success &= addAletheStep(AletheRule::RESOLUTION,
                                       res,
-                                      res == falseNode
-				         ? nm->mkNode(kind::SEXPR, d_cl),
-				         : nm->mkNode(kind::SEXPR, d_cl, res),
+                                      res == nm->mkConst(false)
+                                          ? nm->mkNode(kind::SEXPR, d_cl)
+                                          : nm->mkNode(kind::SEXPR, d_cl, res),
                                       {vp1, children[1], child1},
                                       {},
                                       *cdp);
@@ -1794,6 +1794,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       Trace("alethe-proof")
           << "... rule not translated yet " << id << " / " << res << " "
           << children << " " << args << std::endl;
+      std::cout << "UNTRANSLATED rule: " << id << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
