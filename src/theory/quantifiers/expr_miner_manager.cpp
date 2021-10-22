@@ -30,8 +30,8 @@ ExpressionMinerManager::ExpressionMinerManager(Env& env)
       d_use_sygus_type(false),
       d_tds(nullptr),
       d_crd(env,
-            options::sygusRewSynthCheck(),
-            options::sygusRewSynthAccel(),
+            options().quantifiers.sygusRewSynthCheck,
+            options().quantifiers.sygusRewSynthAccel,
             false),
       d_sols(env),
       d_sampler(env)
@@ -70,7 +70,7 @@ void ExpressionMinerManager::initializeSygus(TermDbSygus* tds,
 
 void ExpressionMinerManager::initializeMinersForOptions()
 {
-  if (options::sygusRewSynth())
+  if (options().quantifiers.sygusRewSynth)
   {
     enableRewriteRuleSynth();
   }
@@ -78,13 +78,13 @@ void ExpressionMinerManager::initializeMinersForOptions()
   {
     enableQueryGeneration(options().quantifiers.sygusQueryGenThresh);
   }
-  if (options::sygusFilterSolMode() != options::SygusFilterSolMode::NONE)
+  if (options().quantifiers.sygusFilterSolMode != options::SygusFilterSolMode::NONE)
   {
-    if (options::sygusFilterSolMode() == options::SygusFilterSolMode::STRONG)
+    if (options().quantifiers.sygusFilterSolMode == options::SygusFilterSolMode::STRONG)
     {
       enableFilterStrongSolutions();
     }
-    else if (options::sygusFilterSolMode() == options::SygusFilterSolMode::WEAK)
+    else if (options().quantifiers.sygusFilterSolMode == options::SygusFilterSolMode::WEAK)
     {
       enableFilterWeakSolutions();
     }
@@ -181,7 +181,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
   bool ret = true;
   if (d_doRewSynth)
   {
-    Node rsol = d_crd.addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
+    Node rsol = d_crd.addTerm(sol, options().quantifiers.sygusRewSynthRec, out, rew_print);
     ret = (sol == rsol);
   }
 
