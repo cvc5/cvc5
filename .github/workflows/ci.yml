@@ -93,10 +93,12 @@ jobs:
     - name: Build documentation
       if: matrix.build-documentation
       uses: ./.github/actions/build-documentation
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-folder }}
 
     - name: Add binary to release
       if: matrix.store-to-release && startsWith(github.ref, 'refs/tags/')
       uses: ./.github/actions/add-to-release
       with:
-        binary: build/bin/cvc5
+        binary: ${{ steps.configure-and-build.outputs.static-build-folder }}/bin/cvc5
         github-token: ${{ secrets.GITHUB_TOKEN }}
