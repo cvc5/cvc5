@@ -405,8 +405,10 @@ class NodeManager
   /** Unsubscribe from NodeManager events */
   void unsubscribeEvents(NodeManagerListener* listener) {
     std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
-    Assert(elt != d_listeners.end()) << "listener not subscribed";
-    d_listeners.erase(elt);
+    if (elt != d_listeners.end())
+    {
+      d_listeners.erase(elt);
+    }
   }
 
   /**
