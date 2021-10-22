@@ -854,18 +854,11 @@ bool AletheProofPostprocessCallback::update(Node res,
         return addAletheStepFromOr(
             AletheRule::RESOLUTION, res, new_children, {}, *cdp);
       }
-      if (res == falseNode)
-      {
-        return addAletheStep(AletheRule::RESOLUTION,
-                             res,
-                             nm->mkNode(kind::SEXPR, d_cl),
-                             new_children,
-                             {},
-                             *cdp);
-      }
       return addAletheStep(AletheRule::RESOLUTION,
                            res,
-                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           res == falseNode
+                               ? nm->mkNode(kind::SEXPR, d_cl)
+                               : nm->mkNode(kind::SEXPR, d_cl, res),
                            new_children,
                            {},
                            *cdp);
