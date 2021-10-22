@@ -663,7 +663,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Fn) instead of (cl (or F1 ... Fn)).
     //
     // This procedure is possible since the proof is already structured in a
-    // certain way. It can never contain a second occurrance of a literal when
+    // certain way. It can never contain a second occurrence of a literal when
     // the first occurrence we found was eliminated from the proof. E.g., note
     // that constellations as for example:
     //
@@ -699,11 +699,11 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node falseNode = nm->mkConst(false);
       std::vector<Node> new_children = children;
 
-      // If a child F = (or F1 ... Fn) is the result of a ASSUME or
-      // EQ_RESOLUTION it might be necessary to add an additional step with the
+      // If a child F = (or F1 ... Fn) is the result of ASSUME or
+      // EQ_RESOLVE it might be necessary to add an additional step with the
       // Alethe or rule since otherwise it will be used as (cl (or F1 ... Fn)).
 
-      // The first child is used as a OR non-singleton clause if it is not equal
+      // The first child is used as a non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
       // only be equal to the pivot in the case the polarity is true.
       if (children[0].getKind() == kind::OR
@@ -724,7 +724,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
 
-      // For all other children C_i the procedure is simliar. There is however a
+      // For all other children C_i the procedure is similar. There is however a
       // key difference in the choice of the pivot element which is now the
       // L_{i-1}, i.e. the pivot of the child with the result of the i-1
       // resolution steps between the children before it. Therefore, if the
