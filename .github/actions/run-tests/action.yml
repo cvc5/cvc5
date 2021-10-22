@@ -19,7 +19,6 @@ runs:
     - name: Run CTest
       shell: bash
       run: |
-        echo "${{ inputs.build-dir }}"
         make -j${{ env.num_proc }} check
       env:
         ARGS: --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
