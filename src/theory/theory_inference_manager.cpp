@@ -38,7 +38,6 @@ namespace theory {
 TheoryInferenceManager::TheoryInferenceManager(Env& env,
                                                Theory& t,
                                                TheoryState& state,
-                                               ProofNodeManager* pnm,
                                                const std::string& statsName,
                                                bool cacheLemmas)
     : EnvObj(env),
@@ -48,7 +47,6 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
       d_ee(nullptr),
       d_decManager(nullptr),
       d_pfee(nullptr),
-      d_pnm(pnm),
       d_cacheLemmas(cacheLemmas),
       d_keep(context()),
       d_lemmasSent(userContext()),
@@ -91,7 +89,7 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   // if it is non-null. If its proof equality engine has already been assigned,
   // use it. This is to ensure that all theories use the same proof equality
   // engine when in ee-mode=central.
-  if (d_pnm != nullptr && d_ee != nullptr)
+  if (isProofEnabled() && d_ee != nullptr)
   {
     d_pfee = d_ee->getProofEqualityEngine();
     if (d_pfee == nullptr)
@@ -108,7 +106,10 @@ void TheoryInferenceManager::setDecisionManager(DecisionManager* dm)
   d_decManager = dm;
 }
 
-bool TheoryInferenceManager::isProofEnabled() const { return d_pnm != nullptr; }
+bool TheoryInferenceManager::isProofEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 void TheoryInferenceManager::reset()
 {
