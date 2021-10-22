@@ -769,11 +769,13 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (!isSingletonClause)
       {
         size_t i;
-        // Find out which child introduced res. There can be at most one by
-        // design of the proof production. After the loop finishes i is the
-        // index of the child C_i that introduced res. If i=0 none of the
-        // children introduced res as a subterm and therefore it cannot be a
-        // singleton clause.
+        // Find out the last child to introduced res, if any. We only need to
+        // look at the last one because any previous introduction would have
+        // been eliminated.
+        //
+        // After the loop finishes i is the index of the child C_i that
+        // introduced res. If i=0 none of the children introduced res as a
+        // subterm and therefore it cannot be a singleton clause.
         for (i = children.size(); i > 0; --i)
         {
           // only non-singleton clauses may be introducing
