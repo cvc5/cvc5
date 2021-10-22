@@ -939,19 +939,11 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       success &= addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
 
-      if (res == nm->mkConst(false))
-      {
-        return success &= addAletheStep(AletheRule::RESOLUTION,
-                                        res,
-                                        nm->mkNode(kind::SEXPR, d_cl),
-                                        {vp1, children[1], child1},
-                                        {},
-                                        *cdp);
-      }
-
       return success &= addAletheStep(AletheRule::RESOLUTION,
                                       res,
-                                      nm->mkNode(kind::SEXPR, d_cl, res),
+                                      res == falseNode
+				         ? nm->mkNode(kind::SEXPR, d_cl),
+				         : nm->mkNode(kind::SEXPR, d_cl, res),
                                       {vp1, children[1], child1},
                                       {},
                                       *cdp);
