@@ -78,13 +78,16 @@ void ExpressionMinerManager::initializeMinersForOptions()
   {
     enableQueryGeneration(options().quantifiers.sygusQueryGenThresh);
   }
-  if (options().quantifiers.sygusFilterSolMode != options::SygusFilterSolMode::NONE)
+  if (options().quantifiers.sygusFilterSolMode
+      != options::SygusFilterSolMode::NONE)
   {
-    if (options().quantifiers.sygusFilterSolMode == options::SygusFilterSolMode::STRONG)
+    if (options().quantifiers.sygusFilterSolMode
+        == options::SygusFilterSolMode::STRONG)
     {
       enableFilterStrongSolutions();
     }
-    else if (options().quantifiers.sygusFilterSolMode == options::SygusFilterSolMode::WEAK)
+    else if (options().quantifiers.sygusFilterSolMode
+             == options::SygusFilterSolMode::WEAK)
     {
       enableFilterWeakSolutions();
     }
@@ -181,7 +184,8 @@ bool ExpressionMinerManager::addTerm(Node sol,
   bool ret = true;
   if (d_doRewSynth)
   {
-    Node rsol = d_crd.addTerm(sol, options().quantifiers.sygusRewSynthRec, out, rew_print);
+    Node rsol = d_crd.addTerm(
+        sol, options().quantifiers.sygusRewSynthRec, out, rew_print);
     ret = (sol == rsol);
   }
 
