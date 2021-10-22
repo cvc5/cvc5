@@ -273,23 +273,26 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 Node EagerSolver::getBoundForLength(Node len, bool isLower)
 {
   Assert(len.getKind() == STRING_LENGTH);
-  std::map<Node, Node>& cache = d_boundCache[isLower ? 0 : 1];
-  std::map<Node, Node>::iterator it = cache.find(len);
-  if (it != cache.end())
-  {
-    return it->second;
-  }
-  // convert to original form
+  /*
   Trace("ajr-temp") << "get original form " << len << std::endl;
   Node olen = SkolemManager::getOriginalForm(len);
   Trace("ajr-temp") << "get original form returns " << olen << std::endl;
   olen = rewrite(olen);
   Trace("ajr-temp") << "rewrite returns " << olen << std::endl;
   Node c = d_aent.getConstantBound(olen, isLower);
-  cache[len] = c;
+  */
+  // it is prohibitively expensive to convert to original form and rewrite,
+  // since this may invoke the rewriter on lengths of complex terms. Instead,
+  // we convert to original term the argument, then call the utility method
+  // for computing the length of the argument, implicitly under an application
+  // of length (ArithEntail::getConstantBoundLength).
+  // convert to original form
+  Node olent = SkolemManager::getOriginalForm(len[0]);
+  // get the bound
+  Node c = d_aent.getConstantBoundLength(olent, isLower);
   Trace("strings-eager-aconf-debug")
       << "Constant " << (isLower ? "lower" : "upper") << " bound for " << len
-      << " is " << c << std::endl;
+      << " is " << c << ", from original form " << olent << std::endl;
   return c;
 }
 

@@ -79,8 +79,6 @@ class EagerSolver : protected EnvObj
   TermRegistry& d_treg;
   /** Arithmetic entailment */
   ArithEntail& d_aent;
-  /** cache of getBoundForLength */
-  std::map<Node, Node> d_boundCache[2];
 };
 
 }  // namespace strings

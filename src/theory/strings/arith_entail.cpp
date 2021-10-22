@@ -870,6 +870,11 @@ Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
       Node b = getConstantBoundLength(sc, isLower);
       if (b.isNull())
       {
+        if (isLower)
+        {
+          // assume zero and continue
+          continue;
+        }
         success = false;
         break;
       }
@@ -880,6 +885,10 @@ Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
     {
       ret = nm->mkConst(sum);
     }
+  }
+  else if (isLower)
+  {
+    ret = d_zero;
   }
   // cache
   setConstantBoundCache(s, ret, isLower);
