@@ -62,7 +62,7 @@ TrustNode Skolemize::process(Node q)
   if (isProofEnabled() && !options::dtStcInduction()
       && !options::intWfInduction())
   {
-    ProofNodeManager * pnm = d_env.getProofNodeManager();
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = NodeManager::currentNM();

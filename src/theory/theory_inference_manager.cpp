@@ -19,16 +19,15 @@
 #include "proof/annotation_proof_generator.h"
 #include "proof/eager_proof_generator.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/inference_id_proof_annotator.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "smt/solver_engine_scope.h"
 
 using namespace cvc5::kind;
 
@@ -67,7 +66,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
   if (isProofEnabled())
   {
     context::UserContext* u = userContext();
-    ProofNodeManager * pnm = env.getProofNodeManager();
+    ProofNodeManager* pnm = env.getProofNodeManager();
     d_defaultPg.reset(
         new EagerProofGenerator(pnm, u, statsName + "EagerProofGenerator"));
     if (options::proofAnnotate())
