@@ -716,6 +716,14 @@ public:
    */
   void pushScope(bool isUserContext = false);
 
+  /** Push scope for get-value
+   *
+   * This pushes a scope by a call to pushScope that binds all relevant bindings
+   * required for parsing the SMT-LIB command `get-value`. This includes
+   * all uninterpreted constant values in user-defined uninterpreted sorts.
+   */
+  void pushGetValueScope();
+
   void popScope();
 
   virtual void reset();

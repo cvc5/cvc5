@@ -13,7 +13,7 @@
  * The cvc5 java API.
  */
 
-package io.github.cvc5.api;
+package cvc5;
 
 public class CVC5ApiOptionException extends CVC5ApiRecoverableException
 {
