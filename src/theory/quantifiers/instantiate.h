@@ -108,8 +108,7 @@ class Instantiate : public QuantifiersUtil
               QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
-              TermRegistry& tr,
-              ProofNodeManager* pnm = nullptr);
+              TermRegistry& tr);
   ~Instantiate();
   /** reset */
   bool reset(Theory::Effort e) override;
@@ -318,8 +317,6 @@ class Instantiate : public QuantifiersUtil
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 
