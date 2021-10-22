@@ -678,11 +678,11 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 {
   if (isProofEnabled())
   {
-    std::vector<CACInterval> allIntervals = intervals;
     cleanIntervals(intervals);
-    d_proof->pruneChildren([&allIntervals, &intervals](std::size_t i) {
-      return std::find(intervals.begin(), intervals.end(), allIntervals[i])
-             != intervals.end();
+    d_proof->pruneChildren([&intervals](std::size_t id) {
+      return std::find_if(intervals.begin(), intervals.end(), [id](const CACInterval& i){
+        return i.d_id == id;
+      }) != intervals.end();
     });
   }
   else

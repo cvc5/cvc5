@@ -79,7 +79,10 @@ class CADProofGenerator
   void pruneChildren(F&& f)
   {
     d_current->pruneChildren(
-        [&f](std::size_t i, const detail::TreeProofNode& tpn) { return f(i); });
+        [&f](const detail::TreeProofNode& tpn) {
+          return f(tpn.d_objectId);
+        }
+      );
   }
 
   /**

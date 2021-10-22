@@ -176,7 +176,7 @@ class LazyTreeProofGenerator : public ProofGenerator
     std::size_t pos = 0;
     for (std::size_t size = children.size(); cur < size; ++cur)
     {
-      if (f(cur, children[pos]))
+      if (f(children[pos]))
       {
         if (cur != pos)
         {
