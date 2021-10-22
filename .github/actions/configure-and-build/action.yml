@@ -24,6 +24,7 @@ runs:
           --werror --name=build_shared
         
         cd build_shared/
+        pwd=$(pwd)
         sed -i.orig -n -e '/^base_dir = /!p' -e '$abase_dir = "$pwd"' ~/.ccache/ccache.conf
         cat ~/.ccache/ccache.conf
         ccache -p
