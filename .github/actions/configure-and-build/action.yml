@@ -39,7 +39,7 @@ runs:
 
         make -j${{ env.num_proc }}
 
-        echo "::set-output name=build-dir::$(pwd)"
+        echo "::set-output name=build-shared::$(pwd)"
 
     - name: Static build
       id: static-build
@@ -56,7 +56,7 @@ runs:
 
         make -j${{ env.num_proc }}
 
-        echo "::set-output name=build-dir::$(pwd)"
+        echo "::set-output name=build-static::$(pwd)"
         
     - name: Reset ccache base_dir
       shell: bash
