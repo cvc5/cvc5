@@ -294,16 +294,16 @@ PolyVector requiredCoefficientsLazardModified(
 
 PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
 {
-  if (Trace.isOn("cdcac"))
+  if (Trace.isOn("cdcac::projection"))
   {
-    Trace("cdcac") << "Poly: " << p << " over " << d_assignment << std::endl;
-    Trace("cdcac") << "Lazard:   "
+    Trace("cdcac::projection") << "Poly: " << p << " over " << d_assignment << std::endl;
+    Trace("cdcac::projection") << "Lazard:   "
                    << requiredCoefficientsLazard(p, d_assignment) << std::endl;
-    Trace("cdcac") << "LMod: "
+    Trace("cdcac::projection") << "LMod: "
                    << requiredCoefficientsLazardModified(
                           p, d_assignment, d_constraints.varMapper())
                    << std::endl;
-    Trace("cdcac") << "Original: "
+    Trace("cdcac::projection") << "Original: "
                    << requiredCoefficientsOriginal(p, d_assignment)
                    << std::endl;
   }
@@ -347,7 +347,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
     }
     for (const auto& p : i.d_mainPolys)
     {
-      Trace("cdcac") << "Discriminant of " << p << " -> " << discriminant(p)
+      Trace("cdcac::projection") << "Discriminant of " << p << " -> " << discriminant(p)
                      << std::endl;
       // Add all discriminants
       res.add(discriminant(p));
@@ -355,7 +355,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
       for (const auto& q : requiredCoefficients(p))
       {
         // Add all required coefficients
-        Trace("cdcac") << "Coeff of " << p << " -> " << q << std::endl;
+        Trace("cdcac::projection") << "Coeff of " << p << " -> " << q << std::endl;
         res.add(q);
       }
       for (const auto& q : i.d_lowerPolys)
@@ -363,7 +363,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
         if (p == q) continue;
         // Check whether p(s \times a) = 0 for some a <= l
         if (!hasRootBelow(q, get_lower(i.d_interval))) continue;
-        Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
+        Trace("cdcac::projection") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
         res.add(resultant(p, q));
       }
@@ -372,7 +372,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
         if (p == q) continue;
         // Check whether p(s \times a) = 0 for some a >= u
         if (!hasRootAbove(q, get_upper(i.d_interval))) continue;
-        Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
+        Trace("cdcac::projection") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
         res.add(resultant(p, q));
       }
@@ -386,7 +386,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
     {
       for (const auto& q : intervals[i + 1].d_lowerPolys)
       {
-        Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
+        Trace("cdcac::projection") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
         res.add(resultant(p, q));
       }
