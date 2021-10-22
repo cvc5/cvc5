@@ -30,14 +30,10 @@ runs:
           --werror --name=build_shared
         
         # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
-        touch $CCACHE_CONFIGPATH
         cd build_shared/
-        ccache -p
         pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
-        cat $CCACHE_CONFIGPATH
-        ccache -p
-
+        
         time make -j${{ env.num_proc }}
 
         echo "::set-output name=build-dir::$pwd"
