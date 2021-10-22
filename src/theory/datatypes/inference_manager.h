@@ -75,8 +75,6 @@ class InferenceManager : public InferenceManagerBuffered
   void sendDtConflict(const std::vector<Node>& conf, InferenceId id);
 
  private:
-  /** Are proofs enabled? */
-  bool isProofEnabled() const;
   /**
    * Process datatype inference as a lemma
    */
