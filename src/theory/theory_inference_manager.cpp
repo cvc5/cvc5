@@ -64,16 +64,17 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
   Node truen = NodeManager::currentNM()->mkConst(true);
   d_lemmasSent.insert(truen);
 
-  if (d_pnm != nullptr)
+  if (isProofEnabled())
   {
     context::UserContext* u = userContext();
+    ProofNodeManager * pnm = env.getProofNodeManager();
     d_defaultPg.reset(
-        new EagerProofGenerator(d_pnm, u, statsName + "EagerProofGenerator"));
+        new EagerProofGenerator(pnm, u, statsName + "EagerProofGenerator"));
     if (options::proofAnnotate())
     {
-      d_iipa.reset(new InferenceIdProofAnnotator(d_pnm, u));
+      d_iipa.reset(new InferenceIdProofAnnotator(pnm, u));
       d_apg.reset(new AnnotationProofGenerator(
-          d_pnm, u, statsName + "AnnotationProofGenerator"));
+          pnm, u, statsName + "AnnotationProofGenerator"));
     }
   }
 }
