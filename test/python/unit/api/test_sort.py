@@ -60,6 +60,11 @@ def test_operators_comparison(solver):
     solver.getIntegerSort() > Sort(solver)
     solver.getIntegerSort() >= Sort(solver)
 
+def test_is_null(solver):
+   x = Sort(solver)
+   assert x.isNull()
+   x = solver.getBooleanSort()
+   assert not x.isNull()
 
 def test_is_boolean(solver):
     assert solver.getBooleanSort().isBoolean()
@@ -140,6 +145,12 @@ def test_is_tester(solver):
     assert cons_sort.isTester()
     Sort(solver).isTester()
 
+def test_is_updater(solver):
+  dt_sort = create_datatype_sort(solver)
+  dt = dt_sort.getDatatype()
+  updater_sort = dt[0][0].getUpdaterTerm().getSort()
+  assert updater_sort.isUpdater()
+  Sort(solver).isUpdater()
 
 def test_is_function(solver):
     fun_sort = solver.mkFunctionSort(solver.getRealSort(),
@@ -438,26 +449,26 @@ def test_get_uninterpreted_sort_constructor_arity(solver):
 
 def test_get_bv_size(solver):
     bvSort = solver.mkBitVectorSort(32)
-    bvSort.getBVSize()
+    bvSort.getBitVectorSize()
     setSort = solver.mkSetSort(solver.getIntegerSort())
     with pytest.raises(RuntimeError):
-        setSort.getBVSize()
+        setSort.getBitVectorSize()
 
 
 def test_get_fp_exponent_size(solver):
     fpSort = solver.mkFloatingPointSort(4, 8)
-    fpSort.getFPExponentSize()
+    fpSort.getFloatingPointExponentSize()
     setSort = solver.mkSetSort(solver.getIntegerSort())
     with pytest.raises(RuntimeError):
-        setSort.getFPExponentSize()
+        setSort.getFloatingPointExponentSize()
 
 
 def test_get_fp_significand_size(solver):
     fpSort = solver.mkFloatingPointSort(4, 8)
-    fpSort.getFPSignificandSize()
+    fpSort.getFloatingPointSignificandSize()
     setSort = solver.mkSetSort(solver.getIntegerSort())
     with pytest.raises(RuntimeError):
-        setSort.getFPSignificandSize()
+        setSort.getFloatingPointSignificandSize()
 
 
 def test_get_datatype_paramsorts(solver):

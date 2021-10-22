@@ -795,6 +795,8 @@ libcvc5_add_sources(
   theory/quantifiers/ematching/instantiation_engine.h
   theory/quantifiers/ematching/pattern_term_selector.cpp
   theory/quantifiers/ematching/pattern_term_selector.h
+  theory/quantifiers/ematching/relational_match_generator.cpp
+  theory/quantifiers/ematching/relational_match_generator.h
   theory/quantifiers/ematching/trigger.cpp
   theory/quantifiers/ematching/trigger.h
   theory/quantifiers/ematching/trigger_database.cpp
@@ -805,6 +807,8 @@ libcvc5_add_sources(
   theory/quantifiers/ematching/trigger_trie.h
   theory/quantifiers/ematching/var_match_generator.cpp
   theory/quantifiers/ematching/var_match_generator.h
+  theory/quantifiers/entailment_check.cpp
+  theory/quantifiers/entailment_check.h
   theory/quantifiers/equality_query.cpp
   theory/quantifiers/equality_query.h
   theory/quantifiers/expr_miner.cpp
@@ -1079,6 +1083,8 @@ libcvc5_add_sources(
   theory/strings/normal_form.h
   theory/strings/proof_checker.cpp
   theory/strings/proof_checker.h
+  theory/strings/regexp_enumerator.cpp
+  theory/strings/regexp_enumerator.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
@@ -1302,7 +1308,7 @@ set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
 
 # First build the object library
 add_library(cvc5-obj OBJECT ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS})
-target_compile_definitions(cvc5-obj PRIVATE -D__BUILDING_CVC5LIB)
+target_compile_definitions(cvc5-obj PRIVATE -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # add_dependencies() is necessary for cmake versions before 3.21
 add_dependencies(cvc5-obj cvc5base cvc5context)
@@ -1402,7 +1408,6 @@ if(USE_GLPK)
   if(ENABLE_STATIC_LIBRARY)
     target_link_libraries(cvc5-static PUBLIC ${GLPK_LIBRARIES})
   endif()
-  target_link_libraries(cvc5-obj PUBLIC ${GLPK_LIBRARIES})
 endif()
 if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx_SHARED)

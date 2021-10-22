@@ -76,5 +76,5 @@ set_source_files_properties(
 
 add_library(cvc5base OBJECT ${LIBBASE_SOURCES})
 set_target_properties(cvc5base PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_definitions(cvc5base PRIVATE -D__BUILDING_CVC5LIB)
+target_compile_definitions(cvc5base PRIVATE -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 add_dependencies(cvc5base gen-versioninfo gen-tags)

@@ -24,6 +24,7 @@
 #include "api/cpp/cvc5.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
@@ -331,7 +332,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-
+    case kind::CARDINALITY_CONSTRAINT:
+      out << "(_ fmf.card ";
+      out << n.getConst<CardinalityConstraint>().getType();
+      out << " ";
+      out << n.getConst<CardinalityConstraint>().getUpperBound();
+      out << ")";
+      break;
     case kind::EMPTYSET:
       out << "(as emptyset ";
       toStreamType(out, n.getConst<EmptySet>().getType());
@@ -658,9 +665,6 @@ void Smt2Printer::toStream(std::ostream& out,
     stillNeedToPrintParams = false;
     break;
   }
-
-  case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
-  case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
 
     // bv theory
   case kind::BITVECTOR_CONCAT:
@@ -1723,15 +1727,7 @@ void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
 void Smt2Printer::toStreamCmdEcho(std::ostream& out,
                                   const std::string& output) const
 {
-  std::string s = output;
-  // escape all double-quotes
-  size_t pos = 0;
-  while ((pos = s.find('"', pos)) != string::npos)
-  {
-    s.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(echo \"" << s << "\")" << std::endl;
+  out << "(echo " << cvc5::quoteString(output) << ')' << std::endl;
 }
 
 /*
@@ -1930,14 +1926,9 @@ static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
 #endif /* CVC5_COMPETITION_MODE */
 }
 
-static void errorToStream(std::ostream& out, std::string message, Variant v) {
-  // escape all double-quotes
-  size_t pos = 0;
-  while((pos = message.find('"', pos)) != string::npos) {
-    message.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(error \"" << message << "\")" << endl;
+static void errorToStream(std::ostream& out, std::string message, Variant v)
+{
+  out << "(error " << cvc5::quoteString(message) << ')' << endl;
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, Variant v) {
