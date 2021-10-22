@@ -478,10 +478,12 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(
           vrule, res, nm->mkNode(kind::SEXPR, d_cl, res), children, {}, *cdp);
     }
-    //================================================= Boolean rules
-    // ======== Resolution
-    // See proof_rule.h for documentation on the RESOLUTION rule. This comment
-    // uses variable names as introduced there.
+    // ======== Resolution and N-ary Resolution
+    // See proof_rule.h for documentation on the RESOLUTION and CHAIN_RESOLUTION
+    // rule. This comment uses variable names as introduced there.
+    //
+    // Because the RESOLUTION rule is merely a special case of CHAIN_RESOLUTION,
+    // the same translation can be used for both.
     //
     // In the case that C = (or G1 ... Gn) the result is ambigous. E.g.,
     //
@@ -503,146 +505,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     // for when a child is an assumption or the result of an equality resolution
     // step. In these cases it might be necessary to add an additional or step.
     //
-    //
-    // If rule(C1) = ASSUME or rule(C1) = EQ_RESOLVE:
-    //
-    //  If C1 = (or F1 ... Fn) and C2 != (not (or F1 ... Fn)):
-    //
-    //            P1
-    //  ---------------------
-    //   VP1: (cl F1 ... Fn)
-    //
-    //  Otherwise, VP1 = P1
-    //
-    // If rule(C2) = ASSUME or rule(C2) = EQ_RESOLVE:
-    //
-    //  If C2 = (or F1 ... Fn) and C1 != (not (or F1 ... Fn)):
-    //
-    //            P2
-    //  ---------------------
-    //   VP2: (cl F1 ... Fn)
-    //
-    //  Otherwise, VP2 = P2
-    //
-    //
-    // If C = (or G1 ... Gn) and C is not a singleton:
-    //
-    //    VP1           VP2
-    //  ---------------------
-    //     (cl G1 ... Gn)*
-    //
-    // Otherwise, if C = false
-    //
-    //    VP1           VP2
-    //  ---------------------
-    //     (cl)**
-    //
-    // Otherwise,
-    //
-    //    VP1           VP2
-    //  ---------------------
-    //     (cl C)***
-    //
-    //  *   the corresponding proof node is (not (and F1 ... Fn))
-    //  **  the corresponding proof node is False
-    //  *** the corresponding proof node is C
-    case PfRule::RESOLUTION:
-    {
-      bool success = true;
-      std::vector<Node> vps = children;
-
-      // Needed to determine if (cl C) or (cl G1 ... Gn) should be added in the
-      // end.
-      std::vector<Node> current_resolvent;
-
-      // If the rule of a child is ASSUME or EQ_RESOLUTION an application of the
-      // or rule might be needed.
-      for (unsigned long int i = 0; i < 2; i++)
-      {
-        if (cdp->getProofFor(children[i])->getRule() == PfRule::ASSUME
-            || cdp->getProofFor(children[i])->getRule() == PfRule::EQ_RESOLVE)
-        {
-          // The current child is not a singleton if its the negation of the
-          // other child. Then, they will resolve to (cl). In this case, an
-          // additional or step is necessary to.
-          Node child2 = children[1 - i];
-
-          if (children[i].getKind() == kind::OR
-              && children[i] != child2.notNode())
-          {
-            std::vector<Node> clauses;
-            clauses.push_back(d_cl);
-            clauses.insert(
-                clauses.end(), children[i].begin(), children[i].end());
-            vps[i] = nm->mkNode(kind::SEXPR, clauses);
-            success &=
-                addAletheStep(AletheRule::OR, vps[i], vps[i], {children[i]}, {}, *cdp);
-            // If this is the case the literals in C1 are added to the
-            // current_resolvent.
-            current_resolvent.insert(current_resolvent.end(),
-                                     children[i].begin(),
-                                     children[i].end());
-          }
-          else
-          {
-            // Otherwise, the whole clause is added.
-            current_resolvent.push_back(children[i]);
-          }
-        }
-        // For all other rules it is easy to determine if the whole clause or
-        // the literals in the clause should be added. If the node is an or node
-        // add literals otherwise the whole clause.
-        else
-        {
-          if (children[i].getKind() == kind::OR)
-          {
-            current_resolvent.insert(current_resolvent.end(),
-                                     children[i].begin(),
-                                     children[i].end());
-          }
-          else
-          {
-            current_resolvent.push_back(children[i]);
-          }
-        }
-      }
-
-      // The pivot and its negation are deleted from the current_resolvent
-      current_resolvent.erase(std::find(
-          current_resolvent.begin(), current_resolvent.end(), args[1]));
-      current_resolvent.erase(std::find(current_resolvent.begin(),
-                                        current_resolvent.end(),
-                                        args[1].notNode()));
-      // If there is only one element left in current_resolvent C should be
-      // printed as (cl C), otherwise as (cl G1 ... Gn)
-      if (res.getKind() == kind::OR && current_resolvent.size() != 1)
-      {
-        return success &= addAletheStepFromOr(AletheRule::RESOLUTION,
-                                              res,
-                                              vps,
-                                              {},
-                                              *cdp);  //(cl G1 ... Gn)
-      }
-      else if (res == nm->mkConst(false))
-      {
-        return success &= addAletheStep(AletheRule::RESOLUTION,
-        			        res,
-                                        nm->mkNode(kind::SEXPR, d_cl),
-                                        vps,
-                                        {},
-                                        *cdp);  //(cl)
-      }
-      return success &= addAletheStep(AletheRule::RESOLUTION,
-                                      res,
-                                      nm->mkNode(kind::SEXPR, d_cl, res),
-                                      vps,
-                                      {},
-                                      *cdp);  //(cl C)
-    }
-    // ======== N-ary Resolution
-    // See proof_rule.h for documentation on the CHAIN_RESOLUTION rule. This
-    // comment uses variable names as introduced there.
-    //
     // If for any Ci, rule(Ci) = ASSUME or rule(Ci) = EQ_RESOLVE and Ci = (or F1
     // ... Fn) and Ci != L_{i-1} (for C1, C1 != L_1) then:
     //
@@ -652,14 +514,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Otherwise VPi = Ci.
     //
-    // It is necessary to determine whether C is a singleton clause or not (see
-    // RESOLUTION for more details). However, in contrast to the RESOLUTION rule
-    // it is not necessary to calculate the complete current resolvent. Instead
-    // it suffices to find the last introduction of the conclusion as a subterm
-    // of a child and then check if it is eliminated by a later resolution step.
-    // If the conclusion was not introduced as a subterm it has to be a
-    // non-singleton clause. If it was introduced but not eliminated, it follows
-    // that it is indeed not a singleton clause and should be printed as (cl F1
+    // To determine whether C is a singleton_clause or not it is not necessary
+    // to calculate the complete current resolvent. Instead it suffices to find
+    // the last introduction of the conclusion as a subterm of a child and then
+    // check if it is eliminated by a later resolution step. If the conclusion
+    // was not introduced as a subterm it has to be a non-singleton clause. If
+    // it was introduced but not eliminated, it follows that it is indeed not a
+    // singleton clause and should be printed as (cl F1
     // ... Fn) instead of (cl (or F1 ... Fn)).
     //
     // This procedure is possible since the proof is already structured in a
@@ -693,6 +554,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //      (cl C)*
     //
     //  * the corresponding proof node is C
+    case PfRule::RESOLUTION:
     case PfRule::CHAIN_RESOLUTION:
     {
       Node trueNode = nm->mkConst(true);
