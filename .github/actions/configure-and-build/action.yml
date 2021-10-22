@@ -15,9 +15,6 @@ runs:
     - name: Shared build
       shell: bash
       run: |
-        if [[ $RUNNER_OS = "Linux" ]]; then
-          sudo apt-get install -y gdb
-        fi
         if [[ "${{ inputs.build-shared }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
           --prefix=$(pwd)/build_shared/install \
@@ -26,7 +23,7 @@ runs:
         cd build_shared/
         ccache -p
         # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
-        touch ~/.ccache/ccache.conf
+        echo "" >> ~/.ccache/ccache.conf
         pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" ~/.ccache/ccache.conf
         cat ~/.ccache/ccache.conf
