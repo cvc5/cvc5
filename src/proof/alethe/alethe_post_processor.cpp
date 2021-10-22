@@ -1017,9 +1017,9 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success &= addAletheStep(AletheRule::RESOLUTION,
                                       res,
-                                      res == falseNode
-				         ? nm->mkNode(kind::SEXPR, d_cl),
-				         : nm->mkNode(kind::SEXPR, d_cl, res),
+                                      res == nm->mkConst(false)
+                                          ? nm->mkNode(kind::SEXPR, d_cl)
+                                          : nm->mkNode(kind::SEXPR, d_cl, res),
                                       {vp1, children[1], child1},
                                       {},
                                       *cdp);
