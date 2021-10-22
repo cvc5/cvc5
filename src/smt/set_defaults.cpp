@@ -692,7 +692,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   if (logic.isHigherOrder())
   {
-    opts.uf.ufHo = true;
     if (!opts.theory.assignFunctionValues)
     {
       // must assign function values
