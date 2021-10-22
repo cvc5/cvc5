@@ -24,6 +24,7 @@ runs:
           --werror --name=build_shared
         
         cd build_shared/
+        ccache --set-config=base_dir=
         echo $(pwd)
         ccache -V
         cat ~/.ccache/ccache.conf
