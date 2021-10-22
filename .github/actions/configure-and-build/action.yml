@@ -39,7 +39,7 @@ runs:
 
         time make -j${{ env.num_proc }}
 
-        echo "::set-output name=build-dir::$(pwd)"
+        echo "::set-output name=build-dir::$pwd"
 
     - name: Static build
       id: static-build
@@ -56,9 +56,11 @@ runs:
 
         time make -j${{ env.num_proc }}
 
-        echo "::set-output name=build-dir::$(pwd)"
+        echo "::set-output name=build-dir::$pwd"
         
     - name: Reset ccache base_dir
       shell: bash
       run: |
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" $CCACHE_CONFIGPATH
+
+        echo ${{ steps.shared-build.outputs.build-dir }}
