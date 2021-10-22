@@ -2232,6 +2232,8 @@ set(regress_1_tests
   regress1/strings/issue6101-2.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
+  regress1/strings/issue6180-proxy-vars.smt2
+  regress1/strings/issue6180-2-proxy-vars.smt2
   regress1/strings/issue6184-unsat-core.smt2 
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
