@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class for mining interesting unsat queries from a stream of generated expressions.
+ * A class for mining interesting unsat queries from a stream of generated
+ * expressions.
  */
 
 #include "theory/quantifiers/query_generator_unsat.h"
