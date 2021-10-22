@@ -26,10 +26,10 @@ runs:
         echo "::group::Shared build"
         if [[ "${{ inputs.build-shared }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build_shared/install --werror --name=build_shared
+          --prefix=$(pwd)/build-shared/install --werror --name=build-shared
         
         # can not use `ccache --set-config=base_dir=` due to ccache bug, fixed with 3.7.10
-        cd build_shared/ && pwd=$(pwd)
+        cd build-shared/ && pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
         
         make -j${{ env.num_proc }}
@@ -44,9 +44,9 @@ runs:
         echo "::group::Static build"
         if [[ "${{ inputs.build-static }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build_static/install --werror --static --name=build_static
+          --prefix=$(pwd)/build-static/install --werror --static --name=build-static
 
-        cd build_static/ && pwd=$(pwd)
+        cd build-static/ && pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH
 
         make -j${{ env.num_proc }}
