@@ -1842,16 +1842,16 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
       api::Term n = SOLVER->mkInteger(sIntLit.str());
       retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, n);
     }
-  | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
+  | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       api::Term keyword = SOLVER->mkString("qid");
-      api::Term name = SOLVER->mkString(sexprToString(sexpr));
+      api::Term name = SOLVER->mkString(s);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, name);
     }
-  | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
+  | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       // notify that expression was given a name
-      PARSER_STATE->notifyNamedExpression(expr, sexprToString(sexpr));
+      PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;
 
