@@ -69,7 +69,7 @@ public class DatatypeSelector extends AbstractPointer
 
   private native long getUpdaterTerm(long pointer);
 
-  /** @return the range sort of this argument. */
+  /** @return the range sort of this selector. */
   Sort getRangeSort()
   {
     long sortPointer = getRangeSort(pointer);
