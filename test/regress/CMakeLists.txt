@@ -1490,6 +1490,10 @@ set(regress_0_tests
 
 set(regress_1_tests
   regress1/abduct-dt.smt2
+  regress1/abduction/issue5848.smt2
+  regress1/abduction/issue5848-2.smt2
+  regress1/abduction/issue5848-3.smt2
+  regress1/abduction/issue5848-4.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
