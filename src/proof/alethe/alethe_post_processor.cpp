@@ -659,19 +659,19 @@ bool AletheProofPostprocessCallback::update(Node res,
     // of a child and then check if it is eliminated by a later resolution step.
     // If the conclusion was not introduced as a subterm it has to be a
     // non-singleton clause. If it was introduced but not eliminated, it follows
-    // that it is indeed a singleton clause and should be printed as (cl F1 ...
-    // Fn) instead of (cl (or F1 ... Fn)).
+    // that it is indeed not a singleton clause and should be printed as (cl F1
+    // ... Fn) instead of (cl (or F1 ... Fn)).
     //
     // This procedure is possible since the proof is already structured in a
     // certain way. It can never contain a second occurrence of a literal when
-    // the first occurrence we found was eliminated from the proof. E.g., note
-    // that constellations as for example:
+    // the first occurrence we found was eliminated from the proof. E.g.,
     //
     // (cl (not (or a b)))   (cl (or a b) (or a b))
     // ---------------------------------------------
     //                 (cl (or a b))
     //
-    // are not possible by design of the proof generation.
+    // is not possible because of the semantics of CHAIN_RESOLUTION, which only
+    // removes one occurence of the resolvent in the resolving clauses.
     //
     //
     // If C = (or F1 ... Fn) is a non-singleton clause, then:
@@ -758,7 +758,7 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       // If res is not an or node, then it's necessarily a singleton clause.
       bool isSingletonClause = res.getKind() != kind::OR;
-      // Otherwise, we need to determine if res if it's of the form (or t1 ...
+      // Otherwise, we need to determine if res, which is of the form (or t1 ...
       // tn), corresponds to the clause (cl t1 ... tn) or to (cl (OR t1 ...
       // tn)). The only way in which the latter can happen is if res occurs as a
       // child in one of the premises, and is not eliminated afterwards. So we
