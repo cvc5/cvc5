@@ -813,7 +813,9 @@ bool AletheProofPostprocessCallback::update(Node res,
               || (res.notNode() == pivot && posFirst)
               || (pivot.notNode() == res && posFirst))
           {
-            // We decrease i by one such that isSingletonClause is set to false
+            // We decrease i by one, since it could have been the case that i
+            // was equal to children.size(), so that isSingletonClause is set to
+            // false
             --i;
           }
           else
