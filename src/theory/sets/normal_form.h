@@ -58,7 +58,7 @@ class NormalForm {
   }
 
   /**
-   * Returns true if n is considered a to be a (canonical) constant set value.
+   * Returns true if n is considered to be a (canonical) constant set value.
    * A canonical set value is one whose AST is:
    *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
    * where c1 ... cn are constants and the node identifier of these constants
