@@ -834,6 +834,12 @@ set(regress_0_tests
   regress0/preprocess/preprocess_13.cvc.smt2
   regress0/preprocess/preprocess_14.cvc.smt2
   regress0/preprocess/preprocess_15.cvc.smt2
+  regress0/preprocess/proj-issue304-circuit-prop-xor.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite-a.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite-b.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite-c.smt2
+  regress0/preprocess/proj-issue305-circuit-prop-ite-d.smt2
+  regress0/preprocess/proj-issue309-circuit-prop-ite.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
@@ -850,6 +856,7 @@ set(regress_0_tests
   regress0/proofs/open-pf-datatypes.smt2
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
+  regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -924,7 +931,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/issue5693-prenex.smt2
-  regress0/quantifiers/issue6475-rr-const.smt2 
+  regress0/quantifiers/issue6475-rr-const.smt2
   regress0/quantifiers/issue6603-dt-bool-cegqi.smt2
   regress0/quantifiers/issue6838-qpdt.smt2
   regress0/quantifiers/issue6996-trivial-elim.smt2
@@ -1483,7 +1490,22 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
-  regress1/abduct-dt.smt2
+  regress1/abduction/sygus-abduct-test-user.smt2
+  regress1/abduction/issue5848-4.smt2
+  regress1/abduction/issue5848-2.smt2
+  regress1/abduction/issue5848.smt2
+  regress1/abduction/issue6605-1.smt2
+  regress1/abduction/abduct-dt.smt2
+  regress1/abduction/sygus-abduct-test-ccore.smt2
+  regress1/abduction/sygus-abduct-test.smt2
+  regress1/abduction/abd-simple-conj-4.smt2
+  regress1/abduction/abduction_streq.readable.smt2
+  regress1/abduction/yoni-true-sol.smt2
+  regress1/abduction/uf-abduct.smt2
+  regress1/abduction/abduction_1255.corecstrs.readable.smt2
+  regress1/abduction/abduction-no-pbe-sym-break.smt2
+  regress1/abduction/issue5848-3-trivial-no-abduct.smt2
+  regress1/abduction/sygus-abduct-ex1-grammar.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
@@ -1725,7 +1747,7 @@ set(regress_1_tests
   regress1/nl/issue3656.smt2
   regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/issue3955-ee-double-notify.smt2
-  regress1/nl/issue3966-conf-coeff.smt2 
+  regress1/nl/issue3966-conf-coeff.smt2
   regress1/nl/issue4791-llr.smt2
   regress1/nl/issue5372-2-no-m-presolve.smt2
   regress1/nl/issue5660-mb-success.smt2
@@ -1925,7 +1947,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5735-2-subtypes.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue5899-qe.smt2
-  regress1/quantifiers/issue6607-witness-te.smt2 
+  regress1/quantifiers/issue6607-witness-te.smt2
   regress1/quantifiers/issue6638-sygus-inst.smt2
   regress1/quantifiers/issue6642-em-types.smt2
   regress1/quantifiers/issue6699-nc-shadow.smt2
@@ -2211,6 +2233,8 @@ set(regress_1_tests
   regress1/strings/issue6101-2.smt2
   regress1/strings/issue6132-non-unique-skolem.smt2
   regress1/strings/issue6142-repl-inv-rew.smt2
+  regress1/strings/issue6180-proxy-vars.smt2
+  regress1/strings/issue6180-2-proxy-vars.smt2
   regress1/strings/issue6184-unsat-core.smt2 
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
@@ -2234,7 +2258,7 @@ set(regress_1_tests
   regress1/strings/issue6653-rre-small.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
-  regress1/strings/issue6973-dup-lemma-conc.smt2 
+  regress1/strings/issue6973-dup-lemma-conc.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2314,15 +2338,7 @@ set(regress_1_tests
   regress1/strings/update-ex1.smt2
   regress1/strings/update-ex2.smt2
   regress1/strings/username_checker_min.smt2
-  regress1/sygus-abduct-ex1-grammar.smt2
-  regress1/sygus-abduct-test.smt2
-  regress1/sygus-abduct-test-ccore.smt2
-  regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
-  regress1/sygus/abd-simple-conj-4.smt2
-  regress1/sygus/abduction_1255.corecstrs.readable.smt2
-  regress1/sygus/abduction_streq.readable.smt2
-  regress1/sygus/abduction-no-pbe-sym-break.smt2
   regress1/sygus/abv.sy
   regress1/sygus/array-grammar-store.sy
   regress1/sygus/array_search_5-Q-easy.sy
@@ -2468,10 +2484,8 @@ set(regress_1_tests
   regress1/sygus/trivial-stream.sy
   regress1/sygus/twolets1.sy
   regress1/sygus/twolets2-orig.sy
-  regress1/sygus/uf-abduct.smt2
   regress1/sygus/unbdd_inv_gen_winf1.sy
   regress1/sygus/univ_2-long-repeat.sy
-  regress1/sygus/yoni-true-sol.smt2
   regress1/sym/q-constant.smt2
   regress1/sym/q-function.smt2
   regress1/sym/qf-function.smt2

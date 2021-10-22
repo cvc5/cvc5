@@ -311,7 +311,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
   dumpAssertions("post-repeat-simplify", as);
 
-  if (options().uf.ufHo)
+  if (logicInfo().isHigherOrder())
   {
     d_passes["ho-elim"]->apply(&assertions);
   }
