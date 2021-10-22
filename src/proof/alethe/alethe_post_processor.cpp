@@ -646,7 +646,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // If for any Ci, rule(Ci) = ASSUME or rule(Ci) = EQ_RESOLVE and Ci = (or F1
     // ... Fn) and Ci != L_{i-1} (for C1, C1 != L_1) then:
     //
-    //       P1 ... Pm
+    //        (Pi:Ci)
     // ---------------------- OR
     //  (VPi:(cl F1 ... Fn))
     //
