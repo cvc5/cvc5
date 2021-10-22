@@ -54,11 +54,10 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
-                      userContext(),
-                      "strings::TermRegistry::EagerProofGenerator")
-                : nullptr)
+      d_epg(
+          pnm ? new EagerProofGenerator(
+              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
+              : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -400,7 +399,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
     for (const Node& nc : n)
     {
       itl = d_proxyVarToLength.find(nc);
-      if (itl!=d_proxyVarToLength.end())
+      if (itl != d_proxyVarToLength.end())
       {
         nodeVec.push_back(itl->second);
       }
@@ -650,7 +649,7 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
     for (size_t i = 0; i < 2; i++)
     {
       // determine whether this side has a proxy variable
-      if (d_proxyVar.find(ns[i])!=d_proxyVar.end())
+      if (d_proxyVar.find(ns[i]) != d_proxyVar.end())
       {
         if (getProxyVariableFor(ns[1 - i]) == ns[i])
         {
