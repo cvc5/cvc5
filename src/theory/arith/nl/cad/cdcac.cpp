@@ -47,7 +47,7 @@ CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(
-        new CADProofGenerator(context(), d_env.getProofNodeManager()));
+        new CADProofGenerator(userContext(), d_env.getProofNodeManager()));
   }
 }
 
