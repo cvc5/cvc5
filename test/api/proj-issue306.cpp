@@ -1,4 +1,4 @@
-#include <cvc5/cvc5.h>
+#include "api/cpp/cvc5.h"
 
 using namespace cvc5::api;
 
