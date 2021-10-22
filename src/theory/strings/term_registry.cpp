@@ -52,6 +52,7 @@ TermRegistry::TermRegistry(Env& env,
       d_registeredTerms(userContext()),
       d_registeredTypes(userContext()),
       d_proxyVar(userContext()),
+      d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
       d_epg(pnm ? new EagerProofGenerator(
                       pnm,
@@ -395,12 +396,13 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   if (n.getKind() == STRING_CONCAT)
   {
     std::vector<Node> nodeVec;
+    NodeNodeMap::const_iterator itl;
     for (const Node& nc : n)
     {
-      if (d_proxyVar.find(nc)!=d_proxyVar.end())
+      itl = d_proxyVarToLength.find(nc);
+      if (itl!=d_proxyVarToLength.end())
       {
-        Assert(d_proxyVarToLength.find(nc) != d_proxyVarToLength.end());
-        nodeVec.push_back(d_proxyVarToLength[nc]);
+        nodeVec.push_back(itl->second);
       }
       else
       {
