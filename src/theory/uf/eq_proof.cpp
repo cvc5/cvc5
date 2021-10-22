@@ -703,8 +703,10 @@ void EqProof::reduceNestedCongruence(
         << transitivityMatrix[i].back() << "\n";
     // if i == 0, first child must be REFL step, standing for (= f f), which can
     // be ignored in a first-order calculus
-    Assert(i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
-           || options::ufHo());
+    // Notice if higher-order is disabled, the following holds:
+    //   i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
+    // We don't have access to whether we are higher-order in this context,
+    // so the above cannot be an assertion.
     // recurse
     if (i > 1)
     {
