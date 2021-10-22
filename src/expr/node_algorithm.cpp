@@ -284,9 +284,9 @@ bool hasBoundVar(TNode n)
 bool hasFreeVar(TNode n)
 {
   // optimization for variables and constants
-  if (n.getNumChildren()==0)
+  if (n.getNumChildren() == 0)
   {
-    return n.getKind()==BOUND_VARIABLE;
+    return n.getKind() == BOUND_VARIABLE;
   }
   std::unordered_set<Node> fvs;
   return getFreeVariables(n, fvs, false);
