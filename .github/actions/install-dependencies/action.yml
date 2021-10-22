@@ -34,6 +34,7 @@ runs:
         # variables of the runner are not automatically imported:
         #
         # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
+        echo "SED=sed" >> $GITHUB_ENV
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "num_proc=$(nproc)" >> $GITHUB_ENV
         echo "/usr/lib/ccache" >> $GITHUB_PATH
@@ -49,12 +50,14 @@ runs:
           cln \
           gmp \
           pkgconfig \
-          flex
+          flex \
+          gnu-sed
         python3 -m pip install pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
         # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
+        echo "SED=gsed" >> $GITHUB_ENV
         echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "num_proc=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
