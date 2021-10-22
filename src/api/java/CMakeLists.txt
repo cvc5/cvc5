@@ -49,7 +49,6 @@ include(UseJava)
 # specify java source files
 set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/AbstractPointer.java
-  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/BaseInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/CVC5ApiException.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/CVC5ApiOptionException.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/api/CVC5ApiRecoverableException.java

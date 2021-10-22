@@ -66,7 +66,7 @@ public class OptionInfo extends AbstractPointer
   // endregion
 
   /** Abstract class for OptionInfo values */
-  abstract class BaseInfo
+  public abstract class BaseInfo
   {
   }
 
