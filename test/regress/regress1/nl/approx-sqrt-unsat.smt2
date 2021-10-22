@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext-tplanes
+; COMMAND-LINE: --nl-ext-tplanes --no-check-proofs
 ; EXPECT: unsat
 (set-logic QF_NRA)
 (set-info :status unsat)
