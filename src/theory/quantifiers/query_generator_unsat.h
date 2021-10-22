@@ -35,7 +35,7 @@ namespace quantifiers {
 
 /**
  * QueryGeneratorUnsat
- * 
+ *
  * A module for generating interesting unsatisfiable benchmarks using SyGuS
  * enumeration. At a high level, this is based on conjoining predicates that
  * refine models and avoid previously encountered unsat cores.
@@ -55,7 +55,7 @@ class QueryGeneratorUnsat : public ExprMiner
   bool addTerm(Node n, std::ostream& out) override;
 
  private:
-  /** 
+  /**
    * Check current query, given by conjunction activeTerms. The generated
    * query is printed on out. If this is UNSAT, we add its unsat core to
    * d_cores. If it is satisfiable, we add its model to currModel for
