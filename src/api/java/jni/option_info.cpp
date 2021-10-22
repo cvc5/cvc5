@@ -147,7 +147,7 @@ jobject getNumberInfoFromInteger(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_api_OptionInfo
  * Method:    getBaseInfo
- * Signature: (J)Lio/github/cvc5/api/BaseInfo;
+ * Signature: (J)Lio/github/cvc5/api/OptionInfo/BaseInfo;
  */
 JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_OptionInfo_getBaseInfo(
     JNIEnv* env, jobject optionInfo, jlong pointer)
@@ -167,9 +167,9 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_api_OptionInfo_getBaseInfo(
   {
     jclass voidInfoClass =
         env->FindClass("io/github/cvc5/api/OptionInfo$VoidInfo");
-    jfieldID fieldId = env->GetStaticFieldID(
-        voidInfoClass, "VOID_INFO", "Lio/github/cvc5/api/OptionInfo$VoidInfo;");
-    jobject ret = env->GetStaticObjectField(voidInfoClass, fieldId);
+    jmethodID methodId = env->GetMethodID(
+        voidInfoClass, "<init>", "(Lio/github/cvc5/api/OptionInfo;)V");
+    jobject ret = env->NewObject(voidInfoClass, methodId, optionInfo);
     return ret;
   }
 
