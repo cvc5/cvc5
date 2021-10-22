@@ -839,6 +839,7 @@ set(regress_0_tests
   regress0/preprocess/proj-issue305-circuit-prop-ite-b.smt2
   regress0/preprocess/proj-issue305-circuit-prop-ite-c.smt2
   regress0/preprocess/proj-issue305-circuit-prop-ite-d.smt2
+  regress0/preprocess/proj-issue309-circuit-prop-ite.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
@@ -856,6 +857,7 @@ set(regress_0_tests
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
+  regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -2234,7 +2236,7 @@ set(regress_1_tests
   regress1/strings/issue6142-repl-inv-rew.smt2
   regress1/strings/issue6180-proxy-vars.smt2
   regress1/strings/issue6180-2-proxy-vars.smt2
-  regress1/strings/issue6184-unsat-core.smt2 
+  regress1/strings/issue6184-unsat-core.smt2
   regress1/strings/issue6191-replace-all.smt2
   regress1/strings/issue6203-1-substr-ctn-strip.smt2
   regress1/strings/issue6203-2-re-ccache.smt2
