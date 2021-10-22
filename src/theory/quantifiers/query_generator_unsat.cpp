@@ -135,32 +135,8 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
   out << "(query " << qy << ")" << std::endl;
   std::unique_ptr<SolverEngine> queryChecker;
   initializeChecker(queryChecker, qy, d_subOptions, logicInfo());
-  Result r;
-  try
-  {
-    r = queryChecker->checkSat();
-  }
-  catch (const cvc5::Exception& e)
-  {
-    Trace("sygus-qgen-check") << "EXCEPTION: cvc5::Exception" << std::endl;
-  }
-  catch (const std::invalid_argument& e)
-  {
-    Trace("sygus-qgen-check")
-        << "EXCEPTION: std::invalid_argument" << std::endl;
-  }
+  Result r = queryChecker->checkSat();
   Trace("sygus-qgen-check") << "..finished check got " << r << std::endl;
-  /*
-  catch (const OptionException& e)
-  {
-    Trace("sygus-qgen-check") << "EXCEPTION: OptionException" << std::endl;
-  }
-  catch (const cvc5::RecoverableModalException& e)
-  {
-    Trace("sygus-qgen-check") << "EXCEPTION: RecoverableModalException" <<
-  std::endl;
-  }
-  */
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     // if unsat, get the unsat core

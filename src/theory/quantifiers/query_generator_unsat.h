@@ -35,6 +35,10 @@ namespace quantifiers {
 
 /**
  * QueryGeneratorUnsat
+ * 
+ * A module for generating interesting unsatisfiable benchmarks using SyGuS
+ * enumeration. At a high level, this is based on conjoining predicates that
+ * refine models and avoid previously encountered unsat cores.
  */
 class QueryGeneratorUnsat : public ExprMiner
 {
@@ -51,11 +55,19 @@ class QueryGeneratorUnsat : public ExprMiner
   bool addTerm(Node n, std::ostream& out) override;
 
  private:
-  /** Check current */
+  /** 
+   * Check current query, given by conjunction activeTerms. The generated
+   * query is printed on out. If this is UNSAT, we add its unsat core to
+   * d_cores. If it is satisfiable, we add its model to currModel for
+   * its free variables (which are ExprMiner::d_skolems).
+   */
   Result checkCurrent(const std::vector<Node>& activeTerms,
                       std::ostream& out,
                       std::vector<Node>& currModel);
-  /** Get next random index */
+  /**
+   * Get next random index, which returns a random index [0, d_terms.size()-1]
+   * that is not already in processed.
+   */
   size_t getNextRandomIndex(const std::unordered_set<size_t>& processed) const;
   /** Constant nodes */
   Node d_true;
