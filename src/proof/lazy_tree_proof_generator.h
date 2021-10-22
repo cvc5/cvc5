@@ -31,6 +31,8 @@ namespace detail {
  * A node directly represents a ProofNode that is eventually constructed from
  * it. The Nodes of the additional field d_premise are added to d_children as
  * new assumptions via ASSUME.
+ * The object id can be used to store an arbitrary id to identify tree nodes
+ * and map them back to some other type, for example during pruning.
  */
 struct TreeProofNode
 {
