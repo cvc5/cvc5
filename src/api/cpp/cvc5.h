@@ -2692,7 +2692,7 @@ class CVC5_EXPORT DriverOptions
 
 /**
  * Holds some description about a particular option, including its name, its
- * aliases, whether the option was explcitly set by the user, and information
+ * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
  * - VoidInfo if the option holds no value (or the value has no native type)
