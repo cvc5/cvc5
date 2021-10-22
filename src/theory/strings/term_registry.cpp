@@ -34,12 +34,6 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-struct StringsProxyVarAttributeId
-{
-};
-typedef expr::Attribute<StringsProxyVarAttributeId, bool>
-    StringsProxyVarAttribute;
-
 TermRegistry::TermRegistry(Env& env,
                            SolverState& s,
                            SequencesStatistics& statistics,
@@ -58,12 +52,12 @@ TermRegistry::TermRegistry(Env& env,
       d_registeredTerms(userContext()),
       d_registeredTypes(userContext()),
       d_proxyVar(userContext()),
+      d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
-                      userContext(),
-                      "strings::TermRegistry::EagerProofGenerator")
-                : nullptr)
+      d_epg(
+          pnm ? new EagerProofGenerator(
+              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
+              : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -387,8 +381,6 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
     }
   }
   Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
-  StringsProxyVarAttribute spva;
-  sk.setAttribute(spva, true);
   Node eq = Rewriter::rewrite(sk.eqNode(n));
   d_proxyVar[n] = sk;
   // If we are introducing a proxy for a constant or concat term, we do not
@@ -403,12 +395,13 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   if (n.getKind() == STRING_CONCAT)
   {
     std::vector<Node> nodeVec;
+    NodeNodeMap::const_iterator itl;
     for (const Node& nc : n)
     {
-      if (nc.getAttribute(StringsProxyVarAttribute()))
+      itl = d_proxyVarToLength.find(nc);
+      if (itl != d_proxyVarToLength.end())
       {
-        Assert(d_proxyVarToLength.find(nc) != d_proxyVarToLength.end());
-        nodeVec.push_back(d_proxyVarToLength[nc]);
+        nodeVec.push_back(itl->second);
       }
       else
       {
@@ -656,7 +649,7 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
     for (size_t i = 0; i < 2; i++)
     {
       // determine whether this side has a proxy variable
-      if (ns[i].getAttribute(StringsProxyVarAttribute()))
+      if (d_proxyVar.find(ns[i]) != d_proxyVar.end())
       {
         if (getProxyVariableFor(ns[1 - i]) == ns[i])
         {

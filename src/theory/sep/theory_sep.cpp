@@ -47,7 +47,7 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
       d_lemmas_produced_c(userContext()),
       d_bounds_init(false),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm, "theory::sep::"),
+      d_im(env, *this, d_state, "theory::sep::"),
       d_notify(*this),
       d_reduce(userContext()),
       d_spatial_assertions(context())

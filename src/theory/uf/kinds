@@ -17,19 +17,32 @@ typerule APPLY_UF ::cvc5::theory::uf::UfTypeRule
 
 variable BOOLEAN_TERM_VARIABLE "Boolean term variable"
 
-operator CARDINALITY_CONSTRAINT 2 "cardinality constraint on sort S: first parameter is (any) term of sort S, second is a positive integer constant k that bounds the cardinality of S"
-typerule CARDINALITY_CONSTRAINT ::cvc5::theory::uf::CardinalityConstraintTypeRule
-
-operator COMBINED_CARDINALITY_CONSTRAINT 1 "combined cardinality constraint; parameter is a positive integer constant k that bounds the sum of the cardinalities of all sorts in the signature"
-typerule COMBINED_CARDINALITY_CONSTRAINT ::cvc5::theory::uf::CombinedCardinalityConstraintTypeRule
-
 parameterized PARTIAL_APPLY_UF APPLY_UF 1: "partial uninterpreted function application"
 typerule PARTIAL_APPLY_UF ::cvc5::theory::uf::PartialTypeRule
 
-operator CARDINALITY_VALUE 1 "cardinality value of sort S: first parameter is (any) term of sort S"
-typerule CARDINALITY_VALUE ::cvc5::theory::uf::CardinalityValueTypeRule
-
 operator HO_APPLY 2 "higher-order (partial) function application"
 typerule HO_APPLY ::cvc5::theory::uf::HoApplyTypeRule
+
+constant CARDINALITY_CONSTRAINT_OP \
+  class \
+  CardinalityConstraint \
+  ::cvc5::CardinalityConstraintHashFunction \
+  "expr/cardinality_constraint.h" \
+  "the empty set constant; payload is an instance of the cvc5::CardinalityConstraint class"
+parameterized CARDINALITY_CONSTRAINT CARDINALITY_CONSTRAINT_OP 0 "a fixed upper bound on the cardinality of an uninterpreted sort"
+
+typerule CARDINALITY_CONSTRAINT_OP ::cvc5::theory::uf::CardinalityConstraintOpTypeRule
+typerule CARDINALITY_CONSTRAINT ::cvc5::theory::uf::CardinalityConstraintTypeRule
+
+constant COMBINED_CARDINALITY_CONSTRAINT_OP \
+  class \
+  CombinedCardinalityConstraint \
+  ::cvc5::CombinedCardinalityConstraintHashFunction \
+  "expr/cardinality_constraint.h" \
+  "the empty set constant; payload is an instance of the cvc5::CombinedCardinalityConstraint class"
+parameterized COMBINED_CARDINALITY_CONSTRAINT COMBINED_CARDINALITY_CONSTRAINT_OP 0 "a fixed upper bound on the sum of cardinalities of uninterpreted sorts"
+
+typerule COMBINED_CARDINALITY_CONSTRAINT_OP ::cvc5::theory::uf::CombinedCardinalityConstraintOpTypeRule
+typerule COMBINED_CARDINALITY_CONSTRAINT ::cvc5::theory::uf::CombinedCardinalityConstraintTypeRule
 
 endtheory

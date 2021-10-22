@@ -737,6 +737,36 @@ void Parser::pushScope(bool isUserContext)
   d_symman->pushScope(isUserContext);
 }
 
+void Parser::pushGetValueScope()
+{
+  pushScope();
+  // we must bind all relevant uninterpreted constants, which coincide with
+  // the set of uninterpreted constants that are printed in the definition
+  // of a model.
+  std::vector<api::Sort> declareSorts = d_symman->getModelDeclareSorts();
+  Trace("parser") << "Push get value scope, with " << declareSorts.size()
+                  << " declared sorts" << std::endl;
+  for (const api::Sort& s : declareSorts)
+  {
+    std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
+    for (const api::Term& e : elements)
+    {
+      // Uninterpreted constants are abstract values, which by SMT-LIB are
+      // required to be annotated with their type, e.g. (as @uc_Foo_0 Foo).
+      // Thus, the element is not printed simply as its name.
+      std::string en = e.toString();
+      size_t index = en.find("(as ");
+      if (index == 0)
+      {
+        index = en.find(" ", 4);
+        en = en.substr(4, index - 4);
+      }
+      Trace("parser") << "Get value scope : " << en << " -> " << e << std::endl;
+      defineVar(en, e);
+    }
+  }
+}
+
 void Parser::popScope()
 {
   d_symman->popScope();
