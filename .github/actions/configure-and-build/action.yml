@@ -62,5 +62,3 @@ runs:
       shell: bash
       run: |
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir =" $CCACHE_CONFIGPATH
-
-        echo ${{ steps.shared-build.outputs.build-dir }}
