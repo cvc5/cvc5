@@ -890,10 +890,10 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the MODUS_PONENS rule. This comment
     // uses variable names as introduced there.
     //
-    //    (P2:(=> F1 F2))
-    // --------------------- IMPLIES
-    // (VP1:(cl (not F1) F2))             (P1:F1)
-    // ------------------------------------------- RESOLUTION
+    //     (P2:(=> F1 F2))
+    // ------------------------ IMPLIES
+    //  (VP1:(cl (not F1) F2))             (P1:F1)
+    // -------------------------------------------- RESOLUTION
     //                   (cl F2)*
     //
     // * the corresponding proof node is F2
