@@ -33,11 +33,12 @@ EntailmentCheck::EntailmentCheck(Env& env, QuantifiersState& qs, TermDb& tdb)
 }
 
 EntailmentCheck::~EntailmentCheck() {}
+
 Node EntailmentCheck::evaluateTerm2(TNode n,
                                     std::map<TNode, Node>& visited,
-                                    std::vector<Node>& exp,
+                                    std::map<TNode, TNode>& subs,
+                                    bool subsRep,
                                     bool useEntailmentTests,
-                                    bool computeExp,
                                     bool reqHasTerm)
 {
   std::map<TNode, Node>::iterator itv = visited.find(n);
@@ -45,36 +46,42 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
   {
     return itv->second;
   }
-  size_t prevSize = exp.size();
   Trace("term-db-eval") << "evaluate term : " << n << std::endl;
   Node ret = n;
-  if (n.getKind() == FORALL || n.getKind() == BOUND_VARIABLE)
+  Kind k = n.getKind();
+  if (k == FORALL)
   {
     // do nothing
+  }
+  else if (k == BOUND_VARIABLE)
+  {
+    std::map<TNode, TNode>::iterator it = subs.find(n);
+    if (it != subs.end())
+    {
+      if (!subsRep)
+      {
+        ret = d_qstate.getRepresentative(it->second);
+      }
+      else
+      {
+        ret = it->second;
+      }
+    }
   }
   else if (d_qstate.hasTerm(n))
   {
     Trace("term-db-eval") << "...exists in ee, return rep" << std::endl;
     ret = d_qstate.getRepresentative(n);
-    if (computeExp)
-    {
-      if (n != ret)
-      {
-        exp.push_back(n.eqNode(ret));
-      }
-    }
     reqHasTerm = false;
   }
   else if (n.hasOperator())
   {
     std::vector<TNode> args;
     bool ret_set = false;
-    Kind k = n.getKind();
-    std::vector<Node> tempExp;
     for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
       TNode c = evaluateTerm2(
-          n[i], visited, tempExp, useEntailmentTests, computeExp, reqHasTerm);
+          n[i], visited, subs, subsRep, useEntailmentTests, reqHasTerm);
       if (c.isNull())
       {
         ret = Node::null();
@@ -95,32 +102,19 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
         {
           ret = evaluateTerm2(n[c == d_true ? 1 : 2],
                               visited,
-                              tempExp,
+                              subs,
+                              subsRep,
                               useEntailmentTests,
-                              computeExp,
                               reqHasTerm);
           ret_set = true;
           reqHasTerm = false;
           break;
         }
       }
-      if (computeExp)
-      {
-        exp.insert(exp.end(), tempExp.begin(), tempExp.end());
-      }
       Trace("term-db-eval") << "  child " << i << " : " << c << std::endl;
       args.push_back(c);
     }
-    if (ret_set)
-    {
-      // if we short circuited
-      if (computeExp)
-      {
-        exp.clear();
-        exp.insert(exp.end(), tempExp.begin(), tempExp.end());
-      }
-    }
-    else
+    if (!ret_set)
     {
       // get the (indexed) operator of n, if it exists
       TNode f = d_tdb.getMatchOperator(n);
@@ -133,29 +127,11 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
                               << " from DB for " << n << std::endl;
         if (!nn.isNull())
         {
-          if (computeExp)
-          {
-            Assert(nn.getNumChildren() == n.getNumChildren());
-            for (size_t i = 0, nchild = nn.getNumChildren(); i < nchild; i++)
-            {
-              if (nn[i] != n[i])
-              {
-                exp.push_back(nn[i].eqNode(n[i]));
-              }
-            }
-          }
           ret = d_qstate.getRepresentative(nn);
           Trace("term-db-eval") << "return rep" << std::endl;
           ret_set = true;
           reqHasTerm = false;
           Assert(!ret.isNull());
-          if (computeExp)
-          {
-            if (n != ret)
-            {
-              exp.push_back(nn.eqNode(ret));
-            }
-          }
         }
       }
       if (!ret_set)
@@ -188,10 +164,6 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
               if (et.first)
               {
                 ret = j == 0 ? d_true : d_false;
-                if (computeExp)
-                {
-                  exp.push_back(et.second);
-                }
                 break;
               }
             }
@@ -203,9 +175,9 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
   // must have the term
   if (reqHasTerm && !ret.isNull())
   {
-    Kind k = ret.getKind();
-    if (k != OR && k != AND && k != EQUAL && k != ITE && k != NOT
-        && k != FORALL)
+    Kind rk = ret.getKind();
+    if (rk != OR && rk != AND && rk != EQUAL && rk != ITE && rk != NOT
+        && rk != FORALL)
     {
       if (!d_qstate.hasTerm(ret))
       {
@@ -215,19 +187,13 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
   }
   Trace("term-db-eval") << "evaluated term : " << n << ", got : " << ret
                         << ", reqHasTerm = " << reqHasTerm << std::endl;
-  // clear the explanation if failed
-  if (computeExp && ret.isNull())
-  {
-    exp.resize(prevSize);
-  }
   visited[n] = ret;
   return ret;
 }
 
 TNode EntailmentCheck::getEntailedTerm2(TNode n,
                                         std::map<TNode, TNode>& subs,
-                                        bool subsRep,
-                                        bool hasSubs)
+                                        bool subsRep)
 {
   Trace("term-db-entail") << "get entailed term : " << n << std::endl;
   if (d_qstate.hasTerm(n))
@@ -237,30 +203,27 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
   }
   else if (n.getKind() == BOUND_VARIABLE)
   {
-    if (hasSubs)
+    std::map<TNode, TNode>::iterator it = subs.find(n);
+    if (it != subs.end())
     {
-      std::map<TNode, TNode>::iterator it = subs.find(n);
-      if (it != subs.end())
+      Trace("term-db-entail")
+          << "...substitution is : " << it->second << std::endl;
+      if (subsRep)
       {
-        Trace("term-db-entail")
-            << "...substitution is : " << it->second << std::endl;
-        if (subsRep)
-        {
-          Assert(d_qstate.hasTerm(it->second));
-          Assert(d_qstate.getRepresentative(it->second) == it->second);
-          return it->second;
-        }
-        return getEntailedTerm2(it->second, subs, subsRep, hasSubs);
+        Assert(d_qstate.hasTerm(it->second));
+        Assert(d_qstate.getRepresentative(it->second) == it->second);
+        return it->second;
       }
+      return getEntailedTerm2(it->second, subs, subsRep);
     }
   }
   else if (n.getKind() == ITE)
   {
     for (uint32_t i = 0; i < 2; i++)
     {
-      if (isEntailed2(n[0], subs, subsRep, hasSubs, i == 0))
+      if (isEntailed2(n[0], subs, subsRep, i == 0))
       {
-        return getEntailedTerm2(n[i == 0 ? 1 : 2], subs, subsRep, hasSubs);
+        return getEntailedTerm2(n[i == 0 ? 1 : 2], subs, subsRep);
       }
     }
   }
@@ -274,7 +237,7 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
         std::vector<TNode> args;
         for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
         {
-          TNode c = getEntailedTerm2(n[i], subs, subsRep, hasSubs);
+          TNode c = getEntailedTerm2(n[i], subs, subsRep);
           if (c.isNull())
           {
             return TNode::null();
@@ -294,48 +257,52 @@ TNode EntailmentCheck::getEntailedTerm2(TNode n,
 }
 
 Node EntailmentCheck::evaluateTerm(TNode n,
+                                   std::map<TNode, TNode>& subs,
+                                   bool subsRep,
                                    bool useEntailmentTests,
                                    bool reqHasTerm)
 {
   std::map<TNode, Node> visited;
-  std::vector<Node> exp;
-  return evaluateTerm2(n, visited, exp, useEntailmentTests, false, reqHasTerm);
+  return evaluateTerm2(
+      n, visited, subs, subsRep, useEntailmentTests, reqHasTerm);
 }
 
 Node EntailmentCheck::evaluateTerm(TNode n,
-                                   std::vector<Node>& exp,
                                    bool useEntailmentTests,
                                    bool reqHasTerm)
 {
   std::map<TNode, Node> visited;
-  return evaluateTerm2(n, visited, exp, useEntailmentTests, true, reqHasTerm);
+  std::map<TNode, TNode> subs;
+  return evaluateTerm2(n, visited, subs, false, useEntailmentTests, reqHasTerm);
 }
 
 TNode EntailmentCheck::getEntailedTerm(TNode n,
                                        std::map<TNode, TNode>& subs,
                                        bool subsRep)
 {
-  return getEntailedTerm2(n, subs, subsRep, true);
+  return getEntailedTerm2(n, subs, subsRep);
 }
 
 TNode EntailmentCheck::getEntailedTerm(TNode n)
 {
   std::map<TNode, TNode> subs;
-  return getEntailedTerm2(n, subs, false, false);
+  return getEntailedTerm2(n, subs, false);
 }
 
-bool EntailmentCheck::isEntailed2(
-    TNode n, std::map<TNode, TNode>& subs, bool subsRep, bool hasSubs, bool pol)
+bool EntailmentCheck::isEntailed2(TNode n,
+                                  std::map<TNode, TNode>& subs,
+                                  bool subsRep,
+                                  bool pol)
 {
   Trace("term-db-entail") << "Check entailed : " << n << ", pol = " << pol
                           << std::endl;
   Assert(n.getType().isBoolean());
   if (n.getKind() == EQUAL && !n[0].getType().isBoolean())
   {
-    TNode n1 = getEntailedTerm2(n[0], subs, subsRep, hasSubs);
+    TNode n1 = getEntailedTerm2(n[0], subs, subsRep);
     if (!n1.isNull())
     {
-      TNode n2 = getEntailedTerm2(n[1], subs, subsRep, hasSubs);
+      TNode n2 = getEntailedTerm2(n[1], subs, subsRep);
       if (!n2.isNull())
       {
         if (n1 == n2)
@@ -360,14 +327,14 @@ bool EntailmentCheck::isEntailed2(
   }
   else if (n.getKind() == NOT)
   {
-    return isEntailed2(n[0], subs, subsRep, hasSubs, !pol);
+    return isEntailed2(n[0], subs, subsRep, !pol);
   }
   else if (n.getKind() == OR || n.getKind() == AND)
   {
     bool simPol = (pol && n.getKind() == OR) || (!pol && n.getKind() == AND);
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
-      if (isEntailed2(n[i], subs, subsRep, hasSubs, pol))
+      if (isEntailed2(n[i], subs, subsRep, pol))
       {
         if (simPol)
         {
@@ -389,17 +356,17 @@ bool EntailmentCheck::isEntailed2(
   {
     for (size_t i = 0; i < 2; i++)
     {
-      if (isEntailed2(n[0], subs, subsRep, hasSubs, i == 0))
+      if (isEntailed2(n[0], subs, subsRep, i == 0))
       {
         size_t ch = (n.getKind() == EQUAL || i == 0) ? 1 : 2;
         bool reqPol = (n.getKind() == ITE || i == 0) ? pol : !pol;
-        return isEntailed2(n[ch], subs, subsRep, hasSubs, reqPol);
+        return isEntailed2(n[ch], subs, subsRep, reqPol);
       }
     }
   }
   else if (n.getKind() == APPLY_UF)
   {
-    TNode n1 = getEntailedTerm2(n, subs, subsRep, hasSubs);
+    TNode n1 = getEntailedTerm2(n, subs, subsRep);
     if (!n1.isNull())
     {
       Assert(d_qstate.hasTerm(n1));
@@ -419,7 +386,7 @@ bool EntailmentCheck::isEntailed2(
   }
   else if (n.getKind() == FORALL && !pol)
   {
-    return isEntailed2(n[1], subs, subsRep, hasSubs, pol);
+    return isEntailed2(n[1], subs, subsRep, pol);
   }
   return false;
 }
@@ -427,7 +394,7 @@ bool EntailmentCheck::isEntailed2(
 bool EntailmentCheck::isEntailed(TNode n, bool pol)
 {
   std::map<TNode, TNode> subs;
-  return isEntailed2(n, subs, false, false, pol);
+  return isEntailed2(n, subs, false, pol);
 }
 
 bool EntailmentCheck::isEntailed(TNode n,
@@ -435,7 +402,7 @@ bool EntailmentCheck::isEntailed(TNode n,
                                  bool subsRep,
                                  bool pol)
 {
-  return isEntailed2(n, subs, subsRep, true, pol);
+  return isEntailed2(n, subs, subsRep, pol);
 }
 
 }  // namespace quantifiers

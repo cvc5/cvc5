@@ -488,6 +488,8 @@ endif()
 
 add_subdirectory(test)
 
+include(target-graphs)
+
 #-----------------------------------------------------------------------------#
 # Package configuration
 #

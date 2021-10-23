@@ -13,9 +13,9 @@
  * A simple demonstration of the transcendental extension.
  */
 
-import static cvc5.Kind.*;
+import static io.github.cvc5.api.Kind.*;
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 
 public class Transcendentals
 {
