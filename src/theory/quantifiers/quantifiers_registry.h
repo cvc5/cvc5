@@ -84,9 +84,9 @@ class QuantifiersRegistry : public QuantifiersUtil
    */
   Node substituteInstConstantsToBoundVariables(Node n, Node q);
   /** substitute { variables of q -> terms } in n */
-  Node substituteBoundVariables(Node n, Node q, std::vector<Node>& terms);
+  Node substituteBoundVariables(Node n, Node q, const std::vector<Node>& terms);
   /** substitute { instantiation constants of q -> terms } in n */
-  Node substituteInstConstants(Node n, Node q, std::vector<Node>& terms);
+  Node substituteInstConstants(Node n, Node q, const std::vector<Node>& terms);
   //----------------------------- end instantiation constants
   /** Get quantifiers attributes utility class */
   QuantAttributes& getQuantAttributes();

@@ -145,4 +145,13 @@ parameterized TUPLE_PROJECT TUPLE_PROJECT_OP 1 \
 typerule TUPLE_PROJECT_OP  "SimpleTypeRule<RBuiltinOperator>"
 typerule TUPLE_PROJECT     ::cvc5::theory::datatypes::TupleProjectTypeRule
 
+# For representing codatatype values
+constant CODATATYPE_BOUND_VARIABLE \
+    class \
+    CodatatypeBoundVariable \
+    ::cvc5::CodatatypeBoundVariableHashFunction \
+    "expr/codatatype_bound_variable.h" \
+    "the kind of expressions representing bound variables in codatatype constants, which are de Bruijn indexed variables; payload is an instance of the cvc5::CodatatypeBoundVariable class (used in models)"
+typerule CODATATYPE_BOUND_VARIABLE ::cvc5::theory::datatypes::CodatatypeBoundVariableTypeRule
+
 endtheory

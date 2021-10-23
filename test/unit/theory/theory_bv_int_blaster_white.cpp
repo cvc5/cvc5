@@ -37,8 +37,8 @@ class TestTheoryWhiteBvIntblaster : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("produce-models", "true");
-    d_smtEngine->finishInit();
+    d_slvEngine->setOption("produce-models", "true");
+    d_slvEngine->finishInit();
     d_true = d_nodeManager->mkConst<bool>(true);
     d_one = d_nodeManager->mkConst<Rational>(Rational(1));
   }
@@ -57,8 +57,12 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
   Node bv7_4 = d_nodeManager->mkConst<BitVector>(c1);
 
   // translating it to integers should yield 7.
+  Options opts;
+  Env env(d_nodeManager, &opts);
+  env.d_logic.setLogicString("QF_UFBV");
+  env.d_logic.lock();
   IntBlaster intBlaster(
-      d_smtEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, false);
+      env, options::SolveBVAsIntMode::SUM, 1, false);
   Node result = intBlaster.translateNoChildren(bv7_4, lemmas, skolems);
   Node seven = d_nodeManager->mkConst(Rational(7));
   ASSERT_EQ(seven, result);
@@ -79,8 +83,12 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
   Node bv = d_nodeManager->mkVar("bv1", bvType);
 
   // translating it to integers should yield an integer variable.
+  Options opts;
+  Env env(d_nodeManager, &opts);
+  env.d_logic.setLogicString("QF_UFBV");
+  env.d_logic.lock();
   IntBlaster intBlaster(
-      d_smtEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
+      env, options::SolveBVAsIntMode::SUM, 1, true);
   Node result = intBlaster.translateNoChildren(bv, lemmas, skolems);
   ASSERT_TRUE(result.isVar() && result.getType().isInteger());
 
@@ -106,8 +114,12 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
   Node f = d_nodeManager->mkVar("f", funType);
 
   // translating it to integers should yield an Int x Int -> Bool function
+  Options opts;
+  Env env(d_nodeManager, &opts);
+  env.d_logic.setLogicString("QF_UFBV");
+  env.d_logic.lock();
   IntBlaster intBlaster(
-      d_smtEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
+      env, options::SolveBVAsIntMode::SUM, 1, true);
   Node result = intBlaster.translateNoChildren(f, lemmas, skolems);
   TypeNode resultType = result.getType();
   std::vector<TypeNode> resultDomain = resultType.getArgTypes();
@@ -130,8 +142,12 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   // place holders for lemmas and skolem
   std::vector<Node> lemmas;
   std::map<Node, Node> skolems;
+  Options opts;
+  Env env(d_nodeManager, &opts);
+  env.d_logic.setLogicString("QF_UFBV");
+  env.d_logic.lock();
   IntBlaster intBlaster(
-      d_smtEngine->getContext(), options::SolveBVAsIntMode::SUM, 1, true);
+      env, options::SolveBVAsIntMode::SUM, 1, true);
 
   // bit-vector variables
   TypeNode bvType = d_nodeManager->mkBitVectorType(4);

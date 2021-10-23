@@ -46,7 +46,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/approx_simplex.h"
-#include "theory/arith/arith_ite_utils.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
@@ -122,7 +121,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
-      d_diosolver(context()),
+      d_diosolver(env),
       d_restartsCounter(0),
       d_tableauSizeHasBeenModified(false),
       d_tableauResetDensity(1.6),
@@ -130,23 +129,21 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_conflicts(context()),
       d_blackBoxConflict(context(), Node::null()),
       d_blackBoxConflictPf(context(), std::shared_ptr<ProofNode>(nullptr)),
-      d_congruenceManager(context(),
-                          userContext(),
+      d_congruenceManager(d_env,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
-                          RaiseEqualityEngineConflict(*this),
-                          d_pnm),
+                          RaiseEqualityEngineConflict(*this)),
       d_cmEnabled(context(), options().arith.arithCongMan),
 
       d_dualSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_fcSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_soiSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(context(), -1),

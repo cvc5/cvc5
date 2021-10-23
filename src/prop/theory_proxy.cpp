@@ -41,9 +41,10 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
     : d_propEngine(propEngine),
       d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
+      d_dmNeedsActiveDefs(d_decisionEngine->needsActiveSkolemDefs()),
       d_theoryEngine(theoryEngine),
       d_queue(env.getContext()),
-      d_tpp(*theoryEngine, env.getUserContext(), env.getProofNodeManager()),
+      d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_env(env)
 {
@@ -55,16 +56,22 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
-void TheoryProxy::notifyAssertion(Node a, TNode skolem)
+void TheoryProxy::presolve()
+{
+  d_decisionEngine->presolve();
+  d_theoryEngine->presolve();
+}
+
+void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   if (skolem.isNull())
   {
-    d_decisionEngine->addAssertion(a);
+    d_decisionEngine->addAssertion(a, isLemma);
   }
   else
   {
     d_skdm->notifySkolemDefinition(skolem, a);
-    d_decisionEngine->addSkolemDefinition(a, skolem);
+    d_decisionEngine->addSkolemDefinition(a, skolem, isLemma);
   }
 }
 
@@ -76,8 +83,21 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();
+    // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
-    d_decisionEngine->notifyAsserted(assertion);
+    if (d_dmNeedsActiveDefs)
+    {
+      Assert(d_skdm != nullptr);
+      Trace("sat-rlv-assert")
+          << "Assert to theory engine: " << assertion << std::endl;
+      // Assertion makes all skolems in assertion active,
+      // which triggers their definitions to becoming active.
+      std::vector<TNode> activeSkolemDefs;
+      d_skdm->notifyAsserted(assertion, activeSkolemDefs, true);
+      // notify the decision engine of the skolem definitions that have become
+      // active due to the assertion.
+      d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+    }
   }
   d_theoryEngine->check(effort);
 }
@@ -183,26 +203,23 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 
-TrustNode TheoryProxy::preprocessLemma(TrustNode trn,
-                                       std::vector<TrustNode>& newLemmas,
-                                       std::vector<Node>& newSkolems)
+TrustNode TheoryProxy::preprocessLemma(
+    TrustNode trn, std::vector<theory::SkolemLemma>& newLemmas)
 {
-  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
+  return d_tpp.preprocessLemma(trn, newLemmas);
 }
 
 TrustNode TheoryProxy::preprocess(TNode node,
-                                  std::vector<TrustNode>& newLemmas,
-                                  std::vector<Node>& newSkolems)
+                                  std::vector<theory::SkolemLemma>& newLemmas)
 {
-  return d_tpp.preprocess(node, newLemmas, newSkolems);
+  return d_tpp.preprocess(node, newLemmas);
 }
 
 TrustNode TheoryProxy::removeItes(TNode node,
-                                  std::vector<TrustNode>& newLemmas,
-                                  std::vector<Node>& newSkolems)
+                                  std::vector<theory::SkolemLemma>& newLemmas)
 {
   RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
-  return rtf.run(node, newLemmas, newSkolems, true);
+  return rtf.run(node, newLemmas, true);
 }
 
 void TheoryProxy::getSkolems(TNode node,

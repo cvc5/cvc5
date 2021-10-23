@@ -18,11 +18,11 @@
 #include <sstream>
 
 #include "base/check.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/kind.h"
 #include "expr/skolem_manager.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -61,8 +61,9 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
+      d_rewriter(env.getEvaluator()),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm),
+      d_im(env, *this, d_state),
       d_notify(d_im, *this)
 {
 
@@ -1238,7 +1239,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
           for( unsigned i=0; i<pcons.size(); i++ ){
             // must try the infinite ones first
             bool cfinite =
-                d_state.isFiniteType(dt[i].getSpecializedConstructorType(tt));
+                d_env.isFiniteType(dt[i].getSpecializedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;
@@ -1289,10 +1290,10 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
 
 Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth ){
   std::map< Node, int >::iterator itv = vmap.find( n );
+  NodeManager* nm = NodeManager::currentNM();
   if( itv!=vmap.end() ){
     int debruijn = depth - 1 - itv->second;
-    return NodeManager::currentNM()->mkConst(
-        UninterpretedConstant(n.getType(), debruijn));
+    return nm->mkConst(CodatatypeBoundVariable(n.getType(), debruijn));
   }else if( n.getType().isDatatype() ){
     Node nc = eqc_cons[n];
     if( !nc.isNull() ){
@@ -1307,7 +1308,7 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
         children.push_back( rv );
       }
       vmap.erase( n );
-      return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
+      return nm->mkNode(APPLY_CONSTRUCTOR, children);
     }
   }
   return n;

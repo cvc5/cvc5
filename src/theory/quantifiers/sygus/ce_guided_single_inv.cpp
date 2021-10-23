@@ -110,7 +110,8 @@ void CegSingleInv::initialize(Node q)
   {
     // We are fully single invocation, set single invocation if we haven't
     // disabled single invocation techniques.
-    if (options::cegqiSingleInvMode() != options::CegqiSingleInvMode::NONE)
+    if (options().quantifiers.cegqiSingleInvMode
+        != options::CegqiSingleInvMode::NONE)
     {
       d_single_invocation = true;
     }
@@ -122,7 +123,8 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   Trace("sygus-si-debug") << "Single invocation: finish init" << std::endl;
   // do not do single invocation if grammar is restricted and
   // options::CegqiSingleInvMode::ALL is not enabled
-  if (options::cegqiSingleInvMode() == options::CegqiSingleInvMode::USE
+  if (options().quantifiers.cegqiSingleInvMode
+          == options::CegqiSingleInvMode::USE
       && d_single_invocation && syntaxRestricted)
   {
     d_single_invocation = false;
@@ -134,7 +136,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   {
     d_single_inv = Node::null();
     Trace("sygus-si") << "Formula is not single invocation." << std::endl;
-    if (options::cegqiSingleInvAbort())
+    if (options().quantifiers.cegqiSingleInvAbort)
     {
       std::stringstream ss;
       ss << "Property is not handled by single invocation." << std::endl;
@@ -226,7 +228,7 @@ bool CegSingleInv::solve()
     siq = nm->mkNode(FORALL, siq[0], siq[1], n_attr);
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
-  std::unique_ptr<SmtEngine> siSmt;
+  std::unique_ptr<SolverEngine> siSmt;
   initializeSubsolver(siSmt, d_env);
   // do not use shared selectors in subsolver, since this leads to solutions
   // with non-user symbols
@@ -444,20 +446,20 @@ Node CegSingleInv::reconstructToSyntax(Node s,
 
   // reconstruct the solution into sygus if necessary
   reconstructed = 0;
-  if (options::cegqiSingleInvReconstruct()
+  if (options().quantifiers.cegqiSingleInvReconstruct
           != options::CegqiSingleInvRconsMode::NONE
       && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus)
   {
     int64_t enumLimit = -1;
-    if (options::cegqiSingleInvReconstruct()
+    if (options().quantifiers.cegqiSingleInvReconstruct
         == options::CegqiSingleInvRconsMode::TRY)
     {
       enumLimit = 0;
     }
-    else if (options::cegqiSingleInvReconstruct()
+    else if (options().quantifiers.cegqiSingleInvReconstruct
              == options::CegqiSingleInvRconsMode::ALL_LIMIT)
     {
-      enumLimit = options::cegqiSingleInvReconstructLimit();
+      enumLimit = options().quantifiers.cegqiSingleInvReconstructLimit;
     }
     sol = d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
     if (reconstructed == 1)

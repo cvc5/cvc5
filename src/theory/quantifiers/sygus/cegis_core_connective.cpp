@@ -33,41 +33,6 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-bool VariadicTrie::add(Node n, const std::vector<Node>& i)
-{
-  VariadicTrie* curr = this;
-  for (const Node& ic : i)
-  {
-    curr = &(curr->d_children[ic]);
-  }
-  if (curr->d_data.isNull())
-  {
-    curr->d_data = n;
-    return true;
-  }
-  return false;
-}
-
-bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
-{
-  if (!d_data.isNull())
-  {
-    return true;
-  }
-  for (const std::pair<const Node, VariadicTrie>& p : d_children)
-  {
-    Node n = p.first;
-    if (std::find(is.begin(), is.end(), n) != is.end())
-    {
-      if (p.second.hasSubset(is))
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 CegisCoreConnective::CegisCoreConnective(Env& env,
                                          QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
@@ -595,38 +560,6 @@ bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
   return true;
 }
 
-void CegisCoreConnective::getModel(SmtEngine& smt,
-                                   std::vector<Node>& vals) const
-{
-  for (const Node& v : d_vars)
-  {
-    Node mv = smt.getValue(v);
-    Trace("sygus-ccore-model") << v << " -> " << mv << " ";
-    vals.push_back(mv);
-  }
-}
-
-bool CegisCoreConnective::getUnsatCore(
-    SmtEngine& smt,
-    const std::unordered_set<Node>& queryAsserts,
-    std::vector<Node>& uasserts) const
-{
-  UnsatCore uc = smt.getUnsatCore();
-  bool hasQuery = false;
-  for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
-  {
-    Node uassert = *i;
-    Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
-    if (queryAsserts.find(uassert) != queryAsserts.end())
-    {
-      hasQuery = true;
-      continue;
-    }
-    uasserts.push_back(uassert);
-  }
-  return hasQuery;
-}
-
 Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs) const
 {
   Trace("sygus-ccore-debug") << "...check-sat " << n << "..." << std::endl;
@@ -733,7 +666,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
   {
     addSuccess = false;
     // try a new core
-    std::unique_ptr<SmtEngine> checkSol;
+    std::unique_ptr<SolverEngine> checkSol;
     initializeSubsolver(checkSol, d_env);
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
     std::vector<Node> rasserts = asserts;
@@ -758,7 +691,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       std::unordered_set<Node> queryAsserts;
       queryAsserts.insert(ccheck.getFormula());
       queryAsserts.insert(d_sc);
-      bool hasQuery = getUnsatCore(*checkSol, queryAsserts, uasserts);
+      bool hasQuery =
+          getUnsatCoreFromSubsolver(*checkSol, queryAsserts, uasserts);
       // now, check the side condition
       bool falseCore = false;
       if (!d_sc.isNull())
@@ -773,7 +707,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         {
           // In terms of Variant #2, this is the check "if S ^ U is unsat"
           Trace("sygus-ccore") << "----- Check side condition" << std::endl;
-          std::unique_ptr<SmtEngine> checkSc;
+          std::unique_ptr<SolverEngine> checkSc;
           initializeSubsolver(checkSc, d_env);
           std::vector<Node> scasserts;
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
@@ -794,7 +728,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
             uasserts.clear();
             std::unordered_set<Node> queryAsserts2;
             queryAsserts2.insert(d_sc);
-            getUnsatCore(*checkSc, queryAsserts2, uasserts);
+            getUnsatCoreFromSubsolver(*checkSc, queryAsserts2, uasserts);
             falseCore = true;
           }
         }
@@ -838,7 +772,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       // it does not entail the postcondition, add an assertion that blocks
       // the current point
       mvs.clear();
-      getModel(*checkSol, mvs);
+      getModelFromSubsolver(*checkSol, d_vars, mvs);
       // should evaluate to true
       Node ean = evaluatePt(an, Node::null(), mvs);
       Assert(ean.isConst() && ean.getConst<bool>());

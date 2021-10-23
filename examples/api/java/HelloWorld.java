@@ -10,19 +10,18 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A very simple CVC4 tutorial example.
+ * A very simple CVC5 tutorial example.
  */
 
-import edu.stanford.CVC4.*;
+import io.github.cvc5.api.*;
 
-public class HelloWorld {
-  public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+public class HelloWorld
+{
+  public static void main(String[] args)
+  {
+    Solver slv = new Solver();
+    Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
 
-    ExprManager em = new ExprManager();
-    Expr helloworld = em.mkVar("Hello World!", em.booleanType());
-    SmtEngine smt = new SmtEngine(em);
-
-    System.out.println(helloworld + " is " + smt.checkEntailed(helloworld));
+    System.out.println(helloworld + " is " + slv.checkEntailed(helloworld));
   }
 }

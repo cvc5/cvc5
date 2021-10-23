@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Accessor for the SmtEngine's StatisticsRegistry.
+ * Accessor for the SolverEngine's StatisticsRegistry.
  */
 
 #include "cvc5_private.h"
@@ -24,7 +24,8 @@ namespace cvc5 {
 
 /**
  * This returns the StatisticsRegistry attached to the currently in scope
- * SmtEngine. This is a synonym for smt::SmtScope::currentStatisticsRegistry().
+ * SolverEngine. This is a synonym for
+ * smt::SolverEngineScope::currentStatisticsRegistry().
  */
 StatisticsRegistry& smtStatisticsRegistry();
 

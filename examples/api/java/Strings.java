@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tianyi Liang, Andres Noetzli
+ *   Aina Niemetz, Tianyi Liang, Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -10,81 +10,82 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of reasoning about strings with CVC4 via Java API.
+ * A simple demonstration of reasoning about strings with cvc5 via C++ API.
  */
 
-import edu.stanford.CVC4.*;
+import static io.github.cvc5.api.Kind.*;
 
-public class Strings {
-  public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+import io.github.cvc5.api.*;
 
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
+public class Strings
+{
+  public static void main(String args[]) throws CVC5ApiException
+  {
+    Solver slv = new Solver();
 
     // Set the logic
-    smt.setLogic("S");
-
+    slv.setLogic("QF_SLIA");
     // Produce models
-    smt.setOption("produce-models", new SExpr(true));
+    slv.setOption("produce-models", "true");
     // The option strings-exp is needed
-    smt.setOption("strings-exp", new SExpr(true));
-	// output-language
-    smt.setOption("output-language", new SExpr("smt2"));
+    slv.setOption("strings-exp", "true");
+    // Set output language to SMTLIB2
+    slv.setOption("output-language", "smt2");
 
     // String type
-    Type string = em.stringType();
+    Sort string = slv.getStringSort();
 
+    // std::string
+    String str_ab = "ab";
     // String constants
-    Expr ab  = em.mkConst(new CVC4String("ab"));
-    Expr abc = em.mkConst(new CVC4String("abc"));
-    // Variables
-    Expr x = em.mkVar("x", string);
-    Expr y = em.mkVar("y", string);
-    Expr z = em.mkVar("z", string);
+    Term ab = slv.mkString(str_ab);
+    Term abc = slv.mkString("abc");
+    // String variables
+    Term x = slv.mkConst(string, "x");
+    Term y = slv.mkConst(string, "y");
+    Term z = slv.mkConst(string, "z");
 
     // String concatenation: x.ab.y
-    Expr lhs = em.mkExpr(Kind.STRING_CONCAT, x, ab, y);
+    Term lhs = slv.mkTerm(STRING_CONCAT, x, ab, y);
     // String concatenation: abc.z
-    Expr rhs = em.mkExpr(Kind.STRING_CONCAT, abc, z);;
+    Term rhs = slv.mkTerm(STRING_CONCAT, abc, z);
     // x.ab.y = abc.z
-    Expr formula1 = em.mkExpr(Kind.EQUAL, lhs, rhs);
+    Term formula1 = slv.mkTerm(EQUAL, lhs, rhs);
 
     // Length of y: |y|
-    Expr leny = em.mkExpr(Kind.STRING_LENGTH, y);
+    Term leny = slv.mkTerm(STRING_LENGTH, y);
     // |y| >= 0
-    Expr formula2 = em.mkExpr(Kind.GEQ, leny, em.mkConst(new Rational(0)));
+    Term formula2 = slv.mkTerm(GEQ, leny, slv.mkInteger(0));
 
     // Regular expression: (ab[c-e]*f)|g|h
-    Expr r = em.mkExpr(Kind.REGEXP_UNION,
-      em.mkExpr(Kind.REGEXP_CONCAT,
-        em.mkExpr(Kind.STRING_TO_REGEXP, em.mkConst(new CVC4String("ab"))),
-        em.mkExpr(Kind.REGEXP_STAR,
-          em.mkExpr(Kind.REGEXP_RANGE, em.mkConst(new CVC4String("c")), em.mkConst(new CVC4String("e")))),
-        em.mkExpr(Kind.STRING_TO_REGEXP, em.mkConst(new CVC4String("f")))),
-      em.mkExpr(Kind.STRING_TO_REGEXP, em.mkConst(new CVC4String("g"))),
-      em.mkExpr(Kind.STRING_TO_REGEXP, em.mkConst(new CVC4String("h"))));
+    Term r = slv.mkTerm(REGEXP_UNION,
+        slv.mkTerm(REGEXP_CONCAT,
+            slv.mkTerm(STRING_TO_REGEXP, slv.mkString("ab")),
+            slv.mkTerm(REGEXP_STAR, slv.mkTerm(REGEXP_RANGE, slv.mkString("c"), slv.mkString("e"))),
+            slv.mkTerm(STRING_TO_REGEXP, slv.mkString("f"))),
+        slv.mkTerm(STRING_TO_REGEXP, slv.mkString("g")),
+        slv.mkTerm(STRING_TO_REGEXP, slv.mkString("h")));
 
     // String variables
-    Expr s1 = em.mkVar("s1", string);
-    Expr s2 = em.mkVar("s2", string);
+    Term s1 = slv.mkConst(string, "s1");
+    Term s2 = slv.mkConst(string, "s2");
     // String concatenation: s1.s2
-    Expr s = em.mkExpr(Kind.STRING_CONCAT, s1, s2);
+    Term s = slv.mkTerm(STRING_CONCAT, s1, s2);
 
     // s1.s2 in (ab[c-e]*f)|g|h
-    Expr formula3 = em.mkExpr(Kind.STRING_IN_REGEXP, s, r);
+    Term formula3 = slv.mkTerm(STRING_IN_REGEXP, s, r);
 
-	// Make a query
-    Expr q = em.mkExpr(Kind.AND,
-      formula1,
-      formula2,
-      formula3);
+    // Make a query
+    Term q = slv.mkTerm(AND, formula1, formula2, formula3);
 
-     // check sat
-     Result result = smt.checkSat(q);
-     System.out.println("CVC4 reports: " + q + " is " + result + ".");
+    // check sat
+    Result result = slv.checkSatAssuming(q);
+    System.out.println("cvc5 reports: " + q + " is " + result + ".");
 
-     System.out.println("  x  = " + smt.getValue(x));
-     System.out.println("  s1.s2 = " + smt.getValue(s));
+    if (result.isSat())
+    {
+      System.out.println("  x  = " + slv.getValue(x));
+      System.out.println("  s1.s2 = " + slv.getValue(s));
+    }
   }
 }

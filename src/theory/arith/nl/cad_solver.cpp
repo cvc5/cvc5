@@ -118,7 +118,7 @@ void CadSolver::checkPartial()
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
   }
-  auto covering = d_CAC.getUnsatCover(0, true);
+  auto covering = d_CAC.getUnsatCover(true);
   if (covering.empty())
   {
     d_foundSatisfiability = true;
@@ -180,11 +180,11 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     Node value = value_to_node(d_CAC.getModel().get(v), d_ranVariable);
     if (value.isConst())
     {
-      d_model.addCheckModelSubstitution(variable, value);
+      d_model.addSubstitution(variable, value);
     }
     else
     {
-      d_model.addCheckModelWitness(variable, value);
+      d_model.addWitness(variable, value);
     }
     Trace("nl-cad") << "-> " << v << " = " << value << std::endl;
   }

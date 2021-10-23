@@ -42,4 +42,16 @@ std::string quoteSymbol(const std::string& s){
   return s;
 }
 
+std::string quoteString(const std::string& s) {
+  // escape all double-quotes
+  std::string output = s;
+  size_t pos = 0;
+  while ((pos = output.find('"', pos)) != std::string::npos)
+  {
+    output.replace(pos, 1, "\"\"");
+    pos += 2;
+  }
+  return '"' + output + '"';
+}
+
 }  // namespace cvc5

@@ -51,7 +51,7 @@ class QuantElimSolver : protected EnvObj
    * elimination is LRA and LIA.
    *
    * This function returns a formula ret such that, given
-   * the current set of formulas A asserted to this SmtEngine :
+   * the current set of formulas A asserted to this SolverEngine :
    *
    * If doFull = true, then
    *   - ( A ^ q ) and ( A ^ ret ) are equivalent
@@ -82,10 +82,10 @@ class QuantElimSolver : protected EnvObj
    * for incrementally computing the result of a
    * quantifier elimination.
    *
-   * @param as The assertions of the SmtEngine
+   * @param as The assertions of the SolverEngine
    * @param q The quantified formula we are eliminating quantifiers from
    * @param doFull Whether we are doing full quantifier elimination on q
-   * @param isInternalSubsolver Whether the SmtEngine we belong to is an
+   * @param isInternalSubsolver Whether the SolverEngine we belong to is an
    * internal subsolver. If it is not, then we convert the final result to
    * witness form.
    * @return The result of eliminating quantifiers from q.

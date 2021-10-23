@@ -22,6 +22,8 @@
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_bitblast_internal.h"
 #include "theory/bv/bv_solver_layered.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
 #include "theory/trust_substitutions.h"
@@ -38,7 +40,7 @@ TheoryBV::TheoryBV(Env& env,
       d_internal(nullptr),
       d_rewriter(),
       d_state(env, valuation),
-      d_im(env, *this, d_state, nullptr, "theory::bv::"),
+      d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
       d_stats(statisticsRegistry(), "theory::bv::")
@@ -279,6 +281,37 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
   {
     return texp;
   }
+
+  Debug("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
+  Node res = t;
+  if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
+  {
+    res = rewrite(RewriteRule<BitwiseEq>::run<false>(t));
+  }
+  // useful on QF_BV/space/ndist
+  else if (RewriteRule<UltAddOne>::applies(t))
+  {
+    res = rewrite(RewriteRule<UltAddOne>::run<false>(t));
+  }
+  // Useful for BV/2017-Preiner-scholl-smt08, but not for QF_BV
+  else if (options().bv.rwExtendEq)
+  {
+    if (RewriteRule<SignExtendEqConst>::applies(t))
+    {
+      res = RewriteRule<SignExtendEqConst>::run<false>(t);
+    }
+    else if (RewriteRule<ZeroExtendEqConst>::applies(t))
+    {
+      res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
+    }
+  }
+
+  Debug("theory-bv-pp-rewrite") << "to   " << res << "\n";
+  if (res != t)
+  {
+    return TrustNode::mkTrustRewrite(t, res, nullptr);
+  }
+
   return d_internal->ppRewrite(t);
 }
 
@@ -318,6 +351,47 @@ void TheoryBV::notifySharedTerm(TNode t)
 
 void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
 {
+  if (in.getKind() == kind::EQUAL)
+  {
+    // Only useful in combination with --bv-intro-pow2 on
+    // QF_BV/pspace/power2sum benchmarks.
+    //
+    // Matches for equality:
+    //
+    // (= (bvadd (bvshl 1 x) (bvshl 1 y)) (bvshl 1 z))
+    //
+    // and does case analysis on the sum of two power of twos.
+    if ((in[0].getKind() == kind::BITVECTOR_ADD
+         && in[1].getKind() == kind::BITVECTOR_SHL)
+        || (in[1].getKind() == kind::BITVECTOR_ADD
+            && in[0].getKind() == kind::BITVECTOR_SHL))
+    {
+      TNode p = in[0].getKind() == kind::BITVECTOR_ADD ? in[0] : in[1];
+      TNode s = in[0].getKind() == kind::BITVECTOR_ADD ? in[1] : in[0];
+
+      if (p.getNumChildren() == 2 && p[0].getKind() == kind::BITVECTOR_SHL
+          && p[1].getKind() == kind::BITVECTOR_SHL)
+      {
+        if (utils::isOne(s[0]) && utils::isOne(p[0][0])
+            && utils::isOne(p[1][0]))
+        {
+          Node zero = utils::mkZero(utils::getSize(s));
+          TNode b = p[0];
+          TNode c = p[1];
+          // (s : 1 << S) = (b : 1 << B) + (c : 1 << C)
+          Node b_eq_0 = b.eqNode(zero);
+          Node c_eq_0 = c.eqNode(zero);
+          Node b_eq_c = b.eqNode(c);
+
+          Node dis = NodeManager::currentNM()->mkNode(
+              kind::OR, b_eq_0, c_eq_0, b_eq_c);
+          Node imp = in.impNode(dis);
+          learned << imp;
+        }
+      }
+    }
+  }
+
   d_internal->ppStaticLearn(in, learned);
 }
 

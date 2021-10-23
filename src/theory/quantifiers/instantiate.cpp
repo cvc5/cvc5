@@ -25,6 +25,7 @@
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
+#include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_preprocess.h"
@@ -45,18 +46,18 @@ Instantiate::Instantiate(Env& env,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
-                         TermRegistry& tr,
-                         ProofNodeManager* pnm)
+                         TermRegistry& tr)
     : QuantifiersUtil(env),
       d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),
-      d_pnm(pnm),
       d_insts(userContext()),
       d_c_inst_match_trie_dom(userContext()),
-      d_pfInst(pnm ? new CDProof(pnm, userContext(), "Instantiate::pfInst")
-                   : nullptr)
+      d_pfInst(isProofEnabled() ? new CDProof(env.getProofNodeManager(),
+                                              userContext(),
+                                              "Instantiate::pfInst")
+                                : nullptr)
 {
 }
 
@@ -183,7 +184,7 @@ bool Instantiate::addInstantiation(Node q,
 #endif
   }
 
-  TermDb* tdb = d_treg.getTermDatabase();
+  EntailmentCheck* ec = d_treg.getEntailmentCheck();
   // Note we check for entailment before checking for term vector duplication.
   // Although checking for term vector duplication is a faster check, it is
   // included automatically with recordInstantiationInternal, hence we prefer
@@ -206,7 +207,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       subs[q[0][i]] = terms[i];
     }
-    if (tdb->isEntailed(q[1], subs, false, true))
+    if (ec->isEntailed(q[1], subs, false, true))
     {
       Trace("inst-add-debug") << " --> Currently entailed." << std::endl;
       ++(d_statistics.d_inst_duplicate_ent);
@@ -217,6 +218,7 @@ bool Instantiate::addInstantiation(Node q,
   // check based on instantiation level
   if (options::instMaxLevel() != -1)
   {
+    TermDb* tdb = d_treg.getTermDatabase();
     for (Node& t : terms)
     {
       if (!tdb->isTermEligibleForInstantiation(t, q))
@@ -240,8 +242,10 @@ bool Instantiate::addInstantiation(Node q,
   std::shared_ptr<LazyCDProof> pfTmp;
   if (isProofEnabled())
   {
-    pfTmp.reset(new LazyCDProof(
-        d_pnm, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
+    pfTmp.reset(new LazyCDProof(d_env.getProofNodeManager(),
+                                nullptr,
+                                nullptr,
+                                "Instantiate::LazyCDProof::tmp"));
   }
 
   // construct the instantiation
@@ -298,12 +302,13 @@ bool Instantiate::addInstantiation(Node q,
     // make the scope proof to get (=> q body)
     std::vector<Node> assumps;
     assumps.push_back(q);
-    std::shared_ptr<ProofNode> pfns = d_pnm->mkScope({pfn}, assumps);
+    std::shared_ptr<ProofNode> pfns =
+        d_env.getProofNodeManager()->mkScope({pfn}, assumps);
     Assert(assumps.size() == 1 && assumps[0] == q);
     // store in the main proof
     d_pfInst->addProof(pfns);
     Node prevLem = lem;
-    lem = Rewriter::rewrite(lem);
+    lem = rewrite(lem);
     if (prevLem != lem)
     {
       d_pfInst->addStep(lem, PfRule::MACRO_SR_PRED_ELIM, {prevLem}, {});
@@ -312,7 +317,7 @@ bool Instantiate::addInstantiation(Node q,
   }
   else
   {
-    lem = Rewriter::rewrite(lem);
+    lem = rewrite(lem);
   }
 
   // added lemma, which checks for lemma duplication
@@ -409,7 +414,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     // will never succeed with 1 variable
     return false;
   }
-  TermDb* tdb = d_treg.getTermDatabase();
+  EntailmentCheck* echeck = d_treg.getEntailmentCheck();
   Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
   // set up information for below
   std::vector<Node>& vars = d_qreg.d_vars[q];
@@ -423,7 +428,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
   InferenceId idNone = InferenceId::UNKNOWN;
   Node nulln;
   Node ibody = getInstantiation(q, vars, terms, idNone, nulln, doVts);
-  ibody = Rewriter::rewrite(ibody);
+  ibody = rewrite(ibody);
   for (size_t i = 0; i < tsize; i++)
   {
     // process consecutively in reverse order, which is important since we use
@@ -445,14 +450,14 @@ bool Instantiate::addInstantiationExpFail(Node q,
     if (options::instNoEntail())
     {
       Trace("inst-exp-fail") << "  check entailment" << std::endl;
-      success = tdb->isEntailed(q[1], subs, false, true);
+      success = echeck->isEntailed(q[1], subs, false, true);
       Trace("inst-exp-fail") << "  entailed: " << success << std::endl;
     }
     // check whether the instantiation rewrites to the same thing
     if (!success)
     {
       Node ibodyc = getInstantiation(q, vars, terms, idNone, nulln, doVts);
-      ibodyc = Rewriter::rewrite(ibodyc);
+      ibodyc = rewrite(ibodyc);
       success = (ibodyc == ibody);
       Trace("inst-exp-fail") << "  rewrite invariant: " << success << std::endl;
     }
@@ -485,7 +490,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
 }
 
 void Instantiate::recordInstantiation(Node q,
-                                      std::vector<Node>& terms,
+                                      const std::vector<Node>& terms,
                                       bool doVts)
 {
   Trace("inst-debug") << "Record instantiation for " << q << std::endl;
@@ -497,7 +502,7 @@ void Instantiate::recordInstantiation(Node q,
 }
 
 bool Instantiate::existsInstantiation(Node q,
-                                      std::vector<Node>& terms,
+                                      const std::vector<Node>& terms,
                                       bool modEq)
 {
   if (options::incrementalSolving())
@@ -520,8 +525,8 @@ bool Instantiate::existsInstantiation(Node q,
 }
 
 Node Instantiate::getInstantiation(Node q,
-                                   std::vector<Node>& vars,
-                                   std::vector<Node>& terms,
+                                   const std::vector<Node>& vars,
+                                   const std::vector<Node>& terms,
                                    InferenceId id,
                                    Node pfArg,
                                    bool doVts,
@@ -576,14 +581,17 @@ Node Instantiate::getInstantiation(Node q,
   return body;
 }
 
-Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
+Node Instantiate::getInstantiation(Node q,
+                                   const std::vector<Node>& terms,
+                                   bool doVts)
 {
   Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
   return getInstantiation(
       q, d_qreg.d_vars[q], terms, InferenceId::UNKNOWN, Node::null(), doVts);
 }
 
-bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
+bool Instantiate::recordInstantiationInternal(Node q,
+                                              const std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
@@ -601,7 +609,8 @@ bool Instantiate::recordInstantiationInternal(Node q, std::vector<Node>& terms)
   return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms);
 }
 
-bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
+bool Instantiate::removeInstantiationInternal(Node q,
+                                              const std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
@@ -682,7 +691,10 @@ void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
   }
 }
 
-bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
+bool Instantiate::isProofEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 void Instantiate::notifyEndRound()
 {

@@ -10,103 +10,92 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of solving floating-point problems with CVC4's Java API
+ * An example of solving floating-point problems with cvc5's Java API
  *
- * This example shows how to check whether CVC4 was built with floating-point
- * support, how to create floating-point types, variables and expressions, and
- * how to create rounding mode constants by solving toy problems. The example
- * also shows making special values (such as NaN and +oo) and converting an
- * IEEE 754-2008 bit-vector to a floating-point number.
+ * This example shows to create floating-point types, variables and expressions,
+ * and how to create rounding mode constants by solving toy problems. The
+ * example also shows making special values (such as NaN and +oo) and converting
+ * an IEEE 754-2008 bit-vector to a floating-point number.
  */
 
-import edu.stanford.CVC4.*;
-import java.util.Iterator;
+import static io.github.cvc5.api.Kind.*;
 
-public class FloatingPointArith {
-  public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+import io.github.cvc5.api.*;
 
-    // Test whether CVC4 was built with floating-point support
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
-
-    // Enable the model production
-    smt.setOption("produce-models", new SExpr(true));
+public class FloatingPointArith
+{
+  public static void main(String[] args) throws CVC5ApiException
+  {
+    Solver solver = new Solver();
+    solver.setOption("produce-models", "true");
 
     // Make single precision floating-point variables
-    FloatingPointType fpt32 = em.mkFloatingPointType(8, 24);
-    Expr a = em.mkVar("a", fpt32);
-    Expr b = em.mkVar("b", fpt32);
-    Expr c = em.mkVar("c", fpt32);
-    Expr d = em.mkVar("d", fpt32);
-    Expr e = em.mkVar("e", fpt32);
+    Sort fpt32 = solver.mkFloatingPointSort(8, 24);
+    Term a = solver.mkConst(fpt32, "a");
+    Term b = solver.mkConst(fpt32, "b");
+    Term c = solver.mkConst(fpt32, "c");
+    Term d = solver.mkConst(fpt32, "d");
+    Term e = solver.mkConst(fpt32, "e");
 
     // Assert that floating-point addition is not associative:
     // (a + (b + c)) != ((a + b) + c)
-    Expr rm = em.mkConst(RoundingMode.roundNearestTiesToEven);
-    Expr lhs = em.mkExpr(Kind.FLOATINGPOINT_ADD,
-        rm,
-        a,
-        em.mkExpr(Kind.FLOATINGPOINT_ADD, rm, b, c));
-    Expr rhs = em.mkExpr(Kind.FLOATINGPOINT_ADD,
-        rm,
-        em.mkExpr(Kind.FLOATINGPOINT_ADD, rm, a, b),
-        c);
-    smt.assertFormula(em.mkExpr(Kind.NOT, em.mkExpr(Kind.EQUAL, a, b)));
+    Term rm = solver.mkRoundingMode(RoundingMode.ROUND_NEAREST_TIES_TO_EVEN);
+    Term lhs = solver.mkTerm(
+        Kind.FLOATINGPOINT_ADD, rm, a, solver.mkTerm(Kind.FLOATINGPOINT_ADD, rm, b, c));
+    Term rhs = solver.mkTerm(
+        Kind.FLOATINGPOINT_ADD, rm, solver.mkTerm(Kind.FLOATINGPOINT_ADD, rm, a, b), c);
+    solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.EQUAL, a, b)));
 
-    Result r = smt.checkSat(); // result is sat
-    assert r.isSat() == Result.Sat.SAT;
+    Result r = solver.checkSat(); // result is sat
+    assert r.isSat();
 
-    System.out.println("a = " + smt.getValue(a));
-    System.out.println("b = " + smt.getValue(b));
-    System.out.println("c = " + smt.getValue(c));
+    System.out.println("a = " + solver.getValue(a));
+    System.out.println("b = " + solver.getValue(b));
+    System.out.println("c = " + solver.getValue(c));
 
     // Now, let's restrict `a` to be either NaN or positive infinity
-    FloatingPointSize fps32 = new FloatingPointSize(8, 24);
-    Expr nan = em.mkConst(FloatingPoint.makeNaN(fps32));
-    Expr inf = em.mkConst(FloatingPoint.makeInf(fps32, /* sign */ true));
-    smt.assertFormula(em.mkExpr(
-        Kind.OR, em.mkExpr(Kind.EQUAL, a, inf), em.mkExpr(Kind.EQUAL, a, nan)));
+    Term nan = solver.mkNaN(8, 24);
+    Term inf = solver.mkPosInf(8, 24);
+    solver.assertFormula(solver.mkTerm(
+        Kind.OR, solver.mkTerm(Kind.EQUAL, a, inf), solver.mkTerm(Kind.EQUAL, a, nan)));
 
-    r = smt.checkSat(); // result is sat
-    assert r.isSat() == Result.Sat.SAT;
+    r = solver.checkSat(); // result is sat
+    assert r.isSat();
 
-    System.out.println("a = " + smt.getValue(a));
-    System.out.println("b = " + smt.getValue(b));
-    System.out.println("c = " + smt.getValue(c));
+    System.out.println("a = " + solver.getValue(a));
+    System.out.println("b = " + solver.getValue(b));
+    System.out.println("c = " + solver.getValue(c));
 
     // And now for something completely different. Let's try to find a (normal)
     // floating-point number that rounds to different integer values for
     // different rounding modes.
-    Expr rtp = em.mkConst(RoundingMode.roundTowardPositive);
-    Expr rtn = em.mkConst(RoundingMode.roundTowardNegative);
-    Expr op = em.mkConst(new FloatingPointToSBV(16)); // (_ fp.to_sbv 16)
-    lhs = em.mkExpr(op, rtp, d);
-    rhs = em.mkExpr(op, rtn, d);
-    smt.assertFormula(em.mkExpr(Kind.FLOATINGPOINT_ISN, d));
-    smt.assertFormula(em.mkExpr(Kind.NOT, em.mkExpr(Kind.EQUAL, lhs, rhs)));
+    Term rtp = solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_POSITIVE);
+    Term rtn = solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_NEGATIVE);
+    Op op = solver.mkOp(Kind.FLOATINGPOINT_TO_SBV, 16); // (_ fp.to_sbv 16)
+    lhs = solver.mkTerm(op, rtp, d);
+    rhs = solver.mkTerm(op, rtn, d);
+    solver.assertFormula(solver.mkTerm(Kind.FLOATINGPOINT_ISN, d));
+    solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.EQUAL, lhs, rhs)));
 
-    r = smt.checkSat(); // result is sat
-    assert r.isSat() == Result.Sat.SAT;
+    r = solver.checkSat(); // result is sat
+    assert r.isSat();
 
     // Convert the result to a rational and print it
-    Expr val = smt.getValue(d);
-    Rational realVal =
-        val.getConstFloatingPoint().convertToRationalTotal(new Rational(0));
+    Term val = solver.getValue(d);
+    Term realVal = solver.getValue(solver.mkTerm(FLOATINGPOINT_TO_REAL, val));
     System.out.println("d = " + val + " = " + realVal);
-    System.out.println("((_ fp.to_sbv 16) RTP d) = " + smt.getValue(lhs));
-    System.out.println("((_ fp.to_sbv 16) RTN d) = " + smt.getValue(rhs));
+    System.out.println("((_ fp.to_sbv 16) RTP d) = " + solver.getValue(lhs));
+    System.out.println("((_ fp.to_sbv 16) RTN d) = " + solver.getValue(rhs));
 
     // For our final trick, let's try to find a floating-point number between
     // positive zero and the smallest positive floating-point number
-    Expr zero = em.mkConst(FloatingPoint.makeZero(fps32, /* sign */ true));
-    Expr smallest =
-        em.mkConst(new FloatingPoint(8, 24, new BitVector(32, 0b001)));
-    smt.assertFormula(em.mkExpr(Kind.AND,
-        em.mkExpr(Kind.FLOATINGPOINT_LT, zero, e),
-        em.mkExpr(Kind.FLOATINGPOINT_LT, e, smallest)));
+    Term zero = solver.mkPosZero(8, 24);
+    Term smallest = solver.mkFloatingPoint(8, 24, solver.mkBitVector(32, 0b001));
+    solver.assertFormula(solver.mkTerm(Kind.AND,
+        solver.mkTerm(Kind.FLOATINGPOINT_LT, zero, e),
+        solver.mkTerm(Kind.FLOATINGPOINT_LT, e, smallest)));
 
-    r = smt.checkSat(); // result is unsat
-    assert r.isSat() == Result.Sat.UNSAT;
+    r = solver.checkSat(); // result is unsat
+    assert !r.isSat();
   }
 }

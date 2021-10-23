@@ -47,7 +47,7 @@ TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
       d_lemmas_produced_c(userContext()),
       d_bounds_init(false),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm, "theory::sep::"),
+      d_im(env, *this, d_state, "theory::sep::"),
       d_notify(*this),
       d_reduce(userContext()),
       d_spatial_assertions(context())
@@ -78,8 +78,14 @@ void TheorySep::declareSepHeap(TypeNode locT, TypeNode dataT)
     ss << d_type_ref << " -> " << d_type_data;
     throw LogicException(ss.str());
   }
-  Node nullAtom;
-  registerRefDataTypes(locT, dataT, nullAtom);
+  // otherwise set it
+  Trace("sep-type") << "Sep: assume location type " << locT
+                    << " is associated with data type " << dataT << std::endl;
+  d_loc_to_data_type[locT] = dataT;
+  // for now, we only allow heap constraints of one type
+  d_type_ref = locT;
+  d_type_data = dataT;
+  d_bound_kind[locT] = bound_default;
 }
 
 TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }
@@ -107,7 +113,7 @@ void TheorySep::preRegisterTerm(TNode n)
   Kind k = n.getKind();
   if (k == SEP_PTO || k == SEP_EMP || k == SEP_STAR || k == SEP_WAND)
   {
-    registerRefDataTypesAtom(n);
+    ensureHeapTypesFor(n);
   }
 }
 
@@ -175,6 +181,7 @@ void TheorySep::computeCareGraph() {
 void TheorySep::postProcessModel( TheoryModel* m ){
   Trace("sep-model") << "Printing model for TheorySep..." << std::endl;
 
+  NodeManager* nm = NodeManager::currentNM();
   std::vector< Node > sep_children;
   Node m_neq;
   Node m_heap;
@@ -199,7 +206,7 @@ void TheorySep::postProcessModel( TheoryModel* m ){
         if( d_pto_model[l].isNull() ){
           Trace("sep-model") << "_";
           TypeEnumerator te_range( data_type );
-          if (d_state.isFiniteType(data_type))
+          if (d_env.isFiniteType(data_type))
           {
             pto_children.push_back( *te_range );
           }else{
@@ -228,17 +235,18 @@ void TheorySep::postProcessModel( TheoryModel* m ){
     }
     Node nil = getNilRef( it->first );
     Node vnil = d_valuation.getModel()->getRepresentative( nil );
-    m_neq = NodeManager::currentNM()->mkNode( kind::EQUAL, nil, vnil );
+    m_neq = nm->mkNode(kind::EQUAL, nil, vnil);
     Trace("sep-model") << "sep.nil = " << vnil << std::endl;
     Trace("sep-model") << std::endl;
     if( sep_children.empty() ){
       TypeEnumerator te_domain( it->first );
       TypeEnumerator te_range( d_loc_to_data_type[it->first] );
-      m_heap = NodeManager::currentNM()->mkNode( kind::SEP_EMP, *te_domain, *te_range );
+      TypeNode boolType = nm->booleanType();
+      m_heap = nm->mkNullaryOperator(boolType, kind::SEP_EMP);
     }else if( sep_children.size()==1 ){
       m_heap = sep_children[0];
     }else{
-      m_heap = NodeManager::currentNM()->mkNode( kind::SEP_STAR, sep_children );
+      m_heap = nm->mkNode(kind::SEP_STAR, sep_children);
     }
     m->setHeapModel( m_heap, m_neq );
   }
@@ -317,7 +325,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     Trace("sep-lemma-debug")
         << "Reducing unlabelled assertion " << atom << std::endl;
     // introduce top-level label, add iff
-    TypeNode refType = getReferenceType(satom);
+    TypeNode refType = getReferenceType();
     Trace("sep-lemma-debug")
         << "...reference type is : " << refType << std::endl;
     Node b_lbl = getBaseLabel(refType);
@@ -350,7 +358,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     {
       std::vector<Node> children;
       std::vector<Node> c_lems;
-      TypeNode tn = getReferenceType(satom);
+      TypeNode tn = getReferenceType();
       if (d_reference_bound_max.find(tn) != d_reference_bound_max.end())
       {
         c_lems.push_back(nm->mkNode(SUBSET, slbl, d_reference_bound_max[tn]));
@@ -433,8 +441,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       }
       else
       {
-        Node kl = sm->mkDummySkolem("loc", getReferenceType(satom));
-        Node kd = sm->mkDummySkolem("data", getDataType(satom));
+        Node kl = sm->mkDummySkolem("loc", getReferenceType());
+        Node kd = sm->mkDummySkolem("data", getDataType());
         Node econc = nm->mkNode(
             SEP_LABEL,
             nm->mkNode(SEP_STAR, nm->mkNode(SEP_PTO, kl, kd), d_true),
@@ -718,7 +726,7 @@ void TheorySep::postCheck(Effort level)
         continue;
       }
       needAddLemma = true;
-      TypeNode tn = getReferenceType(satom);
+      TypeNode tn = getReferenceType();
       tn = nm->mkSetType(tn);
       // tn = nm->mkSetType(nm->mkRefType(tn));
       Node o_b_lbl_mval = d_label_model[slbl].getValue(tn);
@@ -818,7 +826,7 @@ void TheorySep::postCheck(Effort level)
   {
     TypeNode data_type = d_loc_to_data_type[it->first];
     // if the data type is finite
-    if (!d_state.isFiniteType(data_type))
+    if (!d_env.isFiniteType(data_type))
     {
       continue;
     }
@@ -933,12 +941,14 @@ TheorySep::HeapAssertInfo * TheorySep::getOrMakeEqcInfo( Node n, bool doMake ) {
 }
 
 //for now, assume all constraints are for the same heap type (ensured by logic exceptions thrown in computeReferenceType2)
-TypeNode TheorySep::getReferenceType( Node n ) {
+TypeNode TheorySep::getReferenceType() const
+{
   Assert(!d_type_ref.isNull());
   return d_type_ref;
 }
 
-TypeNode TheorySep::getDataType( Node n ) {
+TypeNode TheorySep::getDataType() const
+{
   Assert(!d_type_data.isNull());
   return d_type_data;
 }
@@ -980,7 +990,7 @@ int TheorySep::processAssertion(
   if( it==visited[index].end() ){
     Trace("sep-pp-debug") << "process assertion : " << n << ", index = " << index << std::endl;
     if( n.getKind()==kind::SEP_EMP ){
-      registerRefDataTypesAtom(n);
+      ensureHeapTypesFor(n);
       if( hasPol && pol ){
         references[index][n].clear();
         references_strict[index][n] = true;
@@ -988,7 +998,7 @@ int TheorySep::processAssertion(
         card = 1;
       }
     }else if( n.getKind()==kind::SEP_PTO ){
-      registerRefDataTypesAtom(n);
+      ensureHeapTypesFor(n);
       if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
         TypeNode tn1 = n[0].getType();
         if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
@@ -1065,7 +1075,7 @@ int TheorySep::processAssertion(
   }
 
   if( !underSpatial && ( !references[index][n].empty() || card>0 ) ){
-    TypeNode tn = getReferenceType( n );
+    TypeNode tn = getReferenceType();
     Assert(!tn.isNull());
     // add references to overall type
     unsigned bt = d_bound_kind[tn];
@@ -1098,46 +1108,33 @@ int TheorySep::processAssertion(
   return card;
 }
 
-void TheorySep::registerRefDataTypesAtom(Node atom)
+void TheorySep::ensureHeapTypesFor(Node atom) const
 {
-  TypeNode tn1;
-  TypeNode tn2;
-  Kind k = atom.getKind();
-  if (k == SEP_PTO || k == SEP_EMP)
+  Assert(!atom.isNull());
+  if (!d_type_ref.isNull() && !d_type_data.isNull())
   {
-    tn1 = atom[0].getType();
-    tn2 = atom[1].getType();
+    if (atom.getKind() == SEP_PTO)
+    {
+      TypeNode tn1 = atom[0].getType();
+      TypeNode tn2 = atom[1].getType();
+      // already declared, ensure compatible
+      if ((!tn1.isNull() && !tn1.isComparableTo(d_type_ref))
+          || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
+      {
+        std::stringstream ss;
+        ss << "ERROR: the separation logic heap type has already been set to "
+           << d_type_ref << " -> " << d_type_data
+           << " but we have a constraint that uses different heap types, "
+              "offending atom is "
+           << atom << " with associated heap type " << tn1 << " -> " << tn2
+           << std::endl;
+      }
+    }
   }
   else
   {
-    Assert(k == SEP_STAR || k == SEP_WAND);
-  }
-  registerRefDataTypes(tn1, tn2, atom);
-}
-
-void TheorySep::registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom)
-{
-  if (!d_type_ref.isNull())
-  {
-    Assert(!atom.isNull());
-    // already declared, ensure compatible
-    if ((!tn1.isNull() && !tn1.isComparableTo(d_type_ref))
-        || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
-    {
-      std::stringstream ss;
-      ss << "ERROR: the separation logic heap type has already been set to "
-         << d_type_ref << " -> " << d_type_data
-         << " but we have a constraint that uses different heap types, "
-            "offending atom is "
-         << atom << " with associated heap type " << tn1 << " -> " << tn2
-         << std::endl;
-    }
-    return;
-  }
-  // if not declared yet, and we have a separation logic constraint, throw
-  // an error.
-  if (!atom.isNull())
-  {
+    // if not declared yet, and we have a separation logic constraint, throw
+    // an error.
     std::stringstream ss;
     // error, heap not declared
     ss << "ERROR: the type of the separation logic heap has not been declared "
@@ -1146,14 +1143,6 @@ void TheorySep::registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom)
        << atom << std::endl;
     throw LogicException(ss.str());
   }
-  // otherwise set it
-  Trace("sep-type") << "Sep: assume location type " << tn1
-                    << " is associated with data type " << tn2 << std::endl;
-  d_loc_to_data_type[tn1] = tn2;
-  // for now, we only allow heap constraints of one type
-  d_type_ref = tn1;
-  d_type_data = tn2;
-  d_bound_kind[tn1] = bound_default;
 }
 
 void TheorySep::initializeBounds() {
@@ -1314,7 +1303,7 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
   if( it==d_label_map[atom][lbl].end() ){
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
-    TypeNode refType = getReferenceType( atom );
+    TypeNode refType = getReferenceType();
     std::stringstream ss;
     ss << "__Lc" << child;
     TypeNode ltn = NodeManager::currentNM()->mkSetType(refType);
