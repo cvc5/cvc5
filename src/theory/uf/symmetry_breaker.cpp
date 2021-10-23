@@ -79,12 +79,11 @@ bool SymmetryBreaker::Template::matchRecursive(TNode t, TNode n) {
   }
 
   if(t.getNumChildren() == 0) {
-    if(t.isConst()) {
-      Assert(n.isConst());
-      Debug("ufsymm:match") << "UFSYMM we have constants, failing match" << endl;
+    if (!t.isVar())
+    {
+      Debug("ufsymm:match") << "UFSYMM non-variables, failing match" << endl;
       return false;
     }
-    Assert(t.isVar() && n.isVar());
     t = find(t);
     n = find(n);
     Debug("ufsymm:match") << "UFSYMM variable match " << t << " , " << n << endl;
