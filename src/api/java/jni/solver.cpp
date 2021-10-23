@@ -1039,6 +1039,22 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkEmptyBag(
 
 /*
  * Class:     io_github_cvc5_api_Solver
+ * Method:    mkSepEmp
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkSepEmp(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Term* retPointer = new Term(solver->mkSepEmp());
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Solver
  * Method:    mkSepNil
  * Signature: (JJ)J
  */

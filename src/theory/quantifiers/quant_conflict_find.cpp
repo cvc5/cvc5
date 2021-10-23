@@ -52,12 +52,6 @@ QuantInfo::~QuantInfo() {
   d_var_mg.clear();
 }
 
-QuantifiersInferenceManager& QuantInfo::getInferenceManager()
-{
-  Assert(d_parent != nullptr);
-  return d_parent->getInferenceManager();
-}
-
 void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
   d_parent = p;
   d_q = q;
@@ -578,29 +572,32 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
   if( options::qcfEagerTest() ){
     //check whether the instantiation evaluates as expected
     EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
+    std::map<TNode, TNode> subs;
+    for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
+    {
+      Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
+      subs[d_q[0][i]] = terms[i];
+    }
+    for (size_t i = 0, evsize = d_extra_var.size(); i < evsize; i++)
+    {
+      Node n = getCurrentExpValue(d_extra_var[i]);
+      Trace("qcf-instance-check")
+          << "  " << d_extra_var[i] << " -> " << n << std::endl;
+      subs[d_extra_var[i]] = n;
+    }
     if (p->atConflictEffort()) {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
-      std::map< TNode, TNode > subs;
-      for( unsigned i=0; i<terms.size(); i++ ){
-        Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
-        subs[d_q[0][i]] = terms[i];
-      }
-      for( unsigned i=0; i<d_extra_var.size(); i++ ){
-        Node n = getCurrentExpValue( d_extra_var[i] );
-        Trace("qcf-instance-check") << "  " << d_extra_var[i] << " -> " << n << std::endl;
-        subs[d_extra_var[i]] = n;
-      }
       if (!echeck->isEntailed(d_q[1], subs, false, false))
       {
         Trace("qcf-instance-check") << "...not entailed to be false." << std::endl;
         return true;
       }
     }else{
-      Node inst =
-          getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
-      inst = Rewriter::rewrite(inst);
-      Node inst_eval =
-          echeck->evaluateTerm(inst, options::qcfTConstraint(), true);
+      // see if the body of the quantified formula evaluates to a Boolean
+      // combination of known terms under the current substitution. We use
+      // the helper method evaluateTerm from the entailment check utility.
+      Node inst_eval = echeck->evaluateTerm(
+          d_q[1], subs, false, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
@@ -608,6 +605,10 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
         }
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
       }
+      // If it is the case that instantiation can be rewritten to a Boolean
+      // combination of terms that exist in the current context, then inst_eval
+      // is non-null. Moreover, we insist that inst_eval is not true, or else
+      // the instantiation is trivially entailed and hence is spurious.
       if (inst_eval.isNull()
           || (inst_eval.isConst() && inst_eval.getConst<bool>()))
       {
@@ -994,8 +995,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
     Assert(qi->d_var_num.find(n) != qi->d_var_num.end());
     // rare case where we have a free variable in an operator, we are invalid
     if (n.getKind() == ITE
-        || (options::ufHo() && n.getKind() == APPLY_UF
-            && expr::hasFreeVar(n.getOperator())))
+        || (n.getKind() == APPLY_UF && expr::hasFreeVar(n.getOperator())))
     {
       d_type = typ_invalid;
     }else{

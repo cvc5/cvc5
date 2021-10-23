@@ -14,6 +14,7 @@
  */
 
 package tests;
+
 import static io.github.cvc5.api.Kind.*;
 import static io.github.cvc5.api.RoundingMode.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -621,6 +622,11 @@ class SolverTest
     Sort strSort = d_solver.getStringSort();
     Term s = d_solver.mkConst(strSort, "s");
     assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
+  }
+
+  @Test void mkSepEmp()
+  {
+    assertDoesNotThrow(() -> d_solver.mkSepEmp());
   }
 
   @Test void mkSepNil()
@@ -1361,9 +1367,7 @@ class SolverTest
       assertions.add(() -> assertEquals("verbose", info.getName()));
       assertions.add(
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
-      assertions.add(()
-                         -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo
-                             && info.getBaseInfo() == OptionInfo.VoidInfo.VOID_INFO));
+      assertions.add(() -> assertTrue(info.getBaseInfo() instanceof OptionInfo.VoidInfo));
     }
     {
       // int64 type with default

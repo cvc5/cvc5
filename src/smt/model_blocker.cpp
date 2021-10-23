@@ -25,6 +25,8 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
+ModelBlocker::ModelBlocker(Env& e) : EnvObj(e) {}
+
 Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    theory::TheoryModel* m,
                                    options::BlockModelsMode mode,

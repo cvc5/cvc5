@@ -61,6 +61,14 @@ TEST_F(TestApiBlackSort, operators_comparison)
   ASSERT_NO_THROW(d_solver.getIntegerSort() >= Sort());
 }
 
+TEST_F(TestApiBlackSort, isNull)
+{
+  Sort x;
+  ASSERT_TRUE(x.isNull());
+  x = d_solver.getBooleanSort();
+  ASSERT_FALSE(x.isNull());
+}
+
 TEST_F(TestApiBlackSort, isBoolean)
 {
   ASSERT_TRUE(d_solver.getBooleanSort().isBoolean());
@@ -470,28 +478,28 @@ TEST_F(TestApiBlackSort, getUninterpretedSortConstructorArity)
   ASSERT_THROW(bvSort.getSortConstructorArity(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSort, getBVSize)
+TEST_F(TestApiBlackSort, getBitVectorSize)
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
-  ASSERT_NO_THROW(bvSort.getBVSize());
+  ASSERT_NO_THROW(bvSort.getBitVectorSize());
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  ASSERT_THROW(setSort.getBVSize(), CVC5ApiException);
+  ASSERT_THROW(setSort.getBitVectorSize(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSort, getFPExponentSize)
+TEST_F(TestApiBlackSort, getFloatingPointExponentSize)
 {
   Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-  ASSERT_NO_THROW(fpSort.getFPExponentSize());
+  ASSERT_NO_THROW(fpSort.getFloatingPointExponentSize());
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  ASSERT_THROW(setSort.getFPExponentSize(), CVC5ApiException);
+  ASSERT_THROW(setSort.getFloatingPointExponentSize(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSort, getFPSignificandSize)
+TEST_F(TestApiBlackSort, getFloatingPointSignificandSize)
 {
   Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-  ASSERT_NO_THROW(fpSort.getFPSignificandSize());
+  ASSERT_NO_THROW(fpSort.getFloatingPointSignificandSize());
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-  ASSERT_THROW(setSort.getFPSignificandSize(), CVC5ApiException);
+  ASSERT_THROW(setSort.getFloatingPointSignificandSize(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, getDatatypeParamSorts)

@@ -458,28 +458,28 @@ class SortTest
     assertThrows(CVC5ApiException.class, () -> bvSort.getSortConstructorArity());
   }
 
-  @Test void getBVSize() throws CVC5ApiException
+  @Test void getBitVectorSize() throws CVC5ApiException
   {
     Sort bvSort = d_solver.mkBitVectorSort(32);
-    assertDoesNotThrow(() -> bvSort.getBVSize());
+    assertDoesNotThrow(() -> bvSort.getBitVectorSize());
     Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-    assertThrows(CVC5ApiException.class, () -> setSort.getBVSize());
+    assertThrows(CVC5ApiException.class, () -> setSort.getBitVectorSize());
   }
 
-  @Test void getFPExponentSize() throws CVC5ApiException
+  @Test void getFloatingPointExponentSize() throws CVC5ApiException
   {
     Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-    assertDoesNotThrow(() -> fpSort.getFPExponentSize());
+    assertDoesNotThrow(() -> fpSort.getFloatingPointExponentSize());
     Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-    assertThrows(CVC5ApiException.class, () -> setSort.getFPExponentSize());
+    assertThrows(CVC5ApiException.class, () -> setSort.getFloatingPointExponentSize());
   }
 
-  @Test void getFPSignificandSize() throws CVC5ApiException
+  @Test void getFloatingPointSignificandSize() throws CVC5ApiException
   {
     Sort fpSort = d_solver.mkFloatingPointSort(4, 8);
-    assertDoesNotThrow(() -> fpSort.getFPSignificandSize());
+    assertDoesNotThrow(() -> fpSort.getFloatingPointSignificandSize());
     Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
-    assertThrows(CVC5ApiException.class, () -> setSort.getFPSignificandSize());
+    assertThrows(CVC5ApiException.class, () -> setSort.getFloatingPointSignificandSize());
   }
 
   @Test void getDatatypeParamSorts() throws CVC5ApiException

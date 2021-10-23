@@ -950,44 +950,47 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getSortConstructorArity(
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    getBVSize
+ * Method:    getBitVectorSize
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getBVSize(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer)
+JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getBitVectorSize(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jint>(current->getBVSize());
+  return static_cast<jint>(current->getBitVectorSize());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    getFPExponentSize
+ * Method:    getFloatingPointExponentSize
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getFPExponentSize(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jint JNICALL
+Java_io_github_cvc5_api_Sort_getFloatingPointExponentSize(JNIEnv* env,
+                                                          jobject,
+                                                          jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jint>(current->getFPExponentSize());
+  return static_cast<jint>(current->getFloatingPointExponentSize());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Sort
- * Method:    getFPSignificandSize
+ * Method:    getFloatingPointSignificandSize
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Sort_getFPSignificandSize(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jint JNICALL
+Java_io_github_cvc5_api_Sort_getFloatingPointSignificandSize(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jint>(current->getFPSignificandSize());
+  return static_cast<jint>(current->getFloatingPointSignificandSize());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
