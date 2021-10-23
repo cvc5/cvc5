@@ -933,12 +933,12 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Contradiction
-    // See proof_rule.h for documentation on the CONTRADICTION rule. This
+    // See proof_rule.h for documentation on the CONTRA rule. This
     // comment uses variable names as introduced there.
     //
     //  P1   P2
     // --------- RESOLUTION
-    //  (cl)*
+    //   (cl)*
     //
     // * the corresponding proof node is false
     case PfRule::CONTRA:
