@@ -35,7 +35,7 @@ DEFAULT_PREFIX = 'Kind'
 # Code Blocks
 
 KINDS_JAVA_TOP = \
-    r"""package cvc5;
+    r"""package io.github.cvc5.api;
 
 import java.util.HashMap;
 import java.util.Map;

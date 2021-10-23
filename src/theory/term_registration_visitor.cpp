@@ -92,7 +92,6 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
        || parent.getKind() == kind::SEP_STAR
        || parent.getKind() == kind::SEP_WAND
        || (parent.getKind() == kind::SEP_LABEL && current.getType().isBoolean())
-       // parent.getKind() == kind::CARDINALITY_CONSTRAINT
        )
       && current != parent)
   {
@@ -193,25 +192,19 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
         << "): adding " << id << std::endl;
     // This should never throw an exception, since theories should be
     // guaranteed to be initialized.
-    // These checks don't work with finite model finding, because it
-    // uses Rational constants to represent cardinality constraints,
-    // even though arithmetic isn't actually involved.
-    if (!options::finiteModelFind())
+    if (!te->isTheoryEnabled(id))
     {
-      if (!te->isTheoryEnabled(id))
-      {
-        const LogicInfo& l = te->getLogicInfo();
-        LogicInfo newLogicInfo = l.getUnlockedCopy();
-        newLogicInfo.enableTheory(id);
-        newLogicInfo.lock();
-        std::stringstream ss;
-        ss << "The logic was specified as " << l.getLogicString()
-           << ", which doesn't include " << id
-           << ", but found a term in that theory." << std::endl
-           << "You might want to extend your logic to "
-           << newLogicInfo.getLogicString() << std::endl;
-        throw LogicException(ss.str());
-      }
+      const LogicInfo& l = te->getLogicInfo();
+      LogicInfo newLogicInfo = l.getUnlockedCopy();
+      newLogicInfo.enableTheory(id);
+      newLogicInfo.lock();
+      std::stringstream ss;
+      ss << "The logic was specified as " << l.getLogicString()
+         << ", which doesn't include " << id
+         << ", but found a term in that theory." << std::endl
+         << "You might want to extend your logic to "
+         << newLogicInfo.getLogicString() << std::endl;
+      throw LogicException(ss.str());
     }
   }
   // call the theory's preRegisterTerm method
@@ -249,7 +242,6 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
        || parent.getKind() == kind::SEP_STAR
        || parent.getKind() == kind::SEP_WAND
        || (parent.getKind() == kind::SEP_LABEL && current.getType().isBoolean())
-       // parent.getKind() == kind::CARDINALITY_CONSTRAINT
        )
       && current != parent)
   {
