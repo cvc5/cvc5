@@ -176,12 +176,15 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter;
     dotPrinter.print(out, fp.get());
   }
-  else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
+  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE
+           || options::proofFormatMode()
+                  == options::ProofFormatMode::ALETHE_EXTENDED)
   {
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
-    proof::AletheProofPrinter vpp(true);
+    proof::AletheProofPrinter vpp(options::proofFormatMode()
+                                  == options::ProofFormatMode::ALETHE_EXTENDED);
     vpp.alethePrinter(out, fp);
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
