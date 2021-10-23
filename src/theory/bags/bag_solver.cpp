@@ -31,8 +31,16 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-BagSolver::BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr)
-    : d_state(s), d_ig(&s, &im), d_im(im), d_termReg(tr)
+BagSolver::BagSolver(Env& env,
+                     SolverState& s,
+                     InferenceManager& im,
+                     TermRegistry& tr)
+    : EnvObj(env),
+      d_state(s),
+      d_ig(&s, &im),
+      d_im(im),
+      d_termReg(tr),
+      d_mapCache(userContext())
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -218,9 +226,7 @@ void BagSolver::checkMap(Node n)
   const set<Node>& upwards = d_state.getElements(n[1]);
   for (const Node& y : downwards)
   {
-    if (d_mapCache.count(n)
-        && std::find(d_mapCache[n].begin(), d_mapCache[n].end(), y)
-               != d_mapCache[n].end())
+    if (d_mapCache.count(n) && d_mapCache[n].get()->contains(y))
     {
       continue;
     }
@@ -233,9 +239,11 @@ void BagSolver::checkMap(Node n)
     }
     if (!d_mapCache.count(n))
     {
-      d_mapCache[n] = std::vector<Node>();
+      std::shared_ptr<context::CDHashSet<Node> > set =
+          std::make_shared<context::CDHashSet<Node> >(userContext());
+      d_mapCache.insert(n, set);
     }
-    d_mapCache[n].push_back(y);
+    d_mapCache[n].get()->insert(y);
   }
 }
 

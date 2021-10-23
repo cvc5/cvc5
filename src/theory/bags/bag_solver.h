@@ -13,7 +13,10 @@
  * Solver for the theory of bags.
  */
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "cvc5_private.h"
+#include "smt/env_obj.h"
 
 #ifndef CVC5__THEORY__BAG__SOLVER_H
 #define CVC5__THEORY__BAG__SOLVER_H
@@ -31,10 +34,10 @@ class TermRegistry;
 /** The solver for the theory of bags
  *
  */
-class BagSolver
+class BagSolver : protected EnvObj
 {
  public:
-  BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr);
+  BagSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BagSolver();
 
   void postCheck();
@@ -88,7 +91,9 @@ class BagSolver
   /** a cache that stores bags of kind BAG_MAP and those element representatives
    * which we generated their inferences.
    */
-  std::map<Node, std::vector<Node> > d_mapCache;
+  using BagElementsMap =
+      context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node> > >;
+  BagElementsMap d_mapCache;
 
   /** Commonly used constants */
   Node d_true;
