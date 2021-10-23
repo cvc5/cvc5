@@ -2024,7 +2024,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       Trace("alethe-proof")
           << "... rule not translated yet " << id << " / " << res << " "
           << children << " " << args << std::endl;
-      std::cout << id << std::endl;
+      std::cout << "UNTRANSLATED rule: " << id << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
