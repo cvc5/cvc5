@@ -87,10 +87,10 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
  * variable used to range over the distinct elements in a bag, used
  * for axiomatizing the behavior of some term.
  */
-struct IndexVarAttributeId
+struct FirstIndexVarAttributeId
 {
 };
-typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
+typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
 
 /**
  * A bound variable corresponding to the universally quantified integer
@@ -343,7 +343,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
   //               )))))
 
   BoundVarManager* bvm = d_nm->getBoundVarManager();
-  Node i = bvm->mkBoundVar<IndexVarAttribute>(n, "i", d_nm->integerType());
+  Node i = bvm->mkBoundVar<FirstIndexVarAttribute>(n, "i", d_nm->integerType());
   Node j =
       bvm->mkBoundVar<SecondIndexVarAttribute>(n, "j", d_nm->integerType());
   Node iList = d_nm->mkNode(kind::BOUND_VAR_LIST, i);
