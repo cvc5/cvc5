@@ -286,7 +286,8 @@ void TheoryUF::preRegisterTerm(TNode node)
       if (logicInfo().isHigherOrder() && k==kind::APPLY_UF)
       {
         Node ret = TheoryUfRewriter::getHoApplyForApplyUf(node);
-        preRegisterTerm(ret);
+        d_equalityEngine->addTerm(ret);
+        d_functionsTerms.push_back(ret);
       }
     }
     break;
