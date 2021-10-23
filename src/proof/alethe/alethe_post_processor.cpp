@@ -919,7 +919,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ------------------------------------------------------------- RESOLUTION
     //                            (cl F)*
     //
-    // * the corresponding proof node is F2
+    // * the corresponding proof node is F
     case PfRule::NOT_NOT_ELIM:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
