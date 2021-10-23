@@ -69,10 +69,7 @@ class Skolemize : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  Skolemize(Env& env,
-            QuantifiersState& qs,
-            TermRegistry& tr,
-            ProofNodeManager* pnm);
+  Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust
@@ -152,8 +149,6 @@ class Skolemize : protected EnvObj
   std::unordered_map<Node, std::vector<Node>> d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
   std::unordered_map<Node, Node> d_skolem_body;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** Eager proof generator for skolemization lemmas */
   std::unique_ptr<EagerProofGenerator> d_epg;
 };
