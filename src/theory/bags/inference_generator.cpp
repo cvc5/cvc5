@@ -307,12 +307,13 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
   // declare an uninterpreted function uf: Int -> T
   TypeNode domainType = f.getType().getArgTypes()[0];
   TypeNode ufType = d_nm->mkFunctionType(d_nm->integerType(), domainType);
-  Node uf = d_sm->mkDummySkolem("uf", ufType);
+  Node uf =
+      d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_PREIMAGE, ufType, {n, e});
 
   // declare uninterpreted function sum: Int -> Int
   TypeNode sumType =
       d_nm->mkFunctionType(d_nm->integerType(), d_nm->integerType());
-  Node sum = d_sm->mkDummySkolem("sum", sumType);
+  Node sum = d_sm->mkSkolemFunction(SkolemFunId::BAGS_MAP_SUM, sumType, {n, e});
 
   // (= (sum 0) 0)
   Node sum_zero = d_nm->mkNode(kind::APPLY_UF, sum, d_zero);
