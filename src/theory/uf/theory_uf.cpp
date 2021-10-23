@@ -282,6 +282,12 @@ void TheoryUF::preRegisterTerm(TNode node)
       }
       // Remember the function and predicate terms
       d_functionsTerms.push_back(node);
+      // also add the opposite if higher-order
+      if (logicInfo().isHigherOrder() && k==kind::APPLY_UF)
+      {
+        Node ret = TheoryUfRewriter::getHoApplyForApplyUf(node);
+        preRegisterTerm(ret);
+      }
     }
     break;
   case kind::CARDINALITY_CONSTRAINT:
