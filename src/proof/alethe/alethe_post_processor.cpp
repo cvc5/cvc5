@@ -793,7 +793,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // If F1 = (or G1 ... Gn), then P1 will be printed as (cl G1 ... Gn) but
     // needs to be printed as (cl (or G1 ... Gn)). The only exception to this
     // are ASSUME steps that are always printed as (cl (or G1 ... Gn)) and
-    // EQ_RESOLVE steps itself.
+    // EQ_RESOLVE steps themselves.
     //
     //           ------  ...  ------ OR_NEG
     //   P1       VP21   ...   VP2n
