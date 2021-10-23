@@ -69,6 +69,5 @@
   (str.in_re x (re.++ (re.* re.allchar) (str.to_re "test") (re.* re.allchar)))))
 
 (check-sat)
-(get-model)
 
 
