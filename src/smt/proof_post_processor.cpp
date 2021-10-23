@@ -42,7 +42,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
     : d_env(env),
       d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
-      d_wfpm(env.getProofNodeManager()),
+      d_wfpm(env),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -318,8 +318,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     size_t start = lastElim + 1;
     size_t end = nextGuardedElimPos - 1;
     Trace("smt-proof-pp-debug2")
-        << "res with:\n\tlastClause: " << lastClause << "\n\tstart: " << start
-        << "\n\tend: " << end << "\n";
+        << "res with:\n\t\tlastClause: " << lastClause
+        << "\n\t\tstart: " << start << "\n\t\tend: " << end << "\n";
     childrenRes.push_back(lastClause);
     // note that the interval of insert is exclusive in the end, so we add 1
     childrenRes.insert(childrenRes.end(),
@@ -328,8 +328,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     childrenResArgs.insert(childrenResArgs.end(),
                            args.begin() + (2 * start) - 1,
                            args.begin() + (2 * end) + 1);
-    Trace("smt-proof-pp-debug2") << "res children: " << childrenRes << "\n";
-    Trace("smt-proof-pp-debug2") << "res args: " << childrenResArgs << "\n";
+    Trace("smt-proof-pp-debug2") << "\tres children: " << childrenRes << "\n";
+    Trace("smt-proof-pp-debug2") << "\tres args: " << childrenResArgs << "\n";
     resPlaceHolder = d_pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
                                                      childrenRes,
                                                      childrenResArgs,
@@ -337,6 +337,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
                                                      "");
     Trace("smt-proof-pp-debug2")
         << "resPlaceHorder: " << resPlaceHolder << "\n";
+    Trace("smt-proof-pp-debug2") << "-------\n";
     cdp->addStep(
         resPlaceHolder, PfRule::CHAIN_RESOLUTION, childrenRes, childrenResArgs);
     // I need to add factoring if end < children.size(). Otherwise, this is
@@ -348,6 +349,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       if (!lastClause.isNull())
       {
         cdp->addStep(lastClause, PfRule::FACTORING, {resPlaceHolder}, {});
+        Trace("smt-proof-pp-debug2") << "Apply factoring.\n";
       }
       else
       {
@@ -654,7 +656,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // apply transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
 
-    cdp->addStep(args[0], PfRule::EQ_RESOLVE, {children[0], eq}, {});
+    cdp->addStep(eq[1], PfRule::EQ_RESOLVE, {children[0], eq}, {});
     return args[0];
   }
   else if (id == PfRule::MACRO_RESOLUTION
