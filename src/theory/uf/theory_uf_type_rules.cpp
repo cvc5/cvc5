@@ -18,6 +18,7 @@
 #include <climits>
 #include <sstream>
 
+#include "expr/cardinality_constraint.h"
 #include "util/rational.h"
 
 namespace cvc5 {
@@ -63,33 +64,19 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
   return fType.getRangeType();
 }
 
-TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
-                                                    TNode n,
-                                                    bool check)
+TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
+                                                      TNode n,
+                                                      bool check)
 {
   if (check)
   {
-    // don't care what it is, but it should be well-typed
-    n[0].getType(check);
-
-    TypeNode valType = n[1].getType(check);
-    if (valType != nodeManager->integerType())
+    const CardinalityConstraint& cc = n.getConst<CardinalityConstraint>();
+    if (!cc.getType().isSort())
     {
       throw TypeCheckingExceptionPrivate(
-          n, "cardinality constraint must be integer");
+          n, "cardinality constraint must apply to uninterpreted sort");
     }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "cardinality constraint must be a constant");
-    }
-    cvc5::Rational r(INT_MAX);
-    if (n[1].getConst<Rational>() > r)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "Exceeded INT_MAX in cardinality constraint");
-    }
-    if (n[1].getConst<Rational>().getNumerator().sgn() != 1)
+    if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(
           n, "cardinality constraint must be positive");
@@ -98,34 +85,32 @@ TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode CombinedCardinalityConstraintTypeRule::computeType(
+TypeNode CardinalityConstraintTypeRule::computeType(NodeManager* nodeManager,
+                                                    TNode n,
+                                                    bool check)
+{
+  return nodeManager->booleanType();
+}
+
+TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check)
 {
   if (check)
   {
-    TypeNode valType = n[0].getType(check);
-    if (valType != nodeManager->integerType())
+    const CombinedCardinalityConstraint& cc =
+        n.getConst<CombinedCardinalityConstraint>();
+    if (cc.getUpperBound().sgn() != 1)
     {
       throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be integer");
-    }
-    if (n[0].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be a constant");
-    }
-    cvc5::Rational r(INT_MAX);
-    if (n[0].getConst<Rational>() > r)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "Exceeded INT_MAX in combined cardinality constraint");
-    }
-    if (n[0].getConst<Rational>().getNumerator().sgn() == -1)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "combined cardinality constraint must be non-negative");
+          n, "combined cardinality constraint must be positive");
     }
   }
+  return nodeManager->booleanType();
+}
+
+TypeNode CombinedCardinalityConstraintTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check)
+{
   return nodeManager->booleanType();
 }
 
@@ -134,17 +119,6 @@ TypeNode PartialTypeRule::computeType(NodeManager* nodeManager,
                                       bool check)
 {
   return n.getOperator().getType().getRangeType();
-}
-
-TypeNode CardinalityValueTypeRule::computeType(NodeManager* nodeManager,
-                                               TNode n,
-                                               bool check)
-{
-  if (check)
-  {
-    n[0].getType(check);
-  }
-  return nodeManager->integerType();
 }
 
 TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,

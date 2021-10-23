@@ -224,7 +224,7 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
     {
       Trace("model-builder-debug") << "  ...matches with " << eqc << " -> "
                                    << eqc_m << std::endl;
-      if (eqc_m.getKind() == kind::UNINTERPRETED_CONSTANT)
+      if (eqc_m.getKind() == kind::CODATATYPE_BOUND_VARIABLE)
       {
         Trace("model-builder-debug") << "*** " << val
                                      << " is excluded datatype for " << eqc

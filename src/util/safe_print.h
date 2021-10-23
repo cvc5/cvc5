@@ -47,12 +47,17 @@
 
 namespace cvc5 {
 
+template <size_t N>
+void CVC5_EXPORT safe_print(int fd, const char (&msg)[N]);
+template <typename T>
+void CVC5_EXPORT safe_print(int fd, const T& obj);
+
 /**
  * Prints arrays of chars (e.g. string literals) of length N. Safe to use in a
  * signal handler.
  */
 template <size_t N>
-void CVC5_EXPORT safe_print(int fd, const char (&msg)[N])
+void safe_print(int fd, const char (&msg)[N])
 {
   ssize_t nb = N - 1;
   if (write(fd, msg, nb) != nb) {
@@ -96,7 +101,7 @@ auto toStringImpl(const T& obj, int) -> decltype(toString(obj))
  * @param obj The object to print
  */
 template <typename T>
-void CVC5_EXPORT safe_print(int fd, const T& obj)
+void safe_print(int fd, const T& obj)
 {
   const char* s =
       toStringImpl(obj, /* prefer the method that uses `toString()` */ 0);
