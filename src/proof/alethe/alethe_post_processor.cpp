@@ -851,7 +851,7 @@ bool AletheProofPostprocessCallback::update(Node res,
 
           std::vector<Node> vp2Nodes{children[0]};
           std::vector<Node> resNodes{d_cl};
-          for (size_t i = 0, size = children[0].size(); i < size; ++i)
+          for (size_t i = 0; i < children[0].end() - children[0].begin(); i++)
           {
             Node vp2i = nm->mkNode(
                 kind::SEXPR,
