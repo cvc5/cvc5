@@ -153,3 +153,14 @@ add_jar(cvc5jar
 set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5-shared)
+
+#create a jar file with linux dependencies
+set(LINUX_AMD64_DIR "linux-amd64")
+add_jar(apijar
+  SOURCES
+  ${JAVA_FILES}
+  RESOURCES NAMESPACE ${LINUX_AMD64_DIR} ${CVC5_JNI}
+  RESOURCES NAMESPACE ${LINUX_AMD64_DIR} ${CMAKE_CURRENT_BINARY_DIR}/../../libcvc5.so.1
+  VERSION ${CVC5_VERSION}
+  OUTPUT_NAME api
+)
