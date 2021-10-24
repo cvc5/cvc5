@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env_obj.h"
