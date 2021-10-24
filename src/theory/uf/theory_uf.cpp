@@ -627,6 +627,8 @@ void TheoryUF::computeCareGraph() {
   // function type for the latter.
   Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
                        << std::endl;
+  // temporary keep set for higher-order indexing below
+  std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
   std::map<TypeNode, TNodeTrie> hoIndex;
   std::map<Node, size_t> arity;
@@ -665,6 +667,7 @@ void TheoryUF::computeCareGraph() {
             Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
             hoIndex[curr.getType()].addTerm(happ, {curr, c});
             curr = happ;
+            keep.push_back(happ);
           }
         }
       }
