@@ -93,6 +93,7 @@ void ProcessAssertions::spendResource(Resource r)
 
 bool ProcessAssertions::apply(Assertions& as)
 {
+  as.refresh();
   AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
