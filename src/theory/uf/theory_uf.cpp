@@ -548,7 +548,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
     if( t2!=NULL ){
       Node f1 = t1->getData();
       Node f2 = t2->getData();
-      if (!d_equalityEngine->areEqual(f1, f2))
+      if (!d_state.areEqual(f1, f2))
       {
         Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
@@ -560,7 +560,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
           Assert(d_equalityEngine->hasTerm(y));
           Assert(!d_equalityEngine->areDisequal(x, y, false));
           Assert(!areCareDisequal(x, y));
-          if (!d_equalityEngine->areEqual(x, y))
+          if (!d_state.areEqual(x, y))
           {
             if (d_equalityEngine->isTriggerTerm(x, THEORY_UF)
                 && d_equalityEngine->isTriggerTerm(y, THEORY_UF))
@@ -596,7 +596,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
         std::map<TNode, TNodeTrie>::const_iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
-          if (!d_equalityEngine->areDisequal(it->first, it2->first, false))
+          if (!d_state.areDisequal(it->first, it2->first))
           {
             if( !areCareDisequal(it->first, it2->first) ){
               addCarePairs( &it->second, &it2->second, arity, depth+1 );
@@ -610,7 +610,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
       {
         for (const std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
         {
-          if (!d_equalityEngine->areDisequal(tt1.first, tt2.first, false))
+          if (!d_state.areDisequal(tt1.first, tt2.first))
           {
             if (!areCareDisequal(tt1.first, tt2.first))
             {
