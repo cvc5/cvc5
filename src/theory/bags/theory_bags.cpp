@@ -208,7 +208,6 @@ void TheoryBags::preRegisterTerm(TNode n)
   Trace("bags::TheoryBags::preRegisterTerm") << n << std::endl;
   switch (n.getKind())
   {
-    case BAG_CARD:
     case BAG_FROM_SET:
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
