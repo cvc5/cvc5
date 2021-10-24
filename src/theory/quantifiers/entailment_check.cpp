@@ -60,7 +60,6 @@ Node EntailmentCheck::evaluateTerm2(TNode n,
     {
       if (!subsRep)
       {
-        Assert(d_qstate.hasTerm(it->second));
         ret = d_qstate.getRepresentative(it->second);
       }
       else
