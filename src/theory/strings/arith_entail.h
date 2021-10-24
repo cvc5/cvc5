@@ -134,7 +134,7 @@ class ArithEntail
    *   check( a, strict ) = true.
    */
   Node getConstantBound(Node a, bool isLower = true);
-  
+
   /**
    * get constant bound on the length of s.
    */

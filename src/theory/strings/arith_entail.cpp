@@ -758,7 +758,7 @@ Node ArithEntail::getConstantBoundCache(Node n, bool isLower)
   }
   return Node::null();
 }
-  
+
 Node ArithEntail::getConstantBound(Node a, bool isLower)
 {
   Assert(d_rr->rewrite(a) == a);
@@ -850,18 +850,18 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
 
 Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
 {
-  Assert (s.getType().isStringLike());
+  Assert(s.getType().isStringLike());
   Node ret = getConstantBoundCache(s, isLower);
   if (!ret.isNull())
   {
     return ret;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if (s.isConst())
   {
     ret = nm->mkConst(Rational(Word::getLength(s)));
   }
-  else if (s.getKind()==STRING_CONCAT)
+  else if (s.getKind() == STRING_CONCAT)
   {
     Rational sum(0);
     bool success = true;
@@ -878,7 +878,7 @@ Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
         success = false;
         break;
       }
-      Assert (b.getKind()==CONST_RATIONAL);
+      Assert(b.getKind() == CONST_RATIONAL);
       sum = sum + b.getConst<Rational>();
     }
     if (success)
