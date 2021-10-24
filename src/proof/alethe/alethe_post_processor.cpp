@@ -1524,7 +1524,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ^ the corresponding proof node is F*sigma
     case PfRule::INSTANTIATE:
     {
-      for (size_t i = 0, size = args.size(); i < size - 1; i++)
+      for (size_t i = 0, size = children[0][0].end() - children[0][0].begin(); i < size - 1; i++)
       {
         new_args.push_back(nm->mkNode(kind::EQUAL, args[i], children[0][0][i]));
       }
