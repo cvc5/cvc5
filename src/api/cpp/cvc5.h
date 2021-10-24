@@ -486,7 +486,7 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this an uninterpreted sort?
-   * @return true if this is an uninterpreted sor
+   * @return true if this is an uninterpreted sort
    */
   bool isUninterpretedSort() const;
 
@@ -554,8 +554,6 @@ class CVC5_EXPORT Sort
    * @param sort the subsort to be substituted within this sort.
    * @param replacement the sort replacing the substituted subsort.
    */
-  // TODO ask Haniel to add tests in cpp. I will add in python.
-  // TODO ask Haniel to add docum,entation for the return value.
   Sort substitute(const Sort& sort, const Sort& replacement) const;
 
   /**
