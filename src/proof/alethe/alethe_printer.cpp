@@ -98,8 +98,8 @@ std::string AletheProofPrinter::alethePrinterInternal(
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << vrule << " "
         << " / " << pfn->getArguments() << std::endl;
-    out << "(anchor :step " << prefix << "t" << step_id << " :args (";
-    for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
+    out << "(anchor :step " << prefix << "t" << step_id;  // << " :args (";
+    /*for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
          j++)
     {
       if (vrule == AletheRule::ANCHOR_SUBPROOF)
@@ -115,8 +115,8 @@ std::string AletheProofPrinter::alethePrinterInternal(
       {
         out << " ";
       }
-    }
-    out << "))\n";
+    }*/
+    out << ")\n";
 
     // Append index of anchor to prefix so that all steps in the subproof use it
     prefix.append("t" + std::to_string(step_id) + ".");
