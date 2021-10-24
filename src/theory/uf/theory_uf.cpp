@@ -282,16 +282,6 @@ void TheoryUF::preRegisterTerm(TNode node)
       }
       // Remember the function and predicate terms
       d_functionsTerms.push_back(node);
-      /*
-      // also add the opposite if higher-order
-      if (logicInfo().isHigherOrder() && k==kind::APPLY_UF)
-      {
-        Node ret = TheoryUfRewriter::getHoApplyForApplyUf(node);
-        //ret = Rewriter::rewrite(ret);
-        d_equalityEngine->addTerm(ret);
-        d_functionsTerms.push_back(ret);
-      }
-      */
     }
     break;
   case kind::CARDINALITY_CONSTRAINT:
@@ -544,6 +534,9 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
                             unsigned arity,
                             unsigned depth)
 {
+  // Note we use d_state instead of d_equalityEngine in this method in several
+  // places to be robust to cases where the tries have terms that do not
+  // exist in the equality engine, which can be the case if higher order.
   if( depth==arity ){
     if( t2!=NULL ){
       Node f1 = t1->getData();
@@ -656,9 +649,16 @@ void TheoryUF::computeCareGraph() {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
         arity[op] = reps.size();
-        if (logicInfo().isHigherOrder())
+        if (logicInfo().isHigherOrder() && d_equalityEngine->hasTerm(op))
         {
-          // must add all temporary chains to the HO index
+          // Since we use a lazy app-completion scheme for equating fully
+          // and partially applied versions of terms, we must add all
+          // sub-chains to the HO index if the operator of this term occurs
+          // in a higher-order context in the equality engine.  In other words,
+          // for (f a b c), this will add the terms:
+          // (HO_APPLY f a), (HO_APPLY (HO_APPLY f a) b),
+          // (HO_APPLY (HO_APPLY (HO_APPLY f a) b) c) to the higher-order
+          // term index for consideration when computing care pairs.
           Node curr = op;
           for (const Node& c : app)
           {
