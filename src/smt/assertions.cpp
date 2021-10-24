@@ -54,9 +54,9 @@ void Assertions::refresh()
 {
   if (d_globalDefineFunLemmas != nullptr)
   {
-    // Global definitions are asserted at check-sat-time because we have to
-    // make sure that they are always present (they are essentially level
-    // zero assertions)
+    // Global definitions are asserted now to ensure they always exist. This is
+    // done at the beginning of preprocessing, to ensure that definitions take
+    // priority over, e.g. solving during preprocessing. See issue #7479.
     size_t numGlobalDefs = d_globalDefineFunLemmas->size();
     for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
     {
