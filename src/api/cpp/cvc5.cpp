@@ -7242,7 +7242,14 @@ std::string Solver::getProof(void) const
 Term Solver::getValue(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
+      << "Cannot get value unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
+      << "Cannot get value unless after a SAT or unknown response.";
   CVC5_API_SOLVER_CHECK_TERM(term);
+  CVC5_API_RECOVERABLE_CHECK(term.getSort().isFirstClass())
+      << "Cannot get value of a term that is not first class.";
   //////// all checks before this line
   return getValueHelper(term);
   ////////
@@ -7257,6 +7264,11 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
       << "Cannot get value unless after a SAT or unknown response.";
+  for (const Term& t : terms)
+  {
+    CVC5_API_RECOVERABLE_CHECK(t.getSort().isFirstClass())
+        << "Cannot get value of a term that is not first class.";
+  }
   CVC5_API_SOLVER_CHECK_TERMS(terms);
   //////// all checks before this line
 
