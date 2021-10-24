@@ -650,8 +650,8 @@ set(regress_0_tests
   regress0/ho/issue4990-care-graph.smt2
   regress0/ho/issue5233-part1-usort-owner.smt2
   regress0/ho/issue5371.smt2
-  regress0/ho/issue5741-cg-model.smt2
   regress0/ho/issue5741-1-cg-model.smt2
+  regress0/ho/issue5741-3-cg-model.smt2
   regress0/ho/issue5744-cg-model.smt2
   regress0/ho/issue6526.smt2
   regress0/ho/issue6536.smt2
