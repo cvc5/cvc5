@@ -1,6 +1,5 @@
 (set-logic HO_ALL)
-(set-option :check-models true)
-(set-option :check-unsat-cores true)
+(set-info :status sat)
 (declare-fun a ((_ BitVec 32) (_ BitVec 32)) (_ BitVec 32))
 (declare-fun b () (_ BitVec 32))
 (declare-fun c () (_ BitVec 1))
