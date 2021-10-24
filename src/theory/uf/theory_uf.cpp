@@ -548,9 +548,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
         {
           TNode x = f1[k];
           TNode y = f2[k];
-          Assert(d_equalityEngine->hasTerm(x));
-          Assert(d_equalityEngine->hasTerm(y));
-          Assert(!d_equalityEngine->areDisequal(x, y, false));
+          Assert(!d_state.areDisequal(x, y));
           Assert(!areCareDisequal(x, y));
           if (!d_state.areEqual(x, y))
           {
