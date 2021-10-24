@@ -103,7 +103,8 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   Node conf = checkForMergeConflict(t1, t2, e1, e2);
   if (!conf.isNull())
   {
-    d_state.setPendingMergeConflict(conf);
+    InferenceId id = t1.getType().isStringLike() ? InferenceId::STRINGS_PREFIX_CONFLICT : InferenceId::STRINGS_ARITH_BOUND_CONFLICT;
+    d_state.setPendingMergeConflict(conf, id);
     return;
   }
   // add information from e2 to e1
