@@ -61,7 +61,7 @@ enum class SkolemFunId
   BAGS_MAP_PREIMAGE,
   /** An uninterpreted function for bag.map operator:
    * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_MAP_PREIMAGE},
-   * then the multiplicity of an element y in bag (map f A)) is sum(n),
+   * then the multiplicity of an element y in a bag (map f A) is sum(n),
    * where sum: Int -> Int is a skolem function such that:
    * sum(0) = 0
    * sum(i) = sum (i-1) + (bag.count (uf i) A)
