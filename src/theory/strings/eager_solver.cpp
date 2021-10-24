@@ -160,7 +160,7 @@ void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
       Node conf = ei->addEndpointConst(t, c, r == 1);
       if (!conf.isNull())
       {
-        d_state.setPendingMergeConflict(conf);
+        d_state.setPendingMergeConflict(conf, InferenceId::STRINGS_PREFIX_CONFLICT);
         return;
       }
     }
