@@ -1,3 +1,4 @@
+; REQUIRES: poly
 ; COMMAND-LINE: --nl-ext-tplanes --no-produce-proofs
 ; EXPECT: unsat
 (set-logic QF_NRA)
