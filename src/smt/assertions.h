@@ -57,7 +57,15 @@ class Assertions : protected EnvObj
    * without a check-sat.
    */
   void clearCurrent();
-  /** refresh */
+  /** refresh
+   * 
+   * Ensures that all global declarations have been processed in the current
+   * context. This may trigger substitutions to be added to the top-level
+   * substitution and/or formulas added to the current set of assertions.
+   * 
+   * If global declarations are true, this method must be called before
+   * processing assertions.
+   */
   void refresh();
   /*
    * Initialize a call to check satisfiability. This adds assumptions to
