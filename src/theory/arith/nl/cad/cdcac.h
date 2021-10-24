@@ -123,13 +123,7 @@ class CDCAC : protected EnvObj
                                            const poly::Value& sample);
 
   /**
-   * Main method that checks for the satisfiability of the constraints.
-   * Recursively explores possible assignments and excludes regions based on the
-   * coverings. Returns either a covering for the lowest dimension or an empty
-   * vector. If the covering is empty, the result is SAT and an assignment can
-   * be obtained from d_assignment. If the covering is not empty, the result is
-   * UNSAT and an infeasible subset can be extracted from the returned covering.
-   * Implements Algorithm 2.
+   * Internal implementation of getUnsatCover().
    * @param curVariable The id of the variable (within d_variableOrdering) to
    * be considered. This argument is used to manage the recursion internally and
    * should always be zero if called externally.
@@ -137,8 +131,24 @@ class CDCAC : protected EnvObj
    * interval obtained from a recursive call. The result is not (necessarily) an
    * unsat cover, but merely a list of infeasible intervals.
    */
-  std::vector<CACInterval> getUnsatCover(std::size_t curVariable = 0,
-                                         bool returnFirstInterval = false);
+  std::vector<CACInterval> getUnsatCoverImpl(std::size_t curVariable = 0,
+                                             bool returnFirstInterval = false);
+
+  /**
+   * Main method that checks for the satisfiability of the constraints.
+   * Recursively explores possible assignments and excludes regions based on the
+   * coverings. Returns either a covering for the lowest dimension or an empty
+   * vector. If the covering is empty, the result is SAT and an assignment can
+   * be obtained from d_assignment. If the covering is not empty, the result is
+   * UNSAT and an infeasible subset can be extracted from the returned covering.
+   * Implements Algorithm 2.
+   * This method itself only takes care of the outermost proof scope and calls
+   * out to getUnsatCoverImpl() with curVariable set to zero.
+   * @param returnFirstInterval If true, the function returns after the first
+   * interval obtained from a recursive call. The result is not (necessarily) an
+   * unsat cover, but merely a list of infeasible intervals.
+   */
+  std::vector<CACInterval> getUnsatCover(bool returnFirstInterval = false);
 
   void startNewProof();
   /**
@@ -205,6 +215,9 @@ class CDCAC : protected EnvObj
 
   /** The proof generator */
   std::unique_ptr<CADProofGenerator> d_proof;
+
+  /** The next interval id */
+  size_t d_nextIntervalId = 1;
 };
 
 }  // namespace cad
