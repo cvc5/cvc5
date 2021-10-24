@@ -628,7 +628,7 @@ void TheoryUF::computeCareGraph() {
   {
     return;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // Use term indexing. We build separate indices for APPLY_UF and HO_APPLY.
   // We maintain indices per operator for the former, and indices per
   // function type for the latter.
@@ -660,7 +660,7 @@ void TheoryUF::computeCareGraph() {
         {
           // must add all temporary chains to the HO index
           Node curr = op;
-          for (const Node& c: app)
+          for (const Node& c : app)
           {
             Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
             hoIndex[curr.getType()].addTerm(happ, {curr, c});
