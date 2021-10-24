@@ -282,6 +282,7 @@ void TheoryUF::preRegisterTerm(TNode node)
       }
       // Remember the function and predicate terms
       d_functionsTerms.push_back(node);
+      /*
       // also add the opposite if higher-order
       if (logicInfo().isHigherOrder() && k==kind::APPLY_UF)
       {
@@ -290,6 +291,7 @@ void TheoryUF::preRegisterTerm(TNode node)
         d_equalityEngine->addTerm(ret);
         d_functionsTerms.push_back(ret);
       }
+      */
     }
     break;
   case kind::CARDINALITY_CONSTRAINT:
@@ -653,6 +655,18 @@ void TheoryUF::computeCareGraph() {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
         arity[op] = reps.size();
+        if (logicInfo().isHigherOrder())
+        {
+          // must add all temporary chains to the HO index
+          Node curr = op;
+          Node currRep = 
+          for (const Node& c: app)
+          {
+            Node app = nm->mkNode(HO_APPLY, curr, c);
+            hoIndex[curr.getType()].addTerm(app, {curr, c});
+            curr = app;
+          }
+        }
       }
       else
       {

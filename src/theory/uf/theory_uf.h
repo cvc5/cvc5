@@ -154,6 +154,10 @@ private:
                     const TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
+void addToIndex(TNode app, 
+  std::map<Node, TNodeTrie>& index,
+  std::map<TypeNode, TNodeTrie>& hoIndex,
+  std::map<Node, size_t>& arity);
   /**
    * Is t a higher order type? A higher-order type is a function type having
    * an argument type that is also a function type. This is used for checking
