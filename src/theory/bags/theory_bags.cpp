@@ -15,11 +15,16 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include <sstream>
+
+#include "expr/emptybag.h"
+#include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -75,6 +80,71 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_CARD);
   d_equalityEngine->addFunctionKind(BAG_FROM_SET);
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
+}
+
+TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
+{
+  Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+
+  switch (atom.getKind())
+  {
+    case kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
+    default: return TrustNode::null();
+  }
+}
+
+TrustNode TheoryBags::expandChooseOperator(const Node& node,
+                                           std::vector<SkolemLemma>& lems)
+{
+  Assert(node.getKind() == BAG_CHOOSE);
+
+  // (bag.choose A) is expanded as
+  // (witness ((x elementType))
+  //    (ite
+  //      (= A (as emptybag bagType))
+  //      (= x (chooseUf A))
+  //      (and (>= (bag.count x A) 1) (= x (chooseUf A)))
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node bag = node[0];
+  TypeNode bagType = bag.getType();
+  Node chooseSkolem = getChooseFunction(bagType);
+  Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, bag);
+
+  Node witnessVariable = nm->mkBoundVar(bagType.getBagElementType());
+
+  Node equal = witnessVariable.eqNode(apply);
+  Node emptyBag = nm->mkConst(EmptyBag(bagType));
+  Node isEmpty = bag.eqNode(emptyBag);
+  Node count = nm->mkNode(BAG_COUNT, witnessVariable, bag);
+  Node one = nm->mkConst(Rational(1));
+  Node geqOne = nm->mkNode(GEQ, count, one);
+  Node geqOneAndEqual = geqOne.andNode(equal);
+  Node ite = nm->mkNode(ITE, isEmpty, equal, geqOneAndEqual);
+  SkolemManager* sm = nm->getSkolemManager();
+  Node ret = sm->mkSkolem(witnessVariable, ite, "kBagChoose");
+  lems.push_back(SkolemLemma(ret, nullptr));
+  return TrustNode::mkTrustRewrite(node, ret, nullptr);
+}
+
+Node TheoryBags::getChooseFunction(const TypeNode& bagType)
+{
+  std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(bagType);
+  if (it != d_chooseFunctions.end())
+  {
+    return it->second;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  TypeNode chooseUf = nm->mkFunctionType(bagType, bagType.getBagElementType());
+  std::stringstream stream;
+  stream << "chooseUf" << bagType.getId();
+  std::string name = stream.str();
+  Node chooseSkolem = sm->mkDummySkolem(
+      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
+  d_chooseFunctions[bagType] = chooseSkolem;
+  return chooseSkolem;
 }
 
 void TheoryBags::postCheck(Effort effort)

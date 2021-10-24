@@ -52,6 +52,8 @@ class TheoryBags : public Theory
   bool needsEqualityEngine(EeSetupInfo& esi) override;
   /** finish initialization */
   void finishInit() override;
+  /** preprocess rewrite */
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   //--------------------------------- end initialization
 
   //--------------------------------- standard check
@@ -86,6 +88,19 @@ class TheoryBags : public Theory
    private:
     TheoryBags& d_theory;
   };
+
+  /** expand the definition of the bag.choose operator */
+  TrustNode expandChooseOperator(const Node& node,
+                                 std::vector<SkolemLemma>& lems);
+
+  /**
+   * return the existing uninterpreted function for the bag.choose operator for
+   * the given bag type, or creates a new one if it does not exist.
+   */
+  Node getChooseFunction(const TypeNode& bagType);
+
+  /** a map that stores the choose functions for bag types */
+  std::map<TypeNode, Node> d_chooseFunctions;
 
   /** The state of the bags solver at full effort */
   SolverState d_state;

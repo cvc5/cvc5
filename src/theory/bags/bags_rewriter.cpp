@@ -61,6 +61,10 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   {
     response = postRewriteEqual(n);
   }
+  else if (n.getKind() == BAG_CHOOSE)
+  {
+    response = BagsRewriteResponse(n, Rewrite::NONE);
+  }
   else if (NormalForm::areChildrenConstants(n))
   {
     Node value = NormalForm::evaluate(n);
