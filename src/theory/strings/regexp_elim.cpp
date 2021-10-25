@@ -15,6 +15,7 @@
 
 #include "theory/strings/regexp_elim.h"
 
+#include "expr/bound_var_manager.h"
 #include "options/strings_options.h"
 #include "proof/proof_node_manager.h"
 #include "theory/rewriter.h"
@@ -22,7 +23,6 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
 #include "util/string.h"
-#include "expr/bound_var_manager.h"
 
 using namespace cvc5::kind;
 
@@ -30,7 +30,7 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-/** 
+/**
  * Attributes used for constructing unique bound variables. The following
  * attributes are used to construct (deterministic) bound variables for
  * eliminations within eliminateConcat and eliminateStar respectively.
