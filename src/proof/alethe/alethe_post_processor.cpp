@@ -786,6 +786,129 @@ bool AletheProofPostprocessCallback::update(Node res,
           && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
           && addAletheStepFromOr(AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
     }
+    // ======== Equality resolution
+    // See proof_rule.h for documentation on the EQ_RESOLVE rule. This
+    // comment uses variable names as introduced there.
+    //
+    // If F1 = (or G1 ... Gn), then P1 will be printed as (cl G1 ... Gn) but
+    // needs to be printed as (cl (or G1 ... Gn)). The only exception to this
+    // are ASSUME steps that are always printed as (cl (or G1 ... Gn)) and
+    // EQ_RESOLVE steps themselves.
+    //
+    //           ------  ...  ------ OR_NEG
+    //   P1       VP21   ...   VP2n
+    //  ---------------------------- RESOLUTION
+    //              VP3
+    //  ---------------------------- DUPLICATED_LITERALS
+    //              VP4
+    //
+    //  for i=1 to n, VP2i: (cl (or G1 ... Gn) (not Gi))
+    //  VP3: (cl (or G1 ... Gn)^n)
+    //  VP4: (cl (or (G1 ... Gn))
+    //
+    //  Let child1 = VP4.
+    //
+    //
+    // Otherwise, child1 = P1.
+    //
+    //
+    // Then, if F2 = false:
+    //
+    //  ------ EQUIV_POS2
+    //   VP1                P2    child1
+    //  --------------------------------- RESOLUTION
+    //                (cl)*
+    //
+    // Otherwise:
+    //
+    //  ------ EQUIV_POS2
+    //   VP1                P2    child1
+    //  --------------------------------- RESOLUTION
+    //              (cl F2)*
+    //
+    // VP1: (cl (not (= F1 F2)) (not F1) F2)
+    //
+    // * the corresponding proof node is F2
+    case PfRule::EQ_RESOLVE:
+    {
+      bool success = true;
+      Node vp1 =
+          nm->mkNode(kind::SEXPR,
+                     {d_cl, children[1].notNode(), children[0].notNode(), res});
+      Node child1 = children[0];
+
+      // Transform (cl F1 ... Fn) into (cl (or F1 ... Fn))
+      if (children[0].notNode() != children[1].notNode()
+          && children[0].getKind() == kind::OR)
+      {
+        PfRule pr = cdp->getProofFor(child1)->getRule();
+        if (pr != PfRule::ASSUME && pr != PfRule::EQ_RESOLVE)
+        {
+          std::vector<Node> clauses{d_cl};
+          clauses.insert(clauses.end(),
+                         children[0].begin(),
+                         children[0].end());  //(cl G1 ... Gn)
+
+          std::vector<Node> vp2Nodes{children[0]};
+          std::vector<Node> resNodes{d_cl};
+          for (size_t i = 0, size = children[0].getNumChildren(); i < size; i++)
+          {
+            Node vp2i = nm->mkNode(
+                kind::SEXPR,
+                d_cl,
+                children[0],
+                children[0][i].notNode());  //(cl (or G1 ... Gn) (not Gi))
+            success &=
+                addAletheStep(AletheRule::OR_NEG, vp2i, vp2i, {}, {}, *cdp);
+            vp2Nodes.push_back(vp2i);
+            resNodes.push_back(children[0]);
+          }
+          Node vp3 = nm->mkNode(kind::SEXPR, resNodes);
+          success &= addAletheStep(
+              AletheRule::RESOLUTION, vp3, vp3, vp2Nodes, {}, *cdp);
+
+          Node vp4 = nm->mkNode(kind::SEXPR, d_cl, children[0]);
+          success &= addAletheStep(
+              AletheRule::DUPLICATED_LITERALS, vp4, vp4, {vp3}, {}, *cdp);
+          child1 = vp4;
+        }
+      }
+
+      success &= addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
+
+      return success &= addAletheStep(AletheRule::RESOLUTION,
+                                      res,
+                                      res == nm->mkConst(false)
+                                          ? nm->mkNode(kind::SEXPR, d_cl)
+                                          : nm->mkNode(kind::SEXPR, d_cl, res),
+                                      {vp1, children[1], child1},
+                                      {},
+                                      *cdp);
+    }
+    // ======== Modus ponens
+    // See proof_rule.h for documentation on the MODUS_PONENS rule. This comment
+    // uses variable names as introduced there.
+    //
+    //     (P2:(=> F1 F2))
+    // ------------------------ IMPLIES
+    //  (VP1:(cl (not F1) F2))             (P1:F1)
+    // -------------------------------------------- RESOLUTION
+    //                   (cl F2)*
+    //
+    // * the corresponding proof node is F2
+    case PfRule::MODUS_PONENS:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+
+      return addAletheStep(
+                 AletheRule::IMPLIES, vp1, vp1, {children[1]}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp1, children[0]},
+                              {},
+                              *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
