@@ -45,7 +45,8 @@ class LazyCDProof : public CDProof
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,
               context::Context* c = nullptr,
-              const std::string& name = "LazyCDProof");
+              const std::string& name = "LazyCDProof",
+              bool autoSym = true);
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
