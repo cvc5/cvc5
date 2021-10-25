@@ -735,8 +735,7 @@ setInfoInternal[std::unique_ptr<cvc5::Command>* cmd]
   std::string name;
   api::Term sexpr;
 }
-  : KEYWORD { name = AntlrInput::tokenText($KEYWORD); }
-    symbolicExpr[sexpr]
+  : keyword[name] symbolicExpr[sexpr]
     { cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr))); }
   ;
 
