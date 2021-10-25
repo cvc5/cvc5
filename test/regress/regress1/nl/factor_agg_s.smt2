@@ -1,4 +1,4 @@
-; COMMAND-LINE: --decision=justification --no-produce-proofs
+; COMMAND-LINE: --decision=justification
 ; REQUIRES: poly
 ; EXPECT: sat
 (set-logic QF_NRA)
