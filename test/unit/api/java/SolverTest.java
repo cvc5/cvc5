@@ -442,7 +442,7 @@ class SolverTest
         CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(si, 3));
     assertThrows(
         CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(su, 0));
-    Solver slv;
+    Solver slv = new Solver();
     assertThrows(
         CVC5ApiException.class, () -> slv.mkCardinalityConstraint(su, 3));
   }
