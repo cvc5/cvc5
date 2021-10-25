@@ -28,7 +28,7 @@ include(ExternalProject)
 set(Murxla_COMMIT "afc5744766d6aa61ad5b7ea27007666ac7a5aec2")
 
 add_custom_target(install-for-murxla
-  COMMAND make install DESTDIR=murxla-install
+  COMMAND ${CMAKE_MAKE_PROGRAM} install DESTDIR=murxla-install
   DEPENDS cvc5-bin
 )
 
@@ -51,6 +51,8 @@ ExternalProject_Get_Property(Murxla-EP BINARY_DIR)
 set(MURXLA_BINARY "${BINARY_DIR}/bin/murxla")
 
 add_custom_target(fuzz-murxla
-  COMMAND echo "Run Murxla from ${MURXLA_BINARY}"
+  COMMAND echo ""
+  COMMAND echo "Run Murxla as follows:"
+  COMMAND echo "  ${MURXLA_BINARY} --cvc5"
   DEPENDS Murxla-EP
 )
