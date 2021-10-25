@@ -2550,6 +2550,7 @@ void CoreSolver::checkNormalFormsDeq()
   
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
+  NodeManager* nm = NodeManager::currentNM();
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
   for (const Node& eq : deqs)
   {
@@ -2564,9 +2565,8 @@ void CoreSolver::checkNormalFormsDeq()
         EqcInfo* ei = d_state.getOrMakeEqcInfo(n[i], false);
         lt[i] = ei ? ei->d_lengthTerm : Node::null();
         if( lt[i].isNull() ){
-          lt[i] = eq[i];
+          lt[i] = nm->mkNode(STRING_LENGTH, eq[i]);
         }
-        lt[i] = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt[i] );
       }
       if (!d_state.areEqual(lt[0], lt[1]) && !d_state.areDisequal(lt[0], lt[1]))
       {
@@ -2642,14 +2642,13 @@ void CoreSolver::checkLengthsEqc() {
         << "Process length constraints for " << d_strings_eqc[i] << std::endl;
     // check if there is a length term for this equivalence class
     EqcInfo* ei = d_state.getOrMakeEqcInfo(d_strings_eqc[i], false);
-    Node lt = ei ? ei->d_lengthTerm : Node::null();
-    if (lt.isNull())
+    Node llt = ei ? ei->d_lengthTerm : Node::null();
+    if (llt.isNull())
     {
       Trace("strings-process-debug")
           << "No length term for eqc " << d_strings_eqc[i] << std::endl;
       continue;
     }
-    Node llt = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, lt);
     // now, check if length normalization has occurred
     if (ei->d_normalizedLength.get().isNull())
     {
@@ -2669,7 +2668,7 @@ void CoreSolver::checkLengthsEqc() {
       // if not, add the lemma
       std::vector<Node> ant;
       ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
-      ant.push_back(lt.eqNode(nfi.d_base));
+      ant.push_back(llt[0].eqNode(nfi.d_base));
       Node lc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, nf);
       Node lcr = rewrite(lc);
       Trace("strings-process-debug")
