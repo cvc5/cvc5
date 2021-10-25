@@ -25,42 +25,49 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+/** Type rule for arithmetic values. */
 class ArithConstantTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/** Type rule for arithmetic operators. */
 class ArithOperatorTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/** Type rule for nullary real operators. */
 class RealNullaryOperatorTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/** Type rule for the IAND operator kind. */
 class IAndOpTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/** Type rule for the IAND kind. */
 class IAndTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/** Type rule for the POW2 operator. */
 class Pow2TypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/** Type rule for the IndexedRootPredicate operator. */
 class IndexedRootPredicateTypeRule
 {
  public:
