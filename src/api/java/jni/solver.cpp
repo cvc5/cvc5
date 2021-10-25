@@ -1336,7 +1336,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkFloatingPoint(
  * Method:    mkCardinalityConstraint
  * Signature: (JJI)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkUninterpretedConst(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkCardinalityConstraint(
     JNIEnv* env, jobject, jlong pointer, jlong sortPointer, jint index)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
