@@ -1535,6 +1535,17 @@ TrustNode TheoryEngine::getExplanation(
   {
     Trace("te-proof-exp") << "=== TheoryEngine::getExplanation " << conclusion
                           << std::endl;
+    // We do not use auto-symmetry in this proof, since in very rare cases, it
+    // is possible that the proof of explanations is cyclic when considering
+    // (dis)equalities modulo symmetry, where such a proof looks like:
+    // x = y  
+    // -----
+    //   A    ... 
+    // ----------
+    //   y = x
+    // Notice that this complication arises since propagations consider
+    // equalities that are not in rewritten form. This complication would not
+    // exist otherwise.
     lcp.reset(new LazyCDProof(
         d_pnm, nullptr, nullptr, "TheoryEngine::LazyCDProof::getExplanation", false));
   }
@@ -1813,6 +1824,14 @@ TrustNode TheoryEngine::getExplanation(
       pfChildren.push_back(trn.getNode());
       pfChildren.push_back(proven);
       lcp->addStep(tConc, PfRule::MODUS_PONENS, pfChildren, {});
+    }
+    // If we don't have a step, it must be by symmetry. We must do this
+    // manually since lcp does not have auto-symmetry enabled due to the
+    // complication mentioned above.
+    if (!lcp->hasStep(conclusion))
+    {
+      Node sconc = CDProof::getSymmFact(conclusion);
+      lcp->addStep(conclusion, PfRule::SYMM, {sconc}, {});
     }
     // store in the proof generator
     TrustNode trn = d_tepg->mkTrustExplain(conclusion, expNode, lcp);
