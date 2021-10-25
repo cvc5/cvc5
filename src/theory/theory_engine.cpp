@@ -1536,7 +1536,7 @@ TrustNode TheoryEngine::getExplanation(
     Trace("te-proof-exp") << "=== TheoryEngine::getExplanation " << conclusion
                           << std::endl;
     lcp.reset(new LazyCDProof(
-        d_pnm, nullptr, nullptr, "TheoryEngine::LazyCDProof::getExplanation"));
+        d_pnm, nullptr, nullptr, "TheoryEngine::LazyCDProof::getExplanation", false));
   }
   unsigned i = 0; // Index of the current literal we are processing
 
@@ -1759,6 +1759,7 @@ TrustNode TheoryEngine::getExplanation(
         Trace("te-proof-exp") << "...already added" << std::endl;
         continue;
       }
+      /*
       Node symTConc = CDProof::getSymmFact(tConc);
       if (!symTConc.isNull())
       {
@@ -1769,6 +1770,7 @@ TrustNode TheoryEngine::getExplanation(
           continue;
         }
       }
+      */
       // remember that we've explained this formula, to avoid cycles in lcp
       exp.insert(tConc);
       TheoryId ttid = it->first;
