@@ -434,6 +434,17 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> slv.mkFloatingPoint(3, 5, t1));
   }
 
+  @Test void mkEmptySet() throws mkCardinalityConstraint
+  {
+    Sort su = d_solver.mkUninterpretedSort("u");
+    Sort si = d_solver.getIntegerSort();
+    assertDoesNotThrow(d_solver.mkCardinalityConstraint(su, 3));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(si, 3));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(su, 0));
+    Solver slv;
+    assertThrows(CVC5ApiException.class, () -> slv.mkCardinalityConstraint(su, 3));
+  }
+
   @Test void mkEmptySet() throws CVC5ApiException
   {
     Solver slv = new Solver();
