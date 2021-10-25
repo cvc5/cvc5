@@ -44,11 +44,12 @@ ExternalProject_Add(
     -DENABLE_BITWUZLA=OFF
     -DENABLE_BOOLECTOR=OFF
     -DENABLE_YICES=OFF
-  INSTALL_COMMAND ""
+  INSTALL_COMMAND
+    ${CMAKE_COMMAND} -E copy <BINARY_DIR>/bin/murxla <INSTALL_DIR>/bin/murxla
   DEPENDS install-for-murxla
 )
 ExternalProject_Get_Property(Murxla-EP BINARY_DIR)
-set(MURXLA_BINARY "${BINARY_DIR}/bin/murxla")
+set(MURXLA_BINARY "deps/bin/murxla")
 
 add_custom_target(fuzz-murxla
   COMMAND echo ""
