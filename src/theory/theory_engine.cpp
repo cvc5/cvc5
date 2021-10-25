@@ -1538,16 +1538,19 @@ TrustNode TheoryEngine::getExplanation(
     // We do not use auto-symmetry in this proof, since in very rare cases, it
     // is possible that the proof of explanations is cyclic when considering
     // (dis)equalities modulo symmetry, where such a proof looks like:
-    // x = y  
+    // x = y
     // -----
-    //   A    ... 
+    //   A    ...
     // ----------
     //   y = x
     // Notice that this complication arises since propagations consider
     // equalities that are not in rewritten form. This complication would not
     // exist otherwise.
-    lcp.reset(new LazyCDProof(
-        d_pnm, nullptr, nullptr, "TheoryEngine::LazyCDProof::getExplanation", false));
+    lcp.reset(new LazyCDProof(d_pnm,
+                              nullptr,
+                              nullptr,
+                              "TheoryEngine::LazyCDProof::getExplanation",
+                              false));
   }
   unsigned i = 0; // Index of the current literal we are processing
 
