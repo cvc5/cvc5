@@ -197,7 +197,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
   else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear())))
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear())) &&
+           !opts.base.incrementalSolving)
   {
     opts.quantifiers.sygusInst = true;
   }
@@ -988,6 +989,18 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                 "incremental solving"
              << std::endl;
     opts.quantifiers.sygusInference = false;
+  }
+  if (opts.quantifiers.sygusInst)
+  {
+    if (opts.quantifiers.sygusInstWasSetByUser)
+    {
+      reason << "sygus inst";
+      return true;
+    }
+    Notice() << "SolverEngine: turning off sygus inst to support "
+                "incremental solving"
+             << std::endl;
+    opts.quantifiers.sygusInst = false;
   }
   if (opts.smt.solveIntAsBV > 0)
   {
