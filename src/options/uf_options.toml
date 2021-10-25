@@ -53,14 +53,6 @@ name   = "Uninterpreted Functions Theory"
   help       = "group monotone sorts when enforcing fairness for finite model finding"
 
 [[option]]
-  name       = "ufHo"
-  category   = "regular"
-  long       = "uf-ho"
-  type       = "bool"
-  default    = "false"
-  help       = "enable support for higher-order reasoning"
-
-[[option]]
   name       = "ufHoExt"
   category   = "regular"
   long       = "uf-ho-ext"

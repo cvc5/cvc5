@@ -692,7 +692,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   if (logic.isHigherOrder())
   {
-    opts.uf.ufHo = true;
     if (!opts.theory.assignFunctionValues)
     {
       // must assign function values
@@ -837,15 +836,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (opts.arith.nlCadWasSetByUser)
     {
-      std::stringstream ss;
-      ss << "Cannot use " << options::arith::nlCad__name
-         << " without configuring with --poly.";
-      throw OptionException(ss.str());
+      throw OptionException(
+          "Cannot use --nl-cad without configuring with --poly.");
     }
     else
     {
-      Notice() << "Cannot use --" << options::arith::nlCad__name
-               << " without configuring with --poly." << std::endl;
+      Notice() << "Cannot use --nl-cad without configuring with --poly."
+               << std::endl;
       opts.arith.nlCad = false;
       opts.arith.nlExt = options::NlExtMode::FULL;
     }
@@ -1353,8 +1350,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
         Notice() << "Disabling bound finite-model finding since it is "
                     "incompatible with HOL.\n";
       }
-
-      opts.quantifiers.fmfBound = false;
       Trace("smt") << "turning off fmf-bound, since HOL\n";
     }
   }
