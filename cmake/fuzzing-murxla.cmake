@@ -54,6 +54,6 @@ set(MURXLA_BINARY "deps/bin/murxla")
 add_custom_target(fuzz-murxla
   COMMAND echo ""
   COMMAND echo "Run Murxla as follows:"
-  COMMAND echo "  ${MURXLA_BINARY} --cvc5"
+  COMMAND echo "  ${MURXLA_BINARY} -t 1 --cvc5"
   DEPENDS Murxla-EP
 )
