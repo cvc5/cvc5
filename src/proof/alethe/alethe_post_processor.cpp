@@ -1310,8 +1310,8 @@ bool AletheProofPostprocessCallback::update(Node res,
               AletheRule::REFL, vpis[i], vpis[i], {}, {}, *cdp);
         }
         std::vector<Node> new_children = vpis;
-        new_children.insert(
-            new_children.end(), children.begin(), children.end());
+        // new_children.insert(
+        //  new_children.end(), children.begin(), children.end());
         return addAletheStep(AletheRule::ANCHOR_BIND,
                              res,
                              nm->mkNode(kind::SEXPR, d_cl, res),
