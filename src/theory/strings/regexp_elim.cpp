@@ -33,16 +33,19 @@ namespace strings {
 struct ReElimConcatWithGapsAttributeId
 {
 };
-typedef expr::Attribute<ReElimConcatWithGapsAttributeId, Node> ReElimConcatWithGapsAttribute;
+typedef expr::Attribute<ReElimConcatWithGapsAttributeId, Node>
+    ReElimConcatWithGapsAttribute;
 struct ReElimConcatFindAttributeId
 {
 };
-typedef expr::Attribute<ReElimConcatFindAttributeId, Node> ReElimConcatFindAttribute;
+typedef expr::Attribute<ReElimConcatFindAttributeId, Node>
+    ReElimConcatFindAttribute;
 struct ReElimStarIndexAttributeId
 {
 };
-typedef expr::Attribute<ReElimStarIndexAttributeId, Node> ReElimStarIndexAttribute;
-  
+typedef expr::Attribute<ReElimStarIndexAttributeId, Node>
+    ReElimStarIndexAttribute;
+
 RegExpElimination::RegExpElimination(bool isAgg,
                                      ProofNodeManager* pnm,
                                      context::Context* c)
@@ -275,9 +278,11 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           }
           // if the gap after this one is strict, we need a non-greedy find
           // thus, we add a symbolic constant
-          Node cacheVal = BoundVarManager::getCacheValue(atom, nm->mkConst(Rational(i)));
+          Node cacheVal =
+              BoundVarManager::getCacheValue(atom, nm->mkConst(Rational(i)));
           TypeNode intType = nm->integerType();
-          Node k = bvm->mkBoundVar<ReElimConcatWithGapsAttribute>(cacheVal, intType);
+          Node k =
+              bvm->mkBoundVar<ReElimConcatWithGapsAttribute>(cacheVal, intType);
           non_greedy_find_vars.push_back(k);
           prev_end = nm->mkNode(PLUS, prev_end, k);
         }
@@ -469,7 +474,8 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       }
       else
       {
-        Node cacheVal = BoundVarManager::getCacheValue(atom, nm->mkConst(Rational(i)));
+        Node cacheVal =
+            BoundVarManager::getCacheValue(atom, nm->mkConst(Rational(i)));
         TypeNode intType = nm->integerType();
         k = bvm->mkBoundVar<ReElimConcatWithGapsAttribute>(cacheVal, intType);
         Node bound =
