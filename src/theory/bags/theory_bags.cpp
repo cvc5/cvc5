@@ -65,7 +65,6 @@ void TheoryBags::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
 
-  // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
 
   // functions we are doing congruence over
@@ -84,7 +83,7 @@ void TheoryBags::finishInit()
 
 TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
-  Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  Trace("bags-ppr") << "TheoryBags::ppRewrite " << atom << std::endl;
 
   switch (atom.getKind())
   {
