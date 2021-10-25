@@ -196,79 +196,98 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     NodeManager* nm = NodeManager::currentNM();
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
-    std::vector<Node> clauseNodes;
-    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize;
-         ++i)
+    std::vector<Node> lhsClause, rhsClause;
+    Node lhsElim, rhsElim;
+    // Get first clause. Here we
+    //
+    // Since a Node cannot hold an OR with a single child we need to
+    // disambiguate singleton clauses that are OR nodes from non-singleton
+    // clauses (i.e. unit clauses in the SAT solver).
+    //
+    // If the child is not an OR, it is a singleton clause and we take the
+    // child itself as the clause. Otherwise the child can only be a singleton
+    // clause if the child itself is used as a resolution literal, i.e. if the
+    // first child equal to the first pivot (which is args[1] or
+    // args[1].notNote() depending on the polarity).
+    if (children[0].getKind() != kind::OR
+        || (args[0] == trueNode && children[0] == args[1])
+        || (args[0] == falseNode && children[0] == args[1].notNode()))
     {
-      // Literals to be removed from the current clause, according to this
-      // clause being in the lhs or the rhs of a resolution. The first clause
-      // has no rhsElim and the last clause has no lhsElim. The literal to be
-      // eliminated depends ond the pivot and the polarity stored in the
-      // arguments.
-      Node lhsElim = Node::null();
-      Node rhsElim = Node::null();
-      if (i < childrenSize - 1)
+      lhsClause.push_back(children[0]);
+    }
+    else
+    {
+      lhsClause.insert(
+          lhsClause.end(), children[0].begin(), children[0].end());
+    }
+    // Traverse the links, which amounts to for each pair of args removing a
+    // literal from the lhs and a literal from the lhs.
+    for (std::size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
+    {
+      // Polarity determines how the pivot occurs in lhs and rhs
+      if (args[i] == trueNode)
       {
-        std::size_t index = 2 * i;
-        lhsElim = args[index] == trueNode ? args[index + 1]
-                                          : args[index + 1].notNode();
-        Trace("bool-pfcheck") << i << ": lhsElim: " << lhsElim << "\n";
-      }
-      if (i > 0)
-      {
-        std::size_t index = 2 * (i - 1);
-        rhsElim = args[index] == trueNode ? args[index + 1].notNode()
-                                          : args[index + 1];
-        Trace("bool-pfcheck") << i << ": rhsElim: " << rhsElim << "\n";
-      }
-      // The current set of literals is what we had before plus those in the
-      // current child.
-      //
-      // Since a Node cannot hold an OR with a single child we need to
-      // disambiguate singleton clauses that are OR nodes from non-singleton
-      // clauses (i.e. unit clauses in the SAT solver).
-      //
-      // If the child is not an OR, it is a singleton clause and we take the
-      // child itself as the clause. Otherwise the child can only be a singleton
-      // clause if the child itself is used as a resolution literal, i.e. if the
-      // child equal to the lhsElim or to the rhsElim (which means that the
-      // negation of the child is in lhsElim).
-      std::vector<Node> lits{clauseNodes};
-      if (children[i].getKind() == kind::OR && children[i] != lhsElim
-          && children[i] != rhsElim)
-      {
-        lits.insert(lits.end(), children[i].begin(), children[i].end());
+        lhsElim = args[i + 1];
+        rhsElim = args[i + 1].notNode();
       }
       else
       {
-        lits.push_back(children[i]);
+        Assert(args[i] == falseNode);
+        lhsElim = args[i + 1].notNode();
+        rhsElim = args[i + 1];
       }
-      Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
-      // We now compute the set of literals minus those to be eliminated in this
-      // step
-      std::vector<Node> curr;
-      for (std::size_t j = 0, size = lits.size(); j < size; ++j)
+      size_t rhsIndex = i/2 + 1;
+      // Get rhs clause. It's a singleton if not an OR node or if equal to
+      // rhsElim
+      if (children[rhsIndex].getKind() != kind::OR
+          || children[rhsIndex] == rhsElim)
       {
-        if (lits[j] == lhsElim)
-        {
-          lhsElim = Node::null();
-          Trace("bool-pfcheck") << "\t removed lit: " << lits[j] << "\n";
-          continue;
-        }
-        if (lits[j] == rhsElim)
-        {
-          rhsElim = Node::null();
-          Trace("bool-pfcheck") << "\t removed lit: " << lits[j] << "\n";
-          continue;
-        }
-        curr.push_back(lits[j]);
+        rhsClause.push_back(children[rhsIndex]);
       }
-      Trace("bool-pfcheck") << "\n";
-      clauseNodes.clear();
-      clauseNodes.insert(clauseNodes.end(), curr.begin(), curr.end());
+      else
+      {
+        rhsClause.insert(rhsClause.end(),
+                         children[rhsIndex].begin(),
+                         children[rhsIndex].end());
+      }
+      Trace("bool-pfcheck") << i/2 << "-th res link:\n";
+      Trace("bool-pfcheck") << "\t - lhsClause: " << lhsClause << "\n";
+      Trace("bool-pfcheck") << "\t\t - lhsElim: " << lhsElim << "\n";
+      Trace("bool-pfcheck") << "\t - rhsClause: " << rhsClause << "\n";
+      Trace("bool-pfcheck") << "\t\t - rhsElim: " << rhsElim << "\n";
+      // Compute the resulting clause, which will be the next lhsClause, as follows:
+      //   - traverse lhsClause and take all lits but lhsElim
+      //   - traverse rhsClause and take all lits but rhsElim
+      std::vector<Node> curr;
+      for (size_t j = 0, size = lhsClause.size(); j < size; ++j)
+      {
+        if (lhsClause[j] == lhsElim)
+        {
+          // ignore this literal, take all the rest, exit loop
+          curr.insert(curr.end(), lhsClause.begin() + j + 1, lhsClause.end());
+          break;
+        }
+        curr.push_back(lhsClause[j]);
+      }
+      Trace("bool-pfcheck") << "\t.. after lhsClause: " << curr << "\n";
+      for (size_t j = 0, size = rhsClause.size(); j < size; ++j)
+      {
+        if (rhsClause[j] == rhsElim)
+        {
+          // ignore this literal, take all the rest, exit loop
+          curr.insert(curr.end(), rhsClause.begin() + j + 1, rhsClause.end());
+          break;
+        }
+        curr.push_back(rhsClause[j]);
+      }
+      Trace("bool-pfcheck") << "\t.. after rhsClause: " << curr << "\n";
+      // Update lhsClause
+      rhsClause.clear();
+      lhsClause.clear();
+      lhsClause.insert(lhsClause.end(), curr.begin(), curr.end());
     }
-    Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
-    return nm->mkOr(clauseNodes);
+    Trace("bool-pfcheck") << "\n resulting clause: " << lhsClause << "\n" << pop;
+    return nm->mkOr(lhsClause);
   }
   if (id == PfRule::MACRO_RESOLUTION_TRUST)
   {
