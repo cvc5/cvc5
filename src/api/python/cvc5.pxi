@@ -2224,6 +2224,7 @@ cdef class Sort:
     def isBoolean(self):
         """
             Is this a Boolean sort?
+
             :return: True if the sort is the Boolean sort.
         """
         return self.csort.isBoolean()
@@ -2231,6 +2232,7 @@ cdef class Sort:
     def isInteger(self):
         """
             Is this an integer sort?
+
             :return: True if the sort is the integer sort.
         """
         return self.csort.isInteger()
@@ -2238,6 +2240,7 @@ cdef class Sort:
     def isReal(self):
         """
             Is this a real sort?
+
             :return: True if the sort is the real sort.
         """
         return self.csort.isReal()
@@ -2245,6 +2248,7 @@ cdef class Sort:
     def isString(self):
         """
             Is this a string sort?
+
             :return: True if the sort is the string sort.
         """
         return self.csort.isString()
@@ -2252,6 +2256,7 @@ cdef class Sort:
     def isRegExp(self):
         """
             Is this a regexp sort?
+
             :return: True if the sort is the regexp sort.
         """
         return self.csort.isRegExp()
@@ -2259,6 +2264,7 @@ cdef class Sort:
     def isRoundingMode(self):
         """
             Is this a rounding mode sort?
+
             :return: True if the sort is the rounding mode sort.
         """
         return self.csort.isRoundingMode()
@@ -2266,6 +2272,7 @@ cdef class Sort:
     def isBitVector(self):
         """
             Is this a bit-vector sort?
+
             :return: True if the sort is a bit-vector sort.
         """
         return self.csort.isBitVector()
@@ -2273,6 +2280,7 @@ cdef class Sort:
     def isFloatingPoint(self):
         """
             Is this a floating-point sort?
+
             :return: True if the sort is a bit-vector sort.
         """
         return self.csort.isFloatingPoint()
@@ -2280,6 +2288,7 @@ cdef class Sort:
     def isDatatype(self):
         """
             Is this a datatype sort?
+
             :return: True if the sort is a datatype sort.
         """
         return self.csort.isDatatype()
@@ -2287,6 +2296,7 @@ cdef class Sort:
     def isParametricDatatype(self):
         """
             Is this a parametric datatype sort?
+
             :return: True if the sort is a parametric datatype sort.
         """
         return self.csort.isParametricDatatype()
@@ -2294,6 +2304,7 @@ cdef class Sort:
     def isConstructor(self):
         """
             Is this a constructor sort?
+
             :return: True if the sort is a constructor sort.
         """
         return self.csort.isConstructor()
@@ -2301,6 +2312,7 @@ cdef class Sort:
     def isSelector(self):
         """
             Is this a selector sort?
+
             :return: True if the sort is a selector sort.
         """
         return self.csort.isSelector()
@@ -2308,6 +2320,7 @@ cdef class Sort:
     def isTester(self):
         """
             Is this a tester sort?
+
             :return: True if the sort is a selector sort.
         """
         return self.csort.isTester()
@@ -2315,6 +2328,7 @@ cdef class Sort:
     def isUpdater(self):
         """
             Is this a datatype updater sort?
+
             :return: True if the sort is a datatype updater sort.
         """
         return self.csort.isUpdater()
@@ -2322,6 +2336,7 @@ cdef class Sort:
     def isFunction(self):
         """
             Is this a datatype updater sort?
+
             :return: True if the sort is a function sort.
         """
         return self.csort.isFunction()
@@ -2331,6 +2346,7 @@ cdef class Sort:
             Is this a predicate sort?
             That is, is this a function sort mapping to Boolean? All predicate
             sorts are also function sorts.
+
             :return: True if the sort is a predicate sort.
         """
         return self.csort.isPredicate()
@@ -2338,6 +2354,7 @@ cdef class Sort:
     def isTuple(self):
         """
             Is this a tuple sort?
+
             :return: True if the sort is a tuple sort.
         """
         return self.csort.isTuple()
@@ -2345,6 +2362,7 @@ cdef class Sort:
     def isRecord(self):
         """
             Is this a record sort?
+
             :return: True if the sort is a record sort.
         """
         return self.csort.isRecord()
@@ -2352,6 +2370,7 @@ cdef class Sort:
     def isArray(self):
         """
             Is this an array sort?
+
             :return: True if the sort is an array sort.
         """
         return self.csort.isArray()
@@ -2359,6 +2378,7 @@ cdef class Sort:
     def isSet(self):
         """
             Is this a set sort?
+
             :return: True if the sort is a set sort.
         """
         return self.csort.isSet()
@@ -2366,6 +2386,7 @@ cdef class Sort:
     def isBag(self):
         """
             Is this a bag sort?
+
             :return: True if the sort is a bag sort.
         """
         return self.csort.isBag()
@@ -2373,6 +2394,7 @@ cdef class Sort:
     def isSequence(self):
         """
             Is this a sequence sort?
+
             :return: True if the sort is a sequence sort.
         """
         return self.csort.isSequence()
@@ -2380,6 +2402,7 @@ cdef class Sort:
     def isUninterpretedSort(self):
         """
             Is this a sort uninterpreted?
+
             :return: True if the sort is uninterpreted.
         """
         return self.csort.isUninterpretedSort()
@@ -2387,6 +2410,7 @@ cdef class Sort:
     def isSortConstructor(self):
         """
             Is this a sort constructor kind?
+
             :return: True if this a sort constructor kind.
         """
         return self.csort.isSortConstructor()
@@ -2424,7 +2448,8 @@ cdef class Sort:
     def isSubsortOf(self, Sort sort):
         """
             Is this sort a subsort of the given sort?
-            :return: True if this sort is a subsort of s
+
+	    :return: True if this sort is a subsort of s
         """
         return self.csort.isSubsortOf(sort.csort)
 
@@ -2432,6 +2457,7 @@ cdef class Sort:
         """
             Is this sort comparable to the given sort
             (i.e., do they share a common ancestor in the subsort tree)?
+
             :return: True if this sort is comparable to s
         """
         return self.csort.isComparableTo(sort.csort)
@@ -2461,7 +2487,8 @@ cdef class Sort:
     def substitute(self, sort_or_list_1, sort_or_list_2):
         """
             Substitution of Sorts.
-            :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
+
+	    :param sort_or_list_1: the subsort or subsorts to be substituted within this sort.
             :param sort_or_list_2: the sort or list of sorts replacing the substituted subsort.
         """
 
