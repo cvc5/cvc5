@@ -1830,6 +1830,7 @@ TrustNode TheoryEngine::getExplanation(
     if (!lcp->hasStep(conclusion))
     {
       Node sconc = CDProof::getSymmFact(conclusion);
+      Assert (!sconc.isNull());
       lcp->addStep(conclusion, PfRule::SYMM, {sconc}, {});
     }
     // store in the proof generator
