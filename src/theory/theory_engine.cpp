@@ -1657,7 +1657,7 @@ TrustNode TheoryEngine::getExplanation(
 
         if (lcp != nullptr)
         {
-          if (!CDProof::isSame(toExplain.d_node, (*find).second.d_node))
+          if (toExplain.d_node != (*find).second.d_node)
           {
             Trace("te-proof-exp")
                 << "- t-explained cached: " << toExplain.d_node << " by "
@@ -1685,17 +1685,13 @@ TrustNode TheoryEngine::getExplanation(
       // should prove the propagation we asked for
       Assert(texplanation.getKind() == TrustNodeKind::PROP_EXP
              && texplanation.getProven()[1] == toExplain.d_node);
-      // if not a trivial explanation
-      if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
-      {
-        // We add it to the list of theory explanations, to be processed at
-        // the end of this method. We wait to explain here because it may
-        // be that a later explanation may preempt the need for proving this
-        // step. For instance, if the conclusion lit is later added as an
-        // assumption in the final explanation. This avoids cyclic proofs.
-        texplains.push_back(
-            std::pair<TheoryId, TrustNode>(toExplain.d_theory, texplanation));
-      }
+      // We add it to the list of theory explanations, to be processed at
+      // the end of this method. We wait to explain here because it may
+      // be that a later explanation may preempt the need for proving this
+      // step. For instance, if the conclusion lit is later added as an
+      // assumption in the final explanation. This avoids cyclic proofs.
+      texplains.push_back(
+          std::pair<TheoryId, TrustNode>(toExplain.d_theory, texplanation));
     }
     Node explanation = texplanation.getNode();
 
