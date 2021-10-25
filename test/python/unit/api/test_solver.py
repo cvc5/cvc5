@@ -423,7 +423,6 @@ def test_mk_floating_point(solver):
         slv.mkFloatingPoint(3, 5, t1)
 
 def test_mk_cardinality_constraint(solver):
-    slv = pycvc5.Solver()
     su = solver.mkSetSort(solver.mkUninterpretedSort("u"))
     si = d_solver.getIntegerSort()
     solver.mkCardinalityConstraint(su, 3)
