@@ -1272,42 +1272,51 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Congruence
     // In the case that the kind of the function symbol ?f is forall, the cong
-    // rule needs to be converted into a bind rule.
+    // rule needs to be converted into a bind rule. The first child will be a
+    // refl rule, e.g. (= (v0 Int) (v0 Int)). The type has to be deleted.
     //
     //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
     //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
     //
-    //    P2
-    //  ----------------------------------- bind, ((:= v1 w1) ... (:= vn wn))
-    //  (cl (= (forall ((v1 A1)...(vn An)) t2)
-    //  (forall ((w1 B1)...(wn Bn)) s2)))*
+    //  ---------------- REFL   ---------------- REFL
+    //   (cl (= v1 v2))*         (cl (= vn wn))
+    //  ---------------------------------------- bind, ((:= v1 w1) ... (:= vn
+    //  wn))
+    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //   (forall ((w1 B1)...(wn Bn)) s2)))*
     //
     // Otherwise, the rule follows the singleton pattern, i.e.:
     //
     //    P1 ... Pn
-    //  ------------------------------------------------------ cong
-    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))*
+    //  -------------------------------------------------------- cong
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
     //
-    // * the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f? s1
+    // *  the corresponding proof node is (or (= v1 v2))
+    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f? s1
     // ... sn))
     case PfRule::CONG:
     {
+      bool success = true;
+      std::vector<Node> vpis;
       if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL))
       {
-        std::vector<Node> sanitized_args;
-        for (size_t i = 0,
-                    size = (children[0][0].end() - children[0][0].begin());
-             i < size;
+        for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
         {
-          sanitized_args.push_back(d_anc.convert(
-              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i])));
+          new_args.push_back(
+              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]));
+          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, new_args[i]));
+          success&& addAletheStep(
+              AletheRule::REFL, vpis[i], vpis[i], {}, {}, *cdp);
         }
+        std::vector<Node> new_children = vpis;
+        new_children.insert(
+            new_children.end(), children.begin(), children.end());
         return addAletheStep(AletheRule::ANCHOR_BIND,
                              res,
                              nm->mkNode(kind::SEXPR, d_cl, res),
-                             {children[1]},
-                             sanitized_args,
+                             new_children,
+                             new_args,
                              *cdp);
       }
       return addAletheStep(AletheRule::CONG,
