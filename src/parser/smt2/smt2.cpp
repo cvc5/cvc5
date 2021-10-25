@@ -263,14 +263,16 @@ void Smt2::addFloatingPointOperators() {
 }
 
 void Smt2::addSepOperators() {
+  defineVar("sep.emp", d_solver->mkSepEmp());
+  // the Boolean sort is a placeholder here since we don't have type info
+  // without type annotation
+  defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
   addOperator(api::SEP_STAR, "sep");
   addOperator(api::SEP_PTO, "pto");
   addOperator(api::SEP_WAND, "wand");
-  addOperator(api::SEP_EMP, "emp");
   Parser::addOperator(api::SEP_STAR);
   Parser::addOperator(api::SEP_PTO);
   Parser::addOperator(api::SEP_WAND);
-  Parser::addOperator(api::SEP_EMP);
 }
 
 void Smt2::addCoreSymbols()
@@ -514,7 +516,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
     {
       addOperator(api::CARDINALITY_CONSTRAINT, "fmf.card");
-      addOperator(api::CARDINALITY_VALUE, "fmf.card.val");
     }
   }
 
@@ -551,7 +552,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
     if (d_logic.areTranscendentalsUsed())
     {
-      defineVar("real.pi", d_solver->mkTerm(api::PI));
+      defineVar("real.pi", d_solver->mkPi());
       addTranscendentalOperators();
     }
     if (!strictModeEnabled())
@@ -677,12 +678,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addFloatingPointOperators();
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_SEP)) {
-    // the Boolean sort is a placeholder here since we don't have type info
-    // without type annotation
-    defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
-    defineVar("sep.emp", d_solver->mkTerm(api::SEP_EMP));
-
+  if (d_logic.isTheoryEnabled(theory::THEORY_SEP))
+  {
     addSepOperators();
   }
 
@@ -958,6 +955,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
+      Debug("parser") << "Got builtin kind " << kind << " for name"
+                      << std::endl;
     }
     else
     {
@@ -1124,15 +1123,25 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
-    if (kind == api::EQ_RANGE && d_solver->getOption("arrays-exp") != "true")
-    {
-      parseError(
-          "eqrange predicate requires option --arrays-exp to be enabled.");
-    }
     if (kind == api::SINGLETON && args.size() == 1)
     {
       api::Term ret = d_solver->mkTerm(api::SINGLETON, args[0]);
       Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
+      return ret;
+    }
+    else if (kind == api::CARDINALITY_CONSTRAINT)
+    {
+      if (args.size() != 2)
+      {
+        parseError("Incorrect arguments for cardinality constraint");
+      }
+      api::Sort sort = args[0].getSort();
+      if (!sort.isUninterpretedSort())
+      {
+        parseError("Expected uninterpreted sort for cardinality constraint");
+      }
+      uint64_t ubound = args[1].getUInt32Value();
+      api::Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
       return ret;
     }
     api::Term ret = d_solver->mkTerm(kind, args);

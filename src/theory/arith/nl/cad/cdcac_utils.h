@@ -38,6 +38,7 @@ namespace cad {
  * https://arxiv.org/pdf/2003.05633.pdf.
  *
  * It consists of
+ * - the interval id, used to map the interval to its (partial) proof,
  * - the actual interval, either an open or a point interal,
  * - the characterizing polynomials of the lower and upper bound,
  * - the characterizing polynomials in the main variable,
@@ -46,6 +47,8 @@ namespace cad {
  */
 struct CACInterval
 {
+  /** Id of this interval to couple it to the proof */
+  size_t d_id;
   /** The actual interval. */
   poly::Interval d_interval;
   /** The polynomials characterizing the lower bound. */

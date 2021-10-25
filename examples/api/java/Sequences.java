@@ -13,9 +13,9 @@
  * A simple demonstration of reasoning about sequences with cvc5 via C++ API.
  */
 
-import static cvc5.Kind.*;
+import static io.github.cvc5.api.Kind.*;
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 
 public class Sequences
 {

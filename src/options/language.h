@@ -25,7 +25,7 @@
 
 namespace cvc5 {
 
-enum class CVC5_EXPORT Language
+enum class Language
 {
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
