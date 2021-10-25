@@ -31,7 +31,7 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
       d_skCache(),
       d_state(env, valuation, d_skCache),
-      d_im(env, *this, d_state, d_pnm),
+      d_im(env, *this, d_state),
       d_internal(
           new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_pnm)),
       d_notify(*d_internal.get(), d_im)
