@@ -47,7 +47,10 @@ ExternalProject_Add(
   INSTALL_COMMAND ""
   DEPENDS install-for-murxla
 )
+ExternalProject_Get_Property(Murxla-EP BINARY_DIR)
+set(MURXLA_BINARY "${BINARY_DIR}/bin/murxla")
 
 add_custom_target(fuzz-murxla
+  COMMAND echo "Run Murxla from ${MURXLA_BINARY}"
   DEPENDS Murxla-EP
 )
