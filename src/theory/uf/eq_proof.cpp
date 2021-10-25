@@ -1432,7 +1432,7 @@ Node EqProof::addToProof(CDProof* p,
   // we obtained for example (= (f (f t1 t2 t3) t4) (f (f t5 t6) t7)), which is
   // flattened into the original conclusion (= (f t1 t2 t3 t4) (f t5 t6 t7)) via
   // rewriting
-  if (conclusion != d_node)
+  if (!CDProof::isSame(conclusion, d_node))
   {
     Trace("eqproof-conv") << "EqProof::addToProof: add "
                           << PfRule::MACRO_SR_PRED_TRANSFORM

@@ -890,6 +890,7 @@ set(regress_0_tests
   regress0/push-pop/issue1986.smt2
   regress0/push-pop/issue2137.min.smt2
   regress0/push-pop/issue6535-inc-solve.smt2
+  regress0/push-pop/issue7479-global-decls.smt2
   regress0/push-pop/quant-fun-proc-unfd.smt2
   regress0/push-pop/real-as-int-incremental.smt2
   regress0/push-pop/simple_unsat_cores.smt2
