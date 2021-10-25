@@ -265,8 +265,6 @@ class CardinalityExtension : protected EnvObj
     void addCliqueLemma(std::vector<Node>& clique);
     /** cardinality */
     context::CDO<uint32_t> d_cardinality;
-    /** cardinality lemma term */
-    Node d_cardinality_term;
     /** cardinality literals */
     std::map<uint32_t, Node> d_cardinality_literal;
     /** whether a positive cardinality constraint has been asserted */
@@ -283,7 +281,7 @@ class CardinalityExtension : protected EnvObj
     void simpleCheckCardinality();
 
    public:
-    SortModel(Node n,
+    SortModel(TypeNode tn,
               TheoryState& state,
               TheoryInferenceManager& im,
               CardinalityExtension* thss);
@@ -309,7 +307,7 @@ class CardinalityExtension : protected EnvObj
     /** has cardinality */
     bool hasCardinalityAsserted() const { return d_hasCard; }
     /** get cardinality term */
-    Node getCardinalityTerm() const { return d_cardinality_term; }
+    TypeNode getType() const { return d_type; }
     /** get cardinality literal */
     Node getCardinalityLiteral(uint32_t c);
     /** get maximum negative cardinality */
@@ -341,15 +339,14 @@ class CardinalityExtension : protected EnvObj
     class CardinalityDecisionStrategy : public DecisionStrategyFmf
     {
      public:
-      CardinalityDecisionStrategy(Env& env, Node t, Valuation valuation);
+      CardinalityDecisionStrategy(Env& env, TypeNode type, Valuation valuation);
       /** make literal (the i^th combined cardinality literal) */
       Node mkLiteral(unsigned i) override;
       /** identify */
       std::string identify() const override;
-
      private:
-      /** the cardinality term */
-      Node d_cardinality_term;
+      /** The type we are considering cardinality constraints for */
+      TypeNode d_type;
     };
     /** cardinality decision strategy */
     std::unique_ptr<CardinalityDecisionStrategy> d_c_dec_strat;
