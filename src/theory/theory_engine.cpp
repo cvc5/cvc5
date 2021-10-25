@@ -1428,14 +1428,14 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
 
     // Process the explanation
     TrustNode tncExp = getExplanation(vec);
-    Trace("te-proof-debug")
-        << "Check closed conflict explained with sharing" << std::endl;
-    tncExp.debugCheckClosed("te-proof-debug",
-                            "TheoryEngine::conflict_explained_sharing");
     Node fullConflict = tncExp.getNode();
 
     if (isProofEnabled())
     {
+      Trace("te-proof-debug")
+          << "Check closed conflict explained with sharing" << std::endl;
+      tncExp.debugCheckClosed("te-proof-debug",
+                              "TheoryEngine::conflict_explained_sharing");
       Trace("te-proof-debug") << "Process conflict: " << conflict << std::endl;
       Trace("te-proof-debug") << "Conflict " << tconflict << " from "
                               << tconflict.identifyGenerator() << std::endl;
@@ -1498,7 +1498,10 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
     Assert(properConflict(fullConflict));
     Trace("te-proof-debug")
         << "Check closed conflict with sharing" << std::endl;
-    tconf.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict:sharing");
+    if (isProofEnabled())
+    {
+      tconf.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict:sharing");
+    }
     lemma(tconf, LemmaProperty::REMOVABLE);
   } else {
     // When only one theory, the conflict should need no processing
