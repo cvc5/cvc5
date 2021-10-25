@@ -1184,6 +1184,21 @@ public class Solver implements IPointer
 
   private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
 
+  /**
+   * Create a cardinality constraint for an uninterpreted sort.
+   * @param sort the sort the cardinality constraint is for
+   * @param upperBound the upper bound on the cardinality of the sort
+   * @return the cardinality constraint
+   */
+  public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(upperBound, "upperBound");
+    long termPointer = mkCardinalityConstraint(pointer, sort.getPointer(), upperBound);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkCardinalityConstraint(long pointer, long sortPointer, int upperBound);
+
   /* .................................................................... */
   /* Create Variables                                                     */
   /* .................................................................... */
