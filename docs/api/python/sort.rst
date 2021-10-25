@@ -1,4 +1,4 @@
-Op
+Sort
 ================
 
 .. autoclass:: pycvc5.Sort
