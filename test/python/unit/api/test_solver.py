@@ -423,7 +423,7 @@ def test_mk_floating_point(solver):
         slv.mkFloatingPoint(3, 5, t1)
 
 def test_mk_cardinality_constraint(solver):
-    su = solver.mkSetSort(solver.mkUninterpretedSort("u"))
+    su = solver.mkUninterpretedSort("u")
     si = solver.getIntegerSort()
     solver.mkCardinalityConstraint(su, 3)
     with pytest.raises(RuntimeError):
