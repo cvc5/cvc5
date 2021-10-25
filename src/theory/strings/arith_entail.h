@@ -136,6 +136,10 @@ class ArithEntail
   Node getConstantBound(Node a, bool isLower = true);
 
   /**
+   * get constant bound on the length of s.
+   */
+  Node getConstantBoundLength(Node s, bool isLower = true);
+  /**
    * Given an inequality y1 + ... + yn >= x, removes operands yi s.t. the
    * original inequality still holds. Returns true if the original inequality
    * holds and false otherwise. The list of ys is modified to contain a subset
@@ -179,8 +183,14 @@ class ArithEntail
   void getArithApproximations(Node a,
                               std::vector<Node>& approx,
                               bool isOverApprox = false);
+  /** Set bound cache */
+  void setConstantBoundCache(Node n, Node ret, bool isLower);
+  /** Get bound cache */
+  Node getConstantBoundCache(Node n, bool isLower);
   /** The underlying rewriter */
   Rewriter* d_rr;
+  /** Constant zero */
+  Node d_zero;
 };
 
 }  // namespace strings
