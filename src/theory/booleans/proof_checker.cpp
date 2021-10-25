@@ -198,7 +198,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Node falseNode = nm->mkConst(false);
     std::vector<Node> lhsClause, rhsClause;
     Node lhsElim, rhsElim;
-    // Get first clause. Here we
+    // Get lhsClause of first resolution.
     //
     // Since a Node cannot hold an OR with a single child we need to
     // disambiguate singleton clauses that are OR nodes from non-singleton
