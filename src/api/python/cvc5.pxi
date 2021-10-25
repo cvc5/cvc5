@@ -2472,7 +2472,7 @@ cdef class Sort:
     def instantiate(self, params):
         """
             Instantiate a parameterized datatype/sort sort.
-            Create sorts parameter with Solver.mkParamSort().
+            Create sorts parameter with :py:meth:`Solver.mkParamSort()`
 
             :param params: the list of sort parameters to instantiate with
         """
