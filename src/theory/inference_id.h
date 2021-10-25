@@ -168,18 +168,19 @@ enum class InferenceId
   // ---------------------------------- end arrays theory
 
   // ---------------------------------- bags theory
-  BAG_NON_NEGATIVE_COUNT,
-  BAG_MK_BAG_SAME_ELEMENT,
-  BAG_MK_BAG,
-  BAG_EQUALITY,
-  BAG_DISEQUALITY,
-  BAG_EMPTY,
-  BAG_UNION_DISJOINT,
-  BAG_UNION_MAX,
-  BAG_INTERSECTION_MIN,
-  BAG_DIFFERENCE_SUBTRACT,
-  BAG_DIFFERENCE_REMOVE,
-  BAG_DUPLICATE_REMOVAL,
+  BAGS_NON_NEGATIVE_COUNT,
+  BAGS_MK_BAG_SAME_ELEMENT,
+  BAGS_MK_BAG,
+  BAGS_EQUALITY,
+  BAGS_DISEQUALITY,
+  BAGS_EMPTY,
+  BAGS_UNION_DISJOINT,
+  BAGS_UNION_MAX,
+  BAGS_INTERSECTION_MIN,
+  BAGS_DIFFERENCE_SUBTRACT,
+  BAGS_DIFFERENCE_REMOVE,
+  BAGS_DUPLICATE_REMOVAL,
+  BAGS_MAP,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -772,9 +773,11 @@ enum class InferenceId
   // f(x1, .., xn) and P is the reduction predicate for f
   // (see theory_strings_preprocess).
   STRINGS_REDUCTION,
-  //-------------------- prefix conflict
-  // prefix conflict (coarse-grained)
+  //-------------------- merge conflicts
+  // prefix conflict
   STRINGS_PREFIX_CONFLICT,
+  // arithmetic bound conflict
+  STRINGS_ARITH_BOUND_CONFLICT,
   //-------------------- other
   // a lemma added during term registration for an atomic term
   STRINGS_REGISTER_TERM_ATOMIC,
