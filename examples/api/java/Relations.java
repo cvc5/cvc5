@@ -13,9 +13,9 @@
  * A simple demonstration of reasoning about relations with CVC4 via Java API.
  */
 
-import static cvc5.Kind.*;
+import static io.github.cvc5.api.Kind.*;
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 
 /*
 This file uses the API to make a sat call equivalent to the following benchmark:

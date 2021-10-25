@@ -13,7 +13,7 @@
  * An example of interacting with unsat cores using CVC4's Java API.
  */
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 import java.util.Arrays;
 
 public class UnsatCores

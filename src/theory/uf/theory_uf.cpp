@@ -51,7 +51,7 @@ TheoryUF::TheoryUF(Env& env,
       d_symb(userContext(), instanceName),
       d_rewriter(logicInfo().isHigherOrder()),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm, "theory::uf::" + instanceName, false),
+      d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -171,7 +171,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   {
     case kind::EQUAL:
     {
-      if (logicInfo().isHigherOrder() && options::ufHoExt())
+      if (logicInfo().isHigherOrder() && options().uf.ufHoExt)
       {
         if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
         {
@@ -251,7 +251,8 @@ void TheoryUF::preRegisterTerm(TNode node)
 {
   Debug("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
 
-  if (d_thss != NULL) {
+  if (d_thss != nullptr)
+  {
     d_thss->preRegisterTerm(node);
   }
 
