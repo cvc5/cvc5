@@ -795,41 +795,30 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== Split
-    // Children: none
-    // Arguments: (F)
-    // ---------------------
-    // Conclusion: (or F (not F))
+    // See proof_rule.h for documentation on the SPLIT rule. This comment
+    // uses variable names as introduced there.
     //
-    // proof rule: not_not
-    // proof node: (VP1:(cl (not (not (not F))) F))
-    // proof term: (cl (not (not (not F))) F)
-    // premises: ()
-    // args: ()
+    // --------- NOT_NOT      --------- NOT_NOT
+    //    VP1                    VP2
+    // -------------------------------- RESOLUTION
+    //          (cl F (not F))*
     //
-    // proof rule: not_not
-    // proof node: (VP2:(cl (not (not (not (not F)))) (not F))
-    // proof term: (cl (not (not (not (not F)))) (not F)
-    // premises: ()
-    // args: ()
+    // VP1: (cl (not (not (not F))) F)
+    // VP2: (cl (not (not (not (not F)))) (not F))
     //
-    // proof rule: resolution
-    // proof node: (or F (not F))
-    // proof term: (cl F (not F))
-    // premises: VP1 VP2
-    // args: ()
+    // * the corresponding proof node is (or F (not F))
     case PfRule::SPLIT:
     {
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, args[0].notNode().notNode().notNode(), args[0]);
       Node vp2 = nm->mkNode(kind::SEXPR,
-                            d_cl,
-                            args[0].notNode().notNode().notNode().notNode(),
-                            args[0].notNode());
+                              d_cl,
+                              args[0].notNode().notNode().notNode().notNode(),
+                              args[0].notNode());
 
       return addAletheStep(AletheRule::NOT_NOT, vp2, vp2, {}, {}, *cdp)
-             && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
-             && addAletheStepFromOr(
-                 AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
+          && addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
+          && addAletheStepFromOr(AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
     }
     // ======== Equality resolution
     // Children: (P1:F1, P2:(= F1 F2))

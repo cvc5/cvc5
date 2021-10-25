@@ -1363,8 +1363,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
         Notice() << "Disabling bound finite-model finding since it is "
                     "incompatible with HOL.\n";
       }
-
-      opts.quantifiers.fmfBound = false;
       Trace("smt") << "turning off fmf-bound, since HOL\n";
     }
   }
