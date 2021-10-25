@@ -22,6 +22,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
 #include "util/string.h"
+#include "expr/bound_var_manager.h"
 
 using namespace cvc5::kind;
 
@@ -29,17 +30,16 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-/** Attributes used for constructing unique bound variables */
-struct ReElimConcatWithGapsAttributeId
+/** 
+ * Attributes used for constructing unique bound variables. The following
+ * attributes are used to construct (deterministic) bound variables for
+ * eliminations within eliminateConcat and eliminateStar respectively.
+ */
+struct ReElimConcatIndexAttributeId
 {
 };
-typedef expr::Attribute<ReElimConcatWithGapsAttributeId, Node>
-    ReElimConcatWithGapsAttribute;
-struct ReElimConcatFindAttributeId
-{
-};
-typedef expr::Attribute<ReElimConcatFindAttributeId, Node>
-    ReElimConcatFindAttribute;
+typedef expr::Attribute<ReElimConcatIndexAttributeId, Node>
+    ReElimConcatIndexAttribute;
 struct ReElimStarIndexAttributeId
 {
 };
@@ -282,7 +282,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
               BoundVarManager::getCacheValue(atom, nm->mkConst(Rational(i)));
           TypeNode intType = nm->integerType();
           Node k =
-              bvm->mkBoundVar<ReElimConcatWithGapsAttribute>(cacheVal, intType);
+              bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
           non_greedy_find_vars.push_back(k);
           prev_end = nm->mkNode(PLUS, prev_end, k);
         }
@@ -477,7 +477,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         Node cacheVal =
             BoundVarManager::getCacheValue(atom, nm->mkConst(Rational(i)));
         TypeNode intType = nm->integerType();
-        k = bvm->mkBoundVar<ReElimConcatWithGapsAttribute>(cacheVal, intType);
+        k = bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
         Node bound =
             nm->mkNode(AND,
                        nm->mkNode(LEQ, zero, k),
@@ -534,6 +534,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   // only aggressive rewrites below here
 
   NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
