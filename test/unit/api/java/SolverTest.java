@@ -434,8 +434,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> slv.mkFloatingPoint(3, 5, t1));
   }
 
-  @Test
-  void mkEmptySet() throws mkCardinalityConstraint {
+  @Test void mkCardinalityConstraint() throws mkCardinalityConstraint {
     Sort su = d_solver.mkUninterpretedSort("u");
     Sort si = d_solver.getIntegerSort();
     assertDoesNotThrow(d_solver.mkCardinalityConstraint(su, 3));
