@@ -1365,9 +1365,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL))
       {
         std::vector<Node> sanitized_args;
-        for (size_t i = 0,
-                    size = (children[0][0].end() - children[0][0].begin());
-             i < size;
+        for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
         {
           sanitized_args.push_back(d_anc.convert(
