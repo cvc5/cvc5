@@ -437,7 +437,7 @@ class SolverTest
   @Test void mkCardinalityConstraint() throws mkCardinalityConstraint {
     Sort su = d_solver.mkUninterpretedSort("u");
     Sort si = d_solver.getIntegerSort();
-    assertDoesNotThrow(d_solver.mkCardinalityConstraint(su, 3));
+    assertDoesNotThrow(() -> d_solver.mkCardinalityConstraint(su, 3));
     assertThrows(
         CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(si, 3));
     assertThrows(
