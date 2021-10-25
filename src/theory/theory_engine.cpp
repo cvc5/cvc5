@@ -1759,18 +1759,6 @@ TrustNode TheoryEngine::getExplanation(
         Trace("te-proof-exp") << "...already added" << std::endl;
         continue;
       }
-      /*
-      Node symTConc = CDProof::getSymmFact(tConc);
-      if (!symTConc.isNull())
-      {
-        if (exp.find(symTConc) != exp.end())
-        {
-          // symmetric direction
-          Trace("te-proof-exp") << "...already added (SYMM)" << std::endl;
-          continue;
-        }
-      }
-      */
       // remember that we've explained this formula, to avoid cycles in lcp
       exp.insert(tConc);
       TheoryId ttid = it->first;
@@ -1818,7 +1806,7 @@ TrustNode TheoryEngine::getExplanation(
       {
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
-        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(it->first);
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(ttid);
         lcp->addStep(proven, PfRule::THEORY_LEMMA, {}, {proven, tidn});
       }
       std::vector<Node> pfChildren;
