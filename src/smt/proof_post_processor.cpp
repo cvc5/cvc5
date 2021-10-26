@@ -683,6 +683,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     //   literals, which could themselves add crowding literals.
     if (chainConclusion == args[0])
     {
+      Trace("smt-proof-pp-debug") << "..same conclusion, DONE.\n";
       cdp->addStep(
           chainConclusion, PfRule::CHAIN_RESOLUTION, children, chainResArgs);
       return chainConclusion;
@@ -716,6 +717,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // chain.
     if (chainConclusionLitsSet != conclusionLitsSet)
     {
+      Trace("smt-proof-pp-debug") << "..need to eliminate crowding lits.\n";
       chainConclusion = eliminateCrowdingLits(
           chainConclusionLits, conclusionLits, children, args, cdp);
       // update vector of lits. Note that the set is no longer used, so we don't
@@ -739,6 +741,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     else
     {
+      Trace("smt-proof-pp-debug") << "..add chainRes step directly.\n";
       cdp->addStep(
           chainConclusion, PfRule::CHAIN_RESOLUTION, children, chainResArgs);
     }
@@ -751,6 +754,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // factoring
     if (chainConclusionLits.size() != conclusionLits.size())
     {
+      Trace("smt-proof-pp-debug") << "..add factoring step.\n";
       // We build it rather than taking conclusionLits because the order may be
       // different
       std::vector<Node> factoredLits;
@@ -777,6 +781,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // reordering
     if (n != args[0])
     {
+      Trace("smt-proof-pp-debug") << "..add reordering step.\n";
       cdp->addStep(args[0], PfRule::REORDERING, {n}, {args[0]});
     }
     return args[0];
