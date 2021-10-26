@@ -40,7 +40,7 @@ TheoryBV::TheoryBV(Env& env,
       d_internal(nullptr),
       d_rewriter(),
       d_state(env, valuation),
-      d_im(env, *this, d_state, nullptr, "theory::bv::"),
+      d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
       d_stats(statisticsRegistry(), "theory::bv::")

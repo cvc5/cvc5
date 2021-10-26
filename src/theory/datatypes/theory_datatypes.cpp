@@ -63,7 +63,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_sygusExtension(nullptr),
       d_rewriter(env.getEvaluator()),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm),
+      d_im(env, *this, d_state),
       d_notify(d_im, *this)
 {
 

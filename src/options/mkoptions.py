@@ -295,15 +295,12 @@ def _set_handlers(option):
     optname = option.long_name if option.long else ""
     if option.handler:
         if option.type == 'void':
-            return 'opts.handler().{}("{}", name)'.format(
-                option.handler, optname)
+            return 'opts.handler().{}(name)'.format(option.handler)
         else:
-            return 'opts.handler().{}("{}", name, optionarg)'.format(
-                option.handler, optname)
+            return 'opts.handler().{}(name, optionarg)'.format(option.handler)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(
-        option.type, optname)
+    return 'handlers::handleOption<{}>(name, optionarg)'.format(option.type)
 
 
 def _set_predicates(option):
@@ -315,14 +312,14 @@ def _set_predicates(option):
     res = []
     if option.minimum:
         res.append(
-            'opts.handler().checkMinimum("{}", name, value, static_cast<{}>({}));'
-            .format(optname, option.type, option.minimum))
+            'opts.handler().checkMinimum(name, value, static_cast<{}>({}));'
+            .format(option.type, option.minimum))
     if option.maximum:
         res.append(
-            'opts.handler().checkMaximum("{}", name, value, static_cast<{}>({}));'
-            .format(optname, option.type, option.maximum))
+            'opts.handler().checkMaximum(name, value, static_cast<{}>({}));'
+            .format(option.type, option.maximum))
     res += [
-        'opts.handler().{}("{}", name, value);'.format(x, optname)
+        'opts.handler().{}(name, value);'.format(x)
         for x in option.predicates
     ]
     return res
@@ -361,7 +358,7 @@ def generate_set_impl(modules):
                                    name=option.name,
                                    handler=_set_handlers(option)))
         elif option.handler:
-            h = '  opts.handler().{handler}("{smtname}", name'
+            h = '  opts.handler().{handler}(name'
             if option.type not in ['bool', 'void']:
                 h += ', optionarg'
             h += ');'
@@ -469,15 +466,6 @@ def generate_module_wrapper_functions(module):
             'inline {type} {name}() {{ return Options::current().{module}.{name}; }}'
             .format(module=module.id, name=option.name, type=option.type))
     return '\n'.join(res)
-
-
-def generate_module_option_names(module):
-    relevant = [
-        o for o in module.options
-        if not (o.name is None or o.long_name is None)
-    ]
-    return concat_format(
-        'static constexpr const char* {name}__name = "{long_name}";', relevant)
 
 
 ################################################################################
@@ -842,7 +830,6 @@ def codegen_module(module, dst_dir, tpls):
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
         'wrapper_functions': generate_module_wrapper_functions(module),
-        'option_names': generate_module_option_names(module),
         # module source
         'header': module.header,
         'modes_impl': generate_module_mode_impl(module),

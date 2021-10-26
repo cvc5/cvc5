@@ -74,7 +74,7 @@ class Tester:
             print()
             print("Error output difference")
             print("=" * 80)
-            print_diff(error, expected_error)
+            print_diff(error, benchmark_info.expected_error)
             print("=" * 80)
             print()
         elif exit_status != benchmark_info.expected_exit_status:
@@ -258,7 +258,7 @@ class DumpTester(Tester):
                 "--parse-only",
                 "-o",
                 "raw-benchmark",
-                f"--output-lang={ext_to_lang[benchmark_info.benchmark_ext]}",
+                "--output-lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
             ]
             dump_output, _, _ = run_process(
                 [benchmark_info.cvc5_binary]
@@ -280,7 +280,7 @@ class DumpTester(Tester):
                 command_line_args=benchmark_info.command_line_args
                 + [
                     "--parse-only",
-                    f"--lang={ext_to_lang[benchmark_info.benchmark_ext]}",
+                    "--lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
                 ],
                 benchmark_basename=tmpf.name,
                 expected_output="",

@@ -532,7 +532,8 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     case MK_BAG:
     {
       Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], n[1][0]);
-      Node ret = d_nm->mkNode(MK_BAG, mappedElement, n[1][0]);
+      Node ret =
+          d_nm->mkBag(n[0].getType().getRangeType(), mappedElement, n[1][1]);
       return BagsRewriteResponse(ret, Rewrite::MAP_MK_BAG);
     }
 
