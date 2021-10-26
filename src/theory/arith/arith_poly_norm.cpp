@@ -23,31 +23,6 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-Node MonomialVar::multMonoVar(Node m1, Node m2)
-{
-  std::vector<Node> vars = getMonoVars(m1);
-  std::vector<Node> vars2 = getMonoVars(m2);
-  vars.insert(vars.end(), vars2.begin(), vars2.end());
-  // use default sorting
-  std::sort(vars.begin(), vars.end());
-  return NodeManager::currentNM()->mkNode(NONLINEAR_MULT, vars);
-}
-
-std::vector<Node> MonomialVar::getMonoVars(Node n)
-{
-  std::vector<Node> vars;
-  Kind k = n.getKind();
-  if (k==MULT || k==NONLINEAR_MULT)
-  {
-    vars.insert(vars.end(), n.begin(), n.end());
-  }
-  else
-  {
-    vars.push_back(n);
-  }
-  return vars;
-}
-
 void PolyNorm::addMonomial(Node x, Node c, bool isNeg)
 {
   Assert (c.getKind()==CONST_RATIONAL);
@@ -146,6 +121,31 @@ void PolyNorm::clear()
 bool PolyNorm::empty() const
 {
   return d_polyNorm.empty();
+}
+
+Node PolyNorm::multMonoVar(Node m1, Node m2)
+{
+  std::vector<Node> vars = getMonoVars(m1);
+  std::vector<Node> vars2 = getMonoVars(m2);
+  vars.insert(vars.end(), vars2.begin(), vars2.end());
+  // use default sorting
+  std::sort(vars.begin(), vars.end());
+  return NodeManager::currentNM()->mkNode(NONLINEAR_MULT, vars);
+}
+
+std::vector<Node> PolyNorm::getMonoVars(Node m)
+{
+  std::vector<Node> vars;
+  Kind k = m.getKind();
+  if (k==MULT || k==NONLINEAR_MULT)
+  {
+    vars.insert(vars.end(), m.begin(), m.end());
+  }
+  else
+  {
+    vars.push_back(m);
+  }
+  return vars;
 }
 
 PolyNorm PolyNorm::mkPolyNorm(Node n)

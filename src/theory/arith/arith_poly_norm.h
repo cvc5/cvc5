@@ -26,14 +26,6 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-class MonomialVar
-{
-public:
-  static Node multMonoVar(Node m1, Node m2);
-private:
-  static std::vector<Node> getMonoVars(Node n);
-};
-
 class PolyNorm
 {
  public:
@@ -50,6 +42,14 @@ class PolyNorm
   static PolyNorm mkPolyNorm(Node n);
   
   static bool isArithPolyNorm(Node a, Node b);
+private:
+  /** 
+   * Given two terms that are variables in monomials, return the
+   * variable for the monomial when they are multiplied.
+   */
+  static Node multMonoVar(Node m1, Node m2);
+  /** Get the list of variables whose product is m */
+  static std::vector<Node> getMonoVars(Node m);
 };
 
 }  // namespace arith
