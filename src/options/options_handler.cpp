@@ -268,7 +268,9 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
                                      const std::string& optarg)
 {
   size_t tagid = static_cast<size_t>(stringToOutputTag(optarg));
-  Assert(d_options->base.outputTagHolder.size() > tagid);
+  Assert(d_options->base.outputTagHolder.size() > tagid)
+      << "Trying to enable an output tag whose value is larger than the bitset "
+         "that holds it. Maybe someone forgot to update the bitset size?";
   d_options->base.outputTagHolder.set(tagid);
 }
 

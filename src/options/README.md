@@ -27,7 +27,7 @@ Options can be defined within a module file with the `[[option]]` tag, the
 required attributes for an option are:
 
 * `category` (string): one of `common`, `expert`, `regular`, or `undocumented`
-* `type` (string): the C++ type of the option value, dee below for more details.
+* `type` (string): the C++ type of the option value, see below for more details.
 
 Optional attributes are:
 
@@ -52,7 +52,7 @@ Optional attributes are:
 * `includes` (list): additional header files required by handler or predicate
   functions
 * `minimum` (numeric): impose a minimum value on this option.
-* `maximum` (numeric): impose a minimum value on this option.
+* `maximum` (numeric): impose a maximum value on this option.
 * `help` (string): documentation string (required, unless the `category` is
   `undocumented`)
 * `help_mode` (string): documentation for the mode enum (required if `mode` is
