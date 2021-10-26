@@ -1,6 +1,5 @@
 (set-logic ALL)
 (set-info :status unsat)
-(set-option :check-proofs true)
 (declare-const x Int)
 (declare-fun b () (Array Int Int))
 (declare-fun y () Int)

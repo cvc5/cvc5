@@ -1802,6 +1802,7 @@ set(regress_1_tests
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
   regress1/proofs/qgu-fuzz-1-strings-pp.smt2
+  regress1/proofs/qgu-fuzz-arrays-1-dd-te-auto.smt2
   regress1/proofs/quant-alpha-eq.smt2
   regress1/proofs/sat-trivial-cycle.smt2
   regress1/proofs/unsat-cores-proofs.smt2
