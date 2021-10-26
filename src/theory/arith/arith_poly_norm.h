@@ -36,21 +36,19 @@ class PolyNorm
   void multiply(const PolyNorm& p);
   void clear();
   bool empty() const;
-
-  std::unordered_map<Node, Node> d_polyNorm;
-
+  bool isEqual(const PolyNorm& p) const;
   static PolyNorm mkPolyNorm(Node n);
-
   static bool isArithPolyNorm(Node a, Node b);
-
- private:
-  /**
+private:
+  /** 
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.
    */
   static Node multMonoVar(Node m1, Node m2);
   /** Get the list of variables whose product is m */
   static std::vector<Node> getMonoVars(Node m);
+  /** The data, mapping monomial variables to coefficients */
+  std::unordered_map<Node, Node> d_polyNorm;
 };
 
 }  // namespace arith
