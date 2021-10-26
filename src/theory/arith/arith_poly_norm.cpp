@@ -126,7 +126,7 @@ bool PolyNorm::isEqual(const PolyNorm& p) const
     return false;
   }
   std::unordered_map<Node, Node>::const_iterator it;
-  for (const std::pair<Node, Node>& m : d_polyNorm)
+  for (const std::pair<const Node, Node>& m : d_polyNorm)
   {
     it = p.d_polyNorm.find(m.first);
     if (it == p.d_polyNorm.end() || m.second != it->second)
