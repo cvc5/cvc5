@@ -225,8 +225,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     else
     {
-      lhsClause.insert(
-          lhsClause.end(), children[0].begin(), children[0].end());
+      lhsClause.insert(lhsClause.end(), children[0].begin(), children[0].end());
     }
     // Traverse the links, which amounts to for each pair of args removing a
     // literal from the lhs and a literal from the lhs.
@@ -245,7 +244,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
         rhsElim = args[i + 1];
       }
       // The index of the child corresponding to the current rhs clause
-      size_t childIndex = i/2 + 1;
+      size_t childIndex = i / 2 + 1;
       // Get rhs clause. It's a singleton if not an OR node or if equal to
       // rhsElim
       if (children[childIndex].getKind() != kind::OR
@@ -259,12 +258,13 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                          children[childIndex].begin(),
                          children[childIndex].end());
       }
-      Trace("bool-pfcheck") << i/2 << "-th res link:\n";
+      Trace("bool-pfcheck") << i / 2 << "-th res link:\n";
       Trace("bool-pfcheck") << "\t - lhsClause: " << lhsClause << "\n";
       Trace("bool-pfcheck") << "\t\t - lhsElim: " << lhsElim << "\n";
       Trace("bool-pfcheck") << "\t - rhsClause: " << rhsClause << "\n";
       Trace("bool-pfcheck") << "\t\t - rhsElim: " << rhsElim << "\n";
-      // Compute the resulting clause, which will be the next lhsClause, as follows:
+      // Compute the resulting clause, which will be the next lhsClause, as
+      // follows:
       //   - remove lhsElim from lhsClause
       //   - remove rhsElim from rhsClause and add the lits to lhsClause
       auto itlhs = std::find(lhsClause.begin(), lhsClause.end(), lhsElim);
@@ -278,7 +278,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       Trace("bool-pfcheck") << "\t.. after rhsClause: " << lhsClause << "\n";
       rhsClause.clear();
     }
-    Trace("bool-pfcheck") << "\n resulting clause: " << lhsClause << "\n" << pop;
+    Trace("bool-pfcheck") << "\n resulting clause: " << lhsClause << "\n"
+                          << pop;
     return nm->mkOr(lhsClause);
   }
   if (id == PfRule::MACRO_RESOLUTION_TRUST)
