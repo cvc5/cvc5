@@ -7,6 +7,8 @@ that is intended for regular users. These can be enabled using the
 
 As of now, the following output tags are supported:
 
+.. include-build-file:: output_tags_generated.rst
+
 
 Quantifier instantiations (``-o inst``)
 ---------------------------------------
