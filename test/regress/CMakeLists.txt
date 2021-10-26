@@ -449,6 +449,7 @@ set(regress_0_tests
   regress0/cores/issue4971-2.smt2
   regress0/cores/issue4971-3.smt2
   regress0/cores/issue5079.smt2
+  regress0/cores/issue5234-uc-ua.smt2 
   regress0/cores/issue5238.smt2
   regress0/cores/issue5902.smt2
   regress0/cores/issue5908.smt2
@@ -1454,6 +1455,7 @@ set(regress_0_tests
   regress0/unconstrained/geq.smt2
   regress0/unconstrained/gt.smt2
   regress0/unconstrained/issue4644.smt2
+  regress0/unconstrained/issue4656-bool-term-vars.smt2
   regress0/unconstrained/ite.smt2
   regress0/unconstrained/leq.smt2
   regress0/unconstrained/lt.smt2
@@ -1961,6 +1963,7 @@ set(regress_1_tests
   regress1/quantifiers/issue6699-nc-shadow.smt2
   regress1/quantifiers/issue6775-vts-int.smt2
   regress1/quantifiers/issue6845-nl-lemma-tc.smt2
+  regress1/quantifiers/issue7385-sygus-inst-i.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
