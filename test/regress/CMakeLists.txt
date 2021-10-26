@@ -449,6 +449,7 @@ set(regress_0_tests
   regress0/cores/issue4971-2.smt2
   regress0/cores/issue4971-3.smt2
   regress0/cores/issue5079.smt2
+  regress0/cores/issue5234-uc-ua.smt2 
   regress0/cores/issue5238.smt2
   regress0/cores/issue5902.smt2
   regress0/cores/issue5908.smt2
