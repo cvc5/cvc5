@@ -793,7 +793,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // If F1 = (or G1 ... Gn), then P1 will be printed as (cl G1 ... Gn) but
     // needs to be printed as (cl (or G1 ... Gn)). The only exception to this
     // are ASSUME steps that are always printed as (cl (or G1 ... Gn)) and
-    // EQ_RESOLVE steps itself.
+    // EQ_RESOLVE steps themselves.
     //
     //           ------  ...  ------ OR_NEG
     //   P1       VP21   ...   VP2n
@@ -844,15 +844,14 @@ bool AletheProofPostprocessCallback::update(Node res,
         PfRule pr = cdp->getProofFor(child1)->getRule();
         if (pr != PfRule::ASSUME && pr != PfRule::EQ_RESOLVE)
         {
-          std::vector<Node> clauses;
-          clauses.push_back(d_cl);  // cl
+          std::vector<Node> clauses{d_cl};
           clauses.insert(clauses.end(),
                          children[0].begin(),
                          children[0].end());  //(cl G1 ... Gn)
 
-          std::vector<Node> vp2Nodes = {children[0]};
-          std::vector<Node> resNodes = {d_cl};
-          for (int i = 0; i < children[0].end() - children[0].begin(); i++)
+          std::vector<Node> vp2Nodes{children[0]};
+          std::vector<Node> resNodes{d_cl};
+          for (size_t i = 0, size = children[0].getNumChildren(); i < size; i++)
           {
             Node vp2i = nm->mkNode(
                 kind::SEXPR,
