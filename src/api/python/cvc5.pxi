@@ -2419,11 +2419,11 @@ cdef class Sort:
         """
             Is this a first-class sort?
             First-class sorts are sorts for which:
-            
-	    1. we handle equalities between terms of that type, and
+
+            1. we handle equalities between terms of that type, and
             2. they are allowed to be parameters of parametric sorts
             (e.g. index or element sorts of arrays).
-            
+
             Examples of sorts that are not first-class include sort constructor
             sorts and regular expression sorts.
 
