@@ -38,12 +38,13 @@ class PolyNorm
   bool empty() const;
 
   std::unordered_map<Node, Node> d_polyNorm;
-  
+
   static PolyNorm mkPolyNorm(Node n);
-  
+
   static bool isArithPolyNorm(Node a, Node b);
-private:
-  /** 
+
+ private:
+  /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.
    */
