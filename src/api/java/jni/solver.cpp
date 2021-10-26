@@ -39,7 +39,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_newSolver(JNIEnv*,
 JNIEXPORT void JNICALL
 Java_io_github_cvc5_api_Solver_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
-  delete (reinterpret_cast<Solver*>(pointer));
+  // delete (reinterpret_cast<Solver*>(pointer));
 }
 
 /*
