@@ -18,15 +18,37 @@
 #ifndef CVC5__THEORY__ARITH__POLY_NORM_H
 #define CVC5__THEORY__ARITH__POLY_NORM_H
 
+#include <unordered_map>
+
 #include "expr/node.h"
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
-bool isArithPolyNorm(Node n, Node p);
+class MonomialVar
+{
+public:
+  static Node multMonoVar(Node m1, Node m2);
+};
 
-Node arithPolyNorm(Node n);
+class PolyNorm
+{
+ public:
+  void addMonomial(Node x, Node c, bool isNeg = false);
+  void multiplyMonomial(Node x, Node c);
+  void add(const PolyNorm& p);
+  void subtract(const PolyNorm& p);
+  void multiply(const PolyNorm& p);
+  void clear();
+  bool empty() const;
+
+  std::unordered_map<Node, Node> d_polyNorm;
+  
+  static PolyNorm mkPolyNorm(Node n);
+  
+  static bool isArithPolyNorm(Node a, Node b);
+};
 
 }  // namespace arith
 }  // namespace theory
