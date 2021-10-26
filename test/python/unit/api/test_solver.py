@@ -422,6 +422,17 @@ def test_mk_floating_point(solver):
     with pytest.raises(RuntimeError):
         slv.mkFloatingPoint(3, 5, t1)
 
+def test_mk_cardinality_constraint(solver):
+    su = solver.mkUninterpretedSort("u")
+    si = solver.getIntegerSort()
+    solver.mkCardinalityConstraint(su, 3)
+    with pytest.raises(RuntimeError):
+        solver.mkEmptySet(solver.mkCardinalityConstraint(si, 3))
+    with pytest.raises(RuntimeError):
+        solver.mkEmptySet(solver.mkCardinalityConstraint(su, 0))
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkCardinalityConstraint(su, 3)
 
 def test_mk_empty_set(solver):
     slv = pycvc5.Solver()

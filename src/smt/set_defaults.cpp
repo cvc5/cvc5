@@ -1627,7 +1627,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     reqBasicSygus = true;
   }
   if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
-      || opts.quantifiers.sygusQueryGen)
+      || opts.quantifiers.sygusQueryGen != options::SygusQueryGenMode::NONE)
   {
     // rewrite rule synthesis implies that sygus stream must be true
     opts.quantifiers.sygusStream = true;
