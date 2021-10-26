@@ -94,8 +94,8 @@ void PolyNorm::multiply(const PolyNorm& p)
   }
   else
   {
-    // if multiplying by sum, must distribute
-    // remember the current and clear
+    // If multiplying by sum, must distribute; if multiplying by zero, clear.
+    // First, remember the current state and clear.
     std::unordered_map<Node, Rational> ptmp = d_polyNorm;
     d_polyNorm.clear();
     for (const std::pair<const Node, Rational>& m : p.d_polyNorm)
@@ -122,6 +122,7 @@ bool PolyNorm::isEqual(const PolyNorm& p) const
   std::unordered_map<Node, Rational>::const_iterator it;
   for (const std::pair<const Node, Rational>& m : d_polyNorm)
   {
+    Assert(m.second.sgn() != 0);
     it = p.d_polyNorm.find(m.first);
     if (it == p.d_polyNorm.end() || m.second != it->second)
     {
@@ -246,6 +247,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
             }
           }
           break;
+        case CONST_RATIONAL: break;
         default: Unhandled() << "Unhandled polynomial operation " << cur; break;
       }
     }
