@@ -2285,6 +2285,7 @@ set(regress_1_tests
   regress1/strings/nf-ff-contains-abs.smt2
   regress1/strings/no-lazy-pp-quant.smt2
   regress1/strings/non_termination_regular_expression4.smt2
+  regress1/strings/non-terminating-rewrite-aent.smt2
   regress1/strings/norn-13.smt2
   regress1/strings/norn-360.smt2
   regress1/strings/norn-ab.smt2
