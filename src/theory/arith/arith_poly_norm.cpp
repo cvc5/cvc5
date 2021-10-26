@@ -23,16 +23,15 @@ namespace arith {
 
 void PolyNorm::addMonomial(TNode x, const Rational& c, bool isNeg)
 {
-  Assert (c.sgn()!=0);
+  Assert(c.sgn() != 0);
   std::unordered_map<Node, Rational>::iterator it = d_polyNorm.find(x);
   if (it == d_polyNorm.end())
   {
-    d_polyNorm[x] =
-        isNeg ? -c : c;
+    d_polyNorm[x] = isNeg ? -c : c;
     return;
   }
   Rational res(it->second + (isNeg ? -c : c));
-  if (res.sgn()==0)
+  if (res.sgn() == 0)
   {
     // cancels
     d_polyNorm.erase(x);
@@ -45,15 +44,14 @@ void PolyNorm::addMonomial(TNode x, const Rational& c, bool isNeg)
 
 void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
 {
-  Assert (c.sgn()!=0);
+  Assert(c.sgn() != 0);
   if (x.isNull())
   {
     // multiply by constant
     for (std::pair<const Node, Rational>& m : d_polyNorm)
     {
       // c1*x*c2 = (c1*c2)*x
-      d_polyNorm[m.first] =
-          Rational(m.second * c);
+      d_polyNorm[m.first] = Rational(m.second * c);
     }
   }
   else
@@ -64,8 +62,7 @@ void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
     {
       // c1*x1*c2*x2 = (c1*c2)*(x1*x2)
       Node newM = multMonoVar(m.first, x);
-      d_polyNorm[newM] =
-          Rational(m.second * c);
+      d_polyNorm[newM] = Rational(m.second * c);
     }
   }
 }
@@ -160,7 +157,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   if (!m.isNull())
   {
     Kind k = m.getKind();
-    Assert (k!=CONST_RATIONAL);
+    Assert(k != CONST_RATIONAL);
     if (k == MULT || k == NONLINEAR_MULT)
     {
       vars.insert(vars.end(), m.begin(), m.end());
@@ -193,7 +190,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       if (k == CONST_RATIONAL)
       {
         Rational r = cur.getConst<Rational>();
-        if (r.sgn()==0)
+        if (r.sgn() == 0)
         {
           // zero is not an entry
           visited[cur].clear();
