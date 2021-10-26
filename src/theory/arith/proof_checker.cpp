@@ -23,6 +23,7 @@
 #include "theory/arith/constraint.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
+#include "theory/arith/arith_poly_norm.h"
 
 namespace cvc5 {
 namespace theory {
@@ -38,6 +39,7 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARITH_OP_ELIM_AXIOM, this);
   pc->registerChecker(PfRule::ARITH_MULT_POS, this);
   pc->registerChecker(PfRule::ARITH_MULT_NEG, this);
+  pc->registerChecker(PfRule::ARITH_POLY_NORM, this);
 }
 
 Node ArithProofRuleChecker::checkInternal(PfRule id,
@@ -342,6 +344,20 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       Assert(children.empty());
       Assert(args.size() == 1);
       return OperatorElim::getAxiomFor(args[0]);
+    }
+    case PfRule::ARITH_POLY_NORM:
+    {
+      Assert(children.empty());
+      Assert(args.size() == 1);
+      if (args[0].getKind()!=EQUAL)
+      {
+        return Node::null();
+      }
+      if (!PolyNorm::isArithPolyNorm(args[0][0], args[0][1]))
+      {
+        return Node::null();
+      }
+      return args[0];
     }
     default: return Node::null();
   }
