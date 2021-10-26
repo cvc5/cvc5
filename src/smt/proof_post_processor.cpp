@@ -18,6 +18,7 @@
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "smt/solver_engine.h"
 #include "theory/arith/arith_utilities.h"
@@ -164,6 +165,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     CDProof* cdp)
 {
   Trace("smt-proof-pp-debug2") << push;
+  Trace("smt-proof-pp-debug2") << "Clause lits: " << clauseLits << "\n";
+  Trace("smt-proof-pp-debug2") << "Target lits: " << targetClauseLits << "\n\n";
   NodeManager* nm = NodeManager::currentNM();
   Node trueNode = nm->mkConst(true);
   // get crowding lits and the position of the last clause that includes
@@ -696,11 +699,29 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                           chainConclusion.end()};
     std::set<Node> chainConclusionLitsSet{chainConclusion.begin(),
                                           chainConclusion.end()};
-    // is args[0] a singleton clause? If it's not an OR node, then yes.
-    // Otherwise, it's only a singleton if it occurs in chainConclusionLitsSet
+    Trace("smt-proof-pp-debug2")
+        << "..chainConclusionLits: " << chainConclusionLits << "\n";
+    Trace("smt-proof-pp-debug2")
+        << "..chainConclusionLitsSet: " << chainConclusionLitsSet << "\n";
     std::vector<Node> conclusionLits;
-    // whether conclusion is singleton
-    if (chainConclusionLitsSet.count(args[0]))
+    // is args[0] a singleton clause? Yes if it's not an OR node. One might also
+    // think that it is a singleton if args[0] occurs in chainConclusionLitsSet.
+    // However it's not possible to know this only looking at the sets. For
+    // example with
+    //
+    //  args[0]                : (or b c)
+    //  chairConclusionLitsSet : {b, c, (or b c)}
+    //
+    // we have that if args[0] occurs in the set but as a crowding literal, then
+    // args[0] is *not* a singleton clause. But if b and c were crowding
+    // literals, then args[0] would be a singleton clause. Since our intention
+    // is to determine who are the crowding literals exactly based on whether
+    // args[0] is a singleton or not, we must determine in another way whether
+    // args[0] is a singleton.
+    //
+    // Thus we rely on the standard utility to determine if args[0] is singleton
+    // based on the premises and arguments of the resolution
+    if (expr::isSingletonClause(args[0], children, chainResArgs))
     {
       conclusionLits.push_back(args[0]);
     }
