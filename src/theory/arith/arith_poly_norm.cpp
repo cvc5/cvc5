@@ -30,7 +30,8 @@ void PolyNorm::addMonomial(TNode x, TNode c, bool isNeg)
   std::unordered_map<Node, Node>::iterator it = d_polyNorm.find(x);
   if (it == d_polyNorm.end())
   {
-    d_polyNorm[x] = isNeg ? nm->mkConst(Rational(-c.getConst<Rational>())) : Node(c);
+    d_polyNorm[x] =
+        isNeg ? nm->mkConst(Rational(-c.getConst<Rational>())) : Node(c);
     return;
   }
   Rational r = c.getConst<Rational>();
@@ -147,7 +148,7 @@ Node PolyNorm::multMonoVar(TNode m1, TNode m2)
     // constants
     return Node::null();
   }
-  else if (vars.size()==1)
+  else if (vars.size() == 1)
   {
     return vars[0];
   }
@@ -177,7 +178,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
 
 PolyNorm PolyNorm::mkPolyNorm(TNode n)
 {
-  Assert (n.getType().isReal());
+  Assert(n.getType().isReal());
   NodeManager* nm = NodeManager::currentNM();
   Node one = nm->mkConst(Rational(1));
   Node null;

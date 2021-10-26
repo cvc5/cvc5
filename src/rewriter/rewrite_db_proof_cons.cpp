@@ -19,9 +19,9 @@
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
-#include "theory/arith/arith_poly_norm.h"
 
 using namespace cvc5::kind;
 
@@ -160,7 +160,8 @@ DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
     return eqTrueId;
   }
   // if arithmetic, maybe holds by arithmetic normalization?
-  if (proveWithRule(DslPfRule::ARITH_POLY_NORM, eqi, {}, {}, false, false, true))
+  if (proveWithRule(
+          DslPfRule::ARITH_POLY_NORM, eqi, {}, {}, false, false, true))
   {
     return DslPfRule::ARITH_POLY_NORM;
   }
@@ -294,7 +295,8 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     {
       return false;
     }
-    Trace("ajr-temp") << "Show " << target[0] << " == " << target[1] << "?" << std::endl;
+    Trace("ajr-temp") << "Show " << target[0] << " == " << target[1] << "?"
+                      << std::endl;
     // only works with arithmetic terms
     if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
     {
