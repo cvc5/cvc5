@@ -122,7 +122,7 @@ bool PolyNorm::isEqual(const PolyNorm& p) const
   std::unordered_map<Node, Rational>::const_iterator it;
   for (const std::pair<const Node, Rational>& m : d_polyNorm)
   {
-    Assert (m.second.sgn()!=0);
+    Assert(m.second.sgn() != 0);
     it = p.d_polyNorm.find(m.first);
     if (it == p.d_polyNorm.end() || m.second != it->second)
     {
@@ -247,7 +247,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
             }
           }
           break;
-        case CONST_RATIONAL:break;
+        case CONST_RATIONAL: break;
         default: Unhandled() << "Unhandled polynomial operation " << cur; break;
       }
     }
