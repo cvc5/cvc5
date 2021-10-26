@@ -142,6 +142,15 @@ Node PolyNorm::multMonoVar(Node m1, Node m2)
   std::vector<Node> vars = getMonoVars(m1);
   std::vector<Node> vars2 = getMonoVars(m2);
   vars.insert(vars.end(), vars2.begin(), vars2.end());
+  if (vars.empty())
+  {
+    // constants
+    return Node::null();
+  }
+  else if (vars.size()==1)
+  {
+    return vars[0];
+  }
   // use default sorting
   std::sort(vars.begin(), vars.end());
   return NodeManager::currentNM()->mkNode(NONLINEAR_MULT, vars);
@@ -150,14 +159,18 @@ Node PolyNorm::multMonoVar(Node m1, Node m2)
 std::vector<Node> PolyNorm::getMonoVars(Node m)
 {
   std::vector<Node> vars;
-  Kind k = m.getKind();
-  if (k == MULT || k == NONLINEAR_MULT)
+  // m is null if this is the empty variable (for constant monomials)
+  if (!m.isNull())
   {
-    vars.insert(vars.end(), m.begin(), m.end());
-  }
-  else
-  {
-    vars.push_back(m);
+    Kind k = m.getKind();
+    if (k == MULT || k == NONLINEAR_MULT)
+    {
+      vars.insert(vars.end(), m.begin(), m.end());
+    }
+    else
+    {
+      vars.push_back(m);
+    }
   }
   return vars;
 }

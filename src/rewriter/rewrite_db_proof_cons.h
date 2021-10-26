@@ -86,6 +86,8 @@ class RewriteDbProofCons
   };
   /** prove internal */
   DslPfRule proveInternal(Node eqi);
+  /** prove internal */
+  DslPfRule proveInternalViaStrategy(Node eqi);
   /** prove internal base eqi * { vars -> subs } */
   bool proveInternalBase(Node eqi, DslPfRule& id);
   /** ensure proof for proven fact exists in cdp */

@@ -21,6 +21,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "theory/arith/arith_poly_norm.h"
 
 using namespace cvc5::kind;
 
@@ -122,52 +123,52 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   Assert(eqi.getKind() == EQUAL);
   // first, try congruence if possible, which does not count towards recursion
   // limit.
-  DslPfRule retId;
+  DslPfRule retId = proveInternalViaStrategy(eqi);
+  d_currProving.erase(eqi);
+  return retId;
+}
+
+DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
+{
   if (proveWithRule(DslPfRule::CONG, eqi, {}, {}, false, false, true))
   {
     Trace("rpc-debug2") << "...proved via congruence" << std::endl;
-    retId = DslPfRule::CONG;
+    return DslPfRule::CONG;
   }
-  else
+  Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
+  d_currRecLimit--;
+  Node prevTarget = d_target;
+  d_target = eqi;
+  d_db->getMatches(eqi[0], &d_notify);
+  d_target = prevTarget;
+  d_currRecLimit++;
+  // if we cached it during the above call, we succeeded
+  std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
+  if (it != d_pcache.end())
   {
-    Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
-    d_currRecLimit--;
-    Node prevTarget = d_target;
-    d_target = eqi;
-    d_db->getMatches(eqi[0], &d_notify);
-    d_target = prevTarget;
-    d_currRecLimit++;
-    // if we cached it during the above call, we succeeded
-    std::unordered_map<Node, ProvenInfo>::iterator it = d_pcache.find(eqi);
-    if (it != d_pcache.end())
-    {
-      // Assert(it->second.d_id != DslPfRule::FAIL)
-      //    << "unexpected failure for " << eqi;
-      retId = it->second.d_id;
-    }
-    else
-    {
-      // if target is (= (= t1 t2) true), maybe try showing (= t1 t2); otherwise
-      // try showing (= target true)
-      DslPfRule eqTrueId =
-          eqi[1] == d_true ? DslPfRule::TRUE_INTRO : DslPfRule::TRUE_ELIM;
-      if (proveWithRule(eqTrueId, eqi, {}, {}, false, false, true))
-      {
-        Trace("rpc-debug2") << "...proved via " << eqTrueId << std::endl;
-        retId = eqTrueId;
-      }
-      else
-      {
-        // store failure, and its maximum depth
-        ProvenInfo& pi = d_pcache[eqi];
-        pi.d_id = DslPfRule::FAIL;
-        pi.d_failMaxDepth = d_currRecLimit;
-        retId = DslPfRule::FAIL;
-      }
-    }
+    // Assert(it->second.d_id != DslPfRule::FAIL)
+    //    << "unexpected failure for " << eqi;
+    return it->second.d_id;
   }
-  d_currProving.erase(eqi);
-  return retId;
+  // if target is (= (= t1 t2) true), maybe try showing (= t1 t2); otherwise
+  // try showing (= target true)
+  DslPfRule eqTrueId =
+      eqi[1] == d_true ? DslPfRule::TRUE_INTRO : DslPfRule::TRUE_ELIM;
+  if (proveWithRule(eqTrueId, eqi, {}, {}, false, false, true))
+  {
+    Trace("rpc-debug2") << "...proved via " << eqTrueId << std::endl;
+    return eqTrueId;
+  }
+  // if arithmetic, maybe holds by arithmetic normalization?
+  if (proveWithRule(DslPfRule::ARITH_POLY_NORM, eqi, {}, {}, false, false, true))
+  {
+    return DslPfRule::ARITH_POLY_NORM;
+  }
+  // store failure, and its maximum depth
+  ProvenInfo& pi = d_pcache[eqi];
+  pi.d_id = DslPfRule::FAIL;
+  pi.d_failMaxDepth = d_currRecLimit;
+  return DslPfRule::FAIL;
 }
 
 bool RewriteDbProofCons::notifyMatch(Node s,
@@ -286,6 +287,21 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     Node eq = target[0];
     vcs.push_back(eq);
     pic.d_vars.push_back(eq);
+  }
+  else if (id == DslPfRule::ARITH_POLY_NORM)
+  {
+    if (!target[0].getType().isReal())
+    {
+      return false;
+    }
+    Trace("ajr-temp") << "Show " << target[0] << " == " << target[1] << "?" << std::endl;
+    // only works with arithmetic terms
+    if (!theory::arith::PolyNorm::isArithPolyNorm(target[0], target[1]))
+    {
+      Trace("ajr-temp") << "...fail" << std::endl;
+      return false;
+    }
+    pic.d_id = id;
   }
   else
   {
@@ -667,6 +683,10 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       {
         conc = ps[0].eqNode(d_true);
         cdp->addStep(conc, PfRule::TRUE_INTRO, ps, {});
+      }
+      else if (itd->second.d_id == DslPfRule::ARITH_POLY_NORM)
+      {
+        cdp->addStep(cur, PfRule::ARITH_POLY_NORM, {}, {cur});
       }
       else
       {
