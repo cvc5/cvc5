@@ -1251,7 +1251,7 @@ endif()
 # mkoptions.py over and over again.
 # We thus have an artificial options.stamp file that mkoptions.py always writes
 # to, and can thus be used to communicate that all options files have been
-# proper updated.
+# properly updated.
 add_custom_command(
   OUTPUT
     options/options.stamp
