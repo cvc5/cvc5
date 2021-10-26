@@ -41,6 +41,9 @@ class LazyCDProof : public CDProof
    * for facts that have no explicitly provided generator.
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
+   * @param name The name of this proof generator (for debugging)
+   * @param autoSym Whether symmetry steps are automatically added when adding
+   * steps to this proof
    */
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,

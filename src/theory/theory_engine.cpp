@@ -1545,7 +1545,11 @@ TrustNode TheoryEngine::getExplanation(
     //   y = x
     // Notice that this complication arises since propagations consider
     // equalities that are not in rewritten form. This complication would not
-    // exist otherwise.
+    // exist otherwise. It is the shared term database that introduces these
+    // unrewritten equalities; it must do so since theory combination requires
+    // communicating arrangements between shared terms, and the rewriter
+    // for arithmetic equalities does not preserve terms, e.g. x=y may become
+    // x+-1*y=0.
     lcp.reset(new LazyCDProof(d_pnm,
                               nullptr,
                               nullptr,
