@@ -1812,14 +1812,14 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       return returnRewrite(node, ret, Rewrite::SS_LEN_INCLUDE);
     }
   }
-  
+
   // (str.substr s x x) ---> "" if (str.len s) <= 1
   if (node[1] == node[2] && d_stringsEntail.checkLengthOne(node[0]))
   {
     Node ret = Word::mkEmptyWord(node.getType());
     return returnRewrite(node, ret, Rewrite::SS_LEN_ONE_Z_Z);
   }
-  
+
   // symbolic length analysis
   for (unsigned r = 0; r < 2; r++)
   {
