@@ -1707,6 +1707,7 @@ set(regress_1_tests
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
   regress1/ho/issue4134-sinf.smt2
+  regress1/ho/issue4758.smt2
   regress1/ho/issue5741-3.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
