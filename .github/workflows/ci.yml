@@ -57,8 +57,7 @@ jobs:
 
     steps:
 
-    - uses: actions/checkout@v2
-    
+    - uses: actions/checkout@v2    
 
     - name: Install dependencies
       uses: ./.github/actions/install-dependencies
