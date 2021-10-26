@@ -76,7 +76,7 @@ if(NOT GMP_FOUND_SYSTEM)
         <SOURCE_DIR>/configure --enable-shared --disable-static
         --prefix=<INSTALL_DIR>/gmp-shared
         --enable-cxx --with-pic --host=${TOOLCHAIN_PREFIX}
-      BUILD_BYPRODUCTS <INSTALL_DIR>/gmp-shared/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}
+      BUILD_BYPRODUCTS <INSTALL_DIR>/gmp-shared/lib/libgmp.dll.a
     )
     ExternalProject_Add(
       GMP-EP-static
@@ -95,7 +95,7 @@ if(NOT GMP_FOUND_SYSTEM)
 
     set(GMP_INCLUDE_DIR "${DEPS_BASE}/gmp-shared/include/")
     set(GMP_STATIC_INCLUDE_DIR "${DEPS_BASE}/gmp-static/include/")
-    set(GMP_LIBRARIES "${DEPS_BASE}/gmp-shared/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(GMP_LIBRARIES "${DEPS_BASE}/gmp-shared/lib/libgmp.dll.a")
     set(GMP_STATIC_LIBRARIES "${DEPS_BASE}/gmp-static/lib/libgmp.a")
 
     file(MAKE_DIRECTORY "${GMP_INCLUDE_DIR}")
