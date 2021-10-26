@@ -24,24 +24,27 @@ namespace arith {
 bool isArithPolyNorm(Node n, Node p)
 {
   Node nn = arithPolyNorm(n);
-  
+
   return false;
 }
 
 Node arithPolyNorm(Node n)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     it = visited.find(cur);
     Kind k = cur.getKind();
-    if (it == visited.end()) {
-      if (k==PLUS || k==MINUS || k==UMINUS || k==MULT || k==NONLINEAR_MULT)
+    if (it == visited.end())
+    {
+      if (k == PLUS || k == MINUS || k == UMINUS || k == MULT
+          || k == NONLINEAR_MULT)
       {
         // it is a leaf
         visited[cur] = cur;
@@ -50,20 +53,22 @@ Node arithPolyNorm(Node n)
       else
       {
         visited[cur] = Node::null();
-        for (const Node& cn : cur) {
+        for (const Node& cn : cur)
+        {
           visit.push_back(cn);
         }
       }
       continue;
     }
     visit.pop_back();
-    if (it->second.isNull()) 
+    if (it->second.isNull())
     {
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      Assert (cur.getMetaKind() != kind::metakind::PARAMETERIZED);
-      for (const Node& cn : cur) {
+      Assert(cur.getMetaKind() != kind::metakind::PARAMETERIZED);
+      for (const Node& cn : cur)
+      {
         it = visited.find(cn);
         Assert(it != visited.end());
         Assert(!it->second.isNull());
@@ -72,16 +77,11 @@ Node arithPolyNorm(Node n)
       }
       switch (k)
       {
-        case PLUS:
-          break;
-        case MINUS:
-          break;
-        case UMINUS:
-          break;
-        case MULT:
-          break;
-        case NONLINEAR_MULT:
-          break;
+        case PLUS: break;
+        case MINUS: break;
+        case UMINUS: break;
+        case MULT: break;
+        case NONLINEAR_MULT: break;
       }
       visited[cur] = ret;
     }
