@@ -349,7 +349,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      if (args[0].getKind() != EQUAL)
+      if (args[0].getKind() != kind::EQUAL)
       {
         return Node::null();
       }
