@@ -31,8 +31,16 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-BagSolver::BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr)
-    : d_state(s), d_ig(&s, &im), d_im(im), d_termReg(tr)
+BagSolver::BagSolver(Env& env,
+                     SolverState& s,
+                     InferenceManager& im,
+                     TermRegistry& tr)
+    : EnvObj(env),
+      d_state(s),
+      d_ig(&s, &im),
+      d_im(im),
+      d_termReg(tr),
+      d_mapCache(userContext())
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -69,6 +77,7 @@ void BagSolver::postCheck()
         case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case kind::DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
+        case kind::BAG_MAP: checkMap(n); break;
         default: break;
       }
       it++;
@@ -207,6 +216,34 @@ void BagSolver::checkDisequalBagTerms()
   {
     InferInfo info = d_ig.bagDisequality(n);
     d_im.lemmaTheoryInference(&info);
+  }
+}
+
+void BagSolver::checkMap(Node n)
+{
+  Assert(n.getKind() == BAG_MAP);
+  const set<Node>& downwards = d_state.getElements(n);
+  const set<Node>& upwards = d_state.getElements(n[1]);
+  for (const Node& y : downwards)
+  {
+    if (d_mapCache.count(n) && d_mapCache[n].get()->contains(y))
+    {
+      continue;
+    }
+    auto [downInference, uf, preImageSize] = d_ig.mapDownwards(n, y);
+    d_im.lemmaTheoryInference(&downInference);
+    for (const Node& x : upwards)
+    {
+      InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y, x);
+      d_im.lemmaTheoryInference(&upInference);
+    }
+    if (!d_mapCache.count(n))
+    {
+      std::shared_ptr<context::CDHashSet<Node> > set =
+          std::make_shared<context::CDHashSet<Node> >(userContext());
+      d_mapCache.insert(n, set);
+    }
+    d_mapCache[n].get()->insert(y);
   }
 }
 

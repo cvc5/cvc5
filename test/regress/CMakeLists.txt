@@ -890,6 +890,7 @@ set(regress_0_tests
   regress0/push-pop/issue1986.smt2
   regress0/push-pop/issue2137.min.smt2
   regress0/push-pop/issue6535-inc-solve.smt2
+  regress0/push-pop/issue7479-global-decls.smt2
   regress0/push-pop/quant-fun-proc-unfd.smt2
   regress0/push-pop/real-as-int-incremental.smt2
   regress0/push-pop/simple_unsat_cores.smt2
@@ -1569,9 +1570,14 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/fuzzy1.smt2
+  regress1/bags/fuzzy2.smt2
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
+  regress1/bags/map1.smt2
+  regress1/bags/map2.smt2
+  regress1/bags/map3.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/union_disjoint.smt2
@@ -2280,6 +2286,7 @@ set(regress_1_tests
   regress1/strings/nt6-dd.smt2
   regress1/strings/nterm-re-inter-sigma.smt2
   regress1/strings/open-pf-merge.smt2
+  regress1/strings/pattern1.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
   regress1/strings/pre_ctn_no_skolem_share.smt2
@@ -2631,6 +2638,7 @@ set(regress_2_tests
   regress2/sygus/pbe_bvurem.sy
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
+  regress2/sygus/qgu-bools.sy
   regress2/sygus/real-grammar-neg.sy
   regress2/sygus/sets-fun-test.sy
   regress2/sygus/sumn_recur_synth.sy
