@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "expr/node.h"
+#include "util/rational.h"
 
 namespace cvc5 {
 namespace theory {
@@ -34,15 +35,15 @@ class PolyNorm
 {
  public:
   /**
-   * Add the monomial x*c to this polynomial, where c is a CONST_RATIONAL.
+   * Add the monomial x*c to this polynomial.
    * If x is null, then x*c is treated as c.
    */
-  void addMonomial(TNode x, TNode c, bool isNeg = false);
+  void addMonomial(TNode x, const Rational& c, bool isNeg = false);
   /**
    * Multiply this polynomial by the monomial x*c, where c is a CONST_RATIONAL.
    * If x is null, then x*c is treated as c.
    */
-  void multiplyMonomial(TNode x, TNode c);
+  void multiplyMonomial(TNode x, const Rational& c);
   /** Add polynomial p to this one. */
   void add(const PolyNorm& p);
   /** Subtract polynomial p from this one. */
@@ -72,7 +73,7 @@ class PolyNorm
   /** Get the list of variables whose product is m */
   static std::vector<TNode> getMonoVars(TNode m);
   /** The data, mapping monomial variables to coefficients */
-  std::unordered_map<Node, Node> d_polyNorm;
+  std::unordered_map<Node, Rational> d_polyNorm;
 };
 
 }  // namespace arith
