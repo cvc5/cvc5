@@ -15,68 +15,64 @@
 
 #include "theory/arith/arith_poly_norm.h"
 
-#include "util/rational.h"
-
 using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
-void PolyNorm::addMonomial(TNode x, TNode c, bool isNeg)
+void PolyNorm::addMonomial(TNode x, const Rational& c, bool isNeg)
 {
-  Assert(c.getKind() == CONST_RATIONAL);
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, Node>::iterator it = d_polyNorm.find(x);
+  Assert (c.sgn()!=0);
+  std::unordered_map<Node, Rational>::iterator it = d_polyNorm.find(x);
   if (it == d_polyNorm.end())
   {
     d_polyNorm[x] =
-        isNeg ? nm->mkConst(Rational(-c.getConst<Rational>())) : Node(c);
+        isNeg ? -c : c;
     return;
   }
-  Rational r = c.getConst<Rational>();
-  if (isNeg)
+  Rational res(it->second + (isNeg ? -c : c));
+  if (res.sgn()==0)
   {
-    r = -r;
+    // cancels
+    d_polyNorm.erase(x);
   }
-  Assert(it->second.getKind() == CONST_RATIONAL);
-  d_polyNorm[x] = nm->mkConst(Rational(it->second.getConst<Rational>() + r));
+  else
+  {
+    d_polyNorm[x] = res;
+  }
 }
 
-void PolyNorm::multiplyMonomial(TNode x, TNode c)
+void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
 {
-  Assert(c.getKind() == CONST_RATIONAL);
-  NodeManager* nm = NodeManager::currentNM();
-  Rational r = c.getConst<Rational>();
+  Assert (c.sgn()!=0);
   if (x.isNull())
   {
     // multiply by constant
-    for (std::pair<const Node, Node>& m : d_polyNorm)
+    for (std::pair<const Node, Rational>& m : d_polyNorm)
     {
-      Assert(m.second.getKind() == CONST_RATIONAL);
       // c1*x*c2 = (c1*c2)*x
       d_polyNorm[m.first] =
-          nm->mkConst(Rational(m.second.getConst<Rational>() * r));
+          Rational(m.second * c);
     }
   }
   else
   {
-    std::unordered_map<Node, Node> ptmp = d_polyNorm;
+    std::unordered_map<Node, Rational> ptmp = d_polyNorm;
     d_polyNorm.clear();
-    for (const std::pair<const Node, Node>& m : ptmp)
+    for (const std::pair<const Node, Rational>& m : ptmp)
     {
-      Assert(m.second.getKind() == CONST_RATIONAL);
       // c1*x1*c2*x2 = (c1*c2)*(x1*x2)
       Node newM = multMonoVar(m.first, x);
       d_polyNorm[newM] =
-          nm->mkConst(Rational(m.second.getConst<Rational>() * r));
+          Rational(m.second * c);
     }
   }
 }
 
 void PolyNorm::add(const PolyNorm& p)
 {
-  for (const std::pair<const Node, Node>& m : p.d_polyNorm)
+  for (const std::pair<const Node, Rational>& m : p.d_polyNorm)
   {
     addMonomial(m.first, m.second);
   }
@@ -84,7 +80,7 @@ void PolyNorm::add(const PolyNorm& p)
 
 void PolyNorm::subtract(const PolyNorm& p)
 {
-  for (const std::pair<const Node, Node>& m : p.d_polyNorm)
+  for (const std::pair<const Node, Rational>& m : p.d_polyNorm)
   {
     addMonomial(m.first, m.second, true);
   }
@@ -94,7 +90,7 @@ void PolyNorm::multiply(const PolyNorm& p)
 {
   if (p.d_polyNorm.size() == 1)
   {
-    for (const std::pair<const Node, Node>& m : p.d_polyNorm)
+    for (const std::pair<const Node, Rational>& m : p.d_polyNorm)
     {
       multiplyMonomial(m.first, m.second);
     }
@@ -103,9 +99,9 @@ void PolyNorm::multiply(const PolyNorm& p)
   {
     // if multiplying by sum, must distribute
     // remember the current and clear
-    std::unordered_map<Node, Node> ptmp = d_polyNorm;
+    std::unordered_map<Node, Rational> ptmp = d_polyNorm;
     d_polyNorm.clear();
-    for (const std::pair<const Node, Node>& m : p.d_polyNorm)
+    for (const std::pair<const Node, Rational>& m : p.d_polyNorm)
     {
       PolyNorm pbase;
       pbase.d_polyNorm = ptmp;
@@ -126,8 +122,8 @@ bool PolyNorm::isEqual(const PolyNorm& p) const
   {
     return false;
   }
-  std::unordered_map<Node, Node>::const_iterator it;
-  for (const std::pair<const Node, Node>& m : d_polyNorm)
+  std::unordered_map<Node, Rational>::const_iterator it;
+  for (const std::pair<const Node, Rational>& m : d_polyNorm)
   {
     it = p.d_polyNorm.find(m.first);
     if (it == p.d_polyNorm.end() || m.second != it->second)
@@ -164,6 +160,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   if (!m.isNull())
   {
     Kind k = m.getKind();
+    Assert (k!=CONST_RATIONAL);
     if (k == MULT || k == NONLINEAR_MULT)
     {
       vars.insert(vars.end(), m.begin(), m.end());
@@ -179,8 +176,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
 PolyNorm PolyNorm::mkPolyNorm(TNode n)
 {
   Assert(n.getType().isReal());
-  NodeManager* nm = NodeManager::currentNM();
-  Node one = nm->mkConst(Rational(1));
+  Rational one(1);
   Node null;
   std::unordered_map<TNode, PolyNorm> visited;
   std::unordered_map<TNode, PolyNorm>::iterator it;
@@ -196,7 +192,16 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
     {
       if (k == CONST_RATIONAL)
       {
-        visited[cur].addMonomial(null, cur);
+        Rational r = cur.getConst<Rational>();
+        if (r.sgn()==0)
+        {
+          // zero is not an entry
+          visited[cur].clear();
+        }
+        else
+        {
+          visited[cur].addMonomial(null, r);
+        }
       }
       else if (k == PLUS || k == MINUS || k == UMINUS || k == MULT
                || k == NONLINEAR_MULT)
