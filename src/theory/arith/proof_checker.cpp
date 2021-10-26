@@ -19,11 +19,11 @@
 #include <set>
 
 #include "expr/skolem_manager.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
-#include "theory/arith/arith_poly_norm.h"
 
 namespace cvc5 {
 namespace theory {
@@ -349,7 +349,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      if (args[0].getKind()!=EQUAL)
+      if (args[0].getKind() != EQUAL)
       {
         return Node::null();
       }
