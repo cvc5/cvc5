@@ -75,4 +75,5 @@ runs:
         if [[ "${{ inputs.with-documentation }}" != "true" ]]; then exit 0; fi
         sudo apt-get install -y doxygen python3-docutils python3-jinja2
         python3 -m pip install \
-          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe
+          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe \
+          sphinxcontrib-programoutput
