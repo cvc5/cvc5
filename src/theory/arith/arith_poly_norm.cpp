@@ -23,14 +23,14 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-void PolyNorm::addMonomial(Node x, Node c, bool isNeg)
+void PolyNorm::addMonomial(TNode x, TNode c, bool isNeg)
 {
   Assert(c.getKind() == CONST_RATIONAL);
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node>::iterator it = d_polyNorm.find(x);
   if (it == d_polyNorm.end())
   {
-    d_polyNorm[x] = isNeg ? nm->mkConst(Rational(-c.getConst<Rational>())) : c;
+    d_polyNorm[x] = isNeg ? nm->mkConst(Rational(-c.getConst<Rational>())) : Node(c);
     return;
   }
   Rational r = c.getConst<Rational>();
@@ -42,7 +42,7 @@ void PolyNorm::addMonomial(Node x, Node c, bool isNeg)
   d_polyNorm[x] = nm->mkConst(Rational(it->second.getConst<Rational>() + r));
 }
 
-void PolyNorm::multiplyMonomial(Node x, Node c)
+void PolyNorm::multiplyMonomial(TNode x, TNode c)
 {
   Assert(c.getKind() == CONST_RATIONAL);
   NodeManager* nm = NodeManager::currentNM();
@@ -137,10 +137,10 @@ bool PolyNorm::isEqual(const PolyNorm& p) const
   return true;
 }
 
-Node PolyNorm::multMonoVar(Node m1, Node m2)
+Node PolyNorm::multMonoVar(TNode m1, TNode m2)
 {
-  std::vector<Node> vars = getMonoVars(m1);
-  std::vector<Node> vars2 = getMonoVars(m2);
+  std::vector<TNode> vars = getMonoVars(m1);
+  std::vector<TNode> vars2 = getMonoVars(m2);
   vars.insert(vars.end(), vars2.begin(), vars2.end());
   if (vars.empty())
   {
@@ -156,9 +156,9 @@ Node PolyNorm::multMonoVar(Node m1, Node m2)
   return NodeManager::currentNM()->mkNode(NONLINEAR_MULT, vars);
 }
 
-std::vector<Node> PolyNorm::getMonoVars(Node m)
+std::vector<TNode> PolyNorm::getMonoVars(TNode m)
 {
-  std::vector<Node> vars;
+  std::vector<TNode> vars;
   // m is null if this is the empty variable (for constant monomials)
   if (!m.isNull())
   {
@@ -175,8 +175,9 @@ std::vector<Node> PolyNorm::getMonoVars(Node m)
   return vars;
 }
 
-PolyNorm PolyNorm::mkPolyNorm(Node n)
+PolyNorm PolyNorm::mkPolyNorm(TNode n)
 {
+  Assert (n.getType().isReal());
   NodeManager* nm = NodeManager::currentNM();
   Node one = nm->mkConst(Rational(1));
   Node null;
@@ -250,7 +251,7 @@ PolyNorm PolyNorm::mkPolyNorm(Node n)
   return visited[n];
 }
 
-bool PolyNorm::isArithPolyNorm(Node a, Node b)
+bool PolyNorm::isArithPolyNorm(TNode a, TNode b)
 {
   PolyNorm pa = PolyNorm::mkPolyNorm(a);
   PolyNorm pb = PolyNorm::mkPolyNorm(b);

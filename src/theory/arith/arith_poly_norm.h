@@ -26,28 +26,50 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+/**
+ * A utility class for polynomial normalization. This is used by the proof
+ * rule PfRule::ARITH_POLY_NORM.
+ */
 class PolyNorm
 {
  public:
-  void addMonomial(Node x, Node c, bool isNeg = false);
-  void multiplyMonomial(Node x, Node c);
+  /** 
+   * Add the monomial x*c to this polynomial, where c is a CONST_RATIONAL.
+   * If x is null, then x*c is treated as c.
+   */
+  void addMonomial(TNode x, TNode c, bool isNeg = false);
+  /** 
+   * Multiply this polynomial by the monomial x*c, where c is a CONST_RATIONAL.
+   * If x is null, then x*c is treated as c.
+   */
+  void multiplyMonomial(TNode x, TNode c);
+  /** Add polynomial p to this one. */
   void add(const PolyNorm& p);
+  /** Subtract polynomial p from this one. */
   void subtract(const PolyNorm& p);
+  /** Multiply this polynomial by p */
   void multiply(const PolyNorm& p);
+  /** Clear this polynomial */
   void clear();
+  /** Return true if this polynomial is empty */
   bool empty() const;
+  /** Is this polynomial equal to polynomial p? */
   bool isEqual(const PolyNorm& p) const;
-  static PolyNorm mkPolyNorm(Node n);
-  static bool isArithPolyNorm(Node a, Node b);
-
+  /** 
+   * Make polynomial from real term n. This method normalizes applications
+   * of operators PLUS, MINUS, UMINUS, MULT, and NONLINEAR_MULT only.
+   */
+  static PolyNorm mkPolyNorm(TNode n);
+  /** Do a and b normalize to the same polynomial? */
+  static bool isArithPolyNorm(TNode a, TNode b);
  private:
   /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.
    */
-  static Node multMonoVar(Node m1, Node m2);
+  static Node multMonoVar(TNode m1, TNode m2);
   /** Get the list of variables whose product is m */
-  static std::vector<Node> getMonoVars(Node m);
+  static std::vector<TNode> getMonoVars(TNode m);
   /** The data, mapping monomial variables to coefficients */
   std::unordered_map<Node, Node> d_polyNorm;
 };
