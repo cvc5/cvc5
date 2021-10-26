@@ -219,6 +219,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkRegexpSigma() except +
         Term mkEmptySet(Sort s) except +
         Term mkEmptyBag(Sort s) except +
+        Term mkSepEmp() except +
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
         Term mkString(const wstring& s) except +
@@ -240,6 +241,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkUninterpretedConst(Sort sort, int32_t index) except +
         Term mkAbstractValue(const string& index) except +
         Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
+        Term mkCardinalityConstraint(Sort sort, int32_t index) except +
         Term mkConst(Sort sort, const string& symbol) except +
         # default value for symbol defined in cpp/cvc5.h
         Term mkConst(Sort sort) except +
@@ -308,6 +310,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint operator>(const Sort&) except +
         bint operator<=(const Sort&) except +
         bint operator>=(const Sort&) except +
+        bint isNull() except +
         bint isBoolean() except +
         bint isInteger() except +
         bint isReal() except +
@@ -321,6 +324,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isConstructor() except +
         bint isSelector() except +
         bint isTester() except +
+        bint isUpdater() except +
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +
@@ -357,9 +361,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Sort] getUninterpretedSortParamSorts() except +
         string getSortConstructorName() except +
         size_t getSortConstructorArity() except +
-        uint32_t getBVSize() except +
-        uint32_t getFPExponentSize() except +
-        uint32_t getFPSignificandSize() except +
+        uint32_t getBitVectorSize() except +
+        uint32_t getFloatingPointExponentSize() except +
+        uint32_t getFloatingPointSignificandSize() except +
         vector[Sort] getDatatypeParamSorts() except +
         size_t getDatatypeArity() except +
         size_t getTupleLength() except +

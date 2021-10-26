@@ -381,15 +381,6 @@ def test_mk_rounding_mode(solver):
     solver.mkRoundingMode(pycvc5.RoundTowardZero)
 
 
-def test_mk_uninterpreted_const(solver):
-    solver.mkUninterpretedConst(solver.getBooleanSort(), 1)
-    with pytest.raises(RuntimeError):
-        solver.mkUninterpretedConst(pycvc5.Sort(solver), 1)
-    slv = pycvc5.Solver()
-    with pytest.raises(RuntimeError):
-        slv.mkUninterpretedConst(solver.getBooleanSort(), 1)
-
-
 def test_mk_abstract_value(solver):
     solver.mkAbstractValue("1")
     with pytest.raises(ValueError):
@@ -431,6 +422,17 @@ def test_mk_floating_point(solver):
     with pytest.raises(RuntimeError):
         slv.mkFloatingPoint(3, 5, t1)
 
+def test_mk_cardinality_constraint(solver):
+    su = solver.mkUninterpretedSort("u")
+    si = solver.getIntegerSort()
+    solver.mkCardinalityConstraint(su, 3)
+    with pytest.raises(RuntimeError):
+        solver.mkEmptySet(solver.mkCardinalityConstraint(si, 3))
+    with pytest.raises(RuntimeError):
+        solver.mkEmptySet(solver.mkCardinalityConstraint(su, 0))
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkCardinalityConstraint(su, 3)
 
 def test_mk_empty_set(solver):
     slv = pycvc5.Solver()
@@ -651,6 +653,10 @@ def test_mk_regexp_sigma(solver):
     strSort = solver.getStringSort()
     s = solver.mkConst(strSort, "s")
     solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpSigma())
+
+
+def test_mk_sep_emp(solver):
+    solver.mkSepEmp();
 
 
 def test_mk_sep_nil(solver):

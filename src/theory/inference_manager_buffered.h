@@ -35,7 +35,6 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   InferenceManagerBuffered(Env& env,
                            Theory& t,
                            TheoryState& state,
-                           ProofNodeManager* pnm,
                            const std::string& statsName,
                            bool cacheLemmas = true);
   virtual ~InferenceManagerBuffered() {}

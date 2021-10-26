@@ -38,7 +38,7 @@ class InferenceManager : public InferenceManagerBuffered
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  InferenceManager(Env& env, Theory& t, SolverState& s, ProofNodeManager* pnm);
+  InferenceManager(Env& env, Theory& t, SolverState& s);
 
   /**
    * Do pending method. This processes all pending facts, lemmas and pending

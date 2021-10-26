@@ -295,15 +295,12 @@ def _set_handlers(option):
     optname = option.long_name if option.long else ""
     if option.handler:
         if option.type == 'void':
-            return 'opts.handler().{}("{}", name)'.format(
-                option.handler, optname)
+            return 'opts.handler().{}(name)'.format(option.handler)
         else:
-            return 'opts.handler().{}("{}", name, optionarg)'.format(
-                option.handler, optname)
+            return 'opts.handler().{}(name, optionarg)'.format(option.handler)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
-    return 'handlers::handleOption<{}>("{}", name, optionarg)'.format(
-        option.type, optname)
+    return 'handlers::handleOption<{}>(name, optionarg)'.format(option.type)
 
 
 def _set_predicates(option):
@@ -315,14 +312,14 @@ def _set_predicates(option):
     res = []
     if option.minimum:
         res.append(
-            'opts.handler().checkMinimum("{}", name, value, static_cast<{}>({}));'
-            .format(optname, option.type, option.minimum))
+            'opts.handler().checkMinimum(name, value, static_cast<{}>({}));'
+            .format(option.type, option.minimum))
     if option.maximum:
         res.append(
-            'opts.handler().checkMaximum("{}", name, value, static_cast<{}>({}));'
-            .format(optname, option.type, option.maximum))
+            'opts.handler().checkMaximum(name, value, static_cast<{}>({}));'
+            .format(option.type, option.maximum))
     res += [
-        'opts.handler().{}("{}", name, value);'.format(x, optname)
+        'opts.handler().{}(name, value);'.format(x)
         for x in option.predicates
     ]
     return res
@@ -361,7 +358,7 @@ def generate_set_impl(modules):
                                    name=option.name,
                                    handler=_set_handlers(option)))
         elif option.handler:
-            h = '  opts.handler().{handler}("{smtname}", name'
+            h = '  opts.handler().{handler}(name'
             if option.type not in ['bool', 'void']:
                 h += ', optionarg'
             h += ');'
@@ -471,26 +468,6 @@ def generate_module_wrapper_functions(module):
     return '\n'.join(res)
 
 
-def generate_module_option_names(module):
-    relevant = [
-        o for o in module.options
-        if not (o.name is None or o.long_name is None)
-    ]
-    return concat_format(
-        'static constexpr const char* {name}__name = "{long_name}";', relevant)
-
-
-def generate_module_setdefaults_decl(module):
-    res = []
-    for option in module.options:
-        if option.name is None:
-            continue
-        funcname = option.name[0].capitalize() + option.name[1:]
-        res.append('void setDefault{}(Options& opts, {} value);'.format(
-            funcname, option.type))
-    return '\n'.join(res)
-
-
 ################################################################################
 # for options/<module>.cpp
 
@@ -578,27 +555,6 @@ def generate_module_mode_impl(module):
                                       cases='\n  else '.join(cases),
                                       help=_module_mode_help(option),
                                       long=option.long_name))
-    return '\n'.join(res)
-
-
-TPL_SETDEFAULT_IMPL = '''void setDefault{capname}(Options& opts, {type} value)
-{{
-    if (!opts.{module}.{name}WasSetByUser) opts.{module}.{name} = value;
-}}'''
-
-
-def generate_module_setdefaults_impl(module):
-    res = []
-    for option in module.options:
-        if option.name is None:
-            continue
-        fmt = {
-            'capname': option.name[0].capitalize() + option.name[1:],
-            'type': option.type,
-            'module': module.id,
-            'name': option.name,
-        }
-        res.append(TPL_SETDEFAULT_IMPL.format(**fmt))
     return '\n'.join(res)
 
 
@@ -874,12 +830,9 @@ def codegen_module(module, dst_dir, tpls):
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
         'wrapper_functions': generate_module_wrapper_functions(module),
-        'option_names': generate_module_option_names(module),
-        'setdefaults_decl': generate_module_setdefaults_decl(module),
         # module source
         'header': module.header,
         'modes_impl': generate_module_mode_impl(module),
-        'setdefaults_impl': generate_module_setdefaults_impl(module),
     }
     for tpl in tpls:
         filename = tpl['output'].replace('module', module.filename)
@@ -1093,6 +1046,9 @@ def mkoptions_main():
     for module in modules:
         codegen_module(module, dst_dir, module_tpls)
     codegen_all_modules(modules, build_dir, dst_dir, global_tpls)
+
+    # Generate output file to signal cmake when this script was run last
+    open(os.path.join(dst_dir, 'options/options.stamp'), 'w').write('')
 
 
 if __name__ == "__main__":

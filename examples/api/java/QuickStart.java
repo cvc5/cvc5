@@ -14,7 +14,7 @@
  *
  */
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;

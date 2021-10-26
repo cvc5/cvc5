@@ -1168,6 +1168,15 @@ cdef class Solver:
         term.cterm = self.csolver.mkEmptyBag(s.csort)
         return term
 
+    def mkSepEmp(self):
+        """Create a separation logic empty term.
+
+        :return: the separation logic empty term
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkSepEmp()
+        return term
+
     def mkSepNil(self, Sort sort):
         """Create a separation logic nil term.
 
@@ -1380,6 +1389,16 @@ cdef class Solver:
         """
         cdef Term term = Term(self)
         term.cterm = self.csolver.mkFloatingPoint(exp, sig, val.cterm)
+        return term
+
+    def mkCardinalityConstraint(self, Sort sort, int index):
+        """Create cardinality constraint.
+
+        :param sort: Sort of the constraint
+        :param index: The upper bound for the cardinality of the sort
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkCardinalityConstraint(sort.csort, index)
         return term
 
     def mkConst(self, Sort sort, symbol=None):
@@ -2205,6 +2224,9 @@ cdef class Sort:
     def __hash__(self):
         return csorthash(self.csort)
 
+    def isNull(self):
+        return self.csort.isNull()
+
     def isBoolean(self):
         return self.csort.isBoolean()
 
@@ -2243,6 +2265,9 @@ cdef class Sort:
 
     def isTester(self):
         return self.csort.isTester()
+
+    def isUpdater(self):
+        return self.csort.isUpdater()
 
     def isFunction(self):
         return self.csort.isFunction()
@@ -2396,14 +2421,14 @@ cdef class Sort:
     def getSortConstructorArity(self):
         return self.csort.getSortConstructorArity()
 
-    def getBVSize(self):
-        return self.csort.getBVSize()
+    def getBitVectorSize(self):
+        return self.csort.getBitVectorSize()
 
-    def getFPExponentSize(self):
-        return self.csort.getFPExponentSize()
+    def getFloatingPointExponentSize(self):
+        return self.csort.getFloatingPointExponentSize()
 
-    def getFPSignificandSize(self):
-        return self.csort.getFPSignificandSize()
+    def getFloatingPointSignificandSize(self):
+        return self.csort.getFloatingPointSignificandSize()
 
     def getDatatypeParamSorts(self):
         param_sorts = []

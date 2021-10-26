@@ -100,7 +100,7 @@ endforeach()
 
 add_library(cvc5parser-objs OBJECT ${libcvc5parser_src_files})
 set_target_properties(cvc5parser-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB)
+target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB -Dcvc5_obj_EXPORTS)
 
 add_dependencies(cvc5parser-objs ANTLR3_SHARED)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
@@ -109,7 +109,11 @@ add_library(cvc5parser-shared SHARED $<TARGET_OBJECTS:cvc5parser-objs>)
 set_target_properties(cvc5parser-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
 set_target_properties(cvc5parser-shared PROPERTIES OUTPUT_NAME cvc5parser)
 target_link_libraries(cvc5parser-shared PRIVATE cvc5-shared)
-target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_SHARED)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_STATIC)
+else()
+  target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_SHARED)
+endif()
 
 install(TARGETS cvc5parser-shared
   EXPORT cvc5-targets
@@ -131,7 +135,7 @@ endif()
 # unresolved symbols when linking against libcvc5parser.
 # -Wl,--export-all-symbols makes sure that all symbols are exported when
 # building a DLL.
-if(CVC5_WINDOWS_BUILD)
-  set_target_properties(cvc5parser
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set_target_properties(cvc5parser-objs
     PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()
