@@ -449,7 +449,7 @@ set(regress_0_tests
   regress0/cores/issue4971-2.smt2
   regress0/cores/issue4971-3.smt2
   regress0/cores/issue5079.smt2
-  regress0/cores/issue5234-uc-ua.smt2 
+  regress0/cores/issue5234-uc-ua.smt2
   regress0/cores/issue5238.smt2
   regress0/cores/issue5902.smt2
   regress0/cores/issue5908.smt2
@@ -859,6 +859,7 @@ set(regress_0_tests
   regress0/proofs/open-pf-rederivation.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
+  regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
