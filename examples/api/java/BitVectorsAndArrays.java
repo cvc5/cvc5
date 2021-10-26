@@ -15,7 +15,7 @@
  *
  */
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 import java.util.*;
 
 public class BitVectorsAndArrays

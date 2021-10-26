@@ -42,7 +42,8 @@ typedef expr::Attribute<GroundTermAttributeId, Node> GroundTermAttribute;
 
 Node SortProperties::mkGroundTerm(TypeNode type)
 {
-  Assert(type.getKind() == kind::SORT_TYPE);
+  // we typically use this method for sorts, although there are other types
+  // where it is used as well, e.g. arrays that are not closed enumerable.
   GroundTermAttribute gta;
   if (type.hasAttribute(gta))
   {

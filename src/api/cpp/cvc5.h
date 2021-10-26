@@ -2692,7 +2692,7 @@ class CVC5_EXPORT DriverOptions
 
 /**
  * Holds some description about a particular option, including its name, its
- * aliases, whether the option was explcitly set by the user, and information
+ * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
  * - VoidInfo if the option holds no value (or the value has no native type)
@@ -3600,10 +3600,10 @@ class CVC5_EXPORT Solver
   /**
    * Create a cardinality constraint for an uninterpreted sort.
    * @param sort the sort the cardinality constraint is for
-   * @param val the upper bound on the cardinality of the sort
+   * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
    */
-  Term mkCardinalityConstraint(const Sort& sort, uint32_t ubound) const;
+  Term mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const;
 
   /* .................................................................... */
   /* Create Variables                                                     */

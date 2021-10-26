@@ -31,15 +31,15 @@ EqcInfo::EqcInfo(context::Context* c)
       d_codeTerm(c),
       d_cardinalityLemK(c),
       d_normalizedLength(c),
-      d_prefixC(c),
-      d_suffixC(c)
+      d_firstBound(c),
+      d_secondBound(c)
 {
 }
 
 Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
 {
   // check conflict
-  Node prev = isSuf ? d_suffixC : d_prefixC;
+  Node prev = isSuf ? d_secondBound : d_firstBound;
   if (!prev.isNull())
   {
     Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t
@@ -100,28 +100,7 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
     {
       Trace("strings-eager-pconf")
           << "Conflict for " << prevC << ", " << c << std::endl;
-      std::vector<Node> ccs;
-      Node r[2];
-      for (unsigned i = 0; i < 2; i++)
-      {
-        Node tp = i == 0 ? t : prev;
-        if (tp.getKind() == STRING_IN_REGEXP)
-        {
-          ccs.push_back(tp);
-          r[i] = tp[0];
-        }
-        else
-        {
-          r[i] = tp;
-        }
-      }
-      if (r[0] != r[1])
-      {
-        ccs.push_back(r[0].eqNode(r[1]));
-      }
-      Assert(!ccs.empty());
-      Node ret =
-          ccs.size() == 1 ? ccs[0] : NodeManager::currentNM()->mkNode(AND, ccs);
+      Node ret = mkMergeConflict(t, prev);
       Trace("strings-eager-pconf")
           << "String: eager prefix conflict: " << ret << std::endl;
       return ret;
@@ -129,13 +108,38 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
   }
   if (isSuf)
   {
-    d_suffixC = t;
+    d_secondBound = t;
   }
   else
   {
-    d_prefixC = t;
+    d_firstBound = t;
   }
   return Node::null();
+}
+
+Node EqcInfo::mkMergeConflict(Node t, Node prev)
+{
+  std::vector<Node> ccs;
+  Node r[2];
+  for (unsigned i = 0; i < 2; i++)
+  {
+    Node tp = i == 0 ? t : prev;
+    if (tp.getKind() == STRING_IN_REGEXP)
+    {
+      ccs.push_back(tp);
+      r[i] = tp[0];
+    }
+    else
+    {
+      r[i] = tp;
+    }
+  }
+  if (r[0] != r[1])
+  {
+    ccs.push_back(r[0].eqNode(r[1]));
+  }
+  Assert(!ccs.empty());
+  return NodeManager::currentNM()->mkAnd(ccs);
 }
 
 }  // namespace strings

@@ -36,18 +36,16 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(Env& env,
-                     QuantifiersState& qs,
-                     TermRegistry& tr,
-                     ProofNodeManager* pnm)
+Skolemize::Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr)
     : EnvObj(env),
       d_qstate(qs),
       d_treg(tr),
       d_skolemized(userContext()),
-      d_pnm(pnm),
-      d_epg(pnm == nullptr
+      d_epg(!isProofEnabled()
                 ? nullptr
-                : new EagerProofGenerator(pnm, userContext(), "Skolemize::epg"))
+                : new EagerProofGenerator(env.getProofNodeManager(),
+                                          userContext(),
+                                          "Skolemize::epg"))
 {
 }
 
@@ -64,6 +62,7 @@ TrustNode Skolemize::process(Node q)
   if (isProofEnabled() && !options::dtStcInduction()
       && !options::intWfInduction())
   {
+    ProofNodeManager * pnm = d_env.getProofNodeManager();
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = NodeManager::currentNM();
@@ -73,12 +72,12 @@ TrustNode Skolemize::process(Node q)
     Node existsq = nm->mkNode(EXISTS, echildren);
     Node res = skm->mkSkolemize(existsq, d_skolem_constants[q], "skv");
     Node qnot = q.notNode();
-    CDProof cdp(d_pnm);
+    CDProof cdp(pnm);
     cdp.addStep(res, PfRule::SKOLEMIZE, {qnot}, {});
     std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
     std::vector<Node> assumps;
     assumps.push_back(qnot);
-    std::shared_ptr<ProofNode> pfs = d_pnm->mkScope({pf}, assumps);
+    std::shared_ptr<ProofNode> pfs = pnm->mkScope({pf}, assumps);
     lem = nm->mkNode(IMPLIES, qnot, res);
     d_epg->setProofFor(lem, pfs);
     pg = d_epg.get();
@@ -397,7 +396,10 @@ void Skolemize::getSkolemTermVectors(
   }
 }
 
-bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
+bool Skolemize::isProofEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 }  // namespace quantifiers
 }  // namespace theory
