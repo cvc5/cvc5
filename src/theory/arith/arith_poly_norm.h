@@ -33,12 +33,12 @@ namespace arith {
 class PolyNorm
 {
  public:
-  /** 
+  /**
    * Add the monomial x*c to this polynomial, where c is a CONST_RATIONAL.
    * If x is null, then x*c is treated as c.
    */
   void addMonomial(TNode x, TNode c, bool isNeg = false);
-  /** 
+  /**
    * Multiply this polynomial by the monomial x*c, where c is a CONST_RATIONAL.
    * If x is null, then x*c is treated as c.
    */
@@ -55,13 +55,14 @@ class PolyNorm
   bool empty() const;
   /** Is this polynomial equal to polynomial p? */
   bool isEqual(const PolyNorm& p) const;
-  /** 
+  /**
    * Make polynomial from real term n. This method normalizes applications
    * of operators PLUS, MINUS, UMINUS, MULT, and NONLINEAR_MULT only.
    */
   static PolyNorm mkPolyNorm(TNode n);
   /** Do a and b normalize to the same polynomial? */
   static bool isArithPolyNorm(TNode a, TNode b);
+
  private:
   /**
    * Given two terms that are variables in monomials, return the
