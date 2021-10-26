@@ -949,6 +949,17 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    // ======== And elimination
+    // This rule is translated according to the singleton pattern.
+    case PfRule::AND_ELIM:
+    {
+      return addAletheStep(AletheRule::AND,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
