@@ -242,15 +242,6 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
   Node res = sr.rewriteSubstr(n);
   ASSERT_EQ(res, empty);
 
-  // (str.substr "A" (+ x 1) x) -> ""
-  n = d_nodeManager->mkNode(
-      kind::STRING_SUBSTR,
-      a,
-      d_nodeManager->mkNode(kind::PLUS, x, d_nodeManager->mkConst(Rational(1))),
-      x);
-  res = sr.rewriteSubstr(n);
-  ASSERT_EQ(res, empty);
-
   // (str.substr "A" (+ x (str.len s2)) x) -> ""
   n = d_nodeManager->mkNode(
       kind::STRING_SUBSTR,
