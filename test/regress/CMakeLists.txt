@@ -860,6 +860,7 @@ set(regress_0_tests
   regress0/proofs/project-issue317-inc-sat-conflictlit.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
+  regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -1805,6 +1806,7 @@ set(regress_1_tests
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
   regress1/proofs/qgu-fuzz-1-strings-pp.smt2
+  regress1/proofs/qgu-fuzz-arrays-1-dd-te-auto.smt2
   regress1/proofs/quant-alpha-eq.smt2
   regress1/proofs/sat-trivial-cycle.smt2
   regress1/proofs/unsat-cores-proofs.smt2
