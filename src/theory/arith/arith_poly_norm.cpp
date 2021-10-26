@@ -25,7 +25,27 @@ namespace arith {
 
 Node MonomialVar::multMonoVar(Node m1, Node m2)
 {
-  
+  std::vector<Node> vars = getMonoVars(m1);
+  std::vector<Node> vars2 = getMonoVars(m2);
+  vars.insert(vars.end(), vars2.begin(), vars2.end());
+  // use default sorting
+  std::sort(vars.begin(), vars.end());
+  return NodeManager::currentNM()->mkNode(NONLINEAR_MULT, vars);
+}
+
+std::vector<Node> MonomialVar::getMonoVars(Node n)
+{
+  std::vector<Node> vars;
+  Kind k = n.getKind();
+  if (k==MULT || k==NONLINEAR_MULT)
+  {
+    vars.insert(vars.end(), n.begin(), n.end());
+  }
+  else
+  {
+    vars.push_back(n);
+  }
+  return vars;
 }
 
 void PolyNorm::addMonomial(Node x, Node c, bool isNeg)
@@ -70,7 +90,7 @@ void PolyNorm::multiplyMonomial(Node x, Node c)
     {
       Assert (m.second.getKind()==CONST_RATIONAL);
       // c1*x1*c2*x2 = (c1*c2)*(x1*x2)
-      Node newM = multMonoVar(m.first, x);
+      Node newM = MonomialVar::multMonoVar(m.first, x);
       d_polyNorm[newM] = nm->mkConst(Rational(m.second.getConst<Rational>()*r));
     }
   }
@@ -94,11 +114,27 @@ void PolyNorm::subtract(const PolyNorm& p)
 
 void PolyNorm::multiply(const PolyNorm& p)
 {
-  PolyNorm psum;
-  psum.d_polyNorm = d_polyNorm;
-  for (const std::pair<const Node, Node>& m : p.d_polyNorm)
+  if (p.d_polyNorm.size()==1)
   {
-    
+    for (const std::pair<const Node, Node>& m : p.d_polyNorm)
+    {
+      multiplyMonomial(m.first, m.second);
+    }
+  }
+  else
+  {
+    // if multiplying by sum, must distribute
+    // remember the current and clear
+    std::unordered_map<Node, Node> ptmp = d_polyNorm;
+    d_polyNorm.clear();
+    for (const std::pair<const Node, Node>& m : p.d_polyNorm)
+    {
+      PolyNorm pbase;
+      pbase.d_polyNorm = ptmp;
+      pbase.multiplyMonomial(m.first, m.second);
+      // add this to current
+      add(pbase);
+    }
   }
 }
 

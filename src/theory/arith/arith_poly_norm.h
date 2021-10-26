@@ -30,6 +30,8 @@ class MonomialVar
 {
 public:
   static Node multMonoVar(Node m1, Node m2);
+private:
+  static std::vector<Node> getMonoVars(Node n);
 };
 
 class PolyNorm
