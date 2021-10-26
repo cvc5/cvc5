@@ -1828,7 +1828,7 @@ TrustNode TheoryEngine::getExplanation(
     // explanation (for unit T-conflicts), it must be by symmetry. We must do
     // this manually since lcp does not have auto-symmetry enabled due to the
     // complication mentioned above.
-    if (!lcp->hasStep(conclusion) && exp.find(conclusion)==exp.end())
+    if (!lcp->hasStep(conclusion) && exp.find(conclusion) == exp.end())
     {
       Node sconc = CDProof::getSymmFact(conclusion);
       if (!sconc.isNull())
@@ -1837,7 +1837,9 @@ TrustNode TheoryEngine::getExplanation(
       }
       else
       {
-        Assert (false) << "TheoryEngine::getExplanation: no step found for conclusion " << conclusion;
+        Assert(false)
+            << "TheoryEngine::getExplanation: no step found for conclusion "
+            << conclusion;
       }
     }
     // store in the proof generator
