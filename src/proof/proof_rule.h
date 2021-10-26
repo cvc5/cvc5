@@ -1179,6 +1179,13 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: arith::OperatorElim::getAxiomFor(t)
   ARITH_OP_ELIM_AXIOM,
+  // ======== Arithmetic polynomial normalization
+  // Children: none
+  // Arguments: ((= t s))
+  // ---------------------
+  // Conclusion: (= t s)
+  // where arith::PolyNorm::isArithPolyNorm(t, s) = true
+  ARITH_POLY_NORM,
 
   //======== Multiplication sign inference
   // Children: none
