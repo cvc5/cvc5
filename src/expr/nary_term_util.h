@@ -61,13 +61,6 @@ Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs);
 
-/**
- * Match with list semantics.
- *
- * Maps list variables in n1 to SEXPR nodes.
- */
-bool naryMatch(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
-
 }  // namespace expr
 }  // namespace cvc5
 
