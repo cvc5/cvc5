@@ -1,4 +1,5 @@
 (set-logic HO_QF_UFLIA)
+(set-info :status sat)
 (declare-fun a (Int Int) Int)
 (declare-fun d () Int)
 (declare-fun e () Int)
