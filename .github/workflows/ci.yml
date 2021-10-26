@@ -38,9 +38,8 @@ jobs:
 
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
-            config: production --auto-download --assertions --tracing --unit-testing --editline
+            config: production --auto-download --assertions --tracing --unit-testing --java-bindings --editline
             cache-key: dbg
-            python-bindings: true
             check-units: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof

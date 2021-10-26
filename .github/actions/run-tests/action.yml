@@ -31,12 +31,6 @@ runs:
         make -j${{ env.num_proc }} apitests units
       working-directory: build
 
-    - name: Run Junit Tests
-      shell: bash
-      run: |
-        make -j${{ env.num_proc }} run-junit-tests
-      working-directory: build
-
     - name: Install Check
       shell: bash
       run: |
