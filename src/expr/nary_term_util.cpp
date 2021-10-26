@@ -141,13 +141,6 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case BITVECTOR_MULT:
       nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
       break;
-    case BITVECTOR_CONCAT:
-    {
-      // the null terminator of bitvector concat is a dummy variable of
-      // bit-vector type with zero width, regardless of the type of the overall
-      // concat. FIXME
-    }
-    break;
     default:
       // not handled as null-terminated
       break;
@@ -250,14 +243,6 @@ Node narySubstitute(Node src,
   Assert(visited.find(src) != visited.end());
   Assert(!visited.find(src)->second.isNull());
   return visited[src];
-}
-
-bool naryMatch(Node n1,
-               Node n2,
-               std::unordered_map<Node, std::vector<Node> >& subs)
-{
-  // TODO
-  return false;
 }
 
 }  // namespace expr

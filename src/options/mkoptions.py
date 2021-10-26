@@ -1047,6 +1047,9 @@ def mkoptions_main():
         codegen_module(module, dst_dir, module_tpls)
     codegen_all_modules(modules, build_dir, dst_dir, global_tpls)
 
+    # Generate output file to signal cmake when this script was run last
+    open(os.path.join(dst_dir, 'options/options.stamp'), 'w').write('')
+
 
 if __name__ == "__main__":
     mkoptions_main()

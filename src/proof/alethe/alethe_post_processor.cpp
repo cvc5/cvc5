@@ -821,63 +821,48 @@ bool AletheProofPostprocessCallback::update(Node res,
           && addAletheStepFromOr(AletheRule::RESOLUTION, res, {vp1, vp2}, {}, *cdp);
     }
     // ======== Equality resolution
-    // Children: (P1:F1, P2:(= F1 F2))
-    // Arguments: none
-    // ---------------------
-    // Conclusion: (F2)
+    // See proof_rule.h for documentation on the EQ_RESOLVE rule. This
+    // comment uses variable names as introduced there.
     //
-    // proof rule: equiv_pos2
-    // proof node: (VP1:(cl (not (= F1 F2)) (not F1) (F2)))
-    // proof term: (cl (not (= F1 F2)) (not F1) (F2))
-    // premises: ()
-    // args: ()
+    // If F1 = (or G1 ... Gn), then P1 will be printed as (cl G1 ... Gn) but
+    // needs to be printed as (cl (or G1 ... Gn)). The only exception to this
+    // are ASSUME steps that are always printed as (cl (or G1 ... Gn)) and
+    // EQ_RESOLVE steps themselves.
     //
-    // There is a special case occurring here, if F1 = (or G1 ... Gn) because
-    // then P1 will be printed as (cl G1 ... Gn) but needs to be printed as (cl
-    // (or G1 ... Gn)). The only exception to this are ASSUME steps that are
-    // always printed as (cl (or G1 ... Gn)) and EQ_RESOLVE steps itself.
+    //           ------  ...  ------ OR_NEG
+    //   P1       VP21   ...   VP2n
+    //  ---------------------------- RESOLUTION
+    //              VP3
+    //  ---------------------------- DUPLICATED_LITERALS
+    //              VP4
     //
-    // Repeat the following two step for i=1 to n:
+    //  for i=1 to n, VP2i: (cl (or G1 ... Gn) (not Gi))
+    //  VP3: (cl (or G1 ... Gn)^n)
+    //  VP4: (cl (or (G1 ... Gn))
     //
-    // for i=1 to n:
+    //  Let child1 = VP4.
     //
-    // proof rule: or_neg
-    // proof node: (VP2i:(cl (or G1 ... Gn) (not Gi)))
-    // proof term: (cl (or G1 ... Gn) (not Gi))
-    // premises: ()
-    // args: ()
     //
-    // proof rule: resolution
-    // proof node: (VP3:(cl (or G1 ... Gn)^n))
-    // proof term: (cl (or G1 ... Gn)^n)
-    // premises: P1 VP21 ... VPn
-    // args: ()
+    // Otherwise, child1 = P1.
     //
-    // proof rule: duplicated_literals
-    // proof node: (VP4:(cl (or (G1 ... Gn)))
-    // proof term: (cl (or G1 ... Gn))
-    // premises: VP3
-    // args: ()
     //
-    // Set child1 = VP3
+    // Then, if F2 = false:
     //
-    // Otherwise child1 = VP1
+    //  ------ EQUIV_POS2
+    //   VP1                P2    child1
+    //  --------------------------------- RESOLUTION
+    //                (cl)*
     //
-    // Then,
+    // Otherwise:
     //
-    // proof rule: resolution
-    // proof node: F2
-    // proof term: (cl F2)
-    // premises: VP1 P2 P1
-    // args: ()
+    //  ------ EQUIV_POS2
+    //   VP1                P2    child1
+    //  --------------------------------- RESOLUTION
+    //              (cl F2)*
     //
-    // Or if F2 = false:
+    // VP1: (cl (not (= F1 F2)) (not F1) F2)
     //
-    // proof rule: resolution
-    // proof node: F2
-    // proof term: (cl)
-    // premises: VP1 P2 P1
-    // args: ()
+    // * the corresponding proof node is F2
     case PfRule::EQ_RESOLVE:
     {
       bool success = true;
@@ -885,23 +870,22 @@ bool AletheProofPostprocessCallback::update(Node res,
           nm->mkNode(kind::SEXPR,
                      {d_cl, children[1].notNode(), children[0].notNode(), res});
       Node child1 = children[0];
-      Node child2 = children[1];
 
       // Transform (cl F1 ... Fn) into (cl (or F1 ... Fn))
-      if (children[0].notNode() != vp1[1] && children[0].getKind() == kind::OR)
+      if (children[0].notNode() != children[1].notNode()
+          && children[0].getKind() == kind::OR)
       {
         PfRule pr = cdp->getProofFor(child1)->getRule();
         if (pr != PfRule::ASSUME && pr != PfRule::EQ_RESOLVE)
         {
-          std::vector<Node> clauses;
-          clauses.push_back(d_cl);  // cl
+          std::vector<Node> clauses{d_cl};
           clauses.insert(clauses.end(),
                          children[0].begin(),
                          children[0].end());  //(cl G1 ... Gn)
 
-          std::vector<Node> vp2Nodes = {children[0]};
-          std::vector<Node> resNodes = {d_cl};
-          for (int i = 0; i < children[0].end() - children[0].begin(); i++)
+          std::vector<Node> vp2Nodes{children[0]};
+          std::vector<Node> resNodes{d_cl};
+          for (size_t i = 0, size = children[0].getNumChildren(); i < size; i++)
           {
             Node vp2i = nm->mkNode(
                 kind::SEXPR,
@@ -926,41 +910,26 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       success &= addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
 
-      if (res.toString() == "false")
-      {
-        return success &= addAletheStep(AletheRule::RESOLUTION,
-                                        res,
-                                        nm->mkNode(kind::SEXPR, d_cl),
-                                        {vp1, child2, child1},
-                                        {},
-                                        *cdp);
-      }
-
       return success &= addAletheStep(AletheRule::RESOLUTION,
                                       res,
-                                      nm->mkNode(kind::SEXPR, d_cl, res),
-                                      {vp1, child2, child1},
+                                      res == nm->mkConst(false)
+                                          ? nm->mkNode(kind::SEXPR, d_cl)
+                                          : nm->mkNode(kind::SEXPR, d_cl, res),
+                                      {vp1, children[1], child1},
                                       {},
                                       *cdp);
     }
     // ======== Modus ponens
-    // Children: (P1:F1, P2:(=> F1 F2))
-    // Arguments: none
-    // ---------------------
-    // Conclusion: (F2)
+    // See proof_rule.h for documentation on the MODUS_PONENS rule. This comment
+    // uses variable names as introduced there.
     //
+    //     (P2:(=> F1 F2))
+    // ------------------------ IMPLIES
+    //  (VP1:(cl (not F1) F2))             (P1:F1)
+    // -------------------------------------------- RESOLUTION
+    //                   (cl F2)*
     //
-    // proof rule: implies
-    // proof term: (VP1:(cl (not F1) F2))
-    // proof term: (cl (not F1) F2)
-    // premises: P2
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: F2
-    // proof term: (cl F2)
-    // premises: VP1 P1
-    // args: ()
+    // * the corresponding proof node is F2
     case PfRule::MODUS_PONENS:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
@@ -975,22 +944,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Double negation elimination
-    // Children: (P:(not (not F)))
-    // Arguments: none
-    // ---------------------
-    // Conclusion: (F)
+    // See proof_rule.h for documentation on the NOT_NOT_ELIM rule. This comment
+    // uses variable names as introduced there.
     //
-    // proof rule: not_not
-    // proof node: (VP1:(cl (not (not (not F))) F))
-    // proof term: (cl (not (not (not F))) F)
-    // premises: ()
-    // args: ()
+    // ---------------------------------- NOT_NOT
+    //  (VP1:(cl (not (not (not F))) F))           (P:(not (not F)))
+    // ------------------------------------------------------------- RESOLUTION
+    //                            (cl F)*
     //
-    // proof rule: resolution
-    // proof node: F
-    // proof term: (cl F)
-    // premises: VP1 P
-    // args: ()
+    // * the corresponding proof node is F
     case PfRule::NOT_NOT_ELIM:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
@@ -1004,16 +966,14 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Contradiction
-    // Children: (P1:F P2:(not F))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: false
+    // See proof_rule.h for documentation on the CONTRA rule. This
+    // comment uses variable names as introduced there.
     //
-    // proof rule: resolution
-    // proof node: false
-    // proof term: (cl)
-    // premises: P1 P2
-    // args: ()
+    //  P1   P2
+    // --------- RESOLUTION
+    //   (cl)*
+    //
+    // * the corresponding proof node is false
     case PfRule::CONTRA:
     {
       return addAletheStep(AletheRule::RESOLUTION,
@@ -1024,16 +984,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== And elimination
-    // Children: (P:(and F1 ... Fn))
-    // Arguments: (i)
-    // ---------------------
-    // Conclusion: (Fi)
-    //
-    // proof rule: and
-    // proof node: (VP:Fi)
-    // proof term: (cl Fi)
-    // premises: P
-    // args: ()
+    // This rule is translated according to the singleton pattern.
     case PfRule::AND_ELIM:
     {
       return addAletheStep(AletheRule::AND,
@@ -1044,35 +995,28 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== And introduction
-    // Children: (P1:F1 ... Pn:Fn))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (and F1 ... Fn)
+    // See proof_rule.h for documentation on the AND_INTRO rule. This
+    // comment uses variable names as introduced there.
     //
-    // proof rule: and_neg
-    // proof node: (VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn)))
-    // proof term: (cl (and F1 ... Fn) (not F1) ... (not Fn))
-    // premises: ()
-    // args: ()
     //
-    // proof rule: resolution
-    // proof node: (and F1 ... Fn)
-    // proof term: (cl (and F1 ... Fn))
-    // premises: VP1 P1 ... Pn
-    // args: ()
+    // ----- AND_NEG
+    //  VP1            P1 ... Pn
+    // -------------------------- RESOLUTION
+    //   (cl (and F1 ... Fn))*
+    //
+    // VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn))
+    //
+    // * the corresponding proof node is (and F1 ... Fn)
     case PfRule::AND_INTRO:
     {
-      std::vector<Node> neg_Nodes;
-      neg_Nodes.push_back(d_cl);
-      neg_Nodes.push_back(res);
-      for (size_t i = 0; i < children.size(); i++)
+      std::vector<Node> neg_Nodes = {d_cl,res};
+      for (size_t i = 0, size = children.size(); i < size; i++)
       {
         neg_Nodes.push_back(children[i].notNode());
       }
       Node vp1 = nm->mkNode(kind::SEXPR, neg_Nodes);
 
-      std::vector<Node> new_children;
-      new_children.push_back(vp1);
+      std::vector<Node> new_children = {vp1};
       new_children.insert(new_children.end(), children.begin(), children.end());
 
       return addAletheStep(AletheRule::AND_NEG, vp1, vp1, {}, {}, *cdp)
@@ -1084,16 +1028,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Not Or elimination
-    // Children: (P:(not (or F1 ... Fn)))
-    // Arguments: (i)
-    // ---------------------
-    // Conclusion: (not Fi)
-    //
-    // proof rule: not_or
-    // proof node: (not Fi)
-    // proof term: (cl (not Fi))
-    // premises: P
-    // args: ()
+    // This rule is translated according to the singleton pattern.
     case PfRule::NOT_OR_ELIM:
     {
       return addAletheStep(AletheRule::NOT_OR,
@@ -1104,31 +1039,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== Implication elimination
-    // Children: (P:(=> F1 F2))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or (not F1) F2)
-    //
-    // proof rule: implies
-    // proof node: (or (not F1) F2)
-    // proof term: (cl (not F1) F2)
-    // premises: P
-    // args: ()
+    // This rule is translated according to the clause pattern.
     case PfRule::IMPLIES_ELIM:
     {
       return addAletheStepFromOr(AletheRule::IMPLIES, res, children, {}, *cdp);
     }
     // ======== Not Implication elimination version 1
-    // Children: (P:(not (=> F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (F1)
-    //
-    // proof rule: not_implies1
-    // proof node: (VP:F1)
-    // proof term: (cl F1)
-    // premises: P
-    // args: ()
+    // This rule is translated according to the singleton pattern.
     case PfRule::NOT_IMPLIES_ELIM1:
     {
       return addAletheStep(AletheRule::NOT_IMPLIES1,
@@ -1139,16 +1056,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== Not Implication elimination version 2
-    // Children: (P:(not (=> F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (not F2)
-    //
-    // proof rule: not_implies2
-    // proof node: (not F2)
-    // proof term: (cl (not F2))
-    // premises: P
-    // args: ()
+    // This rule is translated according to the singleton pattern.
     case PfRule::NOT_IMPLIES_ELIM2:
     {
       return addAletheStep(AletheRule::NOT_IMPLIES2,
@@ -1158,465 +1066,139 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // ======== Equivalence elimination version 1
-    // Children: (P:(= F1 F2))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or (not F1) F2)
-    //
-    // proof rule: equiv1
-    // proof node: (or (not F1) F2)
-    // proof term: (cl (not F1) F2)
-    // premises: P
-    // args: ()
+    // ======== Various elimination rules
+    // The following rules are all translated according to the clause pattern.
     case PfRule::EQUIV_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::EQUIV1, res, children, {}, *cdp);
     }
-    // ======== Equivalence elimination version 2
-    // Children: (P:(= F1 F2))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or F1 (not F2))
-    //
-    // proof rule: equiv2
-    // proof node: (or F1 (not F2))
-    // proof term: (cl F1 (not F2))
-    // premises: P
-    // args: ()
     case PfRule::EQUIV_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::EQUIV2, res, children, {}, *cdp);
     }
-    // ======== Not Equivalence elimination version 1
-    // Children: (P:(not (= F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or F1 F2)
-    //
-    // proof rule: not_equiv1
-    // proof node: (or F1 F2)
-    // proof term: (cl F1 F2)
-    // premises: P
-    // args: ()
     case PfRule::NOT_EQUIV_ELIM1:
     {
       return addAletheStepFromOr(
           AletheRule::NOT_EQUIV1, res, children, {}, *cdp);
     }
-    // ======== Not Equivalence elimination version 2
-    // Children: (P:(not (= F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or (not F1) (not F2))
-    //
-    // proof rule: not_equiv2
-    // proof node: (or (not F1) (not F2))
-    // proof term: (cl (not F1) (not F2))
-    // premises: P
-    // args: ()
     case PfRule::NOT_EQUIV_ELIM2:
     {
       return addAletheStepFromOr(
           AletheRule::NOT_EQUIV2, res, children, {}, *cdp);
     }
-    // ======== XOR elimination version 1
-    // Children: (P:(xor F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or F1 F2)
-    //
-    // proof rule: XOR1
-    // proof node: (or F1 F2)
-    // proof term: (cl F1 F2)
-    // premises: P
-    // args: ()
     case PfRule::XOR_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::XOR1, res, children, {}, *cdp);
     }
-    // ======== XOR elimination version 2
-    // Children: (P:(not (xor F1 F2))))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or F1 (not F2))
-    //
-    // proof rule: XOR2
-    // proof node: (or F1 (not F2))
-    // proof term: (cl F1 (not F2))
-    // premises: P
-    // args: ()
     case PfRule::XOR_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::XOR2, res, children, {}, *cdp);
     }
-    // ======== Not XOR elimination version 1
-    // Children: (P:(not (xor F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or F1 (not F2))
-    //
-    // proof rule: NOT_XOR1
-    // proof node: (or F1 (not F2))
-    // proof term: (cl F1 (not F2))
-    // premises: P
-    // args: ()
     case PfRule::NOT_XOR_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::NOT_XOR1, res, children, {}, *cdp);
     }
-    // ======== Not XOR elimination version 2
-    // Children: (P:(not (xor F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or (not F1) F2)
-    //
-    // proof rule: NOT_XOR1
-    // proof node: (or (not F1) F2)
-    // proof term: (cl (not F1) F2)
-    // premises: P
-    // args: ()
     case PfRule::NOT_XOR_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::NOT_XOR2, res, children, {}, *cdp);
     }
-    // ======== ITE elimination version 1
-    // Children: (P:(ite C F1 F2))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or (not C) F1)
-    //
-    // proof rule: ite2
-    // proof node: (or (not C) F1)
-    // proof term: (cl (not C) F1)
-    // premises: P
-    // args: ()
     case PfRule::ITE_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::ITE2, res, children, {}, *cdp);
     }
-    // ======== ITE elimination version 2
-    // Children: (P:(ite C F1 F2))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or C F2)
-    //
-    // proof rule: ite1
-    // proof node: (or C F2)
-    // proof term: (cl C F2)
-    // premises: P
-    // args: ()
     case PfRule::ITE_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::ITE1, res, children, {}, *cdp);
     }
-    // ======== Not ITE elimination version 1
-    // Children: (P:(not (ite C F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or (not C) (not F1))
-    //
-    // proof rule: not_ite2
-    // proof node: (or (not C) (not F1))
-    // proof term: (cl (not C) (not F1))
-    // premises: P
-    // args: ()
     case PfRule::NOT_ITE_ELIM1:
     {
       return addAletheStepFromOr(AletheRule::NOT_ITE2, res, children, {}, *cdp);
     }
-    // ======== Not ITE elimination version 1
-    // Children: (P:(not (ite C F1 F2)))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or C (not F2))
-    //
-    // proof rule: not_ite1
-    // proof node: (or C (not F2))
-    // proof term: (cl C (not F2))
-    // premises: P
-    // args: ()
     case PfRule::NOT_ITE_ELIM2:
     {
       return addAletheStepFromOr(AletheRule::NOT_ITE1, res, children, {}, *cdp);
     }
-
     //================================================= De Morgan rules
     // ======== Not And
-    // Children: (P:(not (and F1 ... Fn))
-    // Arguments: ()
-    // ---------------------
-    // Conclusion: (or (not F1) ... (not Fn))
-    //
-    // proof rule: not_and
-    // proof node: (or (not F1) ... (not Fn))
-    // proof term: (cl (not F1) ... (not Fn))
-    // premises: P
-    // args: ()
+    // This rule is translated according to the clause pattern.
     case PfRule::NOT_AND:
     {
       return addAletheStepFromOr(AletheRule::NOT_AND, res, children, {}, *cdp);
     }
 
     //================================================= CNF rules
-    // ======== CNF And Pos
-    // Children: ()
-    // Arguments: ((and F1 ... Fn), i)
-    // ---------------------
-    // Conclusion: (or (not (and F1 ... Fn)) Fi)
-    //
-    // proof rule: and_pos
-    // proof node: (or (not (and F1 ... Fn)) Fi)
-    // proof term: (cl (not (and F1 ... Fn)) Fi)
-    // premises: ()
-    // args: ()
+    // The following rules are all translated according to the clause pattern.
     case PfRule::CNF_AND_POS:
     {
       return addAletheStepFromOr(AletheRule::AND_POS, res, children, {}, *cdp);
     }
-    // ======== CNF And Neg
-    // Children: ()
-    // Arguments: ((and F1 ... Fn))
-    // ---------------------
-    // Conclusion: (or (and F1 ... Fn) (not F1) ... (not Fn))
-    //
-    // proof rule: and_neg
-    // proof node: (or (and F1 ... Fn) (not F1) ... (not Fn))
-    // proof term: (cl (and F1 ... Fn) (not F1) ... (not Fn))
-    // premises: ()
-    // args: ()
     case PfRule::CNF_AND_NEG:
     {
       return addAletheStepFromOr(AletheRule::AND_NEG, res, children, {}, *cdp);
     }
-    // ======== CNF Or Pos
-    // Children: ()
-    // Arguments: ((or F1 ... Fn))
-    // ---------------------
-    // Conclusion: (or (not (or F1 ... Fn)) F1 ... Fn)
-    //
-    // proof rule: or_pos
-    // proof node: (or (not (or F1 ... Fn)) F1 ... Fn)
-    // proof term: (cl (not (or F1 ... Fn)) F1 ... Fn)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_OR_POS:
     {
       return addAletheStepFromOr(AletheRule::OR_POS, res, children, {}, *cdp);
     }
-    // ======== CNF Or Neg
-    // Children: ()
-    // Arguments: ((or F1 ... Fn), i)
-    // ---------------------
-    // Conclusion: (or (or F1 ... Fn) (not Fi))
-    //
-    // proof rule: or_neg
-    // proof node: (or (or F1 ... Fn) (not Fi))
-    // proof term: (cl (or F1 ... Fn) (not Fi))
-    // premises: ()
-    // args: ()
     case PfRule::CNF_OR_NEG:
     {
       return addAletheStepFromOr(AletheRule::OR_NEG, res, children, {}, *cdp);
     }
-    // ======== CNF Implies Pos
-    // Children: ()
-    // Arguments: ((implies F1 F2))
-    // ---------------------
-    // Conclusion: (or (not (implies F1 F2)) (not F1) F2)
-    //
-    // proof rule: implies_pos
-    // proof node: (or (not (implies F1 F2)) (not F1) F2)
-    // proof term: (cl (not (implies F1 F2)) (not F1) F2)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_IMPLIES_POS:
     {
       return addAletheStepFromOr(
           AletheRule::IMPLIES_POS, res, children, {}, *cdp);
     }
-    // ======== CNF Implies Neg version 1
-    // Children: ()
-    // Arguments: ((implies F1 F2))
-    // ---------------------
-    // Conclusion: (or (implies F1 F2) F1)
-    //
-    // proof rule: implies_neg1
-    // proof node: (or (implies F1 F2) F1)
-    // proof term: (cl (implies F1 F2) F1)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_IMPLIES_NEG1:
     {
       return addAletheStepFromOr(
           AletheRule::IMPLIES_NEG1, res, children, {}, *cdp);
     }
-    // ======== CNF Implies Neg version 2
-    // Children: ()
-    // Arguments: ((implies F1 F2))
-    // ---------------------
-    // Conclusion: (or (implies F1 F2) (not F2))
-    //
-    // proof rule: implies_neg2
-    // proof node: (or (implies F1 F2) (not F2))
-    // proof term: (cl (implies F1 F2) (not F2))
-    // premises: ()
-    // args: ()
     case PfRule::CNF_IMPLIES_NEG2:
     {
       return addAletheStepFromOr(
           AletheRule::IMPLIES_NEG2, res, children, {}, *cdp);
     }
-    // ======== CNF Equiv Pos version 1
-    // Children: ()
-    // Arguments: ((= F1 F2))
-    // ---------------------
-    // Conclusion: (or (not (= F1 F2)) (not F1) F2)
-    //
-    // proof rule: equiv_pos2
-    // proof node: (or (not (= F1 F2)) (not F1) F2)
-    // proof term: (cl (not (= F1 F2)) (not F1) F2)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_EQUIV_POS1:
     {
       return addAletheStepFromOr(
           AletheRule::EQUIV_POS2, res, children, {}, *cdp);
     }
-    // ======== CNF Equiv Pos version 2
-    // Children: ()
-    // Arguments: ((= F1 F2))
-    // ---------------------
-    // Conclusion: (or (not (= F1 F2)) F1 (not F2))
-    //
-    // proof rule: equiv_pos1
-    // proof node: (or (not (= F1 F2)) F1 (not F2))
-    // proof term: (cl (not (= F1 F2)) F1 (not F2))
-    // premises: ()
-    // args: ()
     case PfRule::CNF_EQUIV_POS2:
     {
       return addAletheStepFromOr(
           AletheRule::EQUIV_POS1, res, children, {}, *cdp);
     }
-    // ======== CNF Equiv Neg version 1
-    // Children: ()
-    // Arguments: ((= F1 F2))
-    // ---------------------
-    // Conclusion: (or (= F1 F2) F1 F2)
-    //
-    // proof rule: equiv_neg2
-    // proof node: (or (= F1 F2) F1 F2)
-    // proof term: (cl (= F1 F2) F1 F2)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_EQUIV_NEG1:
     {
       return addAletheStepFromOr(
           AletheRule::EQUIV_NEG2, res, children, {}, *cdp);
     }
-    // ======== CNF Equiv Neg version 2
-    // Children: ()
-    // Arguments: ((= F1 F2))
-    // ---------------------
-    // Conclusion: (or (= F1 F2) (not F1) (not F2))
-    //
-    // proof rule: equiv_neg1
-    // proof node: (or (= F1 F2) (not F1) (not F2))
-    // proof term: (cl (= F1 F2) (not F1) (not F2))
-    // premises: ()
-    // args: ()
     case PfRule::CNF_EQUIV_NEG2:
     {
       return addAletheStepFromOr(
           AletheRule::EQUIV_NEG1, res, children, {}, *cdp);
     }
-    // ======== CNF Xor Pos version 1
-    // Children: ()
-    // Arguments: ((xor F1 F2))
-    // ---------------------
-    // Conclusion: (or (not (xor F1 F2)) F1 F2)
-    //
-    // proof rule: xor_pos1
-    // proof node: (or (not (xor F1 F2)) F1 F2)
-    // proof term: (cl (not (xor F1 F2)) F1 F2)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_XOR_POS1:
     {
       return addAletheStepFromOr(AletheRule::XOR_POS1, res, children, {}, *cdp);
     }
-    // ======== CNF Xor Pos version 2
-    // Children: ()
-    // Arguments: ((xor F1 F2))
-    // ---------------------
-    // Conclusion: (or (not (xor F1 F2)) (not F1) (not F2))
-    //
-    // proof rule: xor_pos2
-    // proof node: (or (not (xor F1 F2)) (not F1) (not F2))
-    // proof term: (cl (not (xor F1 F2)) (not F1) (not F2))
-    // premises: ()
-    // args: ()
     case PfRule::CNF_XOR_POS2:
     {
       return addAletheStepFromOr(AletheRule::XOR_POS2, res, children, {}, *cdp);
     }
-    // ======== CNF Xor Neg version 1
-    // Children: ()
-    // Arguments: ((xor F1 F2))
-    // ---------------------
-    // Conclusion: (or (xor F1 F2) (not F1) F2)
-    //
-    // proof rule: xor_neg2
-    // proof node: (or (xor F1 F2) (not F1) F2)
-    // proof term: (cl (xor F1 F2) (not F1) F2)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_XOR_NEG1:
     {
       return addAletheStepFromOr(AletheRule::XOR_NEG2, res, children, {}, *cdp);
     }
-    // ======== CNF Xor Neg version 2
-    // Children: ()
-    // Arguments: ((xor F1 F2))
-    // ---------------------
-    // Conclusion: (or (xor F1 F2) F1 (not F2))
-    //
-    // proof rule: xor_neg1
-    // proof node: (or (xor F1 F2) F1 (not F2))
-    // proof term: (cl (xor F1 F2) F1 (not F2))
-    // premises: ()
-    // args: ()
     case PfRule::CNF_XOR_NEG2:
     {
       return addAletheStepFromOr(AletheRule::XOR_NEG1, res, children, {}, *cdp);
     }
-    // ======== CNF ITE Pos version 1
-    // Children: ()
-    // Arguments: ((ite C F1 F2))
-    // ---------------------
-    // Conclusion: (or (not (ite C F1 F2)) (not C) F1)
-    //
-    // proof rule: ite_pos2
-    // proof node: (or (not (ite C F1 F2)) (not C) F1)
-    // proof term: (cl (not (ite C F1 F2)) (not C) F1)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_ITE_POS1:
     {
       return addAletheStepFromOr(AletheRule::ITE_POS2, res, children, {}, *cdp);
     }
-    // ======== CNF ITE Pos version 2
-    // Children: ()
-    // Arguments: ((ite C F1 F2))
-    // ---------------------
-    // Conclusion: (or (not (ite C F1 F2)) C F2)
-    //
-    // proof rule: ite_pos1
-    // proof node: (or (not (ite C F1 F2)) C F2)
-    // proof term: (cl (not (ite C F1 F2)) C F2)
-    // premises: ()
-    // args: ()
     case PfRule::CNF_ITE_POS2:
     {
       return addAletheStepFromOr(AletheRule::ITE_POS1, res, children, {}, *cdp);
