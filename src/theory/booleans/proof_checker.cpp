@@ -254,9 +254,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       else
       {
-        rhsClause.insert(rhsClause.end(),
-                         children[childIndex].begin(),
-                         children[childIndex].end());
+        rhsClause = {children[childIndex].begin(), children[childIndex].end()};
       }
       Trace("bool-pfcheck") << i / 2 << "-th res link:\n";
       Trace("bool-pfcheck") << "\t - lhsClause: " << lhsClause << "\n";
