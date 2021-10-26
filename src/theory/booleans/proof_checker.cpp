@@ -196,7 +196,15 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     NodeManager* nm = NodeManager::currentNM();
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
+    // The lhs and rhs clauses in a binary resolution step, respectively. Since
+    // children correspond to the premises in the resolution chain, the first
+    // lhs clause is the first premise, the first rhs clause is the second
+    // premise. Each subsequent lhs clause will be the result of the previous
+    // binary resolution step in the chain, while each subsequent rhs clause
+    // will be respectively the second, third etc premises.
     std::vector<Node> lhsClause, rhsClause;
+    // The pivots to be eliminated to the lhs clause and rhs clause in a binary
+    // resolution step, respectively
     Node lhsElim, rhsElim;
     // Get lhsClause of first resolution.
     //
@@ -222,7 +230,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     // Traverse the links, which amounts to for each pair of args removing a
     // literal from the lhs and a literal from the lhs.
-    for (std::size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
+    for (size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
     {
       // Polarity determines how the pivot occurs in lhs and rhs
       if (args[i] == trueNode)
@@ -236,19 +244,20 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
         lhsElim = args[i + 1].notNode();
         rhsElim = args[i + 1];
       }
-      size_t rhsIndex = i/2 + 1;
+      // The index of the child corresponding to the current rhs clause
+      size_t childIndex = i/2 + 1;
       // Get rhs clause. It's a singleton if not an OR node or if equal to
       // rhsElim
-      if (children[rhsIndex].getKind() != kind::OR
-          || children[rhsIndex] == rhsElim)
+      if (children[childIndex].getKind() != kind::OR
+          || children[childIndex] == rhsElim)
       {
-        rhsClause.push_back(children[rhsIndex]);
+        rhsClause.push_back(children[childIndex]);
       }
       else
       {
         rhsClause.insert(rhsClause.end(),
-                         children[rhsIndex].begin(),
-                         children[rhsIndex].end());
+                         children[childIndex].begin(),
+                         children[childIndex].end());
       }
       Trace("bool-pfcheck") << i/2 << "-th res link:\n";
       Trace("bool-pfcheck") << "\t - lhsClause: " << lhsClause << "\n";
@@ -256,35 +265,18 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       Trace("bool-pfcheck") << "\t - rhsClause: " << rhsClause << "\n";
       Trace("bool-pfcheck") << "\t\t - rhsElim: " << rhsElim << "\n";
       // Compute the resulting clause, which will be the next lhsClause, as follows:
-      //   - traverse lhsClause and take all lits but lhsElim
-      //   - traverse rhsClause and take all lits but rhsElim
-      std::vector<Node> curr;
-      for (size_t j = 0, size = lhsClause.size(); j < size; ++j)
-      {
-        if (lhsClause[j] == lhsElim)
-        {
-          // ignore this literal, take all the rest, exit loop
-          curr.insert(curr.end(), lhsClause.begin() + j + 1, lhsClause.end());
-          break;
-        }
-        curr.push_back(lhsClause[j]);
-      }
-      Trace("bool-pfcheck") << "\t.. after lhsClause: " << curr << "\n";
-      for (size_t j = 0, size = rhsClause.size(); j < size; ++j)
-      {
-        if (rhsClause[j] == rhsElim)
-        {
-          // ignore this literal, take all the rest, exit loop
-          curr.insert(curr.end(), rhsClause.begin() + j + 1, rhsClause.end());
-          break;
-        }
-        curr.push_back(rhsClause[j]);
-      }
-      Trace("bool-pfcheck") << "\t.. after rhsClause: " << curr << "\n";
-      // Update lhsClause
+      //   - remove lhsElim from lhsClause
+      //   - remove rhsElim from rhsClause and add the lits to lhsClause
+      auto itlhs = std::find(lhsClause.begin(), lhsClause.end(), lhsElim);
+      AlwaysAssert(itlhs != lhsClause.end());
+      lhsClause.erase(itlhs);
+      Trace("bool-pfcheck") << "\t.. after lhsClause: " << lhsClause << "\n";
+      auto itrhs = std::find(rhsClause.begin(), rhsClause.end(), rhsElim);
+      AlwaysAssert(itrhs != rhsClause.end());
+      lhsClause.insert(lhsClause.end(), rhsClause.begin(), itrhs);
+      lhsClause.insert(lhsClause.end(), itrhs + 1, rhsClause.end());
+      Trace("bool-pfcheck") << "\t.. after rhsClause: " << lhsClause << "\n";
       rhsClause.clear();
-      lhsClause.clear();
-      lhsClause.insert(lhsClause.end(), curr.begin(), curr.end());
     }
     Trace("bool-pfcheck") << "\n resulting clause: " << lhsClause << "\n" << pop;
     return nm->mkOr(lhsClause);
