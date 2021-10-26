@@ -39,8 +39,9 @@ class PolyNorm
   bool isEqual(const PolyNorm& p) const;
   static PolyNorm mkPolyNorm(Node n);
   static bool isArithPolyNorm(Node a, Node b);
-private:
-  /** 
+
+ private:
+  /**
    * Given two terms that are variables in monomials, return the
    * variable for the monomial when they are multiplied.
    */
