@@ -208,9 +208,6 @@ class TheoryArrays : public Theory {
   /** Should be called to propagate the literal.  */
   bool propagateLit(TNode literal);
 
-  /** Explain why this literal is true by building an explanation */
-  void explain(TNode literal, Node& exp);
-
   /** For debugging only- checks invariants about when things are preregistered*/
   context::CDHashSet<Node> d_isPreRegistered;
 
