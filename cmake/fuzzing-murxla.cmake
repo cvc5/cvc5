@@ -18,7 +18,7 @@ if(NOT IS_DIRECTORY "${CMAKE_BINARY_DIR}/murxla")
   # this is only necessary while the murxla repository is private
   add_custom_target(fuzz-murxla
     COMMAND echo "To enable make fuzz-murxla run"
-    COMMAND echo "git clone git@github.com:murxla/murxla.git"
+    COMMAND echo "git clone git@github.com:murxla/murxla.git ${CMAKE_BINARY_DIR}/murxla"
   )
   return()
 endif()
