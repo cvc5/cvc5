@@ -1079,6 +1079,9 @@ void TheorySetsRels::check(Theory::Effort level)
           Node r1_rmost =
               RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
           Node r2_lmost = RelsUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
+          // Since we require notification r1_rmost and r2_lmost are equal,
+          // they must be shared terms of theory of sets. Hence, we make the
+          // following calls to makeSharedTerm to ensure this is the case.
           makeSharedTerm(r1_rmost, r1_rmost.getType());
           makeSharedTerm(r2_lmost, r2_lmost.getType());
 
