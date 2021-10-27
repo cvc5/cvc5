@@ -657,10 +657,10 @@ void TheorySetsRels::check(Theory::Effort level)
 
     Node rel_rep = getRepresentative( tc_rel[0] );
     Node tc_rel_rep = getRepresentative( tc_rel );
-    std::vector< Node > members = d_rReps_memberReps_cache[rel_rep];
-    std::vector< Node > exps = d_rReps_memberReps_exp_cache[rel_rep];
+    const std::vector< Node >& members = d_rReps_memberReps_cache[rel_rep];
+    const std::vector< Node >& exps = d_rReps_memberReps_exp_cache[rel_rep];
 
-    for( unsigned int i = 0; i < members.size(); i++ ) {
+    for( size_t i = 0, msize =  members.size(); i < msize; i++ ) {
       Node fst_element_rep = getRepresentative( RelsUtils::nthElementOfTuple( members[i], 0 ));
       Node snd_element_rep = getRepresentative( RelsUtils::nthElementOfTuple( members[i], 1 ));
       Node tuple_rep = RelsUtils::constructPair( rel_rep, fst_element_rep, snd_element_rep );
@@ -953,6 +953,23 @@ void TheorySetsRels::check(Theory::Effort level)
       doTCInference( tc_graph_it->second, d_tcr_tcGraph_exps.find(tc_graph_it->first)->second, tc_graph_it->first );
       ++tc_graph_it;
     }
+    /*
+    if (!d_im.hasPendingLemma())
+    {
+      tc_graph_it = d_tcr_tcGraph.begin();
+      while( tc_graph_it != d_tcr_tcGraph.end() ) {
+        for (const std::pair<const Node, std::unordered_set<Node> >& nn : tc_graph_it->second)
+        {
+          makeSharedTerm(nn.first, nn.first.getType());
+          for (const Node& nn2 : nn.second)
+          {
+            makeSharedTerm(nn2, nn2.getType());
+          }
+        }
+        ++tc_graph_it;
+      }
+    }
+    */
     Trace("rels-debug") << "[Theory::Rels] ****** Done with finalizing transitive closure inferences!" << std::endl;
   }
 
@@ -1020,12 +1037,12 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     NodeManager* nm = NodeManager::currentNM();
 
-    std::vector<Node>   members = d_rReps_memberReps_cache[rel0_rep];
-    std::vector<Node>   exps    = d_rReps_memberReps_exp_cache[rel0_rep];
+    const std::vector<Node>&   members = d_rReps_memberReps_cache[rel0_rep];
+    const std::vector<Node>&   exps    = d_rReps_memberReps_exp_cache[rel0_rep];
 
     Assert(members.size() == exps.size());
 
-    for(unsigned int i = 0; i < members.size(); i++) {
+    for(size_t i = 0, msize = members.size(); i < msize; i++) {
       Node reason = exps[i];
       if( rel.getKind() == kind::TRANSPOSE) {
         if( rel[0] != exps[i][1] ) {
@@ -1041,12 +1058,12 @@ void TheorySetsRels::check(Theory::Effort level)
   /*
    * Explicitly compose the join or product relations of r1 and r2. For example,
    * consider the case that (a, b) in r1, (c, d) in r2.
-   *
+   * 
    * For JOIN, we have three cases:
    *   b = c, we infer (a, d) in (join r1 r2)
    *   b != c, do nothing
    *   else, if neither holds, we add the splitting lemma (b=c or b!=c)
-   *
+   * 
    * For PRODUCT, we infer (a, b, c, d) in (product r1 r2).
    */
   void TheorySetsRels::composeMembersForRels( Node rel ) {
@@ -1191,21 +1208,16 @@ void TheorySetsRels::check(Theory::Effort level)
       return d_state.areEqual(a, b);
     }
     TypeNode atn = a.getType();
-    if (atn.isTuple())
-    {
+    if(atn.isTuple()) {
       size_t tlen = atn.getTupleLength();
-      for (size_t i = 0; i < tlen; i++)
-      {
-        if (!areEqual(RelsUtils::nthElementOfTuple(a, i),
-                      RelsUtils::nthElementOfTuple(b, i)))
+      for(size_t i = 0; i < tlen; i++) {
+        if (!areEqual(RelsUtils::nthElementOfTuple(a, i), RelsUtils::nthElementOfTuple(b, i)))
         {
           return true;
         }
       }
       return false;
-    }
-    else if (!atn.isBoolean())
-    {
+    } else if(!atn.isBoolean()){
       // TODO(project##230): Find a safe type for the singleton operator
       makeSharedTerm(a, atn);
       makeSharedTerm(b, b.getType());
