@@ -1041,12 +1041,12 @@ void TheorySetsRels::check(Theory::Effort level)
   /*
    * Explicitly compose the join or product relations of r1 and r2. For example,
    * consider the case that (a, b) in r1, (c, d) in r2.
-   *
+   * 
    * For JOIN, we have three cases:
    *   b = c, we infer (a, d) in (join r1 r2)
    *   b != c, do nothing
    *   else, if neither holds, we add the splitting lemma (b=c or b!=c)
-   *
+   * 
    * For PRODUCT, we infer (a, b, c, d) in (product r1 r2).
    */
   void TheorySetsRels::composeMembersForRels( Node rel ) {
@@ -1079,6 +1079,8 @@ void TheorySetsRels::check(Theory::Effort level)
           Node r1_rmost =
               RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
           Node r2_lmost = RelsUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
+          makeSharedTerm(r1_rmost, r1_rmost.getType());
+          makeSharedTerm(r2_lmost, r2_lmost.getType());
 
           Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
                               << " of type " << r1_rmost.getType() << std::endl;
@@ -1094,11 +1096,17 @@ void TheorySetsRels::check(Theory::Effort level)
               Node eq = r1_rmost.eqNode(r2_lmost);
               Node lem = nm->mkNode(kind::OR, eq, eq.negate());
               d_im.addPendingLemma(lem, InferenceId::SETS_RELS_JOIN_ELEM_SPLIT);
+              Trace("rels-debug") << "...unknown, split" << std::endl;
+            }
+            else
+            {
+              Trace("rels-debug") << "...disequal" << std::endl;
             }
             continue;
           }
           else if (r1_rmost != r2_lmost)
           {
+            Trace("rels-debug") << "...equal" << std::endl;
             reasons.push_back(nm->mkNode(kind::EQUAL, r1_rmost, r2_lmost));
           }
         }
