@@ -452,7 +452,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   for (; !eqcs_i.isFinished(); ++eqcs_i)
   {
     Node eqc = *eqcs_i;
-
+    Trace("model-builder") << "  Processing EQC " << eqc << std::endl;
     // Information computed for each equivalence class
 
     // The assigned represenative and constant representative
@@ -484,7 +484,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
-      Trace("model-builder") << "  Processing Term: " << n << endl;
+      Trace("model-builder") << "    Processing Term: " << n << endl;
 
       // For each term n in this equivalence class, below we register its
       // assignable subterms, compute whether it is a constant or assigned
@@ -505,7 +505,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         Assert(constRep.isNull());
         constRep = n;
         Trace("model-builder")
-            << "  ConstRep( " << eqc << " ) = " << constRep << std::endl;
+            << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
         // if we have a constant representative, nothing else matters
         continue;
       }
@@ -522,7 +522,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // these cases here.
         rep = itm->second;
         Trace("model-builder")
-            << "  Rep( " << eqc << " ) = " << rep << std::endl;
+            << "    ..Rep( " << eqc << " ) = " << rep << std::endl;
       }
 
       // (3) Finally, process assignable information

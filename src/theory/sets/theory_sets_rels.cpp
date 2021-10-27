@@ -1061,21 +1061,37 @@ void TheorySetsRels::check(Theory::Effort level)
     unsigned int r1_tuple_len = r1.getType().getSetElementType().getTupleLength();
     unsigned int r2_tuple_len = r2.getType().getSetElementType().getTupleLength();
 
+    Kind k = rel.getKind();
+    TypeNode tn = rel.getType().getSetElementType();
     for( unsigned int i = 0; i < r1_rep_exps.size(); i++ ) {
       for( unsigned int j = 0; j < r2_rep_exps.size(); j++ ) {
         std::vector<Node> tuple_elements;
-        TypeNode tn = rel.getType().getSetElementType();
-        Node r1_rmost = RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], r1_tuple_len-1 );
-        Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
-        tuple_elements.push_back(tn.getDType()[0].getConstructor());
+        if (k == kind::JOIN)
+        {
+          Node r1_rmost = RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], r1_tuple_len-1 );
+          Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
+          tuple_elements.push_back(tn.getDType()[0].getConstructor());
 
-        Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
-                            << " of type " << r1_rmost.getType() << std::endl;
-        Trace("rels-debug") << "[Theory::Rels] r2_lmost: " << r2_lmost
-                            << " of type " << r2_lmost.getType() << std::endl;
+          Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
+                              << " of type " << r1_rmost.getType() << std::endl;
+          Trace("rels-debug") << "[Theory::Rels] r2_lmost: " << r2_lmost
+                              << " of type " << r2_lmost.getType() << std::endl;
+          if (!areEqual(r1_rmost, r2_lmost))
+          {
+            if (!areDisequal(r1_rmost, r2_lmost))
+            {
+              // must split
+              Node eq = r1_rmost.eqNode(r2_lmost);
+              
+            }
+            else
+            {
+              continue;
+            }
+          }
+        }
 
-        if (rel.getKind() == kind::PRODUCT
-            || (rel.getKind() == kind::JOIN && areEqual(r1_rmost, r2_lmost)))
+        if (k == kind::PRODUCT || k == kind::JOIN)
         {
           bool isProduct = rel.getKind() == kind::PRODUCT;
           unsigned int k = 0;
