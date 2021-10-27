@@ -71,9 +71,6 @@ if(NOT Poly_FOUND_SYSTEM)
                 sed -i.orig "s/#include <stdio.h>/#include <stdio.h>\\\\n#include <inttypes.h>/" {} +
         COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
                 sed -i.orig "s/#include <cstdio>/#include <cstdio>\\\\n#include <inttypes.h>/" {} +
-        # Help with finding GMP
-        COMMAND sed -i.orig "s/find_library(GMP_LIBRARY gmp)/find_library(GMP_LIBRARY gmp gmp-10)/"
-                <SOURCE_DIR>/CMakeLists.txt
     )
   else()
     unset(patchcmd)
