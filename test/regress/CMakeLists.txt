@@ -2273,6 +2273,7 @@ set(regress_1_tests
   regress1/strings/issue6653-4-rre.smt2
   regress1/strings/issue6653-rre.smt2
   regress1/strings/issue6653-rre-small.smt2
+  regress1/strings/issue6766-re-elim-bv.smt2
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
   regress1/strings/issue6973-dup-lemma-conc.smt2
@@ -2288,6 +2289,7 @@ set(regress_1_tests
   regress1/strings/nf-ff-contains-abs.smt2
   regress1/strings/no-lazy-pp-quant.smt2
   regress1/strings/non_termination_regular_expression4.smt2
+  regress1/strings/non-terminating-rewrite-aent.smt2
   regress1/strings/norn-13.smt2
   regress1/strings/norn-360.smt2
   regress1/strings/norn-ab.smt2
