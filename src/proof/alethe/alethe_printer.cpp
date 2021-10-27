@@ -156,31 +156,31 @@ std::string AletheProofPrinter::alethePrinterInternal(
           << assumptions[nested_level] << std::endl;
       return prefix + "a" + std::to_string(it->second);
     }
-
-    Trace("alethe-printer") << "... printing failed! Encountered assumption "
-                               "that has not been printed! "
-                            << pfn->getArguments()[2] << "/"
-                            << assumptions[nested_level] << std::endl;
-    return "";
-  }
-
   // temp, hotfix
-  for (int i = nested_level; i >= 0; i--)
-  {
     auto prefix2 = prefix;
-    auto it = assumptions[i].find(pfn->getArguments()[2]);
-    if (it != assumptions[i].end())
+    for (int i = nested_level; i >= 0; i--)
     {
-      Trace("alethe-printer")
-          << "... search assumption in list on level " << i << ": "
-          << pfn->getArguments()[2] << "/" << assumptions[i] << "     "
-          << prefix2 << std::endl;
+      auto it = assumptions[i].find(pfn->getArguments()[2]);
       prefix2 = prefix2.substr(0, prefix2.find_last_of("."));
       Trace("alethe-printer") << prefix2 << std::endl;
       prefix2 = prefix2.substr(0, prefix2.find_last_of(".") + 1);
       Trace("alethe-printer") << prefix2 << std::endl;
-      return prefix2 + "a" + std::to_string(it->second);
-    }
+
+      if (it != assumptions[i].end())
+      {
+        Trace("alethe-printer")
+            << "... search assumption in list on level " << i << ": "
+            << pfn->getArguments()[2] << "/" << assumptions[i] << "     "
+            << prefix2 << std::endl;
+        return prefix2 + "a" + std::to_string(it->second);
+      }
+  }
+
+  Trace("alethe-printer") << "... printing failed! Encountered assumption "
+                             "that has not been printed! "
+                          << pfn->getArguments()[2] << "/"
+                          << assumptions[nested_level] << std::endl;
+  return "";
   }
 
   // Print children
@@ -194,14 +194,14 @@ std::string AletheProofPrinter::alethePrinterInternal(
   // mode if (!d_extended && (vrule == AletheRule::REORDER || vrule ==
   // AletheRule::SYMM)) for now exclude all reorder rules since they cannot be
   // reconstructed in Isabelle yet.
-  if (vrule == AletheRule::REORDER
+  /*if (vrule == AletheRule::REORDER
       || (!d_extended && vrule == AletheRule::SYMM))
   {
     Trace("alethe-printer")
         << "... non-extended mode skip child " << pfn->getResult() << " "
         << vrule << " / " << pfn->getArguments() << std::endl;
     return child_prefixes[0];
-  }
+  }*/
 
   // If the rule is a subproof a subproof step needs to be printed
   if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)
