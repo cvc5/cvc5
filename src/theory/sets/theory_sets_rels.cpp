@@ -130,32 +130,29 @@ void TheorySetsRels::check(Theory::Effort level)
         KIND_TERM_IT k_t_it = t_it->second.begin();
 
         while( k_t_it != t_it->second.end() ) {
+          Trace("rels-debug") << "[sets-rels] Check " << k_t_it->second.size() << " terms of kind " << k_t_it->first << std::endl;
+          std::vector<Node>::iterator term_it = k_t_it->second.begin();
           if( k_t_it->first == kind::JOIN || k_t_it->first == kind::PRODUCT ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while(term_it != k_t_it->second.end()) {
               computeMembersForBinOpRel( *term_it );
               ++term_it;
             }
           } else if( k_t_it->first == kind::TRANSPOSE ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForUnaryOpRel( *term_it );
               ++term_it;
             }
           } else if ( k_t_it->first == kind::TCLOSURE ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               buildTCGraphForRel( *term_it );
               ++term_it;
             }
           } else if( k_t_it->first == kind::JOIN_IMAGE ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForJoinImageTerm( *term_it );
               ++term_it;
             }
           } else if( k_t_it->first == kind::IDEN ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForIdenTerm( *term_it );
               ++term_it;
@@ -163,6 +160,10 @@ void TheorySetsRels::check(Theory::Effort level)
           }
           ++k_t_it;
         }
+      }
+      else
+      {
+        Trace("rels-debug") << "[sets-rels] Already computed members for " << t_it->first << std::endl;
       }
       ++t_it;
     }
@@ -1023,20 +1024,19 @@ void TheorySetsRels::check(Theory::Effort level)
 
     Assert(members.size() == exps.size());
 
-    if (rel.getKind() == kind::TRANSPOSE)
-    {
+    if( rel.getKind() == kind::TRANSPOSE) {
       for (size_t i = 0, msize = members.size(); i < msize; i++)
       {
         Node reason = exps[i];
         if( rel[0] != exps[i][1] ) {
-          reason = nm->mkNode(
-              kind::AND, reason, nm->mkNode(kind::EQUAL, rel[0], exps[i][1]));
+          reason = nm->mkNode(kind::AND, reason, nm->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
         sendInfer(nm->mkNode(MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
                   InferenceId::SETS_RELS_TRANSPOSE_REV,
                   reason);
       }
     }
+    
   }
 
   /*
