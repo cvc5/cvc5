@@ -265,7 +265,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
   auto it = toConnect.find(fact);
   if (it == toConnect.end())
   {
-    return nullptr;
+    return d_manager->mkAssume(fact);
   }
   return it->second;
 }
