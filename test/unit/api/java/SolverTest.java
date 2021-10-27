@@ -387,16 +387,6 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkRoundingMode(RoundingMode.ROUND_TOWARD_ZERO));
   }
 
-  @Test void mkUninterpretedConst() throws CVC5ApiException
-  {
-    assertDoesNotThrow(() -> d_solver.mkUninterpretedConst(d_solver.getBooleanSort(), 1));
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.mkUninterpretedConst(d_solver.getNullSort(), 1));
-    Solver slv = new Solver();
-    assertThrows(
-        CVC5ApiException.class, () -> slv.mkUninterpretedConst(d_solver.getBooleanSort(), 1));
-  }
-
   @Test void mkAbstractValue() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.mkAbstractValue(("1")));
@@ -432,6 +422,20 @@ class SolverTest
 
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.mkFloatingPoint(3, 5, t1));
+  }
+
+  @Test void mkCardinalityConstraint() throws CVC5ApiException
+  {
+    Sort su = d_solver.mkUninterpretedSort("u");
+    Sort si = d_solver.getIntegerSort();
+    assertDoesNotThrow(() -> d_solver.mkCardinalityConstraint(su, 3));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(si, 3));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.mkCardinalityConstraint(su, 0));
+    Solver slv = new Solver();
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkCardinalityConstraint(su, 3));
   }
 
   @Test void mkEmptySet() throws CVC5ApiException

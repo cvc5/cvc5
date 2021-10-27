@@ -59,21 +59,8 @@ if(NOT Poly_FOUND_SYSTEM)
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
-    # Roughly following https://stackoverflow.com/a/44383330/2375725
-    set(patchcmd
-        # Avoid %z and %llu format specifiers
-        COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
-                sed -i.orig "s/%z[diu]/%\\\" PRIu64 \\\"/g" {} +
-        COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
-                sed -i.orig "s/%ll[du]/%\\\" PRIu64 \\\"/g" {} +
-        # Make sure the new macros are available
-        COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
-                sed -i.orig "s/#include <stdio.h>/#include <stdio.h>\\\\n#include <inttypes.h>/" {} +
-        COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
-                sed -i.orig "s/#include <cstdio>/#include <cstdio>\\\\n#include <inttypes.h>/" {} +
-        # Help with finding GMP
-        COMMAND sed -i.orig "s/find_library(GMP_LIBRARY gmp)/find_library(GMP_LIBRARY gmp gmp-10)/"
-                <SOURCE_DIR>/CMakeLists.txt
+    set(patchcmd COMMAND
+      ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
   else()
     unset(patchcmd)
