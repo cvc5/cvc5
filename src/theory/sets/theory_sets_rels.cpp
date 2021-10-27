@@ -126,7 +126,7 @@ void TheorySetsRels::check(Theory::Effort level)
     TERM_IT t_it = d_terms_cache.begin();
     while( t_it != d_terms_cache.end() ) {
       Trace("rels-debug")
-          << "[sets-rels] A term does not have membership constraints: "
+          << "[sets-rels] Check equivalence class: "
           << t_it->first << std::endl;
       KIND_TERM_IT k_t_it = t_it->second.begin();
 
