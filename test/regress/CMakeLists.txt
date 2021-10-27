@@ -2060,6 +2060,7 @@ set(regress_1_tests
   regress1/rels/prod-mod-eq.cvc.smt2
   regress1/rels/prod-mod-eq2.cvc.smt2
   regress1/rels/qgu-fuzz-relations-2.smt2
+  regress1/rels/qgu-fuzz-relations-3-upwards.smt2
   regress1/rels/rel_complex_3.cvc.smt2
   regress1/rels/rel_complex_4.cvc.smt2
   regress1/rels/rel_complex_5.cvc.smt2
