@@ -198,7 +198,7 @@ add_check_cxx_flag("-fno-extern-tls-init")
 
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
-add_check_c_cxx_supression_flag("-Wno-class-memaccess")
+add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
