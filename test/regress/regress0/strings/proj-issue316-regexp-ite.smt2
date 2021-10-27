@@ -1,3 +1,5 @@
+; COMMAND-LINE: --theoryof-mode=type
+; COMMAND-LINE: --theoryof-mode=term
 ; SCRUBBER: grep -o "ITE branches of type RegLan are currently not supported"
 ; EXPECT: ITE branches of type RegLan are currently not supported
 ; EXIT: 1 

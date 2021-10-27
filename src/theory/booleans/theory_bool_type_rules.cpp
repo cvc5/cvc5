@@ -67,13 +67,6 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
          << "its type   : " << elseType << std::endl;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
-    if (!iteType.isFirstClass())
-    {
-      std::stringstream ss;
-      ss << "ITE branches of type " << iteType
-         << " are currently not supported." << std::endl;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
   }
   return iteType;
 }
