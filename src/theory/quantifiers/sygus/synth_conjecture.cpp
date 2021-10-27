@@ -805,7 +805,9 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
       bool is_unique_term = true;
 
       if (status != 0
-          && (options::sygusRewSynth() || options::sygusQueryGen()
+          && (options::sygusRewSynth()
+              || options().quantifiers.sygusQueryGen
+                     != options::SygusQueryGenMode::NONE
               || options::sygusFilterSolMode()
                      != options::SygusFilterSolMode::NONE))
       {
@@ -818,28 +820,7 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
           ExpressionMinerManager* emm = d_exprm[prog].get();
           emm->initializeSygus(
               d_tds, d_candidates[i], options::sygusSamples(), true);
-          if (options::sygusRewSynth())
-          {
-            emm->enableRewriteRuleSynth();
-          }
-          if (options::sygusQueryGen())
-          {
-            emm->enableQueryGeneration(options::sygusQueryGenThresh());
-          }
-          if (options::sygusFilterSolMode()
-              != options::SygusFilterSolMode::NONE)
-          {
-            if (options::sygusFilterSolMode()
-                == options::SygusFilterSolMode::STRONG)
-            {
-              emm->enableFilterStrongSolutions();
-            }
-            else if (options::sygusFilterSolMode()
-                     == options::SygusFilterSolMode::WEAK)
-            {
-              emm->enableFilterWeakSolutions();
-            }
-          }
+          emm->initializeMinersForOptions();
           its = d_exprm.find(prog);
         }
         bool rew_print = false;
