@@ -8,3 +8,4 @@ Binary Documentation
 
     quickstart
     options
+    output-tags
