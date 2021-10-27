@@ -1205,7 +1205,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       bool success = true;
       std::vector<Node> vpis;
-      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL))
+      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
+          || args[0] == ProofRuleChecker::mkKindNode(kind::EXISTS))
       {
         for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
