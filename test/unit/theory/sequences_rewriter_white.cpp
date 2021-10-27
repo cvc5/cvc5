@@ -248,7 +248,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       a,
       d_nodeManager->mkNode(kind::PLUS, x, d_nodeManager->mkConst(Rational(1))),
       x);
-  sameNormalForm(res, empty);
+  sameNormalForm(n, empty);
 
   // (str.substr "A" (+ x (str.len s2)) x) -> ""
   n = d_nodeManager->mkNode(
@@ -257,7 +257,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       d_nodeManager->mkNode(
           kind::PLUS, x, d_nodeManager->mkNode(kind::STRING_LENGTH, s)),
       x);
-  sameNormalForm(res, empty);
+  sameNormalForm(n, empty);
 
   // (str.substr "A" x y) -> (str.substr "A" x y)
   n = d_nodeManager->mkNode(kind::STRING_SUBSTR, a, x, y);
@@ -269,7 +269,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
                             abcd,
                             d_nodeManager->mkNode(kind::PLUS, x, three),
                             x);
-  sameNormalForm(res, empty);
+  sameNormalForm(n, empty);
 
   // (str.substr "ABCD" (+ x 2) x) -> (str.substr "ABCD" (+ x 2) x)
   n = d_nodeManager->mkNode(
