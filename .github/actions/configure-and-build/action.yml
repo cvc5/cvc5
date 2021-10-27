@@ -10,11 +10,11 @@ inputs:
   build-static:
     default: true
 outputs:
-  shared-build-folder:
-    description: build folder of the shared build
+  shared-build-dir:
+    description: build directory of the shared build
     value: ${{ steps.shared-build.outputs.build-dir }}
-  static-build-folder:
-    description: build folder of the static build
+  static-build-dir:
+    description: build directory of the static build
     value: ${{ steps.static-build.outputs.build-dir }}
 runs:
   using: composite

@@ -68,10 +68,10 @@ runs:
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
         echo "::endgroup::"
 
-    - name: Install software for python bindings
+    - name: Install software for Python bindings
       shell: bash
       run: |
-        echo "::group::Install software for python bindings"
+        echo "::group::Install software for Python bindings"
         if [[ "${{ inputs.with-python-bindings }}" != "true" ]]; then exit 0; fi
         python3 -m pip install pytest scikit-build
         python3 -m pytest --version

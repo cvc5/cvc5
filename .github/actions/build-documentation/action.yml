@@ -2,7 +2,7 @@ name: Build documentation
 description: Build documentation and store it as artifact
 inputs:
   build-dir:
-    default: build/
+    default: build
 runs:
   using: composite
   steps:
