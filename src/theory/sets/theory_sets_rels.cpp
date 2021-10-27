@@ -1189,15 +1189,20 @@ void TheorySetsRels::check(Theory::Effort level)
       return true;
     } else if( hasTerm( a ) && hasTerm( b ) ){
       return d_state.areEqual(a, b);
-    } else if(a.getType().isTuple()) {
-      bool equal = true;
-      for(unsigned int i = 0; i < a.getType().getTupleLength(); i++) {
-        equal = equal && areEqual(RelsUtils::nthElementOfTuple(a, i), RelsUtils::nthElementOfTuple(b, i));
+    }
+    TypeNode atn = a.getType();
+    if(atn.isTuple()) {
+      size_t tlen = atn.getTupleLength();
+      for(size_t i = 0; i < tlen; i++) {
+        if (!areEqual(RelsUtils::nthElementOfTuple(a, i), RelsUtils::nthElementOfTuple(b, i)))
+        {
+          return true;
+        }
       }
-      return equal;
-    } else if(!a.getType().isBoolean()){
+      return false;
+    } else if(!atn.isBoolean()){
       // TODO(project##230): Find a safe type for the singleton operator
-      makeSharedTerm(a, a.getType());
+      makeSharedTerm(a, atn);
       makeSharedTerm(b, b.getType());
     }
     return false;
