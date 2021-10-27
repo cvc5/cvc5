@@ -2422,7 +2422,7 @@ cdef class Sort:
 
             1. we handle equalities between terms of that type, and
             2. they are allowed to be parameters of parametric sorts
-            (e.g. index or element sorts of arrays).
+               (e.g. index or element sorts of arrays).
 
             Examples of sorts that are not first-class include sort constructor
             sorts and regular expression sorts.
