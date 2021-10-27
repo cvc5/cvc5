@@ -950,24 +950,6 @@ void TheorySetsRels::check(Theory::Effort level)
       doTCInference( tc_graph_it->second, d_tcr_tcGraph_exps.find(tc_graph_it->first)->second, tc_graph_it->first );
       ++tc_graph_it;
     }
-    /*
-    if (!d_im.hasPendingLemma())
-    {
-      tc_graph_it = d_tcr_tcGraph.begin();
-      while( tc_graph_it != d_tcr_tcGraph.end() ) {
-        for (const std::pair<const Node, std::unordered_set<Node> >& nn :
-    tc_graph_it->second)
-        {
-          makeSharedTerm(nn.first, nn.first.getType());
-          for (const Node& nn2 : nn.second)
-          {
-            makeSharedTerm(nn2, nn2.getType());
-          }
-        }
-        ++tc_graph_it;
-      }
-    }
-    */
     Trace("rels-debug") << "[Theory::Rels] ****** Done with finalizing transitive closure inferences!" << std::endl;
   }
 
