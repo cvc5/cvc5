@@ -1391,6 +1391,16 @@ cdef class Solver:
         term.cterm = self.csolver.mkFloatingPoint(exp, sig, val.cterm)
         return term
 
+    def mkCardinalityConstraint(self, Sort sort, int index):
+        """Create cardinality constraint.
+
+        :param sort: Sort of the constraint
+        :param index: The upper bound for the cardinality of the sort
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkCardinalityConstraint(sort.csort, index)
+        return term
+
     def mkConst(self, Sort sort, symbol=None):
         """
         Create (first-order) constant (0-arity function symbol).

@@ -3600,10 +3600,10 @@ class CVC5_EXPORT Solver
   /**
    * Create a cardinality constraint for an uninterpreted sort.
    * @param sort the sort the cardinality constraint is for
-   * @param val the upper bound on the cardinality of the sort
+   * @param upperBound the upper bound on the cardinality of the sort
    * @return the cardinality constraint
    */
-  Term mkCardinalityConstraint(const Sort& sort, uint32_t ubound) const;
+  Term mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const;
 
   /* .................................................................... */
   /* Create Variables                                                     */

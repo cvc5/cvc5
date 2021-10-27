@@ -22,6 +22,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/query_generator_unsat.h"
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
@@ -67,14 +68,8 @@ class ExpressionMinerManager : protected EnvObj
                        Node f,
                        unsigned nsamples,
                        bool useSygusType);
-  /** enable rewrite rule synthesis (--sygus-rr-synth) */
-  void enableRewriteRuleSynth();
-  /** enable query generation (--sygus-query-gen) */
-  void enableQueryGeneration(unsigned deqThresh);
-  /** filter strong solutions (--sygus-filter-sol=strong) */
-  void enableFilterStrongSolutions();
-  /** filter weak solutions (--sygus-filter-sol=weak) */
-  void enableFilterWeakSolutions();
+  /** initialize options */
+  void initializeMinersForOptions();
   /** add term
    *
    * Expression miners may print information on the output stream out, for
@@ -90,6 +85,14 @@ class ExpressionMinerManager : protected EnvObj
   bool addTerm(Node sol, std::ostream& out, bool& rew_print);
 
  private:
+  /** enable rewrite rule synthesis (--sygus-rr-synth) */
+  void enableRewriteRuleSynth();
+  /** enable query generation (--sygus-query-gen) */
+  void enableQueryGeneration(unsigned deqThresh);
+  /** filter strong solutions (--sygus-filter-sol=strong) */
+  void enableFilterStrongSolutions();
+  /** filter weak solutions (--sygus-filter-sol=weak) */
+  void enableFilterWeakSolutions();
   /** whether we are doing rewrite synthesis */
   bool d_doRewSynth;
   /** whether we are doing query generation */
@@ -105,7 +108,9 @@ class ExpressionMinerManager : protected EnvObj
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
   /** query generator */
-  QueryGenerator d_qg;
+  std::unique_ptr<QueryGenerator> d_qg;
+  /** query generator */
+  std::unique_ptr<QueryGeneratorUnsat> d_qgu;
   /** solution filter based on logical strength */
   SolutionFilterStrength d_sols;
   /** sygus sampler object */
