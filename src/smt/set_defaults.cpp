@@ -197,7 +197,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
   else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear())))
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()))
+           && !opts.base.incrementalSolving)
   {
     opts.quantifiers.sygusInst = true;
   }
@@ -993,6 +994,18 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
              << std::endl;
     opts.quantifiers.sygusInference = false;
   }
+  if (opts.quantifiers.sygusInst)
+  {
+    if (opts.quantifiers.sygusInstWasSetByUser)
+    {
+      reason << "sygus inst";
+      return true;
+    }
+    Notice() << "SolverEngine: turning off sygus inst to support "
+                "incremental solving"
+             << std::endl;
+    opts.quantifiers.sygusInst = false;
+  }
   if (opts.smt.solveIntAsBV > 0)
   {
     reason << "solveIntAsBV";
@@ -1344,18 +1357,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     {
       opts.quantifiers.macrosQuant = false;
     }
-    // HOL is incompatible with fmfBound
-    if (opts.quantifiers.fmfBound)
-    {
-      if (opts.quantifiers.fmfBoundWasSetByUser
-          || opts.quantifiers.fmfBoundLazyWasSetByUser
-          || opts.quantifiers.fmfBoundIntWasSetByUser)
-      {
-        Notice() << "Disabling bound finite-model finding since it is "
-                    "incompatible with HOL.\n";
-      }
-      Trace("smt") << "turning off fmf-bound, since HOL\n";
-    }
   }
   if (opts.quantifiers.fmfFunWellDefinedRelevant)
   {
@@ -1630,7 +1631,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     reqBasicSygus = true;
   }
   if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
-      || opts.quantifiers.sygusQueryGen)
+      || opts.quantifiers.sygusQueryGen != options::SygusQueryGenMode::NONE)
   {
     // rewrite rule synthesis implies that sygus stream must be true
     opts.quantifiers.sygusStream = true;
