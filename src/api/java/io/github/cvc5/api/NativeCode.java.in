@@ -120,12 +120,31 @@ class MacX86_64 extends Platform
   static MacX86_64 MAC_X86_64 = new MacX86_64();
   private MacX86_64()
   {
-    super("Mac*", "x86_64", "mac-x86_64");
+    //super("Mac*", "x86_64", "mac-x86_64");
+    super("mac\\s*os.*", "ppc|power|powerpc.*|x86.*", "mac-86_64");
   }
   @Override String[] getLibraries()
   {
     return new String[] {
-        "libcvc5.dylib.1", "libcvc5jni.dylib", "libpoly.dylib.0.1.9", "libpolyxx.dylib.0.1.9"};
+        "libcvc5.1.dylib", "libcvc5jni.dylib", "libpoly.0.1.9.dylib", "libpolyxx.0.1.9.dylib"};
+  }
+  @Override void copyLibraries(String dir, String prefix)
+  {
+    try
+    {
+      super.copyLibraries(dir, prefix);
+      // symbolic links
+      Runtime.getRuntime().exec("ln -s " + prefix + "libcvc5.1.dylib " + prefix + "libcvc5.so");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.0.1.9.dylib " + prefix + "libpoly.0.dylib");
+      Runtime.getRuntime().exec(
+          "ln -s " + prefix + "libpolyxx.0.1.9.dylib " + prefix + "libpolyxx.0.dylib");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpoly.0.dylib " + prefix + "libpoly.dylib");
+      Runtime.getRuntime().exec("ln -s " + prefix + "libpolyxx.0.dylib " + prefix + "libpolyxx.dylib");
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException(e);
+    }
   }
 }
 
