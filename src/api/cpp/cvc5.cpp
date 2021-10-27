@@ -6054,16 +6054,16 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t ubound) const
+Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(sort);
   CVC5_API_ARG_CHECK_EXPECTED(sort.isUninterpretedSort(), sort)
       << "an uninterpreted sort";
-  CVC5_API_ARG_CHECK_EXPECTED(ubound > 0, ubound) << "a value > 0";
+  CVC5_API_ARG_CHECK_EXPECTED(upperBound > 0, upperBound) << "a value > 0";
   //////// all checks before this line
   Node cco =
-      d_nodeMgr->mkConst(cvc5::CardinalityConstraint(*sort.d_type, ubound));
+      d_nodeMgr->mkConst(cvc5::CardinalityConstraint(*sort.d_type, upperBound));
   Node cc = d_nodeMgr->mkNode(cvc5::Kind::CARDINALITY_CONSTRAINT, cco);
   return Term(this, cc);
   ////////
