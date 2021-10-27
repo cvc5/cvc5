@@ -1039,9 +1039,15 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   /*
-   * Explicitly compose the join or product relations of r1 and r2
-   * e.g. If (a, b) in X and (b, c) in Y, (a, c) in (X JOIN Y)
-   *
+   * Explicitly compose the join or product relations of r1 and r2. For example,
+   * consider the case that (a, b) in r1, (c, d) in r2.
+   * 
+   * For JOIN, we have three cases:
+   *   b = c, we infer (a, d) in (join r1 r2)
+   *   b != c, do nothing
+   *   else, if neither holds, we add the splitting lemma (b=c or b!=c)
+   * 
+   * For PRODUCT, we infer (a, b, c, d) in (product r1 r2).
    */
   void TheorySetsRels::composeMembersForRels( Node rel ) {
     Trace("rels-debug") << "[Theory::Rels] Start composing members for relation = " << rel << std::endl;
