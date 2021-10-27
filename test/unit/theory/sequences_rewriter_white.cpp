@@ -272,13 +272,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
                             d_nodeManager->mkNode(kind::PLUS, x, three),
                             x);
   res = sr.rewriteSubstr(n);
-  ASSERT_EQ(res, empty);
+  sameNormalForm(res, empty);
 
   // (str.substr "ABCD" (+ x 2) x) -> (str.substr "ABCD" (+ x 2) x)
   n = d_nodeManager->mkNode(
       kind::STRING_SUBSTR, abcd, d_nodeManager->mkNode(kind::PLUS, x, two), x);
   res = sr.rewriteSubstr(n);
-  ASSERT_EQ(res, n);
+  sameNormalForm(res, n);
 
   // (str.substr (str.substr s x x) x x) -> ""
   n = d_nodeManager->mkNode(kind::STRING_SUBSTR,
