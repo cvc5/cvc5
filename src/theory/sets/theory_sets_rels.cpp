@@ -125,9 +125,8 @@ void TheorySetsRels::check(Theory::Effort level)
 
     TERM_IT t_it = d_terms_cache.begin();
     while( t_it != d_terms_cache.end() ) {
-      Trace("rels-debug")
-          << "[sets-rels] Check equivalence class: "
-          << t_it->first << std::endl;
+      Trace("rels-debug") << "[sets-rels] Check equivalence class: "
+                          << t_it->first << std::endl;
       KIND_TERM_IT k_t_it = t_it->second.begin();
 
       while (k_t_it != t_it->second.end())
@@ -1087,7 +1086,6 @@ void TheorySetsRels::check(Theory::Effort level)
                               << " of type " << r2_lmost.getType() << std::endl;
           if (!areEqual(r1_rmost, r2_lmost))
           {
-
             continue;
           }
           else if (r1_rmost != r2_lmost)
