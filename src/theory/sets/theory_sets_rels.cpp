@@ -229,24 +229,7 @@ void TheorySetsRels::check(Theory::Effort level)
           if( eqc_node.getKind() == kind::TRANSPOSE || eqc_node.getKind() == kind::JOIN ||
               eqc_node.getKind() == kind::PRODUCT || eqc_node.getKind() == kind::TCLOSURE ||
               eqc_node.getKind() == kind::JOIN_IMAGE || eqc_node.getKind() == kind::IDEN ) {
-            std::vector<Node> terms;
-            std::map< kind::Kind_t, std::vector<Node> >  rel_terms;
-            TERM_IT terms_it = d_terms_cache.find(eqc_rep);
-
-            if( terms_it == d_terms_cache.end() ) {
-              terms.push_back(eqc_node);
-              rel_terms[eqc_node.getKind()]      = terms;
-              d_terms_cache[eqc_rep]             = rel_terms;
-            } else {
-              KIND_TERM_IT kind_term_it = terms_it->second.find(eqc_node.getKind());
-
-              if( kind_term_it == terms_it->second.end() ) {
-                terms.push_back(eqc_node);
-                d_terms_cache[eqc_rep][eqc_node.getKind()] = terms;
-              } else {
-                kind_term_it->second.push_back(eqc_node);
-              }
-            }
+            d_terms_cache[eqc_rep][eqc_node.getKind()].push_back(eqc_node);
           }
         // need to add all tuple elements as shared terms
         }
@@ -1007,10 +990,6 @@ void TheorySetsRels::check(Theory::Effort level)
       default:
         break;
     }
-    if(d_rReps_memberReps_cache.find(getRepresentative(rel[0])) == d_rReps_memberReps_cache.end() ||
-       d_rReps_memberReps_cache.find(getRepresentative(rel[1])) == d_rReps_memberReps_cache.end()) {
-      return;
-    }
     composeMembersForRels(rel);
   }
 
@@ -1044,18 +1023,19 @@ void TheorySetsRels::check(Theory::Effort level)
 
     Assert(members.size() == exps.size());
 
-    for (size_t i = 0, msize = members.size(); i < msize; i++)
-    {
-      Node reason = exps[i];
-      if( rel.getKind() == kind::TRANSPOSE) {
+    if( rel.getKind() == kind::TRANSPOSE) {
+      for (size_t i = 0, msize = members.size(); i < msize; i++)
+      {
+        Node reason = exps[i];
         if( rel[0] != exps[i][1] ) {
-          reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, rel[0], exps[i][1]));
+          reason = nm->mkNode(kind::AND, reason, nm->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
         sendInfer(nm->mkNode(MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
                   InferenceId::SETS_RELS_TRANSPOSE_REV,
                   reason);
       }
     }
+    
   }
 
   /*
