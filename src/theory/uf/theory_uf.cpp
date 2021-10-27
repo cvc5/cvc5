@@ -511,9 +511,8 @@ EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_FALSE_IN_MODEL;
 }
 
-bool TheoryUF::areCareDisequal(TNode x, TNode y){
-  Assert(d_equalityEngine->hasTerm(x));
-  Assert(d_equalityEngine->hasTerm(y));
+bool TheoryUF::areCareDisequal(TNode x, TNode y)
+{
   if (d_equalityEngine->isTriggerTerm(x, THEORY_UF)
       && d_equalityEngine->isTriggerTerm(y, THEORY_UF))
   {
@@ -534,11 +533,14 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
                             unsigned arity,
                             unsigned depth)
 {
+  // Note we use d_state instead of d_equalityEngine in this method in several
+  // places to be robust to cases where the tries have terms that do not
+  // exist in the equality engine, which can be the case if higher order.
   if( depth==arity ){
     if( t2!=NULL ){
       Node f1 = t1->getData();
       Node f2 = t2->getData();
-      if (!d_equalityEngine->areEqual(f1, f2))
+      if (!d_state.areEqual(f1, f2))
       {
         Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
@@ -546,11 +548,9 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
         {
           TNode x = f1[k];
           TNode y = f2[k];
-          Assert(d_equalityEngine->hasTerm(x));
-          Assert(d_equalityEngine->hasTerm(y));
-          Assert(!d_equalityEngine->areDisequal(x, y, false));
+          Assert(!d_state.areDisequal(x, y));
           Assert(!areCareDisequal(x, y));
-          if (!d_equalityEngine->areEqual(x, y))
+          if (!d_state.areEqual(x, y))
           {
             if (d_equalityEngine->isTriggerTerm(x, THEORY_UF)
                 && d_equalityEngine->isTriggerTerm(y, THEORY_UF))
@@ -586,7 +586,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
         std::map<TNode, TNodeTrie>::const_iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
-          if (!d_equalityEngine->areDisequal(it->first, it2->first, false))
+          if (!d_state.areDisequal(it->first, it2->first))
           {
             if( !areCareDisequal(it->first, it2->first) ){
               addCarePairs( &it->second, &it2->second, arity, depth+1 );
@@ -600,7 +600,7 @@ void TheoryUF::addCarePairs(const TNodeTrie* t1,
       {
         for (const std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
         {
-          if (!d_equalityEngine->areDisequal(tt1.first, tt2.first, false))
+          if (!d_state.areDisequal(tt1.first, tt2.first))
           {
             if (!areCareDisequal(tt1.first, tt2.first))
             {
@@ -618,11 +618,14 @@ void TheoryUF::computeCareGraph() {
   {
     return;
   }
+  NodeManager* nm = NodeManager::currentNM();
   // Use term indexing. We build separate indices for APPLY_UF and HO_APPLY.
   // We maintain indices per operator for the former, and indices per
   // function type for the latter.
   Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..."
                        << std::endl;
+  // temporary keep set for higher-order indexing below
+  std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
   std::map<TypeNode, TNodeTrie> hoIndex;
   std::map<Node, size_t> arity;
@@ -645,6 +648,25 @@ void TheoryUF::computeCareGraph() {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
         arity[op] = reps.size();
+        if (logicInfo().isHigherOrder() && d_equalityEngine->hasTerm(op))
+        {
+          // Since we use a lazy app-completion scheme for equating fully
+          // and partially applied versions of terms, we must add all
+          // sub-chains to the HO index if the operator of this term occurs
+          // in a higher-order context in the equality engine.  In other words,
+          // for (f a b c), this will add the terms:
+          // (HO_APPLY f a), (HO_APPLY (HO_APPLY f a) b),
+          // (HO_APPLY (HO_APPLY (HO_APPLY f a) b) c) to the higher-order
+          // term index for consideration when computing care pairs.
+          Node curr = op;
+          for (const Node& c : app)
+          {
+            Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
+            hoIndex[curr.getType()].addTerm(happ, {curr, c});
+            curr = happ;
+            keep.push_back(happ);
+          }
+        }
       }
       else
       {
