@@ -304,7 +304,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   //
   // We also must enable stringExp if reElimAgg is true, since this introduces
   // bounded quantifiers during preprocessing.
-  if ((!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS)) || opts.strings.reElimAgg)
+  if ((!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
+      || opts.strings.reElimAgg)
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
