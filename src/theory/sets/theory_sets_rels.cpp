@@ -1041,12 +1041,12 @@ void TheorySetsRels::check(Theory::Effort level)
   /*
    * Explicitly compose the join or product relations of r1 and r2. For example,
    * consider the case that (a, b) in r1, (c, d) in r2.
-   * 
+   *
    * For JOIN, we have three cases:
    *   b = c, we infer (a, d) in (join r1 r2)
    *   b != c, do nothing
    *   else, if neither holds, we add the splitting lemma (b=c or b!=c)
-   * 
+   *
    * For PRODUCT, we infer (a, b, c, d) in (product r1 r2).
    */
   void TheorySetsRels::composeMembersForRels( Node rel ) {
@@ -1191,16 +1191,21 @@ void TheorySetsRels::check(Theory::Effort level)
       return d_state.areEqual(a, b);
     }
     TypeNode atn = a.getType();
-    if(atn.isTuple()) {
+    if (atn.isTuple())
+    {
       size_t tlen = atn.getTupleLength();
-      for(size_t i = 0; i < tlen; i++) {
-        if (!areEqual(RelsUtils::nthElementOfTuple(a, i), RelsUtils::nthElementOfTuple(b, i)))
+      for (size_t i = 0; i < tlen; i++)
+      {
+        if (!areEqual(RelsUtils::nthElementOfTuple(a, i),
+                      RelsUtils::nthElementOfTuple(b, i)))
         {
           return true;
         }
       }
       return false;
-    } else if(!atn.isBoolean()){
+    }
+    else if (!atn.isBoolean())
+    {
       // TODO(project##230): Find a safe type for the singleton operator
       makeSharedTerm(a, atn);
       makeSharedTerm(b, b.getType());
