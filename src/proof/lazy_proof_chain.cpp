@@ -150,7 +150,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
         // enqueue free assumptions to process
         for (const auto& fap : famap)
         {
-          // A cycle is charactherized by cur having an assumption being
+          // A cycle is characterized by cur having an assumption being
           // *currently* expanded that is seen again, i.e. in toConnect and not
           // yet post-visited
           auto itToConnect = toConnect.find(fap.first);
