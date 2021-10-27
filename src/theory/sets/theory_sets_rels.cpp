@@ -1068,8 +1068,9 @@ void TheorySetsRels::check(Theory::Effort level)
         std::vector<Node> tuple_elements;
         if (k == kind::JOIN)
         {
-          Node r1_rmost = RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], r1_tuple_len-1 );
-          Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
+          Node r1_rmost =
+              RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
+          Node r2_lmost = RelsUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
           tuple_elements.push_back(tn.getDType()[0].getConstructor());
 
           Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
@@ -1082,7 +1083,6 @@ void TheorySetsRels::check(Theory::Effort level)
             {
               // must split
               Node eq = r1_rmost.eqNode(r2_lmost);
-              
             }
             else
             {
