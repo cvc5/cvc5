@@ -70,6 +70,41 @@ macro(add_check_c_cxx_flag flag)
   add_check_cxx_flag(${flag})
 endmacro()
 
+# Check if C warning surpression flag is supported and add to global list of C
+# flags.
+macro(add_check_c_supression_flag supression_flag)
+  # Obtain the non-supression warning flag name
+  string(REGEX REPLACE "^-Wno-" "-W" warning_flag ${supression_flag})
+  string(REGEX REPLACE "[-=]" "_" warning_flagname ${warning_flag})
+  # Check if we have the warning flag
+  check_c_compiler_flag("${warning_flag}" HAVE_FLAG${warning_flagname})
+  # Only add the supression flag if we have the warning flag
+  if(HAVE_FLAG${warning_flagname})
+    add_c_flag(${supression_flag})
+  endif()
+endmacro()
+
+# Check if CXX warning surpression flag is supported and add to global list of
+# CXX flags.
+macro(add_check_cxx_supression_flag supression_flag)
+  # Obtain the non-supression warning flag name
+  string(REGEX REPLACE "^-Wno-" "-W" warning_flag ${supression_flag})
+  string(REGEX REPLACE "[-=]" "_" warning_flagname ${warning_flag})
+  # Check if we have the warning flag
+  check_cxx_compiler_flag("${warning_flag}" HAVE_FLAG${warning_flagname})
+  # Only add the supression flag if we have the warning flag
+  if(HAVE_FLAG${warning_flagname})
+    add_cxx_flag(${supression_flag})
+  endif()
+endmacro()
+
+# Check if C/CXX warning supression flag is supported and add to global list of
+# C/CXX flags.
+macro(add_check_c_cxx_supression_flag supression_flag)
+  add_check_c_supression_flag(${supression_flag})
+  add_check_cxx_supression_flag(${supression_flag})
+endmacro()
+
 # Add required CXX flag. Configuration fails if the CXX flag is not supported
 # by the compiler.
 macro(add_required_cxx_flag flag)
