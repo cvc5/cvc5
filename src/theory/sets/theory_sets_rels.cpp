@@ -1061,16 +1061,16 @@ void TheorySetsRels::check(Theory::Effort level)
     unsigned int r1_tuple_len = r1.getType().getSetElementType().getTupleLength();
     unsigned int r2_tuple_len = r2.getType().getSetElementType().getTupleLength();
 
-    Kind k = rel.getKind();
+    Kind rk = rel.getKind();
     TypeNode tn = rel.getType().getSetElementType();
     for( unsigned int i = 0; i < r1_rep_exps.size(); i++ ) {
       for( unsigned int j = 0; j < r2_rep_exps.size(); j++ ) {
         std::vector<Node> tuple_elements;
-        if (k == kind::JOIN)
+        std::vector<Node> reasons;
+        if (rk == kind::JOIN)
         {
-          Node r1_rmost =
-              RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
-          Node r2_lmost = RelsUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
+          Node r1_rmost = RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], r1_tuple_len-1 );
+          Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
           tuple_elements.push_back(tn.getDType()[0].getConstructor());
 
           Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
@@ -1079,21 +1079,27 @@ void TheorySetsRels::check(Theory::Effort level)
                               << " of type " << r2_lmost.getType() << std::endl;
           if (!areEqual(r1_rmost, r2_lmost))
           {
-            if (!areDisequal(r1_rmost, r2_lmost))
+            if (!d_state.areDisequal(r1_rmost, r2_lmost))
             {
               // must split
               Node eq = r1_rmost.eqNode(r2_lmost);
+              Node lem = nm->mkNode(kind::OR, eq, eq.negate());
+              d_im.addPendingLemma(lem, InferenceId::SETS_RELS_JOIN_ELEM_SPLIT);
             }
             else
             {
               continue;
             }
           }
+          else if (r1_rmost != r2_lmost)
+          {
+            reasons.push_back( nm->mkNode(kind::EQUAL, r1_rmost, r2_lmost) );
+          }
         }
 
-        if (k == kind::PRODUCT || k == kind::JOIN)
+        if (rk == kind::PRODUCT || rk == kind::JOIN)
         {
-          bool isProduct = rel.getKind() == kind::PRODUCT;
+          bool isProduct = rk == kind::PRODUCT;
           unsigned int k = 0;
           unsigned int l = 1;
 
@@ -1108,25 +1114,21 @@ void TheorySetsRels::check(Theory::Effort level)
             tuple_elements.push_back( RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], l ) );
           }
 
-          Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
-          Node fact = NodeManager::currentNM()->mkNode(kind::MEMBER, composed_tuple, rel);
-          std::vector<Node> reasons;
+          Node composed_tuple = nm->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
+          Node fact = nm->mkNode(kind::MEMBER, composed_tuple, rel);
           reasons.push_back( r1_rep_exps[i] );
           reasons.push_back( r2_rep_exps[j] );
 
           if( r1 != r1_rep_exps[i][1] ) {
-            reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r1, r1_rep_exps[i][1]) );
+            reasons.push_back( nm->mkNode(kind::EQUAL, r1, r1_rep_exps[i][1]) );
           }
           if( r2 != r2_rep_exps[j][1] ) {
-            reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r2, r2_rep_exps[j][1]) );
+            reasons.push_back( nm->mkNode(kind::EQUAL, r2, r2_rep_exps[j][1]) );
           }
           if( isProduct ) {
             sendInfer(
                 fact, InferenceId::SETS_RELS_PRODUCE_COMPOSE, nm->mkNode(kind::AND, reasons));
           } else {
-            if( r1_rmost != r2_lmost ) {
-              reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r1_rmost, r2_lmost) );
-            }
             sendInfer(
                 fact, InferenceId::SETS_RELS_JOIN_COMPOSE, nm->mkNode(kind::AND, reasons));
           }
