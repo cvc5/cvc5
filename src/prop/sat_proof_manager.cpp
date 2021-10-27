@@ -722,6 +722,8 @@ void SatProofManager::finalizeProof()
       << "SatProofManager::finalizeProof: conflicting (lazy) satLit: "
       << d_conflictLit << "\n";
   finalizeProof(getClauseNode(d_conflictLit), {d_conflictLit});
+  // reset since if in incremental mode this may be used again
+  d_conflictLit = undefSatVariable;
 }
 
 void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
