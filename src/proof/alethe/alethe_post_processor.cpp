@@ -1272,16 +1272,16 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Congruence
     // In the case that the kind of the function symbol ?f is forall, the cong
-    // rule needs to be converted into a bind rule. The first child will be a
-    // refl rule, e.g. (= (v0 Int) (v0 Int)). The type has to be deleted.
+    // rule needs to be converted into a bind rule. The first n children will be
+    // refl rules, e.g. (= (v0 Int) (v0 Int)).
     //
     //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
     //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
     //
-    //  ---------------- REFL   ---------------- REFL
-    //   (cl (= v1 v2))*         (cl (= vn wn))
-    //  ---------------------------------------- bind, ((:= v1 w1) ... (:= vn
-    //  wn))
+    //  ---------------- REFL ...  ---------------- REFL
+    //   (cl (= v1 v2))*             (cl (= vn wn))
+    //  ------------------------------------------- bind, ((:= (v1 A1) w1) ...
+    //  (:= (vn An) wn))
     //   (cl (= (forall ((v1 A1)...(vn An)) t2)
     //   (forall ((w1 B1)...(wn Bn)) s2)))*
     //
@@ -1305,13 +1305,16 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           new_args.push_back(
               nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]));
-          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, new_args[i]));
+          vpis.push_back(nm->mkNode(
+              kind::SEXPR,
+              d_cl,
+              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i])));
           success&& addAletheStep(
               AletheRule::REFL, vpis[i], vpis[i], {}, {}, *cdp);
         }
         std::vector<Node> new_children = vpis;
-        // new_children.insert(
-        //  new_children.end(), children.begin(), children.end());
+        new_children.insert(
+            new_children.end(), children.begin() + 1, children.end());
         return addAletheStep(AletheRule::ANCHOR_BIND,
                              res,
                              nm->mkNode(kind::SEXPR, d_cl, res),
