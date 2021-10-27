@@ -998,6 +998,8 @@ set(regress_0_tests
   regress0/rels/join-eq-u.cvc.smt2
   regress0/rels/joinImg_0.cvc.smt2
   regress0/rels/oneLoc_no_quant-int_0_1.cvc.smt2
+  regress0/rels/qgu-fuzz-relations-1.smt2
+  regress0/rels/qgu-fuzz-relations-1-dd.smt2
   regress0/rels/rel_1tup_0.cvc.smt2
   regress0/rels/rel_complex_0.cvc.smt2
   regress0/rels/rel_complex_1.cvc.smt2
