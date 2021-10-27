@@ -652,10 +652,10 @@ Java_io_github_cvc5_api_Sort_getConstructorDomainSorts(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getConstructorDomainSorts();
-  std::vector<long> sortPointers(sorts.size());
+  std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
-    sortPointers[i] = (long)new Sort(sorts[i]);
+    sortPointers[i] = reinterpret_cast<jlong> (new Sort(sorts[i]));
   }
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
@@ -765,10 +765,10 @@ Java_io_github_cvc5_api_Sort_getFunctionDomainSorts(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getFunctionDomainSorts();
-  std::vector<long> sortPointers(sorts.size());
+  std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
-    sortPointers[i] = (long)new Sort(sorts[i]);
+    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
   }
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
@@ -909,10 +909,10 @@ Java_io_github_cvc5_api_Sort_getUninterpretedSortParamSorts(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getUninterpretedSortParamSorts();
-  std::vector<long> sortPointers(sorts.size());
+  std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
-    sortPointers[i] = (long)new Sort(sorts[i]);
+    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
   }
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
@@ -1005,10 +1005,10 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Sort_getDatatypeParamSorts(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getDatatypeParamSorts();
-  std::vector<long> sortPointers(sorts.size());
+  std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
-    sortPointers[i] = (long)new Sort(sorts[i]);
+    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
   }
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
@@ -1055,10 +1055,10 @@ Java_io_github_cvc5_api_Sort_getTupleSorts(JNIEnv* env, jobject, jlong pointer)
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
   std::vector<Sort> sorts = current->getTupleSorts();
-  std::vector<long> sortPointers(sorts.size());
+  std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
-    sortPointers[i] = (long)new Sort(sorts[i]);
+    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
   }
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());
