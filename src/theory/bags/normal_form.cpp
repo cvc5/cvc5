@@ -159,7 +159,7 @@ Node NormalForm::evaluateBinaryOperation(const TNode& n,
   // handle the remaining elements from A
   remainderOfA(elements, elementsA, itA);
   // handle the remaining elements from B
-  remainderOfA(elements, elementsB, itB);
+  remainderOfB(elements, elementsB, itB);
 
   Trace("bags-evaluate") << "elements: " << elements << std::endl;
   Node bag = constructConstantBagFromElements(n.getType(), elements);

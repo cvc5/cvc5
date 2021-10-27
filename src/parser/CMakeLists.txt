@@ -102,18 +102,14 @@ add_library(cvc5parser-objs OBJECT ${libcvc5parser_src_files})
 set_target_properties(cvc5parser-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB -Dcvc5_obj_EXPORTS)
 
-add_dependencies(cvc5parser-objs ANTLR3_SHARED)
+add_dependencies(cvc5parser-objs ANTLR3)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
 
 add_library(cvc5parser-shared SHARED $<TARGET_OBJECTS:cvc5parser-objs>)
 set_target_properties(cvc5parser-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
 set_target_properties(cvc5parser-shared PROPERTIES OUTPUT_NAME cvc5parser)
 target_link_libraries(cvc5parser-shared PRIVATE cvc5-shared)
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_STATIC)
-else()
-  target_link_libraries(cvc5parser-shared PRIVATE ANTLR3_SHARED)
-endif()
+target_link_libraries(cvc5parser-shared PRIVATE ANTLR3)
 
 install(TARGETS cvc5parser-shared
   EXPORT cvc5-targets
@@ -123,7 +119,7 @@ if(ENABLE_STATIC_LIBRARY)
   add_library(cvc5parser-static STATIC $<TARGET_OBJECTS:cvc5parser-objs>)
   set_target_properties(cvc5parser-static PROPERTIES OUTPUT_NAME cvc5parser)
   target_link_libraries(cvc5parser-static PRIVATE cvc5-static)
-  target_link_libraries(cvc5parser-static PRIVATE ANTLR3_STATIC)
+  target_link_libraries(cvc5parser-static PRIVATE ANTLR3)
 
   install(TARGETS cvc5parser-objs cvc5parser-static
     EXPORT cvc5-targets
