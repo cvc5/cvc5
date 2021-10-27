@@ -96,6 +96,10 @@ class ArithEntail
    * checkWithAssumption(x + (str.len y) = 0, 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   *
+   * Since this method rewrites on rewriting and may introduce new variables
+   * (slack variables for inequalities), it should *not* be called from the
+   * main rewriter of strings, or non-termination can occur.
    */
   bool checkWithAssumption(Node assumption,
                            Node a,
@@ -114,6 +118,10 @@ class ArithEntail
    * checkWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   *
+   * Since this method rewrites on rewriting and may introduce new variables
+   * (slack variables for inequalities), it should *not* be called from the
+   * main rewriter of strings, or non-termination can occur.
    */
   bool checkWithAssumptions(std::vector<Node> assumptions,
                             Node a,

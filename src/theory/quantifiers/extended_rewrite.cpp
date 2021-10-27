@@ -22,7 +22,9 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/word.h"
 #include "theory/theory.h"
 
 using namespace cvc5::kind;
@@ -47,6 +49,7 @@ ExtendedRewriter::ExtendedRewriter(Rewriter& rew, bool aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
 
 void ExtendedRewriter::setCache(Node n, Node ret) const
@@ -1702,19 +1705,50 @@ bool ExtendedRewriter::inferSubstitution(Node n,
   return false;
 }
 
-Node ExtendedRewriter::extendedRewriteStrings(Node ret) const
+Node ExtendedRewriter::extendedRewriteStrings(Node node) const
 {
-  Node new_ret;
   Trace("q-ext-rewrite-debug")
-      << "Extended rewrite strings : " << ret << std::endl;
+      << "Extended rewrite strings : " << node << std::endl;
 
-  if (ret.getKind() == EQUAL)
+  Kind k = node.getKind();
+  if (k == EQUAL)
   {
     strings::SequencesRewriter sr(&d_rew, nullptr);
-    new_ret = sr.rewriteEqualityExt(ret);
+    return sr.rewriteEqualityExt(node);
+  }
+  else if (k == STRING_SUBSTR)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node tot_len = d_rew.rewrite(nm->mkNode(STRING_LENGTH, node[0]));
+    strings::ArithEntail aent(&d_rew);
+    // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
+    Node n1_lt_tot_len = d_rew.rewrite(nm->mkNode(LT, node[1], tot_len));
+    if (aent.checkWithAssumption(n1_lt_tot_len, d_zero, node[2], false))
+    {
+      Node ret = strings::Word::mkEmptyWord(node.getType());
+      debugExtendedRewrite(node, ret, "SS_START_ENTAILS_ZERO_LEN");
+      return ret;
+    }
+
+    // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
+    Node non_zero_len = d_rew.rewrite(nm->mkNode(LT, d_zero, node[2]));
+    if (aent.checkWithAssumption(non_zero_len, node[1], tot_len, false))
+    {
+      Node ret = strings::Word::mkEmptyWord(node.getType());
+      debugExtendedRewrite(node, ret, "SS_NON_ZERO_LEN_ENTAILS_OOB");
+      return ret;
+    }
+    // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
+    Node geq_zero_start = d_rew.rewrite(nm->mkNode(GEQ, node[1], d_zero));
+    if (aent.checkWithAssumption(geq_zero_start, d_zero, tot_len, false))
+    {
+      Node ret = strings::Word::mkEmptyWord(node.getType());
+      debugExtendedRewrite(node, ret, "SS_GEQ_ZERO_START_ENTAILS_EMP_S");
+      return ret;
+    }
   }
 
-  return new_ret;
+  return Node::null();
 }
 
 void ExtendedRewriter::debugExtendedRewrite(Node n,
