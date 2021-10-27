@@ -405,41 +405,6 @@ TEST_F(TestTheoryWhiteBagsNormalForm, difference_remove)
   ASSERT_EQ(output, NormalForm::evaluate(input));
 }
 
-TEST_F(TestTheoryWhiteBagsNormalForm, choose)
-{
-  // Example
-  // -------
-  // input:  (choose (emptybag String))
-  // output: "A"; the first element returned by the type enumerator
-  // input:  (choose (MK_BAG "x" 4))
-  // output: "x"
-  // input:  (choose (union_disjoint (MK_BAG "x" 4) (MK_BAG "y" 1)))
-  // output: "x"; deterministically return the first element
-  Node empty = d_nodeManager->mkConst(
-      EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node x = d_nodeManager->mkConst(String("x"));
-  Node y = d_nodeManager->mkConst(String("y"));
-  Node z = d_nodeManager->mkConst(String("z"));
-  Node x_4 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConst(Rational(4)));
-  Node y_1 = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), y, d_nodeManager->mkConst(Rational(1)));
-
-  Node input1 = d_nodeManager->mkNode(BAG_CHOOSE, empty);
-  Node output1 = d_nodeManager->mkConst(String(""));
-
-  ASSERT_EQ(output1, NormalForm::evaluate(input1));
-
-  Node input2 = d_nodeManager->mkNode(BAG_CHOOSE, x_4);
-  Node output2 = x;
-  ASSERT_EQ(output2, NormalForm::evaluate(input2));
-
-  Node union_disjoint = d_nodeManager->mkNode(UNION_DISJOINT, x_4, y_1);
-  Node input3 = d_nodeManager->mkNode(BAG_CHOOSE, union_disjoint);
-  Node output3 = x;
-  ASSERT_EQ(output3, NormalForm::evaluate(input3));
-}
-
 TEST_F(TestTheoryWhiteBagsNormalForm, bag_card)
 {
   // Examples
