@@ -1023,19 +1023,20 @@ void TheorySetsRels::check(Theory::Effort level)
 
     Assert(members.size() == exps.size());
 
-    if( rel.getKind() == kind::TRANSPOSE) {
+    if (rel.getKind() == kind::TRANSPOSE)
+    {
       for (size_t i = 0, msize = members.size(); i < msize; i++)
       {
         Node reason = exps[i];
         if( rel[0] != exps[i][1] ) {
-          reason = nm->mkNode(kind::AND, reason, nm->mkNode(kind::EQUAL, rel[0], exps[i][1]));
+          reason = nm->mkNode(
+              kind::AND, reason, nm->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
         sendInfer(nm->mkNode(MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
                   InferenceId::SETS_RELS_TRANSPOSE_REV,
                   reason);
       }
     }
-    
   }
 
   /*
