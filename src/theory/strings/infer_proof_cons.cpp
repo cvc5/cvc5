@@ -164,6 +164,8 @@ void InferProofCons::convert(InferenceId infer,
   switch (infer)
   {
     // ========================== equal by substitution+rewriting
+    case InferenceId::STRINGS_EXTF:
+    case InferenceId::STRINGS_EXTF_N:
     case InferenceId::STRINGS_I_NORM_S:
     case InferenceId::STRINGS_I_CONST_MERGE:
     case InferenceId::STRINGS_I_NORM:
@@ -186,8 +188,6 @@ void InferProofCons::convert(InferenceId infer,
     break;
     // ========================== substitution + rewriting
     case InferenceId::STRINGS_RE_NF_CONFLICT:
-    case InferenceId::STRINGS_EXTF:
-    case InferenceId::STRINGS_EXTF_N:
     case InferenceId::STRINGS_EXTF_D:
     case InferenceId::STRINGS_EXTF_D_N:
     case InferenceId::STRINGS_I_CONST_CONFLICT:
