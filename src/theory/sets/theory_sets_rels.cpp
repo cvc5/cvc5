@@ -1039,9 +1039,9 @@ void TheorySetsRels::check(Theory::Effort level)
    * consider the case that (a, b) in r1, (c, d) in r2.
    *
    * For JOIN, we have three cases:
-   *   b = c, we infer (a, d) in (join r1 r2)
-   *   b != c, do nothing
-   *   else, if neither holds, we add the splitting lemma (b=c or b!=c)
+   *   if b = c, we infer (a, d) in (join r1 r2)
+   *   else, we mark b and c as shared terms; their equality will be split in
+   *         theory combination if necessary.
    *
    * For PRODUCT, we infer (a, b, c, d) in (product r1 r2).
    */
