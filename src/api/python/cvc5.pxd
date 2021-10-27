@@ -341,6 +341,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isComparableTo(Sort s) except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
+        Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
         size_t getConstructorArity() except +
         vector[Sort] getConstructorDomainSorts() except +
         Sort getConstructorCodomainSort() except +
