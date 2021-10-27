@@ -103,6 +103,13 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         unset(64bit)
     endif()
 
+    # On Windows, we need to have a shell interpreter to call 'configure'
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        find_program (SHELL "sh")
+    else()
+        set(SHELL "")
+    endif()
+
     # Download, build and install antlr3 runtime
     ExternalProject_Add(
         ANTLR3-EP-runtime
@@ -117,7 +124,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         COMMAND ${CMAKE_COMMAND} -E copy
           <INSTALL_DIR>/share/config.sub
           <SOURCE_DIR>/config.sub
-        CONFIGURE_COMMAND <SOURCE_DIR>/configure
+        CONFIGURE_COMMAND ${SHELL} <SOURCE_DIR>/configure
             --with-pic
             --disable-antlrdebug
             --disable-abiflags

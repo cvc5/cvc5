@@ -24,6 +24,7 @@ General options;
   --gpl                    permit GPL dependencies, if available
   --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
+  --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
   --docs                   build Api documentation
 
@@ -130,6 +131,7 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
+win64_native=default
 arm64=default
 werror=default
 ipo=default
@@ -211,6 +213,8 @@ do
     --no-kissat) kissat=OFF;;
 
     --win64) win64=ON;;
+
+    --win64-native) win64_native=ON;;
 
     --arm64) arm64=ON;;
 
@@ -328,6 +332,9 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+# Because 'MSYS Makefiles' has a space in it, we set the variable vs. adding to 'cmake_opts'
+[ $win64_native != default ] \
+  && [ $ninja == default ] && export CMAKE_GENERATOR="MSYS Makefiles"
 [ $arm64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"

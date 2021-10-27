@@ -3067,9 +3067,10 @@ add_custom_target(regress
 
 macro(cvc5_add_regression_test level file)
   add_test(${file}
+    ${PYTHON_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    ${path_to_cvc5}/cvc5 ${CMAKE_CURRENT_LIST_DIR}/${file})
+    ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
 
   # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:
