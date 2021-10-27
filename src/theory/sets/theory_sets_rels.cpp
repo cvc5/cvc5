@@ -1105,20 +1105,7 @@ void TheorySetsRels::check(Theory::Effort level)
                               << " of type " << r2_lmost.getType() << std::endl;
           if (!areEqual(r1_rmost, r2_lmost))
           {
-            if (!d_state.areDisequal(r1_rmost, r2_lmost))
-            {
-              // If we have (a,b) in R1, (c,d) in R2, and we are considering
-              // join(R1, R2) must split on b=c if they are neither equal nor
-              // disequal.
-              Node eq = r1_rmost.eqNode(r2_lmost);
-              Node lem = nm->mkNode(kind::OR, eq, eq.negate());
-              d_im.addPendingLemma(lem, InferenceId::SETS_RELS_JOIN_ELEM_SPLIT);
-              Trace("rels-debug") << "...unknown, split" << std::endl;
-            }
-            else
-            {
-              Trace("rels-debug") << "...disequal" << std::endl;
-            }
+
             continue;
           }
           else if (r1_rmost != r2_lmost)
