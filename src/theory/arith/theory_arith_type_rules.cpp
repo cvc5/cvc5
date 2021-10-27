@@ -104,7 +104,7 @@ TypeNode IAndOpTypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() != kind::IAND_OP)
   {
-    InternalError() << "IAND_OP typerule invoked for IAND_OP kind";
+    InternalError() << "IAND_OP typerule invoked for " << n << " instead of IAND_OP kind";
   }
   TypeNode iType = nodeManager->integerType();
   std::vector<TypeNode> argTypes;
@@ -119,7 +119,7 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() != kind::IAND)
   {
-    InternalError() << "IAND typerule invoked for IAND kind";
+    InternalError() << "IAND typerule invoked for " << n << " instead of IAND kind";
   }
   if (check)
   {
@@ -139,7 +139,7 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() != kind::POW2)
   {
-    InternalError() << "POW2 typerule invoked for POW2 kind";
+    InternalError() << "POW2 typerule invoked for " << n << " instead of POW2 kind";
   }
   if (check)
   {
