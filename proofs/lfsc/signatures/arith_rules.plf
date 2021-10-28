@@ -1,0 +1,76 @@
+; depends: arith_programs.plf
+
+; Computes the conclusion of the PfRule::ARITH_SUM_UB rule.
+; Note that f2 is a a.+ application in n-ary form.
+(program sc_arith_sum_ub ((f1 term) (f2 term)) term
+  (let r1 (sc_arith_get_rel f1)
+  (let lhs1 (sc_arith_get_lhs f1)
+  (let rhs1 (sc_arith_get_rhs f1)
+  (let r2 (sc_arith_get_rel f2)
+  (let lhs2 (sc_arith_get_lhs f2)
+  (let rhs2 (sc_arith_get_rhs f2)
+    (apply (apply (sc_arith_sum_rels r1 r2) (sc_arith_add_nary lhs1 lhs2)) (sc_arith_add_nary rhs1 rhs2)))))))))
+
+(declare arith_sum_ub
+  (! f1 term
+  (! f2 term
+  (! res term
+  (! p (holds f1)
+  (! p (holds f2)
+  (! r (^ (sc_arith_sum_ub f1 f2) res)
+    (holds res))))))))
+
+; Computes the conclusion of the PfRule::ARITH_MULT_POS rule.
+(program sc_arith_mult_pos ((m term) (f term)) term
+  (let r (sc_arith_get_rel f)
+  (let lhs (sc_arith_get_lhs f)
+  (let rhs (sc_arith_get_rhs f)
+    (=> (and (sc_arith_>_zero m) (and f true))
+        (apply (apply r (sc_arith_mult m lhs)) (sc_arith_mult m rhs)))))))
+
+(declare arith_mult_pos
+  (! res term
+  (! m term
+  (! f term
+  (! r (^ (sc_arith_mult_pos m f) res)
+    (holds res))))))
+
+; Computes the conclusion of the PfRule::ARITH_MULT_NEG rule.
+(program sc_arith_mult_neg ((m term) (f term)) term
+  (let r (sc_arith_get_rel f)
+  (let lhs (sc_arith_get_lhs f)
+  (let rhs (sc_arith_get_rhs f)
+    (=> (and (sc_arith_<_zero m) (and f true))
+        (apply (apply (sc_arith_rel_inv r) (sc_arith_mult m lhs)) (sc_arith_mult m rhs)))))))
+        
+(declare arith_mult_neg
+  (! res term
+  (! m term
+  (! f term
+  (! r (^ (sc_arith_mult_neg m f) res)
+    (holds res))))))
+
+; Computes the conclusion of the PfRule::ARITH_TRICHOTOMY rule.
+(program sc_arith_trichotomy ((f1 term) (f2 term)) term
+  (let r1 (sc_arith_get_rel_neg f1)
+  (let a1 (sc_arith_get_atom f1)
+  (let lhs1 (sc_arith_get_lhs a1)
+  (let rhs1 (sc_arith_get_rhs a1)
+  (let r2 (sc_arith_get_rel_neg f2)
+  (let a2 (sc_arith_get_atom f1)
+  (let lhs2 (sc_arith_get_lhs a2)
+  (let rhs2 (sc_arith_get_rhs a2)
+    (ifequal lhs1 lhs2
+      (ifequal rhs1 rhs2
+        (apply (apply (sc_arith_rel_trichotomy r1 r2) lhs1) rhs1)
+        (fail term))
+      (fail term)))))))))))
+
+(declare arith_trichotomy
+  (! res term
+  (! f1 term
+  (! f2 term
+  (! p (holds f1)
+  (! p (holds f2)
+  (! r (^ (sc_arith_trichotomy f1 f2) res)
+    (holds res))))))))

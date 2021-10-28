@@ -238,10 +238,25 @@ void InferProofCons::convert(InferenceId infer,
       Node src = ps.d_children[ps.d_children.size() - 1];
       std::vector<Node> expe(ps.d_children.begin(), ps.d_children.end() - 1);
       // start with a default rewrite
+      Trace("strings-ipc-core")
+          << "Generate proof for STRINGS_EXTF_EQ_REW, starting with " << src
+          << std::endl;
       Node mainEqSRew = psb.applyPredElim(src, expe);
+      Trace("strings-ipc-core")
+          << "...after pred elim: " << mainEqSRew << std::endl;
       if (mainEqSRew == conc)
       {
+        Trace("strings-ipc-core") << "...success" << std::endl;
         useBuffer = true;
+        break;
+      }
+      else if (mainEqSRew.getKind() != EQUAL)
+      {
+        // Note this can happen in rare cases where substitution+rewriting
+        // is more powerful than congruence+rewriting. We fail to reconstruct
+        // the proof in this case.
+        Trace("strings-ipc-core")
+            << "...failed, not equality after rewriting" << std::endl;
         break;
       }
       // may need the "extended equality rewrite"
@@ -250,6 +265,8 @@ void InferProofCons::convert(InferenceId infer,
                                            MethodId::SB_DEFAULT,
                                            MethodId::SBA_SEQUENTIAL,
                                            MethodId::RW_REWRITE_EQ_EXT);
+      Trace("strings-ipc-core")
+          << "...after extended equality rewrite: " << mainEqSRew2 << std::endl;
       if (mainEqSRew2 == conc)
       {
         useBuffer = true;
