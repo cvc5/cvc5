@@ -159,6 +159,13 @@ class InferProofCons : public ProofGenerator
    * conclusion, or null if we were not able to construct a TRANS step.
    */
   static Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
+  enum class PurifyType
+  {
+    // we are purifying an equality in the core calculus
+    CORE_EQ,
+    // we are purifying an equality for extended function rewriting
+    EXTF_EQ
+  };
   /**
    * Purify core substitution.
    *
@@ -188,6 +195,15 @@ class InferProofCons : public ProofGenerator
    * in psb ensure that a proof step involving the purified substitution will
    * have the same net effect as a proof step using the original substitution.
    *
+   * The argument pt determines which arguments are relevant for purification.
+   * For core calculus (CORE_EQ) rules, examples of relevant positions are:
+   *   (= * (str.++ * (str.++ * *) * *))
+   *   (not (= (str.++ * *) *))
+   * For extended function simplification, examples of relevant positions are:
+   *   (= (str.replace * * *) "")
+   *   (str.contains * *)
+   *
+   * @param pt Determines the positions that are relevant for purification.
    * @param tgt The term we were originally going to apply the substitution to.
    * @param children The premises corresponding to the substitution.
    * @param psb The proof step buffer
@@ -198,22 +214,33 @@ class InferProofCons : public ProofGenerator
    * children'[i] from children[i] for all i, and tgt' from tgt (or vice versa
    * based on concludeTgtNew).
    */
-  static bool purifyCoreSubstitution(Node& tgt,
-                                     std::vector<Node>& children,
+  static bool purifyCoreSubstitutionAndTarget(PurifyType pt,
+                                              Node& tgt,
+                                              std::vector<Node>& children,
+                                              TheoryProofStepBuffer& psb,
+                                              bool concludeTgtNew = false);
+  /**
+   * Same as above, without a target. This updates termsToPurify with the
+   * set of LHS of the substitutions, which are terms that must be purified
+   * when applying the resulting substitution to a target.
+   */
+  static bool purifyCoreSubstitution(std::vector<Node>& children,
                                      TheoryProofStepBuffer& psb,
-                                     bool concludeTgtNew = false);
+                                     std::unordered_set<Node>& termsToPurify);
   /**
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
    * If concludeNew is true, then we add a proof of lit' from lit in psb;
    * otherwise we add a proof of lit from lit'.
    * Note that string predicates that require purification are string
-   * (dis)equalities only.
+   * (dis)equalities only. The position which are purified are configurable
+   * based on the argument pt.
    */
-  static Node purifyCorePredicate(Node lit,
-                                  bool concludeNew,
-                                  TheoryProofStepBuffer& psb,
-                                  std::unordered_set<Node>& termsToPurify);
+  static Node purifyPredicate(PurifyType pt,
+                              Node lit,
+                              bool concludeNew,
+                              TheoryProofStepBuffer& psb,
+                              std::unordered_set<Node>& termsToPurify);
   /**
    * Purify term with respect to a set of terms to purify. This replaces
    * all terms to purify with their purification variables that occur in
@@ -221,6 +248,16 @@ class InferProofCons : public ProofGenerator
    * children of concat or equal).
    */
   static Node purifyCoreTerm(Node n, std::unordered_set<Node>& termsToPurify);
+  /**
+   * Purify application, which replaces each direct child nc of n with
+   * maybePurifyTerm(nc, termsToPurify).
+   */
+  static Node purifyApp(Node n, std::unordered_set<Node>& termsToPurify);
+  /**
+   * Maybe purify term, which returns the skolem variable for n if it occurs
+   * in termsToPurify.
+   */
+  static Node maybePurifyTerm(Node n, std::unordered_set<Node>& termsToPurify);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */
