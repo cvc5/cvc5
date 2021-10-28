@@ -163,8 +163,8 @@ class InferProofCons : public ProofGenerator
   {
     // we are purifying an equality in the core calculus
     CORE_EQ,
-    // we are purifying an equality for extended function rewriting
-    EXTF_EQ
+    // we are purifying an equality or predicate for extended function rewriting
+    EXTF
   };
   /**
    * Purify core substitution.

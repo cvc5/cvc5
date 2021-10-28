@@ -180,7 +180,7 @@ void InferProofCons::convert(InferenceId infer,
         // since we use congruence+rewriting, and not substitution+rewriting,
         // these must purify a substitution over arguments to the left hand
         // side of what we are proving.
-        pt = PurifyType::EXTF_EQ;
+        pt = PurifyType::EXTF;
       }
       std::vector<Node> pcs = ps.d_children;
       Node pconc = conc;
@@ -213,14 +213,11 @@ void InferProofCons::convert(InferenceId infer,
       {
         std::vector<Node> exps(ps.d_children.begin(), ps.d_children.end() - 1);
         Node psrc = ps.d_children[ps.d_children.size() - 1];
-        if (true)  // purifyCoreSubstitution(psrc, exps, psb, true))
+        // we apply the substitution on the purified form to get the
+        // original conclusion
+        if (psb.applyPredTransform(psrc, conc, exps))
         {
-          // we apply the substitution on the purified form to get the
-          // original conclusion
-          if (psb.applyPredTransform(psrc, conc, exps))
-          {
-            useBuffer = true;
-          }
+          useBuffer = true;
         }
       }
       else
@@ -1278,7 +1275,7 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
     }
     newLit = nm->mkNode(EQUAL, pcs);
   }
-  else if (pt == PurifyType::EXTF_EQ)
+  else if (pt == PurifyType::EXTF)
   {
     if (atom.getKind() == EQUAL)
     {
@@ -1290,6 +1287,10 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
       // predicate case, e.g. for inferring contains
       newLit = purifyApp(atom, termsToPurify);
     }
+  }
+  else
+  {
+    Assert(false) << "Unknown purify type in InferProofCons::purifyPredicate";
   }
   if (!pol)
   {
