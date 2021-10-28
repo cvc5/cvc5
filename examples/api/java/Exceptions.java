@@ -15,7 +15,7 @@
  * A simple demonstration of catching CVC4 execptions via the Java API.
  */
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 
 public class Exceptions
 {
