@@ -193,29 +193,13 @@
     (default (pair emptystr true))
 ))
 
+; Returns a formula corresponding to a conjunction saying that each of the
+; elements of str.++ application t is empty. For example for
+;   (str.++ x (str.++ y ""))
+; this returns:
+;  (and (= x "") (and (= y "") true))
 (program sc_non_empty_concats ((t term)) term
   (match t
     ((apply t1 t2)
       (and (not (= (getarg f_str.++ t1) emptystr)) (sc_non_empty_concats t2)))
     (emptystr true)))
-
-(program sc_re_unfold_pos ((t term) (r term)) term
-  (match r
-    ((apply r1 r2)
-      (match r1
-        ; case for star
-        (f_re.*
-          (let rr (re.++ r2 (re.++ r (re.++ r2 re.empty)))
-          (match (sc_re_unfold_pos_concat t rr rr 0)
-            ((pair p1 p2)
-              (or (= t emptystr)
-                (or (str.in_re t r2)
-                  (or (and (sc_string_nary_elim (and (= t p1) p2)) (sc_non_empty_concats p1))
-                    false)))))))
-        ((apply r11 r12)
-          (match r11
-            ; case for concatenation
-            (f_re.++
-              (match (sc_re_unfold_pos_concat t r r 0)
-                ((pair p1 p2) (sc_string_nary_elim (and (= t p1) p2)))))
-))))))
