@@ -233,7 +233,8 @@ class InferProofCons : public ProofGenerator
    * If concludeNew is true, then we add a proof of lit' from lit in psb;
    * otherwise we add a proof of lit from lit'.
    * Note that string predicates that require purification are string
-   * (dis)equalities only.
+   * (dis)equalities only. The position which are purified are configurable
+   * based on the argument pt.
    */
   static Node purifyPredicate(PurifyType pt,
                               Node lit,
