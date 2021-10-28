@@ -735,10 +735,8 @@ setInfoInternal[std::unique_ptr<cvc5::Command>* cmd]
   std::string name;
   api::Term sexpr;
 }
-  : KEYWORD symbolicExpr[sexpr]
-    { name = AntlrInput::tokenText($KEYWORD);
-      cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr)));
-    }
+  : keyword[name] symbolicExpr[sexpr]
+    { cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr))); }
   ;
 
 setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
@@ -1247,8 +1245,12 @@ simpleSymbolicExprNoKeyword[std::string& s]
     { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
     { s = AntlrInput::tokenText($BINARY_LITERAL); }
-  | str[s,false]
-  | symbol[s,CHECK_NONE,SYM_SORT]
+  | SIMPLE_SYMBOL
+    { s = AntlrInput::tokenText($SIMPLE_SYMBOL); }
+  | QUOTED_SYMBOL
+    { s = AntlrInput::tokenText($QUOTED_SYMBOL); }
+  | STRING_LITERAL
+    { s = AntlrInput::tokenText($STRING_LITERAL); }
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
         | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
@@ -1839,16 +1841,16 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
       api::Term n = SOLVER->mkInteger(sIntLit.str());
       retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, n);
     }
-  | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
+  | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       api::Term keyword = SOLVER->mkString("qid");
-      api::Term name = SOLVER->mkString(sexprToString(sexpr));
+      api::Term name = SOLVER->mkString(s);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, keyword, name);
     }
-  | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
+  | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       // notify that expression was given a name
-      PARSER_STATE->notifyNamedExpression(expr, sexprToString(sexpr));
+      PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;
 

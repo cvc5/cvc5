@@ -73,11 +73,7 @@ bool Configuration::isCompetitionBuild() {
 
 bool Configuration::isStaticBuild()
 {
-#if defined(CVC5_STATIC_BUILD)
-  return true;
-#else
-  return false;
-#endif
+  return CVC5_STATIC_BUILD;
 }
 
 string Configuration::getPackageName() { return CVC5_PACKAGE_NAME; }

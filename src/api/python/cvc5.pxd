@@ -241,6 +241,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkUninterpretedConst(Sort sort, int32_t index) except +
         Term mkAbstractValue(const string& index) except +
         Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) except +
+        Term mkCardinalityConstraint(Sort sort, int32_t index) except +
         Term mkConst(Sort sort, const string& symbol) except +
         # default value for symbol defined in cpp/cvc5.h
         Term mkConst(Sort sort) except +
@@ -340,6 +341,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isComparableTo(Sort s) except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
+        Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
         size_t getConstructorArity() except +
         vector[Sort] getConstructorDomainSorts() except +
         Sort getConstructorCodomainSort() except +

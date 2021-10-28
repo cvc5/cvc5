@@ -51,6 +51,22 @@ enum class SkolemFunId
    * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
+  /** An uninterpreted function for bag.map operator:
+   * To compute (bag.count y (map f A)), we need to find the distinct
+   * elements in A that are mapped to y by function f (i.e., preimage of {y}).
+   * If n is the cardinality of this preimage, then
+   * the preimage is the set {uf(1), ..., uf(n)}
+   * where uf: Int -> E is a skolem function, and E is the type of elements of A
+   */
+  BAGS_MAP_PREIMAGE,
+  /** An uninterpreted function for bag.map operator:
+   * If the preimage of {y} in A is {uf(1), ..., uf(n)} (see BAGS_MAP_PREIMAGE},
+   * then the multiplicity of an element y in a bag (map f A) is sum(n),
+   * where sum: Int -> Int is a skolem function such that:
+   * sum(0) = 0
+   * sum(i) = sum (i-1) + (bag.count (uf i) A)
+   */
+  BAGS_MAP_SUM,
   /** Higher-order type match predicate, see HoTermDb */
   HO_TYPE_MATCH_PRED,
 };

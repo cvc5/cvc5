@@ -40,6 +40,7 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_produceAssertions(false),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
+      d_globalDefineFunLemmasIndex(userContext(), 0),
       d_globalNegation(false),
       d_assertions()
 {
@@ -47,6 +48,22 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
 
 Assertions::~Assertions()
 {
+}
+
+void Assertions::refresh()
+{
+  if (d_globalDefineFunLemmas != nullptr)
+  {
+    // Global definitions are asserted now to ensure they always exist. This is
+    // done at the beginning of preprocessing, to ensure that definitions take
+    // priority over, e.g. solving during preprocessing. See issue #7479.
+    size_t numGlobalDefs = d_globalDefineFunLemmas->size();
+    for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
+    {
+      addFormula((*d_globalDefineFunLemmas)[i], false, true, false);
+    }
+    d_globalDefineFunLemmasIndex = numGlobalDefs;
+  }
 }
 
 void Assertions::finishInit()
@@ -106,16 +123,6 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
     addFormula(n, true, false, false);
-  }
-  if (d_globalDefineFunLemmas != nullptr)
-  {
-    // Global definitions are asserted at check-sat-time because we have to
-    // make sure that they are always present (they are essentially level
-    // zero assertions)
-    for (const Node& lemma : *d_globalDefineFunLemmas)
-    {
-      addFormula(lemma, false, true, false);
-    }
   }
 }
 

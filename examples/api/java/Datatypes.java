@@ -13,7 +13,7 @@
  * An example of using inductive datatypes in cvc5.
  */
 
-import cvc5.*;
+import io.github.cvc5.api.*;
 import java.util.Iterator;
 
 public class Datatypes
