@@ -12,13 +12,13 @@
 
 (declare refl (! t term (holds (= t t))))
 
-; symm is a special case of PfRule::SYMM that applied only to equalties.
+; symm is a special case of PfRule::SYMM that is applied only to equalties.
 (declare symm (! s term
         (! t term
         (! u (holds (= s t))
         (holds (= t s))))))
 
-; neg_symm is a special case of PfRule::SYMM that applied only to disequalties,
+; neg_symm is a special case of PfRule::SYMM that is applied only to disequalties,
 ; i.e. negated equalities.
 (declare neg_symm (! s term
         (! t term
