@@ -246,7 +246,7 @@ do
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
-    --static) static=ON;
+    --static) static=ON;;
     --no-static) static=OFF;;
 
     --auto-download) auto_download=ON;;
