@@ -86,9 +86,7 @@ cvc5_option(ENABLE_STATISTICS     "Enable statistics")
 cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
-cvc5_option(ENABLE_STATIC_LIBRARY "Enable building static library")
-cvc5_option(ENABLE_STATIC_BINARY
-            "Build static binaries with statically linked system libraries")
+cvc5_option(ENABLE_STATIC_BUILD   "Enable building static libraries and binary")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
 # >> 2-valued: ON OFF
@@ -222,18 +220,6 @@ endif ()
 
 if(ENABLE_IPO)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
-
-#-----------------------------------------------------------------------------#
-# Option defaults (three-valued options (cvc5_option(...)))
-#
-# These options are only set if their value is IGNORE. Otherwise, the user
-# already set the option, which we don't want to overwrite.
-
-if(ENABLE_STATIC_BINARY)
-  message(STATUS "Enable static library for static binary build.")
-  cvc5_set_option(ENABLE_STATIC_LIBRARY ON)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -463,7 +449,7 @@ include(IWYU)
 #-----------------------------------------------------------------------------#
 
 include(ConfigureCvc5)
-if(ENABLE_STATIC_BINARY)
+if(ENABLE_STATIC_BUILD)
   set(CVC5_STATIC_BUILD ON)
 endif()
 
@@ -504,7 +490,7 @@ include(CMakePackageConfigHelpers)
 # (in the assumption that only reasonably experienced users use this and
 # also that custom installation prefixes are not used for longer periods of
 # time anyway). Also, we print a big warning with further instructions.
-if(NOT ENABLE_STATIC_BINARY)
+if(NOT ENABLE_STATIC_BUILD)
   # Get the libraries that cvc5 links against
   get_target_property(libs cvc5-shared INTERFACE_LINK_LIBRARIES)
   set(LIBS_SHARED_FROM_DEPS "")
@@ -615,8 +601,7 @@ print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
 print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
 print_config("Valgrind                  " ${ENABLE_VALGRIND})
 message("")
-print_config("Static library            " ${ENABLE_STATIC_LIBRARY})
-print_config("Static binary             " ${ENABLE_STATIC_BINARY})
+print_config("Static build              " ${ENABLE_STATIC_BUILD})
 print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
 print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})

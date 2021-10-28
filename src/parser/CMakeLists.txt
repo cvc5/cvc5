@@ -124,7 +124,7 @@ install(TARGETS cvc5parser-shared
   EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   add_library(cvc5parser-static STATIC $<TARGET_OBJECTS:cvc5parser-objs>)
   set_target_properties(cvc5parser-static PROPERTIES OUTPUT_NAME cvc5parser)
   target_link_libraries(cvc5parser-static PRIVATE cvc5-static)
