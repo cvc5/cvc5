@@ -651,12 +651,16 @@ set(regress_0_tests
   regress0/ho/issue4990-care-graph.smt2
   regress0/ho/issue5233-part1-usort-owner.smt2
   regress0/ho/issue5371.smt2
+  regress0/ho/issue5741-1-cg-model.smt2
+  regress0/ho/issue5741-3-cg-model.smt2
+  regress0/ho/issue5744-cg-model.smt2
   regress0/ho/issue6526.smt2
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
+  regress0/ho/qgu-fuzz-ho-1-dd.smt2
   regress0/ho/shadowing-defs.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2
@@ -852,6 +856,7 @@ set(regress_0_tests
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
+  regress0/proj-issue307-get-value-re.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/lfsc-test-1.smt2
@@ -1241,6 +1246,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc.smt2
+  regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -1713,6 +1719,9 @@ set(regress_1_tests
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
   regress1/ho/issue4134-sinf.smt2
+  regress1/ho/issue4758.smt2
+  regress1/ho/issue5078-small.smt2
+  regress1/ho/issue5201-1.smt2
   regress1/ho/issue5741-3.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
