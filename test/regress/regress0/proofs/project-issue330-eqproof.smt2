@@ -1,5 +1,5 @@
 ; EXPECT: sat
-(set-logic ALL)
+(set-logic QF_SLIA)
 (declare-const x String)
 (declare-const x1 Int)
 (set-option :check-proofs true)
