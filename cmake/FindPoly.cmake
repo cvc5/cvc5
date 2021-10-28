@@ -110,11 +110,11 @@ if(NOT Poly_FOUND_SYSTEM)
                -DCMAKE_INCLUDE_PATH=${GMP_INCLUDE_DIR}
                -DCMAKE_LIBRARY_PATH=${GMP_LIB_PATH}
     #BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
-    INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
-    COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
-            <INSTALL_DIR>/lib/libpicpoly.a
-    COMMAND ${CMAKE_COMMAND} -E copy src/libpicpolyxx.a
-            <INSTALL_DIR>/lib/libpicpolyxx.a
+    #INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
+    #COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
+    #        <INSTALL_DIR>/lib/libpicpoly.a
+    #COMMAND ${CMAKE_COMMAND} -E copy src/libpicpolyxx.a
+    #        <INSTALL_DIR>/lib/libpicpolyxx.a
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
   )
   ExternalProject_Add_Step(
@@ -127,8 +127,8 @@ if(NOT Poly_FOUND_SYSTEM)
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
   set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
   set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(Poly_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
-  set(PolyXX_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
+  set(Poly_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpoly.a")
+  set(PolyXX_STATIC_LIBRARIES "${DEPS_BASE}/lib/libpolyxx.a")
 
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(Poly_LIBRARIES "${DEPS_BASE}/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
