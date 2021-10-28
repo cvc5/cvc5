@@ -1804,7 +1804,7 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
       // notify that expression was given a name
       PARSER_STATE->preemptCommand(
           new DefineFunctionCommand(s, expr.getSort(), expr));
-      PARSER_STATE->notifyNamedExpression(expr, sexprToString(sexpr));
+      PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;
 
