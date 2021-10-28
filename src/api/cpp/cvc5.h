@@ -354,19 +354,19 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this a Boolean sort?
-   * @return true if the sort is a Boolean sort
+   * @return true if the sort is the Boolean sort
    */
   bool isBoolean() const;
 
   /**
    * Is this a integer sort?
-   * @return true if the sort is a integer sort
+   * @return true if the sort is the integer sort
    */
   bool isInteger() const;
 
   /**
    * Is this a real sort?
-   * @return true if the sort is a real sort
+   * @return true if the sort is the real sort
    */
   bool isReal() const;
 
@@ -462,7 +462,7 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this an array sort?
-   * @return true if the sort is a array sort
+   * @return true if the sort is an array sort
    */
   bool isArray() const;
 
@@ -485,8 +485,8 @@ class CVC5_EXPORT Sort
   bool isSequence() const;
 
   /**
-   * Is this a sort kind?
-   * @return true if this is a sort kind
+   * Is this an uninterpreted sort?
+   * @return true if this is an uninterpreted sort
    */
   bool isUninterpretedSort() const;
 
@@ -499,9 +499,9 @@ class CVC5_EXPORT Sort
   /**
    * Is this a first-class sort?
    * First-class sorts are sorts for which:
-   * (1) we handle equalities between terms of that type, and
-   * (2) they are allowed to be parameters of parametric sorts (e.g. index or
-   *     element sorts of arrays).
+   * 1. we handle equalities between terms of that type, and
+   * 2. they are allowed to be parameters of parametric sorts (e.g. index or
+   * element sorts of arrays).
    *
    * Examples of sorts that are not first-class include sort constructor sorts
    * and regular expression sorts.
@@ -641,7 +641,7 @@ class CVC5_EXPORT Sort
   Sort getArrayIndexSort() const;
 
   /**
-   * @return the array element sort of an array element sort
+   * @return the array element sort of an array sort
    */
   Sort getArrayElementSort() const;
 
@@ -2692,7 +2692,7 @@ class CVC5_EXPORT DriverOptions
 
 /**
  * Holds some description about a particular option, including its name, its
- * aliases, whether the option was explcitly set by the user, and information
+ * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
  * - VoidInfo if the option holds no value (or the value has no native type)
@@ -3596,6 +3596,14 @@ class CVC5_EXPORT Solver
    * @param val Value of the floating-point constant as a bit-vector term
    */
   Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
+
+  /**
+   * Create a cardinality constraint for an uninterpreted sort.
+   * @param sort the sort the cardinality constraint is for
+   * @param upperBound the upper bound on the cardinality of the sort
+   * @return the cardinality constraint
+   */
+  Term mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const;
 
   /* .................................................................... */
   /* Create Variables                                                     */

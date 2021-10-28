@@ -197,7 +197,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
   else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear())))
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()))
+           && !opts.base.incrementalSolving)
   {
     opts.quantifiers.sygusInst = true;
   }
@@ -301,7 +302,11 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   // formulas at preprocess time.
   //
   // We don't want to set this option when we are in logics that contain ALL.
-  if (!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
+  //
+  // We also must enable stringExp if reElimAgg is true, since this introduces
+  // bounded quantifiers during preprocessing.
+  if ((!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
+      || opts.strings.regExpElimAgg)
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
@@ -692,7 +697,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   if (logic.isHigherOrder())
   {
-    opts.uf.ufHo = true;
     if (!opts.theory.assignFunctionValues)
     {
       // must assign function values
@@ -837,15 +841,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (opts.arith.nlCadWasSetByUser)
     {
-      std::stringstream ss;
-      ss << "Cannot use " << options::arith::nlCad__name
-         << " without configuring with --poly.";
-      throw OptionException(ss.str());
+      throw OptionException(
+          "Cannot use --nl-cad without configuring with --poly.");
     }
     else
     {
-      Notice() << "Cannot use --" << options::arith::nlCad__name
-               << " without configuring with --poly." << std::endl;
+      Notice() << "Cannot use --nl-cad without configuring with --poly."
+               << std::endl;
       opts.arith.nlCad = false;
       opts.arith.nlExt = options::NlExtMode::FULL;
     }
@@ -991,6 +993,18 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
                 "incremental solving"
              << std::endl;
     opts.quantifiers.sygusInference = false;
+  }
+  if (opts.quantifiers.sygusInst)
+  {
+    if (opts.quantifiers.sygusInstWasSetByUser)
+    {
+      reason << "sygus inst";
+      return true;
+    }
+    Notice() << "SolverEngine: turning off sygus inst to support "
+                "incremental solving"
+             << std::endl;
+    opts.quantifiers.sygusInst = false;
   }
   if (opts.smt.solveIntAsBV > 0)
   {
@@ -1343,20 +1357,6 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     {
       opts.quantifiers.macrosQuant = false;
     }
-    // HOL is incompatible with fmfBound
-    if (opts.quantifiers.fmfBound)
-    {
-      if (opts.quantifiers.fmfBoundWasSetByUser
-          || opts.quantifiers.fmfBoundLazyWasSetByUser
-          || opts.quantifiers.fmfBoundIntWasSetByUser)
-      {
-        Notice() << "Disabling bound finite-model finding since it is "
-                    "incompatible with HOL.\n";
-      }
-
-      opts.quantifiers.fmfBound = false;
-      Trace("smt") << "turning off fmf-bound, since HOL\n";
-    }
   }
   if (opts.quantifiers.fmfFunWellDefinedRelevant)
   {
@@ -1631,7 +1631,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     reqBasicSygus = true;
   }
   if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
-      || opts.quantifiers.sygusQueryGen)
+      || opts.quantifiers.sygusQueryGen != options::SygusQueryGenMode::NONE)
   {
     // rewrite rule synthesis implies that sygus stream must be true
     opts.quantifiers.sygusStream = true;

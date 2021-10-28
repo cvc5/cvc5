@@ -348,6 +348,19 @@ void SatProofManager::explainLit(SatLiteral lit,
   Trace("sat-proof") << push << "SatProofManager::explainLit: Lit: " << lit;
   Node litNode = getClauseNode(lit);
   Trace("sat-proof") << " [" << litNode << "]\n";
+  // We don't need to explain nodes who are inputs. Note that it's *necessary*
+  // to avoid attempting such explanations because they can introduce cycles at
+  // the node level. For example, if a literal l depends on an input clause C
+  // but a literal l', node-equivalent to C, depends on l, we may have a cycle
+  // when building the overall SAT proof.
+  if (d_assumptions.contains(litNode))
+  {
+    Trace("sat-proof")
+        << "SatProofManager::explainLit: input assumption, ABORT\n";
+    return;
+  }
+  // We don't need to explain nodes who already have proofs.
+  //
   // Note that if we had two literals for (= a b) and (= b a) and we had already
   // a proof for (= a b) this test would return true for (= b a), which could
   // lead to open proof. However we should never have two literals like this in
@@ -626,7 +639,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
         if (it != d_cnfStream->getTranslationCache().end())
         {
           Trace("sat-proof") << it->second << "\n";
-          Trace("sat-proof") << "- " << fa << "\n";
+          Trace("sat-proof") << "  - " << fa << "\n";
           continue;
         }
         // then it's a clause
@@ -638,7 +651,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
           Trace("sat-proof") << it->second << " ";
         }
         Trace("sat-proof") << "\n";
-        Trace("sat-proof") << "- " << fa << "\n";
+        Trace("sat-proof") << "  - " << fa << "\n";
       }
     }
 
@@ -653,7 +666,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       }
       // ignore input assumptions. This is necessary to avoid rare collisions
       // between input clauses and literals that are equivalent at the node
-      // level. In trying to justify the literal below if, it was previously
+      // level. In trying to justify the literal below, if it was previously
       // propagated (say, in a previous check-sat call that survived the
       // user-context changes) but no longer holds, then we may introduce a
       // bogus proof for it, rather than keeping it as an input.
@@ -709,6 +722,8 @@ void SatProofManager::finalizeProof()
       << "SatProofManager::finalizeProof: conflicting (lazy) satLit: "
       << d_conflictLit << "\n";
   finalizeProof(getClauseNode(d_conflictLit), {d_conflictLit});
+  // reset since if in incremental mode this may be used again
+  d_conflictLit = undefSatVariable;
 }
 
 void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
