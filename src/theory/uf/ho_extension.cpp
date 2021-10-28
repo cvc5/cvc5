@@ -198,11 +198,14 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   return ret;
 }
 
-unsigned HoExtension::checkExtensionality()
+unsigned HoExtension::checkExtensionality(const std::set<Node>& termSet, TheoryModel* m)
 {
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  eq::EqualityEngine* ee = m!=nullptr ? m->getEqualityEngine() : d_state.getEqualityEngine();
+  NodeManager* nm = NodeManager::currentNM();
   unsigned num_lemmas = 0;
-  Trace("uf-ho") << "HoExtension::checkExtensionality" << std::endl;
+  bool isCollectModel = (m != nullptr);
+  Trace("uf-ho") << "HoExtension::checkExtensionality, collectModel="
+                 << isCollectModel << "..." << std::endl;
   std::map<TypeNode, std::vector<Node> > func_eqcs;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   bool hasFunctions = false;
@@ -215,7 +218,7 @@ unsigned HoExtension::checkExtensionality()
       hasFunctions = true;
       // if during collect model, must have an infinite type
       // if not during collect model, must have a finite type
-      if (d_env.isFiniteType(tn))
+      if (d_env.isFiniteType(tn) != isCollectModel)
       {
         func_eqcs[tn].push_back(eqc);
         Trace("uf-ho-debug")
@@ -249,8 +252,40 @@ unsigned HoExtension::checkExtensionality()
         {
           Node deq =
               Rewriter::rewrite(itf->second[j].eqNode(itf->second[k]).negate());
-          // apply extensionality lemma
-          num_lemmas += applyExtensionality(deq);
+          // either add to model, or add lemma
+          if (isCollectModel)
+          {
+            // Add extentionality disequality to the model.
+            // It is important that we construct new (unconstrained) variables
+            // k here, so that we do not generate any inconsistencies.
+            Node edeq = getExtensionalityDeq(deq, false);
+            Assert(edeq.getKind() == NOT && edeq[0].getKind() == EQUAL);
+            // introducing terms, must add required constraints, e.g. to
+            // force equalities between APPLY_UF and HO_APPLY terms
+            for (unsigned r = 0; r < 2; r++)
+            {
+              if (!collectModelInfoHoTerm(edeq[0][r], m))
+              {
+                return 1;
+              }
+            }
+            Trace("uf-ho-debug")
+                << "Add extensionality deq to model : " << edeq << std::endl;
+            if (!m->assertEquality(edeq[0][0], edeq[0][1], false))
+            {
+              Node eq = edeq[0][0].eqNode(edeq[0][1]);
+              Node lem = nm->mkNode(OR, deq.negate(), eq);
+              Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
+                             << std::endl;
+              d_im.lemma(lem, InferenceId::UF_HO_MODEL_EXTENSIONALITY);
+              return 1;
+            }
+          }
+          else
+          {
+            // apply extensionality lemma
+            num_lemmas += applyExtensionality(deq);
+          }
         }
       }
     }
@@ -388,7 +423,8 @@ unsigned HoExtension::check()
 
   unsigned num_lemmas = 0;
 
-  num_lemmas = checkExtensionality();
+  std::set<Node> termSet;
+  num_lemmas = checkExtensionality(termSet);
   if (num_lemmas > 0)
   {
     Trace("uf-ho") << "...extensionality returned " << num_lemmas << " lemmas."
@@ -415,7 +451,8 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
       return false;
     }
   }
-  return true;
+  int addedLemmas = checkExtensionality(termSet, m);
+  return addedLemmas == 0;
 }
 
 bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
