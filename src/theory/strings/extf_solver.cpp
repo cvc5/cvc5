@@ -259,7 +259,7 @@ void ExtfSolver::checkExtfEval(int effort)
   {
     // Setup information about n, including if it is equal to a constant.
     ExtfInfoTmp& einfo = d_extfInfoTmp[n];
-    Assert (einfo.d_exp.empty());
+    Assert(einfo.d_exp.empty());
     Node r = d_state.getRepresentative(n);
     einfo.d_const = d_bsolver.getConstantEqc(r);
     // Get the current values of the children of n.
@@ -491,8 +491,9 @@ void ExtfSolver::checkExtfInference(Node n,
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr
-                              << " == " << in.d_const << " with exp " << in.d_exp << std::endl;
+  Trace("strings-extf-infer")
+      << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const
+      << " with exp " << in.d_exp << std::endl;
 
   // add original to explanation
   if (n.getType().isBoolean())
@@ -663,8 +664,9 @@ void ExtfSolver::checkExtfInference(Node n,
   if (inferEqrr != inferEqr)
   {
     inferEqrr = Rewriter::rewrite(inferEqrr);
-    Trace("strings-extf-infer") << "checkExtfInference: " << inferEq
-                                << " ...reduces to " << inferEqrr << " with explanation " << in.d_exp << std::endl;
+    Trace("strings-extf-infer")
+        << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqrr
+        << " with explanation " << in.d_exp << std::endl;
     d_im.sendInternalInference(in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
   }
 }
