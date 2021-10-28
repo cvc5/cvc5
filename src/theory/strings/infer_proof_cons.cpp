@@ -1261,15 +1261,17 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
   Node atom = pol ? lit : lit[0];
   NodeManager* nm = NodeManager::currentNM();
   Node newLit;
-  if (pt==PurifyType::SUBS_EQ)
+  if (pt == PurifyType::SUBS_EQ)
   {
     if (atom.getKind() != EQUAL)
     {
-      Assert (false) << "Expected equality";
+      Assert(false) << "Expected equality";
       return lit;
     }
     // purify the LHS directly, purify the RHS as a core term
-    newLit = nm->mkNode(EQUAL, maybePurifyTerm(atom[0], termsToPurify), purifyCoreTerm(atom[1], termsToPurify));
+    newLit = nm->mkNode(EQUAL,
+                        maybePurifyTerm(atom[0], termsToPurify),
+                        purifyCoreTerm(atom[1], termsToPurify));
   }
   else if (pt == PurifyType::CORE_EQ)
   {
