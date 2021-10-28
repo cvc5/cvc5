@@ -1214,7 +1214,7 @@ bool InferProofCons::purifyCoreSubstitution(
 {
   for (const Node& nc : children)
   {
-    Assert(nc.getKind() == EQUAL && nc[0].getType().isStringLike());
+    Assert(nc.getKind() == EQUAL);
     if (!nc[0].isVar())
     {
       termsToPurify.insert(nc[0]);
