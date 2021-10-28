@@ -70,7 +70,7 @@ macro(add_check_c_cxx_flag flag)
   add_check_c_flag(${flag})
 endmacro()
 
-# Check if C warning surpression flag is supported and add to global list of C
+# Check if C warning suppression flag is supported and add to global list of C
 # flags.
 macro(add_check_c_supression_flag supression_flag)
   # Obtain the non-supression warning flag name
@@ -84,7 +84,7 @@ macro(add_check_c_supression_flag supression_flag)
   endif()
 endmacro()
 
-# Check if CXX warning surpression flag is supported and add to global list of
+# Check if CXX warning suppression flag is supported and add to global list of
 # CXX flags.
 macro(add_check_cxx_supression_flag supression_flag)
   # Obtain the non-supression warning flag name
