@@ -569,8 +569,8 @@ cdef class Result:
 
     def isNull(self):
         """
-            :return: True if Result is empty, i.e., a nullary Result,
-            and not an actual result returned from a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
+            :return: True if Result is empty, i.e., a nullary Result, and not an actual result returned from a
+                     :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
         """
         return self.cr.isNull()
 
