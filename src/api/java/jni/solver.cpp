@@ -1705,31 +1705,6 @@ Java_io_github_cvc5_api_Solver_defineFun__JLjava_lang_String_2_3JJJZ(
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    defineFun
- * Signature: (JJ[JJZ)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_defineFun__JJ_3JJZ(JNIEnv* env,
-                                                  jobject,
-                                                  jlong pointer,
-                                                  jlong funPointer,
-                                                  jlongArray jVars,
-                                                  jlong termPointer,
-                                                  jboolean global)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* fun = reinterpret_cast<Term*>(funPointer);
-  Term* term = reinterpret_cast<Term*>(termPointer);
-  std::vector<Term> vars = getObjectsFromPointers<Term>(env, jVars);
-  Term* retPointer =
-      new Term(solver->defineFun(*fun, vars, *term, (bool)global));
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_api_Solver
  * Method:    defineFunRec
  * Signature: (JLjava/lang/String;[JJJZ)J
  */
