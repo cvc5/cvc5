@@ -56,8 +56,8 @@ macro(cvc5_add_unit_test is_white name output_dir)
 
   # Disable the Wunused-comparison warnings for the unit tests.
   # We check for `-Wunused-comparison` and then add `-Wno-unused-comparison`
-  check_cxx_compiler_flag("-Wunused-comparison" HAVE_FLAGWunused_comparison)
-  if(HAVE_FLAGWunused_comparison)
+  check_cxx_compiler_flag("-Wunused-comparison" HAVE_CXX_FLAGWunused_comparison)
+  if(HAVE_CXX_FLAGWunused_comparison)
     target_compile_options(${name} PRIVATE -Wno-unused-comparison)
   endif()
   add_dependencies(build-units ${name})
