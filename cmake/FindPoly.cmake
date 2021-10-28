@@ -105,11 +105,11 @@ if(NOT Poly_FOUND_SYSTEM)
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DLIBPOLY_BUILD_PYTHON_API=OFF
-               -DLIBPOLY_BUILD_STATIC=ON
+               -DLIBPOLY_BUILD_STATIC=${ENABLE_STATIC_BUILD}
                -DLIBPOLY_BUILD_STATIC_PIC=ON
                -DCMAKE_INCLUDE_PATH=${GMP_INCLUDE_DIR}
                -DCMAKE_LIBRARY_PATH=${GMP_LIB_PATH}
-    BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
+    #BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
     INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
     COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
             <INSTALL_DIR>/lib/libpicpoly.a
