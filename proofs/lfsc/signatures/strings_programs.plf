@@ -94,19 +94,20 @@
             true)))
 )))))))
 
-; Compute the reduction predicate for term t of sort s.
+; Compute the reduction predicate for term t of sort s. Note that the operators
+; listed in comments are missing from the signature currently.
 (program sc_string_reduction_pred ((t term) (s sort)) term
   (match t 
     ((apply t1 t2)
       (match t1
         ((apply t11 t12)
           (match t11
-            ;(f_str.contains true)  ; TODO
+            ; str.contains
             ((apply t111 t112) 
               (match t111
                 (f_str.substr (sc_string_reduction_substr t112 t12 t2 s))
                 (f_str.indexof (sc_string_reduction_indexof t112 t12 t2 s))
-                ;(f_str.replace true)
+                ; str.replace
             ; str.update
             ; str.from_int
             ; str.to_int
