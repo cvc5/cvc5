@@ -159,7 +159,8 @@ class InferProofCons : public ProofGenerator
    * conclusion, or null if we were not able to construct a TRANS step.
    */
   static Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
-  enum class PurifyType {
+  enum class PurifyType
+  {
     // we are purifying an equality in the core calculus
     CORE_EQ,
     // we are purifying an equality for extended function rewriting
@@ -193,7 +194,7 @@ class InferProofCons : public ProofGenerator
    * sequential substution, since (f x) has been purified with k. The proofs
    * in psb ensure that a proof step involving the purified substitution will
    * have the same net effect as a proof step using the original substitution.
-   * 
+   *
    * The argument pt determines which arguments are relevant for purification.
    * For core calculus (CORE_EQ) rules, examples of relevant positions are:
    *   (= * (str.++ * (str.++ * *) * *))
@@ -213,13 +214,12 @@ class InferProofCons : public ProofGenerator
    * children'[i] from children[i] for all i, and tgt' from tgt (or vice versa
    * based on concludeTgtNew).
    */
-  static bool purifyCoreSubstitutionAndTarget(
-    PurifyType pt,
-    Node& tgt,
-                                     std::vector<Node>& children,
-                                     TheoryProofStepBuffer& psb,
-                                     bool concludeTgtNew = false);
-  /** 
+  static bool purifyCoreSubstitutionAndTarget(PurifyType pt,
+                                              Node& tgt,
+                                              std::vector<Node>& children,
+                                              TheoryProofStepBuffer& psb,
+                                              bool concludeTgtNew = false);
+  /**
    * Same as above, without a target. This updates termsToPurify with the
    * set of LHS of the substitutions, which are terms that must be purified
    * when applying the resulting substitution to a target.
@@ -235,12 +235,11 @@ class InferProofCons : public ProofGenerator
    * Note that string predicates that require purification are string
    * (dis)equalities only.
    */
-  static Node purifyPredicate(
-    PurifyType pt,
-    Node lit,
-                                  bool concludeNew,
-                                  TheoryProofStepBuffer& psb,
-                                  std::unordered_set<Node>& termsToPurify);
+  static Node purifyPredicate(PurifyType pt,
+                              Node lit,
+                              bool concludeNew,
+                              TheoryProofStepBuffer& psb,
+                              std::unordered_set<Node>& termsToPurify);
   /**
    * Purify term with respect to a set of terms to purify. This replaces
    * all terms to purify with their purification variables that occur in
