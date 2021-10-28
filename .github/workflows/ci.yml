@@ -89,6 +89,16 @@ jobs:
         check-unit-tests: ${{ matrix.check-units }}
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: ${{ matrix.exclude_regress }}
+  
+    - name: Run tests
+      uses: ./.github/actions/run-tests
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        check-examples: ${{ matrix.check-examples }}
+        check-python-bindings: ${{ matrix.python-bindings }}
+        check-unit-tests: ${{ matrix.check-units }}
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: 1-4
 
     - name: Build documentation
       if: matrix.build-documentation
