@@ -200,6 +200,8 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
 unsigned HoExtension::checkExtensionality(const std::set<Node>& termSet, TheoryModel* m)
 {
+  // if we are in collect model info, we require looking at the model's
+  // equality engine, so that we only consider relevant function terms.
   eq::EqualityEngine* ee = m!=nullptr ? m->getEqualityEngine() : d_state.getEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
   unsigned num_lemmas = 0;
@@ -451,6 +453,11 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
       return false;
     }
   }
+  // We apply an explicit extensionality technique for asserting
+  // disequalities to the model to ensure that function values are distinct
+  // in the curried HO_APPLY version of model construction. This is a
+  // non-standard alternative to using a type enumerator over function
+  // values to assign unique values.
   int addedLemmas = checkExtensionality(termSet, m);
   return addedLemmas == 0;
 }
