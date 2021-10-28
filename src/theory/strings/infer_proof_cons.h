@@ -231,10 +231,8 @@ class InferProofCons : public ProofGenerator
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
    * If concludeNew is true, then we add a proof of lit' from lit in psb;
-   * otherwise we add a proof of lit from lit'.
-   * Note that string predicates that require purification are string
-   * (dis)equalities only. The position which are purified are configurable
-   * based on the argument pt.
+   * otherwise we add a proof of lit from lit'. The position which are purified
+   * are configurable based on the argument pt.
    */
   static Node purifyPredicate(PurifyType pt,
                               Node lit,
