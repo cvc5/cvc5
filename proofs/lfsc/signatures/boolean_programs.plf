@@ -1,13 +1,13 @@
 ; depends: nary_programs.plf theory_def.plf
 
 ; Resolution. This side condition takes two terms c1 and c2. Via nary_intro,
-; we consider theses terms to be either to be non-unit clauses if they are
+; we consider theses terms to be either non-unit clauses if they are
 ; or-applications, or otherwise consider them to be unit clauses if they are
 ; not. For example, if c1 is (= x y), then (nary_intro f_or c1 false) returns
 ;   (or (= x y) false)
 ; which we use to compute the concatenation described in following. After
 ; converting to n-ary form for both c1 and c2, we then concatenate the result
-; of removing the first occurrence of l from  c1, and the negation of l from v2
+; of removing the first occurrence of l from  c1, and the first occurrence of the  negation of l from v2
 ; when pol is tt, or vice versa when pol is ff. Since the resolution may result
 ; in a singleton list, we run nary_elim as a last step, which ensures that
 ; we conclude e.g. L and not (or L false), as done in PfRule::RESOLUTION.
