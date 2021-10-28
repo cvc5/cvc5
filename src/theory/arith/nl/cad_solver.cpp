@@ -118,7 +118,7 @@ void CadSolver::checkPartial()
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
   }
-  auto covering = d_CAC.getUnsatCover(0, true);
+  auto covering = d_CAC.getUnsatCover(true);
   if (covering.empty())
   {
     d_foundSatisfiability = true;
