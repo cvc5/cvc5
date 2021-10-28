@@ -1,0 +1,8 @@
+(set-logic HO_QF_UFLIA)
+(set-info :status sat)
+(declare-fun a (Int Int) Int)
+(declare-fun d () Int)
+(declare-fun e () Int)
+(assert (= (a d 0) (a 0 1)))
+(assert (= d (mod e 3)))
+(check-sat)
