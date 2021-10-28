@@ -198,10 +198,18 @@ class InferProofCons : public ProofGenerator
    * children'[i] from children[i] for all i, and tgt' from tgt (or vice versa
    * based on concludeTgtNew).
    */
-  static bool purifyCoreSubstitution(Node& tgt,
+  static bool purifyCoreSubstitutionAndTarget(Node& tgt,
                                      std::vector<Node>& children,
                                      TheoryProofStepBuffer& psb,
                                      bool concludeTgtNew = false);
+  /** 
+   * Same as above, without a target. This updates termsToPurify with the
+   * set of LHS of the substitutions, which are terms that must be purified
+   * when applying the resulting substitution to a target.
+   */
+  static bool purifyCoreSubstitution(std::vector<Node>& children,
+                                     TheoryProofStepBuffer& psb,
+                                     std::unordered_set<Node>& termsToPurify);
   /**
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
@@ -221,6 +229,11 @@ class InferProofCons : public ProofGenerator
    * children of concat or equal).
    */
   static Node purifyCoreTerm(Node n, std::unordered_set<Node>& termsToPurify);
+  /**
+   * Maybe purify term, which returns the skolem variable for n if it occurs
+   * in termsToPurify.
+   */
+  static Node maybePurifyTerm(Node n, std::unordered_set<Node>& termsToPurify);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

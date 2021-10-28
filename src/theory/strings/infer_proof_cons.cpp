@@ -184,7 +184,7 @@ void InferProofCons::convert(InferenceId infer,
       Node pconc = conc;
       // purify core substitution proves conc from pconc if necessary,
       // we apply MACRO_SR_PRED_INTRO to prove pconc
-      if (purifyCoreSubstitution(pconc, pcs, psb, false))
+      if (purifyCoreSubstitutionAndTarget(pconc, pcs, psb, false))
       {
         if (psb.applyPredIntro(pconc, pcs))
         {
@@ -326,7 +326,7 @@ void InferProofCons::convert(InferenceId infer,
       Node pmainEq = mainEq;
       // we transform mainEq to pmainEq and then use this as the first
       // argument to MACRO_SR_PRED_ELIM.
-      if (!purifyCoreSubstitution(pmainEq, pcsr, psb, true))
+      if (!purifyCoreSubstitutionAndTarget(pmainEq, pcsr, psb, true))
       {
         break;
       }
@@ -1159,13 +1159,26 @@ std::string InferProofCons::identify() const
   return "strings::InferProofCons";
 }
 
-bool InferProofCons::purifyCoreSubstitution(Node& tgt,
+bool InferProofCons::purifyCoreSubstitutionAndTarget(Node& tgt,
                                             std::vector<Node>& children,
                                             TheoryProofStepBuffer& psb,
                                             bool concludeTgtNew)
 {
   // collect the terms to purify, which are the LHS of the substitution
   std::unordered_set<Node> termsToPurify;
+  if (!purifyCoreSubstitution(children, psb, termsToPurify))
+  {
+    return false;
+  }
+  // now, purify the target predicate
+  tgt = purifyCorePredicate(tgt, concludeTgtNew, psb, termsToPurify);
+  return !tgt.isNull();
+}
+
+bool InferProofCons::purifyCoreSubstitution(std::vector<Node>& children,
+                                     TheoryProofStepBuffer& psb,
+                                     std::unordered_set<Node>& termsToPurify)
+{
   for (const Node& nc : children)
   {
     Assert(nc.getKind() == EQUAL && nc[0].getType().isStringLike());
@@ -1188,9 +1201,7 @@ bool InferProofCons::purifyCoreSubstitution(Node& tgt,
     // we now should have a substitution with only atomic terms
     Assert(children[i][0].getNumChildren() == 0);
   }
-  // now, purify the target predicate
-  tgt = purifyCorePredicate(tgt, concludeTgtNew, psb, termsToPurify);
-  return !tgt.isNull();
+  return true;
 }
 
 Node InferProofCons::purifyCorePredicate(
@@ -1244,7 +1255,6 @@ Node InferProofCons::purifyCoreTerm(Node n,
   {
     return n;
   }
-  NodeManager* nm = NodeManager::currentNM();
   if (n.getKind() == STRING_CONCAT)
   {
     std::vector<Node> pcs;
@@ -1252,14 +1262,19 @@ Node InferProofCons::purifyCoreTerm(Node n,
     {
       pcs.push_back(purifyCoreTerm(nc, termsToPurify));
     }
-    return nm->mkNode(STRING_CONCAT, pcs);
+    return NodeManager::currentNM()->mkNode(STRING_CONCAT, pcs);
   }
+  return maybePurifyTerm(n, termsToPurify);
+}
+
+Node InferProofCons::maybePurifyTerm(Node n, std::unordered_set<Node>& termsToPurify)
+{
   if (termsToPurify.find(n) == termsToPurify.end())
   {
     // did not need to purify
     return n;
   }
-  SkolemManager* sm = nm->getSkolemManager();
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   Node k = sm->mkPurifySkolem(n, "k");
   return k;
 }
