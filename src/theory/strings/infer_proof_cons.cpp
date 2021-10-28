@@ -166,6 +166,13 @@ void InferProofCons::convert(InferenceId infer,
     // ========================== equal by substitution+rewriting
     case InferenceId::STRINGS_EXTF:
     case InferenceId::STRINGS_EXTF_N:
+    {
+      // Just use predicate intro; technically the inference uses
+      // congruence+rewriting
+      ps.d_args.push_back(conc);
+      ps.d_rule = PfRule::MACRO_SR_PRED_INTRO;
+    }
+    break;
     case InferenceId::STRINGS_I_NORM_S:
     case InferenceId::STRINGS_I_CONST_MERGE:
     case InferenceId::STRINGS_I_NORM:
