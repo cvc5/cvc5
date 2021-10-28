@@ -180,7 +180,7 @@ void InferProofCons::convert(InferenceId infer,
         // since we use congruence+rewriting, and not substitution+rewriting,
         // these must purify a substitution over arguments to the left hand
         // side of what we are proving.
-        pt = PurifyType::EXTF_EQ;
+        pt = PurifyType::EXTF;
       }
       std::vector<Node> pcs = ps.d_children;
       Node pconc = conc;
@@ -1199,6 +1199,11 @@ bool InferProofCons::purifyCoreSubstitutionAndTarget(
   {
     return false;
   }
+  // no need to purify, e.g. if all LHS of substituion are variables
+  if (termsToPurify.empty())
+  {
+    return true;
+  }
   // now, purify the target predicate
   tgt = purifyPredicate(pt, tgt, concludeTgtNew, psb, termsToPurify);
   if (tgt.isNull())
@@ -1217,7 +1222,7 @@ bool InferProofCons::purifyCoreSubstitution(
 {
   for (const Node& nc : children)
   {
-    Assert(nc.getKind() == EQUAL && nc[0].getType().isStringLike());
+    Assert(nc.getKind() == EQUAL);
     if (!nc[0].isVar())
     {
       termsToPurify.insert(nc[0]);
@@ -1227,7 +1232,7 @@ bool InferProofCons::purifyCoreSubstitution(
   for (size_t i = 0, nchild = children.size(); i < nchild; i++)
   {
     Node pnc = purifyPredicate(
-        PurifyType::CORE_EQ, children[i], true, psb, termsToPurify);
+        PurifyType::SUBS_EQ, children[i], true, psb, termsToPurify);
     if (pnc.isNull())
     {
       Trace("strings-ipc-pure-subs")
@@ -1256,7 +1261,17 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
   Node atom = pol ? lit : lit[0];
   NodeManager* nm = NodeManager::currentNM();
   Node newLit;
-  if (pt == PurifyType::CORE_EQ)
+  if (pt==PurifyType::SUBS_EQ)
+  {
+    if (atom.getKind() != EQUAL)
+    {
+      Assert (false) << "Expected equality";
+      return lit;
+    }
+    // purify the LHS directly, purify the RHS as a core term
+    newLit = nm->mkNode(EQUAL, maybePurifyTerm(atom[0], termsToPurify), purifyCoreTerm(atom[1], termsToPurify));
+  }
+  else if (pt == PurifyType::CORE_EQ)
   {
     if (atom.getKind() != EQUAL || !atom[0].getType().isStringLike())
     {
@@ -1265,20 +1280,13 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
     }
     // purify both sides of the equality
     std::vector<Node> pcs;
-    bool childChanged = false;
     for (const Node& lc : atom)
     {
-      Node plc = purifyCoreTerm(lc, termsToPurify);
-      childChanged = childChanged || plc != lc;
-      pcs.push_back(plc);
-    }
-    if (!childChanged)
-    {
-      return lit;
+      pcs.push_back(purifyCoreTerm(lc, termsToPurify));
     }
     newLit = nm->mkNode(EQUAL, pcs);
   }
-  else if (pt == PurifyType::EXTF_EQ)
+  else if (pt == PurifyType::EXTF)
   {
     if (atom.getKind() == EQUAL)
     {
@@ -1291,11 +1299,19 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
       newLit = purifyApp(atom, termsToPurify);
     }
   }
+  else
+  {
+    Assert(false) << "Unknown purify type in InferProofCons::purifyPredicate";
+  }
   if (!pol)
   {
     newLit = newLit.notNode();
   }
-  Assert(lit != newLit);
+  if (lit == newLit)
+  {
+    // no change
+    return lit;
+  }
   // prove by transformation, should always succeed
   if (!psb.applyPredTransform(
           concludeNew ? lit : newLit, concludeNew ? newLit : lit, {}))
@@ -1309,11 +1325,6 @@ Node InferProofCons::purifyPredicate(PurifyType pt,
 Node InferProofCons::purifyCoreTerm(Node n,
                                     std::unordered_set<Node>& termsToPurify)
 {
-  Assert(n.getType().isStringLike());
-  if (n.getNumChildren() == 0)
-  {
-    return n;
-  }
   if (n.getKind() == STRING_CONCAT)
   {
     std::vector<Node> pcs;

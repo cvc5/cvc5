@@ -161,10 +161,12 @@ class InferProofCons : public ProofGenerator
   static Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
   enum class PurifyType
   {
-    // we are purifying an equality in the core calculus
+    // we are purifying an equality corresponding to a substitution
+    SUBS_EQ,
+    // we are purifying a (dis)equality in the core calculus
     CORE_EQ,
-    // we are purifying an equality for extended function rewriting
-    EXTF_EQ
+    // we are purifying a equality or predicate for extended function rewriting
+    EXTF
   };
   /**
    * Purify core substitution.
@@ -196,12 +198,15 @@ class InferProofCons : public ProofGenerator
    * have the same net effect as a proof step using the original substitution.
    *
    * The argument pt determines which arguments are relevant for purification.
-   * For core calculus (CORE_EQ) rules, examples of relevant positions are:
+   * For core calculus (CORE_EQ) rules, examples of relevant positions are
+   * non-concatenation terms in positions like:
    *   (= * (str.++ * (str.++ * *) * *))
    *   (not (= (str.++ * *) *))
    * For extended function simplification, examples of relevant positions are:
    *   (= (str.replace * * *) "")
    *   (str.contains * *)
+   * If we are purifying a substitution with equality, the LHS is a relevant
+   * position to purify, and the RHS is treated like CORE_EQ.
    *
    * @param pt Determines the positions that are relevant for purification.
    * @param tgt The term we were originally going to apply the substitution to.
@@ -231,10 +236,8 @@ class InferProofCons : public ProofGenerator
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
    * If concludeNew is true, then we add a proof of lit' from lit in psb;
-   * otherwise we add a proof of lit from lit'.
-   * Note that string predicates that require purification are string
-   * (dis)equalities only. The position which are purified are configurable
-   * based on the argument pt.
+   * otherwise we add a proof of lit from lit'. The position which are purified
+   * are configurable based on the argument pt.
    */
   static Node purifyPredicate(PurifyType pt,
                               Node lit,
