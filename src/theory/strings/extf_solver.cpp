@@ -293,7 +293,7 @@ void ExtfSolver::checkExtfEval(int effort)
       Node sn = nm->mkNode(n.getKind(), schildren);
       Trace("strings-extf-debug")
           << "Check extf " << n << " == " << sn
-          << ", constant = " << einfo.d_const << ", effort=" << effort << "..."
+          << ", constant = " << einfo.d_const << ", effort=" << effort
           << ", exp " << exp << std::endl;
       einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
       // inference is rewriting the substituted node
