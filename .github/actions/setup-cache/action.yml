@@ -64,6 +64,8 @@ runs:
     - name: Setup dependencies cache
       uses: actions/cache@v2
       with:
-        path: build/deps
+        path: |
+          build-shared/deps
+          build-static/deps
         key: ${{ inputs.cache-key }}-${{ runner.os }}-deps-${{ hashFiles('cmake/**') }}-${{ hashFiles('.github/**') }}
 
