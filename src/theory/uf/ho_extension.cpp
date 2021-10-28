@@ -450,8 +450,9 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
       return false;
     }
   }
-  int addedLemmas = checkExtensionality(m);
-  return addedLemmas == 0;
+  return true;
+  //int addedLemmas = checkExtensionality(m);
+  //return addedLemmas == 0;
 }
 
 bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
