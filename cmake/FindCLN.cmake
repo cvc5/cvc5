@@ -95,7 +95,7 @@ if(ENABLE_STATIC_BUILD)
   target_link_libraries(CLN INTERFACE GMP)
 else()
   add_library(CLN SHARED IMPORTED GLOBAL)
-  set_target_properties(v PROPERTIES
+  set_target_properties(CLN PROPERTIES
     IMPORTED_LOCATION "${CLN_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
   )
