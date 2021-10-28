@@ -198,7 +198,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   return ret;
 }
 
-unsigned HoExtension::checkExtensionality(const std::set<Node>& termSet, TheoryModel* m)
+unsigned HoExtension::checkExtensionality(TheoryModel* m)
 {
   // if we are in collect model info, we require looking at the model's
   // equality engine, so that we only consider relevant function terms.
@@ -425,8 +425,7 @@ unsigned HoExtension::check()
 
   unsigned num_lemmas = 0;
 
-  std::set<Node> termSet;
-  num_lemmas = checkExtensionality(termSet);
+  num_lemmas = checkExtensionality();
   if (num_lemmas > 0)
   {
     Trace("uf-ho") << "...extensionality returned " << num_lemmas << " lemmas."
@@ -458,7 +457,7 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
   // in the curried HO_APPLY version of model construction. This is a
   // non-standard alternative to using a type enumerator over function
   // values to assign unique values.
-  int addedLemmas = checkExtensionality(termSet, m);
+  int addedLemmas = checkExtensionality(m);
   return addedLemmas == 0;
 }
 

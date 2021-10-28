@@ -156,7 +156,7 @@ class HoExtension : protected EnvObj
    * extensionality lemmas are added for all pairs of functions whose types are
    * finite.
    */
-  unsigned checkExtensionality(const std::set<Node>& termSet, TheoryModel* m = nullptr);
+  unsigned checkExtensionality(TheoryModel* m = nullptr);
 
   /** applyAppCompletion
    * This infers a correspondence between APPLY_UF and HO_APPLY
