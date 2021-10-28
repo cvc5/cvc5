@@ -661,6 +661,7 @@ set(regress_0_tests
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/qgu-fuzz-ho-1-dd.smt2
+  regress0/ho/qgu-fuzz-ho-2-dd-no-ext.smt2
   regress0/ho/shadowing-defs.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2

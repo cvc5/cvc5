@@ -142,21 +142,12 @@ class HoExtension : protected EnvObj
    * Check whether extensionality should be applied for any pair of terms in the
    * equality engine.
    *
-   * If we pass a null model m to this function, then we add extensionality
-   * lemmas to the output channel and return the total number of lemmas added.
-   * We only add lemmas for functions whose type is finite, since pairs of
-   * functions whose types are infinite can be made disequal in a model by
-   * witnessing a point they are disequal.
-   *
-   * If we pass a non-null model m to this function, then we add disequalities
-   * that correspond to the conclusion of extensionality lemmas to the model's
-   * equality engine. We return 0 if the equality engine of m is consistent
-   * after this call, and 1 otherwise. We only add disequalities for functions
-   * whose type is infinite, since our decision procedure guarantees that
-   * extensionality lemmas are added for all pairs of functions whose types are
-   * finite.
+   * We add extensionality lemmas to the output channel and return the total
+   * number of lemmas added. We only add lemmas for functions whose type is
+   * finite, since pairs of functions whose types are infinite can be made
+   * disequal in a model by witnessing a point they are disequal.
    */
-  unsigned checkExtensionality(TheoryModel* m = nullptr);
+  unsigned checkExtensionality();
 
   /** applyAppCompletion
    * This infers a correspondence between APPLY_UF and HO_APPLY
