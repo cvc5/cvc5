@@ -109,7 +109,8 @@ if(NOT Poly_FOUND_SYSTEM)
                -DLIBPOLY_BUILD_STATIC_PIC=ON
                -DCMAKE_INCLUDE_PATH=${GMP_INCLUDE_DIR}
                -DCMAKE_LIBRARY_PATH=${GMP_LIB_PATH}
-    #BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
+    BUILD_COMMAND ${CMAKE_MAKE_PROGRAM}
+    COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
     INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
     COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
             <INSTALL_DIR>/lib/libpicpoly.a
