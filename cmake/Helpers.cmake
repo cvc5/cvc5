@@ -66,8 +66,8 @@ endmacro()
 
 # Check if C/CXX flag is supported and add to global list of C/CXX flags.
 macro(add_check_c_cxx_flag flag)
-  add_check_cxx_flag(${flag})
   add_check_c_flag(${flag})
+  add_check_cxx_flag(${flag})
 endmacro()
 
 # Check if C warning suppression flag is supported and add to global list of C
