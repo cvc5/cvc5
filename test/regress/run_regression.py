@@ -26,6 +26,8 @@ import sys
 import tempfile
 import threading
 
+g_args = None
+
 
 class Color:
     BLUE = "\033[94m"
@@ -46,8 +48,8 @@ class Tester:
         exit_code = EXIT_OK
         output, error, exit_status = run_benchmark(benchmark_info)
         if exit_status == STATUS_TIMEOUT:
-            exit_code = EXIT_SKIP if skip_timeout else EXIT_FAILURE
-            print("Timeout - Flags: {}".format(command_line_args))
+            exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+            print("Timeout - Flags: {}".format(benchmark_info.command_line_args))
         elif output != benchmark_info.expected_output:
             exit_code = EXIT_FAILURE
             print("not ok - Flags: {}".format(benchmark_info.command_line_args))
@@ -470,8 +472,6 @@ def run_benchmark(benchmark_info):
 
 def run_regression(
     testers,
-    use_skip_return_code,
-    skip_timeout,
     wrapper,
     cvc5_binary,
     benchmark_path,
@@ -479,9 +479,7 @@ def run_regression(
 ):
     """Determines the expected output for a benchmark, runs cvc5 on it using
     all the specified `testers` and then checks whether the output corresponds
-    to the expected output. Optionally uses a wrapper `wrapper`.
-    `use_skip_return_code` enables/disables returning 77 when a test is
-    skipped."""
+    to the expected output. Optionally uses a wrapper `wrapper`."""
 
     if not os.access(cvc5_binary, os.X_OK):
         sys.exit('"{}" does not exist or is not executable'.format(cvc5_binary))
@@ -585,10 +583,10 @@ def run_regression(
                 print(
                     "1..0 # Skipped regression: not valid with {}".format(req_feature)
                 )
-                return EXIT_SKIP if use_skip_return_code else EXIT_OK
+                return EXIT_SKIP if g_args.use_skip_return_code else EXIT_OK
         elif req_feature not in cvc5_features:
             print("1..0 # Skipped regression: {} not supported".format(req_feature))
-            return EXIT_SKIP if use_skip_return_code else EXIT_OK
+            return EXIT_SKIP if g_args.use_skip_return_code else EXIT_OK
 
     if not command_lines:
         command_lines.append("")
@@ -623,7 +621,7 @@ def run_regression(
 
     if len(tests) == 0:
         print("1..0 # Skipped regression: no tests to run")
-        return EXIT_SKIP if use_skip_return_code else EXIT_OK
+        return EXIT_SKIP if g_args.use_skip_return_code else EXIT_OK
 
     print("1..{}".format(len(tests)))
     print("# Starting")
@@ -644,6 +642,8 @@ def main():
     """Parses the command line arguments and then calls the core of the
     script."""
 
+    global g_args
+
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
@@ -659,27 +659,25 @@ def main():
     if os.environ.get("RUN_REGRESSION_ARGS"):
         argv.extend(shlex.split(os.getenv("RUN_REGRESSION_ARGS")))
 
-    args = parser.parse_args(argv)
+    g_args = parser.parse_args(argv)
 
-    cvc5_binary = os.path.abspath(args.cvc5_binary)
+    cvc5_binary = os.path.abspath(g_args.cvc5_binary)
 
-    wrapper = args.wrapper
+    wrapper = g_args.wrapper
     if os.environ.get("VALGRIND") == "1" and not wrapper:
         wrapper = ["libtool", "--mode=execute", "valgrind"]
 
     timeout = float(os.getenv("TEST_TIMEOUT", "600"))
 
-    testers = args.tester
+    testers = g_args.tester
     if not testers:
         testers = g_default_testers
 
     return run_regression(
         testers,
-        args.use_skip_return_code,
-        args.skip_timeout,
         wrapper,
         cvc5_binary,
-        args.benchmark,
+        g_args.benchmark,
         timeout,
     )
 
