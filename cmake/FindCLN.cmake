@@ -77,7 +77,7 @@ if(NOT CLN_FOUND_SYSTEM)
                      <INSTALL_DIR>/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
 
-  add_dependencies(CLN-EP GMP_SHARED)
+  add_dependencies(CLN-EP GMP)
 
   set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
   set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
@@ -86,21 +86,20 @@ endif()
 
 set(CLN_FOUND TRUE)
 
-add_library(CLN_SHARED SHARED IMPORTED GLOBAL)
-set_target_properties(CLN_SHARED PROPERTIES
-  IMPORTED_LOCATION "${CLN_LIBRARIES}"
-  INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
-)
-target_link_libraries(CLN_SHARED INTERFACE GMP_SHARED)
-
-
 if(ENABLE_STATIC_BUILD)
-  add_library(CLN_STATIC STATIC IMPORTED GLOBAL)
-  set_target_properties(CLN_STATIC PROPERTIES
+  add_library(CLN STATIC IMPORTED GLOBAL)
+  set_target_properties(CLN PROPERTIES
     IMPORTED_LOCATION "${CLN_STATIC_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
   )
-  target_link_libraries(CLN_STATIC INTERFACE GMP_STATIC)
+  target_link_libraries(CLN INTERFACE GMP)
+else()
+  add_library(CLN SHARED IMPORTED GLOBAL)
+  set_target_properties(v PROPERTIES
+    IMPORTED_LOCATION "${CLN_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
+  )
+  target_link_libraries(CLN INTERFACE GMP)
 endif()
 
 mark_as_advanced(AUTORECONF)
@@ -113,6 +112,5 @@ if(CLN_FOUND_SYSTEM)
   message(STATUS "Found CLN ${CLN_VERSION}: ${CLN_LIBRARIES}")
 else()
   message(STATUS "Building CLN ${CLN_VERSION}: ${CLN_LIBRARIES}")
-  add_dependencies(CLN_SHARED CLN-EP)
-  add_dependencies(CLN_STATIC CLN-EP)
+  add_dependencies(CLN CLN-EP)
 endif()

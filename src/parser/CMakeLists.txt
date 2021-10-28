@@ -117,7 +117,7 @@ target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
 add_library(cvc5parser-shared SHARED $<TARGET_OBJECTS:cvc5parser-objs>)
 set_target_properties(cvc5parser-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
 set_target_properties(cvc5parser-shared PROPERTIES OUTPUT_NAME cvc5parser)
-target_link_libraries(cvc5parser-shared PRIVATE cvc5-shared)
+target_link_libraries(cvc5parser-shared PRIVATE cvc5)
 target_link_libraries(cvc5parser-shared PRIVATE ANTLR3)
 
 install(TARGETS cvc5parser-shared
@@ -127,7 +127,7 @@ install(TARGETS cvc5parser-shared
 if(ENABLE_STATIC_BUILD)
   add_library(cvc5parser-static STATIC $<TARGET_OBJECTS:cvc5parser-objs>)
   set_target_properties(cvc5parser-static PROPERTIES OUTPUT_NAME cvc5parser)
-  target_link_libraries(cvc5parser-static PRIVATE cvc5-static)
+  target_link_libraries(cvc5parser-static PRIVATE cvc5)
   target_link_libraries(cvc5parser-static PRIVATE ANTLR3)
 
   install(TARGETS cvc5parser-objs cvc5parser-static

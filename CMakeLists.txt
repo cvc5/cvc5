@@ -492,7 +492,7 @@ include(CMakePackageConfigHelpers)
 # time anyway). Also, we print a big warning with further instructions.
 if(NOT ENABLE_STATIC_BUILD)
   # Get the libraries that cvc5 links against
-  get_target_property(libs cvc5-shared INTERFACE_LINK_LIBRARIES)
+  get_target_property(libs cvc5 INTERFACE_LINK_LIBRARIES)
   set(LIBS_SHARED_FROM_DEPS "")
   foreach(lib ${libs})
     # Filter out those that are linked dynamically and come from deps/install

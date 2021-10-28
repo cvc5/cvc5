@@ -66,8 +66,8 @@ if(NOT Poly_FOUND_SYSTEM)
     unset(patchcmd)
   endif()
 
-  get_target_property(GMP_INCLUDE_DIR GMP_SHARED INTERFACE_INCLUDE_DIRECTORIES)
-  get_target_property(GMP_LIBRARY GMP_SHARED IMPORTED_LOCATION)
+  get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
 
   set(POLY_BYPRODUCTS
@@ -122,7 +122,7 @@ if(NOT Poly_FOUND_SYSTEM)
     DEPENDEES install
     COMMAND ${CMAKE_COMMAND} -E remove_directory <BINARY_DIR>/test/
   )
-  add_dependencies(Poly-EP GMP_SHARED)
+  add_dependencies(Poly-EP GMP)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
   set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
@@ -138,40 +138,41 @@ endif()
 
 set(Poly_FOUND TRUE)
 
-add_library(Poly_SHARED SHARED IMPORTED GLOBAL)
-set_target_properties(Poly_SHARED PROPERTIES
-  IMPORTED_LOCATION "${Poly_LIBRARIES}"
-  INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
-)
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  set_target_properties(Poly_SHARED PROPERTIES IMPORTED_IMPLIB "${Poly_LIBRARIES}")
-endif()
-target_link_libraries(Poly_SHARED INTERFACE GMP_SHARED)
-
-add_library(Polyxx_SHARED SHARED IMPORTED GLOBAL)
-set_target_properties(Polyxx_SHARED PROPERTIES
-  IMPORTED_LOCATION "${PolyXX_LIBRARIES}"
-  INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
-  INTERFACE_LINK_LIBRARIES Poly_SHARED
-)
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  set_target_properties(Polyxx_SHARED PROPERTIES IMPORTED_IMPLIB "${PolyXX_LIBRARIES}")
-endif()
 
 if(ENABLE_STATIC_BUILD)
-  add_library(Poly_STATIC STATIC IMPORTED GLOBAL)
-  set_target_properties(Poly_STATIC PROPERTIES
+  add_library(Poly STATIC IMPORTED GLOBAL)
+  set_target_properties(Poly PROPERTIES
     IMPORTED_LOCATION "${Poly_STATIC_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
   )
-  target_link_libraries(Poly_STATIC INTERFACE GMP_STATIC)
+  target_link_libraries(Poly INTERFACE GMP)
 
-  add_library(Polyxx_STATIC STATIC IMPORTED GLOBAL)
-  set_target_properties(Polyxx_STATIC PROPERTIES
+  add_library(Polyxx STATIC IMPORTED GLOBAL)
+  set_target_properties(Polyxx PROPERTIES
     IMPORTED_LOCATION "${PolyXX_STATIC_LIBRARIES}"
     INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
-    INTERFACE_LINK_LIBRARIES Poly_STATIC
+    INTERFACE_LINK_LIBRARIES Poly
   )
+else()
+  add_library(Poly SHARED IMPORTED GLOBAL)
+  set_target_properties(Poly PROPERTIES
+    IMPORTED_LOCATION "${Poly_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+  )
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set_target_properties(Poly PROPERTIES IMPORTED_IMPLIB "${Poly_LIBRARIES}")
+  endif()
+  target_link_libraries(Poly INTERFACE GMP)
+
+  add_library(Polyxx SHARED IMPORTED GLOBAL)
+  set_target_properties(Polyxx PROPERTIES
+    IMPORTED_LOCATION "${PolyXX_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+    INTERFACE_LINK_LIBRARIES Poly
+  )
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set_target_properties(Polyxx PROPERTIES IMPORTED_IMPLIB "${PolyXX_LIBRARIES}")
+  endif()
 endif()
 
 mark_as_advanced(Poly_FOUND)
@@ -184,8 +185,8 @@ if(Poly_FOUND_SYSTEM)
   message(STATUS "Found Poly ${Poly_VERSION}: ${Poly_LIBRARIES}")
 else()
   message(STATUS "Building Poly ${Poly_VERSION}: ${Poly_LIBRARIES}")
-  add_dependencies(Poly_SHARED Poly-EP)
-  add_dependencies(Polyxx_SHARED Poly-EP)
+  add_dependencies(Poly Poly-EP)
+  add_dependencies(Polyxx Poly-EP)
 
   ExternalProject_Get_Property(Poly-EP BUILD_BYPRODUCTS INSTALL_DIR)
   string(REPLACE "<INSTALL_DIR>" "${INSTALL_DIR}" BUILD_BYPRODUCTS "${BUILD_BYPRODUCTS}")
@@ -195,7 +196,7 @@ else()
   )
 
   if(ENABLE_STATIC_BUILD)
-    add_dependencies(Poly_STATIC Poly-EP)
-    add_dependencies(Polyxx_STATIC Poly-EP)
+    add_dependencies(Poly Poly-EP)
+    add_dependencies(Polyxx Poly-EP)
   endif()
 endif()
