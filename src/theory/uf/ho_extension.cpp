@@ -202,7 +202,8 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
 {
   // if we are in collect model info, we require looking at the model's
   // equality engine, so that we only consider relevant function terms.
-  eq::EqualityEngine* ee = m!=nullptr ? m->getEqualityEngine() : d_state.getEqualityEngine();
+  eq::EqualityEngine* ee =
+      m != nullptr ? m->getEqualityEngine() : d_state.getEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
   unsigned num_lemmas = 0;
   bool isCollectModel = (m != nullptr);
