@@ -130,7 +130,7 @@
 ; Compute the eager reduction predicate for (str.contains t r) where s
 ; is the sort of t and r.
 ; This is the formula:
-;    (ite (str.contains t r), (= t (str.++ sk1 r sk2)), (not (= t r)))
+;    (ite (str.contains t r) (= t (str.++ sk1 r sk2)) (not (= t r)))
 (program sc_string_eager_reduction_contains ((t term) (r term) (s sort)) term
   (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre t r))
   (let k2 (sc_mk_skolem (sc_skolem_first_ctn_post t r))
