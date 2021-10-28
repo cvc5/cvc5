@@ -1,6 +1,6 @@
 ; depends: nary_programs.plf theory_def.plf
 
-; Resolution. This side condition takes two terms c1 and c2. Via nary_intro,
+; This side condition takes two terms c1 and c2. Via nary_intro,
 ; we consider theses terms to be either non-unit clauses if they are
 ; or-applications, or otherwise consider them to be unit clauses if they are
 ; not. For example, if c1 is (= x y), then (nary_intro f_or c1 false) returns
