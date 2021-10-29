@@ -13,10 +13,9 @@
 # The build system configuration.
 ##
 
-if(POLICY CMP0057)
-  # For cmake >= 3.3 this policy changed the behavior of IN_LIST
-  # if the policy exists, we use the NEW behavior
-  cmake_policy(SET CMP0057 NEW)
+if(ENABLE_STATIC_BUILD)
+  message(STATUS "Python bindings can only be built in a shared build.")
+  return()
 endif()
 
 # Check that scikit-build is installed
