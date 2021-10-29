@@ -35,15 +35,6 @@ class TestTheoryWhiteArithPolyNorm : public TestSmt
 {
  protected:
   void SetUp() override { TestSmt::SetUp(); }
-
-  void testPolyNormEq(Node a, Node b)
-  {
-    ASSERT_TRUE(PolyNorm::isArithPolyNorm(a, b));
-  }
-  void testPolyNormDeq(Node a, Node b)
-  {
-    ASSERT_FALSE(PolyNorm::isArithPolyNorm(a, b));
-  }
 };
 
 TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
@@ -61,50 +52,50 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
 
   t1 = zero;
   t2 = one;
-  testPolyNormDeq(t1, t2);
+  ASSERT_FALSE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(PLUS, x, y);
   t2 = d_nodeManager->mkNode(PLUS, y, d_nodeManager->mkNode(MULT, one, x));
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t2 = d_nodeManager->mkNode(PLUS, x, x, y);
-  testPolyNormDeq(t1, t2);
+  ASSERT_FALSE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(PLUS, x, d_nodeManager->mkNode(MULT, y, zero));
   t2 = x;
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(MULT, y, d_nodeManager->mkNode(PLUS, one, one));
   t2 = d_nodeManager->mkNode(PLUS, y, y);
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(MULT,
                              d_nodeManager->mkNode(PLUS, one, zero),
                              d_nodeManager->mkNode(PLUS, x, y));
   t2 = d_nodeManager->mkNode(PLUS, x, y);
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(PLUS, {x, y, z, w, y});
   t2 = d_nodeManager->mkNode(PLUS, {w, y, y, z, x});
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(MINUS, t1, t2);
   t2 = zero;
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(UMINUS, d_nodeManager->mkNode(PLUS, x, y));
   t2 = d_nodeManager->mkNode(MINUS, zero, d_nodeManager->mkNode(PLUS, y, x));
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(MULT, d_nodeManager->mkNode(UMINUS, x), y);
   t2 = d_nodeManager->mkNode(MULT, d_nodeManager->mkNode(UMINUS, y), x);
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(MULT, x, d_nodeManager->mkNode(PLUS, y, z));
   t2 = d_nodeManager->mkNode(PLUS,
                              d_nodeManager->mkNode(MULT, x, y),
                              d_nodeManager->mkNode(MULT, z, x));
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 }
 
 TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
@@ -121,11 +112,11 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
 
   t1 = d_nodeManager->mkNode(PLUS, x, y, y);
   t2 = d_nodeManager->mkNode(PLUS, y, x, y);
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = one;
   t2 = d_nodeManager->mkNode(MULT, two, half);
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(PLUS, y, x);
   t1 = d_nodeManager->mkNode(
@@ -134,7 +125,7 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
                             d_nodeManager->mkNode(MULT, half, x),
                             d_nodeManager->mkNode(MULT, half, y)),
       two);
-  testPolyNormEq(t1, t2);
+  ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 }
 
 }  // namespace test
