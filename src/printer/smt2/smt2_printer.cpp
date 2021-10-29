@@ -1617,8 +1617,7 @@ void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
                                      const std::string& value) const
 {
-  out << "(set-info :" << flag << " " << cvc5::quoteSymbol(value) << ")"
-      << std::endl;
+  out << "(set-info :" << flag << " " << value << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
