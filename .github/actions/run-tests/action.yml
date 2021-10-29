@@ -12,7 +12,7 @@ inputs:
   check-unit-tests:
     default: true
   regressions-args:
-    default: "--no-check-unsat-cores --no-check-proofs"
+    default: ""
   regressions-exclude:
     default: "3-4"
 runs:

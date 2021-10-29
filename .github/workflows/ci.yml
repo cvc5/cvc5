@@ -96,7 +96,7 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         check-examples: ${{ matrix.check-examples }}
         check-install: false
-        check-python-bindings: ${{ matrix.python-bindings }}
+        check-python-bindings: false
         check-unit-tests: ${{ matrix.check-units }}
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: 1-4
