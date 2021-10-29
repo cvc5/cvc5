@@ -35,7 +35,7 @@ set_source_files_properties(${libmain_gen_src_files} PROPERTIES GENERATED TRUE)
 # main-test library.
 
 add_library(main OBJECT ${libmain_src_files} ${libmain_gen_src_files})
-target_compile_definitions(main PRIVATE -D__BUILDING_CVC5DRIVER)
+target_compile_definitions(main PRIVATE -D__BUILDING_CVC5DRIVER -Dcvc5_obj_EXPORTS)
 set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_dependencies(main gen-tokens cvc5-obj)
@@ -57,7 +57,7 @@ endif()
 # cvc5 binary configuration
 
 add_executable(cvc5-bin driver_unified.cpp main.cpp $<TARGET_OBJECTS:main>)
-target_compile_definitions(cvc5-bin PRIVATE -D__BUILDING_CVC5DRIVER)
+target_compile_definitions(cvc5-bin PRIVATE -D__BUILDING_CVC5DRIVER -Dcvc5_obj_EXPORTS)
 set_target_properties(cvc5-bin
   PROPERTIES
     OUTPUT_NAME cvc5
