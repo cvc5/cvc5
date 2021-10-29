@@ -119,7 +119,7 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
   ASSERT_TRUE(PolyNorm::isArithPolyNorm(t1, t2));
 
   t1 = d_nodeManager->mkNode(PLUS, y, x);
-  t1 = d_nodeManager->mkNode(
+  t2 = d_nodeManager->mkNode(
       MULT,
       d_nodeManager->mkNode(PLUS,
                             d_nodeManager->mkNode(MULT, half, x),
