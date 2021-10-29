@@ -268,6 +268,20 @@ enable_testing()
 #-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
 
+if(ENABLE_STATIC_BUILD)
+  if (WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a .dll)
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .so .dylib)
+  endif()
+else()
+  if (WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .dll .lib .a)
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .so .dylib .a)
+  endif()
+endif()
+
 if(USE_PYTHON2)
   find_package(PythonInterp 2.7 REQUIRED)
 else()
