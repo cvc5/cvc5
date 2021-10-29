@@ -1112,40 +1112,22 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStepFromOr(AletheRule::ITE_POS1, res, children, {}, *cdp);
     }
     // ======== CNF ITE Pos version 3
-    // Children: ()
-    // Arguments: ((ite C F1 F2))
-    // ---------------------
-    // Conclusion: (or (not (ite C F1 F2)) F1 F2)
     //
-    // proof rule: ite_pos1
-    // proof node: (VP1:(cl (not (ite C F1 F2)) C F2))
-    // proof term: (cl (not (ite C F1 F2)) C F2)
-    // premises: ()
-    // args: ()
+    // ----- ITE_POS1            ----- ITE_POS2
+    //  VP1                       VP2
+    // ------------------------------- RESOLUTION
+    //             VP3
+    // ------------------------------- REORDER
+    //             VP4
+    // ------------------------------- DUPLICATED_LITERALS
+    //  (cl (not (ite C F1 F2)) F1 F2)
     //
-    // proof rule: ite_pos2
-    // proof node: (VP2:(cl (not (ite C F1 F2)) (not C) F1))
-    // proof term: (cl (not (ite C F1 F2)) (not C) F2)
-    // premises: ()
-    // args: ()
+    // VP1: (cl (not (ite C F1 F2)) C F2)
+    // VP2: (cl (not (ite C F1 F2)) (not C) F1)
+    // VP3: (cl (not (ite C F1 F2)) F2 (not (ite C F1 F2)) F1)
+    // VP4: (cl (not (ite C F1 F2)) (not (ite C F1 F2)) F1 F2)
     //
-    // proof rule: resolution
-    // proof node: (VP3:(cl (not (ite C F1 F2)) F2 (not (ite C F1 F2)) F1))
-    // proof term: (cl (not (ite C F1 F2)) F2 (not (ite C F1 F2)) F1)
-    // premises: VP1 VP2
-    // args: ()
-    //
-    // proof rule: reorder
-    // proof node: (VP4:(cl (not (ite C F1 F2)) (not (ite C F1 F2)) F1 F2))
-    // proof term: (cl (not (ite C F1 F2)) (not (ite C F1 F2)) F1 F2)
-    // premises: VP3
-    // args: ()
-    //
-    // proof rule: duplicated_literals
-    // proof node: (or (not (ite C F1 F2)) F1 F2)
-    // proof term: (cl (not (ite C F1 F2)) F1 F2)
-    // premises: VP4
-    // args: ()
+    // * the corresponding proof node is (or (not (ite C F1 F2)) F1 F2)
     case PfRule::CNF_ITE_POS3:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
@@ -1164,71 +1146,32 @@ bool AletheProofPostprocessCallback::update(Node res,
              && addAletheStepFromOr(
                  AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
-    // ======== CNF ITE Neg version 1
-    // Children: ()
-    // Arguments: ((ite C F1 F2))
-    // ---------------------
-    // Conclusion: (or (ite C F1 F2) (not C) (not F1))
-    //
-    // proof rule: ite_neg2
-    // proof node: (or (ite C F1 F2) (not C) (not F1))
-    // proof term: (cl (ite C F1 F2) (not C) (not F1))
-    // premises: ()
-    // args: ()
+    // The following rules are all translated according to the clause pattern.
     case PfRule::CNF_ITE_NEG1:
     {
       return addAletheStepFromOr(AletheRule::ITE_NEG2, res, children, {}, *cdp);
     }
-    // ======== CNF ITE Neg version 2
-    // Children: ()
-    // Arguments: ((ite C F1 F2))
-    // ---------------------
-    // Conclusion: (or (ite C F1 F2) C (not F2))
-    //
-    // proof rule: ite_neg1
-    // proof node: (or (ite C F1 F2) C (not F2))
-    // proof term: (cl (ite C F1 F2) C (not F2))
-    // premises: ()
-    // args: ()
     case PfRule::CNF_ITE_NEG2:
     {
       return addAletheStepFromOr(AletheRule::ITE_NEG1, res, children, {}, *cdp);
     }
     // ======== CNF ITE Neg version 3
-    // Children: ()
-    // Arguments: ((ite C F1 F2))
-    // ---------------------
-    // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
     //
-    // proof rule: ite_neg1
-    // proof node: (VP1:(or (ite C F1 F2) C (not F2)))
-    // proof term: (cl (ite C F1 F2) C (not F2))
-    // premises: ()
-    // args: ()
+    // ----- ITE_NEG1            ----- ITE_NEG2
+    //  VP1                       VP2
+    // ------------------------------- RESOLUTION
+    //             VP3
+    // ------------------------------- REORDER
+    //             VP4
+    // ------------------------------- DUPLICATED_LITERALS
+    //  (cl (ite C F1 F2) C (not F2))
     //
-    // proof rule: ite_neg2
-    // proof node: (VP2:(or (ite C F1 F2) (not C) (not F1)))
-    // proof term: (cl (ite C F1 F2) (not C) (not F1))
-    // premises: ()
-    // args: ()
+    // VP1: (cl (ite C F1 F2) C (not F2))
+    // VP2: (cl (ite C F1 F2) (not C) (not F1))
+    // VP3: (cl (ite C F1 F2) (not F2) (ite C F1 F2) (not F1))
+    // VP4: (cl (ite C F1 F2) (ite C F1 F2) (not F1) (not F2))
     //
-    // proof rule: resolution
-    // proof node: (VP3:(or (ite C F1 F2) (not F2) (ite C F1 F2) (not F1)))
-    // proof term: (cl (ite C F1 F2) (not F2) (ite C F1 F2) (not F1))
-    // premises: VP1 VP2
-    // args: ()
-    //
-    // proof rule: reorder
-    // proof node: (VP4:(or (ite C F1 F2) (ite C F1 F2) (not F1) (not F2)))
-    // proof term: (cl (ite C F1 F2) (ite C F1 F2) (not F1) (not F2))
-    // premises: VP3
-    // args:()
-    //
-    // proof rule: duplicated_literals
-    // proof node: (or (ite C F1 F2) C (not F2))
-    // proof term: (cl (ite C F1 F2) C (not F2))
-    // premises: VP3
-    // args: ()
+    // * the corresponding proof node is (or (ite C F1 F2) C (not F2))
     case PfRule::CNF_ITE_NEG3:
     {
       Node vp1 = nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
@@ -1247,18 +1190,9 @@ bool AletheProofPostprocessCallback::update(Node res,
              && addAletheStepFromOr(
                  AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
-
     //================================================= Equality rules
-    // ======== Reflexive
-    // Children: none
-    // Arguments: (t)
-    // ---------------------
-    // Conclusion: (= t t)
-    //
-    // proof rule: refl
-    // proof term: (cl (= t t))
-    // premises: ()
-    // args: ()
+    // The following rules are all translated according to the singleton
+    // pattern.
     case PfRule::REFL:
     {
       return addAletheStep(AletheRule::REFL,
@@ -1268,17 +1202,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // ======== Transitivity
-    // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
-    // Arguments: none
-    // -----------------------
-    // Conclusion: (= t1 tn)
-    //
-    // proof rule: trans
-    // proof node: (= t1 tn)
-    // proof term: (cl (= t1 tn))
-    // premises: P1, ..., Pn
-    // args: ()
     case PfRule::TRANS:
     {
       return addAletheStep(AletheRule::TRANS,
@@ -1289,54 +1212,56 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== Congruence
-    // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
-    // Arguments: (<kind> f?)
-    // ---------------------------------------------
-    // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
-    // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
-    // APPLY_UF. The actual node for <kind> is constructible via
-    // ProofRuleChecker::mkKindNode.
+    // In the case that the kind of the function symbol ?f is forall, the cong
+    // rule needs to be converted into a bind rule. The first n children will be
+    // refl rules, e.g. (= (v0 Int) (v0 Int)).
     //
-    // In the case that <kind> is forall the cong rule needs to be translated
-    // into a bind rule. The first child will be a refl rule that can be
-    // omitted.
+    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+    //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
     //
-    //  let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-    //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn))
+    //  ---------------- REFL ...  ---------------- REFL
+    //   (cl (= v1 v2))*             (cl (= vn wn))
+    //  ------------------------------------------- bind, ((:= (v1 A1) w1) ...
+    //  (:= (vn An) wn))
+    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //   (forall ((w1 B1)...(wn Bn)) s2)))*
     //
-    //  proof rule: bind
-    //  proof node: (= (forall ((v1 A1)...(vn An)) t2) (forall ((w1 B1)...(wn
-    //  Bn)) s2)) proof term: (cl (= (forall ((v1 A1)...(vn An)) t2) (forall
-    //  ((w1 B1)...(wn Bn)) s2))) premises: P2 args: ((:= v1 w1) ... (:= vn wn))
+    // Otherwise, the rule follows the singleton pattern, i.e.:
     //
-    // Otherwise
+    //    P1 ... Pn
+    //  -------------------------------------------------------- cong
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
     //
-    //  proof rule: cong
-    //  proof node: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
-    //  proof term: (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
-    //  premises: P1, ..., Pn
-    //  args: ()
+    // *  the corresponding proof node is (or (= v1 v2))
+    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f? s1
+    // ... sn))
     case PfRule::CONG:
     {
-      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL))
+      bool success = true;
+      std::vector<Node> vpis;
+      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
+          || args[0] == ProofRuleChecker::mkKindNode(kind::EXISTS))
       {
-        std::vector<Node> new_children;
-        std::vector<Node> sanitized_args;
-        for (long int i = 0;
-             i < (children[0][0].end() - children[0][0].begin());
+        for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
         {
-          sanitized_args.push_back(d_anc.convert(
+          new_args.push_back(
+              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]));
+          vpis.push_back(nm->mkNode(
+              kind::SEXPR,
+              d_cl,
               nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i])));
-          // Node vpi = nm->mkNode(kind::SEXPR, d_cl, vars.back());
-          // addAletheStep(vpi,AletheRule::REFL,{},{},*cdp);
-          // new_children.push_back(vpi);
+          success&& addAletheStep(
+              AletheRule::REFL, vpis[i], vpis[i], {}, {}, *cdp);
         }
+        std::vector<Node> new_children = vpis;
+        new_children.insert(
+            new_children.end(), children.begin() + 1, children.end());
         return addAletheStep(AletheRule::ANCHOR_BIND,
                              res,
                              nm->mkNode(kind::SEXPR, d_cl, res),
-                             {children[1]},
-                             sanitized_args,
+                             new_children,
+                             new_args,
                              *cdp);
       }
       return addAletheStep(AletheRule::CONG,
@@ -1347,28 +1272,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== True intro
-    // Children: (P:F)
-    // Arguments: none
-    // ----------------------------------------
-    // Conclusion: (= F true)
     //
-    // proof rule: equiv_simplify
-    // proof node: (VP1:(cl (= (= F true) F)))
-    // proof term: (cl (= (= F true) F))
-    // premises: ()
-    // args: ()
+    // ------------------------------- EQUIV_SIMPLIFY
+    //  (VP1:(cl (= (= F true) F)))
+    // ------------------------------- EQUIV2
+    //  (VP2:(cl (= F true) (not F)))           P
+    // -------------------------------------------- RESOLUTION
+    //  (cl (= F true))*
     //
-    // proof rule: equiv2
-    // proof node: (VP2:(cl (= F true) (not F)))
-    // proof term: (cl (= F true) (not F))
-    // premises: VP1
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (= F true)
-    // proof term: (cl (= F true))
-    // premises: VP2 P
-    // args: ()
+    // * the corresponding proof node is (= F true)
     case PfRule::TRUE_INTRO:
     {
       Node vp1 = nm->mkNode(
@@ -1384,29 +1296,15 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== True elim
-    // Children: (P:(= F true))
-    // Arguments: none
-    // ----------------------------------------
-    // Conclusion: F
     //
-    // proof rule: equiv_simplify
-    // proof node: (VP1:(cl (= (= F true) F)))
-    // proof term: (cl (= (= F true) F))
-    // premises: ()
-    // args: ()
+    // ------------------------------- EQUIV_SIMPLIFY
+    //  (VP1:(cl (= (= F true) F)))
+    // ------------------------------- EQUIV1
+    //  (VP2:(cl (not (= F true)) F))           P
+    // -------------------------------------------- RESOLUTION
+    //  (cl F)*
     //
-    // proof rule: equiv1
-    // proof node: (VP2:(cl (not (= F true)) F))
-    // proof term: (cl (not (= F true)) F)
-    // premises: VP1
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (F)
-    // proof term: (cl F)
-    // premises: VP2
-    // args: ()
-    //
+    // * the corresponding proof node is F
     case PfRule::TRUE_ELIM:
     {
       bool success = true;
@@ -1425,40 +1323,22 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== False intro
-    // Children: (P:(not F))
-    // Arguments: none
-    // ----------------------------------------
-    // Conclusion: (= F false)
     //
-    // proof rule: equiv_simplify
-    // proof node: (VP1:(cl (= (= F false) (not F))))
-    // proof term: (cl (= (= F false) (not F)))
-    // premises: ()
-    // args: ()
+    // ----- EQUIV_SIMPLIFY
+    //  VP1
+    // ----- EQUIV2     ----- NOT_NOT
+    //  VP2              VP3
+    // ---------------------- RESOLUTION
+    //          VP4                        P
+    // -------------------------------------- RESOLUTION
+    //          (cl (= F false))*
     //
-    // proof rule: equiv2
-    // proof node: (VP2:(cl (= F false) (not (not F))))
-    // proof term: (cl (= F false) (not (not F)))
-    // premises: VP1
-    // args: ()
+    // VP1: (cl (= (= F false) (not F)))
+    // VP2: (cl (= F false) (not (not F)))
+    // VP3: (cl (not (not (not F))) F)
+    // VP4: (cl (= F false) F)
     //
-    // proof rule: not_not
-    // proof node: (VP3:(cl (not (not (not F))) F))
-    // proof term: (cl (not (not (not F))) F)
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (VP4:(cl (= F false) F))
-    // proof term: (cl (= F false) F)
-    // premises: VP2 VP3
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (= F false)
-    // proof term: (cl (= F false))
-    // premises: VP4 P
-    // args: ()
+    // * the corresponding proof node is (= F false)
     case PfRule::FALSE_INTRO:
     {
       Node vp1 = nm->mkNode(
@@ -1481,28 +1361,20 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== False elim
-    // Children: (P:(= F false))
-    // Arguments: none
-    // ----------------------------------------
-    // Conclusion: (not F)
     //
-    // proof rule: equiv_simplify
-    // proof node: (VP1:(cl (= (= F false) (not F))))
-    // proof term: (cl (= (= F false) (not F)))
-    // premises: ()
-    // args: ()
+    // ----- EQUIV_SIMPLIFY
+    //  VP1
+    // ----- EQUIV1
+    //  VP2                P
+    // ---------------------- RESOLUTION
+    //     (cl (not F))*
     //
-    // proof rule: equiv1
-    // proof node: (VP2:(cl (not (= F false)) (not F)))
-    // proof term: (cl (not (= F false)) (not F))
-    // premises: VP1
-    // args: ()
+    // VP1: (cl (= (= F false) (not F)))
+    // VP2: (cl (not (= F false)) (not F))
+    // VP3: (cl (not (not (not F))) F)
+    // VP4: (cl (= F false) F)
     //
-    // proof rule: resolution
-    // proof node: (not F)
-    // proof term: (cl (not F))
-    // premises: VP2 P
-    // args: ()
+    // * the corresponding proof node is (not F)
     case PfRule::FALSE_ELIM:
     {
       Node vp1 = nm->mkNode(
@@ -1518,79 +1390,33 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
-
     //================================================= Quantifiers rules
-    // ======== Witness intro
-    // Children: (P:(exists ((x T)) F[x]))
-    // Arguments: none
-    // ----------------------------------------
-    // Conclusion: (= k (witness ((x T)) F[x]))
-    // where k is the Skolem form of (witness ((x T)) F[x]).
-    /*case PfRule::WITNESS_INTRO:
-    {
-            return false;
-    }*/
-    // ======== Exists intro
-    // Children: (P:F[t])
-    // Arguments: ((exists ((x T)) F[x]))
-    // ----------------------------------------
-    // Conclusion: (exists ((x T)) F[x])
-    // This rule verifies that F[x] indeed matches F[t] with a substitution
-    // over x.
-    /*case PfRule::EXISTS_INTRO:
-    {
-            return false;
-    }*/
-    // ======== Skolemize
-    // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
-    // Arguments: none
-    // ----------------------------------------
-    // Conclusion: F*sigma
-    // sigma maps x1 ... xn to their representative skolems obtained by
-    // SkolemManager::mkSkolemize, returned in the skolems argument of that
-    // method. Alternatively, can use negated forall as a premise.
-    /*case PfRule::SKOLEMIZE:
-    {
-    }*/
     // ======== Instantiate
-    // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
-    // Arguments: (t1 ... tn)
-    // ----------------------------------------
-    // Conclusion: F*sigma
-    // sigma maps x1 ... xn to t1 ... tn.
+    // See proof_rule.h for documentation on the INSTANTIATE rule. This
+    // comment uses variable names as introduced there.
     //
-    // proof rule: forall_inst
-    // proof node: (VP1:(cl (or (not (forall ((x1 T1) ... (xn Tn)) F))
-    // F*sigma)))
-    // proof term: (cl (or (not (forall ((x1 T1) ... (xn Tn)) F))
-    // F*sigma))
-    // premises: ()
-    // args: (= x1 t1) ... (= xn tn)
+    // ----- FORALL_INST, (= x1 t1) ... (= xn tn)
+    //  VP1
+    // ----- OR
+    //  VP2              P
+    // -------------------- RESOLUTION
+    //     (cl F*sigma)^
     //
-    // proof rule: or
-    // proof node: (VP2:(cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma))
-    // proof term: (cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
-    // premises: VP1
-    // args: ()
+    // VP1: (cl (or (not (forall ((x1 T1) ... (xn Tn)) F)
+    // VP2: (cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
     //
-    // proof rule: resolution
-    // proof node: F*sigma
-    // proof term: (cl F*sigma)
-    // premises: VP2 P
-    // args: ()
+    // ^ the corresponding proof node is F*sigma
     case PfRule::INSTANTIATE:
     {
-      for (unsigned long int i = 0; i < args.size(); i++)
+      for (size_t i = 0, size = children[0][0].end() - children[0][0].begin(); i < size; i++)
       {
         new_args.push_back(nm->mkNode(kind::EQUAL, args[i], children[0][0][i]));
       }
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::OR, children[0].notNode(), res));
-      bool success =
-          addAletheStep(AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp);
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
-      success &= addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp);
-      return success
+      return addAletheStep(AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
@@ -1598,84 +1424,27 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
-
-    //================================================= Arithmetic rules
-    // ======== Adding Inequalities
-    // Note: an ArithLiteral is a term of the form (>< poly const)
-    // where
-    //   >< is >=, >, ==, <, <=, or not(== ...).
-    //   poly is a polynomial
-    //   const is a rational constant
-    //
-    // Children: (P1:l1, ..., Pn:ln)
-    //           where each li is an ArithLiteral
-    //           not(= ...) is dis-allowed!
-    //
-    // Arguments: (k1, ..., kn), non-zero reals
-    // ---------------------
-    // Conclusion: (>< (* k t1) (* k t2))
-    //    where >< is the fusion of the combination of the ><i, (flipping each
-    //    it its ki is negative). >< is always one of <, <= NB: this implies
-    //    that lower bounds must have negative ki,
-    //                      and upper bounds must have positive ki.
-    //    t1 is the sum of the polynomials.
-    //    t2 is the sum of the constants.
-    // case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS:{
-    //
-    //}
-    // ======== Tightening Strict Integer Upper Bounds
-    // Children: (P:(< i c))
-    //         where i has integer type.
-    // Arguments: none
-    // ---------------------
-    // Conclusion: (<= i greatestIntLessThan(c)})
-    // INT_TIGHT_UB,
-    // ======== Tightening Strict Integer Lower Bounds
-    // Children: (P:(> i c))
-    //         where i has integer type.
-    // Arguments: none
-    // ---------------------
-    // Conclusion: (>= i leastIntGreaterThan(c)})
-    // INT_TIGHT_LB,
     // ======== Trichotomy of the reals
-    // Children: (A B)
-    // Arguments: (C)
-    // ---------------------
-    // Conclusion: (C),
-    //                 where (not A) (not B) and C
-    //                   are (> x c) (< x c) and (= x c)
-    //                   in some order
-    //                 note that "not" here denotes arithmetic negation,
-    //                 flipping
-    //                 >= to <, etc.
+    // See proof_rule.h for documentation on the ARITH_TRICHOTOMY rule. This
+    // comment uses variable names as introduced there.
     //
     // If C = (= x c) or C = (> x c) pre-processing has to transform (>= x c)
     // into (<= c x)
     //
-    // proof rule: la_disequality
-    // proof node: (VP1: (or (= x c) (not (<= x c)) (not (<= c x))))
-    // proof term: (cl (or (= x c) (not (<= x c)) (not (<= c x))))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: or
-    // proof node: (VP2: (cl (= x c) (not (<= x c)) (not (<= c x))))
-    // proof term: (cl (= x c) (not (<= x c)) (not (<= c x)))
-    // premises: ()
-    // args: ()
+    // ------------------------------------------------------ LA_DISEQUALITY
+    //  (VP1: (cl (or (= x c) (not (<= x c)) (not (<= c x)))))
+    // -------------------------------------------------------- OR
+    //  (VP2: (cl (= x c) (not (<= x c)) (not (<= c x))))
     //
     // If C = (> x c) or C = (< x c) post-processing has to be added. In these
     // cases resolution on VP2 A B yields (not (<=x c)) or (not (<= c x)) and
     // comp_simplify is used to transform it into C. Otherwise,
     //
-    // proof rule: resolution
-    // proof node: C
-    // proof term: (cl C)
-    // premises: VP2 A B
-    // args: ()
+    //  VP2   A   B 
+    // ---------------- RESOLUTION
+    //  (cl C)*
     //
-    // TODO(lachnitt@stanford.edu):
-    // isabelle-mirabelle/Green_cvc42/x2020_07_31_11_27_36_291_7704406.smt_in
+    // * the corresponding proof node is C
     case PfRule::ARITH_TRICHOTOMY:
     {
       bool success = true;
@@ -1884,79 +1653,9 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 *cdp);
       }
     }
-    // ======== Arithmetic operator elimination
-    // Children: none
-    // Arguments: (t)
-    // ---------------------
-    // Conclusion: arith::OperatorElim::getAxiomFor(t)
-    // ARITH_OP_ELIM_AXIOM,
-    // ======== Int Trust
-    // Children: (P1 ... Pn)
-    // Arguments: (Q)
-    // ---------------------
-    // Conclusion: (Q)
-    // INT_TRUST,
-    //======== Multiplication sign inference
-    // Children: none
-    // Arguments: (f1, ..., fk, m)
-    // ---------------------
-    // Conclusion: (=> (and f1 ... fk) (~ m 0))
-    // Where f1, ..., fk are variables compared to zero (less, greater or not
-    // equal), m is a monomial from these variables, and ~ is the comparison
-    // (less or greater) that results from the signs of the variables. All
-    // variables with even exponent in m should be given as not equal to zero
-    // while all variables with odd exponent in m should be given as less or
-    // greater than zero.
-    // ARITH_MULT_SIGN,
-    //======== Multiplication with positive factor
-    // Children: none
-    // Arguments: (m, orig, lhs, rel, rhs)
-    // ---------------------
-    // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
-    // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
-    // symbol.
-    // ARITH_MULT_POS,
-    //======== Multiplication with negative factor
-    // Children: none
-    // Arguments: (m, orig, (rel lhs rhs))
-    // ---------------------
-    // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m
-    // rhs))) Where orig is the origin that implies (rel lhs rhs) and rel is a
-    // relation symbol and rel_inv the inverted relation symbol.
-    // ARITH_MULT_NEG,
-    //======== Multiplication tangent plane
-    // Children: none
-    // Arguments: (t, x, y, a, b, sgn)
-    // ---------------------
-    // Conclusion:
-    //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<=
-    //   y b))) sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x
-    //   a)
-    //   (>= y b)))
-    // Where x,y are real terms (variables or extended terms), t = (* x y)
-    // (possibly under rewriting), a,b are real constants, and sgn is either -1
-    // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
-    // ARITH_MULT_TANGENT,
-    //
-
     //================================================= Extended rules
     // ======== Symmetric
-    // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
-    // Arguments: none
-    // -----------------------
-    // Conclusion: (= t2 t1) or (not (= t2 t1))
-    //
-    // proof rule: symm
-    // proof node: (= t2 t1)
-    // proof term: (cl (= t2 t1))
-    // premises: ((P:(= t1 t2))
-    // args: ()
-    //
-    // proof rule: not_symm
-    // proof node: (not (= t2 t1))
-    // proof term: (cl (not (= t2 t1)))
-    // premises: (P:(not (= t1 t2))
-    // args: ()
+    // This rule is translated according to the singleton pattern.
     case PfRule::SYMM:
     {
       if (res.getKind() == kind::NOT)
@@ -1976,30 +1675,37 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
     // ======== Reordering
-    // Children: (P:C1)
-    // Arguments: (C2)
-    // ---------------------
-    // Conclusion: C2
-    // where
-    //  Set representations of C1 and C2 is the same but the number of literals
-    //  in C2 is the same of that of C1
-    //
-    //
-    // Let C2 = (or F1 ... Fn)
-    //
-    // proof rule: reordering
-    // proof node: C2
-    // proof term: (cl F1 ... Fn)
-    // premises: P
-    // args: ()
+    // This rule is translated according to the clauses pattern.
     case PfRule::REORDERING:
     {
-      return addAletheStepFromOr(AletheRule::REORDER, res, children, {}, *cdp);
+      Node trueNode = nm->mkConst(true);
+      std::vector<Node> new_children = children;
+      if (children[0].getKind() == kind::OR
+          && (args[0] != trueNode || children[0] != args[1]))
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
+        if (childPf->getRule() == PfRule::ASSUME
+            || childPf->getRule() == PfRule::EQ_RESOLVE)
+        {
+          // Add or step
+          std::vector<Node> subterms{d_cl};
+          subterms.insert(
+              subterms.end(), children[0].begin(), children[0].end());
+          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+          addAletheStep(
+              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+          new_children[0] = conclusion;
+        }
+      }
+      return addAletheStepFromOr(AletheRule::REORDER, res, new_children, {}, *cdp);
     }
-
-    default:  // TBD
+    //================================================= Arithmetic rules
+    default:
     {
-      std::cout << "Not implemented yet " << id << std::endl;
+      Trace("alethe-proof")
+          << "... rule not translated yet " << id << " / " << res << " "
+          << children << " " << args << std::endl;
+      std::cout << "UNTRANSLATED rule: " << id << std::endl;
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
@@ -2007,6 +1713,10 @@ bool AletheProofPostprocessCallback::update(Node res,
                            args,
                            *cdp);
     }
+      Trace("alethe-proof")
+          << "... error translating rule " << id << " / " << res << " "
+          << children << " " << args << std::endl;
+      return false;
   }
 
   Trace("alethe-proof") << "... error translating rule " << id << " / " << res
@@ -2067,17 +1777,13 @@ bool AletheProofPostprocessFinalCallback::shouldUpdate(
     const std::vector<Node>& fa,
     bool& continueUpdate)
 {
-  // Sanitize arguments of first scope
-  if (pn->getRule() != PfRule::ALETHE_RULE)
-  {
-    continueUpdate = false;
-    return true;
-  }
   // The proof node should not be traversed further
   continueUpdate = false;
-  if (pn->getArguments()[2].toString() == "(cl)")
+
+  // If the last proof rule was not translated yet
+  if (pn->getRule() != PfRule::ALETHE_RULE)
   {
-    return false;
+    return true;
   }
   // This case can only occur if the last step is an assumption
   if ((pn->getArguments()[2].end() - pn->getArguments()[2].begin()) <= 1)
@@ -2085,7 +1791,7 @@ bool AletheProofPostprocessFinalCallback::shouldUpdate(
     return true;
   }
   // If the proof node has result (false) additional steps have to be added.
-  else if (pn->getArguments()[2][1].toString()
+  if (pn->getArguments()[2][1].toString()
            == NodeManager::currentNM()->mkConst(false).toString())
   {
     return true;
@@ -2093,27 +1799,23 @@ bool AletheProofPostprocessFinalCallback::shouldUpdate(
   return false;
 }
 
+// The last step of the proof was:
+//
 // Children:  (P1:C1) ... (Pn:Cn)
-// Arguments: (AletheRule::vrule,false,(cl false))
+// Arguments: (AletheRule::VRULE,false,(cl false))
 // ---------------------
 // Conclusion: (false)
 //
-// proof rule: vrule
-// proof node: (VP1:((false)))
-// proof term: (cl false)
-// premises: P
-// args: ()
+// In Alethe:
 //
-// proof rule: false
-// proof node: (VP2:(not true))
-// proof term: (cl (not true))
-// premises: ()
-// args: ()
+//  P1 ... Pn
+// ------------------- VRULE   ---------------------- FALSE
+//  (VP1:(cl false))*           (VP2:(cl (not true)))
+// -------------------------------------------------- RESOLUTION
+//                       (cl)**
 //
-// proof rule: resolution
-// proof node: (false)
-// proof term: (cl)
-// premises: VP1 VP2
+// *  the corresponding proof node is ((false))
+// ** the corresponding proof node is (false)
 bool AletheProofPostprocessFinalCallback::update(
     Node res,
     PfRule id,
@@ -2126,11 +1828,10 @@ bool AletheProofPostprocessFinalCallback::update(
   // remove attribute for outermost scope
   if (id != PfRule::ALETHE_RULE)
   {
-    std::vector<Node> sanitized_args;
-    sanitized_args.push_back(res);
-    sanitized_args.push_back(res);
-    sanitized_args.push_back(
-        nm->mkConst<Rational>(static_cast<unsigned>(AletheRule::ASSUME)));
+    std::vector<Node> sanitized_args{
+        res,
+        res,
+        nm->mkConst<Rational>(static_cast<unsigned>(AletheRule::ASSUME))};
     for (auto arg : args)
     {
       sanitized_args.push_back(d_anc.convert(arg));
@@ -2205,8 +1906,7 @@ AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
-{
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
   // Translate proof node
   ProofNodeUpdater updater(d_pnm, d_cb, false, false);
   updater.process(pf->getChildren()[0]);

@@ -40,7 +40,8 @@ void AletheProofPrinter::alethePrinter(std::ostream& out,
 
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
-  for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
+  for (unsigned long int i = 3, size = pfn->getArguments().size(); i < size;
+       i++)
   {
     Trace("alethe-printer")
         << "... print assumption " << pfn->getArguments()[i] << std::endl;
@@ -97,24 +98,22 @@ std::string AletheProofPrinter::alethePrinterInternal(
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << vrule << " "
         << " / " << pfn->getArguments() << std::endl;
-    out << "(anchor :step " << prefix << "t" << step_id << " :args (";
-    for (unsigned long int j = 3; j < pfn->getArguments().size(); j++)
+    out << "(anchor :step " << prefix << "t" << step_id;  // << " :args (";
+    if(vrule == AletheRule::ANCHOR_BIND){
+	    out << " :args (";
+    for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
+         j++)
     {
-      if (vrule == AletheRule::ANCHOR_SUBPROOF)
-      {
-        out << pfn->getArguments()[j].toString();
-      }
-      else if (vrule == AletheRule::ANCHOR_BIND)
-      {
-        out << "(:= " << pfn->getArguments()[j][0].toString() << " "
+        out << "(:= (" << pfn->getArguments()[j][0].toString() << " " << pfn->getArguments()[j][0].getType().toString() << ") "
             << pfn->getArguments()[j][1].toString() << ")";
-      }
       if (j != pfn->getArguments().size() - 1)
       {
         out << " ";
       }
     }
-    out << "))\n";
+    out << ")";
+    }
+    out << ")\n";
 
     // Append index of anchor to prefix so that all steps in the subproof use it
     prefix.append("t" + std::to_string(step_id) + ".");
@@ -123,7 +122,8 @@ std::string AletheProofPrinter::alethePrinterInternal(
     // Print assumptions
     if (vrule == AletheRule::ANCHOR_SUBPROOF)
     {
-      for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
+      for (unsigned long int i = 3, size = pfn->getArguments().size(); i < size;
+           i++)
       {
         Trace("alethe-printer")
             << "... print assumption " << pfn->getArguments()[i] << std::endl;
@@ -156,12 +156,31 @@ std::string AletheProofPrinter::alethePrinterInternal(
           << assumptions[nested_level] << std::endl;
       return prefix + "a" + std::to_string(it->second);
     }
+  // temp, hotfix
+    auto prefix2 = prefix;
+    for (int i = nested_level; i >= 0; i--)
+    {
+      auto it = assumptions[i].find(pfn->getArguments()[2]);
+      prefix2 = prefix2.substr(0, prefix2.find_last_of("."));
+      Trace("alethe-printer") << prefix2 << std::endl;
+      prefix2 = prefix2.substr(0, prefix2.find_last_of(".") + 1);
+      Trace("alethe-printer") << prefix2 << std::endl;
 
-    Trace("alethe-printer") << "... printing failed! Encountered assumption "
-                               "that has not been printed! "
-                            << pfn->getArguments()[2] << "/"
-                            << assumptions[nested_level] << std::endl;
-    return "";
+      if (it != assumptions[i].end())
+      {
+        Trace("alethe-printer")
+            << "... search assumption in list on level " << i << ": "
+            << pfn->getArguments()[2] << "/" << assumptions[i] << "     "
+            << prefix2 << std::endl;
+        return prefix2 + "a" + std::to_string(it->second);
+      }
+  }
+
+  Trace("alethe-printer") << "... printing failed! Encountered assumption "
+                             "that has not been printed! "
+                          << pfn->getArguments()[2] << "/"
+                          << assumptions[nested_level] << std::endl;
+  return "";
   }
 
   // Print children
@@ -175,14 +194,14 @@ std::string AletheProofPrinter::alethePrinterInternal(
   // mode if (!d_extended && (vrule == AletheRule::REORDER || vrule ==
   // AletheRule::SYMM)) for now exclude all reorder rules since they cannot be
   // reconstructed in Isabelle yet.
-  if (vrule == AletheRule::REORDER
+  /*if (vrule == AletheRule::REORDER
       || (!d_extended && vrule == AletheRule::SYMM))
   {
     Trace("alethe-printer")
         << "... non-extended mode skip child " << pfn->getResult() << " "
         << vrule << " / " << pfn->getArguments() << std::endl;
     return child_prefixes[0];
-  }
+  }*/
 
   // If the rule is a subproof a subproof step needs to be printed
   if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)
@@ -245,7 +264,8 @@ std::string AletheProofPrinter::alethePrinterInternal(
   if (pfn->getArguments().size() > 3)
   {
     out << " :args (";
-    for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
+    for (unsigned long int i = 3, size = pfn->getArguments().size(); i < size;
+         i++)
     {
       if (vrule == AletheRule::FORALL_INST)
       {
@@ -266,7 +286,7 @@ std::string AletheProofPrinter::alethePrinterInternal(
   if (pfn->getChildren().size() >= 1)
   {
     out << " :premises (";
-    for (unsigned long int i = 0; i < child_prefixes.size(); i++)
+    for (unsigned long int i = 0, size = child_prefixes.size(); i < size; i++)
     {
       out << child_prefixes[i];
       if (i != child_prefixes.size() - 1)
