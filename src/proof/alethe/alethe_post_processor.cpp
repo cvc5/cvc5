@@ -1340,55 +1340,58 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // ======== Congruence
-    // In the case that the kind of the function symbol ?f is forall, the cong
-    // rule needs to be converted into a bind rule. The first child will be a
-    // refl rule, e.g. (= (v0 Int) (v0 Int)). The type has to be deleted.
-    //
-    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-    //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
-    //
-    //  ---------------- REFL   ---------------- REFL
-    //   (cl (= v1 v2))*         (cl (= vn wn))
-    //  ---------------------------------------- bind, ((:= v1 w1) ... (:= vn
-    //  wn))
-    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-    //   (forall ((w1 B1)...(wn Bn)) s2)))*
-    //
-    // Otherwise, the rule follows the singleton pattern, i.e.:
-    //
-    //    P1 ... Pn
-    //  -------------------------------------------------------- cong
-    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
-    //
-    // *  the corresponding proof node is (or (= v1 v2))
-    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f? s1
-    // ... sn))
+      // ======== Congruence
+      // In the case that the kind of the function symbol ?f is forall or
+      // exists, the cong rule needs to be converted into a bind rule. The first
+      // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+      //
+      //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+      //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
+      //
+      //  ----- REFL ... ----- REFL
+      //   VP1            VPn         P2 ... Pn
+      //  --------------------------------------- bind, ((:= (v1 A1) w1) ... (:=
+      //  (vn An) wn))
+      //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+      //   (forall ((w1 B1)...(wn Bn)) s2)))*
+      //
+      //  VPi: (cl (= vi wi))*
+      //
+      //  * the corresponding proof node is (or (= vi vi))
+      //
+      // Otherwise, the rule follows the singleton pattern, i.e.:
+      //
+      //    P1 ... Pn
+      //  -------------------------------------------------------- cong
+      //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
+      //
+      // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
+      // s1
+      // ... sn))
     case PfRule::CONG:
     {
-      bool success = true;
-      std::vector<Node> vpis;
       if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
           || args[0] == ProofRuleChecker::mkKindNode(kind::EXISTS))
       {
+        std::vector<Node> vpis;
+        bool success = true;
         for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
         {
-          new_args.push_back(
-              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]));
-          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, new_args[i]));
-          success&& addAletheStep(
-              AletheRule::REFL, vpis[i], vpis[i], {}, {}, *cdp);
+          Node vpi =
+              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]);
+          new_args.push_back(vpi);
+          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
+          success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
         }
-        std::vector<Node> new_children = vpis;
-        // new_children.insert(
-        //  new_children.end(), children.begin(), children.end());
-        return addAletheStep(AletheRule::ANCHOR_BIND,
-                             res,
-                             nm->mkNode(kind::SEXPR, d_cl, res),
-                             new_children,
-                             new_args,
-                             *cdp);
+        vpis.insert(vpis.end(), children.begin() + 1, children.end());
+        return success
+               && addAletheStep(AletheRule::ANCHOR_BIND,
+                                res,
+                                nm->mkNode(kind::SEXPR, d_cl, res),
+                                vpis,
+                                new_args,
+                                *cdp);
       }
       return addAletheStep(AletheRule::CONG,
                            res,
