@@ -55,8 +55,7 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.check-examples }}" != "true" ]]; then exit 0; fi
-        mkdir build
-        cd build
+        mkdir -p build && cd build
         cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake
         make -j${{ env.num_proc }}
         ctest -j${{ env.num_proc }} --output-on-failure
