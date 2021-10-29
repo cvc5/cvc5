@@ -150,7 +150,7 @@ private:
  int getPrvsIndex();
  DecisionWeight getWeightPolarized(TNode n, bool polarity);
  DecisionWeight getWeightPolarized(TNode n, prop::SatValue);
- static DecisionWeight getWeight(TNode);
+ DecisionWeight getWeight(TNode);
  bool compareByWeightFalse(TNode, TNode);
  bool compareByWeightTrue(TNode, TNode);
  TNode getChildByWeight(TNode n, int i, bool polarity);
