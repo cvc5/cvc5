@@ -94,7 +94,7 @@ jobs:
       uses: ./.github/actions/run-tests
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
-        check-examples: ${{ matrix.check-examples }}
+        check-examples: false
         check-install: false
         check-python-bindings: false
         check-unit-tests: ${{ matrix.check-units }}
