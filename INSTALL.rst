@@ -33,7 +33,7 @@ dependencies.  We also have a Homebrew Tap available at
 https://github.com/CVC4/homebrew-cvc4 .
 Note that linking system libraries statically is
 `strongly discouraged <https://developer.apple.com/library/archive/qa/qa1118/_index.html>`_
-on macOS. Using ``./configure.sh --static-binary`` will thus produce a binary
+on macOS. Using ``./configure.sh --static`` will thus produce a binary
 that uses static versions of all our dependencies, but is still a dynamically
 linked binary.
 
@@ -45,7 +45,7 @@ Cross-compiling cvc5 with Mingw-w64 can be done as follows:
 
 .. code:: bash
 
-  ./configure.sh --win64 --static-binary <configure options...>
+  ./configure.sh --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -431,6 +431,6 @@ linked LGPL libraries perform the following steps:
 
 .. code::
   
-  ./configure.sh --static-binary <options>
+  ./configure.sh --static <options>
 
 7. Follow remaining steps from `build instructions <#building-cvc5>`_
