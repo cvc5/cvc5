@@ -13,40 +13,39 @@
  * An example of interacting with unsat cores using CVC4's Java API.
  */
 
-import edu.stanford.CVC4.*;
-import java.util.Iterator;
+import io.github.cvc5.api.*;
+import java.util.Arrays;
 
-public class UnsatCores {
-  public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
-
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
+public class UnsatCores
+{
+  public static void main(String[] args) throws CVC5ApiException
+  {
+    Solver solver = new Solver();
 
     // Enable the production of unsat cores
-    smt.setOption("produce-unsat-cores", new SExpr(true));
+    solver.setOption("produce-unsat-cores", "true");
 
-    Type boolType = em.booleanType();
-    Expr a = em.mkVar("A", boolType);
-    Expr b = em.mkVar("B", boolType);
+    Sort boolSort = solver.getBooleanSort();
+    Term a = solver.mkConst(boolSort, "A");
+    Term b = solver.mkConst(boolSort, "B");
 
     // A ^ B
-    smt.assertFormula(em.mkExpr(Kind.AND, a, b));
+    solver.assertFormula(solver.mkTerm(Kind.AND, a, b));
     // ~(A v B)
-    smt.assertFormula(em.mkExpr(Kind.NOT, em.mkExpr(Kind.OR, a, b)));
+    solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.OR, a, b)));
 
-    Result res = smt.checkSat(); // result is unsat
+    Result res = solver.checkSat(); // result is unsat
 
     // Retrieve the unsat core
-    UnsatCore unsatCore = smt.getUnsatCore();
-    
-    // Print the unsat core
-    System.out.println("Unsat Core: " + unsatCore);
+    Term[] unsatCore = solver.getUnsatCore();
 
-    // Iterate over expressions in the unsat core. The `UnsatCore` class
-    // implements the `Iterable<Expr>` interface.
+    // Print the unsat core
+    System.out.println("Unsat Core: " + Arrays.asList(unsatCore));
+
+    // Iterate over expressions in the unsat core.
     System.out.println("--- Unsat Core ---");
-    for (Expr e : unsatCore) {
+    for (Term e : unsatCore)
+    {
       System.out.println(e);
     }
   }

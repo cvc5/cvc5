@@ -73,24 +73,12 @@ bool Configuration::isCompetitionBuild() {
 
 bool Configuration::isStaticBuild()
 {
-#if defined(CVC5_STATIC_BUILD)
-  return true;
-#else
-  return false;
-#endif
+  return CVC5_STATIC_BUILD;
 }
 
 string Configuration::getPackageName() { return CVC5_PACKAGE_NAME; }
 
-string Configuration::getVersionString() { return CVC5_RELEASE_STRING; }
-
-unsigned Configuration::getVersionMajor() { return CVC5_MAJOR; }
-
-unsigned Configuration::getVersionMinor() { return CVC5_MINOR; }
-
-unsigned Configuration::getVersionRelease() { return CVC5_RELEASE; }
-
-std::string Configuration::getVersionExtra() { return CVC5_EXTRAVERSION; }
+string Configuration::getVersionString() { return CVC5_FULL_VERSION; }
 
 std::string Configuration::copyright() {
   std::stringstream ss;
@@ -205,9 +193,9 @@ std::string Configuration::copyright() {
 
 std::string Configuration::about() {
   std::stringstream ss;
-  ss << "This is cvc5 version " << CVC5_RELEASE_STRING;
+  ss << "This is cvc5 version " << getVersionString();
   if (Configuration::isGitBuild()) {
-    ss << " [" << Configuration::getGitId() << "]";
+    ss << " [" << Configuration::getGitInfo() << "]";
   }
   ss << "\ncompiled with " << Configuration::getCompiler()
      << "\non " << Configuration::getCompiledDateTime() << "\n\n";
@@ -271,36 +259,11 @@ bool Configuration::isTraceTag(const std::string& tag)
 }
 
 bool Configuration::isGitBuild() {
-  return IS_GIT_BUILD;
+  return GIT_BUILD;
 }
 
-const char* Configuration::getGitBranchName() {
-  return GIT_BRANCH_NAME;
-}
-
-const char* Configuration::getGitCommit() {
-  return GIT_COMMIT;
-}
-
-bool Configuration::hasGitModifications() {
-  return GIT_HAS_MODIFICATIONS;
-}
-
-std::string Configuration::getGitId() {
-  if(! isGitBuild()) {
-    return "";
-  }
-
-  const char* branchName = getGitBranchName();
-  if(*branchName == '\0') {
-    branchName = "-";
-  }
-
-  stringstream ss;
-  ss << "git " << branchName << " " << string(getGitCommit()).substr(0, 8)
-     << (::cvc5::Configuration::hasGitModifications() ? " (with modifications)"
-                                                      : "");
-  return ss.str();
+std::string Configuration::getGitInfo() {
+  return CVC5_GIT_INFO;
 }
 
 std::string Configuration::getCompiler() {

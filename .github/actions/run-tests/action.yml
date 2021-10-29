@@ -1,0 +1,60 @@
+name: Run tests
+description: Run all available tests
+inputs:
+  build-dir:
+    default: build/
+  check-examples:
+    default: true
+  check-python-bindings:
+    default: false
+  check-unit-tests:
+    default: true
+  regressions-args:
+    default: "--no-check-unsat-cores --no-check-proofs"
+  regressions-exclude:
+    default: "3-4"
+runs:
+  using: composite
+  steps:
+    - name: Run CTest
+      shell: bash
+      run: |
+        make -j${{ env.num_proc }} check
+      env:
+        ARGS: --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
+        CVC5_REGRESSION_ARGS: --no-early-exit
+        RUN_REGRESSION_ARGS: ${{ inputs.regressions-args }}
+      working-directory: ${{ inputs.build-dir }}
+
+    - name: Run Unit Tests
+      shell: bash
+      run: |
+        if [[ "${{ inputs.check-unit-tests }}" != "true" ]]; then exit 0; fi
+        make -j${{ env.num_proc }} apitests units
+      working-directory: ${{ inputs.build-dir }}
+
+    - name: Install Check
+      shell: bash
+      run: |
+        make -j${{ env.num_proc }} install
+        echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
+        g++ -std=c++17 /tmp/test.cpp -I install/include -L install/lib -lcvc5
+      working-directory: ${{ inputs.build-dir }}
+
+    - name: Python Install Check
+      shell: bash
+      run: |
+        if [[ "${{ inputs.check-python-bindings }}" != "true" ]]; then exit 0; fi
+        export PYTHONPATH="$PYTHONPATH:$(dirname $(find ${{ inputs.build-dir }}/install/ -name "pycvc5" -type d))"
+        python3 -c "import pycvc5"
+
+    - name: Check Examples
+      shell: bash
+      run: |
+        if [[ "${{ inputs.check-examples }}" != "true" ]]; then exit 0; fi
+        mkdir build
+        cd build
+        cmake .. -DCMAKE_PREFIX_PATH=${{ inputs.build-dir }}/install/lib/cmake
+        make -j${{ env.num_proc }}
+        ctest -j${{ env.num_proc }} --output-on-failure
+      working-directory: examples

@@ -17,9 +17,9 @@
 
 #include "options/theory_options.h"
 #include "proof/conv_proof_generator.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
@@ -31,13 +31,6 @@ using namespace std;
 
 namespace cvc5 {
 namespace theory {
-
-/** Attribute true for nodes that have been rewritten with proofs enabled */
-struct RewriteWithProofsAttributeId
-{
-};
-typedef expr::Attribute<RewriteWithProofsAttributeId, bool>
-    RewriteWithProofsAttribute;
 
 // Note that this function is a simplified version of Theory::theoryOf for
 // (type-based) theoryOfMode. We expand and simplify it here for the sake of
@@ -166,14 +159,13 @@ TheoryRewriter* Rewriter::getTheoryRewriter(theory::TheoryId theoryId)
 
 Rewriter* Rewriter::getInstance()
 {
-  return smt::currentSmtEngine()->getRewriter();
+  return smt::currentSolverEngine()->getRewriter();
 }
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          Node node,
                          TConvProofGenerator* tcpg)
 {
-  RewriteWithProofsAttribute rpfa;
 #ifdef CVC5_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
 
@@ -187,7 +179,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 
   // Check if it's been cached already
   Node cached = getPostRewriteCache(theoryId, node);
-  if (!cached.isNull() && (tcpg == nullptr || node.getAttribute(rpfa)))
+  if (!cached.isNull() && (tcpg == nullptr || hasRewrittenWithProofs(node)))
   {
     return cached;
   }
@@ -196,16 +188,11 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   vector<RewriteStackElement> rewriteStack;
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
 
-  ResourceManager* rm = NULL;
-  bool hasSmtEngine = smt::smtEngineInScope();
-  if (hasSmtEngine) {
-    rm = smt::currentResourceManager();
-  }
   // Rewrite until the stack is empty
   for (;;){
-    if (hasSmtEngine)
+    if (d_resourceManager != nullptr)
     {
-      rm->spendResource(Resource::RewriteStep);
+      d_resourceManager->spendResource(Resource::RewriteStep);
     }
 
     // Get the top of the recursion stack
@@ -222,7 +209,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       cached = getPreRewriteCache(rewriteStackTop.getTheoryId(),
                                   rewriteStackTop.d_node);
       if (cached.isNull()
-          || (tcpg != nullptr && !rewriteStackTop.d_node.getAttribute(rpfa)))
+          || (tcpg != nullptr
+              && !hasRewrittenWithProofs(rewriteStackTop.d_node)))
       {
         // Rewrite until fix-point is reached
         for(;;) {
@@ -261,7 +249,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                                  rewriteStackTop.d_node);
     // If not, go through the children
     if (cached.isNull()
-        || (tcpg != nullptr && !rewriteStackTop.d_node.getAttribute(rpfa)))
+        || (tcpg != nullptr && !hasRewrittenWithProofs(rewriteStackTop.d_node)))
     {
       // The child we need to rewrite
       unsigned child = rewriteStackTop.d_nextChild++;
@@ -348,7 +336,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       if (tcpg != nullptr)
       {
         // if proofs are enabled, mark that we've rewritten with proofs
-        rewriteStackTop.d_original.setAttribute(rpfa, true);
+        d_tpgNodes.insert(rewriteStackTop.d_original);
         if (!cached.isNull())
         {
           // We may have gotten a different node, due to non-determinism in
@@ -477,6 +465,11 @@ void Rewriter::clearCaches()
 #endif
 
   clearCachesInternal();
+}
+
+bool Rewriter::hasRewrittenWithProofs(TNode n) const
+{
+  return d_tpgNodes.find(n) != d_tpgNodes.end();
 }
 
 }  // namespace theory

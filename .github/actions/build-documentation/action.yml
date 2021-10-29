@@ -1,0 +1,22 @@
+name: Build documentation
+description: Build documentation and store it as artifact
+inputs:
+  build-dir:
+    default: build
+runs:
+  using: composite
+  steps:
+    - name: Build Documentation
+      shell: bash
+      run: |
+        make -j${{ env.num_proc }} docs-gh
+        if [ "${{ github.event_name }}" == "pull_request" ] ; then
+          echo "${{ github.event.number }}" > docs/sphinx-gh/prnum
+        fi
+      working-directory: ${{ inputs.build-dir }}
+    
+    - name: Store Documentation
+      uses: actions/upload-artifact@v2
+      with:
+        name: documentation
+        path: ${{ inputs.build-dir }}/docs/sphinx-gh/

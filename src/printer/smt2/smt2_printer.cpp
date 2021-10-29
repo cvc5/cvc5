@@ -24,6 +24,7 @@
 #include "api/cpp/cvc5.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
@@ -41,7 +42,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -331,7 +332,13 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-
+    case kind::CARDINALITY_CONSTRAINT:
+      out << "(_ fmf.card ";
+      out << n.getConst<CardinalityConstraint>().getType();
+      out << " ";
+      out << n.getConst<CardinalityConstraint>().getUpperBound();
+      out << ")";
+      break;
     case kind::EMPTYSET:
       out << "(as emptyset ";
       toStreamType(out, n.getConst<EmptySet>().getType());
@@ -659,9 +666,6 @@ void Smt2Printer::toStream(std::ostream& out,
     break;
   }
 
-  case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
-  case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
-
     // bv theory
   case kind::BITVECTOR_CONCAT:
   case kind::BITVECTOR_AND:
@@ -736,7 +740,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
+      out << "tuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
     }
     break;
   }
@@ -768,7 +772,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (dt.isTuple())
     {
       stillNeedToPrintParams = false;
-      out << "(_ tupSel " << DType::indexOf(op) << ") ";
+      out << "(_ tuple_select " << DType::indexOf(op) << ") ";
     }
   }
   break;
@@ -965,7 +969,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
   case kind::IAND: return "iand";
-  case kind::POW2: return "POW2";
+  case kind::POW2: return "int.pow2";
   case kind::EXPONENTIAL: return "exp";
   case kind::SINE: return "sin";
   case kind::COSINE: return "cos";
@@ -1169,6 +1173,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_LT: return "str.<";
   case kind::STRING_FROM_CODE: return "str.from_code";
   case kind::STRING_TO_CODE: return "str.to_code";
+  case Kind::STRING_IS_DIGIT: return "str.is_digit";
   case kind::STRING_ITOS: return "str.from_int";
   case kind::STRING_STOI: return "str.to_int";
   case kind::STRING_IN_REGEXP: return "str.in_re";
@@ -1221,12 +1226,6 @@ template <class T>
 static bool tryToStream(std::ostream& out, const Command* c);
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c, Variant v);
-
-static std::string quoteSymbol(TNode n) {
-  std::stringstream ss;
-  ss << n;
-  return cvc5::quoteSymbol(ss.str());
-}
 
 template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v);
@@ -1316,8 +1315,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
           || options::modelUninterpPrint()
                  == options::ModelUninterpPrintMode::DeclFun)
       {
-        out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
-            << endl;
+        out << "(declare-fun " << trn << " () " << tn << ")" << endl;
       }
     }
     else
@@ -1363,23 +1361,9 @@ void Smt2Printer::toStreamCmdPop(std::ostream& out) const
   out << "(pop 1)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
+void Smt2Printer::toStreamCmdCheckSat(std::ostream& out) const
 {
-  if (!n.isNull())
-  {
-    toStreamCmdPush(out);
-    out << std::endl;
-    toStreamCmdAssert(out, n);
-    out << std::endl;
-    toStreamCmdCheckSat(out);
-    out << std::endl;
-    toStreamCmdPop(out);
-  }
-  else
-  {
-    out << "(check-sat)";
-  }
-  out << std::endl;
+  out << "(check-sat)" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdCheckSatAssuming(
@@ -1556,11 +1540,8 @@ void Smt2Printer::toStreamCmdDeclareType(std::ostream& out,
                                          TypeNode type) const
 {
   Assert(type.isSort() || type.isSortConstructor());
-  std::stringstream id;
-  id << type;
   size_t arity = type.isSortConstructor() ? type.getSortConstructorArity() : 0;
-  out << "(declare-sort " << cvc5::quoteSymbol(id.str()) << " " << arity << ")"
-      << std::endl;
+  out << "(declare-sort " << type << " " << arity << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdDefineType(std::ostream& out,
@@ -1636,7 +1617,7 @@ void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
                                      const std::string& value) const
 {
-    out << "(set-info :" << flag << " |" << value << "|)" << std::endl;
+  out << "(set-info :" << flag << " " << value << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
@@ -1745,15 +1726,7 @@ void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
 void Smt2Printer::toStreamCmdEcho(std::ostream& out,
                                   const std::string& output) const
 {
-  std::string s = output;
-  // escape all double-quotes
-  size_t pos = 0;
-  while ((pos = s.find('"', pos)) != string::npos)
-  {
-    s.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(echo \"" << s << "\")" << std::endl;
+  out << "(echo " << cvc5::quoteString(output) << ')' << std::endl;
 }
 
 /*
@@ -1826,11 +1799,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
                                       bool isInv,
                                       TypeNode sygusType) const
 {
-  std::stringstream sym;
-  sym << f;
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ")
-      << cvc5::quoteSymbol(sym.str()) << ' ';
-  out << '(';
+  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << f << ' ' << '(';
   if (!vars.empty())
   {
     // print variable list
@@ -1956,14 +1925,9 @@ static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
 #endif /* CVC5_COMPETITION_MODE */
 }
 
-static void errorToStream(std::ostream& out, std::string message, Variant v) {
-  // escape all double-quotes
-  size_t pos = 0;
-  while((pos = message.find('"', pos)) != string::npos) {
-    message.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(error \"" << message << "\")" << endl;
+static void errorToStream(std::ostream& out, std::string message, Variant v)
+{
+  out << "(error " << cvc5::quoteString(message) << ')' << endl;
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, Variant v) {

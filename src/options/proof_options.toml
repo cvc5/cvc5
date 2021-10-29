@@ -15,6 +15,9 @@ name   = "Proof"
 [[option.mode.DOT]]
   name       = "dot"
   help       = "Output DOT proof"
+[[option.mode.LFSC]]
+  name       = "lfsc"
+  help       = "Output LFSC proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"

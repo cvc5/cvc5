@@ -107,7 +107,7 @@ class TestPropWhiteCnfStream : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_theoryEngine = d_smtEngine->getTheoryEngine();
+    d_theoryEngine = d_slvEngine->getTheoryEngine();
     d_satSolver.reset(new FakeSatSolver());
     d_cnfContext.reset(new context::Context());
     d_cnfRegistrar.reset(new prop::NullRegistrar);
@@ -115,8 +115,8 @@ class TestPropWhiteCnfStream : public TestSmt
         new cvc5::prop::CnfStream(d_satSolver.get(),
                                   d_cnfRegistrar.get(),
                                   d_cnfContext.get(),
-                                  &d_smtEngine->getEnv(),
-                                  d_smtEngine->getResourceManager()));
+                                  &d_slvEngine->getEnv(),
+                                  d_slvEngine->getResourceManager()));
   }
 
   void TearDown() override

@@ -42,10 +42,10 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("incremental", "false");
-    d_smtEngine->finishInit();
+    d_slvEngine->setOption("incremental", "false");
+    d_slvEngine->finishInit();
     d_arith = static_cast<TheoryArith*>(
-        d_smtEngine->getTheoryEngine()->d_theoryTable[THEORY_ARITH]);
+        d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_ARITH]);
 
     d_realType.reset(new TypeNode(d_nodeManager->realType()));
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
@@ -54,7 +54,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
   void fakeTheoryEnginePreprocess(TNode input)
   {
     Assert(input == Rewriter::rewrite(input));
-    d_smtEngine->getTheoryEngine()->preRegister(input);
+    d_slvEngine->getTheoryEngine()->preRegister(input);
   }
 
   Theory::Effort d_level = Theory::EFFORT_FULL;

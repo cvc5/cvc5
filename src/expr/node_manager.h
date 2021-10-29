@@ -205,7 +205,7 @@ class NodeManager
 
   /**
    * Keep a count of all abstract values produced by this NodeManager.
-   * Abstract values have a type attribute, so if multiple SmtEngines
+   * Abstract values have a type attribute, so if multiple SolverEngines
    * are attached to this NodeManager, we don't want their abstract
    * values to overlap.
    */

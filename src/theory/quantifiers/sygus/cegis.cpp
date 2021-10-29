@@ -39,6 +39,7 @@ Cegis::Cegis(Env& env,
              SynthConjecture* p)
     : SygusModule(env, qs, qim, tds, p),
       d_eval_unfold(tds->getEvalUnfold()),
+      d_cexClosedEnum(false),
       d_cegis_sampler(env),
       d_usingSymCons(false)
 {
@@ -47,22 +48,30 @@ Cegis::Cegis(Env& env,
 bool Cegis::initialize(Node conj, Node n, const std::vector<Node>& candidates)
 {
   d_base_body = n;
+  d_cexClosedEnum = true;
   if (d_base_body.getKind() == NOT && d_base_body[0].getKind() == FORALL)
   {
     for (const Node& v : d_base_body[0][0])
     {
       d_base_vars.push_back(v);
+      if (!v.getType().isClosedEnumerable())
+      {
+        // not closed enumerable, refinement lemmas cannot be sent to the
+        // quantifier-free datatype solver
+        d_cexClosedEnum = false;
+      }
     }
     d_base_body = d_base_body[0][1];
   }
 
   // assign the cegis sampler if applicable
-  if (options::cegisSample() != options::CegisSampleMode::NONE)
+  if (options().quantifiers.cegisSample != options::CegisSampleMode::NONE)
   {
     Trace("cegis-sample") << "Initialize sampler for " << d_base_body << "..."
                           << std::endl;
     TypeNode bt = d_base_body.getType();
-    d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
+    d_cegis_sampler.initialize(
+        bt, d_base_vars, options().quantifiers.sygusSamples);
   }
   return processInitialize(conj, n, candidates);
 }
@@ -83,8 +92,8 @@ bool Cegis::processInitialize(Node conj,
     Trace("cegis") << "...register enumerator " << candidates[i];
     // We use symbolic constants if we are doing repair constants or if the
     // grammar construction was not simple.
-    if (options::sygusRepairConst()
-        || options::sygusGrammarConsMode()
+    if (options().quantifiers.sygusRepairConst
+        || options().quantifiers.sygusGrammarConsMode
                != options::SygusGrammarConsMode::SIMPLE)
     {
       TypeNode ctn = candidates[i].getType();
@@ -173,7 +182,8 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     }
   }
   // we only do evaluation unfolding for passive enumerators
-  bool doEvalUnfold = (doGen && options::sygusEvalUnfold()) || d_usingSymCons;
+  bool doEvalUnfold =
+      (doGen && options().quantifiers.sygusEvalUnfold) || d_usingSymCons;
   if (doEvalUnfold)
   {
     Trace("sygus-engine") << "  *** Do evaluation unfolding..." << std::endl;
@@ -243,7 +253,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     }
   }
   // if we are using grammar-based repair
-  if (d_usingSymCons && options::sygusRepairConst())
+  if (d_usingSymCons && options().quantifiers.sygusRepairConst)
   {
     SygusRepairConst* src = d_parent->getRepairConst();
     Assert(src != nullptr);
@@ -302,7 +312,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     return false;
   }
 
-  if (options::cegisSample() != options::CegisSampleMode::NONE
+  if (options().quantifiers.cegisSample != options::CegisSampleMode::NONE
       && !addedEvalLemmas)
   {
     // if we didn't add a lemma, trying sampling to add a refinement lemma
@@ -366,7 +376,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
                                        std::vector<Node>& waiting)
 {
   Node lem = waiting[wcounter];
-  lem = Rewriter::rewrite(lem);
+  lem = rewrite(lem);
   // apply substitution and rewrite if applicable
   if (lem.isConst())
   {
@@ -465,14 +475,18 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
 void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
 {
   addRefinementLemma(lem);
-  // Make the refinement lemma and add it to lems.
-  // This lemma is guarded by the parent's guard, which has the semantics
-  // "this conjecture has a solution", hence this lemma states:
-  // if the parent conjecture has a solution, it satisfies the specification
-  // for the given concrete point.
-  Node rlem =
-      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), lem);
-  d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
+  // must be closed enumerable
+  if (d_cexClosedEnum && options().quantifiers.sygusEvalUnfold)
+  {
+    // Make the refinement lemma and add it to lems.
+    // This lemma is guarded by the parent's guard, which has the semantics
+    // "this conjecture has a solution", hence this lemma states:
+    // if the parent conjecture has a solution, it satisfies the specification
+    // for the given concrete point.
+    Node rlem = NodeManager::currentNM()->mkNode(
+        OR, d_parent->getGuard().negate(), lem);
+    d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
+  }
 }
 
 bool Cegis::usingRepairConst() { return true; }
@@ -632,7 +646,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
       candidates.begin(), candidates.end(), vals.begin(), vals.end());
   Trace("cegis-sample-debug2") << "Sample " << sbody << std::endl;
   // do eager rewriting
-  sbody = Rewriter::rewrite(sbody);
+  sbody = rewrite(sbody);
   Trace("cegis-sample") << "Sample (after rewriting): " << sbody << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
@@ -656,7 +670,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
         Assert(d_base_vars.size() == pt.size());
         Node rlem = d_base_body.substitute(
             d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end());
-        rlem = Rewriter::rewrite(rlem);
+        rlem = rewrite(rlem);
         if (std::find(
                 d_refinement_lemmas.begin(), d_refinement_lemmas.end(), rlem)
             == d_refinement_lemmas.end())
@@ -673,7 +687,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           Trace("sygus-engine") << "  *** Refine by sampling" << std::endl;
           addRefinementLemma(rlem);
           // if trust, we are not interested in sending out refinement lemmas
-          if (options::cegisSample() != options::CegisSampleMode::TRUST)
+          if (options().quantifiers.cegisSample
+              != options::CegisSampleMode::TRUST)
           {
             Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
             d_qim.addPendingLemma(

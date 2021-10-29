@@ -18,8 +18,8 @@
 
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "test.h"
 
 namespace cvc5 {

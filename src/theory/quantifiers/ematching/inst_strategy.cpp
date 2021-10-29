@@ -37,12 +37,13 @@ std::string InstStrategy::identify() const { return std::string("Unknown"); }
 
 options::UserPatMode InstStrategy::getInstUserPatMode() const
 {
-  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
+  if (options().quantifiers.userPatternsQuant
+      == options::UserPatMode::INTERLEAVE)
   {
     return d_qstate.getInstRounds() % 2 == 0 ? options::UserPatMode::USE
                                              : options::UserPatMode::RESORT;
   }
-  return options::userPatternsQuant();
+  return options().quantifiers.userPatternsQuant;
 }
 
 }  // namespace quantifiers

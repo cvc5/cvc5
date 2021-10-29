@@ -17,6 +17,7 @@
 #include "theory/strings/base_solver.h"
 
 #include "expr/sequence.h"
+#include "options/quantifiers_options.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -35,7 +36,7 @@ BaseSolver::BaseSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env), d_state(s), d_im(im), d_congruent(context())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_cardSize = utils::getAlphabetCardinality();
+  d_cardSize = options().strings.stringsAlphaCard;
 }
 
 BaseSolver::~BaseSolver() {}
@@ -534,13 +535,46 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
   {
     Assert(tn.isSequence());
     TypeNode etn = tn.getSequenceElementType();
-    if (!d_state.isFiniteType(etn))
+    if (!d_env.isFiniteType(etn))
     {
       // infinite cardinality, we are fine
       return;
     }
-    // TODO (cvc4-projects #23): how to handle sequence for finite types?
-    return;
+    // we check the cardinality class of the type, assuming that FMF is
+    // disabled.
+    if (isCardinalityClassFinite(etn.getCardinalityClass(), false))
+    {
+      Cardinality c = etn.getCardinality();
+      bool smallCardinality = false;
+      if (!c.isLargeFinite())
+      {
+        Integer ci = c.getFiniteCardinality();
+        if (ci.fitsUnsignedInt())
+        {
+          smallCardinality = true;
+          typeCardSize = ci.toUnsignedInt();
+        }
+      }
+      if (!smallCardinality)
+      {
+        // if it is large finite, then there is no way we could have
+        // constructed that many terms in memory, hence there is nothing
+        // to do.
+        return;
+      }
+    }
+    else
+    {
+      Assert(options().quantifiers.finiteModelFind);
+      // we are in a case where the cardinality of the type is infinite
+      // if not FMF, and finite given the Env's option value for FMF. In this
+      // case, FMF must be true, and the cardinality is finite and dynamic
+      // (i.e. it depends on the model's finite interpretation for uninterpreted
+      // sorts). We do not know how to handle this case, we set incomplete.
+      // TODO (cvc4-projects #23): how to handle sequence for finite types?
+      d_im.setIncomplete(IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY);
+      return;
+    }
   }
   // for each collection
   for (unsigned i = 0, csize = cols.size(); i < csize; ++i)

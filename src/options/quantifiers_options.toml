@@ -407,12 +407,8 @@ name   = "Quantifiers"
   long       = "inst-when=MODE"
   type       = "InstWhenMode"
   default    = "FULL_LAST_CALL"
-  predicates = ["checkInstWhenMode"]
   help       = "when to apply instantiation"
   help_mode  = "Instantiation modes."
-[[option.mode.PRE_FULL]]
-  name = "pre-full"
-  help = "Run instantiation round before full effort (possibly at standard effort)."
 [[option.mode.FULL]]
   name = "full"
   help = "Run instantiation round at full effort, before theory combination."
@@ -1452,10 +1448,20 @@ name   = "Quantifiers"
 [[option]]
   name       = "sygusQueryGen"
   category   = "regular"
-  long       = "sygus-query-gen"
-  type       = "bool"
-  default    = "false"
-  help       = "use sygus to enumerate interesting satisfiability queries"
+  long       = "sygus-query-gen=MODE"
+  type       = "SygusQueryGenMode"
+  default    = "NONE"
+  help       = "mode for generating interesting satisfiability queries using SyGuS, for internal fuzzing"
+  help_mode  = "Modes for generating interesting satisfiability queries using SyGuS."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not generate queries with SyGuS."
+[[option.mode.SAT]]
+  name = "sat"
+  help = "Generate interesting SAT queries, for e.g. soundness testing."
+[[option.mode.UNSAT]]
+  name = "unsat"
+  help = "Generate interesting UNSAT queries, for e.g. proof testing."
 
 [[option]]
   name       = "sygusQueryGenThresh"

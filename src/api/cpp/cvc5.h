@@ -44,7 +44,7 @@ class DType;
 class DTypeConstructor;
 class DTypeSelector;
 class NodeManager;
-class SmtEngine;
+class SolverEngine;
 class TypeNode;
 class Options;
 class Random;
@@ -354,19 +354,19 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this a Boolean sort?
-   * @return true if the sort is a Boolean sort
+   * @return true if the sort is the Boolean sort
    */
   bool isBoolean() const;
 
   /**
    * Is this a integer sort?
-   * @return true if the sort is a integer sort
+   * @return true if the sort is the integer sort
    */
   bool isInteger() const;
 
   /**
    * Is this a real sort?
-   * @return true if the sort is a real sort
+   * @return true if the sort is the real sort
    */
   bool isReal() const;
 
@@ -462,7 +462,7 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this an array sort?
-   * @return true if the sort is a array sort
+   * @return true if the sort is an array sort
    */
   bool isArray() const;
 
@@ -485,8 +485,8 @@ class CVC5_EXPORT Sort
   bool isSequence() const;
 
   /**
-   * Is this a sort kind?
-   * @return true if this is a sort kind
+   * Is this an uninterpreted sort?
+   * @return true if this is an uninterpreted sort
    */
   bool isUninterpretedSort() const;
 
@@ -499,9 +499,9 @@ class CVC5_EXPORT Sort
   /**
    * Is this a first-class sort?
    * First-class sorts are sorts for which:
-   * (1) we handle equalities between terms of that type, and
-   * (2) they are allowed to be parameters of parametric sorts (e.g. index or
-   *     element sorts of arrays).
+   * 1. we handle equalities between terms of that type, and
+   * 2. they are allowed to be parameters of parametric sorts (e.g. index or
+   * element sorts of arrays).
    *
    * Examples of sorts that are not first-class include sort constructor sorts
    * and regular expression sorts.
@@ -641,7 +641,7 @@ class CVC5_EXPORT Sort
   Sort getArrayIndexSort() const;
 
   /**
-   * @return the array element sort of an array element sort
+   * @return the array element sort of an array sort
    */
   Sort getArrayElementSort() const;
 
@@ -674,7 +674,7 @@ class CVC5_EXPORT Sort
   std::string getUninterpretedSortName() const;
 
   /**
-   * @return true if an uninterpreted sort is parameterezied
+   * @return true if an uninterpreted sort is parameterized
    */
   bool isUninterpretedSortParameterized() const;
 
@@ -700,19 +700,19 @@ class CVC5_EXPORT Sort
   /**
    * @return the bit-width of the bit-vector sort
    */
-  uint32_t getBVSize() const;
+  uint32_t getBitVectorSize() const;
 
   /* Floating-point sort ------------------------------------------------- */
 
   /**
    * @return the bit-width of the exponent of the floating-point sort
    */
-  uint32_t getFPExponentSize() const;
+  uint32_t getFloatingPointExponentSize() const;
 
   /**
    * @return the width of the significand of the floating-point sort
    */
-  uint32_t getFPSignificandSize() const;
+  uint32_t getFloatingPointSignificandSize() const;
 
   /* Datatype sort ------------------------------------------------------- */
 
@@ -771,7 +771,7 @@ class CVC5_EXPORT Sort
   const Solver* d_solver;
 
   /**
-   * The interal type wrapped by this sort.
+   * The internal type wrapped by this sort.
    * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
    *       to memory allocation (cvc5::Type is already ref counted, so this
    *       could be a unique_ptr instead).
@@ -935,9 +935,9 @@ class CVC5_EXPORT Op
   size_t getNumIndicesHelper() const;
 
   /**
-   * Helper for operator[](size_t i).
-   * @param i position of the index. Should be less than getNumIndicesHelper().
-   * @return the index at position i
+   * Helper for operator[](size_t index).
+   * @param index position of the index. Should be less than getNumIndicesHelper().
+   * @return the index at position index
    */
   Term getIndexHelper(size_t index) const;
 
@@ -1085,7 +1085,7 @@ class CVC5_EXPORT Term
   Term substitute(const Term& term, const Term& replacement) const;
 
   /**
-   * @return the result of simulatenously replacing 'terms' by 'replacements'
+   * @return the result of simultaneously replacing 'terms' by 'replacements'
    * in this term
    */
   Term substitute(const std::vector<Term>& terms,
@@ -1167,11 +1167,30 @@ class CVC5_EXPORT Term
    *       for example, the term f(x, y) will have Kind APPLY_UF and three
    *       children: f, x, and y
    */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Term>
+  class CVC5_EXPORT const_iterator
   {
     friend class Term;
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Term;
+
+    /** The pointer type of the item */
+    using pointer = const Term*;
+
+    /** The reference type of the item */
+    using reference = const Term&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /**
      * Null Constructor.
      */
@@ -1334,11 +1353,13 @@ class CVC5_EXPORT Term
   std::pair<int64_t, uint64_t> getReal64Value() const;
   /**
    * @return true if the term is a rational value.
+   *
+   * Note that a term of kind PI is not considered to be a real value.
    */
   bool isRealValue() const;
   /**
    * Asserts isRealValue().
-   * @return the representation of a rational value as a (decimal) string.
+   * @return the representation of a rational value as a (rational) string.
    */
   std::string getRealValue() const;
 
@@ -1429,6 +1450,17 @@ class CVC5_EXPORT Term
 
   /**
    * @return true if the term is a set value.
+   *
+   * A term is a set value if it is considered to be a (canonical) constant set
+   * value.  A canonical set value is one whose AST is:
+   * ```
+   *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * ```
+   * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
+   * also @ref Term::operator>(const Term&) const).
+   *
+   * Note that a universe set term (kind UNIVERSE_SET) is not considered to be
+   * a set value.
    */
   bool isSetValue() const;
   /**
@@ -1806,7 +1838,7 @@ class CVC5_EXPORT DatatypeSelector
   Term getSelectorTerm() const;
 
   /**
-   * Get the upater operator of this datatype selector.
+   * Get the updater operator of this datatype selector.
    * @return the updater term
    */
   Term getUpdaterTerm() const;
@@ -1951,11 +1983,29 @@ class CVC5_EXPORT DatatypeConstructor
    * Iterator for the selectors of a datatype constructor.
    */
   class const_iterator
-      : public std::iterator<std::input_iterator_tag, DatatypeConstructor>
   {
     friend class DatatypeConstructor;  // to access constructor
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = DatatypeConstructor;
+
+    /** The pointer type of the item */
+    using pointer = const DatatypeConstructor*;
+
+    /** The reference type of the item */
+    using reference = const DatatypeConstructor&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /** Nullary constructor (required for Cython). */
     const_iterator();
 
@@ -2184,11 +2234,30 @@ class CVC5_EXPORT Datatype
   /**
    * Iterator for the constructors of a datatype.
    */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Datatype>
+  class const_iterator
   {
     friend class Datatype;  // to access constructor
 
    public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Datatype;
+
+    /** The pointer type of the item */
+    using pointer = const Datatype*;
+
+    /** The reference type of the item */
+    using reference = const Datatype&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     /** Nullary constructor (required for Cython). */
     const_iterator();
 
@@ -2408,7 +2477,7 @@ class CVC5_EXPORT Grammar
   /**
    * Allow \p ntSymbol to be any input variable to corresponding
    * synth-fun/synth-inv with the same sort as \p ntSymbol.
-   * @param ntSymbol the non-terminal allowed to be any input constant
+   * @param ntSymbol the non-terminal allowed to be any input variable
    */
   void addAnyVariable(const Term& ntSymbol);
 
@@ -2543,7 +2612,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC5_EXPORT;
  * Standard 754.
  * \endverbatim
  */
-enum CVC5_EXPORT RoundingMode
+enum RoundingMode
 {
   /**
    * Round to the nearest even number.
@@ -2623,7 +2692,7 @@ class CVC5_EXPORT DriverOptions
 
 /**
  * Holds some description about a particular option, including its name, its
- * aliases, whether the option was explcitly set by the user, and information
+ * aliases, whether the option was explicitly set by the user, and information
  * concerning its value. The `valueInfo` member holds any of the following
  * alternatives:
  * - VoidInfo if the option holds no value (or the value has no native type)
@@ -2818,7 +2887,7 @@ class CVC5_EXPORT Statistics
   using BaseType = std::map<std::string, Stat>;
 
   /** Custom iterator to hide certain statistics from regular iteration */
-  class iterator
+  class CVC5_EXPORT iterator
   {
    public:
     friend class Statistics;
@@ -3007,7 +3076,7 @@ class CVC5_EXPORT Solver
    * This method is called when the DatatypeDecl objects dtypedecls have been
    * built using "unresolved" sorts.
    *
-   * We associate each sort in unresolvedSorts with exacly one datatype from
+   * We associate each sort in unresolvedSorts with exactly one datatype from
    * dtypedecls. In particular, it must have the same name as exactly one
    * datatype declaration in dtypedecls.
    *
@@ -3024,7 +3093,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Create function sort.
-   * @param domain the sort of the fuction argument
+   * @param domain the sort of the function argument
    * @param codomain the sort of the function return value
    * @return the function sort
    */
@@ -3375,6 +3444,12 @@ class CVC5_EXPORT Solver
   Term mkEmptyBag(const Sort& sort) const;
 
   /**
+   * Create a separation logic empty term.
+   * @return the separation logic empty term
+   */
+  Term mkSepEmp() const;
+
+  /**
    * Create a separation logic nil term.
    * @param sort the sort of the nil term
    * @return the separation logic nil term
@@ -3448,8 +3523,7 @@ class CVC5_EXPORT Solver
   Term mkConstArray(const Sort& sort, const Term& val) const;
 
   /**
-   * Create a positive infinity floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a positive infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3457,8 +3531,7 @@ class CVC5_EXPORT Solver
   Term mkPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative infinity floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a negative infinity floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3466,8 +3539,7 @@ class CVC5_EXPORT Solver
   Term mkNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a not-a-number (NaN) floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a not-a-number (NaN) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3475,8 +3547,7 @@ class CVC5_EXPORT Solver
   Term mkNaN(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a positive zero (+0.0) floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a positive zero (+0.0) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3484,8 +3555,7 @@ class CVC5_EXPORT Solver
   Term mkPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative zero (-0.0) floating-point constant. Requires cvc5 to be
-   * compiled with SymFPU support.
+   * Create a negative zero (-0.0) floating-point constant.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -3520,13 +3590,20 @@ class CVC5_EXPORT Solver
   Term mkAbstractValue(uint64_t index) const;
 
   /**
-   * Create a floating-point constant (requires cvc5 to be compiled with symFPU
-   * support).
+   * Create a floating-point constant.
    * @param exp Size of the exponent
    * @param sig Size of the significand
    * @param val Value of the floating-point constant as a bit-vector term
    */
   Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
+
+  /**
+   * Create a cardinality constraint for an uninterpreted sort.
+   * @param sort the sort the cardinality constraint is for
+   * @param upperBound the upper bound on the cardinality of the sort
+   * @return the cardinality constraint
+   */
+  Term mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const;
 
   /* .................................................................... */
   /* Create Variables                                                     */
@@ -3736,24 +3813,6 @@ class CVC5_EXPORT Solver
                  const Sort& sort,
                  const Term& term,
                  bool global = false) const;
-  /**
-   * Define n-ary function.
-   * SMT-LIB:
-   * \verbatim
-   * ( define-fun <function_def> )
-   * \endverbatim
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param bound_vars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
-   */
-  Term defineFun(const Term& fun,
-                 const std::vector<Term>& bound_vars,
-                 const Term& term,
-                 bool global = false) const;
 
   /**
    * Define recursive function.
@@ -3836,7 +3895,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Get info from the solver.
-   * SMT-LIB: \verbatim( get-info <info_flag> )\verbatim
+   * SMT-LIB: \verbatim( get-info <info_flag> )\endverbatim
    * @return the info
    */
   std::string getInfo(const std::string& flag) const;
@@ -3912,7 +3971,7 @@ class CVC5_EXPORT Solver
    * ( get-proof )
    * \endverbatim
    * Requires to enable option 'produce-proofs'.
-   * @return a string representing the proof, according to the the value of
+   * @return a string representing the proof, according to the value of
    * proof-format-mode.
    */
   std::string getProof() const;
@@ -4495,7 +4554,7 @@ class CVC5_EXPORT Solver
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */
-  std::unique_ptr<SmtEngine> d_smtEngine;
+  std::unique_ptr<SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
 };

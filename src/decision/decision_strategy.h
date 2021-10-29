@@ -22,39 +22,35 @@
 
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 #include "smt/term_formula_removal.h"
 
 namespace cvc5 {
 
 class DecisionEngineOld;
 
-namespace context {
-  class Context;
-  }  // namespace context
-
 namespace decision {
-  
-class DecisionEngine;
 
-class DecisionStrategy {
-protected:
- DecisionEngineOld* d_decisionEngine;
-
-public:
- DecisionStrategy(DecisionEngineOld* de, context::Context* c)
-     : d_decisionEngine(de)
- {
+class DecisionStrategy : protected EnvObj
+{
+ public:
+  DecisionStrategy(Env& env, DecisionEngineOld* de)
+      : EnvObj(env), d_decisionEngine(de)
+  {
   }
 
   virtual ~DecisionStrategy() { }
 
   virtual prop::SatLiteral getNext(bool&) = 0;
+
+ protected:
+  DecisionEngineOld* d_decisionEngine;
 };/* class DecisionStrategy */
 
 class ITEDecisionStrategy : public DecisionStrategy {
 public:
- ITEDecisionStrategy(DecisionEngineOld* de, context::Context* c)
-     : DecisionStrategy(de, c)
+ ITEDecisionStrategy(Env& env, DecisionEngineOld* de)
+     : DecisionStrategy(env, de)
  {
   }
   /**

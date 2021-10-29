@@ -30,17 +30,17 @@ namespace cvc5 {
 /**
  * A LogicInfo instance describes a collection of theory modules and some
  * basic configuration about them.  Conceptually, it provides a background
- * context for all operations in cvc5.  Typically, when cvc5's SmtEngine
+ * context for all operations in cvc5.  Typically, when cvc5's SolverEngine
  * is created, it is issued a setLogic() command indicating features of the
  * assertions and queries to follow---for example, whether quantifiers are
  * used, whether integers or reals (or both) will be used, etc.
  *
  * Most places in cvc5 will only ever need to access a const reference to an
- * instance of this class.  Such an instance is generally set by the SmtEngine
- * when setLogic() is called.  However, mutating member functions are also
- * provided by this class so that it can be used as a more general mechanism
- * (e.g., for communicating to the SmtEngine which theories should be used,
- * rather than having to provide an SMT-LIB string).
+ * instance of this class.  Such an instance is generally set by the
+ * SolverEngine when setLogic() is called.  However, mutating member functions
+ * are also provided by this class so that it can be used as a more general
+ * mechanism (e.g., for communicating to the SolverEngine which theories should
+ * be used, rather than having to provide an SMT-LIB string).
  */
 class CVC5_EXPORT LogicInfo
 {

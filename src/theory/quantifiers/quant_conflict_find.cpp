@@ -52,12 +52,6 @@ QuantInfo::~QuantInfo() {
   d_var_mg.clear();
 }
 
-QuantifiersInferenceManager& QuantInfo::getInferenceManager()
-{
-  Assert(d_parent != nullptr);
-  return d_parent->getInferenceManager();
-}
-
 void QuantInfo::initialize( QuantConflictFind * p, Node q, Node qn ) {
   d_parent = p;
   d_q = q;
@@ -577,30 +571,33 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
 {
   if( options::qcfEagerTest() ){
     //check whether the instantiation evaluates as expected
+    EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
+    std::map<TNode, TNode> subs;
+    for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
+    {
+      Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
+      subs[d_q[0][i]] = terms[i];
+    }
+    for (size_t i = 0, evsize = d_extra_var.size(); i < evsize; i++)
+    {
+      Node n = getCurrentExpValue(d_extra_var[i]);
+      Trace("qcf-instance-check")
+          << "  " << d_extra_var[i] << " -> " << n << std::endl;
+      subs[d_extra_var[i]] = n;
+    }
     if (p->atConflictEffort()) {
       Trace("qcf-instance-check") << "Possible conflict instance for " << d_q << " : " << std::endl;
-      std::map< TNode, TNode > subs;
-      for( unsigned i=0; i<terms.size(); i++ ){
-        Trace("qcf-instance-check") << "  " << terms[i] << std::endl;
-        subs[d_q[0][i]] = terms[i];
-      }
-      TermDb* tdb = p->getTermDatabase();
-      for( unsigned i=0; i<d_extra_var.size(); i++ ){
-        Node n = getCurrentExpValue( d_extra_var[i] );
-        Trace("qcf-instance-check") << "  " << d_extra_var[i] << " -> " << n << std::endl;
-        subs[d_extra_var[i]] = n;
-      }
-      if (!tdb->isEntailed(d_q[1], subs, false, false))
+      if (!echeck->isEntailed(d_q[1], subs, false, false))
       {
         Trace("qcf-instance-check") << "...not entailed to be false." << std::endl;
         return true;
       }
     }else{
-      Node inst =
-          getInferenceManager().getInstantiate()->getInstantiation(d_q, terms);
-      inst = Rewriter::rewrite(inst);
-      Node inst_eval = p->getTermDatabase()->evaluateTerm(
-          inst, options::qcfTConstraint(), true);
+      // see if the body of the quantified formula evaluates to a Boolean
+      // combination of known terms under the current substitution. We use
+      // the helper method evaluateTerm from the entailment check utility.
+      Node inst_eval = echeck->evaluateTerm(
+          d_q[1], subs, false, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
@@ -608,6 +605,10 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
         }
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
       }
+      // If it is the case that instantiation can be rewritten to a Boolean
+      // combination of terms that exist in the current context, then inst_eval
+      // is non-null. Moreover, we insist that inst_eval is not true, or else
+      // the instantiation is trivially entailed and hence is spurious.
       if (inst_eval.isNull()
           || (inst_eval.isConst() && inst_eval.getConst<bool>()))
       {
@@ -653,7 +654,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
 
 bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
   Trace("qcf-tconstraint-debug") << "Check : " << lit << std::endl;
-  Node rew = Rewriter::rewrite( lit );
+  Node rew = Rewriter::rewrite(lit);
   if (rew.isConst())
   {
     Trace("qcf-tconstraint-debug") << "...constraint " << lit << " rewrites to "
@@ -994,8 +995,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
     Assert(qi->d_var_num.find(n) != qi->d_var_num.end());
     // rare case where we have a free variable in an operator, we are invalid
     if (n.getKind() == ITE
-        || (options::ufHo() && n.getKind() == APPLY_UF
-            && expr::hasFreeVar(n.getOperator())))
+        || (n.getKind() == APPLY_UF && expr::hasFreeVar(n.getOperator())))
     {
       d_type = typ_invalid;
     }else{
@@ -1219,11 +1219,11 @@ bool MatchGen::reset_round(QuantConflictFind* p)
     //  d_ground_eval[0] = p->d_false;
     //}
     // modified
-    TermDb* tdb = p->getTermDatabase();
+    EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
     QuantifiersState& qs = p->getState();
     for (unsigned i = 0; i < 2; i++)
     {
-      if (tdb->isEntailed(d_n, i == 0))
+      if (echeck->isEntailed(d_n, i == 0))
       {
         d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
       }
@@ -1233,13 +1233,13 @@ bool MatchGen::reset_round(QuantConflictFind* p)
       }
     }
   }else if( d_type==typ_eq ){
-    TermDb* tdb = p->getTermDatabase();
+    EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
     QuantifiersState& qs = p->getState();
     for (unsigned i = 0, size = d_n.getNumChildren(); i < size; i++)
     {
       if (!expr::hasBoundVar(d_n[i]))
       {
-        TNode t = tdb->getEntailedTerm(d_n[i]);
+        TNode t = echeck->getEntailedTerm(d_n[i]);
         if (qs.isInConflict())
         {
           return false;
@@ -1289,13 +1289,9 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     TNode n = qi->getCurrentValue( d_n );
     int vn = qi->getCurrentRepVar( qi->getVarNum( n ) );
     if( vn==-1 ){
-      //evaluate the value, see if it is compatible
-      //int e = p->evaluate( n );
-      //if( ( e==1 && d_tgt ) || ( e==0 && !d_tgt ) ){
-      //  d_child_counter = 0;
-      //}
-      //modified 
-      if( p->getTermDatabase()->isEntailed( n, d_tgt ) ){ 
+      EntailmentCheck* echeck = p->getTermRegistry().getEntailmentCheck();
+      if (echeck->isEntailed(n, d_tgt))
+      {
         d_child_counter = 0;
       }
     }else{
@@ -2168,8 +2164,8 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         Node inst = qinst->getInstantiation(q, terms);
         Debug("qcf-check-inst")
             << "Check instantiation " << inst << "..." << std::endl;
-        Assert(!getTermDatabase()->isEntailed(inst, true));
-        Assert(getTermDatabase()->isEntailed(inst, false)
+        Assert(!getTermRegistry().getEntailmentCheck()->isEntailed(inst, true));
+        Assert(getTermRegistry().getEntailmentCheck()->isEntailed(inst, false)
                || d_effort > EFFORT_CONFLICT);
       }
       // Process the lemma: either add an instantiation or specific lemmas

@@ -31,8 +31,11 @@ Compilation on macOS
 On macOS, we recommend using `Homebrew <https://brew.sh/>`_ to install the
 dependencies.  We also have a Homebrew Tap available at
 https://github.com/CVC4/homebrew-cvc4 .
-To build a static binary for macOS, use:
-``./configure.sh --static --no-static-binary``.
+Note that linking system libraries statically is
+`strongly discouraged <https://developer.apple.com/library/archive/qa/qa1118/_index.html>`_
+on macOS. Using ``./configure.sh --static`` will thus produce a binary
+that uses static versions of all our dependencies, but is still a dynamically
+linked binary.
 
 
 Cross-compiling for Windows
@@ -237,14 +240,11 @@ Building the API documentation of cvc5 requires the following dependencies:
   `sphinxcontrib-bibtex <https://sphinxcontrib-bibtex.readthedocs.io>`_
 - `Breathe <https://breathe.readthedocs.io>`_
 
-To build the documentation, configure cvc5 with ``./configure.sh --docs``.
-Building cvc5 will then include building the API documentation.
+To build the documentation, configure cvc5 with ``./configure.sh --docs`` and
+run ``make docs`` from within the build directory.
 
 The API documentation can then be found at
 ``<build_dir>/docs/sphinx/index.html``.
-
-To only build the documentation, change to the build directory and call
-``make docs``.
 
 To build the documentation for GitHub pages, change to the build directory and
 call ``make docs-gh``. The content of directory ``<build_dir>/docs/sphinx-gh``

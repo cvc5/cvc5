@@ -175,7 +175,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Node s = n[1];
     // positive contains reduces to a equality
     SkolemCache* skc = d_termReg.getSkolemCache();
-    Node eq = d_termReg.eagerReduce(n, skc);
+    Node eq = d_termReg.eagerReduce(n, skc, d_termReg.getAlphabetCardinality());
     Assert(!eq.isNull());
     Assert(eq.getKind() == ITE && eq[0] == n);
     eq = eq[1];
@@ -259,6 +259,7 @@ void ExtfSolver::checkExtfEval(int effort)
   {
     // Setup information about n, including if it is equal to a constant.
     ExtfInfoTmp& einfo = d_extfInfoTmp[n];
+    Assert(einfo.d_exp.empty());
     Node r = d_state.getRepresentative(n);
     einfo.d_const = d_bsolver.getConstantEqc(r);
     // Get the current values of the children of n.
@@ -292,8 +293,8 @@ void ExtfSolver::checkExtfEval(int effort)
       Node sn = nm->mkNode(n.getKind(), schildren);
       Trace("strings-extf-debug")
           << "Check extf " << n << " == " << sn
-          << ", constant = " << einfo.d_const << ", effort=" << effort << "..."
-          << std::endl;
+          << ", constant = " << einfo.d_const << ", effort=" << effort
+          << ", exp " << exp << std::endl;
       einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
       // inference is rewriting the substituted node
       Node nrc = Rewriter::rewrite(sn);
@@ -490,8 +491,9 @@ void ExtfSolver::checkExtfInference(Node n,
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr
-                              << " == " << in.d_const << std::endl;
+  Trace("strings-extf-infer")
+      << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const
+      << " with exp " << in.d_exp << std::endl;
 
   // add original to explanation
   if (n.getType().isBoolean())
@@ -662,8 +664,9 @@ void ExtfSolver::checkExtfInference(Node n,
   if (inferEqrr != inferEqr)
   {
     inferEqrr = Rewriter::rewrite(inferEqrr);
-    Trace("strings-extf-infer") << "checkExtfInference: " << inferEq
-                                << " ...reduces to " << inferEqrr << std::endl;
+    Trace("strings-extf-infer")
+        << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqrr
+        << " with explanation " << in.d_exp << std::endl;
     d_im.sendInternalInference(in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
   }
 }

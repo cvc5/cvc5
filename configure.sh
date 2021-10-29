@@ -31,8 +31,6 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
-  --static-binary          statically link against system libraries
-                           (must be disabled for static macOS builds) [default=yes]
   --auto-download          automatically download dependencies if necessary
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
@@ -131,8 +129,7 @@ python2=default
 python_bindings=default
 java_bindings=default
 editline=default
-shared=default
-static_binary=default
+static=default
 statistics=default
 tracing=default
 tsan=default
@@ -146,8 +143,6 @@ ipo=default
 
 abc_dir=default
 glpk_dir=default
-
-lib_only=default
 
 #--------------------------------------------------------------------------#
 
@@ -251,11 +246,8 @@ do
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
-    --static) shared=OFF; static_binary=ON;;
-    --no-static) shared=ON;;
-
-    --static-binary) static_binary=ON;;
-    --no-static-binary) static_binary=OFF;;
+    --static) static=ON;;
+    --no-static) static=OFF;;
 
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
@@ -300,7 +292,6 @@ do
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
-    --lib-only) lib_only=ON ;;
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -359,10 +350,8 @@ fi
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $shared != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
-[ $static_binary != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
+[ $static != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STATIC_BUILD=$static"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \
@@ -403,8 +392,6 @@ fi
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_PREFIX_PATH=$dep_path"
-[ "$lib_only" != default ] \
-    && cmake_opts="$cmake_opts -DBUILD_LIB_ONLY=$lib_only"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

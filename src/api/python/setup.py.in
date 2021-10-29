@@ -22,7 +22,7 @@
 
 from setuptools import setup
 
-CVC5_VERSION='${CVC5_MAJOR}.${CVC5_MINOR}.${CVC5_RELEASE}'
+CVC5_VERSION='${CVC5_VERSION}'
 
 setup(name='pycvc5',
       version=CVC5_VERSION,

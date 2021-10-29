@@ -147,7 +147,7 @@ void TheoryEngine::finishInit()
   // Initialize the theory combination architecture
   if (options::tcMode() == options::TcMode::CARE_GRAPH)
   {
-    d_tc.reset(new CombinationCareGraph(*this, d_env, paraTheories, d_pnm));
+    d_tc.reset(new CombinationCareGraph(d_env, *this, paraTheories));
   }
   else
   {
@@ -203,15 +203,6 @@ void TheoryEngine::finishInit()
     t->finishInit();
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
-}
-
-ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
-
-context::Context* TheoryEngine::getSatContext() const { return context(); }
-
-context::UserContext* TheoryEngine::getUserContext() const
-{
-  return userContext();
 }
 
 TheoryEngine::TheoryEngine(Env& env)
@@ -1366,7 +1357,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
     const Printer& printer = d_env.getPrinter();
     std::ostream& out = d_env.getDumpOut();
     printer.toStreamCmdSetInfo(out, "notes", "theory lemma: expect valid");
-    printer.toStreamCmdCheckSat(out, n);
+    printer.toStreamCmdCheckSatAssuming(out, {n});
   }
 
   // assert the lemma
@@ -1425,7 +1416,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
     const Printer& printer = d_env.getPrinter();
     std::ostream& out = d_env.getDumpOut();
     printer.toStreamCmdSetInfo(out, "notes", "theory conflict: expect unsat");
-    printer.toStreamCmdCheckSat(out, conflict);
+    printer.toStreamCmdCheckSatAssuming(out, {conflict});
   }
 
   // In the multiple-theories case, we need to reconstruct the conflict
@@ -1437,14 +1428,14 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
 
     // Process the explanation
     TrustNode tncExp = getExplanation(vec);
-    Trace("te-proof-debug")
-        << "Check closed conflict explained with sharing" << std::endl;
-    tncExp.debugCheckClosed("te-proof-debug",
-                            "TheoryEngine::conflict_explained_sharing");
     Node fullConflict = tncExp.getNode();
 
     if (isProofEnabled())
     {
+      Trace("te-proof-debug")
+          << "Check closed conflict explained with sharing" << std::endl;
+      tncExp.debugCheckClosed("te-proof-debug",
+                              "TheoryEngine::conflict_explained_sharing");
       Trace("te-proof-debug") << "Process conflict: " << conflict << std::endl;
       Trace("te-proof-debug") << "Conflict " << tconflict << " from "
                               << tconflict.identifyGenerator() << std::endl;
@@ -1485,7 +1476,7 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
       }
       else
       {
-        if (fullConflict != conflict)
+        if (!CDProof::isSame(fullConflict, conflict))
         {
           // ------------------------- explained  ---------- from theory
           // fullConflict => conflict              ~conflict
@@ -1507,7 +1498,10 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
     Assert(properConflict(fullConflict));
     Trace("te-proof-debug")
         << "Check closed conflict with sharing" << std::endl;
-    tconf.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict:sharing");
+    if (isProofEnabled())
+    {
+      tconf.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict:sharing");
+    }
     lemma(tconf, LemmaProperty::REMOVABLE);
   } else {
     // When only one theory, the conflict should need no processing
@@ -1541,8 +1535,26 @@ TrustNode TheoryEngine::getExplanation(
   {
     Trace("te-proof-exp") << "=== TheoryEngine::getExplanation " << conclusion
                           << std::endl;
-    lcp.reset(new LazyCDProof(
-        d_pnm, nullptr, nullptr, "TheoryEngine::LazyCDProof::getExplanation"));
+    // We do not use auto-symmetry in this proof, since in very rare cases, it
+    // is possible that the proof of explanations is cyclic when considering
+    // (dis)equalities modulo symmetry, where such a proof looks like:
+    // x = y
+    // -----
+    //   A    ...
+    // ----------
+    //   y = x
+    // Notice that this complication arises since propagations consider
+    // equalities that are not in rewritten form. This complication would not
+    // exist otherwise. It is the shared term database that introduces these
+    // unrewritten equalities; it must do so since theory combination requires
+    // communicating arrangements between shared terms, and the rewriter
+    // for arithmetic equalities does not preserve terms, e.g. x=y may become
+    // x+-1*y=0.
+    lcp.reset(new LazyCDProof(d_pnm,
+                              nullptr,
+                              nullptr,
+                              "TheoryEngine::LazyCDProof::getExplanation",
+                              false));
   }
   unsigned i = 0; // Index of the current literal we are processing
 
@@ -1649,7 +1661,7 @@ TrustNode TheoryEngine::getExplanation(
 
         if (lcp != nullptr)
         {
-          if (!CDProof::isSame(toExplain.d_node, (*find).second.d_node))
+          if (toExplain.d_node != (*find).second.d_node)
           {
             Trace("te-proof-exp")
                 << "- t-explained cached: " << toExplain.d_node << " by "
@@ -1677,17 +1689,13 @@ TrustNode TheoryEngine::getExplanation(
       // should prove the propagation we asked for
       Assert(texplanation.getKind() == TrustNodeKind::PROP_EXP
              && texplanation.getProven()[1] == toExplain.d_node);
-      // if not a trivial explanation
-      if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
-      {
-        // We add it to the list of theory explanations, to be processed at
-        // the end of this method. We wait to explain here because it may
-        // be that a later explanation may preempt the need for proving this
-        // step. For instance, if the conclusion lit is later added as an
-        // assumption in the final explanation. This avoids cyclic proofs.
-        texplains.push_back(
-            std::pair<TheoryId, TrustNode>(toExplain.d_theory, texplanation));
-      }
+      // We add it to the list of theory explanations, to be processed at
+      // the end of this method. We wait to explain here because it may
+      // be that a later explanation may preempt the need for proving this
+      // step. For instance, if the conclusion lit is later added as an
+      // assumption in the final explanation. This avoids cyclic proofs.
+      texplains.push_back(
+          std::pair<TheoryId, TrustNode>(toExplain.d_theory, texplanation));
     }
     Node explanation = texplanation.getNode();
 
@@ -1765,16 +1773,6 @@ TrustNode TheoryEngine::getExplanation(
         Trace("te-proof-exp") << "...already added" << std::endl;
         continue;
       }
-      Node symTConc = CDProof::getSymmFact(tConc);
-      if (!symTConc.isNull())
-      {
-        if (exp.find(symTConc) != exp.end())
-        {
-          // symmetric direction
-          Trace("te-proof-exp") << "...already added (SYMM)" << std::endl;
-          continue;
-        }
-      }
       // remember that we've explained this formula, to avoid cycles in lcp
       exp.insert(tConc);
       TheoryId ttid = it->first;
@@ -1822,13 +1820,31 @@ TrustNode TheoryEngine::getExplanation(
       {
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
-        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(it->first);
+        Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(ttid);
         lcp->addStep(proven, PfRule::THEORY_LEMMA, {}, {proven, tidn});
       }
       std::vector<Node> pfChildren;
       pfChildren.push_back(trn.getNode());
       pfChildren.push_back(proven);
       lcp->addStep(tConc, PfRule::MODUS_PONENS, pfChildren, {});
+    }
+    // If we don't have a step and the conclusion is not part of the
+    // explanation (for unit T-conflicts), it must be by symmetry. We must do
+    // this manually since lcp does not have auto-symmetry enabled due to the
+    // complication mentioned above.
+    if (!lcp->hasStep(conclusion) && exp.find(conclusion) == exp.end())
+    {
+      Node sconc = CDProof::getSymmFact(conclusion);
+      if (!sconc.isNull())
+      {
+        lcp->addStep(conclusion, PfRule::SYMM, {sconc}, {});
+      }
+      else
+      {
+        Assert(false)
+            << "TheoryEngine::getExplanation: no step found for conclusion "
+            << conclusion;
+      }
     }
     // store in the proof generator
     TrustNode trn = d_tepg->mkTrustExplain(conclusion, expNode, lcp);
@@ -1948,12 +1964,6 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
     std::pair<bool, Node> chres = th->entailmentCheck(lit);
     return chres;
   }
-}
-
-bool TheoryEngine::isFiniteType(TypeNode tn) const
-{
-  return isCardinalityClassFinite(tn.getCardinalityClass(),
-                                  options::finiteModelFind());
 }
 
 void TheoryEngine::spendResource(Resource r)

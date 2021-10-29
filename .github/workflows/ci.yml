@@ -8,22 +8,24 @@ jobs:
         include:
           - name: ubuntu:production
             os: ubuntu-latest
-            config: production --auto-download --all-bindings --editline --docs
+            config: production --auto-download --all-bindings --editline --docs --static
             cache-key: production
             python-bindings: true
             build-documentation: true
             check-examples: true
+            store-to-release: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct
 
           - name: macos:production
             os: macos-11
-            config: production --auto-download --all-bindings --editline
+            config: production --auto-download --all-bindings --editline --static
             cache-key: production
             python-bindings: true
             check-examples: true
+            store-to-release: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct
 
           - name: ubuntu:production-clang
             os: ubuntu-18.04
@@ -32,7 +34,7 @@ jobs:
             cache-key: productionclang
             check-examples: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct
 
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
@@ -40,7 +42,7 @@ jobs:
             cache-key: dbg
             check-units: true
             exclude_regress: 3-4
-            run_regression_args: --no-check-unsat-cores
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof
 
           - name: ubuntu:production-dbg-clang
             os: ubuntu-latest
@@ -48,7 +50,7 @@ jobs:
             config: production --auto-download --assertions --tracing --cln --gpl
             cache-key: dbgclang
             exclude_regress: 3-4
-            run_regression_args: --no-check-proofs
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -57,198 +59,46 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - name: Install Packages
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          ccache \
-          libcln-dev \
-          libgmp-dev \
-          libgtest-dev \
-          libedit-dev \
-          flex \
-          libfl-dev \
-          flexc++
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
-        cd /usr/src/googletest
-        sudo cmake .
-        sudo cmake --build . --target install
-        cd -
-        # Make ImageVersion accessible as env.image_version. Environment
-        # variables of the runner are not automatically imported:
-        #
-        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
-        echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(nproc)" >> $GITHUB_ENV
-        echo "/usr/lib/ccache" >> $GITHUB_PATH
-
-    # Note: macOS comes with a libedit; it does not need to brew-installed
-    - name: Install Packages (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew update
-        brew install \
-          ccache \
-          cln \
-          gmp \
-          pkgconfig \
-          flex
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
-        # Make ImageVersion accessible as env.image_version. Environment
-        # variables of the runner are not automatically imported:
-        #
-        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
-        echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
-        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
-
-    - name: Install Python Dependencies
-      if: matrix.python-bindings
-      run: |
-        python3 -m pip install pytest
-        python3 -m pytest --version
-        python3 -m pip install scikit-build
-        python3 -m pip install \
-          Cython==0.29.* --install-option="--no-cython-compile"
-        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
-    
-    - name: Install Documentation Dependencies
-      if: matrix.build-documentation
-      run: |
-        sudo apt-get install -y doxygen python3-docutils python3-jinja2
-        python3 -m pip install \
-          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe
-
-    # The GitHub action for caching currently does not support modifying an
-    # already existing cache. We thus have a few different possibilities:
-    # - If having (partially) outdated data in the cached directory is fine, we
-    #   may want to restore any old cache via `restore-keys`. We should try hard
-    #   to detect that we have (partially) outdated data and make sure that the
-    #   updated data is stored to a new cache key.
-    # - If a cache is updated frequently (i.e. almost with every commit), we
-    #   should use the current commit hash as suffix and use `restore-keys` to
-    #   restore the cache from the previous commit.
-    #
-    # We define three caches: aux-tools, ccache, deps.
-    # - aux-tools (deps/) does not handle outdated contents gracefully. As it is
-    #   not updated frequently, we completely rebuild it whenever it might
-    #   change, which is when the contrib scripts or the CI config changes.
-    # - ccache changes with (almost) every commit and handles outdated contents
-    #   properly. We thus use `restore-keys` and store a new cache for every
-    #   commit.
-    # - deps (build/deps/) does handle outdated contents gracefully, but does
-    #   not change frequently. We thus use `restore-keys` to restore any recent
-    #   cache, but only store a new cache if the cmake or CI config changes.
-    #
-    # All caches are separated by operating system. Both ccache and deps are
-    # additionally separated by `cache-key`, i.e. the CI job type, because they
-    # depend on the configured compiler.
-
-    - name: Restore Auxiliary Tools
-      id: restore-aux-tools
-      uses: actions/cache@v2
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
       with:
-        path: deps/install
-        key: cvc5-aux-tools-${{ runner.os }}-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        with-documentation: ${{ matrix.build-documentation }}
+        with-python-bindings: ${{ matrix.python-bindings }}
 
-    - name: Setup Auxiliary Tools
-      if: steps.restore-aux-tools.outputs.cache-hit != 'true'
-      run: |
-        ./contrib/get-lfsc-checker
-
-    - name: Restore ccache
-      id: ccache
-      uses: actions/cache@v2
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
       with:
-        path: ccache-dir
-        key: cvc5-ccache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
-        restore-keys: cvc5-ccache-${{ runner.os }}-${{ matrix.cache-key }}-
+        cache-key: ${{ matrix.cache-key }}
 
-    - name: Configure ccache
-      run: |
-        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
-        ccache --set-config=compression=true
-        ccache --set-config=compression_level=6
-        ccache -M 500M
-        ccache -z
-
-    - name: Restore Dependencies
-      id: restore-deps
-      uses: actions/cache@v2
+    - name: Configure and build
+      id: configure-and-build
+      uses: ./.github/actions/configure-and-build
       with:
-        path: build/deps
-        # The cache depends on the image version to make sure that we do not
-        # restore the dependencies if the build environment has changed.
-        key: cvc5-deps-${{ runner.os }}-${{ env.image_version }}-${{ matrix.cache-key }}-${{ hashFiles('cmake/Find**', 'cmake/deps-helper.cmake') }}-${{ hashFiles('.github/workflows/ci.yml') }}
-
-    - name: Configure
-      run: |
-        ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
-          --prefix=$(pwd)/build/install \
-          --werror
-
-    - name: Build
-      run: make -j${{ env.num_proc }}
-      working-directory: build
+        configure-env: ${{ matrix.env }}
+        configure-config: ${{ matrix.config }}
 
     - name: ccache Statistics
       run: ccache -s
 
-    - name: Run CTest
-      run: make -j${{ env.num_proc }} check
-      env:
-        ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
-        CVC5_REGRESSION_ARGS: --no-early-exit
-        RUN_REGRESSION_ARGS: ${{ matrix.run_regression_args }}
-      working-directory: build
-
-    - name: Run Unit Tests
-      if: matrix.check-units
-      run: make -j${{ env.num_proc }} apitests units
-      working-directory: build
-
-    - name: Install Check
-      run: |
-        make -j${{ env.num_proc }} install
-        echo -e "#include <cvc5/cvc5.h>\nint main() { cvc5::api::Solver s; return 0; }" > /tmp/test.cpp
-        g++ -std=c++17 /tmp/test.cpp -I install/include -L install/lib -lcvc5
-      working-directory: build
-
-    - name: Python Install Check
-      if: matrix.python-bindings
-      run: |
-       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc5" -type d))"
-       python3 -c "import pycvc5"
-
-      # Examples are built for non-symfpu builds
-    - name: Check Examples
-      if: matrix.check-examples && runner.os == 'Linux'
-      run: |
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
-        make -j${{ env.num_proc }}
-        ctest -j${{ env.num_proc }} --output-on-failure
-      working-directory: examples
-
-    - name: Build Documentation
-      if: matrix.build-documentation
-      run: |
-        make -j${{ env.num_proc }} docs-gh
-        if [ "${{ github.event_name }}" == "pull_request" ] ; then
-          echo "${{ github.event.number }}" > docs/sphinx-gh/prnum
-        fi
-      working-directory: build
-    
-    - name: Store Documentation
-      if: matrix.build-documentation
-      uses: actions/upload-artifact@v2
+    - name: Run tests
+      uses: ./.github/actions/run-tests
       with:
-        name: documentation
-        path: build/docs/sphinx-gh/
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
+        check-examples: ${{ matrix.check-examples }}
+        check-python-bindings: ${{ matrix.python-bindings }}
+        check-unit-tests: ${{ matrix.check-units }}
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: ${{ matrix.exclude_regress }}
+
+    - name: Build documentation
+      if: matrix.build-documentation
+      uses: ./.github/actions/build-documentation
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
+
+    - name: Add binary to release
+      if: matrix.store-to-release && startsWith(github.ref, 'refs/tags/')
+      uses: ./.github/actions/add-to-release
+      with:
+        binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
+        github-token: ${{ secrets.GITHUB_TOKEN }}

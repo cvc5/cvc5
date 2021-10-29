@@ -19,6 +19,7 @@
 #include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
@@ -223,7 +224,7 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
     {
       Trace("model-builder-debug") << "  ...matches with " << eqc << " -> "
                                    << eqc_m << std::endl;
-      if (eqc_m.getKind() == kind::UNINTERPRETED_CONSTANT)
+      if (eqc_m.getKind() == kind::CODATATYPE_BOUND_VARIABLE)
       {
         Trace("model-builder-debug") << "*** " << val
                                      << " is excluded datatype for " << eqc
@@ -273,12 +274,6 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
     }
   }
   return false;
-}
-
-bool TheoryEngineModelBuilder::isFiniteType(TypeNode tn) const
-{
-  return isCardinalityClassFinite(tn.getCardinalityClass(),
-                                  options::finiteModelFind());
 }
 
 bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
@@ -402,7 +397,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       << std::endl;
 
   // type enumerator properties
-  TypeEnumeratorProperties tep;
+  bool tepFixUSortCard = options().quantifiers.finiteModelFind;
+  uint32_t tepStrAlphaCard = options().strings.stringsAlphaCard;
+  TypeEnumeratorProperties tep(tepFixUSortCard, tepStrAlphaCard);
 
   // In the first step of model building, we do a traversal of the
   // equality engine and record the information in the following:
@@ -455,7 +452,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   for (; !eqcs_i.isFinished(); ++eqcs_i)
   {
     Node eqc = *eqcs_i;
-
+    Trace("model-builder") << "  Processing EQC " << eqc << std::endl;
     // Information computed for each equivalence class
 
     // The assigned represenative and constant representative
@@ -487,7 +484,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
-      Trace("model-builder") << "  Processing Term: " << n << endl;
+      Trace("model-builder") << "    Processing Term: " << n << endl;
 
       // For each term n in this equivalence class, below we register its
       // assignable subterms, compute whether it is a constant or assigned
@@ -508,7 +505,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         Assert(constRep.isNull());
         constRep = n;
         Trace("model-builder")
-            << "  ConstRep( " << eqc << " ) = " << constRep << std::endl;
+            << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
         // if we have a constant representative, nothing else matters
         continue;
       }
@@ -525,7 +522,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // these cases here.
         rep = itm->second;
         Trace("model-builder")
-            << "  Rep( " << eqc << " ) = " << rep << std::endl;
+            << "    ..Rep( " << eqc << " ) = " << rep << std::endl;
       }
 
       // (3) Finally, process assignable information
@@ -844,8 +841,9 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       if (t.isDatatype())
       {
         const DType& dt = t.getDType();
-        isCorecursive = dt.isCodatatype()
-                        && (!isFiniteType(t) || dt.isRecursiveSingleton(t));
+        isCorecursive =
+            dt.isCodatatype()
+            && (!d_env.isFiniteType(t) || dt.isRecursiveSingleton(t));
       }
 #ifdef CVC5_ASSERTIONS
       bool isUSortFiniteRestricted = false;
@@ -922,7 +920,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (t.isSort() || !isFiniteType(t))
+          else if (t.isSort() || !d_env.isFiniteType(t))
           {
             // If its interpreted as infinite, we get a fresh value that does
             // not occur in the model.

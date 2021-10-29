@@ -30,6 +30,7 @@
 
 namespace cvc5 {
 
+class Env;
 class ProofNode;
 class ProofNodeManager;
 
@@ -85,10 +86,11 @@ class ProofEqEngine : public EagerProofGenerator
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;
 
  public:
-  ProofEqEngine(context::Context* c,
-                context::UserContext* u,
-                EqualityEngine& ee,
-                ProofNodeManager* pnm);
+  /**
+   * @param env The environment
+   * @param ee The equality engine this is layered on
+   */
+  ProofEqEngine(Env& env, EqualityEngine& ee);
   ~ProofEqEngine() {}
   //-------------------------- assert fact
   /**

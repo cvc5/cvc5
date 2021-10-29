@@ -35,7 +35,7 @@ class Evaluator;
  * The main rewriter class.
  */
 class Rewriter {
-  friend class cvc5::Env;  // to initialize the evaluators of this class
+  friend class cvc5::Env;  // to set the resource manager
  public:
   Rewriter();
 
@@ -110,10 +110,10 @@ class Rewriter {
 
  private:
   /**
-   * Get the rewriter associated with the SmtEngine in scope.
+   * Get the rewriter associated with the SolverEngine in scope.
    *
    * TODO(#3468): Get rid of this function (it relies on there being an
-   * singleton with the current SmtEngine in scope)
+   * singleton with the current SolverEngine in scope)
    */
   static Rewriter* getInstance();
 
@@ -159,11 +159,25 @@ class Rewriter {
 
   void clearCachesInternal();
 
+  /**
+   * Has n been rewritten with proofs? This checks if n is in d_tpgNodes.
+   */
+  bool hasRewrittenWithProofs(TNode n) const;
+
+  /** The resource manager, for tracking resource usage */
+  ResourceManager* d_resourceManager;
+
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
+  /**
+   * Nodes rewritten with proofs. Since d_tpg contains a reference to all
+   * nodes that have been rewritten with proofs, we can keep only a TNode
+   * here.
+   */
+  std::unordered_set<TNode> d_tpgNodes;
 #ifdef CVC5_ASSERTIONS
   std::unique_ptr<std::unordered_set<Node>> d_rewriteStack = nullptr;
 #endif /* CVC5_ASSERTIONS */

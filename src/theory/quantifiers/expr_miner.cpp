@@ -50,20 +50,29 @@ Node ExprMiner::convertToSkolem(Node n)
       d_vars.begin(), d_vars.end(), d_skolems.begin(), d_skolems.end());
 }
 
-void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
+void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query)
 {
+  initializeChecker(checker, query, options(), logicInfo());
+}
+
+void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
+                                  Node query,
+                                  const Options& opts,
+                                  const LogicInfo& logicInfo)
+{
   Assert (!query.isNull());
-  if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
+  if (options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
     initializeSubsolver(checker,
-                        d_env,
+                        opts,
+                        logicInfo,
                         true,
-                        options::sygusExprMinerCheckTimeout());
+                        options().quantifiers.sygusExprMinerCheckTimeout);
   }
   else
   {
-    initializeSubsolver(checker, d_env);
+    initializeSubsolver(checker, opts, logicInfo);
   }
   // also set the options
   checker->setOption("sygus-rr-synth-input", "false");
@@ -88,7 +97,7 @@ Result ExprMiner::doCheck(Node query)
       return Result(Result::SAT);
     }
   }
-  std::unique_ptr<SmtEngine> smte;
+  std::unique_ptr<SolverEngine> smte;
   initializeChecker(smte, query);
   return smte->checkSat();
 }

@@ -57,7 +57,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(options(), qs.getLogicInfo(), d_tds),
+      d_verify(options(), logicInfo(), d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer),
@@ -70,7 +70,6 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_cegisUnif(new CegisUnif(env, qs, qim, d_tds, this)),
       d_sygus_ccore(new CegisCoreConnective(env, qs, qim, d_tds, this)),
       d_master(nullptr),
-      d_set_ce_sk_vars(false),
       d_repair_index(0),
       d_guarded_stream_exc(false)
 {
@@ -108,7 +107,7 @@ void SynthConjecture::assign(Node q)
 
   // initialize the guard
   d_feasible_guard = sm->mkDummySkolem("G", nm->booleanType());
-  d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
+  d_feasible_guard = rewrite(d_feasible_guard);
   d_feasible_guard = d_qstate.getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
 
@@ -179,8 +178,22 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant
                  << std::endl;
   // construct base instantiation
-  d_base_inst = Rewriter::rewrite(d_qim.getInstantiate()->getInstantiation(
-      d_embed_quant, vars, d_candidates));
+  Subs bsubs;
+  bsubs.add(vars, d_candidates);
+  d_base_inst = rewrite(bsubs.apply(d_embed_quant[1]));
+  d_checkBody = d_embed_quant[1];
+  if (d_checkBody.getKind() == NOT && d_checkBody[0].getKind() == FORALL)
+  {
+    for (const Node& v : d_checkBody[0][0])
+    {
+      Node sk = sm->mkDummySkolem("rsk", v.getType());
+      bsubs.add(v, sk);
+      d_innerVars.push_back(v);
+      d_innerSks.push_back(sk);
+    }
+    d_checkBody = d_checkBody[0][1].negate();
+  }
+  d_checkBody = rewrite(bsubs.apply(d_checkBody));
   if (!d_embedSideCondition.isNull() && !vars.empty())
   {
     d_embedSideCondition = d_embedSideCondition.substitute(
@@ -204,7 +217,16 @@ void SynthConjecture::assign(Node q)
     }
   }
   // initialize the example inference utility
-  if (!d_exampleInfer->initialize(d_base_inst, d_candidates))
+  // Notice that we must also consider the side condition when inferring
+  // whether the conjecture is PBE. This ensures we do not prune solutions
+  // that may satisfy the side condition based on equivalence-up-to-examples
+  // with solutions that do not.
+  Node conjForExamples = d_base_inst;
+  if (!d_embedSideCondition.isNull())
+  {
+    conjForExamples = nm->mkNode(AND, d_embedSideCondition, d_base_inst);
+  }
+  if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(conjForExamples, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();
@@ -230,14 +252,6 @@ void SynthConjecture::assign(Node q)
   }
 
   Assert(d_qreg.getQuantAttributes().isSygus(q));
-  // if the base instantiation is an existential, store its variables
-  if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
-  {
-    for (const Node& v : d_base_inst[0][0])
-    {
-      d_inner_vars.push_back(v);
-    }
-  }
 
   // register the strategy
   d_feasible_strategy.reset(new DecisionStrategySingleton(
@@ -289,7 +303,6 @@ bool SynthConjecture::needsCheck()
   return true;
 }
 
-bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
 bool SynthConjecture::doCheck()
 {
   if (isSingleInvocation())
@@ -417,7 +430,7 @@ bool SynthConjecture::doCheck()
             if (Trace.isOn("sygus-engine-rr"))
             {
               Node bv = d_tds->sygusToBuiltin(nv, tn);
-              bv = Rewriter::rewrite(bv);
+              bv = rewrite(bv);
               Trace("sygus-engine-rr") << " -> " << bv << std::endl;
             }
           }
@@ -447,9 +460,6 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-
   // check the side condition if we constructed a candidate
   if (constructed_cand)
   {
@@ -462,7 +472,7 @@ bool SynthConjecture::doCheck()
   }
 
   // must get a counterexample to the value of the current candidate
-  Node inst;
+  Node query;
   if (constructed_cand)
   {
     if (Trace.isOn("cegqi-check"))
@@ -476,14 +486,14 @@ bool SynthConjecture::doCheck()
       }
     }
     Assert(candidate_values.size() == d_candidates.size());
-    inst = d_base_inst.substitute(d_candidates.begin(),
-                                  d_candidates.end(),
-                                  candidate_values.begin(),
-                                  candidate_values.end());
+    query = d_checkBody.substitute(d_candidates.begin(),
+                                   d_candidates.end(),
+                                   candidate_values.begin(),
+                                   candidate_values.end());
   }
   else
   {
-    inst = d_base_inst;
+    query = d_checkBody;
   }
 
   if (!constructed_cand)
@@ -503,52 +513,23 @@ bool SynthConjecture::doCheck()
     recordSolution(candidate_values);
     return true;
   }
-  Assert(!d_set_ce_sk_vars);
 
-  // immediately skolemize inner existentials
-  Node query;
-  // introduce the skolem variables
-  std::vector<Node> sks;
-  std::vector<Node> vars;
-  if (constructed_cand)
+  // print the candidate solution for debugging
+  if (constructed_cand && printDebug)
   {
-    if (printDebug)
+    const Options& sopts = options();
+    std::ostream& out = *sopts.base.out;
+    out << "(sygus-candidate ";
+    Assert(d_quant[0].getNumChildren() == candidate_values.size());
+    for (size_t i = 0, ncands = candidate_values.size(); i < ncands; i++)
     {
-      const Options& sopts = options();
-      std::ostream& out = *sopts.base.out;
-      out << "(sygus-candidate ";
-      Assert(d_quant[0].getNumChildren() == candidate_values.size());
-      for (unsigned i = 0, ncands = candidate_values.size(); i < ncands; i++)
-      {
-        Node v = candidate_values[i];
-        std::stringstream ss;
-        TermDbSygus::toStreamSygus(ss, v);
-        out << "(" << d_quant[0][i] << " " << ss.str() << ")";
-      }
-      out << ")" << std::endl;
+      Node v = candidate_values[i];
+      std::stringstream ss;
+      TermDbSygus::toStreamSygus(ss, v);
+      out << "(" << d_quant[0][i] << " " << ss.str() << ")";
     }
-    if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
-    {
-      for (const Node& v : inst[0][0])
-      {
-        Node sk = sm->mkDummySkolem("rsk", v.getType());
-        sks.push_back(sk);
-        vars.push_back(v);
-        Trace("cegqi-check-debug")
-            << "  introduce skolem " << sk << " for " << v << "\n";
-      }
-      query = inst[0][1].substitute(
-          vars.begin(), vars.end(), sks.begin(), sks.end());
-      query = query.negate();
-    }
-    else
-    {
-      // use the instance itself
-      query = inst;
-    }
+    out << ")" << std::endl;
   }
-  d_ce_sk_vars.insert(d_ce_sk_vars.end(), sks.begin(), sks.end());
-  d_set_ce_sk_vars = true;
 
   if (query.isNull())
   {
@@ -560,12 +541,13 @@ bool SynthConjecture::doCheck()
   // here since the result of the satisfiability test may be unknown.
   recordSolution(candidate_values);
 
-  Result r = d_verify.verify(query, d_ce_sk_vars, d_ce_sk_var_mvs);
+  std::vector<Node> skModel;
+  Result r = d_verify.verify(query, d_innerSks, skModel);
 
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
     // we have a counterexample
-    return false;
+    return processCounterexample(skModel);
   }
   else if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
@@ -621,73 +603,26 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
   return true;
 }
 
-bool SynthConjecture::doRefine()
+bool SynthConjecture::processCounterexample(const std::vector<Node>& skModel)
 {
-  Assert(d_set_ce_sk_vars);
-
-  // first, make skolem substitution
-  Trace("cegqi-refine") << "doRefine : construct skolem substitution..."
-                        << std::endl;
-  std::vector<Node> sk_vars;
-  std::vector<Node> sk_subs;
-  // collect the substitution over all disjuncts
-  if (!d_ce_sk_vars.empty())
-  {
-    Trace("cegqi-refine") << "Get model values for skolems..." << std::endl;
-    Assert(d_inner_vars.size() == d_ce_sk_vars.size());
-    if (d_ce_sk_var_mvs.empty())
-    {
-      std::vector<Node> model_values;
-      for (const Node& v : d_ce_sk_vars)
-      {
-        Node mv = getModelValue(v);
-        Trace("cegqi-refine") << "  " << v << " -> " << mv << std::endl;
-        model_values.push_back(mv);
-      }
-      sk_subs.insert(sk_subs.end(), model_values.begin(), model_values.end());
-    }
-    else
-    {
-      Assert(d_ce_sk_var_mvs.size() == d_ce_sk_vars.size());
-      sk_subs.insert(
-          sk_subs.end(), d_ce_sk_var_mvs.begin(), d_ce_sk_var_mvs.end());
-    }
-    sk_vars.insert(sk_vars.end(), d_inner_vars.begin(), d_inner_vars.end());
-  }
-  else
-  {
-    Assert(d_inner_vars.empty());
-  }
-
   Trace("cegqi-refine") << "doRefine : Construct refinement lemma..."
                         << std::endl;
   Trace("cegqi-refine-debug")
-      << "  For counterexample skolems : " << d_ce_sk_vars << std::endl;
-  Node base_lem;
-  if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
-  {
-    base_lem = d_base_inst[0][1];
-  }
-  else
-  {
-    base_lem = d_base_inst.negate();
-  }
+      << "  For counterexample skolems : " << d_innerSks << std::endl;
+  Node base_lem = d_checkBody.negate();
 
-  Assert(sk_vars.size() == sk_subs.size());
+  Assert(d_innerSks.size() == skModel.size());
 
   Trace("cegqi-refine") << "doRefine : substitute..." << std::endl;
   base_lem = base_lem.substitute(
-      sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end());
+      d_innerSks.begin(), d_innerSks.end(), skModel.begin(), skModel.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
   base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
                         << "..." << std::endl;
   size_t prevPending = d_qim.numPendingLemmas();
-  d_master->registerRefinementLemma(sk_vars, base_lem);
+  d_master->registerRefinementLemma(d_innerSks, base_lem);
   Trace("cegqi-refine") << "doRefine : finished" << std::endl;
-  d_set_ce_sk_vars = false;
-  d_ce_sk_vars.clear();
-  d_ce_sk_var_mvs.clear();
 
   // check if we added a lemma
   bool addedLemma = d_qim.numPendingLemmas() > prevPending;
@@ -761,7 +696,7 @@ EnumValueManager* SynthConjecture::getEnumValueManagerFor(Node e)
   }
   // otherwise, allocate it
   Node f = d_tds->getSynthFunForEnumerator(e);
-  bool hasExamples = (d_exampleInfer->hasExamples(f)
+  bool hasExamples = (d_exampleInfer != nullptr && d_exampleInfer->hasExamples(f)
                       && d_exampleInfer->getNumExamples(f) != 0);
   d_enumManager[e].reset(new EnumValueManager(
       d_env, d_qstate, d_qim, d_treg, d_stats, e, hasExamples));
@@ -791,7 +726,7 @@ void SynthConjecture::debugPrint(const char* c)
 {
   Trace(c) << "Synthesis conjecture : " << d_embed_quant << std::endl;
   Trace(c) << "  * Candidate programs : " << d_candidates << std::endl;
-  Trace(c) << "  * Counterexample skolems : " << d_ce_sk_vars << std::endl;
+  Trace(c) << "  * Counterexample skolems : " << d_innerSks << std::endl;
 }
 
 void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
@@ -809,11 +744,6 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
 {
   Trace("cegqi-debug") << "Exclude current solution: " << enums << " / "
                        << values << std::endl;
-  // We will not refine the current candidate solution since it is a solution
-  // thus, we clear information regarding the current refinement
-  d_set_ce_sk_vars = false;
-  d_ce_sk_vars.clear();
-  d_ce_sk_var_mvs.clear();
   // However, we need to exclude the current solution using an explicit
   // blocking clause, so that we proceed to the next solution. We do this only
   // for passively-generated enumerators (TermDbSygus::isPassiveEnumerator).
@@ -875,7 +805,9 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
       bool is_unique_term = true;
 
       if (status != 0
-          && (options::sygusRewSynth() || options::sygusQueryGen()
+          && (options::sygusRewSynth()
+              || options().quantifiers.sygusQueryGen
+                     != options::SygusQueryGenMode::NONE
               || options::sygusFilterSolMode()
                      != options::SygusFilterSolMode::NONE))
       {
@@ -888,28 +820,7 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
           ExpressionMinerManager* emm = d_exprm[prog].get();
           emm->initializeSygus(
               d_tds, d_candidates[i], options::sygusSamples(), true);
-          if (options::sygusRewSynth())
-          {
-            emm->enableRewriteRuleSynth();
-          }
-          if (options::sygusQueryGen())
-          {
-            emm->enableQueryGeneration(options::sygusQueryGenThresh());
-          }
-          if (options::sygusFilterSolMode()
-              != options::SygusFilterSolMode::NONE)
-          {
-            if (options::sygusFilterSolMode()
-                == options::SygusFilterSolMode::STRONG)
-            {
-              emm->enableFilterStrongSolutions();
-            }
-            else if (options::sygusFilterSolMode()
-                     == options::SygusFilterSolMode::WEAK)
-            {
-              emm->enableFilterWeakSolutions();
-            }
-          }
+          emm->initializeMinersForOptions();
           its = d_exprm.find(prog);
         }
         bool rew_print = false;
@@ -1088,7 +999,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
             TNode tsol = sol;
             sol = templ.substitute(templa, tsol);
             Trace("cegqi-inv-debug") << "With template : " << sol << std::endl;
-            sol = Rewriter::rewrite(sol);
+            sol = rewrite(sol);
             Trace("cegqi-inv-debug") << "Simplified : " << sol << std::endl;
             // now, reconstruct to the syntax
             sol = d_ceg_si->reconstructToSyntax(sol, tn, status, true);

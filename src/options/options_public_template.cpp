@@ -86,9 +86,7 @@ namespace cvc5::options
 
   /** Default handler that triggers a compiler error */
   template <typename T>
-  T handleOption(const std::string& option,
-                 const std::string& flag,
-                 const std::string& optionarg)
+  T handleOption(const std::string& flag, const std::string& optionarg)
   {
     T::unsupported_handleOption_specialization;
     return *static_cast<T*>(nullptr);
@@ -96,17 +94,14 @@ namespace cvc5::options
 
   /** Handle a string option by returning it as is. */
   template <>
-  std::string handleOption<std::string>(const std::string& option,
-                                        const std::string& flag,
+  std::string handleOption<std::string>(const std::string& flag,
                                         const std::string& optionarg)
   {
     return optionarg;
   }
   /** Handle a bool option, recognizing "true" or "false". */
   template <>
-  bool handleOption<bool>(const std::string& option,
-                          const std::string& flag,
-                          const std::string& optionarg)
+  bool handleOption<bool>(const std::string& flag, const std::string& optionarg)
   {
     if (optionarg == "true")
     {
@@ -122,8 +117,7 @@ namespace cvc5::options
 
   /** Handle a double option, using `parseNumber` with `std::stod`. */
   template <>
-  double handleOption<double>(const std::string& option,
-                              const std::string& flag,
+  double handleOption<double>(const std::string& flag,
                               const std::string& optionarg)
   {
     return parseNumber<double>(
@@ -135,8 +129,7 @@ namespace cvc5::options
 
   /** Handle a int64_t option, using `parseNumber` with `std::stoll`. */
   template <>
-  int64_t handleOption<int64_t>(const std::string& option,
-                                const std::string& flag,
+  int64_t handleOption<int64_t>(const std::string& flag,
                                 const std::string& optionarg)
   {
     return parseNumber<int64_t>(
@@ -148,8 +141,7 @@ namespace cvc5::options
 
   /** Handle a uint64_t option, using `parseNumber` with `std::stoull`. */
   template <>
-  uint64_t handleOption<uint64_t>(const std::string& option,
-                                  const std::string& flag,
+  uint64_t handleOption<uint64_t>(const std::string& flag,
                                   const std::string& optionarg)
   {
     return parseNumber<uint64_t>(
@@ -161,8 +153,7 @@ namespace cvc5::options
 
   /** Handle a ManagedIn option. */
   template <>
-  ManagedIn handleOption<ManagedIn>(const std::string& option,
-                                    const std::string& flag,
+  ManagedIn handleOption<ManagedIn>(const std::string& flag,
                                     const std::string& optionarg)
   {
     ManagedIn res;
@@ -172,8 +163,7 @@ namespace cvc5::options
 
   /** Handle a ManagedErr option. */
   template <>
-  ManagedErr handleOption<ManagedErr>(const std::string& option,
-                                      const std::string& flag,
+  ManagedErr handleOption<ManagedErr>(const std::string& flag,
                                       const std::string& optionarg)
   {
     ManagedErr res;
@@ -183,8 +173,7 @@ namespace cvc5::options
 
   /** Handle a ManagedOut option. */
   template <>
-  ManagedOut handleOption<ManagedOut>(const std::string& option,
-                                      const std::string& flag,
+  ManagedOut handleOption<ManagedOut>(const std::string& flag,
                                       const std::string& optionarg)
   {
     ManagedOut res;

@@ -21,7 +21,13 @@ get_target_property(CVC5_JAR_PATH cvc5jar JAR_FILE)
 
 # specify source files for junit tests
 set(java_test_src_files
-  ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/SolverTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/DatatypeTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/SortTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
 )
 
 # build junit tests
@@ -53,10 +59,11 @@ add_custom_target(
     -Djava.library.path=${CVC5_JNI_PATH}
     -jar ${JUnit_JAR}
     -cp ${JUnit_JAR}:${CVC5_JAR_PATH}:.
-    -select-package cvc5
+    -select-package tests
   COMMENT "Run junit tests"
   VERBATIM
 )
 
 add_dependencies(run-junit-tests build-junit-tests)
 add_dependencies(units run-junit-tests)
+add_dependencies(check run-junit-tests)

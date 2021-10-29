@@ -16,12 +16,12 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 
 #include "expr/ascription_type.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -34,6 +34,11 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace datatypes {
+
+DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval)
+    : d_sygusEval(sygusEval)
+{
+}
 
 RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 {
@@ -137,7 +142,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       {
         args.push_back(in[j]);
       }
-      Node ret = utils::sygusToBuiltinEval(ev, args);
+      Node ret = sygusToBuiltinEval(ev, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       Trace("dt-sygus-util") << "Type is " << ret.getType() << std::endl;
       Assert(in.getType().isComparableTo(ret.getType()));
@@ -724,7 +729,7 @@ Node DatatypesRewriter::collectRef(Node n,
       else
       {
         // a loop
-        const Integer& i = n.getConst<UninterpretedConstant>().getIndex();
+        const Integer& i = n.getConst<CodatatypeBoundVariable>().getIndex();
         uint32_t index = i.toUnsignedInt();
         if (index >= sk.size())
         {
@@ -766,7 +771,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       int debruijn = depth - it->second - 1;
       return NodeManager::currentNM()->mkConst(
-          UninterpretedConstant(n.getType(), debruijn));
+          CodatatypeBoundVariable(n.getType(), debruijn));
     }
     std::vector<Node> children;
     bool childChanged = false;
@@ -793,10 +798,10 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
                                         TypeNode orig_tn,
                                         unsigned depth)
 {
-  if (n.getKind() == kind::UNINTERPRETED_CONSTANT && n.getType() == orig_tn)
+  if (n.getKind() == kind::CODATATYPE_BOUND_VARIABLE && n.getType() == orig_tn)
   {
     unsigned index =
-        n.getConst<UninterpretedConstant>().getIndex().toUnsignedInt();
+        n.getConst<CodatatypeBoundVariable>().getIndex().toUnsignedInt();
     if (index == depth)
     {
       return orig;
@@ -918,6 +923,126 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   return TrustNode::null();
+}
+
+Node DatatypesRewriter::sygusToBuiltinEval(Node n,
+                                           const std::vector<Node>& args)
+{
+  Assert(d_sygusEval != nullptr);
+  NodeManager* nm = NodeManager::currentNM();
+  // constant arguments?
+  bool constArgs = true;
+  for (const Node& a : args)
+  {
+    if (!a.isConst())
+    {
+      constArgs = false;
+      break;
+    }
+  }
+  std::vector<Node> eargs;
+  bool svarsInit = false;
+  std::vector<Node> svars;
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  unsigned index;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      TypeNode tn = cur.getType();
+      if (!tn.isDatatype() || !tn.getDType().isSygus())
+      {
+        visited[cur] = cur;
+      }
+      else if (cur.isConst())
+      {
+        // convert to builtin term
+        Node bt = utils::sygusToBuiltin(cur);
+        // run the evaluator if possible
+        if (!svarsInit)
+        {
+          svarsInit = true;
+          TypeNode type = cur.getType();
+          Node varList = type.getDType().getSygusVarList();
+          for (const Node& v : varList)
+          {
+            svars.push_back(v);
+          }
+        }
+        Assert(args.size() == svars.size());
+        // try evaluation if we have constant arguments
+        Node ret =
+            constArgs ? d_sygusEval->eval(bt, svars, args) : Node::null();
+        if (ret.isNull())
+        {
+          // if evaluation was not available, use a substitution
+          ret = bt.substitute(
+              svars.begin(), svars.end(), args.begin(), args.end());
+        }
+        visited[cur] = ret;
+      }
+      else
+      {
+        if (cur.getKind() == APPLY_CONSTRUCTOR)
+        {
+          visited[cur] = Node::null();
+          visit.push_back(cur);
+          for (const Node& cn : cur)
+          {
+            visit.push_back(cn);
+          }
+        }
+        else
+        {
+          // it is the evaluation of this term on the arguments
+          if (eargs.empty())
+          {
+            eargs.push_back(cur);
+            eargs.insert(eargs.end(), args.begin(), args.end());
+          }
+          else
+          {
+            eargs[0] = cur;
+          }
+          visited[cur] = nm->mkNode(DT_SYGUS_EVAL, eargs);
+        }
+      }
+    }
+    else if (it->second.isNull())
+    {
+      Node ret = cur;
+      Assert(cur.getKind() == APPLY_CONSTRUCTOR);
+      const DType& dt = cur.getType().getDType();
+      // non sygus-datatype terms are also themselves
+      if (dt.isSygus())
+      {
+        std::vector<Node> children;
+        for (const Node& cn : cur)
+        {
+          it = visited.find(cn);
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          children.push_back(it->second);
+        }
+        index = utils::indexOf(cur.getOperator());
+        // apply to children, which constructs the builtin term
+        ret = utils::mkSygusTerm(dt, index, children);
+        // now apply it to arguments in args
+        ret = utils::applySygusArgs(dt, dt[index].getSygusOp(), ret, args);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 }  // namespace datatypes
