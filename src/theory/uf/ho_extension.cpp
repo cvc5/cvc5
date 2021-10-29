@@ -201,7 +201,8 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 unsigned HoExtension::checkExtensionality(TheoryModel* m)
 {
   // if we are in collect model info, we require looking at the model's
-  // equality engine, so that we only consider relevant function terms.
+  // equality engine, so that we only consider "relevant" (see
+  // Theory::computeRelevantTerms) function terms.
   eq::EqualityEngine* ee =
       m != nullptr ? m->getEqualityEngine() : d_state.getEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
