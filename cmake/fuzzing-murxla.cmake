@@ -40,7 +40,7 @@ ExternalProject_Add(
   #URL_HASH SHA1=da39a3ee5e6b4b0d3255bfef95601890afd80709
   SOURCE_DIR ${CMAKE_BINARY_DIR}/murxla
   CMAKE_ARGS
-    -DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/lib/cmake/cvc5/
+    -DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/
     -DENABLE_BITWUZLA=OFF
     -DENABLE_BOOLECTOR=OFF
     -DENABLE_YICES=OFF
