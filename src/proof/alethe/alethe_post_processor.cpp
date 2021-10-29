@@ -1368,8 +1368,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       //
       //  ----- REFL ... ----- REFL
       //   VP1            VPn         P2 ... Pn
-      //  --------------------------------------- bind, ((:= (v1 A1) w1) ... (:=
-      //  (vn An) wn))
+      //  --------------------------------------- bind,
+      //                                          ((:= (v1 A1) w1) ...
+      //                                          (:= (vn An) wn))
       //   (cl (= (forall ((v1 A1)...(vn An)) t2)
       //   (forall ((w1 B1)...(wn Bn)) s2)))*
       //
@@ -1384,8 +1385,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
       //
       // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
-      // s1
-      // ... sn))
+      // s1 ... sn))
     case PfRule::CONG:
     {
       if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
