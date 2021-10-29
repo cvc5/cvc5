@@ -34,7 +34,7 @@ void PolyNorm::addMonomial(TNode x, const Rational& c, bool isNeg)
   if (res.sgn() == 0)
   {
     // cancels
-    d_polyNorm.erase(x);
+    d_polyNorm.erase(it);
   }
   else
   {
@@ -51,7 +51,7 @@ void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
     for (std::pair<const Node, Rational>& m : d_polyNorm)
     {
       // c1*x*c2 = (c1*c2)*x
-      d_polyNorm[m.first] = Rational(m.second * c);
+      m.second *= c;
     }
   }
   else
@@ -62,7 +62,7 @@ void PolyNorm::multiplyMonomial(TNode x, const Rational& c)
     {
       // c1*x1*c2*x2 = (c1*c2)*(x1*x2)
       Node newM = multMonoVar(m.first, x);
-      d_polyNorm[newM] = Rational(m.second * c);
+      d_polyNorm[newM] = m.second * c;
     }
   }
 }
@@ -194,7 +194,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         if (r.sgn() == 0)
         {
           // zero is not an entry
-          visited[cur].clear();
+          visited[cur] = PolyNorm();
         }
         else
         {
@@ -204,7 +204,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
       else if (k == PLUS || k == MINUS || k == UMINUS || k == MULT
                || k == NONLINEAR_MULT)
       {
-        visited[cur].clear();
+        visited[cur] = PolyNorm();
         for (const Node& cn : cur)
         {
           visit.push_back(cn);
