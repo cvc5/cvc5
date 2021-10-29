@@ -37,7 +37,7 @@ if(Poly_INCLUDE_DIR
   check_system_version("Poly")
 endif()
 
-if(ENABLE_STATIC_LIBRARY AND Poly_FOUND_SYSTEM)
+if(ENABLE_STATIC_BUILD AND Poly_FOUND_SYSTEM)
   force_static_library()
   find_library(Poly_STATIC_LIBRARIES NAMES poly)
   find_library(PolyXX_STATIC_LIBRARIES NAMES polyxx)
@@ -158,7 +158,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set_target_properties(Polyxx_SHARED PROPERTIES IMPORTED_IMPLIB "${PolyXX_LIBRARIES}")
 endif()
 
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   add_library(Poly_STATIC STATIC IMPORTED GLOBAL)
   set_target_properties(Poly_STATIC PROPERTIES
     IMPORTED_LOCATION "${Poly_STATIC_LIBRARIES}"
@@ -194,7 +194,7 @@ else()
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     add_dependencies(Poly_STATIC Poly-EP)
     add_dependencies(Polyxx_STATIC Poly-EP)
   endif()

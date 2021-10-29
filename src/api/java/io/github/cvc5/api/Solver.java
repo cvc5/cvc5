@@ -1594,47 +1594,6 @@ public class Solver implements IPointer
       boolean global);
 
   /**
-   * Define n-ary function in the current context.
-   * SMT-LIB:
-   * {@code
-   * ( define-fun <function_def> )
-   * }
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @return the function
-   */
-  public Term defineFun(Term fun, Term[] boundVars, Term term)
-  {
-    return defineFun(fun, boundVars, term, false);
-  }
-  /**
-   * Define n-ary function.
-   * SMT-LIB:
-   * {@code
-   * ( define-fun <function_def> )
-   * }
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
-   */
-  public Term defineFun(Term fun, Term[] boundVars, Term term, boolean global)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer =
-        defineFun(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
-    return new Term(this, termPointer);
-  }
-
-  private native long defineFun(
-      long pointer, long funPointer, long[] boundVarPointers, long termPointer, boolean global);
-
-  /**
    * Define recursive function in the current context.
    * SMT-LIB:
    * {@code

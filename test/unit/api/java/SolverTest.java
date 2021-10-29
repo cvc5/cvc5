@@ -959,38 +959,25 @@ class SolverTest
   @Test void defineFun() throws CVC5ApiException
   {
     Sort bvSort = d_solver.mkBitVectorSort(32);
-    Sort funSort1 = d_solver.mkFunctionSort(new Sort[] {bvSort, bvSort}, bvSort);
-    Sort funSort2 =
+    Sort funSort =
         d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"), d_solver.getIntegerSort());
     Term b1 = d_solver.mkVar(bvSort, "b1");
-    Term b11 = d_solver.mkVar(bvSort, "b1");
     Term b2 = d_solver.mkVar(d_solver.getIntegerSort(), "b2");
-    Term b3 = d_solver.mkVar(funSort2, "b3");
+    Term b3 = d_solver.mkVar(funSort, "b3");
     Term v1 = d_solver.mkConst(bvSort, "v1");
-    Term v2 = d_solver.mkConst(d_solver.getIntegerSort(), "v2");
-    Term v3 = d_solver.mkConst(funSort2, "v3");
-    Term f1 = d_solver.mkConst(funSort1, "f1");
-    Term f2 = d_solver.mkConst(funSort2, "f2");
-    Term f3 = d_solver.mkConst(bvSort, "f3");
+    Term v2 = d_solver.mkConst(funSort, "v2");
     assertDoesNotThrow(() -> d_solver.defineFun("f", new Term[] {}, bvSort, v1));
     assertDoesNotThrow(() -> d_solver.defineFun("ff", new Term[] {b1, b2}, bvSort, v1));
-    assertDoesNotThrow(() -> d_solver.defineFun(f1, new Term[] {b1, b11}, v1));
     assertThrows(
         CVC5ApiException.class, () -> d_solver.defineFun("ff", new Term[] {v1, b2}, bvSort, v1));
 
     assertThrows(
-        CVC5ApiException.class, () -> d_solver.defineFun("fff", new Term[] {b1}, bvSort, v3));
+        CVC5ApiException.class, () -> d_solver.defineFun("fff", new Term[] {b1}, bvSort, v2));
     assertThrows(
-        CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[] {b1}, funSort2, v3));
+        CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[] {b1}, funSort2, v2));
 
     // b3 has function sort, which is allowed as an argument
     assertDoesNotThrow(() -> d_solver.defineFun("fffff", new Term[] {b1, b3}, bvSort, v1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[] {v1, b11}, v1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[] {b1}, v1));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[] {b1, b11}, v2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f1, new Term[] {b1, b11}, v3));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f2, new Term[] {b1}, v2));
-    assertThrows(CVC5ApiException.class, () -> d_solver.defineFun(f3, new Term[] {b1}, v1));
 
     Solver slv = new Solver();
     Sort bvSort2 = slv.mkBitVectorSort(32);
@@ -1012,15 +999,13 @@ class SolverTest
   @Test void defineFunGlobal()
   {
     Sort bSort = d_solver.getBooleanSort();
-    Sort fSort = d_solver.mkFunctionSort(bSort, bSort);
 
     Term bTrue = d_solver.mkBoolean(true);
     // (define-fun f () Bool true)
     Term f = d_solver.defineFun("f", new Term[] {}, bSort, bTrue, true);
     Term b = d_solver.mkVar(bSort, "b");
-    Term gSym = d_solver.mkConst(fSort, "g");
     // (define-fun g (b Bool) Bool b)
-    Term g = d_solver.defineFun(gSym, new Term[] {b}, b, true);
+    Term g = d_solver.defineFun("g", new Term[] {b}, bSort, b, true);
 
     // (assert (or (not f) (not (g true))))
     d_solver.assertFormula(
