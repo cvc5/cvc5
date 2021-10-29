@@ -5056,6 +5056,8 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
+  CVC5_API_RECOVERABLE_CHECK(!expr::hasFreeVar(term.getNode()))
+      << "Cannot get value of term containing free variables";
   //////// all checks before this line
   Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
