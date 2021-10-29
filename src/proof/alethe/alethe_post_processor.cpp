@@ -1902,9 +1902,71 @@ bool AletheProofPostprocessFinalCallback::update(
   return success;
 }
 
+AletheProofPostprocessNoSubtypeCallback::
+    AletheProofPostprocessNoSubtypeCallback(ProofNodeManager* pnm)
+    : d_pnm(pnm)
+{
+}
+
+
+bool AletheProofPostprocessNoSubtypeCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    const std::vector<Node>& fa,
+    bool& continueUpdate)
+{
+  return true;
+}
+
+bool AletheProofPostprocessNoSubtypeCallback::update(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate)
+{
+  Trace("alethe-proof-subtyping")
+      << "- Alethe post process no subtype callback " << res << " " << id << " "
+      << children << " / " << args << std::endl;
+  AlwaysAssert(args.size() >= 3);
+  // traverse conclusion and any other args and update them
+  bool changed = false;
+  std::vector<Node> newArgs{args[0], args[1]};
+  for (size_t i = 2, size = args.size(); i < size; ++i)
+  {
+
+    newArgs.push_back(d_anc.convert(args[i]));
+    changed |= newArgs.back() != args[i];
+  }
+  if (changed)
+  {
+    Trace("alethe-proof-subtyping")
+        << "\tConvertion changed " << args << " into " << newArgs << "\n";
+    // whether new conclusion became (= A A) or (cl (= A A))
+    if ((newArgs[2].getKind() == kind::EQUAL && newArgs[2][0] == newArgs[2][1])
+        || (newArgs[2].getKind() == kind::SEXPR
+            && newArgs[2].getNumChildren() == 2
+            && newArgs[2][1].getKind() == kind::EQUAL
+            && newArgs[2][1][0] == newArgs[2][1][1]))
+    {
+      Trace("alethe-proof-subtyping") << "\tTrivialized into REFL\n";
+      // turn this step into a REFL one, ignore children and remaining arguments
+      newArgs[0] = NodeManager::currentNM()->mkConst<Rational>(
+          static_cast<unsigned>(AletheRule::REFL));
+      cdp->addStep(res, id, {}, {newArgs.begin(), newArgs.begin() + 3});
+    }
+    else
+    {
+      cdp->addStep(res, id, children, newArgs);
+    }
+    return true;
+  }
+  return false;
+}
+
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
                                                AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc)
+  : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc), d_nst(d_pnm)
 {
 }
 
@@ -1923,6 +1985,10 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   // first SCOPE
   ProofNodeUpdater finalize(d_pnm, d_fcb, false, false);
   finalize.process(pf);
+
+  Trace("alethe-proof-subtyping")  << "\n--------------------------------\n";
+  ProofNodeUpdater finalFinal(d_pnm, d_nst, false, false);
+  finalFinal.process(pf->getChildren()[0]);
 }
 
 }  // namespace proof

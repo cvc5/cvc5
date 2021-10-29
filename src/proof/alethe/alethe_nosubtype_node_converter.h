@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Alethe node conversion
+ * Alethe node conversion to remove subtyping
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
-#define CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#ifndef CVC4__PROOF__ALETHE__ALETHE_NOSUBTYPE_NODE_CONVERTER_H
+#define CVC4__PROOF__ALETHE__ALETHE_NOSUBTYPE_NODE_CONVERTER_H
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
@@ -28,15 +28,13 @@ namespace proof {
  * This is a helper class for the Alethe post-processor that converts nodes into
  * form that Alethe expects.
  */
-class AletheNodeConverter : public NodeConverter
+class AletheNoSubtypeNodeConverter : public NodeConverter
 {
  public:
-  AletheNodeConverter();
-  ~AletheNodeConverter() {}
+  AletheNoSubtypeNodeConverter() {}
+  ~AletheNoSubtypeNodeConverter() {}
   /** Convert by removing attributes of quantifiers. */
   Node postConvert(Node n) override;
-  /** Should only traverse nodes containing closures. */
-  bool shouldTraverse(Node n) override;
 };
 
 }  // namespace proof
