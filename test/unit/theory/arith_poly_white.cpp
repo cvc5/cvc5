@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Unit tests for the strings/sequences rewriter.
+ * Unit tests for arithmetic polynomial normalization.
  */
 
 #include <iostream>
@@ -37,7 +37,6 @@ class TestTheoryWhiteArithPolyNorm : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    Options opts;
   }
 
   void testPolyNormEq(Node a, Node b)
@@ -63,6 +62,10 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
   Node w = d_nodeManager->mkVar("w", intType);
 
   Node t1, t2;
+  
+  t1 = zero;
+  t2 = one;
+  testPolyNormDeq(t1, t2);
 
   t1 = d_nodeManager->mkNode(PLUS, x, y);
   t2 = d_nodeManager->mkNode(PLUS, y, d_nodeManager->mkNode(MULT, one, x));
@@ -99,6 +102,11 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
 
   t1 = d_nodeManager->mkNode(MULT, d_nodeManager->mkNode(UMINUS, x), y);
   t2 = d_nodeManager->mkNode(MULT, d_nodeManager->mkNode(UMINUS, y), x);
+  testPolyNormEq(t1, t2);
+  
+  
+  t1 = d_nodeManager->mkNode(MULT, x, d_nodeManager->mkNode(PLUS, y, z));
+  t2 = d_nodeManager->mkNode(PLUS, d_nodeManager->mkNode(MULT, x, y), d_nodeManager->mkNode(MULT, z, x));
   testPolyNormEq(t1, t2);
 }
 
