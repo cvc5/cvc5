@@ -1644,7 +1644,26 @@ bool AletheProofPostprocessCallback::update(Node res,
     // This rule is translated according to the clauses pattern.
     case PfRule::REORDERING:
     {
-      return addAletheStepFromOr(AletheRule::REORDER, res, children, {}, *cdp);
+      Node trueNode = nm->mkConst(true);
+      std::vector<Node> new_children = children;
+      if (children[0].getKind() == kind::OR
+          && (args[0] != trueNode || children[0] != args[1]))
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
+        if (childPf->getRule() == PfRule::ASSUME
+            || childPf->getRule() == PfRule::EQ_RESOLVE)
+        {
+          // Add or step
+          std::vector<Node> subterms{d_cl};
+          subterms.insert(
+              subterms.end(), children[0].begin(), children[0].end());
+          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+          addAletheStep(
+              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+          new_children[0] = conclusion;
+        }
+      }
+      return addAletheStepFromOr(AletheRule::REORDER, res, new_children, {}, *cdp);
     }
     //================================================= Arithmetic rules
     default:
