@@ -15,6 +15,7 @@
 
 if(ENABLE_STATIC_BUILD)
   message(STATUS "Python bindings can only be built in a shared build.")
+  add_custom_target(pycvc5)
   return()
 endif()
 
