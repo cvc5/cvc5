@@ -46,6 +46,8 @@ class NodeConverter
   /**
    * This converts node n based on the preConvert/postConvert methods that can
    * be overriden by instances of this class.
+   *
+   * If n is null, this always returns the null node.
    */
   Node convert(Node n);
 
