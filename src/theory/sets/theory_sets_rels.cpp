@@ -1130,7 +1130,10 @@ void TheorySetsRels::check(Theory::Effort level)
             {
               // If we have (a,b) in R1, (c,d) in R2, and we are considering
               // join(R1, R2) must split on b=c if they are neither equal nor
-              // disequal.
+              // disequal. The generated lemma would be:
+              // (or
+              //  (and (= b c) (member (tuple a d) (join R1 R2))
+              //  (not (= b c))
               Node eq = r1_rmost.eqNode(r2_lmost);
               Node andNode = eq.andNode(fact);
               Node lem = nm->mkNode(kind::OR, andNode, eq.negate());
