@@ -1074,30 +1074,20 @@ void TheorySetsRels::check(Theory::Effort level)
         std::vector<Node> tuple_elements;
         tuple_elements.push_back(tn.getDType()[0].getConstructor());
         std::vector<Node> reasons;
+        Node r1_rmost =
+            RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
+        Node r2_lmost = RelsUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
         if (rk == kind::JOIN)
         {
-          Node r1_rmost =
-              RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
-          Node r2_lmost = RelsUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
-
           Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
                               << " of type " << r1_rmost.getType() << std::endl;
           Trace("rels-debug") << "[Theory::Rels] r2_lmost: " << r2_lmost
                               << " of type " << r2_lmost.getType() << std::endl;
-          if (!areEqual(r1_rmost, r2_lmost))
+          if (d_state.areDisequal(r1_rmost, r2_lmost))
           {
-            if (!d_state.areDisequal(r1_rmost, r2_lmost))
-            {
-              // If we have (a,b) in R1, (c,d) in R2, and we are considering
-              // join(R1, R2) must split on b=c if they are neither equal nor
-              // disequal.
-              Node eq = r1_rmost.eqNode(r2_lmost);
-              Node lem = nm->mkNode(kind::OR, eq, eq.negate());
-              d_im.addPendingLemma(lem, InferenceId::SETS_RELS_JOIN_ELEM_SPLIT);
-            }
             continue;
           }
-          else if (r1_rmost != r2_lmost)
+          if (areEqual(r1_rmost, r2_lmost) && (r1_rmost != r2_lmost))
           {
             reasons.push_back(nm->mkNode(kind::EQUAL, r1_rmost, r2_lmost));
           }
@@ -1136,8 +1126,20 @@ void TheorySetsRels::check(Theory::Effort level)
             sendInfer(
                 fact, InferenceId::SETS_RELS_PRODUCE_COMPOSE, nm->mkNode(kind::AND, reasons));
           } else {
-            sendInfer(
-                fact, InferenceId::SETS_RELS_JOIN_COMPOSE, nm->mkNode(kind::AND, reasons));
+            if (!areEqual(r1_rmost, r2_lmost))
+            {
+              // If we have (a,b) in R1, (c,d) in R2, and we are considering
+              // join(R1, R2) must split on b=c if they are neither equal nor
+              // disequal.
+              Node eq = r1_rmost.eqNode(r2_lmost);
+              Node andNode = eq.andNode(fact);
+              Node lem = nm->mkNode(kind::OR, andNode, eq.negate());
+              Trace("rels-debug") << "split join lemma: " << lem << std::endl;
+              d_im.addPendingLemma(lem, InferenceId::SETS_RELS_JOIN_ELEM_SPLIT);
+            }
+            sendInfer(fact,
+                      InferenceId::SETS_RELS_JOIN_COMPOSE,
+                      nm->mkNode(kind::AND, reasons));
           }
         }
       }
