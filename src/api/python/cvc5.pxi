@@ -569,8 +569,8 @@ cdef class Result:
 
     def isNull(self):
         """
-            :return: True if Result is empty, i.e., a nullary Result,
-            and not an actual result returned from a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
+            :return: True if Result is empty, i.e., a nullary Result, and not an actual result returned from a
+                     :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
         """
         return self.cr.isNull()
 
@@ -1811,14 +1811,8 @@ cdef class Solver:
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
-    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
-        """
-        Define n-ary function.
-        Supports two uses:
-
-        - ``Term defineFun(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
-        - ``Term defineFun(Term fun, List[Term] bound_vars, Term term, bool glbl)``
-
+    def defineFun(self, str symbol, list bound_vars, Sort sort, Term term, glbl=False):
+        """Define n-ary function.
 
         SMT-LIB:
 
@@ -1830,27 +1824,20 @@ cdef class Solver:
         :param bound_vars: the parameters to this function
         :param sort: the sort of the return value of this function
         :param term: the function body
-        :param global: determines whether this definition is global (i.e. persists when popping the context)
+        :param glbl: determines whether this definition is global (i.e. persists when popping the context)
         :return: the function
         """
-        cdef Term term = Term(self)
+        cdef Term fun = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
 
-        if t is not None:
-            term.cterm = self.csolver.defineFun((<str?> sym_or_fun).encode(),
-                                                <const vector[c_Term] &> v,
-                                                (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm,
-                                                <bint> glbl)
-        else:
-            term.cterm = self.csolver.defineFun((<Term?> sym_or_fun).cterm,
-                                                <const vector[c_Term]&> v,
-                                                (<Term?> sort_or_term).cterm,
-                                                <bint> glbl)
-
-        return term
+        fun.cterm = self.csolver.defineFun(symbol.encode(),
+                                           <const vector[c_Term] &> v,
+                                           sort.csort,
+                                           term.cterm,
+                                           <bint> glbl)
+        return fun
 
     def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         """Define recursive functions.
