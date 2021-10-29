@@ -472,6 +472,10 @@ endif()
 
 add_subdirectory(src)
 
+if(BUILD_BINDINGS_PYTHON AND ENABLE_STATIC_BUILD)
+  message(STATUS "Python bindings can only be built in a shared build.")
+  set(BUILD_BINDINGS_PYTHON OFF)
+endif()
 if(BUILD_BINDINGS_PYTHON)
   set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
   add_subdirectory(src/api/python)

@@ -13,12 +13,6 @@
 # The build system configuration.
 ##
 
-if(ENABLE_STATIC_BUILD)
-  message(STATUS "Python bindings can only be built in a shared build.")
-  add_custom_target(pycvc5)
-  return()
-endif()
-
 # Check that scikit-build is installed
 # Provides CMake files for Python bindings
 check_python_module("skbuild" "scikit-build")
