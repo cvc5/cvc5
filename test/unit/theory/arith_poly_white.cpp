@@ -34,10 +34,7 @@ namespace test {
 class TestTheoryWhiteArithPolyNorm : public TestSmt
 {
  protected:
-  void SetUp() override
-  {
-    TestSmt::SetUp();
-  }
+  void SetUp() override { TestSmt::SetUp(); }
 
   void testPolyNormEq(Node a, Node b)
   {
@@ -62,7 +59,7 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
   Node w = d_nodeManager->mkVar("w", intType);
 
   Node t1, t2;
-  
+
   t1 = zero;
   t2 = one;
   testPolyNormDeq(t1, t2);
@@ -103,10 +100,11 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
   t1 = d_nodeManager->mkNode(MULT, d_nodeManager->mkNode(UMINUS, x), y);
   t2 = d_nodeManager->mkNode(MULT, d_nodeManager->mkNode(UMINUS, y), x);
   testPolyNormEq(t1, t2);
-  
-  
+
   t1 = d_nodeManager->mkNode(MULT, x, d_nodeManager->mkNode(PLUS, y, z));
-  t2 = d_nodeManager->mkNode(PLUS, d_nodeManager->mkNode(MULT, x, y), d_nodeManager->mkNode(MULT, z, x));
+  t2 = d_nodeManager->mkNode(PLUS,
+                             d_nodeManager->mkNode(MULT, x, y),
+                             d_nodeManager->mkNode(MULT, z, x));
   testPolyNormEq(t1, t2);
 }
 
