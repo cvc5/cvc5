@@ -567,7 +567,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     // finished traversing the equality engine
     TypeNode eqct = eqc.getType();
     // count the number of equivalence classes of sorts in finite model finding
-    if (options::finiteModelFind())
+    if (options().quantifiers.finiteModelFind)
     {
       if (eqct.isSort())
       {
@@ -660,7 +660,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   // then the type enumerator for list of U should enumerate:
   //   nil, (cons U1 nil), (cons U2 nil), (cons U1 (cons U1 nil)), ...
   // instead of enumerating (cons U3 nil).
-  if (options::finiteModelFind())
+  if (options().quantifiers.finiteModelFind)
   {
     tep.d_fixed_usort_card = true;
     for (std::map<TypeNode, unsigned>::iterator it = eqc_usort_count.begin();
@@ -847,7 +847,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       }
 #ifdef CVC5_ASSERTIONS
       bool isUSortFiniteRestricted = false;
-      if (options::finiteModelFind())
+      if (options().quantifiers.finiteModelFind)
       {
         isUSortFiniteRestricted = !t.isSort() && involvesUSort(t);
       }
@@ -1080,7 +1080,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
   }
   Assert(m != nullptr);
   // debug-check the model if the checkModels() is enabled.
-  if (options::debugCheckModels())
+  if (options().smt.debugCheckModels)
   {
     debugCheckModel(m);
   }
@@ -1258,7 +1258,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     default_v = (*te);
   }
   ufmt.setDefaultValue(m, default_v);
-  bool condenseFuncValues = options::condenseFunctionValues();
+  bool condenseFuncValues = options().theory.condenseFunctionValues;
   if (condenseFuncValues)
   {
     ufmt.simplify();
@@ -1389,7 +1389,7 @@ struct sortTypeSize
 
 void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 {
-  if (!options::assignFunctionValues())
+  if (!options().theory.assignFunctionValues)
   {
     return;
   }
