@@ -24,7 +24,7 @@ namespace cvc5 {
 
 namespace proof {
 
-AletheProofPrinter::AletheProofPrinter(bool extended) : d_extended(extended)
+AletheProofPrinter::AletheProofPrinter()
 {
   nested_level = 0;
   step_id = 1;
@@ -190,15 +190,12 @@ std::string AletheProofPrinter::alethePrinterInternal(
     child_prefixes.push_back(alethePrinterInternal(out, child));
   }
 
-  // If rule is SYMM or REORDER the rule should not be printed in non-extended
-  // mode if (!d_extended && (vrule == AletheRule::REORDER || vrule ==
-  // AletheRule::SYMM)) for now exclude all reorder rules since they cannot be
-  // reconstructed in Isabelle yet.
-  /*if (vrule == AletheRule::REORDER
-      || (!d_extended && vrule == AletheRule::SYMM))
+  // If rule is REORDER the rule should not be printed for now since they cannot
+  // be reconstructed in Isabelle yet.
+  /*if (vrule == AletheRule::REORDER)
   {
     Trace("alethe-printer")
-        << "... non-extended mode skip child " << pfn->getResult() << " "
+        << "... skip reordering " << pfn->getResult() << " "
         << vrule << " / " << pfn->getArguments() << std::endl;
     return child_prefixes[0];
   }*/
