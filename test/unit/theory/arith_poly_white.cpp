@@ -48,7 +48,6 @@ class TestTheoryWhiteArithPolyNorm : public TestSmt
 
 TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
 {
-  StringsEntail& se = d_seqRewriter->getStringsEntail();
   TypeNode intType = d_nodeManager->integerType();
   Node zero = d_nodeManager->mkConst(Rational(0));
   Node one = d_nodeManager->mkConst(Rational(1));
@@ -110,7 +109,6 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
 
 TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
 {
-  StringsEntail& se = d_seqRewriter->getStringsEntail();
   TypeNode realType = d_nodeManager->realType();
   Node zero = d_nodeManager->mkConst(Rational(0));
   Node one = d_nodeManager->mkConst(Rational(1));
