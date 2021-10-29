@@ -252,7 +252,11 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       {
         // if these equivalence classes are not explicitly disequal, do
         // extensionality to ensure distinctness. Notice that we always use
-        // the (local) equality engine for this check via the state.
+        // the (local) equality engine for this check via the state, since the
+        // model's equality engine does not store any disequalities. This is
+        // an optimization to introduce fewer equalities during model
+        // construction, since we know such disequalities have already been
+        // witness via assertions.
         if (!d_state.areDisequal(itf->second[j], itf->second[k]))
         {
           Node deq =
