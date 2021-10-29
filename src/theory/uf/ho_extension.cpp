@@ -250,8 +250,9 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       for (unsigned k = (j + 1), sizek = itf->second.size(); k < sizek; k++)
       {
         // if these equivalence classes are not explicitly disequal, do
-        // extensionality to ensure distinctness
-        if (!ee->areDisequal(itf->second[j], itf->second[k], false))
+        // extensionality to ensure distinctness. Notice that we always use
+        // the (local) equality engine for this check via the state.
+        if (!d_state.areDisequal(itf->second[j], itf->second[k]))
         {
           Node deq =
               Rewriter::rewrite(itf->second[j].eqNode(itf->second[k]).negate());
