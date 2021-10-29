@@ -1331,6 +1331,24 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case PfRule::SYMM:
+    {
+      if (res.getKind() == kind::NOT)
+      {
+        return addAletheStep(AletheRule::NOT_SYMM,
+                             res,
+                             nm->mkNode(kind::SEXPR, d_cl, res),
+                             children,
+                             {},
+                             *cdp);
+      }
+      return addAletheStep(AletheRule::SYMM,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     case PfRule::TRANS:
     {
       return addAletheStep(AletheRule::TRANS,
