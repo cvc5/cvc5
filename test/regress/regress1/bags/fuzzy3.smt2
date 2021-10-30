@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-info :status sat)
 (set-option :produce-models true)
 (declare-fun A () (Bag (Tuple Int Int)))
 (declare-fun B () (Bag (Tuple Int Int)))
