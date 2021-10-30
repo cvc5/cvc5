@@ -15,6 +15,7 @@
 
 #include "theory/strings/regexp_elim.h"
 
+#include "expr/bound_var_manager.h"
 #include "options/strings_options.h"
 #include "proof/proof_node_manager.h"
 #include "theory/rewriter.h"
@@ -28,6 +29,22 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace strings {
+
+/**
+ * Attributes used for constructing unique bound variables. The following
+ * attributes are used to construct (deterministic) bound variables for
+ * eliminations within eliminateConcat and eliminateStar respectively.
+ */
+struct ReElimConcatIndexAttributeId
+{
+};
+typedef expr::Attribute<ReElimConcatIndexAttributeId, Node>
+    ReElimConcatIndexAttribute;
+struct ReElimStarIndexAttributeId
+{
+};
+typedef expr::Attribute<ReElimStarIndexAttributeId, Node>
+    ReElimStarIndexAttribute;
 
 RegExpElimination::RegExpElimination(bool isAgg,
                                      ProofNodeManager* pnm,
@@ -77,6 +94,7 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
 Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
 {
   NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
@@ -260,7 +278,11 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           }
           // if the gap after this one is strict, we need a non-greedy find
           // thus, we add a symbolic constant
-          Node k = nm->mkBoundVar(nm->integerType());
+          Node cacheVal =
+              BoundVarManager::getCacheValue(atom, nm->mkConst(Rational(i)));
+          TypeNode intType = nm->integerType();
+          Node k =
+              bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
           non_greedy_find_vars.push_back(k);
           prev_end = nm->mkNode(PLUS, prev_end, k);
         }
@@ -452,7 +474,10 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       }
       else
       {
-        k = nm->mkBoundVar(nm->integerType());
+        Node cacheVal =
+            BoundVarManager::getCacheValue(atom, nm->mkConst(Rational(i)));
+        TypeNode intType = nm->integerType();
+        k = bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
         Node bound =
             nm->mkNode(AND,
                        nm->mkNode(LEQ, zero, k),
@@ -509,6 +534,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   // only aggressive rewrites below here
 
   NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
@@ -530,7 +556,8 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   }
   bool lenOnePeriod = true;
   std::vector<Node> char_constraints;
-  Node index = nm->mkBoundVar(nm->integerType());
+  TypeNode intType = nm->integerType();
+  Node index = bvm->mkBoundVar<ReElimStarIndexAttribute>(atom, intType);
   Node substr_ch =
       nm->mkNode(STRING_SUBSTR, x, index, nm->mkConst(Rational(1)));
   substr_ch = Rewriter::rewrite(substr_ch);
