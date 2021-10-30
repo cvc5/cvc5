@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-sygus-inst
+; COMMAND-LINE: --no-sygus-inst --no-check-unsat-cores
 (set-info :smt-lib-version 2.6)
 (set-logic NIA)
 (set-info :status unsat)

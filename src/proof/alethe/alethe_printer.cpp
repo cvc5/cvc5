@@ -99,19 +99,21 @@ std::string AletheProofPrinter::alethePrinterInternal(
         << "... print anchor " << pfn->getResult() << " " << vrule << " "
         << " / " << pfn->getArguments() << std::endl;
     out << "(anchor :step " << prefix << "t" << step_id;  // << " :args (";
-    if(vrule == AletheRule::ANCHOR_BIND){
-	    out << " :args (";
-    for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
-         j++)
+    if (vrule == AletheRule::ANCHOR_BIND)
     {
-        out << "(:= (" << pfn->getArguments()[j][0].toString() << " " << pfn->getArguments()[j][0].getType().toString() << ") "
-            << pfn->getArguments()[j][1].toString() << ")";
-      if (j != pfn->getArguments().size() - 1)
+      out << " :args (";
+      for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
+           j++)
       {
-        out << " ";
+        out << "(:= (" << pfn->getArguments()[j][0].toString() << " "
+            << pfn->getArguments()[j][0].getType().toString() << ") "
+            << pfn->getArguments()[j][1].toString() << ")";
+        if (j != pfn->getArguments().size() - 1)
+        {
+          out << " ";
+        }
       }
-    }
-    out << ")";
+      out << ")";
     }
     out << ")\n";
 
@@ -156,7 +158,7 @@ std::string AletheProofPrinter::alethePrinterInternal(
           << assumptions[nested_level] << std::endl;
       return prefix + "a" + std::to_string(it->second);
     }
-  // temp, hotfix
+    // temp, hotfix
     auto prefix2 = prefix;
     for (int i = nested_level; i >= 0; i--)
     {
@@ -174,13 +176,13 @@ std::string AletheProofPrinter::alethePrinterInternal(
             << prefix2 << std::endl;
         return prefix2 + "a" + std::to_string(it->second);
       }
-  }
+    }
 
-  Trace("alethe-printer") << "... printing failed! Encountered assumption "
-                             "that has not been printed! "
-                          << pfn->getArguments()[2] << "/"
-                          << assumptions[nested_level] << std::endl;
-  return "";
+    Trace("alethe-printer") << "... printing failed! Encountered assumption "
+                               "that has not been printed! "
+                            << pfn->getArguments()[2] << "/"
+                            << assumptions[nested_level] << std::endl;
+    return "";
   }
 
   // Print children

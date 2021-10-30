@@ -155,6 +155,8 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
+  proof/annotation_proof_generator.cpp
+  proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
@@ -174,6 +176,10 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
+  proof/lean/lean_post_processor.cpp
+  proof/lean/lean_post_processor.h
+  proof/lean/lean_printer.cpp
+  proof/lean/lean_printer.h
   proof/lfsc/lfsc_list_sc_node_converter.cpp
   proof/lfsc/lfsc_list_sc_node_converter.h
   proof/lfsc/lfsc_node_converter.cpp
@@ -221,6 +227,8 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/alethe/alethe_nosubtype_node_converter.cpp
+  proof/alethe/alethe_nosubtype_node_converter.h
   proof/alethe/alethe_node_converter.cpp
   proof/alethe/alethe_node_converter.h
   proof/alethe/alethe_post_processor.cpp
@@ -735,6 +743,8 @@ libcvc5_add_sources(
   theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
+  theory/inference_id_proof_annotator.cpp
+  theory/inference_id_proof_annotator.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
   theory/logic_info.cpp
@@ -889,6 +899,8 @@ libcvc5_add_sources(
   theory/quantifiers/quantifiers_state.h
   theory/quantifiers/quantifiers_statistics.cpp
   theory/quantifiers/quantifiers_statistics.h
+  theory/quantifiers/query_cache.cpp
+  theory/quantifiers/query_cache.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
   theory/quantifiers/query_generator_unsat.cpp
@@ -1304,11 +1316,19 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
 #-----------------------------------------------------------------------------#
+
+set(REWRITES_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites)
+
+#-----------------------------------------------------------------------------#
 # Add subdirectories
 
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
+add_subdirectory(rewriter)
 add_subdirectory(parser)
 add_subdirectory(theory)
 add_subdirectory(util)
@@ -1326,7 +1346,7 @@ set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # add_dependencies() is necessary for cmake versions before 3.21
 add_dependencies(cvc5-obj cvc5base cvc5context)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-tags gen-theory)
+add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-rewrites gen-tags gen-theory)
 
 # Link the shared library
 add_library(cvc5-shared SHARED $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)

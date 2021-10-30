@@ -41,7 +41,7 @@ class AletheProofPrinter
  private:
   /** Used for printing the node after the initial anchor has been printed */
   std::string alethePrinterInternal(std::ostream& out,
-                                   std::shared_ptr<ProofNode> pfn);
+                                    std::shared_ptr<ProofNode> pfn);
   /** The current level of nesting, which increases if a subproof is entered */
   int nested_level;
   /** Current step id */

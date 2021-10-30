@@ -1,0 +1,160 @@
+PR finished:
+
+(0) Add proof option
+(1) Add ProofNode printing as dag via SExpr
+(2) Strings solver state minor update
+(3) string rewrite for re inclusion
+(4) SkolemManager (previously ProofSkolemCache)
+(5) ProofChecker improve tracing, features
+(6) Equality engine updates [Haniel] (req 0)
+(7) strings SkolemCache uses SkolemManager (req 4)
+(8) refactor mkSkolemExists
+(9) Proof step buffer (req 5)
+(10) Update CDProof (req 9, 16)
+(11) ProofGenerator (req 10)
+(12) Add TrustNode (req 11)
+(13) Add EagerProofGenerator (req 11, 12)
+(14) Builtin rules, builtin checker (req 5)
+(15) Boolean rules, boolean checker [Haniel] (req 5)
+(16) UF rules, UF checker [Haniel] (req 5)
+(17) rewriter new infrastructure "rewriteEqualityExt"
+(18) Add LazyCDProof (req 11)
+(19) ProofNode update, refactor free assumptions via proof_node_algorithm
+(20) Eq proof conversion [Haniel]
+(21) static strings preprocess reduce (req 7)
+(22) Strings base solver update (req 2)
+(23) Updates to proof node manager, including mkScope (req 19)
+(24) ProofEqEngine (req 6, 10, 11, 12, 18, 20, 23)
+(25) Arithmetic proof checker [Alex]
+(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 45, 65, 82)
+(27) split theory engine
+(28) ProofSkolemCache -> SkolemManager
+(29) [x10] arithmetic proof producing [Alex] (req 24, 25)
+(30) Arithmetic operator elimination proof producing initial (req 25, 28, 33, 64)
+(31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
+(32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
+(33) split operator elimination from arith (req 28)
+(34) theory proof step buffer
+(35) Strings term registry update (req 13)
+(36) term conversion proof generator
+(37) Rewriter proof producing
+(38) quantifiers proof checker (req 8)
+(39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
+(40) theory engine proof generator (req 11, 13, 18, 23)
+(41) SharedTermDatabase uses pfee (req 24, cee-shs)
+(42) Strings proof checker (req 5, 17, 22, 45, 65)
+(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86)
+(44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
+(45) regexp operation refactor (req 3, 7, 8)
+(46) term context core utilities
+(47) TheoryUF proof producing (req 24, 39, 90)
+(48) remove snorm option
+(49) re elim static
+(50) term formula removal proof producing (req 36, 38, 51, 64)
+(51) TrustNode rewrite kind
+(52) theory preprocess proof producing (req 27, 48, 51, 50)
+(53) CNF proof producing [Haniel] (req 109, 110)
+(59) updates to TConvGenerator for ONCE policy
+(60) proof node updater utility (req 23)
+(61) witness rewrite
+(62) update proof checker for Skolem forms
+(63) SMT engine proof post-processor callback (req 37, 59, 66, 72)
+(64) updates to SkolemManager
+(65) updates to strings core solver
+(66) preprocess proof generator
+(67) AssertionsPipeline update (req 66)
+(68) PropEngine proof producing [Haniel] (req 53, 85, 110, 111, 112)
+(69) Initial dumping infrastructure [Haniel]
+(71) quantifiers proof producing (req 38, 52, 87)
+(72) witness form proof generator
+(73) ProofNode print ast
+(74) extend interface to proof generator
+(75) extend interface to proof checker for trusted checkers
+(76) further generalization of eq_proof conversion [Haniel]
+(77) update rule for CONG (req 76)
+(79) term context extended utilities (req 46)
+(80) generalize TConvProofGenerator for term contexts (req 79)
+(81) update term formula removal to use term context (req 79, 80)
+(82) SmtEngine proof manager (req 84, 87, 93)
+(84) SMT engine proof post-processor (req 63)
+(85) SmtEngine infrastructure for check proofs (req 82)
+(86) builtin proof checker updates including theory rewrite is a trusted rule
+(87) Delete old proof code [Haniel]
+(88) fixes for smt preprocess proof generator
+(89) combination engine proof producing
+(90) inference manager uses pfee
+(91) Proof producing lemma TheoryEngine
+(92) strings term registry proof preparation (req 75)
+(93) updates to proof node updater (req 86)
+(94) HO_CONG in eq proof conversion [Haniel]
+(95) Arrays proof checker
+(96) arrays proof producing (req 95)
+(97) term conversion sequence generator
+(98) enable proofs on CI
+(99) SAT rules to Boolean checker [Haniel]
+(100) fixes for instantiate, quantifiers proof checker
+(101) strings misc changes to preprocess, base (req 31, 43)
+(102) proof equality engine always proof
+(103) buffered proof manager [Haniel] (req 102)
+(104) lazy proof chain [Haniel]
+(105) fixes for theory engine proof generator
+(106) term conversion operators + term context operators
+(107) fmf fun def as preprocessing pass
+(108) generalizing mkScope to True assumptions [Haniel] (req 104)
+(109) clause normalization [Haniel]
+(110) Sat proof manager [Haniel] (req 104)
+(111) Prop engine proof post processor [Haniel] (req 53, 110)
+(112) Prop engine proof manager [Haniel] (req 111)
+(113) eliminate preprocessing passes non-const uses
+(114) theory preprocess fixes (req 97)
+(115) trust substitution and ppAssert interface
+(116) general smt preprocess proof generator (req 119)
+(117) trust substitution implementation (req 119)
+(118) non-clausal simplification proof producing (req 116, 117, 120, 125)
+(119) Lazy proof set
+(120) new miscellaneous proof rules + Boolean checker
+(121) proof rule checker simplify
+(122) allow AND substitutions in proof post processor
+(123) proof node updater merge policy
+(124) miscellaneous updates
+(125) [x2] proof producing circuit propagator [Gereon]
+(126) datatype inferences
+(127) datatypes proof checker (req 126)
+(128) updates to lazy cd proof chain [Haniel]
+(129) refinements to cyclic checking policy
+(130) regexp elimination proofs (req 101)
+(131) Updates to Boolean proof checker [Haniel]
+(132) Datatypes inference to proof (req 127)
+(134) proofs for skolemization
+(135) Datatypes proof producing (req 132)
+(136) BV proof checker [Mathias]
+(137) basic proofs for simple BV solver [Mathias]
+(138) Macro resolution expansion [Haniel]
+(139) CAD proofs [Gereon]
+(140) nl-ext proofs [Gereon]
+(141) nl transcendental proofs [Gereon]
+(142) instantiation list utility
+(143) unsat core support in SmtEngine, update regressions for unsat core option name [Haniel]
+(144) quantifiers instantiation printing refactoring (req 142)
+(145) node converter
+(146) proof letify
+(147) SEXPR simply typed
+
+PRs ready:
+
+(70) rewriter unit test [Andres] (req 36, 37)
+(133) Boolean proof checker unit test [Haniel]
+
+PRs future:
+
+(54) DSL rewrite rule (req 148)
+(55) DSL rewrite rule term processor
+(56) DSL rewrite rule database (req 54)
+(57) compilation of rewrite DSL into DSL rewrite rule database initialization [Andres] (req 56)
+(58) DSL rewrite rule proof generator (req 57)
+(83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
+(148) Add rewriter build directory [Andres]
+
+Wish list:
+
+- arith op eliminate proof producing, defining axioms (req 30)

@@ -16,8 +16,13 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "rewriter/rewrite_db.h"
+#include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/env.h"
 #include "smt/term_formula_removal.h"
+#include "theory/evaluator.h"
+#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
@@ -29,7 +34,10 @@ namespace cvc5 {
 namespace theory {
 namespace builtin {
 
-BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env) : d_env(env) {}
+BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env)
+    : d_env(env), d_rdb(nullptr)
+{
+}
 
 void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {
@@ -44,6 +52,9 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  pc->registerChecker(PfRule::ENCODE_PRED_TRANSFORM, this);
+  pc->registerChecker(PfRule::ANNOTATION, this);
+  pc->registerChecker(PfRule::DSL_REWRITE, this);
   // trusted rules
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
   pc->registerTrustedChecker(PfRule::PREPROCESS, this, 3);
@@ -57,7 +68,12 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_MAP, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS_EQ, this, 3);
   pc->registerTrustedChecker(PfRule::THEORY_INFERENCE, this, 3);
+  // external proof rules
+  pc->registerChecker(PfRule::LFSC_RULE, this);
   pc->registerChecker(PfRule::ALETHE_RULE, this);
+  pc->registerChecker(PfRule::LEAN_RULE, this);
+
+  d_rdb = pc->getRewriteDatabase();
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -349,6 +365,9 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // if not already equal, do rewriting
     if (res1 != res2)
     {
+      Trace("builtin-pfcheck-debug")
+          << "Failed to show " << res1 << " == " << res2
+          << ", resort to original forms..." << std::endl;
       // can rewrite the witness forms
       res1 = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res1));
       res2 = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res2));
@@ -380,6 +399,65 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());
     return args[0];
+  }
+  else if (id == PfRule::LFSC_RULE || id == PfRule::ALETHE_RULE
+           || id == PfRule::LEAN_RULE)
+  {
+    Assert(args.size() > 1);
+    Assert(args[0].getType().isInteger());
+    return args[1];
+  }
+  else if (id == PfRule::ENCODE_PRED_TRANSFORM)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size() == 1);
+    rewriter::RewriteDbNodeConverter rconv;
+    Node f = children[0];
+    Node g = args[0];
+    // equivalent up to conversion via utility
+    if (rconv.convert(f) != rconv.convert(g))
+    {
+      return Node::null();
+    }
+    return g;
+  }
+  else if (id == PfRule::ANNOTATION)
+  {
+    Assert(children.size() == 1);
+    return children[0];
+  }
+  else if (id == PfRule::DSL_REWRITE)
+  {
+    // consult rewrite db, apply args[1]...args[n] as a substituion
+    // to variable list and prove equality between LHS and RHS.
+    Assert(d_rdb != nullptr);
+    rewriter::DslPfRule di;
+    if (!getDslPfRule(args[0], di))
+    {
+      return Node::null();
+    }
+    const rewriter::RewriteProofRule& rpr = d_rdb->getRule(di);
+    const std::vector<Node>& varList = rpr.getVarList();
+    const std::vector<Node>& conds = rpr.getConditions();
+    std::vector<Node> subs(args.begin() + 1, args.end());
+    if (varList.size() != subs.size())
+    {
+      return Node::null();
+    }
+    // check whether child proof match
+    if (conds.size() != children.size())
+    {
+      return Node::null();
+    }
+    for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
+    {
+      Node scond = expr::narySubstitute(conds[i], varList, subs);
+      if (scond != children[i])
+      {
+        return Node::null();
+      }
+    }
+    return rpr.getConclusionFor(subs);
   }
 
   // no rule

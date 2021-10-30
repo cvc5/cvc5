@@ -63,6 +63,12 @@ void SetDefaults::setDefaults(LogicInfo& logic, Options& opts)
 
 void SetDefaults::setDefaultsPre(Options& opts)
 {
+  // TEMPORARY for testing
+  if (opts.proof.proofReq && !opts.smt.produceProofs)
+  {
+    AlwaysAssert(false) << "Fail due to --proof-req "
+                        << opts.smt.produceProofsWasSetByUser;
+  }
   // implied options
   if (opts.smt.debugCheckModels)
   {
@@ -114,14 +120,18 @@ void SetDefaults::setDefaultsPre(Options& opts)
   if (opts.smt.produceProofs
       && opts.smt.unsatCoresMode != options::UnsatCoresMode::FULL_PROOF)
   {
-    if (opts.smt.unsatCoresModeWasSetByUser)
+    if (opts.smt.unsatCores || !opts.smt.unsatCoresModeWasSetByUser)
     {
-      Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
-                  "were requested.\n";
+      if (opts.smt.unsatCoresModeWasSetByUser)
+      {
+        Notice() << "Forcing full-proof mode for unsat cores mode since proofs "
+                    "were requested.\n";
+      }
+      // enable unsat cores, because they are available as a consequence of
+      // proofs
+      opts.smt.unsatCores = true;
+      opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
     }
-    // enable unsat cores, because they are available as a consequence of proofs
-    opts.smt.unsatCores = true;
-    opts.smt.unsatCoresMode = options::UnsatCoresMode::FULL_PROOF;
   }
 
   // set proofs on if not yet set
@@ -172,6 +182,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       Notice() << "SolverEngine: turning off produce-proofs due to "
                << reasonNoProofs.str() << "." << std::endl;
       opts.smt.produceProofs = false;
+      opts.proof.proofReq = false;
       opts.smt.checkProofs = false;
     }
   }
@@ -521,9 +532,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // by default, symmetry breaker is on only for non-incremental QF_UF
   if (!opts.uf.ufSymmetryBreakerWasSetByUser)
   {
+    // we disable this technique for *any* unsat core production, since it
+    // uses a non-standard implementation that sends (unsound) lemmas during
+    // presolve.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !opts.base.incrementalSolving
-                       && !safeUnsatCores(opts);
+                       && !opts.base.incrementalSolving && !opts.smt.unsatCores;
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     opts.uf.ufSymmetryBreaker = qf_uf_noinc;

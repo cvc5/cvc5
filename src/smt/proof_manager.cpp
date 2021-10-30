@@ -23,11 +23,14 @@
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/lean/lean_post_processor.h"
+#include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrite_db.h"
 #include "smt/assertions.h"
 #include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
@@ -39,9 +42,11 @@ namespace smt {
 
 PfManager::PfManager(Env& env)
     : EnvObj(env),
+      d_rewriteDb(new rewriter::RewriteDb),
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
-          options().proof.proofPedantic)),
+          options().proof.proofPedantic,
+          d_rewriteDb.get())),
       d_pnm(new ProofNodeManager(env.getRewriter(), d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
@@ -70,7 +75,7 @@ PfManager::PfManager(Env& env)
   d_pfpp.reset(new ProofPostproccess(
       env,
       d_pppg.get(),
-      nullptr,
+      d_rewriteDb.get(),
       options().proof.proofFormatMode != options::ProofFormatMode::ALETHE));
 
   // add rules to eliminate here
@@ -146,6 +151,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
 
   Trace("smt-proof") << "SolverEngine::setFinalProof(): postprocess...\n";
   Assert(d_pfpp != nullptr);
+  d_pfpp->setAssertions(assertions);
   d_pfpp->process(pfn);
 
   Trace("smt-proof") << "SolverEngine::setFinalProof(): make scope...\n";
@@ -176,7 +182,15 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter;
     dotPrinter.print(out, fp.get());
   }
-  else if (options::proofFormatMode() == options::ProofFormatMode::ALETHE)
+  else if (options().proof.proofFormatMode == options::ProofFormatMode::LEAN)
+  {
+    proof::LeanProofPostprocess lpfpp(d_pnm.get());
+    std::vector<Node> assertions;
+    getAssertions(as, assertions);
+    lpfpp.process(fp);
+    proof::LeanPrinter::print(out, assertions, fp);
+  }
+  else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
@@ -191,7 +205,7 @@ void PfManager::printProof(std::ostream& out,
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
     lpp.process(fp);
-    proof::LfscPrinter lp(ltp);
+    proof::LfscPrinter lp(ltp, d_rewriteDb.get());
     lp.print(out, assertions, fp.get());
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::TPTP)
@@ -275,7 +289,10 @@ ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
-rewriter::RewriteDb* PfManager::getRewriteDatabase() const { return nullptr; }
+rewriter::RewriteDb* PfManager::getRewriteDatabase() const
+{
+  return d_rewriteDb.get();
+}
 
 smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 {

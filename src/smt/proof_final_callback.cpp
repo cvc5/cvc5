@@ -18,6 +18,7 @@
 #include "options/proof_options.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory_id.h"
@@ -30,10 +31,16 @@ namespace smt {
 
 ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
     : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
-          "finalProof::ruleCount")),
+        "finalProof::ruleCount")),
       d_instRuleIds(
           smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::instRuleId")),
+      d_annotationRuleIds(
+          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+              "finalProof::annotationRuleId")),
+      d_dslRuleCount(
+          smtStatisticsRegistry().registerHistogram<rewriter::DslPfRule>(
+              "finalProof::dslRuleCount")),
       d_totalRuleCount(
           smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
@@ -82,8 +89,18 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   // record stats for the rule
   d_ruleCount << r;
   ++d_totalRuleCount;
+  // if a DSL rewrite, take DSL stat
+  if (r == PfRule::DSL_REWRITE)
+  {
+    const std::vector<Node>& args = pn->getArguments();
+    rewriter::DslPfRule di;
+    if (rewriter::getDslPfRule(args[0], di))
+    {
+      d_dslRuleCount << di;
+    }
+  }
   // take stats on the instantiations in the proof
-  if (r == PfRule::INSTANTIATE)
+  else if (r == PfRule::INSTANTIATE)
   {
     Node q = pn->getChildren()[0]->getResult();
     const std::vector<Node>& args = pn->getArguments();
@@ -94,6 +111,33 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       {
         d_instRuleIds << id;
       }
+    }
+  }
+  else if (r == PfRule::ANNOTATION)
+  {
+    // we currently assume the annotation is a single inference id
+    const std::vector<Node>& args = pn->getArguments();
+    if (args.size() > 0)
+    {
+      InferenceId id;
+      if (getInferenceId(args[0], id))
+      {
+        d_annotationRuleIds << id;
+      }
+    }
+  }
+  // print for debugging
+  if (Trace.isOn("final-pf-hole"))
+  {
+    // currently only track theory rewrites
+    if (r == PfRule::THEORY_REWRITE)
+    {
+      const std::vector<Node>& args = pn->getArguments();
+      Node eq = args[0];
+      TheoryId tid = THEORY_BUILTIN;
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+      Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
+                             << " ---> " << eq[1] << std::endl;
     }
   }
   return false;

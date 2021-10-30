@@ -1413,6 +1413,8 @@ TEST_F(TestApiBlackSolver, getUnsatAssumptions3)
 TEST_F(TestApiBlackSolver, getUnsatCore1)
 {
   d_solver.setOption("incremental", "false");
+  // !!! temporary on proof-new
+  d_solver.setOption("produce-proofs", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
   ASSERT_THROW(d_solver.getUnsatCore(), CVC5ApiException);
@@ -1422,6 +1424,8 @@ TEST_F(TestApiBlackSolver, getUnsatCore2)
 {
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-unsat-cores", "false");
+  // !!! temporary on proof-new
+  d_solver.setOption("produce-proofs", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
   ASSERT_THROW(d_solver.getUnsatCore(), CVC5ApiException);
@@ -1897,15 +1901,6 @@ TEST_F(TestApiBlackSolver, blockModelValues1)
   ASSERT_THROW(d_solver.blockModelValues({Term()}), CVC5ApiException);
   ASSERT_THROW(d_solver.blockModelValues({Solver().mkBoolean(false)}),
                CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, blockModelValues2)
-{
-  d_solver.setOption("produce-models", "true");
-  Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
-  d_solver.assertFormula(x.eqTerm(x));
-  d_solver.checkSat();
-  ASSERT_THROW(d_solver.blockModelValues({x}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, blockModelValues3)

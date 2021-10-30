@@ -88,6 +88,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }
+      // TODO: this can be unified to the latter case
       // In LFSC, we have now proved:
       //  (or (not F1) (or (not F2) ... (or (not Fn) C) ... ))
       // We now must convert this to one of two cases
@@ -157,6 +158,8 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::CONG:
     {
+      // TODO: can optimize this for prefixes of equal arugments, which only
+      // require a REFL step.
       Assert(res.getKind() == EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
       Trace("lfsc-pp-cong") << "Processing congruence for " << res << " "
@@ -355,6 +358,14 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
+    case PfRule::SKOLEMIZE:
+      // TODO: convert to curried
+      return false;
+      break;
+    case PfRule::INSTANTIATE:
+      // TODO: convert to curried
+      return false;
+      break;
     default: return false; break;
   }
   AlwaysAssert(cdp->getProofFor(res)->getRule() != PfRule::ASSUME);

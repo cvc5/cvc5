@@ -15,10 +15,13 @@
 
 #include "proof/alethe/alethe_post_processor.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
@@ -313,6 +316,37 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
 
       return success;
+    }
+    case PfRule::DSL_REWRITE:
+    {
+      // get the name
+      rewriter::DslPfRule di;
+      Node rule;
+      if (rewriter::getDslPfRule(args[0], di))
+      {
+        std::stringstream ss;
+        ss << di;
+        rule = nm->mkBoundVar(ss.str(), nm->sExprType());
+      }
+      else
+      {
+        Unreachable();
+      }
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {rule},
+                           *cdp);
+    }
+    case PfRule::EVALUATE:
+    {
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {nm->mkBoundVar("evaluate", nm->sExprType())},
+                           *cdp);
     }
     // The rule is translated according to the theory id tid and the outermost
     // connective of the first term in the conclusion F, since F always has the
@@ -1374,14 +1408,17 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ^ the corresponding proof node is F*sigma
     case PfRule::INSTANTIATE:
     {
-      for (size_t i = 0, size = children[0][0].end() - children[0][0].begin(); i < size; i++)
+      for (size_t i = 0, size = children[0][0].end() - children[0][0].begin();
+           i < size;
+           i++)
       {
         new_args.push_back(nm->mkNode(kind::EQUAL, args[i], children[0][0][i]));
       }
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::OR, children[0].notNode(), res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
-      return addAletheStep(AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
+      return addAletheStep(
+                 AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1406,7 +1443,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // cases resolution on VP2 A B yields (not (<=x c)) or (not (<= c x)) and
     // comp_simplify is used to transform it into C. Otherwise,
     //
-    //  VP2   A   B 
+    //  VP2   A   B
     // ---------------- RESOLUTION
     //  (cl C)*
     //
@@ -1663,7 +1700,8 @@ bool AletheProofPostprocessCallback::update(Node res,
           new_children[0] = conclusion;
         }
       }
-      return addAletheStepFromOr(AletheRule::REORDER, res, new_children, {}, *cdp);
+      return addAletheStepFromOr(
+          AletheRule::REORDER, res, new_children, {}, *cdp);
     }
     //================================================= Arithmetic rules
     default:
@@ -1684,6 +1722,10 @@ bool AletheProofPostprocessCallback::update(Node res,
           << children << " " << args << std::endl;
       return false;
   }
+
+  Trace("alethe-proof") << "... error translating rule " << id << " / " << res
+                        << " " << children << " " << args << std::endl;
+  return false;
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
@@ -1754,7 +1796,7 @@ bool AletheProofPostprocessFinalCallback::shouldUpdate(
   }
   // If the proof node has result (false) additional steps have to be added.
   if (pn->getArguments()[2][1].toString()
-           == NodeManager::currentNM()->mkConst(false).toString())
+      == NodeManager::currentNM()->mkConst(false).toString())
   {
     return true;
   }
@@ -1860,15 +1902,78 @@ bool AletheProofPostprocessFinalCallback::update(
   return success;
 }
 
+AletheProofPostprocessNoSubtypeCallback::
+    AletheProofPostprocessNoSubtypeCallback(ProofNodeManager* pnm)
+    : d_pnm(pnm)
+{
+}
+
+
+bool AletheProofPostprocessNoSubtypeCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    const std::vector<Node>& fa,
+    bool& continueUpdate)
+{
+  return true;
+}
+
+bool AletheProofPostprocessNoSubtypeCallback::update(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate)
+{
+  Trace("alethe-proof-subtyping")
+      << "- Alethe post process no subtype callback " << res << " " << id << " "
+      << children << " / " << args << std::endl;
+  AlwaysAssert(args.size() >= 3);
+  // traverse conclusion and any other args and update them
+  bool changed = false;
+  std::vector<Node> newArgs{args[0], args[1]};
+  for (size_t i = 2, size = args.size(); i < size; ++i)
+  {
+
+    newArgs.push_back(d_anc.convert(args[i]));
+    changed |= newArgs.back() != args[i];
+  }
+  if (changed)
+  {
+    Trace("alethe-proof-subtyping")
+        << "\tConvertion changed " << args << " into " << newArgs << "\n";
+    // whether new conclusion became (= A A) or (cl (= A A))
+    if ((newArgs[2].getKind() == kind::EQUAL && newArgs[2][0] == newArgs[2][1])
+        || (newArgs[2].getKind() == kind::SEXPR
+            && newArgs[2].getNumChildren() == 2
+            && newArgs[2][1].getKind() == kind::EQUAL
+            && newArgs[2][1][0] == newArgs[2][1][1]))
+    {
+      Trace("alethe-proof-subtyping") << "\tTrivialized into REFL\n";
+      // turn this step into a REFL one, ignore children and remaining arguments
+      newArgs[0] = NodeManager::currentNM()->mkConst<Rational>(
+          static_cast<unsigned>(AletheRule::REFL));
+      cdp->addStep(res, id, {}, {newArgs.begin(), newArgs.begin() + 3});
+    }
+    else
+    {
+      cdp->addStep(res, id, children, newArgs);
+    }
+    return true;
+  }
+  return false;
+}
+
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
                                                AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc)
+  : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc), d_nst(d_pnm)
 {
 }
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+{
   // Translate proof node
   ProofNodeUpdater updater(d_pnm, d_cb, false, false);
   updater.process(pf->getChildren()[0]);
@@ -1880,6 +1985,10 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
   // first SCOPE
   ProofNodeUpdater finalize(d_pnm, d_fcb, false, false);
   finalize.process(pf);
+
+  Trace("alethe-proof-subtyping")  << "\n--------------------------------\n";
+  ProofNodeUpdater finalFinal(d_pnm, d_nst, false, false);
+  finalFinal.process(pf->getChildren()[0]);
 }
 
 }  // namespace proof

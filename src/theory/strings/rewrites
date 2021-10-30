@@ -1,0 +1,104 @@
+(define-rule str-eq-refl ((t String)) (= t t) true)
+(define-rule str-eq-symm ((t String) (s String)) (= t s) (= s t))
+
+(define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list))
+  (str.++ xs (str.++ s ys) zs)
+  (str.++ xs s ys zs))
+
+;(define-cond-rule str-concat-const-unflatten ((xs String :list) (s String) (c String) (ys String :list))
+;  (= (str.len c) 1)
+;  (str.++ xs s c ys)
+;  (str.++ xs (str.++ s c) ys))
+
+; flips so that it can be applied to both sides easier
+(define-rule str-concat-flatten-eq ((x String) (x1 String :list) (x2 String :list) (y String))
+  (= (str.++ (str.++ x x1) x2) y)
+  (= y (str.++ x x1 x2)))
+
+(define-rule substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
+(define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= n m) (str.substr x n m) "")
+(define-cond-rule substr-empty-start ((x String) (n Int) (m Int)) (>= n (str.len x)) (str.substr x n m) "")
+(define-cond-rule substr-eq-empty ((s String) (n Int) (m Int))
+  (and (= n 0) (> m n))
+  (= (str.substr s n m) "")
+  (= s ""))
+
+(define-rule* str-len-concat ((s1 String) (s2 String) (s3 String :list))
+  (str.len (str.++ s1 s2 s3))
+  (+ (str.len s1) (str.len (str.++ s2 s3))))
+
+(define-cond-rule str-len-replace-inv ((t String) (s String) (r String)) 
+  (= (str.len s) (str.len r))
+  (str.len (str.replace t s r))
+  (str.len t))
+
+(define-rule re-in-empty ((t String)) (str.in_re t re.none) false)
+(define-rule re-in-sigma ((t String)) (str.in_re t re.allchar) (= (str.len t) 1))
+(define-rule re-in-sigma-star ((t String)) (str.in_re t (re.* re.allchar)) true)
+(define-rule re-in-cstring ((t String) (s String)) (str.in_re t (str.to_re s)) (= t s))
+(define-rule re-in-comp ((t String) (r RegLan)) (str.in_re t (re.comp r)) (not (str.in_re t r)))
+
+(define-cond-rule concat-clash ((s1 String) (s2 String :list) (t1 String) (t2 String :list))
+  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
+  (= (str.++ s1 s2) (str.++ t1 t2))
+  false)
+
+(define-rule* concat-unify ((s1 String) (s2 String) (s3 String :list) (t2 String) (t3 String :list))
+  (= (str.++ s1 s2 s3) (str.++ s1 t2 t3))
+  (= (str.++ s2 s3) (str.++ t2 t3)))
+
+(define-cond-rule concat-clash-char ((s1 String) (s2 String :list) (s3 String :list) (t1 String) (t2 String :list) (t3 String :list))
+  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
+  (= (str.++ (str.++ s1 s2) s3) (str.++ (str.++ t1 t2) t3))
+  false)
+
+(define-cond-rule concat-clash-char2 ((s1 String) (s2 String :list) (t1 String) (t2 String :list) (t3 String :list))
+  (and (not (= s1 t1)) (= (str.len s1) (str.len t1)))
+  (= (str.++ s1 s2) (str.++ (str.++ t1 t2) t3))
+  false)
+
+(define-rule str-prefixof-elim ((s String) (t String))
+  (str.prefixof s t)
+  (= s (str.substr t 0 (str.len s))))
+(define-rule str-suffixof-elim ((s String) (t String))
+  (str.suffixof s t)
+  (= s (str.substr t (- (str.len t) (str.len s)) (str.len s))))
+
+(define-cond-rule str-prefixof-one ((s String) (t String))
+  (= (str.len t) 1)
+  (str.prefixof s t)
+  (str.contains t s))
+(define-cond-rule str-suffixof-one ((s String) (t String))
+  (= (str.len t) 1)
+  (str.suffixof s t)
+  (str.contains t s))
+
+(define-cond-rule str-substr-combine ((s String) (n1 Int) (m1 Int) (n2 Int) (m2 Int))
+  (and (>= n2 0) (>= (- (+ n2 m2) m1) 0))
+  (str.substr (str.substr s n1 m1) n2 m2)
+  (str.substr s (+ n1 n2) m2))
+
+(define-cond-rule substr-concat1 ((s1 String) (s2 String :list) (n Int) (m Int))
+  (and (>= n 0) (>= (str.len s1) (+ n m)))
+  (str.substr (str.++ s1 s2) n m)
+  (str.substr s1 n m))
+
+;(define-cond-rule concat-clash-ss ((s String) (t String))
+;  (not (= (str.substr s 0 1) (str.substr t 0 1)))
+;  (= s t)
+;  false)
+
+(define-cond-rule str-contains-split-char ((x String) (y String) (z String :list) (w String))
+  (= (str.len w) 1)
+  (str.contains (str.++ x y z) w)
+  (or (str.contains x w) (str.contains (str.++ y z) w)))
+
+(define-rule str-concat-emp ((xs String :list) (ys String :list)) (str.++ xs "" ys) (str.++ xs ys))
+
+; Regular expression rules
+(define-rule re-concat-emp ((xs RegLan :list) (ys RegLan :list)) (re.++ xs (str.to_re "") ys) (re.++ xs ys))
+
+(define-rule re-concat-flatten ((xs RegLan :list) (s RegLan) (ys RegLan :list) (zs RegLan :list)) (re.++ xs (re.++ s ys) zs) (re.++ xs s ys zs))
+
+(define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
+

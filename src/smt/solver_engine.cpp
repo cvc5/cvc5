@@ -866,15 +866,11 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate a proof correctly.
-    if (d_env->getOptions().smt.checkProofs
-        || d_env->getOptions().proof.proofCheck
-               == options::ProofCheckMode::EAGER)
+    if (d_env->getOptions().smt.checkProofs)
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
-        if ((d_env->getOptions().smt.checkProofs
-             || d_env->getOptions().proof.proofCheck
-                    == options::ProofCheckMode::EAGER)
+        if (d_env->getOptions().smt.checkProofs
             && !d_env->getOptions().smt.produceProofs)
         {
           throw ModalException(
@@ -1335,6 +1331,12 @@ void SolverEngine::checkProof()
   }
   Assert(pe->getProof() != nullptr);
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
+  // TEMPORARY for testing, this can be used to count how often checkProofs is
+  // called
+  if (d_env->getOptions().proof.checkProofsFail)
+  {
+    AlwaysAssert(false) << "Fail due to --check-proofs-fail";
+  }
   if (d_env->getOptions().smt.checkProofs)
   {
     d_pfManager->checkProof(pePfn, *d_asserts);
@@ -1400,6 +1402,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     // disable all proof options
     coreChecker->getOptions().smt.produceProofs = false;
     coreChecker->getOptions().smt.checkProofs = false;
+    coreChecker->getOptions().proof.proofReq = false;
 
     for (const Node& ucAssertion : core)
     {
@@ -1465,6 +1468,7 @@ void SolverEngine::checkUnsatCore()
   coreChecker->getOptions().smt.checkUnsatCores = false;
   // disable all proof options
   coreChecker->getOptions().smt.produceProofs = false;
+  coreChecker->getOptions().proof.proofReq = false;
   coreChecker->getOptions().smt.checkProofs = false;
 
   // set up separation logic heap if necessary

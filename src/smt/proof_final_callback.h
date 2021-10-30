@@ -23,6 +23,7 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "rewriter/rewrites.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
@@ -54,6 +55,14 @@ class ProofFinalCallback : public ProofNodeUpdaterCallback
    * marked with the given inference id.
    */
   HistogramStat<theory::InferenceId> d_instRuleIds;
+  /**
+   * Counts number of postprocessed proof nodes of rule ANNOTATION that were
+   * marked with the given inference id.
+   */
+  HistogramStat<theory::InferenceId> d_annotationRuleIds;
+  /** Counts number of postprocessed proof nodes for each kind of DSL proof rule
+   */
+  HistogramStat<rewriter::DslPfRule> d_dslRuleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */
