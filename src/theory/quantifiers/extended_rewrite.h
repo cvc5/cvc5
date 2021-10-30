@@ -259,9 +259,10 @@ class ExtendedRewriter
    * may be applied as a preprocessing step.
    */
   bool d_aggr;
-  /** true/false nodes */
+  /** Common constant nodes */
   Node d_true;
   Node d_false;
+  Node d_zero;
 };
 
 }  // namespace quantifiers

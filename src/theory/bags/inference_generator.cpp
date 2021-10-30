@@ -389,7 +389,7 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
 
   std::map<Node, Node> m;
   m[e] = conclusion;
-  Debug("bags::InferenceGenerator::mapDownwards")
+  Trace("bags::InferenceGenerator::mapDownwards")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return std::tuple(inferInfo, uf, preImageSize);
 }
@@ -420,7 +420,7 @@ InferInfo InferenceGenerator::mapUpwards(
   Node orNode = d_nm->mkNode(kind::OR, notEqual, andNode);
   Node implies = d_nm->mkNode(kind::IMPLIES, xInA, orNode);
   inferInfo.d_conclusion = implies;
-  Debug("bags::InferenceGenerator::mapUpwards")
+  Trace("bags::InferenceGenerator::mapUpwards")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return inferInfo;
 }
