@@ -392,33 +392,26 @@ enum CVC5_EXPORT Kind : int32_t
    */
   MULT,
   /**
-   * Operator for Integer AND
+   * Operator for bit-wise AND over integers, parameterized by a (positive)
+   * bitwidth k.
+   *
+   * ((_ iand k) i1 i2) is equivalent to:
+   * (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
+   * for all integers i1, i2.
    *
    * Parameters:
    *   - 1: Size of the bit-vector that determines the semantics of the IAND
    *
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
-   *
-   * Apply integer conversion to bit-vector.
-
-   * Parameters:
-   *   - 1: Op of kind IAND
-   *   - 2: Integer term
-   *   - 3: Integer term
-   *
-   * Create with:
-   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   IAND,
   /**
-   * Operator for raising 2 to a non-negative integer  power
+   * Operator for raising 2 to a non-negative integer power.
    *
    * Create with:
    *   - `Solver::mkOp(Kind kind) const`
    *
-
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
