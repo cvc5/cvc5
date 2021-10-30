@@ -1327,30 +1327,33 @@ TrustNode TheorySetsPrivate::expandChooseOperator(
     const Node& node, std::vector<SkolemLemma>& lems)
 {
   Assert(node.getKind() == CHOOSE);
-
   // (choose A) is expanded as
   // (witness ((x elementType))
   //    (ite
-  //      (= A (as emptyset setType))
-  //      (= x chooseUf(A))
-  //      (and (member x A) (= x chooseUf(A)))
+  //      (= A (as emptyset (Set E)))
+  //      (= x (uf A))
+  //      (and (member x A) (= x uf(A)))
+  // where uf: (Set E) -> E is a skolem function, and E is the type of elements
+  // of A
 
   NodeManager* nm = NodeManager::currentNM();
-  Node set = node[0];
-  TypeNode setType = set.getType();
-  Node chooseSkolem = getChooseFunction(setType);
-  Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+  SkolemManager* sm = nm->getSkolemManager();
+  Node A = node[0];
+  TypeNode setType = A.getType();
+  TypeNode ufType = nm->mkFunctionType(setType, setType.getSetElementType());
+  // a Null node is used here to get a unique skolem function per set type
+  Node uf = sm->mkSkolemFunction(SkolemFunId::SETS_CHOOSE, ufType, Node());
+  Node ufA = NodeManager::currentNM()->mkNode(APPLY_UF, uf, A);
 
-  Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
+  Node x = nm->mkBoundVar(setType.getSetElementType());
 
-  Node equal = witnessVariable.eqNode(apply);
+  Node equal = x.eqNode(ufA);
   Node emptySet = nm->mkConst(EmptySet(setType));
-  Node isEmpty = set.eqNode(emptySet);
-  Node member = nm->mkNode(MEMBER, witnessVariable, set);
+  Node isEmpty = A.eqNode(emptySet);
+  Node member = nm->mkNode(MEMBER, x, A);
   Node memberAndEqual = member.andNode(equal);
   Node ite = nm->mkNode(ITE, isEmpty, equal, memberAndEqual);
-  SkolemManager* sm = nm->getSkolemManager();
-  Node ret = sm->mkSkolem(witnessVariable, ite, "kSetChoose");
+  Node ret = sm->mkSkolem(x, ite, "kSetChoose");
   lems.push_back(SkolemLemma(ret, nullptr));
   return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
@@ -1391,26 +1394,6 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
   d_isSingletonNodes[rewritten] = exists;
 
   return TrustNode::mkTrustRewrite(node, exists, nullptr);
-}
-
-Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
-{
-  std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(setType);
-  if (it != d_chooseFunctions.end())
-  {
-    return it->second;
-  }
-
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
-  stringstream stream;
-  stream << "chooseUf" << setType.getId();
-  string name = stream.str();
-  Node chooseSkolem = sm->mkDummySkolem(
-      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
-  d_chooseFunctions[setType] = chooseSkolem;
-  return chooseSkolem;
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }

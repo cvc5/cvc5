@@ -93,15 +93,6 @@ class TheoryBags : public Theory
   TrustNode expandChooseOperator(const Node& node,
                                  std::vector<SkolemLemma>& lems);
 
-  /**
-   * return the existing uninterpreted function for the bag.choose operator for
-   * the given bag type, or creates a new one if it does not exist.
-   */
-  Node getChooseFunction(const TypeNode& bagType);
-
-  /** a map that stores the choose functions for bag types */
-  std::map<TypeNode, Node> d_chooseFunctions;
-
   /** The state of the bags solver at full effort */
   SolverState d_state;
   /** The inference manager */
