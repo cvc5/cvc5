@@ -25,42 +25,68 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
+/**
+ * Type rule for arithmetic values.
+ * Returns `integerType` or `realType` depending on the value.
+ */
 class ArithConstantTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Type rule for arithmetic operators.
+ * Takes care of mixed-integer operators, cases and (total) division.
+ */
 class ArithOperatorTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/** Type rule for nullary real operators. */
 class RealNullaryOperatorTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Type rule for the IAND operator kind.
+ * Always returns (integerType, integerType) -> integerType.
+ */
 class IAndOpTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Type rule for the IAND kind.
+ * Always returns integerType.
+ */
 class IAndTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Type rule for the POW2 operator.
+ * Always returns integerType.
+ */
 class Pow2TypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Type rule for the IndexedRootPredicate operator.
+ * Checks that the two arguments are booleanType and realType, always returns
+ * booleanType.
+ */
 class IndexedRootPredicateTypeRule
 {
  public:

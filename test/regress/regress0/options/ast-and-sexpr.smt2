@@ -13,5 +13,6 @@
 (get-option :command-verbosity)
 ; There is no SMT option to get the verbosity of a specific command
 
-(set-info :source (0 1 True False x ""))
+(set-info :source (true false (- 15) 15 15.0 #b00001111 #x0f x |x 
+"| "" """"))
 (get-info :status)

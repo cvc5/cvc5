@@ -651,12 +651,17 @@ set(regress_0_tests
   regress0/ho/issue4990-care-graph.smt2
   regress0/ho/issue5233-part1-usort-owner.smt2
   regress0/ho/issue5371.smt2
+  regress0/ho/issue5741-1-cg-model.smt2
+  regress0/ho/issue5741-3-cg-model.smt2
+  regress0/ho/issue5744-cg-model.smt2
   regress0/ho/issue6526.smt2
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
+  regress0/ho/qgu-fuzz-ho-1-dd.smt2
+  regress0/ho/qgu-fuzz-ho-2-dd-no-ext.smt2
   regress0/ho/shadowing-defs.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2
@@ -842,6 +847,7 @@ set(regress_0_tests
   regress0/preprocess/proj-issue305-circuit-prop-ite-c.smt2
   regress0/preprocess/proj-issue305-circuit-prop-ite-d.smt2
   regress0/preprocess/proj-issue309-circuit-prop-ite.smt2
+  regress0/preprocess/proj-issue332-circuit-prop-xor.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
@@ -852,6 +858,7 @@ set(regress_0_tests
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
+  regress0/proj-issue307-get-value-re.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/lfsc-test-1.smt2
@@ -859,6 +866,8 @@ set(regress_0_tests
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
   regress0/proofs/project-issue317-inc-sat-conflictlit.smt2
+  regress0/proofs/project-issue330-eqproof.smt2
+  regress0/proofs/proj-issue326-nl-bounds-check.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
@@ -998,6 +1007,8 @@ set(regress_0_tests
   regress0/rels/join-eq-u.cvc.smt2
   regress0/rels/joinImg_0.cvc.smt2
   regress0/rels/oneLoc_no_quant-int_0_1.cvc.smt2
+  regress0/rels/qgu-fuzz-relations-1.smt2
+  regress0/rels/qgu-fuzz-relations-1-dd.smt2
   regress0/rels/rel_1tup_0.cvc.smt2
   regress0/rels/rel_complex_0.cvc.smt2
   regress0/rels/rel_complex_1.cvc.smt2
@@ -1240,6 +1251,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/parser-syms.cvc.smt2
+  regress0/strings/proj-issue316-regexp-ite.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -1716,6 +1728,9 @@ set(regress_1_tests
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
   regress1/ho/issue4134-sinf.smt2
+  regress1/ho/issue4758.smt2
+  regress1/ho/issue5078-small.smt2
+  regress1/ho/issue5201-1.smt2
   regress1/ho/issue5741-3.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
