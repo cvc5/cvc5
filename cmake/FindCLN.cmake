@@ -33,15 +33,6 @@ if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
   check_system_version("CLN")
 endif()
 
-if(ENABLE_STATIC_BUILD AND CLN_FOUND_SYSTEM)
-  force_static_library()
-  find_library(CLN_STATIC_LIBRARIES NAMES cln)
-  if(NOT CLN_STATIC_LIBRARIES)
-    set(CLN_FOUND_SYSTEM FALSE)
-  endif()
-  reset_force_static_library()
-endif()
-
 if(NOT CLN_FOUND_SYSTEM)
   check_ep_downloaded("CLN-EP")
   if(NOT CLN-EP_DOWNLOADED)
@@ -80,27 +71,26 @@ if(NOT CLN_FOUND_SYSTEM)
   add_dependencies(CLN-EP GMP)
 
   set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
+  if(ENABLE_STATIC_BUILD)
+    set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
+  else()
+    set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  endif()
 endif()
 
 set(CLN_FOUND TRUE)
 
 if(ENABLE_STATIC_BUILD)
   add_library(CLN STATIC IMPORTED GLOBAL)
-  set_target_properties(CLN PROPERTIES
-    IMPORTED_LOCATION "${CLN_STATIC_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
-  )
-  target_link_libraries(CLN INTERFACE GMP)
 else()
   add_library(CLN SHARED IMPORTED GLOBAL)
-  set_target_properties(CLN PROPERTIES
-    IMPORTED_LOCATION "${CLN_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
-  )
-  target_link_libraries(CLN INTERFACE GMP)
 endif()
+
+set_target_properties(CLN PROPERTIES
+  IMPORTED_LOCATION "${CLN_LIBRARIES}"
+  INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
+)
+target_link_libraries(CLN INTERFACE GMP)
 
 mark_as_advanced(AUTORECONF)
 mark_as_advanced(CLN_FOUND)
