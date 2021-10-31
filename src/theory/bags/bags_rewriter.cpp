@@ -175,7 +175,7 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
   {
     // (bag.count x (mkBag x c)) = (ite (>= c 1) c 0)
     Node c = n[1][1];
-    Node geq = d_nm->mkNode(GEQ, c, d_zero);
+    Node geq = d_nm->mkNode(GEQ, c, d_one);
     Node ite = d_nm->mkNode(ITE, geq, c, d_zero);
     return BagsRewriteResponse(ite, Rewrite::COUNT_MK_BAG);
   }
