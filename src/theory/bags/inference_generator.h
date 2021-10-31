@@ -145,7 +145,7 @@ class InferenceGenerator
    *   (=
    *     (count e skolem)
    *     (ite
-   *       (<= (count e B) 0)
+   *       (= (count e B) 0)
    *       (count e A)
    *       0))))
    * where skolem is a fresh variable equals (difference_remove A B)

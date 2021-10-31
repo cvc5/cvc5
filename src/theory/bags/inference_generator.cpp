@@ -273,7 +273,7 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
   Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
-  Node notInB = d_nm->mkNode(LEQ, countB, d_zero);
+  Node notInB = d_nm->mkNode(EQUAL, countB, d_zero);
   Node difference = d_nm->mkNode(ITE, notInB, countA, d_zero);
   Node equal = count.eqNode(difference);
   inferInfo.d_conclusion = equal;
