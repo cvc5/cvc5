@@ -1590,6 +1590,7 @@ set(regress_1_tests
   regress1/bags/emptybag1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
+  regress1/bags/fuzzy3.smt2
   regress1/bags/fuzzy4.smt2
   regress1/bags/fuzzy5.smt2
   regress1/bags/intersection_min1.smt2
