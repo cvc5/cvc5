@@ -336,7 +336,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           {rule},
+			   {},
+                           //{rule},
                            *cdp);
     }
     case PfRule::EVALUATE:
@@ -345,7 +346,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           {nm->mkBoundVar("evaluate", nm->sExprType())},
+			   {},
+                           //{nm->mkBoundVar("evaluate", nm->sExprType())},
                            *cdp);
     }
     // The rule is translated according to the theory id tid and the outermost
