@@ -6,8 +6,8 @@
 (set-option :global-declarations true)
 
 (push)
-(define a true)
-(define (f (b Bool)) b)
+(define-const a Bool true)
+(define-fun f ((b Bool)) Bool b)
 (define-const a2 Bool true)
 
 (define-fun a3 () Bool true)

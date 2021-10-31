@@ -37,7 +37,7 @@ if(Poly_INCLUDE_DIR
   check_system_version("Poly")
 endif()
 
-if(ENABLE_STATIC_LIBRARY AND Poly_FOUND_SYSTEM)
+if(ENABLE_STATIC_BUILD AND Poly_FOUND_SYSTEM)
   force_static_library()
   find_library(Poly_STATIC_LIBRARIES NAMES poly)
   find_library(PolyXX_STATIC_LIBRARIES NAMES polyxx)
@@ -59,18 +59,8 @@ if(NOT Poly_FOUND_SYSTEM)
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
-    # Roughly following https://stackoverflow.com/a/44383330/2375725
-    set(patchcmd
-        # Avoid %z and %llu format specifiers
-        COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
-                sed -i.orig "s/%z[diu]/%\\\" PRIu64 \\\"/g" {} +
-        COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
-                sed -i.orig "s/%ll[du]/%\\\" PRIu64 \\\"/g" {} +
-        # Make sure the new macros are available
-        COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
-                sed -i.orig "s/#include <stdio.h>/#include <stdio.h>\\\\n#include <inttypes.h>/" {} +
-        COMMAND find <SOURCE_DIR>/ -type f ! -name "*.orig" -exec
-                sed -i.orig "s/#include <cstdio>/#include <cstdio>\\\\n#include <inttypes.h>/" {} +
+    set(patchcmd COMMAND
+      ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
   else()
     unset(patchcmd)
@@ -168,7 +158,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set_target_properties(Polyxx_SHARED PROPERTIES IMPORTED_IMPLIB "${PolyXX_LIBRARIES}")
 endif()
 
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   add_library(Poly_STATIC STATIC IMPORTED GLOBAL)
   set_target_properties(Poly_STATIC PROPERTIES
     IMPORTED_LOCATION "${Poly_STATIC_LIBRARIES}"
@@ -204,7 +194,7 @@ else()
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
 
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     add_dependencies(Poly_STATIC Poly-EP)
     add_dependencies(Polyxx_STATIC Poly-EP)
   endif()

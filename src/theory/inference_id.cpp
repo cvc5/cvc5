@@ -104,6 +104,7 @@ const char* toString(InferenceId i)
     case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
 
     case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
+    case InferenceId::BAGS_MK_BAG_DIFFERENT_ELEMENT: return "BAGS_MK_BAG_DIFFERENT_ELEMENT";
     case InferenceId::BAGS_MK_BAG_SAME_ELEMENT: return "BAGS_MK_BAG_SAME_ELEMENT";
     case InferenceId::BAGS_MK_BAG: return "BAGS_MK_BAG";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
@@ -341,6 +342,8 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_JOIN_IMAGE_UP: return "SETS_RELS_JOIN_IMAGE_UP";
     case InferenceId::SETS_RELS_JOIN_SPLIT_1: return "SETS_RELS_JOIN_SPLIT_1";
     case InferenceId::SETS_RELS_JOIN_SPLIT_2: return "SETS_RELS_JOIN_SPLIT_2";
+    case InferenceId::SETS_RELS_JOIN_ELEM_SPLIT:
+      return "SETS_RELS_JOIN_ELEM_SPLIT";
     case InferenceId::SETS_RELS_PRODUCE_COMPOSE:
       return "SETS_RELS_PRODUCE_COMPOSE";
     case InferenceId::SETS_RELS_PRODUCT_SPLIT: return "SETS_RELS_PRODUCT_SPLIT";
