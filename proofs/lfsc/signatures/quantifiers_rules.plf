@@ -1,9 +1,4 @@
-; depends: theory_def.plf
-
-; Returns term t if v1 = v2, and term s otherwise.
-(program mpz_ifequal ((v1 mpz) (v2 mpz) (t term) (s term)) term
-  (mp_ifzero (mp_add (mp_neg v1) v2) t s)
-)
+; depends: theory_def.plf util_defs.plf
 
 ; Substitute, which returns the result of replacing all occurrences of the
 ; bound variable whose identifier is v with the term s. It is the responsibility
