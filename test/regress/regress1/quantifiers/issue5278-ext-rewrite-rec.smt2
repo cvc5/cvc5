@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun --ext-rewrite-quant
+; COMMAND-LINE: --fmf-fun --ext-rewrite-quant -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
