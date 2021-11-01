@@ -172,7 +172,7 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
 
 void InferenceManager::split(Node n, InferenceId id, int reqPol)
 {
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
   Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
   // send the lemma
   lemma(lem, id);

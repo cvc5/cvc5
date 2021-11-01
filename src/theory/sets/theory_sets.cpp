@@ -29,7 +29,7 @@ namespace sets {
 
 TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
-      d_skCache(),
+      d_skCache(env.getRewriter()),
       d_state(env, valuation, d_skCache),
       d_im(env, *this, d_state),
       d_internal(
