@@ -1961,6 +1961,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4685-wrewrite.smt2
   regress1/quantifiers/issue4849-nqe.smt2
   regress1/quantifiers/issue5019-cegqi-i.smt2
+  regress1/quantifiers/issue5278-ext-rewrite-rec.smt2
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
