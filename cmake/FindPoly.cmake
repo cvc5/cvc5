@@ -133,13 +133,16 @@ endif()
 set(Poly_FOUND TRUE)
 
 
-add_library(Poly IMPORTED GLOBAL)
-add_library(Polyxx IMPORTED GLOBAL)
 if(BUILD_SHARED_LIBS)
+  add_library(Poly SHARED IMPORTED GLOBAL)
+  add_library(Polyxx SHARED IMPORTED GLOBAL)
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_target_properties(Poly PROPERTIES IMPORTED_IMPLIB "${Poly_LIBRARIES}")
     set_target_properties(Polyxx PROPERTIES IMPORTED_IMPLIB "${PolyXX_LIBRARIES}")
   endif()
+else()
+  add_library(Poly STATIC IMPORTED GLOBAL)
+  add_library(Polyxx STATIC IMPORTED GLOBAL)
 endif()
 
 set_target_properties(Poly PROPERTIES

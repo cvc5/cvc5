@@ -81,11 +81,13 @@ endif()
 set(GMP_FOUND TRUE)
 
 
-add_library(GMP IMPORTED GLOBAL)
 if(BUILD_SHARED_LIBS)
+  add_library(GMP SHARED IMPORTED GLOBAL)
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_target_properties(GMP PROPERTIES IMPORTED_IMPLIB "${GMP_LIBRARIES}")
   endif()
+else()
+  add_library(GMP STATIC IMPORTED GLOBAL)
 endif()
 set_target_properties(GMP PROPERTIES
   IMPORTED_LOCATION "${GMP_LIBRARIES}"
