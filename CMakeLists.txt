@@ -73,6 +73,7 @@ option(ENABLE_GPL "Enable GPL dependencies")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for build types
+option(BUILD_SHARED_LIBS          "Build shared libraries and binary")
 cvc5_option(ENABLE_ASAN           "Enable ASAN build")
 cvc5_option(ENABLE_UBSAN          "Enable UBSan build")
 cvc5_option(ENABLE_TSAN           "Enable TSan build")
