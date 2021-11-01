@@ -586,6 +586,15 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       pf << h << h << h << cs[0] << cs[1];
     }
     break;
+    case PfRule::INT_TIGHT_UB:
+    case PfRule::INT_TIGHT_LB:
+    {
+      Node res = pn->getResult();
+      Assert (res.getNumChildren()==2);
+      Assert (res[1].getKind()==CONST_RATIONAL);
+      pf << h << h << res[1] << cs[0];
+    }
+    break;
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;
