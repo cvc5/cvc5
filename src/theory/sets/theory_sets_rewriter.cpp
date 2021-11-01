@@ -411,11 +411,6 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           << "Sets::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
     }
-    else if (s.getKind() == TCLOSURE && r == s[0])
-    {
-      // (join r (tclosure r)) = (tclosure r)
-      return RewriteResponse(REWRITE_AGAIN, s);
-    }
     else if (r.getKind() == TCLOSURE && r[0] == s)
     {
       // (join (tclosure s) s) = (tclosure s)
