@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "prop/bv_sat_solver_notify.h"
 #include "prop/cnf_stream.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver.h"
@@ -101,20 +100,6 @@ class TBitblaster
    */
   Node getTermModel(TNode node, bool fullModel);
   void invalidateModelCache();
-};
-
-class MinisatEmptyNotify : public prop::BVSatSolverNotify
-{
- public:
-  MinisatEmptyNotify() {}
-  bool notify(prop::SatLiteral lit) override { return true; }
-  void notify(prop::SatClause& clause) override {}
-  void spendResource(Resource r) override
-  {
-    smt::currentResourceManager()->spendResource(r);
-  }
-
-  void safePoint(Resource r) override {}
 };
 
 // Bitblaster implementation

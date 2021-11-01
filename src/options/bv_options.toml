@@ -6,7 +6,7 @@ name   = "Bitvector Theory"
   category   = "expert"
   long       = "bv-sat-solver=MODE"
   type       = "SatSolverMode"
-  default    = "MINISAT"
+  default    = "CADICAL"
   predicates = ["checkBvSatSolver"]
   help       = "choose which sat solver to use, see --bv-sat-solver=help"
   help_mode  = "SAT solver for bit-blasting backend."
@@ -29,28 +29,10 @@ name   = "Bitvector Theory"
   help_mode  = "Bit-blasting modes."
 [[option.mode.LAZY]]
   name = "lazy"
-  help = "Separate boolean structure and term reasoning between the core SAT solver and the bit-vector SAT solver."
+  help = "Separate Boolean structure and term reasoning between the core SAT solver and the bit-vector SAT solver."
 [[option.mode.EAGER]]
   name = "eager"
   help = "Bitblast eagerly to bit-vector SAT solver."
-
-[[option]]
-  name       = "bitvectorAig"
-  category   = "regular"
-  long       = "bitblast-aig"
-  type       = "bool"
-  default    = "false"
-  predicates = ["abcEnabledBuild", "setBitblastAig"]
-  help       = "bitblast by first converting to AIG (implies --bitblast=eager)"
-
-[[option]]
-  name       = "bitvectorAigSimplifications"
-  category   = "expert"
-  long       = "bv-aig-simp=COMMAND"
-  type       = "std::string"
-  default    = "\"balance;drw\""
-  predicates = ["abcEnabledBuild"]
-  help       = "abc command to run AIG simplifications (implies --bitblast-aig, default is \"balance;drw\")"
 
 [[option]]
   name       = "bitvectorPropagate"
@@ -59,38 +41,6 @@ name   = "Bitvector Theory"
   type       = "bool"
   default    = "true"
   help       = "use bit-vector propagation in the bit-blaster"
-
-[[option]]
-  name       = "bitvectorEqualitySolver"
-  category   = "regular"
-  long       = "bv-eq-solver"
-  type       = "bool"
-  default    = "true"
-  help       = "use the equality engine for the bit-vector theory (only if --bv-solver=layered)"
-
-[[option]]
-  name       = "bitvectorInequalitySolver"
-  category   = "regular"
-  long       = "bv-inequality-solver"
-  type       = "bool"
-  default    = "true"
-  help       = "turn on the inequality solver for the bit-vector theory (only if --bv-solver=layered)"
-
-[[option]]
-  name       = "bitvectorAlgebraicSolver"
-  category   = "expert"
-  long       = "bv-algebraic-solver"
-  type       = "bool"
-  default    = "false"
-  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bv-solver=layered)"
-
-[[option]]
-  name       = "bitvectorAlgebraicBudget"
-  category   = "expert"
-  long       = "bv-algebraic-budget=N"
-  type       = "uint64_t"
-  default    = "1500"
-  help       = "the budget allowed for the algebraic solver in number of SAT conflicts"
 
 [[option]]
   name       = "bitvectorToBool"
@@ -135,46 +85,6 @@ name   = "Bitvector Theory"
   help       = "enable rewrite pushing extract [i:0] over arithmetic operations (can blow up)"
 
 [[option]]
-  name       = "bvAbstraction"
-  category   = "undocumented"
-  long       = "bv-abstraction"
-  type       = "bool"
-  default    = "false"
-  help       = "mcm benchmark abstraction"
-
-[[option]]
-  name       = "skolemizeArguments"
-  category   = "undocumented"
-  long       = "bv-skolemize"
-  type       = "bool"
-  default    = "false"
-  help       = "skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)"
-
-[[option]]
-  name       = "bvNumFunc"
-  category   = "expert"
-  long       = "bv-num-func=N"
-  type       = "uint64_t"
-  default    = "1"
-  help       = "number of function symbols in conflicts that are generalized"
-
-[[option]]
-  name       = "bvEagerExplanations"
-  category   = "expert"
-  long       = "bv-eager-explanations"
-  type       = "bool"
-  default    = "false"
-  help       = "compute bit-blasting propagation explanations eagerly"
-
-[[option]]
-  name       = "bitvectorQuickXplain"
-  category   = "expert"
-  long       = "bv-quick-xplain"
-  type       = "bool"
-  default    = "false"
-  help       = "minimize bv conflicts using the QuickXplain algorithm"
-
-[[option]]
   name       = "bvIntroducePow2"
   category   = "expert"
   long       = "bv-intro-pow2"
@@ -212,9 +122,6 @@ name   = "Bitvector Theory"
 [[option.mode.BITBLAST_INTERNAL]]
   name = "bitblast-internal"
   help = "Enables bitblasting to internal SAT solver with proof support."
-[[option.mode.LAYERED]]
-  name = "layered"
-  help = "Enables the layered BV solver."
 
 [[option]]
   name       = "bvAssertInput"
@@ -223,7 +130,6 @@ name   = "Bitvector Theory"
   type       = "bool"
   default    = "false"
   help       = "assert input assertions on user-level 0 instead of assuming them in the bit-vector SAT solver"
-
 
 [[option]]
   name       = "rwExtendEq"
