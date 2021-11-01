@@ -1,0 +1,60 @@
+(declare not_forall_to_exists_not (! body term (! v mpz (! s sort (! p (holds (not (forall v s body))) (holds (exists v s (not body))))))))
+
+(program mpz_ifequal ((v1 mpz) (v mpz) (t term) (s term)) term
+  (mp_ifzero (mp_add (mp_neg v1) v) t s)
+)
+
+(program sc_substitute ((t term) (v mpz) (s term)) term
+  (match t
+    ((bvar v1 u1) (mpz_ifequal v v1 s t))
+    ((apply t1 t2) (apply (sc_substitute t1 v s) (sc_substitute t2 v s)))
+    (default t)
+  ))
+
+(program sc_substitute_and_type_check ((t term) (v mpz) (s term) (u sort)) term
+  (ifequal (type_check s) u (sc_substitute t v s) (fail term)))
+
+;  // ======== Instantiate
+;  // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
+;  // Arguments: (t1 ... tn)
+;  // ----------------------------------------
+;  // Conclusion: F*sigma
+;  // sigma maps x1 ... xn to t1 ... tn.
+(declare instantiate (! body term
+                     (! v mpz
+                     (! u sort
+                     (! s term
+                     (! bodyi term
+                     (! p (holds (forall v u body))
+                     (! r (^ (sc_substitute_and_type_check body v s u) bodyi)
+                       (holds bodyi)))))))))
+
+;  // ======== Skolemize
+;  // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
+;  // Arguments: none
+;  // ----------------------------------------
+;  // Conclusion: F*sigma
+;  // sigma maps x1 ... xn to their representative skolems obtained by
+;  // SkolemManager::mkSkolemize, returned in the skolems argument of that
+;  // method. Alternatively, can use negated forall as a premise.
+(declare skolemize (! body term
+                     (! v mpz
+                     (! s sort
+                     (! bodyi term
+                     (! p (holds (exists v s body))
+                     (! r (^ (sc_substitute_and_type_check body v (skolem (witness v s body)) s) bodyi)
+                       (holds bodyi))))))))
+
+(declare exists_intro (! bodyi term
+                      (! v mpz
+                      (! u sort
+                      (! s term
+                      (! body term
+                      (! p (holds bodyi)
+                      (! r (^ (sc_substitute_and_type_check body v s u) bodyi)
+                        (holds (exists v u body)))))))))
+
+(declare skolem_intro (! u term
+                      (! t term
+                      (! r (^ (sc_mk_skolem t) u)
+                        (holds (= u t))))))
