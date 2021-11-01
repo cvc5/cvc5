@@ -1186,10 +1186,10 @@ void TheorySetsRels::check(Theory::Effort level)
         if (!areEqual(RelsUtils::nthElementOfTuple(a, i),
                       RelsUtils::nthElementOfTuple(b, i)))
         {
-          return true;
+          return false;
         }
       }
-      return false;
+      return true;
     }
     else if (!atn.isBoolean())
     {
