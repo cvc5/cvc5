@@ -867,6 +867,7 @@ set(regress_0_tests
   regress0/proofs/open-pf-rederivation.smt2
   regress0/proofs/project-issue317-inc-sat-conflictlit.smt2
   regress0/proofs/project-issue330-eqproof.smt2
+  regress0/proofs/proj-issue326-nl-bounds-check.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
@@ -1589,6 +1590,9 @@ set(regress_1_tests
   regress1/bags/emptybag1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
+  regress1/bags/fuzzy3.smt2
+  regress1/bags/fuzzy4.smt2
+  regress1/bags/fuzzy5.smt2
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
