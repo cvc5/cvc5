@@ -232,16 +232,20 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
 {
   if (r == v)
   {
+    // values equal match trivially
     return true;
   }
   else if (v.isConst() && r.isConst())
   {
+    // distinct constant values do not match
     return false;
   }
   else if (r.getKind() == kind::APPLY_CONSTRUCTOR)
   {
     if (v.getKind() != kind::APPLY_CONSTRUCTOR)
     {
+      Assert (v.getKind()==kind::CODATATYPE_BOUND_VARIABLE);
+      // v is a loop. It may be possible to match, we return true here.
       return true;
     }
     if (v.getOperator() == r.getOperator())
@@ -250,15 +254,22 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
       {
         if (!isCdtValueMatch(v[i], r[i]))
         {
+          // if one child fails to match, we cannot match
           return false;
         }
       }
       return true;
     }
+    // operators do not match
     return false;
   }
   else if (v.getKind() == kind::APPLY_CONSTRUCTOR)
   {
+    // v has a constructor in a position that we have yet to fill in r.
+    // we are either a finite type in which case this subfield of r can be
+    // assigned a default value (or otherwise would have been split on).
+    // otherwise we are an infinite type and the subfield of r will be
+    // chosen not to clash with the subfield of v.
     return false;
   }
   return true;
