@@ -845,10 +845,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       {
         opts.arith.nlExt = options::NlExtMode::LIGHT;
       }
-      if (!opts.arith.nlRlvModeWasSetByUser)
-      {
-        opts.arith.nlRlvMode = options::NlRlvMode::INTERLEAVE;
-      }
     }
   }
 #else
