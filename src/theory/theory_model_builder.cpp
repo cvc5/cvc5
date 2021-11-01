@@ -218,7 +218,8 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
     Assert(assertedReps.find(*i) != assertedReps.end());
     Node rep = assertedReps[*i];
     Trace("model-builder-debug") << "  Rep : " << rep << std::endl;
-    // check matching val to rep with eqc as a free variable
+    // check whether it is possible that rep will be assigned the same value
+    // as val.
     if (isCdtValueMatch(val, rep))
     {
       return true;
