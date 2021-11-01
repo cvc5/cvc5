@@ -321,25 +321,80 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
             if (d_data->isProofEnabled())
             {
               proof = d_data->getProof();
+              Node simpleeq = nm->mkNode(type, t, rhs);
               // this is iblem, but uses (type t rhs) instead of the original
               // variant (which is identical under rewriting)
               // we first infer the "clean" version of the lemma and then
               // use MACRO_SR_PRED_TRANSFORM to rewrite
-              Node tmplem = nm->mkNode(
-                  Kind::IMPLIES,
-                  nm->mkNode(Kind::AND,
-                             nm->mkNode(mmv_sign == 1 ? Kind::GT : Kind::LT,
-                                        mult,
-                                        d_data->d_zero),
-                             nm->mkNode(type, t, rhs)),
-                  infer);
+              Node tmplem = nm->mkNode(Kind::IMPLIES,
+                                       nm->mkNode(Kind::AND, exp[0], simpleeq),
+                                       infer);
               proof->addStep(tmplem,
                              mmv_sign == 1 ? PfRule::ARITH_MULT_POS
                                            : PfRule::ARITH_MULT_NEG,
                              {},
-                             {mult, nm->mkNode(type, t, rhs)});
-              proof->addStep(
-                  iblem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {iblem});
+                             {mult, simpleeq});
+              theory::Rewriter* rew = d_data->d_env.getRewriter();
+              if (type == Kind::EQUAL
+                  && (rew->rewrite(simpleeq) != rew->rewrite(exp[1])))
+              {
+                // it is not identical under rewriting and we need to do some work here
+                // The proof looks like this:
+                // (SCOPE
+                //   (MODUS_PONENS
+                //     <tmplem>
+                //     (AND_INTRO
+                //       <first premise of iblem>
+                //       (ARITH_TRICHOTOMY ***
+                //         (AND_ELIM <second premise of iblem> 1)
+                //         (AND_ELIM <second premise of iblem> 2)
+                //       )
+                //     )
+                //   )
+                //   :args <the two premises of iblem>
+                // )
+                // ***: the result of the AND_ELIM are rewritten forms of what
+                // ARITH_TRICHOTOMY expects, and also their order is not clear.
+                // Hence, we apply MACRO_SR_PRED_TRANSFORM to them, and check
+                // which corresponds to which subterm of the premise.
+                proof->addStep(exp[1][0],
+                               PfRule::AND_ELIM,
+                               {exp[1]},
+                               {nm->mkConst(Rational(0))});
+                proof->addStep(exp[1][1],
+                               PfRule::AND_ELIM,
+                               {exp[1]},
+                               {nm->mkConst(Rational(1))});
+                Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
+                Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
+                if (rew->rewrite(lb) == rew->rewrite(exp[1][0]))
+                {
+                  proof->addStep(
+                      lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {lb});
+                  proof->addStep(
+                      rb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][1]}, {rb});
+                }
+                else
+                {
+                  proof->addStep(
+                      lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][1]}, {lb});
+                  proof->addStep(
+                      rb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {rb});
+                }
+                proof->addStep(
+                    simpleeq, PfRule::ARITH_TRICHOTOMY, {lb, rb}, {simpleeq});
+                proof->addStep(
+                    tmplem[0], PfRule::AND_INTRO, {exp[0], simpleeq}, {});
+                proof->addStep(
+                    tmplem[1], PfRule::MODUS_PONENS, {tmplem[0], tmplem}, {});
+                proof->addStep(
+                    iblem, PfRule::SCOPE, {tmplem[1]}, {exp[0], exp[1]});
+              }
+              else
+              {
+                proof->addStep(
+                    iblem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {iblem});
+              }
             }
             d_data->d_im.addPendingLemma(iblem,
                                          InferenceId::ARITH_NL_INFER_BOUNDS_NT,

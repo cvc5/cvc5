@@ -14,6 +14,7 @@
  */
 #include "theory/theory_model.h"
 
+#include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -142,7 +143,7 @@ Node TheoryModel::getValue(TNode n) const
   }
   else if (nn.getKind() == kind::LAMBDA)
   {
-    if (options::condenseFunctionValues())
+    if (options().theory.condenseFunctionValues)
     {
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.
@@ -253,17 +254,12 @@ Node TheoryModel::getModelValue(TNode n) const
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
     {
+      const CardinalityConstraint& cc =
+          ret.getOperator().getConst<CardinalityConstraint>();
       Debug("model-getvalue-debug")
-          << "get cardinality constraint " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(getCardinality(ret[0].getType()).getFiniteCardinality()
-                        <= ret[1].getConst<Rational>().getNumerator());
-    }
-    else if (ret.getKind() == kind::CARDINALITY_VALUE)
-    {
-      Debug("model-getvalue-debug")
-          << "get cardinality value " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(
-          Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
+          << "get cardinality constraint " << cc.getType() << std::endl;
+      ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
+                        <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we an evaluated kind. This can occur if the

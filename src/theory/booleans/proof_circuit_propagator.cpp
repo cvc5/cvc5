@@ -206,11 +206,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::xorXFromY(bool negated,
         parent[1],
         false));
   }
-  return mkResolution(
-      mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
-              {assume(negated ? parent.notNode() : Node(parent))}),
-      parent[1],
-      true);
+  return mkNot(
+      mkResolution(mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
+                           {assume(negated ? parent.notNode() : Node(parent))}),
+                   parent[1],
+                   true));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::xorYFromX(bool negated,
@@ -223,11 +223,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::xorYFromX(bool negated,
   }
   if (x)
   {
-    return mkResolution(
+    return mkNot(mkResolution(
         mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM2,
                 {assume(negated ? parent.notNode() : Node(parent))}),
         parent[0],
-        false);
+        false));
   }
   return mkNot(
       mkResolution(mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
@@ -382,10 +382,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteC(bool c)
         d_parent[0],
         !c);
   }
-  return mkResolution(mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
-                              {assume(d_parent.notNode())}),
-                      d_parent[0],
-                      !c);
+  return mkNot(
+      mkResolution(mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
+                           {assume(d_parent.notNode())}),
+                   d_parent[0],
+                   !c));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
@@ -396,11 +397,14 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
   }
   if (d_parentAssignment)
   {
-    return mkResolution(
-        mkProof(PfRule::ITE_ELIM2, {assume(d_parent)}), d_parent[c + 1], false);
+    return mkResolution(mkProof(c == 0 ? PfRule::ITE_ELIM1 : PfRule::ITE_ELIM2,
+                                {assume(d_parent)}),
+                        d_parent[c + 1],
+                        true);
   }
   return mkResolution(
-      mkProof(PfRule::NOT_ITE_ELIM2, {assume(d_parent.notNode())}),
+      mkProof(c == 0 ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
+              {assume(d_parent.notNode())}),
       d_parent[c + 1],
       false);
 }

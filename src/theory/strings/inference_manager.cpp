@@ -35,15 +35,20 @@ InferenceManager::InferenceManager(Env& env,
                                    SolverState& s,
                                    TermRegistry& tr,
                                    ExtTheory& e,
-                                   SequencesStatistics& statistics,
-                                   ProofNodeManager* pnm)
-    : InferenceManagerBuffered(env, t, s, pnm, "theory::strings::", false),
+                                   SequencesStatistics& statistics)
+    : InferenceManagerBuffered(env, t, s, "theory::strings::", false),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr),
-      d_ipcl(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr)
+      d_ipc(isProofEnabled()
+                ? new InferProofCons(
+                      context(), env.getProofNodeManager(), d_statistics)
+                : nullptr),
+      d_ipcl(isProofEnabled()
+                 ? new InferProofCons(
+                       context(), env.getProofNodeManager(), d_statistics)
+                 : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
