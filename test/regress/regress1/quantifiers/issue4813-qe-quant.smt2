@@ -1,3 +1,4 @@
+; EXPECT: v24
 (set-logic LIA)
 (declare-const v8 Bool)
 (assert (not (exists ((q16 Bool)) (xor true q16 v8 q16))))
