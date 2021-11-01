@@ -203,3 +203,125 @@
     ((apply t1 t2)
       (and (not (= (getarg f_str.++ t1) emptystr)) (sc_non_empty_concats t2)))
     (emptystr true)))
+
+; Get first character or empty string from term t.
+; If t is of the form (str.++ (char n) ...), return (char n).
+; If t is of the form emptystr, return emptystr.
+; Otherwise, this side condition fails
+(program sc_string_first_char_or_empty ((t term)) term
+  (match t
+    ((apply t1 t2)
+      (let t12 (getarg f_str.++ t1)
+      (match t12
+        ((char n) t12))))
+    (emptystr t)))
+
+
+; Flatten constants in str.++ application s. Notice that in the rewritten form
+; of strings in cvc5 are such that constants are grouped into constants of
+; length >=1 which we call "word" constants. For example, the cvc5 rewritten
+; form of (str.++ "A" "B" x) is (str.++ "AB" x) which in LFSC is represented as:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; Many string rules rely on processing the prefix of strings, which in LFSC
+; involves reasoning about the characters one-by-one. Since the above term
+; has a level of nesting when word constants of size > 1 are involved, this
+; method is used to "flatten" str.++ applications so that we have a uniform
+; way of reasoning about them in proof rules. In this method, we take a
+; str.++ application corresponding to a string term in cvc5 rewritten form.
+; It returns the flattened form such that there are no nested applications of
+; str.++. For example, given input:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; we return:
+;    (str.++ "A" (str.++ "B" (str.++ x "")))
+; Notice that this is done for all word constants in the chain recursively.
+; It does not insist that the nested concatenations are over characters only.
+; This rule may fail if s is not a str.++ application corresponding to a term
+; in cvc5 rewritten form.
+(program sc_string_flatten ((s term)) term
+  (match s
+    ((apply s1 s2)
+      (let s12 (getarg f_str.++ s1)
+        ; Must handle nested concatenation for word constant. We know there is no nested concatenation within s12, so we don't need to flatten it.
+        ; Since s12 may not be a concat term, we must use n-ary intro to ensure it is in n-ary form
+        (sc_string_concat (sc_string_nary_intro s12) (sc_string_flatten s2))))
+    (emptystr s))
+)
+
+; Helper for collect adjacent constants. This side condition takes as input
+; a str.++ application s. It returns a pair whose concatenation is equal to s,
+; whose first component corresponds to a word constant, and whose second
+; component is a str.++ application whose first element is not a character.
+; For example, for:
+;   (str.++ "A" (str.++ "B" (str.++ x "")))
+; We return:
+;   (pair (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+(program sc_string_collect_acc ((s term)) termPair
+  (match s
+    ((apply s1 s2)
+      (match (getarg f_str.++ s1)
+        ((char n)
+          (match (sc_string_collect_acc s2)
+            ((pair ssc1 ssc2) (pair (apply s1 ssc1) ssc2))))
+        (default (pair emptystr s))))
+    (emptystr (pair emptystr s)))
+)
+
+; Collect adjacent constants for the prefix of string s. For example:
+;    (str.++ "A" (str.++ "B" (str.++ x "")))
+; we return:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; This side condition may fail if s is not a str.++ application.
+; Notice that the collection of constants is done for all word constants in the
+; term s recursively.
+(program sc_string_collect ((s term)) term
+  (match (sc_string_collect_acc s)
+    ((pair sc1 sc2)
+      (match sc1
+        ; did not strip a constant prefix
+        (emptystr 
+          (match s
+            ((apply s1 s2) (apply s1 (sc_string_collect s2)))
+            (emptystr s)))
+        ; stripped a constant prefix, must eliminate singleton
+        (default (str.++ (sc_string_nary_elim sc1) (sc_string_collect sc2))))))
+)
+
+; Strip equal prefix of s and t. This returns the pair corresponding to s and
+; t after dropping the maximal equal prefix removed. For example, for:
+;   (str.++ x (str.++ y (str.++ z "")))
+;   (str.++ x (str.++ w ""))
+; This method will return:
+;   (pair (str.++ y (str.++ z "")) (str.++ w ""))
+; This side condition may fail if s or t is not a str.++ application.
+(program sc_strip_prefix ((s term) (t term)) termPair
+  (match s
+    ((apply s1 s2)
+      (let s12 (getarg f_str.++ s1)
+        (match t
+          ((apply t1 t2)
+            (let t12 (getarg f_str.++ t1)
+              (ifequal s12 t12
+                (sc_strip_prefix s2 t2)
+                (pair s t))))
+          (emptystr (pair s t)))))
+    (emptystr (pair s t)))
+)
+
+; Converts a str.++ application into "flat form" so that we are ready to
+; process its prefix. This consists of the following steps:
+; (1) convert s to n-ary form if it is not already a str.++ application,
+; (2) flatten so that its constant prefix,
+; (3) (optionally) reverse.
+(program sc_string_to_flat_form ((s term) (rev flag)) term
+  ; intro, flatten, reverse
+  (sc_string_rev (sc_string_flatten (sc_string_nary_intro s)) rev))
+
+; Converts a term in "flat form" to a term that is in a form that corresponds
+; to one in cvc5 rewritten form. This is the dual method to
+; sc_string_to_flat_form. This consists of the following steps:
+; (1) (optionally) reverse,
+; (2) collect constants 
+; (3) eliminate n-ary form to its element if the term is a singleton list.
+(program sc_string_from_flat_form ((s term) (rev flag)) term
+  ; reverse, collect, elim
+  (sc_string_nary_elim (sc_string_collect (sc_string_rev s rev))))
