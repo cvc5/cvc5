@@ -109,41 +109,22 @@ message(STATUS "JAVA_INCLUDE_PATH    : ${JAVA_INCLUDE_PATH}")
 message(STATUS "JAVA_INCLUDE_PATH2   : ${JAVA_INCLUDE_PATH2}")
 message(STATUS "JAVA_AWT_INCLUDE_PATH: ${JAVA_AWT_INCLUDE_PATH}")
 
-if(ENABLE_STATIC_BUILD)
-  add_library(cvc5jni STATIC
-    jni/api_utilities.cpp
-    jni/datatype.cpp
-    jni/datatype_constructor.cpp
-    jni/datatype_constructor_decl.cpp
-    jni/datatype_decl.cpp
-    jni/datatype_selector.cpp
-    jni/grammar.cpp
-    jni/op.cpp
-    jni/option_info.cpp
-    jni/result.cpp
-    jni/solver.cpp
-    jni/sort.cpp
-    jni/stat.cpp
-    jni/statistics.cpp
-    jni/term.cpp)
-else()
-  add_library(cvc5jni SHARED
-    jni/api_utilities.cpp
-    jni/datatype.cpp
-    jni/datatype_constructor.cpp
-    jni/datatype_constructor_decl.cpp
-    jni/datatype_decl.cpp
-    jni/datatype_selector.cpp
-    jni/grammar.cpp
-    jni/op.cpp
-    jni/option_info.cpp
-    jni/result.cpp
-    jni/solver.cpp
-    jni/sort.cpp
-    jni/stat.cpp
-    jni/statistics.cpp
-    jni/term.cpp)
-endif()
+add_library(cvc5jni
+  jni/api_utilities.cpp
+  jni/datatype.cpp
+  jni/datatype_constructor.cpp
+  jni/datatype_constructor_decl.cpp
+  jni/datatype_decl.cpp
+  jni/datatype_selector.cpp
+  jni/grammar.cpp
+  jni/op.cpp
+  jni/option_info.cpp
+  jni/result.cpp
+  jni/solver.cpp
+  jni/sort.cpp
+  jni/stat.cpp
+  jni/statistics.cpp
+  jni/term.cpp)
 
 add_dependencies(cvc5jni generate-jni-headers)
 

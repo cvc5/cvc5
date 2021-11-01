@@ -76,17 +76,15 @@ endif()
 # use the static system libraries.
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_START_STATIC.html
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_END_STATIC.html
-if(ENABLE_STATIC_BUILD)
+if(NOT BUILD_SHARED_LIBS)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_target_properties(cvc5-bin PROPERTIES LINK_FLAGS -static)
     set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
     set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
   endif()
   set_target_properties(cvc5-bin PROPERTIES INSTALL_RPATH "")
-  target_link_libraries(cvc5-bin PUBLIC cvc5 cvc5parser)
-else()
-  target_link_libraries(cvc5-bin PUBLIC cvc5 cvc5parser)
 endif()
+target_link_libraries(cvc5-bin PUBLIC cvc5 cvc5parser)
 
 if(USE_EDITLINE)
   target_link_libraries(cvc5-bin PUBLIC ${Editline_LIBRARIES})

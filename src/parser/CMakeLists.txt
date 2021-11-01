@@ -114,10 +114,8 @@ target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB -Dc
 add_dependencies(cvc5parser-objs ANTLR3)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
 
-if(ENABLE_STATIC_BUILD)
-  add_library(cvc5parser STATIC $<TARGET_OBJECTS:cvc5parser-objs>)
-else()
-  add_library(cvc5parser SHARED $<TARGET_OBJECTS:cvc5parser-objs>)
+add_library(cvc5parser $<TARGET_OBJECTS:cvc5parser-objs>)
+if(BUILD_SHARED_LIBS)
   set_target_properties(cvc5parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
 endif()
 
