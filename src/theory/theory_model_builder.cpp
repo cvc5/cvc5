@@ -257,6 +257,10 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
     }
     return false;
   }
+  else if (v.getKind() == kind::APPLY_CONSTRUCTOR)
+  {
+    return false;
+  }
   return true;
 }
 
