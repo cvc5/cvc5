@@ -339,7 +339,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels() && !logicInfo().isQuantified())
+  if (!options().smt.produceModels && !logicInfo().isQuantified())
   {
     // Don't care about the model and logic is not quantified, we can eliminate.
     return true;
