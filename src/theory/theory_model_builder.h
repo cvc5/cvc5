@@ -296,7 +296,7 @@ class TheoryEngineModelBuilder : protected EnvObj
    * If this function returns true, then t above is
    * stored in eqc_m.
    */
-  bool isCdtValueMatch(Node v, Node r, Node eqc, Node& eqc_m);
+  bool isCdtValueMatch(Node v, Node r);
   //------------------------------------end for codatatypes
 
   //---------------------------------for debugging finite model finding
