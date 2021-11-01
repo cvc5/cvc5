@@ -244,7 +244,8 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v, Node r)
     if (v.getKind() != kind::APPLY_CONSTRUCTOR)
     {
       Assert(v.getKind() == kind::CODATATYPE_BOUND_VARIABLE);
-      // v is a loop. It may be possible to match, we return true here.
+      // v is a loop. It may be possible to match, we return true here,
+      // which is an over-approximation of when it is unsafe to use v.
       return true;
     }
     if (v.getOperator() == r.getOperator())
