@@ -12,6 +12,12 @@
  *
  * A multiprecision integer constant; wraps a CLN multiprecision integer.
  */
+
+#include <cln/input.h>
+#include <cln/integer_io.h>
+#include <cln/modinteger.h>
+
+#include <iostream>
 #include <sstream>
 #include <string>
 

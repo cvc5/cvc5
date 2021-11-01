@@ -48,9 +48,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 
-if(ABC_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${ABC_DIR}")
-endif()
 if(GLPK_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
 endif()
@@ -101,7 +98,6 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for ENABLE_BEST
-cvc5_option(USE_ABC           "Use ABC for AIG bit-blasting")
 cvc5_option(USE_CLN           "Use CLN instead of GMP")
 cvc5_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 cvc5_option(USE_GLPK          "Use GLPK simplex solver")
@@ -118,7 +114,6 @@ option(USE_PYTHON2            "Force Python 2 (deprecated)")
 # installed via the corresponding contrib/get-* script and if not found, we
 # check the intalled system version. If the user provides a directory we
 # immediately fail if the dependency was not found at the specified location.
-set(ABC_DIR           "" CACHE STRING "Set ABC install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 
 # Prepend binaries with prefix on make install
@@ -370,11 +365,6 @@ if(ENABLE_VALGRIND)
   add_definitions(-DCVC5_VALGRIND)
 endif()
 
-if(USE_ABC)
-  find_package(ABC REQUIRED)
-  add_definitions(-DCVC5_USE_ABC ${ABC_ARCH_FLAGS})
-endif()
-
 find_package(CaDiCaL REQUIRED)
 
 if(USE_CLN)
@@ -608,7 +598,6 @@ print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})
 print_config("Interprocedural opt.      " ${ENABLE_IPO})
 message("")
-print_config("ABC                       " ${USE_ABC})
 print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT} FOUND_SYSTEM ${CryptoMiniSat_FOUND_SYSTEM})
 print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FOUND_SYSTEM})
@@ -624,9 +613,6 @@ print_config("Editline                  " ${USE_EDITLINE})
 message("")
 print_config("Api docs                  " ${BUILD_DOCS})
 message("")
-if(ABC_DIR)
-  print_config("ABC dir                   " ${ABC_DIR})
-endif()
 if(GLPK_DIR)
   print_config("GLPK dir                  " ${GLPK_DIR})
 endif()
