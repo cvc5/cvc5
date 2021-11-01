@@ -1,9 +1,15 @@
-(declare not_forall_to_exists_not (! body term (! v mpz (! s sort (! p (holds (not (forall v s body))) (holds (exists v s (not body))))))))
+; depends: theory_def.plf
 
-(program mpz_ifequal ((v1 mpz) (v mpz) (t term) (s term)) term
-  (mp_ifzero (mp_add (mp_neg v1) v) t s)
+; Returns term t if v1 = v2, and term s otherwise.
+(program mpz_ifequal ((v1 mpz) (v2 mpz) (t term) (s term)) term
+  (mp_ifzero (mp_add (mp_neg v1) v2) t s)
 )
 
+; Substitute, which returns the result of replacing all occurrences of the
+; bound variable whose identifier is v with the term s. It is the responsibility
+; of the caller to ensure that all occurrences of (bvar v u) in t are such that
+; u is the sort of s. Otherwise, this will return a term that is not well
+; sorted.
 (program sc_substitute ((t term) (v mpz) (s term)) term
   (match t
     ((bvar v1 u1) (mpz_ifequal v v1 s t))
@@ -11,47 +17,37 @@
     (default t)
   ))
 
-(program sc_substitute_and_type_check ((t term) (v mpz) (s term) (u sort)) term
-  (ifequal (type_check s) u (sc_substitute t v s) (fail term)))
-
-;  // ======== Instantiate
-;  // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
-;  // Arguments: (t1 ... tn)
-;  // ----------------------------------------
-;  // Conclusion: F*sigma
-;  // sigma maps x1 ... xn to t1 ... tn.
+; Concludes the instantiation for the term of the outermost quantifier in the
+; rule PfRule::INSTANTIATE. We do not currently enforce type checking of term s
+; currently, which should be of sort u.
 (declare instantiate (! body term
                      (! v mpz
                      (! u sort
                      (! s term
                      (! bodyi term
                      (! p (holds (forall v u body))
-                     (! r (^ (sc_substitute_and_type_check body v s u) bodyi)
+                     (! r (^ (sc_substitute body v s) bodyi)
                        (holds bodyi)))))))))
 
-;  // ======== Skolemize
-;  // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
-;  // Arguments: none
-;  // ----------------------------------------
-;  // Conclusion: F*sigma
-;  // sigma maps x1 ... xn to their representative skolems obtained by
-;  // SkolemManager::mkSkolemize, returned in the skolems argument of that
-;  // method. Alternatively, can use negated forall as a premise.
+; Concludes the skolemization for the term of the outermost quantifier in the
+; rule PfRule::SKOLEMIZE.
 (declare skolemize (! body term
                      (! v mpz
                      (! s sort
                      (! bodyi term
                      (! p (holds (exists v s body))
-                     (! r (^ (sc_substitute_and_type_check body v (skolem (witness v s body)) s) bodyi)
+                     (! r (^ (sc_substitute body v (skolem (witness v s body))) bodyi)
                        (holds bodyi))))))))
 
+; We do not currently enforce type checking of s currently, which should be of
+; sort u.
 (declare exists_intro (! bodyi term
                       (! v mpz
                       (! u sort
                       (! s term
                       (! body term
                       (! p (holds bodyi)
-                      (! r (^ (sc_substitute_and_type_check body v s u) bodyi)
+                      (! r (^ (sc_substitute body v s) bodyi)
                         (holds (exists v u body)))))))))
 
 (declare skolem_intro (! u term
