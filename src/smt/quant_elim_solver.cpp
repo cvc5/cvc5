@@ -92,11 +92,20 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // version of the input quantified formula q.
     std::vector<Node> inst_qs;
     qe->getInstantiatedQuantifiedFormulas(inst_qs);
-    Assert(inst_qs.size() <= 1);
-    Node ret;
-    if (inst_qs.size() == 1)
+    Node topq;
+    // Find the quantified formula corresponding to the quantifier elimination
+    for (const Node& q : inst_qs)
     {
-      Node topq = inst_qs[0];
+      // Should have the same attribute mark as above
+      if (q.getNumChildren()==3 && q[2]==n_attr)
+      {
+        topq = q;
+        break;
+      }
+    }
+    Node ret;
+    if (!topq.isNull())
+    {
       Assert(topq.getKind() == FORALL);
       Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
                       << topq << std::endl;
