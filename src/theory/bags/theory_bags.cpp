@@ -186,13 +186,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
     rep = Rewriter::rewrite(rep);
-
     Trace("bags-model") << "rep of " << n << " is: " << rep << std::endl;
-    for (std::pair<Node, Node> pair : elementReps)
-    {
-      m->assertSkeleton(pair.first);
-      m->assertSkeleton(pair.second);
-    }
     m->assertEquality(rep, n, true);
     m->assertSkeleton(rep);
   }

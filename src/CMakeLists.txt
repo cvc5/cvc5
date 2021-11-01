@@ -51,8 +51,6 @@ libcvc5_add_sources(
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
   options/decision_weight.h
-  options/didyoumean.cpp
-  options/didyoumean.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -379,6 +377,8 @@ libcvc5_add_sources(
   theory/arith/arith_ite_utils.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
+  theory/arith/arith_poly_norm.cpp
+  theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
   theory/arith/arith_rewriter.cpp
