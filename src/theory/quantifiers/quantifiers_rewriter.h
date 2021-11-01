@@ -295,8 +295,7 @@ class QuantifiersRewriter : public TheoryRewriter
    * This returns the result of applying the extended rewriter on the body
    * of quantified formula q with attributes qa.
    */
-  static Node computeExtendedRewrite(Node q,
-                             const QAttributes& qa);
+  static Node computeExtendedRewrite(Node q, const QAttributes& qa);
   //------------------------------------- end extended rewrite
   /**
    * Return true if we should do operation computeOption on quantified formula
