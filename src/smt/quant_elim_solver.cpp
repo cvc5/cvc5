@@ -94,12 +94,12 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     qe->getInstantiatedQuantifiedFormulas(inst_qs);
     Node topq;
     // Find the quantified formula corresponding to the quantifier elimination
-    for (const Node& q : inst_qs)
+    for (const Node& qinst : inst_qs)
     {
       // Should have the same attribute mark as above
-      if (q.getNumChildren()==3 && q[2]==n_attr)
+      if (qinst.getNumChildren()==3 && qinst[2]==n_attr)
       {
-        topq = q;
+        topq = qinst;
         break;
       }
     }
