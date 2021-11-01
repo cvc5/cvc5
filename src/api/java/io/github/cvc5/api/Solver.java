@@ -1184,6 +1184,21 @@ public class Solver implements IPointer
 
   private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
 
+  /**
+   * Create a cardinality constraint for an uninterpreted sort.
+   * @param sort the sort the cardinality constraint is for
+   * @param upperBound the upper bound on the cardinality of the sort
+   * @return the cardinality constraint
+   */
+  public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(upperBound, "upperBound");
+    long termPointer = mkCardinalityConstraint(pointer, sort.getPointer(), upperBound);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkCardinalityConstraint(long pointer, long sortPointer, int upperBound);
+
   /* .................................................................... */
   /* Create Variables                                                     */
   /* .................................................................... */
@@ -1577,47 +1592,6 @@ public class Solver implements IPointer
       long sortPointer,
       long termPointer,
       boolean global);
-
-  /**
-   * Define n-ary function in the current context.
-   * SMT-LIB:
-   * {@code
-   * ( define-fun <function_def> )
-   * }
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @return the function
-   */
-  public Term defineFun(Term fun, Term[] boundVars, Term term)
-  {
-    return defineFun(fun, boundVars, term, false);
-  }
-  /**
-   * Define n-ary function.
-   * SMT-LIB:
-   * {@code
-   * ( define-fun <function_def> )
-   * }
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
-   */
-  public Term defineFun(Term fun, Term[] boundVars, Term term, boolean global)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer =
-        defineFun(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
-    return new Term(this, termPointer);
-  }
-
-  private native long defineFun(
-      long pointer, long funPointer, long[] boundVarPointers, long termPointer, boolean global);
 
   /**
    * Define recursive function in the current context.

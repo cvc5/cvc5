@@ -103,18 +103,20 @@ const char* toString(InferenceId i)
       return "ARRAYS_CONST_ARRAY_DEFAULT";
     case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
 
-    case InferenceId::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
-    case InferenceId::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
-    case InferenceId::BAG_MK_BAG: return "BAG_MK_BAG";
-    case InferenceId::BAG_EQUALITY: return "BAG_EQUALITY";
-    case InferenceId::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
-    case InferenceId::BAG_EMPTY: return "BAG_EMPTY";
-    case InferenceId::BAG_UNION_DISJOINT: return "BAG_UNION_DISJOINT";
-    case InferenceId::BAG_UNION_MAX: return "BAG_UNION_MAX";
-    case InferenceId::BAG_INTERSECTION_MIN: return "BAG_INTERSECTION_MIN";
-    case InferenceId::BAG_DIFFERENCE_SUBTRACT: return "BAG_DIFFERENCE_SUBTRACT";
-    case InferenceId::BAG_DIFFERENCE_REMOVE: return "BAG_DIFFERENCE_REMOVE";
-    case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
+    case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
+    case InferenceId::BAGS_MK_BAG_DIFFERENT_ELEMENT: return "BAGS_MK_BAG_DIFFERENT_ELEMENT";
+    case InferenceId::BAGS_MK_BAG_SAME_ELEMENT: return "BAGS_MK_BAG_SAME_ELEMENT";
+    case InferenceId::BAGS_MK_BAG: return "BAGS_MK_BAG";
+    case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
+    case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
+    case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
+    case InferenceId::BAGS_UNION_DISJOINT: return "BAGS_UNION_DISJOINT";
+    case InferenceId::BAGS_UNION_MAX: return "BAGS_UNION_MAX";
+    case InferenceId::BAGS_INTERSECTION_MIN: return "BAGS_INTERSECTION_MIN";
+    case InferenceId::BAGS_DIFFERENCE_SUBTRACT: return "BAGS_DIFFERENCE_SUBTRACT";
+    case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
+    case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
+    case InferenceId::BAGS_MAP: return "BAGS_MAP";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
@@ -340,6 +342,8 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_JOIN_IMAGE_UP: return "SETS_RELS_JOIN_IMAGE_UP";
     case InferenceId::SETS_RELS_JOIN_SPLIT_1: return "SETS_RELS_JOIN_SPLIT_1";
     case InferenceId::SETS_RELS_JOIN_SPLIT_2: return "SETS_RELS_JOIN_SPLIT_2";
+    case InferenceId::SETS_RELS_JOIN_ELEM_SPLIT:
+      return "SETS_RELS_JOIN_ELEM_SPLIT";
     case InferenceId::SETS_RELS_PRODUCE_COMPOSE:
       return "SETS_RELS_PRODUCE_COMPOSE";
     case InferenceId::SETS_RELS_PRODUCT_SPLIT: return "SETS_RELS_PRODUCT_SPLIT";

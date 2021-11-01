@@ -100,3 +100,21 @@ jobs:
           else
             echo "Ignored run"
           fi
+
+      - name: Update docs for release
+        continue-on-error: true
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          if [ "$ISTAG" ]; then
+            git clone git@github.com:cvc5/docs-releases.git target-releases/
+            mv docs-new target-releases/$NAME
+            cd target-releases/
+
+            git add docs-$NAME
+
+            git commit -m "Update docs for $NAME"
+            git push
+          else
+            echo "Ignored run"
+          fi

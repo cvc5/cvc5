@@ -1,0 +1,64 @@
+; depends: theory_def.plf
+
+; The following encodes the proof rules for the theory of equality in the
+; internal proof calculus of cvc5 (see src/proof/proof_rule.h). Rules from
+; that calculus are referenced by PfRule::NAME, where NAME is the name of the
+; identifier in the PfRule enumeration (see src/proof/proof_rule.h). For this
+; and other theory signature definitions, unless otherwise stated, we use a
+; naming convention in which the corresponding LFSC rule is the same as the
+; PfRule, but converted to lower case. For example, `refl` corresponds to the
+; LFSC encoding of PfRule::REFL. We provide documentation when the proof rule
+; differs from the original PfRule.
+
+(declare refl (! t term (holds (= t t))))
+
+; symm is a special case of PfRule::SYMM that is applied only to equalties.
+(declare symm (! s term
+        (! t term
+        (! u (holds (= s t))
+        (holds (= t s))))))
+
+; neg_symm is a special case of PfRule::SYMM that is applied only to disequalties,
+; i.e. negated equalities.
+(declare neg_symm (! s term
+        (! t term
+        (! u (holds (not (= s t)))
+        (holds (not (= t s)))))))
+
+(declare trans (! t1 term
+        (! t2 term
+        (! t3 term
+        (! u1 (holds (= t1 t2))
+        (! u2 (holds (= t2 t3))
+        (holds (= t1 t3))))))))
+
+; In LFSC, congruence is applied to higher-order apply only. Thus, when
+; applying congruence to n-ary symbols, we curry the applications of congruence
+; e.g. consider (cong _ _ _ _ (cong _ _ _ _ P1 P2) P3)
+; where P1 proves (= f g), P2 proves (= a b), P3 proves (= c d). The above
+; proof proves (= (apply (apply f a) c) (apply (apply f b) d)), where assuming
+; f is binary, is the LFSC encoding of the SMT-LIB equality (= (f a c) (f b d)).
+(declare cong (! a1 term
+              (! b1 term
+              (! a2 term
+              (! b2 term
+              (! u1 (holds (= a1 b1))
+              (! u2 (holds (= a2 b2))
+                (holds (= (apply a1 a2) (apply b1 b2))))))))))
+
+(declare true_intro (! f term
+                    (! u (holds f)
+                    (holds (= f true)))))
+
+(declare true_elim (! f term
+                   (! u (holds (= f true))
+                   (holds f))))
+
+(declare false_intro (! f term
+                    (! u (holds (not f))
+                    (holds (= f false)))))
+
+(declare false_elim (! f term
+                   (! u (holds (= f false))
+                   (holds (not f)))))
+

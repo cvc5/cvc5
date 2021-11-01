@@ -31,8 +31,6 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
-  --static-binary          statically link against system libraries
-                           (must be disabled for static macOS builds) [default=yes]
   --auto-download          automatically download dependencies if necessary
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
@@ -131,8 +129,7 @@ python2=default
 python_bindings=default
 java_bindings=default
 editline=default
-static_library=default
-static_binary=default
+static=default
 statistics=default
 tracing=default
 tsan=default
@@ -249,11 +246,8 @@ do
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
-    --static) static_library=ON; static_binary=ON;;
-    --no-static) static_library=OFF;;
-
-    --static-binary) static_binary=ON;;
-    --no-static-binary) static_binary=OFF;;
+    --static) static=ON;;
+    --no-static) static=OFF;;
 
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
@@ -356,10 +350,8 @@ fi
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $static_library != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STATIC_LIBRARY=$static_library"
-[ $static_binary != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
+[ $static != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STATIC_BUILD=$static"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \
