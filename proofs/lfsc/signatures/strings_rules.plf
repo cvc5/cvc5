@@ -1,5 +1,7 @@
 ; depends: strings_programs.plf
 
+(declare string_length_non_empty (! s term (! p (holds (not (= s emptystr))) (holds (not (= (str.len s) (int 0)))))))
+
 ; Flatten constants in str.++ application s. Notice that in the rewritten form
 ; of strings in cvc5 are such that constants are grouped into constants of
 ; length >=1 which we call "word" constants. For example, the cvc5 rewritten
