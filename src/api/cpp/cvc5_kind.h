@@ -404,6 +404,17 @@ enum CVC5_EXPORT Kind : int32_t
    *
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
+   *
+   * Apply integer and.
+   *
+   * Parameters:
+   *   - 1: Op of kind IAND
+   *   - 2: Integer term
+   *   - 3: Integer term
+   *
+   * Create with:
+   *   - `Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(const Op& op, const std::vector<Term>& children) const`
    */
   IAND,
   /**
@@ -415,6 +426,8 @@ enum CVC5_EXPORT Kind : int32_t
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
+   *
+   * Apply 2 to the power operator.
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
