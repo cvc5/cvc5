@@ -837,8 +837,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Assert(o0 != o1);
               Node kca = d_treg.getProxy(o0);
               Node kcb = d_treg.getProxy(o1);
-              Node intro =
-                  rewrite(nm->mkNode(INTERSECTION, kca, kcb));
+              Node intro = rewrite(nm->mkNode(INTERSECTION, kca, kcb));
               Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
                                << ", term is " << intro << std::endl;
               intro_sets.push_back(intro);

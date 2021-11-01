@@ -29,7 +29,7 @@ SkolemCache::SkolemCache(Rewriter* rr) : d_rewriter(rr) {}
 Node SkolemCache::mkTypedSkolemCached(
     TypeNode tn, Node a, Node b, SkolemId id, const char* c)
 {
-  if (d_rewriter!=nullptr)
+  if (d_rewriter != nullptr)
   {
     a = a.isNull() ? a : d_rewriter->rewrite(a);
     b = b.isNull() ? b : d_rewriter->rewrite(b);
