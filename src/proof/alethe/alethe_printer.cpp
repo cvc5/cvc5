@@ -24,7 +24,7 @@ namespace cvc5 {
 
 namespace proof {
 
-AletheProofPrinter::AletheProofPrinter(bool extended) : d_extended(extended)
+AletheProofPrinter::AletheProofPrinter()
 {
   nested_level = 0;
   step_id = 1;
@@ -99,19 +99,21 @@ std::string AletheProofPrinter::alethePrinterInternal(
         << "... print anchor " << pfn->getResult() << " " << vrule << " "
         << " / " << pfn->getArguments() << std::endl;
     out << "(anchor :step " << prefix << "t" << step_id;  // << " :args (";
-    if(vrule == AletheRule::ANCHOR_BIND){
-	    out << " :args (";
-    for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
-         j++)
+    if (vrule == AletheRule::ANCHOR_BIND)
     {
-        out << "(:= (" << pfn->getArguments()[j][0].toString() << " " << pfn->getArguments()[j][0].getType().toString() << ") "
-            << pfn->getArguments()[j][1].toString() << ")";
-      if (j != pfn->getArguments().size() - 1)
+      out << " :args (";
+      for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
+           j++)
       {
-        out << " ";
+        out << "(:= (" << pfn->getArguments()[j][0].toString() << " "
+            << pfn->getArguments()[j][0].getType().toString() << ") "
+            << pfn->getArguments()[j][1].toString() << ")";
+        if (j != pfn->getArguments().size() - 1)
+        {
+          out << " ";
+        }
       }
-    }
-    out << ")";
+      out << ")";
     }
     out << ")\n";
 
@@ -156,7 +158,7 @@ std::string AletheProofPrinter::alethePrinterInternal(
           << assumptions[nested_level] << std::endl;
       return prefix + "a" + std::to_string(it->second);
     }
-  // temp, hotfix
+    // temp, hotfix
     auto prefix2 = prefix;
     for (int i = nested_level; i >= 0; i--)
     {
@@ -174,13 +176,13 @@ std::string AletheProofPrinter::alethePrinterInternal(
             << prefix2 << std::endl;
         return prefix2 + "a" + std::to_string(it2->second);
       }
-  }
+    }
 
-  Trace("alethe-printer") << "... printing failed! Encountered assumption "
-                             "that has not been printed! "
-                          << pfn->getArguments()[2] << "/"
-                          << assumptions[nested_level] << std::endl;
-  return "";
+    Trace("alethe-printer") << "... printing failed! Encountered assumption "
+                               "that has not been printed! "
+                            << pfn->getArguments()[2] << "/"
+                            << assumptions[nested_level] << std::endl;
+    return "";
   }
 
   // Print children
@@ -190,15 +192,12 @@ std::string AletheProofPrinter::alethePrinterInternal(
     child_prefixes.push_back(alethePrinterInternal(out, child));
   }
 
-  // If rule is SYMM or REORDER the rule should not be printed in non-extended
-  // mode if (!d_extended && (vrule == AletheRule::REORDER || vrule ==
-  // AletheRule::SYMM)) for now exclude all reorder rules since they cannot be
-  // reconstructed in Isabelle yet.
-  /*if (vrule == AletheRule::REORDER
-      || (!d_extended && vrule == AletheRule::SYMM))
+  // If rule is REORDER the rule should not be printed for now since they cannot
+  // be reconstructed in Isabelle yet.
+  /*if (vrule == AletheRule::REORDER)
   {
     Trace("alethe-printer")
-        << "... non-extended mode skip child " << pfn->getResult() << " "
+        << "... skip reordering " << pfn->getResult() << " "
         << vrule << " / " << pfn->getArguments() << std::endl;
     return child_prefixes[0];
   }*/

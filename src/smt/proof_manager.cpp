@@ -195,8 +195,7 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
-    proof::AletheProofPrinter vpp(options::proofFormatMode()
-                                  == options::ProofFormatMode::ALETHE);
+    proof::AletheProofPrinter vpp;
     vpp.alethePrinter(out, fp);
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
