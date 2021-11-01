@@ -836,6 +836,21 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       }
     }
   }
+  else if (logic.isQuantified() && logic.areRealsUsed() && !logic.areIntegersUsed())
+  {
+    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    {
+      opts.arith.nlCad = true;
+      if (!opts.arith.nlExtWasSetByUser)
+      {
+        opts.arith.nlExt = options::NlExtMode::LIGHT;
+      }
+      if (!opts.arith.nlRlvModeWasSetByUser)
+      {
+        opts.arith.nlRlvMode = options::NlRlvMode::INTERLEAVE;
+      }
+    }
+  }
 #else
   if (opts.arith.nlCad)
   {
