@@ -454,7 +454,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
             {
               Trace("sets-debug") << "Downwards closure based on " << mem
                                   << ", eq_set = " << eq_set << std::endl;
-              if (!options::setsProxyLemmas())
+              if (!options().sets.setsProxyLemmas)
               {
                 Node nmem = NodeManager::currentNM()->mkNode(
                     kind::MEMBER, mem[0], eq_set);
@@ -635,7 +635,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
   }
   if (!d_im.hasSent())
   {
-    if (options::setsExt())
+    if (options().sets.setsExt)
     {
       // universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
