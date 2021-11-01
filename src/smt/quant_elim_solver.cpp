@@ -97,7 +97,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     for (const Node& qinst : inst_qs)
     {
       // Should have the same attribute mark as above
-      if (qinst.getNumChildren()==3 && qinst[2]==n_attr)
+      if (qinst.getNumChildren() == 3 && qinst[2] == n_attr)
       {
         topq = qinst;
         break;
