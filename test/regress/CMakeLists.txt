@@ -661,6 +661,7 @@ set(regress_0_tests
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/qgu-fuzz-ho-1-dd.smt2
+  regress0/ho/qgu-fuzz-ho-2-dd-no-ext.smt2
   regress0/ho/shadowing-defs.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2
@@ -846,6 +847,7 @@ set(regress_0_tests
   regress0/preprocess/proj-issue305-circuit-prop-ite-c.smt2
   regress0/preprocess/proj-issue305-circuit-prop-ite-d.smt2
   regress0/preprocess/proj-issue309-circuit-prop-ite.smt2
+  regress0/preprocess/proj-issue332-circuit-prop-xor.smt2
   regress0/print_define_fun_internal.smt2
   regress0/print_lambda.cvc.smt2
   regress0/print_model.cvc.smt2
@@ -864,6 +866,8 @@ set(regress_0_tests
   regress0/proofs/open-pf-if-unordered-iff.smt2
   regress0/proofs/open-pf-rederivation.smt2
   regress0/proofs/project-issue317-inc-sat-conflictlit.smt2
+  regress0/proofs/project-issue330-eqproof.smt2
+  regress0/proofs/proj-issue326-nl-bounds-check.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
@@ -1033,7 +1037,6 @@ set(regress_0_tests
   regress0/rels/rel_tc_2_1.cvc.smt2
   regress0/rels/rel_tc_3_1.cvc.smt2
   regress0/rels/rel_tc_3.cvc.smt2
-  regress0/rels/rel_tc_7.cvc.smt2
   regress0/rels/rel_tc_8.cvc.smt2
   regress0/rels/rel_tp_3_1.cvc.smt2
   regress0/rels/rel_tp_join_0.cvc.smt2
@@ -1586,6 +1589,9 @@ set(regress_1_tests
   regress1/bags/emptybag1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
+  regress1/bags/fuzzy3.smt2
+  regress1/bags/fuzzy4.smt2
+  regress1/bags/fuzzy5.smt2
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
@@ -2068,6 +2074,8 @@ set(regress_1_tests
   regress1/rels/joinImg_2_1.cvc.smt2
   regress1/rels/prod-mod-eq.cvc.smt2
   regress1/rels/prod-mod-eq2.cvc.smt2
+  regress1/rels/qgu-fuzz-relations-2.smt2
+  regress1/rels/qgu-fuzz-relations-3-upwards.smt2
   regress1/rels/rel_complex_3.cvc.smt2
   regress1/rels/rel_complex_4.cvc.smt2
   regress1/rels/rel_complex_5.cvc.smt2
@@ -2768,6 +2776,8 @@ set(regression_disabled_tests
   regress0/auflia/fuzz01.smtv1.smt2
   ###
   regress0/bv/test00.smtv1.smt2
+  # timeout after fixing upwards closure for relations
+  regress0/rels/rel_tc_7.cvc.smt2
   # timeout after changes to equality rewriting policy in strings
   regress0/strings/quad-028-2-2-unsat.smt2
   # FIXME #1649

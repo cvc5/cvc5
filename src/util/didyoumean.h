@@ -22,7 +22,6 @@
 
 #include "cvc5_export.h"
 
-#include <set>
 #include <string>
 #include <vector>
 
@@ -30,15 +29,10 @@ namespace cvc5 {
 
 class CVC5_EXPORT DidYouMean {
  public:
-  using Words = std::set<std::string>;
-
-  DidYouMean() {}
-  ~DidYouMean() {}
-
-  void addWord(std::string word) { d_words.insert(std::move(word)); }
+  void addWord(const std::string& word) { d_words.emplace_back(word); }
   void addWords(const std::vector<std::string>& words)
   {
-    d_words.insert(words.begin(), words.end());
+    d_words.insert(d_words.end(), words.begin(), words.end());
   }
 
   std::vector<std::string> getMatch(const std::string& input);
@@ -47,13 +41,10 @@ class CVC5_EXPORT DidYouMean {
    * This is provided to make it easier to ensure consistency of
    * output. Returned string is empty if there are no matches.
    */
-  std::string getMatchAsString(const std::string& input,
-                               uint64_t prefixNewLines = 2,
-                               uint64_t suffixNewLines = 0);
+  std::string getMatchAsString(const std::string& input);
 
  private:
-  int editDistance(const std::string& a, const std::string& b);
-  Words d_words;
+  std::vector<std::string> d_words;
 };
 
 }  // namespace cvc5

@@ -41,7 +41,7 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
                                       const TypeNode& grammarType,
                                       Node& interpol)
 {
-  if (options::produceInterpols() == options::ProduceInterpols::NONE)
+  if (options().smt.produceInterpols == options::ProduceInterpols::NONE)
   {
     const char* msg =
         "Cannot get interpolation when produce-interpol options is off.";
@@ -57,7 +57,7 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
   if (interpolSolver.solveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
-    if (options::checkInterpols())
+    if (options().smt.checkInterpols)
     {
       checkInterpol(interpol, axioms, conj);
     }

@@ -51,8 +51,6 @@ libcvc5_add_sources(
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
   options/decision_weight.h
-  options/didyoumean.cpp
-  options/didyoumean.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -379,6 +377,8 @@ libcvc5_add_sources(
   theory/arith/arith_ite_utils.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
+  theory/arith/arith_poly_norm.cpp
+  theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
   theory/arith/arith_rewriter.cpp
@@ -1339,7 +1339,7 @@ install(TARGETS cvc5-shared
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   add_library(cvc5-static STATIC $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
   set_target_properties(cvc5-static PROPERTIES OUTPUT_NAME cvc5)
   target_include_directories(cvc5-static
@@ -1360,7 +1360,7 @@ generate_export_header(cvc5-obj BASE_NAME cvc5)
 add_dependencies(cvc5-obj GMP_SHARED)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
 endif()
 
@@ -1368,7 +1368,7 @@ endif()
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
 target_link_libraries(cvc5-shared PRIVATE ${RT_LIBRARIES})
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PRIVATE ${RT_LIBRARIES})
 endif()
 
@@ -1383,7 +1383,7 @@ endif()
 add_dependencies(cvc5-obj CaDiCaL)
 target_include_directories(cvc5-obj PRIVATE ${CaDiCaL_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE CaDiCaL)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC CaDiCaL)
 endif()
 
@@ -1391,7 +1391,7 @@ if(USE_CLN)
   add_dependencies(cvc5-obj CLN_SHARED)
   target_include_directories(cvc5-obj PRIVATE ${CLN_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CLN_SHARED)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CLN_STATIC)
   endif()
 endif()
@@ -1399,7 +1399,7 @@ if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
   target_include_directories(cvc5-obj PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CryptoMiniSat)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CryptoMiniSat)
   endif()
 endif()
@@ -1407,14 +1407,14 @@ if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
   target_include_directories(cvc5-obj PRIVATE ${Kissat_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE Kissat)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC Kissat)
   endif()
 endif()
 if(USE_GLPK)
   target_include_directories(cvc5-obj PRIVATE ${GLPK_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE ${GLPK_LIBRARIES})
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC ${GLPK_LIBRARIES})
   endif()
 endif()
@@ -1422,7 +1422,7 @@ if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx_SHARED)
   target_include_directories(cvc5-obj PRIVATE ${Poly_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE Polyxx_SHARED)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC Polyxx_STATIC)
   endif()
 endif()
@@ -1430,7 +1430,7 @@ if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
   target_include_directories(cvc5-obj PRIVATE ${CoCoA_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CoCoA)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CoCoA)
   endif()
 endif()
@@ -1438,7 +1438,7 @@ endif()
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj PRIVATE ${SymFPU_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE SymFPU)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC SymFPU)
 endif()
 
