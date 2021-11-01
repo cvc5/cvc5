@@ -71,21 +71,16 @@ if(NOT CLN_FOUND_SYSTEM)
   add_dependencies(CLN-EP GMP)
 
   set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
-  if(ENABLE_STATIC_BUILD)
-    set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
-  else()
+  if(BUILD_SHARED_LIBS)
     set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  else()
+    set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
   endif()
 endif()
 
 set(CLN_FOUND TRUE)
 
-if(ENABLE_STATIC_BUILD)
-  add_library(CLN STATIC IMPORTED GLOBAL)
-else()
-  add_library(CLN SHARED IMPORTED GLOBAL)
-endif()
-
+add_library(CLN IMPORTED GLOBAL)  
 set_target_properties(CLN PROPERTIES
   IMPORTED_LOCATION "${CLN_LIBRARIES}"
   INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"

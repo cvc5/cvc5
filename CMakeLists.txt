@@ -268,17 +268,17 @@ enable_testing()
 #-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
 
-if(ENABLE_STATIC_BUILD)
-  if (WIN32)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a .dll)
-  else()
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .so .dylib)
-  endif()
-else()
+if(BUILD_SHARED_LIBS)
   if (WIN32)
     set(CMAKE_FIND_LIBRARY_SUFFIXES .dll .lib .a)
   else()
     set(CMAKE_FIND_LIBRARY_SUFFIXES .so .dylib .a)
+  endif()
+else()
+  if (WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a .dll)
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .so .dylib)
   endif()
 endif()
 
@@ -463,7 +463,9 @@ include(IWYU)
 #-----------------------------------------------------------------------------#
 
 include(ConfigureCvc5)
-if(ENABLE_STATIC_BUILD)
+if(BUILD_SHARED_LIBS)
+  set(CVC5_STATIC_BUILD OFF)
+else()
   set(CVC5_STATIC_BUILD ON)
 endif()
 
@@ -472,7 +474,7 @@ endif()
 
 add_subdirectory(src)
 
-if(BUILD_BINDINGS_PYTHON AND ENABLE_STATIC_BUILD)
+if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
   message(STATUS "Python bindings can only be built in a shared build.")
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
@@ -508,7 +510,7 @@ include(CMakePackageConfigHelpers)
 # (in the assumption that only reasonably experienced users use this and
 # also that custom installation prefixes are not used for longer periods of
 # time anyway). Also, we print a big warning with further instructions.
-if(NOT ENABLE_STATIC_BUILD)
+if(BUILD_SHARED_LIBS)
   # Get the libraries that cvc5 links against
   get_target_property(libs cvc5 INTERFACE_LINK_LIBRARIES)
   set(LIBS_SHARED_FROM_DEPS "")
@@ -619,7 +621,7 @@ print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
 print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
 print_config("Valgrind                  " ${ENABLE_VALGRIND})
 message("")
-print_config("Static build              " ${ENABLE_STATIC_BUILD})
+print_config("Shared build              " ${BUILD_SHARED_LIBS})
 print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
 print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})
