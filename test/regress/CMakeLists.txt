@@ -1037,6 +1037,7 @@ set(regress_0_tests
   regress0/rels/rel_tc_2_1.cvc.smt2
   regress0/rels/rel_tc_3_1.cvc.smt2
   regress0/rels/rel_tc_3.cvc.smt2
+  regress0/rels/rel_tc_7.cvc.smt2
   regress0/rels/rel_tc_8.cvc.smt2
   regress0/rels/rel_tp_3_1.cvc.smt2
   regress0/rels/rel_tp_join_0.cvc.smt2
@@ -2776,8 +2777,6 @@ set(regression_disabled_tests
   regress0/auflia/fuzz01.smtv1.smt2
   ###
   regress0/bv/test00.smtv1.smt2
-  # timeout after fixing upwards closure for relations
-  regress0/rels/rel_tc_7.cvc.smt2
   # timeout after changes to equality rewriting policy in strings
   regress0/strings/quad-028-2-2-unsat.smt2
   # FIXME #1649

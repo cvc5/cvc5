@@ -351,37 +351,54 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }
 
-  case kind::JOIN: {
-    if( node[0].getKind() == kind::EMPTYSET ||
-        node[1].getKind() == kind::EMPTYSET) {
+  case kind::JOIN:
+  {
+    Node r = node[0];
+    Node s = node[1];
+    if (r.getKind() == kind::EMPTYSET || s.getKind() == kind::EMPTYSET)
+    {
+      // (join r emptyset) = emptyset
+      // (join emptyset s) = emptyset
       return RewriteResponse(REWRITE_DONE,
                              nm->mkConst(EmptySet(node.getType())));
-    } else if( node[0].isConst() && node[1].isConst() ) {
-      Trace("sets-rels-postrewrite") << "Sets::postRewrite processing " <<  node << std::endl;
+    }
+    else if (r.isConst() && s.isConst())
+    {
+      Trace("sets-rels-postrewrite")
+          << "Sets::postRewrite processing " << node << std::endl;
       std::set<Node> new_tuple_set;
-      std::set<Node> left = NormalForm::getElementsFromNormalConstant(node[0]);
-      std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
+      std::set<Node> left = NormalForm::getElementsFromNormalConstant(r);
+      std::set<Node> right = NormalForm::getElementsFromNormalConstant(s);
       std::set<Node>::iterator left_it = left.begin();
       int left_len = (*left_it).getType().getTupleLength();
       TypeNode tn = node.getType().getSetElementType();
-      while(left_it != left.end()) {
+      while (left_it != left.end())
+      {
         std::vector<Node> left_tuple;
         left_tuple.push_back(tn.getDType()[0].getConstructor());
-        for(int i = 0; i < left_len - 1; i++) {
-          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it,i));
+        for (int i = 0; i < left_len - 1; i++)
+        {
+          left_tuple.push_back(RelsUtils::nthElementOfTuple(*left_it, i));
         }
         std::set<Node>::iterator right_it = right.begin();
         int right_len = (*right_it).getType().getTupleLength();
-        while(right_it != right.end()) {
-          if(RelsUtils::nthElementOfTuple(*left_it,left_len-1) == RelsUtils::nthElementOfTuple(*right_it,0)) {
+        while (right_it != right.end())
+        {
+          if (RelsUtils::nthElementOfTuple(*left_it, left_len - 1)
+              == RelsUtils::nthElementOfTuple(*right_it, 0))
+          {
             std::vector<Node> right_tuple;
-            for(int j = 1; j < right_len; j++) {
-              right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it,j));
+            for (int j = 1; j < right_len; j++)
+            {
+              right_tuple.push_back(RelsUtils::nthElementOfTuple(*right_it, j));
             }
             std::vector<Node> new_tuple;
-            new_tuple.insert(new_tuple.end(), left_tuple.begin(), left_tuple.end());
-            new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
-            Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
+            new_tuple.insert(
+                new_tuple.end(), left_tuple.begin(), left_tuple.end());
+            new_tuple.insert(
+                new_tuple.end(), right_tuple.begin(), right_tuple.end());
+            Node composed_tuple = NodeManager::currentNM()->mkNode(
+                kind::APPLY_CONSTRUCTOR, new_tuple);
             new_tuple_set.insert(composed_tuple);
           }
           ++right_it;
@@ -390,34 +407,53 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
       Assert(new_node.isConst());
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
+      Trace("sets-postrewrite")
+          << "Sets::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
     }
+    else if (s.getKind() == TCLOSURE && r == s[0])
+    {
+      // (join r (tclosure r)) = (tclosure r)
+      return RewriteResponse(REWRITE_AGAIN, s);
+    }
+    else if (r.getKind() == TCLOSURE && r[0] == s)
+    {
+      // (join (tclosure s) s) = (tclosure s)
+      return RewriteResponse(REWRITE_AGAIN, r);
+    }
 
-    break;
+    return RewriteResponse(REWRITE_DONE, node);
   }
 
-  case kind::TCLOSURE: {
-    if(node[0].getKind() == kind::EMPTYSET) {
+  case kind::TCLOSURE:
+  {
+    Node r = node[0];
+    if (r.getKind() == kind::EMPTYSET)
+    {
+      // (tclosure emptyset) = emptyset
       return RewriteResponse(REWRITE_DONE,
                              nm->mkConst(EmptySet(node.getType())));
-    } else if (node[0].isConst()) {
-      std::set<Node> rel_mems = NormalForm::getElementsFromNormalConstant(node[0]);
+    }
+    else if (r.isConst())
+    {
+      std::set<Node> rel_mems = NormalForm::getElementsFromNormalConstant(r);
       std::set<Node> tc_rel_mems = RelsUtils::computeTC(rel_mems, node);
       Node new_node = NormalForm::elementsToSet(tc_rel_mems, node.getType());
       Assert(new_node.isConst());
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
+      Trace("sets-postrewrite")
+          << "Sets::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
-      
-    } else if(node[0].getKind() == kind::TCLOSURE) {
-      return RewriteResponse(REWRITE_AGAIN, node[0]);
-    } else if(node[0].getKind() != kind::TCLOSURE) {
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << node << std::endl;
-      return RewriteResponse(REWRITE_DONE, node);
     }
-    break;
+    else if (r.getKind() == kind::TCLOSURE)
+    {
+      // (tclosure (tclosure s)) = (tclosure s)
+      return RewriteResponse(REWRITE_AGAIN, r);
+    }
+    Trace("sets-postrewrite")
+        << "Sets::postRewrite returning " << node << std::endl;
+    return RewriteResponse(REWRITE_DONE, node);
   }
-  
+
   case kind::IDEN: {
     if(node[0].getKind() == kind::EMPTYSET) {
       return RewriteResponse(REWRITE_DONE,
