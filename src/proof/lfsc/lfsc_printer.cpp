@@ -608,6 +608,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::CONCAT_CSPLIT:
       pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
       break;
+    case PfRule::CONCAT_CONFLICT:
+      pf << h << h << args[0].getConst<bool>() << cs[0];
       break;
     case PfRule::RE_UNFOLD_POS:
       if (children[0]->getResult()[1].getKind() != REGEXP_CONCAT)

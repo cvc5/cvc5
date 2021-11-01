@@ -203,3 +203,16 @@
     ((apply t1 t2)
       (and (not (= (getarg f_str.++ t1) emptystr)) (sc_non_empty_concats t2)))
     (emptystr true)))
+
+; Get first character or empty string from term t.
+; If t is of the form (str.++ (char n) ...), return (char n).
+; If t is of the form emptystr, return emptystr.
+; Otherwise, this side condition fails
+(program sc_string_first_char_or_empty ((t term)) term
+  (match t
+    ((apply t1 t2)
+      (let t12 (getarg f_str.++ t1)
+      (match t12
+        ((char n) t12))))
+    (emptystr t)))
+

@@ -113,7 +113,7 @@
   
 ; Computes the conclusion of the PfRule::CONCAT_EQ rule
 (program sc_concat_eq ((s term) (t term) (rev flag)) term
-  (match (sc_strip_prefix 
+  (match (sc_strip_prefix
            (sc_string_to_flat_form s rev) 
            (sc_string_to_flat_form t rev))
     ((pair ss ts)
@@ -129,7 +129,8 @@
                    (! r (^ (sc_concat_eq s t rev) res) 
                       (holds res))))))))
 
-; Computes the conclusion of the PfRule::CONCAT_UNIFY rule
+; Computes whether the heads of the premise (= s t) match s1 and t1 for the
+; PfRule::CONCAT_UNIFY rule
 (program sc_concat_unify ((s term) (t term) (s1 term) (t1 term) (rev flag)) Ok
   (ifequal (sc_string_head (sc_string_rev s rev)) s1
     (ifequal (sc_string_head (sc_string_rev t rev)) t1
@@ -174,6 +175,26 @@
   (! p2 (holds (not (= (str.len t1) (int 0))))
   (! r (^ (sc_concat_csplit t1 t s rev) res)
     (holds res))))))))))
+
+; Checks whether the conditions on the premise (= s t) is satisfied for the
+; PfRule::CONCAT_CONFLICT rule
+(program sc_concat_conflict ((s term) (t term) (rev flag)) Ok
+  (match (sc_strip_prefix
+           (sc_string_to_flat_form s rev)
+           (sc_string_to_flat_form t rev))
+    ((pair ss ts)
+      (ifequal
+        (sc_string_first_char_or_empty ss)
+        (sc_string_first_char_or_empty ts)
+        (fail Ok)
+        ok))))
+
+(declare concat_conflict (! s term
+                         (! t term
+                         (! rev flag
+                         (! p (holds (= s t))
+                         (! r (^ (sc_concat_conflict s t rev) ok)
+                            (holds false)))))))
 
 (declare string_length_pos (! t term 
   (holds (or (and (= (str.len t) (int 0)) (and (= t emptystr) true)) (or (a.> (str.len t) (int 0)) false)))))
