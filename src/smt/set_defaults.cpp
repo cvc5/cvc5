@@ -150,17 +150,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
   }
 
-  if (opts.bv.bitvectorAigSimplificationsWasSetByUser)
-  {
-    Notice() << "SolverEngine: setting bitvectorAig" << std::endl;
-    opts.bv.bitvectorAig = true;
-  }
-  if (opts.bv.bitvectorAlgebraicBudgetWasSetByUser)
-  {
-    Notice() << "SolverEngine: setting bitvectorAlgebraicSolver" << std::endl;
-    opts.bv.bitvectorAlgebraicSolver = true;
-  }
-  
   // if we requiring disabling proofs, disable them now
   if (opts.smt.produceProofs)
   {
@@ -597,14 +586,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
   }
 
-  if (!opts.bv.bvEagerExplanationsWasSetByUser
-      && logic.isTheoryEnabled(THEORY_ARRAYS)
-      && logic.isTheoryEnabled(THEORY_BV))
-  {
-    Trace("smt") << "enabling eager bit-vector explanations " << std::endl;
-    opts.bv.bvEagerExplanations = true;
-  }
-
   // Turn on arith rewrite equalities only for pure arithmetic
   if (!opts.arith.arithRewriteEqWasSetByUser)
   {
@@ -1017,7 +998,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   opts.uf.ufssFairnessMonotone = false;
   opts.quantifiers.globalNegate = false;
   opts.quantifiers.cegqiNestedQE = false;
-  opts.bv.bvAbstraction = false;
   opts.arith.arithMLTrick = false;
 
   return false;
@@ -1146,12 +1126,6 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     opts.quantifiers.globalNegate = false;
   }
 
-  if (opts.bv.bitvectorAig)
-  {
-    reason << "bitblast-aig";
-    return true;
-  }
-
   if (opts.smt.doITESimp)
   {
     reason << "ITE simp";
@@ -1227,14 +1201,8 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
     logic = log;
     logic.lock();
   }
-  if (opts.bv.bvAbstraction)
-  {
-    // bv abstraction may require UF
-    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
-    needsUf = true;
-  }
-  else if (opts.quantifiers.preSkolemQuantNested
-           && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
+  if (opts.quantifiers.preSkolemQuantNested
+      && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
   {
     // if pre-skolem nested is explictly set, then we require UF. If it is
     // not explicitly set, it is disabled below if UF is not present.
