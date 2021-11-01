@@ -227,8 +227,7 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
   return false;
 }
 
-bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
-                                               Node r)
+bool TheoryEngineModelBuilder::isCdtValueMatch(Node v, Node r)
 {
   if (r == v)
   {
@@ -244,7 +243,7 @@ bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
   {
     if (v.getKind() != kind::APPLY_CONSTRUCTOR)
     {
-      Assert (v.getKind()==kind::CODATATYPE_BOUND_VARIABLE);
+      Assert(v.getKind() == kind::CODATATYPE_BOUND_VARIABLE);
       // v is a loop. It may be possible to match, we return true here.
       return true;
     }
