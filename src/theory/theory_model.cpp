@@ -143,7 +143,7 @@ Node TheoryModel::getValue(TNode n) const
   }
   else if (nn.getKind() == kind::LAMBDA)
   {
-    if (options::condenseFunctionValues())
+    if (options().theory.condenseFunctionValues)
     {
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.

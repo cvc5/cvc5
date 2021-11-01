@@ -185,7 +185,7 @@ name   = "Base"
   name       = "outputTagHolder"
   category   = "undocumented"
   includes   = ["<bitset>"]
-  type       = "std::bitset<OutputTag__numValues>"
+  type       = "std::bitset<static_cast<size_t>(OutputTag::RAW_BENCHMARK)+1>"
 
 [[option]]
   name       = "printSuccess"
