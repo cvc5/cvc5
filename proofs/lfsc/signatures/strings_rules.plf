@@ -1,0 +1,210 @@
+; depends: strings_programs.plf
+
+; Flatten constants in str.++ application s. Notice that in the rewritten form
+; of strings in cvc5 are such that constants are grouped into constants of
+; length >=1 which we call "word" constants. For example, the cvc5 rewritten
+; form of (str.++ "A" "B" x) is (str.++ "AB" x) which in LFSC is represented as:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; Many string rules rely on processing the prefix of strings, which in LFSC
+; involves reasoning about the characters one-by-one. Since the above term
+; has a level of nesting when word constants of size > 1 are involved, this
+; method is used to "flatten" str.++ applications so that we have a uniform
+; way of reasoning about them in proof rules. In this method, we take a
+; str.++ application corresponding to a string term in cvc5 rewritten form.
+; It returns the flattened form such that there are no nested applications of
+; str.++. For example, given input:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; we return:
+;    (str.++ "A" (str.++ "B" (str.++ x "")))
+; Notice that this is done for all word constants in the chain recursively.
+; It does not insist that the nested concatenations are over characters only.
+; This rule may fail if s is not a str.++ application corresponding to a term
+; in cvc5 rewritten form.
+(program sc_string_flatten ((s term)) term
+  (match s
+    ((apply s1 s2)
+      (let s12 (getarg f_str.++ s1)
+        ; Must handle nested concatenation for word constant. We know there is no nested concatenation within s12, so we don't need to flatten it.
+        ; Since s12 may not be a concat term, we must use n-ary intro to ensure it is in n-ary form
+        (sc_string_concat (sc_string_nary_intro s12) (sc_string_flatten s2))))
+    (emptystr s))
+)
+
+; Helper for collect adjacent constants. This side condition takes as input
+; a str.++ application s. It returns a pair whose concatenation is equal to s,
+; whose first component corresponds to a word constant, and whose second
+; component is a str.++ application whose first element is not a character.
+; For example, for:
+;   (str.++ "A" (str.++ "B" (str.++ x "")))
+; We return:
+;   (pair (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+(program sc_string_collect_acc ((s term)) termPair
+  (match s
+    ((apply s1 s2)
+      (match (getarg f_str.++ s1)
+        ((char n)
+          (match (sc_string_collect_acc s2)
+            ((pair ssc1 ssc2) (pair (apply s1 ssc1) ssc2))))
+        (default (pair emptystr s))))
+    (emptystr (pair emptystr s)))
+)
+
+; Collect adjacent constants for the prefix of string s. For example:
+;    (str.++ "A" (str.++ "B" (str.++ x "")))
+; we return:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; This side condition may fail if s is not a str.++ application.
+; Notice that the collection of constants is done for all word constants in the
+; term s recursively.
+(program sc_string_collect ((s term)) term
+  (match (sc_string_collect_acc s)
+    ((pair sc1 sc2)
+      (match sc1
+        ; did not strip a constant prefix
+        (emptystr 
+          (match s
+            ((apply s1 s2) (apply s1 (sc_string_collect s2)))
+            (emptystr s)))
+        ; stripped a constant prefix, must eliminate singleton
+        (default (str.++ (sc_string_nary_elim sc1) (sc_string_collect sc2))))))
+)
+
+; Strip equal prefix of s and t. This returns the pair corresponding to s and
+; t after dropping the maximal equal prefix removed. For example, for:
+;   (str.++ x (str.++ y (str.++ z "")))
+;   (str.++ x (str.++ w ""))
+; This method will return:
+;   (pair (str.++ y (str.++ z "")) (str.++ w ""))
+; This side condition may fail if s or t is not a str.++ application.
+(program sc_strip_prefix ((s term) (t term)) termPair
+  (match s
+    ((apply s1 s2)
+      (let s12 (getarg f_str.++ s1)
+        (match t
+          ((apply t1 t2)
+            (let t12 (getarg f_str.++ t1)
+              (ifequal s12 t12
+                (sc_strip_prefix s2 t2)
+                (pair s t))))
+          (emptystr (pair s t)))))
+    (emptystr (pair s t)))
+)
+
+; Converts a str.++ application into "flat form" so that we are ready to
+; process its prefix. This consists of the following steps:
+; (1) convert s to n-ary form if it is not already a str.++ application,
+; (2) flatten so that its constant prefix,
+; (3) (optionally) reverse.
+(program sc_string_to_flat_form ((s term) (rev flag)) term
+  ; intro, flatten, reverse
+  (sc_string_rev (sc_string_flatten (sc_string_nary_intro s)) rev))
+
+; Converts a term in "flat form" to a term that is in a form that corresponds
+; to one in cvc5 rewritten form. This is the dual method to
+; sc_string_to_flat_form. This consists of the following steps:
+; (1) (optionally) reverse,
+; (2) collect constants 
+; (3) eliminate n-ary form to its element if the term is a singleton list.
+(program sc_string_from_flat_form ((s term) (rev flag)) term
+  ; reverse, collect, elim
+  (sc_string_nary_elim (sc_string_collect (sc_string_rev s rev))))
+  
+; Computes the conclusion of the PfRule::CONCAT_EQ rule
+(program sc_concat_eq ((s term) (t term) (rev flag)) term
+  (match (sc_strip_prefix 
+           (sc_string_to_flat_form s rev) 
+           (sc_string_to_flat_form t rev))
+    ((pair ss ts)
+      (= 
+        (sc_string_from_flat_form ss rev)
+        (sc_string_from_flat_form ts rev)))))
+
+(declare concat_eq (! s term 
+                   (! t term 
+                   (! res term 
+                   (! rev flag
+                   (! p (holds (= s t))
+                   (! r (^ (sc_concat_eq s t rev) res) 
+                      (holds res))))))))
+
+; Computes the conclusion of the PfRule::CONCAT_UNIFY rule
+(program sc_concat_unify ((s term) (t term) (s1 term) (t1 term) (rev flag)) Ok
+  (ifequal (sc_string_head (sc_string_rev s rev)) s1
+    (ifequal (sc_string_head (sc_string_rev t rev)) t1
+      ok
+      (fail Ok))
+    (fail Ok)))
+
+(declare concat_unify (! s term
+                      (! t term
+                      (! s1 term
+                      (! t1 term
+                      (! rev flag
+                      (! p (holds (= s t))
+                      (! p1 (holds (= (str.len s1) (str.len t1)))
+                      (! r (^ (sc_concat_unify s t s1 t1 rev) ok)
+                          (holds (= s1 t1)))))))))))
+
+; Computes the conclusion of the PfRule::CONCAT_CSPLIT rule
+(program sc_concat_csplit ((thead term) (t term) (s term) (rev flag)) term
+  (match (sc_string_to_flat_form t rev)
+    ((apply t1 t2)
+      (ifequal (getarg f_str.++ t1) thead
+        (match (sc_string_to_flat_form s rev)
+          ((apply s1 s2)
+            (let s12 (getarg f_str.++ s1)
+            (match s12
+              ((char n)
+                (= thead
+                (ifequal rev ff
+                  (str.++ s12 (str.++ (sc_mk_skolem (sc_skolem_suffix_rem thead (int 1))) emptystr))
+                  (str.++ (sc_mk_skolem (sc_skolem_prefix thead (a.- (str.len thead) (int 1)))) (str.++ s12 emptystr)))))))))
+          (fail term))))
+)
+
+(declare concat_csplit 
+  (! t1 term
+  (! t term
+  (! s term
+  (! res term
+  (! rev flag
+  (! p1 (holds (= t s))
+  (! p2 (holds (not (= (str.len t1) (int 0))))
+  (! r (^ (sc_concat_csplit t1 t s rev) res)
+    (holds res))))))))))
+
+(declare string_length_pos (! t term 
+  (holds (or (and (= (str.len t) (int 0)) (and (= t emptystr) true)) (or (a.> (str.len t) (int 0)) false)))))
+
+(declare re_inter (! x term (! s term (! t term (! p1 (holds (str.in_re x s)) (! p2 (holds (str.in_re x t)) 
+  (holds (str.in_re x (re.inter s t)))))))))
+
+(declare string_reduction (! r term (! t term (! s sort (! u (^ (sc_string_reduction t s) r)
+  (holds r))))))))
+
+(declare string_eager_reduction (! r term (! t term (! s sort (! u (^ (sc_string_eager_reduction t s) r)
+  (holds r))))))
+
+; Computes the conclusion of PfRule::RE_UNFOLD_POS
+(program sc_re_unfold_pos ((t term) (r term)) term
+  (match r
+    ((apply r1 r2)
+      (match r1
+        ; case for star
+        (f_re.*
+          (let rr (re.++ r2 (re.++ r (re.++ r2 re.empty)))
+          (match (sc_re_unfold_pos_concat t rr rr 0)
+            ((pair p1 p2)
+              (or (= t emptystr)
+                (or (str.in_re t r2)
+                  (or (and (sc_string_nary_elim (and (= t p1) p2)) (sc_non_empty_concats p1))
+                    false)))))))
+        ((apply r11 r12)
+          (match r11
+            ; case for concatenation
+            (f_re.++
+              (match (sc_re_unfold_pos_concat t r r 0)
+                ((pair p1 p2) (sc_string_nary_elim (and (= t p1) p2)))))
+))))))
+
+(declare re_unfold_pos (! t term (! r term (! s term (! f (holds (str.in_re t r)) (! u (^ (sc_re_unfold_pos t r) s) (holds s)))))))
