@@ -836,7 +836,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       }
     }
   }
-  else if (logic.isQuantified() && logic.areRealsUsed() && !logic.areIntegersUsed())
+  else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH) && logic.areRealsUsed() && !logic.areIntegersUsed())
   {
     if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
     {
