@@ -105,7 +105,7 @@ if(TARGET cvc5::cvc5jar)
 endif()
 
 if(CVC5_BINDINGS_PYTHON)
-  message(STATUS "with python examples")
+  message(STATUS "with Python examples")
   # If legacy Python API has been built
   add_subdirectory(api/python)
 endif()
