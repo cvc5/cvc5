@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 
+#include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
@@ -96,6 +97,8 @@ class OptionsHandler
   void enableDebugTag(const std::string& flag, const std::string& optarg);
   /** Enable a particular output tag */
   void enableOutputTag(const std::string& flag, const std::string& optarg);
+  /** Enable a particular output tag */
+  void enableOutputTag(OutputTag tag);
   /** Apply print success flag to the different output channels */
   void setPrintSuccess(const std::string& flag, bool value);
   /** Pass the resource weight specification to the resource manager */
