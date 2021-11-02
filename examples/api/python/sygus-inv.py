@@ -48,9 +48,9 @@ if __name__ == "__main__":
                         slv.mkTerm(kinds.Equal, xp, x))
 
   # define the pre-conditions, transition relations, and post-conditions
-  pre_f = slv.defineFun("pre-f", {x}, boolean, slv.mkTerm(kinds.Equal, x, zero))
-  trans_f = slv.defineFun("trans-f", {x, xp}, boolean, ite)
-  post_f = slv.defineFun("post-f", {x}, boolean, slv.mkTerm(kinds.Leq, x, ten))
+  pre_f = slv.defineFun("pre-f", [x], boolean, slv.mkTerm(kinds.Equal, x, zero))
+  trans_f = slv.defineFun("trans-f", [x, xp], boolean, ite)
+  post_f = slv.defineFun("post-f", [x], boolean, slv.mkTerm(kinds.Leq, x, ten))
 
   # declare the invariant-to-synthesize
   inv_f = slv.synthInv("inv-f", {x})

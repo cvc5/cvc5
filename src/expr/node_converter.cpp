@@ -25,6 +25,10 @@ NodeConverter::NodeConverter(bool forceIdem) : d_forceIdem(forceIdem) {}
 
 Node NodeConverter::convert(Node n)
 {
+  if (n.isNull())
+  {
+    return n;
+  }
   Trace("nconv-debug") << "NodeConverter::convert: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node>::iterator it;

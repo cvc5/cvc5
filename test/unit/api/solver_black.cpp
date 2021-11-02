@@ -410,6 +410,17 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   ASSERT_THROW(slv.mkFloatingPoint(3, 5, t1), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, mkCardinalityConstraint)
+{
+  Sort su = d_solver.mkUninterpretedSort("u");
+  Sort si = d_solver.getIntegerSort();
+  ASSERT_NO_THROW(d_solver.mkCardinalityConstraint(su, 3));
+  ASSERT_THROW(d_solver.mkCardinalityConstraint(si, 3), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkCardinalityConstraint(su, 0), CVC5ApiException);
+  Solver slv;
+  ASSERT_THROW(slv.mkCardinalityConstraint(su, 3), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkEmptySet)
 {
   Solver slv;
@@ -596,6 +607,8 @@ TEST_F(TestApiBlackSolver, mkRegexpSigma)
   ASSERT_NO_THROW(
       d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
 }
+
+TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
 
 TEST_F(TestApiBlackSolver, mkSepNil)
 {
@@ -909,35 +922,21 @@ TEST_F(TestApiBlackSolver, defineSort)
 TEST_F(TestApiBlackSolver, defineFun)
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
-  Sort funSort1 = d_solver.mkFunctionSort({bvSort, bvSort}, bvSort);
-  Sort funSort2 = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
-                                          d_solver.getIntegerSort());
+  Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
+                                         d_solver.getIntegerSort());
   Term b1 = d_solver.mkVar(bvSort, "b1");
-  Term b11 = d_solver.mkVar(bvSort, "b1");
   Term b2 = d_solver.mkVar(d_solver.getIntegerSort(), "b2");
-  Term b3 = d_solver.mkVar(funSort2, "b3");
+  Term b3 = d_solver.mkVar(funSort, "b3");
   Term v1 = d_solver.mkConst(bvSort, "v1");
-  Term v2 = d_solver.mkConst(d_solver.getIntegerSort(), "v2");
-  Term v3 = d_solver.mkConst(funSort2, "v3");
-  Term f1 = d_solver.mkConst(funSort1, "f1");
-  Term f2 = d_solver.mkConst(funSort2, "f2");
-  Term f3 = d_solver.mkConst(bvSort, "f3");
+  Term v2 = d_solver.mkConst(funSort, "v2");
   ASSERT_NO_THROW(d_solver.defineFun("f", {}, bvSort, v1));
   ASSERT_NO_THROW(d_solver.defineFun("ff", {b1, b2}, bvSort, v1));
-  ASSERT_NO_THROW(d_solver.defineFun(f1, {b1, b11}, v1));
   ASSERT_THROW(d_solver.defineFun("ff", {v1, b2}, bvSort, v1),
                CVC5ApiException);
-  ASSERT_THROW(d_solver.defineFun("fff", {b1}, bvSort, v3), CVC5ApiException);
-  ASSERT_THROW(d_solver.defineFun("ffff", {b1}, funSort2, v3),
-               CVC5ApiException);
+  ASSERT_THROW(d_solver.defineFun("fff", {b1}, bvSort, v2), CVC5ApiException);
+  ASSERT_THROW(d_solver.defineFun("ffff", {b1}, funSort, v2), CVC5ApiException);
   // b3 has function sort, which is allowed as an argument
   ASSERT_NO_THROW(d_solver.defineFun("fffff", {b1, b3}, bvSort, v1));
-  ASSERT_THROW(d_solver.defineFun(f1, {v1, b11}, v1), CVC5ApiException);
-  ASSERT_THROW(d_solver.defineFun(f1, {b1}, v1), CVC5ApiException);
-  ASSERT_THROW(d_solver.defineFun(f1, {b1, b11}, v2), CVC5ApiException);
-  ASSERT_THROW(d_solver.defineFun(f1, {b1, b11}, v3), CVC5ApiException);
-  ASSERT_THROW(d_solver.defineFun(f2, {b1}, v2), CVC5ApiException);
-  ASSERT_THROW(d_solver.defineFun(f3, {b1}, v1), CVC5ApiException);
 
   Solver slv;
   Sort bvSort2 = slv.mkBitVectorSort(32);
@@ -955,15 +954,13 @@ TEST_F(TestApiBlackSolver, defineFun)
 TEST_F(TestApiBlackSolver, defineFunGlobal)
 {
   Sort bSort = d_solver.getBooleanSort();
-  Sort fSort = d_solver.mkFunctionSort(bSort, bSort);
 
   Term bTrue = d_solver.mkBoolean(true);
   // (define-fun f () Bool true)
   Term f = d_solver.defineFun("f", {}, bSort, bTrue, true);
   Term b = d_solver.mkVar(bSort, "b");
-  Term gSym = d_solver.mkConst(fSort, "g");
   // (define-fun g (b Bool) Bool b)
-  Term g = d_solver.defineFun(gSym, {b}, b, true);
+  Term g = d_solver.defineFun("g", {b}, bSort, b, true);
 
   // (assert (or (not f) (not (g true))))
   d_solver.assertFormula(d_solver.mkTerm(
@@ -2542,6 +2539,22 @@ TEST_F(TestApiBlackSolver, Output)
   d_solver.setOption("output", "inst");
   ASSERT_TRUE(d_solver.isOutputOn("inst"));
   ASSERT_NE(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
+}
+
+
+TEST_F(TestApiBlackSolver, issue7000)
+{
+  Sort s1 = d_solver.getIntegerSort();
+  Sort s2 = d_solver.mkFunctionSort(s1, s1);
+  Sort s3 = d_solver.getRealSort();
+  Term t4 = d_solver.mkPi();
+  Term t7 = d_solver.mkConst(s3, "_x5");
+  Term t37 = d_solver.mkConst(s2, "_x32");
+  Term t59 = d_solver.mkConst(s2, "_x51");
+  Term t72 = d_solver.mkTerm(EQUAL, t37, t59);
+  Term t74 = d_solver.mkTerm(GT, t4, t7);
+  // throws logic exception since logic is not higher order by default
+  ASSERT_THROW(d_solver.checkEntailed({t72, t74, t72, t72}), CVC5ApiException);
 }
 
 }  // namespace test

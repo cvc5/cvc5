@@ -1813,6 +1813,13 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     }
   }
 
+  // (str.substr s x x) ---> "" if (str.len s) <= 1
+  if (node[1] == node[2] && d_stringsEntail.checkLengthOne(node[0]))
+  {
+    Node ret = Word::mkEmptyWord(node.getType());
+    return returnRewrite(node, ret, Rewrite::SS_LEN_ONE_Z_Z);
+  }
+
   // symbolic length analysis
   for (unsigned r = 0; r < 2; r++)
   {
@@ -1846,44 +1853,6 @@ Node SequencesRewriter::rewriteSubstr(Node node)
           curr =
               d_arithEntail.rewrite(nm->mkNode(kind::MINUS, tot_len, end_pt));
         }
-      }
-
-      // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
-      Node n1_lt_tot_len =
-          d_arithEntail.rewrite(nm->mkNode(kind::LT, node[1], tot_len));
-      if (d_arithEntail.checkWithAssumption(
-              n1_lt_tot_len, zero, node[2], false))
-      {
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(node, ret, Rewrite::SS_START_ENTAILS_ZERO_LEN);
-      }
-
-      // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
-      Node non_zero_len =
-          d_arithEntail.rewrite(nm->mkNode(kind::LT, zero, node[2]));
-      if (d_arithEntail.checkWithAssumption(
-              non_zero_len, node[1], tot_len, false))
-      {
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(node, ret, Rewrite::SS_NON_ZERO_LEN_ENTAILS_OOB);
-      }
-
-      // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
-      Node geq_zero_start =
-          d_arithEntail.rewrite(nm->mkNode(kind::GEQ, node[1], zero));
-      if (d_arithEntail.checkWithAssumption(
-              geq_zero_start, zero, tot_len, false))
-      {
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(
-            node, ret, Rewrite::SS_GEQ_ZERO_START_ENTAILS_EMP_S);
-      }
-
-      // (str.substr s x x) ---> "" if (str.len s) <= 1
-      if (node[1] == node[2] && d_stringsEntail.checkLengthOne(node[0]))
-      {
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(node, ret, Rewrite::SS_LEN_ONE_Z_Z);
       }
     }
     if (!curr.isNull())

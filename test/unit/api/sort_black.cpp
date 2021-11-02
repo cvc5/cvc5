@@ -61,6 +61,14 @@ TEST_F(TestApiBlackSort, operators_comparison)
   ASSERT_NO_THROW(d_solver.getIntegerSort() >= Sort());
 }
 
+TEST_F(TestApiBlackSort, isNull)
+{
+  Sort x;
+  ASSERT_TRUE(x.isNull());
+  x = d_solver.getBooleanSort();
+  ASSERT_FALSE(x.isNull());
+}
+
 TEST_F(TestApiBlackSort, isBoolean)
 {
   ASSERT_TRUE(d_solver.getBooleanSort().isBoolean());

@@ -50,15 +50,14 @@ class InferenceGenerator
   /**
    * @param n is (bag x c) of type (Bag E)
    * @param e is a node of type E
-   * @return an inference that represents the following implication
-   * (=>
-   *   true
-   *   (= (bag.count e skolem) c))
-   *   if e is exactly node x. Node skolem is a fresh variable equals (bag x c).
-   *   Otherwise the following inference is returned
-   * (=>
-   *   true
-   *   (= (bag.count e skolem) (ite (= e x) c 0)))
+   * @return an inference that represents the following cases:
+   * 1- e, x are in the same equivalent class, then we infer:
+   *    (= (bag.count e skolem) (ite (>= c 1) c 0)))
+   * 2- e, x are known to be disequal, then we infer:
+   *    (= (bag.count e skolem) 0))
+   * 3- if neither holds, we infer:
+   *    (= (bag.count e skolem) (ite (and (= e x) (>= c 1)) c 0)))
+   * where skolem = (bag x c) is a fresh variable
    */
   InferInfo mkBag(Node n, Node e);
   /**
@@ -146,7 +145,7 @@ class InferenceGenerator
    *   (=
    *     (count e skolem)
    *     (ite
-   *       (= (count e B) 0)
+   *       (<= (count e B) 0)
    *       (count e A)
    *       0))))
    * where skolem is a fresh variable equals (difference_remove A B)
@@ -164,6 +163,59 @@ class InferenceGenerator
    * where skolem is a fresh variable equals (duplicate_removal A)
    */
   InferInfo duplicateRemoval(Node n, Node e);
+  /**
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param e is a node of Type E
+   * @return an inference that represents the following implication
+   * (and
+   *   (= (sum 0) 0)
+   *   (= (sum preImageSize) (bag.count e skolem))
+   *   (>= preImageSize 0)
+   *   (forall ((i Int))
+   *          (let ((uf_i (uf i)))
+   *            (let ((count_uf_i (bag.count uf_i A)))
+   *              (=>
+   *               (and (>= i 1) (<= i preImageSize))
+   *               (and
+   *                 (= (f uf_i) e)
+   *                 (>= count_uf_i 1)
+   *                 (= (sum i) (+ (sum (- i 1)) count_uf_i))
+   *                 (forall ((j Int))
+   *                   (or
+   *                     (not (and (< i j) (<= j preImageSize)))
+   *                     (not (= (uf i) (uf j)))) )
+   *                 ))))))
+   * where uf: Int -> E is an uninterpreted function from integers to the
+   * type of the elements of A
+   * preImageSize is the cardinality of the distinct elements in A that are
+   * mapped to e by function f (i.e., preimage of {e})
+   * sum: Int -> Int is a function that aggregates the multiplicities of the
+   * preimage of e,
+   * and skolem is a fresh variable equals (bag.map f A))
+   */
+  std::tuple<InferInfo, Node, Node> mapDownwards(Node n, Node e);
+
+  /**
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param uf is an uninterpreted function Int -> E
+   * @param preImageSize is the cardinality of the distinct elements in A that
+   * are mapped to y by function f (i.e., preimage of {y})
+   * @param y is an element of type T
+   * @param e is an element of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   (>= (bag.count x A) 1)
+   *   (or
+   *     (not (= (f x) y)
+   *     (and
+   *       (>= skolem 1)
+   *       (<= skolem preImageSize)
+   *       (= (uf skolem) x)))))
+   * where skolem is a fresh variable
+   */
+  InferInfo mapUpwards(Node n, Node uf, Node preImageSize, Node y, Node x);
 
   /**
    * @param element of type T

@@ -97,6 +97,8 @@ libcvc5_add_sources(
   sygus_datatype.h
   uninterpreted_constant.cpp
   uninterpreted_constant.h
+  variadic_trie.cpp
+  variadic_trie.h
 )
 
 libcvc5_add_sources(GENERATED

@@ -31,8 +31,7 @@ using namespace cvc5::theory;
 namespace cvc5 {
 namespace smt {
 
-CheckModels::CheckModels(Env& e) : d_env(e) {}
-CheckModels::~CheckModels() {}
+CheckModels::CheckModels(Env& e) : EnvObj(e) {}
 
 void CheckModels::checkModel(TheoryModel* m,
                              const context::CDList<Node>& al,
@@ -49,6 +48,12 @@ void CheckModels::checkModel(TheoryModel* m,
   {
     throw RecoverableModalException(
         "Cannot run check-model on a model with approximate values.");
+  }
+  Node sepHeap, sepNeq;
+  if (m->getHeapModel(sepHeap, sepNeq))
+  {
+    throw RecoverableModalException(
+        "Cannot run check-model on a model with a separation logic heap.");
   }
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
@@ -71,7 +76,7 @@ void CheckModels::checkModel(TheoryModel* m,
     Notice() << "SolverEngine::checkModel(): -- substitutes to " << n
              << std::endl;
 
-    n = Rewriter::rewrite(n);
+    n = rewrite(n);
     Notice() << "SolverEngine::checkModel(): -- rewrites to " << n << std::endl;
 
     // We look up the value before simplifying. If n contains quantifiers,

@@ -204,7 +204,11 @@ bool solverInvoke(api::Solver* solver,
     cmd->toStream(ss);
   }
 
-  if (solver->getOptionInfo("parse-only").boolValue())
+  // In parse-only mode, we do not invoke any of the commands except define-fun
+  // commands. We invoke define-fun commands because they add function names
+  // to the symbol table.
+  if (solver->getOptionInfo("parse-only").boolValue()
+      && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr)
   {
     return true;
   }

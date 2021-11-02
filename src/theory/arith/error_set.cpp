@@ -27,42 +27,44 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-
 ErrorInformation::ErrorInformation()
-  : d_variable(ARITHVAR_SENTINEL)
-  , d_violated(NullConstraint)
-  , d_sgn(0)
-  , d_relaxed(false)
-  , d_inFocus(false)
-  , d_handle()
-  , d_amount(NULL)
-  , d_metric(0)
+    : d_variable(ARITHVAR_SENTINEL),
+      d_violated(NullConstraint),
+      d_sgn(0),
+      d_relaxed(false),
+      d_inFocus(false),
+      d_handle(),
+      d_amount(nullptr),
+      d_metric(0)
 {
-  Debug("arith::error::mem") << "def constructor " << d_variable << " "  << d_amount << endl;
+  Debug("arith::error::mem")
+      << "def constructor " << d_variable << " " << d_amount.get() << endl;
 }
 
 ErrorInformation::ErrorInformation(ArithVar var, ConstraintP vio, int sgn)
-  : d_variable(var)
-  , d_violated(vio)
-  , d_sgn(sgn)
-  , d_relaxed(false)
-  , d_inFocus(false)
-  , d_handle()
-  , d_amount(NULL)
-  , d_metric(0)
+    : d_variable(var),
+      d_violated(vio),
+      d_sgn(sgn),
+      d_relaxed(false),
+      d_inFocus(false),
+      d_handle(),
+      d_amount(nullptr),
+      d_metric(0)
 {
   Assert(debugInitialized());
-  Debug("arith::error::mem") << "constructor " << d_variable << " "  << d_amount << endl;
+  Debug("arith::error::mem")
+      << "constructor " << d_variable << " " << d_amount.get() << endl;
 }
 
 
 ErrorInformation::~ErrorInformation() {
   Assert(d_relaxed != true);
-  if(d_amount != NULL){
-    Debug("arith::error::mem") << d_amount << endl;
-    Debug("arith::error::mem") << "destroy " << d_variable << " "  << d_amount << endl;
-    delete d_amount;
-    d_amount = NULL;
+  if (d_amount != nullptr)
+  {
+    Debug("arith::error::mem") << d_amount.get() << endl;
+    Debug("arith::error::mem")
+        << "destroy " << d_variable << " " << d_amount.get() << endl;
+    d_amount = nullptr;
   }
 }
 
@@ -75,12 +77,16 @@ ErrorInformation::ErrorInformation(const ErrorInformation& ei)
   , d_handle(ei.d_handle)
   , d_metric(0)
 {
-  if(ei.d_amount == NULL){
-    d_amount = NULL;
-  }else{
-    d_amount = new DeltaRational(*ei.d_amount);
+  if (ei.d_amount == nullptr)
+  {
+    d_amount = nullptr;
   }
-  Debug("arith::error::mem") << "copy const " << d_variable << " "  << d_amount << endl;
+  else
+  {
+    d_amount = std::make_unique<DeltaRational>(*ei.d_amount);
+  }
+  Debug("arith::error::mem")
+      << "copy const " << d_variable << " " << d_amount.get() << endl;
 }
 
 ErrorInformation& ErrorInformation::operator=(const ErrorInformation& ei){
@@ -91,18 +97,27 @@ ErrorInformation& ErrorInformation::operator=(const ErrorInformation& ei){
   d_inFocus = (ei.d_inFocus);
   d_handle = (ei.d_handle);
   d_metric = ei.d_metric;
-  if(d_amount != NULL && ei.d_amount != NULL){
-    Debug("arith::error::mem") << "assignment assign " << d_variable << " "  << d_amount << endl;
+  if (d_amount != nullptr && ei.d_amount != nullptr)
+  {
+    Debug("arith::error::mem")
+        << "assignment assign " << d_variable << " " << d_amount.get() << endl;
     *d_amount = *ei.d_amount;
-  }else if(ei.d_amount != NULL){
-    d_amount = new DeltaRational(*ei.d_amount);
-    Debug("arith::error::mem") << "assignment alloc " << d_variable << " "  << d_amount << endl;
-  }else if(d_amount != NULL){
-    Debug("arith::error::mem") << "assignment release " << d_variable << " "  << d_amount << endl;
-    delete d_amount;
-    d_amount = NULL;
-  }else{
-    d_amount = NULL;
+  }
+  else if (ei.d_amount != nullptr)
+  {
+    d_amount = std::make_unique<DeltaRational>(*ei.d_amount);
+    Debug("arith::error::mem")
+        << "assignment alloc " << d_variable << " " << d_amount.get() << endl;
+  }
+  else if (d_amount != nullptr)
+  {
+    Debug("arith::error::mem")
+        << "assignment release " << d_variable << " " << d_amount.get() << endl;
+    d_amount = nullptr;
+  }
+  else
+  {
+    d_amount = nullptr;
   }
   return *this;
 }
@@ -113,17 +128,20 @@ void ErrorInformation::reset(ConstraintP c, int sgn){
   d_violated = c;
   d_sgn = sgn;
 
-  if(d_amount != NULL){
-    delete d_amount;
-    Debug("arith::error::mem") << "reset " << d_variable << " "  << d_amount << endl;
-    d_amount = NULL;
+  if (d_amount != nullptr)
+  {
+    Debug("arith::error::mem")
+        << "reset " << d_variable << " " << d_amount.get() << endl;
+    d_amount = nullptr;
   }
 }
 
 void ErrorInformation::setAmount(const DeltaRational& am){
-  if(d_amount == NULL){
-    d_amount = new DeltaRational;
-    Debug("arith::error::mem") << "setAmount " << d_variable << " "  << d_amount << endl;
+  if (d_amount == nullptr)
+  {
+    d_amount = std::make_unique<DeltaRational>();
+    Debug("arith::error::mem")
+        << "setAmount " << d_variable << " " << d_amount.get() << endl;
   }
   (*d_amount) = am;
 }
