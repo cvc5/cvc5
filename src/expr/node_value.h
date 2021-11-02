@@ -518,26 +518,6 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
 
 }  // namespace expr
 
-#ifdef CVC5_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- */
-static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
-  options::ioutils::apply(Warning.getStream(), -1, 1, Language::LANG_AST);
-  Warning() << *nv << std::endl;
-}
-static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
-  options::ioutils::apply(Warning.getStream(), -1, 0, Language::LANG_AST);
-  Warning() << *nv << std::endl;
-}
-static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv) {
-  nv->printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC5_DEBUG */
-
 }  // namespace cvc5
 
 #endif /* CVC5__EXPR__NODE_VALUE_H */

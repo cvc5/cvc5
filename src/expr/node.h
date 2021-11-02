@@ -1414,49 +1414,6 @@ Node NodeTemplate<ref_count>::substitute(
   }
 }
 
-#ifdef CVC5_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- *
- * Note that this function cannot be a template, since the compiler
- * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
- * So we implement twice.  We mark as __attribute__((used)) so that
- * GCC emits code for it even though static analysis indicates it's
- * never called.
- *
- * Tim's Note: I moved this into the node.h file because this allows gdb
- * to find the symbol, and use it, which is the first standard this code needs
- * to meet. A cleaner solution is welcomed.
- */
-static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
-  options::ioutils::apply(Warning.getStream(), -1, 1, Language::LANG_AST);
-  Warning() << n << std::endl;
-}
-static void __attribute__((used)) debugPrintNodeNoDag(const NodeTemplate<true>& n) {
-  options::ioutils::apply(Warning.getStream(), -1, 0, Language::LANG_AST);
-  Warning() << n << std::endl;
-}
-static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-
-static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
-  options::ioutils::apply(Warning.getStream(), -1, 1, Language::LANG_AST);
-  Warning() << n << std::endl;
-}
-static void __attribute__((used)) debugPrintTNodeNoDag(const NodeTemplate<false>& n) {
-  options::ioutils::apply(Warning.getStream(), -1, 0, Language::LANG_AST);
-  Warning() << n << std::endl;
-}
-static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC5_DEBUG */
-
 }  // namespace cvc5
 
 #endif /* CVC5__NODE_H */
