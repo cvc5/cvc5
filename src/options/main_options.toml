@@ -6,6 +6,7 @@ name   = "Driver"
   short      = "V"
   long       = "version"
   type       = "void"
+  handler    = "showVersion"
   help       = "identify this cvc5 binary"
 
 [[option]]

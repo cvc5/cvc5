@@ -42,7 +42,7 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
   check_system_version("GMP")
 endif()
 
-if(ENABLE_STATIC_LIBRARY AND GMP_FOUND_SYSTEM)
+if(ENABLE_STATIC_BUILD AND GMP_FOUND_SYSTEM)
   force_static_library()
   find_library(GMP_STATIC_LIBRARIES NAMES gmp)
   if(NOT GMP_STATIC_LIBRARIES)
@@ -76,7 +76,7 @@ if(NOT GMP_FOUND_SYSTEM)
         <SOURCE_DIR>/configure --enable-shared --disable-static
         --prefix=<INSTALL_DIR>/gmp-shared
         --enable-cxx --with-pic --host=${TOOLCHAIN_PREFIX}
-      BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}
+      BUILD_BYPRODUCTS <INSTALL_DIR>/gmp-shared/lib/libgmp.dll.a
     )
     ExternalProject_Add(
       GMP-EP-static
@@ -88,14 +88,14 @@ if(NOT GMP_FOUND_SYSTEM)
         <SOURCE_DIR>/configure --disable-shared --enable-static
         --prefix=<INSTALL_DIR>/gmp-static
         --enable-cxx --with-pic --host=${TOOLCHAIN_PREFIX}
-      BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp.a
+      BUILD_BYPRODUCTS <INSTALL_DIR>/gmp-static/lib/libgmp.a
     )
 
     add_custom_target(GMP-EP DEPENDS GMP-EP-shared GMP-EP-static)
 
     set(GMP_INCLUDE_DIR "${DEPS_BASE}/gmp-shared/include/")
     set(GMP_STATIC_INCLUDE_DIR "${DEPS_BASE}/gmp-static/include/")
-    set(GMP_LIBRARIES "${DEPS_BASE}/gmp-shared/bin/libgmp-10${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(GMP_LIBRARIES "${DEPS_BASE}/gmp-shared/lib/libgmp.dll.a")
     set(GMP_STATIC_LIBRARIES "${DEPS_BASE}/gmp-static/lib/libgmp.a")
 
     file(MAKE_DIRECTORY "${GMP_INCLUDE_DIR}")
@@ -132,7 +132,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set_target_properties(GMP_SHARED PROPERTIES IMPORTED_IMPLIB "${GMP_LIBRARIES}")
 endif()
 
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   add_library(GMP_STATIC STATIC IMPORTED GLOBAL)
   set_target_properties(GMP_STATIC PROPERTIES
     IMPORTED_LOCATION "${GMP_STATIC_LIBRARIES}"
@@ -150,7 +150,7 @@ if(GMP_FOUND_SYSTEM)
 else()
   message(STATUS "Building GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
   add_dependencies(GMP_SHARED GMP-EP)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     add_dependencies(GMP_STATIC GMP-EP)
   endif()
 endif()

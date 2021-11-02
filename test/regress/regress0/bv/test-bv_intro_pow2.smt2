@@ -1,4 +1,4 @@
-; COMMAND-LINE: --bv-intro-pow2 --no-check-unsat-cores --bv-solver=layered
+; COMMAND-LINE: --bv-intro-pow2 --no-check-unsat-cores
 (set-info :smt-lib-version 2.6)
 (set-logic QF_BV)
 (set-info :status unsat)

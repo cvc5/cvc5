@@ -44,7 +44,7 @@ CombinationEngine::CombinationEngine(Env& env,
                      : nullptr)
 {
   // create the equality engine, model manager, and shared solver
-  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
+  if (options().theory.eeMode == options::EqEngineMode::DISTRIBUTED)
   {
     // use the distributed shared solver
     d_sharedSolver.reset(new SharedSolverDistributed(env, d_te));
@@ -55,7 +55,7 @@ CombinationEngine::CombinationEngine(Env& env,
     d_mmanager.reset(
         new ModelManagerDistributed(env, d_te, *d_eemanager.get()));
   }
-  else if (options::eeMode() == options::EqEngineMode::CENTRAL)
+  else if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
   {
     // for now, the shared solver is the same in both approaches; use the
     // distributed one for now
@@ -70,7 +70,7 @@ CombinationEngine::CombinationEngine(Env& env,
   else
   {
     Unhandled() << "CombinationEngine::finishInit: equality engine mode "
-                << options::eeMode() << " not supported";
+                << options().theory.eeMode << " not supported";
   }
 }
 

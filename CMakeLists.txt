@@ -48,9 +48,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 
-if(ABC_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${ABC_DIR}")
-endif()
 if(GLPK_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
 endif()
@@ -86,9 +83,7 @@ cvc5_option(ENABLE_STATISTICS     "Enable statistics")
 cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
-cvc5_option(ENABLE_STATIC_LIBRARY "Enable building static library")
-cvc5_option(ENABLE_STATIC_BINARY
-            "Build static binaries with statically linked system libraries")
+cvc5_option(ENABLE_STATIC_BUILD   "Enable building static libraries and binary")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
 # >> 2-valued: ON OFF
@@ -103,7 +98,6 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for ENABLE_BEST
-cvc5_option(USE_ABC           "Use ABC for AIG bit-blasting")
 cvc5_option(USE_CLN           "Use CLN instead of GMP")
 cvc5_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 cvc5_option(USE_GLPK          "Use GLPK simplex solver")
@@ -120,7 +114,6 @@ option(USE_PYTHON2            "Force Python 2 (deprecated)")
 # installed via the corresponding contrib/get-* script and if not found, we
 # check the intalled system version. If the user provides a directory we
 # immediately fail if the dependency was not found at the specified location.
-set(ABC_DIR           "" CACHE STRING "Set ABC install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 
 # Prepend binaries with prefix on make install
@@ -184,7 +177,7 @@ include(Config${CMAKE_BUILD_TYPE})
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
-add_check_c_cxx_flag("-Wno-unused-private-field")
+add_check_c_cxx_supression_flag("-Wno-unused-private-field")
 add_check_c_flag("-fexceptions")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
@@ -198,7 +191,7 @@ add_check_cxx_flag("-fno-extern-tls-init")
 
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
-add_check_cxx_flag("-Wno-class-memaccess")
+add_check_cxx_supression_flag("-Wno-class-memaccess")
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
@@ -222,18 +215,6 @@ endif ()
 
 if(ENABLE_IPO)
   set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif()
-
-
-#-----------------------------------------------------------------------------#
-# Option defaults (three-valued options (cvc5_option(...)))
-#
-# These options are only set if their value is IGNORE. Otherwise, the user
-# already set the option, which we don't want to overwrite.
-
-if(ENABLE_STATIC_BINARY)
-  message(STATUS "Enable static library for static binary build.")
-  cvc5_set_option(ENABLE_STATIC_LIBRARY ON)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -384,11 +365,6 @@ if(ENABLE_VALGRIND)
   add_definitions(-DCVC5_VALGRIND)
 endif()
 
-if(USE_ABC)
-  find_package(ABC REQUIRED)
-  add_definitions(-DCVC5_USE_ABC ${ABC_ARCH_FLAGS})
-endif()
-
 find_package(CaDiCaL REQUIRED)
 
 if(USE_CLN)
@@ -459,11 +435,12 @@ endif()
 # Provide targets to inspect iwyu suggestions
 
 include(IWYU)
+include(fuzzing-murxla)
 
 #-----------------------------------------------------------------------------#
 
 include(ConfigureCvc5)
-if(ENABLE_STATIC_BINARY)
+if(ENABLE_STATIC_BUILD)
   set(CVC5_STATIC_BUILD ON)
 endif()
 
@@ -504,7 +481,7 @@ include(CMakePackageConfigHelpers)
 # (in the assumption that only reasonably experienced users use this and
 # also that custom installation prefixes are not used for longer periods of
 # time anyway). Also, we print a big warning with further instructions.
-if(NOT ENABLE_STATIC_BINARY)
+if(NOT ENABLE_STATIC_BUILD)
   # Get the libraries that cvc5 links against
   get_target_property(libs cvc5-shared INTERFACE_LINK_LIBRARIES)
   set(LIBS_SHARED_FROM_DEPS "")
@@ -615,14 +592,12 @@ print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
 print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
 print_config("Valgrind                  " ${ENABLE_VALGRIND})
 message("")
-print_config("Static library            " ${ENABLE_STATIC_LIBRARY})
-print_config("Static binary             " ${ENABLE_STATIC_BINARY})
+print_config("Static build              " ${ENABLE_STATIC_BUILD})
 print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
 print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})
 print_config("Interprocedural opt.      " ${ENABLE_IPO})
 message("")
-print_config("ABC                       " ${USE_ABC})
 print_config("CryptoMiniSat             " ${USE_CRYPTOMINISAT} FOUND_SYSTEM ${CryptoMiniSat_FOUND_SYSTEM})
 print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FOUND_SYSTEM})
@@ -638,9 +613,6 @@ print_config("Editline                  " ${USE_EDITLINE})
 message("")
 print_config("Api docs                  " ${BUILD_DOCS})
 message("")
-if(ABC_DIR)
-  print_config("ABC dir                   " ${ABC_DIR})
-endif()
 if(GLPK_DIR)
   print_config("GLPK dir                  " ${GLPK_DIR})
 endif()

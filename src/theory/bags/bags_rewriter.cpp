@@ -173,8 +173,11 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
   }
   if (n[1].getKind() == MK_BAG && n[0] == n[1][0])
   {
-    // (bag.count x (mkBag x c) = c
-    return BagsRewriteResponse(n[1][1], Rewrite::COUNT_MK_BAG);
+    // (bag.count x (mkBag x c)) = (ite (>= c 1) c 0)
+    Node c = n[1][1];
+    Node geq = d_nm->mkNode(GEQ, c, d_one);
+    Node ite = d_nm->mkNode(ITE, geq, c, d_zero);
+    return BagsRewriteResponse(ite, Rewrite::COUNT_MK_BAG);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
@@ -532,7 +535,8 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     case MK_BAG:
     {
       Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], n[1][0]);
-      Node ret = d_nm->mkNode(MK_BAG, mappedElement, n[1][0]);
+      Node ret =
+          d_nm->mkBag(n[0].getType().getRangeType(), mappedElement, n[1][1]);
       return BagsRewriteResponse(ret, Rewrite::MAP_MK_BAG);
     }
 

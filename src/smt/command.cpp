@@ -1168,8 +1168,8 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareFunction(out,
-                                                            termToNode(d_func));
+  Printer::getPrinter(language)->toStreamCmdDeclareFunction(
+      out, d_symbol, sortToTypeNode(d_func.getSort()));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1313,46 +1313,44 @@ void DefineSortCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
-                                             api::Term func,
-                                             api::Term formula,
-                                             bool global)
+                                             api::Sort sort,
+                                             api::Term formula)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_formals(),
-      d_formula(formula),
-      d_global(global)
+      d_sort(sort),
+      d_formula(formula)
 {
 }
 
 DefineFunctionCommand::DefineFunctionCommand(
     const std::string& id,
-    api::Term func,
     const std::vector<api::Term>& formals,
-    api::Term formula,
-    bool global)
+    api::Sort sort,
+    api::Term formula)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_formals(formals),
-      d_formula(formula),
-      d_global(global)
+      d_sort(sort),
+      d_formula(formula)
 {
 }
 
-api::Term DefineFunctionCommand::getFunction() const { return d_func; }
 const std::vector<api::Term>& DefineFunctionCommand::getFormals() const
 {
   return d_formals;
 }
 
+api::Sort DefineFunctionCommand::getSort() const { return d_sort; }
+
 api::Term DefineFunctionCommand::getFormula() const { return d_formula; }
+
 void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    if (!d_func.isNull())
-    {
-      solver->defineFun(d_func, d_formals, d_formula, d_global);
-    }
+    bool global = sm->getGlobalDeclarations();
+    api::Term fun =
+        solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
+    sm->getSymbolTable()->bind(fun.toString(), fun, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1363,8 +1361,7 @@ void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* DefineFunctionCommand::clone() const
 {
-  return new DefineFunctionCommand(
-      d_symbol, d_func, d_formals, d_formula, d_global);
+  return new DefineFunctionCommand(d_symbol, d_formals, d_sort, d_formula);
 }
 
 std::string DefineFunctionCommand::getCommandName() const
@@ -1377,16 +1374,11 @@ void DefineFunctionCommand::toStream(std::ostream& out,
                                      size_t dag,
                                      Language language) const
 {
-  TypeNode rangeType = termToNode(d_func).getType();
-  if (rangeType.isFunction())
-  {
-    rangeType = rangeType.getRangeType();
-  }
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
-      d_func.toString(),
+      d_symbol,
       termVectorToNodes(d_formals),
-      rangeType,
+      sortToTypeNode(d_sort),
       termToNode(d_formula));
 }
 
@@ -1395,12 +1387,7 @@ void DefineFunctionCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-
-    api::Term func,
-    const std::vector<api::Term>& formals,
-    api::Term formula,
-    bool global)
-    : d_global(global)
+    api::Term func, const std::vector<api::Term>& formals, api::Term formula)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1408,12 +1395,10 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 }
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-
     const std::vector<api::Term>& funcs,
     const std::vector<std::vector<api::Term>>& formals,
-    const std::vector<api::Term>& formulas,
-    bool global)
-    : d_funcs(funcs), d_formals(formals), d_formulas(formulas), d_global(global)
+    const std::vector<api::Term>& formulas)
+    : d_funcs(funcs), d_formals(formals), d_formulas(formulas)
 {
 }
 
@@ -1437,7 +1422,8 @@ void DefineFunctionRecCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->defineFunsRec(d_funcs, d_formals, d_formulas, d_global);
+    bool global = sm->getGlobalDeclarations();
+    solver->defineFunsRec(d_funcs, d_formals, d_formulas, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1448,7 +1434,7 @@ void DefineFunctionRecCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas, d_global);
+  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const
@@ -2235,7 +2221,7 @@ void GetQuantifierEliminationCommand::toStream(std::ostream& out,
                                                Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetQuantifierElimination(
-      out, termToNode(d_term));
+      out, termToNode(d_term), d_doFull);
 }
 
 /* -------------------------------------------------------------------------- */

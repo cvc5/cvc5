@@ -93,6 +93,8 @@ void ProcessAssertions::spendResource(Resource r)
 
 bool ProcessAssertions::apply(Assertions& as)
 {
+  // must first refresh the assertions, in the case global declarations is true
+  as.refresh();
   AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
@@ -165,11 +167,6 @@ bool ProcessAssertions::apply(Assertions& as)
   if (options().smt.ackermann)
   {
     d_passes["ackermann"]->apply(&assertions);
-  }
-
-  if (options().bv.bvAbstraction)
-  {
-    d_passes["bv-abstraction"]->apply(&assertions);
   }
 
   Debug("smt") << " assertions     : " << assertions.size() << endl;
@@ -311,7 +308,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
   dumpAssertions("post-repeat-simplify", as);
 
-  if (options().uf.ufHo)
+  if (logicInfo().isHigherOrder())
   {
     d_passes["ho-elim"]->apply(&assertions);
   }
