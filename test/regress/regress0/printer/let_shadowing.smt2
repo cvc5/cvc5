@@ -1,6 +1,7 @@
 ; REQUIRES: dumping
 ; COMMAND-LINE: -o raw-benchmark --preprocess-only
 ; ERROR-SCRUBBER: grep assert
+; EXPECT: unknown
 ; EXPECT-ERROR: (assert (let ((_let_1 (* x y))) (and (= _let_1 _let_1) (= _let_1 _let_0))))
 ; EXPECT-ERROR: (assert (let ((_let_1 (and a b))) (and (= _let_1 _let_1) (= _let_1 (forall ((_let_0 Int)) (= 0 _let_0))))))
 ; EXPECT-ERROR: (assert (let ((_let_1 (and a b))) (and (= _let_1 _let_1) (= _let_1 (forall ((x Int)) (forall ((y Int)) (let ((_let_1 (and b a))) (and (and a b) _let_1 _let_1 (= 0 _let_0)))))))))

@@ -372,7 +372,7 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  bool printDebug = d_env.isOutputOn(options::OutputTag::SYGUS);
+  bool printDebug = isOutputOn(OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -518,16 +518,15 @@ bool SynthConjecture::doCheck()
   // print the candidate solution for debugging
   if (constructed_cand && printDebug)
   {
-    const Options& sopts = options();
-    std::ostream& out = *sopts.base.out;
+    std::ostream& out = outputRaw(OutputTag::SYGUS);
     out << "(sygus-candidate ";
     Assert(d_quant[0].getNumChildren() == candidate_values.size());
     for (size_t i = 0, ncands = candidate_values.size(); i < ncands; i++)
     {
       Node v = candidate_values[i];
-      std::stringstream ss;
-      TermDbSygus::toStreamSygus(ss, v);
-      out << "(" << d_quant[0][i] << " " << ss.str() << ")";
+      out << "(" << d_quant[0][i] << " ";
+      TermDbSygus::toStreamSygus(out, v);
+      out << ")";
     }
     out << ")" << std::endl;
   }
@@ -736,7 +735,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
-  printSynthSolutionInternal(*options().base.out);
+  printSynthSolutionInternal(outputRaw(OutputTag::SYGUS));
   excludeCurrentSolution(enums, values);
 }
 
