@@ -69,10 +69,24 @@ enum class SkolemFunId
    */
   STRINGS_DEQ_DIFF,
   //-----
-  /** */
+  /** 
+   * A function used to define intermediate results of str.replace_all and
+   * str.replace_re_all applications.
+   */
   STRINGS_REPLACE_ALL_RESULT,
+  /** 
+   * A function used to define intermediate results of str.from_int
+   * applications.
+   */
   STRINGS_ITOS_RESULT,
+  /** 
+   * A function used to define intermediate results of str.to_int
+   * applications.
+   */
   STRINGS_STOI_RESULT,
+  /** 
+   * An index containing a non-digit in a string, used when (str.to_int a) = -1.
+   */
   STRINGS_STOI_NON_DIGIT,
   /**
    * For sequence a and regular expression b,
