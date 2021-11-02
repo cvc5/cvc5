@@ -121,5 +121,6 @@ public class BitVectors
     slv.assertFormula(a_odd);
     System.out.println(" Expect sat. ");
     System.out.println(" cvc5: " + slv.checkSat());
+    slv.close();
   }
 }

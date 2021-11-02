@@ -15,7 +15,6 @@
 
 package io.github.cvc5.api;
 
-interface IPointer
-{
+interface IPointer {
   long getPointer();
 }

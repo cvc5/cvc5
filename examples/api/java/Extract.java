@@ -48,5 +48,6 @@ public class Extract
     System.out.println(" Check entailment assuming: " + eq2);
     System.out.println(" Expect ENTAILED. ");
     System.out.println(" cvc5: " + slv.checkEntailed(eq2));
+    slv.close();
   }
 }

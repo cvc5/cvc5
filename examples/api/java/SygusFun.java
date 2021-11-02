@@ -135,5 +135,6 @@ public class SygusFun
       Term[] terms = new Term[] {max, min};
       Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
     }
+    slv.close();
   }
 }

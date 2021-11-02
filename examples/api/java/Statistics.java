@@ -62,6 +62,7 @@ public class Statistics
         System.out.println("-------------------------------------------------------");
       }
     }
+    solver.close();
   }
 
   private static Solver getSolver()

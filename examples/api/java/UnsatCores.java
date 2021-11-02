@@ -48,5 +48,6 @@ public class UnsatCores
     {
       System.out.println(e);
     }
+    solver.close();
   }
 }

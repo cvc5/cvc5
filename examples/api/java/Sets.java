@@ -88,5 +88,6 @@ public class Sets
         System.out.println("For instance, " + slv.getValue(x) + " is a member.");
       }
     }
+    slv.close();
   }
 }

@@ -124,5 +124,6 @@ public class Combination
         System.out.println(" + child: " + c);
       }
     }
+    slv.close();
   }
 }

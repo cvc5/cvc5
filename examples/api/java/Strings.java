@@ -87,5 +87,6 @@ public class Strings
       System.out.println("  x  = " + slv.getValue(x));
       System.out.println("  s1.s2 = " + slv.getValue(s));
     }
+    slv.close();
   }
 }

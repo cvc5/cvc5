@@ -90,5 +90,6 @@ public class SygusInv
       Term[] terms = new Term[] {inv_f};
       Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
     }
+    slv.close();
   }
 }

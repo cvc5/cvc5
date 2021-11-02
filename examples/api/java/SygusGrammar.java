@@ -125,5 +125,6 @@ public class SygusGrammar
       Term[] terms = new Term[] {id1, id2, id3, id4};
       Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
     }
+    slv.close();
   }
 }

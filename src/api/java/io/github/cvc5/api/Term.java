@@ -29,6 +29,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   Term(Solver solver, long pointer)
   {
     super(solver, pointer);
+    solver.addAbstractPointer(this);
   }
 
   protected static native void deletePointer(long pointer);
@@ -38,7 +39,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
     return pointer;
   }
 
-  @Override public void finalize()
+  @Override void deletePointer()
   {
     deletePointer(pointer);
   }

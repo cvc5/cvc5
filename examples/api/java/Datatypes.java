@@ -164,5 +164,6 @@ public class Datatypes
     DatatypeConstructorDecl[] ctors = new DatatypeConstructorDecl[] {cons2, nil2};
     Sort consListSort2 = slv.declareDatatype("list2", ctors);
     test(slv, consListSort2);
+    slv.close();
   }
 }

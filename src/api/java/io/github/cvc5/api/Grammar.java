@@ -21,6 +21,7 @@ public class Grammar extends AbstractPointer
   Grammar(Solver solver, long pointer)
   {
     super(solver, pointer);
+    solver.addAbstractPointer(this);
   }
 
   public Grammar(Grammar grammar)
@@ -37,7 +38,7 @@ public class Grammar extends AbstractPointer
     return pointer;
   }
 
-  @Override public void finalize()
+  @Override void deletePointer()
   {
     deletePointer(pointer);
   }

@@ -21,6 +21,7 @@ public class DatatypeDecl extends AbstractPointer
   DatatypeDecl(Solver solver, long pointer)
   {
     super(solver, pointer);
+    solver.addAbstractPointer(this);
   }
 
   protected static native void deletePointer(long pointer);
@@ -30,7 +31,7 @@ public class DatatypeDecl extends AbstractPointer
     return pointer;
   }
 
-  @Override public void finalize()
+  @Override void deletePointer()
   {
     deletePointer(pointer);
   }

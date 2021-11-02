@@ -18,12 +18,14 @@ package io.github.cvc5.api;
 abstract class AbstractPointer implements IPointer
 {
   protected final Solver solver;
-  protected final long pointer;
+  protected long pointer;
 
   public long getPointer()
   {
     return pointer;
   }
+
+  abstract void deletePointer();
 
   public Solver getSolver()
   {

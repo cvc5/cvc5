@@ -24,6 +24,7 @@ public class Result extends AbstractPointer
   Result(Solver solver, long pointer)
   {
     super(solver, pointer);
+    solver.addAbstractPointer(this);
   }
 
   protected static native void deletePointer(long pointer);
@@ -33,7 +34,7 @@ public class Result extends AbstractPointer
     return pointer;
   }
 
-  @Override public void finalize()
+  @Override void deletePointer()
   {
     deletePointer(pointer);
   }

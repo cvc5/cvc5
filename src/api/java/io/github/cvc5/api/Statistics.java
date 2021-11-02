@@ -24,6 +24,7 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
   Statistics(Solver solver, long pointer)
   {
     super(solver, pointer);
+    solver.addAbstractPointer(this);
   }
 
   protected static native void deletePointer(long pointer);
@@ -33,7 +34,7 @@ public class Statistics extends AbstractPointer implements Iterable<Pair<String,
     return pointer;
   }
 
-  @Override public void finalize()
+  @Override void deletePointer()
   {
     deletePointer(pointer);
   }

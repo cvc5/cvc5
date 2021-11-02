@@ -48,5 +48,6 @@ public class Transcendentals
 
     System.out.println("cvc5 should report UNSAT.");
     System.out.println("Result from cvc5 is: " + slv.checkSat());
+    slv.close();
   }
 }

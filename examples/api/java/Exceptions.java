@@ -61,5 +61,6 @@ public class Exceptions
     {
       System.out.println(e.toString());
     }
+    solver.close();
   }
 }

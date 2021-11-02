@@ -97,5 +97,6 @@ public class FloatingPointArith
 
     r = solver.checkSat(); // result is unsat
     assert !r.isSat();
+    solver.close();
   }
 }
