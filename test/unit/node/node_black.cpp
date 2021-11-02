@@ -580,7 +580,7 @@ TEST_F(TestNodeBlackNode, toStream)
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
-  options::ioutils::applyNodeDepth(sstr, 0);
+  options::ioutils::applyNodeDepth(sstr, -1);
   sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
