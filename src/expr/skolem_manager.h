@@ -69,6 +69,11 @@ enum class SkolemFunId
    */
   STRINGS_DEQ_DIFF,
   //-----
+  /** */
+  STRINGS_REPLACE_ALL_RESULT,
+  STRINGS_ITOS_RESULT,
+  STRINGS_STOI_RESULT,
+  STRINGS_STOI_NON_DIGIT,
   /**
    * Regular expression unfold component: if (str.in_re t R), where R is
    * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
