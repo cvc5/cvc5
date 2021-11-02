@@ -336,7 +336,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           {rule},
+			   {},
+                           //{rule},
                            *cdp);
     }
     case PfRule::EVALUATE:
@@ -345,7 +346,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           {nm->mkBoundVar("evaluate", nm->sExprType())},
+			   {},
+                           //{nm->mkBoundVar("evaluate", nm->sExprType())},
                            *cdp);
     }
     // The rule is translated according to the theory id tid and the outermost
@@ -1687,9 +1689,6 @@ bool AletheProofPostprocessCallback::update(Node res,
           && (args[0] != trueNode || children[0] != args[1]))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
-        if (childPf->getRule() == PfRule::ASSUME
-            || childPf->getRule() == PfRule::EQ_RESOLVE)
-        {
           // Add or step
           std::vector<Node> subterms{d_cl};
           subterms.insert(
@@ -1698,7 +1697,6 @@ bool AletheProofPostprocessCallback::update(Node res,
           addAletheStep(
               AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
           new_children[0] = conclusion;
-        }
       }
       return addAletheStepFromOr(
           AletheRule::REORDER, res, new_children, {}, *cdp);
