@@ -26,7 +26,6 @@
 #include "base/check.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
 #include "expr/node.h"
 #include "expr/symbol_manager.h"
 #include "expr/type_node.h"

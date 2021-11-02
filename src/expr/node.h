@@ -32,7 +32,6 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "options/io_utils.h"
@@ -835,32 +834,6 @@ public:
     assertTNodeNotExpired();
     d_nv->toStream(out, toDepth, dagThreshold, language);
   }
-
-  /**
-   * IOStream manipulator to set the maximum depth of Nodes when
-   * pretty-printing.  -1 means print to any depth.  E.g.:
-   *
-   *   // let a, b, c, and d be VARIABLEs
-   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
-   *   out << setdepth(3) << n;
-   *
-   * gives "(OR a b (AND c (NOT d)))", but
-   *
-   *   out << setdepth(1) << [same node as above]
-   *
-   * gives "(OR a b (...))"
-   */
-  typedef expr::ExprSetDepth setdepth;
-
-  /**
-   * IOStream manipulator to print expressions as DAGs (or not).
-   */
-  typedef expr::ExprDag dag;
-
-  /**
-   * IOStream manipulator to set the output language for Exprs.
-   */
-  typedef language::SetLanguage setlanguage;
 
   /**
    * Very basic pretty printer for Node.
