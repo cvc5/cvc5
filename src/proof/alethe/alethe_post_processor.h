@@ -16,6 +16,7 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
+#include "proof/alethe/alethe_nosubtype_node_converter.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof_node_updater.h"
@@ -153,6 +154,36 @@ class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   Node d_cl;
 };
 
+class AletheProofPostprocessNoSubtypeCallback : public ProofNodeUpdaterCallback
+{
+ public:
+  AletheProofPostprocessNoSubtypeCallback(ProofNodeManager* pnm);
+  ~AletheProofPostprocessNoSubtypeCallback() {}
+  /** Should proof pn be updated? Yes, since every proof node potentially has a
+   * term with mixed typing.
+   */
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    const std::vector<Node>& fa,
+                    bool& continueUpdate) override;
+  /**
+   * This method gets a proof node pn and applies the type coercion to the terms
+   * in the proof node, so that no values that should have type real actually
+   * have type int.
+   */
+  bool update(Node res,
+              PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp,
+              bool& continueUpdate) override;
+
+ private:
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The Alethe node converter to remove subtyping */
+  AletheNoSubtypeNodeConverter d_anc;
+};
+
 /**
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the Alethe calculus.
@@ -172,6 +203,8 @@ class AletheProofPostprocess
   AletheProofPostprocessCallback d_cb;
   /** The final post process callback */
   AletheProofPostprocessFinalCallback d_fcb;
+  /** The no subtype callback */
+  AletheProofPostprocessNoSubtypeCallback d_nst;
 };
 
 }  // namespace proof

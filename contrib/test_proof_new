@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# run this in a cvc5 build directory, will print a summary of the overall status of the proof branch
+
+echo "Testing proof..."
+
+echo > results__summary.txt
+echo > results__summary_short.txt
+
+function testwith {
+  TESTNAME=$1
+  shift
+  DEBUG=$1
+  shift
+  CARGS="--tlimit=120000 $@"
+  echo "Run [$TESTNAME]: make regress -j8 CVC5_REGRESSION_ARGS=$CARGS"
+  make regress -j8 CVC5_REGRESSION_ARGS="$CARGS" >& results_$TESTNAME.txt
+  cat results_$TESTNAME.txt | grep "(Failed)" > temp.txt
+  NUMFAILS=$(cat temp.txt | wc -l)
+  cat results_$TESTNAME.txt | grep " Test " > temp2.txt
+  NUMTESTSTR=$(cat temp2.txt | wc -l)
+  NUMTESTS=$(($NUMTESTSTR-1))
+
+  if [ -z "$DEBUG" ]; then
+    RESULTSTR="Results of [$TESTNAME]: $NUMFAILS / $NUMTESTS failed"
+  else
+    RESULTSTR="Results of [$TESTNAME]: $NUMFAILS / $NUMTESTS failed {$DEBUG}"
+  fi
+  echo "$RESULTSTR"
+  echo "$RESULTSTR" >> results__summary.txt
+  echo "$RESULTSTR" >> results__summary_short.txt
+  # also add to test
+  cat temp.txt
+  cat temp.txt >> results__summary.txt
+  rm temp.txt
+  rm temp2.txt
+}
+
+# simply check that make regress passes
+testwith regress ""
+# eager checking, fail if any intermediate proof went wrong
+testwith eager_checking "" --proof-req --proof-check=eager
+# check proofs, non-pedantic
+testwith check_proofs "" --proof-req --check-proofs
+# check proofs, pedantic level one
+testwith check_proofs_p1 "TRUST, THEORY_LEMMA" --proof-req --check-proofs --proof-pedantic=1
+# check proofs, pedantic level one
+testwith check_proofs_p2 "ARRAYS_TRUST, INT_TRUST, STRING_TRUST" --proof-req --check-proofs --proof-pedantic=2
+# check proofs, highest pedantic level
+testwith check_proofs_p10 "(THEORY_)PREPROCESS, (THEORY_)PREPROCESS_LEMMA, WITNESS_AXIOM" --proof-req --check-proofs --proof-pedantic=10
+# check proofs, sanity check (always fails when a proof is checked)
+testwith check_proofs_fail "" --proof-req --check-proofs --check-proofs-fail
+
+# Note that 
+#  --proof-req --check-proofs --proof-pedantic=1
+# may fail more than 
+#  --proof-req --check-proofs --check-proofs-fail
+# since the former fails when any intermediate proof step uses a rule that fails a pedantic check
+
+echo "Summary of results:"
+cat results__summary_short.txt

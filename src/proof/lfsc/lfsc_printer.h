@@ -27,6 +27,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 #include "proof/proof_node.h"
+#include "rewriter/rewrite_db.h"
 
 namespace cvc5 {
 namespace proof {
@@ -44,7 +45,7 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp);
+  LfscPrinter(LfscNodeConverter& ltp, rewriter::RewriteDb* rdb);
   ~LfscPrinter() {}
 
   /**
@@ -125,6 +126,10 @@ class LfscPrinter
   void computeProofLetification(const ProofNode* pn,
                                 std::vector<const ProofNode*>& pletList,
                                 std::map<const ProofNode*, size_t>& pletMap);
+  /** Print DSL rule */
+  void printDslRule(std::ostream& out,
+                    rewriter::DslPfRule id,
+                    std::vector<Node>& format);
   //------------------------------ end printing proofs
   /** The term processor */
   LfscNodeConverter& d_tproc;
@@ -139,6 +144,16 @@ class LfscPrinter
   size_t d_assumpCounter;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
+  /** Pointer to the rewrite database */
+  rewriter::RewriteDb* d_rdb;
+  /**
+   * Mapping rewrite rules to format for conditions.
+   * The output of a DslRule is thus listing the term arguments, then
+   * a list of ( holes | child proofs ) based on this list.
+   * Each rule is mapped to a list of terms, where Node::null signifies
+   * positions of holes, non-null nodes are child proofs to print.
+   */
+  std::map<rewriter::DslPfRule, std::vector<Node>> d_dslFormat;
 };
 
 }  // namespace proof

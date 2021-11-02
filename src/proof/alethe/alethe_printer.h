@@ -27,7 +27,7 @@ namespace proof {
 class AletheProofPrinter
 {
  public:
-  AletheProofPrinter(bool extended);
+  AletheProofPrinter();
   ~AletheProofPrinter() {}
   /**
    * This method prints a proof node that has been transformed into the Alethe
@@ -41,9 +41,7 @@ class AletheProofPrinter
  private:
   /** Used for printing the node after the initial anchor has been printed */
   std::string alethePrinterInternal(std::ostream& out,
-                                   std::shared_ptr<ProofNode> pfn);
-  /** Flag to indicate whether the Alethe proof format should be extended */
-  bool d_extended;
+                                    std::shared_ptr<ProofNode> pfn);
   /** The current level of nesting, which increases if a subproof is entered */
   int nested_level;
   /** Current step id */

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+CVC5_DIR=/space/ajreynol/cvc5
+
+# force rebuild of deps
+if [ X$1 = X'-f' ]; then
+  shift
+  rm -rf $CVC5_DIR/deps
+fi
+
+echo "================== Update LFSC"
+$CVC5_DIR/contrib/get-lfsc-checker
+
+# HACK: update the regression script
+cp $CVC5_DIR/test/regress/run_regression.py $CVC5_DIR/test/regress/temp.py
+cp $CVC5_DIR/test/regress/extract_regression_calls.py $CVC5_DIR/test/regress/run_regression.py
+
+echo "================== Make the LFSC regression script"
+make regress | grep CALL: >& temp-rrf.txt
+
+# HACK: revert changes to regression script
+cp $CVC5_DIR/test/regress/temp.py $CVC5_DIR/test/regress/run_regression.py
+
+sed -i 's/\CALL:/run_regression_lfsc/g' temp-rrf.txt
+
+echo "#!/bin/bash" > run_regressions_lfsc
+cat temp-rrf.txt  >> run_regressions_lfsc
+chmod 755 run_regressions_lfsc
+rm temp-rrf.txt
+
+echo "================== Run the LFSC regression script"
+./run_regressions_lfsc | tee lfsc-regression-results.txt
+
+echo "================== CVC5+LFSC results:"
+echo -n "PERFECT: "
+cat lfsc-regression-results.txt | grep "PERFECT" | wc -l
+echo -n "SUCCESS: "
+cat lfsc-regression-results.txt | grep "SUCCESS" | wc -l
+echo -n "WARNING: "
+cat lfsc-regression-results.txt | grep "WARNING" | wc -l
+echo -n "ERROR-LFSC: "
+cat lfsc-regression-results.txt | grep "ERROR-LFSC" | wc -l
+echo -n "ERROR-CVC5: "
+cat lfsc-regression-results.txt | grep "ERROR-CVC5" | wc -l
+echo -n "TOTAL: "
+cat lfsc-regression-results.txt | wc -l
+echo "=================="

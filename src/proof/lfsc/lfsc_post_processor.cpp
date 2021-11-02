@@ -16,6 +16,7 @@
 
 #include "options/proof_options.h"
 #include "proof/lazy_proof.h"
+#include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
@@ -87,6 +88,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }
+      // TODO: this can be unified to the latter case
       // In LFSC, we have now proved:
       //  (or (not F1) (or (not F2) ... (or (not Fn) C) ... ))
       // We now must convert this to one of two cases
@@ -156,8 +158,12 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::CONG:
     {
+      // TODO: can optimize this for prefixes of equal arugments, which only
+      // require a REFL step.
       Assert(res.getKind() == EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
+      Trace("lfsc-pp-cong") << "Processing congruence for " << res << " "
+                            << res[0].getKind() << std::endl;
       // different for closures
       if (res[0].isClosure())
       {
@@ -210,6 +216,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       // REFL step. Notice this may be for interpreted or uninterpreted
       // function symbols.
       Node op = d_tproc.getOperatorOfTerm(res[0]);
+      Trace("lfsc-pp-cong") << "Processing cong for op " << op << " "
+                            << op.getType() << std::endl;
       Assert(!op.isNull());
       // initial base step is REFL
       Node opEq = op.eqNode(op);
@@ -245,9 +253,20 @@ bool LfscProofPostprocessCallback::update(Node res,
         for (size_t i = 0; i < nchildren; i++)
         {
           size_t ii = (nchildren - 1) - i;
+          Node uop = op;
+          // special case: each bv concat in the chain has a different type,
+          // so remake the operator here.
+          if (k == kind::BITVECTOR_CONCAT)
+          {
+            // we get the operator of the next argument concatenated with the
+            // current accumulated remainder.
+            Node currApp =
+                nm->mkNode(kind::BITVECTOR_CONCAT, children[ii][0], currEq[0]);
+            uop = d_tproc.getOperatorOfTerm(currApp);
+          }
           Node argAppEq =
-              nm->mkNode(HO_APPLY, op, children[ii][0])
-                  .eqNode(nm->mkNode(HO_APPLY, op, children[ii][1]));
+              nm->mkNode(HO_APPLY, uop, children[ii][0])
+                  .eqNode(nm->mkNode(HO_APPLY, uop, children[ii][1]));
           addLfscRule(cdp, argAppEq, {opEq, children[ii]}, LfscRule::CONG, {});
           // now, congruence to the current equality
           Node nextEq;
@@ -339,6 +358,14 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
+    case PfRule::SKOLEMIZE:
+      // TODO: convert to curried
+      return false;
+      break;
+    case PfRule::INSTANTIATE:
+      // TODO: convert to curried
+      return false;
+      break;
     default: return false; break;
   }
   AlwaysAssert(cdp->getProofFor(res)->getRule() != PfRule::ASSUME);

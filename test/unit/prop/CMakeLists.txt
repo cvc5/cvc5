@@ -15,3 +15,5 @@
 
 # Add unit tests.
 cvc5_add_unit_test_white(cnf_stream_white prop)
+# TODO: update to google test
+#cvc4_add_cxx_unit_test_white(bool_proof_checker_black prop)

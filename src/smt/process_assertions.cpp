@@ -93,6 +93,8 @@ void ProcessAssertions::spendResource(Resource r)
 
 bool ProcessAssertions::apply(Assertions& as)
 {
+  // must first refresh the assertions, in the case global declarations is true
+  as.refresh();
   AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions

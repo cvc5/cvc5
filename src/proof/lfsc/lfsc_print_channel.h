@@ -25,6 +25,7 @@
 #include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/proof_node.h"
+#include "rewriter/rewrite_proof_rule.h"
 
 namespace cvc5 {
 namespace proof {
@@ -93,6 +94,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   static void printId(std::ostream& out, size_t id);
   static void printProofId(std::ostream& out, size_t id);
   static void printAssumeId(std::ostream& out, size_t id);
+  static void printDslProofRuleId(std::ostream& out, rewriter::DslPfRule id);
   //------------------- end helper methods
  private:
   /**
@@ -117,9 +119,14 @@ class LfscPrintChannelPre : public LfscPrintChannel
   void printTrust(TNode res, PfRule src) override;
   void printOpenRule(const ProofNode* pn) override;
 
+  /** Get the DSL rewrites */
+  const std::unordered_set<rewriter::DslPfRule>& getDslRewrites() const;
+
  private:
   /** The let binding */
   LetBinding& d_lbind;
+  /** The DSL rules we have seen */
+  std::unordered_set<rewriter::DslPfRule> d_dprs;
 };
 
 }  // namespace proof

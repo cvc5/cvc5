@@ -438,8 +438,6 @@ namespace api {
     CVC5_API_ARG_CHECK_NOT_NULL(sort);                      \
     CVC5_API_CHECK(this == sort.d_solver)                   \
         << "Given sort is not associated with this solver"; \
-    CVC5_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)  \
-        << "first-class sort as codomain sort";             \
     CVC5_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)   \
         << "function sort as codomain sort";                \
   } while (0)

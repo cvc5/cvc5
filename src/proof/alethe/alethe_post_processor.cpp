@@ -15,9 +15,13 @@
 
 #include "proof/alethe/alethe_post_processor.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
@@ -313,15 +317,38 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       return success;
     }
-    //======================== Builtin theory (common node operations)
+    case PfRule::DSL_REWRITE:
+    {
+      // get the name
+      rewriter::DslPfRule di;
+      Node rule;
+      if (rewriter::getDslPfRule(args[0], di))
+      {
+        std::stringstream ss;
+        ss << di;
+        rule = nm->mkBoundVar(ss.str(), nm->sExprType());
+      }
+      else
+      {
+        Unreachable();
+      }
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+			   {},
+                           //{rule},
+                           *cdp);
+    }
     case PfRule::EVALUATE:
     {
-      addAletheStep(AletheRule::LIA_GENERIC,
-                    res,
-                    nm->mkNode(kind::SEXPR, d_cl, res),
-                    {},
-                    {},
-                    *cdp);
+      return addAletheStep(AletheRule::ALL_SIMPLIFY,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+			   {},
+                           //{nm->mkBoundVar("evaluate", nm->sExprType())},
+                           *cdp);
     }
     // The rule is translated according to the theory id tid and the outermost
     // connective of the first term in the conclusion F, since F always has the
@@ -631,100 +658,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
 
-      // If res is not an or node, then it's necessarily a singleton clause.
-      bool isSingletonClause = res.getKind() != kind::OR;
-      // Otherwise, we need to determine if res, which is of the form (or t1 ...
-      // tn), corresponds to the clause (cl t1 ... tn) or to (cl (OR t1 ...
-      // tn)). The only way in which the latter can happen is if res occurs as a
-      // child in one of the premises, and is not eliminated afterwards. So we
-      // search for res as a subterm of some children, which would mark its last
-      // insertion into the resolution result. If res does not occur as the
-      // pivot to be eliminated in a subsequent premise, then, and only then, it
-      // is a singleton clause.
-      if (!isSingletonClause)
-      {
-        size_t i;
-        // Find out the last child to introduced res, if any. We only need to
-        // look at the last one because any previous introduction would have
-        // been eliminated.
-        //
-        // After the loop finishes i is the index of the child C_i that
-        // introduced res. If i=0 none of the children introduced res as a
-        // subterm and therefore it cannot be a singleton clause.
-        for (i = children.size(); i > 0; --i)
-        {
-          // only non-singleton clauses may be introducing
-          // res, so we only care about non-singleton or nodes. We check then
-          // against the kind and whether the whole or node occurs as a pivot of
-          // the respective resolution
-          if (children[i - 1].getKind() != kind::OR)
-          {
-            continue;
-          }
-          size_t pivotIndex = (i != 1) ? 2 * (i - 1) - 1 : 1;
-          if (args[pivotIndex] == children[i - 1]
-              || args[pivotIndex].notNode() == children[i - 1])
-          {
-            continue;
-          }
-          // if res occurs as a subterm of a non-singleton premise
-          if (std::find(children[i - 1].begin(), children[i - 1].end(), res)
-              != children[i - 1].end())
-          {
-            break;
-          }
-        }
-
-        // If res is a subterm of one of the children we still need to check if
-        // that subterm is eliminated
-        if (i > 0)
-        {
-          bool posFirst = (i == 1) ? (args[0] == trueNode)
-                                   : (args[(2 * (i - 1)) - 2] == trueNode);
-          Node pivot = (i == 1) ? args[1] : args[(2 * (i - 1)) - 1];
-
-          // Check if it is eliminated by the previous resolution step
-          if ((res == pivot && !posFirst)
-              || (res.notNode() == pivot && posFirst)
-              || (pivot.notNode() == res && posFirst))
-          {
-            // We decrease i by one, since it could have been the case that i
-            // was equal to children.size(), so that isSingletonClause is set to
-            // false
-            --i;
-          }
-          else
-          {
-            // Otherwise check if any subsequent premise eliminates it
-            for (; i < children.size(); ++i)
-            {
-              posFirst = args[(2 * i) - 2] == trueNode;
-              pivot = args[(2 * i) - 1];
-              // To eliminate res, the clause must contain it with opposite
-              // polarity. There are three successful cases, according to the
-              // pivot and its sign
-              //
-              // - res is the same as the pivot and posFirst is true, which
-              // means that the clause contains its negation and eliminates it
-              //
-              // - res is the negation of the pivot and posFirst is false, so
-              // the clause contains the node whose negation is res. Note that
-              // this case may either be res.notNode() == pivot or res ==
-              // pivot.notNode().
-              if ((res == pivot && posFirst)
-                  || (res.notNode() == pivot && !posFirst)
-                  || (pivot.notNode() == res && !posFirst))
-              {
-                break;
-              }
-            }
-          }
-        }
-        // if not eliminated (loop went to the end), then it's a singleton
-        // clause
-        isSingletonClause = i == children.size();
-      }
-      if (!isSingletonClause)
+      if (!expr::isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
             AletheRule::RESOLUTION, res, new_children, {}, *cdp);
@@ -803,7 +737,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // If F1 = (or G1 ... Gn), then P1 will be printed as (cl G1 ... Gn) but
     // needs to be printed as (cl (or G1 ... Gn)). The only exception to this
     // are ASSUME steps that are always printed as (cl (or G1 ... Gn)) and
-    // EQ_RESOLVE steps itself.
+    // EQ_RESOLVE steps themselves.
     //
     //           ------  ...  ------ OR_NEG
     //   P1       VP21   ...   VP2n
@@ -854,15 +788,14 @@ bool AletheProofPostprocessCallback::update(Node res,
         PfRule pr = cdp->getProofFor(child1)->getRule();
         if (pr != PfRule::ASSUME && pr != PfRule::EQ_RESOLVE)
         {
-          std::vector<Node> clauses;
-          clauses.push_back(d_cl);  // cl
+          std::vector<Node> clauses{d_cl};
           clauses.insert(clauses.end(),
                          children[0].begin(),
                          children[0].end());  //(cl G1 ... Gn)
 
-          std::vector<Node> vp2Nodes = {children[0]};
-          std::vector<Node> resNodes = {d_cl};
-          for (int i = 0; i < children[0].end() - children[0].begin(); i++)
+          std::vector<Node> vp2Nodes{children[0]};
+          std::vector<Node> resNodes{d_cl};
+          for (size_t i = 0, size = children[0].getNumChildren(); i < size; i++)
           {
             Node vp2i = nm->mkNode(
                 kind::SEXPR,
@@ -1280,45 +1213,58 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // ======== Congruence
-    // In the case that the kind of the function symbol ?f is forall, the cong
-    // rule needs to be converted into a bind rule.
-    //
-    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-    //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
-    //
-    //    P2
-    //  ----------------------------------- bind, ((:= v1 w1) ... (:= vn wn))
-    //  (cl (= (forall ((v1 A1)...(vn An)) t2)
-    //  (forall ((w1 B1)...(wn Bn)) s2)))*
-    //
-    // Otherwise, the rule follows the singleton pattern, i.e.:
-    //
-    //    P1 ... Pn
-    //  ------------------------------------------------------ cong
-    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))*
-    //
-    // * the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f? s1
-    // ... sn))
+      // ======== Congruence
+      // In the case that the kind of the function symbol ?f is forall or
+      // exists, the cong rule needs to be converted into a bind rule. The first
+      // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+      //
+      //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+      //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
+      //
+      //  ----- REFL ... ----- REFL
+      //   VP1            VPn         P2 ... Pn
+      //  --------------------------------------- bind, ((:= (v1 A1) w1) ... (:=
+      //  (vn An) wn))
+      //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+      //   (forall ((w1 B1)...(wn Bn)) s2)))*
+      //
+      //  VPi: (cl (= vi wi))*
+      //
+      //  * the corresponding proof node is (or (= vi vi))
+      //
+      // Otherwise, the rule follows the singleton pattern, i.e.:
+      //
+      //    P1 ... Pn
+      //  -------------------------------------------------------- cong
+      //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
+      //
+      // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
+      // s1
+      // ... sn))
     case PfRule::CONG:
     {
-      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL))
+      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
+          || args[0] == ProofRuleChecker::mkKindNode(kind::EXISTS))
       {
-        std::vector<Node> sanitized_args;
-        for (size_t i = 0,
-                    size = (children[0][0].end() - children[0][0].begin());
-             i < size;
+        std::vector<Node> vpis;
+        bool success = true;
+        for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
         {
-          sanitized_args.push_back(d_anc.convert(
-              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i])));
+          Node vpi =
+              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]);
+          new_args.push_back(vpi);
+          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
+          success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
         }
-        return addAletheStep(AletheRule::ANCHOR_BIND,
-                             res,
-                             nm->mkNode(kind::SEXPR, d_cl, res),
-                             {children[1]},
-                             sanitized_args,
-                             *cdp);
+        vpis.insert(vpis.end(), children.begin() + 1, children.end());
+        return success
+               && addAletheStep(AletheRule::ANCHOR_BIND,
+                                res,
+                                nm->mkNode(kind::SEXPR, d_cl, res),
+                                vpis,
+                                new_args,
+                                *cdp);
       }
       return addAletheStep(AletheRule::CONG,
                            res,
@@ -1464,14 +1410,17 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ^ the corresponding proof node is F*sigma
     case PfRule::INSTANTIATE:
     {
-      for (size_t i = 0, size = args.size(); i < size -1; i++)
+      for (size_t i = 0, size = children[0][0].end() - children[0][0].begin();
+           i < size;
+           i++)
       {
         new_args.push_back(nm->mkNode(kind::EQUAL, args[i], children[0][0][i]));
       }
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::OR, children[0].notNode(), res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
-      return addAletheStep(AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
+      return addAletheStep(
+                 AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1946,7 +1895,23 @@ bool AletheProofPostprocessCallback::update(Node res,
     // This rule is translated according to the clauses pattern.
     case PfRule::REORDERING:
     {
-      return addAletheStepFromOr(AletheRule::REORDER, res, children, {}, *cdp);
+      Node trueNode = nm->mkConst(true);
+      std::vector<Node> new_children = children;
+      if (children[0].getKind() == kind::OR
+          && (args[0] != trueNode || children[0] != args[1]))
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
+          // Add or step
+          std::vector<Node> subterms{d_cl};
+          subterms.insert(
+              subterms.end(), children[0].begin(), children[0].end());
+          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+          addAletheStep(
+              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+          new_children[0] = conclusion;
+      }
+      return addAletheStepFromOr(
+          AletheRule::REORDER, res, new_children, {}, *cdp);
     }
     //================================================= Arithmetic rules
     default:
@@ -1967,6 +1932,10 @@ bool AletheProofPostprocessCallback::update(Node res,
           << children << " " << args << std::endl;
       return false;
   }
+
+  Trace("alethe-proof") << "... error translating rule " << id << " / " << res
+                        << " " << children << " " << args << std::endl;
+  return false;
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
@@ -2037,7 +2006,7 @@ bool AletheProofPostprocessFinalCallback::shouldUpdate(
   }
   // If the proof node has result (false) additional steps have to be added.
   if (pn->getArguments()[2][1].toString()
-           == NodeManager::currentNM()->mkConst(false).toString())
+      == NodeManager::currentNM()->mkConst(false).toString())
   {
     return true;
   }
@@ -2143,15 +2112,78 @@ bool AletheProofPostprocessFinalCallback::update(
   return success;
 }
 
+AletheProofPostprocessNoSubtypeCallback::
+    AletheProofPostprocessNoSubtypeCallback(ProofNodeManager* pnm)
+    : d_pnm(pnm)
+{
+}
+
+
+bool AletheProofPostprocessNoSubtypeCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    const std::vector<Node>& fa,
+    bool& continueUpdate)
+{
+  return true;
+}
+
+bool AletheProofPostprocessNoSubtypeCallback::update(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate)
+{
+  Trace("alethe-proof-subtyping")
+      << "- Alethe post process no subtype callback " << res << " " << id << " "
+      << children << " / " << args << std::endl;
+  AlwaysAssert(args.size() >= 3);
+  // traverse conclusion and any other args and update them
+  bool changed = false;
+  std::vector<Node> newArgs{args[0], args[1]};
+  for (size_t i = 2, size = args.size(); i < size; ++i)
+  {
+
+    newArgs.push_back(d_anc.convert(args[i]));
+    changed |= newArgs.back() != args[i];
+  }
+  if (changed)
+  {
+    Trace("alethe-proof-subtyping")
+        << "\tConvertion changed " << args << " into " << newArgs << "\n";
+    // whether new conclusion became (= A A) or (cl (= A A))
+    if ((newArgs[2].getKind() == kind::EQUAL && newArgs[2][0] == newArgs[2][1])
+        || (newArgs[2].getKind() == kind::SEXPR
+            && newArgs[2].getNumChildren() == 2
+            && newArgs[2][1].getKind() == kind::EQUAL
+            && newArgs[2][1][0] == newArgs[2][1][1]))
+    {
+      Trace("alethe-proof-subtyping") << "\tTrivialized into REFL\n";
+      // turn this step into a REFL one, ignore children and remaining arguments
+      newArgs[0] = NodeManager::currentNM()->mkConst<Rational>(
+          static_cast<unsigned>(AletheRule::REFL));
+      cdp->addStep(res, id, {}, {newArgs.begin(), newArgs.begin() + 3});
+    }
+    else
+    {
+      cdp->addStep(res, id, children, newArgs);
+    }
+    return true;
+  }
+  return false;
+}
+
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
                                                AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc)
+  : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc), d_nst(d_pnm)
 {
 }
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+{
   // Translate proof node
   ProofNodeUpdater updater(d_pnm, d_cb, false, false);
   updater.process(pf->getChildren()[0]);
@@ -2163,6 +2195,10 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
   // first SCOPE
   ProofNodeUpdater finalize(d_pnm, d_fcb, false, false);
   finalize.process(pf);
+
+  Trace("alethe-proof-subtyping")  << "\n--------------------------------\n";
+  ProofNodeUpdater finalFinal(d_pnm, d_nst, false, false);
+  finalFinal.process(pf->getChildren()[0]);
 }
 
 }  // namespace proof

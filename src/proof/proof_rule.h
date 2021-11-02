@@ -185,6 +185,32 @@ enum class PfRule : uint32_t
   // where F' and G' are the result of each side of the equation above. Here,
   // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
+  // ======== Encode predicate transformation
+  // Children: (P1:F)
+  // Arguments: (G)
+  // ----------------------------------------
+  // Conclusion: G
+  // where F and G are equivalent up to their encoding in an external proof
+  // format. This is currently verified by:
+  //   RewriteDbNodeConverter::convert(F) == RewriteDbNodeConverter::convert(G)
+  // This rule can be treated as a no-op when appropriate in external proof
+  // formats.
+  ENCODE_PRED_TRANSFORM,
+  // ======== Annotation
+  // Children: (P1:F)
+  // Arguments: (a1 ... an)
+  // ----------------------------------------
+  // Conclusion: F
+  ANNOTATION,
+  // ======== DSL Rewrite
+  // Children: (P1:F1 ... Pn:Fn)
+  // Arguments: (id, F)
+  // ----------------------------------------
+  // Conclusion: F
+  // Where (G1, ..., Gn) => G is DSL rewrite rule # id, and
+  //  G1*sigma = F1, ..., Gn*sigma = Fn, G*sigma = F
+  // for some substitution sigma.
+  DSL_REWRITE,
   //================================================= Processing rules
   // ======== Remove Term Formulas Axiom
   // Children: none
@@ -1153,6 +1179,13 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: arith::OperatorElim::getAxiomFor(t)
   ARITH_OP_ELIM_AXIOM,
+  // ======== Arithmetic polynomial normalization
+  // Children: none
+  // Arguments: ((= t s))
+  // ---------------------
+  // Conclusion: (= t s)
+  // where arith::PolyNorm::isArithPolyNorm(t, s) = true
+  ARITH_POLY_NORM,
 
   //======== Multiplication sign inference
   // Children: none
@@ -1406,6 +1439,16 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   LFSC_RULE,
+  //================================================ Place holder for Lean rules
+  // ======== Lean rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  // The id argument is a LeanRule, as defined in proof/lean/lean_rules.h
+  // This allows us to specify which rule in the Lean calculus the current rule
+  // corresponds to.
+  LEAN_RULE,
   //================================================ Place holder for Alethe
   // rules
   // ======== Alethe rule

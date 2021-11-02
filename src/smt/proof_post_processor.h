@@ -23,6 +23,8 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "rewriter/rewrite_db_proof_cons.h"
+#include "rewriter/rewrites.h"
 #include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
 #include "theory/inference_id.h"
@@ -31,10 +33,6 @@
 namespace cvc5 {
 
 class Env;
-
-namespace rewriter {
-class RewriteDb;
-}
 
 namespace smt {
 
@@ -83,6 +81,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofNodeManager* d_pnm;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
+  /** The rewrite database proof generator */
+  rewriter::RewriteDbProofCons d_rdbPc;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
   /** The witness form assumptions used in the proof */
@@ -267,6 +267,8 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
+  /** Set assertions (for debugging whether the final proof is closed) */
+  void setAssertions(const std::vector<Node>& assertions);
 
  private:
   /** The post process callback */

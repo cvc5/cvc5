@@ -24,7 +24,7 @@ namespace cvc5 {
 
 namespace proof {
 
-AletheProofPrinter::AletheProofPrinter(bool extended) : d_extended(extended)
+AletheProofPrinter::AletheProofPrinter()
 {
   nested_level = 0;
   step_id = 1;
@@ -98,25 +98,24 @@ std::string AletheProofPrinter::alethePrinterInternal(
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << vrule << " "
         << " / " << pfn->getArguments() << std::endl;
-    out << "(anchor :step " << prefix << "t" << step_id << " :args (";
-    for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
-         j++)
+    out << "(anchor :step " << prefix << "t" << step_id;  // << " :args (";
+    if (vrule == AletheRule::ANCHOR_BIND)
     {
-      if (vrule == AletheRule::ANCHOR_SUBPROOF)
+      out << " :args (";
+      for (unsigned long int j = 3, size = pfn->getArguments().size(); j < size;
+           j++)
       {
-        out << pfn->getArguments()[j].toString();
-      }
-      else if (vrule == AletheRule::ANCHOR_BIND)
-      {
-        out << "(:= " << pfn->getArguments()[j][0].toString() << " "
+        out << "(:= (" << pfn->getArguments()[j][0].toString() << " "
+            << pfn->getArguments()[j][0].getType().toString() << ") "
             << pfn->getArguments()[j][1].toString() << ")";
+        if (j != pfn->getArguments().size() - 1)
+        {
+          out << " ";
+        }
       }
-      if (j != pfn->getArguments().size() - 1)
-      {
-        out << " ";
-      }
+      out << ")";
     }
-    out << "))\n";
+    out << ")\n";
 
     // Append index of anchor to prefix so that all steps in the subproof use it
     prefix.append("t" + std::to_string(step_id) + ".");
@@ -159,6 +158,25 @@ std::string AletheProofPrinter::alethePrinterInternal(
           << assumptions[nested_level] << std::endl;
       return prefix + "a" + std::to_string(it->second);
     }
+    // temp, hotfix
+    auto prefix2 = prefix;
+    for (int i = nested_level; i >= 0; i--)
+    {
+      auto it = assumptions[i].find(pfn->getArguments()[2]);
+      prefix2 = prefix2.substr(0, prefix2.find_last_of("."));
+      Trace("alethe-printer") << prefix2 << std::endl;
+      prefix2 = prefix2.substr(0, prefix2.find_last_of(".") + 1);
+      Trace("alethe-printer") << prefix2 << std::endl;
+
+      if (it != assumptions[i].end())
+      {
+        Trace("alethe-printer")
+            << "... search assumption in list on level " << i << ": "
+            << pfn->getArguments()[2] << "/" << assumptions[i] << "     "
+            << prefix2 << std::endl;
+        return prefix2 + "a" + std::to_string(it->second);
+      }
+    }
 
     // temp, hotfix
     for (int i = nested_level; i >= 0; i--)
@@ -192,18 +210,15 @@ std::string AletheProofPrinter::alethePrinterInternal(
     child_prefixes.push_back(alethePrinterInternal(out, child));
   }
 
-  // If rule is SYMM or REORDER the rule should not be printed in non-extended
-  // mode if (!d_extended && (vrule == AletheRule::REORDER || vrule ==
-  // AletheRule::SYMM)) for now exclude all reorder rules since they cannot be
-  // reconstructed in Isabelle yet.
-  if (vrule == AletheRule::REORDER
-      || (!d_extended && vrule == AletheRule::SYMM))
+  // If rule is REORDER the rule should not be printed for now since they cannot
+  // be reconstructed in Isabelle yet.
+  /*if (vrule == AletheRule::REORDER)
   {
     Trace("alethe-printer")
-        << "... non-extended mode skip child " << pfn->getResult() << " "
+        << "... skip reordering " << pfn->getResult() << " "
         << vrule << " / " << pfn->getArguments() << std::endl;
     return child_prefixes[0];
-  }
+  }*/
 
   // If the rule is a subproof a subproof step needs to be printed
   if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)

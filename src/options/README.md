@@ -5,17 +5,10 @@ Every options module, that is a group of options that belong together in some
 way, is declared in its own file in `options/{module name}_options.toml`. Each
 options module starts with the following required attributes:
 
-* `id` (string): ID of the module (e.g., `"arith"`)
+* `id` (string): ID of the module (e.g., `"ARITH"`)
 * `name` (string): name of the module (e.g., `"Arithmetic Theory"`)
 
-Additional, a module can optionally be defined to be public. A public module
-includes `cvc5_public.h` instead of `cvc5_private.h` can thus be included from
-"external" code like the parser or the main driver.
-
-* `public` (bool): make option module public
-
-A module defines 0 or more options.
-
+A module defines zero or more options.
 In general, each attribute/value pair is required to be in one line. Comments
 start with # and are not allowed in attribute/value lines.
 
@@ -34,7 +27,7 @@ Options can be defined within a module file with the `[[option]]` tag, the
 required attributes for an option are:
 
 * `category` (string): one of `common`, `expert`, `regular`, or `undocumented`
-* `type` (string): the C++ type of the option value
+* `type` (string): the C++ type of the option value, see below for more details.
 
 Optional attributes are:
 
@@ -58,27 +51,42 @@ Optional attributes are:
   value is valid, more details below
 * `includes` (list): additional header files required by handler or predicate
   functions
+* `minimum` (numeric): impose a minimum value on this option.
+* `maximum` (numeric): impose a maximum value on this option.
 * `help` (string): documentation string (required, unless the `category` is
   `undocumented`)
 * `help_mode` (string): documentation for the mode enum (required if `mode` is
   given)
 
 
+Option types
+------------
+
+Though not enforced explicitly, option types are commonly expected to come from
+a rather restricted set of C++ types:
+some options are merely used to have a handler function called and use `void`;
+Boolean options should use `bool`;
+numeric options should use one of `int64_t`, `uint64_t` and `double`, possibly
+using `minimum` and `maximum` to further restrict the options domain;
+mode options should use a fresh type name for the auto-generated enum as
+detailed below.
+
+While other C++ types are allowed, they should only be used in special cases
+when the above types are not sufficient.
+
+
 Handler functions
 -----------------
 
-Custom handler functions are used to turn the option value from a `std::string`
+Custom handler functions are used to turn the option value from an `std::string`
 into the type specified by `type`. Standard handler functions are provided for
-basic types (`std::string`, `bool`, integer types and floating point types) as
+basic types (`std::string`, `bool`, `int64_t`, `uint64_t`, and `double`) as
 well as enums specified by `mode`. A custom handler function needs to be member
-function of `options::OptionsHandler` with signature `{type} {handler}(const
-std::string& option, const std::string& flag, const std::string& optionvalue)`,
-or alternatively `void {handler}(const std::string& option, const std::string&
-flag)` if the `type` is `void`. The two parameters `option` and `flag` hold the
-canonical and the actually used option names, respectively, and they may differ
-if an alternative name (from `alias`) was used. While `option` should be used to
-identify an option (e.g. by comparing against `*__name`), `flag` should be
-usually used in user messages.
+function of `options::OptionsHandler` with signature
+`{type} {handler}(const std::string& flag, const std::string& optionvalue)`, or
+alternatively `void {handler}(const std::string& flag)` if the `type` is `void`.
+The parameter `flag` holds the actually used option name, which may be an alias
+name, and should only be used in user messages.
 
 
 Predicate functions
@@ -87,9 +95,13 @@ Predicate functions
 Predicate functions are used to check whether an option value is valid after it
 has been parsed by a (standard or custom) handler function. Like a handler
 function, a predicate function needs to be a member function of
-`options::OptionsHandler` with signature `void {predicate}(const std::string&
-option, const std::string& flag, {type} value)`. If the check fails, the
-predicate should raise an `OptionException`.
+`options::OptionsHandler` with signature
+`void {predicate}(const std::string& flag, {type} value)`.
+If the check fails, the predicate should raise an `OptionException`.
+
+Note that a predicate function may not only check the value, but may also
+trigger some other action. Examples include enabling trace tags or enforcing
+dependencies between several options.
 
 
 Mode options

@@ -60,7 +60,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
             != traversing.end())
         {
           Unhandled() << "ProofNodeToSExpr::convertToSExpr: cyclic proof! (use "
-                         "--proof-eager-checking)"
+                         "--proof-check=eager)"
                       << std::endl;
           return Node::null();
         }
@@ -297,6 +297,12 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
     }
     break;
+    case PfRule::ANNOTATION:
+      if (i == 0)
+      {
+        return ArgFormat::INFERENCE_ID;
+      }
+      break;
     default: break;
   }
   return ArgFormat::DEFAULT;

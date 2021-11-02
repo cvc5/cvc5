@@ -15,15 +15,15 @@ name   = "Proof"
 [[option.mode.DOT]]
   name       = "dot"
   help       = "Output DOT proof"
+[[option.mode.LEAN]]
+  name       = "lean"
+  help       = "Output Lean proof"
 [[option.mode.LFSC]]
   name       = "lfsc"
   help       = "Output LFSC proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"
-[[option.mode.ALETHE_EXTENDED]]
-  name       = "alethe-extended"
-  help       = "Output Alethe proof extended by additional proof rules"
 [[option.mode.TPTP]]
   name       = "tptp"
   help       = "Output TPTP proof (work in progress)"
@@ -66,6 +66,30 @@ name   = "Proof"
   help       = "do not check rule applications"
 
 [[option]]
+  name       = "checkProofsFail"
+  category   = "regular"
+  long       = "check-proofs-fail"
+  type       = "bool"
+  default    = "false"
+  help       = "always fail when the checkProof method is invoked (dummy option)"
+
+[[option]]
+  name       = "proofReq"
+  category   = "regular"
+  long       = "proof-req"
+  type       = "bool"
+  default    = "false"
+  help       = "always fail during setDefaults if proof is not enabled (dummy option)"
+
+[[option]]
+  name       = "proofUpdateDebug"
+  category   = "regular"
+  long       = "proof-update-debug"
+  type       = "bool"
+  default    = "false"
+  help       = "debug proof node updater"
+
+[[option]]
   name       = "proofPpMerge"
   category   = "regular"
   long       = "proof-pp-merge"
@@ -93,3 +117,19 @@ name   = "Proof"
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
   help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
+
+[[option]]
+  name       = "proofRewriteRconsRecLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-limit=N"
+  type       = "int64_t"
+  default    = "5"
+  help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
+  name       = "proofAnnotate"
+  category   = "regular"
+  long       = "proof-annotate"
+  type       = "bool"
+  default    = "false"
+  help       = "add optional annotations to proofs"

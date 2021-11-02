@@ -155,6 +155,8 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
+  proof/annotation_proof_generator.cpp
+  proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
@@ -174,6 +176,10 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
+  proof/lean/lean_post_processor.cpp
+  proof/lean/lean_post_processor.h
+  proof/lean/lean_printer.cpp
+  proof/lean/lean_printer.h
   proof/lfsc/lfsc_list_sc_node_converter.cpp
   proof/lfsc/lfsc_list_sc_node_converter.h
   proof/lfsc/lfsc_node_converter.cpp
@@ -221,6 +227,8 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/alethe/alethe_nosubtype_node_converter.cpp
+  proof/alethe/alethe_nosubtype_node_converter.h
   proof/alethe/alethe_node_converter.cpp
   proof/alethe/alethe_node_converter.h
   proof/alethe/alethe_post_processor.cpp
@@ -381,6 +389,8 @@ libcvc5_add_sources(
   theory/arith/arith_ite_utils.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
+  theory/arith/arith_poly_norm.cpp
+  theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
   theory/arith/arith_rewriter.cpp
@@ -733,6 +743,8 @@ libcvc5_add_sources(
   theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
+  theory/inference_id_proof_annotator.cpp
+  theory/inference_id_proof_annotator.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
   theory/logic_info.cpp
@@ -887,8 +899,12 @@ libcvc5_add_sources(
   theory/quantifiers/quantifiers_state.h
   theory/quantifiers/quantifiers_statistics.cpp
   theory/quantifiers/quantifiers_statistics.h
+  theory/quantifiers/query_cache.cpp
+  theory/quantifiers/query_cache.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
+  theory/quantifiers/query_generator_unsat.cpp
+  theory/quantifiers/query_generator_unsat.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
   theory/quantifiers/single_inv_partition.cpp
@@ -1244,35 +1260,42 @@ if (BUILD_DOCS)
   )
 endif()
 
+# The mkoptions.py script only updates its output files if their content would
+# actually change. This mechanism makes sure that running the script does not
+# automatically trigger a full rebuild, but only a rebuild of those parts that
+# include files that did actually change.
+# This approach also means that the output files (which gen-options used to
+# depend on) may not actually be updated and thus cmake would keep re-running
+# mkoptions.py over and over again.
+# We thus have an artificial options.stamp file that mkoptions.py always writes
+# to, and can thus be used to communicate that all options files have been
+# properly updated.
 add_custom_command(
-    OUTPUT
-      ${options_gen_cpp_files} ${options_gen_h_files}
-      ${options_gen_doc_files}
-    COMMAND
-      ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
-    COMMAND
-      ${PYTHON_EXECUTABLE}
-      ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
-      ${CMAKE_CURRENT_LIST_DIR}
-      ${CMAKE_BINARY_DIR}
-      ${CMAKE_CURRENT_BINARY_DIR}
-      ${abs_toml_files}
-    DEPENDS
-      options/mkoptions.py
-      ${options_toml_files}
-      main/options_template.cpp
-      options/module_template.h
-      options/module_template.cpp
-      options/options_public_template.cpp
-      options/options_template.h
-      options/options_template.cpp
+  OUTPUT
+    options/options.stamp
+  COMMAND
+    ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
+  COMMAND
+    ${PYTHON_EXECUTABLE}
+    ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${abs_toml_files}
+  BYPRODUCTS
+    ${options_gen_cpp_files} ${options_gen_h_files} ${options_gen_doc_files}
+  DEPENDS
+    options/mkoptions.py
+    ${options_toml_files}
+    main/options_template.cpp
+    options/module_template.h
+    options/module_template.cpp
+    options/options_public_template.cpp
+    options/options_template.h
+    options/options_template.cpp
 )
 
-add_custom_target(gen-options
-  DEPENDS
-    ${options_gen_cpp_files}
-    ${options_gen_h_files}
-)
+add_custom_target(gen-options DEPENDS options/options.stamp)
 
 
 #-----------------------------------------------------------------------------#
@@ -1293,11 +1316,19 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
 #-----------------------------------------------------------------------------#
+
+set(REWRITES_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites)
+
+#-----------------------------------------------------------------------------#
 # Add subdirectories
 
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
+add_subdirectory(rewriter)
 add_subdirectory(parser)
 add_subdirectory(theory)
 add_subdirectory(util)
@@ -1315,7 +1346,7 @@ set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # add_dependencies() is necessary for cmake versions before 3.21
 add_dependencies(cvc5-obj cvc5base cvc5context)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-tags gen-theory)
+add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-rewrites gen-tags gen-theory)
 
 # Link the shared library
 add_library(cvc5-shared SHARED $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
@@ -1332,7 +1363,7 @@ install(TARGETS cvc5-shared
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   add_library(cvc5-static STATIC $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
   set_target_properties(cvc5-static PROPERTIES OUTPUT_NAME cvc5)
   target_include_directories(cvc5-static
@@ -1353,7 +1384,7 @@ generate_export_header(cvc5-obj BASE_NAME cvc5)
 add_dependencies(cvc5-obj GMP_SHARED)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
 endif()
 
@@ -1361,7 +1392,7 @@ endif()
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
 target_link_libraries(cvc5-shared PRIVATE ${RT_LIBRARIES})
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PRIVATE ${RT_LIBRARIES})
 endif()
 
@@ -1376,7 +1407,7 @@ endif()
 add_dependencies(cvc5-obj CaDiCaL)
 target_include_directories(cvc5-obj PRIVATE ${CaDiCaL_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE CaDiCaL)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC CaDiCaL)
 endif()
 
@@ -1384,7 +1415,7 @@ if(USE_CLN)
   add_dependencies(cvc5-obj CLN_SHARED)
   target_include_directories(cvc5-obj PRIVATE ${CLN_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CLN_SHARED)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CLN_STATIC)
   endif()
 endif()
@@ -1392,7 +1423,7 @@ if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
   target_include_directories(cvc5-obj PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CryptoMiniSat)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CryptoMiniSat)
   endif()
 endif()
@@ -1400,14 +1431,14 @@ if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
   target_include_directories(cvc5-obj PRIVATE ${Kissat_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE Kissat)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC Kissat)
   endif()
 endif()
 if(USE_GLPK)
   target_include_directories(cvc5-obj PRIVATE ${GLPK_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE ${GLPK_LIBRARIES})
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC ${GLPK_LIBRARIES})
   endif()
 endif()
@@ -1415,7 +1446,7 @@ if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx_SHARED)
   target_include_directories(cvc5-obj PRIVATE ${Poly_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE Polyxx_SHARED)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC Polyxx_STATIC)
   endif()
 endif()
@@ -1423,7 +1454,7 @@ if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
   target_include_directories(cvc5-obj PRIVATE ${CoCoA_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CoCoA)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CoCoA)
   endif()
 endif()
@@ -1431,7 +1462,7 @@ endif()
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj PRIVATE ${SymFPU_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE SymFPU)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC SymFPU)
 endif()
 

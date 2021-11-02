@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --no-produce-proofs --no-check-proofs --no-check-unsat-cores
 (set-logic ALL)
 (set-info :smt-lib-version 2.6)
 (define-fun fp.isFinite32 ((x Float32)) Bool (not (or (fp.isInfinite x) (fp.isNaN x))))

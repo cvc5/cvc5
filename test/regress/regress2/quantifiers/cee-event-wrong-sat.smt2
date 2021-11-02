@@ -1,5 +1,5 @@
-; COMMAND-LINE: --full-saturate-quant --ee-mode=distributed
-; COMMAND-LINE: --full-saturate-quant --ee-mode=central
+; COMMAND-LINE: -q --full-saturate-quant --ee-mode=distributed --no-check-unsat-cores
+; COMMAND-LINE: -q --full-saturate-quant --ee-mode=central --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
@@ -23,7 +23,7 @@
 (declare-fun $Event_EventHandleGenerator_type_value () T@$TypeValue)
 (assert (= 0 (|l#R| $EmptyValueArray)))
 (assert (forall ((v1 T@$Value) (v2 T@$Value)) (= ($IsEqual_stratified v1 v2) (or (= v1 v2) (forall ((i Int)) (or (> 0 i) (>= i (|l#R| (|v#V| v1))) ($IsEqual_stratified (sel (|v#R| (|v#V| v1)) i) (sel (|v#R| (|v#V| v2)) i))))))))
-(assert (forall ((m@@0 T@M) (a@@0 T@$Value)) (! (or (not (is-D a@@0)) (and (is-I (sel (|v#R| (|v#V| (s (|contents#M| m@@0) (G $Event_EventHandleGenerator_type_value (|a#D| a@@0))))) $Event_EventHandleGenerator_counter)) (forall ((x@@10 Int)) (or (> x@@10 0) (= E (sel (|v#R| (|v#V| (s (|contents#M| m@@0) (G $LibraAccount_T_type_value (|a#D| a@@0))))) x@@10)))))) :qid :skolemid)))
+(assert (forall ((m@@0 T@M) (a@@0 T@$Value)) (! (or (not (is-D a@@0)) (and (is-I (sel (|v#R| (|v#V| (s (|contents#M| m@@0) (G $Event_EventHandleGenerator_type_value (|a#D| a@@0))))) $Event_EventHandleGenerator_counter)) (forall ((x@@10 Int)) (or (> x@@10 0) (= E (sel (|v#R| (|v#V| (s (|contents#M| m@@0) (G $LibraAccount_T_type_value (|a#D| a@@0))))) x@@10)))))) :qid || :skolemid ||)))
 (declare-fun |Select_[$Location]$bool| (b T@$Location) Bool)
 (declare-fun $m@@0 () T@M)
 (declare-fun $abort_flag@2 () Bool)

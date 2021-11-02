@@ -1,0 +1,49 @@
+; Basic rules
+(define-rule arith-eq-refl-int ((t Int)) (= t t) true)
+(define-rule arith-eq-symm-int ((t Int) (s Int)) (= t s) (= s t))
+
+(define-rule arith-eq-refl-real ((t Real)) (= t t) true)
+(define-rule arith-eq-symm-real ((t Real) (s Real)) (= t s) (= s t))
+
+(define-rule arith-plus-zero ((t Int :list) (s Int :list)) (+ t 0 s) (+ t s))
+
+(define-rule arith-mul-one ((t Int :list) (s Int :list)) (* t 1 s) (* t s))
+(define-rule arith-mul-zero ((t Int :list) (s Int :list)) (* t 0 s) 0)
+
+(define-rule arith-uminus-elim ((t Int)) (- t) (* (- 1) t))
+(define-rule arith-neg-neg-one ((t Int)) (* (- 1) (* (- 1) t)) t)
+
+; Eliminations
+(define-rule arith-elim-minus ((t Int) (s Int)) (- t s) (+ t (* (- 1) s)))
+(define-rule arith-elim-gt ((t Int) (s Int)) (> t s) (not (<= t s)))
+(define-rule arith-elim-lt ((t Int) (s Int)) (< t s) (not (>= t s)))
+(define-rule arith-elim-leq ((t Int) (s Int)) (<= t s) (not (>= t (+ s 1))))
+
+(define-rule arith-geq-norm ((t Int) (s Int)) (>= t s) (>= (- t s) 0))
+
+(define-rule arith-refl-leq ((t Int)) (<= t t) true)
+(define-rule arith-refl-lt ((t Int)) (< t t) false)
+(define-rule arith-refl-geq ((t Int)) (>= t t) true)
+(define-rule arith-refl-gt ((t Int)) (> t t) false)
+
+(define-rule* plus-flatten ((xs Int :list) (w Int) (ys Int :list) (zs Int :list))
+  (+ xs (+ w ys) zs)
+  (+ xs w ys zs))
+
+(define-rule* mult-flatten ((xs Int :list) (w Int) (ys Int :list) (zs Int :list))
+  (* xs (* w ys) zs)
+  (* xs w ys zs))
+
+(define-rule* mult-dist ((x Int) (y Int) (z Int) (w Int :list))
+  (* x (+ y z w))
+  (+ (* x y) (* x (+ z w))))
+
+
+; TEMPORARY
+
+
+(define-rule arith-eq-equiv ((t Int) (s Int) (r Int) (q Int)) (= (= t s) (= r q)) (= (+ t (* (- 1) s)) (+ r (* (- 1) q))))
+
+(define-rule* arith-plus-cancel1 ((t Int :list) (x Int) (s Int :list) (r Int :list)) (+ t x s (* (- 1) x) r) (+ t s r))
+(define-rule* arith-plus-cancel2 ((t Int :list) (x Int) (s Int :list) (r Int :list)) (+ t (* (- 1) x) s x r) (+ t s r))
+

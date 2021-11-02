@@ -130,7 +130,7 @@ name   = "SMT Layer"
   category   = "regular"
   long       = "produce-proofs"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
