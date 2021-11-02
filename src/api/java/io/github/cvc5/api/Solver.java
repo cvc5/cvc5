@@ -40,14 +40,18 @@ public class Solver implements IPointer, AutoCloseable
 
   private static native void deletePointer(long pointer);
 
+  // store pointers for terms, sorts, etc
   List<AbstractPointer> abstractPointers = new ArrayList<>();
 
   @Override public void close()
   {
+    // delete heap memory for terms, sorts, etc
     for (AbstractPointer abstractPointer : abstractPointers)
     {
       abstractPointer.deletePointer();
     }
+    // delete the heap memory for this solver
+    deletePointer();
   }
 
   void addAbstractPointer(AbstractPointer abstractPointer)
