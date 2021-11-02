@@ -23,7 +23,6 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   Sort(Solver solver, long pointer)
   {
     super(solver, pointer);
-    solver.addAbstractPointer(this);
   }
 
   protected native void deletePointer(long pointer);

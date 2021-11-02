@@ -52,5 +52,6 @@ abstract class AbstractPointer implements IPointer
   {
     this.solver = solver;
     this.pointer = pointer;
+    solver.addAbstractPointer(this);
   }
 }

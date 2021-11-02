@@ -21,7 +21,6 @@ public class DatatypeSelector extends AbstractPointer
   DatatypeSelector(Solver solver, long pointer)
   {
     super(solver, pointer);
-    solver.addAbstractPointer(this);
   }
 
   protected native void deletePointer(long pointer);

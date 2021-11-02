@@ -21,7 +21,6 @@ public class Grammar extends AbstractPointer
   Grammar(Solver solver, long pointer)
   {
     super(solver, pointer);
-    solver.addAbstractPointer(this);
   }
 
   public Grammar(Grammar grammar)

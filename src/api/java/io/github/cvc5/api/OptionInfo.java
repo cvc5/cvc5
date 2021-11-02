@@ -40,7 +40,6 @@ public class OptionInfo extends AbstractPointer
   OptionInfo(Solver solver, long pointer)
   {
     super(solver, pointer);
-    solver.addAbstractPointer(this);
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);

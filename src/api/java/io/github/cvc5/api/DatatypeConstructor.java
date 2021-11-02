@@ -24,7 +24,6 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   DatatypeConstructor(Solver solver, long pointer)
   {
     super(solver, pointer);
-    solver.addAbstractPointer(this);
   }
 
   protected native void deletePointer(long pointer);
