@@ -131,8 +131,6 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_SUFFIX_REM:
       Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
       break;
-    case SK_NUM_OCCUR:
-    case SK_OCCUR_INDEX:
     default:
     {
       Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
@@ -316,6 +314,23 @@ Node SkolemCache::mkLengthVar(Node t)
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
+}
+
+Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b) const
+{
+  std::vector<Node> cacheVals;
+  for (size_t i=0; i<2; i++)
+  {
+    Node n = i==0 ? a : b;
+    if (!n.isNull())
+    {
+      n = d_rr != nullptr ? d_rr->rewrite(n) : n;
+      cacheVals.push_back(n);
+    }
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  return sm->mkSkolemFunction(id, tn, cacheVals);
 }
 
 }  // namespace strings

@@ -222,7 +222,12 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                                      int flags)
 {
   Assert(cacheVals.size() > 1);
-  Node cacheVal = NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+  Node cacheVal;
+  // use null node if cacheVals is empty
+  if (!cacheVals.empty())
+  {
+    cacheVal = NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+  }
   return mkSkolemFunction(id, tn, cacheVal, flags);
 }
 

@@ -129,33 +129,7 @@ class SkolemCache
     // For integer b,
     // b > 0 =>
     //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
-    SK_SUFFIX_REM,
-    // --------------- integer skolems
-    // exists k. ( b occurs k times in a )
-    SK_NUM_OCCUR,
-    // --------------- function skolems
-    // For function k: Int -> Int
-    //   exists k.
-    //     forall 0 <= x <= n,
-    //       k(x) is the end index of the x^th occurrence of b in a
-    //   where n is the number of occurrences of b in a, and k(0)=0.
-    SK_OCCUR_INDEX,
-    // For function k: Int -> Int
-    //   exists k.
-    //     forall 0 <= x < n,
-    //       k(x) is the length of the x^th occurrence of b in a (excluding
-    //       matches of empty strings)
-    //   where b is a regular expression, n is the number of occurrences of b
-    //   in a, and k(0)=0.
-    SK_OCCUR_LEN,
-    // For function k: ((Seq U) x Int) -> U
-    // exists k.
-    // forall s, n.
-    //  k(s, n) is some undefined value of sort U
-    SK_NTH,
-    // Diff index for disequalities
-    // a != b => substr(a,k,1) != substr(b,k,1)
-    SK_DEQ_DIFF
+    SK_SUFFIX_REM
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
@@ -201,7 +175,11 @@ class SkolemCache
    * that could be matched by r.
    */
   static Node mkLengthVar(Node t);
-
+  /**
+   * Make skolem function, possibly normalizing based on the rewriter of this
+   * class.
+   */
+  Node mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b) const;
  private:
   /**
    * Simplifies the arguments for a string skolem used for indexing into the

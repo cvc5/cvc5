@@ -605,15 +605,15 @@ Node StringsPreprocess::reduce(Node t,
     Node z = t[2];
     Node rpaw = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpaw");
 
-    Node numOcc = sc->mkTypedSkolemCached(
-        nm->integerType(), x, y, SkolemCache::SK_NUM_OCCUR, "numOcc");
+    Node numOcc = sc->mkSkolemFun(
+        SkolemFunId::STRINGS_NUM_OCCUR, nm->integerType(), x, y);
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     Node us =
         sm->mkDummySkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
-    Node uf = sc->mkTypedSkolemCached(
-        ufType, x, y, SkolemCache::SK_OCCUR_INDEX, "Uf");
+    Node uf = sc->mkSkolemFun(
+        SkolemFunId::STRINGS_OCCUR_INDEX, ufType, x, y);
 
     Node ufno = nm->mkNode(APPLY_UF, uf, numOcc);
     Node usno = nm->mkNode(APPLY_UF, us, numOcc);
