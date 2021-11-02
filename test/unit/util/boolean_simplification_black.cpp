@@ -17,11 +17,10 @@
 #include <set>
 #include <vector>
 
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "options/io_utils.h"
 #include "options/language.h"
-#include "options/set_language.h"
 #include "smt_util/boolean_simplification.h"
 #include "test_node.h"
 
@@ -71,8 +70,8 @@ class TestUtilBlackBooleanSimplification : public TestNode
     // this test is designed for >= 10 removal threshold
     Assert(BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD >= 10);
 
-    std::cout << expr::ExprSetDepth(-1)
-              << language::SetLanguage(Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyNodeDepth(std::cout, -1);
+    options::ioutils::applyOutputLang(std::cout, Language::LANG_SMTLIB_V2_6);
   }
 
   // assert equality up to commuting children
