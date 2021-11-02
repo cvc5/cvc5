@@ -57,7 +57,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
     case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
     case SkolemFunId::STRINGS_DEQ_DIFF: return "STRINGS_DEQ_DIFF";
-    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT: return "STRINGS_REPLACE_ALL_RESULT";
+    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
+      return "STRINGS_REPLACE_ALL_RESULT";
     case SkolemFunId::STRINGS_ITOS_RESULT: return "STRINGS_ITOS_RESULT";
     case SkolemFunId::STRINGS_STOI_RESULT: return "STRINGS_STOI_RESULT";
     case SkolemFunId::STRINGS_STOI_NON_DIGIT: return "STRINGS_STOI_NON_DIGIT";

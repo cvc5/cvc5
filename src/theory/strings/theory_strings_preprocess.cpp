@@ -344,8 +344,7 @@ Node StringsPreprocess::reduce(Node t,
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
     TypeNode itosResType = nm->mkFunctionType(argTypes, nm->integerType());
-    Node u =
-        sc->mkSkolemFun(SkolemFunId::STRINGS_ITOS_RESULT, itosResType, t);
+    Node u = sc->mkSkolemFun(SkolemFunId::STRINGS_ITOS_RESULT, itosResType, t);
 
     Node lem = nm->mkNode(GEQ, leni, one);
     conc.push_back(lem);
@@ -424,8 +423,8 @@ Node StringsPreprocess::reduce(Node t,
 
     Node emp = Word::mkEmptyWord(s.getType());
     Node sEmpty = s.eqNode(emp);
-    Node k = 
-    sc->mkSkolemFun(SkolemFunId::STRINGS_STOI_NON_DIGIT, nm->integerType(), t);
+    Node k = sc->mkSkolemFun(
+        SkolemFunId::STRINGS_STOI_NON_DIGIT, nm->integerType(), t);
     Node kc1 = nm->mkNode(GEQ, k, zero);
     Node kc2 = nm->mkNode(LT, k, lens);
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
@@ -443,7 +442,7 @@ Node StringsPreprocess::reduce(Node t,
     argTypes.push_back(nm->integerType());
     TypeNode stoiResultType = nm->mkFunctionType(argTypes, nm->integerType());
     Node u =
-    sc->mkSkolemFun(SkolemFunId::STRINGS_STOI_RESULT, stoiResultType, t);
+        sc->mkSkolemFun(SkolemFunId::STRINGS_STOI_RESULT, stoiResultType, t);
 
     lem = stoit.eqNode(nm->mkNode(APPLY_UF, u, lens));
     conc2.push_back(lem);
@@ -613,8 +612,8 @@ Node StringsPreprocess::reduce(Node t,
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     TypeNode raResultType = nm->mkFunctionType(argTypes, t.getType());
-    Node us =
-    sc->mkSkolemFun(SkolemFunId::STRINGS_REPLACE_ALL_RESULT, raResultType, t);
+    Node us = sc->mkSkolemFun(
+        SkolemFunId::STRINGS_REPLACE_ALL_RESULT, raResultType, t);
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
     Node uf = sc->mkSkolemFun(SkolemFunId::STRINGS_OCCUR_INDEX, ufType, x, y);
 
@@ -743,18 +742,16 @@ Node StringsPreprocess::reduce(Node t,
     Node z = t[2];
     Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "k");
 
-    Node numOcc = sc->mkSkolemFun(SkolemFunId::STRINGS_NUM_OCCUR,
-        nm->integerType(), x, y);
+    Node numOcc = sc->mkSkolemFun(
+        SkolemFunId::STRINGS_NUM_OCCUR, nm->integerType(), x, y);
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     TypeNode raResultType = nm->mkFunctionType(argTypes, t.getType());
-    Node us =
-    sc->mkSkolemFun(SkolemFunId::STRINGS_REPLACE_ALL_RESULT, raResultType, t);
+    Node us = sc->mkSkolemFun(
+        SkolemFunId::STRINGS_REPLACE_ALL_RESULT, raResultType, t);
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
-    Node uf = sc->mkSkolemFun(
-         SkolemFunId::STRINGS_OCCUR_INDEX, ufType, x, y);
-    Node ul =
-        sc->mkSkolemFun(SkolemFunId::STRINGS_OCCUR_LEN, ufType, x, y);
+    Node uf = sc->mkSkolemFun(SkolemFunId::STRINGS_OCCUR_INDEX, ufType, x, y);
+    Node ul = sc->mkSkolemFun(SkolemFunId::STRINGS_OCCUR_LEN, ufType, x, y);
 
     Node emp = Word::mkEmptyWord(t.getType());
 

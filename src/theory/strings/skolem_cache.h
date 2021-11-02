@@ -179,7 +179,10 @@ class SkolemCache
    * Make skolem function, possibly normalizing based on the rewriter of this
    * class.
    */
-  Node mkSkolemFun(SkolemFunId id, TypeNode tn, Node a = Node::null(), Node b = Node::null()) const;
+  Node mkSkolemFun(SkolemFunId id,
+                   TypeNode tn,
+                   Node a = Node::null(),
+                   Node b = Node::null()) const;
 
  private:
   /**
