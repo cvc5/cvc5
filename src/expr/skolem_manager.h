@@ -75,6 +75,23 @@ enum class SkolemFunId
   STRINGS_STOI_RESULT,
   STRINGS_STOI_NON_DIGIT,
   /**
+   * For sequence a and regular expression b,
+  * in_re(a, re.++(_*, b, _*)) =>
+  *    exists k_pre, k_match, k_post.
+  *       a = k_pre ++ k_match ++ k_post ^
+  *       len(k_pre) = indexof_re(x, y, 0) ^
+  *       (forall l. 0 < l < len(k_match) =>
+  *         ~in_re(substr(k_match, 0, l), r)) ^
+  *       in_re(k_match, b)
+  *
+  * k_pre is the prefix before the first, shortest match of b in a. k_match
+  * is the substring of a matched by b. It is either empty or there is no
+  * shorter string that matches b.
+  */
+  SK_FIRST_MATCH_PRE,
+  SK_FIRST_MATCH,
+  SK_FIRST_MATCH_POST,
+  /**
    * Regular expression unfold component: if (str.in_re t R), where R is
    * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
    * skolem ki such that t = (str.++ k0 ... kn) and (str.in_re k0 r0) for

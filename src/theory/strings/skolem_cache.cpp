@@ -119,7 +119,6 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_ID_V_SPT_REV:
     case SK_ID_VC_SPT:
     case SK_ID_VC_SPT_REV:
-    case SK_FIRST_CTN_POST:
     case SK_ID_C_SPT:
     case SK_ID_C_SPT_REV:
     case SK_ID_DC_SPT:
@@ -127,6 +126,7 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_ID_DEQ_X:
     case SK_ID_DEQ_Y:
     case SK_FIRST_CTN_PRE:
+    case SK_FIRST_CTN_POST:
     case SK_PREFIX:
     case SK_SUFFIX_REM:
       Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;

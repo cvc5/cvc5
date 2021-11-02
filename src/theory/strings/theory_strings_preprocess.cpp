@@ -693,12 +693,13 @@ Node StringsPreprocess::reduce(Node t,
     // k = z ++ x
     Node res1 = k.eqNode(nm->mkNode(STRING_CONCAT, z, x));
 
+    TypeNode ktype = t.getType();
     Node k1 =
-        sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH_PRE, "rre_pre");
+        sc->mkSkolemFun(SkolemFunId::SK_FIRST_MATCH_PRE, ktype, x, y);
     Node k2 =
-        sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH, "rre_match");
+        sc->mkSkolemFun(SkolemFunId::SK_FIRST_MATCH_PRE, ktype, x, y);
     Node k3 =
-        sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH_POST, "rre_post");
+        sc->mkSkolemFun(SkolemFunId::SK_FIRST_MATCH_PRE, ktype, x, y);
     Node k2Len = nm->mkNode(STRING_LENGTH, k2);
     // x = k1 ++ k2 ++ k3
     Node split = x.eqNode(nm->mkNode(STRING_CONCAT, k1, k2, k3));
