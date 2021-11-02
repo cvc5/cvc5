@@ -2036,14 +2036,6 @@ std::string SolverEngine::getOption(const std::string& key) const
     return nm->mkNode(Kind::SEXPR, result).toString();
   }
 
-  if (key == "verbosity")
-  {
-    // The standard requires a non-negative value for verbosity, and we thus
-    // return max(0, verbosity).
-    return std::to_string(
-        std::max(static_cast<int64_t>(0), d_env->getOptions().base.verbosity));
-  }
-
   return options::get(getOptions(), key);
 }
 
