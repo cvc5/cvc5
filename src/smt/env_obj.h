@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "expr/node.h"
+#include "util/sexpr_msg_wrapper.h"
 
 namespace cvc5 {
 
@@ -87,6 +88,12 @@ class EnvObj
 
   /** Get the statistics registry via Env. */
   StatisticsRegistry& statisticsRegistry() const;
+
+  /** Convenience wrapper for Env::outputRaw(). */
+  std::ostream& outputRaw(options::OutputTag tag) const;
+
+  /** Convenience wrapper for Env::outputMsg(). */
+  SExprMsgWrapper outputMsg(options::OutputTag tag) const;
 
   /** The associated environment. */
   Env& d_env;

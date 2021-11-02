@@ -26,6 +26,7 @@
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
 #include "util/statistics_registry.h"
+#include "util/sexpr_msg_wrapper.h"
 
 namespace cvc5 {
 
@@ -171,6 +172,24 @@ class Env
    * option. Otherwise, a null stream (`cvc5::null_os`) is returned.
    */
   std::ostream& getOutput(const std::string& tag) const;
+
+  /**
+   * Return the output stream for the given output tag. If the output tag is
+   * enabled, this returns the output stream from the `err` option. Otherwise,
+   * a null stream (`cvc5::null_os`) is returned. The user of this method needs
+   * to make sure that a proper S-expression is printed.
+   */
+  std::ostream& outputRaw(options::OutputTag tag) const;
+
+  /**
+   * Return the (wrapped) output stream for the given output tag. If the output
+   * tag is enabled, this returns the (wrapped) output stream from the `err`
+   * option. Otherwise, a null stream (`cvc5::null_os`) is returned.
+   * Any message printed to the returned wrapper is put into an S-expression of
+   * the form `(message "<msg>" :tag)`. The user of this method needs to make
+   * sure that the message is properly escaped as an S-expression string.
+   */
+  SExprMsgWrapper outputMsg(options::OutputTag tag) const;
 
   /* Rewrite helpers--------------------------------------------------------- */
   /**

@@ -160,13 +160,23 @@ std::ostream& Env::getOutput(options::OutputTag tag) const
 {
   if (isOutputOn(tag))
   {
-    return *d_options.base.out;
+    return *d_options.base.err;
   }
   return cvc5::null_os;
 }
 std::ostream& Env::getOutput(const std::string& tag) const
 {
   return getOutput(options::stringToOutputTag(tag));
+}
+
+std::ostream& Env::outputRaw(options::OutputTag tag) const
+{
+  return getOutput(tag);
+}
+
+SExprMsgWrapper Env::outputMsg(options::OutputTag tag) const
+{
+  return SExprMsgWrapper{getOutput(tag), tag};
 }
 
 Node Env::evaluate(TNode n,

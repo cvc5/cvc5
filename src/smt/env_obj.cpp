@@ -70,4 +70,14 @@ StatisticsRegistry& EnvObj::statisticsRegistry() const
   return d_env.getStatisticsRegistry();
 }
 
+std::ostream& EnvObj::outputRaw(options::OutputTag tag) const
+{
+  return d_env.outputRaw(tag);
+}
+
+SExprMsgWrapper EnvObj::outputMsg(options::OutputTag tag) const
+{
+  return d_env.outputMsg(tag);
+}
+
 }  // namespace cvc5
