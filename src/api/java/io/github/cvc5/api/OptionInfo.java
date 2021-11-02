@@ -47,16 +47,11 @@ public class OptionInfo extends AbstractPointer
     this.baseInfo = getBaseInfo(pointer);
   }
 
-  protected static native void deletePointer(long pointer);
+  protected native void deletePointer(long pointer);
 
   public long getPointer()
   {
     return pointer;
-  }
-
-  @Override void deletePointer()
-  {
-    deletePointer(pointer);
   }
 
   /**

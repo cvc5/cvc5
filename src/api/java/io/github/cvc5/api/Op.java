@@ -24,16 +24,11 @@ public class Op extends AbstractPointer
     solver.addAbstractPointer(this);
   }
 
-  protected static native void deletePointer(long pointer);
+  protected native void deletePointer(long pointer);
 
   public long getPointer()
   {
     return pointer;
-  }
-
-  @Override void deletePointer()
-  {
-    deletePointer(pointer);
   }
 
   // endregion

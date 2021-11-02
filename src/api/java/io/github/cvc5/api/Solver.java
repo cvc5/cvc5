@@ -20,7 +20,7 @@ import java.util.*;
 
 public class Solver implements IPointer, AutoCloseable
 {
-  private final long pointer;
+  private long pointer;
 
   public long getPointer()
   {
@@ -31,7 +31,11 @@ public class Solver implements IPointer, AutoCloseable
 
   public void deletePointer()
   {
-    deletePointer(pointer);
+    if (pointer != 0)
+    {
+      deletePointer(pointer);
+    }
+    pointer = 0;
   }
 
   private static native void deletePointer(long pointer);
@@ -44,7 +48,6 @@ public class Solver implements IPointer, AutoCloseable
     {
       abstractPointer.deletePointer();
     }
-    deletePointer(pointer);
   }
 
   void addAbstractPointer(AbstractPointer abstractPointer)

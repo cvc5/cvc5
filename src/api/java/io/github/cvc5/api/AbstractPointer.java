@@ -25,7 +25,16 @@ abstract class AbstractPointer implements IPointer
     return pointer;
   }
 
-  abstract void deletePointer();
+  protected abstract void deletePointer(long pointer);
+
+  void deletePointer()
+  {
+    if (pointer != 0)
+    {
+      deletePointer(pointer);
+    }
+    pointer = 0;
+  }
 
   public Solver getSolver()
   {

@@ -1001,7 +1001,7 @@ class SolverTest
     assertThrows(
         CVC5ApiException.class, () -> d_solver.defineFun("fff", new Term[] {b1}, bvSort, v2));
     assertThrows(
-        CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[] {b1}, funSort2, v2));
+        CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[] {b1}, funSort, v2));
 
     // b3 has function sort, which is allowed as an argument
     assertDoesNotThrow(() -> d_solver.defineFun("fffff", new Term[] {b1, b3}, bvSort, v1));
