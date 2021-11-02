@@ -62,7 +62,7 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
       d_notification(*this),
-      d_registeredTerms(userContext()),
+      d_registeredTerms(context()),
       d_wordBlaster(new FpWordBlaster(userContext())),
       d_expansionRequested(false),
       d_abstractionMap(userContext()),
