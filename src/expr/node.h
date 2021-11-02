@@ -35,6 +35,7 @@
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/set_language.h"
 #include "util/hash.h"
@@ -896,9 +897,9 @@ public:
  */
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
   n.toStream(out,
-             Node::setdepth::getDepth(out),
-             Node::dag::getDag(out),
-             Node::setlanguage::getLanguage(out));
+             options::ioutils::getNodeDepth(out),
+             options::ioutils::getDagThresh(out),
+             options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -1458,14 +1459,12 @@ Node NodeTemplate<ref_count>::substitute(
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
+  options::ioutils::apply(Warning.getStream(), -1, 1, Language::LANG_AST);
+  Warning() << n << std::endl;
 }
 static void __attribute__((used)) debugPrintNodeNoDag(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
+  options::ioutils::apply(Warning.getStream(), -1, 0, Language::LANG_AST);
+  Warning() << n << std::endl;
 }
 static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n) {
   n.printAst(Warning(), 0);
@@ -1473,14 +1472,12 @@ static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n)
 }
 
 static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
+  options::ioutils::apply(Warning.getStream(), -1, 1, Language::LANG_AST);
+  Warning() << n << std::endl;
 }
 static void __attribute__((used)) debugPrintTNodeNoDag(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
+  options::ioutils::apply(Warning.getStream(), -1, 0, Language::LANG_AST);
+  Warning() << n << std::endl;
 }
 static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& n) {
   n.printAst(Warning(), 0);

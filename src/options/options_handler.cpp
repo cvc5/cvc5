@@ -32,6 +32,7 @@
 #include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/set_language.h"
@@ -128,7 +129,8 @@ void OptionsHandler::languageIsNotAST(const std::string& flag, Language lang)
 
 void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
 {
-  d_options->base.out << language::SetLanguage(lang);
+  ioutils::setDefaultOutputLang(lang);
+  ioutils::applyOutputLang(d_options->base.out, lang);
 }
 
 void OptionsHandler::setVerbosity(const std::string& flag, int value)
@@ -360,23 +362,25 @@ void OptionsHandler::setBitblastAig(const std::string& flag, bool arg)
 
 void OptionsHandler::setDefaultExprDepth(const std::string& flag, int depth)
 {
-  Debug.getStream() << expr::ExprSetDepth(depth);
-  Trace.getStream() << expr::ExprSetDepth(depth);
-  Notice.getStream() << expr::ExprSetDepth(depth);
-  Chat.getStream() << expr::ExprSetDepth(depth);
-  CVC5Message.getStream() << expr::ExprSetDepth(depth);
-  Warning.getStream() << expr::ExprSetDepth(depth);
+  ioutils::setDefaultNodeDepth(depth);
+  ioutils::applyNodeDepth(Debug.getStream(), depth);
+  ioutils::applyNodeDepth(Trace.getStream(), depth);
+  ioutils::applyNodeDepth(Notice.getStream(), depth);
+  ioutils::applyNodeDepth(Chat.getStream(), depth);
+  ioutils::applyNodeDepth(CVC5Message.getStream(), depth);
+  ioutils::applyNodeDepth(Warning.getStream(), depth);
 }
 
 void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
 {
-  Debug.getStream() << expr::ExprDag(dag);
-  Trace.getStream() << expr::ExprDag(dag);
-  Notice.getStream() << expr::ExprDag(dag);
-  Chat.getStream() << expr::ExprDag(dag);
-  CVC5Message.getStream() << expr::ExprDag(dag);
-  Warning.getStream() << expr::ExprDag(dag);
-  Dump.getStream() << expr::ExprDag(dag);
+  ioutils::setDefaultDagThresh(dag);
+  ioutils::applyDagThresh(Debug.getStream(), dag);
+  ioutils::applyDagThresh(Trace.getStream(), dag);
+  ioutils::applyDagThresh(Notice.getStream(), dag);
+  ioutils::applyDagThresh(Chat.getStream(), dag);
+  ioutils::applyDagThresh(CVC5Message.getStream(), dag);
+  ioutils::applyDagThresh(Warning.getStream(), dag);
+  ioutils::applyDagThresh(Dump.getStream(), dag);
 }
 
 static void print_config(const char* str, std::string config)

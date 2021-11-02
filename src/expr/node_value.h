@@ -510,9 +510,9 @@ inline T NodeValue::iterator<T>::operator*() const {
 
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
   nv.toStream(out,
-              Node::setdepth::getDepth(out),
-              Node::dag::getDag(out),
-              Node::setlanguage::getLanguage(out));
+              options::ioutils::getNodeDepth(out),
+              options::ioutils::getDagThresh(out),
+              options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -525,14 +525,12 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
  * flushes the stream.
  */
 static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
-  Warning().flush();
+  options::ioutils::apply(Warning.getStream(), -1, 1, Language::LANG_AST);
+  Warning() << *nv << std::endl;
 }
 static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
-  Warning().flush();
+  options::ioutils::apply(Warning.getStream(), -1, 0, Language::LANG_AST);
+  Warning() << *nv << std::endl;
 }
 static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv) {
   nv->printAst(Warning(), 0);

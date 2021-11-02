@@ -30,6 +30,7 @@
 #include "expr/node.h"
 #include "expr/symbol_manager.h"
 #include "expr/type_node.h"
+#include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/printer_options.h"
@@ -86,9 +87,9 @@ const CommandInterrupted* CommandInterrupted::s_instance =
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
   c.toStream(out,
-             Node::setdepth::getDepth(out),
-             Node::dag::getDag(out),
-             Node::setlanguage::getLanguage(out));
+             options::ioutils::getNodeDepth(out),
+              options::ioutils::getDagThresh(out),
+              options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -107,7 +108,7 @@ ostream& operator<<(ostream& out, const Command* c)
 
 std::ostream& operator<<(std::ostream& out, const CommandStatus& s)
 {
-  s.toStream(out, Node::setlanguage::getLanguage(out));
+  s.toStream(out, options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -1603,7 +1604,8 @@ void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
   else
   {
-    expr::ExprDag::Scope scope(out, false);
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
     out << d_result << endl;
   }
 }
@@ -2027,7 +2029,8 @@ void GetInterpolCommand::printResult(std::ostream& out,
   }
   else
   {
-    expr::ExprDag::Scope scope(out, false);
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
     if (d_resultStatus)
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -2116,7 +2119,8 @@ void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
   else
   {
-    expr::ExprDag::Scope scope(out, false);
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
     if (d_resultStatus)
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"

@@ -726,7 +726,7 @@ private:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
-  n.toStream(out, Node::setlanguage::getLanguage(out));
+  n.toStream(out, options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -1019,14 +1019,12 @@ inline unsigned TypeNode::getFloatingPointSignificandSize() const {
  * to meet. A cleaner solution is welcomed.
  */
 static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
+  options::ioutils::apply(Warning.getStream(), -1, 1, Language::LANG_AST);
+  Warning() << n << std::endl;
 }
 static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
+  options::ioutils::apply(Warning.getStream(), -1, 0, Language::LANG_AST);
+  Warning() << n << std::endl;
 }
 static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
   n.printAst(Warning(), 0);

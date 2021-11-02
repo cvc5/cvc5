@@ -37,9 +37,9 @@ std::string NodeCommand::toString() const
 std::ostream& operator<<(std::ostream& out, const NodeCommand& nc)
 {
   nc.toStream(out,
-              Node::setdepth::getDepth(out),
-              Node::dag::getDag(out),
-              Node::setlanguage::getLanguage(out));
+              options::ioutils::getNodeDepth(out),
+              options::ioutils::getDagThresh(out),
+              options::ioutils::getOutputLang(out));
   return out;
 }
 
