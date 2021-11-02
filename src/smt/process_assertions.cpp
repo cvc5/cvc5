@@ -169,11 +169,6 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["ackermann"]->apply(&assertions);
   }
 
-  if (options().bv.bvAbstraction)
-  {
-    d_passes["bv-abstraction"]->apply(&assertions);
-  }
-
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   bool noConflict = true;

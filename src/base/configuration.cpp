@@ -110,16 +110,10 @@ std::string Configuration::copyright() {
      << "  See https://github.com/arminbiere/cadical for copyright "
      << "information.\n\n";
 
-  if (Configuration::isBuiltWithAbc()
-      || Configuration::isBuiltWithCryptominisat()
+  if (Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithEditline())
   {
-    if (Configuration::isBuiltWithAbc()) {
-      ss << "  ABC - A System for Sequential Synthesis and Verification\n"
-         << "  See http://bitbucket.org/alanmi/abc for copyright and\n"
-         << "  licensing information.\n\n";
-    }
     if (Configuration::isBuiltWithCryptominisat())
     {
       ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
@@ -217,10 +211,6 @@ bool Configuration::isBuiltWithCln() {
 
 bool Configuration::isBuiltWithGlpk() {
   return IS_GLPK_BUILD;
-}
-
-bool Configuration::isBuiltWithAbc() {
-  return IS_ABC_BUILD;
 }
 
 bool Configuration::isBuiltWithCryptominisat() {

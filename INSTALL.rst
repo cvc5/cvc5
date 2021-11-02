@@ -174,19 +174,6 @@ cvc5 with GLPK support, you are licensing cvc5 under that same license. (Usually
 cvc5's license is more permissive; see above discussion.)
 
 
-ABC library (Improved Bit-Vector Support)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`ABC <http://www.eecs.berkeley.edu/~alanmi/abc/>`_ (A System for Sequential
-Synthesis and Verification) is a library for synthesis and verification of logic
-circuits. This dependency may improve performance of the eager bit-vector
-solver. When enabled, the bit-blasted formula is encoded into
-and-inverter-graphs (AIG) and ABC is used to simplify these AIGs.
-
-ABC can be installed using the ``contrib/get-abc`` script. Configure cvc5 with
-``configure.sh --abc`` to build with this dependency.
-
-
 Editline library (Improved Interactive Experience)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
