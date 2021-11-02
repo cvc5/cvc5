@@ -237,7 +237,9 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
   // use null node if cacheVals is empty
   if (!cacheVals.empty())
   {
-    cacheVal = cacheVals.size()==1 ? cacheVals[0] : NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+    cacheVal = cacheVals.size() == 1
+                   ? cacheVals[0]
+                   : NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
   }
   return mkSkolemFunction(id, tn, cacheVal, flags);
 }

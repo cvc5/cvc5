@@ -314,7 +314,7 @@ Node SkolemCache::mkLengthVar(Node t)
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
-} 
+}
 
 Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b)
 {
