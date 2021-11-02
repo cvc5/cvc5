@@ -405,7 +405,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
       if (d_env->getOptions().base.outputLanguage != olang)
       {
         getOptions().base.outputLanguage = olang;
-        *d_env->getOptions().base.out << language::SetLanguage(olang);
+        options::ioutils::applyOutputLang(*d_env->getOptions().base.out, olang);
       }
     }
   }
@@ -579,9 +579,8 @@ void SolverEngine::defineFunction(Node func,
   debugCheckFormals(formals, func);
 
   stringstream ss;
-  ss << language::SetLanguage(
-      language::SetLanguage::getLanguage(Dump.getStream()))
-     << func;
+  options::ioutils::applyOutputLang(ss, options::ioutils::getOutputLang(Dump.getStream()));
+  ss << func;
 
   DefineFunctionNodeCommand nc(ss.str(), func, formals, formula);
   getDumpManager()->addToDump(nc, "declarations");

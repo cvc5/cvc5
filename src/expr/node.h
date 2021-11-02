@@ -36,7 +36,6 @@
 #include "expr/metakind.h"
 #include "options/io_utils.h"
 #include "options/language.h"
-#include "options/set_language.h"
 #include "util/hash.h"
 #include "util/utility.h"
 

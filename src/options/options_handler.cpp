@@ -34,7 +34,6 @@
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "options/option_exception.h"
-#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
