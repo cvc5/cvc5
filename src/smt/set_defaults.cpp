@@ -898,8 +898,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
   if (opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
-      && !opts.bv.bvSolverWasSetByUser
-      && opts.bv.bvSatSolver == options::SatSolverMode::MINISAT)
+      && !opts.bv.bvSolverWasSetByUser)
   {
     Notice() << "Forcing internal bit-vector solver due to proof production."
              << std::endl;
