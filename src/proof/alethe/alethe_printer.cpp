@@ -162,19 +162,19 @@ std::string AletheProofPrinter::alethePrinterInternal(
     auto prefix2 = prefix;
     for (int i = nested_level; i >= 0; i--)
     {
-      auto it = assumptions[i].find(pfn->getArguments()[2]);
+      auto it2 = assumptions[i].find(pfn->getArguments()[2]);
       prefix2 = prefix2.substr(0, prefix2.find_last_of("."));
       Trace("alethe-printer") << prefix2 << std::endl;
       prefix2 = prefix2.substr(0, prefix2.find_last_of(".") + 1);
       Trace("alethe-printer") << prefix2 << std::endl;
 
-      if (it != assumptions[i].end())
+      if (it2 != assumptions[i].end())
       {
         Trace("alethe-printer")
             << "... search assumption in list on level " << i << ": "
             << pfn->getArguments()[2] << "/" << assumptions[i] << "     "
             << prefix2 << std::endl;
-        return prefix2 + "a" + std::to_string(it->second);
+        return prefix2 + "a" + std::to_string(it2->second);
       }
     }
 

@@ -18,18 +18,19 @@
 #ifndef CVC5__INTEGER_H
 #define CVC5__INTEGER_H
 
-#include <cln/input.h>
 #include <cln/integer.h>
-#include <cln/integer_io.h>
-#include <cln/modinteger.h>
 
-#include <iostream>
+#include <iosfwd>
 #include <limits>
-#include <sstream>
 #include <string>
 
 #include "base/exception.h"
 #include "cvc5_export.h"  // remove when Cvc language support is removed
+
+namespace cln
+{
+  struct cl_read_flags;
+}
 
 namespace cvc5 {
 
