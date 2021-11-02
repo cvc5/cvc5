@@ -50,7 +50,7 @@ const int s_iosNodeDepth = std::ios_base::xalloc();
 const int s_iosOutputLang = std::ios_base::xalloc();
 
 int s_dagThreshDefault = 1;
-int s_nodeDepthDefault = 1;
+int s_nodeDepthDefault = -1;
 Language s_outputLangDefault = Language::LANG_AUTO;
 
 void setDefaultDagThresh(int value) { s_dagThreshDefault = value; }
