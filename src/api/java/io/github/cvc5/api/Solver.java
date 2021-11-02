@@ -46,9 +46,9 @@ public class Solver implements IPointer, AutoCloseable
   @Override public void close()
   {
     // delete heap memory for terms, sorts, etc
-    for (AbstractPointer abstractPointer : abstractPointers)
+    for (int i = abstractPointers.size() - 1; i >= 0; i--)
     {
-      abstractPointer.deletePointer();
+      abstractPointers.get(i).deletePointer();
     }
     // delete the heap memory for this solver
     deletePointer();
