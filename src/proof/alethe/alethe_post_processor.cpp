@@ -336,7 +336,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-			   {},
+                           {},
                            //{rule},
                            *cdp);
     }
@@ -346,7 +346,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-			   {},
+                           {},
                            //{nm->mkBoundVar("evaluate", nm->sExprType())},
                            *cdp);
     }
@@ -1986,7 +1986,6 @@ AletheProofPostprocessNoSubtypeCallback::
 {
 }
 
-
 bool AletheProofPostprocessNoSubtypeCallback::shouldUpdate(
     std::shared_ptr<ProofNode> pn,
     const std::vector<Node>& fa,
@@ -2012,7 +2011,6 @@ bool AletheProofPostprocessNoSubtypeCallback::update(
   std::vector<Node> newArgs{args[0], args[1]};
   for (size_t i = 2, size = args.size(); i < size; ++i)
   {
-
     newArgs.push_back(d_anc.convert(args[i]));
     changed |= newArgs.back() != args[i];
   }
@@ -2044,7 +2042,7 @@ bool AletheProofPostprocessNoSubtypeCallback::update(
 
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
                                                AletheNodeConverter& anc)
-  : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc), d_nst(d_pnm)
+    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc), d_nst(d_pnm)
 {
 }
 
@@ -2064,7 +2062,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   ProofNodeUpdater finalize(d_pnm, d_fcb, false, false);
   finalize.process(pf);
 
-  Trace("alethe-proof-subtyping")  << "\n--------------------------------\n";
+  Trace("alethe-proof-subtyping") << "\n--------------------------------\n";
   ProofNodeUpdater finalFinal(d_pnm, d_nst, false, false);
   finalFinal.process(pf->getChildren()[0]);
 }
