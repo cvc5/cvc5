@@ -22,32 +22,35 @@
 
 #include "options/language.h"
 
-namespace cvc5::options::ioutils
+namespace cvc5::options::ioutils {
+void setDefaultDagThresh(int value);
+void setDefaultNodeDepth(int value);
+void setDefaultOutputLang(Language value);
+
+void applyDagThresh(std::ios_base& ios, int dagThresh);
+void applyNodeDepth(std::ios_base& ios, int nodeDepth);
+void applyOutputLang(std::ios_base& ios, Language outputLang);
+void apply(std::ios_base& ios,
+           int dagThresh,
+           int nodeDepth,
+           Language outputLang);
+
+int getDagThresh(std::ios_base& ios);
+int getNodeDepth(std::ios_base& ios);
+Language getOutputLang(std::ios_base& ios);
+
+class Scope
 {
-    void setDefaultDagThresh(int value);
-    void setDefaultNodeDepth(int value);
-    void setDefaultOutputLang(Language value);
+ public:
+  Scope(std::ios_base& ios);
+  ~Scope();
 
-    void applyDagThresh(std::ios_base& ios, int dagThresh);
-    void applyNodeDepth(std::ios_base& ios, int nodeDepth);
-    void applyOutputLang(std::ios_base& ios, Language outputLang);
-    void apply(std::ios_base& ios, int dagThresh, int nodeDepth, Language outputLang);
-
-    int getDagThresh(std::ios_base& ios);
-    int getNodeDepth(std::ios_base& ios);
-    Language getOutputLang(std::ios_base& ios);
-
-    class Scope
-    {
-        public:
-            Scope(std::ios_base& ios);
-            ~Scope();
-        private:
-            std::ios_base& d_ios;
-            int d_dagThresh;
-            int d_nodeDepth;
-            Language d_outputLang;
-    };
+ private:
+  std::ios_base& d_ios;
+  int d_dagThresh;
+  int d_nodeDepth;
+  Language d_outputLang;
+};
 }  // namespace cvc5::options::ioutils
 
 #endif /* CVC5__OPTIONS__IO_UTILS_H */

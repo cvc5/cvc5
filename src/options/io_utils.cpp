@@ -21,29 +21,29 @@
 namespace cvc5::options::ioutils {
 namespace {
 
-template<typename T>
+template <typename T>
 void setData(std::ios_base& ios, int iosIndex, T value)
 {
-    constexpr long offset = 1024;
-    ios.iword(iosIndex) = static_cast<long>(value) + offset;
+  constexpr long offset = 1024;
+  ios.iword(iosIndex) = static_cast<long>(value) + offset;
 }
-template<typename T>
+template <typename T>
 T getData(std::ios_base& ios, int iosIndex, T defaultValue)
 {
-    // There is no good way to figure out whether the value was explicitly set.
-    // The default value is zero; we shift by some random constant such that
-    // zero is never a valid value, and we can still use both negative and
-    // positive values.
-    constexpr long offset = 1024;
-    long& l = ios.iword(iosIndex);
-    if (l == 0)
-    {
-        l = static_cast<long>(defaultValue) + offset;
-    }
-    return static_cast<T>(l - offset);
+  // There is no good way to figure out whether the value was explicitly set.
+  // The default value is zero; we shift by some random constant such that
+  // zero is never a valid value, and we can still use both negative and
+  // positive values.
+  constexpr long offset = 1024;
+  long& l = ios.iword(iosIndex);
+  if (l == 0)
+  {
+    l = static_cast<long>(defaultValue) + offset;
+  }
+  return static_cast<T>(l - offset);
 }
 
-}
+}  // namespace
 
 const int s_iosDagThresh = std::ios_base::xalloc();
 const int s_iosNodeDepth = std::ios_base::xalloc();
@@ -53,57 +53,53 @@ int s_dagThreshDefault = 1;
 int s_nodeDepthDefault = 1;
 Language s_outputLangDefault = Language::LANG_AUTO;
 
-
-void setDefaultDagThresh(int value)
-{
-    s_dagThreshDefault = value;
-}
-void setDefaultNodeDepth(int value)
-{
-    s_nodeDepthDefault = value;
-}
-void setDefaultOutputLang(Language value)
-{
-    s_outputLangDefault = value;
-}
+void setDefaultDagThresh(int value) { s_dagThreshDefault = value; }
+void setDefaultNodeDepth(int value) { s_nodeDepthDefault = value; }
+void setDefaultOutputLang(Language value) { s_outputLangDefault = value; }
 
 void applyDagThresh(std::ios_base& ios, int dagThresh)
 {
-    setData(ios, s_iosDagThresh, dagThresh);
+  setData(ios, s_iosDagThresh, dagThresh);
 }
 void applyNodeDepth(std::ios_base& ios, int nodeDepth)
 {
-    setData(ios, s_iosNodeDepth, nodeDepth);
+  setData(ios, s_iosNodeDepth, nodeDepth);
 }
 void applyOutputLang(std::ios_base& ios, Language outputLang)
 {
-    setData(ios, s_iosOutputLang, outputLang);
+  setData(ios, s_iosOutputLang, outputLang);
 }
 
-void apply(std::ios_base& ios, int dagThresh, int nodeDepth, Language outputLang)
+void apply(std::ios_base& ios,
+           int dagThresh,
+           int nodeDepth,
+           Language outputLang)
 {
-    applyDagThresh(ios, dagThresh);
-    applyNodeDepth(ios, nodeDepth);
-    applyOutputLang(ios, outputLang);
+  applyDagThresh(ios, dagThresh);
+  applyNodeDepth(ios, nodeDepth);
+  applyOutputLang(ios, outputLang);
 }
 
-int getDagThresh(std::ios_base& ios) {
-    return getData(ios, s_iosDagThresh, s_dagThreshDefault);
+int getDagThresh(std::ios_base& ios)
+{
+  return getData(ios, s_iosDagThresh, s_dagThreshDefault);
 }
-int getNodeDepth(std::ios_base& ios) {
-    return getData(ios, s_iosNodeDepth, s_nodeDepthDefault);
+int getNodeDepth(std::ios_base& ios)
+{
+  return getData(ios, s_iosNodeDepth, s_nodeDepthDefault);
 }
-Language getOutputLang(std::ios_base& ios) {
-    return getData(ios, s_iosOutputLang, s_outputLangDefault);
+Language getOutputLang(std::ios_base& ios)
+{
+  return getData(ios, s_iosOutputLang, s_outputLangDefault);
 }
 
-Scope::Scope(std::ios_base& ios):
-    d_ios(ios), d_dagThresh(getDagThresh(ios)), d_nodeDepth(getNodeDepth(ios)), d_outputLang(getOutputLang(ios))
+Scope::Scope(std::ios_base& ios)
+    : d_ios(ios),
+      d_dagThresh(getDagThresh(ios)),
+      d_nodeDepth(getNodeDepth(ios)),
+      d_outputLang(getOutputLang(ios))
 {
 }
-Scope::~Scope()
-{
-    apply(d_ios, d_dagThresh, d_nodeDepth, d_outputLang);
-}
+Scope::~Scope() { apply(d_ios, d_dagThresh, d_nodeDepth, d_outputLang); }
 
 }  // namespace cvc5::options::ioutils

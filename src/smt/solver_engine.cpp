@@ -579,7 +579,8 @@ void SolverEngine::defineFunction(Node func,
   debugCheckFormals(formals, func);
 
   stringstream ss;
-  options::ioutils::applyOutputLang(ss, options::ioutils::getOutputLang(Dump.getStream()));
+  options::ioutils::applyOutputLang(
+      ss, options::ioutils::getOutputLang(Dump.getStream()));
   ss << func;
 
   DefineFunctionNodeCommand nc(ss.str(), func, formals, formula);
