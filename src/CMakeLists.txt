@@ -51,6 +51,8 @@ libcvc5_add_sources(
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
   options/decision_weight.h
+  options/io_utils.cpp
+  options/io_utils.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
