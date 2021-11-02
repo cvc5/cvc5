@@ -45,7 +45,8 @@ BBProof::BBProof(Env& env,
                  d_tcontext.get(),
                  false)
                  : nullptr),
-      d_bbpg(pnm ? new BitblastProofGenerator(pnm, d_tcpg.get()) : nullptr),
+      d_bbpg(pnm ? new BitblastProofGenerator(env, pnm, d_tcpg.get())
+                 : nullptr),
       d_recordFineGrainedProofs(fineGrained)
 {
 }
@@ -75,7 +76,7 @@ void BBProof::bbAtom(TNode node)
     NodeManager* nm = NodeManager::currentNM();
 
     // post-rewrite atom
-    Node rwNode = Rewriter::rewrite(node);
+    Node rwNode = rewrite(node);
 
     // Post-order traversal of `rwNode` to make sure that all subterms are
     // bit-blasted and recorded.
