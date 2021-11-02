@@ -314,9 +314,9 @@ Node SkolemCache::mkLengthVar(Node t)
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
-}
+} 
 
-Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b) const
+Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b)
 {
   std::vector<Node> cacheVals;
   for (size_t i = 0; i < 2; i++)
@@ -330,7 +330,9 @@ Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b) const
   }
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  return sm->mkSkolemFunction(id, tn, cacheVals);
+  Node k = sm->mkSkolemFunction(id, tn, cacheVals);
+  d_allSkolems.insert(k);
+  return k;
 }
 
 }  // namespace strings

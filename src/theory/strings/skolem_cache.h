@@ -167,7 +167,7 @@ class SkolemCache
   Node mkSkolemFun(SkolemFunId id,
                    TypeNode tn,
                    Node a = Node::null(),
-                   Node b = Node::null()) const;
+                   Node b = Node::null());
 
  private:
   /**

@@ -53,7 +53,6 @@ Node StringsPreprocess::reduce(Node t,
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   Node zero = nm->mkConst(Rational(0));
   Node one = nm->mkConst(Rational(1));
   Node negOne = nm->mkConst(Rational(-1));
