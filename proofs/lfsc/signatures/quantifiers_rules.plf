@@ -13,7 +13,7 @@
   ))
 
 ; Concludes the instantiation for the term of the outermost quantifier in the
-; rule PfRule::INSTANTIATE. We do not currently enforce type checking of term s
+; rule PfRule::INSTANTIATE. We do not enforce type checking of term s
 ; currently, which should be of sort u.
 (declare instantiate (! body term
                      (! v mpz
@@ -34,7 +34,7 @@
                      (! r (^ (sc_substitute body v (skolem (witness v s body))) bodyi)
                        (holds bodyi))))))))
 
-; We do not currently enforce type checking of s currently, which should be of
+; We do not enforce type checking of s currently, which should be of
 ; sort u.
 (declare exists_intro (! bodyi term
                       (! v mpz
