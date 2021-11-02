@@ -594,7 +594,7 @@ TEST_F(TestNodeBlackNode, toStream)
   ASSERT_EQ(sstr.str(), "(AND w (OR (...) (...)) z)");
 
   sstr.str(std::string());
-  sstr<< o;
+  sstr << o;
   ASSERT_EQ(sstr.str(),
             "(XOR (AND (...) (...) (...)) (AND (...) (...) (...)))");
 

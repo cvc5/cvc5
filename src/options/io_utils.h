@@ -29,7 +29,7 @@
  * are associated to a stream (and thus in place even when the code using it has
  * no access to options) and options that are different for different output
  * streams.
- * 
+ *
  * The options should call the appropriate `setDefault*` when an option is set,
  * which changes the default for streams that have no values set yet.
  * For any object derived from `std::ios_base` (this includes all standard
