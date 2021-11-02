@@ -179,11 +179,11 @@ class Printer
   virtual void toStreamCmdGetModel(std::ostream& out) const;
 
   /** Print block-model command */
-  void toStreamCmdBlockModel(std::ostream& out) const;
+  virtual void toStreamCmdBlockModel(std::ostream& out) const;
 
   /** Print block-model-values command */
-  void toStreamCmdBlockModelValues(std::ostream& out,
-                                   const std::vector<Node>& nodes) const;
+  virtual void toStreamCmdBlockModelValues(
+      std::ostream& out, const std::vector<Node>& nodes) const;
 
   /** Print get-proof command */
   virtual void toStreamCmdGetProof(std::ostream& out) const;
@@ -192,10 +192,10 @@ class Printer
   void toStreamCmdGetInstantiations(std::ostream& out) const;
 
   /** Print get-interpol command */
-  void toStreamCmdGetInterpol(std::ostream& out,
-                              const std::string& name,
-                              Node conj,
-                              TypeNode sygusType) const;
+  virtual void toStreamCmdGetInterpol(std::ostream& out,
+                                      const std::string& name,
+                                      Node conj,
+                                      TypeNode sygusType) const;
 
   /** Print get-abduct command */
   virtual void toStreamCmdGetAbduct(std::ostream& out,
@@ -204,7 +204,9 @@ class Printer
                                     TypeNode sygusType) const;
 
   /** Print get-quantifier-elimination command */
-  void toStreamCmdGetQuantifierElimination(std::ostream& out, Node n) const;
+  virtual void toStreamCmdGetQuantifierElimination(std::ostream& out,
+                                                   Node n,
+                                                   bool doFull) const;
 
   /** Print get-unsat-assumptions command */
   virtual void toStreamCmdGetUnsatAssumptions(std::ostream& out) const;
