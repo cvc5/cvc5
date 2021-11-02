@@ -233,12 +233,11 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                                      const std::vector<Node>& cacheVals,
                                      int flags)
 {
-  Assert(cacheVals.size() > 1);
   Node cacheVal;
   // use null node if cacheVals is empty
   if (!cacheVals.empty())
   {
-    cacheVal = NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+    cacheVal = cacheVals.size()==1 ? cacheVals[0] : NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
   }
   return mkSkolemFunction(id, tn, cacheVal, flags);
 }
