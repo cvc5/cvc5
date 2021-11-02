@@ -612,8 +612,7 @@ Node StringsPreprocess::reduce(Node t,
     Node us =
         sm->mkDummySkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
     TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
-    Node uf = sc->mkSkolemFun(
-        SkolemFunId::STRINGS_OCCUR_INDEX, ufType, x, y);
+    Node uf = sc->mkSkolemFun(SkolemFunId::STRINGS_OCCUR_INDEX, ufType, x, y);
 
     Node ufno = nm->mkNode(APPLY_UF, uf, numOcc);
     Node usno = nm->mkNode(APPLY_UF, us, numOcc);

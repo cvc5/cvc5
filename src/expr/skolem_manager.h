@@ -48,27 +48,27 @@ enum class SkolemFunId
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,
   /** For function k: Int -> Int
-  *   exists k.
-  *     forall 0 <= x <= n,
-  *       k(x) is the end index of the x^th occurrence of b in a
-  *   where n is the number of occurrences of b in a, and k(0)=0.
-  */
+   *   exists k.
+   *     forall 0 <= x <= n,
+   *       k(x) is the end index of the x^th occurrence of b in a
+   *   where n is the number of occurrences of b in a, and k(0)=0.
+   */
   STRINGS_OCCUR_INDEX,
   /**
    * For function k: Int -> Int
-  *   exists k.
-  *     forall 0 <= x < n,
-  *       k(x) is the length of the x^th occurrence of b in a (excluding
-  *       matches of empty strings)
-  *   where b is a regular expression, n is the number of occurrences of b
-  *   in a, and k(0)=0.
-  */
+   *   exists k.
+   *     forall 0 <= x < n,
+   *       k(x) is the length of the x^th occurrence of b in a (excluding
+   *       matches of empty strings)
+   *   where b is a regular expression, n is the number of occurrences of b
+   *   in a, and k(0)=0.
+   */
   STRINGS_OCCUR_LEN,
   /**
    * Diff index for disequalities a != b => substr(a,k,1) != substr(b,k,1)
    */
   STRINGS_DEQ_DIFF,
-  //----- 
+  //-----
   /**
    * Regular expression unfold component: if (str.in_re t R), where R is
    * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string

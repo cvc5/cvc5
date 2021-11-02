@@ -319,9 +319,9 @@ Node SkolemCache::mkLengthVar(Node t)
 Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b) const
 {
   std::vector<Node> cacheVals;
-  for (size_t i=0; i<2; i++)
+  for (size_t i = 0; i < 2; i++)
   {
-    Node n = i==0 ? a : b;
+    Node n = i == 0 ? a : b;
     if (!n.isNull())
     {
       n = d_rr != nullptr ? d_rr->rewrite(n) : n;

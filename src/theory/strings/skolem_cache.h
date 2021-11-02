@@ -180,6 +180,7 @@ class SkolemCache
    * class.
    */
   Node mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b) const;
+
  private:
   /**
    * Simplifies the arguments for a string skolem used for indexing into the
