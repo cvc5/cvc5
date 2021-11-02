@@ -58,6 +58,10 @@ class SkolemCache
    * preconditions below, e.g. where we are considering a' ++ a = b' ++ b.
    *
    * All skolems assume a and b are strings unless otherwise stated.
+   *
+   * Notice that these identifiers are each syntax sugar for constructing a
+   * purification skolem. It is required for the purposes of proof checking
+   * that this only result in calls to SkolemManager::mkPurifySkolem.
    */
   enum SkolemId
   {
@@ -162,7 +166,12 @@ class SkolemCache
   static Node mkLengthVar(Node t);
   /**
    * Make skolem function, possibly normalizing based on the rewriter of this
-   * class.
+   * class. This method should be used whenever it is not possible to define
+   * a Skolem identifier that amounts to purification of a term.
+   *
+   * Notice that this method is not static or constant since it tracks the
+   * Skolem we construct (in d_allSkolems), which is used for finite model
+   * finding.
    */
   Node mkSkolemFun(SkolemFunId id,
                    TypeNode tn,
