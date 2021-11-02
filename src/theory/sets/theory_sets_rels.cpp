@@ -125,44 +125,61 @@ void TheorySetsRels::check(Theory::Effort level)
 
     TERM_IT t_it = d_terms_cache.begin();
     while( t_it != d_terms_cache.end() ) {
-      if( d_rReps_memberReps_cache.find(t_it->first) == d_rReps_memberReps_cache.end() ) {
-        Trace("rels-debug") << "[sets-rels] A term does not have membership constraints: " << t_it->first << std::endl;
-        KIND_TERM_IT k_t_it = t_it->second.begin();
+      // check the terms in this equivalence class for e.g. upwards closure
+      // (computeMembersForBinOpRel / computeMembersForUnaryOpRel). This is
+      // done regardless of whether we have initialized
+      // d_rReps_memberReps_cache for this equivalence class.
+      Trace("rels-debug")
+          << "[sets-rels] Check equivalence class: "
+          << t_it->first << std::endl;
+      KIND_TERM_IT k_t_it = t_it->second.begin();
 
-        while( k_t_it != t_it->second.end() ) {
-          if( k_t_it->first == kind::JOIN || k_t_it->first == kind::PRODUCT ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
-            while(term_it != k_t_it->second.end()) {
-              computeMembersForBinOpRel( *term_it );
-              ++term_it;
-            }
-          } else if( k_t_it->first == kind::TRANSPOSE ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
-            while( term_it != k_t_it->second.end() ) {
-              computeMembersForUnaryOpRel( *term_it );
-              ++term_it;
-            }
-          } else if ( k_t_it->first == kind::TCLOSURE ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
-            while( term_it != k_t_it->second.end() ) {
-              buildTCGraphForRel( *term_it );
-              ++term_it;
-            }
-          } else if( k_t_it->first == kind::JOIN_IMAGE ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
-            while( term_it != k_t_it->second.end() ) {
-              computeMembersForJoinImageTerm( *term_it );
-              ++term_it;
-            }
-          } else if( k_t_it->first == kind::IDEN ) {
-            std::vector<Node>::iterator term_it = k_t_it->second.begin();
-            while( term_it != k_t_it->second.end() ) {
-              computeMembersForIdenTerm( *term_it );
-              ++term_it;
-            }
+      while (k_t_it != t_it->second.end())
+      {
+        Trace("rels-debug") << "[sets-rels] Check " << k_t_it->second.size()
+                            << " terms of kind " << k_t_it->first << std::endl;
+        std::vector<Node>::iterator term_it = k_t_it->second.begin();
+        if (k_t_it->first == kind::JOIN || k_t_it->first == kind::PRODUCT)
+        {
+          while (term_it != k_t_it->second.end())
+          {
+            computeMembersForBinOpRel(*term_it);
+            ++term_it;
           }
-          ++k_t_it;
         }
+        else if (k_t_it->first == kind::TRANSPOSE)
+        {
+          while (term_it != k_t_it->second.end())
+          {
+            computeMembersForUnaryOpRel(*term_it);
+            ++term_it;
+          }
+        }
+        else if (k_t_it->first == kind::TCLOSURE)
+        {
+          while (term_it != k_t_it->second.end())
+          {
+            buildTCGraphForRel(*term_it);
+            ++term_it;
+          }
+        }
+        else if (k_t_it->first == kind::JOIN_IMAGE)
+        {
+          while (term_it != k_t_it->second.end())
+          {
+            computeMembersForJoinImageTerm(*term_it);
+            ++term_it;
+          }
+        }
+        else if (k_t_it->first == kind::IDEN)
+        {
+          while (term_it != k_t_it->second.end())
+          {
+            computeMembersForIdenTerm(*term_it);
+            ++term_it;
+          }
+        }
+        ++k_t_it;
       }
       ++t_it;
     }
@@ -229,24 +246,7 @@ void TheorySetsRels::check(Theory::Effort level)
           if( eqc_node.getKind() == kind::TRANSPOSE || eqc_node.getKind() == kind::JOIN ||
               eqc_node.getKind() == kind::PRODUCT || eqc_node.getKind() == kind::TCLOSURE ||
               eqc_node.getKind() == kind::JOIN_IMAGE || eqc_node.getKind() == kind::IDEN ) {
-            std::vector<Node> terms;
-            std::map< kind::Kind_t, std::vector<Node> >  rel_terms;
-            TERM_IT terms_it = d_terms_cache.find(eqc_rep);
-
-            if( terms_it == d_terms_cache.end() ) {
-              terms.push_back(eqc_node);
-              rel_terms[eqc_node.getKind()]      = terms;
-              d_terms_cache[eqc_rep]             = rel_terms;
-            } else {
-              KIND_TERM_IT kind_term_it = terms_it->second.find(eqc_node.getKind());
-
-              if( kind_term_it == terms_it->second.end() ) {
-                terms.push_back(eqc_node);
-                d_terms_cache[eqc_rep][eqc_node.getKind()] = terms;
-              } else {
-                kind_term_it->second.push_back(eqc_node);
-              }
-            }
+            d_terms_cache[eqc_rep][eqc_node.getKind()].push_back(eqc_node);
           }
         // need to add all tuple elements as shared terms
         }
@@ -657,10 +657,11 @@ void TheorySetsRels::check(Theory::Effort level)
 
     Node rel_rep = getRepresentative( tc_rel[0] );
     Node tc_rel_rep = getRepresentative( tc_rel );
-    std::vector< Node > members = d_rReps_memberReps_cache[rel_rep];
-    std::vector< Node > exps = d_rReps_memberReps_exp_cache[rel_rep];
+    const std::vector<Node>& members = d_rReps_memberReps_cache[rel_rep];
+    const std::vector<Node>& exps = d_rReps_memberReps_exp_cache[rel_rep];
 
-    for( unsigned int i = 0; i < members.size(); i++ ) {
+    for (size_t i = 0, msize = members.size(); i < msize; i++)
+    {
       Node fst_element_rep = getRepresentative( RelsUtils::nthElementOfTuple( members[i], 0 ));
       Node snd_element_rep = getRepresentative( RelsUtils::nthElementOfTuple( members[i], 1 ));
       Node tuple_rep = RelsUtils::constructPair( rel_rep, fst_element_rep, snd_element_rep );
@@ -988,10 +989,6 @@ void TheorySetsRels::check(Theory::Effort level)
       default:
         break;
     }
-    if(d_rReps_memberReps_cache.find(getRepresentative(rel[0])) == d_rReps_memberReps_cache.end() ||
-       d_rReps_memberReps_cache.find(getRepresentative(rel[1])) == d_rReps_memberReps_cache.end()) {
-      return;
-    }
     composeMembersForRels(rel);
   }
 
@@ -1020,16 +1017,19 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     NodeManager* nm = NodeManager::currentNM();
 
-    std::vector<Node>   members = d_rReps_memberReps_cache[rel0_rep];
-    std::vector<Node>   exps    = d_rReps_memberReps_exp_cache[rel0_rep];
+    const std::vector<Node>& members = d_rReps_memberReps_cache[rel0_rep];
+    const std::vector<Node>& exps = d_rReps_memberReps_exp_cache[rel0_rep];
 
     Assert(members.size() == exps.size());
 
-    for(unsigned int i = 0; i < members.size(); i++) {
-      Node reason = exps[i];
-      if( rel.getKind() == kind::TRANSPOSE) {
+    if (rel.getKind() == kind::TRANSPOSE)
+    {
+      for (size_t i = 0, msize = members.size(); i < msize; i++)
+      {
+        Node reason = exps[i];
         if( rel[0] != exps[i][1] ) {
-          reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, rel[0], exps[i][1]));
+          reason = nm->mkNode(
+              kind::AND, reason, nm->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
         sendInfer(nm->mkNode(MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
                   InferenceId::SETS_RELS_TRANSPOSE_REV,
@@ -1039,9 +1039,15 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   /*
-   * Explicitly compose the join or product relations of r1 and r2
-   * e.g. If (a, b) in X and (b, c) in Y, (a, c) in (X JOIN Y)
+   * Explicitly compose the join or product relations of r1 and r2. For example,
+   * consider the case that (a, b) in r1, (c, d) in r2.
    *
+   * For JOIN, we have three cases:
+   *   if b = c, we infer (a, d) in (join r1 r2)
+   *   else, we mark b and c as shared terms; their equality will be split in
+   *         theory combination if necessary.
+   *
+   * For PRODUCT, we infer (a, b, c, d) in (product r1 r2).
    */
   void TheorySetsRels::composeMembersForRels( Node rel ) {
     Trace("rels-debug") << "[Theory::Rels] Start composing members for relation = " << rel << std::endl;
@@ -1058,26 +1064,46 @@ void TheorySetsRels::check(Theory::Effort level)
 
     std::vector<Node> r1_rep_exps = d_rReps_memberReps_exp_cache[r1_rep];
     std::vector<Node> r2_rep_exps = d_rReps_memberReps_exp_cache[r2_rep];
-    unsigned int r1_tuple_len = r1.getType().getSetElementType().getTupleLength();
-    unsigned int r2_tuple_len = r2.getType().getSetElementType().getTupleLength();
+    size_t r1_tuple_len = r1.getType().getSetElementType().getTupleLength();
+    size_t r2_tuple_len = r2.getType().getSetElementType().getTupleLength();
 
+    Kind rk = rel.getKind();
+    TypeNode tn = rel.getType().getSetElementType();
     for( unsigned int i = 0; i < r1_rep_exps.size(); i++ ) {
       for( unsigned int j = 0; j < r2_rep_exps.size(); j++ ) {
         std::vector<Node> tuple_elements;
-        TypeNode tn = rel.getType().getSetElementType();
-        Node r1_rmost = RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], r1_tuple_len-1 );
-        Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
         tuple_elements.push_back(tn.getDType()[0].getConstructor());
-
-        Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
-                            << " of type " << r1_rmost.getType() << std::endl;
-        Trace("rels-debug") << "[Theory::Rels] r2_lmost: " << r2_lmost
-                            << " of type " << r2_lmost.getType() << std::endl;
-
-        if (rel.getKind() == kind::PRODUCT
-            || (rel.getKind() == kind::JOIN && areEqual(r1_rmost, r2_lmost)))
+        std::vector<Node> reasons;
+        if (rk == kind::JOIN)
         {
-          bool isProduct = rel.getKind() == kind::PRODUCT;
+          Node r1_rmost =
+              RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
+          Node r2_lmost = RelsUtils::nthElementOfTuple(r2_rep_exps[j][0], 0);
+          // Since we require notification r1_rmost and r2_lmost are equal,
+          // they must be shared terms of theory of sets. Hence, we make the
+          // following calls to makeSharedTerm to ensure this is the case.
+          makeSharedTerm(r1_rmost, r1_rmost.getType());
+          makeSharedTerm(r2_lmost, r2_lmost.getType());
+
+          Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
+                              << " of type " << r1_rmost.getType() << std::endl;
+          Trace("rels-debug") << "[Theory::Rels] r2_lmost: " << r2_lmost
+                              << " of type " << r2_lmost.getType() << std::endl;
+          if (!areEqual(r1_rmost, r2_lmost))
+          {
+
+            continue;
+          }
+          else if (r1_rmost != r2_lmost)
+          {
+            Trace("rels-debug") << "...equal" << std::endl;
+            reasons.push_back(nm->mkNode(kind::EQUAL, r1_rmost, r2_lmost));
+          }
+        }
+
+        if (rk == kind::PRODUCT || rk == kind::JOIN)
+        {
+          bool isProduct = rk == kind::PRODUCT;
           unsigned int k = 0;
           unsigned int l = 1;
 
@@ -1092,25 +1118,22 @@ void TheorySetsRels::check(Theory::Effort level)
             tuple_elements.push_back( RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], l ) );
           }
 
-          Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
-          Node fact = NodeManager::currentNM()->mkNode(kind::MEMBER, composed_tuple, rel);
-          std::vector<Node> reasons;
+          Node composed_tuple =
+              nm->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
+          Node fact = nm->mkNode(kind::MEMBER, composed_tuple, rel);
           reasons.push_back( r1_rep_exps[i] );
           reasons.push_back( r2_rep_exps[j] );
 
           if( r1 != r1_rep_exps[i][1] ) {
-            reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r1, r1_rep_exps[i][1]) );
+            reasons.push_back(nm->mkNode(kind::EQUAL, r1, r1_rep_exps[i][1]));
           }
           if( r2 != r2_rep_exps[j][1] ) {
-            reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r2, r2_rep_exps[j][1]) );
+            reasons.push_back(nm->mkNode(kind::EQUAL, r2, r2_rep_exps[j][1]));
           }
           if( isProduct ) {
             sendInfer(
                 fact, InferenceId::SETS_RELS_PRODUCE_COMPOSE, nm->mkNode(kind::AND, reasons));
           } else {
-            if( r1_rmost != r2_lmost ) {
-              reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r1_rmost, r2_lmost) );
-            }
             sendInfer(
                 fact, InferenceId::SETS_RELS_JOIN_COMPOSE, nm->mkNode(kind::AND, reasons));
           }
@@ -1153,15 +1176,25 @@ void TheorySetsRels::check(Theory::Effort level)
       return true;
     } else if( hasTerm( a ) && hasTerm( b ) ){
       return d_state.areEqual(a, b);
-    } else if(a.getType().isTuple()) {
-      bool equal = true;
-      for(unsigned int i = 0; i < a.getType().getTupleLength(); i++) {
-        equal = equal && areEqual(RelsUtils::nthElementOfTuple(a, i), RelsUtils::nthElementOfTuple(b, i));
+    }
+    TypeNode atn = a.getType();
+    if (atn.isTuple())
+    {
+      size_t tlen = atn.getTupleLength();
+      for (size_t i = 0; i < tlen; i++)
+      {
+        if (!areEqual(RelsUtils::nthElementOfTuple(a, i),
+                      RelsUtils::nthElementOfTuple(b, i)))
+        {
+          return false;
+        }
       }
-      return equal;
-    } else if(!a.getType().isBoolean()){
+      return true;
+    }
+    else if (!atn.isBoolean())
+    {
       // TODO(project##230): Find a safe type for the singleton operator
-      makeSharedTerm(a, a.getType());
+      makeSharedTerm(a, atn);
       makeSharedTerm(b, b.getType());
     }
     return false;

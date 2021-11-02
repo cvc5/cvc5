@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --fmf-bound-lazy
 ; EXPECT: unsat
-(set-option :incremental "false")
+(set-option :incremental false)
 (set-info :status unsat)
 (set-logic ALL)
 (declare-fun Y () String)

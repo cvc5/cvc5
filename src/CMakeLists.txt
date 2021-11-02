@@ -51,8 +51,6 @@ libcvc5_add_sources(
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
   options/decision_weight.h
-  options/didyoumean.cpp
-  options/didyoumean.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -75,8 +73,6 @@ libcvc5_add_sources(
   preprocessing/passes/apply_substs.h
   preprocessing/passes/bool_to_bv.cpp
   preprocessing/passes/bool_to_bv.h
-  preprocessing/passes/bv_abstraction.cpp
-  preprocessing/passes/bv_abstraction.h
   preprocessing/passes/bv_eager_atoms.cpp
   preprocessing/passes/bv_eager_atoms.h
   preprocessing/passes/bv_gauss.cpp
@@ -227,25 +223,6 @@ libcvc5_add_sources(
   proof/alethe/alethe_post_processor.h
   proof/alethe/alethe_proof_rule.cpp
   proof/alethe/alethe_proof_rule.h
-  prop/bv_sat_solver_notify.h
-  prop/bvminisat/bvminisat.cpp
-  prop/bvminisat/bvminisat.h
-  prop/bvminisat/core/Dimacs.h
-  prop/bvminisat/core/Solver.cc
-  prop/bvminisat/core/Solver.h
-  prop/bvminisat/core/SolverTypes.h
-  prop/bvminisat/mtl/Alg.h
-  prop/bvminisat/mtl/Alloc.h
-  prop/bvminisat/mtl/Heap.h
-  prop/bvminisat/mtl/IntTypes.h
-  prop/bvminisat/mtl/Map.h
-  prop/bvminisat/mtl/Queue.h
-  prop/bvminisat/mtl/Sort.h
-  prop/bvminisat/mtl/Vec.h
-  prop/bvminisat/mtl/XAlloc.h
-  prop/bvminisat/simp/SimpSolver.cc
-  prop/bvminisat/simp/SimpSolver.h
-  prop/bvminisat/utils/Options.h
   prop/cadical.cpp
   prop/cadical.h
   prop/cnf_stream.cpp
@@ -379,6 +356,8 @@ libcvc5_add_sources(
   theory/arith/arith_ite_utils.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
+  theory/arith/arith_poly_norm.cpp
+  theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
   theory/arith/arith_rewriter.cpp
@@ -605,51 +584,24 @@ libcvc5_add_sources(
   theory/builtin/theory_builtin_type_rules.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
-  theory/bv/abstraction.cpp
-  theory/bv/abstraction.h
-  theory/bv/bitblast/aig_bitblaster.cpp
-  theory/bv/bitblast/aig_bitblaster.h
   theory/bv/bitblast/bitblast_proof_generator.cpp
   theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
   theory/bv/bitblast/bitblast_utils.h
   theory/bv/bitblast/bitblaster.h
-  theory/bv/bitblast/eager_bitblaster.cpp
-  theory/bv/bitblast/eager_bitblaster.h
-  theory/bv/bitblast/lazy_bitblaster.cpp
-  theory/bv/bitblast/lazy_bitblaster.h
   theory/bv/bitblast/node_bitblaster.cpp
   theory/bv/bitblast/node_bitblaster.h
   theory/bv/bitblast/proof_bitblaster.cpp
   theory/bv/bitblast/proof_bitblaster.h
-  theory/bv/bv_eager_solver.cpp
-  theory/bv/bv_eager_solver.h
-  theory/bv/bv_inequality_graph.cpp
-  theory/bv/bv_inequality_graph.h
-  theory/bv/bv_quick_check.cpp
-  theory/bv/bv_quick_check.h
   theory/bv/bv_solver.h
   theory/bv/bv_solver_bitblast.cpp
   theory/bv/bv_solver_bitblast.h
   theory/bv/bv_solver_bitblast_internal.cpp
   theory/bv/bv_solver_bitblast_internal.h
-  theory/bv/bv_solver_layered.cpp
-  theory/bv/bv_solver_layered.h
-  theory/bv/bv_subtheory.h
-  theory/bv/bv_subtheory_algebraic.cpp
-  theory/bv/bv_subtheory_algebraic.h
-  theory/bv/bv_subtheory_bitblast.cpp
-  theory/bv/bv_subtheory_bitblast.h
-  theory/bv/bv_subtheory_core.cpp
-  theory/bv/bv_subtheory_core.h
-  theory/bv/bv_subtheory_inequality.cpp
-  theory/bv/bv_subtheory_inequality.h
   theory/bv/int_blaster.cpp
   theory/bv/int_blaster.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
-  theory/bv/slicer.cpp
-  theory/bv/slicer.h
   theory/bv/theory_bv.cpp
   theory/bv/theory_bv.h
   theory/bv/theory_bv_rewrite_rules.h
@@ -1339,7 +1291,7 @@ install(TARGETS cvc5-shared
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   add_library(cvc5-static STATIC $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
   set_target_properties(cvc5-static PROPERTIES OUTPUT_NAME cvc5)
   target_include_directories(cvc5-static
@@ -1360,7 +1312,7 @@ generate_export_header(cvc5-obj BASE_NAME cvc5)
 add_dependencies(cvc5-obj GMP_SHARED)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
 endif()
 
@@ -1368,22 +1320,18 @@ endif()
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
 target_link_libraries(cvc5-shared PRIVATE ${RT_LIBRARIES})
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PRIVATE ${RT_LIBRARIES})
 endif()
 
 if(ENABLE_VALGRIND)
   target_include_directories(cvc5-obj PUBLIC ${Valgrind_INCLUDE_DIR})
 endif()
-if(USE_ABC)
-  target_include_directories(cvc5-obj PRIVATE ${ABC_INCLUDE_DIR})
-  target_link_libraries(cvc5-obj PUBLIC ${ABC_LIBRARIES})
-endif()
 
 add_dependencies(cvc5-obj CaDiCaL)
 target_include_directories(cvc5-obj PRIVATE ${CaDiCaL_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE CaDiCaL)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC CaDiCaL)
 endif()
 
@@ -1391,7 +1339,7 @@ if(USE_CLN)
   add_dependencies(cvc5-obj CLN_SHARED)
   target_include_directories(cvc5-obj PRIVATE ${CLN_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CLN_SHARED)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CLN_STATIC)
   endif()
 endif()
@@ -1399,7 +1347,7 @@ if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
   target_include_directories(cvc5-obj PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CryptoMiniSat)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CryptoMiniSat)
   endif()
 endif()
@@ -1407,14 +1355,14 @@ if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
   target_include_directories(cvc5-obj PRIVATE ${Kissat_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE Kissat)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC Kissat)
   endif()
 endif()
 if(USE_GLPK)
   target_include_directories(cvc5-obj PRIVATE ${GLPK_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE ${GLPK_LIBRARIES})
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC ${GLPK_LIBRARIES})
   endif()
 endif()
@@ -1422,7 +1370,7 @@ if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx_SHARED)
   target_include_directories(cvc5-obj PRIVATE ${Poly_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE Polyxx_SHARED)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC Polyxx_STATIC)
   endif()
 endif()
@@ -1430,7 +1378,7 @@ if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
   target_include_directories(cvc5-obj PRIVATE ${CoCoA_INCLUDE_DIR})
   target_link_libraries(cvc5-shared PRIVATE CoCoA)
-  if(ENABLE_STATIC_LIBRARY)
+  if(ENABLE_STATIC_BUILD)
     target_link_libraries(cvc5-static PUBLIC CoCoA)
   endif()
 endif()
@@ -1438,7 +1386,7 @@ endif()
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj PRIVATE ${SymFPU_INCLUDE_DIR})
 target_link_libraries(cvc5-shared PRIVATE SymFPU)
-if(ENABLE_STATIC_LIBRARY)
+if(ENABLE_STATIC_BUILD)
   target_link_libraries(cvc5-static PUBLIC SymFPU)
 endif()
 

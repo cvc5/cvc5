@@ -51,7 +51,8 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
 {
   Assert(q.isNull() || q.getKind() == FORALL);
   Node r = d_qstate.getRepresentative(a);
-  if( options::finiteModelFind() ){
+  if (options().quantifiers.finiteModelFind)
+  {
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
       if (d_model != nullptr)
@@ -72,7 +73,7 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
     }
   }
   TypeNode v_tn = q.isNull() ? a.getType() : q[0][index].getType();
-  if (options::quantRepMode() == options::QuantRepMode::EE)
+  if (options().quantifiers.quantRepMode == options::QuantRepMode::EE)
   {
     int32_t score = getRepScore(r, q, index, v_tn);
     if (score >= 0)
@@ -166,23 +167,28 @@ Node EqualityQuery::getInstance(Node n,
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
 int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
 {
-  if( options::cegqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
+  if (options().quantifiers.cegqi && quantifiers::TermUtil::hasInstConstAttr(n))
+  {  // reject
     return -2;
-  }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
+  }
+  else if (!n.getType().isSubtypeOf(v_tn))
+  {  // reject if incorrect type
     return -2;
-  }else if( options::instMaxLevel()!=-1 ){
+  }
+  else if (options().quantifiers.instMaxLevel != -1)
+  {
     //score prefer lowest instantiation level
     if( n.hasAttribute(InstLevelAttribute()) ){
       return n.getAttribute(InstLevelAttribute());
     }
-    return options::instLevelInputOnly() ? -1 : 0;
+    return options().quantifiers.instLevelInputOnly ? -1 : 0;
   }
-  else if (options::quantRepMode() == options::QuantRepMode::FIRST)
+  else if (options().quantifiers.quantRepMode == options::QuantRepMode::FIRST)
   {
     // score prefers earliest use of this term as a representative
     return d_rep_score.find(n) == d_rep_score.end() ? -1 : d_rep_score[n];
   }
-  Assert(options::quantRepMode() == options::QuantRepMode::DEPTH);
+  Assert(options().quantifiers.quantRepMode == options::QuantRepMode::DEPTH);
   return quantifiers::TermUtil::getTermDepth(n);
 }
 
