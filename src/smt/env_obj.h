@@ -89,6 +89,9 @@ class EnvObj
   /** Get the statistics registry via Env. */
   StatisticsRegistry& statisticsRegistry() const;
 
+  /** Convenience wrapper for Env::isOutputOn(). */
+  bool isOutputOn(options::OutputTag tag) const;
+
   /** Convenience wrapper for Env::outputRaw(). */
   std::ostream& outputRaw(options::OutputTag tag) const;
 
