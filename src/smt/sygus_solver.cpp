@@ -257,11 +257,10 @@ void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  if (d_env.isOutputOn(options::OutputTag::SYGUS))
+  if (isOutputOn(OutputTag::SYGUS))
   {
-    d_env.getOutput(options::OutputTag::SYGUS)
-        << "SygusSolver::checkSynthSolution(): checking synthesis solution"
-        << std::endl;
+    outputMsg(OutputTag::SYGUS)
+        << "checkSynthSolution(): checking synthesis solution";
   }
   std::map<Node, std::map<Node, Node>> sol_map;
   // Get solutions and build auxiliary vectors for substituting
@@ -312,19 +311,18 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   std::unordered_map<Node, Node> cache;
   for (const Node& assertion : alist)
   {
-    if (d_env.isOutputOn(options::OutputTag::SYGUS))
+    if (isOutputOn(OutputTag::SYGUS))
     {
-      d_env.getOutput(options::OutputTag::SYGUS)
-          << "SygusSolver::checkSynthSolution(): checking assertion "
-          << assertion << std::endl;
+      outputMsg(OutputTag::SYGUS)
+          << "checkSynthSolution(): checking assertion " << assertion;
     }
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
     Node n = d_smtSolver.getPreprocessor()->expandDefinitions(assertion, cache);
-    if (d_env.isOutputOn(options::OutputTag::SYGUS))
+    if (isOutputOn(OutputTag::SYGUS))
     {
-      d_env.getOutput(options::OutputTag::SYGUS)
-          << "SygusSolver::checkSynthSolution(): -- expands to " << std::endl;
+      outputMsg(OutputTag::SYGUS)
+          << "checkSynthSolution(): -- expands to " << n;
     }
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())
@@ -376,11 +374,10 @@ void SygusSolver::checkSynthSolution(Assertions& as)
           vars.begin(), vars.end(), skos.begin(), skos.end());
     }
 
-    if (d_env.isOutputOn(options::OutputTag::SYGUS))
+    if (isOutputOn(OutputTag::SYGUS))
     {
-      d_env.getOutput(options::OutputTag::SYGUS)
-          << "SygusSolver::checkSynthSolution(): -- body substitutes to "
-          << conjBody << std::endl;
+      outputMsg(OutputTag::SYGUS)
+          << "checkSynthSolution(): -- body substitutes to " << conjBody;
     }
     Trace("check-synth-sol")
         << "Substituted body of assertion to " << conjBody << "\n";
@@ -397,10 +394,9 @@ void SygusSolver::checkSynthSolution(Assertions& as)
       solChecker->assertFormula(ar);
     }
     Result r = solChecker->checkSat();
-    if (d_env.isOutputOn(options::OutputTag::SYGUS))
+    if (isOutputOn(OutputTag::SYGUS))
     {
-      d_env.getOutput(options::OutputTag::SYGUS)
-          << "SygusSolver::checkSynthSolution(): result is " << r << std::endl;
+      outputMsg(OutputTag::SYGUS) << "checkSynthSolution(): result is " << r;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())
