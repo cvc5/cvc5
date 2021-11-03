@@ -2557,5 +2557,19 @@ TEST_F(TestApiBlackSolver, issue7000)
   ASSERT_THROW(d_solver.checkEntailed({t72, t74, t72, t72}), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, issue5893)
+{
+  Solver slv;
+  Sort bvsort4 = d_solver.mkBitVectorSort(4);
+  Sort bvsort8 = d_solver.mkBitVectorSort(8);
+  Sort arrsort = d_solver.mkArraySort(bvsort4, bvsort8);
+  Term arr = d_solver.mkConst(arrsort, "arr");
+  Term idx = d_solver.mkConst(bvsort4, "idx");
+  Term ten = d_solver.mkBitVector(8, "10", 10);
+  Term sel = d_solver.mkTerm(SELECT, arr, idx);
+  Term distinct = d_solver.mkTerm(DISTINCT, sel, ten);
+  ASSERT_NO_FATAL_FAILURE(distinct.getOp());
+}
+
 }  // namespace test
 }  // namespace cvc5
