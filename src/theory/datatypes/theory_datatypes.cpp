@@ -382,8 +382,8 @@ void TheoryDatatypes::postCheck(Effort level)
   }
 
   Trace("datatypes-check") << "Finished check effort " << level << std::endl;
-  if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ) {
-    Notice() << "TheoryDatatypes::check(): done" << endl;
+  if (isVerboseOn(1)) {
+    verbose(1) << "TheoryDatatypes::check(): done" << std::endl;
   }
 }
 

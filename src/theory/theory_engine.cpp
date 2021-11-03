@@ -1892,7 +1892,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
               // assertions with unevaluable operators, e.g. transcendental
               // functions. It also may happen for separation logic, where
               // check-model support is limited.
-              Warning() << ss.str();
+              verbose(0) << ss.str();
             }
           }
         }

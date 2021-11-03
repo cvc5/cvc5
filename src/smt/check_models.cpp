@@ -64,7 +64,7 @@ void CheckModels::checkModel(TheoryModel* m,
   // Now go through all our user assertions checking if they're satisfied.
   for (const Node& assertion : al)
   {
-    Notice() << "SolverEngine::checkModel(): checking assertion " << assertion
+    verbose(1) << "SolverEngine::checkModel(): checking assertion " << assertion
              << std::endl;
 
     // Apply any define-funs from the problem. We do not expand theory symbols
@@ -73,17 +73,17 @@ void CheckModels::checkModel(TheoryModel* m,
     // is not trustworthy, since the UF introduced by expanding definitions may
     // not be properly constrained.
     Node n = sm.apply(assertion, false);
-    Notice() << "SolverEngine::checkModel(): -- substitutes to " << n
+    verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
              << std::endl;
 
     n = rewrite(n);
-    Notice() << "SolverEngine::checkModel(): -- rewrites to " << n << std::endl;
+    verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n << std::endl;
 
     // We look up the value before simplifying. If n contains quantifiers,
     // this may increases the chance of finding its value before the node is
     // altered by simplification below.
     n = m->getValue(n);
-    Notice() << "SolverEngine::checkModel(): -- get value : " << n << std::endl;
+    verbose(1) << "SolverEngine::checkModel(): -- get value : " << n << std::endl;
 
     if (n.isConst() && n.getConst<bool>())
     {
@@ -109,7 +109,7 @@ void CheckModels::checkModel(TheoryModel* m,
     if (!n.isConst())
     {
       // Not constant, print a less severe warning message here.
-      Warning()
+      verbose(0)
           << "Warning : SolverEngine::checkModel(): cannot check simplified "
              "assertion : "
           << n << std::endl;
@@ -118,7 +118,7 @@ void CheckModels::checkModel(TheoryModel* m,
     }
     // Assertions that simplify to false result in an InternalError or
     // Warning being thrown below (when hardFailure is false).
-    Notice() << "SolverEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
+    verbose(1) << "SolverEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
              << std::endl;
     std::stringstream ss;
     ss << "SolverEngine::checkModel(): "
@@ -134,12 +134,12 @@ void CheckModels::checkModel(TheoryModel* m,
     }
     else
     {
-      Warning() << ss.str() << std::endl;
+      verbose(0) << ss.str() << std::endl;
     }
   }
   if (noCheckList.empty())
   {
-    Notice() << "SolverEngine::checkModel(): all assertions checked out OK !"
+    verbose(1) << "SolverEngine::checkModel(): all assertions checked out OK !"
              << std::endl;
     return;
   }

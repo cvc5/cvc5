@@ -267,12 +267,7 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
 void OptionsHandler::enableOutputTag(const std::string& flag,
                                      const std::string& optarg)
 {
-  enableOutputTag(stringToOutputTag(optarg));
-}
-
-void OptionsHandler::enableOutputTag(OutputTag tag)
-{
-  size_t tagid = static_cast<size_t>(tag);
+  size_t tagid = static_cast<size_t>(stringToOutputTag(optarg));
   Assert(d_options->base.outputTagHolder.size() > tagid)
       << "Output tag is larger than the bitset that holds it.";
   d_options->base.outputTagHolder.set(tagid);
