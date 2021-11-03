@@ -974,7 +974,7 @@ class SolverTest
     assertThrows(
         CVC5ApiException.class, () -> d_solver.defineFun("fff", new Term[] {b1}, bvSort, v2));
     assertThrows(
-        CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[] {b1}, funSort2, v2));
+        CVC5ApiException.class, () -> d_solver.defineFun("ffff", new Term[] {b1}, funSort, v2));
 
     // b3 has function sort, which is allowed as an argument
     assertDoesNotThrow(() -> d_solver.defineFun("fffff", new Term[] {b1, b3}, bvSort, v1));
@@ -1701,13 +1701,13 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.getQuantifierEliminationDisjunct(forall));
   }
 
-  @Test void declareSeparationHeap() throws CVC5ApiException
+  @Test void declareSepHeap() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     Sort integer = d_solver.getIntegerSort();
-    assertDoesNotThrow(() -> d_solver.declareSeparationHeap(integer, integer));
+    assertDoesNotThrow(() -> d_solver.declareSepHeap(integer, integer));
     // cannot declare separation logic heap more than once
-    assertThrows(CVC5ApiException.class, () -> d_solver.declareSeparationHeap(integer, integer));
+    assertThrows(CVC5ApiException.class, () -> d_solver.declareSepHeap(integer, integer));
   }
 
   /**
@@ -1719,7 +1719,7 @@ class SolverTest
   {
     Sort integer = solver.getIntegerSort();
     // declare the separation heap
-    solver.declareSeparationHeap(integer, integer);
+    solver.declareSepHeap(integer, integer);
     Term x = solver.mkConst(integer, "x");
     Term p = solver.mkConst(integer, "p");
     Term heap = solver.mkTerm(SEP_PTO, p, x);
@@ -1729,26 +1729,26 @@ class SolverTest
     solver.checkSat();
   }
 
-  @Test void getSeparationHeapTerm1() throws CVC5ApiException
+  @Test void getValueSepHeap1() throws CVC5ApiException
   {
     d_solver.setLogic("QF_BV");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     Term t = d_solver.mkTrue();
     d_solver.assertFormula(t);
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationHeapTerm2() throws CVC5ApiException
+  @Test void getValueSepHeap2() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "false");
     checkSimpleSeparationConstraints(d_solver);
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationHeapTerm3() throws CVC5ApiException
+  @Test void getValueSepHeap3() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
@@ -1756,10 +1756,10 @@ class SolverTest
     Term t = d_solver.mkFalse();
     d_solver.assertFormula(t);
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationHeapTerm4() throws CVC5ApiException
+  @Test void getValueSepHeap4() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
@@ -1767,38 +1767,38 @@ class SolverTest
     Term t = d_solver.mkTrue();
     d_solver.assertFormula(t);
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationHeap());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationHeapTerm5() throws CVC5ApiException
+  @Test void getValueSepHeap5() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     checkSimpleSeparationConstraints(d_solver);
-    assertDoesNotThrow(() -> d_solver.getSeparationHeap());
+    assertDoesNotThrow(() -> d_solver.getValueSepHeap());
   }
 
-  @Test void getSeparationNilTerm1() throws CVC5ApiException
+  @Test void getValueSepNil1() throws CVC5ApiException
   {
     d_solver.setLogic("QF_BV");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     Term t = d_solver.mkTrue();
     d_solver.assertFormula(t);
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNilTerm());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepNil());
   }
 
-  @Test void getSeparationNilTerm2() throws CVC5ApiException
+  @Test void getValueSepNil2() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "false");
     checkSimpleSeparationConstraints(d_solver);
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNilTerm());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepNil());
   }
 
-  @Test void getSeparationNilTerm3() throws CVC5ApiException
+  @Test void getValueSepNil3() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
@@ -1806,10 +1806,10 @@ class SolverTest
     Term t = d_solver.mkFalse();
     d_solver.assertFormula(t);
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNilTerm());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepNil());
   }
 
-  @Test void getSeparationNilTerm4() throws CVC5ApiException
+  @Test void getValueSepNil4() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
@@ -1817,16 +1817,16 @@ class SolverTest
     Term t = d_solver.mkTrue();
     d_solver.assertFormula(t);
     d_solver.checkSat();
-    assertThrows(CVC5ApiException.class, () -> d_solver.getSeparationNilTerm());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getValueSepNil());
   }
 
-  @Test void getSeparationNilTerm5() throws CVC5ApiException
+  @Test void getValueSepNil5() throws CVC5ApiException
   {
     d_solver.setLogic("ALL");
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-models", "true");
     checkSimpleSeparationConstraints(d_solver);
-    assertDoesNotThrow(() -> d_solver.getSeparationNilTerm());
+    assertDoesNotThrow(() -> d_solver.getValueSepNil());
   }
 
   @Test void push1()

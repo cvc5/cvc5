@@ -1262,10 +1262,10 @@ def test_get_value3(solver):
 def test_declare_separation_heap(solver):
     solver.setLogic("ALL")
     integer = solver.getIntegerSort()
-    solver.declareSeparationHeap(integer, integer)
+    solver.declareSepHeap(integer, integer)
     # cannot declare separation logic heap more than once
     with pytest.raises(RuntimeError):
-        solver.declareSeparationHeap(integer, integer)
+        solver.declareSepHeap(integer, integer)
 
 
 # Helper function for test_get_separation_{heap,nil}_termX. Asserts and checks
@@ -1273,7 +1273,7 @@ def test_declare_separation_heap(solver):
 def checkSimpleSeparationConstraints(slv):
     integer = slv.getIntegerSort()
     # declare the separation heap
-    slv.declareSeparationHeap(integer, integer)
+    slv.declareSepHeap(integer, integer)
     x = slv.mkConst(integer, "x")
     p = slv.mkConst(integer, "p")
     heap = slv.mkTerm(kinds.SepPto, p, x)
@@ -1290,7 +1290,7 @@ def test_get_separation_heap_term1(solver):
     t = solver.mkTrue()
     solver.assertFormula(t)
     with pytest.raises(RuntimeError):
-        solver.getSeparationHeap()
+        solver.getValueSepHeap()
 
 
 def test_get_separation_heap_term2(solver):
@@ -1299,7 +1299,7 @@ def test_get_separation_heap_term2(solver):
     solver.setOption("produce-models", "false")
     checkSimpleSeparationConstraints(solver)
     with pytest.raises(RuntimeError):
-        solver.getSeparationHeap()
+        solver.getValueSepHeap()
 
 
 def test_get_separation_heap_term3(solver):
@@ -1310,7 +1310,7 @@ def test_get_separation_heap_term3(solver):
     solver.assertFormula(t)
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.getSeparationHeap()
+        solver.getValueSepHeap()
 
 
 def test_get_separation_heap_term4(solver):
@@ -1321,7 +1321,7 @@ def test_get_separation_heap_term4(solver):
     solver.assertFormula(t)
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.getSeparationHeap()
+        solver.getValueSepHeap()
 
 
 def test_get_separation_heap_term5(solver):
@@ -1329,7 +1329,7 @@ def test_get_separation_heap_term5(solver):
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     checkSimpleSeparationConstraints(solver)
-    solver.getSeparationHeap()
+    solver.getValueSepHeap()
 
 
 def test_get_separation_nil_term1(solver):
@@ -1339,7 +1339,7 @@ def test_get_separation_nil_term1(solver):
     t = solver.mkTrue()
     solver.assertFormula(t)
     with pytest.raises(RuntimeError):
-        solver.getSeparationNilTerm()
+        solver.getValueSepNil()
 
 
 def test_get_separation_nil_term2(solver):
@@ -1348,7 +1348,7 @@ def test_get_separation_nil_term2(solver):
     solver.setOption("produce-models", "false")
     checkSimpleSeparationConstraints(solver)
     with pytest.raises(RuntimeError):
-        solver.getSeparationNilTerm()
+        solver.getValueSepNil()
 
 
 def test_get_separation_nil_term3(solver):
@@ -1359,7 +1359,7 @@ def test_get_separation_nil_term3(solver):
     solver.assertFormula(t)
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.getSeparationNilTerm()
+        solver.getValueSepNil()
 
 
 def test_get_separation_nil_term4(solver):
@@ -1370,7 +1370,7 @@ def test_get_separation_nil_term4(solver):
     solver.assertFormula(t)
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.getSeparationNilTerm()
+        solver.getValueSepNil()
 
 
 def test_get_separation_nil_term5(solver):
@@ -1378,7 +1378,7 @@ def test_get_separation_nil_term5(solver):
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     checkSimpleSeparationConstraints(solver)
-    solver.getSeparationNilTerm()
+    solver.getValueSepNil()
 
 
 def test_push1(solver):

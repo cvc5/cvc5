@@ -2034,37 +2034,36 @@ public class Solver implements IPointer
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
-  public void declareSeparationHeap(Sort locSort, Sort dataSort)
+  public void declareSepHeap(Sort locSort, Sort dataSort)
   {
-    declareSeparationHeap(pointer, locSort.getPointer(), dataSort.getPointer());
+    declareSepHeap(pointer, locSort.getPointer(), dataSort.getPointer());
   }
 
-  private native void declareSeparationHeap(
-      long pointer, long locSortPointer, long dataSortPointer);
+  private native void declareSepHeap(long pointer, long locSortPointer, long dataSortPointer);
 
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  public Term getSeparationHeap()
+  public Term getValueSepHeap()
   {
-    long termPointer = getSeparationHeap(pointer);
+    long termPointer = getValueSepHeap(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long getSeparationHeap(long pointer);
+  private native long getValueSepHeap(long pointer);
 
   /**
    * When using separation logic, obtain the term for nil.
    * @return The term for nil
    */
-  public Term getSeparationNilTerm()
+  public Term getValueSepNil()
   {
-    long termPointer = getSeparationNilTerm(pointer);
+    long termPointer = getValueSepNil(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long getSeparationNilTerm(long pointer);
+  private native long getValueSepNil(long pointer);
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
