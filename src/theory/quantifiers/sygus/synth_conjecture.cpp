@@ -735,7 +735,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
-  printSynthSolutionInternal(outputRaw(OutputTag::SYGUS));
+  printSynthSolutionInternal(*options().base.out);
   excludeCurrentSolution(enums, values);
 }
 
