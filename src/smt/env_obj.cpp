@@ -70,15 +70,9 @@ StatisticsRegistry& EnvObj::statisticsRegistry() const
   return d_env.getStatisticsRegistry();
 }
 
-bool EnvObj::isOutputOn(OutputTag tag) const
-{
-  return d_env.isOutputOn(tag);
-}
+bool EnvObj::isOutputOn(OutputTag tag) const { return d_env.isOutputOn(tag); }
 
-std::ostream& EnvObj::output(OutputTag tag) const
-{
-  return d_env.output(tag);
-}
+std::ostream& EnvObj::output(OutputTag tag) const { return d_env.output(tag); }
 
 bool EnvObj::isVerboseOn(int64_t level) const
 {

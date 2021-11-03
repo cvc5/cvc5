@@ -716,9 +716,8 @@ void Instantiate::notifyEndRound()
       {
         continue;
       }
-      output(OutputTag::INST)
-          << "(num-instantiations " << name << " " << i.second << ")"
-          << std::endl;
+      output(OutputTag::INST) << "(num-instantiations " << name << " "
+                              << i.second << ")" << std::endl;
     }
   }
 }

@@ -155,8 +155,7 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
       Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
       if (isOutputOn(OutputTag::TRIGGER))
       {
-        output(OutputTag::TRIGGER)
-            << "(no-trigger " << f << ")" << std::endl;
+        output(OutputTag::TRIGGER) << "(no-trigger " << f << ")" << std::endl;
       }
     }
   }

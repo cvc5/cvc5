@@ -382,7 +382,8 @@ void TheoryDatatypes::postCheck(Effort level)
   }
 
   Trace("datatypes-check") << "Finished check effort " << level << std::endl;
-  if (isVerboseOn(1)) {
+  if (isVerboseOn(1))
+  {
     verbose(1) << "TheoryDatatypes::check(): done" << std::endl;
   }
 }

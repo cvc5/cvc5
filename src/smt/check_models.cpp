@@ -65,7 +65,7 @@ void CheckModels::checkModel(TheoryModel* m,
   for (const Node& assertion : al)
   {
     verbose(1) << "SolverEngine::checkModel(): checking assertion " << assertion
-             << std::endl;
+               << std::endl;
 
     // Apply any define-funs from the problem. We do not expand theory symbols
     // like integer division here. Hence, the code below is not able to properly
@@ -74,16 +74,18 @@ void CheckModels::checkModel(TheoryModel* m,
     // not be properly constrained.
     Node n = sm.apply(assertion, false);
     verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
-             << std::endl;
+               << std::endl;
 
     n = rewrite(n);
-    verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n << std::endl;
+    verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n
+               << std::endl;
 
     // We look up the value before simplifying. If n contains quantifiers,
     // this may increases the chance of finding its value before the node is
     // altered by simplification below.
     n = m->getValue(n);
-    verbose(1) << "SolverEngine::checkModel(): -- get value : " << n << std::endl;
+    verbose(1) << "SolverEngine::checkModel(): -- get value : " << n
+               << std::endl;
 
     if (n.isConst() && n.getConst<bool>())
     {
@@ -119,7 +121,7 @@ void CheckModels::checkModel(TheoryModel* m,
     // Assertions that simplify to false result in an InternalError or
     // Warning being thrown below (when hardFailure is false).
     verbose(1) << "SolverEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
-             << std::endl;
+               << std::endl;
     std::stringstream ss;
     ss << "SolverEngine::checkModel(): "
        << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << std::endl
@@ -140,7 +142,7 @@ void CheckModels::checkModel(TheoryModel* m,
   if (noCheckList.empty())
   {
     verbose(1) << "SolverEngine::checkModel(): all assertions checked out OK !"
-             << std::endl;
+               << std::endl;
     return;
   }
   // if the noCheckList is non-empty, we could expand definitions on this list

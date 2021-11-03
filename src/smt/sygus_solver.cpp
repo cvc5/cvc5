@@ -259,8 +259,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   SkolemManager* sm = nm->getSkolemManager();
   if (isVerboseOn(1))
   {
-    verbose(1)
-        << "SyGuS::checkSynthSolution: checking synthesis solution" << std::endl;
+    verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
+               << std::endl;
   }
   std::map<Node, std::map<Node, Node>> sol_map;
   // Get solutions and build auxiliary vectors for substituting
@@ -313,16 +313,16 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   {
     if (isVerboseOn(1))
     {
-      verbose(1)
-          << "SyGuS::checkSynthSolution: checking assertion " << assertion << std::endl;
+      verbose(1) << "SyGuS::checkSynthSolution: checking assertion "
+                 << assertion << std::endl;
     }
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
     Node n = d_smtSolver.getPreprocessor()->expandDefinitions(assertion, cache);
     if (isVerboseOn(1))
     {
-      verbose(1)
-          << "SyGuS::checkSynthSolution: -- expands to " << n << std::endl;
+      verbose(1) << "SyGuS::checkSynthSolution: -- expands to " << n
+                 << std::endl;
     }
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())
@@ -376,8 +376,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
 
     if (isVerboseOn(1))
     {
-      verbose(1)
-          << "SyGuS::checkSynthSolution: -- body substitutes to " << conjBody << std::endl;
+      verbose(1) << "SyGuS::checkSynthSolution: -- body substitutes to "
+                 << conjBody << std::endl;
     }
     Trace("check-synth-sol")
         << "Substituted body of assertion to " << conjBody << "\n";
@@ -396,8 +396,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     Result r = solChecker->checkSat();
     if (isVerboseOn(1))
     {
-      verbose(1)
-          << "SyGuS::checkSynthSolution: result is " << r << std::endl;
+      verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())

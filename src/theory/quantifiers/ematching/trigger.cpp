@@ -81,9 +81,8 @@ Trigger::Trigger(Env& env,
   if (isOutputOn(OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    output(OutputTag::TRIGGER)
-        << "(trigger " << qa.quantToString(q) << " " << d_trNode << ")"
-        << std::endl;
+    output(OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " "
+                               << d_trNode << ")" << std::endl;
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){

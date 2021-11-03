@@ -815,9 +815,10 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     }
     if (!ptDisequalConst)
     {
-      d_env.verbose(1) << "Warning: " << bv << " and " << bvr
-               << " evaluate to different (non-constant) values on point:"
-               << std::endl;
+      d_env.verbose(1)
+          << "Warning: " << bv << " and " << bvr
+          << " evaluate to different (non-constant) values on point:"
+          << std::endl;
       d_env.verbose(1) << ptOut.str();
       return;
     }
