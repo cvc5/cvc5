@@ -401,12 +401,8 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
     // also update the output language
     if (!getOptions().base.outputLanguageWasSetByUser)
     {
-      Language olang = ilang;
-      if (d_env->getOptions().base.outputLanguage != olang)
-      {
-        getOptions().base.outputLanguage = olang;
-        *d_env->getOptions().base.out << language::SetLanguage(olang);
-      }
+      setOption("output-language", "smtlib" + value);
+      getOptions().base.outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
