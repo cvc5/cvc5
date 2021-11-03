@@ -17,6 +17,8 @@ typerule APPLY_UF ::cvc5::theory::uf::UfTypeRule
 
 variable BOOLEAN_TERM_VARIABLE "Boolean term variable"
 
+variable LAMBDA_VARIABLE "Lambda variable, used for lazy lambda lifting"
+
 parameterized PARTIAL_APPLY_UF APPLY_UF 1: "partial uninterpreted function application"
 typerule PARTIAL_APPLY_UF ::cvc5::theory::uf::PartialTypeRule
 
