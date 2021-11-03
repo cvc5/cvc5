@@ -91,12 +91,12 @@ Node operator!(const Node& a) { return nodeManager->mkNode(Kind::NOT, a); }
 Node make_real_variable(const std::string& s)
 {
   return nodeManager->mkSkolem(
-      s, nodeManager->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
+      s, nodeManager->realType(), "", SkolemManager::SKOLEM_EXACT_NAME);
 }
 Node make_int_variable(const std::string& s)
 {
   return nodeManager->mkSkolem(
-      s, nodeManager->integerType(), "", NodeManager::SKOLEM_EXACT_NAME);
+      s, nodeManager->integerType(), "", SkolemManager::SKOLEM_EXACT_NAME);
 }
 
 TEST_F(TestTheoryWhiteArithCAD, test_univariate_isolation)
