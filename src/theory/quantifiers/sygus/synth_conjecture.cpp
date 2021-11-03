@@ -437,9 +437,9 @@ bool SynthConjecture::doCheck()
           }
         }
         Trace("sygus-engine") << std::endl;
-        if (d_env.isOutputOn(options::OutputTag::SYGUS))
+        if (d_env.isOutputOn(OutputTag::SYGUS))
         {
-          d_env.getOutput(options::OutputTag::SYGUS)
+          d_env.output(OutputTag::SYGUS)
               << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
         }
       }

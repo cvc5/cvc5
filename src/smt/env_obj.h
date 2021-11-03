@@ -92,10 +92,10 @@ class EnvObj
   StatisticsRegistry& statisticsRegistry() const;
 
   /** Convenience wrapper for Env::isOutputOn(). */
-  bool isOutputOn(options::OutputTag tag) const;
+  bool isOutputOn(OutputTag tag) const;
 
   /** Convenience wrapper for Env::output(). */
-  std::ostream& output(options::OutputTag tag) const;
+  std::ostream& output(OutputTag tag) const;
 
   /** Convenience wrapper for Env::isVerboseOn(). */
   bool isVerboseOn(int64_t level) const;

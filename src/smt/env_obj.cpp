@@ -70,12 +70,12 @@ StatisticsRegistry& EnvObj::statisticsRegistry() const
   return d_env.getStatisticsRegistry();
 }
 
-bool EnvObj::isOutputOn(options::OutputTag tag) const
+bool EnvObj::isOutputOn(OutputTag tag) const
 {
   return d_env.isOutputOn(tag);
 }
 
-std::ostream& EnvObj::output(options::OutputTag tag) const
+std::ostream& EnvObj::output(OutputTag tag) const
 {
   return d_env.output(tag);
 }

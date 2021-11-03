@@ -148,7 +148,7 @@ const Printer& Env::getPrinter()
 
 std::ostream& Env::getDumpOut() { return *d_options.base.out; }
 
-bool Env::isOutputOn(options::OutputTag tag) const
+bool Env::isOutputOn(OutputTag tag) const
 {
   return d_options.base.outputTagHolder[static_cast<size_t>(tag)];
 }
@@ -156,20 +156,12 @@ bool Env::isOutputOn(const std::string& tag) const
 {
   return isOutputOn(options::stringToOutputTag(tag));
 }
-std::ostream& Env::getOutput(options::OutputTag tag) const
+std::ostream& Env::output(const std::string& tag) const
 {
-  if (isOutputOn(tag))
-  {
-    return *d_options.base.out;
-  }
-  return cvc5::null_os;
-}
-std::ostream& Env::getOutput(const std::string& tag) const
-{
-  return getOutput(options::stringToOutputTag(tag));
+  return output(options::stringToOutputTag(tag));
 }
 
-std::ostream& Env::output(options::OutputTag tag) const
+std::ostream& Env::output(OutputTag tag) const
 {
   if (isOutputOn(tag))
   {

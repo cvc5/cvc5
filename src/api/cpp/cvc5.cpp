@@ -7863,12 +7863,12 @@ bool Solver::isOutputOn(const std::string& tag) const
 
 std::ostream& Solver::getOutput(const std::string& tag) const
 {
-  // `getOutput(tag)` may raise an `OptionException`, which we do not want to
+  // `output(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
   {
-    return d_slv->getEnv().getOutput(tag);
+    return d_slv->getEnv().output(tag);
   }
   catch (const cvc5::Exception& e)
   {
