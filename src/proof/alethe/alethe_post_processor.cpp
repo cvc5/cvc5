@@ -1467,6 +1467,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               new_children,
                               new_args,
+                              *cdp);
+    }
     //================================================= Arithmetic rules
     // ======== Adding Inequalities
     //
