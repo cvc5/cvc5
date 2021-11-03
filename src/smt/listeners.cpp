@@ -89,19 +89,5 @@ void SmtNodeManagerListener::nmNotifyNewVar(TNode n)
   d_dm.addToDump(c);
 }
 
-void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
-                                               const std::string& comment,
-                                               uint32_t flags)
-{
-  std::string id = n.getAttribute(expr::VarNameAttr());
-  DeclareFunctionNodeCommand c(id, n, n.getType());
-  if (Dump.isOn("skolems") && comment != "")
-  {
-    d_outMgr.getPrinter().toStreamCmdSetInfo(
-        d_outMgr.getDumpOut(), "notes", id + " is " + comment);
-  }
-  d_dm.addToDump(c, "skolems");
-}
-
 }  // namespace smt
 }  // namespace cvc5

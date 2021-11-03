@@ -411,7 +411,8 @@ void Printer::toStreamCmdGetAbduct(std::ostream& out,
 }
 
 void Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
-                                                  Node n) const
+                                                  Node n,
+                                                  bool doFull) const
 {
   printUnknownCommand(out, "get-quantifier-elimination");
 }
