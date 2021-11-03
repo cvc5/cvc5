@@ -1429,6 +1429,46 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    // ======== Alpha Equivalence
+    // See proof_rule.h for documentation on the ALPHA_EQUIV rule. This
+    // comment uses variable names as introduced there.
+    //
+    // Let F = (forall ((y1 A1) ... (yn An)) G) and F*sigma = (forall ((z1 A1)
+    // ... (zn An)) G*sigma)
+    //
+    //
+    // -----    ----- REFL  ----- REFL
+    //  VP1 .... VPn         VP
+    // -------------------------- BIND, ((:= (y1 A1) z1) ... (:= (yn An) zn))
+    //         (= F F*sigma)
+    //
+    // VPi: (cl (= yi zi))^
+    // VP: (cl (= G G*sigma))
+    //
+    // ^ the corresponding proof node is F*sigma
+    case PfRule::ALPHA_EQUIV:
+    {
+      std::vector<Node> new_children;
+      bool success = true;
+      for (size_t i = 1, size = args.size(); i < size; i++)
+      {
+        Node vpi = nm->mkNode(kind::SEXPR, d_cl, args[i]);
+        new_children.push_back(vpi);
+        success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+      }
+      Node vp = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res[0][1], res[1][1]));
+      success&& addAletheStep(AletheRule::REFL, vp, vp, {}, {}, *cdp);
+      new_children.push_back(vp);
+      new_args.insert(new_args.begin(), args.begin() + 1, args.end());
+      return success
+             && addAletheStep(AletheRule::ANCHOR_BIND,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              new_args,
+                              *cdp);
+    }
     // ======== Trichotomy of the reals
     // See proof_rule.h for documentation on the ARITH_TRICHOTOMY rule. This
     // comment uses variable names as introduced there.
