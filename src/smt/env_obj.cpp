@@ -84,4 +84,6 @@ std::ostream& EnvObj::verbose(int64_t level) const
   return d_env.verbose(level);
 }
 
+std::ostream& EnvObj::warning() const { return verbose(0); }
+
 }  // namespace cvc5

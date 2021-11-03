@@ -103,6 +103,9 @@ class EnvObj
   /** Convenience wrapper for Env::verbose(). */
   std::ostream& verbose(int64_t) const;
 
+  /** Convenience wrapper for Env::verbose(0). */
+  std::ostream& warning() const;
+
   /** The associated environment. */
   Env& d_env;
 };

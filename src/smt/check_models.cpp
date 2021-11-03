@@ -111,7 +111,7 @@ void CheckModels::checkModel(TheoryModel* m,
     if (!n.isConst())
     {
       // Not constant, print a less severe warning message here.
-      verbose(0)
+      warning()
           << "Warning : SolverEngine::checkModel(): cannot check simplified "
              "assertion : "
           << n << std::endl;
@@ -136,7 +136,7 @@ void CheckModels::checkModel(TheoryModel* m,
     }
     else
     {
-      verbose(0) << ss.str() << std::endl;
+      warning() << ss.str() << std::endl;
     }
   }
   if (noCheckList.empty())
