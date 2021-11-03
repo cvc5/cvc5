@@ -648,7 +648,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           d_statistics.d_numMiplibAssertionsRemoved += removals;
         }
       }
-      Debug("miplib") << "had: " << assertion[i] << endl;
+      Debug("miplib") << "had: " << assertion << endl;
       assertionsToPreprocess->replace(
           i, rewrite(top_level_substs.apply(assertion)));
       Debug("miplib") << "now: " << assertion << endl;
