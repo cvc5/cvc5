@@ -44,6 +44,67 @@ enum class SkolemFunId
   SHARED_SELECTOR,
   /** an application of seq.nth that is out of bounds */
   SEQ_NTH_OOB,
+  //----- string skolems are cached based on two strings (a, b)
+  /** exists k. ( b occurs k times in a ) */
+  STRINGS_NUM_OCCUR,
+  /** For function k: Int -> Int
+   *   exists k.
+   *     forall 0 <= x <= n,
+   *       k(x) is the end index of the x^th occurrence of b in a
+   *   where n is the number of occurrences of b in a, and k(0)=0.
+   */
+  STRINGS_OCCUR_INDEX,
+  /**
+   * For function k: Int -> Int
+   *   exists k.
+   *     forall 0 <= x < n,
+   *       k(x) is the length of the x^th occurrence of b in a (excluding
+   *       matches of empty strings)
+   *   where b is a regular expression, n is the number of occurrences of b
+   *   in a, and k(0)=0.
+   */
+  STRINGS_OCCUR_LEN,
+  /**
+   * Diff index for disequalities a != b => substr(a,k,1) != substr(b,k,1)
+   */
+  STRINGS_DEQ_DIFF,
+  //-----
+  /**
+   * A function used to define intermediate results of str.replace_all and
+   * str.replace_re_all applications.
+   */
+  STRINGS_REPLACE_ALL_RESULT,
+  /**
+   * A function used to define intermediate results of str.from_int
+   * applications.
+   */
+  STRINGS_ITOS_RESULT,
+  /**
+   * A function used to define intermediate results of str.to_int
+   * applications.
+   */
+  STRINGS_STOI_RESULT,
+  /**
+   * An index containing a non-digit in a string, used when (str.to_int a) = -1.
+   */
+  STRINGS_STOI_NON_DIGIT,
+  /**
+   * For sequence a and regular expression b,
+   * in_re(a, re.++(_*, b, _*)) =>
+   *    exists k_pre, k_match, k_post.
+   *       a = k_pre ++ k_match ++ k_post ^
+   *       len(k_pre) = indexof_re(x, y, 0) ^
+   *       (forall l. 0 < l < len(k_match) =>
+   *         ~in_re(substr(k_match, 0, l), r)) ^
+   *       in_re(k_match, b)
+   *
+   * k_pre is the prefix before the first, shortest match of b in a. k_match
+   * is the substring of a matched by b. It is either empty or there is no
+   * shorter string that matches b.
+   */
+  SK_FIRST_MATCH_PRE,
+  SK_FIRST_MATCH,
+  SK_FIRST_MATCH_POST,
   /**
    * Regular expression unfold component: if (str.in_re t R), where R is
    * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string

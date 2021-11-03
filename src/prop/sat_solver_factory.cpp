@@ -15,7 +15,6 @@
 
 #include "prop/sat_solver_factory.h"
 
-#include "prop/bvminisat/bvminisat.h"
 #include "prop/cadical.h"
 #include "prop/cryptominisat.h"
 #include "prop/kissat.h"
@@ -23,14 +22,6 @@
 
 namespace cvc5 {
 namespace prop {
-
-BVSatSolverInterface* SatSolverFactory::createMinisat(
-    context::Context* mainSatContext,
-    StatisticsRegistry& registry,
-    const std::string& name)
-{
-  return new BVMinisatSatSolver(registry, mainSatContext, name);
-}
 
 MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
     StatisticsRegistry& registry)

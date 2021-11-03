@@ -16,8 +16,8 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
-#include "proof/alethe/alethe_nosubtype_node_converter.h"
 #include "proof/alethe/alethe_node_converter.h"
+#include "proof/alethe/alethe_nosubtype_node_converter.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof_node_updater.h"
 
@@ -102,6 +102,7 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);
+  void la_generic(std::vector<Node> clauses);
 };
 
 /**

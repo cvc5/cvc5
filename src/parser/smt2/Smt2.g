@@ -1690,8 +1690,7 @@ identifier[cvc5::ParseOp& p]
  */
 termAtomic[cvc5::api::Term& atomTerm]
 @init {
-  cvc5::api::Sort type;
-  cvc5::api::Sort type2;
+  cvc5::api::Sort t;
   std::string s;
   std::vector<uint64_t> numerals;
 }
@@ -1715,6 +1714,11 @@ termAtomic[cvc5::api::Term& atomTerm]
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
         atomTerm = PARSER_STATE->mkCharConstant(hexStr);
+      }
+    | FMF_CARD_TOK sortSymbol[t,CHECK_DECLARED] INTEGER_LITERAL
+      {
+        uint32_t ubound = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
+        atomTerm = SOLVER->mkCardinalityConstraint(t, ubound);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -2271,6 +2275,7 @@ FORALL_TOK        : 'forall';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
+FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';

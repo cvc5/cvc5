@@ -336,7 +336,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-			   {},
+                           {},
                            //{rule},
                            *cdp);
     }
@@ -346,7 +346,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-			   {},
+                           {},
                            //{nm->mkBoundVar("evaluate", nm->sExprType())},
                            *cdp);
     }
@@ -1467,6 +1467,69 @@ bool AletheProofPostprocessCallback::update(Node res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               new_children,
                               new_args,
+    //================================================= Arithmetic rules
+    // ======== Adding Inequalities
+    //
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+    {
+      std::vector<Node> vp1s{d_cl};
+      for (auto child : children)
+      {
+        vp1s.push_back(child.notNode());
+      }
+      vp1s.push_back(res);
+      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+      return addAletheStep(AletheRule::LIA_GENERIC, vp1, vp1, {}, args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
+    // ======== Tightening Strict Integer Upper Bounds
+    case PfRule::INT_TIGHT_UB:
+    {
+      std::vector<Node> vp1s{d_cl};
+      for (auto child : children)
+      {
+        vp1s.push_back(child.notNode());
+      }
+      vp1s.push_back(res);
+      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+      new_args.insert(
+          new_args.begin(), children.size() + 1, nm->mkConst<Rational>(1));
+      return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
+    case PfRule::INT_TIGHT_LB:
+    {
+      std::vector<Node> vp1s{d_cl};
+      for (auto child : children)
+      {
+        vp1s.push_back(child.notNode());
+      }
+      vp1s.push_back(res);
+      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+      new_args.insert(
+          new_args.begin(), children.size() + 1, nm->mkConst<Rational>(1));
+      return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
                               *cdp);
     }
     // ======== Trichotomy of the reals
@@ -1500,44 +1563,59 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (res.getKind() == kind::EQUAL)
       {
         equal = res;
+        if (children[0].getKind() == kind::LEQ)
+        {
+          greater = children[0];
+          lesser = children[1];
+        }
+        else
+        {
+          greater = children[1];
+          lesser = children[0];
+        }
       }
-      else if (children[0].getKind() == kind::NOT)
-      {
-        equal = children[0];
-      }
-      else if (children[1].getKind() == kind::NOT)
-      {
-        equal = children[1];
-      }
-
-      if (res.getKind() == kind::GT)
+      // Add case where res is not =
+      else if (res.getKind() == kind::GT)
       {
         greater = res;
+        if (children[0].getKind() == kind::NOT)
+        {
+          equal = children[0];
+          lesser = children[1];
+        }
+        else
+        {
+          equal = children[1];
+          lesser = children[0];
+        }
       }
-      else if (children[0].getKind() == kind::LEQ)
-      {
-        greater = children[0];
-      }
-      else if (children[1].getKind() == kind::LEQ)
-      {
-        greater = children[1];
-      }
-
-      if (res.getKind() == kind::LT)
+      else
       {
         lesser = res;
-      }
-      else if (children[0].getKind() == kind::GEQ)
-      {
-        lesser = children[0];
-      }
-      else if (children[1].getKind() == kind::GEQ)
-      {
-        lesser = children[1];
+        if (children[0].getKind() == kind::NOT)
+        {
+          equal = children[0];
+          greater = children[1];
+        }
+        else
+        {
+          equal = children[1];
+          greater = children[0];
+        }
       }
 
-      Node x = equal[0][0];
-      Node c = equal[0][1];
+      Node x;
+      Node c;
+      if (equal.getKind() == kind::NOT)
+      {
+        x = equal[0][0];
+        c = equal[0][1];
+      }
+      else
+      {
+        x = equal[0];
+        c = equal[1];
+      }
       Node vp_child1 = children[0];
       Node vp_child2 = children[1];
 
@@ -1946,7 +2024,6 @@ AletheProofPostprocessNoSubtypeCallback::
 {
 }
 
-
 bool AletheProofPostprocessNoSubtypeCallback::shouldUpdate(
     std::shared_ptr<ProofNode> pn,
     const std::vector<Node>& fa,
@@ -1972,7 +2049,6 @@ bool AletheProofPostprocessNoSubtypeCallback::update(
   std::vector<Node> newArgs{args[0], args[1]};
   for (size_t i = 2, size = args.size(); i < size; ++i)
   {
-
     newArgs.push_back(d_anc.convert(args[i]));
     changed |= newArgs.back() != args[i];
   }
@@ -2004,7 +2080,7 @@ bool AletheProofPostprocessNoSubtypeCallback::update(
 
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
                                                AletheNodeConverter& anc)
-  : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc), d_nst(d_pnm)
+    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc), d_nst(d_pnm)
 {
 }
 
@@ -2024,7 +2100,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   ProofNodeUpdater finalize(d_pnm, d_fcb, false, false);
   finalize.process(pf);
 
-  Trace("alethe-proof-subtyping")  << "\n--------------------------------\n";
+  Trace("alethe-proof-subtyping") << "\n--------------------------------\n";
   ProofNodeUpdater finalFinal(d_pnm, d_nst, false, false);
   finalFinal.process(pf->getChildren()[0]);
 }
