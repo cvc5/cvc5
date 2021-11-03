@@ -1392,7 +1392,38 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
-    //================================================= Quantifiers rules
+      //================================================= Quantifiers rules
+      // ======== Skolemize
+      // See proof_rule.h for documentation on the SKOLEMIZE rule. This
+      // comment uses variable names as introduced there.
+      //
+      // If the conclusion is of the form F*sigma = not G:
+      //
+      //  ------------------------------------------------ SKO_EX
+      //   (= (exists ((x1 T1) ... (xn Tn)) F) (F*sigma))
+      //
+      //  Then, apply the cvc5 rule EQ_RESOLVE to obtain F*sigma from this.
+      //
+      // Otherwise, if the child has the form (not (exist
+      {
+        if (res.getKind() != kind::NOT)
+        {
+          Node vp1 = nm->mkNode(
+              kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+          return addAletheStep(AletheRule::SKO_EX, vp1, vp1, {}, {}, *cdp)
+                 && cdp->addStep(
+                     res, PfRule::EQ_RESOLVE, {vp1, children[0]}, args);
+        }
+        Node vp1 = nm->mkNode(
+            kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0][0], res));
+        return addAletheStep(AletheRule::SKO_FORALL, vp1, vp1, {}, {}, *cdp)
+               && addAletheStep(AletheRule::RESOLUTION,
+                                res,
+                                nm->mkNode(kind::SEXPR, d_cl, res),
+                                {vp1, children[0]},
+                                {},
+                                *cdp);
+      }
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
     // comment uses variable names as introduced there.
