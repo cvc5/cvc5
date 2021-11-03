@@ -998,21 +998,20 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   }
   if (atom.getKind() == STRING_FROM_CODE)
   {
-    // str.from_code(t) --->
-    //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
+    SkolemCache* sc = d_termReg.getSkolemCache();
+    Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
     Node t = atom[0];
     Node card = nm->mkConst(Rational(d_termReg.getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
-    Node v = nm->mkBoundVar(nm->stringType());
     Node emp = Word::mkEmptyWord(atom.getType());
     Node pred = nm->mkNode(
-        ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, v)), v.eqNode(emp));
-    SkolemManager* sm = nm->getSkolemManager();
-    Node ret = sm->mkSkolem(v, pred, "kFromCode");
-    lems.push_back(SkolemLemma(ret, nullptr));
-    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+        ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp));
+    TrustNode tnk = TrustNode::mkTrustLemma(pred);
+    lems.push_back(SkolemLemma(tnk, k));
+    return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
   TrustNode ret;
   Node atomRet = atom;
