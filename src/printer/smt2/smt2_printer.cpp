@@ -332,13 +332,6 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-    case kind::CARDINALITY_CONSTRAINT:
-      out << "(_ fmf.card ";
-      out << n.getConst<CardinalityConstraint>().getType();
-      out << " ";
-      out << n.getConst<CardinalityConstraint>().getUpperBound();
-      out << ")";
-      break;
     case kind::EMPTYSET:
       out << "(as emptyset ";
       toStreamType(out, n.getConst<EmptySet>().getType());
@@ -817,6 +810,15 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SEP_NIL:
     out << "(as sep.nil " << n.getType() << ")";
     break;
+
+  // cardinality constraints.
+  case kind::CARDINALITY_CONSTRAINT:
+    out << "(_ fmf.card ";
+    out << n.getOperator().getConst<CardinalityConstraint>().getType();
+    out << " ";
+    out << n.getOperator().getConst<CardinalityConstraint>().getUpperBound();
+    out << ")";
+    return;
 
     // quantifiers
   case kind::FORALL:
