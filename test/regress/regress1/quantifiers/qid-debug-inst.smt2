@@ -1,7 +1,7 @@
 ; REQUIRES: no-competition
 ; COMMAND-LINE: -o inst --no-check-unsat-cores
-; EXPECT-ERROR: (num-instantiations myQuant1 1)
-; EXPECT-ERROR: (num-instantiations myQuant2 1)
+; EXPECT: (num-instantiations myQuant1 1)
+; EXPECT: (num-instantiations myQuant2 1)
 ; EXPECT: unsat
 
 (set-logic UFLIA)

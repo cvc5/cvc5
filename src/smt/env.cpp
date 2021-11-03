@@ -180,7 +180,7 @@ std::ostream& Env::output(options::OutputTag tag) const
 
 bool Env::isVerboseOn(int64_t level) const
 {
-  return d_options.base.verbosity >= level;
+  return !Configuration::isMuzzledBuild() && d_options.base.verbosity >= level;
 }
 
 std::ostream& Env::verbose(int64_t level) const
