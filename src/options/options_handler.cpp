@@ -159,7 +159,8 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
       WarningChannel.setStream(&std::cerr);
     }
   }
-  if(!Configuration::isMuzzledBuild()) {
+  if (!Configuration::isMuzzledBuild())
+  {
     if (value > 3)
     {
       // enable all output tags

@@ -396,7 +396,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     Result r = solChecker->checkSat();
     if (isOutputOn(OutputTag::SOLVER))
     {
-      outputMsg(OutputTag::SOLVER) << "SyGuS::checkSynthSolution: result is " << r;
+      outputMsg(OutputTag::SOLVER)
+          << "SyGuS::checkSynthSolution: result is " << r;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())

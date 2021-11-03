@@ -25,8 +25,8 @@
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
-#include "util/statistics_registry.h"
 #include "util/sexpr_msg_wrapper.h"
+#include "util/statistics_registry.h"
 
 namespace cvc5 {
 
