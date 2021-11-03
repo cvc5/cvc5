@@ -90,12 +90,12 @@ Node operator*(const Node& a, const Node& b)
 Node operator!(const Node& a) { return nodeManager->mkNode(Kind::NOT, a); }
 Node make_real_variable(const std::string& s)
 {
-  return nodeManager->mkSkolem(
+  return d_skolemManager->mkDummySkolem(
       s, nodeManager->realType(), "", SkolemManager::SKOLEM_EXACT_NAME);
 }
 Node make_int_variable(const std::string& s)
 {
-  return nodeManager->mkSkolem(
+  return d_skolemManager->mkDummySkolem(
       s, nodeManager->integerType(), "", SkolemManager::SKOLEM_EXACT_NAME);
 }
 
