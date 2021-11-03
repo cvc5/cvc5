@@ -234,17 +234,20 @@ std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
                                                                   TNode center,
                                                                   unsigned d)
 {
-  Assert(d_secant_points[e].find(d) != d_secant_points[e].end());
-  const auto& secant_points = d_secant_points[e].find(d)->second;
+  auto spit = d_secant_points[e].find(d);
+  if (spit == d_secant_points[e].end())
+  {
+    spit = d_secant_points[e].emplace(d, d_env.getUserContext()).first;
+  }
   // bounds are the minimum and maximum previous secant points
   // should not repeat secant points: secant lemmas should suffice to
   // rule out previous assignment
-  Assert(std::find(secant_points.begin(), secant_points.end(), center)
-         == secant_points.end());
+  Assert(std::find(spit->second.begin(), spit->second.end(), center)
+         == spit->second.end());
   // Insert into the (temporary) vector. We do not update this vector
   // until we are sure this secant plane lemma has been processed. We do
   // this by mapping the lemma to a side effect below.
-  std::vector<Node> spoints{secant_points.begin(), secant_points.end()};
+  std::vector<Node> spoints{spit->second.begin(), spit->second.end()};
   spoints.push_back(center);
 
   // sort
