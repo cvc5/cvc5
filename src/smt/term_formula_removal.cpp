@@ -439,7 +439,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           node,
           "btvK",
           "a Boolean term variable introduced during term formula removal",
-          NodeManager::SKOLEM_BOOL_TERM_VAR);
+          SkolemManager::SKOLEM_BOOL_TERM_VAR);
       d_skolem_cache.insert(node, skolem);
 
       // The new assertion
