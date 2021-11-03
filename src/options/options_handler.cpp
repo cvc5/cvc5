@@ -161,6 +161,7 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
   }
   if (!Configuration::isMuzzledBuild())
   {
+    d_options->base.outputTagHolder.reset();
     if (value > 3)
     {
       // enable all output tags

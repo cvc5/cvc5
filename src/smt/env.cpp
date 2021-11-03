@@ -160,7 +160,7 @@ std::ostream& Env::getOutput(options::OutputTag tag) const
 {
   if (isOutputOn(tag))
   {
-    return *d_options.base.err;
+    return *d_options.base.out;
   }
   return cvc5::null_os;
 }
@@ -169,14 +169,27 @@ std::ostream& Env::getOutput(const std::string& tag) const
   return getOutput(options::stringToOutputTag(tag));
 }
 
-std::ostream& Env::outputRaw(options::OutputTag tag) const
+std::ostream& Env::output(options::OutputTag tag) const
 {
-  return getOutput(tag);
+  if (isOutputOn(tag))
+  {
+    return *d_options.base.out;
+  }
+  return cvc5::null_os;
 }
 
-SExprMsgWrapper Env::outputMsg(options::OutputTag tag) const
+bool Env::isVerboseOn(int64_t level) const
 {
-  return SExprMsgWrapper{getOutput(tag), tag};
+  return d_options.base.verbosity >= level;
+}
+
+std::ostream& Env::verbose(int64_t level) const
+{
+  if (isVerboseOn(level))
+  {
+    return *d_options.base.err;
+  }
+  return cvc5::null_os;
 }
 
 Node Env::evaluate(TNode n,

@@ -64,8 +64,6 @@ libcvc5_add_sources(
   sampler.h
   sexpr.cpp
   sexpr.h
-  sexpr_msg_wrapper.cpp
-  sexpr_msg_wrapper.h
   smt2_quote_string.cpp
   smt2_quote_string.h
   statistics_public.cpp

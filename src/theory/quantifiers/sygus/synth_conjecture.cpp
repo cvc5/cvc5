@@ -518,7 +518,7 @@ bool SynthConjecture::doCheck()
   // print the candidate solution for debugging
   if (constructed_cand && printDebug)
   {
-    std::ostream& out = outputRaw(OutputTag::SYGUS);
+    std::ostream& out = output(OutputTag::SYGUS);
     out << "(sygus-candidate ";
     Assert(d_quant[0].getNumChildren() == candidate_values.size());
     for (size_t i = 0, ncands = candidate_values.size(); i < ncands; i++)

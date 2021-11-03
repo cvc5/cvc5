@@ -22,8 +22,6 @@
 #include <memory>
 
 #include "expr/node.h"
-#include "util/sexpr_msg_wrapper.h"
-
 namespace cvc5 {
 
 class Env;
@@ -36,6 +34,10 @@ namespace context {
 class Context;
 class UserContext;
 }  // namespace context
+namespace options {
+enum class OutputTag;
+}
+using OutputTag = options::OutputTag;
 
 class EnvObj
 {
@@ -92,11 +94,14 @@ class EnvObj
   /** Convenience wrapper for Env::isOutputOn(). */
   bool isOutputOn(options::OutputTag tag) const;
 
-  /** Convenience wrapper for Env::outputRaw(). */
-  std::ostream& outputRaw(options::OutputTag tag) const;
+  /** Convenience wrapper for Env::output(). */
+  std::ostream& output(options::OutputTag tag) const;
 
-  /** Convenience wrapper for Env::outputMsg(). */
-  SExprMsgWrapper outputMsg(options::OutputTag tag) const;
+  /** Convenience wrapper for Env::isVerboseOn(). */
+  bool isVerboseOn(int64_t level) const;
+
+  /** Convenience wrapper for Env::verbose(). */
+  std::ostream& verbose(int64_t) const;
 
   /** The associated environment. */
   Env& d_env;

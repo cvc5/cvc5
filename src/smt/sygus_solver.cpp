@@ -257,9 +257,9 @@ void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  if (isOutputOn(OutputTag::SOLVER))
+  if (isVerboseOn(1))
   {
-    outputMsg(OutputTag::SOLVER)
+    verbose(1)
         << "SyGuS::checkSynthSolution: checking synthesis solution";
   }
   std::map<Node, std::map<Node, Node>> sol_map;
@@ -311,17 +311,17 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   std::unordered_map<Node, Node> cache;
   for (const Node& assertion : alist)
   {
-    if (isOutputOn(OutputTag::SOLVER))
+    if (isVerboseOn(1))
     {
-      outputMsg(OutputTag::SOLVER)
+      verbose(1)
           << "SyGuS::checkSynthSolution: checking assertion " << assertion;
     }
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
     Node n = d_smtSolver.getPreprocessor()->expandDefinitions(assertion, cache);
-    if (isOutputOn(OutputTag::SOLVER))
+    if (isVerboseOn(1))
     {
-      outputMsg(OutputTag::SOLVER)
+      verbose(1)
           << "SyGuS::checkSynthSolution: -- expands to " << n;
     }
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
@@ -374,9 +374,9 @@ void SygusSolver::checkSynthSolution(Assertions& as)
           vars.begin(), vars.end(), skos.begin(), skos.end());
     }
 
-    if (isOutputOn(OutputTag::SOLVER))
+    if (isVerboseOn(1))
     {
-      outputMsg(OutputTag::SOLVER)
+      verbose(1)
           << "SyGuS::checkSynthSolution: -- body substitutes to " << conjBody;
     }
     Trace("check-synth-sol")
@@ -394,9 +394,9 @@ void SygusSolver::checkSynthSolution(Assertions& as)
       solChecker->assertFormula(ar);
     }
     Result r = solChecker->checkSat();
-    if (isOutputOn(OutputTag::SOLVER))
+    if (isVerboseOn(1))
     {
-      outputMsg(OutputTag::SOLVER)
+      verbose(1)
           << "SyGuS::checkSynthSolution: result is " << r;
     }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";

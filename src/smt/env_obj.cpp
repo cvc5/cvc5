@@ -75,14 +75,19 @@ bool EnvObj::isOutputOn(options::OutputTag tag) const
   return d_env.isOutputOn(tag);
 }
 
-std::ostream& EnvObj::outputRaw(options::OutputTag tag) const
+std::ostream& EnvObj::output(options::OutputTag tag) const
 {
-  return d_env.outputRaw(tag);
+  return d_env.output(tag);
 }
 
-SExprMsgWrapper EnvObj::outputMsg(options::OutputTag tag) const
+bool EnvObj::isVerboseOn(int64_t level) const
 {
-  return d_env.outputMsg(tag);
+  return d_env.isVerboseOn(level);
+}
+
+std::ostream& EnvObj::verbose(int64_t level) const
+{
+  return d_env.verbose(level);
 }
 
 }  // namespace cvc5
