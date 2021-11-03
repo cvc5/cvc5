@@ -26,7 +26,7 @@ using namespace cvc5::api;
  */
 JNIEXPORT void JNICALL
 Java_io_github_cvc5_api_DatatypeConstructor_deletePointer(JNIEnv*,
-                                                          jclass,
+                                                          jobject,
                                                           jlong pointer)
 {
   delete ((DatatypeConstructor*)pointer);

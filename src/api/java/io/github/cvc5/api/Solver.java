@@ -18,9 +18,9 @@ package io.github.cvc5.api;
 import java.io.IOException;
 import java.util.*;
 
-public class Solver implements IPointer
+public class Solver implements IPointer, AutoCloseable
 {
-  private final long pointer;
+  private long pointer;
 
   public long getPointer()
   {
@@ -31,14 +31,32 @@ public class Solver implements IPointer
 
   public void deletePointer()
   {
-    deletePointer(pointer);
+    if (pointer != 0)
+    {
+      deletePointer(pointer);
+    }
+    pointer = 0;
   }
 
   private static native void deletePointer(long pointer);
 
-  @Override public void finalize()
+  // store pointers for terms, sorts, etc
+  List<AbstractPointer> abstractPointers = new ArrayList<>();
+
+  @Override public void close()
   {
-    deletePointer(pointer);
+    // delete heap memory for terms, sorts, etc
+    for (int i = abstractPointers.size() - 1; i >= 0; i--)
+    {
+      abstractPointers.get(i).deletePointer();
+    }
+    // delete the heap memory for this solver
+    deletePointer();
+  }
+
+  void addAbstractPointer(AbstractPointer abstractPointer)
+  {
+    abstractPointers.add(abstractPointer);
   }
 
   static

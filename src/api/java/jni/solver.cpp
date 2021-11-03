@@ -1679,15 +1679,14 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareSort(
  * Signature: (JLjava/lang/String;[JJJZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_defineFun__JLjava_lang_String_2_3JJJZ(
-    JNIEnv* env,
-    jobject,
-    jlong pointer,
-    jstring jSymbol,
-    jlongArray jVars,
-    jlong sortPointer,
-    jlong termPointer,
-    jboolean global)
+Java_io_github_cvc5_api_Solver_defineFun(JNIEnv* env,
+                                         jobject,
+                                         jlong pointer,
+                                         jstring jSymbol,
+                                         jlongArray jVars,
+                                         jlong sortPointer,
+                                         jlong termPointer,
+                                         jboolean global)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);

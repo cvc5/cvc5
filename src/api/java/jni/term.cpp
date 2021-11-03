@@ -25,7 +25,7 @@ using namespace cvc5::api;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_api_Term_deletePointer(JNIEnv* env,
-                                                                  jclass,
+                                                                  jobject,
                                                                   jlong pointer)
 {
   delete reinterpret_cast<Term*>(pointer);

@@ -39,6 +39,11 @@ class TermTest
     d_solver = new Solver();
   }
 
+  @AfterEach void tearDown()
+  {
+    d_solver.close();
+  }
+
   @Test void eq()
   {
     Sort uSort = d_solver.mkUninterpretedSort("u");
