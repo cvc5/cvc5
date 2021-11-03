@@ -61,7 +61,7 @@ class SkolemCache
    *
    * Notice that these identifiers are each syntax sugar for constructing a
    * purification skolem. It is required for the purposes of proof checking
-   * that this only result in calls to SkolemManager::mkPurifySkolem.
+   * that this only results in calls to SkolemManager::mkPurifySkolem.
    */
   enum SkolemId
   {
