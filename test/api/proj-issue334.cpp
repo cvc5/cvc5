@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Test for project issue #306
+ * Test for project issue #334
  *
  */
 
@@ -21,17 +21,16 @@ using namespace cvc5::api;
 int main(void)
 {
   Solver slv;
-  slv.setOption("check-proofs", "true");
-  slv.setOption("proof-check", "eager");
-  Sort s1 = slv.getBooleanSort();
-  Sort s3 = slv.getStringSort();
-  Term t1 = slv.mkConst(s3, "_x0");
-  Term t3 = slv.mkConst(s1, "_x2");
-  Term t11 = slv.mkString("");
-  Term t14 = slv.mkConst(s3, "_x11");
-  Term t42 = slv.mkTerm(Kind::ITE, t3, t14, t1);
-  Term t58 = slv.mkTerm(Kind::STRING_LEQ, t14, t11);
-  Term t95 = slv.mkTerm(Kind::EQUAL, t14, t42);
-  slv.assertFormula(t95);
-  slv.checkSatAssuming({t58});
+  slv.setOption("produce-unsat-cores", "true");
+  Sort s1 = slv.mkBitVectorSort(1);
+  Sort s2 = slv.mkFloatingPointSort(8, 24);
+  Term val = slv.mkBitVector(32, "10000000110010111010111011000101", 2);
+  Term t1 = slv.mkFloatingPoint(8, 24, val);
+  Term t2 = slv.mkConst(s1);
+  Term t4 = slv.mkTerm(Kind::BITVECTOR_TO_NAT, t2);
+  Term t5 = slv.mkTerm(Kind::STRING_FROM_CODE, t4);
+  Term t6 = slv.simplify(t5);
+  Term t7 = slv.mkTerm(Kind::STRING_LEQ, t5, t6);
+  slv.assertFormula(t7);
+  slv.simplify(t1);
 }
