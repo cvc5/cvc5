@@ -22,6 +22,7 @@
 #include <map>
 #include <vector>
 
+#include "smt/env_obj.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
@@ -58,10 +59,10 @@ class TermDbSygus;
  * Utility for constructing datatypes that correspond to syntactic restrictions,
  * and applying the deep embedding from Section 4 of Reynolds et al CAV 2015.
  */
-class CegGrammarConstructor
+class CegGrammarConstructor : protected EnvObj
 {
 public:
- CegGrammarConstructor(TermDbSygus* tds, SynthConjecture* p);
+ CegGrammarConstructor(Env& env, TermDbSygus* tds, SynthConjecture* p);
  ~CegGrammarConstructor() {}
  /** process
   *
