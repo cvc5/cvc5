@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-bv-eq-solver
 ; EXPECT: sat
 (set-logic QF_ALL)
 (declare-fun x () (_ BitVec 1))

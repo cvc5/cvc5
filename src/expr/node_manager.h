@@ -72,8 +72,6 @@ class NodeManagerListener {
   {
   }
   virtual void nmNotifyNewVar(TNode n) {}
-  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment,
-                                 uint32_t flags) {}
   /**
    * Notify a listener of a Node that's being GCed.  If this function stores a
    * reference
@@ -205,20 +203,11 @@ class NodeManager
 
   /**
    * Keep a count of all abstract values produced by this NodeManager.
-   * Abstract values have a type attribute, so if multiple SmtEngines
+   * Abstract values have a type attribute, so if multiple SolverEngines
    * are attached to this NodeManager, we don't want their abstract
    * values to overlap.
    */
   unsigned d_abstractValueCount;
-
-  /**
-   * A counter used to produce unique skolem names.
-   *
-   * Note that it is NOT incremented when skolems are created using
-   * SKOLEM_EXACT_NAME, so it is NOT a count of the skolems produced
-   * by this node manager.
-   */
-  unsigned d_skolemCounter;
 
   /**
    * Look up a NodeValue in the pool associated to this NodeManager.
@@ -364,19 +353,6 @@ class NodeManager
 
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type);
-
-  /**
-   * Create a skolem constant with the given name, type, and comment. For
-   * details, see SkolemManager::mkDummySkolem, which calls this method.
-   *
-   * This method is intentionally private. To create skolems, one should
-   * call a method from SkolemManager for allocating a skolem in a standard
-   * way, or otherwise use SkolemManager::mkDummySkolem.
-   */
-  Node mkSkolem(const std::string& prefix,
-                const TypeNode& type,
-                const std::string& comment = "",
-                int flags = SKOLEM_DEFAULT);
 
  public:
   /**
@@ -555,26 +531,8 @@ class NodeManager
    */
   Node mkChain(Kind kind, const std::vector<Node>& children);
 
-  /**
-   * Optional flags used to control behavior of NodeManager::mkSkolem().
-   * They should be composed with a bitwise OR (e.g.,
-   * "SKOLEM_NO_NOTIFY | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
-   * cannot be composed in such a manner.
-   */
-  enum SkolemFlags
-  {
-    SKOLEM_DEFAULT = 0,    /**< default behavior */
-    SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
-    SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
-    SKOLEM_IS_GLOBAL = 4,  /**< global vars appear in models even after a pop */
-    SKOLEM_BOOL_TERM_VAR = 8 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
-  };                         /* enum SkolemFlags */
-
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
-
-  /** Create a boolean term variable. */
-  Node mkBooleanTermVariable();
 
   /** Make a new abstract value with the given type. */
   Node mkAbstractValue(const TypeNode& type);

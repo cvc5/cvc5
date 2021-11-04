@@ -53,7 +53,7 @@ class PreprocessProofGenerator;
 class Preprocessor : protected EnvObj
 {
  public:
-  Preprocessor(Env& env, AbstractValues& abs, SmtEngineStatistics& stats);
+  Preprocessor(Env& env, AbstractValues& abs, SolverEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization

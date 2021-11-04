@@ -38,13 +38,7 @@ add_library(main OBJECT ${libmain_src_files} ${libmain_gen_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC5DRIVER)
 set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-if(ENABLE_STATIC_BINARY)
-  target_link_libraries(main PUBLIC cvc5-static cvc5parser-static)
-else()
-  target_link_libraries(main PUBLIC cvc5-shared cvc5parser-shared)
-endif()
-
-add_dependencies(main gen-tokens)
+add_dependencies(main gen-tokens cvc5-obj)
 
 # main-test library is only used for linking against api and unit tests so
 # that we don't have to include all object files of main into each api/unit
@@ -62,8 +56,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # cvc5 binary configuration
 
-add_executable(cvc5-bin driver_unified.cpp main.cpp)
-target_link_libraries(cvc5-bin PRIVATE main)
+add_executable(cvc5-bin driver_unified.cpp main.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(cvc5-bin PRIVATE -D__BUILDING_CVC5DRIVER)
 set_target_properties(cvc5-bin
   PROPERTIES
@@ -83,13 +76,16 @@ endif()
 # use the static system libraries.
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_START_STATIC.html
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_END_STATIC.html
-if(ENABLE_STATIC_BINARY)
+if(ENABLE_STATIC_BUILD)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_target_properties(cvc5-bin PROPERTIES LINK_FLAGS -static)
     set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
     set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
   endif()
   set_target_properties(cvc5-bin PROPERTIES INSTALL_RPATH "")
+  target_link_libraries(cvc5-bin PUBLIC cvc5-static cvc5parser-static)
+else()
+  target_link_libraries(cvc5-bin PUBLIC cvc5-shared cvc5parser-shared)
 endif()
 
 if(USE_EDITLINE)

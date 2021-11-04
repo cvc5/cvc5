@@ -68,7 +68,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_abstractionMap(userContext()),
       d_rewriter(userContext()),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm, "theory::fp::", true),
+      d_im(env, *this, d_state, "theory::fp::", true),
       d_wbFactsCache(userContext()),
       d_true(d_env.getNodeManager()->mkConst(true))
 {
@@ -476,20 +476,13 @@ void TheoryFp::registerTerm(TNode node)
 {
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
-  if (isRegistered(node))
-  {
-    return;
-  }
-
   Kind k = node.getKind();
   Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC && k != kind::FLOATINGPOINT_SUB
          && k != kind::FLOATINGPOINT_EQ && k != kind::FLOATINGPOINT_GEQ
          && k != kind::FLOATINGPOINT_GT);
 
-  CVC5_UNUSED bool success = d_registeredTerms.insert(node);
-  Assert(success);
-
-  // Add to the equality engine
+  // Add to the equality engine, always. This is required to ensure
+  // getEqualityStatus works as expected when theory combination is enabled.
   if (k == kind::EQUAL)
   {
     d_equalityEngine->addTriggerPredicate(node);
@@ -498,6 +491,15 @@ void TheoryFp::registerTerm(TNode node)
   {
     d_equalityEngine->addTerm(node);
   }
+
+  // if not registered in this user context
+  if (isRegistered(node))
+  {
+    return;
+  }
+
+  CVC5_UNUSED bool success = d_registeredTerms.insert(node);
+  Assert(success);
 
   // Give the expansion of classifications in terms of equalities
   // This should make equality reasoning slightly more powerful.

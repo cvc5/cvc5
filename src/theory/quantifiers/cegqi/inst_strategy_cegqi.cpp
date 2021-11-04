@@ -40,10 +40,8 @@ InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
 {
 }
 
-TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
-                                                  std::vector<Node>& terms,
-                                                  Node inst,
-                                                  bool doVts)
+TrustNode InstRewriterCegqi::rewriteInstantiation(
+    Node q, const std::vector<Node>& terms, Node inst, bool doVts)
 {
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
@@ -65,12 +63,12 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_small_const(d_small_const_multiplier)
 {
   d_check_vts_lemma_lc = false;
-  if (options::cegqiBv())
+  if (options().quantifiers.cegqiBv)
   {
     // if doing instantiation for BV, need the inverter class
     d_bv_invert.reset(new BvInverter);
   }
-  if (options::cegqiNestedQE())
+  if (options().quantifiers.cegqiNestedQE)
   {
     d_nestedQe.reset(new NestedQe(d_env));
   }
@@ -227,7 +225,8 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
   }
 
   //refinement: only consider innermost active quantified formulas
-  if( options::cegqiInnermost() ){
+  if (options().quantifiers.cegqiInnermost)
+  {
     if( !d_children_quant.empty() && !d_active_quant.empty() ){
       Trace("cegqi-debug") << "Find non-innermost quantifiers..." << std::endl;
       std::vector< Node > ninner;
@@ -299,10 +298,14 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
 
 bool InstStrategyCegqi::checkComplete(IncompleteId& incId)
 {
-  if( ( !options::cegqiSat() && d_cbqi_set_quant_inactive ) || d_incomplete_check ){
+  if ((!options().quantifiers.cegqiSat && d_cbqi_set_quant_inactive)
+      || d_incomplete_check)
+  {
     incId = IncompleteId::QUANTIFIERS_CEGQI;
     return false;
-  }else{
+  }
+  else
+  {
     return true;
   }
 }
@@ -344,10 +347,8 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
     }
   }
 }
-TrustNode InstStrategyCegqi::rewriteInstantiation(Node q,
-                                                  std::vector<Node>& terms,
-                                                  Node inst,
-                                                  bool doVts)
+TrustNode InstStrategyCegqi::rewriteInstantiation(
+    Node q, const std::vector<Node>& terms, Node inst, bool doVts)
 {
   Node prevInst = inst;
   if (doVts)

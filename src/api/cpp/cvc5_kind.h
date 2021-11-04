@@ -43,7 +43,7 @@ namespace api {
  * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
  * bits, see expr/node_value.h).
  */
-enum CVC5_EXPORT Kind : int32_t
+enum Kind : int32_t
 {
   /**
    * Internal kind.
@@ -331,22 +331,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   CARDINALITY_CONSTRAINT,
-  /**
-   * Cardinality value for uninterpreted sort S.
-   * An operator that returns an integer indicating the value of the cardinality
-   * of sort S.
-   *
-   * Parameters:
-   *   - 1: Term of sort S
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  CARDINALITY_VALUE,
 #if 0
-  /* Combined cardinality constraint.  */
-  COMBINED_CARDINALITY_CONSTRAINT,
   /* Partial uninterpreted function application.  */
   PARTIAL_APPLY_UF,
 #endif
@@ -392,7 +377,12 @@ enum CVC5_EXPORT Kind : int32_t
    */
   MULT,
   /**
-   * Operator for Integer AND
+   * Operator for bit-wise AND over integers, parameterized by a (positive)
+   * bitwidth k.
+   *
+   * ((_ iand k) i1 i2) is equivalent to:
+   * (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
+   * for all integers i1, i2.
    *
    * Parameters:
    *   - 1: Size of the bit-vector that determines the semantics of the IAND
@@ -400,8 +390,8 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
    *
-   * Apply integer conversion to bit-vector.
-
+   * Apply integer and.
+   *
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
@@ -413,15 +403,16 @@ enum CVC5_EXPORT Kind : int32_t
    */
   IAND,
   /**
-   * Operator for raising 2 to a non-negative integer  power
+   * Operator for raising 2 to a non-negative integer power.
    *
    * Create with:
    *   - `Solver::mkOp(Kind kind) const`
    *
-
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
+   *
+   * Apply 2 to the power operator.
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
@@ -765,6 +756,9 @@ enum CVC5_EXPORT Kind : int32_t
   TO_REAL,
   /**
    * Pi constant.
+   *
+   * Note that PI is considered a special symbol of sort Real, but is not
+   * a real value, i.e., `Term::isRealValue() const` will return false.
    *
    * Create with:
    *   - `Solver::mkPi() const`
@@ -2227,6 +2221,10 @@ enum CVC5_EXPORT Kind : int32_t
   /**
    * Finite universe set.
    * All set variables must be interpreted as subsets of it.
+   *
+   * Note that UNIVERSE_SET is considered a special symbol of the theory of
+   * sets and is not considered as a set value,
+   * i.e., `Term::isSetValue() const` will return false.
    *
    * Create with:
    *   - `Solver::mkUniverseSet(const Sort& sort) const`

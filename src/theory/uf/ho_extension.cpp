@@ -43,13 +43,16 @@ HoExtension::HoExtension(Env& env,
 Node HoExtension::ppRewrite(Node node)
 {
   // convert HO_APPLY to APPLY_UF if fully applied
-  if (node[0].getType().getNumChildren() == 2)
+  if (node.getKind() == HO_APPLY)
   {
-    Trace("uf-ho") << "uf-ho : expanding definition : " << node << std::endl;
-    Node ret = getApplyUfForHoApply(node);
-    Trace("uf-ho") << "uf-ho : ppRewrite : " << node << " to " << ret
-                   << std::endl;
-    return ret;
+    if (node[0].getType().getNumChildren() == 2)
+    {
+      Trace("uf-ho") << "uf-ho : expanding definition : " << node << std::endl;
+      Node ret = getApplyUfForHoApply(node);
+      Trace("uf-ho") << "uf-ho : ppRewrite : " << node << " to " << ret
+                     << std::endl;
+      return ret;
+    }
   }
   return node;
 }
@@ -197,7 +200,11 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
 unsigned HoExtension::checkExtensionality(TheoryModel* m)
 {
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  // if we are in collect model info, we require looking at the model's
+  // equality engine, so that we only consider "relevant" (see
+  // Theory::computeRelevantTerms) function terms.
+  eq::EqualityEngine* ee =
+      m != nullptr ? m->getEqualityEngine() : d_state.getEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
   unsigned num_lemmas = 0;
   bool isCollectModel = (m != nullptr);
@@ -244,8 +251,13 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       for (unsigned k = (j + 1), sizek = itf->second.size(); k < sizek; k++)
       {
         // if these equivalence classes are not explicitly disequal, do
-        // extensionality to ensure distinctness
-        if (!ee->areDisequal(itf->second[j], itf->second[k], false))
+        // extensionality to ensure distinctness. Notice that we always use
+        // the (local) equality engine for this check via the state, since the
+        // model's equality engine does not store any disequalities. This is
+        // an optimization to introduce fewer equalities during model
+        // construction, since we know such disequalities have already been
+        // witness via assertions.
+        if (!d_state.areDisequal(itf->second[j], itf->second[k]))
         {
           Node deq =
               Rewriter::rewrite(itf->second[j].eqNode(itf->second[k]).negate());
@@ -447,6 +459,11 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
       return false;
     }
   }
+  // We apply an explicit extensionality technique for asserting
+  // disequalities to the model to ensure that function values are distinct
+  // in the curried HO_APPLY version of model construction. This is a
+  // non-standard alternative to using a type enumerator over function
+  // values to assign unique values.
   int addedLemmas = checkExtensionality(m);
   return addedLemmas == 0;
 }

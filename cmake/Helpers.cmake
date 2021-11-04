@@ -49,8 +49,8 @@ endmacro()
 # Check if C flag is supported and add to global list of C flags.
 macro(add_check_c_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
-  check_c_compiler_flag("${flag}" HAVE_FLAG${flagname})
-  if(HAVE_FLAG${flagname})
+  check_c_compiler_flag("${flag}" HAVE_C_FLAG${flagname})
+  if(HAVE_C_FLAG${flagname})
     add_c_flag(${flag})
   endif()
 endmacro()
@@ -58,8 +58,8 @@ endmacro()
 # Check if CXX flag is supported and add to global list of CXX flags.
 macro(add_check_cxx_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
-  check_cxx_compiler_flag("${flag}" HAVE_FLAG${flagname})
-  if(HAVE_FLAG${flagname})
+  check_cxx_compiler_flag("${flag}" HAVE_CXX_FLAG${flagname})
+  if(HAVE_CXX_FLAG${flagname})
     add_cxx_flag(${flag})
   endif()
 endmacro()
@@ -70,12 +70,47 @@ macro(add_check_c_cxx_flag flag)
   add_check_cxx_flag(${flag})
 endmacro()
 
+# Check if C warning suppression flag is supported and add to global list of C
+# flags.
+macro(add_check_c_supression_flag supression_flag)
+  # Obtain the non-supression warning flag name
+  string(REGEX REPLACE "^-Wno-" "-W" warning_flag ${supression_flag})
+  string(REGEX REPLACE "[-=]" "_" warning_flagname ${warning_flag})
+  # Check if we have the warning flag
+  check_c_compiler_flag("${warning_flag}" HAVE_C_FLAG${warning_flagname})
+  # Only add the supression flag if we have the warning flag
+  if(HAVE_C_FLAG${warning_flagname})
+    add_c_flag(${supression_flag})
+  endif()
+endmacro()
+
+# Check if CXX warning suppression flag is supported and add to global list of
+# CXX flags.
+macro(add_check_cxx_supression_flag supression_flag)
+  # Obtain the non-supression warning flag name
+  string(REGEX REPLACE "^-Wno-" "-W" warning_flag ${supression_flag})
+  string(REGEX REPLACE "[-=]" "_" warning_flagname ${warning_flag})
+  # Check if we have the warning flag
+  check_cxx_compiler_flag("${warning_flag}" HAVE_CXX_FLAG${warning_flagname})
+  # Only add the supression flag if we have the warning flag
+  if(HAVE_CXX_FLAG${warning_flagname})
+    add_cxx_flag(${supression_flag})
+  endif()
+endmacro()
+
+# Check if C/CXX warning supression flag is supported and add to global list of
+# C/CXX flags.
+macro(add_check_c_cxx_supression_flag supression_flag)
+  add_check_c_supression_flag(${supression_flag})
+  add_check_cxx_supression_flag(${supression_flag})
+endmacro()
+
 # Add required CXX flag. Configuration fails if the CXX flag is not supported
 # by the compiler.
 macro(add_required_cxx_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagnamename ${flag})
-  check_cxx_compiler_flag("${flag}" HAVE_FLAG${flagname})
-  if (NOT HAVE_FLAG${flagname})
+  check_cxx_compiler_flag("${flag}" HAVE_C_FLAG${flagname})
+  if (NOT HAVE_C_FLAG${flagname})
     message(FATAL_ERROR "Required compiler flag ${flag} not supported")
   endif()
   add_cxx_flag(${flag})
@@ -85,8 +120,8 @@ endmacro()
 # the compiler.
 macro(add_required_c_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
-  check_c_compiler_flag("${flag}" HAVE_FLAG${flagname})
-  if (NOT HAVE_FLAG${flagname})
+  check_c_compiler_flag("${flag}" HAVE_CXX_FLAG${flagname})
+  if (NOT HAVE_CXX_FLAG${flagname})
     message(FATAL_ERROR "Required compiler flag ${flag} not supported")
   endif()
   add_c_flag(${flag})

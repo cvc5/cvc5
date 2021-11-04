@@ -40,6 +40,7 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_produceAssertions(false),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
+      d_globalDefineFunLemmasIndex(userContext(), 0),
       d_globalNegation(false),
       d_assertions()
 {
@@ -49,13 +50,29 @@ Assertions::~Assertions()
 {
 }
 
+void Assertions::refresh()
+{
+  if (d_globalDefineFunLemmas != nullptr)
+  {
+    // Global definitions are asserted now to ensure they always exist. This is
+    // done at the beginning of preprocessing, to ensure that definitions take
+    // priority over, e.g. solving during preprocessing. See issue #7479.
+    size_t numGlobalDefs = d_globalDefineFunLemmas->size();
+    for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
+    {
+      addFormula((*d_globalDefineFunLemmas)[i], false, true, false);
+    }
+    d_globalDefineFunLemmasIndex = numGlobalDefs;
+  }
+}
+
 void Assertions::finishInit()
 {
   // [MGD 10/20/2011] keep around in incremental mode, due to a
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
   // first, some user-context-dependent TNodes might still exist
   // with rc == 0.
-  if (options::produceAssertions() || options::incrementalSolving())
+  if (options().smt.produceAssertions || options().base.incrementalSolving)
   {
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
@@ -107,22 +124,12 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     ensureBoolean(n);
     addFormula(n, true, false, false);
   }
-  if (d_globalDefineFunLemmas != nullptr)
-  {
-    // Global definitions are asserted at check-sat-time because we have to
-    // make sure that they are always present (they are essentially level
-    // zero assertions)
-    for (const Node& lemma : *d_globalDefineFunLemmas)
-    {
-      addFormula(lemma, false, true, false);
-    }
-  }
 }
 
 void Assertions::assertFormula(const Node& n)
 {
   ensureBoolean(n);
-  bool maybeHasFv = language::isLangSygus(options::inputLanguage());
+  bool maybeHasFv = language::isLangSygus(options().base.inputLanguage);
   addFormula(n, false, false, maybeHasFv);
 }
 
@@ -193,7 +200,7 @@ void Assertions::addFormula(TNode n,
       else
       {
         se << "Cannot process assertion with free variable.";
-        if (language::isLangSygus(options::inputLanguage()))
+        if (language::isLangSygus(options().base.inputLanguage))
         {
           // Common misuse of SyGuS is to use top-level assert instead of
           // constraint when defining the synthesis conjecture.
@@ -215,7 +222,7 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
   {
     // Global definitions are asserted at check-sat-time because we have to
     // make sure that they are always present
-    Assert(!language::isLangSygus(options::inputLanguage()));
+    Assert(!language::isLangSygus(options().base.inputLanguage));
     d_globalDefineFunLemmas->emplace_back(n);
   }
   else
@@ -223,14 +230,14 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
     // We don't permit functions-to-synthesize within recursive function
     // definitions currently. Thus, we should check for free variables if the
     // input language is SyGuS.
-    bool maybeHasFv = language::isLangSygus(options::inputLanguage());
+    bool maybeHasFv = language::isLangSygus(options().base.inputLanguage);
     addFormula(n, false, true, maybeHasFv);
   }
 }
 
 void Assertions::ensureBoolean(const Node& n)
 {
-  TypeNode type = n.getType(options::typeChecking());
+  TypeNode type = n.getType(options().expr.typeChecking);
   if (!type.isBoolean())
   {
     std::stringstream ss;

@@ -224,7 +224,7 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
     {
       Trace("model-builder-debug") << "  ...matches with " << eqc << " -> "
                                    << eqc_m << std::endl;
-      if (eqc_m.getKind() == kind::UNINTERPRETED_CONSTANT)
+      if (eqc_m.getKind() == kind::CODATATYPE_BOUND_VARIABLE)
       {
         Trace("model-builder-debug") << "*** " << val
                                      << " is excluded datatype for " << eqc
@@ -452,7 +452,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   for (; !eqcs_i.isFinished(); ++eqcs_i)
   {
     Node eqc = *eqcs_i;
-
+    Trace("model-builder") << "  Processing EQC " << eqc << std::endl;
     // Information computed for each equivalence class
 
     // The assigned represenative and constant representative
@@ -484,7 +484,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
-      Trace("model-builder") << "  Processing Term: " << n << endl;
+      Trace("model-builder") << "    Processing Term: " << n << endl;
 
       // For each term n in this equivalence class, below we register its
       // assignable subterms, compute whether it is a constant or assigned
@@ -505,7 +505,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         Assert(constRep.isNull());
         constRep = n;
         Trace("model-builder")
-            << "  ConstRep( " << eqc << " ) = " << constRep << std::endl;
+            << "    ..ConstRep( " << eqc << " ) = " << constRep << std::endl;
         // if we have a constant representative, nothing else matters
         continue;
       }
@@ -522,7 +522,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         // these cases here.
         rep = itm->second;
         Trace("model-builder")
-            << "  Rep( " << eqc << " ) = " << rep << std::endl;
+            << "    ..Rep( " << eqc << " ) = " << rep << std::endl;
       }
 
       // (3) Finally, process assignable information
@@ -567,7 +567,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     // finished traversing the equality engine
     TypeNode eqct = eqc.getType();
     // count the number of equivalence classes of sorts in finite model finding
-    if (options::finiteModelFind())
+    if (options().quantifiers.finiteModelFind)
     {
       if (eqct.isSort())
       {
@@ -660,7 +660,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   // then the type enumerator for list of U should enumerate:
   //   nil, (cons U1 nil), (cons U2 nil), (cons U1 (cons U1 nil)), ...
   // instead of enumerating (cons U3 nil).
-  if (options::finiteModelFind())
+  if (options().quantifiers.finiteModelFind)
   {
     tep.d_fixed_usort_card = true;
     for (std::map<TypeNode, unsigned>::iterator it = eqc_usort_count.begin();
@@ -847,7 +847,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       }
 #ifdef CVC5_ASSERTIONS
       bool isUSortFiniteRestricted = false;
-      if (options::finiteModelFind())
+      if (options().quantifiers.finiteModelFind)
       {
         isUSortFiniteRestricted = !t.isSort() && involvesUSort(t);
       }
@@ -1080,7 +1080,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, TheoryModel* m)
   }
   Assert(m != nullptr);
   // debug-check the model if the checkModels() is enabled.
-  if (options::debugCheckModels())
+  if (options().smt.debugCheckModels)
   {
     debugCheckModel(m);
   }
@@ -1258,7 +1258,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     default_v = (*te);
   }
   ufmt.setDefaultValue(m, default_v);
-  bool condenseFuncValues = options::condenseFunctionValues();
+  bool condenseFuncValues = options().theory.condenseFunctionValues;
   if (condenseFuncValues)
   {
     ufmt.simplify();
@@ -1389,7 +1389,7 @@ struct sortTypeSize
 
 void TheoryEngineModelBuilder::assignFunctions(TheoryModel* m)
 {
-  if (!options::assignFunctionValues())
+  if (!options().theory.assignFunctionValues)
   {
     return;
   }

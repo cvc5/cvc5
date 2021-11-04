@@ -41,6 +41,7 @@
 #include "base/modal_exception.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
@@ -131,7 +132,6 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     /* UF ------------------------------------------------------------------ */
     {APPLY_UF, cvc5::Kind::APPLY_UF},
     {CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT},
-    {CARDINALITY_VALUE, cvc5::Kind::CARDINALITY_VALUE},
     {HO_APPLY, cvc5::Kind::HO_APPLY},
     /* Arithmetic ---------------------------------------------------------- */
     {PLUS, cvc5::Kind::PLUS},
@@ -410,7 +410,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* UF -------------------------------------------------------------- */
         {cvc5::Kind::APPLY_UF, APPLY_UF},
         {cvc5::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
-        {cvc5::Kind::CARDINALITY_VALUE, CARDINALITY_VALUE},
         {cvc5::Kind::HO_APPLY, HO_APPLY},
         /* Arithmetic ------------------------------------------------------ */
         {cvc5::Kind::PLUS, PLUS},
@@ -1682,7 +1681,7 @@ size_t Sort::getSortConstructorArity() const
 
 /* Bit-vector sort ----------------------------------------------------- */
 
-uint32_t Sort::getBVSize() const
+uint32_t Sort::getBitVectorSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -1695,7 +1694,7 @@ uint32_t Sort::getBVSize() const
 
 /* Floating-point sort ------------------------------------------------- */
 
-uint32_t Sort::getFPExponentSize() const
+uint32_t Sort::getFloatingPointExponentSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -1706,7 +1705,7 @@ uint32_t Sort::getFPExponentSize() const
   CVC5_API_TRY_CATCH_END;
 }
 
-uint32_t Sort::getFPSignificandSize() const
+uint32_t Sort::getFloatingPointSignificandSize() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -5057,6 +5056,8 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
+  CVC5_API_RECOVERABLE_CHECK(!expr::hasFreeVar(term.getNode()))
+      << "Cannot get value of term containing free variables";
   //////// all checks before this line
   Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
@@ -5082,7 +5083,7 @@ Term Solver::mkTermFromKind(Kind kind) const
   CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_EMPTY
                                    || kind == REGEXP_SIGMA || kind == SEP_EMP,
                                kind)
-      << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
+      << "PI, REGEXP_EMPTY, REGEXP_SIGMA or SEP_EMP";
   //////// all checks before this line
   Node res;
   cvc5::Kind k = extToIntKind(kind);
@@ -5822,6 +5823,18 @@ Term Solver::mkEmptyBag(const Sort& sort) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Term Solver::mkSepEmp() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Node res = getNodeManager()->mkNullaryOperator(d_nodeMgr->booleanType(),
+                                                 cvc5::Kind::SEP_EMP);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::mkSepNil(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -6030,14 +6043,31 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
   CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
   CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
   uint32_t bw = exp + sig;
-  CVC5_API_ARG_CHECK_EXPECTED(bw == val.getSort().getBVSize(), val)
+  CVC5_API_ARG_CHECK_EXPECTED(bw == val.d_node->getType().getBitVectorSize(),
+                              val)
       << "a bit-vector constant with bit-width '" << bw << "'";
   CVC5_API_ARG_CHECK_EXPECTED(
-      val.getSort().isBitVector() && val.d_node->isConst(), val)
+      val.d_node->getType().isBitVector() && val.d_node->isConst(), val)
       << "bit-vector constant";
   //////// all checks before this line
   return mkValHelper<cvc5::FloatingPoint>(
       cvc5::FloatingPoint(exp, sig, val.d_node->getConst<BitVector>()));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_SOLVER_CHECK_SORT(sort);
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isUninterpretedSort(), sort)
+      << "an uninterpreted sort";
+  CVC5_API_ARG_CHECK_EXPECTED(upperBound > 0, upperBound) << "a value > 0";
+  //////// all checks before this line
+  Node cco =
+      d_nodeMgr->mkConst(cvc5::CardinalityConstraint(*sort.d_type, upperBound));
+  Node cc = d_nodeMgr->mkNode(cvc5::Kind::CARDINALITY_CONSTRAINT, cco);
+  return Term(this, cc);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6688,7 +6718,7 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_CHECK(sort == term.getSort())
+  CVC5_API_CHECK(term.getSort().isSubsortOf(sort))
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -6710,37 +6740,6 @@ Term Solver::defineFun(const std::string& symbol,
 
   d_slv->defineFunction(
       *fun.d_node, Term::termVectorToNodes(bound_vars), *term.d_node, global);
-  return fun;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::defineFun(const Term& fun,
-                       const std::vector<Term>& bound_vars,
-                       const Term& term,
-                       bool global) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_TERM(fun);
-  CVC5_API_SOLVER_CHECK_TERM(term);
-  if (fun.getSort().isFunction())
-  {
-    std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
-    CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
-    Sort codomain = fun.getSort().getFunctionCodomainSort();
-    CVC5_API_CHECK(codomain == term.getSort())
-        << "Invalid sort of function body '" << term << "', expected '"
-        << codomain << "'";
-  }
-  else
-  {
-    CVC5_API_SOLVER_CHECK_BOUND_VARS(bound_vars);
-    CVC5_API_ARG_CHECK_EXPECTED(bound_vars.size() == 0, fun)
-        << "function or nullary symbol";
-  }
-  //////// all checks before this line
-  std::vector<Node> ebound_vars = Term::termVectorToNodes(bound_vars);
-  d_slv->defineFunction(*fun.d_node, ebound_vars, *term.d_node, global);
   return fun;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7186,7 +7185,7 @@ std::map<Term, Term> Solver::getDifficulty() const
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == SmtMode::UNSAT
                              || d_slv->getSmtMode() == SmtMode::SAT
                              || d_slv->getSmtMode() == SmtMode::SAT_UNKNOWN)
-      << "Cannot get difficulty unless after a UNSAT, SAT or unknown response.";
+      << "Cannot get difficulty unless after a UNSAT, SAT or UNKNOWN response.";
   //////// all checks before this line
   std::map<Term, Term> res;
   std::map<Node, Node> dmap;
@@ -7204,7 +7203,7 @@ std::string Solver::getProof(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceProofs)
-      << "Cannot get proof explicitly enabled (try --produce-proofs)";
+      << "Cannot get proof unless proofs are enabled (try --produce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
   return d_slv->getProof();
@@ -7214,7 +7213,14 @@ std::string Solver::getProof(void) const
 Term Solver::getValue(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_RECOVERABLE_CHECK(d_slv->getOptions().smt.produceModels)
+      << "Cannot get value unless model generation is enabled "
+         "(try --produce-models)";
+  CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
+      << "Cannot get value unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_TERM(term);
+  CVC5_API_RECOVERABLE_CHECK(term.getSort().isFirstClass())
+      << "Cannot get value of a term that is not first class.";
   //////// all checks before this line
   return getValueHelper(term);
   ////////
@@ -7228,7 +7234,12 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Cannot get value unless after a SAT or unknown response.";
+      << "Cannot get value unless after a SAT or UNKNOWN response.";
+  for (const Term& t : terms)
+  {
+    CVC5_API_RECOVERABLE_CHECK(t.getSort().isFirstClass())
+        << "Cannot get value of a term that is not first class.";
+  }
   CVC5_API_SOLVER_CHECK_TERMS(terms);
   //////// all checks before this line
 
@@ -7250,7 +7261,7 @@ std::vector<Term> Solver::getModelDomainElements(const Sort& s) const
       << "Cannot get domain elements unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Cannot get domain elements unless after a SAT or unknown response.";
+      << "Cannot get domain elements unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_SORT(s);
   CVC5_API_RECOVERABLE_CHECK(s.isUninterpretedSort())
       << "Expecting an uninterpreted sort as argument to "
@@ -7274,7 +7285,7 @@ bool Solver::isModelCoreSymbol(const Term& v) const
       << "Cannot check if model core symbol unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Cannot check if model core symbol unless after a SAT or unknown "
+      << "Cannot check if model core symbol unless after a SAT or UNKNOWN "
          "response.";
   CVC5_API_SOLVER_CHECK_TERM(v);
   CVC5_API_RECOVERABLE_CHECK(v.getKind() == CONSTANT)
@@ -7293,7 +7304,7 @@ std::string Solver::getModel(const std::vector<Sort>& sorts,
       << "Cannot get model unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Cannot get model unless after a SAT or unknown response.";
+      << "Cannot get model unless after a SAT or UNKNOWN response.";
   CVC5_API_SOLVER_CHECK_SORTS(sorts);
   for (const Sort& s : sorts)
   {
@@ -7334,8 +7345,7 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::declareSeparationHeap(const Sort& locSort,
-                                   const Sort& dataSort) const
+void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(locSort);
@@ -7349,7 +7359,7 @@ void Solver::declareSeparationHeap(const Sort& locSort,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationHeap() const
+Term Solver::getValueSepHeap() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7359,14 +7369,14 @@ Term Solver::getSeparationHeap() const
       << "Cannot get separation heap term unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Can only get separtion heap term after sat or unknown response.";
+      << "Can only get separtion heap term after SAT or UNKNOWN response.";
   //////// all checks before this line
   return Term(this, d_slv->getSepHeapExpr());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationNilTerm() const
+Term Solver::getValueSepNil() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7376,7 +7386,7 @@ Term Solver::getSeparationNilTerm() const
       << "Cannot get separation nil term unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Can only get separtion nil term after sat or unknown response.";
+      << "Can only get separtion nil term after SAT or UNKNOWN response.";
   //////// all checks before this line
   return Term(this, d_slv->getSepNilExpr());
   ////////
@@ -7455,6 +7465,8 @@ bool Solver::getAbduct(const Term& conj, Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
+      << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
   Node result;
   bool success = d_slv->getAbduct(*conj.d_node, result);
@@ -7471,6 +7483,8 @@ bool Solver::getAbduct(const Term& conj, Grammar& grammar, Term& output) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
+      << "Cannot get abduct unless abducts are enabled (try --produce-abducts)";
   //////// all checks before this line
   Node result;
   bool success =
@@ -7491,7 +7505,7 @@ void Solver::blockModel() const
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Can only block model after sat or unknown response.";
+      << "Can only block model after SAT or UNKNOWN response.";
   //////// all checks before this line
   d_slv->blockModel();
   ////////
@@ -7505,7 +7519,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->isSmtModeSat())
-      << "Can only block model values after sat or unknown response.";
+      << "Can only block model values after SAT or UNKNOWN response.";
   CVC5_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms)
       << "a non-empty set of terms";
   CVC5_API_SOLVER_CHECK_TERMS(terms);

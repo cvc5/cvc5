@@ -54,12 +54,12 @@ class DecisionEngine : protected EnvObj
    * Notify this class that assertion is an (input) assertion, not corresponding
    * to a skolem definition.
    */
-  virtual void addAssertion(TNode assertion) = 0;
+  virtual void addAssertion(TNode assertion, bool isLemma) = 0;
   /**
    * Notify this class that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
-  virtual void addSkolemDefinition(TNode lem, TNode skolem) = 0;
+  virtual void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) = 0;
   /**
    * Notify this class that the list of lemmas defs are now active in the
    * current SAT context.
@@ -93,8 +93,8 @@ class DecisionEngineEmpty : public DecisionEngine
  public:
   DecisionEngineEmpty(Env& env);
   bool isDone() override;
-  void addAssertion(TNode assertion) override;
-  void addSkolemDefinition(TNode lem, TNode skolem) override;
+  void addAssertion(TNode assertion, bool isLemma) override;
+  void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) override;
 
  protected:
   prop::SatLiteral getNextInternal(bool& stopSearch) override;

@@ -100,8 +100,7 @@ NodeManager::NodeManager()
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false),
-      d_abstractValueCount(0),
-      d_skolemCounter(0)
+      d_abstractValueCount(0)
 {
 }
 
@@ -215,8 +214,8 @@ NodeManager::~NodeManager() {
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
-    // hopefully by this point all SmtEngines have been deleted
-    // already, along with all their attributes
+    // By this point, all SolverEngines should have been deleted, along with
+    // all their attributes
     d_attrManager->deleteAllAttributes();
   }
 
@@ -501,25 +500,6 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << "type of " << &n << " " <<  n << " is " << typeNode << endl;
   return typeNode;
-}
-
-Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, const std::string& comment, int flags) {
-  Node n = NodeBuilder(this, kind::SKOLEM);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  if((flags & SKOLEM_EXACT_NAME) == 0) {
-    stringstream name;
-    name << prefix << '_' << ++d_skolemCounter;
-    setAttribute(n, expr::VarNameAttr(), name.str());
-  } else {
-    setAttribute(n, expr::VarNameAttr(), prefix);
-  }
-  if((flags & SKOLEM_NO_NOTIFY) == 0) {
-    for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-      (*i)->nmNotifyNewSkolem(n, comment, (flags & SKOLEM_IS_GLOBAL) == SKOLEM_IS_GLOBAL);
-    }
-  }
-  return n;
 }
 
 TypeNode NodeManager::mkBagType(TypeNode elementType)
@@ -1057,13 +1037,6 @@ Node NodeManager::mkBoundVar(const TypeNode& type) {
 Node NodeManager::mkInstConstant(const TypeNode& type) {
   Node n = NodeBuilder(this, kind::INST_CONSTANT);
   n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
-  return n;
-}
-
-Node NodeManager::mkBooleanTermVariable() {
-  Node n = NodeBuilder(this, kind::BOOLEAN_TERM_VARIABLE);
-  n.setAttribute(TypeAttr(), booleanType());
   n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }

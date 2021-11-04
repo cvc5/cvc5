@@ -30,5 +30,3 @@ C++ API Documentation
     sort
     statistics
     term
-
-

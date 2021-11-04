@@ -132,8 +132,12 @@ void Theory::finishInitStandalone()
   if (needsEqualityEngine(esi))
   {
     // always associated with the same SAT context as the theory
-    d_allocEqualityEngine.reset(new eq::EqualityEngine(
-        *esi.d_notify, context(), esi.d_name, esi.d_constantsAreTriggers));
+    d_allocEqualityEngine =
+        std::make_unique<eq::EqualityEngine>(d_env,
+                                             context(),
+                                             *esi.d_notify,
+                                             esi.d_name,
+                                             esi.d_constantsAreTriggers);
     // use it as the official equality engine
     setEqualityEngine(d_allocEqualityEngine.get());
   }
@@ -335,7 +339,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels() && !logicInfo().isQuantified())
+  if (!options().smt.produceModels && !logicInfo().isQuantified())
   {
     // Don't care about the model and logic is not quantified, we can eliminate.
     return true;

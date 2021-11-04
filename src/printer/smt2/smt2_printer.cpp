@@ -24,6 +24,7 @@
 #include "api/cpp/cvc5.h"
 #include "expr/array_store_all.h"
 #include "expr/ascription_type.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/datatype_index.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
@@ -331,7 +332,6 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-
     case kind::EMPTYSET:
       out << "(as emptyset ";
       toStreamType(out, n.getConst<EmptySet>().getType());
@@ -659,9 +659,6 @@ void Smt2Printer::toStream(std::ostream& out,
     break;
   }
 
-  case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
-  case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
-
     // bv theory
   case kind::BITVECTOR_CONCAT:
   case kind::BITVECTOR_AND:
@@ -813,6 +810,15 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SEP_NIL:
     out << "(as sep.nil " << n.getType() << ")";
     break;
+
+  // cardinality constraints.
+  case kind::CARDINALITY_CONSTRAINT:
+    out << "(_ fmf.card ";
+    out << n.getOperator().getConst<CardinalityConstraint>().getType();
+    out << " ";
+    out << n.getOperator().getConst<CardinalityConstraint>().getUpperBound();
+    out << ")";
+    return;
 
     // quantifiers
   case kind::FORALL:
@@ -1195,7 +1201,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SEP_STAR: return "sep";
   case kind::SEP_PTO: return "pto";
   case kind::SEP_WAND: return "wand";
-  case kind::SEP_EMP: return "emp";
+  case kind::SEP_EMP: return "sep.emp";
 
   // quantifiers
   case kind::FORALL: return "forall";
@@ -1433,6 +1439,23 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
   out << ") " << type << ')' << std::endl;
 }
 
+void Smt2Printer::toStreamCmdDeclarePool(
+    std::ostream& out,
+    const std::string& id,
+    TypeNode type,
+    const std::vector<Node>& initValue) const
+{
+  out << "(declare-pool " << cvc5::quoteSymbol(id) << ' ' << type << " (";
+  for (size_t i = 0, n = initValue.size(); i < n; ++i)
+  {
+    if (i != 0) {
+      out << ' ';
+    }
+    out << initValue[i];
+  }
+  out << "))" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             const std::string& id,
                                             const std::vector<Node>& formals,
@@ -1573,6 +1596,26 @@ void Smt2Printer::toStreamCmdGetModel(std::ostream& out) const
   out << "(get-model)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdBlockModel(std::ostream& out) const
+{
+  out << "(block-model)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdBlockModelValues(
+    std::ostream& out, const std::vector<Node>& nodes) const
+{
+  out << "(block-model-values (";
+  for (size_t i = 0, n = nodes.size(); i < n; ++i)
+  {
+    if (i != 0)
+    {
+      out << ' ';
+    }
+    out << nodes[i];
+  }
+  out << "))" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetAssignment(std::ostream& out) const
 {
   out << "(get-assignment)" << std::endl;
@@ -1613,8 +1656,7 @@ void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
                                      const std::string& value) const
 {
-  out << "(set-info :" << flag << " " << cvc5::quoteSymbol(value) << ")"
-      << std::endl;
+  out << "(set-info :" << flag << " " << value << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
@@ -1723,15 +1765,7 @@ void Smt2Printer::toStreamCmdEmpty(std::ostream& out,
 void Smt2Printer::toStreamCmdEcho(std::ostream& out,
                                   const std::string& output) const
 {
-  std::string s = output;
-  // escape all double-quotes
-  size_t pos = 0;
-  while ((pos = s.find('"', pos)) != string::npos)
-  {
-    s.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(echo \"" << s << "\")" << std::endl;
+  out << "(echo " << cvc5::quoteString(output) << ')' << std::endl;
 }
 
 /*
@@ -1863,6 +1897,20 @@ void Smt2Printer::toStreamCmdCheckSynth(std::ostream& out) const
   out << "(check-synth)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
+                                         const std::string& name,
+                                         Node conj,
+                                         TypeNode sygusType) const
+{
+  out << "(get-interpol " << cvc5::quoteSymbol(name) << ' ' << conj;
+  if (!sygusType.isNull())
+  {
+    out << ' ';
+    toStreamSygusGrammar(out, sygusType);
+  }
+  out << ')' << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
                                        const std::string& name,
                                        Node conj,
@@ -1878,6 +1926,14 @@ void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
     toStreamSygusGrammar(out, sygusType);
   }
   out << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
+                                                      Node n,
+                                                      bool doFull) const
+{
+  out << '(' << (doFull ? "get-qe" : "get-qe-disjunct") << ' ' << n << ')'
+      << std::endl;
 }
 
 /*
@@ -1930,14 +1986,9 @@ static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v)
 #endif /* CVC5_COMPETITION_MODE */
 }
 
-static void errorToStream(std::ostream& out, std::string message, Variant v) {
-  // escape all double-quotes
-  size_t pos = 0;
-  while((pos = message.find('"', pos)) != string::npos) {
-    message.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  out << "(error \"" << message << "\")" << endl;
+static void errorToStream(std::ostream& out, std::string message, Variant v)
+{
+  out << "(error " << cvc5::quoteString(message) << ')' << endl;
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, Variant v) {

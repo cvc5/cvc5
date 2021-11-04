@@ -44,8 +44,8 @@ class QuantifiersEngine;
 namespace smt {
 
 class Assertions;
-class SmtEngineState;
-struct SmtEngineStatistics;
+class SolverEngineState;
+struct SolverEngineStatistics;
 
 /**
  * A solver for SMT queries.
@@ -65,9 +65,9 @@ class SmtSolver
 {
  public:
   SmtSolver(Env& env,
-            SmtEngineState& state,
+            SolverEngineState& state,
             AbstractValues& abs,
-            SmtEngineStatistics& stats);
+            SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
    * Create theory engine, prop engine based on the environment.
@@ -127,11 +127,11 @@ class SmtSolver
   /** Reference to the environment */
   Env& d_env;
   /** Reference to the state of the SolverEngine */
-  SmtEngineState& d_state;
+  SolverEngineState& d_state;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Reference to the statistics of SolverEngine */
-  SmtEngineStatistics& d_stats;
+  SolverEngineStatistics& d_stats;
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */

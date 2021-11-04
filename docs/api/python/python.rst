@@ -13,9 +13,15 @@ Python API Documentation
     :maxdepth: 1
 
     quickstart
-    solver
     datatype
     datatypeconstructor
     datatypeconstructordecl
     datatypedecl
     datatypeselector
+    grammar
+    op
+    result
+    roundingmode
+    solver
+    sort
+    unknownexplanation
