@@ -61,10 +61,6 @@ namespace eq {
   class EqualityEngine;
 }  // namespace eq
 
-namespace bv {
-class BVSolverLayered;
-}
-
 /**
  * Base class for T-solvers.  Abstract DPLL(T).
  *
@@ -102,10 +98,6 @@ class BVSolverLayered;
 class Theory : protected EnvObj
 {
   friend class ::cvc5::TheoryEngine;
-
-  /* BVSolverLayered accesses methods from theory in a way that is deprecated
-   * and will be removed in the future. For now we allow direct access. */
-  friend class bv::BVSolverLayered;
 
  protected:
   /** Name of this theory instance. Along with the TheoryId this should
