@@ -524,8 +524,9 @@ def generate_module_mode_impl(module):
         if option.name is None or not option.mode:
             continue
         cases = [
-            'case {type}::{enum}: return os << "{type}::{enum}";'.format(
-                type=option.type, enum=x) for x in option.mode.keys()
+            'case {type}::{enum}: return os << "{name}";'.format(
+                type=option.type, enum=enum, name=info[0]['name'])
+            for enum,info in option.mode.items()
         ]
         res.append(
             TPL_MODE_STREAM_OPERATOR.format(type=option.type,

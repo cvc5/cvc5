@@ -141,7 +141,7 @@ const Printer& Env::getPrinter()
   return *Printer::getPrinter(d_options.base.outputLanguage);
 }
 
-bool Env::isOutputOn(options::OutputTag tag) const
+bool Env::isOutputOn(OutputTag tag) const
 {
   return d_options.base.outputTagHolder[static_cast<size_t>(tag)];
 }
@@ -149,7 +149,12 @@ bool Env::isOutputOn(const std::string& tag) const
 {
   return isOutputOn(options::stringToOutputTag(tag));
 }
-std::ostream& Env::getOutput(options::OutputTag tag) const
+std::ostream& Env::output(const std::string& tag) const
+{
+  return output(options::stringToOutputTag(tag));
+}
+
+std::ostream& Env::output(OutputTag tag) const
 {
   if (isOutputOn(tag))
   {
@@ -157,9 +162,19 @@ std::ostream& Env::getOutput(options::OutputTag tag) const
   }
   return cvc5::null_os;
 }
-std::ostream& Env::getOutput(const std::string& tag) const
+
+bool Env::isVerboseOn(int64_t level) const
 {
-  return getOutput(options::stringToOutputTag(tag));
+  return !Configuration::isMuzzledBuild() && d_options.base.verbosity >= level;
+}
+
+std::ostream& Env::verbose(int64_t level) const
+{
+  if (isVerboseOn(level))
+  {
+    return *d_options.base.err;
+  }
+  return cvc5::null_os;
 }
 
 Node Env::evaluate(TNode n,

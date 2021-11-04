@@ -114,26 +114,18 @@ target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB -Dc
 add_dependencies(cvc5parser-objs ANTLR3)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
 
-add_library(cvc5parser-shared SHARED $<TARGET_OBJECTS:cvc5parser-objs>)
-set_target_properties(cvc5parser-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
-set_target_properties(cvc5parser-shared PROPERTIES OUTPUT_NAME cvc5parser)
-target_link_libraries(cvc5parser-shared PRIVATE cvc5-shared)
-target_link_libraries(cvc5parser-shared PRIVATE ANTLR3)
+add_library(cvc5parser $<TARGET_OBJECTS:cvc5parser-objs>)
+if(BUILD_SHARED_LIBS)
+  set_target_properties(cvc5parser PROPERTIES SOVERSION ${CVC5_SOVERSION})
+endif()
 
-install(TARGETS cvc5parser-shared
+set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)
+target_link_libraries(cvc5parser PRIVATE cvc5)
+target_link_libraries(cvc5parser PRIVATE ANTLR3)
+
+install(TARGETS cvc5parser-objs cvc5parser
   EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-if(ENABLE_STATIC_BUILD)
-  add_library(cvc5parser-static STATIC $<TARGET_OBJECTS:cvc5parser-objs>)
-  set_target_properties(cvc5parser-static PROPERTIES OUTPUT_NAME cvc5parser)
-  target_link_libraries(cvc5parser-static PRIVATE cvc5-static)
-  target_link_libraries(cvc5parser-static PRIVATE ANTLR3)
-
-  install(TARGETS cvc5parser-objs cvc5parser-static
-    EXPORT cvc5-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif()
 
 # The generated lexer/parser files define some functions as
 # __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of

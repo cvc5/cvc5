@@ -1304,7 +1304,8 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
   Assert(options::unsatCores())
       << "cannot reduce unsat core if unsat cores are turned off";
 
-  Notice() << "SolverEngine::reduceUnsatCore(): reducing unsat core" << endl;
+  d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
+                    << std::endl;
   std::unordered_set<Node> removed;
   for (const Node& skip : core)
   {
@@ -1371,7 +1372,8 @@ void SolverEngine::checkUnsatCore()
   Assert(d_env->getOptions().smt.unsatCores)
       << "cannot check unsat core if unsat cores are turned off";
 
-  Notice() << "SolverEngine::checkUnsatCore(): generating unsat core" << endl;
+  d_env->verbose(1) << "SolverEngine::checkUnsatCore(): generating unsat core"
+                    << std::endl;
   UnsatCore core = getUnsatCore();
 
   // initialize the core checker
@@ -1389,14 +1391,15 @@ void SolverEngine::checkUnsatCore()
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
 
-  Notice() << "SolverEngine::checkUnsatCore(): pushing core assertions"
-           << std::endl;
+  d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
+                    << std::endl;
   theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
   {
     Node assertionAfterExpansion = tls.apply(*i, false);
-    Notice() << "SolverEngine::checkUnsatCore(): pushing core member " << *i
-             << ", expanded to " << assertionAfterExpansion << "\n";
+    d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core member "
+                      << *i << ", expanded to " << assertionAfterExpansion
+                      << std::endl;
     coreChecker->assertFormula(assertionAfterExpansion);
   }
   Result r;
@@ -1408,7 +1411,8 @@ void SolverEngine::checkUnsatCore()
   {
     throw;
   }
-  Notice() << "SolverEngine::checkUnsatCore(): result is " << r << endl;
+  d_env->verbose(1) << "SolverEngine::checkUnsatCore(): result is " << r
+                    << std::endl;
   if (r.asSatisfiabilityResult().isUnknown())
   {
     Warning() << "SolverEngine::checkUnsatCore(): could not check core result "
@@ -1432,7 +1436,8 @@ void SolverEngine::checkModel(bool hardFailure)
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
-  Notice() << "SolverEngine::checkModel(): generating model" << endl;
+  d_env->verbose(1) << "SolverEngine::checkModel(): generating model"
+                    << std::endl;
   TheoryModel* m = getAvailableModel("check model");
   Assert(m != nullptr);
 
