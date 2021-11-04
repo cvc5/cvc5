@@ -376,9 +376,9 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     Trace("builtin-rewrite-debug2") << "  conditions " << conds << std::endl;
     Trace("builtin-rewrite-debug2") << "  values " << vals << std::endl;
     // construct store chain
-    for (size_t i = 0, numCond = conds.size(); i<numCond; i++)
+    for (size_t i = 0, numCond = conds.size(); i < numCond; i++)
     {
-      size_t ii = (numCond-1)-i;
+      size_t ii = (numCond - 1) - i;
       Assert(conds[ii].getType().isSubtypeOf(first_arg.getType()));
       curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
     }

@@ -19,6 +19,7 @@
 #define CVC5__THEORY__UF__FUNCTION_CONST_H
 
 #include <unordered_map>
+
 #include "expr/node.h"
 
 namespace cvc5 {
