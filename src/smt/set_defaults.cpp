@@ -186,7 +186,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
   else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear() && logic.areIntegersUsed()))
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()
+                   && logic.areIntegersUsed()))
            && !opts.base.incrementalSolving)
   {
     opts.quantifiers.sygusInst = true;
@@ -817,7 +818,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       }
     }
   }
-  else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH) && logic.areRealsUsed() && !logic.areIntegersUsed())
+  else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
+           && logic.areRealsUsed() && !logic.areIntegersUsed())
   {
     if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
     {
