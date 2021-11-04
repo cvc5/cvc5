@@ -145,17 +145,17 @@ void TheoryEngine::finishInit()
   CVC5_FOR_EACH_THEORY;
 
   // Initialize the theory combination architecture
-  if (options::tcMode() == options::TcMode::CARE_GRAPH)
+  if (options().theory.tcMode == options::TcMode::CARE_GRAPH)
   {
     d_tc.reset(new CombinationCareGraph(d_env, *this, paraTheories));
   }
   else
   {
     Unimplemented() << "TheoryEngine::finishInit: theory combination mode "
-                    << options::tcMode() << " not supported";
+                    << options().theory.tcMode << " not supported";
   }
   // create the relevance filter if any option requires it
-  if (options::relevanceFilter() || options::produceDifficulty())
+  if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
     d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
   }
@@ -247,7 +247,7 @@ TheoryEngine::TheoryEngine(Env& env)
     d_theoryOut[theoryId] = NULL;
   }
 
-  if (options::sortInference())
+  if (options().smt.sortInference)
   {
     d_sortInfer.reset(new SortInference(env));
   }
@@ -633,7 +633,7 @@ TheoryModel* TheoryEngine::getBuiltModel()
   Assert(d_tc != nullptr);
   // If this method was called, we should be in SAT mode, and produceModels
   // should be true.
-  AlwaysAssert(options::produceModels());
+  AlwaysAssert(options().smt.produceModels);
   if (!d_inSatMode)
   {
     // not available, perhaps due to interuption.

@@ -292,7 +292,6 @@ def generate_get_impl(modules):
 
 def _set_handlers(option):
     """Render handler call for options::set()."""
-    optname = option.long_name if option.long else ""
     if option.handler:
         if option.type == 'void':
             return 'opts.handler().{}(name)'.format(option.handler)
@@ -307,7 +306,6 @@ def _set_predicates(option):
     """Render predicate calls for options::set()."""
     if option.type == 'void':
         return []
-    optname = option.long_name if option.long else ""
     assert option.type != 'void'
     res = []
     if option.minimum:
@@ -419,9 +417,9 @@ def generate_module_includes(module):
 
 TPL_MODE_DECL = '''enum class {type}
 {{
-  {values}
+  {values},
+  __MAX_VALUE = {maxvalue}
 }};
-static constexpr size_t {type}__numValues = {nvalues};
 std::ostream& operator<<(std::ostream& os, {type} mode);
 {type} stringTo{type}(const std::string& optarg);
 '''
@@ -433,11 +431,11 @@ def generate_module_mode_decl(module):
     for option in module.options:
         if option.name is None or not option.mode:
             continue
+        values = list(option.mode.keys())
         res.append(
             TPL_MODE_DECL.format(type=option.type,
-                                 values=wrap_line(
-                                     ', '.join(option.mode.keys()), 2),
-                                 nvalues=len(option.mode)))
+                                 values=wrap_line(', '.join(values), 2),
+                                 maxvalue=values[-1]))
     return '\n'.join(res)
 
 
@@ -791,7 +789,7 @@ def generate_sphinx_help(modules):
     common = []
     others = {}
     for module, option in all_options(modules, False):
-        if option.type == 'undocumented':
+        if option.category == 'undocumented':
             continue
         if not option.long and not option.short:
             continue

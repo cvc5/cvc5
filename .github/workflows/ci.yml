@@ -8,7 +8,7 @@ jobs:
         include:
           - name: ubuntu:production
             os: ubuntu-latest
-            config: production --auto-download --all-bindings --editline --docs --static-binary
+            config: production --auto-download --all-bindings --editline --docs --static
             cache-key: production
             python-bindings: true
             build-documentation: true
@@ -19,7 +19,7 @@ jobs:
 
           - name: macos:production
             os: macos-11
-            config: production --auto-download --all-bindings --editline --static-binary
+            config: production --auto-download --all-bindings --editline --static
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -38,7 +38,7 @@ jobs:
 
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
-            config: production --auto-download --assertions --tracing --unit-testing --editline
+            config: production --auto-download --assertions --tracing --unit-testing --java-bindings --editline
             cache-key: dbg
             check-units: true
             exclude_regress: 3-4

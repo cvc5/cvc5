@@ -76,7 +76,7 @@ endif()
 # use the static system libraries.
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_START_STATIC.html
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_END_STATIC.html
-if(ENABLE_STATIC_BINARY)
+if(ENABLE_STATIC_BUILD)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_target_properties(cvc5-bin PROPERTIES LINK_FLAGS -static)
     set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_START_STATIC ON)

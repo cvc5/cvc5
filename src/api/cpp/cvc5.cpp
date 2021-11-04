@@ -5056,6 +5056,8 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
+  CVC5_API_RECOVERABLE_CHECK(!expr::hasFreeVar(term.getNode()))
+      << "Cannot get value of term containing free variables";
   //////// all checks before this line
   Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
@@ -6716,7 +6718,7 @@ Term Solver::defineFun(const std::string& symbol,
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_CODOMAIN_SORT(sort);
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_CHECK(sort == term.getSort())
+  CVC5_API_CHECK(term.getSort().isSubsortOf(sort))
       << "Invalid sort of function body '" << term << "', expected '" << sort
       << "'";
 
@@ -6738,37 +6740,6 @@ Term Solver::defineFun(const std::string& symbol,
 
   d_slv->defineFunction(
       *fun.d_node, Term::termVectorToNodes(bound_vars), *term.d_node, global);
-  return fun;
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term Solver::defineFun(const Term& fun,
-                       const std::vector<Term>& bound_vars,
-                       const Term& term,
-                       bool global) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_SOLVER_CHECK_TERM(fun);
-  CVC5_API_SOLVER_CHECK_TERM(term);
-  if (fun.getSort().isFunction())
-  {
-    std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
-    CVC5_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
-    Sort codomain = fun.getSort().getFunctionCodomainSort();
-    CVC5_API_CHECK(codomain == term.getSort())
-        << "Invalid sort of function body '" << term << "', expected '"
-        << codomain << "'";
-  }
-  else
-  {
-    CVC5_API_SOLVER_CHECK_BOUND_VARS(bound_vars);
-    CVC5_API_ARG_CHECK_EXPECTED(bound_vars.size() == 0, fun)
-        << "function or nullary symbol";
-  }
-  //////// all checks before this line
-  std::vector<Node> ebound_vars = Term::termVectorToNodes(bound_vars);
-  d_slv->defineFunction(*fun.d_node, ebound_vars, *term.d_node, global);
   return fun;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -7374,8 +7345,7 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::declareSeparationHeap(const Sort& locSort,
-                                   const Sort& dataSort) const
+void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(locSort);
@@ -7389,7 +7359,7 @@ void Solver::declareSeparationHeap(const Sort& locSort,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationHeap() const
+Term Solver::getValueSepHeap() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7406,7 +7376,7 @@ Term Solver::getSeparationHeap() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationNilTerm() const
+Term Solver::getValueSepNil() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))

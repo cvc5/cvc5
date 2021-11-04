@@ -3813,24 +3813,6 @@ class CVC5_EXPORT Solver
                  const Sort& sort,
                  const Term& term,
                  bool global = false) const;
-  /**
-   * Define n-ary function.
-   * SMT-LIB:
-   * \verbatim
-   * ( define-fun <function_def> )
-   * \endverbatim
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param bound_vars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
-   */
-  Term defineFun(const Term& fun,
-                 const std::vector<Term>& bound_vars,
-                 const Term& term,
-                 bool global = false) const;
 
   /**
    * Define recursive function.
@@ -4108,19 +4090,19 @@ class CVC5_EXPORT Solver
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
-  void declareSeparationHeap(const Sort& locSort, const Sort& dataSort) const;
+  void declareSepHeap(const Sort& locSort, const Sort& dataSort) const;
 
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  Term getSeparationHeap() const;
+  Term getValueSepHeap() const;
 
   /**
    * When using separation logic, obtain the term for nil.
    * @return The term for nil
    */
-  Term getSeparationNilTerm() const;
+  Term getValueSepNil() const;
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
