@@ -7345,8 +7345,7 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::declareSeparationHeap(const Sort& locSort,
-                                   const Sort& dataSort) const
+void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(locSort);
@@ -7360,7 +7359,7 @@ void Solver::declareSeparationHeap(const Sort& locSort,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationHeap() const
+Term Solver::getValueSepHeap() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7377,7 +7376,7 @@ Term Solver::getSeparationHeap() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationNilTerm() const
+Term Solver::getValueSepNil() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))

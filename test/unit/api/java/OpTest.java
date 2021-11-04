@@ -32,6 +32,11 @@ class OpTest
     d_solver = new Solver();
   }
 
+  @AfterEach void tearDown()
+  {
+    d_solver.close();
+  }
+
   @Test void getKind() throws CVC5ApiException
   {
     Op x;

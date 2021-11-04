@@ -1076,7 +1076,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node n = it->second;
       Trace("cegqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
                                << std::endl;
-      Assert(n.getType().isSubtypeOf(d_input_vars[i].getType()));
+      Assert(n.getType().isComparableTo(d_input_vars[i].getType()));
       subs.push_back( n );
     }
   }
@@ -1088,7 +1088,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node v = d_input_vars[i];
       Trace("cegqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
                          << v << " -> " << subs[i] << std::endl;
-      Assert(subs[i].getType().isSubtypeOf(v.getType()));
+      Assert(subs[i].getType().isComparableTo(v.getType()));
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;

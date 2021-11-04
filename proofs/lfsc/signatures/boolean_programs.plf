@@ -55,9 +55,9 @@
 
 ; Pulls not from a list of children of an or-application. In terms of SMT-LIB
 ; syntax, this side condition converts:
-;   (or (not F1) ... (not Fn)) to (not (and F1 ... Fn))
+;   (or (not F1) ... (not Fn)) to (and F1 ... Fn)
 (program sc_not_and_rev ((t term)) term
-  (not (nary_elim f_and (sc_not_and_rev_rec t) true))
+  (nary_elim f_and (sc_not_and_rev_rec t) true)
 )
 
 ; Process scope side condition. This side condition is used for constructing the

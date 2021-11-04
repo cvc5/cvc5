@@ -99,35 +99,6 @@ class Theory : protected EnvObj
 {
   friend class ::cvc5::TheoryEngine;
 
- private:
-  // Disallow default construction, copy, assignment.
-  Theory() = delete;
-  Theory(const Theory&) = delete;
-  Theory& operator=(const Theory&) = delete;
-
-  /** An integer identifying the type of the theory. */
-  TheoryId d_id;
-
-  /**
-   * The assertFact() queue.
-   *
-   * These can not be TNodes as some atoms (such as equalities) are sent
-   * across theories without being stored in a global map.
-   */
-  context::CDList<Assertion> d_facts;
-
-  /** Index into the head of the facts list */
-  context::CDO<unsigned> d_factsHead;
-
-  /** Indices for splitting on the shared terms. */
-  context::CDO<unsigned> d_sharedTermsIndex;
-
-  /** The care graph the theory will use during combination. */
-  CareGraph* d_careGraph;
-
-  /** Pointer to the decision manager. */
-  DecisionManager* d_decManager;
-
  protected:
   /** Name of this theory instance. Along with the TheoryId this should
    * provide an unique string identifier for each instance of a Theory class.
@@ -226,13 +197,6 @@ class Theory : protected EnvObj
    * They are considered enabled if the ProofNodeManager is non-null.
    */
   bool proofsEnabled() const;
-
-  /**
-   * Returns the next assertion in the assertFact() queue.
-   *
-   * @return the next assertion in the assertFact() queue
-   */
-  inline Assertion get();
 
   /**
    * Set separation logic heap. This is called when the location and data
@@ -858,22 +822,45 @@ class Theory : protected EnvObj
   static bool usesCentralEqualityEngine(TheoryId id);
   /** Explains/propagates via central equality engine only */
   static bool expUsingCentralEqualityEngine(TheoryId id);
+
+ private:
+  // Disallow default construction, copy, assignment.
+  Theory() = delete;
+  Theory(const Theory&) = delete;
+  Theory& operator=(const Theory&) = delete;
+
+  /**
+   * Returns the next assertion in the assertFact() queue.
+   *
+   * @return the next assertion in the assertFact() queue
+   */
+  Assertion get();
+
+  /** An integer identifying the type of the theory. */
+  TheoryId d_id;
+
+  /**
+   * The assertFact() queue.
+   *
+   * These can not be TNodes as some atoms (such as equalities) are sent
+   * across theories without being stored in a global map.
+   */
+  context::CDList<Assertion> d_facts;
+
+  /** Index into the head of the facts list */
+  context::CDO<unsigned> d_factsHead;
+
+  /** Indices for splitting on the shared terms. */
+  context::CDO<unsigned> d_sharedTermsIndex;
+
+  /** The care graph the theory will use during combination. */
+  CareGraph* d_careGraph;
+
+  /** Pointer to the decision manager. */
+  DecisionManager* d_decManager;
 }; /* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
-
-
-inline theory::Assertion Theory::get() {
-  Assert(!done()) << "Theory::get() called with assertion queue empty!";
-
-  // Get the assertion
-  Assertion fact = d_facts[d_factsHead];
-  d_factsHead = d_factsHead + 1;
-
-  Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
-
-  return fact;
-}
 
 inline std::ostream& operator<<(std::ostream& out,
                                 const cvc5::theory::Theory& theory)

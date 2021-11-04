@@ -38,8 +38,7 @@ CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  d_ranVariable = sm->mkDummySkolem(
-      "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
+  d_ranVariable = sm->mkDummySkolem("__z", nm->realType(), "");
 #ifdef CVC5_POLY_IMP
   if (env.isTheoryProofProducing())
   {
