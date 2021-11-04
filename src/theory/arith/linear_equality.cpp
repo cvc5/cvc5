@@ -405,23 +405,6 @@ void LinearEqualityModule::debugCheckTableau(){
     Assert(sum == shouldBe);
   }
 }
-bool LinearEqualityModule::debugEntireLinEqIsConsistent(const string& s){
-  bool result = true;
-  for(ArithVar var = 0, end = d_tableau.getNumColumns(); var != end; ++var){
-    //  for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
-    //ArithVar var = d_arithvarNodeMap.asArithVar(*i);
-    if(!d_variables.assignmentIsConsistent(var)){
-      d_variables.printModel(var);
-      Warning() << s << ":" << "Assignment is not consistent for " << var ;
-      if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
-      }
-      Warning() << endl;
-      result = false;
-    }
-  }
-  return result;
-}
 
 DeltaRational LinearEqualityModule::computeRowBound(RowIndex ridx, bool rowUb, ArithVar skip) const {
   DeltaRational sum(0,0);
