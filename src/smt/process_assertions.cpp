@@ -439,27 +439,35 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
 void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 {
-  if (Trace.isOn(key))
+  bool isTraceOn = Trace.isOn(key);
+  if (!isTraceOn)
   {
-    PrintBenchmark pb(&d_env.getPrinter());
-    const context::CDList<Node>& asl = as.getAssertionList();
-    const context::CDList<Node>& asld = as.getAssertionListDefinitions();
-    std::vector<Node> assertions;
-    std::vector<Node> defs;
-    std::unordered_set<Node> defSet;
-    defs.insert(defs.end(), asld.begin(), asld.end());
-    defSet.insert(asld.begin(), asld.end());
-    for (const Node& a : asl)
-    {
-      if (defSet.find(a) == defSet.end())
-      {
-        assertions.push_back(a);
-      }
-    }
-    std::stringstream ss;
-    pb.printBenchmark(ss, logicInfo().getLogicString(), defs, assertions);
-    Trace(key) << ss.str();
+    return;
   }
+  // cannot print unless produce assertions is enabled
+  if (!options().smt.produceAssertions)
+  {
+    Warning() << "Assertions not available for dumping (use --produce-assertions)." << std::endl;
+    return;
+  }
+  PrintBenchmark pb(&d_env.getPrinter());
+  const context::CDList<Node>& asl = as.getAssertionList();
+  const context::CDList<Node>& asld = as.getAssertionListDefinitions();
+  std::vector<Node> assertions;
+  std::vector<Node> defs;
+  std::unordered_set<Node> defSet;
+  defs.insert(defs.end(), asld.begin(), asld.end());
+  defSet.insert(asld.begin(), asld.end());
+  for (const Node& a : asl)
+  {
+    if (defSet.find(a) == defSet.end())
+    {
+      assertions.push_back(a);
+    }
+  }
+  std::stringstream ss;
+  pb.printBenchmark(ss, logicInfo().getLogicString(), defs, assertions);
+  Trace(key) << ss.str();
 }
 
 PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname, Assertions& as)
