@@ -1508,6 +1508,7 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduction/abd-real-const.smt2
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848-2.smt2
