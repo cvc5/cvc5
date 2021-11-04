@@ -18,6 +18,7 @@
 #include <cerrno>
 #include <iostream>
 #include <ostream>
+#include <regex>
 #include <string>
 
 #include "base/check.h"
@@ -47,7 +48,7 @@ namespace options {
 // helper functions
 namespace {
 
-static void printTags(const std::vector<std::string>& tags)
+void printTags(const std::vector<std::string>& tags)
 {
   std::cout << "available tags:";
   for (const auto& t : tags)
@@ -65,6 +66,22 @@ std::string suggestTags(const std::vector<std::string>& validTags,
   didYouMean.addWords(validTags);
   didYouMean.addWords(additionalTags);
   return didYouMean.getMatchAsString(inputTag);
+}
+
+std::vector<std::string> selectTags(const std::vector<std::string>& validTags, std::string pattern)
+{
+  size_t pos = 0;
+  while ((pos = pattern.find('*', pos)) != std::string::npos)
+  {
+    pattern.replace(pos, 1, ".*");
+    pos += 2;
+  }
+  std::regex re(pattern);
+  std::vector<std::string> results;
+  std::copy_if(validTags.begin(), validTags.end(), std::back_inserter(results),
+    [&re](const auto& tag){ return std::regex_match(tag, re); }
+  );
+  return results;
 }
 
 }  // namespace
@@ -218,7 +235,8 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
-  else if(!Configuration::isTraceTag(optarg.c_str()))
+  auto tags = selectTags(Configuration::getTraceTags(), optarg);
+  if (tags.empty())
   {
     if (optarg == "help")
     {
@@ -227,10 +245,13 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
     }
 
     throw OptionException(
-        std::string("trace tag ") + optarg + std::string(" not available.")
+        std::string("no trace tag matching ") + optarg + std::string(" was found.")
         + suggestTags(Configuration::getTraceTags(), optarg, {}));
   }
-  Trace.on(optarg);
+  for (const auto& tag: selectTags(Configuration::getTraceTags(), optarg))
+  {
+    Trace.on(tag);
+  }
 }
 
 void OptionsHandler::enableDebugTag(const std::string& flag,
