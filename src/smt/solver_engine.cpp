@@ -284,7 +284,7 @@ SolverEngine::~SolverEngine()
   }
   catch (Exception& e)
   {
-    Warning() << "cvc5 threw an exception during cleanup." << endl << e << endl;
+    d_env->warning() << "cvc5 threw an exception during cleanup." << std::endl << e << std::endl;
   }
 }
 
@@ -358,7 +358,7 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
   {
     if (value != "2" && value != "2.6")
     {
-      Warning() << "SMT-LIB version " << value
+      d_env->warning() << "SMT-LIB version " << value
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
@@ -1341,7 +1341,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     }
     else if (r.asSatisfiabilityResult().isUnknown())
     {
-      Warning()
+      d_env->warning()
           << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
              "due to "
              "unknown result.";
@@ -1415,7 +1415,7 @@ void SolverEngine::checkUnsatCore()
                     << std::endl;
   if (r.asSatisfiabilityResult().isUnknown())
   {
-    Warning() << "SolverEngine::checkUnsatCore(): could not check core result "
+    d_env->warning() << "SolverEngine::checkUnsatCore(): could not check core result "
                  "unknown."
               << std::endl;
   }
@@ -1618,7 +1618,7 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
   const LogicInfo& logic = getLogicInfo();
   if (!logic.isPure(THEORY_ARITH) && strict)
   {
-    Warning() << "Unexpected logic for quantifier elimination " << logic
+    d_env->warning() << "Unexpected logic for quantifier elimination " << logic
               << endl;
   }
   return d_quantElimSolver->getQuantifierElimination(
