@@ -358,8 +358,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
     if (options().smt.simplificationMode != options::SimplificationMode::NONE)
     {
       // Perform non-clausal simplification
-      PreprocessingPassResult res =
-          applyPass("non-clausal-simp", as);
+      PreprocessingPassResult res = applyPass("non-clausal-simp", as);
       if (res == PreprocessingPassResult::CONFLICT)
       {
         return false;
@@ -411,8 +410,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
         && options().smt.simplificationMode
                != options::SimplificationMode::NONE)
     {
-      PreprocessingPassResult res =
-          applyPass("non-clausal-simp", as);
+      PreprocessingPassResult res = applyPass("non-clausal-simp", as);
       if (res == PreprocessingPassResult::CONFLICT)
       {
         return false;
@@ -449,7 +447,9 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   // as definitions.
   if (!options().smt.produceAssertions)
   {
-    Warning() << "Assertions not available for dumping (use --produce-assertions)." << std::endl;
+    Warning()
+        << "Assertions not available for dumping (use --produce-assertions)."
+        << std::endl;
     return;
   }
   PrintBenchmark pb(&d_env.getPrinter());
@@ -461,7 +461,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   // preprocessed quantified formulas corresponding to recursive function
   // definitions and not the original definitions, we discard the latter
   // in the loop below.
-  // 
+  //
   // In summary, this means that define-fun-rec are expanded to
   // (declare-fun ...) + (assert (forall ...)) in the printing below, whereas
   // define-fun are preserved.
@@ -469,7 +469,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   std::vector<Node> defs;
   for (const Node& d : asld)
   {
-    if (d.getKind()!=FORALL)
+    if (d.getKind() != FORALL)
     {
       defs.push_back(d);
     }
@@ -486,7 +486,8 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   Trace(key) << ";;; " << key << " end " << std::endl;
 }
 
-PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname, Assertions& as)
+PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,
+                                                     Assertions& as)
 {
   dumpAssertions("assertions::pre-" + pname, as);
   AssertionPipeline& assertions = as.getAssertionPipeline();

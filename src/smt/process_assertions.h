@@ -22,9 +22,9 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "preprocessing/preprocessing_pass.h"
 #include "smt/env_obj.h"
 #include "util/resource_manager.h"
-#include "preprocessing/preprocessing_pass.h"
 
 namespace cvc5 {
 
@@ -112,7 +112,8 @@ class ProcessAssertions : protected EnvObj
    */
   void dumpAssertions(const std::string& key, Assertions& as);
   /** apply pass */
-  preprocessing::PreprocessingPassResult applyPass(const std::string& pass, Assertions& as);
+  preprocessing::PreprocessingPassResult applyPass(const std::string& pass,
+                                                   Assertions& as);
 };
 
 }  // namespace smt
