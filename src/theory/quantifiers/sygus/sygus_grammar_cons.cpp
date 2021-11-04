@@ -67,6 +67,7 @@ bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
 void CegGrammarConstructor::collectTerms(
     Node n, std::map<TypeNode, std::unordered_set<Node>>& consts)
 {
+  NodeManager * nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;
   std::stack<TNode> visit;
@@ -83,11 +84,13 @@ void CegGrammarConstructor::collectTerms(
         TypeNode tn = cur.getType();
         Node c = cur;
         if( tn.isReal() ){
-          c = NodeManager::currentNM()->mkConst( c.getConst<Rational>().abs() );
+          c = nm->mkConst( c.getConst<Rational>().abs() );
         }
-        if( std::find( consts[tn].begin(), consts[tn].end(), c )==consts[tn].end() ){
-          Trace("cegqi-debug") << "...consider const : " << c << std::endl;
-          consts[tn].insert(c);
+        consts[tn].insert(c);
+        if (tn.isInteger())
+        {
+          TypeNode rtype = nm->realType();
+          consts[rtype].insert(c);
         }
       }
       // recurse

@@ -775,7 +775,6 @@ set(regress_0_tests
   regress0/opt-abd-no-use.smt2
   regress0/options/ast-and-sexpr.smt2
   regress0/options/interactive-mode.smt2
-  regress0/options/invalid_dump.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -1510,6 +1509,7 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduction/abd-real-const.smt2
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848-2.smt2

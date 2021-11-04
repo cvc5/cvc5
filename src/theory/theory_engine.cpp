@@ -30,10 +30,8 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_ensure_closed.h"
 #include "prop/prop_engine.h"
-#include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
-#include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -349,54 +347,6 @@ void TheoryEngine::printAssertions(const char* tag) {
   }
 }
 
-void TheoryEngine::dumpAssertions(const char* tag) {
-  if (Dump.isOn(tag)) {
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "Starting completeness check");
-    for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-      Theory* theory = d_theoryTable[theoryId];
-      if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-        printer.toStreamCmdSetInfo(out, "notes", "Completeness check");
-        printer.toStreamCmdPush(out);
-
-        // Dump the shared terms
-        if (d_logicInfo.isSharingEnabled()) {
-          printer.toStreamCmdSetInfo(out, "notes", "Shared terms");
-          context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
-          for (unsigned i = 0; it != it_end; ++ it, ++i) {
-              stringstream ss;
-              ss << (*it);
-              printer.toStreamCmdSetInfo(out, "notes", ss.str());
-          }
-        }
-
-        // Dump the assertions
-        printer.toStreamCmdSetInfo(out, "notes", "Assertions");
-        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-        for (; it != it_end; ++ it) {
-          // Get the assertion
-          Node assertionNode = (*it).d_assertion;
-          // Purify all the terms
-
-          if ((*it).d_isPreregistered)
-          {
-            printer.toStreamCmdSetInfo(out, "notes", "Preregistered");
-          }
-          else
-          {
-            printer.toStreamCmdSetInfo(out, "notes", "Shared assertion");
-          }
-          printer.toStreamCmdAssert(out, assertionNode);
-        }
-        printer.toStreamCmdCheckSat(out);
-
-        printer.toStreamCmdPop(out);
-      }
-    }
-  }
-}
-
 /**
  * Check all (currently-active) theories for conflicts.
  * @param effort the effort level to use
@@ -543,12 +493,6 @@ void TheoryEngine::check(Theory::Effort effort) {
     }
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
-  }
-  // If fulleffort, check all theories
-  if(Dump.isOn("theory::fullcheck") && Theory::fullEffort(effort)) {
-    if (!d_inConflict && !needCheck()) {
-      dumpAssertions("theory::fullcheck");
-    }
   }
 }
 
@@ -1351,15 +1295,6 @@ void TheoryEngine::lemma(TrustNode tlemma,
     tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
   }
 
-  if(Dump.isOn("t-lemmas")) {
-    // we dump the negation of the lemma, to show validity of the lemma
-    Node n = lemma.negate();
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "theory lemma: expect valid");
-    printer.toStreamCmdCheckSatAssuming(out, {n});
-  }
-
   // assert the lemma
   d_propEngine->assertLemma(tlemma, p);
 
@@ -1411,13 +1346,6 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
 
   // Mark that we are in conflict
   markInConflict();
-
-  if(Dump.isOn("t-conflicts")) {
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "theory conflict: expect unsat");
-    printer.toStreamCmdCheckSatAssuming(out, {conflict});
-  }
 
   // In the multiple-theories case, we need to reconstruct the conflict
   if (d_logicInfo.isSharingEnabled()) {

@@ -38,7 +38,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
-#include "smt/dump.h"
 #include "util/didyoumean.h"
 
 namespace cvc5 {
@@ -375,7 +374,6 @@ void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
   Chat.getStream() << expr::ExprDag(dag);
   CVC5Message.getStream() << expr::ExprDag(dag);
   Warning.getStream() << expr::ExprDag(dag);
-  Dump.getStream() << expr::ExprDag(dag);
 }
 
 static void print_config(const char* str, std::string config)
@@ -473,28 +471,6 @@ void OptionsHandler::showTraceTags(const std::string& flag)
   }
   printTags(Configuration::getTraceTags());
   std::exit(0);
-}
-
-void OptionsHandler::setDumpMode(const std::string& flag,
-                                 const std::string& optarg)
-{
-#ifdef CVC5_DUMPING
-  Dump.setDumpFromString(optarg);
-#else  /* CVC5_DUMPING */
-  throw OptionException(
-      "The dumping feature was disabled in this build of cvc5.");
-#endif /* CVC5_DUMPING */
-}
-
-void OptionsHandler::setDumpStream(const std::string& flag,
-                                   const ManagedOut& mo)
-{
-#ifdef CVC5_DUMPING
-  Dump.setStream(mo);
-#else  /* CVC5_DUMPING */
-  throw OptionException(
-      "The dumping feature was disabled in this build of cvc5.");
-#endif /* CVC5_DUMPING */
 }
 
 }  // namespace options
