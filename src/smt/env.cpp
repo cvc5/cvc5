@@ -24,7 +24,6 @@
 #include "options/strings_options.h"
 #include "printer/printer.h"
 #include "proof/conv_proof_generator.h"
-#include "smt/dump_manager.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
@@ -45,7 +44,6 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_evalRew(nullptr),
       d_eval(nullptr),
       d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
-      d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
@@ -80,7 +78,6 @@ void Env::setProofNodeManager(ProofNodeManager* pnm)
 void Env::shutdown()
 {
   d_rewriter.reset(nullptr);
-  d_dumpManager.reset(nullptr);
   // d_resourceManager must be destroyed before d_statisticsRegistry
   d_resourceManager.reset(nullptr);
 }
@@ -123,8 +120,6 @@ theory::TrustSubstitutionMap& Env::getTopLevelSubstitutions()
   return *d_topLevelSubs.get();
 }
 
-DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
-
 const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
 StatisticsRegistry& Env::getStatisticsRegistry()
@@ -145,8 +140,6 @@ const Printer& Env::getPrinter()
 {
   return *Printer::getPrinter(d_options.base.outputLanguage);
 }
-
-std::ostream& Env::getDumpOut() { return *d_options.base.out; }
 
 bool Env::isOutputOn(OutputTag tag) const
 {
