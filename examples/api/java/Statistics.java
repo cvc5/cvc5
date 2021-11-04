@@ -23,43 +23,45 @@ public class Statistics
 {
   public static void main(String[] args)
   {
-    Solver solver = getSolver();
-    // Get the statistics from the `Solver` and iterate over them. The
-    // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.
-    io.github.cvc5.api.Statistics stats = solver.getStatistics();
-    // short version
-    System.out.println("Short version:");
-    System.out.println(stats);
-
-    System.out.println("-------------------------------------------------------");
-
-    System.out.println("Long version:");
-
-    // long version
-    for (Pair<String, Stat> pair : stats)
+    try (Solver solver = new Solver())
     {
-      Stat stat = pair.second;
-      if (stat.isInt())
+      // Get the statistics from the `Solver` and iterate over them. The
+      // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.
+      io.github.cvc5.api.Statistics stats = solver.getStatistics();
+      // short version
+      System.out.println("Short version:");
+      System.out.println(stats);
+
+      System.out.println("-------------------------------------------------------");
+
+      System.out.println("Long version:");
+
+      // long version
+      for (Pair<String, Stat> pair : stats)
       {
-        System.out.println(pair.first + " = " + stat.getInt());
-      }
-      else if (stat.isDouble())
-      {
-        System.out.println(pair.first + " = " + stat.getDouble());
-      }
-      else if (stat.isString())
-      {
-        System.out.println(pair.first + " = " + stat.getString());
-      }
-      else if (stat.isHistogram())
-      {
-        System.out.println("-------------------------------------------------------");
-        System.out.println(pair.first + " : Map");
-        for (Map.Entry<String, Long> entry : stat.getHistogram().entrySet())
+        Stat stat = pair.second;
+        if (stat.isInt())
         {
-          System.out.println(entry.getKey() + " = " + entry.getValue());
+          System.out.println(pair.first + " = " + stat.getInt());
         }
-        System.out.println("-------------------------------------------------------");
+        else if (stat.isDouble())
+        {
+          System.out.println(pair.first + " = " + stat.getDouble());
+        }
+        else if (stat.isString())
+        {
+          System.out.println(pair.first + " = " + stat.getString());
+        }
+        else if (stat.isHistogram())
+        {
+          System.out.println("-------------------------------------------------------");
+          System.out.println(pair.first + " : Map");
+          for (Map.Entry<String, Long> entry : stat.getHistogram().entrySet())
+          {
+            System.out.println(entry.getKey() + " = " + entry.getValue());
+          }
+          System.out.println("-------------------------------------------------------");
+        }
       }
     }
   }

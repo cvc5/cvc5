@@ -33,15 +33,6 @@ if(CLN_INCLUDE_DIR AND CLN_LIBRARIES)
   check_system_version("CLN")
 endif()
 
-if(ENABLE_STATIC_BUILD AND CLN_FOUND_SYSTEM)
-  force_static_library()
-  find_library(CLN_STATIC_LIBRARIES NAMES cln)
-  if(NOT CLN_STATIC_LIBRARIES)
-    set(CLN_FOUND_SYSTEM FALSE)
-  endif()
-  reset_force_static_library()
-endif()
-
 if(NOT CLN_FOUND_SYSTEM)
   check_ep_downloaded("CLN-EP")
   if(NOT CLN-EP_DOWNLOADED)
@@ -77,31 +68,28 @@ if(NOT CLN_FOUND_SYSTEM)
                      <INSTALL_DIR>/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}
   )
 
-  add_dependencies(CLN-EP GMP_SHARED)
+  add_dependencies(CLN-EP GMP)
 
   set(CLN_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
+  if(BUILD_SHARED_LIBS)
+    set(CLN_LIBRARIES "${DEPS_BASE}/lib/libcln${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  else()
+    set(CLN_STATIC_LIBRARIES "${DEPS_BASE}/lib/libcln.a")
+  endif()
 endif()
 
 set(CLN_FOUND TRUE)
 
-add_library(CLN_SHARED SHARED IMPORTED GLOBAL)
-set_target_properties(CLN_SHARED PROPERTIES
+if(BUILD_SHARED_LIBS)
+  add_library(CLN SHARED IMPORTED GLOBAL)
+else()
+  add_library(CLN STATIC IMPORTED GLOBAL)
+endif()
+set_target_properties(CLN PROPERTIES
   IMPORTED_LOCATION "${CLN_LIBRARIES}"
   INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
 )
-target_link_libraries(CLN_SHARED INTERFACE GMP_SHARED)
-
-
-if(ENABLE_STATIC_BUILD)
-  add_library(CLN_STATIC STATIC IMPORTED GLOBAL)
-  set_target_properties(CLN_STATIC PROPERTIES
-    IMPORTED_LOCATION "${CLN_STATIC_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${CLN_INCLUDE_DIR}"
-  )
-  target_link_libraries(CLN_STATIC INTERFACE GMP_STATIC)
-endif()
+target_link_libraries(CLN INTERFACE GMP)
 
 mark_as_advanced(AUTORECONF)
 mark_as_advanced(CLN_FOUND)
@@ -113,6 +101,5 @@ if(CLN_FOUND_SYSTEM)
   message(STATUS "Found CLN ${CLN_VERSION}: ${CLN_LIBRARIES}")
 else()
   message(STATUS "Building CLN ${CLN_VERSION}: ${CLN_LIBRARIES}")
-  add_dependencies(CLN_SHARED CLN-EP)
-  add_dependencies(CLN_STATIC CLN-EP)
+  add_dependencies(CLN CLN-EP)
 endif()

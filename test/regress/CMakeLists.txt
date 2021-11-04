@@ -613,6 +613,7 @@ set(regress_0_tests
   regress0/fp/issue5734.smt2
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
+  regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2
@@ -774,7 +775,6 @@ set(regress_0_tests
   regress0/opt-abd-no-use.smt2
   regress0/options/ast-and-sexpr.smt2
   regress0/options/interactive-mode.smt2
-  regress0/options/invalid_dump.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -1790,6 +1790,7 @@ set(regress_1_tests
   regress1/nl/nl-help-unsat-quant.smt2
   regress1/nl/nl-unk-quant.smt2
   regress1/nl/nl_uf_lalt.smt2
+  regress1/nl/nra-cad-performance.smt2
   regress1/nl/ones.smt2
   regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
@@ -1958,6 +1959,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4433-nqe.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
+  regress1/quantifiers/issue4813-qe-quant.smt2
   regress1/quantifiers/issue4849-nqe.smt2
   regress1/quantifiers/issue5019-cegqi-i.smt2
   regress1/quantifiers/issue5279-nqe.smt2
@@ -2320,6 +2322,7 @@ set(regress_1_tests
   regress1/strings/policy_variable.smt2
   regress1/strings/pre_ctn_no_skolem_share.smt2
   regress1/strings/proj254-re-elim-agg.smt2
+  regress1/strings/proj-issue331.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
   regress1/strings/re-all-char-hard.smt2

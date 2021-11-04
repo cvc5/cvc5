@@ -706,7 +706,7 @@ void Instantiate::notifyEndRound()
           << " * " << i.second << " for " << i.first << std::endl;
     }
   }
-  if (d_env.isOutputOn(options::OutputTag::INST))
+  if (isOutputOn(OutputTag::INST))
   {
     bool req = !options().printer.printInstFull;
     for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
@@ -716,9 +716,8 @@ void Instantiate::notifyEndRound()
       {
         continue;
       }
-      d_env.getOutput(options::OutputTag::INST)
-          << "(num-instantiations " << name << " " << i.second << ")"
-          << std::endl;
+      output(OutputTag::INST) << "(num-instantiations " << name << " "
+                              << i.second << ")" << std::endl;
     }
   }
 }

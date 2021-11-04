@@ -25,6 +25,11 @@
 (declare bvn bitvec)
 (declare bvc (! b bit (! v bitvec bitvec)))
 
+; Returns term t if v1 = v2, and term s otherwise.
+(program mpz_ifequal ((v1 mpz) (v2 mpz) (t term) (s term)) term
+  (mp_ifzero (mp_add (mp_neg v1) v2) t s)
+)
+
 ;; ---- Side conditions
 
 ; Get the argument from an f-application t, fail if t is not an f-application.

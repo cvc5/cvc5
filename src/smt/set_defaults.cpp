@@ -186,7 +186,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
   else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()))
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()
+                   && logic.areIntegersUsed()))
            && !opts.base.incrementalSolving)
   {
     opts.quantifiers.sygusInst = true;
@@ -817,6 +818,18 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       }
     }
   }
+  else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
+           && logic.areRealsUsed() && !logic.areIntegersUsed())
+  {
+    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    {
+      opts.arith.nlCad = true;
+      if (!opts.arith.nlExtWasSetByUser)
+      {
+        opts.arith.nlExt = options::NlExtMode::LIGHT;
+      }
+    }
+  }
 #else
   if (opts.arith.nlCad)
   {
@@ -898,8 +911,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
   if (opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
-      && !opts.bv.bvSolverWasSetByUser
-      && opts.bv.bvSatSolver == options::SatSolverMode::MINISAT)
+      && !opts.bv.bvSolverWasSetByUser)
   {
     Notice() << "Forcing internal bit-vector solver due to proof production."
              << std::endl;
