@@ -133,11 +133,11 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
 
   Node first_arg = n[0][0];
   Node rec_bvl;
-  unsigned size = n[0].getNumChildren();
+  size_t size = n[0].getNumChildren();
   if (size > 1)
   {
     std::vector<Node> args;
-    for (unsigned i = 1; i < size; i++)
+    for (size_t i = 1; i < size; i++)
     {
       args.push_back(n[0][i]);
     }
@@ -358,9 +358,9 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
   {
     // compute the return type
     TypeNode array_type = retType;
-    for (unsigned i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
-      unsigned index = (size - 1) - i;
+      size_t index = (size - 1) - i;
       array_type = nm->mkArrayType(n[0][index].getType(), array_type);
     }
     Trace("builtin-rewrite-debug2")
@@ -376,10 +376,11 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     Trace("builtin-rewrite-debug2") << "  conditions " << conds << std::endl;
     Trace("builtin-rewrite-debug2") << "  values " << vals << std::endl;
     // construct store chain
-    for (int i = static_cast<int>(conds.size()) - 1; i >= 0; i--)
+    for (size_t i = 0, numCond = conds.size(); i<numCond; i++)
     {
-      Assert(conds[i].getType().isSubtypeOf(first_arg.getType()));
-      curr = nm->mkNode(kind::STORE, curr, conds[i], vals[i]);
+      size_t ii = (numCond-1)-i;
+      Assert(conds[ii].getType().isSubtypeOf(first_arg.getType()));
+      curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
     }
     Trace("builtin-rewrite-debug")
         << "...got array " << curr << " for " << n << std::endl;
