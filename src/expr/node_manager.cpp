@@ -365,10 +365,6 @@ void NodeManager::reclaimZombies() {
         TNode n;
         n.d_nv = nv;
         nv->d_rc = 1; // so that TNode doesn't assert-fail
-        for (NodeManagerListener* listener : d_listeners)
-        {
-          listener->nmNotifyDeleteNode(n);
-        }
         // this would mean that one of the listeners stowed away
         // a reference to this node!
         Assert(nv->d_rc == 1);
@@ -662,11 +658,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     }
   }
 
-  for (NodeManagerListener* nml : d_listeners)
-  {
-    nml->nmNotifyNewDatatypes(dtts, flags);
-  }
-
   return dtts;
 }
 
@@ -830,11 +821,7 @@ TypeNode NodeManager::mkSort(uint32_t flags) {
   NodeBuilder nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder(this, kind::SORT_TAG);
   nb << sortTag;
-  TypeNode tn = nb.constructTypeNode();
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
-  return tn;
+  return nb.constructTypeNode();
 }
 
 TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
@@ -843,9 +830,6 @@ TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
   nb << sortTag;
   TypeNode tn = nb.constructTypeNode();
   setAttribute(tn, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
   return tn;
 }
 
@@ -869,9 +853,6 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   nb.append(children);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyInstantiateSortConstructor(constructor, type, flags);
-  }
   return type;
 }
 
@@ -886,9 +867,6 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSortConstructor(type, flags);
-  }
   return type;
 }
 
@@ -898,9 +876,6 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
-  }
   return n;
 }
 
@@ -1021,9 +996,6 @@ Node NodeManager::mkVar(const TypeNode& type)
   Node n = NodeBuilder(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
-  }
   return n;
 }
 
