@@ -684,11 +684,10 @@ private:
   /** Debugging only routine. Prints the model. */
   void debugPrintModel(std::ostream& out) const;
 
-  inline bool done() const { return d_containing.done(); }
-  inline TNode get() { return d_containing.get(); }
-  inline bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
-  inline TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
-  inline void debugPrintFacts() const { d_containing.debugPrintFacts(); }
+  bool done() const { return d_containing.done(); }
+  bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
+  TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
+  void debugPrintFacts() const { d_containing.debugPrintFacts(); }
   bool outputTrustedLemma(TrustNode lem, InferenceId id);
   bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);
