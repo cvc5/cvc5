@@ -281,10 +281,6 @@ libcvc5_add_sources(
   smt/command.h
   smt/difficulty_post_processor.cpp
   smt/difficulty_post_processor.h
-  smt/dump.cpp
-  smt/dump.h
-  smt/dump_manager.cpp
-  smt/dump_manager.h
   smt/env.cpp
   smt/env.h
   smt/env_obj.cpp
@@ -302,8 +298,6 @@ libcvc5_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
-  smt/node_command.cpp
-  smt/node_command.h
   smt/optimization_solver.cpp
   smt/optimization_solver.h
   smt/output_manager.cpp

@@ -80,7 +80,6 @@ namespace smt {
 class SolverEngineState;
 class AbstractValues;
 class Assertions;
-class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;
 class OptionsManager;
@@ -846,9 +845,6 @@ class CVC5_EXPORT SolverEngine
 
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager() const;
-
-  /** Permit access to the underlying dump manager. */
-  smt::DumpManager* getDumpManager();
 
   /** Get the printer used by this SMT engine */
   const Printer& getPrinter() const;

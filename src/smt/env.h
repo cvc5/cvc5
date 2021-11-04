@@ -41,7 +41,6 @@ class UserContext;
 }  // namespace context
 
 namespace smt {
-class DumpManager;
 class PfManager;
 }
 
@@ -115,9 +114,6 @@ class Env
 
   /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
-
-  /** Get a pointer to the underlying dump manager. */
-  smt::DumpManager* getDumpManager();
 
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
@@ -265,8 +261,6 @@ class Env
   std::unique_ptr<theory::Evaluator> d_eval;
   /** The top level substitutions */
   std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
-  /** The dump manager */
-  std::unique_ptr<smt::DumpManager> d_dumpManager;
   /**
    * The logic we're in. This logic may be an extension of the logic set by the
    * user, which may be different from the user-provided logic due to the
