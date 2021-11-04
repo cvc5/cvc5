@@ -737,6 +737,7 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
 
     Assert(debugDualLike(
         w, Debug("dualLike"), instance, prevFocusSize, prevErrorSize));
+    Debug("dualLike") << "Focus size " << d_focusSize << " (was " << prevFocusSize << ")" << endl;
     Debug("dualLike") << "Error size " << d_errorSize << " (was " << prevErrorSize << ")" << endl;
   }
 
