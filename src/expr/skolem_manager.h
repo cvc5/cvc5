@@ -44,6 +44,67 @@ enum class SkolemFunId
   SHARED_SELECTOR,
   /** an application of seq.nth that is out of bounds */
   SEQ_NTH_OOB,
+  //----- string skolems are cached based on two strings (a, b)
+  /** exists k. ( b occurs k times in a ) */
+  STRINGS_NUM_OCCUR,
+  /** For function k: Int -> Int
+   *   exists k.
+   *     forall 0 <= x <= n,
+   *       k(x) is the end index of the x^th occurrence of b in a
+   *   where n is the number of occurrences of b in a, and k(0)=0.
+   */
+  STRINGS_OCCUR_INDEX,
+  /**
+   * For function k: Int -> Int
+   *   exists k.
+   *     forall 0 <= x < n,
+   *       k(x) is the length of the x^th occurrence of b in a (excluding
+   *       matches of empty strings)
+   *   where b is a regular expression, n is the number of occurrences of b
+   *   in a, and k(0)=0.
+   */
+  STRINGS_OCCUR_LEN,
+  /**
+   * Diff index for disequalities a != b => substr(a,k,1) != substr(b,k,1)
+   */
+  STRINGS_DEQ_DIFF,
+  //-----
+  /**
+   * A function used to define intermediate results of str.replace_all and
+   * str.replace_re_all applications.
+   */
+  STRINGS_REPLACE_ALL_RESULT,
+  /**
+   * A function used to define intermediate results of str.from_int
+   * applications.
+   */
+  STRINGS_ITOS_RESULT,
+  /**
+   * A function used to define intermediate results of str.to_int
+   * applications.
+   */
+  STRINGS_STOI_RESULT,
+  /**
+   * An index containing a non-digit in a string, used when (str.to_int a) = -1.
+   */
+  STRINGS_STOI_NON_DIGIT,
+  /**
+   * For sequence a and regular expression b,
+   * in_re(a, re.++(_*, b, _*)) =>
+   *    exists k_pre, k_match, k_post.
+   *       a = k_pre ++ k_match ++ k_post ^
+   *       len(k_pre) = indexof_re(x, y, 0) ^
+   *       (forall l. 0 < l < len(k_match) =>
+   *         ~in_re(substr(k_match, 0, l), r)) ^
+   *       in_re(k_match, b)
+   *
+   * k_pre is the prefix before the first, shortest match of b in a. k_match
+   * is the substring of a matched by b. It is either empty or there is no
+   * shorter string that matches b.
+   */
+  SK_FIRST_MATCH_PRE,
+  SK_FIRST_MATCH,
+  SK_FIRST_MATCH_POST,
   /**
    * Regular expression unfold component: if (str.in_re t R), where R is
    * (re.++ r0 ... rn), then the RE_UNFOLD_POS_COMPONENT{t,R,i} is a string
@@ -113,8 +174,21 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
 class SkolemManager
 {
  public:
-  SkolemManager() {}
+  SkolemManager();
   ~SkolemManager() {}
+
+  /**
+   * Optional flags used to control behavior of skolem creation.
+   * They should be composed with a bitwise OR (e.g.,
+   * "SKOLEM_BOOL_TERM_VAR | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
+   * cannot be composed in such a manner.
+   */
+  enum SkolemFlags
+  {
+    SKOLEM_DEFAULT = 0,    /**< default behavior */
+    SKOLEM_EXACT_NAME = 1, /**< do not make the name unique by adding the id */
+    SKOLEM_BOOL_TERM_VAR = 2 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
+  };
   /**
    * This makes a skolem of same type as bound variable v, (say its type is T),
    * whose definition is (witness ((v T)) pred). This definition is maintained
@@ -156,7 +230,7 @@ class SkolemManager
    * variable v.
    * @param prefix The prefix of the name of the Skolem
    * @param comment Debug information about the Skolem
-   * @param flags The flags for the Skolem (see NodeManager::mkSkolem)
+   * @param flags The flags for the Skolem (see SkolemFlags)
    * @param pg The proof generator for this skolem. If non-null, this proof
    * generator must respond to a call to getProofFor(exists v. pred) during
    * the lifetime of the current node manager.
@@ -166,7 +240,7 @@ class SkolemManager
                 Node pred,
                 const std::string& prefix,
                 const std::string& comment = "",
-                int flags = NodeManager::SKOLEM_DEFAULT,
+                int flags = SKOLEM_DEFAULT,
                 ProofGenerator* pg = nullptr);
   /**
    * Make skolemized form of existentially quantified formula q, and store its
@@ -194,7 +268,7 @@ class SkolemManager
    * @param skolems Vector to add Skolems of q to,
    * @param prefix The prefix of the name of each of the Skolems
    * @param comment Debug information about each of the Skolems
-   * @param flags The flags for the Skolem (see NodeManager::mkSkolem)
+   * @param flags The flags for the Skolem (see SkolemFlags)
    * @param pg The proof generator for this skolem. If non-null, this proof
    * generator must respond to a call to getProofFor(q) during
    * the lifetime of the current node manager.
@@ -204,7 +278,7 @@ class SkolemManager
                    std::vector<Node>& skolems,
                    const std::string& prefix,
                    const std::string& comment = "",
-                   int flags = NodeManager::SKOLEM_DEFAULT,
+                   int flags = SKOLEM_DEFAULT,
                    ProofGenerator* pg = nullptr);
   /**
    * Same as above, but for special case of (witness ((x T)) (= x t))
@@ -227,7 +301,7 @@ class SkolemManager
   Node mkPurifySkolem(Node t,
                       const std::string& prefix,
                       const std::string& comment = "",
-                      int flags = NodeManager::SKOLEM_DEFAULT);
+                      int flags = SKOLEM_DEFAULT);
   /**
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the forms described in SkolemFunId. The user of this
@@ -260,12 +334,12 @@ class SkolemManager
   Node mkSkolemFunction(SkolemFunId id,
                         TypeNode tn,
                         Node cacheVal = Node::null(),
-                        int flags = NodeManager::SKOLEM_DEFAULT);
+                        int flags = SKOLEM_DEFAULT);
   /** Same as above, with multiple cache values */
   Node mkSkolemFunction(SkolemFunId id,
                         TypeNode tn,
                         const std::vector<Node>& cacheVals,
-                        int flags = NodeManager::SKOLEM_DEFAULT);
+                        int flags = SKOLEM_DEFAULT);
   /**
    * Is k a skolem function? Returns true if k was generated by the above call.
    * Updates the arguments to the values used when constructing it.
@@ -287,12 +361,12 @@ class SkolemManager
    * being dumped, this is included in a comment before the declaration
    * and can be quite useful for debugging
    * @param flags an optional mask of bits from SkolemFlags to control
-   * mkSkolem() behavior
+   * skolem behavior
    */
   Node mkDummySkolem(const std::string& prefix,
                      const TypeNode& type,
                      const std::string& comment = "",
-                     int flags = NodeManager::SKOLEM_DEFAULT);
+                     int flags = SKOLEM_DEFAULT);
   /**
    * Get proof generator for existentially quantified formula q. This returns
    * the proof generator that was provided in a call to mkSkolem above.
@@ -325,11 +399,20 @@ class SkolemManager
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
+
+  /**
+   * A counter used to produce unique skolem names.
+   *
+   * Note that it is NOT incremented when skolems are created using
+   * SKOLEM_EXACT_NAME, so it is NOT a count of the skolems produced
+   * by this node manager.
+   */
+  size_t d_skolemCounter;
   /** Get or make skolem attribute for term w, which may be a witness term */
-  static Node mkSkolemInternal(Node w,
-                               const std::string& prefix,
-                               const std::string& comment,
-                               int flags);
+  Node mkSkolemInternal(Node w,
+                        const std::string& prefix,
+                        const std::string& comment,
+                        int flags);
   /**
    * Skolemize the first variable of existentially quantified formula q.
    * For example, calling this method on:
@@ -347,7 +430,18 @@ class SkolemManager
                  Node& qskolem,
                  const std::string& prefix,
                  const std::string& comment = "",
-                 int flags = NodeManager::SKOLEM_DEFAULT);
+                 int flags = SKOLEM_DEFAULT);
+  /**
+   * Create a skolem constant with the given name, type, and comment.
+   *
+   * This method is intentionally private. To create skolems, one should
+   * call a public method from SkolemManager for allocating a skolem in a
+   * proper way, or otherwise use SkolemManager::mkDummySkolem.
+   */
+  Node mkSkolemNode(const std::string& prefix,
+                    const TypeNode& type,
+                    const std::string& comment = "",
+                    int flags = SKOLEM_DEFAULT);
 };
 
 }  // namespace cvc5

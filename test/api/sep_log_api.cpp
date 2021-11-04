@@ -83,7 +83,7 @@ int validate_exception(void)
   /* test the heap expression */
   try
   {
-    Term heap_expr = slv.getSeparationHeap();
+    Term heap_expr = slv.getValueSepHeap();
   }
   catch (const CVC5ApiException& e)
   {
@@ -99,7 +99,7 @@ int validate_exception(void)
   /* test the nil expression */
   try
   {
-    Term nil_expr = slv.getSeparationNilTerm();
+    Term nil_expr = slv.getValueSepNil();
   }
   catch (const CVC5ApiException& e)
   {
@@ -138,7 +138,7 @@ int validate_getters(void)
   Sort integer = slv.getIntegerSort();
 
   /** Declare the separation logic heap types */
-  slv.declareSeparationHeap(integer, integer);
+  slv.declareSepHeap(integer, integer);
 
   /* A "random" constant */
   Term random_constant = slv.mkInteger(0xDEADBEEF);
@@ -188,8 +188,8 @@ int validate_getters(void)
   }
 
   /* Obtain our separation logic terms from the solver */
-  Term heap_expr = slv.getSeparationHeap();
-  Term nil_expr = slv.getSeparationNilTerm();
+  Term heap_expr = slv.getValueSepHeap();
+  Term nil_expr = slv.getValueSepNil();
 
   /* If the heap is not a separating conjunction, bail-out */
   if (heap_expr.getKind() != Kind::SEP_STAR)

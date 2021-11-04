@@ -36,7 +36,6 @@
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
-#include "smt/dump.h"
 #include "smt/model.h"
 #include "util/smt2_quote_string.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -991,7 +990,6 @@ void ResetAssertionsCommand::toStream(std::ostream& out,
 
 void QuitCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  Dump("benchmark") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1168,8 +1166,8 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareFunction(out,
-                                                            termToNode(d_func));
+  Printer::getPrinter(language)->toStreamCmdDeclareFunction(
+      out, d_symbol, sortToTypeNode(d_func.getSort()));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1470,7 +1468,7 @@ api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
 
 void DeclareHeapCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  solver->declareSeparationHeap(d_locSort, d_dataSort);
+  solver->declareSepHeap(d_locSort, d_dataSort);
 }
 
 Command* DeclareHeapCommand::clone() const
@@ -2224,7 +2222,7 @@ void GetQuantifierEliminationCommand::toStream(std::ostream& out,
                                                Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetQuantifierElimination(
-      out, termToNode(d_term));
+      out, termToNode(d_term), d_doFull);
 }
 
 /* -------------------------------------------------------------------------- */

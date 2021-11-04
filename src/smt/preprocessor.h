@@ -62,6 +62,8 @@ class Preprocessor : protected EnvObj
   /**
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
+   *
+   * @param as The assertions.
    */
   bool process(Assertions& as);
   /**

@@ -44,7 +44,7 @@ runs:
         echo "::group::Static build"
         if [[ "${{ inputs.build-static }}" != "true" ]]; then exit 0; fi
         ${{ inputs.configure-env }} ./configure.sh ${{ inputs.configure-config }} \
-          --prefix=$(pwd)/build-static/install --werror --static --name=build-static
+          --prefix=$(pwd)/build-static/install --werror --static --name=build-static --no-java-bindings
 
         cd build-static/ && pwd=$(pwd)
         $SED -i.orig -n -e '/^base_dir = /!p' -e "\$abase_dir = $pwd" $CCACHE_CONFIGPATH

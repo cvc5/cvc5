@@ -37,7 +37,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
-#include "smt/dump.h"
 #include "util/didyoumean.h"
 
 namespace cvc5 {
@@ -269,8 +268,7 @@ void OptionsHandler::enableOutputTag(const std::string& flag,
 {
   size_t tagid = static_cast<size_t>(stringToOutputTag(optarg));
   Assert(d_options->base.outputTagHolder.size() > tagid)
-      << "Trying to enable an output tag whose value is larger than the bitset "
-         "that holds it. Maybe someone forgot to update the bitset size?";
+      << "Output tag is larger than the bitset that holds it.";
   d_options->base.outputTagHolder.set(tagid);
 }
 
@@ -378,7 +376,6 @@ void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
   ioutils::applyDagThresh(Chat.getStream(), dag);
   ioutils::applyDagThresh(CVC5Message.getStream(), dag);
   ioutils::applyDagThresh(Warning.getStream(), dag);
-  ioutils::applyDagThresh(Dump.getStream(), dag);
 }
 
 static void print_config(const char* str, std::string config)
@@ -476,28 +473,6 @@ void OptionsHandler::showTraceTags(const std::string& flag)
   }
   printTags(Configuration::getTraceTags());
   std::exit(0);
-}
-
-void OptionsHandler::setDumpMode(const std::string& flag,
-                                 const std::string& optarg)
-{
-#ifdef CVC5_DUMPING
-  Dump.setDumpFromString(optarg);
-#else  /* CVC5_DUMPING */
-  throw OptionException(
-      "The dumping feature was disabled in this build of cvc5.");
-#endif /* CVC5_DUMPING */
-}
-
-void OptionsHandler::setDumpStream(const std::string& flag,
-                                   const ManagedOut& mo)
-{
-#ifdef CVC5_DUMPING
-  Dump.setStream(mo);
-#else  /* CVC5_DUMPING */
-  throw OptionException(
-      "The dumping feature was disabled in this build of cvc5.");
-#endif /* CVC5_DUMPING */
 }
 
 }  // namespace options

@@ -60,11 +60,6 @@ class PreprocessingPass : protected EnvObj
   virtual ~PreprocessingPass();
 
  protected:
-  /*
-   * Method for dumping assertions within a pass. Also called before and after
-   * applying the pass.
-   */
-  void dumpAssertions(const char* key, const AssertionPipeline& assertionList);
 
   /*
    * Abstract method that each pass implements to do the actual preprocessing.
