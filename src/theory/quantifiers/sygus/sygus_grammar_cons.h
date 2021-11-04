@@ -22,10 +22,10 @@
 #include <map>
 #include <vector>
 
-#include "smt/env_obj.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {

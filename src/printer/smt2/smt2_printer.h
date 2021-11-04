@@ -251,6 +251,7 @@ class Smt2Printer : public cvc5::Printer
    * Get the string corresponding to the sygus datatype t printed as a grammar.
    */
   static std::string sygusGrammarString(const TypeNode& t);
+
  private:
   /**
    * The main printing method for nodes n.

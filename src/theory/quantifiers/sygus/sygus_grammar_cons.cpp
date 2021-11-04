@@ -41,7 +41,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegGrammarConstructor::CegGrammarConstructor(Env& env, 
+CegGrammarConstructor::CegGrammarConstructor(Env& env,
                                              TermDbSygus* tds,
                                              SynthConjecture* p)
     : EnvObj(env), d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
@@ -172,7 +172,9 @@ Node CegGrammarConstructor::process(Node q,
       if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
       {
         output(OutputTag::SYGUS_GRAMMAR)
-            << "(sygus-grammar " << printer::smt2::SmtPrinter::sygusGrammarString(tn) << ")" << std::endl;
+            << "(sygus-grammar "
+            << printer::smt2::SmtPrinter::sygusGrammarString(tn) << ")"
+            << std::endl;
       }
     }
     // sfvl may be null for constant synthesis functions
@@ -276,7 +278,7 @@ Node CegGrammarConstructor::process(Node q,
   qchildren.push_back(nm->mkNode(kind::BOUND_VAR_LIST, ebvl));
   if( qbody_subs!=q[1] ){
     Trace("cegqi") << "...rewriting : " << qbody_subs << std::endl;
-    qbody_subs = rewrite( qbody_subs );
+    qbody_subs = rewrite(qbody_subs);
     Trace("cegqi") << "...got : " << qbody_subs << std::endl;
   }
   qchildren.push_back(convertToEmbedding(qbody_subs));
