@@ -48,7 +48,6 @@
 #include "smt/logic_exception.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
-#include "smt/node_command.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
@@ -90,7 +89,6 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_absValues(new AbstractValues(getNodeManager())),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
-      d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
@@ -116,8 +114,6 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // hand, this hack breaks use cases where multiple SolverEngine objects are
   // created by the user.
   d_scope.reset(new SolverEngineScope(this));
-  // listen to node manager events
-  getNodeManager()->subscribeEvents(d_snmListener.get());
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
@@ -302,8 +298,6 @@ SolverEngine::~SolverEngine()
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
-    getNodeManager()->unsubscribeEvents(d_snmListener.get());
-    d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
@@ -582,9 +576,6 @@ void SolverEngine::defineFunction(Node func,
   ss << language::SetLanguage(
       language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
-
-  DefineFunctionNodeCommand nc(ss.str(), func, formals, formula);
-  getDumpManager()->addToDump(nc, "declarations");
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);
