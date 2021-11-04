@@ -174,7 +174,7 @@ Node CegGrammarConstructor::process(Node q,
       if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
       {
         output(OutputTag::SYGUS_GRAMMAR)
-            << "(sygus-grammar " << ss.str() << " "
+            << "(sygus-grammar " << ss.str()
             << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
             << std::endl;
       }
