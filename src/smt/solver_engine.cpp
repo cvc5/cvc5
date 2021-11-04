@@ -356,24 +356,18 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
   else if (key == "smt-lib-version"
            && !getOptions().base.inputLanguageWasSetByUser)
   {
-    Language ilang = Language::LANG_SMTLIB_V2_6;
-
     if (value != "2" && value != "2.6")
     {
       Warning() << "SMT-LIB version " << value
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    getOptions().base.inputLanguage = ilang;
+    getOptions().base.inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
     if (!getOptions().base.outputLanguageWasSetByUser)
     {
-      Language olang = ilang;
-      if (d_env->getOptions().base.outputLanguage != olang)
-      {
-        getOptions().base.outputLanguage = olang;
-        *d_env->getOptions().base.out << language::SetLanguage(olang);
-      }
+      setOption("output-language", "smtlib2.6");
+      getOptions().base.outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
