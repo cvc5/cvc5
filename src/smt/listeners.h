@@ -61,10 +61,6 @@ class SmtNodeManagerListener : public NodeManagerListener
                             uint32_t flags) override;
   /** Notify when new variable is created */
   void nmNotifyNewVar(TNode n) override;
-  /** Notify when new skolem is created */
-  void nmNotifyNewSkolem(TNode n,
-                         const std::string& comment,
-                         uint32_t flags) override;
   /** Notify when a term is deleted */
   void nmNotifyDeleteNode(TNode n) override {}
 

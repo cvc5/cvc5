@@ -90,12 +90,6 @@ namespace cvc5 {
 #  define IS_GLPK_BUILD false
 #endif /* CVC5_USE_GLPK */
 
-#if CVC5_USE_ABC
-#  define IS_ABC_BUILD true
-#else /* CVC5_USE_ABC */
-#  define IS_ABC_BUILD false
-#endif /* CVC5_USE_ABC */
-
 #if CVC5_USE_CRYPTOMINISAT
 #  define IS_CRYPTOMINISAT_BUILD true
 #else /* CVC5_USE_CRYPTOMINISAT */

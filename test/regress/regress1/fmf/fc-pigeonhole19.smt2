@@ -8,10 +8,10 @@
 (declare-fun h () H)
 
 ; pigeonhole using native cardinality constraints
-(assert (fmf.card p 19))
-(assert (not (fmf.card p 18)))
-(assert (fmf.card h 18))
-(assert (not (fmf.card h 17)))
+(assert (_ fmf.card P 19))
+(assert (not (_ fmf.card P 18)))
+(assert (_ fmf.card H 18))
+(assert (not (_ fmf.card H 17)))
 
 ; each pigeon has different holes
 (declare-fun f (P) H)

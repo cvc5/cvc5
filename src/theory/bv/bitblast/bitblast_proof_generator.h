@@ -19,6 +19,7 @@
 
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -28,10 +29,12 @@ namespace theory {
 namespace bv {
 
 /** Proof generator fot bit-blast proofs. */
-class BitblastProofGenerator : public ProofGenerator
+class BitblastProofGenerator : public ProofGenerator, protected EnvObj
 {
  public:
-  BitblastProofGenerator(ProofNodeManager* pnm, TConvProofGenerator* tcpg);
+  BitblastProofGenerator(Env& env,
+                         ProofNodeManager* pnm,
+                         TConvProofGenerator* tcpg);
   ~BitblastProofGenerator(){};
 
   /**

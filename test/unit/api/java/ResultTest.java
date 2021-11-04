@@ -31,6 +31,11 @@ class ResultTest
     d_solver = new Solver();
   }
 
+  @AfterEach void tearDown()
+  {
+    d_solver.close();
+  }
+
   @Test void isNull()
   {
     Result res_null = d_solver.getNullResult();

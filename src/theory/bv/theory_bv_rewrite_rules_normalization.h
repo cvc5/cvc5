@@ -844,15 +844,9 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
 
   if (newLeft < newRight)
   {
-    Assert((newRight == left && newLeft == right)
-           || Rewriter::rewrite(newRight) != left
-           || Rewriter::rewrite(newLeft) != right);
     return newRight.eqNode(newLeft);
   }
 
-  Assert((newLeft == left && newRight == right)
-         || Rewriter::rewrite(newLeft) != left
-         || Rewriter::rewrite(newRight) != right);
   return newLeft.eqNode(newRight);
 }
 

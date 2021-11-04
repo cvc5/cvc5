@@ -291,33 +291,6 @@ void OptionsHandler::setResourceWeight(const std::string& flag,
   d_options->base.resourceWeightHolder.emplace_back(optarg);
 }
 
-void OptionsHandler::abcEnabledBuild(const std::string& flag, bool value)
-{
-#ifndef CVC5_USE_ABC
-  if(value) {
-    std::stringstream ss;
-    ss << "option `" << flag
-       << "' requires an abc-enabled build of cvc5; this binary was not built "
-          "with abc support";
-    throw OptionException(ss.str());
-  }
-#endif /* CVC5_USE_ABC */
-}
-
-void OptionsHandler::abcEnabledBuild(const std::string& flag,
-                                     const std::string& value)
-{
-#ifndef CVC5_USE_ABC
-  if(!value.empty()) {
-    std::stringstream ss;
-    ss << "option `" << flag
-       << "' requires an abc-enabled build of cvc5; this binary was not built "
-          "with abc support";
-    throw OptionException(ss.str());
-  }
-#endif /* CVC5_USE_ABC */
-}
-
 void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
 {
   if (m == SatSolverMode::CRYPTOMINISAT
@@ -456,7 +429,6 @@ void OptionsHandler::showConfiguration(const std::string& flag)
 
   std::cout << std::endl;
 
-  print_config_cond("abc", Configuration::isBuiltWithAbc());
   print_config_cond("cln", Configuration::isBuiltWithCln());
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
