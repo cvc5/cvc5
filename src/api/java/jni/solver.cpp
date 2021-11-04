@@ -1679,15 +1679,14 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_declareSort(
  * Signature: (JLjava/lang/String;[JJJZ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_Solver_defineFun__JLjava_lang_String_2_3JJJZ(
-    JNIEnv* env,
-    jobject,
-    jlong pointer,
-    jstring jSymbol,
-    jlongArray jVars,
-    jlong sortPointer,
-    jlong termPointer,
-    jboolean global)
+Java_io_github_cvc5_api_Solver_defineFun(JNIEnv* env,
+                                         jobject,
+                                         jlong pointer,
+                                         jstring jSymbol,
+                                         jlongArray jVars,
+                                         jlong sortPointer,
+                                         jlong termPointer,
+                                         jboolean global)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -2107,50 +2106,50 @@ Java_io_github_cvc5_api_Solver_getQuantifierEliminationDisjunct(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    declareSeparationHeap
+ * Method:    declareSepHeap
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_api_Solver_declareSeparationHeap(JNIEnv* env,
-                                                     jobject,
-                                                     jlong pointer,
-                                                     jlong locSortPointer,
-                                                     jlong dataSortPointer)
+Java_io_github_cvc5_api_Solver_declareSepHeap(JNIEnv* env,
+                                              jobject,
+                                              jlong pointer,
+                                              jlong locSortPointer,
+                                              jlong dataSortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Sort* locSort = reinterpret_cast<Sort*>(locSortPointer);
   Sort* dataSort = reinterpret_cast<Sort*>(dataSortPointer);
-  solver->declareSeparationHeap(*locSort, *dataSort);
+  solver->declareSepHeap(*locSort, *dataSort);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    getSeparationHeap
+ * Method:    getValueSepHeap
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getSeparationHeap(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getValueSepHeap(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->getSeparationHeap());
+  Term* retPointer = new Term(solver->getValueSepHeap());
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
  * Class:     io_github_cvc5_api_Solver
- * Method:    getSeparationNilTerm
+ * Method:    getValueSepNil
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getSeparationNilTerm(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_getValueSepNil(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Term* retPointer = new Term(solver->getSeparationNilTerm());
+  Term* retPointer = new Term(solver->getValueSepNil());
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

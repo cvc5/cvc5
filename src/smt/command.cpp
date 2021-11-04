@@ -1470,7 +1470,7 @@ api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
 
 void DeclareHeapCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  solver->declareSeparationHeap(d_locSort, d_dataSort);
+  solver->declareSepHeap(d_locSort, d_dataSort);
 }
 
 Command* DeclareHeapCommand::clone() const

@@ -4090,19 +4090,19 @@ class CVC5_EXPORT Solver
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
-  void declareSeparationHeap(const Sort& locSort, const Sort& dataSort) const;
+  void declareSepHeap(const Sort& locSort, const Sort& dataSort) const;
 
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  Term getSeparationHeap() const;
+  Term getValueSepHeap() const;
 
   /**
    * When using separation logic, obtain the term for nil.
    * @return The term for nil
    */
-  Term getSeparationNilTerm() const;
+  Term getValueSepNil() const;
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
