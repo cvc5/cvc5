@@ -21,6 +21,7 @@
 #include "expr/ascription_type.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -173,7 +174,7 @@ Node CegGrammarConstructor::process(Node q,
       if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
       {
         output(OutputTag::SYGUS_GRAMMAR)
-            << "(sygus-grammar "
+            << "(sygus-grammar " << ss.str() << " "
             << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
             << std::endl;
       }
