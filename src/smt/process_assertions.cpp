@@ -444,30 +444,46 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   {
     return;
   }
-  // cannot print unless produce assertions is enabled
+  // Cannot print unless produce assertions is enabled. Otherwise, the printing
+  // is misleading, since it does not capture what symbols were provided
+  // as definitions.
   if (!options().smt.produceAssertions)
   {
     Warning() << "Assertions not available for dumping (use --produce-assertions)." << std::endl;
     return;
   }
   PrintBenchmark pb(&d_env.getPrinter());
-  const context::CDList<Node>& asl = as.getAssertionList();
-  const context::CDList<Node>& asld = as.getAssertionListDefinitions();
   std::vector<Node> assertions;
+  // Notice that the following list covers define-fun and define-fun-rec
+  // from input. The former does not impact the assertions since define-fun are
+  // added as top-level substitutions. The latter do get added to the list
+  // of assertions. Since we are interested in printing the result of
+  // preprocessed quantified formulas corresponding to recursive function
+  // definitions and not the original definitions, we discard the latter
+  // in the loop below.
+  // 
+  // In summary, this means that define-fun-rec are expanded to
+  // (declare-fun ...) + (assert (forall ...)) in the printing below, whereas
+  // define-fun are preserved.
+  const context::CDList<Node>& asld = as.getAssertionListDefinitions();
   std::vector<Node> defs;
-  std::unordered_set<Node> defSet;
-  defs.insert(defs.end(), asld.begin(), asld.end());
-  defSet.insert(asld.begin(), asld.end());
-  for (const Node& a : asl)
+  for (const Node& d : asld)
   {
-    if (defSet.find(a) == defSet.end())
+    if (d.getKind()!=FORALL)
     {
-      assertions.push_back(a);
+      defs.push_back(d);
     }
+  }
+  AssertionPipeline& ap = as.getAssertionPipeline();
+  for (size_t i = 0, size = ap.size(); i < size; i++)
+  {
+    assertions.push_back(ap[i]);
   }
   std::stringstream ss;
   pb.printBenchmark(ss, logicInfo().getLogicString(), defs, assertions);
+  Trace(key) << ";;; " << key << " start" << std::endl;
   Trace(key) << ss.str();
+  Trace(key) << ";;; " << key << " end " << std::endl;
 }
 
 PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname, Assertions& as)
