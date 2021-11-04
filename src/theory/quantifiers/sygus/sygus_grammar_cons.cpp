@@ -34,6 +34,7 @@
 #include "theory/strings/word.h"
 #include "util/floatingpoint.h"
 #include "util/string.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace cvc5::kind;
 
@@ -173,7 +174,7 @@ Node CegGrammarConstructor::process(Node q,
       {
         output(OutputTag::SYGUS_GRAMMAR)
             << "(sygus-grammar "
-            << printer::smt2::SmtPrinter::sygusGrammarString(tn) << ")"
+            << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
             << std::endl;
       }
     }
