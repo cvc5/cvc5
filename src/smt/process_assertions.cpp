@@ -96,8 +96,8 @@ bool ProcessAssertions::apply(Assertions& as)
   AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
-  dumpAssertions("assertions:pre-everything", as);
-  Trace("assertions:pre-everything") << std::endl;
+  dumpAssertions("assertions::pre-everything", as);
+  Trace("assertions::pre-everything") << std::endl;
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
@@ -128,8 +128,6 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
-  dumpAssertions("pre-definition-expansion", as);
-  Trace("assertions:pre-definition-expansion") << std::endl;
   // Apply substitutions first. If we are non-incremental, this has only the
   // effect of replacing defined functions with their definitions.
   // We do not call theory-specific expand definitions here, since we want
@@ -138,8 +136,6 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
-  dumpAssertions("assertions:post-definition-expansion", as);
-  Trace("assertions:post-definition-expansion") << std::endl;
 
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
@@ -261,8 +257,8 @@ bool ProcessAssertions::apply(Assertions& as)
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-simplify"
                     << endl;
-  dumpAssertions("assertions:pre-simplify", as);
-  Trace("assertions:pre-simplify") << std::endl;
+  dumpAssertions("assertions::pre-simplify", as);
+  Trace("assertions::pre-simplify") << std::endl;
   Chat() << "simplifying assertions..." << endl;
   noConflict = simplifyAssertions(as);
   if (!noConflict)
@@ -271,8 +267,8 @@ bool ProcessAssertions::apply(Assertions& as)
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
-  dumpAssertions("assertions:post-simplify", as);
-  Trace("assertions:post-simplify") << std::endl;
+  dumpAssertions("assertions::post-simplify", as);
+  Trace("assertions::post-simplify") << std::endl;
 
   if (options().smt.doStaticLearning)
   {
@@ -296,8 +292,8 @@ bool ProcessAssertions::apply(Assertions& as)
     d_slvStats.d_numAssertionsPost += assertions.size();
   }
 
-  dumpAssertions("assertions:pre-repeat-simplify", as);
-  Trace("assertions:pre-repeat-simplify") << std::endl;
+  dumpAssertions("assertions::pre-repeat-simplify", as);
+  Trace("assertions::pre-repeat-simplify") << std::endl;
   if (options().smt.repeatSimp)
   {
     Trace("smt-proc")
@@ -310,8 +306,8 @@ bool ProcessAssertions::apply(Assertions& as)
         << "ProcessAssertions::processAssertions() : post-repeat-simplify"
         << endl;
   }
-  dumpAssertions("assertions:post-repeat-simplify", as);
-  Trace("assertions:post-repeat-simplify") << std::endl;
+  dumpAssertions("assertions::post-repeat-simplify", as);
+  Trace("assertions::post-repeat-simplify") << std::endl;
 
   if (logicInfo().isHigherOrder())
   {
@@ -342,8 +338,8 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
-  dumpAssertions("assertions:post-everything", as);
-  Trace("assertions:post-everything") << std::endl;
+  dumpAssertions("assertions::post-everything", as);
+  Trace("assertions::post-everything") << std::endl;
 
   return noConflict;
 }
@@ -468,10 +464,10 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 
 PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname, Assertions& as)
 {
-  dumpAssertions("assertions:pre-" + pname, as);
+  dumpAssertions("assertions::pre-" + pname, as);
   AssertionPipeline& assertions = as.getAssertionPipeline();
   PreprocessingPassResult res = d_passes[pname]->apply(&assertions);
-  dumpAssertions("assertions:post-" + pname, as);
+  dumpAssertions("assertions::post-" + pname, as);
   return res;
 }
 
