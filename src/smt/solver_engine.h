@@ -15,8 +15,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__SOLVER_ENGINE_H
-#define CVC5__SOLVER_ENGINE_H
+#ifndef CVC5__SMT__SOLVER_ENGINE_H
+#define CVC5__SMT__SOLVER_ENGINE_H
 
 #include <map>
 #include <memory>
@@ -26,7 +26,6 @@
 #include "context/cdhashmap_forward.h"
 #include "cvc5_export.h"
 #include "options/options.h"
-#include "smt/output_manager.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
@@ -849,9 +848,6 @@ class CVC5_EXPORT SolverEngine
   /** Get the printer used by this SMT engine */
   const Printer& getPrinter() const;
 
-  /** Get the output manager for this SMT engine */
-  OutputManager& getOutputManager();
-
   /** Get a pointer to the Rewriter owned by this SolverEngine. */
   theory::Rewriter* getRewriter();
   /**
@@ -1098,8 +1094,6 @@ class CVC5_EXPORT SolverEngine
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
 
-  /** the output manager for commands */
-  mutable OutputManager d_outMgr;
   /**
    * The global scope object. Upon creation of this SolverEngine, it becomes the
    * SolverEngine in scope. It says the SolverEngine in scope until it is

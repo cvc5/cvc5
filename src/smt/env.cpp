@@ -141,8 +141,6 @@ const Printer& Env::getPrinter()
   return *Printer::getPrinter(d_options.base.outputLanguage);
 }
 
-std::ostream& Env::getDumpOut() { return *d_options.base.out; }
-
 bool Env::isOutputOn(options::OutputTag tag) const
 {
   return d_options.base.outputTagHolder[static_cast<size_t>(tag)];

@@ -300,8 +300,6 @@ libcvc5_add_sources(
   smt/model_blocker.h
   smt/optimization_solver.cpp
   smt/optimization_solver.h
-  smt/output_manager.cpp
-  smt/output_manager.h
   smt/quant_elim_solver.cpp
   smt/quant_elim_solver.h
   smt/preprocessor.cpp

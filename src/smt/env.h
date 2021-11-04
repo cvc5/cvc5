@@ -139,12 +139,6 @@ class Env
   const Printer& getPrinter();
 
   /**
-   * Get the output stream that --dump=X should print to
-   * @return the output stream
-   */
-  std::ostream& getDumpOut();
-
-  /**
    * Check whether the output for the given output tag is enabled. Output tags
    * are enabled via the `output` option (or `-o` on the command line).
    */

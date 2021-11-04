@@ -97,7 +97,6 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_quantElimSolver(nullptr),
       d_isInternalSubsolver(false),
       d_stats(nullptr),
-      d_outMgr(this),
       d_scope(nullptr)
 {
   // !!!!!!!!!!!!!!!!!!!!!! temporary hack: this makes the current SolverEngine
@@ -1931,8 +1930,6 @@ ResourceManager* SolverEngine::getResourceManager() const
 }
 
 const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
-
-OutputManager& SolverEngine::getOutputManager() { return d_outMgr; }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 
