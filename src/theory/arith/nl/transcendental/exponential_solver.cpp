@@ -35,8 +35,8 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-ExponentialSolver::ExponentialSolver(TranscendentalState* tstate)
-    : d_data(tstate)
+ExponentialSolver::ExponentialSolver(Env& env, TranscendentalState* tstate)
+    : EnvObj(env), d_data(tstate)
 {
 }
 
@@ -217,7 +217,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
                         nm->mkNode(Kind::GEQ, e, poly_approx));
   Trace("nl-ext-exp") << "*** Tangent plane lemma (pre-rewrite): " << lem
                       << std::endl;
-  lem = Rewriter::rewrite(lem);
+  lem = rewrite(lem);
   Trace("nl-ext-exp") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
@@ -261,13 +261,13 @@ std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
   if (bounds.first.isNull())
   {
     // pick c-1
-    bounds.first = Rewriter::rewrite(
+    bounds.first = rewrite(
         NodeManager::currentNM()->mkNode(Kind::MINUS, center, d_data->d_one));
   }
   if (bounds.second.isNull())
   {
     // pick c+1
-    bounds.second = Rewriter::rewrite(
+    bounds.second = rewrite(
         NodeManager::currentNM()->mkNode(Kind::PLUS, center, d_data->d_one));
   }
   return bounds;
