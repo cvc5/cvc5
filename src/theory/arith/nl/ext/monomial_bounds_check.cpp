@@ -68,8 +68,8 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
 }
 }  // namespace
 
-MonomialBoundsCheck::MonomialBoundsCheck(ExtState* data)
-    : d_data(data), d_cdb(d_data->d_mdb)
+MonomialBoundsCheck::MonomialBoundsCheck(Env& env, ExtState* data)
+    : EnvObj(env), d_data(data), d_cdb(d_data->d_mdb)
 {
 }
 
@@ -300,7 +300,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           Node infer_rhs = nm->mkNode(Kind::MULT, mult, rhs);
           Node infer = nm->mkNode(infer_type, infer_lhs, infer_rhs);
           Trace("nl-ext-bound-debug") << "     " << infer << std::endl;
-          Node infer_mv = d_data->d_model.computeAbstractModelValue(Rewriter::rewrite(infer));
+          Node infer_mv =
+              d_data->d_model.computeAbstractModelValue(rewrite(infer));
           Trace("nl-ext-bound-debug")
               << "       ...infer model value is " << infer_mv << std::endl;
           if (infer_mv == d_data->d_false)
@@ -311,7 +312,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                     mmv_sign == 1 ? Kind::GT : Kind::LT, mult, d_data->d_zero),
                 d_ci_exp[x][coeff][rhs]);
             Node iblem = nm->mkNode(Kind::IMPLIES, exp, infer);
-            Node iblem_rw = Rewriter::rewrite(iblem);
+            Node iblem_rw = rewrite(iblem);
             bool introNewTerms = hasNewMonomials(iblem_rw, d_data->d_ms);
             Trace("nl-ext-bound-lemma")
                 << "*** Bound inference lemma : " << iblem_rw
@@ -478,7 +479,7 @@ void MonomialBoundsCheck::checkResBounds()
         {
           Node rhs_a = itcar->first;
           Node rhs_a_res_base = nm->mkNode(Kind::MULT, itb->second, rhs_a);
-          rhs_a_res_base = Rewriter::rewrite(rhs_a_res_base);
+          rhs_a_res_base = rewrite(rhs_a_res_base);
           if (hasNewMonomials(rhs_a_res_base, d_data->d_ms))
           {
             continue;
@@ -501,7 +502,7 @@ void MonomialBoundsCheck::checkResBounds()
               Node rhs_b = itcbr->first;
               Node rhs_b_res = nm->mkNode(Kind::MULT, ita->second, rhs_b);
               rhs_b_res = ArithMSum::mkCoeffTerm(coeff_a, rhs_b_res);
-              rhs_b_res = Rewriter::rewrite(rhs_b_res);
+              rhs_b_res = rewrite(rhs_b_res);
               if (hasNewMonomials(rhs_b_res, d_data->d_ms))
               {
                 continue;
@@ -554,7 +555,7 @@ void MonomialBoundsCheck::checkResBounds()
                          "(pre-rewrite) "
                          ": "
                       << rblem << std::endl;
-                  rblem = Rewriter::rewrite(rblem);
+                  rblem = rewrite(rblem);
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
                   d_data->d_im.addPendingLemma(

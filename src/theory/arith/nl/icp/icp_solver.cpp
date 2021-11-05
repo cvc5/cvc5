@@ -65,6 +65,11 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 }
 }  // namespace
 
+ICPSolver::ICPSolver(Env& env, InferenceManager& im)
+    : EnvObj(env), d_im(im), d_state(d_mapper)
+{
+}
+
 std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 {
   std::unordered_set<TNode> tmp;
@@ -79,7 +84,7 @@ std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 
 std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 {
-  Node tmp = Rewriter::rewrite(n);
+  Node tmp = rewrite(n);
   if (tmp.isConst())
   {
     return {};
@@ -271,7 +276,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       {
         Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
-        Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
+        Node lemma = rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
         {
           Assert(lemma == nm->mkConst<bool>(true));
@@ -291,7 +296,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       {
         Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
-        Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
+        Node lemma = rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
         {
           Assert(lemma == nm->mkConst<bool>(true));

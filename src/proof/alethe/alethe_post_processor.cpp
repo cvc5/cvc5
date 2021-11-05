@@ -1077,6 +1077,84 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       return addAletheStepFromOr(AletheRule::ITE_POS1, res, children, {}, *cdp);
     }
+    case PfRule::CNF_ITE_NEG1:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_ITE_NEG2:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_NEG1, res, children, {}, *cdp);
+    }
+    // ======== CNF ITE Pos version 3
+    //
+    // ----- ITE_POS1            ----- ITE_POS2
+    //  VP1                       VP2
+    // ------------------------------- RESOLUTION
+    //             VP3
+    // ------------------------------- REORDER
+    //             VP4
+    // ------------------------------- DUPLICATED_LITERALS
+    //  (cl (not (ite C F1 F2)) F1 F2)
+    //
+    // VP1: (cl (not (ite C F1 F2)) C F2)
+    // VP2: (cl (not (ite C F1 F2)) (not C) F1)
+    // VP3: (cl (not (ite C F1 F2)) F2 (not (ite C F1 F2)) F1)
+    // VP4: (cl (not (ite C F1 F2)) (not (ite C F1 F2)) F1 F2)
+    //
+    // * the corresponding proof node is (or (not (ite C F1 F2)) F1 F2)
+    case PfRule::CNF_ITE_POS3:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
+      Node vp2 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0].notNode(), res[1]});
+      Node vp3 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], res[2], res[0], res[1]});
+      Node vp4 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], res[0], res[1], res[2]});
+
+      return addAletheStep(AletheRule::ITE_POS1, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::ITE_POS2, vp2, vp2, {}, {}, *cdp)
+             && addAletheStep(
+                 AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
+             && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
+             && addAletheStepFromOr(
+                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
+    }
+    // ======== CNF ITE Neg version 3
+    //
+    // ----- ITE_NEG1            ----- ITE_NEG2
+    //  VP1                       VP2
+    // ------------------------------- RESOLUTION
+    //             VP3
+    // ------------------------------- REORDER
+    //             VP4
+    // ------------------------------- DUPLICATED_LITERALS
+    //  (cl (ite C F1 F2) C (not F2))
+    //
+    // VP1: (cl (ite C F1 F2) C (not F2))
+    // VP2: (cl (ite C F1 F2) (not C) (not F1))
+    // VP3: (cl (ite C F1 F2) (not F2) (ite C F1 F2) (not F1))
+    // VP4: (cl (ite C F1 F2) (ite C F1 F2) (not F1) (not F2))
+    //
+    // * the corresponding proof node is (or (ite C F1 F2) C (not F2))
+    case PfRule::CNF_ITE_NEG3:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
+      Node vp2 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0].notNode(), res[1]});
+      Node vp3 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], res[2], res[0], res[1]});
+      Node vp4 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], res[0], res[1], res[2]});
+
+      return addAletheStep(AletheRule::ITE_NEG1, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::ITE_NEG2, vp2, vp2, {}, {}, *cdp)
+             && addAletheStep(
+                 AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
+             && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
+             && addAletheStepFromOr(
+                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
