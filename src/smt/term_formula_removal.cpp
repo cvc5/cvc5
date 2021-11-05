@@ -284,8 +284,8 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
     if (!nodeType.isFirstClass())
     {
       std::stringstream ss;
-      ss << "ITE branches of type " << nodeType << " are currently not supported."
-         << std::endl;
+      ss << "ITE branches of type " << nodeType
+         << " are currently not supported." << std::endl;
       throw LogicException(ss.str());
     }
     // Here, we eliminate the ITE if we are not Boolean and if we are
