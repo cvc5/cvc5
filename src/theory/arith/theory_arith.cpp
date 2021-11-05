@@ -331,8 +331,8 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node aval = Rewriter::rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  Node bval = Rewriter::rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  Node aval = rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  Node bval = rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
   if (aval == bval)
   {
     return EQUALITY_TRUE_IN_MODEL;

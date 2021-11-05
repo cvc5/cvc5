@@ -260,7 +260,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
         if (!d_state.areDisequal(itf->second[j], itf->second[k]))
         {
           Node deq =
-              Rewriter::rewrite(itf->second[j].eqNode(itf->second[k]).negate());
+              rewrite(itf->second[j].eqNode(itf->second[k]).negate());
           // either add to model, or add lemma
           if (isCollectModel)
           {

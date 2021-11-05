@@ -86,7 +86,7 @@ struct RewriteStackElement {
 };
 
 
-Node Rewriter::rewrite(TNode node) {
+Node rewrite(TNode node) {
   if (node.getNumChildren() == 0)
   {
     // Nodes with zero children should never change via rewriting. We return

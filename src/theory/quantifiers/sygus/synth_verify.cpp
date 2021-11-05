@@ -124,7 +124,7 @@ Result SynthVerify::verify(Node query,
       Node squery =
           query.substitute(vars.begin(), vars.end(), mvs.begin(), mvs.end());
       Trace("cegqi-debug") << "...squery : " << squery << std::endl;
-      squery = Rewriter::rewrite(squery);
+      squery = rewrite(squery);
       Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
       Assert(options::sygusRecFun()
              || (squery.isConst() && squery.getConst<bool>()));

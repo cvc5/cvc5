@@ -201,7 +201,7 @@ Node SubstitutionMap::apply(TNode t, bool doRewrite) {
 
   if (doRewrite)
   {
-    result = Rewriter::rewrite(result);
+    result = rewrite(result);
   }
 
   return result;

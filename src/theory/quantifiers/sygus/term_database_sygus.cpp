@@ -981,7 +981,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
 {
   if (args.empty())
   {
-    return Rewriter::rewrite( bn );
+    return rewrite( bn );
   }
   Assert(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);

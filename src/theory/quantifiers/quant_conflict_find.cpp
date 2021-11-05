@@ -654,7 +654,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
 
 bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
   Trace("qcf-tconstraint-debug") << "Check : " << lit << std::endl;
-  Node rew = Rewriter::rewrite(lit);
+  Node rew = rewrite(lit);
   if (rew.isConst())
   {
     Trace("qcf-tconstraint-debug") << "...constraint " << lit << " rewrites to "
@@ -665,7 +665,7 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
   // constraint is (not) entailed
   if (!chEnt)
   {
-    rew = Rewriter::rewrite(rew.negate());
+    rew = rewrite(rew.negate());
   }
   // check if it is entailed
   Trace("qcf-tconstraint-debug")

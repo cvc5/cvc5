@@ -65,7 +65,7 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
       // check if less than fixed upper bound
       Node oth = nm->mkConst(Rational(maxCard));
       Node eq = nm->mkNode(LEQ, card, oth);
-      eq = Rewriter::rewrite(eq);
+      eq = rewrite(eq);
       mc = eq.isConst() && eq.getConst<bool>();
     }
   }

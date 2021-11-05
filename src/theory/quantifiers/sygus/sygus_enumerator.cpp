@@ -88,7 +88,7 @@ void SygusEnumerator::initialize(Node e)
     {
       // substitute its active guard by true and rewrite
       Node slem = lem.substitute(agt, truent);
-      slem = Rewriter::rewrite(slem);
+      slem = rewrite(slem);
       // break into conjuncts
       std::vector<Node> sblc;
       if (slem.getKind() == AND)

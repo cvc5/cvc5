@@ -16,6 +16,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__EXT__SPLIT_ZERO_CHECK_H
 #define CVC5__THEORY__ARITH__NL__EXT__SPLIT_ZERO_CHECK_H
 
+#include "smt/env_obj.h"
 #include "expr/node.h"
 #include "context/cdhashset.h"
 
@@ -26,10 +27,10 @@ namespace nl {
 
 struct ExtState;
 
-class SplitZeroCheck
+class SplitZeroCheck : protected EnvObj
 {
  public:
-  SplitZeroCheck(ExtState* data);
+  SplitZeroCheck(Env& env, ExtState* data);
 
   /** check split zero
    *

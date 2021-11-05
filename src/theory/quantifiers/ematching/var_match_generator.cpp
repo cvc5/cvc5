@@ -51,7 +51,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
                                   << d_var << " in " << d_subs << std::endl;
     TNode tvar = d_var;
     Node s = d_subs.substitute(tvar, d_eq_class);
-    s = Rewriter::rewrite(s);
+    s = rewrite(s);
     Trace("var-trigger-matching")
         << "...got " << s << ", " << s.getKind() << std::endl;
     d_eq_class = Node::null();

@@ -88,7 +88,7 @@ Node ArrayEnumerator::operator*()
                      *(*(d_constituentVec[i])));
   }
   Trace("array-type-enum") << "operator * prerewrite: " << n << std::endl;
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
   return n;
 }

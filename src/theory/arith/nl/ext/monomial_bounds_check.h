@@ -16,6 +16,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
 #define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
 
+#include "smt/env_obj.h"
 #include "expr/node.h"
 #include "theory/arith/nl/ext/constraint.h"
 
@@ -26,10 +27,10 @@ namespace nl {
 
 struct ExtState;
 
-class MonomialBoundsCheck
+class MonomialBoundsCheck : protected EnvObj
 {
  public:
-  MonomialBoundsCheck(ExtState* data);
+  MonomialBoundsCheck(Env& env, ExtState* data);
 
   void init();
 

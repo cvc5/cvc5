@@ -129,13 +129,13 @@ Node TermUtil::getQuantSimplify( Node n ) {
   expr::getFreeVariables(n, fvs);
   if (fvs.empty())
   {
-    return Rewriter::rewrite( n );
+    return rewrite( n );
   }
   std::vector<Node> bvs;
   bvs.insert(bvs.end(), fvs.begin(), fvs.end());
   NodeManager* nm = NodeManager::currentNM();
   Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
-  q = Rewriter::rewrite(q);
+  q = rewrite(q);
   return getRemoveQuantifiers(q);
 }
 
@@ -384,13 +384,13 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
   {
     if (tn.isInteger() || tn.isReal())
     {
-      val_o = Rewriter::rewrite(
+      val_o = rewrite(
           NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
       status = 0;
     }
     else if (tn.isBitVector())
     {
-      val_o = Rewriter::rewrite(
+      val_o = rewrite(
           NodeManager::currentNM()->mkNode(BITVECTOR_ADD, val, offset_val));
     }
   }

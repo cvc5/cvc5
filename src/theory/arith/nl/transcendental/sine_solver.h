@@ -18,6 +18,7 @@
 
 #include <map>
 
+#include "smt/env_obj.h"
 #include "expr/node.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
@@ -39,10 +40,10 @@ namespace transcendental {
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class SineSolver
+class SineSolver : protected EnvObj
 {
  public:
-  SineSolver(TranscendentalState* tstate);
+  SineSolver(Env& env, TranscendentalState* tstate);
   ~SineSolver();
 
   /**

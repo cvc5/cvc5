@@ -29,7 +29,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-TangentPlaneCheck::TangentPlaneCheck(ExtState* data) : d_data(data) {}
+TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data) : EnvObj(env), d_data(data) {}
 
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {
@@ -90,7 +90,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               {
                 Node do_extend = nm->mkNode(
                     (p == 1 || p == 3) ? Kind::GT : Kind::LT, curr_v, pt_v);
-                do_extend = Rewriter::rewrite(do_extend);
+                do_extend = rewrite(do_extend);
                 if (do_extend == d_data->d_true)
                 {
                   for (unsigned q = 0; q < 2; q++)

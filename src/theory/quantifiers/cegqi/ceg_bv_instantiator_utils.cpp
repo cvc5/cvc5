@@ -111,7 +111,7 @@ Node normalizePvMult(TNode pv,
   {
     coeff = nm->mkNode(BITVECTOR_NEG, coeff);
   }
-  coeff = Rewriter::rewrite(coeff);
+  coeff = rewrite(coeff);
   unsigned size_coeff = bv::utils::getSize(coeff);
   Node zero = bv::utils::mkZero(size_coeff);
   if (coeff == zero)
@@ -223,7 +223,7 @@ Node normalizePvPlus(Node pv,
   if (nb_c.getNumChildren() > 0)
   {
     Node coeffs = (nb_c.getNumChildren() == 1) ? nb_c[0] : nb_c.constructNode();
-    coeffs = Rewriter::rewrite(coeffs);
+    coeffs = rewrite(coeffs);
     result = pv_mult_coeffs =
         utils::normalizePvMult(pv, {pv, coeffs}, contains_pv);
   }
@@ -231,7 +231,7 @@ Node normalizePvPlus(Node pv,
   if (nb_l.getNumChildren() > 0)
   {
     Node leafs = (nb_l.getNumChildren() == 1) ? nb_l[0] : nb_l.constructNode();
-    leafs = Rewriter::rewrite(leafs);
+    leafs = rewrite(leafs);
     Node zero = bv::utils::mkZero(bv::utils::getSize(pv));
     /* pv * 0 + t --> t */
     if (pv_mult_coeffs.isNull() || pv_mult_coeffs == zero)
@@ -303,7 +303,7 @@ Node normalizePvEqual(Node pv,
   }
 
   Node coeff = nm->mkNode(BITVECTOR_SUB, coeffs[0], coeffs[1]);
-  coeff = Rewriter::rewrite(coeff);
+  coeff = rewrite(coeff);
   std::vector<Node> mult_children = {pv, coeff};
   Node lhs = utils::normalizePvMult(pv, mult_children, contains_pv);
 
@@ -324,7 +324,7 @@ Node normalizePvEqual(Node pv,
   {
     rhs = bv::utils::mkZero(bv::utils::getSize(pv));
   }
-  rhs = Rewriter::rewrite(rhs);
+  rhs = rewrite(rhs);
 
   if (lhs == rhs)
   {

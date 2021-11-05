@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "smt/env_obj.h"
 #include "expr/node.h"
 
 namespace cvc5 {
@@ -30,10 +31,10 @@ namespace nl {
 
 struct ExtState;
 
-class FactoringCheck
+class FactoringCheck : protected EnvObj
 {
  public:
-  FactoringCheck(ExtState* data);
+  FactoringCheck(Env& env, ExtState* data);
 
   /** check factoring
    *

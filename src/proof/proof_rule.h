@@ -138,7 +138,7 @@ enum class PfRule : uint32_t
   // where ids and idr are method identifiers.
   //
   // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toOriginal(F')) == true
+  //   rewrite(toOriginal(F')) == true
   // where F' is the result of the left hand side of the equality above. Here,
   // notice that we apply rewriting on the original form of F', meaning that
   // this rule may conclude an F whose Skolem form is justified by the
@@ -181,7 +181,7 @@ enum class PfRule : uint32_t
   //   Rewriter{idr}(G*sigma{ids, ida}(Fn)*...*sigma{ids, ida}(F1))
   //
   // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
+  //   rewrite(toOriginal(F')) == rewrite(toOriginal(G'))
   // where F' and G' are the result of each side of the equation above. Here,
   // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,

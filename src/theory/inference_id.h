@@ -568,7 +568,7 @@ enum class InferenceId
   STRINGS_F_NCTN,
   // Normal form equality conflict
   //   x = N[x] ^ y = N[y] ^ x=y => false
-  // where Rewriter::rewrite(N[x]=N[y]) = false.
+  // where rewrite(N[x]=N[y]) = false.
   STRINGS_N_EQ_CONF,
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:

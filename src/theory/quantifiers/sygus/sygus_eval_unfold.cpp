@@ -96,7 +96,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
       TNode at = a;
       TNode vt = v;
       Node vn = n.substitute(at, vt);
-      vn = Rewriter::rewrite(vn);
+      vn = rewrite(vn);
       unsigned start = d_node_mv_args_proc[n][vn];
       // get explanation in terms of testers
       std::vector<Node> antec_exp;
@@ -319,7 +319,7 @@ Node SygusEvalUnfold::unfold(Node en,
   Trace("sygus-eval-unfold-debug")
       << "Applied sygus args : " << ret << std::endl;
   // rewrite
-  ret = Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   Trace("sygus-eval-unfold-debug") << "Rewritten : " << ret << std::endl;
   return ret;
 }

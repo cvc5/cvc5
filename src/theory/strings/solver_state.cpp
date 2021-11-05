@@ -100,7 +100,7 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
   {
     exp.push_back(te.eqNode(lengthTerm));
   }
-  return Rewriter::rewrite(
+  return rewrite(
       NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
 }
 

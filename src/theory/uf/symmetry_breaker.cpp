@@ -206,7 +206,7 @@ void SymmetryBreaker::rerunAssertionsIfNecessary() {
 }
 
 Node SymmetryBreaker::norm(TNode phi) {
-  Node n = Rewriter::rewrite(phi);
+  Node n = rewrite(phi);
   return normInternal(n, 0);
 }
 
