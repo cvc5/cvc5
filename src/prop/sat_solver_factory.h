@@ -32,7 +32,7 @@ namespace prop {
 class SatSolverFactory
 {
  public:
-  static MinisatSatSolver* createCDCLTMinisat(StatisticsRegistry& registry);
+  static MinisatSatSolver* createCDCLTMinisat(Env& env, StatisticsRegistry& registry);
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         const std::string& name = "");
