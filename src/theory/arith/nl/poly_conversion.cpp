@@ -133,7 +133,7 @@ poly::UPolynomial as_poly_upolynomial_impl(const cvc5::Node& n,
       return res;
     }
     default:
-      Warning() << "Unhandled node " << n << " with kind " << n.getKind()
+      Assert(false) << "Unhandled node " << n << " with kind " << n.getKind()
                 << std::endl;
   }
   return poly::UPolynomial();

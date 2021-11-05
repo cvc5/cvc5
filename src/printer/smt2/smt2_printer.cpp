@@ -41,8 +41,6 @@
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
-#include "smt/solver_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -1774,8 +1772,9 @@ void Smt2Printer::toStreamCmdEcho(std::ostream& out,
    --------------------------------------------------------------------------
 */
 
-static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
+std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
 {
+  std::stringstream out;
   if (!t.isNull() && t.isDatatype() && t.getDType().isSygus())
   {
     std::stringstream types_predecl, types_list;
@@ -1830,6 +1829,7 @@ static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
 
     out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ')';
   }
+  return out.str();
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
@@ -1863,7 +1863,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   // print grammar, if any
   if (!sygusType.isNull())
   {
-    toStreamSygusGrammar(out, sygusType);
+    out << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
 }
@@ -1905,8 +1905,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
   out << "(get-interpol " << cvc5::quoteSymbol(name) << ' ' << conj;
   if (!sygusType.isNull())
   {
-    out << ' ';
-    toStreamSygusGrammar(out, sygusType);
+    out << ' ' << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
 }
@@ -1923,7 +1922,7 @@ void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
   // print grammar, if any
   if (!sygusType.isNull())
   {
-    toStreamSygusGrammar(out, sygusType);
+    out << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
 }

@@ -33,6 +33,7 @@ enum class DslPfRule : uint32_t
   // the following rules can be generated temporarily during reconstruction
   TRANS,
   CONG,
+  CONG_EVAL,
   TRUE_ELIM,
   TRUE_INTRO,
   ARITH_POLY_NORM,

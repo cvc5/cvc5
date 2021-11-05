@@ -20,6 +20,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_manager_attributes.h"
 
 using namespace cvc5::kind;
 
@@ -78,6 +79,8 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
   out << toString(id);
   return out;
 }
+
+SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
@@ -217,10 +220,9 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
     std::stringstream ss;
     ss << "SKOLEM_FUN_" << id;
-    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function", flags);
+    Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
     return k;
@@ -264,7 +266,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return NodeManager::currentNM()->mkSkolem(prefix, type, comment, flags);
+  return mkSkolemNode(prefix, type, comment, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
@@ -367,30 +369,51 @@ Node SkolemManager::mkSkolemInternal(Node w,
                                      int flags)
 {
   // note that witness, original forms are independent, but share skolems
-  NodeManager* nm = NodeManager::currentNM();
   // w is not necessarily a witness term
   SkolemFormAttribute sfa;
-  Node k;
   // could already have a skolem if we used w already
   if (w.hasAttribute(sfa))
   {
     return w.getAttribute(sfa);
   }
   // make the new skolem
-  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
-  {
-    Assert (w.getType().isBoolean());
-    k = nm->mkBooleanTermVariable();
-  }
-  else
-  {
-    k = nm->mkSkolem(prefix, w.getType(), comment, flags);
-  }
+  Node k = mkSkolemNode(prefix, w.getType(), comment, flags);
   // set skolem form attribute for w
   w.setAttribute(sfa, k);
   Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
                       << std::endl;
   return k;
+}
+
+Node SkolemManager::mkSkolemNode(const std::string& prefix,
+                                 const TypeNode& type,
+                                 const std::string& comment,
+                                 int flags)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node n;
+  if (flags & SKOLEM_BOOL_TERM_VAR)
+  {
+    Assert(type.isBoolean());
+    n = NodeBuilder(nm, BOOLEAN_TERM_VARIABLE);
+  }
+  else
+  {
+    n = NodeBuilder(nm, SKOLEM);
+    if ((flags & SKOLEM_EXACT_NAME) == 0)
+    {
+      std::stringstream name;
+      name << prefix << '_' << ++d_skolemCounter;
+      n.setAttribute(expr::VarNameAttr(), name.str());
+    }
+    else
+    {
+      n.setAttribute(expr::VarNameAttr(), prefix);
+    }
+  }
+  n.setAttribute(expr::TypeAttr(), type);
+  n.setAttribute(expr::TypeCheckedAttr(), true);
+  return n;
 }
 
 }  // namespace cvc5

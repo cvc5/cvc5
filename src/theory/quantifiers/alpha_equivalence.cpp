@@ -172,9 +172,9 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   lem = ret.eqNode(q);
   if (q.getNumChildren() == 3)
   {
-    Notice() << "Ignoring annotated quantified formula based on alpha "
-                "equivalence: "
-             << q << std::endl;
+    verbose(1) << "Ignoring annotated quantified formula based on alpha "
+                  "equivalence: "
+               << q << std::endl;
   }
   // if successfully computed the substitution above
   if (isProofEnabled() && !vars.empty())

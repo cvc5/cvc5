@@ -23,7 +23,6 @@
 #include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;

@@ -19,6 +19,8 @@
 (define-rule arith-elim-lt ((t Int) (s Int)) (< t s) (not (>= t s)))
 (define-rule arith-elim-leq ((t Int) (s Int)) (<= t s) (not (>= t (+ s 1))))
 
+(define-rule arith-geq-tighten ((t Int) (s Int)) (not (>= t s)) (>= s (+ t 1)))
+
 (define-rule arith-geq-norm ((t Int) (s Int)) (>= t s) (>= (- t s) 0))
 
 (define-rule arith-refl-leq ((t Int)) (<= t t) true)

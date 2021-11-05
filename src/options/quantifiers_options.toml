@@ -1112,7 +1112,7 @@ name   = "Quantifiers"
   category   = "regular"
   long       = "sygus-add-const-grammar"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "statically add constants appearing in conjecture to grammars"
 
 [[option]]
