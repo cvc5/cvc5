@@ -21,6 +21,7 @@ runs:
     - name: Run CTest
       shell: bash
       run: |
+        make -j${{ env.num_proc }} build-tests
         ctest -j${{ env.num_proc }} --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
       env:
         CVC5_REGRESSION_ARGS: --no-early-exit
