@@ -802,16 +802,9 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
     }
     else if (Trace.isOn("circuit-prop"))
     {
-      if (d_epg->hasProofFor(f))
-      {
-        auto prf = d_epg->getProofFor(f);
-        Trace("circuit-prop") << "Ignoring proof\n\t" << *pf
-                              << "\nwe already have\n\t" << *prf << std::endl;
-      }
-      else
-      {
-        Trace("circuit-prop") << "Ignoring ASSUME proof" << std::endl;
-      }
+      auto prf = d_epg->getProofFor(f);
+      Trace("circuit-prop") << "Ignoring proof\n\t" << *pf
+                            << "\nwe already have\n\t" << *prf << std::endl;
     }
   }
 }
