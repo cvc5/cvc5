@@ -26,14 +26,17 @@ namespace proof {
 
 /**
  * This is a helper class for the Alethe post-processor that converts nodes into
- * form that Alethe expects.
+ * form that Alethe expects. In particular it removes occurrences of mixed
+ * int/real typing.
  */
 class AletheNoSubtypeNodeConverter : public NodeConverter
 {
  public:
   AletheNoSubtypeNodeConverter() {}
   ~AletheNoSubtypeNodeConverter() {}
-  /** Convert by removing attributes of quantifiers. */
+  /** Convert by casting integer terms into real ones when it's identified that
+   * they occur in "real" positions. For example, (f 1 a), with f having as its
+   * type f : Real -> Real -> Real, will be turned into (f 1.0 a). */
   Node postConvert(Node n) override;
 };
 
