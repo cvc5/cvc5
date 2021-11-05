@@ -68,7 +68,7 @@ BagEnumerator& BagEnumerator::operator++()
         d_nodeManager->mkNode(kind::UNION_DISJOINT, singleton, d_currentBag);
   }
 
-  d_currentBag = rewrite(d_currentBag);
+  d_currentBag = Rewriter::rewrite(d_currentBag);
 
   Assert(d_currentBag.isConst());
 

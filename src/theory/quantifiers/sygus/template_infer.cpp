@@ -25,6 +25,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
+  
+SygusTemplateInfer::SygusTemplateInfer(Env& env) : EnvObj(env), d_ti(env) {}
 
 void SygusTemplateInfer::initialize(Node q)
 {

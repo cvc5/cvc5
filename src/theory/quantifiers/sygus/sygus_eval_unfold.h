@@ -19,6 +19,7 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
 
 #include <map>
+#include "smt/env_obj.h"
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
@@ -37,10 +38,10 @@ class TermDbSygus;
  * unfold" applications of eval based on the model values of evaluation heads
  * in refinement lemmas.
  */
-class SygusEvalUnfold
+class SygusEvalUnfold : protected EnvObj
 {
  public:
-  SygusEvalUnfold(TermDbSygus* tds);
+  SygusEvalUnfold(Env& env, TermDbSygus* tds);
   ~SygusEvalUnfold() {}
   /** register evaluation term
    *

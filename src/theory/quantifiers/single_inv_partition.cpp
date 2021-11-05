@@ -336,7 +336,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         cr = cr.substitute(
             termsNs.begin(), termsNs.end(), subsNs.begin(), subsNs.end());
       }
-      cr = rewrite(cr);
+      cr = Rewriter::rewrite(cr);
       Trace("si-prt") << ".....got si=" << singleInvocation
                       << ", result : " << cr << std::endl;
       d_conjuncts[2].push_back(cr);
@@ -349,7 +349,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Assert(si_terms.size() == si_subs.size());
         cr = cr.substitute(
             si_terms.begin(), si_terms.end(), si_subs.begin(), si_subs.end());
-        cr = rewrite(cr);
+        cr = Rewriter::rewrite(cr);
         Trace("si-prt") << ".....si version=" << cr << std::endl;
         d_conjuncts[0].push_back(cr);
       }

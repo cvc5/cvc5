@@ -30,7 +30,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusEvalUnfold::SygusEvalUnfold(TermDbSygus* tds) : d_tds(tds) {}
+SygusEvalUnfold::SygusEvalUnfold(Env& env, TermDbSygus* tds) : EnvObj(env), d_tds(tds) {}
 
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {

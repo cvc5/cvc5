@@ -184,7 +184,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   res = SygusUtils::mkSygusConjecture({abd}, res, {instAttr});
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
-  res = theory::rewrite(res);
+  res = theory::Rewriter::rewrite(res);
 
   Trace("sygus-abduct") << "Generate: " << res << std::endl;
 

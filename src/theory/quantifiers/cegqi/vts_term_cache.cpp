@@ -155,7 +155,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
                            subs_lhs.end(),
                            subs_rhs.begin(),
                            subs_rhs.end());
-          n = rewrite(n);
+          n = Rewriter::rewrite(n);
           // may have cancelled
           if (!expr::hasSubterm(n, rew_vts_inf))
           {

@@ -694,7 +694,7 @@ Node PatternTermSelector::getInversion(Node n, Node x)
             x = nm->mkNode(MULT, x, coeff);
           }
         }
-        x = rewrite(x);
+        x = Rewriter::rewrite(x);
       }
       else
       {

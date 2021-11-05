@@ -4780,7 +4780,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
 }
 
 bool TheoryArithPrivate::decomposeTerm(Node term, Rational& m, Node& p, Rational& c){
-  Node t = rewrite(term);
+  Node t = Rewriter::rewrite(term);
   if(!Polynomial::isMember(t)){
     return false;
   }
@@ -4881,7 +4881,7 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   success = decomposeTerm(right, rm, rp, rc);
   if(!success){ return false; }
 
-  Node diff = rewrite(NodeManager::currentNM()->mkNode(kind::MINUS, left, right));
+  Node diff = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::MINUS, left, right));
   Rational dc;
   success = decomposeTerm(diff, dm, dp, dc);
   Assert(success);

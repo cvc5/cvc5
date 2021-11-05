@@ -1200,7 +1200,7 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
   if (!templ.isNull())
   {
     res = templ.substitute(templ_var, res);
-    res = rewrite(res);
+    res = Rewriter::rewrite(res);
     Trace("sygus-unif-rl-sep")
         << "...after template res = " << res << std::endl;
   }

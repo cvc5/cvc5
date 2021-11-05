@@ -194,7 +194,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentation( TNode a, TNode bvl 
   Trace("builtin-rewrite-debug") << "Get lambda for : " << a << ", with variables " << bvl << std::endl;
   Node body = getLambdaForArrayRepresentationRec( a, bvl, 0, visited );
   if( !body.isNull() ){
-    body = rewrite( body );
+    body = Rewriter::rewrite( body );
     Trace("builtin-rewrite-debug") << "...got lambda body " << body << std::endl;
     return NodeManager::currentNM()->mkNode( kind::LAMBDA, bvl, body );
   }else{
@@ -252,7 +252,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     {
       Trace("builtin-rewrite-debug2")
           << "  process base : " << curr << std::endl;
-      // curr = rewrite(curr);
+      // curr = Rewriter::rewrite(curr);
       // Trace("builtin-rewrite-debug2")
       //     << "  rewriten base : " << curr << std::endl;
       // Complex Boolean return cases, in which
@@ -353,7 +353,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
         return Node::null();
       }
     }
-    else if (rewrite(index_eq) != index_eq)
+    else if (Rewriter::rewrite(index_eq) != index_eq)
     {
       // equality must be oriented correctly based on rewriter
       Trace("builtin-rewrite-debug2") << "  ...equality not oriented properly." << std::endl;
@@ -505,7 +505,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
     return anode;
   }
   // must rewrite it to make canonical
-  return rewrite(anode);
+  return Rewriter::rewrite(anode);
 }
 
 }  // namespace builtin

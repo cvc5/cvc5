@@ -53,7 +53,7 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
   TNode solve_var = getSolveVariable(tn);
 
   // condition should be rewritten
-  Node new_cond = rewrite(cond);
+  Node new_cond = Rewriter::rewrite(cond);
   if (new_cond != cond)
   {
     Trace("cegqi-bv-skvinv-debug")
