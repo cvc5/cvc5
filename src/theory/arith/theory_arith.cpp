@@ -386,9 +386,9 @@ bool TheoryArith::sanityCheckIntegerModel()
       Trace("arith-check") << p.first << " -> " << p.second << std::endl;
       if (p.first.getType().isInteger() && !p.second.getType().isInteger())
       {
-        Warning() << "TheoryArithPrivate generated a bad model value for "
+        warning() << "TheoryArithPrivate generated a bad model value for "
                      "integer variable "
-                  << p.first << " : " << p.second;
+                  << p.first << " : " << p.second << std::endl;
         // must branch and bound
         TrustNode lem =
             d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());

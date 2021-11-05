@@ -721,7 +721,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       if (opts.theory.relevanceFilterWasSetByUser)
       {
-        Warning() << "SolverEngine: turning on relevance filtering to support "
+        Trace("smt") << "SolverEngine: turning on relevance filtering to support "
                      "--nl-ext-rlv="
                   << opts.arith.nlRlvMode << std::endl;
       }

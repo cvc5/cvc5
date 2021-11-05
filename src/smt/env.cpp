@@ -177,6 +177,11 @@ std::ostream& Env::verbose(int64_t level) const
   return cvc5::null_os;
 }
 
+std::ostream& Env::warning() const
+{
+  return verbose(0);
+}
+
 Node Env::evaluate(TNode n,
                    const std::vector<Node>& args,
                    const std::vector<Node>& vals,

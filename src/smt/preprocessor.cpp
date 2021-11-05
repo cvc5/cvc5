@@ -39,7 +39,7 @@ Preprocessor::Preprocessor(Env& env,
                            SolverEngineStatistics& stats)
     : EnvObj(env),
       d_absValues(abs),
-      d_propagator(true, true),
+      d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_exDefs(env),
       d_processor(env, stats),

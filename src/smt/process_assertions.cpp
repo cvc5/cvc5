@@ -447,7 +447,7 @@ void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
   // as definitions.
   if (!options().smt.produceAssertions)
   {
-    Warning()
+    warning()
         << "Assertions not available for dumping (use --produce-assertions)."
         << std::endl;
     return;

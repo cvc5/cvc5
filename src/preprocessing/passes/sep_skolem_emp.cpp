@@ -111,7 +111,7 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
   TypeNode locType, dataType;
   if (!d_preprocContext->getTheoryEngine()->getSepHeapTypes(locType, dataType))
   {
-    Warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
+    warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
                  "heap types during preprocessing"
               << std::endl;
     return PreprocessingPassResult::NO_CONFLICT;
