@@ -888,7 +888,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
-          if (d_qstate.isInConflict() || options().quantifiers.fmfOneInstPerRound)
+          if (d_qstate.isInConflict()
+              || options().quantifiers.fmfOneInstPerRound)
           {
             break;
           }

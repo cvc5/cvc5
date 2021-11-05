@@ -62,7 +62,8 @@ void QuantDSplit::checkOwnership(Node q)
       }
       else
       {
-        if (options().quantifiers.quantDynamicSplit == options::QuantDSplitMode::AGG)
+        if (options().quantifiers.quantDynamicSplit
+            == options::QuantDSplitMode::AGG)
         {
           // split if it is a finite datatype
           doSplit = isFinite;

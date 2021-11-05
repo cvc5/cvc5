@@ -1784,11 +1784,13 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   TypeNode stype = veci[loop_index].getType();
 
-  if (options().strings.stringProcessLoopMode == options::ProcessLoopMode::ABORT)
+  if (options().strings.stringProcessLoopMode
+      == options::ProcessLoopMode::ABORT)
   {
     throw LogicException("Looping word equation encountered.");
   }
-  else if (options().strings.stringProcessLoopMode == options::ProcessLoopMode::NONE
+  else if (options().strings.stringProcessLoopMode
+               == options::ProcessLoopMode::NONE
            || stype.isSequence())
   {
     // note we cannot convert looping word equations into regular expressions if

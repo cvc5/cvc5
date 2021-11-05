@@ -43,7 +43,8 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_qim(nullptr),
       d_qreg(qr),
       d_termsContext(),
-      d_termsContextUse(options().quantifiers.termDbCd ? context() : &d_termsContext),
+      d_termsContextUse(options().quantifiers.termDbCd ? context()
+                                                       : &d_termsContext),
       d_processed(d_termsContextUse),
       d_typeMap(d_termsContextUse),
       d_ops(d_termsContextUse),
@@ -476,17 +477,19 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
   {
     return d_has_map.find( n )!=d_has_map.end();
   }
-  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : " << options().quantifiers.termDbMode;
+  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : "
+                << options().quantifiers.termDbMode;
   return false;
 }
 
 bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
-  if( options().quantifiers.instMaxLevel!=-1 ){
+  if (options().quantifiers.instMaxLevel != -1)
+  {
     if( n.hasAttribute(InstLevelAttribute()) ){
       int64_t fml =
           f.isNull() ? -1 : d_qreg.getQuantAttributes().getQuantInstLevel(f);
-      unsigned ml = fml>=0 ? fml : options().quantifiers.instMaxLevel;
+      unsigned ml = fml >= 0 ? fml : options().quantifiers.instMaxLevel;
 
       if( n.getAttribute(InstLevelAttribute())>ml ){
         Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
@@ -494,7 +497,8 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
         return false;
       }
     }else{
-      if( options().quantifiers.instLevelInputOnly ){
+      if (options().quantifiers.instLevelInputOnly)
+      {
         Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
         return false;
       }

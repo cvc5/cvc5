@@ -43,10 +43,13 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
       d_range(r),
       d_ranges_proxied(userContext())
 {
-  if( options().quantifiers.fmfBoundLazy ){
+  if (options().quantifiers.fmfBoundLazy)
+  {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
-  }else{
+  }
+  else
+  {
     d_proxy_range = r;
   }
   if( !isProxy ){

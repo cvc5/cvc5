@@ -54,8 +54,8 @@ void QModelBuilder::finishInit()
 }
 
 bool QModelBuilder::optUseModel() {
-  return options().quantifiers.mbqiMode != options::MbqiMode::NONE || options().quantifiers.fmfBound
-         || options().strings.stringExp;
+  return options().quantifiers.mbqiMode != options::MbqiMode::NONE
+         || options().quantifiers.fmfBound || options().strings.stringExp;
 }
 
 bool QModelBuilder::preProcessBuildModel(TheoryModel* m) {

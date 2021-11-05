@@ -309,7 +309,9 @@ void TheoryDatatypes::postCheck(Effort level)
               }
               //if we want to force an assignment of constructors to all ground eqc
               //d_dtfCounter++;
-              if( !needSplit && options().datatypes.dtForceAssignment && d_dtfCounter%2==0 ){
+              if (!needSplit && options().datatypes.dtForceAssignment
+                  && d_dtfCounter % 2 == 0)
+              {
                 Trace("datatypes-force-assign") << "Force assignment for " << n << std::endl;
                 needSplit = true;
                 consIndex = fconsIndex!=-1 ? fconsIndex : consIndex;
@@ -325,7 +327,8 @@ void TheoryDatatypes::postCheck(Effort level)
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
                 }else{
                   Assert(consIndex != -1 || dt.isSygus());
-                  if( options().datatypes.dtBinarySplit && consIndex!=-1 ){
+                  if (options().datatypes.dtBinarySplit && consIndex != -1)
+                  {
                     Node test = utils::mkTester(n, consIndex, dt);
                     Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
                     test = rewrite(test);
@@ -334,7 +337,9 @@ void TheoryDatatypes::postCheck(Effort level)
                     Node lemma = nb;
                     d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
                     d_im.requirePhase(test, true);
-                  }else{
+                  }
+                  else
+                  {
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = utils::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
@@ -342,7 +347,8 @@ void TheoryDatatypes::postCheck(Effort level)
                                      InferenceId::DATATYPES_SPLIT,
                                      LemmaProperty::SEND_ATOMS);
                   }
-                  if( !options().datatypes.dtBlastSplits ){
+                  if (!options().datatypes.dtBlastSplits)
+                  {
                     break;
                   }
                 }
@@ -1499,7 +1505,8 @@ void TheoryDatatypes::checkCycles() {
     TypeNode tn = eqc.getType();
     if( tn.isDatatype() ) {
       if( !tn.isCodatatype() ){
-        if( options().datatypes.dtCyclic ){
+        if (options().datatypes.dtCyclic)
+        {
           //do cycle checks
           std::map< TNode, bool > visited;
           std::map< TNode, bool > proc;
@@ -1534,7 +1541,8 @@ void TheoryDatatypes::checkCycles() {
   }
   Trace("datatypes-cycle-check") << "Check uniqueness" << std::endl;
   //process codatatypes
-  if( cdt_eqc.size()>1 && options().datatypes.cdtBisimilar ){
+  if (cdt_eqc.size() > 1 && options().datatypes.cdtBisimilar)
+  {
     printModelDebug("dt-cdt-debug");
     Trace("dt-cdt-debug") << "Process " << cdt_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
