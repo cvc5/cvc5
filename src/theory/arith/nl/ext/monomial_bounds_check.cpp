@@ -300,7 +300,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           Node infer_rhs = nm->mkNode(Kind::MULT, mult, rhs);
           Node infer = nm->mkNode(infer_type, infer_lhs, infer_rhs);
           Trace("nl-ext-bound-debug") << "     " << infer << std::endl;
-          Node infer_mv = d_data->d_model.computeAbstractModelValue(rewrite(infer));
+          Node infer_mv =
+              d_data->d_model.computeAbstractModelValue(rewrite(infer));
           Trace("nl-ext-bound-debug")
               << "       ...infer model value is " << infer_mv << std::endl;
           if (infer_mv == d_data->d_false)

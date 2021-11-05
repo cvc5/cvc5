@@ -37,9 +37,13 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalSolver::TranscendentalSolver(Env& env, InferenceManager& im,
+TranscendentalSolver::TranscendentalSolver(Env& env,
+                                           InferenceManager& im,
                                            NlModel& m)
-    : EnvObj(env), d_tstate(im, m, env), d_expSlv(env, &d_tstate), d_sineSlv(env, &d_tstate)
+    : EnvObj(env),
+      d_tstate(im, m, env),
+      d_expSlv(env, &d_tstate),
+      d_sineSlv(env, &d_tstate)
 {
   d_taylor_degree = d_tstate.d_env.getOptions().arith.nlExtTfTaylorDegree;
 }

@@ -209,7 +209,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
         << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
     Trace("strings-red-lemma") << "...from " << n << std::endl;
     Trace("strings-red-lemma")
-        << "Reduction_" << effort << " rewritten : " << rewrite(nnlem) << std::endl;
+        << "Reduction_" << effort << " rewritten : " << rewrite(nnlem)
+        << std::endl;
     d_im.sendInference(d_emptyVec, nnlem, InferenceId::STRINGS_REDUCTION, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on reduction." << std::endl;

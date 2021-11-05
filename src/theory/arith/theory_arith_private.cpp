@@ -2061,7 +2061,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
   return replayGetConstraint(lhs, k, rhs, ci.getKlass() == BranchCutKlass);
 }
 
-// Node denseVectorToLiteral(const ArithVariables& vars, const DenseVector& dv, Kind k){
+// Node denseVectorToLiteral(const ArithVariables& vars, const DenseVector& dv,
+// Kind k){
 //   NodeManager* nm = NodeManager::currentNM();
 //   Node sumLhs = toSumNode(vars, dv.lhs);
 //   Node ineq = nm->mkNode(k, sumLhs, mkRationalNode(dv.rhs) );
@@ -3548,10 +3549,9 @@ bool TheoryArithPrivate::splitDisequalities(){
         TrustNode lemma = front->split();
         ++(d_statistics.d_statDisequalitySplits);
 
-        Debug("arith::lemma")
-            << "Now " << rewrite(lemma.getNode()) << endl;
+        Debug("arith::lemma") << "Now " << rewrite(lemma.getNode()) << endl;
         outputTrustedLemma(lemma, InferenceId::ARITH_SPLIT_DEQ);
-        //cout << "Now " << rewrite(lemma) << endl;
+        // cout << "Now " << rewrite(lemma) << endl;
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
         Debug("arith::eq") << "can drop as less than lb" << front << endl;

@@ -538,9 +538,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                                 << conflict[i] << endl;
         return false;
       }
-      if (conflict[i] != rewrite(conflict[i])) {
-        Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
-                                << conflict[i] << " vs " << rewrite(conflict[i]) << endl;
+      if (conflict[i] != rewrite(conflict[i]))
+      {
+        Debug("properConflict")
+            << "Bad conflict is due to atom not in normal form: " << conflict[i]
+            << " vs " << rewrite(conflict[i]) << endl;
         return false;
       }
     }
@@ -555,9 +557,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                               << conflict << endl;
       return false;
     }
-    if (conflict != rewrite(conflict)) {
-      Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
-                              << conflict << " vs " << rewrite(conflict) << endl;
+    if (conflict != rewrite(conflict))
+    {
+      Debug("properConflict")
+          << "Bad conflict is due to atom not in normal form: " << conflict
+          << " vs " << rewrite(conflict) << endl;
       return false;
     }
   }

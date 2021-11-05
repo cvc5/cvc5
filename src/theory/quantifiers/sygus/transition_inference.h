@@ -22,9 +22,8 @@
 #include <map>
 #include <vector>
 
-#include "smt/env_obj.h"
 #include "expr/node.h"
-
+#include "smt/env_obj.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"

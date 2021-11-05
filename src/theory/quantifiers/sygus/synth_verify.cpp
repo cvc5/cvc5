@@ -32,8 +32,7 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthVerify::SynthVerify(Env& env,
-                         TermDbSygus* tds)
+SynthVerify::SynthVerify(Env& env, TermDbSygus* tds)
     : EnvObj(env), d_tds(tds), d_subLogicInfo(logicInfo())
 {
   // determine the options to use for the verification subsolvers we spawn

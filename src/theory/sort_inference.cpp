@@ -806,7 +806,7 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
                                 .eqNode(nm->mkNode(kind::APPLY_UF, f, v2))
                                 .negate(),
                             v1.eqNode(v2)));
-  ret = rewrite( ret );
+  ret = rewrite(ret);
   return ret;
 }
 

@@ -20,8 +20,8 @@
 
 #include <map>
 
-#include "smt/env_obj.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/transition_inference.h"
 
 namespace cvc5 {

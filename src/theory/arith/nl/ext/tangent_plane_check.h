@@ -18,8 +18,8 @@
 
 #include <map>
 
-#include "smt/env_obj.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {

@@ -29,7 +29,10 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data) : EnvObj(env), d_data(data) {}
+TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data)
+    : EnvObj(env), d_data(data)
+{
+}
 
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {

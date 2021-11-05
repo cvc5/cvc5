@@ -947,7 +947,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               }else{
                 rsg = lhs.eqNode( rhs );
               }
-              rsg = rewrite( rsg );
+              rsg = rewrite(rsg);
               d_conjectures.push_back( rsg );
               d_eq_conjectures[lhs].push_back( rhs );
               d_eq_conjectures[rhs].push_back( lhs );

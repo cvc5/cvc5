@@ -18,8 +18,8 @@
 
 #include <vector>
 
-#include "smt/env_obj.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"

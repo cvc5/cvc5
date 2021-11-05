@@ -50,7 +50,10 @@ inline Node mkValidPhase(TNode a, TNode pi)
 }
 }  // namespace
 
-SineSolver::SineSolver(Env& env, TranscendentalState* tstate) : EnvObj(env), d_data(tstate) {}
+SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
+    : EnvObj(env), d_data(tstate)
+{
+}
 
 SineSolver::~SineSolver() {}
 

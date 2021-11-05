@@ -19,8 +19,9 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
 
 #include <map>
-#include "smt/env_obj.h"
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
 namespace cvc5 {

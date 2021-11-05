@@ -22,8 +22,8 @@
 #include <poly/polyxx.h>
 #endif /* CVC5_POLY_IMP */
 
-#include "smt/env_obj.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/nl/icp/candidate.h"
 #include "theory/arith/nl/icp/contraction_origins.h"
@@ -65,6 +65,7 @@ class ICPSolver : protected EnvObj
    * Performs a full ICP check.
    */
   void check();
+
  private:
   /**
    * This encapsulates the state of the ICP solver that is local to a single

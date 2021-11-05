@@ -20,8 +20,8 @@
 
 #include <memory>
 
-#include "smt/env_obj.h"
 #include "options/options.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "util/result.h"
 
@@ -35,8 +35,7 @@ namespace quantifiers {
 class SynthVerify : protected EnvObj
 {
  public:
-  SynthVerify(Env& env,
-              TermDbSygus* tds);
+  SynthVerify(Env& env, TermDbSygus* tds);
   ~SynthVerify();
   /**
    * Verification call, which takes into account specific aspects of the
