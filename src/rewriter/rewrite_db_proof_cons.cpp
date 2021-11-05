@@ -277,6 +277,11 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     {
       return false;
     }
+    Node r = theory::Rewriter::rewrite(target[0]);
+    if (r!=target[1])
+    {
+      return false;
+    }
     pic.d_id = id;
     // if all children rewrite to a constant, try proving equalities
     // on those children
@@ -729,7 +734,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         Node eq1 = lhs.eqNode(lhsTgt);
         Node eq2 = lhsTgt.eqNode(rhs);
         cdp->addStep(eq1, PfRule::CONG, ps, pfArgs[cur]);
-        cdp->addStep(eq2, PfRule::EVALUATE, ps, {lhsTgt});
+        cdp->addStep(eq2, PfRule::EVALUATE, {}, {lhsTgt});
         cdp->addStep(cur, PfRule::TRANS, {eq1, eq2}, {});
       }
       else if (itd->second.d_id == DslPfRule::TRUE_ELIM)
