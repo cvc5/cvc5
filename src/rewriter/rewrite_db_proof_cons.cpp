@@ -273,7 +273,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
   else if (id == DslPfRule::CONG_EVAL)
   {
     size_t nchild = target[0].getNumChildren();
-    if (nchild==0 || !target[1].isConst())
+    if (nchild == 0 || !target[1].isConst())
     {
       return false;
     }
@@ -641,7 +641,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             ps.insert(premises[cur].end(),
                       itd->second.d_vars.begin(),
                       itd->second.d_vars.end());
-            if (itd->second.d_id == DslPfRule::CONG || itd->second.d_id==DslPfRule::CONG_EVAL)
+            if (itd->second.d_id == DslPfRule::CONG
+                || itd->second.d_id == DslPfRule::CONG_EVAL)
             {
               pfArgs[cur].push_back(
                   ProofRuleChecker::mkKindNode(cur[0].getKind()));
@@ -714,14 +715,14 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         //   (f t1 ... tn) == (f c1 ... cn) == c.
         Node lhs = cur[0];
         std::vector<Node> lhsTgtc;
-        if (cur[0].getMetaKind()==metakind::PARAMETERIZED)
+        if (cur[0].getMetaKind() == metakind::PARAMETERIZED)
         {
           lhsTgtc.push_back(cur[0].getOperator());
         }
         for (const Node& eq : itd->second.d_vars)
         {
-          Assert (eq.getKind()==EQUAL);
-          lhsTgtc.push_back( eq[1]);
+          Assert(eq.getKind() == EQUAL);
+          lhsTgtc.push_back(eq[1]);
         }
         Node lhsTgt = nm->mkNode(cur[0].getKind(), lhsTgtc);
         Node rhs = cur[1];
