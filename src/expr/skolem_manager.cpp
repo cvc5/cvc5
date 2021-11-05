@@ -20,6 +20,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_manager_attributes.h"
 
 using namespace cvc5::kind;
 
@@ -53,6 +54,18 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SELECTOR_WRONG: return "SELECTOR_WRONG";
     case SkolemFunId::SHARED_SELECTOR: return "SHARED_SELECTOR";
     case SkolemFunId::SEQ_NTH_OOB: return "SEQ_NTH_OOB";
+    case SkolemFunId::STRINGS_NUM_OCCUR: return "STRINGS_NUM_OCCUR";
+    case SkolemFunId::STRINGS_OCCUR_INDEX: return "STRINGS_OCCUR_INDEX";
+    case SkolemFunId::STRINGS_OCCUR_LEN: return "STRINGS_OCCUR_LEN";
+    case SkolemFunId::STRINGS_DEQ_DIFF: return "STRINGS_DEQ_DIFF";
+    case SkolemFunId::STRINGS_REPLACE_ALL_RESULT:
+      return "STRINGS_REPLACE_ALL_RESULT";
+    case SkolemFunId::STRINGS_ITOS_RESULT: return "STRINGS_ITOS_RESULT";
+    case SkolemFunId::STRINGS_STOI_RESULT: return "STRINGS_STOI_RESULT";
+    case SkolemFunId::STRINGS_STOI_NON_DIGIT: return "STRINGS_STOI_NON_DIGIT";
+    case SkolemFunId::SK_FIRST_MATCH_PRE: return "SK_FIRST_MATCH_PRE";
+    case SkolemFunId::SK_FIRST_MATCH: return "SK_FIRST_MATCH";
+    case SkolemFunId::SK_FIRST_MATCH_POST: return "SK_FIRST_MATCH_POST";
     case SkolemFunId::RE_UNFOLD_POS_COMPONENT: return "RE_UNFOLD_POS_COMPONENT";
     case SkolemFunId::BAGS_MAP_PREIMAGE: return "BAGS_MAP_PREIMAGE";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
@@ -66,6 +79,8 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
   out << toString(id);
   return out;
 }
+
+SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
@@ -205,10 +220,9 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
       d_skolemFuns.find(key);
   if (it == d_skolemFuns.end())
   {
-    NodeManager* nm = NodeManager::currentNM();
     std::stringstream ss;
     ss << "SKOLEM_FUN_" << id;
-    Node k = nm->mkSkolem(ss.str(), tn, "an internal skolem function", flags);
+    Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
     return k;
@@ -221,8 +235,14 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
                                      const std::vector<Node>& cacheVals,
                                      int flags)
 {
-  Assert(cacheVals.size() > 1);
-  Node cacheVal = NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+  Node cacheVal;
+  // use null node if cacheVals is empty
+  if (!cacheVals.empty())
+  {
+    cacheVal = cacheVals.size() == 1
+                   ? cacheVals[0]
+                   : NodeManager::currentNM()->mkNode(SEXPR, cacheVals);
+  }
   return mkSkolemFunction(id, tn, cacheVal, flags);
 }
 
@@ -246,7 +266,7 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   const std::string& comment,
                                   int flags)
 {
-  return NodeManager::currentNM()->mkSkolem(prefix, type, comment, flags);
+  return mkSkolemNode(prefix, type, comment, flags);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t) const
@@ -349,30 +369,51 @@ Node SkolemManager::mkSkolemInternal(Node w,
                                      int flags)
 {
   // note that witness, original forms are independent, but share skolems
-  NodeManager* nm = NodeManager::currentNM();
   // w is not necessarily a witness term
   SkolemFormAttribute sfa;
-  Node k;
   // could already have a skolem if we used w already
   if (w.hasAttribute(sfa))
   {
     return w.getAttribute(sfa);
   }
   // make the new skolem
-  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
-  {
-    Assert (w.getType().isBoolean());
-    k = nm->mkBooleanTermVariable();
-  }
-  else
-  {
-    k = nm->mkSkolem(prefix, w.getType(), comment, flags);
-  }
+  Node k = mkSkolemNode(prefix, w.getType(), comment, flags);
   // set skolem form attribute for w
   w.setAttribute(sfa, k);
   Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
                       << std::endl;
   return k;
+}
+
+Node SkolemManager::mkSkolemNode(const std::string& prefix,
+                                 const TypeNode& type,
+                                 const std::string& comment,
+                                 int flags)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node n;
+  if (flags & SKOLEM_BOOL_TERM_VAR)
+  {
+    Assert(type.isBoolean());
+    n = NodeBuilder(nm, BOOLEAN_TERM_VARIABLE);
+  }
+  else
+  {
+    n = NodeBuilder(nm, SKOLEM);
+    if ((flags & SKOLEM_EXACT_NAME) == 0)
+    {
+      std::stringstream name;
+      name << prefix << '_' << ++d_skolemCounter;
+      n.setAttribute(expr::VarNameAttr(), name.str());
+    }
+    else
+    {
+      n.setAttribute(expr::VarNameAttr(), prefix);
+    }
+  }
+  n.setAttribute(expr::TypeAttr(), type);
+  n.setAttribute(expr::TypeCheckedAttr(), true);
+  return n;
 }
 
 }  // namespace cvc5

@@ -31,16 +31,11 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
     super(solver, pointer);
   }
 
-  protected static native void deletePointer(long pointer);
+  protected native void deletePointer(long pointer);
 
   public long getPointer()
   {
     return pointer;
-  }
-
-  @Override public void finalize()
-  {
-    deletePointer(pointer);
   }
 
   // endregion

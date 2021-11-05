@@ -74,9 +74,14 @@ class Smt2Printer : public cvc5::Printer
                                   const std::string& id,
                                   TypeNode type) const override;
 
+  /** Print declare-pool command */
+  void toStreamCmdDeclarePool(std::ostream& out,
+                                      const std::string& id,
+                                      TypeNode type,
+                                      const std::vector<Node>& initValue) const override;
+
   /** Print declare-sort command */
-  void toStreamCmdDeclareType(std::ostream& out,
-                              TypeNode type) const override;
+  void toStreamCmdDeclareType(std::ostream& out, TypeNode type) const override;
 
   /** Print define-sort command */
   void toStreamCmdDefineType(std::ostream& out,
@@ -114,11 +119,12 @@ class Smt2Printer : public cvc5::Printer
                              TypeNode type) const override;
 
   /** Print synth-fun command */
-  void toStreamCmdSynthFun(std::ostream& out,
-                           Node f,
-                           const std::vector<Node>& vars,
-                           bool isInv,
-                           TypeNode sygusType = TypeNode::null()) const override;
+  void toStreamCmdSynthFun(
+      std::ostream& out,
+      Node f,
+      const std::vector<Node>& vars,
+      bool isInv,
+      TypeNode sygusType = TypeNode::null()) const override;
 
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;
@@ -149,14 +155,32 @@ class Smt2Printer : public cvc5::Printer
   /** Print get-model command */
   void toStreamCmdGetModel(std::ostream& out) const override;
 
+  /** Print block-model command */
+  void toStreamCmdBlockModel(std::ostream& out) const override;
+
+  /** Print block-model-values command */
+  void toStreamCmdBlockModelValues(
+      std::ostream& out, const std::vector<Node>& nodes) const override;
+
   /** Print get-proof command */
   void toStreamCmdGetProof(std::ostream& out) const override;
+
+  /** Print get-interpol command */
+  void toStreamCmdGetInterpol(std::ostream& out,
+                              const std::string& name,
+                              Node conj,
+                              TypeNode sygusType) const override;
 
   /** Print get-abduct command */
   void toStreamCmdGetAbduct(std::ostream& out,
                             const std::string& name,
                             Node conj,
                             TypeNode sygusType) const override;
+
+  /** Print get-quantifier-elimination command */
+  void toStreamCmdGetQuantifierElimination(std::ostream& out,
+                                           Node n,
+                                           bool doFull) const override;
 
   /** Print get-unsat-assumptions command */
   void toStreamCmdGetUnsatAssumptions(std::ostream& out) const override;
@@ -223,6 +247,10 @@ class Smt2Printer : public cvc5::Printer
    * the SMT-LIB format (with variant v).
    */
   static std::string smtKindString(Kind k, Variant v = smt2_6_variant);
+  /**
+   * Get the string corresponding to the sygus datatype t printed as a grammar.
+   */
+  static std::string sygusGrammarString(const TypeNode& t);
 
  private:
   /**

@@ -32,6 +32,11 @@ class GrammarTest
     d_solver = new Solver();
   }
 
+  @AfterEach void tearDown()
+  {
+    d_solver.close();
+  }
+
   @Test void addRule()
   {
     Sort bool = d_solver.getBooleanSort();
