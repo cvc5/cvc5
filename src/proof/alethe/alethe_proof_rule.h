@@ -423,7 +423,6 @@ std::ostream& operator<<(std::ostream& out, AletheRule id);
 /** Convert a node holding an id to the corresponding AletheRule */
 AletheRule getLeanRule(Node n);
 
-
 }  // namespace proof
 
 }  // namespace cvc5
