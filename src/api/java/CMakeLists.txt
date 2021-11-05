@@ -83,8 +83,6 @@ set(JNI_HEADERS
 add_custom_command(
   OUTPUT
     ${JNI_HEADERS}
-  BYPRODUCTS
-    ${JNI_HEADERS}
   COMMAND
     # generate jni header files
     ${Java_JAVAC_EXECUTABLE} -h ${JNI_DIR} ${JAVA_FILES} -d ${JNI_DIR} -Xlint:deprecation
