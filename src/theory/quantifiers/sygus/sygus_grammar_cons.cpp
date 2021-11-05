@@ -21,6 +21,7 @@
 #include "expr/ascription_type.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -34,6 +35,7 @@
 #include "theory/strings/word.h"
 #include "util/floatingpoint.h"
 #include "util/string.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace cvc5::kind;
 
@@ -41,9 +43,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegGrammarConstructor::CegGrammarConstructor(TermDbSygus* tds,
+CegGrammarConstructor::CegGrammarConstructor(Env& env,
+                                             TermDbSygus* tds,
                                              SynthConjecture* p)
-    : d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
+    : EnvObj(env), d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
 {
 }
 
@@ -170,6 +173,14 @@ Node CegGrammarConstructor::process(Node q,
                               exc_cons,
                               inc_cons,
                               term_irlv);
+      // print the grammar
+      if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
+      {
+        output(OutputTag::SYGUS_GRAMMAR)
+            << "(sygus-grammar " << ss.str()
+            << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
+            << std::endl;
+      }
     }
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "
@@ -231,7 +242,7 @@ Node CegGrammarConstructor::process(Node q,
       Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of
       // it
-      if (!options::sygusTemplEmbedGrammar())
+      if (!options().quantifiers.sygusTemplEmbedGrammar)
       {
         // otherwise, apply it as a preprocessing pass
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
@@ -272,7 +283,7 @@ Node CegGrammarConstructor::process(Node q,
   qchildren.push_back(nm->mkNode(kind::BOUND_VAR_LIST, ebvl));
   if( qbody_subs!=q[1] ){
     Trace("cegqi") << "...rewriting : " << qbody_subs << std::endl;
-    qbody_subs = Rewriter::rewrite( qbody_subs );
+    qbody_subs = rewrite(qbody_subs);
     Trace("cegqi") << "...got : " << qbody_subs << std::endl;
   }
   qchildren.push_back(convertToEmbedding(qbody_subs));

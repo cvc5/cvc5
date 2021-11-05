@@ -62,7 +62,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer),
       d_ceg_proc(new SynthConjectureProcess),
-      d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
+      d_ceg_gc(new CegGrammarConstructor(env, d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
@@ -285,7 +285,7 @@ bool SynthConjecture::needsCheck()
     if (!value)
     {
       Trace("sygus-engine-debug") << "Conjecture is infeasible." << std::endl;
-      Warning() << "Warning : the SyGuS conjecture may be infeasible"
+      warning() << "Warning : the SyGuS conjecture may be infeasible"
                 << std::endl;
       return false;
     }
