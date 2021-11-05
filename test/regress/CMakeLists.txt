@@ -613,6 +613,7 @@ set(regress_0_tests
   regress0/fp/issue5734.smt2
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
+  regress0/fp/issue7569.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2

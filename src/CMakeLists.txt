@@ -1117,6 +1117,8 @@ libcvc5_add_sources(
   theory/uf/equality_engine_types.h
   theory/uf/eq_proof.cpp
   theory/uf/eq_proof.h
+  theory/uf/function_const.cpp
+  theory/uf/function_const.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
   theory/uf/proof_equality_engine.cpp
@@ -1133,6 +1135,8 @@ libcvc5_add_sources(
   theory/uf/theory_uf_rewriter.h
   theory/uf/theory_uf_type_rules.cpp
   theory/uf/theory_uf_type_rules.h
+  theory/uf/type_enumerator.cpp
+  theory/uf/type_enumerator.h
   theory/valuation.cpp
   theory/valuation.h
 )
