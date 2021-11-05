@@ -920,8 +920,8 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
     // - conflict
     // - budget was exhausted
     // - focus went down
-    Debug("dualLike") << "selectFocusImproving " << endl;
     WitnessImprovement w = soiRound();
+    Debug("dualLike") << "selectFocusImproving -> " << w << endl;
 
     Assert(d_errorSize == d_errorSet.errorSize());
 
