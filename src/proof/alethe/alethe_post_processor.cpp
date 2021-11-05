@@ -565,9 +565,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       Node falseNode = nm->mkConst(false);
       std::vector<Node> new_children = children;
 
-      // If a child F = (or F1 ... Fn) is the result of ASSUME or
-      // EQ_RESOLVE it might be necessary to add an additional step with the
-      // Alethe or rule since otherwise it will be used as (cl (or F1 ... Fn)).
+      // If a child F has the form (or F1 ... Fn) it might be necessary to add
+      // an additional step with the Alethe or rule since otherwise it will be
+      // used as (cl (or F1 ... Fn)).
 
       // The first child is used as a non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
@@ -576,18 +576,13 @@ bool AletheProofPostprocessCallback::update(Node res,
           && (args[0] != trueNode || children[0] != args[1]))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
-        if (childPf->getRule() == PfRule::ASSUME
-            || childPf->getRule() == PfRule::EQ_RESOLVE)
-        {
-          // Add or step
-          std::vector<Node> subterms{d_cl};
-          subterms.insert(
-              subterms.end(), children[0].begin(), children[0].end());
-          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
-          addAletheStep(
-              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
-          new_children[0] = conclusion;
-        }
+        // Add or step
+        std::vector<Node> subterms{d_cl};
+        subterms.insert(subterms.end(), children[0].begin(), children[0].end());
+        Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+        addAletheStep(
+            AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+        new_children[0] = conclusion;
       }
 
       // For all other children C_i the procedure is similar. There is however a
@@ -604,21 +599,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                 || args[2 * (i - 1) + 1] != children[i]))
         {
           std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
-          if (childPf->getRule() == PfRule::ASSUME
-              || childPf->getRule() == PfRule::EQ_RESOLVE)
-          {
-            // Add or step
-            std::vector<Node> lits{d_cl};
-            lits.insert(lits.end(), children[i].begin(), children[i].end());
-            Node conclusion = nm->mkNode(kind::SEXPR, lits);
-            addAletheStep(AletheRule::OR,
-                          conclusion,
-                          conclusion,
-                          {children[i]},
-                          {},
-                          *cdp);
-            new_children[i] = conclusion;
-          }
+          // Add or step
+          std::vector<Node> lits{d_cl};
+          lits.insert(lits.end(), children[i].begin(), children[i].end());
+          Node conclusion = nm->mkNode(kind::SEXPR, lits);
+          addAletheStep(
+              AletheRule::OR, conclusion, conclusion, {children[i]}, {}, *cdp);
+          new_children[i] = conclusion;
         }
       }
 
