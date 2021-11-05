@@ -147,7 +147,7 @@ void TermRegistry::preRegisterTerm(TNode n)
       << "TheoryString::preregister : " << n << std::endl;
   // check for logic exceptions
   Kind k = n.getKind();
-  if (!options::stringExp())
+  if (!options().strings.stringExp)
   {
     if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
         || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
@@ -259,7 +259,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     d_functionsTerms.push_back(n);
   }
-  if (options::stringFMF())
+  if (options().strings.stringFMF)
   {
     if (tn.isStringLike())
     {
@@ -289,7 +289,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   TypeNode tn = n.getType();
   if (!tn.isStringLike())
   {
-    if (options::stringEagerLen())
+    if (options().strings.stringEagerLen)
     {
       do_register = effort == 0;
     }
