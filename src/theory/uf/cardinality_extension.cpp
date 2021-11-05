@@ -1011,7 +1011,7 @@ int SortModel::addSplit(Region* r)
   if (!s.isNull() ){
     //add lemma to output channel
     Assert(s.getKind() == EQUAL);
-    Node ss = rewrite( s );
+    Node ss = Rewriter::rewrite( s );
     if( ss.getKind()!=EQUAL ){
       Node b_t = NodeManager::currentNM()->mkConst( true );
       Node b_f = NodeManager::currentNM()->mkConst( false );

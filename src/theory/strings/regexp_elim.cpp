@@ -173,7 +173,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           conc.push_back(currMem);
         }
         currEnd = nm->mkNode(PLUS, currEnd, childLengths[i]);
-        currEnd = rewrite(currEnd);
+        currEnd = Rewriter::rewrite(currEnd);
       }
     }
     Node res = nm->mkNode(AND, conc);
@@ -560,7 +560,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   Node index = bvm->mkBoundVar<ReElimStarIndexAttribute>(atom, intType);
   Node substr_ch =
       nm->mkNode(STRING_SUBSTR, x, index, nm->mkConst(Rational(1)));
-  substr_ch = rewrite(substr_ch);
+  substr_ch = Rewriter::rewrite(substr_ch);
   // handle the case where it is purely characters
   for (const Node& r : disj)
   {
@@ -588,7 +588,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
     else
     {
       Node regexp_ch = nm->mkNode(STRING_IN_REGEXP, substr_ch, r);
-      regexp_ch = rewrite(regexp_ch);
+      regexp_ch = Rewriter::rewrite(regexp_ch);
       Assert(regexp_ch.getKind() != STRING_IN_REGEXP);
       char_constraints.push_back(regexp_ch);
     }
@@ -618,7 +618,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
       if (s.isConst())
       {
         Node lens = nm->mkNode(STRING_LENGTH, s);
-        lens = rewrite(lens);
+        lens = Rewriter::rewrite(lens);
         Assert(lens.isConst());
         Assert(lens.getConst<Rational>().sgn() > 0);
         std::vector<Node> conj;

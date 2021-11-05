@@ -28,7 +28,7 @@ namespace theory {
 // optimization: try to rewrite to constant
 Result quickCheck(Node& query)
 {
-  query = theory::rewrite(query);
+  query = theory::Rewriter::rewrite(query);
   if (query.isConst())
   {
     if (!query.getConst<bool>())

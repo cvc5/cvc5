@@ -648,7 +648,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
   if (n.getKind() == STRING_TO_REGEXP)
   {
     Node ret = nm->mkNode(STRING_LENGTH, n[0]);
-    ret = rewrite(ret);
+    ret = Rewriter::rewrite(ret);
     if (ret.isConst())
     {
       return ret;
@@ -689,7 +689,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
       nb << flc;
     }
     Node ret = nb.constructNode();
-    ret = rewrite(ret);
+    ret = Rewriter::rewrite(ret);
     return ret;
   }
   return Node::null();
@@ -697,8 +697,8 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
 
 bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 {
-  Assert(rewrite(r1) == r1);
-  Assert(rewrite(r2) == r2);
+  Assert(Rewriter::rewrite(r1) == r1);
+  Assert(Rewriter::rewrite(r2) == r2);
   if (r1 == r2)
   {
     return true;

@@ -58,7 +58,7 @@ namespace cvc5 {
 namespace theory {
 namespace uf {
 
-class SymmetryBreaker : public context::ContextNotifyObj {
+class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj {
 
   class Template {
     Node d_template;
@@ -158,7 +158,7 @@ public:
   }
 
  public:
-  SymmetryBreaker(context::Context* context, std::string name = "");
+  SymmetryBreaker(Env& env, std::string name = "");
 
   void assertFormula(TNode phi);
   void apply(std::vector<Node>& newClauses);

@@ -163,9 +163,10 @@ void SymmetryBreaker::Template::reset() {
   d_reps.clear();
 }
 
-SymmetryBreaker::SymmetryBreaker(context::Context* context, std::string name)
-    : ContextNotifyObj(context),
-      d_assertionsToRerun(context),
+SymmetryBreaker::SymmetryBreaker(Env& env, std::string name)
+    : EnvObj(env),
+      ContextNotifyObj(userContext()),
+      d_assertionsToRerun(userContext()),
       d_rerunningAssertions(false),
       d_phi(),
       d_phiSet(),

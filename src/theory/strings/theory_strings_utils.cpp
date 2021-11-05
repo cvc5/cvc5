@@ -142,24 +142,24 @@ Node mkConcat(const std::vector<Node>& c, TypeNode tn)
 
 Node mkNConcat(Node n1, Node n2)
 {
-  return rewrite(
+  return Rewriter::rewrite(
       NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
 }
 
 Node mkNConcat(Node n1, Node n2, Node n3)
 {
-  return rewrite(
+  return Rewriter::rewrite(
       NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
 }
 
 Node mkNConcat(const std::vector<Node>& c, TypeNode tn)
 {
-  return rewrite(mkConcat(c, tn));
+  return Rewriter::rewrite(mkConcat(c, tn));
 }
 
 Node mkNLength(Node t)
 {
-  return rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
+  return Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
 }
 
 Node mkPrefix(Node t, Node n)
