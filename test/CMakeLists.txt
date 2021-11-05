@@ -26,12 +26,7 @@ add_custom_target(build-tests)
 # first run the command of the regress target (i.e., run all regression tests)
 # and afterwards run the command specified for the check target.
 # Dependencies of check are added in the corresponding subdirectories.
-message(STATUS "Calling check with ctest --output-on-failure -LE \"regress[3-4]\" -j${CTEST_NTHREADS} $$ARGS")
 add_custom_target(check
-  COMMAND
-    echo $ARGS
-  COMMAND
-    echo $$ARGS
   COMMAND
     ctest --output-on-failure -LE "regress[3-4]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS
