@@ -87,14 +87,9 @@ void CircuitPropagator::assertTrue(TNode assertion)
     // Analyze the assertion for back-edges and all that
     computeBackEdges(assertion);
     // Assign the given assertion to true
-    if (isProofEnabled())
-    {
-      assignAndEnqueue(assertion, true, d_pnm->mkAssume(assertion));
-    }
-    else
-    {
-      assignAndEnqueue(assertion, true, nullptr);
-    }
+    assignAndEnqueue(assertion,
+                     true,
+                     isProofEnabled() ? d_pnm->mkAssume(assertion) : nullptr);
   }
 }
 
@@ -805,11 +800,18 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
                             << "\t" << *pf << std::endl;
       d_epg->setProofFor(f, std::move(pf));
     }
-    else
+    else if (Trace.isOn("circuit-prop"))
     {
-      auto prf = d_epg->getProofFor(f);
-      Trace("circuit-prop") << "Ignoring proof, we already have" << std::endl
-                            << "\t" << *prf << std::endl;
+      if (d_epg->hasProofFor(f))
+      {
+        auto prf = d_epg->getProofFor(f);
+        Trace("circuit-prop") << "Ignoring proof\n\t" << *pf
+                              << "\nwe already have\n\t" << *prf << std::endl;
+      }
+      else
+      {
+        Trace("circuit-prop") << "Ignoring ASSUME proof" << std::endl;
+      }
     }
   }
 }
