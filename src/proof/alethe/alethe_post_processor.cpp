@@ -336,8 +336,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           {},
-                           //{rule},
+                           {rule},
                            *cdp);
     }
     case PfRule::EVALUATE:
@@ -346,8 +345,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           {},
-                           //{nm->mkBoundVar("evaluate", nm->sExprType())},
+                           {nm->mkBoundVar("evaluate", nm->sExprType())},
                            *cdp);
     }
     // The rule is translated according to the theory id tid and the outermost
@@ -1389,6 +1387,11 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     //================================================= Quantifiers rules
+    // ======== Skolem intro
+    /*case PfRule::SKOLEM_INTRO:
+    {
+      return addAletheStep(AletheRule::REFL,res,nm->mkNode(kind::SEXPR,d_cl,res),{},{},*cdp);
+    }
     // ======== Skolemize
     // See proof_rule.h for documentation on the SKOLEMIZE rule. This
     // comment uses variable names as introduced there.
@@ -1403,6 +1406,15 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Otherwise, if the child has the form (not (exist
     case PfRule::SKOLEMIZE:
     {
+	    //TODO: Add ANCHOR, map skolemized variable to substitutions skv_1
+	    //SkolemManager::getWitnessForm
+	    //Get choice term that corresponds to skv_1
+	    //F*sigma needs to be changed s.t. all occurences of skv_1 are replaced with the choice term
+	    //LOOK AT LEAN for replacement
+	    // NodeConverter will eventually be changed to do this
+	    // LeanNodeConverter
+	    // choice terms itself might contain skv variables
+	    // getSkolemTermVectors then I can get skolems
       if (res.getKind() != kind::NOT)
       {
         Node vp1 = nm->mkNode(
@@ -1420,7 +1432,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {vp1, children[0]},
                               {},
                               *cdp);
-    }
+    }*/
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
     // comment uses variable names as introduced there.
