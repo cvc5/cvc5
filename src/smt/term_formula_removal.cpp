@@ -24,6 +24,7 @@
 #include "proof/conv_proof_generator.h"
 #include "proof/lazy_proof.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
 
 using namespace std;
 
@@ -280,6 +281,13 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
   // in the "non-variable Boolean term within term" case below.
   if (node.getKind() == kind::ITE && !nodeType.isBoolean())
   {
+    if (!nodeType.isFirstClass())
+    {
+      std::stringstream ss;
+      ss << "ITE branches of type " << nodeType << " are currently not supported."
+         << std::endl;
+      throw LogicException(ss.str());
+    }
     // Here, we eliminate the ITE if we are not Boolean and if we are
     // not in a quantified formula. This policy should be in sync with
     // the policy for when to apply theory preprocessing to terms, see PR
