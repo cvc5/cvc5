@@ -37,7 +37,6 @@ class TestUtilBlackOutput : public TestInternal
     d_debugStream.str("");
     d_traceStream.str("");
     d_noticeStream.str("");
-    d_chatStream.str("");
     d_messageStream.str("");
     d_warningStream.str("");
   }
@@ -54,7 +53,6 @@ class TestUtilBlackOutput : public TestInternal
   std::stringstream d_debugStream;
   std::stringstream d_traceStream;
   std::stringstream d_noticeStream;
-  std::stringstream d_chatStream;
   std::stringstream d_messageStream;
   std::stringstream d_warningStream;
 };
@@ -84,7 +82,6 @@ TEST_F(TestUtilBlackOutput, output)
   ASSERT_EQ(d_debugStream.str(), "");
   ASSERT_EQ(d_messageStream.str(), "");
   ASSERT_EQ(d_warningStream.str(), "");
-  ASSERT_EQ(d_chatStream.str(), "");
   ASSERT_EQ(d_noticeStream.str(), "");
   ASSERT_EQ(d_traceStream.str(), "");
 
@@ -98,7 +95,6 @@ TEST_F(TestUtilBlackOutput, output)
 
   ASSERT_EQ(d_messageStream.str(), "a message");
   ASSERT_EQ(d_warningStream.str(), "bad warning!");
-  ASSERT_EQ(d_chatStream.str(), "chatty");
   ASSERT_EQ(d_noticeStream.str(), "note");
 
 #ifdef CVC5_TRACING
@@ -147,7 +143,6 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   CVC5Message() << failure() << std::endl;
   cout << "notice" << std::endl;
   Notice() << failure() << std::endl;
-  cout << "chat" << std::endl;
 #endif
 }
 
