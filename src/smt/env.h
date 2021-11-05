@@ -181,6 +181,9 @@ class Env
    */
   std::ostream& verbose(int64_t level) const;
 
+  /** Convenience wrapper for verbose(0). */
+  std::ostream& warning() const;
+
   /* Rewrite helpers--------------------------------------------------------- */
   /**
    * Evaluate node n under the substitution args -> vals. For details, see

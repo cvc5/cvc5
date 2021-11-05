@@ -3964,19 +3964,19 @@ bool TheoryArithPrivate::entireStateIsConsistent(const string& s){
     //ArithVar var = d_partialModel.asArithVar(*i);
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
-      Warning() << s << ":" << "Assignment is not consistent for " << var << d_partialModel.asNode(var);
+      warning() << s << ":" << "Assignment is not consistent for " << var << d_partialModel.asNode(var);
       if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
+        warning() << " (basic)";
       }
-      Warning() << endl;
+      warning() << std::endl;
       result = false;
     }else if(d_partialModel.isInteger(var) && !d_partialModel.integralAssignment(var)){
       d_partialModel.printModel(var);
-      Warning() << s << ":" << "Assignment is not integer for integer variable " << var << d_partialModel.asNode(var);
+      warning() << s << ":" << "Assignment is not integer for integer variable " << var << d_partialModel.asNode(var);
       if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
+        warning() << " (basic)";
       }
-      Warning() << endl;
+      warning() << std::endl;
       result = false;
     }
   }
@@ -3991,19 +3991,19 @@ bool TheoryArithPrivate::unenqueuedVariablesAreConsistent(){
       if(!d_errorSet.inError(var)){
 
         d_partialModel.printModel(var);
-        Warning() << "Unenqueued var is not consistent for " << var <<  d_partialModel.asNode(var);
+        warning() << "Unenqueued var is not consistent for " << var <<  d_partialModel.asNode(var);
         if(d_tableau.isBasic(var)){
-          Warning() << " (basic)";
+          warning() << " (basic)";
         }
-        Warning() << endl;
+        warning() << std::endl;
         result = false;
       } else if(Debug.isOn("arith::consistency::initial")){
         d_partialModel.printModel(var);
-        Warning() << "Initial var is not consistent for " << var <<  d_partialModel.asNode(var);
+        warning() << "Initial var is not consistent for " << var <<  d_partialModel.asNode(var);
         if(d_tableau.isBasic(var)){
-          Warning() << " (basic)";
+          warning() << " (basic)";
         }
-        Warning() << endl;
+        warning() << std::endl;
       }
      }
   }
@@ -4119,10 +4119,10 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
                            << endl;
 
       if(bestImplied->negationHasProof()){
-        Warning() << "the negation of " <<  bestImplied << " : " << endl
-                  << "has proof " << bestImplied->getNegation() << endl
+        warning() << "the negation of " <<  bestImplied << " : " << std::endl
+                  << "has proof " << bestImplied->getNegation() << std::endl
                   << bestImplied->getNegation()->externalExplainByAssertions()
-                  << endl;
+                  << std::endl;
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){

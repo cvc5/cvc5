@@ -34,8 +34,9 @@ namespace cvc5 {
 namespace theory {
 namespace booleans {
 
-CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
-    : d_context(),
+CircuitPropagator::CircuitPropagator(Env& env, bool enableForward, bool enableBackward)
+    : EnvObj(env),
+      d_context(),
       d_propagationQueue(),
       d_propagationQueueClearer(&d_context, d_propagationQueue),
       d_conflict(&d_context, TrustNode()),
@@ -118,7 +119,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
   {
     if (proof == nullptr)
     {
-      Warning() << "CircuitPropagator: Proof is missing for " << n << std::endl;
+      warning() << "CircuitPropagator: Proof is missing for " << n << std::endl;
       Assert(false);
     }
     else
@@ -127,7 +128,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
       Node expected = value ? Node(n) : n.negate();
       if (proof->getResult() != expected)
       {
-        Warning() << "CircuitPropagator: Incorrect proof: " << expected
+        warning() << "CircuitPropagator: Incorrect proof: " << expected
                   << " vs. " << proof->getResult() << std::endl
                   << *proof << std::endl;
       }
@@ -741,7 +742,7 @@ TrustNode CircuitPropagator::propagate()
         }
         else
         {
-          Warning() << "CircuitPropagator: Proof is missing for " << lit
+          warning() << "CircuitPropagator: Proof is missing for " << lit
                     << std::endl;
           TrustNode tlit = TrustNode::mkTrustLemma(lit, nullptr);
           d_learnedLiterals.push_back(tlit);
