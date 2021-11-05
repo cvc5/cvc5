@@ -64,15 +64,15 @@ QuantifiersEngine::QuantifiersEngine(
       d_numInstRoundsLemma(0)
 {
   Trace("quant-init-debug")
-      << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
-      << options::fmfBound() << std::endl;
+      << "Initialize model engine, mbqi : " << options().quantifiers.mbqiMode
+      << " " << options().quantifiers.fmfBound << std::endl;
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.
-  if (options::fmfBound() || options::stringExp()
-      || (options::finiteModelFind()
-          && (options::mbqiMode() == options::MbqiMode::FMC
-              || options::mbqiMode() == options::MbqiMode::TRUST)))
+  if (options().quantifiers.fmfBound || options().strings.stringExp
+      || (options().quantifiers.finiteModelFind
+          && (options().quantifiers.mbqiMode == options::MbqiMode::FMC
+              || options().quantifiers.mbqiMode == options::MbqiMode::TRUST)))
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
@@ -168,14 +168,15 @@ void QuantifiersEngine::ppNotifyAssertions(
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
       << std::endl;
-  if (options::instLevelInputOnly() && options::instMaxLevel() != -1)
+  if (options().quantifiers.instLevelInputOnly
+      && options().quantifiers.instMaxLevel != -1)
   {
     for (const Node& a : assertions)
     {
       quantifiers::QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
   }
-  if (options::sygus())
+  if (options().quantifiers.sygus)
   {
     quantifiers::SynthEngine* sye = d_qmodules->d_synth_e.get();
     for (const Node& a : assertions)
@@ -186,7 +187,7 @@ void QuantifiersEngine::ppNotifyAssertions(
   /* The SyGuS instantiation module needs a global view of all available
    * assertions to collect global terms that get added to each grammar.
    */
-  if (options::sygusInst())
+  if (options().quantifiers.sygusInst)
   {
     quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();
     si->ppNotifyAssertions(assertions);
@@ -250,8 +251,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
   d_qim.reset();
   bool setIncomplete = false;
   IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
-  if (options::instMaxRounds() >= 0
-      && d_numInstRoundsLemma >= static_cast<uint32_t>(options::instMaxRounds()))
+  if (options().quantifiers.instMaxRounds >= 0
+      && d_numInstRoundsLemma
+             >= static_cast<uint32_t>(options().quantifiers.instMaxRounds))
   {
     needsCheck = false;
     setIncomplete = true;

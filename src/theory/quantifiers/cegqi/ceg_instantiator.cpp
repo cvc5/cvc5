@@ -629,7 +629,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     // - the instantiator uses model values at this effort or
     //   if we are solving for a subfield of a datatype (is_sv), and
     // - the instantiator allows model values.
-    if ((options::cegqiMultiInst() || !hasTriedInstantiation(pv))
+    if ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
         && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
@@ -677,7 +677,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                            << "], rep=" << pvr << ", instantiator is "
                            << vinst->identify() << std::endl;
   Node pv_value;
-  if (options::cegqiModel())
+  if (options().quantifiers.cegqiModel)
   {
     pv_value = getModelValue(pv);
     Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
@@ -730,7 +730,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
               {
                 return true;
               }
-              else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
+              else if (!options().quantifiers.cegqiMultiInst
+                       && hasTriedInstantiation(pv))
               {
                 return false;
               }
@@ -746,7 +747,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       {
         return true;
       }
-      else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
+      else if (!options().quantifiers.cegqiMultiInst
+               && hasTriedInstantiation(pv))
       {
         return false;
       }
@@ -817,7 +819,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                 {
                   return true;
                 }
-                else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
+                else if (!options().quantifiers.cegqiMultiInst
+                         && hasTriedInstantiation(pv))
                 {
                   return false;
                 }
@@ -866,7 +869,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
         {
           lits.insert(lit);
           Node plit;
-          if (options::cegqiRepeatLit() || !isSolvedAssertion(lit))
+          if (options().quantifiers.cegqiRepeatLit || !isSolvedAssertion(lit))
           {
             plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
           }
@@ -892,7 +895,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                 {
                   return true;
                 }
-                else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
+                else if (!options().quantifiers.cegqiMultiInst
+                         && hasTriedInstantiation(pv))
                 {
                   return false;
                 }
@@ -1072,7 +1076,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node n = it->second;
       Trace("cegqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
                                << std::endl;
-      Assert(n.getType().isSubtypeOf(d_input_vars[i].getType()));
+      Assert(n.getType().isComparableTo(d_input_vars[i].getType()));
       subs.push_back( n );
     }
   }
@@ -1084,7 +1088,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node v = d_input_vars[i];
       Trace("cegqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
                          << v << " -> " << subs[i] << std::endl;
-      Assert(subs[i].getType().isSubtypeOf(v.getType()));
+      Assert(subs[i].getType().isComparableTo(v.getType()));
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;

@@ -106,7 +106,7 @@ Node OperatorElim::eliminateOperators(Node node,
     case COTANGENT:
     {
       // these are eliminated by rewriting
-      return Rewriter::rewrite(node);
+      return rewrite(node);
       break;
     }
     case TO_INTEGER:
@@ -148,8 +148,8 @@ Node OperatorElim::eliminateOperators(Node node,
         // not eliminating total operators
         return node;
       }
-      Node den = Rewriter::rewrite(node[1]);
-      Node num = Rewriter::rewrite(node[0]);
+      Node den = rewrite(node[1]);
+      Node num = rewrite(node[0]);
       Node rw = nm->mkNode(k, num, den);
       Node v = bvm->mkBoundVar<ArithWitnessVarAttribute>(rw, nm->integerType());
       Node lem;
@@ -160,7 +160,7 @@ Node OperatorElim::eliminateOperators(Node node,
         if (num.isConst() || rat == 0)
         {
           // just rewrite
-          return Rewriter::rewrite(node);
+          return rewrite(node);
         }
         if (rat > 0)
         {
@@ -239,8 +239,8 @@ Node OperatorElim::eliminateOperators(Node node,
         // not eliminating total operators
         return node;
       }
-      Node num = Rewriter::rewrite(node[0]);
-      Node den = Rewriter::rewrite(node[1]);
+      Node num = rewrite(node[0]);
+      Node den = rewrite(node[1]);
       if (den.isConst())
       {
         // No need to eliminate here, can eliminate via rewriting later.
@@ -260,8 +260,8 @@ Node OperatorElim::eliminateOperators(Node node,
     }
     case DIVISION:
     {
-      Node num = Rewriter::rewrite(node[0]);
-      Node den = Rewriter::rewrite(node[1]);
+      Node num = rewrite(node[0]);
+      Node den = rewrite(node[1]);
       Node ret = nm->mkNode(DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
@@ -277,8 +277,8 @@ Node OperatorElim::eliminateOperators(Node node,
     case INTS_DIVISION:
     {
       // partial function: integer div
-      Node num = Rewriter::rewrite(node[0]);
-      Node den = Rewriter::rewrite(node[1]);
+      Node num = rewrite(node[0]);
+      Node den = rewrite(node[1]);
       Node ret = nm->mkNode(INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
@@ -295,8 +295,8 @@ Node OperatorElim::eliminateOperators(Node node,
     case INTS_MODULUS:
     {
       // partial function: mod
-      Node num = Rewriter::rewrite(node[0]);
-      Node den = Rewriter::rewrite(node[1]);
+      Node num = rewrite(node[0]);
+      Node den = rewrite(node[1]);
       Node ret = nm->mkNode(INTS_MODULUS_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
@@ -462,8 +462,8 @@ Node OperatorElim::mkWitnessTerm(Node v,
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   // we mark that we should send a lemma
-  Node k =
-      sm->mkSkolem(v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this);
+  Node k = sm->mkSkolem(
+      v, pred, prefix, comment, SkolemManager::SKOLEM_DEFAULT, this);
   if (d_pnm != nullptr)
   {
     Node lem = SkolemLemma::getSkolemLemmaFor(k);

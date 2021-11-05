@@ -95,8 +95,6 @@ public:
 
   static bool isBuiltWithGlpk();
 
-  static bool isBuiltWithAbc();
-
   static bool isBuiltWithCryptominisat();
 
   static bool isBuiltWithKissat();

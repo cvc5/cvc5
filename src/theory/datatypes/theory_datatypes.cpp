@@ -63,7 +63,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_sygusExtension(nullptr),
       d_rewriter(env.getEvaluator()),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm),
+      d_im(env, *this, d_state),
       d_notify(d_im, *this)
 {
 
@@ -382,9 +382,7 @@ void TheoryDatatypes::postCheck(Effort level)
   }
 
   Trace("datatypes-check") << "Finished check effort " << level << std::endl;
-  if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ) {
-    Notice() << "TheoryDatatypes::check(): done" << endl;
-  }
+  Debug("datatypes") << "TheoryDatatypes::check(): done" << std::endl;
 }
 
 bool TheoryDatatypes::needsCheckLastEffort() {

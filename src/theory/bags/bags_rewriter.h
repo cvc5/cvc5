@@ -56,6 +56,7 @@ class BagsRewriter : public TheoryRewriter
    * See the rewrite rules for these kinds below.
    */
   RewriteResponse preRewrite(TNode n) override;
+
  private:
   /**
    * rewrites for n include:
@@ -81,7 +82,7 @@ class BagsRewriter : public TheoryRewriter
   /**
    * rewrites for n include:
    * - (bag.count x emptybag) = 0
-   * - (bag.count x (bag x c) = c
+   * - (bag.count x (bag x c)) = (ite (>= c 1) c 0)
    * - otherwise = n
    */
   BagsRewriteResponse rewriteBagCount(const TNode& n) const;
@@ -214,7 +215,8 @@ class BagsRewriter : public TheoryRewriter
   /**
    *  rewrites for n include:
    *  - (bag.map (lambda ((x U)) t) emptybag) = emptybag
-   *  - (bag.map (lambda ((x U)) t) (bag y z)) = (bag (apply (lambda ((x U)) t) y) z)
+   *  - (bag.map (lambda ((x U)) t) (bag y z)) = (bag (apply (lambda ((x U)) t)
+   * y) z)
    *  - (bag.map (lambda ((x U)) t) (union_disjoint A B)) =
    *       (union_disjoint
    *          (bag ((lambda ((x U)) t) "a") 3)

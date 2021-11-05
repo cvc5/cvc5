@@ -34,12 +34,6 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-struct StringsProxyVarAttributeId
-{
-};
-typedef expr::Attribute<StringsProxyVarAttributeId, bool>
-    StringsProxyVarAttribute;
-
 TermRegistry::TermRegistry(Env& env,
                            SolverState& s,
                            SequencesStatistics& statistics,
@@ -58,12 +52,12 @@ TermRegistry::TermRegistry(Env& env,
       d_registeredTerms(userContext()),
       d_registeredTypes(userContext()),
       d_proxyVar(userContext()),
+      d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
-                      userContext(),
-                      "strings::TermRegistry::EagerProofGenerator")
-                : nullptr)
+      d_epg(
+          pnm ? new EagerProofGenerator(
+              pnm, userContext(), "strings::TermRegistry::EagerProofGenerator")
+              : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -378,7 +372,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   if (n.getKind() != STRING_CONCAT && !n.isConst())
   {
     Node lsumb = nm->mkNode(STRING_LENGTH, n);
-    lsum = Rewriter::rewrite(lsumb);
+    lsum = rewrite(lsumb);
     // can register length term if it does not rewrite
     if (lsum == lsumb)
     {
@@ -387,9 +381,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
     }
   }
   Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
-  StringsProxyVarAttribute spva;
-  sk.setAttribute(spva, true);
-  Node eq = Rewriter::rewrite(sk.eqNode(n));
+  Node eq = rewrite(sk.eqNode(n));
   d_proxyVar[n] = sk;
   // If we are introducing a proxy for a constant or concat term, we do not
   // need to send lemmas about its length, since its length is already
@@ -403,12 +395,13 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   if (n.getKind() == STRING_CONCAT)
   {
     std::vector<Node> nodeVec;
+    NodeNodeMap::const_iterator itl;
     for (const Node& nc : n)
     {
-      if (nc.getAttribute(StringsProxyVarAttribute()))
+      itl = d_proxyVarToLength.find(nc);
+      if (itl != d_proxyVarToLength.end())
       {
-        Assert(d_proxyVarToLength.find(nc) != d_proxyVarToLength.end());
-        nodeVec.push_back(d_proxyVarToLength[nc]);
+        nodeVec.push_back(itl->second);
       }
       else
       {
@@ -417,7 +410,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
       }
     }
     lsum = nm->mkNode(PLUS, nodeVec);
-    lsum = Rewriter::rewrite(lsum);
+    lsum = rewrite(lsum);
   }
   else if (n.isConst())
   {
@@ -425,7 +418,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   }
   Assert(!lsum.isNull());
   d_proxyVarToLength[sk] = lsum;
-  Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
+  Node ceq = rewrite(skl.eqNode(lsum));
 
   Node ret = nm->mkNode(AND, eq, ceq);
 
@@ -545,16 +538,16 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
   Node n_len_eq_z = n_len.eqNode(d_zero);
   Node n_len_eq_z_2 = n.eqNode(emp);
   Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
-  Node case_emptyr = Rewriter::rewrite(case_empty);
+  Node case_emptyr = rewrite(case_empty);
   if (!case_emptyr.isConst())
   {
     // prefer trying the empty case first
     // notice that requirePhase must only be called on rewritten literals that
     // occur in the CNF stream.
-    n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
+    n_len_eq_z = rewrite(n_len_eq_z);
     Assert(!n_len_eq_z.isConst());
     reqPhase[n_len_eq_z] = true;
-    n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
+    n_len_eq_z_2 = rewrite(n_len_eq_z_2);
     Assert(!n_len_eq_z_2.isConst());
     reqPhase[n_len_eq_z_2] = true;
   }
@@ -583,7 +576,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
       return Node::null();
     }
     Node eq = n.eqNode(pn);
-    eq = Rewriter::rewrite(eq);
+    eq = rewrite(eq);
     if (std::find(exp.begin(), exp.end(), eq) == exp.end())
     {
       exp.push_back(eq);
@@ -650,13 +643,13 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
     return;
   }
   Trace("strings-subs-proxy") << "Input : " << n << std::endl;
-  Node ns = Rewriter::rewrite(n);
+  Node ns = rewrite(n);
   if (ns.getKind() == EQUAL)
   {
     for (size_t i = 0; i < 2; i++)
     {
       // determine whether this side has a proxy variable
-      if (ns[i].getAttribute(StringsProxyVarAttribute()))
+      if (d_proxyVar.find(ns[i]) != d_proxyVar.end())
       {
         if (getProxyVariableFor(ns[1 - i]) == ns[i])
         {
