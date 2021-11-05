@@ -275,16 +275,6 @@ class NlModel
   bool simpleCheckModelLit(Node lit);
   bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
   //---------------------------end check model
-  /**
-   * This approximates the square root of positive constant c. If this method
-   * returns true, then l and u are updated to constants such that
-   *   l <= sqrt( c ) <= u
-   * The argument iter is the number of iterations in the binary search to
-   * perform. By default, this is set to 15, which is usually enough to be
-   * precise in the majority of simple cases, whereas not prohibitively
-   * expensive to compute.
-   */
-  bool getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter = 15) const;
 
   /** commonly used terms */
   Node d_zero;

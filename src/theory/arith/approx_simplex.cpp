@@ -1713,7 +1713,7 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
 //     c->explainForConflict(nb);
 //   }
 //   Node ret = safeConstructNary(nb);
-//   Node rew = Rewriter::rewrite(ret);
+//   Node rew = rewrite(ret);
 //   if(rew.getNumChildren() < ret.getNumChildren()){
 //     //Debug("approx::") << "explainSet " << ret << " " << rew << endl;
 //   }
