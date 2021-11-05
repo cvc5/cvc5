@@ -1,3 +1,4 @@
+; COMMAND-LINE: --check-proofs --proof-check=eager
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const x Bool)
