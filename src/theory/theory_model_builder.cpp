@@ -1204,7 +1204,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     retNode = NodeManager::currentNM()->mkNode(r.getKind(), children);
     if (childrenConst)
     {
-      retNode = Rewriter::rewrite(retNode);
+      retNode = rewrite(retNode);
     }
   }
   d_normalizedCache[r] = retNode;
@@ -1304,7 +1304,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
                                     << " returned " << hni << std::endl;
       Assert(hni.isConst());
       Assert(hni.getType().isSubtypeOf(args[0].getType()));
-      hni = Rewriter::rewrite(args[0].eqNode(hni));
+      hni = rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);
       Trace("model-builder-debug2") << "      get rep val : " << hn
                                     << " returned " << hnv << std::endl;
@@ -1321,7 +1321,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
         Assert(largs.size() == apply_args.size());
         hnv = hnv[1].substitute(
             largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
-        hnv = Rewriter::rewrite(hnv);
+        hnv = rewrite(hnv);
       }
       Assert(!TypeNode::leastCommonTypeNode(hnv.getType(), curr.getType())
                   .isNull());

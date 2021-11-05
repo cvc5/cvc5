@@ -119,7 +119,7 @@ bool HoTermDb::resetInternal(Theory::Effort effort)
       std::map<Node, Node>::iterator itpe = d_hoPurifyToEq.find(pp.first);
       if (itpe == d_hoPurifyToEq.end())
       {
-        eq = Rewriter::rewrite(pp.first.eqNode(pp.second));
+        eq = rewrite(pp.first.eqNode(pp.second));
         d_hoPurifyToEq[pp.first] = eq;
       }
       else

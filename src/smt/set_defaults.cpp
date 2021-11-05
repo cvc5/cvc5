@@ -186,7 +186,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
   else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()))
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()
+                   && logic.areIntegersUsed()))
            && !opts.base.incrementalSolving)
   {
     opts.quantifiers.sygusInst = true;
@@ -721,7 +722,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       if (opts.theory.relevanceFilterWasSetByUser)
       {
-        Warning() << "SolverEngine: turning on relevance filtering to support "
+        Trace("smt") << "SolverEngine: turning on relevance filtering to support "
                      "--nl-ext-rlv="
                   << opts.arith.nlRlvMode << std::endl;
       }
@@ -814,6 +815,18 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       if (!opts.arith.nlRlvModeWasSetByUser)
       {
         opts.arith.nlRlvMode = options::NlRlvMode::INTERLEAVE;
+      }
+    }
+  }
+  else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
+           && logic.areRealsUsed() && !logic.areIntegersUsed())
+  {
+    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    {
+      opts.arith.nlCad = true;
+      if (!opts.arith.nlExtWasSetByUser)
+      {
+        opts.arith.nlExt = options::NlExtMode::LIGHT;
       }
     }
   }

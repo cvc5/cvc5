@@ -36,7 +36,6 @@
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
-#include "smt/dump.h"
 #include "smt/model.h"
 #include "util/smt2_quote_string.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -991,7 +990,6 @@ void ResetAssertionsCommand::toStream(std::ostream& out,
 
 void QuitCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  Dump("benchmark") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
 

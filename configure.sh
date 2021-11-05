@@ -126,7 +126,7 @@ python2=default
 python_bindings=default
 java_bindings=default
 editline=default
-static=default
+build_shared=ON
 statistics=default
 tracing=default
 tsan=default
@@ -238,8 +238,8 @@ do
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
-    --static) static=ON;;
-    --no-static) static=OFF;;
+    --static) build_shared=OFF;;
+    --no-static) build_shared=ON;;
 
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
@@ -339,8 +339,8 @@ fi
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $static != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STATIC_BUILD=$static"
+[ $build_shared != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_SHARED_LIBS=$build_shared"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \

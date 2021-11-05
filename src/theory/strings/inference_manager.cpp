@@ -141,7 +141,7 @@ bool InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     eq = d_false;
   }
-  else if (Rewriter::rewrite(eq) == d_true)
+  else if (rewrite(eq) == d_true)
   {
     // if trivial, return
     return false;
@@ -234,7 +234,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
 bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
 {
   Node eq = a.eqNode(b);
-  eq = Rewriter::rewrite(eq);
+  eq = rewrite(eq);
   if (eq.isConst())
   {
     return false;
@@ -243,7 +243,7 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   InferInfo iiSplit(infer);
   iiSplit.d_sim = this;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  eq = Rewriter::rewrite(eq);
+  eq = rewrite(eq);
   addPendingPhaseRequirement(eq, preq);
   addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSplit)));
   return true;

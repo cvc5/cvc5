@@ -613,6 +613,7 @@ set(regress_0_tests
   regress0/fp/issue5734.smt2
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
+  regress0/fp/issue7569.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
@@ -775,7 +776,6 @@ set(regress_0_tests
   regress0/opt-abd-no-use.smt2
   regress0/options/ast-and-sexpr.smt2
   regress0/options/interactive-mode.smt2
-  regress0/options/invalid_dump.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -1309,6 +1309,7 @@ set(regress_0_tests
   regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
+  regress0/sygus/print-grammar.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
@@ -1509,6 +1510,7 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduction/abd-real-const.smt2
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848-2.smt2
@@ -1790,6 +1792,7 @@ set(regress_1_tests
   regress1/nl/nl-help-unsat-quant.smt2
   regress1/nl/nl-unk-quant.smt2
   regress1/nl/nl_uf_lalt.smt2
+  regress1/nl/nra-cad-performance.smt2
   regress1/nl/ones.smt2
   regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
