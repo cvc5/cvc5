@@ -1829,34 +1829,7 @@ void SolverEngine::printStatisticsDiff() const
 void SolverEngine::setOption(const std::string& key, const std::string& value)
 {
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
-
-  if (key == "command-verbosity")
-  {
-    size_t fstIndex = value.find(" ");
-    size_t sndIndex = value.find(" ", fstIndex + 1);
-    if (sndIndex == std::string::npos)
-    {
-      string c = value.substr(1, fstIndex - 1);
-      int v =
-          std::stoi(value.substr(fstIndex + 1, value.length() - fstIndex - 1));
-      if (v < 0 || v > 2)
-      {
-        throw OptionException("command-verbosity must be 0, 1, or 2");
-      }
-      d_commandVerbosity[c] = v;
-      return;
-    }
-    throw OptionException(
-        "command-verbosity value must be a tuple (command-name integer)");
-  }
-
-  if (value.find(" ") != std::string::npos)
-  {
-    throw OptionException("bad value for :" + key);
-  }
-
-  std::string optionarg = value;
-  options::set(getOptions(), key, optionarg);
+  options::set(getOptions(), key, value);
 }
 
 void SolverEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
@@ -1865,57 +1838,7 @@ bool SolverEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
 std::string SolverEngine::getOption(const std::string& key) const
 {
-  NodeManager* nm = d_env->getNodeManager();
-
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
-
-  if (key.find("command-verbosity:") == 0)
-  {
-    auto it =
-        d_commandVerbosity.find(key.substr(std::strlen("command-verbosity:")));
-    if (it != d_commandVerbosity.end())
-    {
-      return std::to_string(it->second);
-    }
-    it = d_commandVerbosity.find("*");
-    if (it != d_commandVerbosity.end())
-    {
-      return std::to_string(it->second);
-    }
-    return "2";
-  }
-
-  if (key == "command-verbosity")
-  {
-    vector<Node> result;
-    Node defaultVerbosity;
-    for (const auto& verb : d_commandVerbosity)
-    {
-      // treat the command name as a variable name as opposed to a string
-      // constant to avoid printing double quotes around the name
-      Node name = nm->mkBoundVar(verb.first, nm->integerType());
-      Node value = nm->mkConst(Rational(verb.second));
-      if (verb.first == "*")
-      {
-        // put the default at the end of the SExpr
-        defaultVerbosity = nm->mkNode(Kind::SEXPR, name, value);
-      }
-      else
-      {
-        result.push_back(nm->mkNode(Kind::SEXPR, name, value));
-      }
-    }
-    // ensure the default is always listed
-    if (defaultVerbosity.isNull())
-    {
-      defaultVerbosity = nm->mkNode(Kind::SEXPR,
-                                    nm->mkBoundVar("*", nm->integerType()),
-                                    nm->mkConst(Rational(2)));
-    }
-    result.push_back(defaultVerbosity);
-    return nm->mkNode(Kind::SEXPR, result).toString();
-  }
-
   return options::get(getOptions(), key);
 }
 
