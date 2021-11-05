@@ -54,7 +54,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
   // post-construction.
   d_quantEngine = d_qengine.get();
 
-  if (options::macrosQuant())
+  if (options().quantifiers.macrosQuant)
   {
     d_qmacros.reset(new QuantifiersMacros(d_qreg));
   }
@@ -112,7 +112,7 @@ Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
   if (d_qmacros != nullptr)
   {
     bool reqGround =
-        options::macrosQuantMode() != options::MacrosQuantMode::ALL;
+        options().quantifiers.macrosQuantMode != options::MacrosQuantMode::ALL;
     Node eq = d_qmacros->solve(tin.getProven(), reqGround);
     if (!eq.isNull())
     {

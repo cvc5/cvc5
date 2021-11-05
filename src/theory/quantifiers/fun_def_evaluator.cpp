@@ -167,7 +167,7 @@ Node FunDefEvaluator::evaluateDefinitions(Node n) const
             itCount = funDefCount.find(f);
           }
           if (itf == d_funDefMap.end()
-              || itCount->second > options::sygusRecFunEvalLimit())
+              || itCount->second > options().quantifiers.sygusRecFunEvalLimit)
           {
             Trace("fd-eval")
                 << "FunDefEvaluator: "

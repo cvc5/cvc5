@@ -109,7 +109,7 @@ void TheoryDatatypes::finishInit()
   // We could but don't do congruence for DT_SIZE and DT_HEIGHT_BOUND here.
   // It also could make sense in practice to do congruence for APPLY_UF, but
   // this is not done.
-  if (getQuantifiersEngine() && options::sygus())
+  if (getQuantifiersEngine() && options().quantifiers.sygus)
   {
     quantifiers::TermDbSygus* tds =
         getQuantifiersEngine()->getTermDatabaseSygus();
@@ -309,7 +309,7 @@ void TheoryDatatypes::postCheck(Effort level)
               }
               //if we want to force an assignment of constructors to all ground eqc
               //d_dtfCounter++;
-              if( !needSplit && options::dtForceAssignment() && d_dtfCounter%2==0 ){
+              if( !needSplit && options().datatypes.dtForceAssignment && d_dtfCounter%2==0 ){
                 Trace("datatypes-force-assign") << "Force assignment for " << n << std::endl;
                 needSplit = true;
                 consIndex = fconsIndex!=-1 ? fconsIndex : consIndex;
@@ -325,7 +325,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
                 }else{
                   Assert(consIndex != -1 || dt.isSygus());
-                  if( options::dtBinarySplit() && consIndex!=-1 ){
+                  if( options().datatypes.dtBinarySplit && consIndex!=-1 ){
                     Node test = utils::mkTester(n, consIndex, dt);
                     Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
                     test = rewrite(test);
@@ -342,7 +342,7 @@ void TheoryDatatypes::postCheck(Effort level)
                                      InferenceId::DATATYPES_SPLIT,
                                      LemmaProperty::SEND_ATOMS);
                   }
-                  if( !options::dtBlastSplits() ){
+                  if( !options().datatypes.dtBlastSplits ){
                     break;
                   }
                 }
@@ -454,7 +454,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       throw LogicException(ss.str());
     }
     Trace("dt-expand") << "...well-founded ok" << std::endl;
-    if (!options::dtNestedRec())
+    if (!options().datatypes.dtNestedRec)
     {
       if (dt.hasNestedRecursion())
       {
@@ -1474,7 +1474,7 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   // regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
   bool forceLemma;
-  if (options::dtPoliteOptimize())
+  if (options().datatypes.dtPoliteOptimize)
   {
     forceLemma = dt[index].hasFiniteExternalArgType(ttn);
   }
@@ -1499,7 +1499,7 @@ void TheoryDatatypes::checkCycles() {
     TypeNode tn = eqc.getType();
     if( tn.isDatatype() ) {
       if( !tn.isCodatatype() ){
-        if( options::dtCyclic() ){
+        if( options().datatypes.dtCyclic ){
           //do cycle checks
           std::map< TNode, bool > visited;
           std::map< TNode, bool > proc;
@@ -1534,7 +1534,7 @@ void TheoryDatatypes::checkCycles() {
   }
   Trace("datatypes-cycle-check") << "Check uniqueness" << std::endl;
   //process codatatypes
-  if( cdt_eqc.size()>1 && options::cdtBisimilar() ){
+  if( cdt_eqc.size()>1 && options().datatypes.cdtBisimilar ){
     printModelDebug("dt-cdt-debug");
     Trace("dt-cdt-debug") << "Process " << cdt_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
