@@ -3171,6 +3171,13 @@ TEST_F(TestApiBlackSolver, projIssue431)
   slv.assertFormula({t488});
   Term abduct;
   abduct = slv.getAbduct(t488);
+
+TEST_F(TestApiBlackSolver, projIssue337)
+{
+  Term t =
+      d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal("3416574625719121610379268"));
+  Term tt = d_solver.simplify(t);
+  ASSERT_EQ(t.getSort(), tt.getSort());
 }
 
 }  // namespace test
