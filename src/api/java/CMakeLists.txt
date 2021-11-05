@@ -85,7 +85,7 @@ add_custom_command(
     ${JNI_HEADERS}
   COMMAND
     # generate jni header files
-    ${Java_JAVAC_EXECUTABLE} -h ${JNI_DIR} ${JAVA_FILES} -d ${JNI_DIR} -Xlint:deprecation
+    ${Java_JAVAC_EXECUTABLE} -h ${JNI_DIR} ${JAVA_FILES} -d ${JNI_DIR}
   DEPENDS
     ${JAVA_FILES}
   COMMENT "Generate jni headers"
