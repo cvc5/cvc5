@@ -23,6 +23,7 @@
 #endif /* CVC5_POLY_IMP */
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/nl/icp/candidate.h"
 #include "theory/arith/nl/icp/contraction_origins.h"
@@ -53,8 +54,19 @@ namespace icp {
  * These contractions can yield to a conflict (if the interval of some variable
  * becomes empty) or shrink the search space for a variable.
  */
-class ICPSolver
+class ICPSolver : protected EnvObj
 {
+ public:
+  ICPSolver(Env& env, InferenceManager& im);
+  /** Reset this solver for the next theory call */
+  void reset(const std::vector<Node>& assertions);
+
+  /**
+   * Performs a full ICP check.
+   */
+  void check();
+
+ private:
   /**
    * This encapsulates the state of the ICP solver that is local to a single
    * theory call. It contains the variable bounds and candidates derived from
@@ -126,24 +138,14 @@ class ICPSolver
    * is constructed.
    */
   std::vector<Node> generateLemmas() const;
-
- public:
-  ICPSolver(InferenceManager& im) : d_im(im), d_state(d_mapper) {}
-  /** Reset this solver for the next theory call */
-  void reset(const std::vector<Node>& assertions);
-
-  /**
-   * Performs a full ICP check.
-   */
-  void check();
 };
 
 #else /* CVC5_POLY_IMP */
 
-class ICPSolver
+class ICPSolver : protected EnvObj
 {
  public:
-  ICPSolver(InferenceManager& im) {}
+  ICPSolver(Env& env, InferenceManager& im) : EnvObj(env) {}
   void reset(const std::vector<Node>& assertions);
   void check();
 };
