@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "proof/proof_node_manager.h"
-#include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/booleans/theory_bool_rewriter.h"
@@ -71,18 +70,6 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
 
 TrustNode TheoryBool::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
 {
-  Trace("bool-ppr") << "TheoryBool::ppRewrite " << n << std::endl;
-  if (n.getKind() == ITE)
-  {
-    TypeNode tn = n.getType();
-    if (!tn.isFirstClass())
-    {
-      std::stringstream ss;
-      ss << "ITE branches of type " << tn << " are currently not supported."
-         << std::endl;
-      throw LogicException(ss.str());
-    }
-  }
   return TrustNode::null();
 }
 

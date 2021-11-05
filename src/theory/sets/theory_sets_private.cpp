@@ -454,11 +454,11 @@ void TheorySetsPrivate::checkDownwardsClosure()
             {
               Trace("sets-debug") << "Downwards closure based on " << mem
                                   << ", eq_set = " << eq_set << std::endl;
-              if (!options::setsProxyLemmas())
+              if (!options().sets.setsProxyLemmas)
               {
                 Node nmem = NodeManager::currentNM()->mkNode(
                     kind::MEMBER, mem[0], eq_set);
-                nmem = Rewriter::rewrite(nmem);
+                nmem = rewrite(nmem);
                 std::vector<Node> exp;
                 exp.push_back(mem);
                 exp.push_back(mem[1].eqNode(eq_set));
@@ -476,7 +476,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
                     NodeManager::currentNM()->mkNode(kind::MEMBER, mem[0], k);
                 Node nmem = NodeManager::currentNM()->mkNode(
                     kind::MEMBER, mem[0], eq_set);
-                nmem = Rewriter::rewrite(nmem);
+                nmem = rewrite(nmem);
                 std::vector<Node> exp;
                 if (d_state.areEqual(mem, pmem))
                 {
@@ -635,7 +635,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
   }
   if (!d_im.hasSent())
   {
-    if (options::setsExt())
+    if (options().sets.setsExt)
     {
       // universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
@@ -737,7 +737,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem1 = nm->mkNode(MEMBER, x, deq[0]);
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
-    lem = Rewriter::rewrite(lem);
+    lem = rewrite(lem);
     d_im.assertInference(lem, InferenceId::SETS_DEQ, d_true, 1);
     d_im.doPendingLemmas();
     if (d_im.hasSent())
@@ -1152,7 +1152,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
       }
 
       Node rep = NormalForm::mkBop(kind::UNION, els, eqc.getType());
-      rep = Rewriter::rewrite(rep);
+      rep = rewrite(rep);
       Trace("sets-model") << "* Assign representative of " << eqc << " to "
                           << rep << std::endl;
       mvals[eqc] = rep;
@@ -1361,7 +1361,7 @@ TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
 
   // we call the rewriter here to handle the pattern
   // (is_singleton (singleton x)) because the rewriter is called after expansion
-  Node rewritten = Rewriter::rewrite(node);
+  Node rewritten = rewrite(node);
   if (rewritten.getKind() != IS_SINGLETON)
   {
     return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
@@ -1407,8 +1407,7 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
   stringstream stream;
   stream << "chooseUf" << setType.getId();
   string name = stream.str();
-  Node chooseSkolem = sm->mkDummySkolem(
-      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
+  Node chooseSkolem = sm->mkDummySkolem(name, chooseUf, "choose function");
   d_chooseFunctions[setType] = chooseSkolem;
   return chooseSkolem;
 }

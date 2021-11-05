@@ -200,8 +200,7 @@ bool solverInvoke(api::Solver* solver,
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    std::ostream& ss = solver->getOutput("raw-benchmark");
-    cmd->toStream(ss);
+    cmd->toStream(solver->getOutput("raw-benchmark"));
   }
 
   // In parse-only mode, we do not invoke any of the commands except define-fun

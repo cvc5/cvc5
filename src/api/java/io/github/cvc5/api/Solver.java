@@ -18,9 +18,9 @@ package io.github.cvc5.api;
 import java.io.IOException;
 import java.util.*;
 
-public class Solver implements IPointer
+public class Solver implements IPointer, AutoCloseable
 {
-  private final long pointer;
+  private long pointer;
 
   public long getPointer()
   {
@@ -31,14 +31,32 @@ public class Solver implements IPointer
 
   public void deletePointer()
   {
-    deletePointer(pointer);
+    if (pointer != 0)
+    {
+      deletePointer(pointer);
+    }
+    pointer = 0;
   }
 
   private static native void deletePointer(long pointer);
 
-  @Override public void finalize()
+  // store pointers for terms, sorts, etc
+  List<AbstractPointer> abstractPointers = new ArrayList<>();
+
+  @Override public void close()
   {
-    deletePointer(pointer);
+    // delete heap memory for terms, sorts, etc
+    for (int i = abstractPointers.size() - 1; i >= 0; i--)
+    {
+      abstractPointers.get(i).deletePointer();
+    }
+    // delete the heap memory for this solver
+    deletePointer();
+  }
+
+  void addAbstractPointer(AbstractPointer abstractPointer)
+  {
+    abstractPointers.add(abstractPointer);
   }
 
   static
@@ -2034,37 +2052,36 @@ public class Solver implements IPointer
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
-  public void declareSeparationHeap(Sort locSort, Sort dataSort)
+  public void declareSepHeap(Sort locSort, Sort dataSort)
   {
-    declareSeparationHeap(pointer, locSort.getPointer(), dataSort.getPointer());
+    declareSepHeap(pointer, locSort.getPointer(), dataSort.getPointer());
   }
 
-  private native void declareSeparationHeap(
-      long pointer, long locSortPointer, long dataSortPointer);
+  private native void declareSepHeap(long pointer, long locSortPointer, long dataSortPointer);
 
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  public Term getSeparationHeap()
+  public Term getValueSepHeap()
   {
-    long termPointer = getSeparationHeap(pointer);
+    long termPointer = getValueSepHeap(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long getSeparationHeap(long pointer);
+  private native long getValueSepHeap(long pointer);
 
   /**
    * When using separation logic, obtain the term for nil.
    * @return The term for nil
    */
-  public Term getSeparationNilTerm()
+  public Term getValueSepNil()
   {
-    long termPointer = getSeparationNilTerm(pointer);
+    long termPointer = getValueSepNil(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long getSeparationNilTerm(long pointer);
+  private native long getValueSepNil(long pointer);
 
   /**
    * Declare a symbolic pool of terms with the given initial value.

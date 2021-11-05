@@ -25,17 +25,11 @@ namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-class MipLibTrick : public PreprocessingPass, public NodeManagerListener
+class MipLibTrick : public PreprocessingPass
 {
  public:
   MipLibTrick(PreprocessingPassContext* preprocContext);
   ~MipLibTrick();
-
-  // NodeManagerListener callbacks to collect d_boolVars.
-  void nmNotifyNewVar(TNode n) override;
-  void nmNotifyNewSkolem(TNode n,
-                         const std::string& comment,
-                         uint32_t flags) override;
 
  protected:
   PreprocessingPassResult applyInternal(
@@ -51,6 +45,10 @@ class MipLibTrick : public PreprocessingPass, public NodeManagerListener
 
   size_t removeFromConjunction(
       Node& n, const std::unordered_set<unsigned long>& toRemove);
+  /**
+   * Collect Boolean variables in the given pipeline, store them in d_boolVars.
+   */
+  void collectBooleanVariables(AssertionPipeline* assertionsToPreprocess);
 
   Statistics d_statistics;
 

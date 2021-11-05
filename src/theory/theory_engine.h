@@ -499,9 +499,6 @@ class TheoryEngine : protected EnvObj
   void ensureLemmaAtoms(const std::vector<TNode>& atoms,
                         theory::TheoryId atomsTo);
 
-  /** Dump the assertions to the dump */
-  void dumpAssertions(const char* tag);
-
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
 

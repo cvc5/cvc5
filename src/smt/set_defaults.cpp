@@ -150,17 +150,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
   }
 
-  if (opts.bv.bitvectorAigSimplificationsWasSetByUser)
-  {
-    Notice() << "SolverEngine: setting bitvectorAig" << std::endl;
-    opts.bv.bitvectorAig = true;
-  }
-  if (opts.bv.bitvectorAlgebraicBudgetWasSetByUser)
-  {
-    Notice() << "SolverEngine: setting bitvectorAlgebraicSolver" << std::endl;
-    opts.bv.bitvectorAlgebraicSolver = true;
-  }
-  
   // if we requiring disabling proofs, disable them now
   if (opts.smt.produceProofs)
   {
@@ -197,7 +186,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   }
   else if (!isSygus(opts) && logic.isQuantified()
            && (logic.isPure(THEORY_FP)
-               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()))
+               || (logic.isPure(THEORY_ARITH) && !logic.isLinear()
+                   && logic.areIntegersUsed()))
            && !opts.base.incrementalSolving)
   {
     opts.quantifiers.sygusInst = true;
@@ -597,14 +587,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     opts.bv.boolToBitvector = options::BoolToBVMode::OFF;
   }
 
-  if (!opts.bv.bvEagerExplanationsWasSetByUser
-      && logic.isTheoryEnabled(THEORY_ARRAYS)
-      && logic.isTheoryEnabled(THEORY_BV))
-  {
-    Trace("smt") << "enabling eager bit-vector explanations " << std::endl;
-    opts.bv.bvEagerExplanations = true;
-  }
-
   // Turn on arith rewrite equalities only for pure arithmetic
   if (!opts.arith.arithRewriteEqWasSetByUser)
   {
@@ -740,7 +722,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       if (opts.theory.relevanceFilterWasSetByUser)
       {
-        Warning() << "SolverEngine: turning on relevance filtering to support "
+        Trace("smt") << "SolverEngine: turning on relevance filtering to support "
                      "--nl-ext-rlv="
                   << opts.arith.nlRlvMode << std::endl;
       }
@@ -836,6 +818,18 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       }
     }
   }
+  else if (logic.isQuantified() && logic.isTheoryEnabled(theory::THEORY_ARITH)
+           && logic.areRealsUsed() && !logic.areIntegersUsed())
+  {
+    if (!opts.arith.nlCad && !opts.arith.nlCadWasSetByUser)
+    {
+      opts.arith.nlCad = true;
+      if (!opts.arith.nlExtWasSetByUser)
+      {
+        opts.arith.nlExt = options::NlExtMode::LIGHT;
+      }
+    }
+  }
 #else
   if (opts.arith.nlCad)
   {
@@ -917,8 +911,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
   if (opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
-      && !opts.bv.bvSolverWasSetByUser
-      && opts.bv.bvSatSolver == options::SatSolverMode::MINISAT)
+      && !opts.bv.bvSolverWasSetByUser)
   {
     Notice() << "Forcing internal bit-vector solver due to proof production."
              << std::endl;
@@ -1017,7 +1010,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
   opts.uf.ufssFairnessMonotone = false;
   opts.quantifiers.globalNegate = false;
   opts.quantifiers.cegqiNestedQE = false;
-  opts.bv.bvAbstraction = false;
   opts.arith.arithMLTrick = false;
 
   return false;
@@ -1146,12 +1138,6 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
     opts.quantifiers.globalNegate = false;
   }
 
-  if (opts.bv.bitvectorAig)
-  {
-    reason << "bitblast-aig";
-    return true;
-  }
-
   if (opts.smt.doITESimp)
   {
     reason << "ITE simp";
@@ -1227,14 +1213,8 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
     logic = log;
     logic.lock();
   }
-  if (opts.bv.bvAbstraction)
-  {
-    // bv abstraction may require UF
-    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
-    needsUf = true;
-  }
-  else if (opts.quantifiers.preSkolemQuantNested
-           && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
+  if (opts.quantifiers.preSkolemQuantNested
+      && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
   {
     // if pre-skolem nested is explictly set, then we require UF. If it is
     // not explicitly set, it is disabled below if UF is not present.
