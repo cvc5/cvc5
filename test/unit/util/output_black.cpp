@@ -30,13 +30,11 @@ class TestUtilBlackOutput : public TestInternal
     TestInternal::SetUp();
     DebugChannel.setStream(&d_debugStream);
     TraceChannel.setStream(&d_traceStream);
-    ChatChannel.setStream(&d_chatStream);
     MessageChannel.setStream(&d_messageStream);
     WarningChannel.setStream(&d_warningStream);
 
     d_debugStream.str("");
     d_traceStream.str("");
-    d_chatStream.str("");
     d_messageStream.str("");
     d_warningStream.str("");
   }
@@ -52,7 +50,6 @@ class TestUtilBlackOutput : public TestInternal
   }
   std::stringstream d_debugStream;
   std::stringstream d_traceStream;
-  std::stringstream d_chatStream;
   std::stringstream d_messageStream;
   std::stringstream d_warningStream;
 };
@@ -68,7 +65,6 @@ TEST_F(TestUtilBlackOutput, output)
 
   CVC5Message() << "a message";
   Warning() << "bad warning!";
-  Chat() << "chatty";
 
   Trace.on("foo");
   Trace("foo") << "tracing1";
@@ -82,7 +78,6 @@ TEST_F(TestUtilBlackOutput, output)
   ASSERT_EQ(d_debugStream.str(), "");
   ASSERT_EQ(d_messageStream.str(), "");
   ASSERT_EQ(d_warningStream.str(), "");
-  ASSERT_EQ(d_chatStream.str(), "");
   ASSERT_EQ(d_traceStream.str(), "");
 
 #else /* CVC5_MUZZLE */
@@ -95,7 +90,6 @@ TEST_F(TestUtilBlackOutput, output)
 
   ASSERT_EQ(d_messageStream.str(), "a message");
   ASSERT_EQ(d_warningStream.str(), "bad warning!");
-  ASSERT_EQ(d_chatStream.str(), "chatty");
 
 #ifdef CVC5_TRACING
   ASSERT_EQ(d_traceStream.str(), "tracing1tracing3");
@@ -131,7 +125,6 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   ASSERT_FALSE(Trace.isOn("foo"));
   ASSERT_FALSE(Warning.isOn());
   ASSERT_FALSE(CVC5Message.isOn());
-  ASSERT_FALSE(Chat.isOn());
 
   cout << "debug" << std::endl;
   Debug("foo") << failure() << std::endl;
@@ -141,8 +134,6 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   Warning() << failure() << std::endl;
   cout << "message" << std::endl;
   CVC5Message() << failure() << std::endl;
-  cout << "chat" << std::endl;
-  Chat() << failure() << std::endl;
 #endif
 }
 
@@ -171,10 +162,6 @@ TEST_F(TestUtilBlackOutput, simple_print)
   Warning() << "baz foo";
   ASSERT_EQ(d_warningStream.str(), std::string());
   d_warningStream.str("");
-
-  Chat() << "baz foo";
-  ASSERT_EQ(d_chatStream.str(), std::string());
-  d_chatStream.str("");
 
   CVC5Message() << "baz foo";
   ASSERT_EQ(d_messageStream.str(), std::string());
@@ -211,10 +198,6 @@ TEST_F(TestUtilBlackOutput, simple_print)
   Warning() << "baz foo";
   ASSERT_EQ(d_warningStream.str(), std::string("baz foo"));
   d_warningStream.str("");
-
-  Chat() << "baz foo";
-  ASSERT_EQ(d_chatStream.str(), std::string("baz foo"));
-  d_chatStream.str("");
 
   CVC5Message() << "baz foo";
   ASSERT_EQ(d_messageStream.str(), std::string("baz foo"));
