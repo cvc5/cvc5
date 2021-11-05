@@ -670,8 +670,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     // ======== Reordering
     // This rule is translated according to the clauses pattern.
-    // As in the cases of the RESOLUTION, CHAIN_RESOLUTION and EQ_RESOLVE rule
-    // an additional or step might need to be applied to a child.
+    // Since this rule operates on clauses an additional or step might need to be applied to a child (see RESOLUTION rule for more information).
     case PfRule::REORDERING:
     {
       Node trueNode = nm->mkConst(true);
