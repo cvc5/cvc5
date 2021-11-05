@@ -106,7 +106,7 @@ class nodeWrapper : public Node
  * allowing them to be traced via GDB.
  */
 #ifdef CVC5_SYM_SYMBOLIC_EVAL
-  nodeWrapper(const Node& n) : Node(theory::rewrite(n)) {}
+  nodeWrapper(const Node& n) : Node(theory::Rewriter::rewrite(n)) {}
 #else
   nodeWrapper(const Node& n) : Node(n) {}
 #endif
