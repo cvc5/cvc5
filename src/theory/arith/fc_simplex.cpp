@@ -732,6 +732,7 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
         w = selectFocusImproving();
       }
     }
+    Debug("dualLike") << "witnessImprovement: " << w << endl;
     Assert(d_focusSize == d_errorSet.focusSize());
     Assert(d_errorSize == d_errorSet.errorSize());
 
