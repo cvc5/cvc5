@@ -289,9 +289,9 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
   {
     // Get the values
-    Assert(m->hasTerm(abstract)) << "No value for " << abstract << " in model";
+    Assert(m->hasTerm(abstract)) << "Term " << abstract << " not in model";
     Assert(m->hasTerm(concrete[0]))
-        << "No value for " << concrete[0] << " in model";
+        << "Term " << concrete[0] << " not in model";
     // Note: while the value for concrete[1] that we get from the model has to
     // be const, it is not necessarily the case that `m->hasTerm(concrete[1])`.
     // The arithmetic solver computes values for the variables in shared terms
