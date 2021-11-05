@@ -29,6 +29,10 @@ add_custom_target(build-tests)
 message(STATUS "Calling check with ctest --output-on-failure -LE \"regress[3-4]\" -j${CTEST_NTHREADS} $$ARGS")
 add_custom_target(check
   COMMAND
+    echo $ARGS
+  COMMAND
+    echo $$ARGS
+  COMMAND
     ctest --output-on-failure -LE "regress[3-4]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS
     build-tests)
