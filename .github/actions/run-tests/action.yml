@@ -23,7 +23,7 @@ runs:
       run: |
         make -j${{ env.num_proc }} check
       env:
-        ARGS: --output-on-failure -LE "regress[${{ inputs.regressions-exclude }}]"
+        ARGS: --output-on-failure -LE regress[${{ inputs.regressions-exclude }}]
         CVC5_REGRESSION_ARGS: --no-early-exit
         RUN_REGRESSION_ARGS: ${{ inputs.regressions-args }}
       working-directory: ${{ inputs.build-dir }}
