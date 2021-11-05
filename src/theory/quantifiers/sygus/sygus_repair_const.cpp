@@ -234,8 +234,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
       repcChecker,
       d_env.getOptions(),
       d_env.getLogicInfo(),
-      Options::current().quantifiers.sygusRepairConstTimeoutWasSetByUser,
-      options::sygusRepairConstTimeout());
+      options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
+      options().quantifiers.sygusRepairConstTimeout);
   // renable options disabled by sygus
   repcChecker->setOption("miniscope-quant", "true");
   repcChecker->setOption("miniscope-quant-fv", "true");

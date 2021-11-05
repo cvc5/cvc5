@@ -324,7 +324,7 @@ void ExtfSolver::checkExtfEval(int effort)
               << "  get symbolic definition..." << std::endl;
           Node nrs;
           // only use symbolic definitions if option is set
-          if (options::stringInferSym())
+          if (options().strings.stringInferSym)
           {
             nrs = d_termReg.getSymbolicDefinition(sn, exps);
           }

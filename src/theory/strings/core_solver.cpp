@@ -1635,7 +1635,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     int32_t lentTestSuccess = -1;
     Node lenConstraint;
-    if (options::stringCheckEntailLen())
+    if (options().strings.stringCheckEntailLen)
     {
       // If length entailment checks are enabled, we can save the case split by
       // inferring that `x` has to be longer than `y` or vice-versa.
@@ -1784,11 +1784,11 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   TypeNode stype = veci[loop_index].getType();
 
-  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
+  if (options().strings.stringProcessLoopMode == options::ProcessLoopMode::ABORT)
   {
     throw LogicException("Looping word equation encountered.");
   }
-  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE
+  else if (options().strings.stringProcessLoopMode == options::ProcessLoopMode::NONE
            || stype.isSequence())
   {
     // note we cannot convert looping word equations into regular expressions if
@@ -1932,12 +1932,12 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   }
   else
   {
-    if (options::stringProcessLoopMode()
+    if (options().strings.stringProcessLoopMode
         == options::ProcessLoopMode::SIMPLE_ABORT)
     {
       throw LogicException("Normal looping word equation encountered.");
     }
-    else if (options::stringProcessLoopMode()
+    else if (options().strings.stringProcessLoopMode
              == options::ProcessLoopMode::SIMPLE)
     {
       d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
@@ -2081,7 +2081,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
     return;
   }
 
-  if (options::stringsDeqExt())
+  if (options().strings.stringsDeqExt)
   {
     processDeqExtensionality(ni, nj);
     return;
