@@ -331,8 +331,10 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node aval = Rewriter::rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  Node bval = Rewriter::rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  Node aval =
+      rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  Node bval =
+      rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
   if (aval == bval)
   {
     return EQUALITY_TRUE_IN_MODEL;
@@ -386,9 +388,9 @@ bool TheoryArith::sanityCheckIntegerModel()
       Trace("arith-check") << p.first << " -> " << p.second << std::endl;
       if (p.first.getType().isInteger() && !p.second.getType().isInteger())
       {
-        Warning() << "TheoryArithPrivate generated a bad model value for "
+        warning() << "TheoryArithPrivate generated a bad model value for "
                      "integer variable "
-                  << p.first << " : " << p.second;
+                  << p.first << " : " << p.second << std::endl;
         // must branch and bound
         TrustNode lem =
             d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());

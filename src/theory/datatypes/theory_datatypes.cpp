@@ -382,9 +382,7 @@ void TheoryDatatypes::postCheck(Effort level)
   }
 
   Trace("datatypes-check") << "Finished check effort " << level << std::endl;
-  if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ) {
-    Notice() << "TheoryDatatypes::check(): done" << endl;
-  }
+  Debug("datatypes") << "TheoryDatatypes::check(): done" << std::endl;
 }
 
 bool TheoryDatatypes::needsCheckLastEffort() {

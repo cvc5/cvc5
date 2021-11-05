@@ -71,7 +71,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
   }
   Trace("sygus-ccore-init") << "  body : " << body << std::endl;
 
-  TransitionInference ti;
+  TransitionInference ti(d_env);
   ti.process(body, conj[0][0]);
 
   if (!ti.isComplete())
@@ -130,7 +130,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
       sc = sc[1];
     }
     Node scb = TermUtil::simpleNegate(sc);
-    TransitionInference tisc;
+    TransitionInference tisc(d_env);
     tisc.process(scb, conj[0][0]);
     Node scTrans = ti.getTransitionRelation();
     Trace("sygus-ccore-init")

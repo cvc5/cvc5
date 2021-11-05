@@ -100,7 +100,7 @@ class ArithCongruenceManager : protected EnvObj
   /* This maps the node a theory engine will request on an explain call to
    * to its corresponding PropUnit.
    * This is node is potentially both the propagation or
-   * Rewriter::rewrite(propagation).
+   * rewrite(propagation).
    */
   typedef context::CDHashMap<Node, size_t> ExplainMap;
   ExplainMap d_explanationMap;

@@ -57,12 +57,12 @@ SynthConjecture::SynthConjecture(Env& env,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(options(), logicInfo(), d_tds),
+      d_verify(env, d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
-      d_templInfer(new SygusTemplateInfer),
+      d_templInfer(new SygusTemplateInfer(env)),
       d_ceg_proc(new SynthConjectureProcess),
-      d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
+      d_ceg_gc(new CegGrammarConstructor(env, d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
@@ -73,15 +73,16 @@ SynthConjecture::SynthConjecture(Env& env,
       d_repair_index(0),
       d_guarded_stream_exc(false)
 {
-  if (options::sygusSymBreakPbe() || options::sygusUnifPbe())
+  if (options().datatypes.sygusSymBreakPbe
+      || options().quantifiers.sygusUnifPbe)
   {
     d_modules.push_back(d_ceg_pbe.get());
   }
-  if (options::sygusUnifPi() != options::SygusUnifPiMode::NONE)
+  if (options().quantifiers.sygusUnifPi != options::SygusUnifPiMode::NONE)
   {
     d_modules.push_back(d_ceg_cegisUnif.get());
   }
-  if (options::sygusCoreConnective())
+  if (options().quantifiers.sygusCoreConnective)
   {
     d_modules.push_back(d_sygus_ccore.get());
   }
@@ -202,10 +203,10 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
 
   // initialize the sygus constant repair utility
-  if (options::sygusRepairConst())
+  if (options().quantifiers.sygusRepairConst)
   {
     d_sygus_rconst->initialize(d_base_inst.negate(), d_candidates);
-    if (options::sygusConstRepairAbort())
+    if (options().quantifiers.sygusConstRepairAbort)
     {
       if (!d_sygus_rconst->isActive())
       {
@@ -284,7 +285,7 @@ bool SynthConjecture::needsCheck()
     if (!value)
     {
       Trace("sygus-engine-debug") << "Conjecture is infeasible." << std::endl;
-      Warning() << "Warning : the SyGuS conjecture may be infeasible"
+      warning() << "Warning : the SyGuS conjecture may be infeasible"
                 << std::endl;
       return false;
     }
@@ -337,7 +338,7 @@ bool SynthConjecture::doCheck()
   // sygusRepairConst  is true, we use a default scheme for trying to repair
   // constants here.
   bool doRepairConst =
-      options::sygusRepairConst() && !d_master->usingRepairConst();
+      options().quantifiers.sygusRepairConst && !d_master->usingRepairConst();
   if (doRepairConst)
   {
     // have we tried to repair the previous solution?
@@ -371,7 +372,7 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  bool printDebug = d_env.isOutputOn(options::OutputTag::SYGUS);
+  bool printDebug = isOutputOn(OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -436,9 +437,9 @@ bool SynthConjecture::doCheck()
           }
         }
         Trace("sygus-engine") << std::endl;
-        if (d_env.isOutputOn(options::OutputTag::SYGUS))
+        if (d_env.isOutputOn(OutputTag::SYGUS))
         {
-          d_env.getOutput(options::OutputTag::SYGUS)
+          d_env.output(OutputTag::SYGUS)
               << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
         }
       }
@@ -502,7 +503,7 @@ bool SynthConjecture::doCheck()
   }
 
   // if we trust the sampling we ran, we terminate now
-  if (options::cegisSample() == options::CegisSampleMode::TRUST)
+  if (options().quantifiers.cegisSample == options::CegisSampleMode::TRUST)
   {
     // we have that the current candidate passed a sample test
     // since we trust sampling in this mode, we assert there is no
@@ -517,16 +518,15 @@ bool SynthConjecture::doCheck()
   // print the candidate solution for debugging
   if (constructed_cand && printDebug)
   {
-    const Options& sopts = options();
-    std::ostream& out = *sopts.base.out;
+    std::ostream& out = output(OutputTag::SYGUS);
     out << "(sygus-candidate ";
     Assert(d_quant[0].getNumChildren() == candidate_values.size());
     for (size_t i = 0, ncands = candidate_values.size(); i < ncands; i++)
     {
       Node v = candidate_values[i];
-      std::stringstream ss;
-      TermDbSygus::toStreamSygus(ss, v);
-      out << "(" << d_quant[0][i] << " " << ss.str() << ")";
+      out << "(" << d_quant[0][i] << " ";
+      TermDbSygus::toStreamSygus(out, v);
+      out << ")";
     }
     out << ")" << std::endl;
   }
@@ -565,7 +565,7 @@ bool SynthConjecture::doCheck()
 
   // now mark that we have a solution
   d_hasSolution = true;
-  if (options::sygusStream())
+  if (options().quantifiers.sygusStream)
   {
     // immediately print the current solution
     printAndContinueStream(terms, candidate_values);
@@ -805,10 +805,10 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
       bool is_unique_term = true;
 
       if (status != 0
-          && (options::sygusRewSynth()
+          && (options().quantifiers.sygusRewSynth
               || options().quantifiers.sygusQueryGen
                      != options::SygusQueryGenMode::NONE
-              || options::sygusFilterSolMode()
+              || options().quantifiers.sygusFilterSolMode
                      != options::SygusFilterSolMode::NONE))
       {
         Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
@@ -819,7 +819,7 @@ void SynthConjecture::printSynthSolutionInternal(std::ostream& out)
           d_exprm[prog].reset(new ExpressionMinerManager(d_env));
           ExpressionMinerManager* emm = d_exprm[prog].get();
           emm->initializeSygus(
-              d_tds, d_candidates[i], options::sygusSamples(), true);
+              d_tds, d_candidates[i], options().quantifiers.sygusSamples, true);
           emm->initializeMinersForOptions();
           its = d_exprm.find(prog);
         }
@@ -989,7 +989,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
           Trace("cegqi-inv-debug")
               << sf << " used template : " << templ << std::endl;
           // if it was not embedded into the grammar
-          if (!options::sygusTemplEmbedGrammar())
+          if (!options().quantifiers.sygusTemplEmbedGrammar)
           {
             TNode templa = d_templInfer->getTemplateArg(sf);
             // make the builtin version of the full solution

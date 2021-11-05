@@ -22,7 +22,6 @@
 #include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/solver_engine.h"
@@ -40,7 +39,7 @@ Preprocessor::Preprocessor(Env& env,
                            SolverEngineStatistics& stats)
     : EnvObj(env),
       d_absValues(abs),
-      d_propagator(true, true),
+      d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_exDefs(env),
       d_processor(env, stats),
@@ -145,10 +144,6 @@ void Preprocessor::expandDefinitions(std::vector<Node>& ns)
 Node Preprocessor::simplify(const Node& node)
 {
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    d_env.getPrinter().toStreamCmdSimplify(d_env.getDumpOut(), node);
-  }
   Node ret = expandDefinitions(node);
   ret = rewrite(ret);
   return ret;
