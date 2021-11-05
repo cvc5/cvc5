@@ -35,7 +35,7 @@ set_source_files_properties(${libmain_gen_src_files} PROPERTIES GENERATED TRUE)
 # main-test library.
 
 add_library(main OBJECT ${libmain_src_files} ${libmain_gen_src_files})
-target_compile_definitions(main PRIVATE -D__BUILDING_CVC5DRIVER)
+target_compile_definitions(main PRIVATE -D__BUILDING_CVC5DRIVER -Dcvc5_obj_EXPORTS)
 set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_dependencies(main gen-tokens cvc5-obj)
@@ -45,19 +45,19 @@ add_dependencies(main gen-tokens cvc5-obj)
 # test. Do not link against main-test in any other case.
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC5DRIVER)
-target_link_libraries(main-test PUBLIC cvc5-shared cvc5parser-shared)
+target_link_libraries(main-test PUBLIC cvc5 cvc5parser)
 if(USE_CLN)
-  target_link_libraries(main-test PUBLIC CLN_SHARED)
+  target_link_libraries(main-test PUBLIC CLN)
 endif()
 if(USE_POLY)
-  target_link_libraries(main-test PUBLIC Polyxx_SHARED)
+  target_link_libraries(main-test PUBLIC Polyxx)
 endif()
 
 #-----------------------------------------------------------------------------#
 # cvc5 binary configuration
 
 add_executable(cvc5-bin driver_unified.cpp main.cpp $<TARGET_OBJECTS:main>)
-target_compile_definitions(cvc5-bin PRIVATE -D__BUILDING_CVC5DRIVER)
+target_compile_definitions(cvc5-bin PRIVATE -D__BUILDING_CVC5DRIVER -Dcvc5_obj_EXPORTS)
 set_target_properties(cvc5-bin
   PROPERTIES
     OUTPUT_NAME cvc5
@@ -76,17 +76,15 @@ endif()
 # use the static system libraries.
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_START_STATIC.html
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_END_STATIC.html
-if(ENABLE_STATIC_BUILD)
+if(NOT BUILD_SHARED_LIBS)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_target_properties(cvc5-bin PROPERTIES LINK_FLAGS -static)
     set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
     set_target_properties(cvc5-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
   endif()
   set_target_properties(cvc5-bin PROPERTIES INSTALL_RPATH "")
-  target_link_libraries(cvc5-bin PUBLIC cvc5-static cvc5parser-static)
-else()
-  target_link_libraries(cvc5-bin PUBLIC cvc5-shared cvc5parser-shared)
 endif()
+target_link_libraries(cvc5-bin PUBLIC cvc5 cvc5parser)
 
 if(USE_EDITLINE)
   target_link_libraries(cvc5-bin PUBLIC ${Editline_LIBRARIES})

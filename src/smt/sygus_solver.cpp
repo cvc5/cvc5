@@ -257,8 +257,11 @@ void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Notice() << "SygusSolver::checkSynthSolution(): checking synthesis solution"
-           << std::endl;
+  if (isVerboseOn(1))
+  {
+    verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
+               << std::endl;
+  }
   std::map<Node, std::map<Node, Node>> sol_map;
   // Get solutions and build auxiliary vectors for substituting
   QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
@@ -308,13 +311,19 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   std::unordered_map<Node, Node> cache;
   for (const Node& assertion : alist)
   {
-    Notice() << "SygusSolver::checkSynthSolution(): checking assertion "
-             << assertion << std::endl;
+    if (isVerboseOn(1))
+    {
+      verbose(1) << "SyGuS::checkSynthSolution: checking assertion "
+                 << assertion << std::endl;
+    }
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
     Node n = d_smtSolver.getPreprocessor()->expandDefinitions(assertion, cache);
-    Notice() << "SygusSolver::checkSynthSolution(): -- expands to " << n
-             << std::endl;
+    if (isVerboseOn(1))
+    {
+      verbose(1) << "SyGuS::checkSynthSolution: -- expands to " << n
+                 << std::endl;
+    }
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())
     {
@@ -364,8 +373,12 @@ void SygusSolver::checkSynthSolution(Assertions& as)
       conjBody = conjBody.substitute(
           vars.begin(), vars.end(), skos.begin(), skos.end());
     }
-    Notice() << "SygusSolver::checkSynthSolution(): -- body substitutes to "
-             << conjBody << std::endl;
+
+    if (isVerboseOn(1))
+    {
+      verbose(1) << "SyGuS::checkSynthSolution: -- body substitutes to "
+                 << conjBody << std::endl;
+    }
     Trace("check-synth-sol")
         << "Substituted body of assertion to " << conjBody << "\n";
     solChecker->assertFormula(conjBody);
@@ -381,8 +394,10 @@ void SygusSolver::checkSynthSolution(Assertions& as)
       solChecker->assertFormula(ar);
     }
     Result r = solChecker->checkSat();
-    Notice() << "SygusSolver::checkSynthSolution(): result is " << r
-             << std::endl;
+    if (isVerboseOn(1))
+    {
+      verbose(1) << "SyGuS::checkSynthSolution: result is " << r << std::endl;
+    }
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())
     {

@@ -29,7 +29,7 @@ namespace quantifiers {
 SygusReconstruct::SygusReconstruct(Env& env,
                                    TermDbSygus* tds,
                                    SygusStatistics& s)
-    : d_env(env), d_tds(tds), d_stats(s)
+    : EnvObj(env), d_tds(tds), d_stats(s)
 {
 }
 
@@ -190,7 +190,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
 
   // we ran out of elements, return null
   reconstructed = -1;
-  Warning() << CommandFailure(
+  warning() << CommandFailure(
       "Cannot get synth function: reconstruction to syntax failed.");
   return Node::null();
 }

@@ -281,9 +281,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getValue(const vector[Term]& terms) except +
         vector[Term] getModelDomainElements(Sort sort) except +
         bint isModelCoreSymbol(Term v) except +
-        void declareSeparationHeap(Sort locSort, Sort dataSort) except +
-        Term getSeparationHeap() except +
-        Term getSeparationNilTerm() except +
+        void declareSepHeap(Sort locSort, Sort dataSort) except +
+        Term getValueSepHeap() except +
+        Term getValueSepNil() except +
         Term declarePool(const string& name, Sort sort, vector[Term]& initValue) except +
         void pop(uint32_t nscopes) except +
         void push(uint32_t nscopes) except +
