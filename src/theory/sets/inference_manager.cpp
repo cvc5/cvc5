@@ -35,7 +35,7 @@ InferenceManager::InferenceManager(Env& env, Theory& t, SolverState& s)
 bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
 {
   // should we send this fact out as a lemma?
-  if ((options::setsInferAsLemmas() && inferType != -1) || inferType == 1)
+  if ((options().sets.setsInferAsLemmas && inferType != -1) || inferType == 1)
   {
     if (d_state.isEntailed(fact, true))
     {
@@ -172,7 +172,7 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
 
 void InferenceManager::split(Node n, InferenceId id, int reqPol)
 {
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
   Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
   // send the lemma
   lemma(lem, id);

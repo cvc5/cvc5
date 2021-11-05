@@ -56,32 +56,6 @@ namespace expr {
   class TypeChecker;
   }  // namespace expr
 
-/**
- * An interface that an interested party can implement and then subscribe
- * to NodeManager events via NodeManager::subscribeEvents(this).
- */
-class NodeManagerListener {
- public:
-  virtual ~NodeManagerListener() {}
-  virtual void nmNotifyNewSort(TypeNode tn, uint32_t flags) {}
-  virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
-  virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
-                                                  uint32_t flags) {}
-  virtual void nmNotifyNewDatatypes(const std::vector<TypeNode>& datatypes,
-                                    uint32_t flags)
-  {
-  }
-  virtual void nmNotifyNewVar(TNode n) {}
-  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment,
-                                 uint32_t flags) {}
-  /**
-   * Notify a listener of a Node that's being GCed.  If this function stores a
-   * reference
-   * to the Node somewhere, very bad things will happen.
-   */
-  virtual void nmNotifyDeleteNode(TNode n) {}
-}; /* class NodeManagerListener */
-
 class NodeManager
 {
   friend class api::Solver;
@@ -177,11 +151,6 @@ class NodeManager
   /** unique vars per (Kind,Type) */
   std::map< Kind, std::map< TypeNode, Node > > d_unique_vars;
 
-  /**
-   * A list of subscribers for NodeManager events.
-   */
-  std::vector<NodeManagerListener*> d_listeners;
-
   /** A list of datatypes owned by this node manager */
   std::vector<std::unique_ptr<DType> > d_dtypes;
 
@@ -210,15 +179,6 @@ class NodeManager
    * values to overlap.
    */
   unsigned d_abstractValueCount;
-
-  /**
-   * A counter used to produce unique skolem names.
-   *
-   * Note that it is NOT incremented when skolems are created using
-   * SKOLEM_EXACT_NAME, so it is NOT a count of the skolems produced
-   * by this node manager.
-   */
-  unsigned d_skolemCounter;
 
   /**
    * Look up a NodeValue in the pool associated to this NodeManager.
@@ -365,19 +325,6 @@ class NodeManager
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type);
 
-  /**
-   * Create a skolem constant with the given name, type, and comment. For
-   * details, see SkolemManager::mkDummySkolem, which calls this method.
-   *
-   * This method is intentionally private. To create skolems, one should
-   * call a method from SkolemManager for allocating a skolem in a standard
-   * way, or otherwise use SkolemManager::mkDummySkolem.
-   */
-  Node mkSkolem(const std::string& prefix,
-                const TypeNode& type,
-                const std::string& comment = "",
-                int flags = SKOLEM_DEFAULT);
-
  public:
   /**
    * Initialize the node manager by adding a null node to the pool and filling
@@ -393,21 +340,6 @@ class NodeManager
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
   /** Get this node manager's bound variable manager */
   BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
-
-  /** Subscribe to NodeManager events */
-  void subscribeEvents(NodeManagerListener* listener) {
-    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener)
-           == d_listeners.end())
-        << "listener already subscribed";
-    d_listeners.push_back(listener);
-  }
-
-  /** Unsubscribe from NodeManager events */
-  void unsubscribeEvents(NodeManagerListener* listener) {
-    std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
-    Assert(elt != d_listeners.end()) << "listener not subscribed";
-    d_listeners.erase(elt);
-  }
 
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
@@ -555,26 +487,8 @@ class NodeManager
    */
   Node mkChain(Kind kind, const std::vector<Node>& children);
 
-  /**
-   * Optional flags used to control behavior of NodeManager::mkSkolem().
-   * They should be composed with a bitwise OR (e.g.,
-   * "SKOLEM_NO_NOTIFY | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
-   * cannot be composed in such a manner.
-   */
-  enum SkolemFlags
-  {
-    SKOLEM_DEFAULT = 0,    /**< default behavior */
-    SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
-    SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
-    SKOLEM_IS_GLOBAL = 4,  /**< global vars appear in models even after a pop */
-    SKOLEM_BOOL_TERM_VAR = 8 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
-  };                         /* enum SkolemFlags */
-
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
-
-  /** Create a boolean term variable. */
-  Node mkBooleanTermVariable();
 
   /** Make a new abstract value with the given type. */
   Node mkAbstractValue(const TypeNode& type);

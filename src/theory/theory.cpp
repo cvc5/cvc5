@@ -65,11 +65,6 @@ Theory::Theory(TheoryId id,
                Valuation valuation,
                std::string name)
     : EnvObj(env),
-      d_id(id),
-      d_facts(d_env.getContext()),
-      d_factsHead(d_env.getContext(), 0),
-      d_sharedTermsIndex(d_env.getContext(), 0),
-      d_careGraph(nullptr),
       d_instanceName(name),
       d_checkTime(statisticsRegistry().registerTimer(getStatsPrefix(id) + name
                                                      + "checkTime")),
@@ -84,7 +79,12 @@ Theory::Theory(TheoryId id,
       d_inferManager(nullptr),
       d_quantEngine(nullptr),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
-                                           : nullptr)
+                                           : nullptr),
+      d_id(id),
+      d_facts(d_env.getContext()),
+      d_factsHead(d_env.getContext(), 0),
+      d_sharedTermsIndex(d_env.getContext(), 0),
+      d_careGraph(nullptr)
 {
 }
 
@@ -339,7 +339,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!options::produceModels() && !logicInfo().isQuantified())
+  if (!options().smt.produceModels && !logicInfo().isQuantified())
   {
     // Don't care about the model and logic is not quantified, we can eliminate.
     return true;
@@ -681,6 +681,20 @@ bool Theory::usesCentralEqualityEngine(TheoryId id)
 bool Theory::expUsingCentralEqualityEngine(TheoryId id)
 {
   return id != THEORY_ARITH && usesCentralEqualityEngine(id);
+}
+
+theory::Assertion Theory::get()
+{
+  Assert(!done()) << "Theory::get() called with assertion queue empty!";
+
+  // Get the assertion
+  Assertion fact = d_facts[d_factsHead];
+  d_factsHead = d_factsHead + 1;
+
+  Trace("theory") << "Theory::get() => " << fact << " ("
+                  << d_facts.size() - d_factsHead << " left)" << std::endl;
+
+  return fact;
 }
 
 }  // namespace theory

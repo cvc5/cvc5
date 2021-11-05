@@ -25,7 +25,7 @@ using namespace cvc5::api;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_api_Sort_deletePointer(JNIEnv*,
-                                                                  jclass,
+                                                                  jobject,
                                                                   jlong pointer)
 {
   delete reinterpret_cast<Sort*>(pointer);
@@ -655,7 +655,7 @@ Java_io_github_cvc5_api_Sort_getConstructorDomainSorts(JNIEnv* env,
   std::vector<jlong> sortPointers(sorts.size());
   for (size_t i = 0; i < sorts.size(); i++)
   {
-    sortPointers[i] = reinterpret_cast<jlong> (new Sort(sorts[i]));
+    sortPointers[i] = reinterpret_cast<jlong>(new Sort(sorts[i]));
   }
   jlongArray ret = env->NewLongArray(sorts.size());
   env->SetLongArrayRegion(ret, 0, sorts.size(), sortPointers.data());

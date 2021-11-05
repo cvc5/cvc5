@@ -37,8 +37,8 @@ extern int optreset;
 
 #include "base/check.h"
 #include "base/output.h"
-#include "options/didyoumean.h"
 #include "options/option_exception.h"
+#include "util/didyoumean.h"
 
 #include <cstring>
 #include <iostream>

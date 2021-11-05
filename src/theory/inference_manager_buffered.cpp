@@ -58,7 +58,7 @@ bool InferenceManagerBuffered::addPendingLemma(Node lem,
   if (checkCache)
   {
     // check if it is unique up to rewriting
-    Node lemr = Rewriter::rewrite(lem);
+    Node lemr = rewrite(lem);
     if (hasCachedLemma(lemr, p))
     {
       return false;

@@ -5056,6 +5056,8 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
+  CVC5_API_RECOVERABLE_CHECK(!expr::hasFreeVar(term.getNode()))
+      << "Cannot get value of term containing free variables";
   //////// all checks before this line
   Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
@@ -7343,8 +7345,7 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::declareSeparationHeap(const Sort& locSort,
-                                   const Sort& dataSort) const
+void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(locSort);
@@ -7358,7 +7359,7 @@ void Solver::declareSeparationHeap(const Sort& locSort,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationHeap() const
+Term Solver::getValueSepHeap() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7375,7 +7376,7 @@ Term Solver::getSeparationHeap() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationNilTerm() const
+Term Solver::getValueSepNil() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7861,12 +7862,12 @@ bool Solver::isOutputOn(const std::string& tag) const
 
 std::ostream& Solver::getOutput(const std::string& tag) const
 {
-  // `getOutput(tag)` may raise an `OptionException`, which we do not want to
+  // `output(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
   {
-    return d_slv->getEnv().getOutput(tag);
+    return d_slv->getEnv().output(tag);
   }
   catch (const cvc5::Exception& e)
   {
