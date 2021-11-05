@@ -1414,7 +1414,7 @@ bool AletheProofPostprocessCallback::update(Node res,
            i < size;
            i++)
       {
-        new_args.push_back(nm->mkNode(kind::EQUAL, args[i], children[0][0][i]));
+        new_args.push_back(children[0][0][i].eqNode(args[i]));
       }
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::OR, children[0].notNode(), res));
