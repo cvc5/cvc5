@@ -59,7 +59,9 @@ const std::map<Node, std::shared_ptr<ProofNode>> LazyCDProofChain::getLinks()
 std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
 {
   Trace("lazy-cdproofchain")
-      << "LazyCDProofChain::getProofFor " << fact << "\n";
+      << "LazyCDProofChain::getProofFor of gen " << d_name << "\n";
+  Trace("lazy-cdproofchain")
+      << "LazyCDProofChain::getProofFor: " << fact << "\n";
   // which facts have had proofs retrieved for. This is maintained to avoid
   // cycles. It also saves the proof node of the fact
   std::unordered_map<Node, std::shared_ptr<ProofNode>> toConnect;
@@ -107,9 +109,14 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       }
       // map node whose proof node must be expanded to the respective poof node
       toConnect[cur] = curPfn;
-      if (!rec)
+      // We may not want to recursively connect this proof or, if it's
+      // assumption, there is nothing to connect, so we skip. Note that in the
+      // special case in which curPfn is an assumption and cur is actually the
+      // initial fact that getProofFor is called on, the cycle detection below
+      // would prevent this method from generating the assumption proof for it,
+      // which would be wrong.
+      if (!rec || curPfn->getRule() == PfRule::ASSUME)
       {
-        // we don't want to recursively connect this proof
         visited[cur] = true;
         continue;
       }
@@ -261,11 +268,12 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       d_manager->updateNode(pfn.get(), npfn.second.get());
     }
   }
+  Trace("lazy-cdproofchain") << "===========\n";
   // final proof of fact
   auto it = toConnect.find(fact);
   if (it == toConnect.end())
   {
-    return d_manager->mkAssume(fact);
+    return nullptr;
   }
   return it->second;
 }
