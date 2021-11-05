@@ -31,7 +31,11 @@ namespace prop {
 //// DPllMinisatSatSolver
 
 MinisatSatSolver::MinisatSatSolver(Env& env, StatisticsRegistry& registry)
-    : EnvObj(env), d_minisat(NULL), d_context(NULL), d_assumptions(), d_statistics(registry)
+    : EnvObj(env),
+      d_minisat(NULL),
+      d_context(NULL),
+      d_assumptions(),
+      d_statistics(registry)
 {}
 
 MinisatSatSolver::~MinisatSatSolver()
@@ -110,18 +114,20 @@ void MinisatSatSolver::initialize(context::Context* context,
 
   if (options().decision.decisionMode != options::DecisionMode::INTERNAL)
   {
-    verbose(1) << "minisat: Incremental solving is forced on (to avoid variable elimination)"
-             << " unless using internal decision strategy." << std::endl;
+    verbose(1) << "minisat: Incremental solving is forced on (to avoid "
+                  "variable elimination)"
+               << " unless using internal decision strategy." << std::endl;
   }
 
   // Create the solver
-  d_minisat = new Minisat::SimpSolver(
-      theoryProxy,
-      d_context,
-      userContext,
-      pnm,
-      options().base.incrementalSolving
-          || options().decision.decisionMode != options::DecisionMode::INTERNAL);
+  d_minisat =
+      new Minisat::SimpSolver(theoryProxy,
+                              d_context,
+                              userContext,
+                              pnm,
+                              options().base.incrementalSolving
+                                  || options().decision.decisionMode
+                                         != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
 }
@@ -137,7 +143,8 @@ void MinisatSatSolver::setupOptions() {
   // Set up the random decision parameters
   d_minisat->random_var_freq = options().prop.satRandomFreq;
   // If 0, we use whatever we like (here, the Minisat default seed)
-  if(options().prop.satRandomSeed != 0) {
+  if (options().prop.satRandomSeed != 0)
+  {
     d_minisat->random_seed = double(options().prop.satRandomSeed);
   }
 

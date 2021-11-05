@@ -27,7 +27,7 @@ namespace smt {
  * Class responsible for setting default options, which includes managing
  * implied options and dependencies between the options and the logic.
  */
-class SetDefaults: protected EnvObj
+class SetDefaults : protected EnvObj
 {
  public:
   /**

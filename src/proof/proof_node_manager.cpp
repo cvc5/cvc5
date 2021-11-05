@@ -238,7 +238,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       if (acu.find(a) == acu.end())
       {
         Trace("pnm") << "ProofNodeManager::mkScope: assumption " << a
-                 << " does not match a free assumption in proof" << std::endl;
+                     << " does not match a free assumption in proof"
+                     << std::endl;
       }
     }
   }

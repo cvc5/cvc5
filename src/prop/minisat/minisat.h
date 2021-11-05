@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "prop/sat_solver.h"
 #include "prop/minisat/simp/SimpSolver.h"
+#include "prop/sat_solver.h"
 #include "smt/env_obj.h"
 #include "util/statistics_registry.h"
 

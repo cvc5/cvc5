@@ -275,8 +275,9 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
   if (it != d_checker.end())
   {
     // checker is already provided
-    Trace("pfcheck") << "ProofChecker::registerChecker: checker already exists for "
-             << id << std::endl;
+    Trace("pfcheck")
+        << "ProofChecker::registerChecker: checker already exists for " << id
+        << std::endl;
     return;
   }
   d_checker[id] = psc;
@@ -293,9 +294,10 @@ void ProofChecker::registerTrustedChecker(PfRule id,
   // overwrites if already there
   if (d_plevel.find(id) != d_plevel.end())
   {
-    Trace("proof-pedantic") << "ProofChecker::registerTrustedRule: already provided pedantic "
-                "level for "
-             << id << std::endl;
+    Trace("proof-pedantic")
+        << "ProofChecker::registerTrustedRule: already provided pedantic "
+           "level for "
+        << id << std::endl;
   }
   d_plevel[id] = plevel;
 }
