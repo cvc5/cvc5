@@ -212,6 +212,7 @@ bool TheoryUfRewriter::canUseAsApplyUfOperator(TNode n) { return n.isVar(); }
 
 Node TheoryUfRewriter::rewriteLambda(Node node)
 {
+  Assert(node.getKind() == kind::LAMBDA);
   // The following code ensures that if node is equivalent to a constant
   // lambda, then we return the canonical representation for the lambda, which
   // in turn ensures that two constant lambdas are equivalent if and only
