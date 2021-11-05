@@ -24,10 +24,10 @@ namespace uf {
 
 TypeNode FunctionConst::getFunctionTypeForArrayType(TypeNode atn, Node bvl)
 {
+  Assert(atn.isArray());
   std::vector<TypeNode> children;
   for (unsigned i = 0; i < bvl.getNumChildren(); i++)
   {
-    Assert(atn.isArray());
     Assert(bvl[i].getType() == atn.getArrayIndexType());
     children.push_back(atn.getArrayIndexType());
     atn = atn.getArrayConstituentType();
