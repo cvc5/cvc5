@@ -135,6 +135,17 @@ DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
     Trace("rpc-debug2") << "...proved via congruence" << std::endl;
     return DslPfRule::CONG;
   }
+  if (proveWithRule(DslPfRule::CONG_EVAL, eqi, {}, {}, false, false, true))
+  {
+    Trace("rpc-debug2") << "...proved via congruence + evaluation" << std::endl;
+    return DslPfRule::CONG_EVAL;
+  }
+  // if arithmetic, maybe holds by arithmetic normalization?
+  if (proveWithRule(
+          DslPfRule::ARITH_POLY_NORM, eqi, {}, {}, false, false, true))
+  {
+    return DslPfRule::ARITH_POLY_NORM;
+  }
   Trace("rpc-debug2") << "...not proved via congruence" << std::endl;
   d_currRecLimit--;
   Node prevTarget = d_target;
@@ -158,12 +169,6 @@ DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
   {
     Trace("rpc-debug2") << "...proved via " << eqTrueId << std::endl;
     return eqTrueId;
-  }
-  // if arithmetic, maybe holds by arithmetic normalization?
-  if (proveWithRule(
-          DslPfRule::ARITH_POLY_NORM, eqi, {}, {}, false, false, true))
-  {
-    return DslPfRule::ARITH_POLY_NORM;
   }
   // store failure, and its maximum depth
   ProvenInfo& pi = d_pcache[eqi];
@@ -261,6 +266,28 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
         return false;
       }
       Node eq = target[0][i].eqNode(target[1][i]);
+      vcs.push_back(eq);
+      pic.d_vars.push_back(eq);
+    }
+  }
+  else if (id == DslPfRule::CONG_EVAL)
+  {
+    size_t nchild = target[0].getNumChildren();
+    if (nchild==0 || !target[1].isConst())
+    {
+      return false;
+    }
+    pic.d_id = id;
+    // if all children rewrite to a constant, try proving equalities
+    // on those children
+    for (size_t i = 0; i < nchild; i++)
+    {
+      Node rr = theory::Rewriter::rewrite(target[0][i]);
+      if (!rr.isConst())
+      {
+        return false;
+      }
+      Node eq = target[0][i].eqNode(rr);
       vcs.push_back(eq);
       pic.d_vars.push_back(eq);
     }
@@ -614,7 +641,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
             ps.insert(premises[cur].end(),
                       itd->second.d_vars.begin(),
                       itd->second.d_vars.end());
-            if (itd->second.d_id == DslPfRule::CONG)
+            if (itd->second.d_id == DslPfRule::CONG || itd->second.d_id==DslPfRule::CONG_EVAL)
             {
               pfArgs[cur].push_back(
                   ProofRuleChecker::mkKindNode(cur[0].getKind()));
@@ -675,6 +702,34 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
       else if (itd->second.d_id == DslPfRule::CONG)
       {
         cdp->addStep(cur, PfRule::CONG, ps, pfArgs[cur]);
+      }
+      else if (itd->second.d_id == DslPfRule::CONG_EVAL)
+      {
+        // congruence + evaluation, given we are trying to prove
+        //   (f t1 ... tn) == c
+        // This tactic checks if t1 ... tn rewrite to constants c1 ... cn.
+        // If so, we try to show subgoals
+        //   t1 == c1 ... tn == cn
+        // The final proof is a congruence step + evaluation:
+        //   (f t1 ... tn) == (f c1 ... cn) == c.
+        Node lhs = cur[0];
+        std::vector<Node> lhsTgtc;
+        if (cur[0].getMetaKind()==metakind::PARAMETERIZED)
+        {
+          lhsTgtc.push_back(cur[0].getOperator());
+        }
+        for (const Node& eq : itd->second.d_vars)
+        {
+          Assert (eq.getKind()==EQUAL);
+          lhsTgtc.push_back( eq[1]);
+        }
+        Node lhsTgt = nm->mkNode(cur[0].getKind(), lhsTgtc);
+        Node rhs = cur[1];
+        Node eq1 = lhs.eqNode(lhsTgt);
+        Node eq2 = lhsTgt.eqNode(rhs);
+        cdp->addStep(eq1, PfRule::CONG, ps, pfArgs[cur]);
+        cdp->addStep(eq2, PfRule::EVALUATE, ps, {lhsTgt});
+        cdp->addStep(cur, PfRule::TRANS, {eq1, eq2}, {});
       }
       else if (itd->second.d_id == DslPfRule::TRUE_ELIM)
       {
