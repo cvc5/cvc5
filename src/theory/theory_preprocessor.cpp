@@ -274,7 +274,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     if (tid != THEORY_BOOL)
     {
       Node ppRewritten = ppTheoryRewrite(current, newLemmas);
-      Assert(Rewriter::rewrite(ppRewritten) == ppRewritten);
+      Assert(rewrite(ppRewritten) == ppRewritten);
       if (isProofEnabled() && ppRewritten != current)
       {
         TrustNode trn =
@@ -378,7 +378,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
     return preprocessWithProof(term, lems);
   }
   // should be in rewritten form here
-  Assert(term == Rewriter::rewrite(term));
+  Assert(term == rewrite(term));
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
   // do not rewrite inside quantifiers
   Node newTerm = term;
@@ -406,7 +406,7 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
                                           TConvProofGenerator* pg,
                                           bool isPre)
 {
-  Node termr = Rewriter::rewrite(term);
+  Node termr = rewrite(term);
   // store rewrite step if tracking proofs and it rewrites
   if (isProofEnabled())
   {
@@ -429,7 +429,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   // recorded in d_tpg are functional. In other words, there should not
   // be steps from the same term to multiple rewritten forms, which would be
   // the case if we registered a preprocessing step for a non-rewritten term.
-  Assert(term == Rewriter::rewrite(term));
+  Assert(term == rewrite(term));
   Trace("tpp-debug2") << "preprocessWithProof " << term
                       << ", #lems = " << lems.size() << std::endl;
   // We never call ppRewrite on equalities here, since equalities have a

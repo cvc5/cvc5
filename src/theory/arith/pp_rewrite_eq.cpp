@@ -40,7 +40,7 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
   Assert(atom[0].getType().isReal());
   Node leq = NodeBuilder(kind::LEQ) << atom[0] << atom[1];
   Node geq = NodeBuilder(kind::GEQ) << atom[0] << atom[1];
-  Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+  Node rewritten = rewrite(leq.andNode(geq));
   Debug("arith::preprocess")
       << "arith::preprocess() : returning " << rewritten << std::endl;
   // don't need to rewrite terms since rewritten is not a non-standard op

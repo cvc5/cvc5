@@ -152,7 +152,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix)
     }
   }
   Trace("fmc-model") << "Made " << curr << " for " << op << std::endl;
-  curr = Rewriter::rewrite(curr);
+  curr = rewrite(curr);
   return nm->mkNode(LAMBDA, boundVarList, curr);
 }
 
