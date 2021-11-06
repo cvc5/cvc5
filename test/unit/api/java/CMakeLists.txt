@@ -34,7 +34,7 @@ set(java_test_src_files
 # build junit tests
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tests/SolverTest.class
-  DEPENDS JUnit-EP-jar cvc5jar
+  DEPENDS JUnit-EP-jar cvc5jar ${java_test_src_files}
   COMMAND
     ${Java_JAVAC_EXECUTABLE} ${java_test_src_files}
     -cp ${JUnit_JAR}:${CVC5_JAR_PATH} # add JUnit and cvc5 jar files to the class path
