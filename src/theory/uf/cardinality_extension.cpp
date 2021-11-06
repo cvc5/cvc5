@@ -1534,7 +1534,7 @@ void CardinalityExtension::check(Theory::Effort level)
                 for( unsigned j=0; j<itel->second.size(); j++ ){
                   Node b = itel->second[j];
                   if( !d_th->getEqualityEngine()->areDisequal( a, b, false ) ){
-                    Node eq = Rewriter::rewrite( a.eqNode( b ) );
+                    Node eq = rewrite(a.eqNode(b));
                     Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
                     d_im.lemma(lem, InferenceId::UF_CARD_SPLIT);

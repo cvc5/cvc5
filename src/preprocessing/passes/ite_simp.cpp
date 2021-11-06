@@ -99,9 +99,9 @@ Node ITESimp::simpITE(util::ITEUtilities* ite_utils, TNode assertion)
 
     if (options().smt.simplifyWithCareEnabled)
     {
-      Chat() << "starting simplifyWithCare()" << endl;
+      verbose(2) << "starting simplifyWithCare()" << endl;
       Node postSimpWithCare = ite_utils->simplifyWithCare(res_rewritten);
-      Chat() << "ending simplifyWithCare()"
+      verbose(2) << "ending simplifyWithCare()"
              << " post simplifyWithCare()" << postSimpWithCare.getId() << endl;
       result = rewrite(postSimpWithCare);
     }
@@ -130,14 +130,14 @@ bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
       NodeManager* nm = NodeManager::currentNM();
       if (nm->poolSize() >= options().smt.zombieHuntThreshold)
       {
-        Chat() << "..ite simplifier did quite a bit of work.. "
+        verbose(2) << "..ite simplifier did quite a bit of work.. "
                << nm->poolSize() << endl;
-        Chat() << "....node manager contains " << nm->poolSize()
+        verbose(2) << "....node manager contains " << nm->poolSize()
                << " nodes before cleanup" << endl;
         d_iteUtilities.clear();
         d_env.getRewriter()->clearCaches();
         nm->reclaimZombiesUntil(options().smt.zombieHuntThreshold);
-        Chat() << "....node manager contains " << nm->poolSize()
+        verbose(2) << "....node manager contains " << nm->poolSize()
                << " nodes after cleanup" << endl;
       }
     }

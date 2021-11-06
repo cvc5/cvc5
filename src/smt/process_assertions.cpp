@@ -259,7 +259,7 @@ bool ProcessAssertions::apply(Assertions& as)
                     << endl;
   dumpAssertions("assertions::pre-simplify", as);
   Trace("assertions::pre-simplify") << std::endl;
-  Chat() << "simplifying assertions..." << endl;
+  verbose(2) << "simplifying assertions..." << std::endl;
   noConflict = simplifyAssertions(as);
   if (!noConflict)
   {
@@ -299,7 +299,7 @@ bool ProcessAssertions::apply(Assertions& as)
     Trace("smt-proc")
         << "ProcessAssertions::processAssertions() : pre-repeat-simplify"
         << endl;
-    Chat() << "re-simplifying assertions..." << endl;
+    verbose(2) << "re-simplifying assertions..." << std::endl;
     ScopeCounter depth(d_simplifyAssertionsDepth);
     noConflict &= simplifyAssertions(as);
     Trace("smt-proc")
@@ -393,7 +393,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       PreprocessingPassResult res = applyPass("ite-simp", as);
       if (res == PreprocessingPassResult::CONFLICT)
       {
-        Chat() << "...ITE simplification found unsat..." << endl;
+        verbose(2) << "...ITE simplification found unsat..." << std::endl;
         return false;
       }
     }
