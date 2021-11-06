@@ -349,7 +349,7 @@ void test_delta(const std::vector<Node>& a)
     std::cout << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
-    Notice() << "UNSAT with MIS: " << lem << std::endl;
+    std::cout << "UNSAT with MIS: " << lem << std::endl;
   }
 }
 

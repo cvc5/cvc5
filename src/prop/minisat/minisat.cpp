@@ -30,8 +30,12 @@ namespace prop {
 
 //// DPllMinisatSatSolver
 
-MinisatSatSolver::MinisatSatSolver(StatisticsRegistry& registry)
-    : d_minisat(NULL), d_context(NULL), d_assumptions(), d_statistics(registry)
+MinisatSatSolver::MinisatSatSolver(Env& env, StatisticsRegistry& registry)
+    : EnvObj(env),
+      d_minisat(NULL),
+      d_context(NULL),
+      d_assumptions(),
+      d_statistics(registry)
 {}
 
 MinisatSatSolver::~MinisatSatSolver()
@@ -108,20 +112,22 @@ void MinisatSatSolver::initialize(context::Context* context,
 {
   d_context = context;
 
-  if (options::decisionMode() != options::DecisionMode::INTERNAL)
+  if (options().decision.decisionMode != options::DecisionMode::INTERNAL)
   {
-    Notice() << "minisat: Incremental solving is forced on (to avoid variable elimination)"
-             << " unless using internal decision strategy." << std::endl;
+    verbose(1) << "minisat: Incremental solving is forced on (to avoid "
+                  "variable elimination)"
+               << " unless using internal decision strategy." << std::endl;
   }
 
   // Create the solver
-  d_minisat = new Minisat::SimpSolver(
-      theoryProxy,
-      d_context,
-      userContext,
-      pnm,
-      options::incrementalSolving()
-          || options::decisionMode() != options::DecisionMode::INTERNAL);
+  d_minisat =
+      new Minisat::SimpSolver(theoryProxy,
+                              d_context,
+                              userContext,
+                              pnm,
+                              options().base.incrementalSolving
+                                  || options().decision.decisionMode
+                                         != options::DecisionMode::INTERNAL);
 
   d_statistics.init(d_minisat);
 }
@@ -132,20 +138,21 @@ void MinisatSatSolver::setupOptions() {
   // Copy options from cvc5 options structure into minisat, as appropriate
 
   // Set up the verbosity
-  d_minisat->verbosity = (options::verbosity() > 0) ? 1 : -1;
+  d_minisat->verbosity = (options().base.verbosity > 0) ? 1 : -1;
 
   // Set up the random decision parameters
-  d_minisat->random_var_freq = options::satRandomFreq();
+  d_minisat->random_var_freq = options().prop.satRandomFreq;
   // If 0, we use whatever we like (here, the Minisat default seed)
-  if(options::satRandomSeed() != 0) {
-    d_minisat->random_seed = double(options::satRandomSeed());
+  if (options().prop.satRandomSeed != 0)
+  {
+    d_minisat->random_seed = double(options().prop.satRandomSeed);
   }
 
   // Give access to all possible options in the sat solver
-  d_minisat->var_decay = options::satVarDecay();
-  d_minisat->clause_decay = options::satClauseDecay();
-  d_minisat->restart_first = options::satRestartFirst();
-  d_minisat->restart_inc = options::satRestartInc();
+  d_minisat->var_decay = options().prop.satVarDecay;
+  d_minisat->clause_decay = options().prop.satClauseDecay;
+  d_minisat->restart_first = options().prop.satRestartFirst;
+  d_minisat->restart_inc = options().prop.satRestartInc;
 }
 
 ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
@@ -159,7 +166,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
   // FIXME: to be deleted when we kill old proof code for unsat cores
-  Assert(!options::unsatCores() || options::produceProofs()
+  Assert(!options().smt.unsatCores || options().smt.produceProofs
          || clause_id != ClauseIdError);
   return clause_id;
 }
