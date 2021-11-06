@@ -1459,7 +1459,7 @@ class CVC5_EXPORT Term
    * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
    * also @ref Term::operator>(const Term&) const).
    *
-   * Note that a universe set term (kind UNIVERSE_SET) is not considered to be
+   * Note that a universe set term (kind SET_UNIVERSE) is not considered to be
    * a set value.
    */
   bool isSetValue() const;

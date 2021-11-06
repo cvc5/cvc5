@@ -13,7 +13,7 @@
 (declare-fun grass_null$0 () (Loc Node))
 (declare-fun grass_read$0 ((Map (Loc Node) (Loc Node)) (Loc Node))
              (Loc Node))
-(declare-fun grass_emptyset$0 () (Set (Loc Node)))
+(declare-fun grass_set.empty$0 () (Set (Loc Node)))
 (declare-fun grass_singleton$0 ((Loc Node)) (Set (Loc Node)))
 (declare-fun grass_union$0 ((Set (Loc Node)) (Set (Loc Node)))
              (Set (Loc Node)))
@@ -71,7 +71,7 @@
               (not (grass_Btwn$0 next$0 res_2$0 grass_null$0 grass_null$0))
               Label$0))
           Label_2$0))
-(assert (forall ((x (Loc Node))) (not (grass_member$0 x grass_emptyset$0))))
+(assert (forall ((x (Loc Node))) (not (grass_member$0 x grass_set.empty$0))))
 (assert
         (forall ((y (Loc Node)) (x (Loc Node)))
                 (or (and (= x y) (grass_member$0 x (grass_singleton$0 y)))
@@ -291,8 +291,8 @@
 (assert (= (grass_read$0 next$0 elt$0) grass_null$0))
 (assert (= FP_Node$0 sk_?X_3$0))
 (assert (= FP_Caller_Node$0 (grass_union$0 FP_Node$0 FP_Caller_Node$0)))
-(assert (= grass_emptyset$0 (grass_intersection$0 sk_?X$0 sk_?X_2$0)))
-(assert (= grass_emptyset$0 grass_emptyset$0))
+(assert (= grass_set.empty$0 (grass_intersection$0 sk_?X$0 sk_?X_2$0)))
+(assert (= grass_set.empty$0 grass_set.empty$0))
 (assert (lseg$0 next$0 lst$0 grass_null$0 sk_?X$0))
 (assert
         (= FP_Caller_final_Node_2$0
@@ -305,7 +305,7 @@
 (assert
         (= (grass_known$1 (lseg$0 next$0 lst$0 grass_null$0 sk_?X$0))
           (grass_known$1 (lseg$0 next$0 lst$0 lst$0 sk_?X$0))))
-(assert (= (grass_intersection$0 sk_?X$0 sk_?X_2$0) grass_emptyset$0))
+(assert (= (grass_intersection$0 sk_?X$0 sk_?X_2$0) grass_set.empty$0))
 (assert
         (=
           (grass_union$0 (grass_intersection$0 Alloc_Node$0 FP_Node$0)

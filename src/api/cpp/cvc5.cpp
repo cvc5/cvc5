@@ -273,26 +273,27 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {SEP_STAR, cvc5::Kind::SEP_STAR},
     {SEP_WAND, cvc5::Kind::SEP_WAND},
     /* Sets ---------------------------------------------------------------- */
-    {EMPTYSET, cvc5::Kind::EMPTYSET},
-    {UNION, cvc5::Kind::UNION},
-    {INTERSECTION, cvc5::Kind::INTERSECTION},
-    {SETMINUS, cvc5::Kind::SETMINUS},
-    {SUBSET, cvc5::Kind::SUBSET},
-    {MEMBER, cvc5::Kind::MEMBER},
-    {SINGLETON, cvc5::Kind::SINGLETON},
-    {INSERT, cvc5::Kind::INSERT},
-    {CARD, cvc5::Kind::CARD},
-    {COMPLEMENT, cvc5::Kind::COMPLEMENT},
-    {UNIVERSE_SET, cvc5::Kind::UNIVERSE_SET},
-    {JOIN, cvc5::Kind::JOIN},
-    {PRODUCT, cvc5::Kind::PRODUCT},
-    {TRANSPOSE, cvc5::Kind::TRANSPOSE},
-    {TCLOSURE, cvc5::Kind::TCLOSURE},
-    {JOIN_IMAGE, cvc5::Kind::JOIN_IMAGE},
-    {IDEN, cvc5::Kind::IDEN},
-    {COMPREHENSION, cvc5::Kind::COMPREHENSION},
-    {CHOOSE, cvc5::Kind::CHOOSE},
-    {IS_SINGLETON, cvc5::Kind::IS_SINGLETON},
+    {SET_EMPTY, cvc5::Kind::SET_EMPTY},
+    {SET_UNION, cvc5::Kind::SET_UNION},
+    {SET_INTERSECTION, cvc5::Kind::SET_INTERSECTION},
+    {SET_MINUS, cvc5::Kind::SET_MINUS},
+    {SET_SUBSET, cvc5::Kind::SET_SUBSET},
+    {SET_MEMBER, cvc5::Kind::SET_MEMBER},
+    {SET_SINGLETON, cvc5::Kind::SET_SINGLETON},
+    {SET_INSERT, cvc5::Kind::SET_INSERT},
+    {SET_CARD, cvc5::Kind::SET_CARD},
+    {SET_COMPLEMENT, cvc5::Kind::SET_COMPLEMENT},
+    {SET_UNIVERSE, cvc5::Kind::SET_UNIVERSE},
+    {SET_COMPREHENSION, cvc5::Kind::SET_COMPREHENSION},
+    {SET_CHOOSE, cvc5::Kind::SET_CHOOSE},
+    {SET_IS_SINGLETON, cvc5::Kind::SET_IS_SINGLETON},
+    /* Relations ----------------------------------------------------------- */
+    {RELATION_JOIN, cvc5::Kind::RELATION_JOIN},
+    {RELATION_PRODUCT, cvc5::Kind::RELATION_PRODUCT},
+    {RELATION_TRANSPOSE, cvc5::Kind::RELATION_TRANSPOSE},
+    {RELATION_TCLOSURE, cvc5::Kind::RELATION_TCLOSURE},
+    {RELATION_JOIN_IMAGE, cvc5::Kind::RELATION_JOIN_IMAGE},
+    {RELATION_IDEN, cvc5::Kind::RELATION_IDEN},
     /* Bags ---------------------------------------------------------------- */
     {UNION_MAX, cvc5::Kind::UNION_MAX},
     {UNION_DISJOINT, cvc5::Kind::UNION_DISJOINT},
@@ -582,26 +583,27 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::SEP_STAR, SEP_STAR},
         {cvc5::Kind::SEP_WAND, SEP_WAND},
         /* Sets ------------------------------------------------------------ */
-        {cvc5::Kind::EMPTYSET, EMPTYSET},
-        {cvc5::Kind::UNION, UNION},
-        {cvc5::Kind::INTERSECTION, INTERSECTION},
-        {cvc5::Kind::SETMINUS, SETMINUS},
-        {cvc5::Kind::SUBSET, SUBSET},
-        {cvc5::Kind::MEMBER, MEMBER},
-        {cvc5::Kind::SINGLETON, SINGLETON},
-        {cvc5::Kind::INSERT, INSERT},
-        {cvc5::Kind::CARD, CARD},
-        {cvc5::Kind::COMPLEMENT, COMPLEMENT},
-        {cvc5::Kind::UNIVERSE_SET, UNIVERSE_SET},
-        {cvc5::Kind::JOIN, JOIN},
-        {cvc5::Kind::PRODUCT, PRODUCT},
-        {cvc5::Kind::TRANSPOSE, TRANSPOSE},
-        {cvc5::Kind::TCLOSURE, TCLOSURE},
-        {cvc5::Kind::JOIN_IMAGE, JOIN_IMAGE},
-        {cvc5::Kind::IDEN, IDEN},
-        {cvc5::Kind::COMPREHENSION, COMPREHENSION},
-        {cvc5::Kind::CHOOSE, CHOOSE},
-        {cvc5::Kind::IS_SINGLETON, IS_SINGLETON},
+        {cvc5::Kind::SET_EMPTY, SET_EMPTY},
+        {cvc5::Kind::SET_UNION, SET_UNION},
+        {cvc5::Kind::SET_INTERSECTION, SET_INTERSECTION},
+        {cvc5::Kind::SET_MINUS, SET_MINUS},
+        {cvc5::Kind::SET_SUBSET, SET_SUBSET},
+        {cvc5::Kind::SET_MEMBER, SET_MEMBER},
+        {cvc5::Kind::SET_SINGLETON, SET_SINGLETON},
+        {cvc5::Kind::SET_INSERT, SET_INSERT},
+        {cvc5::Kind::SET_CARD, SET_CARD},
+        {cvc5::Kind::SET_COMPLEMENT, SET_COMPLEMENT},
+        {cvc5::Kind::SET_UNIVERSE, SET_UNIVERSE},
+        {cvc5::Kind::SET_COMPREHENSION, SET_COMPREHENSION},
+        {cvc5::Kind::SET_CHOOSE, SET_CHOOSE},
+        {cvc5::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
+        /* Relations ------------------------------------------------------- */
+        {cvc5::Kind::RELATION_JOIN, RELATION_JOIN},
+        {cvc5::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
+        {cvc5::Kind::RELATION_TRANSPOSE, RELATION_TRANSPOSE},
+        {cvc5::Kind::RELATION_TCLOSURE, RELATION_TCLOSURE},
+        {cvc5::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
+        {cvc5::Kind::RELATION_IDEN, RELATION_IDEN},
         /* Bags ------------------------------------------------------------ */
         {cvc5::Kind::UNION_MAX, UNION_MAX},
         {cvc5::Kind::UNION_DISJOINT, UNION_DISJOINT},
@@ -618,7 +620,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
-        {cvc5::Kind::BAG_MAP,BAG_MAP},
+        {cvc5::Kind::BAG_MAP, BAG_MAP},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -3245,12 +3247,12 @@ void Term::collectSet(std::set<Term>& set,
                       const Solver* slv)
 {
   // We asserted that node has a set type, and node.isConst()
-  // Thus, node only contains of EMPTYSET, UNION and SINGLETON.
+  // Thus, node only contains of SET_EMPTY, SET_UNION and SET_SINGLETON.
   switch (node.getKind())
   {
-    case cvc5::Kind::EMPTYSET: break;
-    case cvc5::Kind::SINGLETON: set.emplace(Term(slv, node[0])); break;
-    case cvc5::Kind::UNION:
+    case cvc5::Kind::SET_EMPTY: break;
+    case cvc5::Kind::SET_SINGLETON: set.emplace(Term(slv, node[0])); break;
+    case cvc5::Kind::SET_UNION:
     {
       for (const auto& sub : node)
       {
@@ -5155,7 +5157,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   {
     // default case, same as above
     checkMkTerm(kind, children.size());
-    if (kind == api::SINGLETON)
+    if (kind == api::SET_SINGLETON)
     {
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()
@@ -5885,7 +5887,7 @@ Term Solver::mkUniverseSet(const Sort& sort) const
   //////// all checks before this line
 
   Node res = getNodeManager()->mkNullaryOperator(*sort.d_type,
-                                                 cvc5::kind::UNIVERSE_SET);
+                                                 cvc5::kind::SET_UNIVERSE);
   // TODO(#2771): Reenable?
   // (void)res->getType(true); /* kick off type checking */
   return Term(this, res);

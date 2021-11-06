@@ -86,7 +86,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     return false;
   }
   // things we can assert to equality engine
-  if (atom.getKind() == MEMBER
+  if (atom.getKind() == SET_MEMBER
       || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
   {
     // send to equality engine

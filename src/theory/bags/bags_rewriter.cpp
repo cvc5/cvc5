@@ -461,7 +461,7 @@ BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
 {
   Assert(n.getKind() == BAG_FROM_SET);
-  if (n[0].getKind() == SINGLETON)
+  if (n[0].getKind() == SET_SINGLETON)
   {
     // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
     TypeNode type = n[0].getType().getSetElementType();

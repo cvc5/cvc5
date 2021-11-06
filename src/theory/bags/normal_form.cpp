@@ -633,7 +633,7 @@ Node NormalForm::evaluateFromSet(TNode n)
 
   // Examples
   // --------
-  //  - (bag.from_set (emptyset String)) = (emptybag String)
+  //  - (bag.from_set (set.empty String)) = (emptybag String)
   //  - (bag.from_set (singleton "x")) = (mkBag "x" 1)
   //  - (bag.from_set (union (singleton "x") (singleton "y"))) =
   //     (disjoint_union (mkBag "x" 1) (mkBag "y" 1))
@@ -658,7 +658,7 @@ Node NormalForm::evaluateToSet(TNode n)
 
   // Examples
   // --------
-  //  - (bag.to_set (emptybag String)) = (emptyset String)
+  //  - (bag.to_set (emptybag String)) = (set.empty String)
   //  - (bag.to_set (mkBag "x" 4)) = (singleton "x")
   //  - (bag.to_set (disjoint_union (mkBag "x" 3) (mkBag "y" 5)) =
   //     (union (singleton "x") (singleton "y")))

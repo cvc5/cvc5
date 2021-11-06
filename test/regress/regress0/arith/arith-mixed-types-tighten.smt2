@@ -5,7 +5,7 @@
 (declare-fun x_44 () Real)
 (declare-fun x_45 () Real)
 
-; This test is a subset of one of the `../lemmas` tests. I think `../lemmas/sc_init_frame_gap.induction.smtv1.smt2`.
+; This test is a set.subset of one of the `../lemmas` tests. I think `../lemmas/sc_init_frame_gap.induction.smtv1.smt2`.
 (declare-fun termITE_30 () Int)
 (declare-fun termITE_3 () Real)
 (declare-fun termITE_4 () Real)

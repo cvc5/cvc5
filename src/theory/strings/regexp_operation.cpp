@@ -1422,7 +1422,7 @@ Node RegExpOpr::removeIntersection(Node r) {
   Assert(!visited.find(r)->second.isNull());
   if (Trace.isOn("regexp-intersect"))
   {
-    Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r)
+    Trace("regexp-intersect") << "Remove SET_INTERSECTION( " << mkString(r)
                               << " ) = " << mkString(visited[r]) << std::endl;
   }
   return visited[r];
@@ -1439,11 +1439,11 @@ Node RegExpOpr::intersect(Node r1, Node r2)
   std::map<PairNodes, Node> cache;
   Trace("regexp-intersect-node") << "Intersect (1): " << rr1 << std::endl;
   Trace("regexp-intersect-node") << "Intersect (2): " << rr2 << std::endl;
-  Trace("regexp-intersect") << "Start INTERSECTION(\n\t" << mkString(r1)
+  Trace("regexp-intersect") << "Start SET_INTERSECTION(\n\t" << mkString(r1)
                             << ",\n\t" << mkString(r2) << ")" << std::endl;
   Node retNode = intersectInternal(rr1, rr2, cache, 1);
   Trace("regexp-intersect")
-      << "End INTERSECTION(\n\t" << mkString(r1) << ",\n\t" << mkString(r2)
+      << "End SET_INTERSECTION(\n\t" << mkString(r1) << ",\n\t" << mkString(r2)
       << ") =\n\t" << mkString(retNode) << std::endl;
   Trace("regexp-intersect-node") << "Intersect finished." << std::endl;
   return retNode;
