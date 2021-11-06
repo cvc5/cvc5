@@ -39,9 +39,17 @@ function(setup_code_coverage_fastcov)
     message(STATUS "Exclude ${DIR} in coverage reports")
   endforeach()
 
+  if(DEFINED ENV{FASTCOV_PARALLEL_JOBS})
+    set(FASTCOV_PARALLEL_JOBS $ENV{FASTCOV_PARALLEL_JOBS})
+  else()
+    include(ProcessorCount)
+    ProcessorCount(FASTCOV_PARALLEL_JOBS)
+  endif()
+
   add_custom_target(${COVERAGE_NAME}-reset
     COMMAND
       ${FASTCOV_BINARY} -d ${COVERAGE_PATH} ${EXCLUDES} --zerocounters
+          -j${FASTCOV_PARALLEL_JOBS}
     COMMENT
       "Resetting code coverage counters to zero."
   )
@@ -49,7 +57,8 @@ function(setup_code_coverage_fastcov)
   add_custom_target(${COVERAGE_NAME}
     COMMAND
       ${FASTCOV_BINARY}
-      -d ${COVERAGE_PATH} --lcov ${EXCLUDES} -o coverage.info
+          -d ${COVERAGE_PATH} --lcov ${EXCLUDES} -o coverage.info
+          -j${FASTCOV_PARALLEL_JOBS}
     COMMAND
       ${GENHTML_BINARY} --no-prefix -o coverage coverage.info
     DEPENDS
