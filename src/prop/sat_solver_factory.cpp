@@ -24,9 +24,9 @@ namespace cvc5 {
 namespace prop {
 
 MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
-    StatisticsRegistry& registry)
+    Env& env, StatisticsRegistry& registry)
 {
-  return new MinisatSatSolver(registry);
+  return new MinisatSatSolver(env, registry);
 }
 
 SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry& registry,
