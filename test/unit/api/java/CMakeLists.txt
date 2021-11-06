@@ -45,6 +45,7 @@ add_custom_command(
 add_custom_target(build-junit-tests
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/tests/SolverTest.class
 )
+add_dependencies(build-units build-junit-tests)
 
 macro(cvc5_add_java_api_test name)
   add_test (NAME unit/api/java/${name}
@@ -56,6 +57,7 @@ macro(cvc5_add_java_api_test name)
       -select-package tests
       -n tests.${name}
   )
+  set_tests_properties(unit/api/java/${name} PROPERTIES LABELS "unit java")
 endmacro()
 
 cvc5_add_java_api_test(DatatypeTest)
