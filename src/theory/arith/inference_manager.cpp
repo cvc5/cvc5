@@ -115,13 +115,13 @@ std::size_t InferenceManager::numWaitingLemmas() const
 
 bool InferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
 {
-  Node rewritten = Rewriter::rewrite(lem);
+  Node rewritten = rewrite(lem);
   return TheoryInferenceManager::hasCachedLemma(rewritten, p);
 }
 
 bool InferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 {
-  Node rewritten = Rewriter::rewrite(lem);
+  Node rewritten = rewrite(lem);
   return TheoryInferenceManager::cacheLemma(rewritten, p);
 }
 
@@ -130,7 +130,7 @@ bool InferenceManager::isEntailedFalse(const SimpleTheoryLemma& lem)
   if (options().arith.nlExtEntailConflicts)
   {
     Node ch_lemma = lem.d_node.negate();
-    ch_lemma = Rewriter::rewrite(ch_lemma);
+    ch_lemma = rewrite(ch_lemma);
     Trace("arith-inf-manager") << "InferenceManager::Check entailment of "
                                << ch_lemma << "..." << std::endl;
 

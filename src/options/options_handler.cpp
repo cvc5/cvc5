@@ -74,8 +74,6 @@ void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
   Debug.setStream(me);
   Warning.setStream(me);
   CVC5Message.setStream(me);
-  Notice.setStream(me);
-  Chat.setStream(me);
   Trace.setStream(me);
 }
 
@@ -135,21 +133,9 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&cvc5::null_os);
     TraceChannel.setStream(&cvc5::null_os);
-    NoticeChannel.setStream(&cvc5::null_os);
-    ChatChannel.setStream(&cvc5::null_os);
     MessageChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
   } else {
-    if(value < 2) {
-      ChatChannel.setStream(&cvc5::null_os);
-    } else {
-      ChatChannel.setStream(&std::cout);
-    }
-    if(value < 1) {
-      NoticeChannel.setStream(&cvc5::null_os);
-    } else {
-      NoticeChannel.setStream(&std::cout);
-    }
     if(value < 0) {
       MessageChannel.setStream(&cvc5::null_os);
       WarningChannel.setStream(&cvc5::null_os);
@@ -276,8 +262,6 @@ void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 {
   Debug.getStream() << Command::printsuccess(value);
   Trace.getStream() << Command::printsuccess(value);
-  Notice.getStream() << Command::printsuccess(value);
-  Chat.getStream() << Command::printsuccess(value);
   CVC5Message.getStream() << Command::printsuccess(value);
   Warning.getStream() << Command::printsuccess(value);
   *d_options->base.out << Command::printsuccess(value);
@@ -361,8 +345,6 @@ void OptionsHandler::setDefaultExprDepth(const std::string& flag, int depth)
   ioutils::setDefaultNodeDepth(depth);
   ioutils::applyNodeDepth(Debug.getStream(), depth);
   ioutils::applyNodeDepth(Trace.getStream(), depth);
-  ioutils::applyNodeDepth(Notice.getStream(), depth);
-  ioutils::applyNodeDepth(Chat.getStream(), depth);
   ioutils::applyNodeDepth(CVC5Message.getStream(), depth);
   ioutils::applyNodeDepth(Warning.getStream(), depth);
 }
@@ -372,8 +354,6 @@ void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
   ioutils::setDefaultDagThresh(dag);
   ioutils::applyDagThresh(Debug.getStream(), dag);
   ioutils::applyDagThresh(Trace.getStream(), dag);
-  ioutils::applyDagThresh(Notice.getStream(), dag);
-  ioutils::applyDagThresh(Chat.getStream(), dag);
   ioutils::applyDagThresh(CVC5Message.getStream(), dag);
   ioutils::applyDagThresh(Warning.getStream(), dag);
 }
