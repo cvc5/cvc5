@@ -112,7 +112,6 @@ SetEnumerator& SetEnumerator::operator++()
   }
 
   Assert(d_currentSet.isConst());
-  Assert(d_currentSet == Rewriter::rewrite(d_currentSet));
 
   Trace("set-type-enum") << "SetEnumerator::operator++ d_elementsSoFar = "
                          << d_elementsSoFar << std::endl;

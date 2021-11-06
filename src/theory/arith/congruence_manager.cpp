@@ -355,7 +355,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     return true;
   }
 
-  Node rewritten = Rewriter::rewrite(x);
+  Node rewritten = rewrite(x);
 
   //Need to still propagate this!
   if(rewritten.getKind() == kind::CONST_BOOLEAN){

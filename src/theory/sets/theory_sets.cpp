@@ -29,7 +29,7 @@ namespace sets {
 
 TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
-      d_skCache(),
+      d_skCache(env.getRewriter()),
       d_state(env, valuation, d_skCache),
       d_im(env, *this, d_state),
       d_internal(
@@ -136,7 +136,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
       || nk == COMPREHENSION)
   {
-    if (!options::setsExt())
+    if (!options().sets.setsExt)
     {
       std::stringstream ss;
       ss << "Extended set operators are not supported in default mode, try "
@@ -173,7 +173,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
       // may appear when this option is enabled, and solving for such a set
       // impacts the semantics of universe set, see
       // regress0/sets/pre-proc-univ.smt2
-      if (!in[0].getType().isSet() || !options::setsExt())
+      if (!in[0].getType().isSet() || !options().sets.setsExt)
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
@@ -181,7 +181,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
     }
     else if (in[1].isVar() && isLegalElimination(in[1], in[0]))
     {
-      if (!in[0].getType().isSet() || !options::setsExt())
+      if (!in[0].getType().isSet() || !options().sets.setsExt)
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;

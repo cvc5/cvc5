@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
@@ -47,10 +48,10 @@ namespace transcendental {
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class TranscendentalSolver
+class TranscendentalSolver : protected EnvObj
 {
  public:
-  TranscendentalSolver(InferenceManager& im, NlModel& m, Env& env);
+  TranscendentalSolver(Env& env, InferenceManager& im, NlModel& m);
   ~TranscendentalSolver();
 
   /** init last call

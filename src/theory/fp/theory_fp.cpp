@@ -289,9 +289,13 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
   {
     // Get the values
-    Assert(m->hasTerm(abstract));
-    Assert(m->hasTerm(concrete[0]));
-    Assert(m->hasTerm(concrete[1]));
+    Assert(m->hasTerm(abstract)) << "Term " << abstract << " not in model";
+    Assert(m->hasTerm(concrete[0]))
+        << "Term " << concrete[0] << " not in model";
+    // Note: while the value for concrete[1] that we get from the model has to
+    // be const, it is not necessarily the case that `m->hasTerm(concrete[1])`.
+    // The arithmetic solver computes values for the variables in shared terms
+    // but does not necessarily add the shared terms themselves.
 
     Node abstractValue = m->getValue(abstract);
     Node rmValue = m->getValue(concrete[0]);
@@ -476,20 +480,13 @@ void TheoryFp::registerTerm(TNode node)
 {
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
-  if (isRegistered(node))
-  {
-    return;
-  }
-
   Kind k = node.getKind();
   Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC && k != kind::FLOATINGPOINT_SUB
          && k != kind::FLOATINGPOINT_EQ && k != kind::FLOATINGPOINT_GEQ
          && k != kind::FLOATINGPOINT_GT);
 
-  CVC5_UNUSED bool success = d_registeredTerms.insert(node);
-  Assert(success);
-
-  // Add to the equality engine
+  // Add to the equality engine, always. This is required to ensure
+  // getEqualityStatus works as expected when theory combination is enabled.
   if (k == kind::EQUAL)
   {
     d_equalityEngine->addTriggerPredicate(node);
@@ -498,6 +495,15 @@ void TheoryFp::registerTerm(TNode node)
   {
     d_equalityEngine->addTerm(node);
   }
+
+  // if not registered in this user context
+  if (isRegistered(node))
+  {
+    return;
+  }
+
+  CVC5_UNUSED bool success = d_registeredTerms.insert(node);
+  Assert(success);
 
   // Give the expansion of classifications in terms of equalities
   // This should make equality reasoning slightly more powerful.

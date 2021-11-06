@@ -162,7 +162,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
       Node subset = nm->mkNode(kind::SUBSET, variable, proxy);
       // subset terms are rewritten as union terms: (subset A B) implies (=
       // (union A B) B)
-      subset = Rewriter::rewrite(subset);
+      subset = rewrite(subset);
       if (!d_state.isEntailed(subset, true))
       {
         d_im.assertInference(
@@ -242,7 +242,7 @@ void CardinalityExtension::checkRegister()
         // if setminus, do for intersection instead
         if (n.getKind() == SETMINUS)
         {
-          n = Rewriter::rewrite(nm->mkNode(INTERSECTION, n[0], n[1]));
+          n = rewrite(nm->mkNode(INTERSECTION, n[0], n[1]));
         }
         registerCardinalityTerm(n);
       }
@@ -293,7 +293,7 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
     if (nn != nk)
     {
       Node lem = nm->mkNode(EQUAL, nm->mkNode(CARD, nk), nm->mkNode(CARD, nn));
-      lem = Rewriter::rewrite(lem);
+      lem = rewrite(lem);
       Trace("sets-card") << "  " << k << " : " << lem << std::endl;
       d_im.assertInference(lem, InferenceId::SETS_CARD_EQUAL, d_emp_exp, 1);
     }
@@ -393,21 +393,21 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       d_localBase[n] = n;
       for (unsigned e = 0; e < 2; e++)
       {
-        Node sm = Rewriter::rewrite(nm->mkNode(SETMINUS, n[e], n[1 - e]));
+        Node sm = rewrite(nm->mkNode(SETMINUS, n[e], n[1 - e]));
         sib.push_back(sm);
       }
       true_sib = 2;
     }
     else
     {
-      Node si = Rewriter::rewrite(nm->mkNode(INTERSECTION, n[0], n[1]));
+      Node si = rewrite(nm->mkNode(INTERSECTION, n[0], n[1]));
       sib.push_back(si);
       d_localBase[n] = si;
-      Node osm = Rewriter::rewrite(nm->mkNode(SETMINUS, n[1], n[0]));
+      Node osm = rewrite(nm->mkNode(SETMINUS, n[1], n[0]));
       sib.push_back(osm);
       true_sib = 1;
     }
-    Node u = Rewriter::rewrite(nm->mkNode(UNION, n[0], n[1]));
+    Node u = rewrite(nm->mkNode(UNION, n[0], n[1]));
     if (!d_state.hasTerm(u))
     {
       u = Node::null();
@@ -837,8 +837,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Assert(o0 != o1);
               Node kca = d_treg.getProxy(o0);
               Node kcb = d_treg.getProxy(o1);
-              Node intro =
-                  Rewriter::rewrite(nm->mkNode(INTERSECTION, kca, kcb));
+              Node intro = rewrite(nm->mkNode(INTERSECTION, kca, kcb));
               Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
                                << ", term is " << intro << std::endl;
               intro_sets.push_back(intro);

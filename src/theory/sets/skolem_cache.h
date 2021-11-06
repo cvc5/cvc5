@@ -25,6 +25,9 @@
 
 namespace cvc5 {
 namespace theory {
+
+class Rewriter;
+
 namespace sets {
 
 /**
@@ -35,7 +38,7 @@ namespace sets {
 class SkolemCache
 {
  public:
-  SkolemCache();
+  SkolemCache(Rewriter* rr);
   /** Identifiers for skolem types
    *
    * The comments below document the properties of each skolem introduced by
@@ -75,6 +78,8 @@ class SkolemCache
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node> d_allSkolems;
+  /** the optional rewriter */
+  Rewriter* d_rewriter;
 };
 
 }  // namespace sets
