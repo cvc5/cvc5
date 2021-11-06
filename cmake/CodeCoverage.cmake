@@ -39,23 +39,17 @@ function(setup_code_coverage_fastcov)
     message(STATUS "Exclude ${DIR} in coverage reports")
   endforeach()
 
-  if(NOT CMAKE_BUILD_PARALLEL_LEVEL)
-    include(ProcessorCount)
-    ProcessorCount(CMAKE_BUILD_PARALLEL_LEVEL)
-  endif()
-
   add_custom_target(${COVERAGE_NAME}-reset
     COMMAND
       ${FASTCOV_BINARY} -d ${COVERAGE_PATH} ${EXCLUDES} --zerocounters
-          -j${CMAKE_BUILD_PARALLEL_LEVEL}
     COMMENT
       "Resetting code coverage counters to zero."
   )
 
   add_custom_target(${COVERAGE_NAME}
     COMMAND
-      ${FASTCOV_BINARY} -d ${COVERAGE_PATH} --lcov ${EXCLUDES}
-          -o coverage.info -j${CMAKE_BUILD_PARALLEL_LEVEL}
+      ${FASTCOV_BINARY}
+      -d ${COVERAGE_PATH} --lcov ${EXCLUDES} -o coverage.info
     COMMAND
       ${GENHTML_BINARY} --no-prefix -o coverage coverage.info
     DEPENDS
