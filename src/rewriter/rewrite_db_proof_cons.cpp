@@ -130,6 +130,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
 
 DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
 {
+  Assert (eqi.getKind()==EQUAL);
   if (proveWithRule(DslPfRule::CONG, eqi, {}, {}, false, false, true))
   {
     Trace("rpc-debug2") << "...proved via congruence" << std::endl;
@@ -170,6 +171,8 @@ DslPfRule RewriteDbProofCons::proveInternalViaStrategy(Node eqi)
     Trace("rpc-debug2") << "...proved via " << eqTrueId << std::endl;
     return eqTrueId;
   }
+  Trace("rpc-fail") << "FAIL: cannot prove " << eqi[0] << " == " << eqi[1]
+               << std::endl;
   // store failure, and its maximum depth
   ProvenInfo& pi = d_pcache[eqi];
   pi.d_id = DslPfRule::FAIL;
