@@ -286,8 +286,8 @@ std::string AletheProofPrinter::alethePrinterInternal(
     {
       if (vrule == AletheRule::FORALL_INST)
       {
-        out << "(:= " << pfn->getArguments()[i][1].toString() << " "
-            << pfn->getArguments()[i][0].toString() << ")";
+        out << "(:= " << pfn->getArguments()[i][0].toString() << " "
+            << pfn->getArguments()[i][1].toString() << ")";
       }
       else
       {
