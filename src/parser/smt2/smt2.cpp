@@ -323,6 +323,8 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
 
 bool Smt2::isHoEnabled() const { return d_logic.isHigherOrder(); }
 
+bool Smt2::hasCardinalityConstraints() const { return d_logic.hasCardinalityConstraints(); }
+
 bool Smt2::logicIsSet() {
   return d_logicSet;
 }
@@ -512,11 +514,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if(d_logic.isTheoryEnabled(theory::THEORY_UF)) {
     Parser::addOperator(api::APPLY_UF);
-
-    if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
-    {
-      addOperator(api::CARDINALITY_CONSTRAINT, "fmf.card");
-    }
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {

@@ -26,7 +26,6 @@
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
-#include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt/solver_engine_scope.h"
@@ -61,26 +60,6 @@ CnfStream::CnfStream(SatSolver* satSolver,
 bool CnfStream::assertClause(TNode node, SatClause& c)
 {
   Trace("cnf") << "Inserting into stream " << c << " node = " << node << "\n";
-  if (Dump.isOn("clauses") && d_env != nullptr)
-  {
-    const Printer& printer = d_env->getPrinter();
-    std::ostream& out = d_env->getDumpOut();
-    if (c.size() == 1)
-    {
-      printer.toStreamCmdAssert(out, getNode(c[0]));
-    }
-    else
-    {
-      Assert(c.size() > 1);
-      NodeBuilder b(kind::OR);
-      for (unsigned i = 0; i < c.size(); ++i)
-      {
-        b << getNode(c[i]);
-      }
-      Node n = b;
-      printer.toStreamCmdAssert(out, n);
-    }
-  }
 
   ClauseId clauseId = d_satSolver->addClause(c, d_removable);
 
@@ -207,8 +186,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   }
 
   // If it's a theory literal, need to store it for back queries
-  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK
-      || (Dump.isOn("clauses")))
+  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK)
   {
     d_literalToNodeMap.insert_safe(lit, node);
     d_literalToNodeMap.insert_safe(~lit, node.notNode());

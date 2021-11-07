@@ -40,15 +40,12 @@
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/check_models.h"
-#include "smt/dump.h"
-#include "smt/dump_manager.h"
 #include "smt/env.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
-#include "smt/node_command.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
@@ -90,7 +87,6 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_absValues(new AbstractValues(getNodeManager())),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
-      d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
@@ -101,7 +97,6 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_quantElimSolver(nullptr),
       d_isInternalSubsolver(false),
       d_stats(nullptr),
-      d_outMgr(this),
       d_scope(nullptr)
 {
   // !!!!!!!!!!!!!!!!!!!!!! temporary hack: this makes the current SolverEngine
@@ -116,8 +111,6 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // hand, this hack breaks use cases where multiple SolverEngine objects are
   // created by the user.
   d_scope.reset(new SolverEngineScope(this));
-  // listen to node manager events
-  getNodeManager()->subscribeEvents(d_snmListener.get());
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
@@ -186,7 +179,7 @@ void SolverEngine::finishInit()
 
   // Call finish init on the set defaults module. This inializes the logic
   // and the best default options based on our heuristics.
-  SetDefaults sdefaults(d_isInternalSubsolver);
+  SetDefaults sdefaults(*d_env, d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
   if (d_env->getOptions().smt.produceProofs)
@@ -223,25 +216,6 @@ void SolverEngine::finishInit()
 
   Trace("smt-debug") << "Set up assertions..." << std::endl;
   d_asserts->finishInit();
-
-  // dump out a set-logic command only when raw-benchmark is disabled to avoid
-  // dumping the command twice.
-  if (Dump.isOn("benchmark"))
-  {
-    LogicInfo everything;
-    everything.lock();
-    getPrinter().toStreamCmdSetInfo(
-        d_env->getDumpOut(),
-        "notes",
-        "cvc5 always dumps the most general, all-supported logic (below), as "
-        "some internals might require the use of a logic more general than "
-        "the input.");
-    getPrinter().toStreamCmdSetBenchmarkLogic(d_env->getDumpOut(),
-                                              everything.getLogicString());
-  }
-
-  // initialize the dump manager
-  getDumpManager()->finishInit();
 
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
@@ -302,8 +276,6 @@ SolverEngine::~SolverEngine()
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
-    getNodeManager()->unsubscribeEvents(d_snmListener.get());
-    d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
@@ -312,7 +284,7 @@ SolverEngine::~SolverEngine()
   }
   catch (Exception& e)
   {
-    Warning() << "cvc5 threw an exception during cleanup." << endl << e << endl;
+    d_env->warning() << "cvc5 threw an exception during cleanup." << std::endl << e << std::endl;
   }
 }
 
@@ -374,11 +346,6 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
 
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdSetInfo(d_env->getDumpOut(), key, value);
-  }
-
   if (key == "filename")
   {
     d_env->d_options.driver.filename = value;
@@ -389,24 +356,18 @@ void SolverEngine::setInfo(const std::string& key, const std::string& value)
   else if (key == "smt-lib-version"
            && !getOptions().base.inputLanguageWasSetByUser)
   {
-    Language ilang = Language::LANG_SMTLIB_V2_6;
-
     if (value != "2" && value != "2.6")
     {
-      Warning() << "SMT-LIB version " << value
+      d_env->warning() << "SMT-LIB version " << value
                 << " unsupported, defaulting to language (and semantics of) "
                    "SMT-LIB 2.6\n";
     }
-    getOptions().base.inputLanguage = ilang;
+    getOptions().base.inputLanguage = Language::LANG_SMTLIB_V2_6;
     // also update the output language
     if (!getOptions().base.outputLanguageWasSetByUser)
     {
-      Language olang = ilang;
-      if (d_env->getOptions().base.outputLanguage != olang)
-      {
-        getOptions().base.outputLanguage = olang;
-        *d_env->getOptions().base.out << language::SetLanguage(olang);
-      }
+      setOption("output-language", "smtlib2.6");
+      getOptions().base.outputLanguageWasSetByUser = false;
     }
   }
   else if (key == "status")
@@ -577,14 +538,6 @@ void SolverEngine::defineFunction(Node func,
   d_state->doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   debugCheckFormals(formals, func);
-
-  stringstream ss;
-  ss << language::SetLanguage(
-      language::SetLanguage::getLanguage(Dump.getStream()))
-     << func;
-
-  DefineFunctionNodeCommand nc(ss.str(), func, formals, formula);
-  getDumpManager()->addToDump(nc, "declarations");
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);
@@ -792,10 +745,6 @@ Result SolverEngine::checkSat()
 
 Result SolverEngine::checkSat(const Node& assumption)
 {
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdCheckSatAssuming(d_env->getDumpOut(), {assumption});
-  }
   std::vector<Node> assump;
   if (!assumption.isNull())
   {
@@ -806,27 +755,11 @@ Result SolverEngine::checkSat(const Node& assumption)
 
 Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 {
-  if (Dump.isOn("benchmark"))
-  {
-    if (assumptions.empty())
-    {
-      getPrinter().toStreamCmdCheckSat(d_env->getDumpOut());
-    }
-    else
-    {
-      getPrinter().toStreamCmdCheckSatAssuming(d_env->getDumpOut(),
-                                               assumptions);
-    }
-  }
   return checkSatInternal(assumptions, false);
 }
 
 Result SolverEngine::checkEntailed(const Node& node)
 {
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdQuery(d_env->getDumpOut(), node);
-  }
   return checkSatInternal(
              node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
              true)
@@ -935,10 +868,6 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
         "UNSAT/ENTAILED.");
   }
   finishInit();
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdGetUnsatAssumptions(d_env->getDumpOut());
-  }
   UnsatCore core = getUnsatCoreInternal();
   std::vector<Node> res;
   std::vector<Node>& assumps = d_asserts->getAssumptions();
@@ -1062,10 +991,6 @@ Node SolverEngine::getValue(const Node& ex) const
   SolverEngineScope smts(this);
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdGetValue(d_env->getDumpOut(), {ex});
-  }
   TypeNode expectedType = ex.getType();
 
   // Substitute out any abstract values in ex and expand
@@ -1208,11 +1133,6 @@ Result SolverEngine::blockModel()
 
   finishInit();
 
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdBlockModel(d_env->getDumpOut());
-  }
-
   TheoryModel* m = getAvailableModel("block model");
 
   if (d_env->getOptions().smt.blockModelsMode == options::BlockModelsMode::NONE)
@@ -1237,11 +1157,6 @@ Result SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   SolverEngineScope smts(this);
 
   finishInit();
-
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdBlockModelValues(d_env->getDumpOut(), exprs);
-  }
 
   TheoryModel* m = getAvailableModel("block model values");
 
@@ -1389,7 +1304,8 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
   Assert(options::unsatCores())
       << "cannot reduce unsat core if unsat cores are turned off";
 
-  Notice() << "SolverEngine::reduceUnsatCore(): reducing unsat core" << endl;
+  d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
+                    << std::endl;
   std::unordered_set<Node> removed;
   for (const Node& skip : core)
   {
@@ -1425,7 +1341,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     }
     else if (r.asSatisfiabilityResult().isUnknown())
     {
-      Warning()
+      d_env->warning()
           << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
              "due to "
              "unknown result.";
@@ -1456,7 +1372,8 @@ void SolverEngine::checkUnsatCore()
   Assert(d_env->getOptions().smt.unsatCores)
       << "cannot check unsat core if unsat cores are turned off";
 
-  Notice() << "SolverEngine::checkUnsatCore(): generating unsat core" << endl;
+  d_env->verbose(1) << "SolverEngine::checkUnsatCore(): generating unsat core"
+                    << std::endl;
   UnsatCore core = getUnsatCore();
 
   // initialize the core checker
@@ -1474,14 +1391,15 @@ void SolverEngine::checkUnsatCore()
     coreChecker->declareSepHeap(sepLocType, sepDataType);
   }
 
-  Notice() << "SolverEngine::checkUnsatCore(): pushing core assertions"
-           << std::endl;
+  d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
+                    << std::endl;
   theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
   {
     Node assertionAfterExpansion = tls.apply(*i, false);
-    Notice() << "SolverEngine::checkUnsatCore(): pushing core member " << *i
-             << ", expanded to " << assertionAfterExpansion << "\n";
+    d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core member "
+                      << *i << ", expanded to " << assertionAfterExpansion
+                      << std::endl;
     coreChecker->assertFormula(assertionAfterExpansion);
   }
   Result r;
@@ -1493,10 +1411,11 @@ void SolverEngine::checkUnsatCore()
   {
     throw;
   }
-  Notice() << "SolverEngine::checkUnsatCore(): result is " << r << endl;
+  d_env->verbose(1) << "SolverEngine::checkUnsatCore(): result is " << r
+                    << std::endl;
   if (r.asSatisfiabilityResult().isUnknown())
   {
-    Warning() << "SolverEngine::checkUnsatCore(): could not check core result "
+    d_env->warning() << "SolverEngine::checkUnsatCore(): could not check core result "
                  "unknown."
               << std::endl;
   }
@@ -1517,7 +1436,8 @@ void SolverEngine::checkModel(bool hardFailure)
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
-  Notice() << "SolverEngine::checkModel(): generating model" << endl;
+  d_env->verbose(1) << "SolverEngine::checkModel(): generating model"
+                    << std::endl;
   TheoryModel* m = getAvailableModel("check model");
   Assert(m != nullptr);
 
@@ -1539,10 +1459,6 @@ UnsatCore SolverEngine::getUnsatCore()
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
   SolverEngineScope smts(this);
   finishInit();
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdGetUnsatCore(d_env->getDumpOut());
-  }
   return getUnsatCoreInternal();
 }
 
@@ -1564,10 +1480,6 @@ std::string SolverEngine::getProof()
   Trace("smt") << "SMT getProof()\n";
   SolverEngineScope smts(this);
   finishInit();
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdGetProof(d_env->getDumpOut());
-  }
   if (!d_env->getOptions().smt.produceProofs)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
@@ -1706,7 +1618,7 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
   const LogicInfo& logic = getLogicInfo();
   if (!logic.isPure(THEORY_ARITH) && strict)
   {
-    Warning() << "Unexpected logic for quantifier elimination " << logic
+    d_env->warning() << "Unexpected logic for quantifier elimination " << logic
               << endl;
   }
   return d_quantElimSolver->getQuantifierElimination(
@@ -1776,10 +1688,6 @@ std::vector<Node> SolverEngine::getAssertions()
   SolverEngineScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdGetAssertions(d_env->getDumpOut());
-  }
   Trace("smt") << "SMT getAssertions()" << endl;
   if (!d_env->getOptions().smt.produceAssertions)
   {
@@ -1796,10 +1704,6 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   Trace("smt") << "SMT getDifficultyMap()\n";
   SolverEngineScope smts(this);
   finishInit();
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdGetDifficulty(d_env->getDumpOut());
-  }
   if (!d_env->getOptions().smt.produceDifficulty)
   {
     throw ModalException(
@@ -1821,10 +1725,6 @@ void SolverEngine::push()
   d_state->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
   d_smtSolver->processAssertions(*d_asserts);
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdPush(d_env->getDumpOut());
-  }
   d_state->userPush();
 }
 
@@ -1833,10 +1733,6 @@ void SolverEngine::pop()
   SolverEngineScope smts(this);
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdPop(d_env->getDumpOut());
-  }
   d_state->userPop();
 
   // Clear out assertion queues etc., in case anything is still in there
@@ -1860,19 +1756,13 @@ void SolverEngine::resetAssertions()
     // (see solver execution modes in the SMT-LIB standard)
     Assert(getContext()->getLevel() == 0);
     Assert(getUserContext()->getLevel() == 0);
-    getDumpManager()->resetAssertions();
     return;
   }
 
   Trace("smt") << "SMT resetAssertions()" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdResetAssertions(d_env->getDumpOut());
-  }
 
   d_asserts->clearCurrent();
   d_state->notifyResetAssertions();
-  getDumpManager()->resetAssertions();
   // push the state to maintain global context around everything
   d_state->setup();
 
@@ -1940,11 +1830,6 @@ void SolverEngine::setOption(const std::string& key, const std::string& value)
 {
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdSetOption(d_env->getDumpOut(), key, value);
-  }
-
   if (key == "command-verbosity")
   {
     size_t fstIndex = value.find(" ");
@@ -2000,11 +1885,6 @@ std::string SolverEngine::getOption(const std::string& key) const
     return "2";
   }
 
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdGetOption(d_env->getDumpOut(), key);
-  }
-
   if (key == "command-verbosity")
   {
     vector<Node> result;
@@ -2048,11 +1928,7 @@ ResourceManager* SolverEngine::getResourceManager() const
   return d_env->getResourceManager();
 }
 
-DumpManager* SolverEngine::getDumpManager() { return d_env->getDumpManager(); }
-
 const Printer& SolverEngine::getPrinter() const { return d_env->getPrinter(); }
-
-OutputManager& SolverEngine::getOutputManager() { return d_outMgr; }
 
 theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 

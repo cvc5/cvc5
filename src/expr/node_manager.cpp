@@ -100,8 +100,7 @@ NodeManager::NodeManager()
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false),
-      d_abstractValueCount(0),
-      d_skolemCounter(0)
+      d_abstractValueCount(0)
 {
 }
 
@@ -366,10 +365,6 @@ void NodeManager::reclaimZombies() {
         TNode n;
         n.d_nv = nv;
         nv->d_rc = 1; // so that TNode doesn't assert-fail
-        for (NodeManagerListener* listener : d_listeners)
-        {
-          listener->nmNotifyDeleteNode(n);
-        }
         // this would mean that one of the listeners stowed away
         // a reference to this node!
         Assert(nv->d_rc == 1);
@@ -501,25 +496,6 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << "type of " << &n << " " <<  n << " is " << typeNode << endl;
   return typeNode;
-}
-
-Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, const std::string& comment, int flags) {
-  Node n = NodeBuilder(this, kind::SKOLEM);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  if((flags & SKOLEM_EXACT_NAME) == 0) {
-    stringstream name;
-    name << prefix << '_' << ++d_skolemCounter;
-    setAttribute(n, expr::VarNameAttr(), name.str());
-  } else {
-    setAttribute(n, expr::VarNameAttr(), prefix);
-  }
-  if((flags & SKOLEM_NO_NOTIFY) == 0) {
-    for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-      (*i)->nmNotifyNewSkolem(n, comment, (flags & SKOLEM_IS_GLOBAL) == SKOLEM_IS_GLOBAL);
-    }
-  }
-  return n;
 }
 
 TypeNode NodeManager::mkBagType(TypeNode elementType)
@@ -680,11 +656,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         }
       }
     }
-  }
-
-  for (NodeManagerListener* nml : d_listeners)
-  {
-    nml->nmNotifyNewDatatypes(dtts, flags);
   }
 
   return dtts;
@@ -850,11 +821,7 @@ TypeNode NodeManager::mkSort(uint32_t flags) {
   NodeBuilder nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder(this, kind::SORT_TAG);
   nb << sortTag;
-  TypeNode tn = nb.constructTypeNode();
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
-  return tn;
+  return nb.constructTypeNode();
 }
 
 TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
@@ -863,9 +830,6 @@ TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
   nb << sortTag;
   TypeNode tn = nb.constructTypeNode();
   setAttribute(tn, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
   return tn;
 }
 
@@ -889,9 +853,6 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   nb.append(children);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyInstantiateSortConstructor(constructor, type, flags);
-  }
   return type;
 }
 
@@ -906,9 +867,6 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSortConstructor(type, flags);
-  }
   return type;
 }
 
@@ -918,9 +876,6 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
-  }
   return n;
 }
 
@@ -1041,9 +996,6 @@ Node NodeManager::mkVar(const TypeNode& type)
   Node n = NodeBuilder(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
-  }
   return n;
 }
 
@@ -1057,13 +1009,6 @@ Node NodeManager::mkBoundVar(const TypeNode& type) {
 Node NodeManager::mkInstConstant(const TypeNode& type) {
   Node n = NodeBuilder(this, kind::INST_CONSTANT);
   n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
-  return n;
-}
-
-Node NodeManager::mkBooleanTermVariable() {
-  Node n = NodeBuilder(this, kind::BOOLEAN_TERM_VARIABLE);
-  n.setAttribute(TypeAttr(), booleanType());
   n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }

@@ -219,62 +219,62 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
     Assert(assertedReps.find(*i) != assertedReps.end());
     Node rep = assertedReps[*i];
     Trace("model-builder-debug") << "  Rep : " << rep << std::endl;
-    // check matching val to rep with eqc as a free variable
-    Node eqc_m;
-    if (isCdtValueMatch(val, rep, eqc, eqc_m))
+    // check whether it is possible that rep will be assigned the same value
+    // as val.
+    if (isCdtValueMatch(val, rep))
     {
-      Trace("model-builder-debug") << "  ...matches with " << eqc << " -> "
-                                   << eqc_m << std::endl;
-      if (eqc_m.getKind() == kind::CODATATYPE_BOUND_VARIABLE)
-      {
-        Trace("model-builder-debug") << "*** " << val
-                                     << " is excluded datatype for " << eqc
-                                     << std::endl;
-        return true;
-      }
+      return true;
     }
   }
   return false;
 }
 
-bool TheoryEngineModelBuilder::isCdtValueMatch(Node v,
-                                               Node r,
-                                               Node eqc,
-                                               Node& eqc_m)
+bool TheoryEngineModelBuilder::isCdtValueMatch(Node v, Node r)
 {
   if (r == v)
   {
+    // values equal match trivially
     return true;
   }
-  else if (r == eqc)
+  else if (v.isConst() && r.isConst())
   {
-    if (eqc_m.isNull())
+    // distinct constant values do not match
+    return false;
+  }
+  else if (r.getKind() == kind::APPLY_CONSTRUCTOR)
+  {
+    if (v.getKind() != kind::APPLY_CONSTRUCTOR)
     {
-      // only if an uninterpreted constant?
-      eqc_m = v;
+      Assert(v.getKind() == kind::CODATATYPE_BOUND_VARIABLE);
+      // v is the position of a loop. It may be possible to match, we return
+      // true, which is an over-approximation of when it is unsafe to use v.
       return true;
     }
-    else
-    {
-      return v == eqc_m;
-    }
-  }
-  else if (v.getKind() == kind::APPLY_CONSTRUCTOR
-           && r.getKind() == kind::APPLY_CONSTRUCTOR)
-  {
     if (v.getOperator() == r.getOperator())
     {
-      for (unsigned i = 0; i < v.getNumChildren(); i++)
+      for (size_t i = 0, nchild = v.getNumChildren(); i < nchild; i++)
       {
-        if (!isCdtValueMatch(v[i], r[i], eqc, eqc_m))
+        if (!isCdtValueMatch(v[i], r[i]))
         {
+          // if one child fails to match, we cannot match
           return false;
         }
       }
       return true;
     }
+    // operators do not match
+    return false;
   }
-  return false;
+  else if (v.getKind() == kind::APPLY_CONSTRUCTOR)
+  {
+    // v has a constructor in a position that we have yet to fill in r.
+    // we are either a finite type in which case this subfield of r can be
+    // assigned a default value (or otherwise would have been split on).
+    // otherwise we are an infinite type and the subfield of r will be
+    // chosen not to clash with the subfield of v.
+    return false;
+  }
+  return true;
 }
 
 bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn) const
@@ -1205,7 +1205,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     retNode = NodeManager::currentNM()->mkNode(r.getKind(), children);
     if (childrenConst)
     {
-      retNode = Rewriter::rewrite(retNode);
+      retNode = rewrite(retNode);
     }
   }
   d_normalizedCache[r] = retNode;
@@ -1305,7 +1305,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
                                     << " returned " << hni << std::endl;
       Assert(hni.isConst());
       Assert(hni.getType().isSubtypeOf(args[0].getType()));
-      hni = Rewriter::rewrite(args[0].eqNode(hni));
+      hni = rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);
       Trace("model-builder-debug2") << "      get rep val : " << hn
                                     << " returned " << hnv << std::endl;
@@ -1322,7 +1322,7 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
         Assert(largs.size() == apply_args.size());
         hnv = hnv[1].substitute(
             largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
-        hnv = Rewriter::rewrite(hnv);
+        hnv = rewrite(hnv);
       }
       Assert(!TypeNode::leastCommonTypeNode(hnv.getType(), curr.getType())
                   .isNull());

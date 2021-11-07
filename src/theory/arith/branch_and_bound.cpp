@@ -58,13 +58,11 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
 
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
-    Node ub =
-        Rewriter::rewrite(nm->mkNode(LEQ, var, mkRationalNode(nearest - 1)));
-    Node lb =
-        Rewriter::rewrite(nm->mkNode(GEQ, var, mkRationalNode(nearest + 1)));
+    Node ub = rewrite(nm->mkNode(LEQ, var, mkRationalNode(nearest - 1)));
+    Node lb = rewrite(nm->mkNode(GEQ, var, mkRationalNode(nearest + 1)));
     Node right = nm->mkNode(OR, ub, lb);
     Node rawEq = nm->mkNode(EQUAL, var, mkRationalNode(nearest));
-    Node eq = Rewriter::rewrite(rawEq);
+    Node eq = rewrite(rawEq);
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
     TrustNode teq;
@@ -121,7 +119,7 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   }
   else
   {
-    Node ub = Rewriter::rewrite(nm->mkNode(LEQ, var, mkRationalNode(floor)));
+    Node ub = rewrite(nm->mkNode(LEQ, var, mkRationalNode(floor)));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {

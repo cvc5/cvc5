@@ -855,6 +855,27 @@ class CVC5ApiRecoverableExceptionStream
   std::stringstream d_stream;
 };
 
+class CVC5ApiUnsupportedExceptionStream
+{
+ public:
+  CVC5ApiUnsupportedExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC5ApiUnsupportedExceptionStream() noexcept(false)
+  {
+    if (std::uncaught_exceptions() == 0)
+    {
+      throw CVC5ApiUnsupportedException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
+
 #define CVC5_API_TRY_CATCH_BEGIN \
   try                            \
   {
@@ -6917,8 +6938,8 @@ std::vector<Term> Solver::getAssertions(void) const
 std::string Solver::getInfo(const std::string& flag) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(d_slv->isValidGetInfoFlag(flag))
-      << "Unrecognized flag for getInfo.";
+  CVC5_API_UNSUPPORTED_CHECK(d_slv->isValidGetInfoFlag(flag))
+      << "Unrecognized flag: " << flag << ".";
   //////// all checks before this line
   return d_slv->getInfo(flag);
   ////////
@@ -6927,11 +6948,14 @@ std::string Solver::getInfo(const std::string& flag) const
 
 std::string Solver::getOption(const std::string& option) const
 {
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return d_slv->getOption(option);
-  ////////
-  CVC5_API_TRY_CATCH_END;
+  try
+  {
+    return d_slv->getOption(option);
+  }
+  catch (OptionException& e)
+  {
+    throw CVC5ApiUnsupportedException(e.getMessage());
+  }
 }
 
 // Supports a visitor from a list of lambdas
@@ -7345,8 +7369,7 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
   CVC5_API_TRY_CATCH_END;
 }
 
-void Solver::declareSeparationHeap(const Sort& locSort,
-                                   const Sort& dataSort) const
+void Solver::declareSepHeap(const Sort& locSort, const Sort& dataSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_SORT(locSort);
@@ -7360,7 +7383,7 @@ void Solver::declareSeparationHeap(const Sort& locSort,
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationHeap() const
+Term Solver::getValueSepHeap() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7377,7 +7400,7 @@ Term Solver::getSeparationHeap() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationNilTerm() const
+Term Solver::getValueSepNil() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
@@ -7565,13 +7588,14 @@ void Solver::resetAssertions(void) const
 void Solver::setInfo(const std::string& keyword, const std::string& value) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_ARG_CHECK_EXPECTED(
+  CVC5_API_UNSUPPORTED_CHECK(
       keyword == "source" || keyword == "category" || keyword == "difficulty"
-          || keyword == "filename" || keyword == "license" || keyword == "name"
-          || keyword == "notes" || keyword == "smt-lib-version"
-          || keyword == "status",
-      keyword)
-      << "'source', 'category', 'difficulty', 'filename', 'license', 'name', "
+      || keyword == "filename" || keyword == "license" || keyword == "name"
+      || keyword == "notes" || keyword == "smt-lib-version"
+      || keyword == "status")
+      << "Unrecognized keyword: " << keyword
+      << ", expected 'source', 'category', 'difficulty', "
+         "'filename', 'license', 'name', "
          "'notes', 'smt-lib-version' or 'status'";
   CVC5_API_RECOVERABLE_ARG_CHECK_EXPECTED(
       keyword != "smt-lib-version" || value == "2" || value == "2.0"
@@ -7604,6 +7628,11 @@ void Solver::setOption(const std::string& option,
                        const std::string& value) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  std::vector<std::string> options = options::getNames();
+  CVC5_API_UNSUPPORTED_CHECK(
+      option.find("command-verbosity") != std::string::npos
+      || std::find(options.cbegin(), options.cend(), option) != options.cend())
+      << "Unrecognized option: " << option << '.';
   static constexpr auto mutableOpts = {"diagnostic-output-channel",
                                        "print-success",
                                        "regular-output-channel",
@@ -7863,12 +7892,12 @@ bool Solver::isOutputOn(const std::string& tag) const
 
 std::ostream& Solver::getOutput(const std::string& tag) const
 {
-  // `getOutput(tag)` may raise an `OptionException`, which we do not want to
+  // `output(tag)` may raise an `OptionException`, which we do not want to
   // forward as such. We thus do not use the standard exception handling macros
   // here but roll our own.
   try
   {
-    return d_slv->getEnv().getOutput(tag);
+    return d_slv->getEnv().output(tag);
   }
   catch (const cvc5::Exception& e)
   {

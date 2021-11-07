@@ -114,7 +114,7 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
     Node lit = mkLiteral(d_literals.size());
     if (!lit.isNull())
     {
-      lit = Rewriter::rewrite(lit);
+      lit = rewrite(lit);
     }
     d_literals.push_back(lit);
   }

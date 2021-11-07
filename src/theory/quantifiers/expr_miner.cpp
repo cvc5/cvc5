@@ -85,7 +85,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
 
 Result ExprMiner::doCheck(Node query)
 {
-  Node queryr = Rewriter::rewrite(query);
+  Node queryr = rewrite(query);
   if (queryr.isConst())
   {
     if (!queryr.getConst<bool>())

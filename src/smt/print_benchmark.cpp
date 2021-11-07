@@ -159,6 +159,11 @@ void PrintBenchmark::printDeclaredFuns(std::ostream& out,
   for (const Node& f : funs)
   {
     Assert(f.isVar());
+    // do not print selectors, constructors
+    if (!f.getType().isFirstClass())
+    {
+      continue;
+    }
     if (alreadyPrinted.find(f) == alreadyPrinted.end())
     {
       d_printer->toStreamCmdDeclareFunction(out, f);
