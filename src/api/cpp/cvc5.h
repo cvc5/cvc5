@@ -121,6 +121,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
 };
 
 /**
+ * Exception for unsupported command arguments.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiUnsupportedException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiUnsupportedException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiUnsupportedException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
+  {
+  }
+};
+
+/**
  * An option-related API exception.
  * If thrown, API objects can still be used.
  */
@@ -4090,19 +4115,19 @@ class CVC5_EXPORT Solver
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
-  void declareSeparationHeap(const Sort& locSort, const Sort& dataSort) const;
+  void declareSepHeap(const Sort& locSort, const Sort& dataSort) const;
 
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  Term getSeparationHeap() const;
+  Term getValueSepHeap() const;
 
   /**
    * When using separation logic, obtain the term for nil.
    * @return The term for nil
    */
-  Term getSeparationNilTerm() const;
+  Term getValueSepNil() const;
 
   /**
    * Declare a symbolic pool of terms with the given initial value.

@@ -222,8 +222,6 @@ std::ostream& operator<<(std::ostream& o, const ConstraintCPVec& v){
   return o;
 }
 
-void Constraint::debugPrint() const { CVC5Message() << *this << endl; }
-
 ValueCollection::ValueCollection()
   : d_lowerBound(NullConstraint),
     d_upperBound(NullConstraint),
@@ -698,8 +696,6 @@ bool Constraint::sanityChecking(Node n) const {
     return false;
   }
 }
-
-void ConstraintRule::debugPrint() const { print(std::cerr, false); }
 
 ConstraintCP ConstraintDatabase::getAntecedent (AntecedentId p) const {
   Assert(p < d_antecedents.size());

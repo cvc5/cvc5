@@ -37,10 +37,13 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im,
-                                           NlModel& m,
-                                           Env& env)
-    : d_tstate(im, m, env), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
+TranscendentalSolver::TranscendentalSolver(Env& env,
+                                           InferenceManager& im,
+                                           NlModel& m)
+    : EnvObj(env),
+      d_tstate(im, m, env),
+      d_expSlv(env, &d_tstate),
+      d_sineSlv(env, &d_tstate)
 {
   d_taylor_degree = d_tstate.d_env.getOptions().arith.nlExtTfTaylorDegree;
 }
@@ -98,7 +101,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
     if (!subs.empty())
     {
       pa = arithSubstitute(pa, subs);
-      pa = Rewriter::rewrite(pa);
+      pa = rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
     {
@@ -330,11 +333,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
       Trace("nl-trans") << "...compare : " << comp << std::endl;
-      Node compr = Rewriter::rewrite(comp);
+      Node compr = rewrite(comp);
       Trace("nl-trans") << "...got : " << compr << std::endl;
       if (compr == d_tstate.d_true)
       {
-        poly_approx_c = Rewriter::rewrite(v_pab);
+        poly_approx_c = rewrite(v_pab);
         // beyond the bounds
         if (r == 0)
         {

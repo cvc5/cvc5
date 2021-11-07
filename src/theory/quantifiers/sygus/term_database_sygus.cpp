@@ -56,7 +56,7 @@ TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
       d_qstate(qs),
       d_syexp(new SygusExplain(this)),
       d_funDefEval(new FunDefEvaluator(env)),
-      d_eval_unfold(new SygusEvalUnfold(this))
+      d_eval_unfold(new SygusEvalUnfold(env, this))
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -981,7 +981,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
 {
   if (args.empty())
   {
-    return Rewriter::rewrite( bn );
+    return rewrite(bn);
   }
   Assert(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);

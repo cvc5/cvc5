@@ -1379,7 +1379,7 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
     EXPECT_EQ("NONE", modeInfo.defaultValue);
-    EXPECT_EQ("OutputTag::NONE", modeInfo.currentValue);
+    EXPECT_EQ("none", modeInfo.currentValue);
     EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "NONE")
                 != modeInfo.modes.end());
   }
@@ -1685,14 +1685,13 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
   ASSERT_NO_THROW(d_solver.getQuantifierEliminationDisjunct(forall));
 }
 
-TEST_F(TestApiBlackSolver, declareSeparationHeap)
+TEST_F(TestApiBlackSolver, declareSepHeap)
 {
   d_solver.setLogic("ALL");
   Sort integer = d_solver.getIntegerSort();
-  ASSERT_NO_THROW(d_solver.declareSeparationHeap(integer, integer));
+  ASSERT_NO_THROW(d_solver.declareSepHeap(integer, integer));
   // cannot declare separation logic heap more than once
-  ASSERT_THROW(d_solver.declareSeparationHeap(integer, integer),
-               CVC5ApiException);
+  ASSERT_THROW(d_solver.declareSepHeap(integer, integer), CVC5ApiException);
 }
 
 namespace {
@@ -1704,7 +1703,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
 {
   Sort integer = solver->getIntegerSort();
   // declare the separation heap
-  solver->declareSeparationHeap(integer, integer);
+  solver->declareSepHeap(integer, integer);
   Term x = solver->mkConst(integer, "x");
   Term p = solver->mkConst(integer, "p");
   Term heap = solver->mkTerm(cvc5::api::Kind::SEP_PTO, p, x);
@@ -1715,26 +1714,26 @@ void checkSimpleSeparationConstraints(Solver* solver)
 }
 }  // namespace
 
-TEST_F(TestApiBlackSolver, getSeparationHeapTerm1)
+TEST_F(TestApiBlackSolver, getValueSepHeap1)
 {
   d_solver.setLogic("QF_BV");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkTrue();
   d_solver.assertFormula(t);
-  ASSERT_THROW(d_solver.getSeparationHeap(), CVC5ApiException);
+  ASSERT_THROW(d_solver.getValueSepHeap(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getSeparationHeapTerm2)
+TEST_F(TestApiBlackSolver, getValueSepHeap2)
 {
   d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "false");
   checkSimpleSeparationConstraints(&d_solver);
-  ASSERT_THROW(d_solver.getSeparationHeap(), CVC5ApiException);
+  ASSERT_THROW(d_solver.getValueSepHeap(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getSeparationHeapTerm3)
+TEST_F(TestApiBlackSolver, getValueSepHeap3)
 {
   d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
@@ -1742,10 +1741,10 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm3)
   Term t = d_solver.mkFalse();
   d_solver.assertFormula(t);
   d_solver.checkSat();
-  ASSERT_THROW(d_solver.getSeparationHeap(), CVC5ApiException);
+  ASSERT_THROW(d_solver.getValueSepHeap(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getSeparationHeapTerm4)
+TEST_F(TestApiBlackSolver, getValueSepHeap4)
 {
   d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
@@ -1753,38 +1752,38 @@ TEST_F(TestApiBlackSolver, getSeparationHeapTerm4)
   Term t = d_solver.mkTrue();
   d_solver.assertFormula(t);
   d_solver.checkSat();
-  ASSERT_THROW(d_solver.getSeparationHeap(), CVC5ApiException);
+  ASSERT_THROW(d_solver.getValueSepHeap(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getSeparationHeapTerm5)
+TEST_F(TestApiBlackSolver, getValueSepHeap5)
 {
   d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   checkSimpleSeparationConstraints(&d_solver);
-  ASSERT_NO_THROW(d_solver.getSeparationHeap());
+  ASSERT_NO_THROW(d_solver.getValueSepHeap());
 }
 
-TEST_F(TestApiBlackSolver, getSeparationNilTerm1)
+TEST_F(TestApiBlackSolver, getValueSepNil1)
 {
   d_solver.setLogic("QF_BV");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   Term t = d_solver.mkTrue();
   d_solver.assertFormula(t);
-  ASSERT_THROW(d_solver.getSeparationNilTerm(), CVC5ApiException);
+  ASSERT_THROW(d_solver.getValueSepNil(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getSeparationNilTerm2)
+TEST_F(TestApiBlackSolver, getValueSepNil2)
 {
   d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "false");
   checkSimpleSeparationConstraints(&d_solver);
-  ASSERT_THROW(d_solver.getSeparationNilTerm(), CVC5ApiException);
+  ASSERT_THROW(d_solver.getValueSepNil(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getSeparationNilTerm3)
+TEST_F(TestApiBlackSolver, getValueSepNil3)
 {
   d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
@@ -1792,10 +1791,10 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm3)
   Term t = d_solver.mkFalse();
   d_solver.assertFormula(t);
   d_solver.checkSat();
-  ASSERT_THROW(d_solver.getSeparationNilTerm(), CVC5ApiException);
+  ASSERT_THROW(d_solver.getValueSepNil(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getSeparationNilTerm4)
+TEST_F(TestApiBlackSolver, getValueSepNil4)
 {
   d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
@@ -1803,16 +1802,16 @@ TEST_F(TestApiBlackSolver, getSeparationNilTerm4)
   Term t = d_solver.mkTrue();
   d_solver.assertFormula(t);
   d_solver.checkSat();
-  ASSERT_THROW(d_solver.getSeparationNilTerm(), CVC5ApiException);
+  ASSERT_THROW(d_solver.getValueSepNil(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, getSeparationNilTerm5)
+TEST_F(TestApiBlackSolver, getValueSepNil5)
 {
   d_solver.setLogic("ALL");
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-models", "true");
   checkSimpleSeparationConstraints(&d_solver);
-  ASSERT_NO_THROW(d_solver.getSeparationNilTerm());
+  ASSERT_NO_THROW(d_solver.getValueSepNil());
 }
 
 TEST_F(TestApiBlackSolver, push1)
@@ -2555,6 +2554,20 @@ TEST_F(TestApiBlackSolver, issue7000)
   Term t74 = d_solver.mkTerm(GT, t4, t7);
   // throws logic exception since logic is not higher order by default
   ASSERT_THROW(d_solver.checkEntailed({t72, t74, t72, t72}), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, issue5893)
+{
+  Solver slv;
+  Sort bvsort4 = d_solver.mkBitVectorSort(4);
+  Sort bvsort8 = d_solver.mkBitVectorSort(8);
+  Sort arrsort = d_solver.mkArraySort(bvsort4, bvsort8);
+  Term arr = d_solver.mkConst(arrsort, "arr");
+  Term idx = d_solver.mkConst(bvsort4, "idx");
+  Term ten = d_solver.mkBitVector(8, "10", 10);
+  Term sel = d_solver.mkTerm(SELECT, arr, idx);
+  Term distinct = d_solver.mkTerm(DISTINCT, sel, ten);
+  ASSERT_NO_FATAL_FAILURE(distinct.getOp());
 }
 
 }  // namespace test
