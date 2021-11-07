@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env_obj.h"
@@ -56,6 +57,16 @@ class Assertions : protected EnvObj
    * without a check-sat.
    */
   void clearCurrent();
+  /** refresh
+   *
+   * Ensures that all global declarations have been processed in the current
+   * context. This may trigger substitutions to be added to the top-level
+   * substitution and/or formulas added to the current set of assertions.
+   *
+   * If global declarations are true, this method must be called before
+   * processing assertions.
+   */
+  void refresh();
   /*
    * Initialize a call to check satisfiability. This adds assumptions to
    * the list of assumptions maintained by this class, and finalizes the
@@ -163,6 +174,8 @@ class Assertions : protected EnvObj
    * assert this list of definitions in each check-sat call.
    */
   std::unique_ptr<std::vector<Node>> d_globalDefineFunLemmas;
+  /** The index of the above list that we have processed */
+  context::CDO<size_t> d_globalDefineFunLemmasIndex;
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
    * Note that if the last call to checkSatisfiability was an entailment check,

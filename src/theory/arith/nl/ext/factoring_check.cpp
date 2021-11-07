@@ -30,7 +30,8 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-FactoringCheck::FactoringCheck(ExtState* data) : d_data(data)
+FactoringCheck::FactoringCheck(Env& env, ExtState* data)
+    : EnvObj(env), d_data(data)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -94,7 +95,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
                     children.pop_back();
                   }
                   children[i] = itm->first[i];
-                  val = Rewriter::rewrite(val);
+                  val = rewrite(val);
                   factor_to_mono[itm->first[i]].push_back(val);
                   factor_to_mono_orig[itm->first[i]].push_back(itm->first);
                 }
@@ -122,7 +123,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
             continue;
           }
           Node sum = nm->mkNode(Kind::PLUS, itf->second);
-          sum = Rewriter::rewrite(sum);
+          sum = rewrite(sum);
           Trace("nl-ext-factor")
               << "* Factored sum for " << x << " : " << sum << std::endl;
 
@@ -153,7 +154,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           Trace("nl-ext-factor")
               << "...factored polynomial : " << polyn << std::endl;
           Node conc_lit = nm->mkNode(atom.getKind(), polyn, d_zero);
-          conc_lit = Rewriter::rewrite(conc_lit);
+          conc_lit = rewrite(conc_lit);
           if (!polarity)
           {
             conc_lit = conc_lit.negate();

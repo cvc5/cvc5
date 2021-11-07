@@ -18,9 +18,9 @@ package io.github.cvc5.api;
 import java.io.IOException;
 import java.util.*;
 
-public class Solver implements IPointer
+public class Solver implements IPointer, AutoCloseable
 {
-  private final long pointer;
+  private long pointer;
 
   public long getPointer()
   {
@@ -31,14 +31,32 @@ public class Solver implements IPointer
 
   public void deletePointer()
   {
-    deletePointer(pointer);
+    if (pointer != 0)
+    {
+      deletePointer(pointer);
+    }
+    pointer = 0;
   }
 
   private static native void deletePointer(long pointer);
 
-  @Override public void finalize()
+  // store pointers for terms, sorts, etc
+  List<AbstractPointer> abstractPointers = new ArrayList<>();
+
+  @Override public void close()
   {
-    deletePointer(pointer);
+    // delete heap memory for terms, sorts, etc
+    for (int i = abstractPointers.size() - 1; i >= 0; i--)
+    {
+      abstractPointers.get(i).deletePointer();
+    }
+    // delete the heap memory for this solver
+    deletePointer();
+  }
+
+  void addAbstractPointer(AbstractPointer abstractPointer)
+  {
+    abstractPointers.add(abstractPointer);
   }
 
   static
@@ -1184,6 +1202,21 @@ public class Solver implements IPointer
 
   private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
 
+  /**
+   * Create a cardinality constraint for an uninterpreted sort.
+   * @param sort the sort the cardinality constraint is for
+   * @param upperBound the upper bound on the cardinality of the sort
+   * @return the cardinality constraint
+   */
+  public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(upperBound, "upperBound");
+    long termPointer = mkCardinalityConstraint(pointer, sort.getPointer(), upperBound);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkCardinalityConstraint(long pointer, long sortPointer, int upperBound);
+
   /* .................................................................... */
   /* Create Variables                                                     */
   /* .................................................................... */
@@ -1577,47 +1610,6 @@ public class Solver implements IPointer
       long sortPointer,
       long termPointer,
       boolean global);
-
-  /**
-   * Define n-ary function in the current context.
-   * SMT-LIB:
-   * {@code
-   * ( define-fun <function_def> )
-   * }
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @return the function
-   */
-  public Term defineFun(Term fun, Term[] boundVars, Term term)
-  {
-    return defineFun(fun, boundVars, term, false);
-  }
-  /**
-   * Define n-ary function.
-   * SMT-LIB:
-   * {@code
-   * ( define-fun <function_def> )
-   * }
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param boundVars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
-   */
-  public Term defineFun(Term fun, Term[] boundVars, Term term, boolean global)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer =
-        defineFun(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
-    return new Term(this, termPointer);
-  }
-
-  private native long defineFun(
-      long pointer, long funPointer, long[] boundVarPointers, long termPointer, boolean global);
 
   /**
    * Define recursive function in the current context.
@@ -2060,37 +2052,36 @@ public class Solver implements IPointer
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
-  public void declareSeparationHeap(Sort locSort, Sort dataSort)
+  public void declareSepHeap(Sort locSort, Sort dataSort)
   {
-    declareSeparationHeap(pointer, locSort.getPointer(), dataSort.getPointer());
+    declareSepHeap(pointer, locSort.getPointer(), dataSort.getPointer());
   }
 
-  private native void declareSeparationHeap(
-      long pointer, long locSortPointer, long dataSortPointer);
+  private native void declareSepHeap(long pointer, long locSortPointer, long dataSortPointer);
 
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  public Term getSeparationHeap()
+  public Term getValueSepHeap()
   {
-    long termPointer = getSeparationHeap(pointer);
+    long termPointer = getValueSepHeap(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long getSeparationHeap(long pointer);
+  private native long getValueSepHeap(long pointer);
 
   /**
    * When using separation logic, obtain the term for nil.
    * @return The term for nil
    */
-  public Term getSeparationNilTerm()
+  public Term getValueSepNil()
   {
-    long termPointer = getSeparationNilTerm(pointer);
+    long termPointer = getValueSepNil(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long getSeparationNilTerm(long pointer);
+  private native long getValueSepNil(long pointer);
 
   /**
    * Declare a symbolic pool of terms with the given initial value.

@@ -69,6 +69,30 @@ class HoApplyTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+class LambdaTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  // computes whether a lambda is a constant value, via conversion to array
+  // representation
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
+}; /* class LambdaTypeRule */
+
+class FunctionProperties
+{
+ public:
+  static Cardinality computeCardinality(TypeNode type);
+
+  /** Function type is well-founded if its component sorts are */
+  static bool isWellFounded(TypeNode type);
+  /**
+   * Ground term for function sorts is (lambda x. t) where x is the
+   * canonical variable list for its type and t is the canonical ground term of
+   * its range.
+   */
+  static Node mkGroundTerm(TypeNode type);
+}; /* class FuctionProperties */
+
 }  // namespace uf
 }  // namespace theory
 }  // namespace cvc5

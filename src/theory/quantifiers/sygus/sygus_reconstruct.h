@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/match_trie.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/rcons_obligation.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
 
@@ -138,7 +139,7 @@ using NodePairMap = std::unordered_map<Node, Node>;
  *           push(Stack, k'')
  * }
  */
-class SygusReconstruct : public expr::NotifyMatch
+class SygusReconstruct : public expr::NotifyMatch, protected EnvObj
 {
  public:
   /**
@@ -298,8 +299,6 @@ class SygusReconstruct : public expr::NotifyMatch
   void printPool(
       const std::unordered_map<TypeNode, std::vector<Node>>& pool) const;
 
-  /** Reference to the env */
-  Env& d_env;
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** reference to the statistics of parent */

@@ -24,6 +24,7 @@
 #include "proof/conv_proof_generator.h"
 #include "proof/lazy_proof.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
 
 using namespace std;
 
@@ -47,6 +48,12 @@ RemoveTermFormulas::RemoveTermFormulas(Env& env)
                                 TConvCachePolicy::NEVER,
                                 "RemoveTermFormulas::TConvProofGenerator",
                                 &d_rtfc));
+    d_tpgi.reset(
+        new TConvProofGenerator(pnm,
+                                nullptr,
+                                TConvPolicy::ONCE,
+                                TConvCachePolicy::NEVER,
+                                "RemoveTermFormulas::TConvProofGenerator"));
     d_lp.reset(new LazyCDProof(
         pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }
@@ -158,7 +165,8 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
       Debug("ite") << "removeITEs(" << node << ")"
                    << " " << inQuant << " " << inTerm << std::endl;
       Assert(!inQuant);
-      Node currt = runCurrentInternal(node, inTerm, newLem);
+      Node currt =
+          runCurrentInternal(node, inTerm, newLem, nodeVal, d_tpg.get());
       // if we replaced by a skolem, we do not recurse
       if (!currt.isNull())
       {
@@ -246,17 +254,21 @@ TrustNode RemoveTermFormulas::runCurrent(TNode node,
                                          bool inTerm,
                                          TrustNode& newLem)
 {
-  Node k = runCurrentInternal(node, inTerm, newLem);
+  // use the term conversion generator that is term context insensitive, with
+  // cval set to 0.
+  Node k = runCurrentInternal(node, inTerm, newLem, 0, d_tpgi.get());
   if (!k.isNull())
   {
-    return TrustNode::mkTrustRewrite(node, k, d_tpg.get());
+    return TrustNode::mkTrustRewrite(node, k, d_tpgi.get());
   }
   return TrustNode::null();
 }
 
 Node RemoveTermFormulas::runCurrentInternal(TNode node,
                                             bool inTerm,
-                                            TrustNode& newLem)
+                                            TrustNode& newLem,
+                                            uint32_t cval,
+                                            TConvProofGenerator* pg)
 {
   NodeManager *nodeManager = NodeManager::currentNM();
 
@@ -269,6 +281,13 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
   // in the "non-variable Boolean term within term" case below.
   if (node.getKind() == kind::ITE && !nodeType.isBoolean())
   {
+    if (!nodeType.isFirstClass())
+    {
+      std::stringstream ss;
+      ss << "ITE branches of type " << nodeType
+         << " are currently not supported." << std::endl;
+      throw LogicException(ss.str());
+    }
     // Here, we eliminate the ITE if we are not Boolean and if we are
     // not in a quantified formula. This policy should be in sync with
     // the policy for when to apply theory preprocessing to terms, see PR
@@ -439,7 +458,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           node,
           "btvK",
           "a Boolean term variable introduced during term formula removal",
-          NodeManager::SKOLEM_BOOL_TERM_VAR);
+          SkolemManager::SKOLEM_BOOL_TERM_VAR);
       d_skolem_cache.insert(node, skolem);
 
       // The new assertion
@@ -457,20 +476,19 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
     // since a formula-term may rewrite to the same skolem in multiple contexts.
     if (isProofEnabled())
     {
-      uint32_t cval = RtfTermContext::getValue(false, inTerm);
       // justify the introduction of the skolem
       // ------------------- MACRO_SR_PRED_INTRO
       // t = witness x. x=t
       // The above step is trivial, since the skolems introduced above are
       // all purification skolems. We record this equality in the term
       // conversion proof generator.
-      d_tpg->addRewriteStep(node,
-                            skolem,
-                            PfRule::MACRO_SR_PRED_INTRO,
-                            {},
-                            {node.eqNode(skolem)},
-                            true,
-                            cval);
+      pg->addRewriteStep(node,
+                         skolem,
+                         PfRule::MACRO_SR_PRED_INTRO,
+                         {},
+                         {node.eqNode(skolem)},
+                         true,
+                         cval);
     }
 
     // if the skolem was introduced in this call

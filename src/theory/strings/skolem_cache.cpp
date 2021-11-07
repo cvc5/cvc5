@@ -109,8 +109,8 @@ Node SkolemCache::mkTypedSkolemCached(
     {
       // for sequences of Booleans, we may purify Boolean terms, in which case
       // they must be Boolean term variables.
-      int flags = a.getType().isBoolean() ? NodeManager::SKOLEM_BOOL_TERM_VAR
-                                          : NodeManager::SKOLEM_DEFAULT;
+      int flags = a.getType().isBoolean() ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                          : SkolemManager::SKOLEM_DEFAULT;
       sk = sm->mkPurifySkolem(a, c, "string purify skolem", flags);
     }
     break;
@@ -119,7 +119,6 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_ID_V_SPT_REV:
     case SK_ID_VC_SPT:
     case SK_ID_VC_SPT_REV:
-    case SK_FIRST_CTN_POST:
     case SK_ID_C_SPT:
     case SK_ID_C_SPT_REV:
     case SK_ID_DC_SPT:
@@ -127,15 +126,15 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_ID_DEQ_X:
     case SK_ID_DEQ_Y:
     case SK_FIRST_CTN_PRE:
+    case SK_FIRST_CTN_POST:
     case SK_PREFIX:
     case SK_SUFFIX_REM:
       Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
       break;
-    case SK_NUM_OCCUR:
-    case SK_OCCUR_INDEX:
     default:
     {
-      Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
+      Trace("skolem-cache")
+          << "Don't know how to handle Skolem ID " << id << std::endl;
       Node v = nm->mkBoundVar(tn);
       Node cond = nm->mkConst(true);
       sk = sm->mkSkolem(v, cond, c, "string skolem");
@@ -316,6 +315,25 @@ Node SkolemCache::mkLengthVar(Node t)
   TypeNode intType = nm->integerType();
   BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
+}
+
+Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b)
+{
+  std::vector<Node> cacheVals;
+  for (size_t i = 0; i < 2; i++)
+  {
+    Node n = i == 0 ? a : b;
+    if (!n.isNull())
+    {
+      n = d_rr != nullptr ? d_rr->rewrite(n) : n;
+      cacheVals.push_back(n);
+    }
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node k = sm->mkSkolemFunction(id, tn, cacheVals);
+  d_allSkolems.insert(k);
+  return k;
 }
 
 }  // namespace strings
