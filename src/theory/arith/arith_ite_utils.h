@@ -28,6 +28,7 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "util/integer.h"
 
 namespace cvc5 {
@@ -43,7 +44,8 @@ class SubstitutionMap;
 
 namespace arith {
 
-class ArithIteUtils {
+class ArithIteUtils : protected EnvObj
+{
   preprocessing::util::ContainsTermITEVisitor& d_contains;
   SubstitutionMap& d_subs;
 
@@ -62,7 +64,7 @@ class ArithIteUtils {
 
   Integer d_one;
 
-  context::CDO<unsigned> d_subcount;
+  context::CDO<uint64_t> d_subcount;
   typedef context::CDInsertHashMap<Node, Node> CDNodeMap;
   CDNodeMap d_skolems;
 
@@ -72,8 +74,8 @@ class ArithIteUtils {
   std::vector<Node> d_orBinEqs;
 
 public:
- ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
-               context::Context* userContext,
+ ArithIteUtils(Env& env,
+               preprocessing::util::ContainsTermITEVisitor& contains,
                SubstitutionMap& subs);
  ~ArithIteUtils();
 

@@ -258,10 +258,10 @@
 (assert (forall ((mk_array_7_index node$type)) (= (select mk_array_7
                                                   mk_array_7_index) null_state)))
 (define-fun null_state_set () state_set$type mk_array_7)
-(declare-fun choose (Values$t$type) value$type)
+(declare-fun set.choose (Values$t$type) value$type)
 ;choosen_value :
 (assert (forall ((vals Values$t$type)) (or (= vals Values$empty) (= (Values$mem
-                                                                    (choose
+                                                                    (set.choose
                                                                     vals)
                                                                     vals)
                                                                  Truth))))

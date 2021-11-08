@@ -381,15 +381,6 @@ def test_mk_rounding_mode(solver):
     solver.mkRoundingMode(pycvc5.RoundTowardZero)
 
 
-def test_mk_uninterpreted_const(solver):
-    solver.mkUninterpretedConst(solver.getBooleanSort(), 1)
-    with pytest.raises(RuntimeError):
-        solver.mkUninterpretedConst(pycvc5.Sort(solver), 1)
-    slv = pycvc5.Solver()
-    with pytest.raises(RuntimeError):
-        slv.mkUninterpretedConst(solver.getBooleanSort(), 1)
-
-
 def test_mk_abstract_value(solver):
     solver.mkAbstractValue("1")
     with pytest.raises(ValueError):
@@ -431,6 +422,17 @@ def test_mk_floating_point(solver):
     with pytest.raises(RuntimeError):
         slv.mkFloatingPoint(3, 5, t1)
 
+def test_mk_cardinality_constraint(solver):
+    su = solver.mkUninterpretedSort("u")
+    si = solver.getIntegerSort()
+    solver.mkCardinalityConstraint(su, 3)
+    with pytest.raises(RuntimeError):
+        solver.mkEmptySet(solver.mkCardinalityConstraint(si, 3))
+    with pytest.raises(RuntimeError):
+        solver.mkEmptySet(solver.mkCardinalityConstraint(su, 0))
+    slv = pycvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkCardinalityConstraint(su, 3)
 
 def test_mk_empty_set(solver):
     slv = pycvc5.Solver()
@@ -651,6 +653,10 @@ def test_mk_regexp_sigma(solver):
     strSort = solver.getStringSort()
     s = solver.mkConst(strSort, "s")
     solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpSigma())
+
+
+def test_mk_sep_emp(solver):
+    solver.mkSepEmp();
 
 
 def test_mk_sep_nil(solver):
@@ -944,42 +950,23 @@ def test_declare_sort(solver):
 
 def test_define_fun(solver):
     bvSort = solver.mkBitVectorSort(32)
-    funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
-    funSort2 = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
-                                     solver.getIntegerSort())
+    funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),
+                                    solver.getIntegerSort())
     b1 = solver.mkVar(bvSort, "b1")
-    b11 = solver.mkVar(bvSort, "b1")
     b2 = solver.mkVar(solver.getIntegerSort(), "b2")
-    b3 = solver.mkVar(funSort2, "b3")
+    b3 = solver.mkVar(funSort, "b3")
     v1 = solver.mkConst(bvSort, "v1")
-    v2 = solver.mkConst(solver.getIntegerSort(), "v2")
-    v3 = solver.mkConst(funSort2, "v3")
-    f1 = solver.mkConst(funSort1, "f1")
-    f2 = solver.mkConst(funSort2, "f2")
-    f3 = solver.mkConst(bvSort, "f3")
+    v2 = solver.mkConst(funSort, "v2")
     solver.defineFun("f", [], bvSort, v1)
     solver.defineFun("ff", [b1, b2], bvSort, v1)
-    solver.defineFun(f1, [b1, b11], v1)
     with pytest.raises(RuntimeError):
         solver.defineFun("ff", [v1, b2], bvSort, v1)
     with pytest.raises(RuntimeError):
-        solver.defineFun("fff", [b1], bvSort, v3)
+        solver.defineFun("fff", [b1], bvSort, v2)
     with pytest.raises(RuntimeError):
-        solver.defineFun("ffff", [b1], funSort2, v3)
+        solver.defineFun("ffff", [b1], funSort, v2)
     # b3 has function sort, which is allowed as an argument
     solver.defineFun("fffff", [b1, b3], bvSort, v1)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f1, [v1, b11], v1)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f1, [b1], v1)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f1, [b1, b11], v2)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f1, [b1, b11], v3)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f2, [b1], v2)
-    with pytest.raises(RuntimeError):
-        solver.defineFun(f3, [b1], v1)
 
     slv = pycvc5.Solver()
     bvSort2 = slv.mkBitVectorSort(32)
@@ -1275,10 +1262,10 @@ def test_get_value3(solver):
 def test_declare_separation_heap(solver):
     solver.setLogic("ALL")
     integer = solver.getIntegerSort()
-    solver.declareSeparationHeap(integer, integer)
+    solver.declareSepHeap(integer, integer)
     # cannot declare separation logic heap more than once
     with pytest.raises(RuntimeError):
-        solver.declareSeparationHeap(integer, integer)
+        solver.declareSepHeap(integer, integer)
 
 
 # Helper function for test_get_separation_{heap,nil}_termX. Asserts and checks
@@ -1286,7 +1273,7 @@ def test_declare_separation_heap(solver):
 def checkSimpleSeparationConstraints(slv):
     integer = slv.getIntegerSort()
     # declare the separation heap
-    slv.declareSeparationHeap(integer, integer)
+    slv.declareSepHeap(integer, integer)
     x = slv.mkConst(integer, "x")
     p = slv.mkConst(integer, "p")
     heap = slv.mkTerm(kinds.SepPto, p, x)
@@ -1303,7 +1290,7 @@ def test_get_separation_heap_term1(solver):
     t = solver.mkTrue()
     solver.assertFormula(t)
     with pytest.raises(RuntimeError):
-        solver.getSeparationHeap()
+        solver.getValueSepHeap()
 
 
 def test_get_separation_heap_term2(solver):
@@ -1312,7 +1299,7 @@ def test_get_separation_heap_term2(solver):
     solver.setOption("produce-models", "false")
     checkSimpleSeparationConstraints(solver)
     with pytest.raises(RuntimeError):
-        solver.getSeparationHeap()
+        solver.getValueSepHeap()
 
 
 def test_get_separation_heap_term3(solver):
@@ -1323,7 +1310,7 @@ def test_get_separation_heap_term3(solver):
     solver.assertFormula(t)
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.getSeparationHeap()
+        solver.getValueSepHeap()
 
 
 def test_get_separation_heap_term4(solver):
@@ -1334,7 +1321,7 @@ def test_get_separation_heap_term4(solver):
     solver.assertFormula(t)
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.getSeparationHeap()
+        solver.getValueSepHeap()
 
 
 def test_get_separation_heap_term5(solver):
@@ -1342,7 +1329,7 @@ def test_get_separation_heap_term5(solver):
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     checkSimpleSeparationConstraints(solver)
-    solver.getSeparationHeap()
+    solver.getValueSepHeap()
 
 
 def test_get_separation_nil_term1(solver):
@@ -1352,7 +1339,7 @@ def test_get_separation_nil_term1(solver):
     t = solver.mkTrue()
     solver.assertFormula(t)
     with pytest.raises(RuntimeError):
-        solver.getSeparationNilTerm()
+        solver.getValueSepNil()
 
 
 def test_get_separation_nil_term2(solver):
@@ -1361,7 +1348,7 @@ def test_get_separation_nil_term2(solver):
     solver.setOption("produce-models", "false")
     checkSimpleSeparationConstraints(solver)
     with pytest.raises(RuntimeError):
-        solver.getSeparationNilTerm()
+        solver.getValueSepNil()
 
 
 def test_get_separation_nil_term3(solver):
@@ -1372,7 +1359,7 @@ def test_get_separation_nil_term3(solver):
     solver.assertFormula(t)
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.getSeparationNilTerm()
+        solver.getValueSepNil()
 
 
 def test_get_separation_nil_term4(solver):
@@ -1383,7 +1370,7 @@ def test_get_separation_nil_term4(solver):
     solver.assertFormula(t)
     solver.checkSat()
     with pytest.raises(RuntimeError):
-        solver.getSeparationNilTerm()
+        solver.getValueSepNil()
 
 
 def test_get_separation_nil_term5(solver):
@@ -1391,7 +1378,7 @@ def test_get_separation_nil_term5(solver):
     solver.setOption("incremental", "false")
     solver.setOption("produce-models", "true")
     checkSimpleSeparationConstraints(solver)
-    solver.getSeparationNilTerm()
+    solver.getValueSepNil()
 
 
 def test_push1(solver):

@@ -137,7 +137,7 @@ Node NestedQe::doQe(Env& env, Node q)
   Trace("cegqi-nested-qe") << "  Apply qe to " << q << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   q = nm->mkNode(kind::EXISTS, q[0], q[1].negate());
-  std::unique_ptr<SmtEngine> smt_qe;
+  std::unique_ptr<SolverEngine> smt_qe;
   initializeSubsolver(smt_qe, env);
   Node qqe = smt_qe->getQuantifierElimination(q, true, false);
   if (expr::hasBoundVar(qqe))

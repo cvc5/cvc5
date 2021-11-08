@@ -22,7 +22,6 @@
 #include <memory>
 
 #include "expr/node.h"
-
 namespace cvc5 {
 
 class Env;
@@ -35,6 +34,10 @@ namespace context {
 class Context;
 class UserContext;
 }  // namespace context
+namespace options {
+enum class OutputTag;
+}
+using OutputTag = options::OutputTag;
 
 class EnvObj
 {
@@ -70,9 +73,6 @@ class EnvObj
                 const std::unordered_map<Node, Node>& visited,
                 bool useRewriter = true) const;
 
-  /** Get the current logic information. */
-  const LogicInfo& logicInfo() const;
-
   /** Get the options object (const version only) via Env. */
   const Options& options() const;
 
@@ -82,8 +82,29 @@ class EnvObj
   /** Get a pointer to the UserContext via Env. */
   context::UserContext* userContext() const;
 
+  /** Get the resource manager owned by this Env. */
+  ResourceManager* resourceManager() const;
+
+  /** Get the current logic information. */
+  const LogicInfo& logicInfo() const;
+
   /** Get the statistics registry via Env. */
   StatisticsRegistry& statisticsRegistry() const;
+
+  /** Convenience wrapper for Env::isOutputOn(). */
+  bool isOutputOn(OutputTag tag) const;
+
+  /** Convenience wrapper for Env::output(). */
+  std::ostream& output(OutputTag tag) const;
+
+  /** Convenience wrapper for Env::isVerboseOn(). */
+  bool isVerboseOn(int64_t level) const;
+
+  /** Convenience wrapper for Env::verbose(). */
+  std::ostream& verbose(int64_t) const;
+
+  /** Convenience wrapper for Env::verbose(0). */
+  std::ostream& warning() const;
 
   /** The associated environment. */
   Env& d_env;

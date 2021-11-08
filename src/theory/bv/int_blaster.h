@@ -21,8 +21,8 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
-#include "context/context.h"
 #include "options/smt_options.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/iand_utils.h"
 
 namespace cvc5 {
@@ -91,7 +91,7 @@ namespace cvc5 {
 ** op.
 **
 **/
-class IntBlaster
+class IntBlaster : protected EnvObj
 {
   using CDNodeMap = context::CDHashMap<Node, Node>;
 
@@ -105,10 +105,12 @@ class IntBlaster
    * translated to integer variables, or are directly casted using `bv2nat`
    * operator. not purely bit-vector nodes.
    */
-  IntBlaster(context::Context* context,
+  IntBlaster(Env& env,
              options::SolveBVAsIntMode mode,
              uint64_t granluarity = 1,
              bool introduceFreshIntVars = true);
+
+  ~IntBlaster();
 
   /**
    * The result is an integer term and is computed
@@ -366,7 +368,7 @@ class IntBlaster
   /** the granularity to use in the translation */
   uint64_t d_granularity;
 
-  /** an SmtEngine for context */
+  /** an SolverEngine for context */
   context::Context* d_context;
 
   /** true iff the translator should introduce

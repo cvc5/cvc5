@@ -245,8 +245,6 @@ class TheoryStrings : public Theory {
   Node d_zero;
   Node d_one;
   Node d_neg_one;
-  /** the cardinality of the alphabet */
-  uint32_t d_cardSize;
   /** The notify class */
   NotifyClass d_notify;
   /**
@@ -256,18 +254,18 @@ class TheoryStrings : public Theory {
   SequencesStatistics d_statistics;
   /** The solver state object */
   SolverState d_state;
-  /** The eager solver */
-  EagerSolver d_eagerSolver;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** The theory rewriter for this theory. */
+  StringsRewriter d_rewriter;
+  /** The eager solver */
+  EagerSolver d_eagerSolver;
   /** The extended theory callback */
   StringsExtfCallback d_extTheoryCb;
   /** The (custom) output channel of the theory of strings */
   InferenceManager d_im;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
-  /** The theory rewriter for this theory. */
-  StringsRewriter d_rewriter;
   /** The proof rule checker */
   StringProofRuleChecker d_checker;
   /**

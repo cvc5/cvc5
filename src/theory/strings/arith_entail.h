@@ -38,6 +38,11 @@ class ArithEntail
 {
  public:
   ArithEntail(Rewriter* r);
+  /**
+   * Returns the rewritten form a term, intended (although not enforced) to be
+   * an arithmetic term.
+   */
+  Node rewrite(Node a);
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
@@ -91,6 +96,10 @@ class ArithEntail
    * checkWithAssumption(x + (str.len y) = 0, 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   *
+   * Since this method rewrites on rewriting and may introduce new variables
+   * (slack variables for inequalities), it should *not* be called from the
+   * main rewriter of strings, or non-termination can occur.
    */
   bool checkWithAssumption(Node assumption,
                            Node a,
@@ -109,6 +118,10 @@ class ArithEntail
    * checkWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   *
+   * Since this method rewrites on rewriting and may introduce new variables
+   * (slack variables for inequalities), it should *not* be called from the
+   * main rewriter of strings, or non-termination can occur.
    */
   bool checkWithAssumptions(std::vector<Node> assumptions,
                             Node a,
@@ -130,6 +143,10 @@ class ArithEntail
    */
   Node getConstantBound(Node a, bool isLower = true);
 
+  /**
+   * get constant bound on the length of s.
+   */
+  Node getConstantBoundLength(Node s, bool isLower = true);
   /**
    * Given an inequality y1 + ... + yn >= x, removes operands yi s.t. the
    * original inequality still holds. Returns true if the original inequality
@@ -174,8 +191,14 @@ class ArithEntail
   void getArithApproximations(Node a,
                               std::vector<Node>& approx,
                               bool isOverApprox = false);
+  /** Set bound cache */
+  void setConstantBoundCache(Node n, Node ret, bool isLower);
+  /** Get bound cache */
+  Node getConstantBoundCache(Node n, bool isLower);
   /** The underlying rewriter */
   Rewriter* d_rr;
+  /** Constant zero */
+  Node d_zero;
 };
 
 }  // namespace strings

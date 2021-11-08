@@ -23,7 +23,7 @@
 #include "options/smt_options.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace cvc5::theory;
@@ -92,7 +92,7 @@ std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
-OptimizationSolver::OptimizationSolver(SmtEngine* parent)
+OptimizationSolver::OptimizationSolver(SolverEngine* parent)
     : d_parent(parent),
       d_optChecker(),
       d_objectives(parent->getUserContext()),
@@ -142,10 +142,10 @@ std::vector<OptimizationResult> OptimizationSolver::getValues()
   return d_results;
 }
 
-std::unique_ptr<SmtEngine> OptimizationSolver::createOptCheckerWithTimeout(
-    SmtEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
+std::unique_ptr<SolverEngine> OptimizationSolver::createOptCheckerWithTimeout(
+    SolverEngine* parentSMTSolver, bool needsTimeout, unsigned long timeout)
 {
-  std::unique_ptr<SmtEngine> optChecker;
+  std::unique_ptr<SolverEngine> optChecker;
   // initializeSubSolver will copy the options and theories enabled
   // from the current solver to optChecker and adds timeout
   theory::initializeSubsolver(

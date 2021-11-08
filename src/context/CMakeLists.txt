@@ -34,7 +34,5 @@ set(LIBCONTEXT_SOURCES
 )
 
 add_library(cvc5context OBJECT ${LIBCONTEXT_SOURCES})
-if(ENABLE_SHARED)
-  set_target_properties(cvc5context PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
-target_compile_definitions(cvc5context PRIVATE -D__BUILDING_CVC5LIB)
+set_target_properties(cvc5context PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_compile_definitions(cvc5context PRIVATE -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)

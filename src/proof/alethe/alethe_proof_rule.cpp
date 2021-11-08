@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include "proof/proof_checker.h"
+
 namespace cvc5 {
 
 namespace proof {
@@ -114,7 +116,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::SKO_FORALL: return "sko_forall";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
-    case AletheRule::REORDER: return "reorder";
+    case AletheRule::REORDERING: return "reordering";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";
@@ -125,6 +127,16 @@ std::ostream& operator<<(std::ostream& out, AletheRule id)
 {
   out << aletheRuleToString(id);
   return out;
+}
+
+AletheRule getAletheRule(Node n)
+{
+  uint32_t id;
+  if (ProofRuleChecker::getUInt32(n, id))
+  {
+    return static_cast<AletheRule>(id);
+  }
+  return AletheRule::UNDEFINED;
 }
 
 }  // namespace proof

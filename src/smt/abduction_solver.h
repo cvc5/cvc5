@@ -24,7 +24,7 @@
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 
 namespace smt {
 
@@ -32,7 +32,7 @@ namespace smt {
  * A solver for abduction queries.
  *
  * This class is responsible for responding to get-abduct commands. It spawns
- * a subsolver SmtEngine for a sygus conjecture that captures the abduction
+ * a subsolver SolverEngine for a sygus conjecture that captures the abduction
  * query, and implements supporting utility methods such as checkAbduct.
  */
 class AbductionSolver : protected EnvObj
@@ -108,10 +108,10 @@ class AbductionSolver : protected EnvObj
    * assertion stack unchaged. This copy of the SMT engine can be further
    * queried for information regarding further solutions.
    */
-  std::unique_ptr<SmtEngine> d_subsolver;
+  std::unique_ptr<SolverEngine> d_subsolver;
   /**
    * The conjecture of the current abduction problem. This expression is only
-   * valid while the parent SmtEngine is in mode SMT_MODE_ABDUCT.
+   * valid while the parent SolverEngine is in mode SMT_MODE_ABDUCT.
    */
   Node d_abdConj;
   /**

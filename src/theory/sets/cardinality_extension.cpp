@@ -61,7 +61,7 @@ void CardinalityExtension::reset()
 void CardinalityExtension::registerTerm(Node n)
 {
   Trace("sets-card-debug") << "Register term : " << n << std::endl;
-  Assert(n.getKind() == CARD);
+  Assert(n.getKind() == SET_CARD);
   TypeNode tnc = n[0].getType().getSetElementType();
   d_t_card_enabled[tnc] = true;
   Node r = d_state.getRepresentative(n[0]);
@@ -89,7 +89,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode setType = nm->mkSetType(t);
-  bool finiteType = d_state.isFiniteType(t);
+  bool finiteType = d_env.isFiniteType(t);
   // skip infinite types that do not have univset terms
   if (!finiteType && d_state.getUnivSetEqClass(setType).isNull())
   {
@@ -134,7 +134,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   if (finiteType)
   {
     Node typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
-    Node cardUniv = nm->mkNode(kind::CARD, proxy);
+    Node cardUniv = nm->mkNode(kind::SET_CARD, proxy);
     Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
 
     // (=> true (<= (card (as univset t)) cardUniv)
@@ -159,10 +159,10 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
       }
 
       // (=> true (subset representative (as univset t))
-      Node subset = nm->mkNode(kind::SUBSET, variable, proxy);
+      Node subset = nm->mkNode(kind::SET_SUBSET, variable, proxy);
       // subset terms are rewritten as union terms: (subset A B) implies (=
       // (union A B) B)
-      subset = Rewriter::rewrite(subset);
+      subset = rewrite(subset);
       if (!d_state.isEntailed(subset, true))
       {
         d_im.assertInference(
@@ -175,9 +175,9 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 
       for (const auto& negativeMember : negativeMembers)
       {
-        Node member = nm->mkNode(MEMBER, negativeMember.first, univ);
+        Node member = nm->mkNode(SET_MEMBER, negativeMember.first, univ);
         // negativeMember.second is the reason for the negative membership and
-        // has kind MEMBER. So we specify the negation as the reason for the
+        // has kind SET_MEMBER. So we specify the negation as the reason for the
         // negative membership lemma
         Node notMember = nm->mkNode(NOT, negativeMember.second);
         // (=>
@@ -240,9 +240,9 @@ void CardinalityExtension::checkRegister()
       if (!d_state.isCongruent(n))
       {
         // if setminus, do for intersection instead
-        if (n.getKind() == SETMINUS)
+        if (n.getKind() == SET_MINUS)
         {
-          n = Rewriter::rewrite(nm->mkNode(INTERSECTION, n[0], n[1]));
+          n = rewrite(nm->mkNode(SET_INTERSECTION, n[0], n[1]));
         }
         registerCardinalityTerm(n);
       }
@@ -268,14 +268,14 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Trace("sets-card") << "Cardinality lemmas for " << n << " : " << std::endl;
   std::vector<Node> cterms;
-  if (n.getKind() == INTERSECTION)
+  if (n.getKind() == SET_INTERSECTION)
   {
     for (unsigned e = 0; e < 2; e++)
     {
-      Node s = nm->mkNode(SETMINUS, n[e], n[1 - e]);
+      Node s = nm->mkNode(SET_MINUS, n[e], n[1 - e]);
       cterms.push_back(s);
     }
-    Node pos_lem = nm->mkNode(GEQ, nm->mkNode(CARD, n), d_zero);
+    Node pos_lem = nm->mkNode(GEQ, nm->mkNode(SET_CARD, n), d_zero);
     d_im.assertInference(
         pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, 1);
   }
@@ -287,13 +287,14 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
   {
     Node nn = cterms[k];
     Node nk = d_treg.getProxy(nn);
-    Node pos_lem = nm->mkNode(GEQ, nm->mkNode(CARD, nk), d_zero);
+    Node pos_lem = nm->mkNode(GEQ, nm->mkNode(SET_CARD, nk), d_zero);
     d_im.assertInference(
         pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, 1);
     if (nn != nk)
     {
-      Node lem = nm->mkNode(EQUAL, nm->mkNode(CARD, nk), nm->mkNode(CARD, nn));
-      lem = Rewriter::rewrite(lem);
+      Node lem =
+          nm->mkNode(EQUAL, nm->mkNode(SET_CARD, nk), nm->mkNode(SET_CARD, nn));
+      lem = rewrite(lem);
       Trace("sets-card") << "  " << k << " : " << lem << std::endl;
       d_im.assertInference(lem, InferenceId::SETS_CARD_EQUAL, d_emp_exp, 1);
     }
@@ -380,7 +381,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
   for (const Node& n : nvsets)
   {
     Kind nk = n.getKind();
-    if (nk != INTERSECTION && nk != SETMINUS)
+    if (nk != SET_INTERSECTION && nk != SET_MINUS)
     {
       continue;
     }
@@ -388,26 +389,26 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
                         << std::endl;
     std::vector<Node> sib;
     unsigned true_sib = 0;
-    if (n.getKind() == INTERSECTION)
+    if (n.getKind() == SET_INTERSECTION)
     {
       d_localBase[n] = n;
       for (unsigned e = 0; e < 2; e++)
       {
-        Node sm = Rewriter::rewrite(nm->mkNode(SETMINUS, n[e], n[1 - e]));
+        Node sm = rewrite(nm->mkNode(SET_MINUS, n[e], n[1 - e]));
         sib.push_back(sm);
       }
       true_sib = 2;
     }
     else
     {
-      Node si = Rewriter::rewrite(nm->mkNode(INTERSECTION, n[0], n[1]));
+      Node si = rewrite(nm->mkNode(SET_INTERSECTION, n[0], n[1]));
       sib.push_back(si);
       d_localBase[n] = si;
-      Node osm = Rewriter::rewrite(nm->mkNode(SETMINUS, n[1], n[0]));
+      Node osm = rewrite(nm->mkNode(SET_MINUS, n[1], n[0]));
       sib.push_back(osm);
       true_sib = 1;
     }
-    Node u = Rewriter::rewrite(nm->mkNode(UNION, n[0], n[1]));
+    Node u = rewrite(nm->mkNode(SET_UNION, n[0], n[1]));
     if (!d_state.hasTerm(u))
     {
       u = Node::null();
@@ -489,7 +490,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
                 << "Sibling " << sib[si] << " is already empty." << std::endl;
           }
         }
-        if (!is_union && nk == INTERSECTION && !u.isNull())
+        if (!is_union && nk == SET_INTERSECTION && !u.isNull())
         {
           // union is equal to other parent
           if (!d_state.areEqual(u, n[1 - e]))
@@ -577,7 +578,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
                               << " are equal, ids = " << card_parent_ids[l]
                               << " " << card_parent_ids[k] << std::endl;
           dup = true;
-          if (n.getKind() != INTERSECTION)
+          if (n.getKind() != SET_INTERSECTION)
           {
             continue;
           }
@@ -816,7 +817,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Node r1 = e == 0 ? o0 : o1;
               Node r2 = e == 0 ? o1 : o0;
               // check if their intersection exists modulo equality
-              Node r1r2i = d_state.getBinaryOpTerm(INTERSECTION, r1, r2);
+              Node r1r2i = d_state.getBinaryOpTerm(SET_INTERSECTION, r1, r2);
               if (!r1r2i.isNull())
               {
                 Trace("sets-nf-debug")
@@ -837,8 +838,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Assert(o0 != o1);
               Node kca = d_treg.getProxy(o0);
               Node kcb = d_treg.getProxy(o1);
-              Node intro =
-                  Rewriter::rewrite(nm->mkNode(INTERSECTION, kca, kcb));
+              Node intro = rewrite(nm->mkNode(SET_INTERSECTION, kca, kcb));
               Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
                                << ", term is " << intro << std::endl;
               intro_sets.push_back(intro);
@@ -966,12 +966,12 @@ void CardinalityExtension::checkMinCard()
     }
     else
     {
-      cardTerm = nm->mkNode(CARD, eqc);
+      cardTerm = nm->mkNode(SET_CARD, eqc);
     }
     for (const std::pair<const Node, Node>& itmm : pmemsE)
     {
       members.push_back(itmm.first);
-      exp.push_back(nm->mkNode(MEMBER, itmm.first, cardTerm[0]));
+      exp.push_back(nm->mkNode(SET_MEMBER, itmm.first, cardTerm[0]));
     }
     if (members.size() > 1)
     {
@@ -1002,7 +1002,7 @@ void CardinalityExtension::mkModelValueElementsFor(
     TheoryModel* model)
 {
   TypeNode elementType = eqc.getType().getSetElementType();
-  bool elementTypeFinite = d_state.isFiniteType(elementType);
+  bool elementTypeFinite = d_env.isFiniteType(elementType);
   if (isModelValueBasic(eqc))
   {
     std::map<Node, Node>::iterator it = d_eqc_to_card_term.find(eqc);
@@ -1090,7 +1090,7 @@ void CardinalityExtension::collectFiniteTypeSetElements(TheoryModel* model)
   }
   for (const Node& set : getOrderedSetsEqClasses())
   {
-    if (!d_state.isFiniteType(set.getType()))
+    if (!d_env.isFiniteType(set.getType()))
     {
       continue;
     }

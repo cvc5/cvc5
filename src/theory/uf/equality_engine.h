@@ -30,6 +30,7 @@
 #include "context/cdo.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/theory_id.h"
 #include "theory/uf/equality_engine_iterator.h"
 #include "theory/uf/equality_engine_notify.h"
@@ -37,6 +38,9 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
+
+class Env;
+
 namespace theory {
 namespace eq {
 
@@ -49,7 +53,7 @@ class ProofEqEngine;
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj {
+class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
 
   friend class EqClassesIterator;
   friend class EqClassIterator;
@@ -70,11 +74,16 @@ class EqualityEngine : public context::ContextNotifyObj {
   /**
    * Initialize the equality engine, given the notification class.
    *
+   * @param env The environment, which is used for rewriting
+   * @param c The context which this equality engine depends, which is typically
+   * although not necessarily same as the SAT context of env.
+   * @param name The name of this equality engine, for statistics
    * @param constantTriggers Whether we treat constants as trigger terms
    * @param anyTermTriggers Whether we use any terms as triggers
    */
-  EqualityEngine(EqualityEngineNotify& notify,
-                 context::Context* context,
+  EqualityEngine(Env& env,
+                 context::Context* c,
+                 EqualityEngineNotify& notify,
                  std::string name,
                  bool constantTriggers,
                  bool anyTermTriggers = true);
@@ -82,7 +91,8 @@ class EqualityEngine : public context::ContextNotifyObj {
   /**
    * Initialize the equality engine with no notification class.
    */
-  EqualityEngine(context::Context* context,
+  EqualityEngine(Env& env,
+                 context::Context* c,
                  std::string name,
                  bool constantsAreTriggers,
                  bool anyTermTriggers = true);
@@ -120,8 +130,7 @@ class EqualityEngine : public context::ContextNotifyObj {
     Statistics(const std::string& name);
   };/* struct EqualityEngine::statistics */
 
-private:
-
+ private:
   /** The context we are using */
   context::Context* d_context;
 

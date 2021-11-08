@@ -30,16 +30,16 @@ namespace cvc5 {
 namespace theory {
 namespace datatypes {
 
-InferenceManager::InferenceManager(Env& env,
-                                   Theory& t,
-                                   TheoryState& state,
-                                   ProofNodeManager* pnm)
-    : InferenceManagerBuffered(env, t, state, pnm, "theory::datatypes::"),
-      d_pnm(pnm),
-      d_ipc(pnm == nullptr ? nullptr : new InferProofCons(context(), pnm)),
-      d_lemPg(pnm == nullptr ? nullptr
-                             : new EagerProofGenerator(
-                                 pnm, userContext(), "datatypes::lemPg"))
+InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
+    : InferenceManagerBuffered(env, t, state, "theory::datatypes::"),
+      d_ipc(isProofEnabled()
+                ? new InferProofCons(context(), env.getProofNodeManager())
+                : nullptr),
+      d_lemPg(isProofEnabled()
+                  ? new EagerProofGenerator(env.getProofNodeManager(),
+                                            userContext(),
+                                            "datatypes::lemPg")
+                  : nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -103,15 +103,14 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId
   conflictExp(id, conf, d_ipc.get());
 }
 
-bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
-
 TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
 {
   // set up a proof constructor
   std::shared_ptr<InferProofCons> ipcl;
   if (isProofEnabled())
   {
-    ipcl = std::make_shared<InferProofCons>(nullptr, d_pnm);
+    ipcl =
+        std::make_shared<InferProofCons>(nullptr, d_env.getProofNodeManager());
   }
   conc = prepareDtInference(conc, exp, id, ipcl.get());
   // send it as a lemma
@@ -133,7 +132,7 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
     {
       std::vector<Node> expv;
       expv.push_back(exp);
-      pn = d_pnm->mkScope(pbody, expv);
+      pn = d_env.getProofNodeManager()->mkScope(pbody, expv);
     }
     d_lemPg->setProofFor(lem, pn);
   }
@@ -159,7 +158,7 @@ Node InferenceManager::prepareDtInference(Node conc,
   if (conc.getKind() == EQUAL && conc[0].getType().isBoolean())
   {
     // must turn (= conc false) into (not conc)
-    conc = Rewriter::rewrite(conc);
+    conc = rewrite(conc);
   }
   if (isProofEnabled())
   {

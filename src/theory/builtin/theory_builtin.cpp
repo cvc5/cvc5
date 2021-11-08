@@ -29,7 +29,7 @@ TheoryBuiltin::TheoryBuiltin(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BUILTIN, env, out, valuation),
       d_checker(env),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm, "theory::builtin::")
+      d_im(env, *this, d_state, "theory::builtin::")
 {
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;

@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The solver for SMT queries in an SmtEngine.
+ * The solver for SMT queries in an SolverEngine.
  */
 
 #include "smt/smt_solver.h"
@@ -21,9 +21,9 @@
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/preprocessor.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_state.h"
-#include "smt/smt_engine_stats.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_state.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
@@ -34,12 +34,12 @@ namespace cvc5 {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
-                     SmtEngineState& state,
-                     Preprocessor& pp,
-                     SmtEngineStatistics& stats)
+                     SolverEngineState& state,
+                     AbstractValues& abs,
+                     SolverEngineStatistics& stats)
     : d_env(env),
       d_state(state),
-      d_pp(pp),
+      d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
@@ -48,7 +48,7 @@ SmtSolver::SmtSolver(Env& env,
 
 SmtSolver::~SmtSolver() {}
 
-void SmtSolver::finishInit(const LogicInfo& logicInfo)
+void SmtSolver::finishInit()
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -78,6 +78,8 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
+
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
 }
 
 void SmtSolver::resetAssertions()
@@ -93,6 +95,8 @@ void SmtSolver::resetAssertions()
   // finishInit again. In particular, TheoryEngine::finishInit does not
   // depend on knowing the associated PropEngine.
   d_propEngine->finishInit();
+  // must reset the preprocessor as well
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
 }
 
 void SmtSolver::interrupt()
@@ -151,7 +155,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   TimerStat::CodeTimer solveTimer(d_stats.d_solveTime);
 
-  Chat() << "solving..." << endl;
+  d_env.verbose(2) << "solving..." << std::endl;
   Trace("smt") << "SmtSolver::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
 
@@ -224,7 +228,7 @@ void SmtSolver::processAssertions(Assertions& as)
 
   // Push the formula to SAT
   {
-    Chat() << "converting to CNF..." << endl;
+    d_env.verbose(2) << "converting to CNF..." << endl;
     const std::vector<Node>& assertions = ap.ref();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter

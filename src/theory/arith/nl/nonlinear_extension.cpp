@@ -47,17 +47,17 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_hasNlTerms(false),
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
-      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
+      d_extTheory(env, d_extTheoryCb, d_im),
       d_model(),
-      d_trSlv(d_im, d_model, d_env),
+      d_trSlv(d_env, d_im, d_model),
       d_extState(d_im, d_model, d_env),
-      d_factoringSlv(&d_extState),
-      d_monomialBoundsSlv(&d_extState),
-      d_monomialSlv(&d_extState),
-      d_splitZeroSlv(&d_extState),
-      d_tangentPlaneSlv(&d_extState),
+      d_factoringSlv(d_env, &d_extState),
+      d_monomialBoundsSlv(d_env, &d_extState),
+      d_monomialSlv(d_env, &d_extState),
+      d_splitZeroSlv(d_env, &d_extState),
+      d_tangentPlaneSlv(d_env, &d_extState),
       d_cadSlv(d_env, d_im, d_model),
-      d_icpSlv(d_im),
+      d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, state, d_model),
       d_pow2Slv(env, d_im, state, d_model)
 {
@@ -96,17 +96,16 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
 void NonlinearExtension::computeRelevantAssertions(
     const std::vector<Node>& assertions, std::vector<Node>& keep)
 {
-  Trace("nl-ext-rlv") << "Compute relevant assertions..." << std::endl;
-  Valuation v = d_containing.getValuation();
+  const Valuation& v = d_containing.getValuation();
   for (const Node& a : assertions)
   {
     if (v.isRelevant(a))
     {
-      keep.push_back(a);
+      keep.emplace_back(a);
     }
   }
-  Trace("nl-ext-rlv") << "...keep " << keep.size() << "/" << assertions.size()
-                      << " assertions" << std::endl;
+  Trace("nl-ext-rlv") << "...relevant assertions: " << keep.size() << "/"
+                      << assertions.size() << std::endl;
 }
 
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
@@ -456,7 +455,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
         {
           for (const Node& eq : shared_term_value_splits)
           {
-            Node req = Rewriter::rewrite(eq);
+            Node req = rewrite(eq);
             Node literal = d_containing.getValuation().ensureLiteral(req);
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
