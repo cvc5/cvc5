@@ -27,6 +27,11 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace strings {
+  
+RegExpEntail::RegExpEntail(Rewriter* r) : d_rewriter(r), d_aent(r) {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+}
 
 Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                                        std::vector<Node>& children,
@@ -642,10 +647,11 @@ bool RegExpEntail::hasEpsilonNode(TNode node)
   return false;
 }
 
-Node RegExpEntail::getFixedLengthForRegexp(Node n)
+Node RegExpEntail::getFixedLengthForRegexp(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (n.getKind() == STRING_TO_REGEXP)
+  Kind k = n.getKind();
+  if (k == STRING_TO_REGEXP)
   {
     Node ret = nm->mkNode(STRING_LENGTH, n[0]);
     ret = Rewriter::rewrite(ret);
@@ -654,11 +660,11 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
       return ret;
     }
   }
-  else if (n.getKind() == REGEXP_SIGMA || n.getKind() == REGEXP_RANGE)
+  else if (k == REGEXP_SIGMA || k == REGEXP_RANGE)
   {
     return nm->mkConst(Rational(1));
   }
-  else if (n.getKind() == REGEXP_UNION || n.getKind() == REGEXP_INTER)
+  else if (k == REGEXP_UNION || k == REGEXP_INTER)
   {
     Node ret;
     for (const Node& nc : n)
@@ -676,7 +682,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
     }
     return ret;
   }
-  else if (n.getKind() == REGEXP_CONCAT)
+  else if (k == REGEXP_CONCAT)
   {
     NodeBuilder nb(PLUS);
     for (const Node& nc : n)
@@ -692,6 +698,70 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
     ret = Rewriter::rewrite(ret);
     return ret;
   }
+  return Node::null();
+}
+
+Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
+{
+  Assert(n.getType().isRegExp());
+  Node ret = getConstantBoundCache(n, isLower);
+  if (!ret.isNull())
+  {
+    return ret;
+  }
+  Kind k = n.getKind();
+  NodeManager* nm = NodeManager::currentNM();
+  if (k == STRING_TO_REGEXP)
+  {
+    ret = d_aent.getConstantBoundLength(n[0], isLower);
+  }
+  else if (k == REGEXP_SIGMA || k == REGEXP_RANGE)
+  {
+    ret = nm->mkConst(Rational(1));
+  }
+  else if (k == REGEXP_UNION || k == REGEXP_INTER || k == REGEXP_CONCAT)
+  {
+    bool success = true;
+    bool firstTime = true;
+    Rational rr(0);
+    for (const Node& nc : n)
+    {
+      Node bc = getConstantBoundLengthForRegexp(nc, isLower);
+      if (bc.isNull())
+      {
+        success = false;
+        break;
+      }
+      Assert (bc.getKind()==CONST_RATIONAL);
+      Rational r = bc.getConst<Rational>();
+      if (k == REGEXP_CONCAT)
+      {
+        rr += r;
+      }
+      else if (firstTime)
+      {
+        rr = r;
+        firstTime = false;
+      }
+      else if ((k==REGEXP_UNION) == isLower)
+      {
+        rr = r<rr ? r : rr;
+      }
+      else
+      {
+        rr = r>rr ? r : rr;
+      }
+    }
+    if (success)
+    {
+      ret = nm->mkConst(rr);
+    }
+  }
+  else if (isLower)
+  {
+    ret = d_zero;
+  }
+  setConstantBoundCache(n, ret, isLower);
   return Node::null();
 }
 
@@ -796,6 +866,54 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
   }
 
   return result;
+}
+
+
+struct RegExpEntailConstantBoundLowerId
+{
+};
+typedef expr::Attribute<RegExpEntailConstantBoundLowerId, Node>
+    RegExpEntailConstantBoundLower;
+
+struct RegExpEntailConstantBoundUpperId
+{
+};
+typedef expr::Attribute<RegExpEntailConstantBoundUpperId, Node>
+    RegExpEntailConstantBoundUpper;
+
+void RegExpEntail::setConstantBoundCache(TNode n, Node ret, bool isLower)
+{
+  if (isLower)
+  {
+    RegExpEntailConstantBoundLower rcbl;
+    n.setAttribute(rcbl, ret);
+  }
+  else
+  {
+    RegExpEntailConstantBoundUpper rcbu;
+    n.setAttribute(rcbu, ret);
+  }
+}
+
+Node RegExpEntail::getConstantBoundCache(TNode n, bool isLower)
+{
+  if (isLower)
+  {
+    RegExpEntailConstantBoundLower rcbl;
+    if (n.hasAttribute(rcbl))
+    {
+      return n.getAttribute(rcbl);
+    }
+  }
+  else
+  {
+    RegExpEntailConstantBoundUpper rcbu;
+    if (n.hasAttribute(rcbu))
+    {
+      return n.getAttribute(rcbu);
+    }
+  }
+  return Node::null();
 }
 
 }  // namespace strings

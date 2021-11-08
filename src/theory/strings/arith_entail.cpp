@@ -724,7 +724,7 @@ struct ArithEntailConstantBoundUpperId
 typedef expr::Attribute<ArithEntailConstantBoundUpperId, Node>
     ArithEntailConstantBoundUpper;
 
-void ArithEntail::setConstantBoundCache(Node n, Node ret, bool isLower)
+void ArithEntail::setConstantBoundCache(TNode n, Node ret, bool isLower)
 {
   if (isLower)
   {
@@ -738,7 +738,7 @@ void ArithEntail::setConstantBoundCache(Node n, Node ret, bool isLower)
   }
 }
 
-Node ArithEntail::getConstantBoundCache(Node n, bool isLower)
+Node ArithEntail::getConstantBoundCache(TNode n, bool isLower)
 {
   if (isLower)
   {
@@ -759,7 +759,7 @@ Node ArithEntail::getConstantBoundCache(Node n, bool isLower)
   return Node::null();
 }
 
-Node ArithEntail::getConstantBound(Node a, bool isLower)
+Node ArithEntail::getConstantBound(TNode a, bool isLower) const
 {
   Assert(d_rr->rewrite(a) == a);
   Node ret = getConstantBoundCache(a, isLower);
@@ -848,7 +848,7 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
   return ret;
 }
 
-Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
+Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
 {
   Assert(s.getType().isStringLike());
   Node ret = getConstantBoundCache(s, isLower);

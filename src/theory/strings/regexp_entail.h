@@ -26,6 +26,7 @@
 #include "theory/strings/rewrites.h"
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
+#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
@@ -34,6 +35,7 @@ namespace strings {
 class RegExpEntail
 {
  public:
+   RegExpEntail(Rewriter* r);
   /** simple regular expression consume
    *
    * This method is called when we are rewriting a membership of the form
@@ -113,8 +115,12 @@ class RegExpEntail
    * Given regular expression n, if this method returns a non-null value c, then
    * x in n entails len( x ) = c.
    */
-  static Node getFixedLengthForRegexp(Node n);
+  static Node getFixedLengthForRegexp(TNode n);
 
+  /**
+   * Get constant bound on the strings that occur in regular expression n.
+   */
+  Node getConstantBoundLengthForRegexp(TNode n, bool isLower = true) const;
   /**
    * Returns true if we can show that the regular expression `r1` includes
    * the regular expression `r2` (i.e. `r1` matches a superset of sequences
@@ -129,6 +135,18 @@ class RegExpEntail
    * @return True if the inclusion can be shown, false otherwise
    */
   static bool regExpIncludes(Node r1, Node r2);
+ private:
+  /** Set bound cache */
+  static void setConstantBoundCache(TNode n, Node ret, bool isLower);
+  /** Get bound cache */
+  static Node getConstantBoundCache(TNode n, bool isLower);
+  /** The underlying rewriter */
+  Rewriter* d_rewriter;
+  /** Arithmetic entailment module */
+  ArithEntail d_aent;
+  /** Common constants */
+  Node d_zero;
+  Node d_one;
 };
 
 }  // namespace strings
