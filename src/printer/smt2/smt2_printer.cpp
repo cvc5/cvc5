@@ -698,7 +698,7 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
   break;
-  case kind::SET_UNIVERSE: out << "(as univset " << n.getType() << ")"; break;
+  case kind::SET_UNIVERSE: out << "(as set.universe " << n.getType() << ")"; break;
 
   // bags
   case kind::MK_BAG:
