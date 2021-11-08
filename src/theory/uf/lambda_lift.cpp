@@ -135,14 +135,6 @@ Node LambdaLift::getAssertionFor(TNode node)
     // whose witness form rewrites
     //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
   }
-  else if (k == WITNESS)
-  {
-    Assert(node[0].getNumChildren() == 1);
-
-    // The new assertion is the assumption that the body
-    // of the witness operator holds for the Skolem
-    assertion = node[1].substitute(node[0][0], skolem);
-  }
   return assertion;
 }
 

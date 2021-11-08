@@ -31,6 +31,7 @@ namespace theory {
 namespace uf {
 
 /**
+ * Module for doing various operations on lambdas, including lambda lifting.
  */
 class LambdaLift : protected EnvObj
 {
