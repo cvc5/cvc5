@@ -53,8 +53,8 @@ public:
  * for handling quantifier-free constraints in the theory of relations.
  *
  * In cvc5, relations are represented as sets of tuples. The theory of
- * relations includes constraints over operators, e.g. TRANSPOSE, JOIN and so
- * on, which apply to sets of tuples.
+ * relations includes constraints over operators, e.g. RELATION_TRANSPOSE,
+ * RELATION_JOIN and so on, which apply to sets of tuples.
  *
  * Since relations are a special case of sets, this class is implemented as an
  * extension of the theory of sets. That is, it shares many components of the

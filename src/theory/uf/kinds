@@ -15,10 +15,28 @@ parameterized APPLY_UF VARIABLE 1: "application of an uninterpreted function; fi
 
 typerule APPLY_UF ::cvc5::theory::uf::UfTypeRule
 
+operator FUNCTION_TYPE 2: "a function type"
+cardinality FUNCTION_TYPE \
+    "::cvc5::theory::uf::FunctionProperties::computeCardinality(%TYPE%)" \
+    "theory/uf/theory_uf_type_rules.h"
+well-founded FUNCTION_TYPE \
+    "::cvc5::theory::uf::FunctionProperties::isWellFounded(%TYPE%)" \
+    "::cvc5::theory::uf::FunctionProperties::mkGroundTerm(%TYPE%)" \
+    "theory/uf/theory_uf_type_rules.h"
+enumerator FUNCTION_TYPE \
+    ::cvc5::theory::uf::FunctionEnumerator \
+    "theory/uf/type_enumerator.h"
+
+operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
+
+typerule LAMBDA ::cvc5::theory::uf::LambdaTypeRule
+
 variable BOOLEAN_TERM_VARIABLE "Boolean term variable"
 
-parameterized PARTIAL_APPLY_UF APPLY_UF 1: "partial uninterpreted function application"
-typerule PARTIAL_APPLY_UF ::cvc5::theory::uf::PartialTypeRule
+variable LAMBDA_VARIABLE "Lambda variable, used for lazy lambda lifting"
+
+# lambda expressions that are isomorphic to array constants can be considered constants
+construle LAMBDA ::cvc5::theory::uf::LambdaTypeRule
 
 operator HO_APPLY 2 "higher-order (partial) function application"
 typerule HO_APPLY ::cvc5::theory::uf::HoApplyTypeRule

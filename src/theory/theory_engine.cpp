@@ -538,9 +538,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                                 << conflict[i] << endl;
         return false;
       }
-      if (conflict[i] != Rewriter::rewrite(conflict[i])) {
-        Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
-                                << conflict[i] << " vs " << Rewriter::rewrite(conflict[i]) << endl;
+      if (conflict[i] != rewrite(conflict[i]))
+      {
+        Debug("properConflict")
+            << "Bad conflict is due to atom not in normal form: " << conflict[i]
+            << " vs " << rewrite(conflict[i]) << endl;
         return false;
       }
     }
@@ -555,9 +557,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                               << conflict << endl;
       return false;
     }
-    if (conflict != Rewriter::rewrite(conflict)) {
-      Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
-                              << conflict << " vs " << Rewriter::rewrite(conflict) << endl;
+    if (conflict != rewrite(conflict))
+    {
+      Debug("properConflict")
+          << "Bad conflict is due to atom not in normal form: " << conflict
+          << " vs " << rewrite(conflict) << endl;
       return false;
     }
   }
@@ -905,7 +909,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
              && assertion[0].getKind() == kind::EQUAL));
 
   // Normalize
-  Node normalizedLiteral = Rewriter::rewrite(assertion);
+  Node normalizedLiteral = rewrite(assertion);
 
   // See if it rewrites false directly -> conflict
   if (normalizedLiteral.isConst()) {
@@ -1212,7 +1216,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
     }
 
     // Rewrite the equality
-    Node eqNormalized = Rewriter::rewrite(atoms[i]);
+    Node eqNormalized = rewrite(atoms[i]);
 
     Debug("theory::atoms") << "TheoryEngine::ensureLemmaAtoms(): " << eq
                            << " with nf " << eqNormalized << endl;
@@ -1721,7 +1725,7 @@ TrustNode TheoryEngine::getExplanation(
           continue;
         }
         // otherwise should hold by rewriting
-        Assert(Rewriter::rewrite(tConc) == Rewriter::rewrite(tExp));
+        Assert(rewrite(tConc) == rewrite(tExp));
         // tExp
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc

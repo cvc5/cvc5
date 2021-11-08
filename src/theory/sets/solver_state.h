@@ -138,8 +138,8 @@ class SolverState : public TheoryState
   bool hasMembers(Node r) const;
   /** Get binary operator index
    *
-   * This returns a mapping from binary operator kinds (INTERSECT, SETMINUS,
-   * UNION) to index of terms of that kind. Each kind k maps to a map whose
+   * This returns a mapping from binary operator kinds (INTERSECT, SET_MINUS,
+   * SET_UNION) to index of terms of that kind. Each kind k maps to a map whose
    * entries are of the form [r1 -> r2 -> t], where t is a term in the current
    * context, and t is of the form <k>(t1,t2) where t1=r1 and t2=r2 hold in the
    * current context. The term t is the representative of its congruence class.
@@ -220,7 +220,7 @@ class SolverState : public TheoryState
    */
   std::map<Node, std::map<Node, Node> > d_pol_mems[2];
   // -------------------------------- term indices
-  /** Term index for MEMBER
+  /** Term index for SET_MEMBER
    *
    * A term index maps equivalence class representatives to the representative
    * of their congruence class.
@@ -231,9 +231,9 @@ class SolverState : public TheoryState
    * class, and r1=t1 and r2=t2 hold in the current context.
    */
   std::map<Node, std::map<Node, Node> > d_members_index;
-  /** Term index for SINGLETON */
+  /** Term index for SET_SINGLETON */
   std::map<Node, Node> d_singleton_index;
-  /** Indices for the binary kinds INTERSECT, SETMINUS and UNION. */
+  /** Indices for the binary kinds INTERSECT, SET_MINUS and SET_UNION. */
   std::map<Kind, std::map<Node, std::map<Node, Node> > > d_bop_index;
   /** A list of comprehension sets */
   std::vector<Node> d_allCompSets;
