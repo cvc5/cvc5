@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find -q --decision=justification-old
+; COMMAND-LINE: --finite-model-find --decision=justification-old -q
 ; EXPECT: sat
 
 (set-logic HO_ALL)
