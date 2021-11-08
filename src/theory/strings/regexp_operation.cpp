@@ -1422,7 +1422,7 @@ Node RegExpOpr::removeIntersection(Node r) {
   Assert(!visited.find(r)->second.isNull());
   if (Trace.isOn("regexp-intersect"))
   {
-    Trace("regexp-intersect") << "Remove SET_INTERSECTION( " << mkString(r)
+    Trace("regexp-intersect") << "Remove INTERSECTION( " << mkString(r)
                               << " ) = " << mkString(visited[r]) << std::endl;
   }
   return visited[r];
