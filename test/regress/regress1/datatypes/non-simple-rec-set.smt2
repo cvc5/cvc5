@@ -6,5 +6,5 @@
 ))
 (declare-fun a () T)
 (assert (not ((_ is Emp) a)))
-(assert (= (s a) (singleton a)))
+(assert (= (s a) (set.singleton a)))
 (check-sat)
