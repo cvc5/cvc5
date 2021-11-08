@@ -32,14 +32,13 @@
 #include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
-#include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
-#include "smt/dump.h"
+#include "util/didyoumean.h"
 
 namespace cvc5 {
 namespace options {
@@ -76,8 +75,6 @@ void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
   Debug.setStream(me);
   Warning.setStream(me);
   CVC5Message.setStream(me);
-  Notice.setStream(me);
-  Chat.setStream(me);
   Trace.setStream(me);
 }
 
@@ -136,21 +133,9 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&cvc5::null_os);
     TraceChannel.setStream(&cvc5::null_os);
-    NoticeChannel.setStream(&cvc5::null_os);
-    ChatChannel.setStream(&cvc5::null_os);
     MessageChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
   } else {
-    if(value < 2) {
-      ChatChannel.setStream(&cvc5::null_os);
-    } else {
-      ChatChannel.setStream(&std::cout);
-    }
-    if(value < 1) {
-      NoticeChannel.setStream(&cvc5::null_os);
-    } else {
-      NoticeChannel.setStream(&std::cout);
-    }
     if(value < 0) {
       MessageChannel.setStream(&cvc5::null_os);
       WarningChannel.setStream(&cvc5::null_os);
@@ -267,16 +252,16 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
 void OptionsHandler::enableOutputTag(const std::string& flag,
                                      const std::string& optarg)
 {
-  d_options->base.outputTagHolder.set(
-      static_cast<size_t>(stringToOutputTag(optarg)));
+  size_t tagid = static_cast<size_t>(stringToOutputTag(optarg));
+  Assert(d_options->base.outputTagHolder.size() > tagid)
+      << "Output tag is larger than the bitset that holds it.";
+  d_options->base.outputTagHolder.set(tagid);
 }
 
 void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 {
   Debug.getStream() << Command::printsuccess(value);
   Trace.getStream() << Command::printsuccess(value);
-  Notice.getStream() << Command::printsuccess(value);
-  Chat.getStream() << Command::printsuccess(value);
   CVC5Message.getStream() << Command::printsuccess(value);
   Warning.getStream() << Command::printsuccess(value);
   *d_options->base.out << Command::printsuccess(value);
@@ -286,33 +271,6 @@ void OptionsHandler::setResourceWeight(const std::string& flag,
                                        const std::string& optarg)
 {
   d_options->base.resourceWeightHolder.emplace_back(optarg);
-}
-
-void OptionsHandler::abcEnabledBuild(const std::string& flag, bool value)
-{
-#ifndef CVC5_USE_ABC
-  if(value) {
-    std::stringstream ss;
-    ss << "option `" << flag
-       << "' requires an abc-enabled build of cvc5; this binary was not built "
-          "with abc support";
-    throw OptionException(ss.str());
-  }
-#endif /* CVC5_USE_ABC */
-}
-
-void OptionsHandler::abcEnabledBuild(const std::string& flag,
-                                     const std::string& value)
-{
-#ifndef CVC5_USE_ABC
-  if(!value.empty()) {
-    std::stringstream ss;
-    ss << "option `" << flag
-       << "' requires an abc-enabled build of cvc5; this binary was not built "
-          "with abc support";
-    throw OptionException(ss.str());
-  }
-#endif /* CVC5_USE_ABC */
 }
 
 void OptionsHandler::checkBvSatSolver(const std::string& flag, SatSolverMode m)
@@ -386,8 +344,6 @@ void OptionsHandler::setDefaultExprDepth(const std::string& flag, int depth)
 {
   Debug.getStream() << expr::ExprSetDepth(depth);
   Trace.getStream() << expr::ExprSetDepth(depth);
-  Notice.getStream() << expr::ExprSetDepth(depth);
-  Chat.getStream() << expr::ExprSetDepth(depth);
   CVC5Message.getStream() << expr::ExprSetDepth(depth);
   Warning.getStream() << expr::ExprSetDepth(depth);
 }
@@ -396,11 +352,8 @@ void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
 {
   Debug.getStream() << expr::ExprDag(dag);
   Trace.getStream() << expr::ExprDag(dag);
-  Notice.getStream() << expr::ExprDag(dag);
-  Chat.getStream() << expr::ExprDag(dag);
   CVC5Message.getStream() << expr::ExprDag(dag);
   Warning.getStream() << expr::ExprDag(dag);
-  Dump.getStream() << expr::ExprDag(dag);
 }
 
 static void print_config(const char* str, std::string config)
@@ -453,7 +406,6 @@ void OptionsHandler::showConfiguration(const std::string& flag)
 
   std::cout << std::endl;
 
-  print_config_cond("abc", Configuration::isBuiltWithAbc());
   print_config_cond("cln", Configuration::isBuiltWithCln());
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
@@ -499,28 +451,6 @@ void OptionsHandler::showTraceTags(const std::string& flag)
   }
   printTags(Configuration::getTraceTags());
   std::exit(0);
-}
-
-void OptionsHandler::setDumpMode(const std::string& flag,
-                                 const std::string& optarg)
-{
-#ifdef CVC5_DUMPING
-  Dump.setDumpFromString(optarg);
-#else  /* CVC5_DUMPING */
-  throw OptionException(
-      "The dumping feature was disabled in this build of cvc5.");
-#endif /* CVC5_DUMPING */
-}
-
-void OptionsHandler::setDumpStream(const std::string& flag,
-                                   const ManagedOut& mo)
-{
-#ifdef CVC5_DUMPING
-  Dump.setStream(mo);
-#else  /* CVC5_DUMPING */
-  throw OptionException(
-      "The dumping feature was disabled in this build of cvc5.");
-#endif /* CVC5_DUMPING */
 }
 
 }  // namespace options

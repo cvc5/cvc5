@@ -102,7 +102,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         newn = n;
       }else if(n.getNumChildren() > 0){
         newn = applyReduceVariablesInItes(n);
-        newn = Rewriter::rewrite(newn);
+        newn = rewrite(newn);
         Assert(Polynomial::isMember(newn));
       }else{
         newn = n;
@@ -385,7 +385,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   //Node n = 
   Node n = applySubstitutions(binor);
   if(n != binor){
-    n = Rewriter::rewrite(n);
+    n = rewrite(n);
 
     if(!(n.getKind() == kind::OR &&
 	 n.getNumChildren() == 2 &&

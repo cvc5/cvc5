@@ -16,6 +16,7 @@
 #include "theory/arith/nl/cad_solver.h"
 
 #include "expr/skolem_manager.h"
+#include "smt/env.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/nl_model.h"
@@ -29,6 +30,7 @@ namespace nl {
 
 CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
     :
+      EnvObj(env),
 #ifdef CVC5_POLY_IMP
       d_CAC(env),
 #endif
@@ -38,8 +40,7 @@ CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  d_ranVariable = sm->mkDummySkolem(
-      "__z", nm->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
+  d_ranVariable = sm->mkDummySkolem("__z", nm->realType(), "");
 #ifdef CVC5_POLY_IMP
   if (env.isTheoryProofProducing())
   {
@@ -73,7 +74,7 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
   d_CAC.computeVariableOrdering();
   d_CAC.retrieveInitialAssignment(d_model, d_ranVariable);
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+  warning() << "Tried to use CadSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
 #endif
@@ -105,7 +106,7 @@ void CadSolver::checkFull()
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, proof);
   }
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+  warning() << "Tried to use CadSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
 #endif
@@ -155,7 +156,7 @@ void CadSolver::checkPartial()
     }
   }
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+  warning() << "Tried to use CadSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
 #endif
@@ -200,7 +201,7 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   assertions.clear();
   return true;
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+  warning() << "Tried to use CadSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
   return false;

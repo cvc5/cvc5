@@ -30,6 +30,7 @@
 #include "context/cdo.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/theory_id.h"
 #include "theory/uf/equality_engine_iterator.h"
 #include "theory/uf/equality_engine_notify.h"
@@ -52,7 +53,7 @@ class ProofEqEngine;
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj {
+class EqualityEngine : public context::ContextNotifyObj, protected EnvObj {
 
   friend class EqClassesIterator;
   friend class EqClassIterator;
@@ -130,9 +131,6 @@ class EqualityEngine : public context::ContextNotifyObj {
   };/* struct EqualityEngine::statistics */
 
  private:
-  /** The environment we are using */
-  Env& d_env;
-
   /** The context we are using */
   context::Context* d_context;
 

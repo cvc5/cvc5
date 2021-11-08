@@ -106,8 +106,8 @@ EqualityEngine::EqualityEngine(Env& env,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
     : ContextNotifyObj(c),
+      EnvObj(env),
       d_masterEqualityEngine(0),
-      d_env(env),
       d_context(c),
       d_done(c, false),
       d_notify(&s_notifyNone),
@@ -137,9 +137,9 @@ EqualityEngine::EqualityEngine(Env& env,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
     : ContextNotifyObj(c),
+      EnvObj(env),
       d_masterEqualityEngine(nullptr),
       d_proofEqualityEngine(nullptr),
-      d_env(env),
       d_context(c),
       d_done(c, false),
       d_notify(&s_notifyNone),
@@ -1392,9 +1392,9 @@ void EqualityEngine::getExplanation(
                   || (d_done && isConstant(t1Id) && isConstant(t2Id));
 
   if (!canExplain) {
-    Warning() << "Can't explain equality:" << std::endl;
-    Warning() << d_nodes[t1Id] << " with find " << d_nodes[getEqualityNode(t1Id).getFind()] << std::endl;
-    Warning() << d_nodes[t2Id] << " with find " << d_nodes[getEqualityNode(t2Id).getFind()] << std::endl;
+    warning() << "Can't explain equality:" << std::endl;
+    warning() << d_nodes[t1Id] << " with find " << d_nodes[getEqualityNode(t1Id).getFind()] << std::endl;
+    warning() << d_nodes[t2Id] << " with find " << d_nodes[getEqualityNode(t2Id).getFind()] << std::endl;
   }
   Assert(canExplain);
 #endif

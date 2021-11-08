@@ -173,8 +173,11 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
   }
   if (n[1].getKind() == MK_BAG && n[0] == n[1][0])
   {
-    // (bag.count x (mkBag x c) = c
-    return BagsRewriteResponse(n[1][1], Rewrite::COUNT_MK_BAG);
+    // (bag.count x (mkBag x c)) = (ite (>= c 1) c 0)
+    Node c = n[1][1];
+    Node geq = d_nm->mkNode(GEQ, c, d_one);
+    Node ite = d_nm->mkNode(ITE, geq, c, d_zero);
+    return BagsRewriteResponse(ite, Rewrite::COUNT_MK_BAG);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
@@ -458,9 +461,9 @@ BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
 {
   Assert(n.getKind() == BAG_FROM_SET);
-  if (n[0].getKind() == SINGLETON)
+  if (n[0].getKind() == SET_SINGLETON)
   {
-    // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
+    // (bag.from_set (set.singleton (singleton_op Int) x)) = (mkBag x 1)
     TypeNode type = n[0].getType().getSetElementType();
     Node bag = d_nm->mkBag(type, n[0][0], d_one);
     return BagsRewriteResponse(bag, Rewrite::FROM_SINGLETON);

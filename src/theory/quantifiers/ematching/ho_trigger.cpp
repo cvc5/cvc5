@@ -205,7 +205,7 @@ uint64_t HigherOrderTrigger::addInstantiations()
 
 bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  if (options::hoMatching())
+  if (options().quantifiers.hoMatching)
   {
     // get substitution corresponding to m
     std::vector<TNode> vars;
@@ -342,7 +342,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
               // value at this argument position
               d_arg_vector[vnum][index].push_back(bv_at_index);
               d_arg_vector[vnum][index].push_back(itf->second);
-              if (!options::hoMatchingVarArgPriority())
+              if (!options().quantifiers.hoMatchingVarArgPriority)
               {
                 std::reverse(d_arg_vector[vnum][index].begin(),
                              d_arg_vector[vnum][index].end());

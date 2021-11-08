@@ -36,6 +36,11 @@ class SortTest
     d_solver = new Solver();
   }
 
+  @AfterEach void tearDown()
+  {
+    d_solver.close();
+  }
+
   Sort create_datatype_sort() throws CVC5ApiException
   {
     DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");

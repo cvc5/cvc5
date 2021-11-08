@@ -377,7 +377,12 @@ enum Kind : int32_t
    */
   MULT,
   /**
-   * Operator for Integer AND
+   * Operator for bit-wise AND over integers, parameterized by a (positive)
+   * bitwidth k.
+   *
+   * ((_ iand k) i1 i2) is equivalent to:
+   * (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
+   * for all integers i1, i2.
    *
    * Parameters:
    *   - 1: Size of the bit-vector that determines the semantics of the IAND
@@ -385,8 +390,8 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
    *
-   * Apply integer conversion to bit-vector.
-
+   * Apply integer and.
+   *
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
@@ -398,15 +403,16 @@ enum Kind : int32_t
    */
   IAND,
   /**
-   * Operator for raising 2 to a non-negative integer  power
+   * Operator for raising 2 to a non-negative integer power.
    *
    * Create with:
    *   - `Solver::mkOp(Kind kind) const`
    *
-
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
+   *
+   * Apply 2 to the power operator.
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
@@ -2111,7 +2117,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkEmptySet(const Sort& sort) const`
    */
-  EMPTYSET,
+  SET_EMPTY,
   /**
    * Set union.
    *
@@ -2122,7 +2128,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION,
+  SET_UNION,
   /**
    * Set intersection.
    *
@@ -2133,7 +2139,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INTERSECTION,
+  SET_INTERSECTION,
   /**
    * Set subtraction.
    *
@@ -2144,7 +2150,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SETMINUS,
+  SET_MINUS,
   /**
    * Subset predicate.
    *
@@ -2155,7 +2161,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SUBSET,
+  SET_SUBSET,
   /**
    * Set membership predicate.
    *
@@ -2166,7 +2172,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  MEMBER,
+  SET_MEMBER,
   /**
    * Construct a singleton set from an element given as a parameter.
    * The returned set has same type of the element.
@@ -2177,7 +2183,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  SINGLETON,
+  SET_SINGLETON,
   /**
    * The set obtained by inserting elements;
    *
@@ -2191,7 +2197,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INSERT,
+  SET_INSERT,
   /**
    * Set cardinality.
    *
@@ -2201,7 +2207,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  CARD,
+  SET_CARD,
   /**
    * Set complement with respect to finite universe.
    *
@@ -2211,82 +2217,19 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  COMPLEMENT,
+  SET_COMPLEMENT,
   /**
    * Finite universe set.
    * All set variables must be interpreted as subsets of it.
    *
-   * Note that UNIVERSE_SET is considered a special symbol of the theory of
+   * Note that SET_UNIVERSE is considered a special symbol of the theory of
    * sets and is not considered as a set value,
    * i.e., `Term::isSetValue() const` will return false.
    *
    * Create with:
    *   - `Solver::mkUniverseSet(const Sort& sort) const`
    */
-  UNIVERSE_SET,
-  /**
-   * Set join.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  JOIN,
-  /**
-   * Set cartesian product.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  PRODUCT,
-  /**
-   * Set transpose.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  TRANSPOSE,
-  /**
-   * Set transitive closure.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  TCLOSURE,
-  /**
-   * Set join image.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  JOIN_IMAGE,
-  /**
-   * Set identity.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  IDEN,
+  SET_UNIVERSE,
   /**
    * Set comprehension
    * A set comprehension is specified by a bound variable list x1 ... xn,
@@ -2310,7 +2253,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  COMPREHENSION,
+  SET_COMPREHENSION,
   /**
    * Returns an element from a given set.
    * If a set A = {x}, then the term (choose A) is equivalent to the term x.
@@ -2324,7 +2267,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  CHOOSE,
+  SET_CHOOSE,
   /**
    * Set is_singleton predicate.
    *
@@ -2334,8 +2277,76 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  IS_SINGLETON,
+  SET_IS_SINGLETON,
+
+  /* Relations ------------------------------------------------------------- */
+
+  /**
+   * Set join.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_JOIN,
+  /**
+   * Set cartesian product.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_PRODUCT,
+  /**
+   * Set transpose.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_TRANSPOSE,
+  /**
+   * Set transitive closure.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_TCLOSURE,
+  /**
+   * Set join image.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_JOIN_IMAGE,
+  /**
+   * Set identity.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_IDEN,
+
   /* Bags ------------------------------------------------------------------ */
+
   /**
    * Empty bag constant.
    *

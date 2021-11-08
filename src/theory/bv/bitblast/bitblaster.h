@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "prop/bv_sat_solver_notify.h"
 #include "prop/cnf_stream.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver.h"
@@ -101,20 +100,6 @@ class TBitblaster
    */
   Node getTermModel(TNode node, bool fullModel);
   void invalidateModelCache();
-};
-
-class MinisatEmptyNotify : public prop::BVSatSolverNotify
-{
- public:
-  MinisatEmptyNotify() {}
-  bool notify(prop::SatLiteral lit) override { return true; }
-  void notify(prop::SatClause& clause) override {}
-  void spendResource(Resource r) override
-  {
-    smt::currentResourceManager()->spendResource(r);
-  }
-
-  void safePoint(Resource r) override {}
 };
 
 // Bitblaster implementation
@@ -212,58 +197,6 @@ template <class T>
 void TBitblaster<T>::invalidateModelCache()
 {
   d_modelCache.clear();
-}
-
-template <class T>
-Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
-{
-  if (d_modelCache.find(node) != d_modelCache.end()) return d_modelCache[node];
-
-  if (node.isConst()) return node;
-
-  Node value = getModelFromSatSolver(node, false);
-  if (!value.isNull())
-  {
-    Debug("bv-equality-status")
-        << "TLazyBitblaster::getTermModel from SatSolver" << node << " => "
-        << value << "\n";
-    d_modelCache[node] = value;
-    Assert(value.isConst());
-    return value;
-  }
-
-  if (Theory::isLeafOf(node, theory::THEORY_BV))
-  {
-    // if it is a leaf may ask for fullModel
-    value = getModelFromSatSolver(node, true);
-    Debug("bv-equality-status") << "TLazyBitblaster::getTermModel from VarValue"
-                                << node << " => " << value << "\n";
-    Assert((fullModel && !value.isNull() && value.isConst()) || !fullModel);
-    if (!value.isNull())
-    {
-      d_modelCache[node] = value;
-    }
-    return value;
-  }
-  Assert(node.getType().isBitVector());
-
-  NodeBuilder nb(node.getKind());
-  if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
-  {
-    nb << node.getOperator();
-  }
-
-  for (unsigned i = 0; i < node.getNumChildren(); ++i)
-  {
-    nb << getTermModel(node[i], fullModel);
-  }
-  value = nb;
-  value = Rewriter::rewrite(value);
-  Assert(value.isConst());
-  d_modelCache[node] = value;
-  Debug("bv-term-model") << "TLazyBitblaster::getTermModel Building Value"
-                         << node << " => " << value << "\n";
-  return value;
 }
 
 }  // namespace bv

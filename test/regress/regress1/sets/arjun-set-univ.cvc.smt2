@@ -6,11 +6,11 @@
 (declare-fun x () (Set Bool))
 (declare-fun y () (Set Bool))
 (declare-fun z () (Set Bool))
-(assert (= x (singleton true)))
-(assert (= y (singleton false)))
+(assert (= x (set.singleton true)))
+(assert (= y (set.singleton false)))
 (push 1)
 
-(assert (= z (complement y)))
+(assert (= z (set.complement y)))
 
 (check-sat)
 

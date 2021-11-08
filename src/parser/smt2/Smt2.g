@@ -1305,7 +1305,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
       }
       expr = MK_TERM(kind, args);
     }
-  | LPAREN_TOK COMPREHENSION_TOK
+  | LPAREN_TOK SET_COMPREHENSION_TOK
     { PARSER_STATE->pushScope(); }
     boundVarList[bvl]
     {
@@ -1314,7 +1314,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
     term[f, f2] { args.push_back(f); }
     term[f, f2] {
       args.push_back(f);
-      expr = MK_TERM(api::COMPREHENSION, args);
+      expr = MK_TERM(api::SET_COMPREHENSION, args);
     }
     RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
@@ -1547,7 +1547,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
  * as (3).
  * - Overloaded non-parametric constructors (as C T) return the appropriate
  * expression, analogous to the parametric cases above.
- * - For other ascripted nullary constants like (as emptyset (Set T)),
+ * - For other ascripted nullary constants like (as set.empty (Set T)),
  * (as sep.nil T), we return the appropriate expression (3).
  * - For array constant specifications (as const (Array T1 T2)), we return (1)
  * and (4), where kind is set to STORE_ALL and type is set to (Array T1 T2),
@@ -1690,8 +1690,7 @@ identifier[cvc5::ParseOp& p]
  */
 termAtomic[cvc5::api::Term& atomTerm]
 @init {
-  cvc5::api::Sort type;
-  cvc5::api::Sort type2;
+  cvc5::api::Sort t;
   std::string s;
   std::vector<uint64_t> numerals;
 }
@@ -1715,6 +1714,11 @@ termAtomic[cvc5::api::Term& atomTerm]
       {
         std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
         atomTerm = PARSER_STATE->mkCharConstant(hexStr);
+      }
+    | FMF_CARD_TOK sortSymbol[t,CHECK_DECLARED] INTEGER_LITERAL
+      {
+        uint32_t ubound = AntlrInput::tokenToUnsigned($INTEGER_LITERAL);
+        atomTerm = SOLVER->mkCardinalityConstraint(t, ubound);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -2220,7 +2224,7 @@ DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'decla
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'par';
-COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'comprehension';
+SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'set.comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'is';
 UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'update';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'match';
@@ -2271,6 +2275,7 @@ FORALL_TOK        : 'forall';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
+FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
