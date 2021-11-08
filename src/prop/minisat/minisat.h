@@ -17,8 +17,9 @@
 
 #pragma once
 
-#include "prop/sat_solver.h"
 #include "prop/minisat/simp/SimpSolver.h"
+#include "prop/sat_solver.h"
+#include "smt/env_obj.h"
 #include "util/statistics_registry.h"
 
 namespace cvc5 {
@@ -32,10 +33,10 @@ void toSatClause(const typename Solver::TClause& minisat_cl,
 
 namespace prop {
 
-class MinisatSatSolver : public CDCLTSatSolverInterface
+class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
 {
  public:
-  MinisatSatSolver(StatisticsRegistry& registry);
+  MinisatSatSolver(Env& env, StatisticsRegistry& registry);
   ~MinisatSatSolver() override;
 
   static SatVariable     toSatVariable(Minisat::Var var);
