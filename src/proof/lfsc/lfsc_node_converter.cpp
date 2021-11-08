@@ -313,7 +313,7 @@ Node LfscNodeConverter::postConvert(Node n)
     Node ef = getSymbolInternal(
         k,
         etype,
-        k == SET_EMPTY ? "emptyset"
+        k == SET_EMPTY ? "set.empty"
                        : (k == SET_UNIVERSE ? "univset" : "emptybag"));
     return nm->mkNode(APPLY_UF, ef, t);
   }
