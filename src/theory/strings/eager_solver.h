@@ -60,17 +60,22 @@ class EagerSolver : protected EnvObj
    * for some eqc that is currently equal to t. Another example is:
    *   t := (str.in.re z (re.++ r s)), concat := (re.++ r s), eqc
    * for some eqc that is currently equal to z.
+   *
+   * Returns true if we are in conflict, that is, a conflict was sent via the
+   * inference manager.
    */
-  void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
+  bool addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
   /**
    * Check for conflict when merging equivalence classes with the given info,
-   * return the node corresponding to the conflict if so.
+   * return true if we are in conflict.
    */
-  Node checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb);
-  /** add arithmetic bound */
-  Node addArithmeticBound(EqcInfo* ea, Node t, bool isLower);
+  bool checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb);
+  /** add endpoint constant, return true if in conflict */
+  bool addEndpointConst(EqcInfo* e, Node t, Node c, bool isSuf);
+  /** add arithmetic bound, return true if in conflict */
+  bool addArithmeticBound(EqcInfo* e, Node t, bool isLower);
   /** get bound for length term or regular expression membership */
-  Node getBoundForLength(Node t, bool isLower);
+  Node getBoundForLength(Node t, bool isLower) const;
   /** Reference to the solver state */
   SolverState& d_state;
   /** Reference to the term registry */

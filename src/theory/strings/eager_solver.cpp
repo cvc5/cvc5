@@ -101,13 +101,8 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   // always create it if e2 was non-null
   EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
   // check for conflict
-  Node conf = checkForMergeConflict(t1, t2, e1, e2);
-  if (!conf.isNull())
+  if (checkForMergeConflict(t1, t2, e1, e2))
   {
-    InferenceId id = t1.getType().isStringLike()
-                         ? InferenceId::STRINGS_PREFIX_CONFLICT
-                         : InferenceId::STRINGS_ARITH_BOUND_CONFLICT;
-    d_state.setPendingMergeConflict(conf, id);
     return;
   }
   // add information from e2 to e1
@@ -139,7 +134,7 @@ void EagerSolver::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
   }
 }
 
-void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
+bool EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 {
   Assert(concat.getKind() == STRING_CONCAT
          || concat.getKind() == REGEXP_CONCAT);
@@ -158,18 +153,16 @@ void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
       Trace("strings-eager-pconf-debug")
           << "New term: " << concat << " for " << t << " with prefix " << c
           << " (" << (r == 1) << ")" << std::endl;
-      Node conf = ei->addEndpointConst(t, c, r == 1);
-      if (!conf.isNull())
+      if (addEndpointConst(ei, t, c, r == 1))
       {
-        d_state.setPendingMergeConflict(conf,
-                                        InferenceId::STRINGS_PREFIX_CONFLICT);
-        return;
+        return true;
       }
     }
   }
+  return false;
 }
 
-Node EagerSolver::checkForMergeConflict(Node a,
+bool EagerSolver::checkForMergeConflict(Node a,
                                         Node b,
                                         EqcInfo* ea,
                                         EqcInfo* eb)
@@ -183,25 +176,25 @@ Node EagerSolver::checkForMergeConflict(Node a,
     Node n = i == 0 ? eb->d_firstBound.get() : eb->d_secondBound.get();
     if (!n.isNull())
     {
-      Node conf;
+      bool isConflict;
       if (a.getType().isStringLike())
       {
-        conf = ea->addEndpointConst(n, Node::null(), i == 1);
+        isConflict = addEndpointConst(ea, n, Node::null(), i == 1);
       }
       else
       {
         Trace("strings-eager-aconf-debug")
             << "addArithmeticBound " << n << " into " << a << " from " << b
             << std::endl;
-        conf = addArithmeticBound(ea, n, i == 0);
+        isConflict = addArithmeticBound(ea, n, i == 0);
       }
-      if (!conf.isNull())
+      if (isConflict)
       {
-        return conf;
+        return true;
       }
     }
   }
-  return Node::null();
+  return false;
 }
 
 void EagerSolver::notifyFact(TNode atom,
@@ -216,7 +209,11 @@ void EagerSolver::notifyFact(TNode atom,
       eq::EqualityEngine* ee = d_state.getEqualityEngine();
       Node eqc = ee->getRepresentative(atom[0]);
       // add prefix
-      addEndpointsToEqcInfo(atom, atom[1], eqc);
+      if (addEndpointsToEqcInfo(atom, atom[1], eqc))
+      {
+        // conflict
+        return;
+      }
       // also infer length constraints if the first is a variable
       if (atom[0].isVar())
       {
@@ -238,11 +235,8 @@ void EagerSolver::notifyFact(TNode atom,
               lenTerm = ee->getRepresentative(lenTerm);
               blenEqc = d_state.getOrMakeEqcInfo(lenTerm);
             }
-            Node conf = addArithmeticBound(blenEqc, atom, isLower);
-            if (!conf.isNull())
+            if (addArithmeticBound(blenEqc, atom, isLower))
             {
-              d_state.setPendingMergeConflict(
-                  conf, InferenceId::STRINGS_ARITH_BOUND_CONFLICT);
               return;
             }
           }
@@ -252,7 +246,21 @@ void EagerSolver::notifyFact(TNode atom,
   }
 }
 
-Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
+bool EagerSolver::addEndpointConst(EqcInfo* e, Node t, Node c, bool isSuf)
+{
+  Assert(e != nullptr);
+  Assert(!t.isNull());
+  Node conf = e->addEndpointConst(t, c, isSuf);
+  if (!conf.isNull())
+  {
+    d_state.setPendingMergeConflict(conf,
+                                    InferenceId::STRINGS_PREFIX_CONFLICT);
+    return true;
+  }
+  return false;
+}
+
+bool EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 {
   Assert(e != nullptr);
   Assert(!t.isNull());
@@ -271,7 +279,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
     if (prevbr == br || (br < prevbr) == isLower)
     {
       // subsumed
-      return Node::null();
+      return false;
     }
   }
   Node prevo = isLower ? e->d_secondBound : e->d_firstBound;
@@ -289,7 +297,9 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
       Node ret = EqcInfo::mkMergeConflict(t, prevo, true);
       Trace("strings-eager-aconf")
           << "String: eager arithmetic bound conflict: " << ret << std::endl;
-      return ret;
+              d_state.setPendingMergeConflict(
+                  ret, InferenceId::STRINGS_ARITH_BOUND_CONFLICT);
+      return true;
     }
   }
   if (isLower)
@@ -300,10 +310,10 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   {
     e->d_secondBound = t;
   }
-  return Node::null();
+  return false;
 }
 
-Node EagerSolver::getBoundForLength(Node t, bool isLower)
+Node EagerSolver::getBoundForLength(Node t, bool isLower) const
 {
   if (t.getKind() == STRING_IN_REGEXP)
   {
