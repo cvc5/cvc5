@@ -4,5 +4,5 @@
 (declare-fun b () (Set (Tuple Int Int)))
 (declare-fun c () Int)
 (declare-fun d () (Tuple Int Int))
-(assert (and (= a (singleton (tuple (+ c 1) 1))) (= (tclosure b) (join a a))))
+(assert (and (= a (set.singleton (tuple (+ c 1) 1))) (= (rel.tclosure b) (rel.join a a))))
 (check-sat)

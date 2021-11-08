@@ -941,11 +941,11 @@ TEST_F(TestApiBlackTerm, getSet)
   Term i2 = d_solver.mkInteger(7);
 
   Term s1 = d_solver.mkEmptySet(s);
-  Term s2 = d_solver.mkTerm(Kind::SINGLETON, i1);
-  Term s3 = d_solver.mkTerm(Kind::SINGLETON, i1);
-  Term s4 = d_solver.mkTerm(Kind::SINGLETON, i2);
-  Term s5 =
-      d_solver.mkTerm(Kind::UNION, s2, d_solver.mkTerm(Kind::UNION, s3, s4));
+  Term s2 = d_solver.mkTerm(Kind::SET_SINGLETON, i1);
+  Term s3 = d_solver.mkTerm(Kind::SET_SINGLETON, i1);
+  Term s4 = d_solver.mkTerm(Kind::SET_SINGLETON, i2);
+  Term s5 = d_solver.mkTerm(
+      Kind::SET_UNION, s2, d_solver.mkTerm(Kind::SET_UNION, s3, s4));
 
   ASSERT_TRUE(s1.isSetValue());
   ASSERT_TRUE(s2.isSetValue());
