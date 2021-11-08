@@ -147,23 +147,6 @@ Node LambdaLift::getSkolemFor(TNode node)
           "a function introduced due to term-level lambda removal");
     }
   }
-  else if (k == WITNESS)
-  {
-    // If a witness choice
-    //   For details on this operator, see
-    //   http://planetmath.org/hilbertsvarepsilonoperator.
-    if (!expr::hasFreeVar(node))
-    {
-      // Make the skolem to witness the choice, which notice is handled
-      // as a special case within SkolemManager::mkPurifySkolem.
-      NodeManager* nm = NodeManager::currentNM();
-      SkolemManager* sm = nm->getSkolemManager();
-      skolem = sm->mkPurifySkolem(
-          node,
-          "witnessK",
-          "a skolem introduced due to term-level witness removal");
-    }
-  }
   return skolem;
 }
 
