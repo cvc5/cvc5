@@ -1123,7 +1123,7 @@ bool AletheProofPostprocessCallback::update(Node res,
              && addAletheStep(AletheRule::ITE_POS2, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(
                  AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
-             && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
+             && addAletheStep(AletheRule::REORDERING, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
                  AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
