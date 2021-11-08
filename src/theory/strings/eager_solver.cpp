@@ -24,10 +24,12 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(Env& env,
-                         SolverState& state,
-                         TermRegistry& treg)
-    : EnvObj(env), d_state(state), d_treg(treg), d_aent(env.getRewriter()), d_rent(env.getRewriter())
+EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
+    : EnvObj(env),
+      d_state(state),
+      d_treg(treg),
+      d_aent(env.getRewriter()),
+      d_rent(env.getRewriter())
 {
 }
 
@@ -219,15 +221,16 @@ void EagerSolver::notifyFact(TNode atom,
       if (atom[0].isVar())
       {
         EqcInfo* blenEqc = nullptr;
-        for (size_t i=0; i<2; i++)
+        for (size_t i = 0; i < 2; i++)
         {
-          bool isLower = (i==0);
+          bool isLower = (i == 0);
           Node b = d_rent.getConstantBoundLengthForRegexp(atom[1], isLower);
           if (!b.isNull())
           {
             if (blenEqc == nullptr)
             {
-              Node lenTerm = NodeManager::currentNM()->mkNode(STRING_LENGTH, atom[0]);
+              Node lenTerm =
+                  NodeManager::currentNM()->mkNode(STRING_LENGTH, atom[0]);
               if (!ee->hasTerm(lenTerm))
               {
                 break;
@@ -296,7 +299,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 
 Node EagerSolver::getBoundForLength(Node t, bool isLower)
 {
-  if (t.getKind()==STRING_IN_REGEXP)
+  if (t.getKind() == STRING_IN_REGEXP)
   {
     return d_rent.getConstantBoundLengthForRegexp(t[1]);
   }
