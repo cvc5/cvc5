@@ -1204,18 +1204,18 @@ bool AletheProofPostprocessCallback::update(Node res,
       // ======== Congruence
       // In the case that the kind of the function symbol ?f is forall or
       // exists, the cong rule needs to be converted into a bind rule. The first
-      // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+      // n children will be refl rules, e.g. (= (v0 Int) (w0 Int)).
       //
       //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
       //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
       //
       //  ----- REFL ... ----- REFL
-      //   VP1            VPn         P2 ... Pn
+      //   VP1            VPn             P2
       //  --------------------------------------- bind,
       //                                          ((:= (v1 A1) w1) ...
       //                                          (:= (vn An) wn))
       //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-      //   (forall ((w1 B1)...(wn Bn)) s2)))*
+      //   (forall ((w1 B1)...(wn Bn)) s2)))**
       //
       //  VPi: (cl (= vi wi))*
       //
@@ -1245,7 +1245,7 @@ bool AletheProofPostprocessCallback::update(Node res,
           vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
           success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
         }
-        vpis.insert(vpis.end(), children.begin() + 1, children.end());
+        vpis.push_back(children[1]);
         return success
                && addAletheStep(AletheRule::ANCHOR_BIND,
                                 res,
