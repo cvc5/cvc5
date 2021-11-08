@@ -64,14 +64,14 @@ class TheorySetsPrivate : protected EnvObj
   void fullEffortReset();
   /**
    * This implements an inference schema based on the "downwards closure" of
-   * set membership. This roughly corresponds to the rules UNION DOWN I and II,
-   * INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for set
-   * difference.
+   * set membership. This roughly corresponds to the rules SET_UNION DOWN I and
+   * II, INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for
+   * set difference.
    */
   void checkDownwardsClosure();
   /**
    * This implements an inference schema based on the "upwards closure" of
-   * set membership. This roughly corresponds to the rules UNION UP, INTER
+   * set membership. This roughly corresponds to the rules SET_UNION UP, INTER
    * UP I and II from Bansal et al IJCAR 2016, as well as rules for set
    * difference.
    */

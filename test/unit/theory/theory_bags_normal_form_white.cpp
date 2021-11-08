@@ -511,7 +511,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, from_set)
   ASSERT_EQ(output2, NormalForm::evaluate(input2));
 
   // for normal sets, the first node is the largest, not smallest
-  Node normalSet = d_nodeManager->mkNode(UNION, ySingleton, xSingleton);
+  Node normalSet = d_nodeManager->mkNode(SET_UNION, ySingleton, xSingleton);
   Node input3 = d_nodeManager->mkNode(BAG_FROM_SET, normalSet);
   Node output3 = d_nodeManager->mkNode(UNION_DISJOINT, x_1, y_1);
   ASSERT_EQ(output3, NormalForm::evaluate(input3));
@@ -552,7 +552,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
   // for normal sets, the first node is the largest, not smallest
   Node normalBag = d_nodeManager->mkNode(UNION_DISJOINT, x_4, y_5);
   Node input3 = d_nodeManager->mkNode(BAG_TO_SET, normalBag);
-  Node output3 = d_nodeManager->mkNode(UNION, ySingleton, xSingleton);
+  Node output3 = d_nodeManager->mkNode(SET_UNION, ySingleton, xSingleton);
   ASSERT_EQ(output3, NormalForm::evaluate(input3));
 }
 }  // namespace test

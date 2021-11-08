@@ -2482,7 +2482,7 @@ TEST_F(TestApiBlackSolver, tupleProject)
       d_solver.mkBoolean(true),
       d_solver.mkInteger(3),
       d_solver.mkString("C"),
-      d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
+      d_solver.mkTerm(SET_SINGLETON, d_solver.mkString("Z"))};
 
   Term tuple = d_solver.mkTuple(sorts, elements);
 
@@ -2524,7 +2524,7 @@ TEST_F(TestApiBlackSolver, tupleProject)
   }
 
   ASSERT_EQ(
-      "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (singleton "
+      "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton "
       "\"Z\")))",
       projection.toString());
 }
