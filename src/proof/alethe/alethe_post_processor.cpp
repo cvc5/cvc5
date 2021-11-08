@@ -21,6 +21,7 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
+#include "proof/alethe/alethe_proof_rule.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
@@ -2085,9 +2086,12 @@ bool AletheProofPostprocessNoSubtypeCallback::update(
     CDProof* cdp,
     bool& continueUpdate)
 {
+  AletheRule rule = cvc5::proof::getAletheRule(args[0]);
+
   Trace("alethe-proof-subtyping")
-      << "- Alethe post process no subtype callback " << res << " " << id << " "
-      << children << " / " << args << std::endl;
+      << "- Alethe post process no subtype callback " << res << " "
+      << rule << " " << children << " / " << args
+      << std::endl;
   AlwaysAssert(args.size() >= 3);
   // traverse conclusion and any other args and update them
   bool changed = false;

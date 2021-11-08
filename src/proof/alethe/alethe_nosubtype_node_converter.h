@@ -35,6 +35,14 @@ class AletheNoSubtypeNodeConverter : public NodeConverter
   ~AletheNoSubtypeNodeConverter() {}
   /** Convert by removing attributes of quantifiers. */
   Node postConvert(Node n) override;
+
+ private:
+  /** Convert all integer constants in `n` into CAST_TO_REAL applications.
+   *
+   * This method will fail if `n` has non-integer constants or uninterpreted
+   * terms.
+   **/
+  Node traverseAndConvertAllConsts(Node n);
 };
 
 }  // namespace proof

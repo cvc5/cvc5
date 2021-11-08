@@ -18,7 +18,9 @@
 #ifndef CVC4__PROOF__ALETHE_PROOF_RULE_H
 #define CVC4__PROOF__ALETHE_PROOF_RULE_H
 
-#include <memory>
+#include <iostream>
+
+#include "expr/node.h"
 
 namespace cvc5 {
 
@@ -420,6 +422,10 @@ const char* aletheRuleToString(AletheRule id);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, AletheRule id);
+
+/** Convert a node holding an id to the corresponding AletheRule */
+AletheRule getAletheRule(Node n);
+
 
 }  // namespace proof
 
