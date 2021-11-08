@@ -259,7 +259,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   resourceManager()->spendResource(id);
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   // shouldn't send trivially true or false lemmas
-  Assert(!Rewriter::rewrite(tlem.getProven()).isConst());
+  Assert(!rewrite(tlem.getProven()).isConst());
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
@@ -327,7 +327,7 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
 
 bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
 {
-  Node rewritten = Rewriter::rewrite(lem);
+  Node rewritten = rewrite(lem);
   return d_lemmasSent.find(rewritten) != d_lemmasSent.end();
 }
 
@@ -535,7 +535,7 @@ bool TheoryInferenceManager::hasSentFact() const
 
 bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 {
-  Node rewritten = Rewriter::rewrite(lem);
+  Node rewritten = rewrite(lem);
   if (d_lemmasSent.find(rewritten) != d_lemmasSent.end())
   {
     return false;

@@ -40,7 +40,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    ProofGenerator* pppg,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
-    : d_env(env),
+    : EnvObj(env),
       d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
       d_wfpm(env),
@@ -959,7 +959,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // substitution.
     if (pfn == nullptr)
     {
-      Warning() << "resort to TRUST_SUBS" << std::endl
+      warning() << "resort to TRUST_SUBS" << std::endl
                 << eq << std::endl
                 << eqq << std::endl
                 << "from " << children << " applied to " << t << std::endl;
@@ -1233,10 +1233,11 @@ ProofPostproccess::ProofPostproccess(Env& env,
                                      ProofGenerator* pppg,
                                      rewriter::RewriteDb* rdb,
                                      bool updateScopedAssumptions)
-    : d_cb(env, pppg, rdb, updateScopedAssumptions),
+    : EnvObj(env),
+      d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
       d_updater(
-          env.getProofNodeManager(), d_cb, env.getOptions().proof.proofPpMerge),
+          env.getProofNodeManager(), d_cb, options().proof.proofPpMerge),
       d_finalCb(env.getProofNodeManager()),
       d_finalizer(env.getProofNodeManager(), d_finalCb)
 {

@@ -24,14 +24,16 @@ namespace cvc5 {
 namespace theory {
 namespace sets {
 
-SkolemCache::SkolemCache() {}
+SkolemCache::SkolemCache(Rewriter* rr) : d_rewriter(rr) {}
 
 Node SkolemCache::mkTypedSkolemCached(
     TypeNode tn, Node a, Node b, SkolemId id, const char* c)
 {
-  a = a.isNull() ? a : Rewriter::rewrite(a);
-  b = b.isNull() ? b : Rewriter::rewrite(b);
-
+  if (d_rewriter != nullptr)
+  {
+    a = a.isNull() ? a : d_rewriter->rewrite(a);
+    b = b.isNull() ? b : d_rewriter->rewrite(b);
+  }
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {

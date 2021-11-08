@@ -113,7 +113,7 @@ class TheorySetsRels : protected EnvObj
   std::map< Node, std::vector< Node > >           d_rReps_memberReps_exp_cache;
 
   /** Mapping between a relation representative and its equivalent relations involving relational operators */
-  std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
+  std::map<Node, std::map<Kind, std::vector<Node> > > d_terms_cache;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
   std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;

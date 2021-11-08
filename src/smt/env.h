@@ -21,7 +21,6 @@
 
 #include <memory>
 
-#include "options/base_options.h"
 #include "options/options.h"
 #include "proof/method_id.h"
 #include "theory/logic_info.h"
@@ -34,6 +33,10 @@ class StatisticsRegistry;
 class ProofNodeManager;
 class Printer;
 class ResourceManager;
+namespace options {
+enum class OutputTag;
+}
+using OutputTag = options::OutputTag;
 
 namespace context {
 class Context;
@@ -41,7 +44,6 @@ class UserContext;
 }  // namespace context
 
 namespace smt {
-class DumpManager;
 class PfManager;
 }
 
@@ -116,9 +118,6 @@ class Env
   /** Get a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
 
-  /** Get a pointer to the underlying dump manager. */
-  smt::DumpManager* getDumpManager();
-
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
 
@@ -143,34 +142,47 @@ class Env
   const Printer& getPrinter();
 
   /**
-   * Get the output stream that --dump=X should print to
-   * @return the output stream
-   */
-  std::ostream& getDumpOut();
-
-  /**
    * Check whether the output for the given output tag is enabled. Output tags
    * are enabled via the `output` option (or `-o` on the command line).
    */
-  bool isOutputOn(options::OutputTag tag) const;
+  bool isOutputOn(OutputTag tag) const;
   /**
    * Check whether the output for the given output tag (as a string) is enabled.
    * Output tags are enabled via the `output` option (or `-o` on the command
    * line).
    */
   bool isOutputOn(const std::string& tag) const;
-  /**
-   * Return the output stream for the given output tag. If the output tag is
-   * enabled, this returns the output stream from the `out` option. Otherwise,
-   * a null stream (`cvc5::null_os`) is returned.
-   */
-  std::ostream& getOutput(options::OutputTag tag) const;
+
   /**
    * Return the output stream for the given output tag (as a string). If the
    * output tag is enabled, this returns the output stream from the `out`
    * option. Otherwise, a null stream (`cvc5::null_os`) is returned.
    */
-  std::ostream& getOutput(const std::string& tag) const;
+  std::ostream& output(const std::string& tag) const;
+
+  /**
+   * Return the output stream for the given output tag. If the output tag is
+   * enabled, this returns the output stream from the `out` option. Otherwise,
+   * a null stream (`cvc5::null_os`) is returned. The user of this method needs
+   * to make sure that a proper S-expression is printed.
+   */
+  std::ostream& output(OutputTag tag) const;
+
+  /**
+   * Check whether the verbose output for the given verbosity level is enabled.
+   * The verbosity level is raised (or lowered) with the `-v` (or `-q`) option.
+   */
+  bool isVerboseOn(int64_t level) const;
+
+  /**
+   * Return the output stream for the given verbosity level. If the verbosity
+   * level is enabled, this returns the output stream from the `err` option.
+   * Otherwise, a null stream (`cvc5::null_os`) is returned.
+   */
+  std::ostream& verbose(int64_t level) const;
+
+  /** Convenience wrapper for verbose(0). */
+  std::ostream& warning() const;
 
   /* Rewrite helpers--------------------------------------------------------- */
   /**
@@ -265,8 +277,6 @@ class Env
   std::unique_ptr<theory::Evaluator> d_eval;
   /** The top level substitutions */
   std::unique_ptr<theory::TrustSubstitutionMap> d_topLevelSubs;
-  /** The dump manager */
-  std::unique_ptr<smt::DumpManager> d_dumpManager;
   /**
    * The logic we're in. This logic may be an extension of the logic set by the
    * user, which may be different from the user-provided logic due to the

@@ -32,14 +32,12 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SynthVerify::SynthVerify(const Options& opts,
-                         const LogicInfo& logicInfo,
-                         TermDbSygus* tds)
-    : d_tds(tds), d_subLogicInfo(logicInfo)
+SynthVerify::SynthVerify(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds), d_subLogicInfo(logicInfo())
 {
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
-  d_subOptions.copyValues(opts);
+  d_subOptions.copyValues(options());
   // limit the number of instantiation rounds on subcalls
   d_subOptions.quantifiers.instMaxRounds =
       d_subOptions.quantifiers.sygusVerifyInstMaxRounds;
@@ -124,7 +122,7 @@ Result SynthVerify::verify(Node query,
       Node squery =
           query.substitute(vars.begin(), vars.end(), mvs.begin(), mvs.end());
       Trace("cegqi-debug") << "...squery : " << squery << std::endl;
-      squery = Rewriter::rewrite(squery);
+      squery = rewrite(squery);
       Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
       Assert(options::sygusRecFun()
              || (squery.isConst() && squery.getConst<bool>()));

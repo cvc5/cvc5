@@ -532,13 +532,13 @@ TEST_F(TestNodeBlackNode, toString)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "w", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "z", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder() << w << x << kind::OR;
   Node n = NodeBuilder() << m << y << z << kind::AND;
 
@@ -550,13 +550,13 @@ TEST_F(TestNodeBlackNode, toStream)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "w", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "z", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder() << x << y << kind::OR;
   Node n = NodeBuilder() << w << m << z << kind::AND;
   Node o = NodeBuilder() << n << n << kind::XOR;
@@ -619,13 +619,13 @@ TEST_F(TestNodeBlackNode, dagifier)
   TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
   Node x = d_skolemManager->mkDummySkolem(
-      "x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", intType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", intType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node f = d_skolemManager->mkDummySkolem(
-      "f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "f", fnType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node g = d_skolemManager->mkDummySkolem(
-      "g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "g", fnType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
   Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
   Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);

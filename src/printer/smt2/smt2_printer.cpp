@@ -41,8 +41,6 @@
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
-#include "smt/solver_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -332,13 +330,6 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-    case kind::CARDINALITY_CONSTRAINT:
-      out << "(_ fmf.card ";
-      out << n.getConst<CardinalityConstraint>().getType();
-      out << " ";
-      out << n.getConst<CardinalityConstraint>().getUpperBound();
-      out << ")";
-      break;
     case kind::EMPTYSET:
       out << "(as emptyset ";
       toStreamType(out, n.getConst<EmptySet>().getType());
@@ -818,6 +809,15 @@ void Smt2Printer::toStream(std::ostream& out,
     out << "(as sep.nil " << n.getType() << ")";
     break;
 
+  // cardinality constraints.
+  case kind::CARDINALITY_CONSTRAINT:
+    out << "(_ fmf.card ";
+    out << n.getOperator().getConst<CardinalityConstraint>().getType();
+    out << " ";
+    out << n.getOperator().getConst<CardinalityConstraint>().getUpperBound();
+    out << ")";
+    return;
+
     // quantifiers
   case kind::FORALL:
   case kind::EXISTS:
@@ -1199,7 +1199,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SEP_STAR: return "sep";
   case kind::SEP_PTO: return "pto";
   case kind::SEP_WAND: return "wand";
-  case kind::SEP_EMP: return "emp";
+  case kind::SEP_EMP: return "sep.emp";
 
   // quantifiers
   case kind::FORALL: return "forall";
@@ -1437,6 +1437,23 @@ void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
   out << ") " << type << ')' << std::endl;
 }
 
+void Smt2Printer::toStreamCmdDeclarePool(
+    std::ostream& out,
+    const std::string& id,
+    TypeNode type,
+    const std::vector<Node>& initValue) const
+{
+  out << "(declare-pool " << cvc5::quoteSymbol(id) << ' ' << type << " (";
+  for (size_t i = 0, n = initValue.size(); i < n; ++i)
+  {
+    if (i != 0) {
+      out << ' ';
+    }
+    out << initValue[i];
+  }
+  out << "))" << std::endl;
+}
+
 void Smt2Printer::toStreamCmdDefineFunction(std::ostream& out,
                                             const std::string& id,
                                             const std::vector<Node>& formals,
@@ -1575,6 +1592,26 @@ void Smt2Printer::toStreamCmdGetValue(std::ostream& out,
 void Smt2Printer::toStreamCmdGetModel(std::ostream& out) const
 {
   out << "(get-model)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdBlockModel(std::ostream& out) const
+{
+  out << "(block-model)" << std::endl;
+}
+
+void Smt2Printer::toStreamCmdBlockModelValues(
+    std::ostream& out, const std::vector<Node>& nodes) const
+{
+  out << "(block-model-values (";
+  for (size_t i = 0, n = nodes.size(); i < n; ++i)
+  {
+    if (i != 0)
+    {
+      out << ' ';
+    }
+    out << nodes[i];
+  }
+  out << "))" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetAssignment(std::ostream& out) const
@@ -1735,8 +1772,9 @@ void Smt2Printer::toStreamCmdEcho(std::ostream& out,
    --------------------------------------------------------------------------
 */
 
-static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
+std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
 {
+  std::stringstream out;
   if (!t.isNull() && t.isDatatype() && t.getDType().isSygus())
   {
     std::stringstream types_predecl, types_list;
@@ -1791,6 +1829,7 @@ static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
 
     out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ')';
   }
+  return out.str();
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
@@ -1824,7 +1863,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   // print grammar, if any
   if (!sygusType.isNull())
   {
-    toStreamSygusGrammar(out, sygusType);
+    out << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
 }
@@ -1858,6 +1897,19 @@ void Smt2Printer::toStreamCmdCheckSynth(std::ostream& out) const
   out << "(check-synth)" << std::endl;
 }
 
+void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
+                                         const std::string& name,
+                                         Node conj,
+                                         TypeNode sygusType) const
+{
+  out << "(get-interpol " << cvc5::quoteSymbol(name) << ' ' << conj;
+  if (!sygusType.isNull())
+  {
+    out << ' ' << sygusGrammarString(sygusType);
+  }
+  out << ')' << std::endl;
+}
+
 void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
                                        const std::string& name,
                                        Node conj,
@@ -1870,9 +1922,17 @@ void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
   // print grammar, if any
   if (!sygusType.isNull())
   {
-    toStreamSygusGrammar(out, sygusType);
+    out << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
+}
+
+void Smt2Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
+                                                      Node n,
+                                                      bool doFull) const
+{
+  out << '(' << (doFull ? "get-qe" : "get-qe-disjunct") << ' ' << n << ')'
+      << std::endl;
 }
 
 /*

@@ -653,10 +653,6 @@ public:
   /** Debugging information for a pivot. */
   void debugPivot(ArithVar x_i, ArithVar x_j);
 
-  /** Checks the tableau + partial model for consistency. */
-  bool debugEntireLinEqIsConsistent(const std::string& s);
-
-
   ArithVar minBy(const ArithVarVec& vec, VarPreferenceFunction pf) const;
 
   /**

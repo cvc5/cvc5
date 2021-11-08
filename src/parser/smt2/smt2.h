@@ -105,6 +105,10 @@ class Smt2 : public Parser
    * @return true if higher-order support is enabled, false otherwise
    */
   bool isHoEnabled() const;
+  /**
+   * @return true if cardinality constraints are enabled, false otherwise
+   */
+  bool hasCardinalityConstraints() const;
 
   bool logicIsSet() override;
 

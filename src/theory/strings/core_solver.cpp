@@ -2463,8 +2463,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   NodeManager* nm = NodeManager::currentNM();
   SkolemCache* sc = d_termReg.getSkolemCache();
   TypeNode intType = nm->integerType();
-  Node k = sc->mkTypedSkolemCached(
-      intType, n1, n2, SkolemCache::SK_DEQ_DIFF, "diff");
+  Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
   Node deq = eq.negate();
   Node ss1, ss2;
   if (n1.getType().isString())

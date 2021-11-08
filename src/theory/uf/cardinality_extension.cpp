@@ -828,7 +828,6 @@ void SortModel::getDisequalitiesToRegions(int ri,
       for( DiseqList::iterator it2 = del->begin(); it2 != del->end(); ++it2 ){
         if( (*it2).second ){
           Assert(isValid(d_regions_map[(*it2).first]));
-          //Notice() << "Found disequality with " << (*it2).first << ", region = " << d_regions_map[ (*it2).first ] << std::endl;
           regions_diseq[ d_regions_map[ (*it2).first ] ]++;
         }
       }
@@ -1046,7 +1045,6 @@ int SortModel::addSplit(Region* r)
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areEqual( s[0], s[1] ) << " ";
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areDisequal( s[0], s[1] ) << std::endl;
     //Trace("uf-ss-lemma") << s[0].getType() << " " << s[1].getType() << std::endl;
-    //Notice() << "*** Split on " << s << std::endl;
     //split on the equality s
     Node lem = NodeManager::currentNM()->mkNode( kind::OR, ss, ss.negate() );
     // send lemma, with caching
@@ -1535,7 +1533,7 @@ void CardinalityExtension::check(Theory::Effort level)
                 for( unsigned j=0; j<itel->second.size(); j++ ){
                   Node b = itel->second[j];
                   if( !d_th->getEqualityEngine()->areDisequal( a, b, false ) ){
-                    Node eq = Rewriter::rewrite( a.eqNode( b ) );
+                    Node eq = rewrite(a.eqNode(b));
                     Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
                     d_im.lemma(lem, InferenceId::UF_CARD_SPLIT);
