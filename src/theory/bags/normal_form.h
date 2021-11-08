@@ -165,6 +165,12 @@ class NormalForm
    */
   static Node evaluateDifferenceRemove(TNode n);
   /**
+   * @param n has the form (bag.choose A) where A is a constant bag
+   * @return x if n has the form (bag.choose (bag x c)). Otherwise an error is
+   * thrown.
+   */
+  static Node evaluateChoose(TNode n);
+  /**
    * @param n has the form (bag.card A) where A is a constant bag
    * @return the number of elements in bag A
    */

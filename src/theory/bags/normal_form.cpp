@@ -15,6 +15,7 @@
 #include "normal_form.h"
 
 #include "expr/emptybag.h"
+#include "smt/logic_exception.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 #include "util/rational.h"
@@ -558,6 +559,20 @@ Node NormalForm::evaluateDifferenceRemove(TNode n)
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
 }
 
+Node NormalForm::evaluateChoose(TNode n)
+{
+  Assert(n.getKind() == BAG_CHOOSE);
+  // Examples
+  // --------
+  // - (bag.choose (MK_BAG "x" 4)) = "x"
+
+  if (n[0].getKind() == MK_BAG)
+  {
+    return n[0][0];
+  }
+  throw LogicException("BAG_CHOOSE_TOTAL is not supported yet");
+}
+
 Node NormalForm::evaluateCard(TNode n)
 {
   Assert(n.getKind() == BAG_CARD);
@@ -644,7 +659,6 @@ Node NormalForm::evaluateToSet(TNode n)
   Node set = sets::NormalForm::elementsToSet(setElements, setType);
   return set;
 }
-
 
 Node NormalForm::evaluateBagMap(TNode n)
 {
