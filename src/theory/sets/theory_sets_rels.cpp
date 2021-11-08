@@ -282,12 +282,10 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "[Theory::Rels] Done with collecting relational terms!" << std::endl;
   }
 
-  /* RELATION_JOIN-IMAGE UP  :   (x, x1) IS_IN R, ..., (x, xn) IS_IN R  (R
-   * RELATION_JOIN_IMAGE n)
-   *                     -------------------------------------------------------
-   *                     x IS_IN (R RELATION_JOIN_IMAGE n) || NOT DISTINCT(x1,
-   * ... , xn)
-   *
+  /* RELATION_JOIN-IMAGE UP:
+   *   (x, x1) IS_IN R, ..., (x, xn) IS_IN R  (R RELATION_JOIN_IMAGE n)
+   *   ----------------------------------------------------------------
+   *   x IS_IN (R RELATION_JOIN_IMAGE n) || NOT DISTINCT(x1, ... , xn)
    */
 
   void TheorySetsRels::computeMembersForJoinImageTerm( Node join_image_term ) {
@@ -380,10 +378,10 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for JoinImage Term" << join_image_term << "*********** " << std::endl;
   }
 
-  /* RELATION_JOIN-IMAGE DOWN  : (x) IS_IN (R RELATION_JOIN_IMAGE n)
-   *                     -------------------------------------------------------
-   *                     (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ...
-   * , xn)
+  /* RELATION_JOIN-IMAGE DOWN:
+   *   (x) IS_IN (R RELATION_JOIN_IMAGE n)
+   *   ------------------------------------------------------------
+   *   (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ... , xn)
    *
    */
   void TheorySetsRels::applyJoinImageRule( Node mem_rep, Node join_image_term, Node exp ) {
