@@ -1501,6 +1501,18 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ^ the corresponding proof node is F*sigma
     case PfRule::ALPHA_EQUIV:
     {
+      // performance optimization
+      // If y1 ... yn are mapped to y1 ... yn it suffices to use a refl step
+      if (res[0].toString() == res[1].toString())
+      {
+        return addAletheStep(AletheRule::REFL,
+                             res,
+                             nm->mkNode(kind::SEXPR, d_cl, res),
+                             {},
+                             {},
+                             *cdp);
+      }
+
       std::vector<Node> new_children;
       bool success = true;
       for (size_t i = 1, size = args.size(); i < size; i++)
