@@ -115,7 +115,7 @@ The set complement operator for ``(Set T)`` is interpreted relative to the
 interpretation of the universe set for ``(Set T)``, and not relative to the set
 of all elements of sort ``T``.
 That is, for all sets ``X`` of sort ``(Set T)``, the complement operator is
-such that ``(= (set.complement X) (set.minus (as univset (Set T)) X))``
+such that ``(= (set.complement X) (set.minus (as set.universe (Set T)) X))``
 holds in all models.
 
 The motivation for these semantics is to ensure that the universe set for sort
