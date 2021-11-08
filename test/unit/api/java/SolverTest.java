@@ -1462,7 +1462,9 @@ class SolverTest
 
   @Test void getUnsatCore1()
   {
-    d_solver.setOption("incremental", "false");
+    d_solver.setOption("incremental", "false");  
+    // !!! temporary on proof-new
+    d_solver.setOption("produce-proofs", "false");
     d_solver.assertFormula(d_solver.mkFalse());
     d_solver.checkSat();
     assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCore());
@@ -1472,6 +1474,8 @@ class SolverTest
   {
     d_solver.setOption("incremental", "false");
     d_solver.setOption("produce-unsat-cores", "false");
+    // !!! temporary on proof-new
+    d_solver.setOption("produce-proofs", "false");
     d_solver.assertFormula(d_solver.mkFalse());
     d_solver.checkSat();
     assertThrows(CVC5ApiException.class, () -> d_solver.getUnsatCore());
@@ -1954,6 +1958,8 @@ class SolverTest
   @Test void blockModelValues2() throws CVC5ApiException
   {
     d_solver.setOption("produce-models", "true");
+    // !!! temporary on proof-new
+    d_solver.setOption("produce-proofs", "false");
     Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
