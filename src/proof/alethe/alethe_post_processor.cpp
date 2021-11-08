@@ -1297,14 +1297,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is F
     case PfRule::TRUE_ELIM:
     {
-      bool success = true;
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
-      success &=
-          addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
-          && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp);
-      return success
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
