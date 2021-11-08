@@ -331,7 +331,7 @@ void Smt2Printer::toStream(std::ostream& out,
       break;
     }
     case kind::SET_EMPTY:
-      out << "(as emptyset ";
+      out << "(as set.empty ";
       toStreamType(out, n.getConst<EmptySet>().getType());
       out << ")";
       break;
