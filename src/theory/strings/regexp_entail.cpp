@@ -27,8 +27,9 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace strings {
-  
-RegExpEntail::RegExpEntail(Rewriter* r) : d_rewriter(r), d_aent(r) {
+
+RegExpEntail::RegExpEntail(Rewriter* r) : d_rewriter(r), d_aent(r)
+{
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
 }
@@ -732,7 +733,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
         success = false;
         break;
       }
-      Assert (bc.getKind()==CONST_RATIONAL);
+      Assert(bc.getKind() == CONST_RATIONAL);
       Rational r = bc.getConst<Rational>();
       if (k == REGEXP_CONCAT)
       {
@@ -743,13 +744,13 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
         rr = r;
         firstTime = false;
       }
-      else if ((k==REGEXP_UNION) == isLower)
+      else if ((k == REGEXP_UNION) == isLower)
       {
-        rr = r<rr ? r : rr;
+        rr = r < rr ? r : rr;
       }
       else
       {
-        rr = r>rr ? r : rr;
+        rr = r > rr ? r : rr;
       }
     }
     if (success)
@@ -867,7 +868,6 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
 
   return result;
 }
-
 
 struct RegExpEntailConstantBoundLowerId
 {

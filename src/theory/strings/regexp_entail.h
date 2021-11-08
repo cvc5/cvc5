@@ -23,10 +23,10 @@
 #include <vector>
 
 #include "expr/attribute.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/rewrites.h"
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
-#include "theory/strings/arith_entail.h"
 
 namespace cvc5 {
 namespace theory {
@@ -35,7 +35,7 @@ namespace strings {
 class RegExpEntail
 {
  public:
-   RegExpEntail(Rewriter* r);
+  RegExpEntail(Rewriter* r);
   /** simple regular expression consume
    *
    * This method is called when we are rewriting a membership of the form
@@ -135,6 +135,7 @@ class RegExpEntail
    * @return True if the inclusion can be shown, false otherwise
    */
   static bool regExpIncludes(Node r1, Node r2);
+
  private:
   /** Set bound cache */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);

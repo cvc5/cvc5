@@ -24,10 +24,12 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(Env& env,
-                         SolverState& state,
-                         TermRegistry& treg)
-    : EnvObj(env), d_state(state), d_treg(treg), d_aent(env.getRewriter()), d_rent(env.getRewriter())
+EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
+    : EnvObj(env),
+      d_state(state),
+      d_treg(treg),
+      d_aent(env.getRewriter()),
+      d_rent(env.getRewriter())
 {
 }
 
@@ -217,12 +219,11 @@ void EagerSolver::notifyFact(TNode atom,
       addEndpointsToEqcInfo(atom, atom[1], eqc);
       // also infer length constraints
       Node blenEqc;
-      for (size_t i=0; i<2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
         Node b = d_rent.getConstantBoundLengthForRegExp(atom[1]);
         if (!b.isNull())
         {
-          
         }
       }
     }
