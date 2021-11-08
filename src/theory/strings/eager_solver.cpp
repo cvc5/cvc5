@@ -253,8 +253,7 @@ bool EagerSolver::addEndpointConst(EqcInfo* e, Node t, Node c, bool isSuf)
   Node conf = e->addEndpointConst(t, c, isSuf);
   if (!conf.isNull())
   {
-    d_state.setPendingMergeConflict(conf,
-                                    InferenceId::STRINGS_PREFIX_CONFLICT);
+    d_state.setPendingMergeConflict(conf, InferenceId::STRINGS_PREFIX_CONFLICT);
     return true;
   }
   return false;
@@ -297,8 +296,8 @@ bool EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
       Node ret = EqcInfo::mkMergeConflict(t, prevo, true);
       Trace("strings-eager-aconf")
           << "String: eager arithmetic bound conflict: " << ret << std::endl;
-              d_state.setPendingMergeConflict(
-                  ret, InferenceId::STRINGS_ARITH_BOUND_CONFLICT);
+      d_state.setPendingMergeConflict(
+          ret, InferenceId::STRINGS_ARITH_BOUND_CONFLICT);
       return true;
     }
   }
