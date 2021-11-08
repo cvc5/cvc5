@@ -1,3 +1,5 @@
+; COMMAND-LINE: --strings-exp
+; COMMAND-LINE: --strings-exp --re-elim --re-elim-agg
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-fun a () String)

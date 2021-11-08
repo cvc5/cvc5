@@ -262,7 +262,8 @@ parameterized SORT_TYPE SORT_TAG 0: "specifies types of user-declared 'uninterpr
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded SORT_TYPE \
     "::cvc5::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
-    "::cvc5::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)"
+    "::cvc5::theory::builtin::SortProperties::mkGroundTerm(%TYPE%)" \
+    "theory/builtin/theory_builtin_type_rules.h"
 
 constant UNINTERPRETED_CONSTANT \
     class \
@@ -301,8 +302,6 @@ variable BOUND_VARIABLE "a bound variable (permitted in bindings and the associa
 variable SKOLEM "a Skolem variable (internal only)"
 operator SEXPR 0: "a symbolic expression (any arity)"
 
-operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
-
 operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
@@ -311,17 +310,6 @@ constant TYPE_CONSTANT \
     ::cvc5::TypeConstantHashFunction \
     "expr/kind.h" \
     "a representation for basic types"
-operator FUNCTION_TYPE 2: "a function type"
-cardinality FUNCTION_TYPE \
-    "::cvc5::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-well-founded FUNCTION_TYPE \
-    "::cvc5::theory::builtin::FunctionProperties::isWellFounded(%TYPE%)" \
-    "::cvc5::theory::builtin::FunctionProperties::mkGroundTerm(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-enumerator FUNCTION_TYPE \
-    ::cvc5::theory::builtin::FunctionEnumerator \
-    "theory/builtin/type_enumerator.h"
 sort SEXPR_TYPE \
     Cardinality::INTEGERS \
     not-well-founded \
@@ -330,10 +318,6 @@ sort SEXPR_TYPE \
 typerule EQUAL ::cvc5::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::cvc5::theory::builtin::DistinctTypeRule
 typerule SEXPR ::cvc5::theory::builtin::SExprTypeRule
-typerule LAMBDA ::cvc5::theory::builtin::LambdaTypeRule
 typerule WITNESS ::cvc5::theory::builtin::WitnessTypeRule
-
-# lambda expressions that are isomorphic to array constants can be considered constants
-construle LAMBDA ::cvc5::theory::builtin::LambdaTypeRule
 
 endtheory

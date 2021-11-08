@@ -14,15 +14,15 @@
 ##
 
 # create directories
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api")
-set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/jni")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api")
+set(JNI_DIR "${CMAKE_CURRENT_BINARY_DIR}/jni")
 file(MAKE_DIRECTORY ${JNI_DIR})
 
 # Generate Kind.java
 configure_file(genkinds.py.in genkinds.py)
 
 set(JAVA_KIND_FILE
-  "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api/Kind.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind.java"
 )
 
 add_custom_command(
@@ -34,7 +34,7 @@ add_custom_command(
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
     --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/api/java/io/github/cvc5/api/Kind"
+    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/api/Kind"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
@@ -76,14 +76,12 @@ set(JAVA_FILES
 
 # specify generated jni headers
 set(JNI_HEADERS
-  ${JNI_DIR}/cvc5_Solver.h
+  ${JNI_DIR}/io_github_cvc5_api_Solver.h
 )
 
 # generate jni headers
 add_custom_command(
   OUTPUT
-    ${JNI_HEADERS}
-  BYPRODUCTS
     ${JNI_HEADERS}
   COMMAND
     # generate jni header files
