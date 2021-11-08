@@ -1443,7 +1443,7 @@ Node RegExpOpr::intersect(Node r1, Node r2)
                             << ",\n\t" << mkString(r2) << ")" << std::endl;
   Node retNode = intersectInternal(rr1, rr2, cache, 1);
   Trace("regexp-intersect")
-      << "End SET_INTERSECTION(\n\t" << mkString(r1) << ",\n\t" << mkString(r2)
+      << "End INTERSECTION(\n\t" << mkString(r1) << ",\n\t" << mkString(r2)
       << ") =\n\t" << mkString(retNode) << std::endl;
   Trace("regexp-intersect-node") << "Intersect finished." << std::endl;
   return retNode;
