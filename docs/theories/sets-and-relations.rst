@@ -189,11 +189,11 @@ More details can be found in :cite:`MengRTB17`.
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term X = solver.mkConst(s, "X");``                                               |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Transpose            | ``(rel.transpose X)``                        | ``Term t = solver.mkTerm(Kind::REL_TRANSPOSE, X);``                                |
+| Transpose            | ``(rel.transpose X)``                        | ``Term t = solver.mkTerm(Kind::RELATION_TRANSPOSE, X);``                           |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Transitive Closure   | ``(rel.tclosure X)``                         | ``Term t = solver.mkTerm(Kind::REL_TCLOSURE, X);``                                 |
+| Transitive Closure   | ``(rel.tclosure X)``                         | ``Term t = solver.mkTerm(Kind::RELATION_TCLOSURE, X);``                            |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Join                 | ``(rel.join X Y)``                           | ``Term t = solver.mkTerm(Kind::REL_JOIN, X, Y);``                                  |
+| Join                 | ``(rel.join X Y)``                           | ``Term t = solver.mkTerm(Kind::RELATION_JOIN, X, Y);``                             |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Product              | ``(rel.product X Y)``                        | ``Term t = solver.mkTerm(Kind::REL_PRODUCT, X, Y);``                               |
+| Product              | ``(rel.product X Y)``                        | ``Term t = solver.mkTerm(Kind::RELATION_PRODUCT, X, Y);``                          |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
