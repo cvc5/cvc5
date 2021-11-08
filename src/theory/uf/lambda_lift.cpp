@@ -202,10 +202,6 @@ TrustNode LambdaLift::betaReduce(TNode node) const
       return TrustNode::mkTrustRewrite(node, app, nullptr);
     }
   }
-  else if (k == HO_APPLY)
-  {
-    // partial reduction???
-  }
   // otherwise, unchanged
   return TrustNode::null();
 }
