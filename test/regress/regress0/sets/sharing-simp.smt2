@@ -7,9 +7,9 @@
 (declare-fun C () (Set Int))
 (declare-fun D () (Set Int))
 
-(assert (member x A))
-(assert (member y B))
-(assert (or (= C (intersection A B)) (= D (intersection A B))))
+(assert (set.member x A))
+(assert (set.member y B))
+(assert (or (= C (set.intersection A B)) (= D (set.intersection A B))))
 
 
 (check-sat)
