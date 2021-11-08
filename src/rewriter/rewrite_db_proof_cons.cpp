@@ -247,12 +247,12 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
                                        bool doRecurse)
 {
   Assert(!target.isNull() && target.getKind() == EQUAL);
+  Trace("rpc-debug2") << "Check rule " << id << std::endl;
   std::vector<Node> vcs;
   Node transEq;
   ProvenInfo pic;
   if (id == DslPfRule::CONG)
   {
-    Trace("rpc-debug2") << "Check rule " << id << std::endl;
     size_t nchild = target[0].getNumChildren();
     if (nchild == 0 || nchild != target[1].getNumChildren()
         || target[0].getOperator() != target[1].getOperator())
