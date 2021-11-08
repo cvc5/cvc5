@@ -80,17 +80,6 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
       node, skolem, PfRule::MACRO_SR_PRED_INTRO, {eq});
 }
 
-bool LambdaLift::needsLift(TNode skolem) const
-{
-  // must have a lambda, and have not have been lifted already
-  Node l = getLambdaFor(skolem);
-  if (l.isNull())
-  {
-    return false;
-  }
-  return d_lifted.find(skolem) == d_lifted.end();
-}
-
 Node LambdaLift::getLambdaFor(TNode skolem) const
 {
   NodeNodeMap::const_iterator it = d_lambdaMap.find(skolem);
