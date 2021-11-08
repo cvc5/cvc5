@@ -85,7 +85,7 @@ Node TermDb::getOperator(size_t i) const
 }
 
 /** ground terms */
-size_t TermDb::getNumGroundTerms(Node f) const
+size_t TermDb::getNumGroundTerms(TNode f) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
   if (it != d_opMap.end())
@@ -95,7 +95,7 @@ size_t TermDb::getNumGroundTerms(Node f) const
   return 0;
 }
 
-Node TermDb::getGroundTerm(Node f, size_t i) const
+Node TermDb::getGroundTerm(TNode f, size_t i) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
   if (it != d_opMap.end())
@@ -105,6 +105,16 @@ Node TermDb::getGroundTerm(Node f, size_t i) const
   }
   Assert(false);
   return Node::null();
+}
+
+DbList* TermDb::getGroundTermList(TNode f) const
+{
+  NodeDbListMap::const_iterator it = d_opMap.find(f);
+  if (it != d_opMap.end())
+  {
+    return it->second.get();
+  }
+  return nullptr;
 }
 
 size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
@@ -284,7 +294,8 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     return;
   }
-  d_func_map_eqc_trie[f].clear();
+  TNodeTrie& tnt = d_func_map_eqc_trie[f];
+  tnt.clear();
   // get the matchable operators in the equivalence class of f
   std::vector<TNode> ops;
   getOperatorsFor(f, ops);
@@ -298,7 +309,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
       {
         computeArgReps(n);
         TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
-        d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
+        tnt.d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
   }
