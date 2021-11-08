@@ -15,11 +15,14 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include "expr/emptybag.h"
+#include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -60,7 +63,6 @@ void TheoryBags::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
 
-  // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
 
   // functions we are doing congruence over
@@ -75,6 +77,55 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_CARD);
   d_equalityEngine->addFunctionKind(BAG_FROM_SET);
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
+}
+
+TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
+{
+  Trace("bags-ppr") << "TheoryBags::ppRewrite " << atom << std::endl;
+
+  switch (atom.getKind())
+  {
+    case kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
+    default: return TrustNode::null();
+  }
+}
+
+TrustNode TheoryBags::expandChooseOperator(const Node& node,
+                                           std::vector<SkolemLemma>& lems)
+{
+  Assert(node.getKind() == BAG_CHOOSE);
+
+  // (bag.choose A) is expanded as
+  // (witness ((x elementType))
+  //    (ite
+  //      (= A (as emptybag (Bag E)))
+  //      (= x (uf A))
+  //      (and (>= (bag.count x A) 1) (= x (uf A)))
+  // where uf: (Bag E) -> E is a skolem function, and E is the type of elements
+  // of A
+
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node A = node[0];
+  TypeNode bagType = A.getType();
+  TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());
+  // a Null node is used here to get a unique skolem function per bag type
+  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, ufType, Node());
+  Node ufA = NodeManager::currentNM()->mkNode(APPLY_UF, uf, A);
+
+  Node x = nm->mkBoundVar(bagType.getBagElementType());
+
+  Node equal = x.eqNode(ufA);
+  Node emptyBag = nm->mkConst(EmptyBag(bagType));
+  Node isEmpty = A.eqNode(emptyBag);
+  Node count = nm->mkNode(BAG_COUNT, x, A);
+  Node one = nm->mkConst(Rational(1));
+  Node geqOne = nm->mkNode(GEQ, count, one);
+  Node geqOneAndEqual = geqOne.andNode(equal);
+  Node ite = nm->mkNode(ITE, isEmpty, equal, geqOneAndEqual);
+  Node ret = sm->mkSkolem(x, ite, "kBagChoose");
+  lems.push_back(SkolemLemma(ret, nullptr));
+  return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
 
 void TheoryBags::postCheck(Effort effort)

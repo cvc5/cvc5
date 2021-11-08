@@ -15,6 +15,7 @@
 #include "normal_form.h"
 
 #include "expr/emptybag.h"
+#include "smt/logic_exception.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 #include "util/rational.h"
@@ -564,29 +565,13 @@ Node NormalForm::evaluateChoose(TNode n)
   Assert(n.getKind() == BAG_CHOOSE);
   // Examples
   // --------
-  // - (choose (emptyBag String)) = "" // the empty string which is the first
-  //   element returned by the type enumerator
-  // - (choose (BAG_MAKE "x" 4)) = "x"
-  // - (choose (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "y" 1))) = "x"
-  //     deterministically return the first element
-
-  if (n[0].getKind() == BAG_EMPTY)
-  {
-    TypeNode elementType = n[0].getType().getBagElementType();
-    TypeEnumerator typeEnumerator(elementType);
-    // get the first value from the typeEnumerator
-    Node element = *typeEnumerator;
-    return element;
-  }
+  // - (bag.choose (MK_BAG "x" 4)) = "x"
 
   if (n[0].getKind() == BAG_MAKE)
   {
     return n[0][0];
   }
-  Assert(n[0].getKind() == BAG_UNION_DISJOINT);
-  // return the first element
-  // e.g. (choose (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "y" 1)))
-  return n[0][0][0];
+  throw LogicException("BAG_CHOOSE_TOTAL is not supported yet");
 }
 
 Node NormalForm::evaluateCard(TNode n)

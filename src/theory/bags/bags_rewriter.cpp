@@ -61,6 +61,10 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   {
     response = postRewriteEqual(n);
   }
+  else if (n.getKind() == BAG_CHOOSE)
+  {
+    response = rewriteChoose(n);
+  }
   else if (NormalForm::areChildrenConstants(n))
   {
     Node value = NormalForm::evaluate(n);
@@ -422,7 +426,8 @@ BagsRewriteResponse BagsRewriter::rewriteDifferenceRemove(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
 {
   Assert(n.getKind() == BAG_CHOOSE);
-  if (n[0].getKind() == BAG_MAKE && n[0][1].isConst())
+  if (n[0].getKind() == BAG_MAKE && n[0][1].isConst()
+      && n[0][1].getConst<Rational>() > 0)
   {
     // (bag.choose (mkBag x c)) = x where c is a constant > 0
     return BagsRewriteResponse(n[0][0], Rewrite::CHOOSE_BAG_MAKE);
