@@ -36,10 +36,10 @@ void CheckModels::checkModel(TheoryModel* m,
                              const context::CDList<Node>& al,
                              bool hardFailure)
 {
-  // Throughout, we use Notice() to give diagnostic output.
+  // Throughout, we use verbose(1) to give diagnostic output.
   //
   // If this function is running, the user gave --check-model (or equivalent),
-  // and if Notice() is on, the user gave --verbose (or equivalent).
+  // and if verbose(1) is on, the user gave --verbose (or equivalent).
 
   // check-model is not guaranteed to succeed if approximate values were used.
   // Thus, we intentionally abort here.
