@@ -44,14 +44,14 @@ class LambdaLift : protected EnvObj
  public:
   LambdaLift(Env& env);
 
-  /** 
+  /**
    * process, return the trust node corresponding to the lemma for the lambda
    * lifting of (lambda) term node, or null if it is not a lambda, or if
    * the lambda lifting lemma has already been generated in this context.
    */
   TrustNode lift(Node node);
 
-  /** 
+  /**
    * Preprocess, return the trust node corresponding to the rewrite.
    */
   TrustNode ppRewrite(Node node, std::vector<SkolemLemma>& lems);
@@ -59,7 +59,7 @@ class LambdaLift : protected EnvObj
   /** Get the lambda term for skolem, if skolem is a lambda function. */
   Node getLambdaFor(TNode skolem) const;
 
-  /** 
+  /**
    * Beta-reduce node. If node is APPLY_UF and its operator is a lambda
    * function known by this class, then this method returns the beta
    * reduced version of node.
