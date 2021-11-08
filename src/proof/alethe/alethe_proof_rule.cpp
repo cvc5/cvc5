@@ -17,6 +17,8 @@
 
 #include <iostream>
 
+#include "proof/proof_checker.h"
+
 namespace cvc5 {
 
 namespace proof {
@@ -126,6 +128,16 @@ std::ostream& operator<<(std::ostream& out, AletheRule id)
 {
   out << aletheRuleToString(id);
   return out;
+}
+
+AletheRule getAletheRule(Node n)
+{
+  uint32_t id;
+  if (ProofRuleChecker::getUInt32(n, id))
+  {
+    return static_cast<AletheRule>(id);
+  }
+  return AletheRule::UNDEFINED;
 }
 
 }  // namespace proof
