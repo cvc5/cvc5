@@ -1439,7 +1439,7 @@ Node RegExpOpr::intersect(Node r1, Node r2)
   std::map<PairNodes, Node> cache;
   Trace("regexp-intersect-node") << "Intersect (1): " << rr1 << std::endl;
   Trace("regexp-intersect-node") << "Intersect (2): " << rr2 << std::endl;
-  Trace("regexp-intersect") << "Start SET_INTERSECTION(\n\t" << mkString(r1)
+  Trace("regexp-intersect") << "Start INTERSECTION(\n\t" << mkString(r1)
                             << ",\n\t" << mkString(r2) << ")" << std::endl;
   Node retNode = intersectInternal(rr1, rr2, cache, 1);
   Trace("regexp-intersect")
