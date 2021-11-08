@@ -27,14 +27,14 @@
 namespace cvc5 {
 namespace theory {
 
-ModelManager::ModelManager(TheoryEngine& te, Env& env, EqEngineManager& eem)
+ModelManager::ModelManager(Env& env, TheoryEngine& te, EqEngineManager& eem)
     : EnvObj(env),
       d_te(te),
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
       d_model(new TheoryModel(
-          env, "DefaultModel", options::assignFunctionValues())),
+          env, "DefaultModel", options().theory.assignFunctionValues)),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false)
@@ -118,7 +118,7 @@ void ModelManager::postProcessModel(bool incomplete)
   Trace("model-builder") << "ModelManager: post-process model..." << std::endl;
   // model construction should always succeed unless lemmas were added
   AlwaysAssert(d_modelBuiltSuccess);
-  if (!options::produceModels())
+  if (!options().smt.produceModels)
   {
     return;
   }

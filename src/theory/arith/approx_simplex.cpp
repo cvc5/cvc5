@@ -405,8 +405,6 @@ private:
   bool d_solvedRelaxation;
   bool d_solvedMIP;
 
-  static int s_verbosity;
-
   CutScratchPad d_pad;
 
   std::vector<Integer> d_denomGuesses;
@@ -524,8 +522,6 @@ private:
   double sumInfeasibilities(glp_prob* prob, bool mip) const;
 };
 
-int ApproxGLPK::s_verbosity = 0;
-
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5
@@ -628,12 +624,6 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& var,
   // Assign the upper/lower bounds and types to each variable
   for(ArithVariables::var_iterator vi = d_vars.var_begin(), vi_end = d_vars.var_end(); vi != vi_end; ++vi){
     ArithVar v = *vi;
-
-    if (s_verbosity >= 2)
-    {
-      // CVC5Message() << v  << " ";
-      // d_vars.printModel(v, CVC5Message());
-    }
 
     int type;
     double lb = 0.0;
@@ -764,12 +754,6 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
   for(ArithVariables::var_iterator vi = d_vars.var_begin(), vi_end = d_vars.var_end(); vi != vi_end; ++vi){
     ArithVar v = *vi;
 
-    if (s_verbosity >= 2)
-    {
-      CVC5Message() << v << " ";
-      d_vars.printModel(v, CVC5Message());
-    }
-
     int type;
     if(d_vars.hasUpperBound(v) && d_vars.hasLowerBound(v)){
       if(d_vars.boundsAreEqual(v)){
@@ -868,12 +852,6 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
 
       int dir = guessDir(r);
       if(len >= rowLengthReq){
-        if (s_verbosity >= 1)
-        {
-          CVC5Message() << "high row " << r << " " << len << " " << avgRowLength
-                        << " " << dir << endl;
-          d_vars.printModel(r, CVC5Message());
-        }
         ret.push_back(ArithRatPair(r, Rational(dir)));
       }
     }
@@ -891,12 +869,6 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
       double ubScore = double(bc.upperBoundCount()) / maxCount;
       double lbScore = double(bc.lowerBoundCount()) / maxCount;
       if(ubScore  >= .9 || lbScore >= .9){
-        if (s_verbosity >= 1)
-        {
-          CVC5Message() << "high col " << c << " " << bc << " " << ubScore
-                        << " " << lbScore << " " << dir << endl;
-          d_vars.printModel(c, CVC5Message());
-        }
         ret.push_back(ArithRatPair(c, Rational(c)));
       }
     }
@@ -1016,26 +988,17 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
 
     int status = isAux ? glp_get_row_stat(prob, glpk_index)
       : glp_get_col_stat(prob, glpk_index);
-    if (s_verbosity >= 2)
-    {
-      CVC5Message() << "assignment " << vi << endl;
-    }
 
     bool useDefaultAssignment = false;
 
     switch(status){
     case GLP_BS:
-      // CVC5Message() << "basic" << endl;
       newBasis.add(vi);
       useDefaultAssignment = true;
       break;
     case GLP_NL:
     case GLP_NS:
       if(!mip){
-        if (s_verbosity >= 2)
-        {
-          CVC5Message() << "non-basic lb" << endl;
-        }
         newValues.set(vi, d_vars.getLowerBound(vi));
       }else{// intentionally fall through otherwise
         useDefaultAssignment = true;
@@ -1043,10 +1006,6 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
       break;
     case GLP_NU:
       if(!mip){
-        if (s_verbosity >= 2)
-        {
-          CVC5Message() << "non-basic ub" << endl;
-        }
         newValues.set(vi, d_vars.getUpperBound(vi));
       }else {// intentionally fall through otherwise
         useDefaultAssignment = true;
@@ -1060,10 +1019,6 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
     }
 
     if(useDefaultAssignment){
-      if (s_verbosity >= 2)
-      {
-        CVC5Message() << "non-basic other" << endl;
-      }
 
       double newAssign;
       if(mip){
@@ -1079,7 +1034,6 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
           && roughlyEqual(newAssign,
                           d_vars.getLowerBound(vi).approx(SMALL_FIXED_DELTA)))
       {
-        // CVC5Message() << "  to lb" << endl;
 
         newValues.set(vi, d_vars.getLowerBound(vi));
       }
@@ -1089,21 +1043,13 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
                    d_vars.getUpperBound(vi).approx(SMALL_FIXED_DELTA)))
       {
         newValues.set(vi, d_vars.getUpperBound(vi));
-        // CVC5Message() << "  to ub" << endl;
       }
       else
       {
         double rounded = round(newAssign);
         if (roughlyEqual(newAssign, rounded))
         {
-          // CVC5Message() << "roughly equal " << rounded << " " << newAssign <<
-          // " " << oldAssign << endl;
           newAssign = rounded;
-        }
-        else
-        {
-          // CVC5Message() << "not roughly equal " << rounded << " " <<
-          // newAssign << " " << oldAssign << endl;
         }
 
         DeltaRational proposal;
@@ -1119,27 +1065,16 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
 
         if (roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA)))
         {
-          // CVC5Message() << "  to prev value" << newAssign << " " << oldAssign
-          // << endl;
           proposal = d_vars.getAssignment(vi);
         }
 
         if (d_vars.strictlyLessThanLowerBound(vi, proposal))
         {
-          // CVC5Message() << "  round to lb " << d_vars.getLowerBound(vi) <<
-          // endl;
           proposal = d_vars.getLowerBound(vi);
         }
         else if (d_vars.strictlyGreaterThanUpperBound(vi, proposal))
         {
-          // CVC5Message() << "  round to ub " << d_vars.getUpperBound(vi) <<
-          // endl;
           proposal = d_vars.getUpperBound(vi);
-        }
-        else
-        {
-          // CVC5Message() << "  use proposal" << proposal << " " << oldAssign
-          // << endl;
         }
         newValues.set(vi, proposal);
       }
@@ -1202,9 +1137,6 @@ LinResult ApproxGLPK::solveRelaxation(){
   parm.pricing = GLP_PT_PSE;
   parm.it_lim = d_pivotLimit;
   parm.msg_lev = GLP_MSG_OFF;
-  if(s_verbosity >= 1){
-    parm.msg_lev = GLP_MSG_ALL;
-  }
 
   glp_erase_prob(d_realProb);
   glp_copy_prob(d_realProb, d_inputProb, GLP_OFF);
@@ -1735,9 +1667,6 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
   parm.cb_func = glpkCallback;
   parm.cb_info = &aux;
   parm.msg_lev = GLP_MSG_OFF;
-  if(s_verbosity >= 1){
-    parm.msg_lev = GLP_MSG_ALL;
-  }
 
   glp_erase_prob(d_mipProb);
   glp_copy_prob(d_mipProb, d_realProb, GLP_OFF);
@@ -1784,7 +1713,7 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
 //     c->explainForConflict(nb);
 //   }
 //   Node ret = safeConstructNary(nb);
-//   Node rew = Rewriter::rewrite(ret);
+//   Node rew = rewrite(ret);
 //   if(rew.getNumChildren() < ret.getNumChildren()){
 //     //Debug("approx::") << "explainSet " << ret << " " << rew << endl;
 //   }

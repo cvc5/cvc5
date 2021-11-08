@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
+#include "theory/uf/function_const.h"
 
 namespace cvc5 {
 namespace theory {
@@ -139,6 +140,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }
   }
+  else if (node.getKind() == kind::LAMBDA)
+  {
+    Node ret = rewriteLambda(node);
+    return RewriteResponse(REWRITE_DONE, ret);
+  }
   return RewriteResponse(REWRITE_DONE, node);
 }
 
@@ -203,6 +209,56 @@ Node TheoryUfRewriter::decomposeHoApply(TNode n,
   return curr;
 }
 bool TheoryUfRewriter::canUseAsApplyUfOperator(TNode n) { return n.isVar(); }
+
+Node TheoryUfRewriter::rewriteLambda(Node node)
+{
+  Assert(node.getKind() == kind::LAMBDA);
+  // The following code ensures that if node is equivalent to a constant
+  // lambda, then we return the canonical representation for the lambda, which
+  // in turn ensures that two constant lambdas are equivalent if and only
+  // if they are the same node.
+  // We canonicalize lambdas by turning them into array constants, applying
+  // normalization on array constants, and then converting the array constant
+  // back to a lambda.
+  Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
+  Node anode = FunctionConst::getArrayRepresentationForLambda(node);
+  // Only rewrite constant array nodes, since these are the only cases
+  // where we require canonicalization of lambdas. Moreover, applying the
+  // below code is not correct if the arguments to the lambda occur
+  // in return values. For example, lambda x. ite( x=1, f(x), c ) would
+  // be converted to (store (storeall ... c) 1 f(x)), and then converted
+  // to lambda y. ite( y=1, f(x), c), losing the relation between x and y.
+  if (!anode.isNull() && anode.isConst())
+  {
+    Assert(anode.getType().isArray());
+    // must get the standard bound variable list
+    Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType(
+        node.getType());
+    Node retNode =
+        FunctionConst::getLambdaForArrayRepresentation(anode, varList);
+    if (!retNode.isNull() && retNode != node)
+    {
+      Trace("builtin-rewrite") << "Rewrote lambda : " << std::endl;
+      Trace("builtin-rewrite") << "     input  : " << node << std::endl;
+      Trace("builtin-rewrite")
+          << "     output : " << retNode << ", constant = " << retNode.isConst()
+          << std::endl;
+      Trace("builtin-rewrite")
+          << "  array rep : " << anode << ", constant = " << anode.isConst()
+          << std::endl;
+      Assert(anode.isConst() == retNode.isConst());
+      Assert(retNode.getType() == node.getType());
+      Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
+      return retNode;
+    }
+  }
+  else
+  {
+    Trace("builtin-rewrite-debug")
+        << "...failed to get array representation." << std::endl;
+  }
+  return node;
+}
 
 }  // namespace uf
 }  // namespace theory

@@ -951,10 +951,15 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     Node r = n;
     if( !n.isConst() ){
       TypeNode tn = n.getType();
-      if( !fm->hasTerm(n) && tn.isFirstClass() ){
-        r = getSomeDomainElement(fm, tn );
+      if (!fm->hasTerm(n) && tn.isFirstClass())
+      {
+        // if the term is unknown, we do not assume any value for it
+        r = Node::null();
       }
-      r = fm->getRepresentative( r );
+      else
+      {
+        r = fm->getRepresentative(r);
+      }
     }
     Trace("fmc-debug") << "Add constant entry..." << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), r);
@@ -1342,7 +1347,7 @@ Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals )
     }
     Node nc = NodeManager::currentNM()->mkNode(n.getKind(), children);
     Trace("fmc-eval") << "Evaluate " << nc << " to ";
-    nc = Rewriter::rewrite(nc);
+    nc = rewrite(nc);
     Trace("fmc-eval") << nc << std::endl;
     return nc;
   }

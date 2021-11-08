@@ -473,11 +473,30 @@ private:
 
 public:
 
-  class iterator : public std::iterator<std::input_iterator_tag, Variable> {
+  class iterator {
   private:
     internal_iterator d_iter;
 
   public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Variable;
+
+    /** The pointer type of the item */
+    using pointer = Variable*;
+
+    /** The reference type of the item */
+    using reference = Variable&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     explicit iterator(internal_iterator i) : d_iter(i) {}
 
     inline Variable operator*() {
@@ -800,11 +819,30 @@ private:
 public:
   static bool isMember(TNode n);
 
-  class iterator : public std::iterator<std::input_iterator_tag, Monomial> {
+  class iterator {
   private:
     internal_iterator d_iter;
 
   public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Monomial;
+
+    /** The pointer type of the item */
+    using pointer = Monomial*;
+
+    /** The reference type of the item */
+    using reference = Monomial&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
     explicit iterator(internal_iterator i) : d_iter(i) {}
 
     inline Monomial operator*() {

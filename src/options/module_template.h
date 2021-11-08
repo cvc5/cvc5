@@ -52,15 +52,6 @@ ${holder_decl}$
 ${wrapper_functions}$
 // clang-format on
 
-namespace ${id}$
-{
-// clang-format off
-${option_names}$
-
-${setdefaults_decl}$
-// clang-format on
-}
-
 }  // namespace cvc5::options
 
 #endif /* CVC5__OPTIONS__${id_cap}$_H */

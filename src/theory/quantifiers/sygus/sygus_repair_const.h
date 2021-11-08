@@ -44,7 +44,7 @@ class TermDbSygus;
  *   forall x. P( (\x. t[x,c']), x )  [***]
  * is satisfiable, where notice that the above formula after beta-reduction may
  * be one in pure first-order logic in a decidable theory (say linear
- * arithmetic). To check this, we invoke a separate instance of the SmtEngine
+ * arithmetic). To check this, we invoke a separate instance of the SolverEngine
  * within repairSolution(...) below, which if satisfiable gives us the
  * valuation for c'.
  */

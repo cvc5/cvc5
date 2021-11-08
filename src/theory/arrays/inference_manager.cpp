@@ -27,13 +27,12 @@ namespace cvc5 {
 namespace theory {
 namespace arrays {
 
-InferenceManager::InferenceManager(Env& env,
-                                   Theory& t,
-                                   TheoryState& state,
-                                   ProofNodeManager* pnm)
-    : TheoryInferenceManager(env, t, state, pnm, "theory::arrays::", false),
-      d_lemmaPg(pnm ? new EagerProofGenerator(
-                    pnm, userContext(), "ArrayLemmaProofGenerator")
+InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
+    : TheoryInferenceManager(env, t, state, "theory::arrays::", false),
+      d_lemmaPg(isProofEnabled()
+                    ? new EagerProofGenerator(env.getProofNodeManager(),
+                                              userContext(),
+                                              "ArrayLemmaProofGenerator")
                     : nullptr)
 {
 }

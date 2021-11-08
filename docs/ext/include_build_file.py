@@ -19,6 +19,7 @@ class IncludeBuildFile(SphinxDirective):
     has_content = True
 
     def run(self):
+        self.state.document.settings.env.note_dependency(__file__)
         filename = ''.join(self.content)
         for folder in self.env.config.ibf_folders:
             candidate = os.path.join(folder, filename)

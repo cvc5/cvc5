@@ -28,6 +28,8 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace booleans {
@@ -64,6 +66,11 @@ Theory::PPAssertStatus TheoryBool::ppAssert(
   }
 
   return Theory::ppAssert(tin, outSubstitutions);
+}
+
+TrustNode TheoryBool::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+{
+  return TrustNode::null();
 }
 
 TheoryRewriter* TheoryBool::getTheoryRewriter() { return &d_rewriter; }

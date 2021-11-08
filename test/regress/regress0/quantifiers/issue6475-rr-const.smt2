@@ -1,0 +1,8 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :macros-quant true)
+(declare-sort I_fb 0)
+(declare-fun fb_arg_0_1 (I_fb) Int)
+(declare-fun name!0 (I_fb) Int)
+(assert (forall ((?j I_fb)) (! (= (name!0 ?j) (fb_arg_0_1 ?j)) :qid k!9)))
+(check-sat)

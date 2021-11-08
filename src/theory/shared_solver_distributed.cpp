@@ -20,9 +20,8 @@
 namespace cvc5 {
 namespace theory {
 
-SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te,
-                                                 ProofNodeManager* pnm)
-    : SharedSolver(te, pnm)
+SharedSolverDistributed::SharedSolverDistributed(Env& env, TheoryEngine& te)
+    : SharedSolver(env, te)
 {
 }
 

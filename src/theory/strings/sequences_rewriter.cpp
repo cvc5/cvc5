@@ -91,6 +91,22 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
   Assert(node.getKind() == EQUAL && node[0].getType().isStringLike());
   TypeNode stype = node[0].getType();
 
+  bool hasStrTerm = false;
+  for (size_t r = 0; r < 2; r++)
+  {
+    if (!node[r].isConst()
+        && kindToTheoryId(node[r].getKind()) == THEORY_STRINGS)
+    {
+      hasStrTerm = true;
+      break;
+    }
+  }
+  if (!hasStrTerm)
+  {
+    // equality between variables and constants, no rewrites apply
+    return node;
+  }
+
   NodeManager* nm = NodeManager::currentNM();
   // ( ~contains( s, t ) V ~contains( t, s ) ) => ( s == t ---> false )
   for (unsigned r = 0; r < 2; r++)
@@ -1797,6 +1813,13 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     }
   }
 
+  // (str.substr s x x) ---> "" if (str.len s) <= 1
+  if (node[1] == node[2] && d_stringsEntail.checkLengthOne(node[0]))
+  {
+    Node ret = Word::mkEmptyWord(node.getType());
+    return returnRewrite(node, ret, Rewrite::SS_LEN_ONE_Z_Z);
+  }
+
   // symbolic length analysis
   for (unsigned r = 0; r < 2; r++)
   {
@@ -1813,8 +1836,9 @@ Node SequencesRewriter::rewriteSubstr(Node node)
     else if (r == 1)
     {
       Node tot_len =
-          Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, node[0]));
-      Node end_pt = Rewriter::rewrite(nm->mkNode(kind::PLUS, node[1], node[2]));
+          d_arithEntail.rewrite(nm->mkNode(kind::STRING_LENGTH, node[0]));
+      Node end_pt =
+          d_arithEntail.rewrite(nm->mkNode(kind::PLUS, node[1], node[2]));
       if (node[2] != tot_len)
       {
         if (d_arithEntail.check(node[2], tot_len))
@@ -1826,46 +1850,9 @@ Node SequencesRewriter::rewriteSubstr(Node node)
         else
         {
           // strip up to ( str.len(node[0]) - end_pt ) off the end of the string
-          curr = Rewriter::rewrite(nm->mkNode(kind::MINUS, tot_len, end_pt));
+          curr =
+              d_arithEntail.rewrite(nm->mkNode(kind::MINUS, tot_len, end_pt));
         }
-      }
-
-      // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
-      Node n1_lt_tot_len =
-          Rewriter::rewrite(nm->mkNode(kind::LT, node[1], tot_len));
-      if (d_arithEntail.checkWithAssumption(
-              n1_lt_tot_len, zero, node[2], false))
-      {
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(node, ret, Rewrite::SS_START_ENTAILS_ZERO_LEN);
-      }
-
-      // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
-      Node non_zero_len =
-          Rewriter::rewrite(nm->mkNode(kind::LT, zero, node[2]));
-      if (d_arithEntail.checkWithAssumption(
-              non_zero_len, node[1], tot_len, false))
-      {
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(node, ret, Rewrite::SS_NON_ZERO_LEN_ENTAILS_OOB);
-      }
-
-      // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
-      Node geq_zero_start =
-          Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
-      if (d_arithEntail.checkWithAssumption(
-              geq_zero_start, zero, tot_len, false))
-      {
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(
-            node, ret, Rewrite::SS_GEQ_ZERO_START_ENTAILS_EMP_S);
-      }
-
-      // (str.substr s x x) ---> "" if (str.len s) <= 1
-      if (node[1] == node[2] && d_stringsEntail.checkLengthOne(node[0]))
-      {
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(node, ret, Rewrite::SS_LEN_ONE_Z_Z);
       }
     }
     if (!curr.isNull())
@@ -1905,8 +1892,8 @@ Node SequencesRewriter::rewriteSubstr(Node node)
 
       // the length of a string from the inner substr subtracts the start point
       // of the outer substr
-      Node len_from_inner =
-          Rewriter::rewrite(nm->mkNode(kind::MINUS, node[0][2], start_outer));
+      Node len_from_inner = d_arithEntail.rewrite(
+          nm->mkNode(kind::MINUS, node[0][2], start_outer));
       Node len_from_outer = node[2];
       Node new_len;
       // take quantity that is for sure smaller than the other

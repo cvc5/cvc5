@@ -25,14 +25,12 @@ using namespace std;
 
 namespace cvc5 {
 
-DecisionEngineOld::DecisionEngineOld(context::Context* sc,
-                                     context::UserContext* uc,
-                                     ResourceManager* rm)
-    : DecisionEngine(sc, rm),
-      d_result(sc, SAT_VALUE_UNKNOWN),
+DecisionEngineOld::DecisionEngineOld(Env& env)
+    : DecisionEngine(env),
+      d_result(context(), SAT_VALUE_UNKNOWN),
       d_engineState(0),
       d_enabledITEStrategy(nullptr),
-      d_decisionStopOnly(options::decisionMode()
+      d_decisionStopOnly(options().decision.decisionMode
                          == options::DecisionMode::STOPONLY_OLD)
 {
   Trace("decision") << "Creating decision engine" << std::endl;
@@ -41,14 +39,13 @@ DecisionEngineOld::DecisionEngineOld(context::Context* sc,
 
   Trace("decision-init") << "DecisionEngineOld::init()" << std::endl;
   Trace("decision-init") << " * options->decisionMode: "
-                         << options::decisionMode() << std::endl;
+                         << options().decision.decisionMode << std::endl;
   Trace("decision-init") << " * decisionStopOnly: " << d_decisionStopOnly
                          << std::endl;
 
-  if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
+  if (options().decision.decisionMode == options::DecisionMode::JUSTIFICATION)
   {
-    d_enabledITEStrategy.reset(
-        new decision::JustificationHeuristic(this, uc, sc));
+    d_enabledITEStrategy.reset(new decision::JustificationHeuristic(env, this));
   }
 }
 
@@ -75,7 +72,7 @@ SatLiteral DecisionEngineOld::getNextInternal(bool& stopSearch)
   return d_decisionStopOnly ? undefSatLiteral : ret;
 }
 
-void DecisionEngineOld::addAssertion(TNode assertion)
+void DecisionEngineOld::addAssertion(TNode assertion, bool isLemma)
 {
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;
@@ -85,7 +82,9 @@ void DecisionEngineOld::addAssertion(TNode assertion)
   }
 }
 
-void DecisionEngineOld::addSkolemDefinition(TNode lem, TNode skolem)
+void DecisionEngineOld::addSkolemDefinition(TNode lem,
+                                            TNode skolem,
+                                            bool isLemma)
 {
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;

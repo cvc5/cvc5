@@ -49,7 +49,7 @@ class InstRewriterCegqi : public InstantiationRewriter
    * corresponding to the rewrite and its proof generator.
    */
   TrustNode rewriteInstantiation(Node q,
-                                 std::vector<Node>& terms,
+                                 const std::vector<Node>& terms,
                                  Node inst,
                                  bool doVts) override;
 
@@ -116,7 +116,7 @@ class InstStrategyCegqi : public QuantifiersModule
    * proof generator.
    */
   TrustNode rewriteInstantiation(Node q,
-                                 std::vector<Node>& terms,
+                                 const std::vector<Node>& terms,
                                  Node inst,
                                  bool doVts);
   /** get the instantiation rewriter object */

@@ -34,8 +34,8 @@ class TestTheoryWhiteArithPow2 : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("produce-models", "true");
-    d_smtEngine->finishInit();
+    d_slvEngine->setOption("produce-models", "true");
+    d_slvEngine->finishInit();
     d_true = d_nodeManager->mkConst<bool>(true);
     d_one = d_nodeManager->mkConst<Rational>(Rational(1));
   }

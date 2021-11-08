@@ -17,9 +17,9 @@
 
 #include "options/base_options.h"
 #include "printer/printer.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -42,7 +42,8 @@ CandidateRewriteDatabase::CandidateRewriteDatabase(
       d_rewAccel(rewAccel),
       d_silent(silent),
       d_filterPairs(filterPairs),
-      d_using_sygus(false)
+      d_using_sygus(false),
+      d_crewrite_filter(env)
 {
 }
 void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
@@ -128,8 +129,8 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
       }
       else
       {
-        solbr = Rewriter::rewrite(solb);
-        eq_solr = Rewriter::rewrite(eq_solb);
+        solbr = rewrite(solb);
+        eq_solr = rewrite(eq_solb);
       }
       bool verified = false;
       Trace("rr-check") << "Check candidate rewrite..." << std::endl;
@@ -140,9 +141,9 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
 
         // Notice we don't set produce-models. rrChecker takes the same
-        // options as the SmtEngine we belong to, where we ensure that
+        // options as the SolverEngine we belong to, where we ensure that
         // produce-models is set.
-        std::unique_ptr<SmtEngine> rrChecker;
+        std::unique_ptr<SolverEngine> rrChecker;
         initializeChecker(rrChecker, crr);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;

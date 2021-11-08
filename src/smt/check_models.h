@@ -20,10 +20,9 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
-
-class Env;
 
 namespace theory {
 class TheoryModel;
@@ -34,11 +33,10 @@ namespace smt {
 /**
  * This utility is responsible for checking the current model.
  */
-class CheckModels
+class CheckModels : protected EnvObj
 {
  public:
   CheckModels(Env& e);
-  ~CheckModels();
   /**
    * Check model m against the current set of input assertions al.
    *
@@ -46,12 +44,8 @@ class CheckModels
    * given assertion list al based on the model checking policy.
    */
   void checkModel(theory::TheoryModel* m,
-                  context::CDList<Node>* al,
+                  const context::CDList<Node>& al,
                   bool hardFailure);
-
- private:
-  /** Reference to the environment */
-  Env& d_env;
 };
 
 }  // namespace smt

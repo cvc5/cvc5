@@ -127,8 +127,8 @@ Node EvalResult::toNode() const
   }
 }
 
-Evaluator::Evaluator(Rewriter* rr)
-    : d_rr(rr), d_alphaCard(strings::utils::getAlphabetCardinality())
+Evaluator::Evaluator(Rewriter* rr, uint32_t alphaCard)
+    : d_rr(rr), d_alphaCard(alphaCard)
 {
 }
 
@@ -489,6 +489,13 @@ EvalResult Evaluator::evalInternal(
         {
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x.abs());
+          break;
+        }
+        case kind::CAST_TO_REAL:
+        {
+          // casting to real is a no-op
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x);
           break;
         }
         case kind::CONST_STRING:

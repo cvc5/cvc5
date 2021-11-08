@@ -53,17 +53,17 @@ name   = "Uninterpreted Functions Theory"
   help       = "group monotone sorts when enforcing fairness for finite model finding"
 
 [[option]]
-  name       = "ufHo"
-  category   = "regular"
-  long       = "uf-ho"
-  type       = "bool"
-  default    = "false"
-  help       = "enable support for higher-order reasoning"
-
-[[option]]
   name       = "ufHoExt"
   category   = "regular"
   long       = "uf-ho-ext"
   type       = "bool"
   default    = "true"
   help       = "apply extensionality on function symbols"
+
+[[option]]
+  name       = "ufHoLazyLambdaLift"
+  category   = "regular"
+  long       = "uf-lazy-ll"
+  type       = "bool"
+  default    = "false"
+  help       = "do lambda lifting lazily"

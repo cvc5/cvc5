@@ -1,0 +1,92 @@
+name: Install dependencies
+description: Install necessary dependencies on the target system
+inputs:
+  with-documentation:
+    default: false
+  with-python-bindings:
+    default: false
+runs:
+  using: composite
+  steps:
+    - name: Install Linux software
+      shell: bash
+      run: |
+        echo "::group::Install Linux software"
+        if [[ $RUNNER_OS != "Linux" ]]; then exit 0; fi
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          ccache \
+          libbsd-dev \
+          libcln-dev \
+          libedit-dev \
+          libgmp-dev \
+          libgtest-dev \
+          libtinfo-dev \
+          flex \
+          libfl-dev \
+          flexc++
+        python3 -m pip install pexpect setuptools toml
+        cd /usr/src/googletest
+        sudo cmake .
+        sudo cmake --build . --target install
+        cd -
+        # Make ImageVersion accessible as env.image_version. Environment
+        # variables of the runner are not automatically imported:
+        #
+        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
+        echo "SED=sed" >> $GITHUB_ENV
+        echo "CCACHE_CONFIGPATH=/home/runner/.ccache/ccache.conf" >> $GITHUB_ENV
+        echo "image_version=$ImageVersion" >> $GITHUB_ENV
+        echo "num_proc=$(nproc)" >> $GITHUB_ENV
+        echo "/usr/lib/ccache" >> $GITHUB_PATH
+        echo "::endgroup::"
+
+    # Note: macOS comes with a libedit; it does not need to brew-installed
+    - name: Install macOS software
+      shell: bash
+      run: |
+        echo "::group::Install macOS software"
+        if [[ $RUNNER_OS != "macOS" ]]; then exit 0; fi
+        brew update --quiet
+        brew install \
+          ccache \
+          cln \
+          gmp \
+          pkgconfig \
+          flex \
+          gnu-sed
+        python3 -m pip install pexpect setuptools toml
+        # Make ImageVersion accessible as env.image_version. Environment
+        # variables of the runner are not automatically imported:
+        #
+        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
+        echo "SED=gsed" >> $GITHUB_ENV
+        echo "CCACHE_CONFIGPATH=/Users/runner/Library/Preferences/ccache/ccache.conf" >> $GITHUB_ENV
+        echo "image_version=$ImageVersion" >> $GITHUB_ENV
+        echo "num_proc=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
+        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
+        echo "::endgroup::"
+
+    - name: Install software for Python bindings
+      shell: bash
+      run: |
+        echo "::group::Install software for Python bindings"
+        if [[ "${{ inputs.with-python-bindings }}" != "true" ]]; then exit 0; fi
+        python3 -m pip install pytest scikit-build
+        python3 -m pytest --version
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+        echo "::endgroup::"
+    
+    - name: Install software for documentation
+      shell: bash
+      run: |
+        echo "::group::Install software for documentation"
+        if [[ "${{ inputs.with-documentation }}" != "true" ]]; then exit 0; fi
+        sudo apt-get install -y doxygen python3-docutils python3-jinja2
+        python3 -m pip install \
+          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe \
+          sphinxcontrib-programoutput
+        echo "::endgroup::"
