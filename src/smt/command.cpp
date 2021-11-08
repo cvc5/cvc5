@@ -2560,10 +2560,14 @@ void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setInfo(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     // As per SMT-LIB spec, silently accept unknown set-info keys
     d_commandStatus = CommandSuccess::instance();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2602,9 +2606,13 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
     d_commandStatus = CommandSuccess::instance();
   }
+  catch (api::CVC5ApiUnsupportedException&)
+  {
+    d_commandStatus = new CommandUnsupported();
+  }
   catch (api::CVC5ApiRecoverableException& e)
   {
-    d_commandStatus = new CommandRecoverableFailure(e.what());
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2661,9 +2669,13 @@ void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setOption(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     d_commandStatus = new CommandUnsupported();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2699,7 +2711,7 @@ void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getOption(d_flag);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     d_commandStatus = new CommandUnsupported();
   }
