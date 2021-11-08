@@ -22,40 +22,17 @@
 
 #include "expr/node.h"
 #include "expr/node_trie.h"
+#include "expr/variadic_trie.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "util/result.h"
 
 namespace cvc5 {
 
-class SmtEngine;
+class SolverEngine;
 
 namespace theory {
 namespace quantifiers {
-
-/**
- * A trie that stores data at undetermined depth. Storing data at
- * undetermined depth is in contrast to the NodeTrie (expr/node_trie.h), which
- * assumes all data is stored at a fixed depth.
- *
- * Since data can be stored at any depth, we require both a d_children field
- * and a d_data field.
- */
-class VariadicTrie
-{
- public:
-  /** the children of this node */
-  std::map<Node, VariadicTrie> d_children;
-  /** the data at this node */
-  Node d_data;
-  /**
-   * Add data with identifier n indexed by i, return true if data is not already
-   * stored at the node indexed by i.
-   */
-  bool add(Node n, const std::vector<Node>& i);
-  /** Is there any data in this trie that is indexed by any subset of is? */
-  bool hasSubset(const std::vector<Node>& is) const;
-};
 
 /** CegisCoreConnective
  *
@@ -335,23 +312,6 @@ class CegisCoreConnective : public Cegis
    */
   Node d_sc;
   //-----------------------------------for SMT engine calls
-  /**
-   * Assuming smt has just been called to check-sat and returned "SAT", this
-   * method adds the model for d_vars to mvs.
-   */
-  void getModel(SmtEngine& smt, std::vector<Node>& mvs) const;
-  /**
-   * Assuming smt has just been called to check-sat and returned "UNSAT", this
-   * method get the unsat core and adds it to uasserts.
-   *
-   * The assertions in the argument queryAsserts (which we are not interested
-   * in tracking in the unsat core) are excluded from uasserts.
-   * If one of the formulas in queryAsserts was in the unsat core, then this
-   * method returns true. Otherwise, this method returns false.
-   */
-  bool getUnsatCore(SmtEngine& smt,
-                    const std::unordered_set<Node>& queryAsserts,
-                    std::vector<Node>& uasserts) const;
   /**
    * Return the result of checking satisfiability of formula n.
    * If n was satisfiable, then we store the model for d_vars in mvs.

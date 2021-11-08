@@ -21,6 +21,7 @@
 #include "base/output.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/partial_model.h"
 
@@ -38,21 +39,24 @@ inline Node makeIntegerVariable(){
                            "is an integer variable created by the dio solver");
 }
 
-DioSolver::DioSolver(context::Context* ctxt)
-    : d_lastUsedProofVariable(ctxt, 0),
-      d_inputConstraints(ctxt),
-      d_nextInputConstraintToEnqueue(ctxt, 0),
-      d_trail(ctxt),
-      d_subs(ctxt),
+DioSolver::DioSolver(Env& env)
+    : EnvObj(env),
+      d_lastUsedProofVariable(context(), 0),
+      d_inputConstraints(context()),
+      d_nextInputConstraintToEnqueue(context(), 0),
+      d_trail(context()),
+      d_subs(context()),
       d_currentF(),
-      d_savedQueue(ctxt),
-      d_savedQueueIndex(ctxt, 0),
-      d_conflictIndex(ctxt),
-      d_maxInputCoefficientLength(ctxt, 0),
-      d_usedDecomposeIndex(ctxt, false),
-      d_lastPureSubstitution(ctxt, 0),
-      d_pureSubstitionIter(ctxt, 0),
-      d_decompositionLemmaQueue(ctxt) {}
+      d_savedQueue(context()),
+      d_savedQueueIndex(context(), 0),
+      d_conflictIndex(context()),
+      d_maxInputCoefficientLength(context(), 0),
+      d_usedDecomposeIndex(context(), false),
+      d_lastPureSubstitution(context(), 0),
+      d_pureSubstitionIter(context(), 0),
+      d_decompositionLemmaQueue(context())
+{
+}
 
 DioSolver::Statistics::Statistics()
     : d_conflictCalls(smtStatisticsRegistry().registerInt(
@@ -70,7 +74,6 @@ DioSolver::Statistics::Statistics()
 }
 
 bool DioSolver::queueConditions(TrailIndex t){
-  /* debugPrintTrail(t); */
   Debug("queueConditions") << !inConflict() << std::endl;
   Debug("queueConditions") << gcdIsOne(t) << std::endl;
   Debug("queueConditions") << !debugAnySubstitionApplies(t) << std::endl;
@@ -224,8 +227,13 @@ bool DioSolver::anyCoefficientExceedsMaximum(TrailIndex j) const{
     nmonos >= 2 &&
     length > d_maxInputCoefficientLength + MAX_GROWTH_RATE;
   if(Debug.isOn("arith::dio::max") && result){
-    Debug("arith::dio::max") << "about to drop:";
-    debugPrintTrail(j);
+
+    const SumPair& eq = d_trail[j].d_eq;
+    const Polynomial& proof = d_trail[j].d_proof;
+
+    Debug("arith::dio::max") << "about to drop:" << std::endl;
+    Debug("arith::dio::max") << "d_trail[" << j << "].d_eq = " << eq.getNode() << std::endl;
+    Debug("arith::dio::max") << "d_trail[" << j << "].d_proof = " << proof.getNode() << std::endl;
   }
   return result;
 }
@@ -772,14 +780,6 @@ bool DioSolver::gcdIsOne(DioSolver::TrailIndex i){
   return eq.gcd() == Integer(1);
 }
 
-void DioSolver::debugPrintTrail(DioSolver::TrailIndex i) const{
-  const SumPair& eq = d_trail[i].d_eq;
-  const Polynomial& proof = d_trail[i].d_proof;
-
-  CVC5Message() << "d_trail[" << i << "].d_eq = " << eq.getNode() << endl;
-  CVC5Message() << "d_trail[" << i << "].d_proof = " << proof.getNode() << endl;
-}
-
 void DioSolver::subAndReduceCurrentFByIndex(DioSolver::SubIndex subIndex){
   size_t N = d_currentF.size();
 
@@ -812,7 +812,8 @@ void DioSolver::subAndReduceCurrentFByIndex(DioSolver::SubIndex subIndex){
 }
 
 void DioSolver::addTrailElementAsLemma(TrailIndex i) {
-  if(options::exportDioDecompositions()){
+  if (options().arith.exportDioDecompositions)
+  {
     d_decompositionLemmaQueue.push(i);
   }
 }

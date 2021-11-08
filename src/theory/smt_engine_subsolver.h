@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Utilities for initializing subsolvers (copies of SmtEngine) during solving.
+ * Utilities for initializing subsolvers (copies of SolverEngine) during
+ * solving.
  */
 
 #include "cvc5_private.h"
@@ -22,7 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace theory {
@@ -46,7 +47,7 @@ namespace theory {
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          const Options& opts,
                          const LogicInfo& logicInfo,
                          bool needsTimeout = false,
@@ -55,7 +56,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
 /**
  * Version that uses the options and logicInfo in an environment.
  */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          const Env& env,
                          bool needsTimeout = false,
                          unsigned long timeout = 0);
@@ -66,7 +67,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
  * If necessary, smte is initialized to the SMT engine that checked its
  * satisfiability.
  */
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
+Result checkWithSubsolver(std::unique_ptr<SolverEngine>& smte,
                           Node query,
                           const Options& opts,
                           const LogicInfo& logicInfo,
@@ -111,6 +112,31 @@ Result checkWithSubsolver(Node query,
                           const LogicInfo& logicInfo,
                           bool needsTimeout = false,
                           unsigned long timeout = 0);
+
+//--------------- utilities
+
+/**
+ * Assuming smt has just been called to check-sat and returned "SAT", this
+ * method adds the model for d_vars to mvs.
+ */
+void getModelFromSubsolver(SolverEngine& smt,
+                           const std::vector<Node>& vars,
+                           std::vector<Node>& mvs);
+
+/**
+ * Assuming smt has just been called to check-sat and returned "UNSAT", this
+ * method get the unsat core and adds it to uasserts.
+ *
+ * The assertions in the argument queryAsserts (which we are not interested
+ * in tracking in the unsat core) are excluded from uasserts.
+ * If one of the formulas in queryAsserts was in the unsat core, then this
+ * method returns true. Otherwise, this method returns false.
+ */
+bool getUnsatCoreFromSubsolver(SolverEngine& smt,
+                               const std::unordered_set<Node>& queryAsserts,
+                               std::vector<Node>& uasserts);
+/** Same as above, without query asserts */
+void getUnsatCoreFromSubsolver(SolverEngine& smt, std::vector<Node>& uasserts);
 
 }  // namespace theory
 }  // namespace cvc5

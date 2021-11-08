@@ -653,10 +653,6 @@ public:
   /** Debugging information for a pivot. */
   void debugPivot(ArithVar x_i, ArithVar x_j);
 
-  /** Checks the tableau + partial model for consistency. */
-  bool debugEntireLinEqIsConsistent(const std::string& s);
-
-
   ArithVar minBy(const ArithVarVec& vec, VarPreferenceFunction pf) const;
 
   /**
@@ -730,13 +726,21 @@ struct Cand {
 class CompPenaltyColLength {
 private:
   LinearEqualityModule* d_mod;
-public:
-  CompPenaltyColLength(LinearEqualityModule* mod): d_mod(mod){}
+  const bool d_havePenalties;
+
+ public:
+  CompPenaltyColLength(LinearEqualityModule* mod, bool havePenalties)
+      : d_mod(mod), d_havePenalties(havePenalties)
+  {
+  }
 
   bool operator()(const Cand& x, const Cand& y) const {
-    if(x.d_penalty == y.d_penalty || !options::havePenalties()){
+    if (x.d_penalty == y.d_penalty || !d_havePenalties)
+    {
       return x.d_nb == d_mod->minBoundAndColLength(x.d_nb,y.d_nb);
-    }else{
+    }
+    else
+    {
       return x.d_penalty < y.d_penalty;
     }
   }

@@ -56,6 +56,10 @@ enumerator STRING_TYPE \
     "::cvc5::theory::strings::StringEnumerator" \
     "theory/strings/type_enumerator.h"
 
+enumerator REGEXP_TYPE \
+    "::cvc5::theory::strings::RegExpEnumerator" \
+    "theory/strings/regexp_enumerator.h"
+
 constant CONST_STRING \
   class \
   String \

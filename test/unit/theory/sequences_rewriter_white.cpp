@@ -42,7 +42,7 @@ class TestTheoryWhiteSequencesRewriter : public TestSmt
   {
     TestSmt::SetUp();
     Options opts;
-    d_rewriter = d_smtEngine->getRewriter();
+    d_rewriter = d_slvEngine->getRewriter();
     d_seqRewriter.reset(new SequencesRewriter(d_rewriter, nullptr));
   }
 
@@ -248,8 +248,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       a,
       d_nodeManager->mkNode(kind::PLUS, x, d_nodeManager->mkConst(Rational(1))),
       x);
-  res = sr.rewriteSubstr(n);
-  ASSERT_EQ(res, empty);
+  sameNormalForm(n, empty);
 
   // (str.substr "A" (+ x (str.len s2)) x) -> ""
   n = d_nodeManager->mkNode(
@@ -258,8 +257,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
       d_nodeManager->mkNode(
           kind::PLUS, x, d_nodeManager->mkNode(kind::STRING_LENGTH, s)),
       x);
-  res = sr.rewriteSubstr(n);
-  ASSERT_EQ(res, empty);
+  sameNormalForm(n, empty);
 
   // (str.substr "A" x y) -> (str.substr "A" x y)
   n = d_nodeManager->mkNode(kind::STRING_SUBSTR, a, x, y);
@@ -271,14 +269,13 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_substr)
                             abcd,
                             d_nodeManager->mkNode(kind::PLUS, x, three),
                             x);
-  res = sr.rewriteSubstr(n);
-  ASSERT_EQ(res, empty);
+  sameNormalForm(n, empty);
 
   // (str.substr "ABCD" (+ x 2) x) -> (str.substr "ABCD" (+ x 2) x)
   n = d_nodeManager->mkNode(
       kind::STRING_SUBSTR, abcd, d_nodeManager->mkNode(kind::PLUS, x, two), x);
   res = sr.rewriteSubstr(n);
-  ASSERT_EQ(res, n);
+  sameNormalForm(res, n);
 
   // (str.substr (str.substr s x x) x x) -> ""
   n = d_nodeManager->mkNode(kind::STRING_SUBSTR,

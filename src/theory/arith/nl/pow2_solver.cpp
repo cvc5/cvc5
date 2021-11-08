@@ -188,7 +188,7 @@ Node Pow2Solver::valueBasedLemma(Node i)
 
   NodeManager* nm = NodeManager::currentNM();
   Node valC = nm->mkNode(POW2, valX);
-  valC = Rewriter::rewrite(valC);
+  valC = rewrite(valC);
 
   Node lem = nm->mkNode(IMPLIES, x.eqNode(valX), i.eqNode(valC));
   return lem;

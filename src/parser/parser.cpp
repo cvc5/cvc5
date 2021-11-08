@@ -531,7 +531,7 @@ api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
 api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
   api::Kind k = t.getKind();
-  if (k == api::EMPTYSET)
+  if (k == api::SET_EMPTY)
   {
     t = d_solver->mkEmptySet(s);
   }
@@ -555,7 +555,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     }
     t = d_solver->mkEmptySequence(s.getSequenceElementSort());
   }
-  else if (k == api::UNIVERSE_SET)
+  else if (k == api::SET_UNIVERSE)
   {
     t = d_solver->mkUniverseSet(s);
   }
@@ -598,13 +598,19 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     }
     return t;
   }
-  // otherwise, nothing to do
-  // check that the type is correct
-  if (t.getSort() != s)
+  // Otherwise, check that the type is correct. Type ascriptions in SMT-LIB 2.6
+  // referred to the range of function sorts. Note that this is only a check
+  // and does not impact the returned term.
+  api::Sort checkSort = t.getSort();
+  if (checkSort.isFunction())
+  {
+    checkSort = checkSort.getFunctionCodomainSort();
+  }
+  if (checkSort != s)
   {
     std::stringstream ss;
-    ss << "Type ascription not satisfied, term " << t << " expected sort " << s
-       << " but has sort " << t.getSort();
+    ss << "Type ascription not satisfied, term " << t
+       << " expected (codomain) sort " << s << " but has sort " << t.getSort();
     parseError(ss.str());
   }
   return t;
@@ -729,6 +735,36 @@ size_t Parser::scopeLevel() const { return d_symman->scopeLevel(); }
 void Parser::pushScope(bool isUserContext)
 {
   d_symman->pushScope(isUserContext);
+}
+
+void Parser::pushGetValueScope()
+{
+  pushScope();
+  // we must bind all relevant uninterpreted constants, which coincide with
+  // the set of uninterpreted constants that are printed in the definition
+  // of a model.
+  std::vector<api::Sort> declareSorts = d_symman->getModelDeclareSorts();
+  Trace("parser") << "Push get value scope, with " << declareSorts.size()
+                  << " declared sorts" << std::endl;
+  for (const api::Sort& s : declareSorts)
+  {
+    std::vector<api::Term> elements = d_solver->getModelDomainElements(s);
+    for (const api::Term& e : elements)
+    {
+      // Uninterpreted constants are abstract values, which by SMT-LIB are
+      // required to be annotated with their type, e.g. (as @uc_Foo_0 Foo).
+      // Thus, the element is not printed simply as its name.
+      std::string en = e.toString();
+      size_t index = en.find("(as ");
+      if (index == 0)
+      {
+        index = en.find(" ", 4);
+        en = en.substr(4, index - 4);
+      }
+      Trace("parser") << "Get value scope : " << en << " -> " << e << std::endl;
+      defineVar(en, e);
+    }
+  }
 }
 
 void Parser::popScope()

@@ -50,7 +50,7 @@ class Smt2 : public Parser
   bool d_seenSetLogic;
 
   LogicInfo d_logic;
-  std::unordered_map<std::string, api::Kind> operatorKindMap;
+  std::unordered_map<std::string, api::Kind> d_operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
    * BITVECTOR_EXTRACT).
@@ -105,6 +105,10 @@ class Smt2 : public Parser
    * @return true if higher-order support is enabled, false otherwise
    */
   bool isHoEnabled() const;
+  /**
+   * @return true if cardinality constraints are enabled, false otherwise
+   */
+  bool hasCardinalityConstraints() const;
 
   bool logicIsSet() override;
 

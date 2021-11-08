@@ -24,6 +24,10 @@ libcvc5_add_sources(
   attribute_unique_id.h
   bound_var_manager.cpp
   bound_var_manager.h
+  cardinality_constraint.cpp
+  cardinality_constraint.h
+  codatatype_bound_variable.cpp
+  codatatype_bound_variable.h
   emptyset.cpp
   emptyset.h
   emptybag.cpp
@@ -93,6 +97,8 @@ libcvc5_add_sources(
   sygus_datatype.h
   uninterpreted_constant.cpp
   uninterpreted_constant.h
+  variadic_trie.cpp
+  variadic_trie.h
 )
 
 libcvc5_add_sources(GENERATED

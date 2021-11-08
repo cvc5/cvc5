@@ -31,9 +31,13 @@ namespace cvc5 {
 namespace theory {
 namespace arith {
 
-AttemptSolutionSDP::AttemptSolutionSDP(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc)
-  : SimplexDecisionProcedure(linEq, errors, conflictChannel, tvmalloc)
-  , d_statistics()
+AttemptSolutionSDP::AttemptSolutionSDP(Env& env,
+                                       LinearEqualityModule& linEq,
+                                       ErrorSet& errors,
+                                       RaiseConflict conflictChannel,
+                                       TempVarMalloc tvmalloc)
+    : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
+      d_statistics()
 { }
 
 AttemptSolutionSDP::Statistics::Statistics()
@@ -120,12 +124,10 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    // CVC5Message() << toRemove << " " << toAdd << endl;
 
     d_linEq.pivotAndUpdate(toRemove, toAdd, newValues[toRemove]);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    // CVC5Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
 
     bool conflict = processSignals();

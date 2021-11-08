@@ -32,6 +32,7 @@
 
 namespace cvc5 {
 
+class Env;
 class TheoryEngine;
 
 class SharedTermsDatabase : public context::ContextNotifyObj {
@@ -43,6 +44,9 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
  private:
+  /** Reference to the env */
+  Env& d_env;
+
   /** Some statistics */
   IntStat d_statSharedTerms;
 
@@ -158,10 +162,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
    * @param pnm The proof node manager to use, which is non-null if proofs
    * are enabled.
    */
-  SharedTermsDatabase(TheoryEngine* theoryEngine,
-                      context::Context* context,
-                      context::UserContext* userContext,
-                      ProofNodeManager* pnm);
+  SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine);
 
   //-------------------------------------------- initialization
   /** Called to set the equality engine. */
@@ -265,10 +266,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
    * This method gets called on backtracks from the context manager.
    */
   void contextNotifyPop() override { backtrack(); }
-  /** The SAT search context. */
-  context::Context* d_satContext;
-  /** The user level assertion context. */
-  context::UserContext* d_userContext;
   /** Equality engine */
   theory::eq::EqualityEngine* d_equalityEngine;
   /** Proof equality engine, if we allocated one */

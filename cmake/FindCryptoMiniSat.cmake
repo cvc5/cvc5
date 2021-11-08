@@ -42,21 +42,13 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
     check_auto_download("CryptoMiniSat" "--no-cryptominisat")
   endif()
 
-  # Check for static libraries required by CryptoMiniSat
-  set(CMS_STATIC_LIBS "c;m;dl;pthread")
-  foreach(static_lib ${CMS_STATIC_LIBS})
-
-    # We can't use 'REQUIRED' here, as it needs a too-recent CMake
-    find_library(lib${static_lib}_static lib${static_lib}.a)
-
-    # Check if the static library has been found
-    if(NOT lib${static_lib}_static)
-      message(FATAL_ERROR "static lib${static_lib} not found")
-    endif()
-
-  endforeach()
-
   include(ExternalProject)
+
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(LIBFILENAME "libcryptominisat5win")
+  else()
+    set(LIBFILENAME "libcryptominisat5")
+  endif()
 
   ExternalProject_Add(
     CryptoMiniSat-EP
@@ -91,7 +83,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   )
 
   set(CryptoMiniSat_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcryptominisat5.a")
+  set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/${LIBFILENAME}.a")
 
   add_library(CryptoMiniSat STATIC IMPORTED GLOBAL)
   set_target_properties(

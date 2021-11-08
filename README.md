@@ -46,9 +46,10 @@ Download
 The latest version of cvc5 is available on GitHub:
 https://github.com/cvc5/cvc5
 
-Source tar balls and binaries for releases and latest stable builds of the
-[master branch](https://github.com/cvc5/cvc5) on GitHub can be
-found [here](http://cvc5.github.io/downloads).
+Source tar balls and binaries for releases of the
+[master branch](https://github.com/cvc5/cvc5) can be
+found [here](https://github.com/cvc5/cvc5/releases).
+Nightly builds are available [here](https://cvc4.github.io/downloads).
 
 
 Build and Dependencies

@@ -7,7 +7,7 @@
 (declare-fun kk (Atom (Set Atom)) (Set Atom))
 (declare-fun n () (Set Atom))
 
-(assert (forall ((b Atom)) (= (as emptyset (Set Atom)) (kk (j (singleton b)) n))))
+(assert (forall ((b Atom)) (= (as set.empty (Set Atom)) (kk (j (set.singleton b)) n))))
 
 (check-sat)
 

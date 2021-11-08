@@ -1,0 +1,51 @@
+; depends: theory_def.plf util_defs.plf
+
+; Substitute, which returns the result of replacing all occurrences of the
+; bound variable whose identifier is v with the term s. It is the responsibility
+; of the caller to ensure that all occurrences of (bvar v u) in t are such that
+; u is the sort of s. Otherwise, this will return a term that is not well
+; sorted.
+(program sc_substitute ((t term) (v mpz) (s term)) term
+  (match t
+    ((bvar v1 u1) (mpz_ifequal v v1 s t))
+    ((apply t1 t2) (apply (sc_substitute t1 v s) (sc_substitute t2 v s)))
+    (default t)
+  ))
+
+; Concludes the instantiation for the term of the outermost quantifier in the
+; rule PfRule::INSTANTIATE. We do not enforce type checking of term s
+; currently, which should be of sort u.
+(declare instantiate (! body term
+                     (! v mpz
+                     (! u sort
+                     (! s term
+                     (! bodyi term
+                     (! p (holds (forall v u body))
+                     (! r (^ (sc_substitute body v s) bodyi)
+                       (holds bodyi)))))))))
+
+; Concludes the skolemization for the term of the outermost quantifier in the
+; rule PfRule::SKOLEMIZE.
+(declare skolemize (! body term
+                     (! v mpz
+                     (! s sort
+                     (! bodyi term
+                     (! p (holds (exists v s body))
+                     (! r (^ (sc_substitute body v (skolem (witness v s body))) bodyi)
+                       (holds bodyi))))))))
+
+; We do not enforce type checking of s currently, which should be of
+; sort u.
+(declare exists_intro (! bodyi term
+                      (! v mpz
+                      (! u sort
+                      (! s term
+                      (! body term
+                      (! p (holds bodyi)
+                      (! r (^ (sc_substitute body v s) bodyi)
+                        (holds (exists v u body)))))))))
+
+(declare skolem_intro (! u term
+                      (! t term
+                      (! r (^ (sc_mk_skolem t) u)
+                        (holds (= u t))))))

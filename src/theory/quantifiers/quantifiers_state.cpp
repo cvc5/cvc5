@@ -30,12 +30,14 @@ QuantifiersState::QuantifiersState(Env& env,
       d_logicInfo(logicInfo)
 {
   // allow theory combination to go first, once initially
-  d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
+  d_ierCounter = options().quantifiers.instWhenTcFirst ? 0 : 1;
   d_ierCounterc = d_ierCounter;
   d_ierCounterLc = 0;
   d_ierCounterLastLc = 0;
-  d_instWhenPhase =
-      1 + (options::instWhenPhase() < 1 ? 1 : options::instWhenPhase());
+  d_instWhenPhase = 1
+                    + (options().quantifiers.instWhenPhase < 1
+                           ? 1
+                           : options().quantifiers.instWhenPhase);
 }
 
 void QuantifiersState::incrementInstRoundCounters(Theory::Effort e)
@@ -45,7 +47,7 @@ void QuantifiersState::incrementInstRoundCounters(Theory::Effort e)
     // increment if a last call happened, we are not strictly enforcing
     // interleaving, or already were in phase
     if (d_ierCounterLastLc != d_ierCounterLc
-        || !options::instWhenStrictInterleave()
+        || !options().quantifiers.instWhenStrictInterleave
         || d_ierCounter % d_instWhenPhase != 0)
     {
       d_ierCounter = d_ierCounter + 1;
@@ -65,28 +67,31 @@ bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e) const
                         << ", " << d_ierCounterLc << std::endl;
   // determine if we should perform check, based on instWhenMode
   bool performCheck = false;
-  if (options::instWhenMode() == options::InstWhenMode::FULL)
+  if (options().quantifiers.instWhenMode == options::InstWhenMode::FULL)
   {
     performCheck = (e >= Theory::EFFORT_FULL);
   }
-  else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
+  else if (options().quantifiers.instWhenMode
+           == options::InstWhenMode::FULL_DELAY)
   {
     performCheck = (e >= Theory::EFFORT_FULL) && !d_valuation.needCheck();
   }
-  else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
+  else if (options().quantifiers.instWhenMode
+           == options::InstWhenMode::FULL_LAST_CALL)
   {
     performCheck =
         ((e == Theory::EFFORT_FULL && d_ierCounter % d_instWhenPhase != 0)
          || e == Theory::EFFORT_LAST_CALL);
   }
-  else if (options::instWhenMode()
+  else if (options().quantifiers.instWhenMode
            == options::InstWhenMode::FULL_DELAY_LAST_CALL)
   {
     performCheck = ((e == Theory::EFFORT_FULL && !d_valuation.needCheck()
                      && d_ierCounter % d_instWhenPhase != 0)
                     || e == Theory::EFFORT_LAST_CALL);
   }
-  else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
+  else if (options().quantifiers.instWhenMode
+           == options::InstWhenMode::LAST_CALL)
   {
     performCheck = (e >= Theory::EFFORT_LAST_CALL);
   }

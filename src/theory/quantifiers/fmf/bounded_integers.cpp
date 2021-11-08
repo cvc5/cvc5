@@ -31,11 +31,11 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5;
-using namespace std;
-using namespace cvc5::theory;
-using namespace cvc5::theory::quantifiers;
 using namespace cvc5::kind;
+
+namespace cvc5 {
+namespace theory {
+namespace quantifiers {
 
 BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
     Env& env, Node r, Valuation valuation, bool isProxy)
@@ -260,7 +260,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
         }
       }
     }
-  }else if( n.getKind()==MEMBER ){
+  }
+  else if (n.getKind() == SET_MEMBER)
+  {
     if( !pol && !hasNonBoundVar( q, n[1] ) ){
       std::vector< Node > bound_vars;
       std::map< Node, bool > visited;
@@ -273,7 +275,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
         bound_lit_pol_map[2][v] = pol;
       }
     }
-  }else{
+  }
+  else
+  {
     Assert(n.getKind() != LEQ && n.getKind() != LT && n.getKind() != GT);
   }
 }
@@ -323,9 +327,9 @@ void BoundedIntegers::checkOwnership(Node f)
   {
     // only applying it to internal quantifiers
     QuantAttributes& qattr = d_qreg.getQuantAttributes();
-    if (!qattr.isInternal(f))
+    if (!qattr.isQuantBounded(f))
     {
-      Trace("bound-int") << "...not internal, skip" << std::endl;
+      Trace("bound-int") << "...not bounded, skip" << std::endl;
       return;
     }
   }
@@ -362,7 +366,7 @@ void BoundedIntegers::checkOwnership(Node f)
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
             Node r = nm->mkNode(MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
-            d_range[f][v] = Rewriter::rewrite(r);
+            d_range[f][v] = rewrite(r);
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }else if( it->second==BOUND_SET_MEMBER ){
@@ -370,13 +374,13 @@ void BoundedIntegers::checkOwnership(Node f)
           // supported for finite element types #1123). Regardless, this is
           // typically not a limitation since this variable can be bound in a
           // standard way below since its type is finite.
-          if (!d_qstate.isFiniteType(v.getType()))
+          if (!d_env.isFiniteType(v.getType()))
           {
             setBoundedVar(f, v, BOUND_SET_MEMBER);
             setBoundVar = true;
             d_setm_range[f][v] = bound_lit_map[2][v][1];
             d_setm_range_lit[f][v] = bound_lit_map[2][v];
-            d_range[f][v] = nm->mkNode(CARD, d_setm_range[f][v]);
+            d_range[f][v] = nm->mkNode(SET_CARD, d_setm_range[f][v]);
             Trace("bound-int") << "Variable " << v
                                << " is bound because of set membership literal "
                                << bound_lit_map[2][v] << std::endl;
@@ -430,7 +434,7 @@ void BoundedIntegers::checkOwnership(Node f)
       for( unsigned i=0; i<f[0].getNumChildren(); i++) {
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
-          if ((tn.isSort() && d_qstate.isFiniteType(tn))
+          if ((tn.isSort() && d_env.isFiniteType(tn))
               || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
@@ -650,7 +654,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     return Node::null();
   }
   Trace("bound-int-rsi") << "Value is " << sr << std::endl;
-  if (sr.getKind() == EMPTYSET)
+  if (sr.getKind() == SET_EMPTY)
   {
     return sr;
   }
@@ -660,17 +664,17 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
 
   // we can use choice functions for canonical symbolic instantiations
   unsigned srCard = 0;
-  while (sr.getKind() == UNION)
+  while (sr.getKind() == SET_UNION)
   {
     srCard++;
     sr = sr[0];
   }
-  Assert(sr.getKind() == SINGLETON);
+  Assert(sr.getKind() == SET_SINGLETON);
   srCard++;
   // choices[i] stores the canonical symbolic representation of the (i+1)^th
   // element of sro
   std::vector<Node> choices;
-  Node srCardN = nm->mkNode(CARD, sro);
+  Node srCardN = nm->mkNode(SET_CARD, sro);
   Node choice_i;
   for (unsigned i = 0; i < srCard; i++)
   {
@@ -678,7 +682,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     {
       choice_i = nm->mkBoundVar(tne);
       choices.push_back(choice_i);
-      Node cBody = nm->mkNode(MEMBER, choice_i, sro);
+      Node cBody = nm->mkNode(SET_MEMBER, choice_i, sro);
       if (choices.size() > 1)
       {
         cBody = nm->mkNode(AND, cBody, nm->mkNode(DISTINCT, choices));
@@ -699,7 +703,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     }
     else
     {
-      nsr = nm->mkNode(UNION, nsr, sChoiceI);
+      nsr = nm->mkNode(SET_UNION, nsr, sChoiceI);
     }
   }
   // turns the concrete model value of sro into a canonical representation
@@ -804,9 +808,12 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         //failed, abort the iterator
         return false;
       }else{
+        NodeManager* nm = NodeManager::currentNM();
         Trace("bound-int-rsi") << "Can limit bounds of " << v << " to " << l << "..." << u << std::endl;
-        Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
-        Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
+        Node range = rewrite(nm->mkNode(MINUS, u, l));
+        // 9999 is an arbitrary range past which we do not do exhaustive
+        // bounded instantation, based on the check below.
+        Node ra = rewrite(nm->mkNode(LEQ, range, nm->mkConst(Rational(9999))));
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
@@ -817,8 +824,8 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for (long k = 0; k < rr; k++)
           {
-            Node t = NodeManager::currentNM()->mkNode(PLUS, tl, NodeManager::currentNM()->mkConst( Rational(k) ) );
-            t = Rewriter::rewrite( t );
+            Node t = nm->mkNode(PLUS, tl, nm->mkConst(Rational(k)));
+            t = rewrite(t);
             elements.push_back( t );
           }
           return true;
@@ -834,14 +841,16 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         return false;
       }else{
         Trace("bound-int-rsi") << "Bounded by set membership : " << srv << std::endl;
-        if( srv.getKind()!=EMPTYSET ){
+        if (srv.getKind() != SET_EMPTY)
+        {
           //collect the elements
-          while( srv.getKind()==UNION ){
-            Assert(srv[1].getKind() == kind::SINGLETON);
+          while (srv.getKind() == SET_UNION)
+          {
+            Assert(srv[1].getKind() == kind::SET_SINGLETON);
             elements.push_back( srv[1][0] );
             srv = srv[0];
           }
-          Assert(srv.getKind() == kind::SINGLETON);
+          Assert(srv.getKind() == kind::SET_SINGLETON);
           elements.push_back( srv[0] );
           //check if we need to do matching, for literals like ( tuple( v ) in S )
           Node t = d_setm_range_lit[q][v][0];
@@ -892,3 +901,63 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
     return true;
   }
 }
+
+/**
+ * Attribute true for quantifiers that have been internally generated and
+ * should be processed with the bounded integers module, e.g. quantified
+ * formulas from reductions of string operators.
+ *
+ * Currently, this attribute is used for indicating that E-matching should
+ * not be applied, as E-matching should not be applied to quantifiers
+ * generated internally.
+ *
+ * This attribute can potentially be generalized to an identifier indicating
+ * the internal source of the quantified formula (of which strings reduction
+ * is one possibility).
+ */
+struct BoundedQuantAttributeId
+{
+};
+typedef expr::Attribute<BoundedQuantAttributeId, bool> BoundedQuantAttribute;
+/**
+ * Mapping to a dummy node for marking an attribute on internal quantified
+ * formulas. This ensures that reductions are deterministic.
+ */
+struct QInternalVarAttributeId
+{
+};
+typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
+
+Node BoundedIntegers::mkBoundedForall(Node bvl, Node body)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  QInternalVarAttribute qiva;
+  Node qvar;
+  if (bvl.hasAttribute(qiva))
+  {
+    qvar = bvl.getAttribute(qiva);
+  }
+  else
+  {
+    SkolemManager* sm = nm->getSkolemManager();
+    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
+    // this dummy variable marks that the quantified formula is internal
+    qvar.setAttribute(BoundedQuantAttribute(), true);
+    // remember the dummy variable
+    bvl.setAttribute(qiva, qvar);
+  }
+  // make the internal attribute, and put it in a singleton list
+  Node ip = nm->mkNode(INST_ATTRIBUTE, qvar);
+  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
+  // make the overall formula
+  return nm->mkNode(FORALL, bvl, body, ipl);
+}
+
+bool BoundedIntegers::isBoundedForallAttribute(Node var)
+{
+  return var.getAttribute(BoundedQuantAttribute());
+}
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5
