@@ -46,7 +46,7 @@ class LambdaLift : protected EnvObj
 
   /**
    * process, return the trust node corresponding to the lemma for the lambda
-   * lifting of (lambda) term node, or null if it is not a lambda, or if
+   * lifting of (lambda) term node, or null if it is not a lambda or if
    * the lambda lifting lemma has already been generated in this context.
    */
   TrustNode lift(Node node);
