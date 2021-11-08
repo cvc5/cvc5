@@ -2356,7 +2356,7 @@ enum Kind : int32_t
    * Create with:
    *   mkEmptyBag(const Sort& sort)
    */
-  EMPTYBAG,
+  BAG_EMPTY,
   /**
    * Bag max union.
    * Parameters:
@@ -2366,7 +2366,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION_MAX,
+  BAG_UNION_MAX,
   /**
    * Bag disjoint union (sum).
    *
@@ -2377,7 +2377,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION_DISJOINT,
+  BAG_UNION_DISJOINT,
   /**
    * Bag intersection (min).
    *
@@ -2388,7 +2388,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INTERSECTION_MIN,
+  BAG_INTERSECTION_MIN,
   /**
    * Bag difference subtract (subtracts multiplicities of the second from the
    * first).
@@ -2400,7 +2400,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DIFFERENCE_SUBTRACT,
+  BAG_DIFFERENCE_SUBTRACT,
   /**
    * Bag difference 2 (removes shared elements in the two bags).
    *
@@ -2411,7 +2411,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DIFFERENCE_REMOVE,
+  BAG_DIFFERENCE_REMOVE,
   /**
    * Inclusion predicate for bags
    * (multiplicities of the first bag <= multiplicities of the second bag).
@@ -2423,7 +2423,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SUBBAG,
+  BAG_SUBBAG,
   /**
    * Element multiplicity in a bag
    *
@@ -2446,7 +2446,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DUPLICATE_REMOVAL,
+  BAG_DUPLICATE_REMOVAL,
   /**
    * The bag of the single element given as a parameter.
    *
@@ -2456,7 +2456,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  MK_BAG,
+  BAG_MAKE,
   /**
    * Bag cardinality.
    *

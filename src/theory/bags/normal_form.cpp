@@ -27,19 +27,19 @@ namespace bags {
 
 bool NormalForm::isConstant(TNode n)
 {
-  if (n.getKind() == EMPTYBAG)
+  if (n.getKind() == BAG_EMPTY)
   {
     // empty bags are already normalized
     return true;
   }
-  if (n.getKind() == MK_BAG)
+  if (n.getKind() == BAG_MAKE)
   {
     // see the implementation in MkBagTypeRule::computeIsConst
     return n.isConst();
   }
-  if (n.getKind() == UNION_DISJOINT)
+  if (n.getKind() == BAG_UNION_DISJOINT)
   {
-    if (!(n[0].getKind() == kind::MK_BAG && n[0].isConst()))
+    if (!(n[0].getKind() == kind::BAG_MAKE && n[0].isConst()))
     {
       // the first child is not a constant
       return false;
@@ -47,9 +47,9 @@ bool NormalForm::isConstant(TNode n)
     // store the previous element to check the ordering of elements
     Node previousElement = n[0][0];
     Node current = n[1];
-    while (current.getKind() == UNION_DISJOINT)
+    while (current.getKind() == BAG_UNION_DISJOINT)
     {
-      if (!(current[0].getKind() == kind::MK_BAG && current[0].isConst()))
+      if (!(current[0].getKind() == kind::BAG_MAKE && current[0].isConst()))
       {
         // the current element is not a constant
         return false;
@@ -63,7 +63,7 @@ bool NormalForm::isConstant(TNode n)
       current = current[1];
     }
     // check last element
-    if (!(current.getKind() == kind::MK_BAG && current.isConst()))
+    if (!(current.getKind() == kind::BAG_MAKE && current.isConst()))
     {
       // the last element is not a constant
       return false;
@@ -76,7 +76,7 @@ bool NormalForm::isConstant(TNode n)
     return true;
   }
 
-  // only nodes with kinds EMPTY_BAG, MK_BAG, and UNION_DISJOINT can be
+  // only nodes with kinds EMPTY_BAG, BAG_MAKE, and BAG_UNION_DISJOINT can be
   // constants
   return false;
 }
@@ -96,14 +96,14 @@ Node NormalForm::evaluate(TNode n)
   }
   switch (n.getKind())
   {
-    case MK_BAG: return evaluateMakeBag(n);
+    case BAG_MAKE: return evaluateMakeBag(n);
     case BAG_COUNT: return evaluateBagCount(n);
-    case DUPLICATE_REMOVAL: return evaluateDuplicateRemoval(n);
-    case UNION_DISJOINT: return evaluateUnionDisjoint(n);
-    case UNION_MAX: return evaluateUnionMax(n);
-    case INTERSECTION_MIN: return evaluateIntersectionMin(n);
-    case DIFFERENCE_SUBTRACT: return evaluateDifferenceSubtract(n);
-    case DIFFERENCE_REMOVE: return evaluateDifferenceRemove(n);
+    case BAG_DUPLICATE_REMOVAL: return evaluateDuplicateRemoval(n);
+    case BAG_UNION_DISJOINT: return evaluateUnionDisjoint(n);
+    case BAG_UNION_MAX: return evaluateUnionMax(n);
+    case BAG_INTERSECTION_MIN: return evaluateIntersectionMin(n);
+    case BAG_DIFFERENCE_SUBTRACT: return evaluateDifferenceSubtract(n);
+    case BAG_DIFFERENCE_REMOVE: return evaluateDifferenceRemove(n);
     case BAG_CHOOSE: return evaluateChoose(n);
     case BAG_CARD: return evaluateCard(n);
     case BAG_IS_SINGLETON: return evaluateIsSingleton(n);
@@ -172,19 +172,19 @@ std::map<Node, Rational> NormalForm::getBagElements(TNode n)
   Assert(n.isConst()) << "node " << n << " is not in a normal form"
                       << std::endl;
   std::map<Node, Rational> elements;
-  if (n.getKind() == EMPTYBAG)
+  if (n.getKind() == BAG_EMPTY)
   {
     return elements;
   }
-  while (n.getKind() == kind::UNION_DISJOINT)
+  while (n.getKind() == kind::BAG_UNION_DISJOINT)
   {
-    Assert(n[0].getKind() == kind::MK_BAG);
+    Assert(n[0].getKind() == kind::BAG_MAKE);
     Node element = n[0][0];
     Rational count = n[0][1].getConst<Rational>();
     elements[element] = count;
     n = n[1];
   }
-  Assert(n.getKind() == kind::MK_BAG);
+  Assert(n.getKind() == kind::BAG_MAKE);
   Node lastElement = n[0];
   Rational lastCount = n[1].getConst<Rational>();
   elements[lastElement] = lastCount;
@@ -208,7 +208,7 @@ Node NormalForm::constructConstantBagFromElements(
   {
     Node n =
         nm->mkBag(elementType, it->first, nm->mkConst<Rational>(it->second));
-    bag = nm->mkNode(UNION_DISJOINT, n, bag);
+    bag = nm->mkNode(BAG_UNION_DISJOINT, n, bag);
   }
   return bag;
 }
@@ -228,7 +228,7 @@ Node NormalForm::constructBagFromElements(TypeNode t,
   while (++it != elements.rend())
   {
     Node n = nm->mkBag(elementType, it->first, it->second);
-    bag = nm->mkNode(UNION_DISJOINT, n, bag);
+    bag = nm->mkNode(BAG_UNION_DISJOINT, n, bag);
   }
   return bag;
 }
@@ -237,7 +237,7 @@ Node NormalForm::evaluateMakeBag(TNode n)
 {
   // the case where n is const should be handled earlier.
   // here we handle the case where the multiplicity is zero or negative
-  Assert(n.getKind() == MK_BAG && !n.isConst()
+  Assert(n.getKind() == BAG_MAKE && !n.isConst()
          && n[1].getConst<Rational>().sgn() < 1);
   Node emptybag = NodeManager::currentNM()->mkConst(EmptyBag(n.getType()));
   return emptybag;
@@ -268,7 +268,7 @@ Node NormalForm::evaluateBagCount(TNode n)
 
 Node NormalForm::evaluateDuplicateRemoval(TNode n)
 {
-  Assert(n.getKind() == DUPLICATE_REMOVAL);
+  Assert(n.getKind() == BAG_DUPLICATE_REMOVAL);
 
   // Examples
   // --------
@@ -292,16 +292,16 @@ Node NormalForm::evaluateDuplicateRemoval(TNode n)
 
 Node NormalForm::evaluateUnionDisjoint(TNode n)
 {
-  Assert(n.getKind() == UNION_DISJOINT);
+  Assert(n.getKind() == BAG_UNION_DISJOINT);
   // Example
   // -------
   // input: (union_disjoint A B)
-  //    where A = (union_disjoint (MK_BAG "x" 4) (MK_BAG "z" 2)))
-  //          B = (union_disjoint (MK_BAG "x" 3) (MK_BAG "y" 1)))
+  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
+  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
   // output:
   //    (union_disjoint A B)
-  //        where A = (MK_BAG "x" 7)
-  //              B = (union_disjoint (MK_BAG "y" 1) (MK_BAG "z" 2)))
+  //        where A = (BAG_MAKE "x" 7)
+  //              B = (union_disjoint (BAG_MAKE "y" 1) (BAG_MAKE "z" 2)))
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -352,16 +352,16 @@ Node NormalForm::evaluateUnionDisjoint(TNode n)
 
 Node NormalForm::evaluateUnionMax(TNode n)
 {
-  Assert(n.getKind() == UNION_MAX);
+  Assert(n.getKind() == BAG_UNION_MAX);
   // Example
   // -------
   // input: (union_max A B)
-  //    where A = (union_disjoint (MK_BAG "x" 4) (MK_BAG "z" 2)))
-  //          B = (union_disjoint (MK_BAG "x" 3) (MK_BAG "y" 1)))
+  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
+  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
   // output:
   //    (union_disjoint A B)
-  //        where A = (MK_BAG "x" 4)
-  //              B = (union_disjoint (MK_BAG "y" 1) (MK_BAG "z" 2)))
+  //        where A = (BAG_MAKE "x" 4)
+  //              B = (union_disjoint (BAG_MAKE "y" 1) (BAG_MAKE "z" 2)))
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -412,14 +412,14 @@ Node NormalForm::evaluateUnionMax(TNode n)
 
 Node NormalForm::evaluateIntersectionMin(TNode n)
 {
-  Assert(n.getKind() == INTERSECTION_MIN);
+  Assert(n.getKind() == BAG_INTERSECTION_MIN);
   // Example
   // -------
   // input: (intersectionMin A B)
-  //    where A = (union_disjoint (MK_BAG "x" 4) (MK_BAG "z" 2)))
-  //          B = (union_disjoint (MK_BAG "x" 3) (MK_BAG "y" 1)))
+  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
+  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
   // output:
-  //        (MK_BAG "x" 3)
+  //        (BAG_MAKE "x" 3)
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -458,14 +458,14 @@ Node NormalForm::evaluateIntersectionMin(TNode n)
 
 Node NormalForm::evaluateDifferenceSubtract(TNode n)
 {
-  Assert(n.getKind() == DIFFERENCE_SUBTRACT);
+  Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT);
   // Example
   // -------
   // input: (difference_subtract A B)
-  //    where A = (union_disjoint (MK_BAG "x" 4) (MK_BAG "z" 2)))
-  //          B = (union_disjoint (MK_BAG "x" 3) (MK_BAG "y" 1)))
+  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
+  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
   // output:
-  //    (union_disjoint (MK_BAG "x" 1) (MK_BAG "z" 2))
+  //    (union_disjoint (BAG_MAKE "x" 1) (BAG_MAKE "z" 2))
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -510,14 +510,14 @@ Node NormalForm::evaluateDifferenceSubtract(TNode n)
 
 Node NormalForm::evaluateDifferenceRemove(TNode n)
 {
-  Assert(n.getKind() == DIFFERENCE_REMOVE);
+  Assert(n.getKind() == BAG_DIFFERENCE_REMOVE);
   // Example
   // -------
   // input: (difference_subtract A B)
-  //    where A = (union_disjoint (MK_BAG "x" 4) (MK_BAG "z" 2)))
-  //          B = (union_disjoint (MK_BAG "x" 3) (MK_BAG "y" 1)))
+  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
+  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
   // output:
-  //    (MK_BAG "z" 2)
+  //    (BAG_MAKE "z" 2)
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -566,11 +566,11 @@ Node NormalForm::evaluateChoose(TNode n)
   // --------
   // - (choose (emptyBag String)) = "" // the empty string which is the first
   //   element returned by the type enumerator
-  // - (choose (MK_BAG "x" 4)) = "x"
-  // - (choose (union_disjoint (MK_BAG "x" 4) (MK_BAG "y" 1))) = "x"
+  // - (choose (BAG_MAKE "x" 4)) = "x"
+  // - (choose (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "y" 1))) = "x"
   //     deterministically return the first element
 
-  if (n[0].getKind() == EMPTYBAG)
+  if (n[0].getKind() == BAG_EMPTY)
   {
     TypeNode elementType = n[0].getType().getBagElementType();
     TypeEnumerator typeEnumerator(elementType);
@@ -579,13 +579,13 @@ Node NormalForm::evaluateChoose(TNode n)
     return element;
   }
 
-  if (n[0].getKind() == MK_BAG)
+  if (n[0].getKind() == BAG_MAKE)
   {
     return n[0][0];
   }
-  Assert(n[0].getKind() == UNION_DISJOINT);
+  Assert(n[0].getKind() == BAG_UNION_DISJOINT);
   // return the first element
-  // e.g. (choose (union_disjoint (MK_BAG "x" 4) (MK_BAG "y" 1)))
+  // e.g. (choose (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "y" 1)))
   return n[0][0][0];
 }
 
@@ -595,8 +595,8 @@ Node NormalForm::evaluateCard(TNode n)
   // Examples
   // --------
   //  - (card (emptyBag String)) = 0
-  //  - (choose (MK_BAG "x" 4)) = 4
-  //  - (choose (union_disjoint (MK_BAG "x" 4) (MK_BAG "y" 1))) = 5
+  //  - (choose (BAG_MAKE "x" 4)) = 4
+  //  - (choose (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "y" 1))) = 5
 
   std::map<Node, Rational> elements = getBagElements(n[0]);
   Rational sum(0);
@@ -616,11 +616,12 @@ Node NormalForm::evaluateIsSingleton(TNode n)
   // Examples
   // --------
   // - (bag.is_singleton (emptyBag String)) = false
-  // - (bag.is_singleton (MK_BAG "x" 1)) = true
-  // - (bag.is_singleton (MK_BAG "x" 4)) = false
-  // - (bag.is_singleton (union_disjoint (MK_BAG "x" 1) (MK_BAG "y" 1))) = false
+  // - (bag.is_singleton (BAG_MAKE "x" 1)) = true
+  // - (bag.is_singleton (BAG_MAKE "x" 4)) = false
+  // - (bag.is_singleton (union_disjoint (BAG_MAKE "x" 1) (BAG_MAKE "y" 1))) =
+  // false
 
-  if (n[0].getKind() == MK_BAG && n[0][1].getConst<Rational>().isOne())
+  if (n[0].getKind() == BAG_MAKE && n[0][1].getConst<Rational>().isOne())
   {
     return NodeManager::currentNM()->mkConst(true);
   }
@@ -675,7 +676,6 @@ Node NormalForm::evaluateToSet(TNode n)
   Node set = sets::NormalForm::elementsToSet(setElements, setType);
   return set;
 }
-
 
 Node NormalForm::evaluateBagMap(TNode n)
 {

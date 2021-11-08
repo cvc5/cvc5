@@ -8,6 +8,6 @@
 (assert
   (not
     (=
-      (= A (difference_remove (bag d c) A))
+      (= A (bag.difference_remove (bag d c) A))
       (= A (bag (tuple c c) c)))))
 (check-sat)

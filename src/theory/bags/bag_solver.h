@@ -46,7 +46,7 @@ class BagSolver : protected EnvObj
   /** apply inference rules for empty bags */
   void checkEmpty(const Node& n);
   /**
-   * apply inference rules for MK_BAG operator.
+   * apply inference rules for BAG_MAKE operator.
    * Example: Suppose n = (bag x c), and we have two count terms (bag.count x n)
    * and (bag.count y n).
    * This function will add inferences for the count terms as documented in
