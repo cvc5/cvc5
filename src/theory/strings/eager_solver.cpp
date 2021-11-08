@@ -208,10 +208,10 @@ void EagerSolver::notifyFact(TNode atom,
     {
       eq::EqualityEngine* ee = d_state.getEqualityEngine();
       Node eqc = ee->getRepresentative(atom[0]);
-      // add prefix
+      // add prefix constraints
       if (addEndpointsToEqcInfo(atom, atom[1], eqc))
       {
-        // conflict
+        // conflict, we are done
         return;
       }
       // also infer length constraints if the first is a variable
