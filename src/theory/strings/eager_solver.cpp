@@ -24,12 +24,10 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
-    : EnvObj(env),
-      d_state(state),
-      d_treg(treg),
-      d_aent(env.getRewriter()),
-      d_rent(env.getRewriter())
+EagerSolver::EagerSolver(Env& env,
+                         SolverState& state,
+                         TermRegistry& treg)
+    : EnvObj(env), d_state(state), d_treg(treg), d_aent(env.getRewriter()), d_rent(env.getRewriter())
 {
 }
 
@@ -145,9 +143,9 @@ void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
          || concat.getKind() == REGEXP_CONCAT);
   EqcInfo* ei = nullptr;
   // check each side
-  for (unsigned r = 0; r < 2; r++)
+  for (size_t r = 0; r < 2; r++)
   {
-    unsigned index = r == 0 ? 0 : concat.getNumChildren() - 1;
+    size_t index = r == 0 ? 0 : concat.getNumChildren() - 1;
     Node c = utils::getConstantComponent(concat[index]);
     if (!c.isNull())
     {
@@ -221,16 +219,15 @@ void EagerSolver::notifyFact(TNode atom,
       if (atom[0].isVar())
       {
         EqcInfo* blenEqc = nullptr;
-        for (size_t i = 0; i < 2; i++)
+        for (size_t i=0; i<2; i++)
         {
-          bool isLower = (i == 0);
+          bool isLower = (i==0);
           Node b = d_rent.getConstantBoundLengthForRegexp(atom[1], isLower);
           if (!b.isNull())
           {
             if (blenEqc == nullptr)
             {
-              Node lenTerm =
-                  NodeManager::currentNM()->mkNode(STRING_LENGTH, atom[0]);
+              Node lenTerm = NodeManager::currentNM()->mkNode(STRING_LENGTH, atom[0]);
               if (!ee->hasTerm(lenTerm))
               {
                 break;
@@ -238,7 +235,13 @@ void EagerSolver::notifyFact(TNode atom,
               lenTerm = ee->getRepresentative(lenTerm);
               blenEqc = d_state.getOrMakeEqcInfo(lenTerm);
             }
-            addArithmeticBound(blenEqc, atom, isLower);
+            Node conf = addArithmeticBound(blenEqc, atom, isLower);
+            if (!conf.isNull())
+            {
+              d_state.setPendingMergeConflict(conf,
+                                          InferenceId::STRINGS_ARITH_BOUND_CONFLICT);
+              return;
+            }
           }
         }
       }
@@ -299,7 +302,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 
 Node EagerSolver::getBoundForLength(Node t, bool isLower)
 {
-  if (t.getKind() == STRING_IN_REGEXP)
+  if (t.getKind()==STRING_IN_REGEXP)
   {
     return d_rent.getConstantBoundLengthForRegexp(t[1]);
   }
