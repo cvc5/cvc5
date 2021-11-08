@@ -89,7 +89,7 @@ class EqcInfo
    *   (and (= x (str.++ "B" y)) (str.in_re x (re.++ (str.to_re "A") R2)))
    * for this input.
    */
-  static Node mkMergeConflict(Node t, Node prev);
+  static Node mkMergeConflict(Node t, Node prev, bool isArith);
 };
 
 }  // namespace strings

@@ -23,8 +23,8 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/strings/arith_entail.h"
-#include "theory/strings/eqc_info.h"
 #include "theory/strings/regexp_entail.h"
+#include "theory/strings/eqc_info.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
 
@@ -39,7 +39,9 @@ namespace strings {
 class EagerSolver : protected EnvObj
 {
  public:
-  EagerSolver(Env& env, SolverState& state, TermRegistry& treg);
+  EagerSolver(Env& env,
+              SolverState& state,
+              TermRegistry& treg);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
@@ -69,8 +71,8 @@ class EagerSolver : protected EnvObj
   Node checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb);
   /** add arithmetic bound */
   Node addArithmeticBound(EqcInfo* ea, Node t, bool isLower);
-  /** get bound for length term */
-  Node getBoundForLength(Node len, bool isLower);
+  /** get bound for length term or regular expression membership */
+  Node getBoundForLength(Node t, bool isLower);
   /** Reference to the solver state */
   SolverState& d_state;
   /** Reference to the term registry */

@@ -141,7 +141,7 @@ class ArithEntail
    *     if and only if
    *   check( a, strict ) = true.
    */
-  Node getConstantBound(TNode a, bool isLower = true) const;
+  Node getConstantBound(TNode a, bool isLower = true);
 
   /**
    * get constant bound on the length of s.

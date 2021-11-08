@@ -759,7 +759,7 @@ Node ArithEntail::getConstantBoundCache(TNode n, bool isLower)
   return Node::null();
 }
 
-Node ArithEntail::getConstantBound(TNode a, bool isLower) const
+Node ArithEntail::getConstantBound(TNode a, bool isLower)
 {
   Assert(d_rr->rewrite(a) == a);
   Node ret = getConstantBoundCache(a, isLower);

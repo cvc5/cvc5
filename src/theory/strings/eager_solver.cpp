@@ -24,12 +24,10 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
-    : EnvObj(env),
-      d_state(state),
-      d_treg(treg),
-      d_aent(env.getRewriter()),
-      d_rent(env.getRewriter())
+EagerSolver::EagerSolver(Env& env,
+                         SolverState& state,
+                         TermRegistry& treg)
+    : EnvObj(env), d_state(state), d_treg(treg), d_aent(env.getRewriter()), d_rent(env.getRewriter())
 {
 }
 
@@ -217,13 +215,28 @@ void EagerSolver::notifyFact(TNode atom,
       Node eqc = ee->getRepresentative(atom[0]);
       // add prefix
       addEndpointsToEqcInfo(atom, atom[1], eqc);
-      // also infer length constraints
-      Node blenEqc;
-      for (size_t i = 0; i < 2; i++)
+      // also infer length constraints if the first is a variable
+      if (atom[0].isVar())
       {
-        Node b = d_rent.getConstantBoundLengthForRegExp(atom[1]);
-        if (!b.isNull())
+        EqcInfo* blenEqc = nullptr;
+        for (size_t i=0; i<2; i++)
         {
+          bool isLower = (i==0);
+          Node b = d_rent.getConstantBoundLengthForRegexp(atom[1], isLower);
+          if (!b.isNull())
+          {
+            if (blenEqc == nullptr)
+            {
+              Node lenTerm = NodeManager::currentNM()->mkNode(STRING_LENGTH, atom[0]);
+              if (!ee->hasTerm(lenTerm))
+              {
+                break;
+              }
+              lenTerm = ee->getRepresentative(lenTerm);
+              blenEqc = d_state.getOrMakeEqcInfo(lenTerm);
+            }
+            addArithmeticBound(blenEqc, atom, isLower);
+          }
         }
       }
     }
@@ -264,7 +277,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
     if (prevobr != br && (prevobr < br) == isLower)
     {
       // conflict
-      Node ret = EqcInfo::mkMergeConflict(t, prevo);
+      Node ret = EqcInfo::mkMergeConflict(t, prevo, true);
       Trace("strings-eager-aconf")
           << "String: eager arithmetic bound conflict: " << ret << std::endl;
       return ret;
@@ -281,20 +294,24 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   return Node::null();
 }
 
-Node EagerSolver::getBoundForLength(Node len, bool isLower)
+Node EagerSolver::getBoundForLength(Node t, bool isLower)
 {
-  Assert(len.getKind() == STRING_LENGTH);
+  if (t.getKind()==STRING_IN_REGEXP)
+  {
+    return d_rent.getConstantBoundLengthForRegexp(t[1]);
+  }
+  Assert(t.getKind() == STRING_LENGTH);
   // it is prohibitively expensive to convert to original form and rewrite,
   // since this may invoke the rewriter on lengths of complex terms. Instead,
   // we convert to original term the argument, then call the utility method
   // for computing the length of the argument, implicitly under an application
   // of length (ArithEntail::getConstantBoundLength).
   // convert to original form
-  Node olent = SkolemManager::getOriginalForm(len[0]);
+  Node olent = SkolemManager::getOriginalForm(t[0]);
   // get the bound
   Node c = d_aent.getConstantBoundLength(olent, isLower);
   Trace("strings-eager-aconf-debug")
-      << "Constant " << (isLower ? "lower" : "upper") << " bound for " << len
+      << "Constant " << (isLower ? "lower" : "upper") << " bound for " << t
       << " is " << c << ", from original form " << olent << std::endl;
   return c;
 }
