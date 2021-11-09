@@ -17,21 +17,22 @@
 check_python_module("pytest")
 
 # Add Python bindings API tests.
-macro(cvc5_add_python_api_test name filename)
+macro(cvc5_add_python_api_unit_test name filename)
 # We create test target 'python/unit/api/myapitest' and run it with
 # 'ctest -R "python/unit/api/myapitest"'.
-add_test (NAME python/unit/api/${name}
+add_test (NAME ${name}
   COMMAND ${PYTHON_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
   # directory for importing the python bindings
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
+  set_tests_properties(${name} PROPERTIES LABELS "unit")
 endmacro()
 
 # add specific test files
-cvc5_add_python_api_test(pytest_solver unit/api/test_solver.py)
-cvc5_add_python_api_test(pytest_sort unit/api/test_sort.py)
-cvc5_add_python_api_test(pytest_term unit/api/test_term.py)
-cvc5_add_python_api_test(pytest_datatype_api unit/api/test_datatype_api.py)
-cvc5_add_python_api_test(pytest_grammar unit/api/test_grammar.py)
-cvc5_add_python_api_test(pytest_to_python_obj unit/api/test_to_python_obj.py)
-cvc5_add_python_api_test(pytest_op unit/api/test_op.py)
-cvc5_add_python_api_test(pytest_result unit/api/test_result.py)
+cvc5_add_python_api_unit_test(pytest_solver test_solver.py)
+cvc5_add_python_api_unit_test(pytest_sort test_sort.py)
+cvc5_add_python_api_unit_test(pytest_term test_term.py)
+cvc5_add_python_api_unit_test(pytest_datatype_api test_datatype_api.py)
+cvc5_add_python_api_unit_test(pytest_grammar test_grammar.py)
+cvc5_add_python_api_unit_test(pytest_to_python_obj test_to_python_obj.py)
+cvc5_add_python_api_unit_test(pytest_op test_op.py)
+cvc5_add_python_api_unit_test(pytest_result test_result.py)
