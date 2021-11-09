@@ -145,9 +145,7 @@ void Smt2::addDatatypesOperators()
 }
 
 void Smt2::addStringOperators() {
-  defineVar(
-      "re.all",
-      getSolver()->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpAllchar()));
+  defineVar("re.all", getSolver()->mkRegexpAll());
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
   addOperator(api::STRING_SUBSTR, "str.substr");
