@@ -1130,22 +1130,22 @@ cdef class Solver:
             term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
         return term
 
-    def mkRegexpEmpty(self):
+    def mkRegexpNone(self):
         """Create a regular expression empty term.
 
         :return: the empty term
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRegexpEmpty()
+        term.cterm = self.csolver.mkRegexpNone()
         return term
 
-    def mkRegexpSigma(self):
+    def mkRegexpAllchar(self):
         """Create a regular expression sigma term.
 
         :return: the sigma term
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRegexpSigma()
+        term.cterm = self.csolver.mkRegexpAllchar()
         return term
 
     def mkEmptySet(self, Sort s):
