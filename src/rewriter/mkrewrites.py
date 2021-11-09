@@ -63,8 +63,8 @@ def gen_kind(op):
         Op.REGEXP_OPT: 'REGEXP_OPT',
         Op.REGEXP_RANGE: 'REGEXP_RANGE',
         Op.REGEXP_COMPLEMENT: 'REGEXP_COMPLEMENT',
-        Op.REGEXP_EMPTY: 'REGEXP_EMPTY',
-        Op.REGEXP_SIGMA: 'REGEXP_SIGMA',
+        Op.REGEXP_NONE: 'REGEXP_NONE',
+        Op.REGEXP_ALLCHAR: 'REGEXP_ALLCHAR',
     }
     return op_to_kind[op]
 

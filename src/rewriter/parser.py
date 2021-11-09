@@ -102,8 +102,8 @@ symbol_to_op = {
 class SymbolTable:
     def __init__(self):
         self.consts = {
-            're.none': App(Op.REGEXP_EMPTY, []),
-            're.allchar': App(Op.REGEXP_SIGMA, []),
+            're.none': App(Op.REGEXP_NONE, []),
+            're.allchar': App(Op.REGEXP_ALLCHAR, []),
         }
         self.symbols = {}
 
