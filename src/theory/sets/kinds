@@ -37,7 +37,7 @@ enumerator SET_TYPE \
 
 # operators
 operator SET_UNION          2  "set union"
-operator SET_INTERSECTION   2  "set intersection"
+operator SET_INTER   2  "set intersection"
 operator SET_MINUS          2  "set subtraction"
 operator SET_SUBSET         2  "subset predicate; first parameter a subset of second"
 operator SET_MEMBER         2  "set membership predicate; first parameter a member of second"
@@ -88,7 +88,7 @@ operator RELATION_JOIN_IMAGE	   2  "relation join image"
 operator RELATION_IDEN 	   	   1  "relation identity"
 
 typerule SET_UNION          ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
-typerule SET_INTERSECTION   ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
+typerule SET_INTER   ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
 typerule SET_MINUS          ::cvc5::theory::sets::SetsBinaryOperatorTypeRule
 typerule SET_SUBSET         ::cvc5::theory::sets::SubsetTypeRule
 typerule SET_MEMBER         ::cvc5::theory::sets::MemberTypeRule

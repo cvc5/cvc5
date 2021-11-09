@@ -594,7 +594,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
               d_solver->mkUniverseSet(d_solver->getBooleanSort()));
 
     addOperator(api::SET_UNION, "set.union");
-    addOperator(api::SET_INTERSECTION, "set.intersection");
+    addOperator(api::SET_INTER, "set.inter");
     addOperator(api::SET_MINUS, "set.minus");
     addOperator(api::SET_SUBSET, "set.subset");
     addOperator(api::SET_MEMBER, "set.member");
