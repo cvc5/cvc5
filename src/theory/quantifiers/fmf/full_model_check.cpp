@@ -690,9 +690,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           Node ev = d_quant_models[f].evaluate(fmfmc, inst);
           if (ev == d_true)
           {
-            CVC5Message() << "WARNING: instantiation was true! " << f << " "
-                          << mcond[i] << std::endl;
-            AlwaysAssert(false);
+            AlwaysAssert(false) << "WARNING: instantiation was true! " << f
+                                << " " << mcond[i] << std::endl;
           }
           else
           {

@@ -31,7 +31,6 @@ const int Cvc5ostream::s_indentIosIndex = std::ios_base::xalloc();
 
 DebugC DebugChannel(&std::cout);
 WarningC WarningChannel(&std::cerr);
-MessageC MessageChannel(&std::cout);
 TraceC TraceChannel(&std::cout);
 std::ostream DumpOutC::dump_cout(std::cout.rdbuf());  // copy cout stream buffer
 DumpOutC DumpOutChannel(&DumpOutC::dump_cout);
