@@ -21,6 +21,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -31,6 +32,7 @@
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
 #include "theory/uf/ho_extension.h"
+#include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace std;
@@ -46,6 +48,7 @@ TheoryUF::TheoryUF(Env& env,
                    std::string instanceName)
     : Theory(THEORY_UF, env, out, valuation, instanceName),
       d_thss(nullptr),
+      d_lambdaLift(new LambdaLift(env)),
       d_ho(nullptr),
       d_functionsTerms(context()),
       d_symb(env, instanceName),
@@ -100,7 +103,7 @@ void TheoryUF::finishInit() {
   if (isHo)
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-    d_ho.reset(new HoExtension(d_env, d_state, d_im));
+    d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
 }
 
@@ -212,36 +215,39 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
                       << std::endl;
   Kind k = node.getKind();
+  bool isHol = logicInfo().isHigherOrder();
   if (k == kind::HO_APPLY || (node.isVar() && node.getType().isFunction()))
   {
-    if (!logicInfo().isHigherOrder())
+    if (!isHol)
     {
       std::stringstream ss;
       ss << "Partial function applications are only supported with "
             "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }
-    Node ret = d_ho->ppRewrite(node);
-    if (ret != node)
-    {
-      Trace("uf-exp-def") << "TheoryUF::ppRewrite: higher-order: " << node
-                          << " to " << ret << std::endl;
-      return TrustNode::mkTrustRewrite(node, ret, nullptr);
-    }
   }
   else if (k == kind::APPLY_UF)
   {
-    // check for higher-order
-    // logic exception if higher-order is not enabled
-    if (isHigherOrderType(node.getOperator().getType())
-        && !logicInfo().isHigherOrder())
+    if (!isHol && isHigherOrderType(node.getOperator().getType()))
     {
+      // check for higher-order
+      // logic exception if higher-order is not enabled
       std::stringstream ss;
       ss << "UF received an application whose operator has higher-order type "
          << node
-         << ", which is only supported with higher-order logic. Try adding the "
-            "logic prefix HO_.";
+         << ", which is only supported with higher-order logic. Try adding "
+            "the logic prefix HO_.";
       throw LogicException(ss.str());
+    }
+  }
+  if (isHol)
+  {
+    TrustNode ret = d_ho->ppRewrite(node, lems);
+    if (!ret.isNull())
+    {
+      Trace("uf-exp-def") << "TheoryUF::ppRewrite: higher-order: " << node
+                          << " to " << ret.getNode() << std::endl;
+      return ret;
     }
   }
   return TrustNode::null();
@@ -307,6 +313,14 @@ void TheoryUF::preRegisterTerm(TNode node)
     // Variables etc
     d_equalityEngine->addTerm(node);
     break;
+  }
+
+  if (logicInfo().isHigherOrder())
+  {
+    if (d_lambdaLift->isLambdaFunction(node))
+    {
+      addSharedTerm(node);
+    }
   }
 }
 
@@ -524,6 +538,10 @@ bool TheoryUF::areCareDisequal(TNode x, TNode y)
         d_equalityEngine->getTriggerTermRepresentative(y, THEORY_UF);
     EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
     if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+      if (x.getType().isFunction())
+      {
+        return false;
+      }
       return true;
     }
   }

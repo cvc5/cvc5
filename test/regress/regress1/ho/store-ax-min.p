@@ -1,4 +1,4 @@
-% COMMAND-LINE: --full-saturate-quant --ho-elim-store-ax
+% COMMAND-LINE: --full-saturate-quant --ho-elim --ho-elim-store-ax
 % COMMAND-LINE: --full-saturate-quant --ho-elim
 % EXPECT: % SZS status Theorem for store-ax-min
 
