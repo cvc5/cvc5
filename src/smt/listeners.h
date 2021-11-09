@@ -26,7 +26,7 @@
 namespace cvc5 {
 
 class OutputManager;
-class SmtEngine;
+class SolverEngine;
 
 namespace smt {
 
@@ -34,45 +34,13 @@ namespace smt {
 class ResourceOutListener : public Listener
 {
  public:
-  ResourceOutListener(SmtEngine& smt);
-  /** notify method, interupts SmtEngine */
+  ResourceOutListener(SolverEngine& smt);
+  /** notify method, interupts SolverEngine */
   void notify() override;
 
  private:
-  /** Reference to the SmtEngine */
-  SmtEngine& d_smt;
-};
-
-class DumpManager;
-
-/**
- * A listener for node manager calls, which impacts certain dumping traces.
- */
-class SmtNodeManagerListener : public NodeManagerListener
-{
- public:
-  SmtNodeManagerListener(DumpManager& dm, OutputManager& outMgr);
-  /** Notify when new sort is created */
-  void nmNotifyNewSort(TypeNode tn, uint32_t flags) override;
-  /** Notify when new sort constructor is created */
-  void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) override;
-  /** Notify when list of datatypes is created */
-  void nmNotifyNewDatatypes(const std::vector<TypeNode>& dtts,
-                            uint32_t flags) override;
-  /** Notify when new variable is created */
-  void nmNotifyNewVar(TNode n) override;
-  /** Notify when new skolem is created */
-  void nmNotifyNewSkolem(TNode n,
-                         const std::string& comment,
-                         uint32_t flags) override;
-  /** Notify when a term is deleted */
-  void nmNotifyDeleteNode(TNode n) override {}
-
- private:
-  /** Reference to the dump manager of smt engine */
-  DumpManager& d_dm;
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
+  /** Reference to the SolverEngine */
+  SolverEngine& d_slv;
 };
 
 }  // namespace smt

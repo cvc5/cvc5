@@ -135,6 +135,12 @@ void Smt2::addDatatypesOperators()
   {
     Parser::addOperator(api::APPLY_UPDATER);
     addOperator(api::DT_SIZE, "dt.size");
+    // Notice that tuple operators, we use the generic APPLY_SELECTOR and
+    // APPLY_UPDATER kinds. These are processed based on the context
+    // in which they are parsed, e.g. when parsing identifiers.
+    addIndexedOperator(
+        api::APPLY_SELECTOR, api::APPLY_SELECTOR, "tuple_select");
+    addIndexedOperator(api::APPLY_UPDATER, api::APPLY_UPDATER, "tuple_update");
   }
 }
 
@@ -257,14 +263,16 @@ void Smt2::addFloatingPointOperators() {
 }
 
 void Smt2::addSepOperators() {
+  defineVar("sep.emp", d_solver->mkSepEmp());
+  // the Boolean sort is a placeholder here since we don't have type info
+  // without type annotation
+  defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
   addOperator(api::SEP_STAR, "sep");
   addOperator(api::SEP_PTO, "pto");
   addOperator(api::SEP_WAND, "wand");
-  addOperator(api::SEP_EMP, "emp");
   Parser::addOperator(api::SEP_STAR);
   Parser::addOperator(api::SEP_PTO);
   Parser::addOperator(api::SEP_WAND);
-  Parser::addOperator(api::SEP_EMP);
 }
 
 void Smt2::addCoreSymbols()
@@ -287,7 +295,7 @@ void Smt2::addOperator(api::Kind kind, const std::string& name)
   Debug("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
                   << std::endl;
   Parser::addOperator(kind);
-  operatorKindMap[name] = kind;
+  d_operatorKindMap[name] = kind;
 }
 
 void Smt2::addIndexedOperator(api::Kind tKind,
@@ -301,11 +309,11 @@ void Smt2::addIndexedOperator(api::Kind tKind,
 api::Kind Smt2::getOperatorKind(const std::string& name) const
 {
   // precondition: isOperatorEnabled(name)
-  return operatorKindMap.find(name)->second;
+  return d_operatorKindMap.find(name)->second;
 }
 
 bool Smt2::isOperatorEnabled(const std::string& name) const {
-  return operatorKindMap.find(name) != operatorKindMap.end();
+  return d_operatorKindMap.find(name) != d_operatorKindMap.end();
 }
 
 bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
@@ -314,6 +322,8 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
 }
 
 bool Smt2::isHoEnabled() const { return d_logic.isHigherOrder(); }
+
+bool Smt2::hasCardinalityConstraints() const { return d_logic.hasCardinalityConstraints(); }
 
 bool Smt2::logicIsSet() {
   return d_logicSet;
@@ -382,25 +392,15 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
   return api::Term();
 }
 
-api::Op Smt2::mkIndexedOp(const std::string& name,
-                          const std::vector<uint64_t>& numerals)
+api::Kind Smt2::getIndexedOpKind(const std::string& name)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
   if (kIt != d_indexedOpKindMap.end())
   {
-    api::Kind k = (*kIt).second;
-    if (numerals.size() == 1)
-    {
-      return d_solver->mkOp(k, numerals[0]);
-    }
-    else if (numerals.size() == 2)
-    {
-      return d_solver->mkOp(k, numerals[0], numerals[1]);
-    }
+    return (*kIt).second;
   }
-
   parseError(std::string("Unknown indexed function `") + name + "'");
-  return api::Op();
+  return api::UNDEFINED_KIND;
 }
 
 api::Term Smt2::bindDefineFunRec(
@@ -446,7 +446,7 @@ void Smt2::reset() {
   d_logicSet = false;
   d_seenSetLogic = false;
   d_logic = LogicInfo();
-  operatorKindMap.clear();
+  d_operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
 }
 
@@ -514,12 +514,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if(d_logic.isTheoryEnabled(theory::THEORY_UF)) {
     Parser::addOperator(api::APPLY_UF);
-
-    if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
-    {
-      addOperator(api::CARDINALITY_CONSTRAINT, "fmf.card");
-      addOperator(api::CARDINALITY_VALUE, "fmf.card.val");
-    }
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
@@ -555,7 +549,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
     if (d_logic.areTranscendentalsUsed())
     {
-      defineVar("real.pi", d_solver->mkTerm(api::PI));
+      defineVar("real.pi", d_solver->mkPi());
       addTranscendentalOperators();
     }
     if (!strictModeEnabled())
@@ -593,26 +587,29 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_SETS)) {
-    defineVar("emptyset", d_solver->mkEmptySet(d_solver->getNullSort()));
+    defineVar("set.empty", d_solver->mkEmptySet(d_solver->getNullSort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    defineVar("univset", d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+    defineVar("set.universe",
+              d_solver->mkUniverseSet(d_solver->getBooleanSort()));
 
-    addOperator(api::UNION, "union");
-    addOperator(api::INTERSECTION, "intersection");
-    addOperator(api::SETMINUS, "setminus");
-    addOperator(api::SUBSET, "subset");
-    addOperator(api::MEMBER, "member");
-    addOperator(api::SINGLETON, "singleton");
-    addOperator(api::INSERT, "insert");
-    addOperator(api::CARD, "card");
-    addOperator(api::COMPLEMENT, "complement");
-    addOperator(api::CHOOSE, "choose");
-    addOperator(api::IS_SINGLETON, "is_singleton");
-    addOperator(api::JOIN, "join");
-    addOperator(api::PRODUCT, "product");
-    addOperator(api::TRANSPOSE, "transpose");
-    addOperator(api::TCLOSURE, "tclosure");
+    addOperator(api::SET_UNION, "set.union");
+    addOperator(api::SET_INTERSECTION, "set.intersection");
+    addOperator(api::SET_MINUS, "set.minus");
+    addOperator(api::SET_SUBSET, "set.subset");
+    addOperator(api::SET_MEMBER, "set.member");
+    addOperator(api::SET_SINGLETON, "set.singleton");
+    addOperator(api::SET_INSERT, "set.insert");
+    addOperator(api::SET_CARD, "set.card");
+    addOperator(api::SET_COMPLEMENT, "set.complement");
+    addOperator(api::SET_CHOOSE, "set.choose");
+    addOperator(api::SET_IS_SINGLETON, "set.is_singleton");
+    addOperator(api::RELATION_JOIN, "rel.join");
+    addOperator(api::RELATION_PRODUCT, "rel.product");
+    addOperator(api::RELATION_TRANSPOSE, "rel.transpose");
+    addOperator(api::RELATION_TCLOSURE, "rel.tclosure");
+    addOperator(api::RELATION_JOIN_IMAGE, "rel.join_image");
+    addOperator(api::RELATION_IDEN, "rel.iden");
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
@@ -679,11 +676,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addFloatingPointOperators();
   }
 
-  if (d_logic.isTheoryEnabled(theory::THEORY_SEP)) {
-    // the Boolean sort is a placeholder here since we don't have type info
-    // without type annotation
-    defineVar("sep.nil", d_solver->mkSepNil(d_solver->getBooleanSort()));
-
+  if (d_logic.isTheoryEnabled(theory::THEORY_SEP))
+  {
     addSepOperators();
   }
 
@@ -692,7 +686,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   {
     // If not from a command, just set the logic directly. Notice this is
     // important since we do not want to enqueue a set-logic command and
-    // fully initialize the underlying SmtEngine in the meantime before the
+    // fully initialize the underlying SolverEngine in the meantime before the
     // command has a chance to execute, which would lead to an error.
     d_solver->setLogic(logic);
     return nullptr;
@@ -959,6 +953,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
+      Debug("parser") << "Got builtin kind " << kind << " for name"
+                      << std::endl;
     }
     else
     {
@@ -1037,22 +1033,24 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
+  else if ((p.d_kind == api::APPLY_SELECTOR || p.d_kind == api::APPLY_UPDATER)
+           && !p.d_expr.isNull())
   {
     // tuple selector case
     if (!p.d_expr.isUInt64Value())
     {
-      parseError("index of tupSel is larger than size of uint64_t");
+      parseError(
+          "index of tuple select or update is larger than size of uint64_t");
     }
     uint64_t n = p.d_expr.getUInt64Value();
-    if (args.size() != 1)
+    if (args.size() != (p.d_kind == api::APPLY_SELECTOR ? 1 : 2))
     {
-      parseError("tupSel should only be applied to one tuple argument");
+      parseError("wrong number of arguments for tuple select or update");
     }
     api::Sort t = args[0].getSort();
     if (!t.isTuple())
     {
-      parseError("tupSel applied to non-tuple");
+      parseError("tuple select or update applied to non-tuple");
     }
     size_t length = t.getTupleLength();
     if (n >= length)
@@ -1062,8 +1060,17 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const api::Datatype& dt = t.getDatatype();
-    api::Term ret = d_solver->mkTerm(
-        api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+    api::Term ret;
+    if (p.d_kind == api::APPLY_SELECTOR)
+    {
+      ret = d_solver->mkTerm(
+          api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
+    }
+    else
+    {
+      ret = d_solver->mkTerm(
+          api::APPLY_UPDATER, dt[0][n].getUpdaterTerm(), args[0], args[1]);
+    }
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
@@ -1114,15 +1121,26 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
-    if (kind == api::EQ_RANGE && d_solver->getOption("arrays-exp") != "true")
+    if (kind == api::SET_SINGLETON && args.size() == 1)
     {
-      parseError(
-          "eqrange predicate requires option --arrays-exp to be enabled.");
+      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, args[0]);
+      Debug("parser") << "applyParseOp: return set.singleton " << ret
+                      << std::endl;
+      return ret;
     }
-    if (kind == api::SINGLETON && args.size() == 1)
+    else if (kind == api::CARDINALITY_CONSTRAINT)
     {
-      api::Term ret = d_solver->mkTerm(api::SINGLETON, args[0]);
-      Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
+      if (args.size() != 2)
+      {
+        parseError("Incorrect arguments for cardinality constraint");
+      }
+      api::Sort sort = args[0].getSort();
+      if (!sort.isUninterpretedSort())
+      {
+        parseError("Expected uninterpreted sort for cardinality constraint");
+      }
+      uint64_t ubound = args[1].getUInt32Value();
+      api::Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
       return ret;
     }
     api::Term ret = d_solver->mkTerm(kind, args);

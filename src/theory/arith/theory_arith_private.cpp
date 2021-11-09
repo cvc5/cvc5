@@ -37,6 +37,7 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/base_options.h"
+#include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
@@ -45,7 +46,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/approx_simplex.h"
-#include "theory/arith/arith_ite_utils.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
@@ -97,13 +97,11 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                            : nullptr),
       d_checker(),
       d_pfGen(new EagerProofGenerator(d_pnm, userContext())),
-      d_constraintDatabase(context(),
-                           userContext(),
+      d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
                            RaiseConflict(*this),
-                           d_pfGen.get(),
-                           d_pnm),
+                           d_pfGen.get()),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -123,7 +121,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
-      d_diosolver(context()),
+      d_diosolver(env),
       d_restartsCounter(0),
       d_tableauSizeHasBeenModified(false),
       d_tableauResetDensity(1.6),
@@ -131,23 +129,21 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_conflicts(context()),
       d_blackBoxConflict(context(), Node::null()),
       d_blackBoxConflictPf(context(), std::shared_ptr<ProofNode>(nullptr)),
-      d_congruenceManager(context(),
-                          userContext(),
+      d_congruenceManager(d_env,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
-                          RaiseEqualityEngineConflict(*this),
-                          d_pnm),
+                          RaiseEqualityEngineConflict(*this)),
       d_cmEnabled(context(), options().arith.arithCongMan),
 
       d_dualSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_fcSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_soiSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(context(), -1),
@@ -1009,7 +1005,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
       // ax + p = c -> (ax + p) -ax - c = -ax
       // x = (p - ax - c) * -1/a
       // Add the substitution if not recursive
-      Assert(elim == Rewriter::rewrite(elim));
+      Assert(elim == rewrite(elim));
 
       if (right.size() > options().arith.ppAssertMaxSubSize)
       {
@@ -1412,7 +1408,7 @@ TrustNode TheoryArithPrivate::dioCutting()
     Comparison leq = Comparison::mkComparison(LEQ, p, c);
     Comparison geq = Comparison::mkComparison(GEQ, p, c);
     Node lemma = NodeManager::currentNM()->mkNode(OR, leq.getNode(), geq.getNode());
-    Node rewrittenLemma = Rewriter::rewrite(lemma);
+    Node rewrittenLemma = rewrite(lemma);
     Debug("arith::dio::ex") << "dioCutting found the plane: " << plane.getNode() << endl;
     Debug("arith::dio::ex") << "resulting in the cut: " << lemma << endl;
     Debug("arith::dio::ex") << "rewritten " << rewrittenLemma << endl;
@@ -1503,7 +1499,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     bool isDistinct = simpleKind == DISTINCT;
     Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
     Assert(!isSetup(eq));
-    Node reEq = Rewriter::rewrite(eq);
+    Node reEq = rewrite(eq);
     Debug("arith::distinct::const") << "Assertion: " << assertion << std::endl;
     Debug("arith::distinct::const") << "Eq       : " << eq << std::endl;
     Debug("arith::distinct::const") << "reEq     : " << reEq << std::endl;
@@ -1749,7 +1745,7 @@ void TheoryArithPrivate::outputConflicts(){
       const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (Debug.isOn("arith::conflict"))
       {
-        pf.print(std::cout);
+        pf.print(std::cout, options().smt.produceProofs);
         std::cout << std::endl;
       }
       if (Debug.isOn("arith::pf::tree"))
@@ -1966,7 +1962,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   Assert(k == kind::LEQ || k == kind::GEQ);
 
   Node comparison = NodeManager::currentNM()->mkNode(k, sum, mkRationalNode(rhs));
-  Node rewritten = Rewriter::rewrite(comparison);
+  Node rewritten = rewrite(comparison);
   if(!(Comparison::isNormalAtom(rewritten))){
     return make_pair(NullConstraint, added);
   }
@@ -2065,11 +2061,12 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
   return replayGetConstraint(lhs, k, rhs, ci.getKlass() == BranchCutKlass);
 }
 
-// Node denseVectorToLiteral(const ArithVariables& vars, const DenseVector& dv, Kind k){
+// Node denseVectorToLiteral(const ArithVariables& vars, const DenseVector& dv,
+// Kind k){
 //   NodeManager* nm = NodeManager::currentNM();
 //   Node sumLhs = toSumNode(vars, dv.lhs);
 //   Node ineq = nm->mkNode(k, sumLhs, mkRationalNode(dv.rhs) );
-//   Node lit = Rewriter::rewrite(ineq);
+//   Node lit = rewrite(ineq);
 //   return lit;
 // }
 
@@ -2594,7 +2591,7 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
       Rational fl(maybe_value.value().floor());
       NodeManager* nm = NodeManager::currentNM();
       Node leq = nm->mkNode(kind::LEQ, n, mkRationalNode(fl));
-      Node norm = Rewriter::rewrite(leq);
+      Node norm = rewrite(leq);
       return norm;
     }
   }
@@ -2613,7 +2610,7 @@ Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo&
 
     NodeManager* nm = NodeManager::currentNM();
     Node ineq = nm->mkNode(k, sum, rhs);
-    return Rewriter::rewrite(ineq);
+    return rewrite(ineq);
   }
   return Node::null();
 }
@@ -2644,7 +2641,7 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
         const ConstraintCPVec& exp = cut->getExplanation();
         Node asLemma = Constraint::externalExplainByAssertions(exp);
 
-        Node implied = Rewriter::rewrite(cutConstraint);
+        Node implied = rewrite(cutConstraint);
         anythingnew = anythingnew || !isSatLiteral(implied);
 
         Node implication = asLemma.impNode(implied);
@@ -2927,7 +2924,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
       ++d_statistics.d_panicBranches;
       TrustNode branch = branchIntegerVariable(canBranch);
       Assert(branch.getNode().getKind() == kind::OR);
-      Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
+      Node rwbranch = rewrite(branch.getNode()[0]);
       if (!isSatLiteral(rwbranch))
       {
         d_approxCuts.push_back(branch);
@@ -3552,10 +3549,9 @@ bool TheoryArithPrivate::splitDisequalities(){
         TrustNode lemma = front->split();
         ++(d_statistics.d_statDisequalitySplits);
 
-        Debug("arith::lemma")
-            << "Now " << Rewriter::rewrite(lemma.getNode()) << endl;
+        Debug("arith::lemma") << "Now " << rewrite(lemma.getNode()) << endl;
         outputTrustedLemma(lemma, InferenceId::ARITH_SPLIT_DEQ);
-        //cout << "Now " << Rewriter::rewrite(lemma) << endl;
+        // cout << "Now " << rewrite(lemma) << endl;
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
         Debug("arith::eq") << "can drop as less than lb" << front << endl;
@@ -3696,7 +3692,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
     //Currently if the flag is set this came from an equality detected by the
     //equality engine in the the difference manager.
-    Node normalized = Rewriter::rewrite(toProp);
+    Node normalized = rewrite(toProp);
 
     ConstraintP constraint = d_constraintDatabase.lookup(normalized);
     if(constraint == NullConstraint){
@@ -3968,19 +3964,19 @@ bool TheoryArithPrivate::entireStateIsConsistent(const string& s){
     //ArithVar var = d_partialModel.asArithVar(*i);
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
-      Warning() << s << ":" << "Assignment is not consistent for " << var << d_partialModel.asNode(var);
+      warning() << s << ":" << "Assignment is not consistent for " << var << d_partialModel.asNode(var);
       if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
+        warning() << " (basic)";
       }
-      Warning() << endl;
+      warning() << std::endl;
       result = false;
     }else if(d_partialModel.isInteger(var) && !d_partialModel.integralAssignment(var)){
       d_partialModel.printModel(var);
-      Warning() << s << ":" << "Assignment is not integer for integer variable " << var << d_partialModel.asNode(var);
+      warning() << s << ":" << "Assignment is not integer for integer variable " << var << d_partialModel.asNode(var);
       if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
+        warning() << " (basic)";
       }
-      Warning() << endl;
+      warning() << std::endl;
       result = false;
     }
   }
@@ -3995,19 +3991,19 @@ bool TheoryArithPrivate::unenqueuedVariablesAreConsistent(){
       if(!d_errorSet.inError(var)){
 
         d_partialModel.printModel(var);
-        Warning() << "Unenqueued var is not consistent for " << var <<  d_partialModel.asNode(var);
+        warning() << "Unenqueued var is not consistent for " << var <<  d_partialModel.asNode(var);
         if(d_tableau.isBasic(var)){
-          Warning() << " (basic)";
+          warning() << " (basic)";
         }
-        Warning() << endl;
+        warning() << std::endl;
         result = false;
       } else if(Debug.isOn("arith::consistency::initial")){
         d_partialModel.printModel(var);
-        Warning() << "Initial var is not consistent for " << var <<  d_partialModel.asNode(var);
+        warning() << "Initial var is not consistent for " << var <<  d_partialModel.asNode(var);
         if(d_tableau.isBasic(var)){
-          Warning() << " (basic)";
+          warning() << " (basic)";
         }
-        Warning() << endl;
+        warning() << std::endl;
       }
      }
   }
@@ -4123,14 +4119,14 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
                            << endl;
 
       if(bestImplied->negationHasProof()){
-        Warning() << "the negation of " <<  bestImplied << " : " << endl
-                  << "has proof " << bestImplied->getNegation() << endl
+        warning() << "the negation of " <<  bestImplied << " : " << std::endl
+                  << "has proof " << bestImplied->getNegation() << std::endl
                   << bestImplied->getNegation()->externalExplainByAssertions()
-                  << endl;
+                  << std::endl;
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
-        d_linEq.propagateBasicFromRow(bestImplied);
+        d_linEq.propagateBasicFromRow(bestImplied, options().smt.produceProofs);
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
         if(Debug.isOn("arith::prop")){
@@ -4435,8 +4431,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
   if( !assertedToTheTheory && canBePropagated && !hasProof ){
     ConstraintCPVec explain;
-    ARITH_PROOF(d_farkasBuffer.clear());
-    RationalVectorP coeffs = ARITH_NULLPROOF(&d_farkasBuffer);
+    if (options().smt.produceProofs)
+    {
+      d_farkasBuffer.clear();
+    }
+    RationalVectorP coeffs =
+        options().smt.produceProofs ? &d_farkasBuffer : nullptr;
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied
@@ -4600,7 +4600,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
   if(!successful) { return make_pair(false, Node::null()); }
 
   if(dp.getKind() == CONST_RATIONAL){
-    Node eval = Rewriter::rewrite(lit);
+    Node eval = rewrite(lit);
     Assert(eval.getKind() == kind::CONST_BOOLEAN);
     // if true, true is an acceptable explaination
     // if false, the node is uninterpreted and eval can be forgotten

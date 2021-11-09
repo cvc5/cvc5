@@ -59,6 +59,11 @@ void InferProofCons::notifyFact(const InferInfo& ii)
   d_lazyFactMap.insert(ii.d_conc, iic);
 }
 
+void InferProofCons::notifyLemma(const InferInfo& ii)
+{
+  d_lazyFactMap[ii.d_conc] = std::make_shared<InferInfo>(ii);
+}
+
 bool InferProofCons::addProofTo(CDProof* pf,
                                 Node conc,
                                 InferenceId infer,
@@ -212,10 +217,25 @@ void InferProofCons::convert(InferenceId infer,
       Node src = ps.d_children[ps.d_children.size() - 1];
       std::vector<Node> expe(ps.d_children.begin(), ps.d_children.end() - 1);
       // start with a default rewrite
+      Trace("strings-ipc-core")
+          << "Generate proof for STRINGS_EXTF_EQ_REW, starting with " << src
+          << std::endl;
       Node mainEqSRew = psb.applyPredElim(src, expe);
+      Trace("strings-ipc-core")
+          << "...after pred elim: " << mainEqSRew << std::endl;
       if (mainEqSRew == conc)
       {
+        Trace("strings-ipc-core") << "...success" << std::endl;
         useBuffer = true;
+        break;
+      }
+      else if (mainEqSRew.getKind() != EQUAL)
+      {
+        // Note this can happen in rare cases where substitution+rewriting
+        // is more powerful than congruence+rewriting. We fail to reconstruct
+        // the proof in this case.
+        Trace("strings-ipc-core")
+            << "...failed, not equality after rewriting" << std::endl;
         break;
       }
       // may need the "extended equality rewrite"
@@ -224,6 +244,8 @@ void InferProofCons::convert(InferenceId infer,
                                            MethodId::SB_DEFAULT,
                                            MethodId::SBA_SEQUENTIAL,
                                            MethodId::RW_REWRITE_EQ_EXT);
+      Trace("strings-ipc-core")
+          << "...after extended equality rewrite: " << mainEqSRew2 << std::endl;
       if (mainEqSRew2 == conc)
       {
         useBuffer = true;
@@ -391,6 +413,25 @@ void InferProofCons::convert(InferenceId infer,
         argsC.push_back(nodeIsRev);
         Node mainEqC = psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
         if (mainEqC == conc)
+        {
+          useBuffer = true;
+          Trace("strings-ipc-core") << "...success!" << std::endl;
+        }
+      }
+      else if (infer == InferenceId::STRINGS_F_NCTN
+               || infer == InferenceId::STRINGS_N_NCTN)
+      {
+        // May require extended equality rewrite, applied after the rewrite
+        // above. Notice we need both in sequence since ext equality rewriting
+        // is not recursive.
+        std::vector<Node> argsERew;
+        addMethodIds(argsERew,
+                     MethodId::SB_DEFAULT,
+                     MethodId::SBA_SEQUENTIAL,
+                     MethodId::RW_REWRITE_EQ_EXT);
+        Node mainEqERew =
+            psb.tryStep(PfRule::MACRO_SR_PRED_ELIM, {mainEqCeq}, argsERew);
+        if (mainEqERew == conc)
         {
           useBuffer = true;
           Trace("strings-ipc-core") << "...success!" << std::endl;
@@ -845,7 +886,11 @@ void InferProofCons::convert(InferenceId infer,
       Trace("strings-ipc-prefix")
           << "- Possible conflicting equality : " << curr << std::endl;
       std::vector<Node> emp;
-      Node concE = psb.applyPredElim(curr, emp);
+      Node concE = psb.applyPredElim(curr,
+                                     emp,
+                                     MethodId::SB_DEFAULT,
+                                     MethodId::SBA_SEQUENTIAL,
+                                     MethodId::RW_REWRITE_EQ_EXT);
       Trace("strings-ipc-prefix")
           << "- After pred elim: " << concE << std::endl;
       if (concE == conc)

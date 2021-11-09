@@ -25,6 +25,7 @@
 #include "proof/trust_node.h"
 #include "prop/skolem_def_manager.h"
 #include "theory/output_channel.h"
+#include "theory/skolem_lemma.h"
 #include "util/result.h"
 
 namespace cvc5 {
@@ -71,7 +72,7 @@ class PropEngine
   void finishInit();
 
   /**
-   * This is called by SmtEngine, at shutdown time, just before
+   * This is called by SolverEngine, at shutdown time, just before
    * destruction.  It is important because there are destruction
    * ordering issues between some parts of the system (notably between
    * PropEngine and Theory).  For now, there's nothing to do here in
@@ -85,14 +86,12 @@ class PropEngine
    * ppSkolems respectively.
    *
    * @param node The assertion to preprocess,
-   * @param ppLemmas The lemmas to add to the set of assertions,
-   * @param ppSkolems The skolems that newLemmas correspond to,
+   * @param ppLemmas The lemmas to add to the set of assertions, which tracks
+   * their corresponding skolems,
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  TrustNode preprocess(TNode node,
-                       std::vector<TrustNode>& ppLemmas,
-                       std::vector<Node>& ppSkolems);
+  TrustNode preprocess(TNode node, std::vector<theory::SkolemLemma>& ppLemmas);
   /**
    * Remove term ITEs (and more generally, term formulas) from the given node.
    * Return the REWRITE trust node corresponding to rewriting node. New lemmas
@@ -101,14 +100,12 @@ class PropEngine
    * preprocessing and rewriting.
    *
    * @param node The assertion to preprocess,
-   * @param ppLemmas The lemmas to add to the set of assertions,
-   * @param ppSkolems The skolems that newLemmas correspond to,
+   * @param ppLemmas The lemmas to add to the set of assertions, which tracks
+   * their corresponding skolems.
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
-  TrustNode removeItes(TNode node,
-                       std::vector<TrustNode>& ppLemmas,
-                       std::vector<Node>& ppSkolems);
+  TrustNode removeItes(TNode node, std::vector<theory::SkolemLemma>& ppLemmas);
 
   /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.
@@ -286,7 +283,7 @@ class PropEngine
 
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */
-  void checkProof(context::CDList<Node>* assertions);
+  void checkProof(const context::CDList<Node>& assertions);
 
   /**
    * Return the prop engine proof. This should be called only when proofs are
@@ -334,13 +331,12 @@ class PropEngine
                       ProofGenerator* pg = nullptr);
   /**
    * Assert lemmas internal, where trn is a trust node corresponding to a
-   * formula to assert to the CNF stream, ppLemmas and ppSkolems are the
-   * skolem definitions and skolems obtained from preprocessing it, and
-   * removable is whether the lemma is removable.
+   * formula to assert to the CNF stream, ppLemmas are the skolem definitions
+   * obtained from preprocessing it, and removable is whether the lemma is
+   * removable.
    */
   void assertLemmasInternal(TrustNode trn,
-                            const std::vector<TrustNode>& ppLemmas,
-                            const std::vector<Node>& ppSkolems,
+                            const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable);
 
   /**

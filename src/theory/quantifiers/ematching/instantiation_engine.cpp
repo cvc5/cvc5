@@ -42,25 +42,27 @@ InstantiationEngine::InstantiationEngine(Env& env,
       d_isup(),
       d_i_ag(),
       d_quants(),
-      d_trdb(qs, qim, qr, tr),
+      d_trdb(d_env, qs, qim, qr, tr),
       d_quant_rel(nullptr)
 {
-  if (options::relevantTriggers())
+  if (options().quantifiers.relevantTriggers)
   {
     d_quant_rel.reset(new quantifiers::QuantRelevance(env));
   }
-  if (options::eMatching()) {
+  if (options().quantifiers.eMatching)
+  {
     // these are the instantiation strategies for E-matching
     // user-provided patterns
-    if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
+    if (options().quantifiers.userPatternsQuant != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_trdb, qs, qim, qr, tr));
+      d_isup.reset(
+          new InstStrategyUserPatterns(d_env, d_trdb, qs, qim, qr, tr));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
     d_i_ag.reset(new InstStrategyAutoGenTriggers(
-        d_trdb, qs, qim, qr, tr, d_quant_rel.get()));
+        d_env, d_trdb, qs, qim, qr, tr, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -201,7 +203,7 @@ bool InstantiationEngine::checkCompleteFor( Node q ) {
 
 void InstantiationEngine::checkOwnership(Node q)
 {
-  if (options::userPatternsQuant() == options::UserPatMode::STRICT
+  if (options().quantifiers.userPatternsQuant == options::UserPatMode::STRICT
       && q.getNumChildren() == 3)
   {
     //if strict triggers, take ownership of this quantified formula
@@ -261,7 +263,7 @@ bool InstantiationEngine::shouldProcess(Node q)
   }
   // also ignore internal quantifiers
   QuantAttributes& qattr = d_qreg.getQuantAttributes();
-  if (qattr.isInternal(q))
+  if (qattr.isQuantBounded(q))
   {
     return false;
   }

@@ -28,6 +28,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+class SygusEvalUnfold;
+
 /** Cegis
  *
  * The default sygus module for synthesis, counterexample-guided inductive
@@ -117,6 +119,13 @@ class Cegis : public SygusModule
   std::vector<Node> d_rl_vals;
   /** all variables appearing in refinement lemmas */
   std::unordered_set<Node> d_refinement_lemma_vars;
+  /**
+   * Are the counterexamples we are handling in this class of only closed
+   * enumerable types (see TypeNode::isClosedEnumerable). If this is false,
+   * then CEGIS refinement lemmas can contain terms that are unhandled by
+   * theory solvers, e.g. uninterpreted constants.
+   */
+  bool d_cexClosedEnum;
 
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);

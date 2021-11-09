@@ -24,6 +24,9 @@
 
 namespace cvc5 {
 namespace theory {
+
+class Rewriter;
+
 namespace strings {
 
 /**
@@ -34,19 +37,25 @@ namespace strings {
 class ArithEntail
 {
  public:
+  ArithEntail(Rewriter* r);
+  /**
+   * Returns the rewritten form a term, intended (although not enforced) to be
+   * an arithmetic term.
+   */
+  Node rewrite(Node a);
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
-  static bool checkEq(Node a, Node b);
+  bool checkEq(Node a, Node b);
   /** check arithmetic entailment
    * Returns true if it is always the case that a >= b,
    * and a>b if strict is true.
    */
-  static bool check(Node a, Node b, bool strict = false);
+  bool check(Node a, Node b, bool strict = false);
   /** check arithmetic entailment
    * Returns true if it is always the case that a >= 0.
    */
-  static bool check(Node a, bool strict = false);
+  bool check(Node a, bool strict = false);
   /** check arithmetic entailment with approximations
    *
    * Returns true if it is always the case that a >= 0. We expect that a is in
@@ -61,7 +70,7 @@ class ArithEntail
    * and thus the entailment len( x ) - len( substr( y, 0, len( x ) ) ) >= 0
    * holds.
    */
-  static bool checkApprox(Node a);
+  bool checkApprox(Node a);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or
@@ -74,9 +83,7 @@ class ArithEntail
    *
    * Because: x = -(str.len y), so -x >= 0 --> (str.len y) >= 0 --> true
    */
-  static bool checkWithEqAssumption(Node assumption,
-                                    Node a,
-                                    bool strict = false);
+  bool checkWithEqAssumption(Node assumption, Node a, bool strict = false);
 
   /**
    * Checks whether assumption |= a >= b (if strict is false) or
@@ -89,11 +96,15 @@ class ArithEntail
    * checkWithAssumption(x + (str.len y) = 0, 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   *
+   * Since this method rewrites on rewriting and may introduce new variables
+   * (slack variables for inequalities), it should *not* be called from the
+   * main rewriter of strings, or non-termination can occur.
    */
-  static bool checkWithAssumption(Node assumption,
-                                  Node a,
-                                  Node b,
-                                  bool strict = false);
+  bool checkWithAssumption(Node assumption,
+                           Node a,
+                           Node b,
+                           bool strict = false);
 
   /**
    * Checks whether assumptions |= a >= b (if strict is false) or
@@ -107,11 +118,15 @@ class ArithEntail
    * checkWithAssumptions([x + (str.len y) = 0], 0, x, false) = true
    *
    * Because: x = -(str.len y), so 0 >= x --> 0 >= -(str.len y) --> true
+   *
+   * Since this method rewrites on rewriting and may introduce new variables
+   * (slack variables for inequalities), it should *not* be called from the
+   * main rewriter of strings, or non-termination can occur.
    */
-  static bool checkWithAssumptions(std::vector<Node> assumptions,
-                                   Node a,
-                                   Node b,
-                                   bool strict = false);
+  bool checkWithAssumptions(std::vector<Node> assumptions,
+                            Node a,
+                            Node b,
+                            bool strict = false);
 
   /** get arithmetic lower bound
    * If this function returns a non-null Node ret,
@@ -126,8 +141,12 @@ class ArithEntail
    *     if and only if
    *   check( a, strict ) = true.
    */
-  static Node getConstantBound(Node a, bool isLower = true);
+  Node getConstantBound(Node a, bool isLower = true);
 
+  /**
+   * get constant bound on the length of s.
+   */
+  Node getConstantBoundLength(Node s, bool isLower = true);
   /**
    * Given an inequality y1 + ... + yn >= x, removes operands yi s.t. the
    * original inequality still holds. Returns true if the original inequality
@@ -144,16 +163,16 @@ class ArithEntail
    * --> returns false because it is not possible to show
    *     str.len(y) >= str.len(x)
    */
-  static bool inferZerosInSumGeq(Node x,
-                                 std::vector<Node>& ys,
-                                 std::vector<Node>& zeroYs);
+  bool inferZerosInSumGeq(Node x,
+                          std::vector<Node>& ys,
+                          std::vector<Node>& zeroYs);
 
  private:
   /** check entail arithmetic internal
    * Returns true if we can show a >= 0 always.
    * a is in rewritten form.
    */
-  static bool checkInternal(Node a);
+  bool checkInternal(Node a);
   /** Get arithmetic approximations
    *
    * This gets the (set of) arithmetic approximations for term a and stores
@@ -169,9 +188,17 @@ class ArithEntail
    * function might be len( substr( x, 0, n ) ) - len( y ), where we don't
    * consider (recursively) the approximations for len( substr( x, 0, n ) ).
    */
-  static void getArithApproximations(Node a,
-                                     std::vector<Node>& approx,
-                                     bool isOverApprox = false);
+  void getArithApproximations(Node a,
+                              std::vector<Node>& approx,
+                              bool isOverApprox = false);
+  /** Set bound cache */
+  void setConstantBoundCache(Node n, Node ret, bool isLower);
+  /** Get bound cache */
+  Node getConstantBoundCache(Node n, bool isLower);
+  /** The underlying rewriter */
+  Rewriter* d_rr;
+  /** Constant zero */
+  Node d_zero;
 };
 
 }  // namespace strings

@@ -18,3 +18,10 @@ Python API Documentation
     datatypeconstructordecl
     datatypedecl
     datatypeselector
+    grammar
+    op
+    result
+    roundingmode
+    solver
+    sort
+    unknownexplanation

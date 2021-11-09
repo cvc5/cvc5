@@ -39,9 +39,7 @@ class DecisionEngineOld : public decision::DecisionEngine
   // Necessary functions
 
   /** Constructor */
-  DecisionEngineOld(context::Context* sc,
-                    context::UserContext* uc,
-                    ResourceManager* rm);
+  DecisionEngineOld(Env& env);
 
   /** Destructor, currently does nothing */
   ~DecisionEngineOld()
@@ -50,7 +48,7 @@ class DecisionEngineOld : public decision::DecisionEngine
   }
 
   /**
-   * This is called by SmtEngine, at shutdown time, just before
+   * This is called by SolverEngine, at shutdown time, just before
    * destruction.  It is important because there are destruction
    * ordering issues between some parts of the system.
    */
@@ -94,12 +92,12 @@ class DecisionEngineOld : public decision::DecisionEngine
    * Notify this class that assertion is an (input) assertion, not corresponding
    * to a skolem definition.
    */
-  void addAssertion(TNode assertion) override;
+  void addAssertion(TNode assertion, bool isLemma) override;
   /**
    * Notify this class  that lem is the skolem definition for skolem, which is
    * a part of the current assertions.
    */
-  void addSkolemDefinition(TNode lem, TNode skolem) override;
+  void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) override;
 
   // Interface for Strategies to use stuff stored in Decision Engine
   // (which was possibly requested by them on initialization)

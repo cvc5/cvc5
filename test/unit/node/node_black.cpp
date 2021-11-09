@@ -30,7 +30,7 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options_public.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "test_node.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
@@ -69,10 +69,10 @@ class TestNodeBlackNode : public TestNode
     Options opts;
     opts.base.outputLanguage = Language::LANG_AST;
     opts.base.outputLanguageWasSetByUser = true;
-    d_smt.reset(new SmtEngine(d_nodeManager, &opts));
+    d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
   }
 
-  std::unique_ptr<SmtEngine> d_smt;
+  std::unique_ptr<SolverEngine> d_slvEngine;
 
   bool imp(bool a, bool b) const { return (!a) || (b); }
   bool iff(bool a, bool b) const { return (a && b) || ((!a) && (!b)); }
@@ -532,13 +532,13 @@ TEST_F(TestNodeBlackNode, toString)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "w", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "z", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder() << w << x << kind::OR;
   Node n = NodeBuilder() << m << y << z << kind::AND;
 
@@ -550,13 +550,13 @@ TEST_F(TestNodeBlackNode, toStream)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "w", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "z", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder() << x << y << kind::OR;
   Node n = NodeBuilder() << w << m << z << kind::AND;
   Node o = NodeBuilder() << n << n << kind::XOR;
@@ -619,13 +619,13 @@ TEST_F(TestNodeBlackNode, dagifier)
   TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
   Node x = d_skolemManager->mkDummySkolem(
-      "x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", intType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", intType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node f = d_skolemManager->mkDummySkolem(
-      "f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "f", fnType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node g = d_skolemManager->mkDummySkolem(
-      "g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "g", fnType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
   Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
   Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);
@@ -643,11 +643,11 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(Language::LANG_CVC);
+  sstr << Node::setdepth(-1) << Node::setlanguage(Language::LANG_SMTLIB_V2_6);
   sstr << Node::dag(false) << n;  // never dagify
   ASSERT_EQ(sstr.str(),
-            "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "
-            "y) OR (f(g(x)) = g(y))");
+            "(or (= (f (f (f x))) x) (= (f (f (f x))) y) (= (f x) (g x)) (= x "
+            "y) (= (f (g x)) (g y)))");
 }
 
 TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)

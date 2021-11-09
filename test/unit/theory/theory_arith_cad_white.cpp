@@ -90,13 +90,15 @@ Node operator*(const Node& a, const Node& b)
 Node operator!(const Node& a) { return nodeManager->mkNode(Kind::NOT, a); }
 Node make_real_variable(const std::string& s)
 {
-  return nodeManager->mkSkolem(
-      s, nodeManager->realType(), "", NodeManager::SKOLEM_EXACT_NAME);
+  SkolemManager* sm = nodeManager->getSkolemManager();
+  return sm->mkDummySkolem(
+      s, nodeManager->realType(), "", SkolemManager::SKOLEM_EXACT_NAME);
 }
 Node make_int_variable(const std::string& s)
 {
-  return nodeManager->mkSkolem(
-      s, nodeManager->integerType(), "", NodeManager::SKOLEM_EXACT_NAME);
+  SkolemManager* sm = nodeManager->getSkolemManager();
+  return sm->mkDummySkolem(
+      s, nodeManager->integerType(), "", SkolemManager::SKOLEM_EXACT_NAME);
 }
 
 TEST_F(TestTheoryWhiteArithCAD, test_univariate_isolation)
@@ -347,7 +349,7 @@ void test_delta(const std::vector<Node>& a)
     std::cout << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
-    Notice() << "UNSAT with MIS: " << lem << std::endl;
+    std::cout << "UNSAT with MIS: " << lem << std::endl;
   }
 }
 

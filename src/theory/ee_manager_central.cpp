@@ -15,6 +15,7 @@
 
 #include "theory/ee_manager_central.h"
 
+#include "smt/env.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
@@ -23,15 +24,15 @@
 namespace cvc5 {
 namespace theory {
 
-EqEngineManagerCentral::EqEngineManagerCentral(TheoryEngine& te,
-                                               SharedSolver& shs,
-                                               ProofNodeManager* pnm)
-    : EqEngineManager(te, shs),
+EqEngineManagerCentral::EqEngineManagerCentral(Env& env,
+                                               TheoryEngine& te,
+                                               SharedSolver& shs)
+    : EqEngineManager(env, te, shs),
       d_masterEENotify(nullptr),
       d_masterEqualityEngine(nullptr),
       d_centralEENotify(*this),
       d_centralEqualityEngine(
-          d_centralEENotify, te.getSatContext(), "central::ee", true)
+          env, context(), d_centralEENotify, "central::ee", true)
 {
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
@@ -39,12 +40,10 @@ EqEngineManagerCentral::EqEngineManagerCentral(TheoryEngine& te,
   {
     d_theoryNotify[theoryId] = nullptr;
   }
-  if (pnm != nullptr)
+  if (env.isTheoryProofProducing())
   {
-    d_centralPfee.reset(new eq::ProofEqEngine(d_te.getSatContext(),
-                                              d_te.getUserContext(),
-                                              d_centralEqualityEngine,
-                                              pnm));
+    d_centralPfee =
+        std::make_unique<eq::ProofEqEngine>(env, d_centralEqualityEngine);
     d_centralEqualityEngine.setProofEqualityEngine(d_centralPfee.get());
   }
 }
@@ -53,7 +52,7 @@ EqEngineManagerCentral::~EqEngineManagerCentral() {}
 
 void EqEngineManagerCentral::initializeTheories()
 {
-  context::Context* c = d_te.getSatContext();
+  context::Context* c = context();
   // initialize the shared solver
   EeSetupInfo esis;
   if (d_sharedSolver.needsEqualityEngine(esis))
@@ -112,8 +111,8 @@ void EqEngineManagerCentral::initializeTheories()
     d_masterEENotify.reset(new quantifiers::MasterNotifyClass(qe));
     if (!masterEqToCentral)
     {
-      d_masterEqualityEngineAlloc.reset(new eq::EqualityEngine(
-          *d_masterEENotify.get(), d_te.getSatContext(), "master::ee", false));
+      d_masterEqualityEngineAlloc = std::make_unique<eq::EqualityEngine>(
+          d_env, c, *d_masterEENotify.get(), "master::ee", false);
       d_masterEqualityEngine = d_masterEqualityEngineAlloc.get();
     }
     else

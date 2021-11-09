@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "base/check.h"
+#include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/kind.h"
@@ -38,6 +39,7 @@
 #include "theory/theory_state.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -59,8 +61,9 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
+      d_rewriter(env.getEvaluator()),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm),
+      d_im(env, *this, d_state),
       d_notify(d_im, *this)
 {
 
@@ -325,7 +328,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   if( options::dtBinarySplit() && consIndex!=-1 ){
                     Node test = utils::mkTester(n, consIndex, dt);
                     Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n << endl;
-                    test = Rewriter::rewrite( test );
+                    test = rewrite(test);
                     NodeBuilder nb(kind::OR);
                     nb << test << test.notNode();
                     Node lemma = nb;
@@ -379,9 +382,7 @@ void TheoryDatatypes::postCheck(Effort level)
   }
 
   Trace("datatypes-check") << "Finished check effort " << level << std::endl;
-  if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ) {
-    Notice() << "TheoryDatatypes::check(): done" << endl;
-  }
+  Debug("datatypes") << "TheoryDatatypes::check(): done" << std::endl;
 }
 
 bool TheoryDatatypes::needsCheckLastEffort() {
@@ -1007,7 +1008,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     }
     else
     {
-      rrs = Rewriter::rewrite(r);
+      rrs = rewrite(r);
     }
     if (s != rrs)
     {
@@ -1236,7 +1237,7 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
           for( unsigned i=0; i<pcons.size(); i++ ){
             // must try the infinite ones first
             bool cfinite =
-                d_state.isFiniteType(dt[i].getSpecializedConstructorType(tt));
+                d_env.isFiniteType(dt[i].getSpecializedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
               break;
@@ -1287,10 +1288,10 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
 
 Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, int >& vmap, int depth ){
   std::map< Node, int >::iterator itv = vmap.find( n );
+  NodeManager* nm = NodeManager::currentNM();
   if( itv!=vmap.end() ){
     int debruijn = depth - 1 - itv->second;
-    return NodeManager::currentNM()->mkConst(
-        UninterpretedConstant(n.getType(), debruijn));
+    return nm->mkConst(CodatatypeBoundVariable(n.getType(), debruijn));
   }else if( n.getType().isDatatype() ){
     Node nc = eqc_cons[n];
     if( !nc.isNull() ){
@@ -1305,7 +1306,7 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
         children.push_back( rv );
       }
       vmap.erase( n );
-      return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
+      return nm->mkNode(APPLY_CONSTRUCTOR, children);
     }
   }
   return n;
@@ -1422,7 +1423,7 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
   Node n_ic = utils::getInstCons(k, dt, index);
-  n_ic = Rewriter::rewrite( n_ic );
+  n_ic = rewrite(n_ic);
   // it may be a new term, so we collect terms and add it to the equality engine
   collectTerms( n_ic );
   d_equalityEngine->addTerm(n_ic);

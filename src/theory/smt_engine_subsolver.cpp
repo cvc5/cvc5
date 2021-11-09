@@ -11,14 +11,15 @@
  * ****************************************************************************
  *
  * Implementation of utilities for initializing subsolvers (copies of
- * SmtEngine) during solving.
+ * SolverEngine) during solving.
  */
 
 #include "theory/smt_engine_subsolver.h"
 
+#include "proof/unsat_core.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/rewriter.h"
 
 namespace cvc5 {
@@ -42,14 +43,14 @@ Result quickCheck(Node& query)
   return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          const Options& opts,
                          const LogicInfo& logicInfo,
                          bool needsTimeout,
                          unsigned long timeout)
 {
   NodeManager* nm = NodeManager::currentNM();
-  smte.reset(new SmtEngine(nm, &opts));
+  smte.reset(new SolverEngine(nm, &opts));
   smte->setIsInternalSubsolver();
   smte->setLogic(logicInfo);
   // set the options
@@ -58,7 +59,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
     smte->setTimeLimit(timeout);
   }
 }
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          const Env& env,
                          bool needsTimeout,
                          unsigned long timeout)
@@ -67,7 +68,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
       smte, env.getOptions(), env.getLogicInfo(), needsTimeout, timeout);
 }
 
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
+Result checkWithSubsolver(std::unique_ptr<SolverEngine>& smte,
                           Node query,
                           const Options& opts,
                           const LogicInfo& logicInfo,
@@ -122,7 +123,7 @@ Result checkWithSubsolver(Node query,
     }
     return r;
   }
-  std::unique_ptr<SmtEngine> smte;
+  std::unique_ptr<SolverEngine> smte;
   initializeSubsolver(smte, opts, logicInfo, needsTimeout, timeout);
   smte->assertFormula(query);
   r = smte->checkSat();
@@ -135,6 +136,42 @@ Result checkWithSubsolver(Node query,
     }
   }
   return r;
+}
+
+void getModelFromSubsolver(SolverEngine& smt,
+                           const std::vector<Node>& vars,
+                           std::vector<Node>& vals)
+{
+  for (const Node& v : vars)
+  {
+    Node mv = smt.getValue(v);
+    vals.push_back(mv);
+  }
+}
+
+bool getUnsatCoreFromSubsolver(SolverEngine& smt,
+                               const std::unordered_set<Node>& queryAsserts,
+                               std::vector<Node>& uasserts)
+{
+  UnsatCore uc = smt.getUnsatCore();
+  bool hasQuery = false;
+  for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
+  {
+    Node uassert = *i;
+    if (queryAsserts.find(uassert) != queryAsserts.end())
+    {
+      hasQuery = true;
+      continue;
+    }
+    uasserts.push_back(uassert);
+  }
+  return hasQuery;
+}
+
+void getUnsatCoreFromSubsolver(SolverEngine& smt, std::vector<Node>& uasserts)
+{
+  std::unordered_set<Node> queryAsserts;
+  getUnsatCoreFromSubsolver(smt, queryAsserts, uasserts);
 }
 
 }  // namespace theory

@@ -20,6 +20,7 @@
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
@@ -36,7 +37,7 @@ namespace theory {
 namespace strings {
 namespace utils {
 
-uint32_t getAlphabetCardinality()
+uint32_t getDefaultAlphabetCardinality()
 {
   // 3*16^4 = 196608 values in the SMT-LIB standard for Unicode strings
   Assert(196608 <= String::num_codes());
@@ -424,38 +425,9 @@ unsigned getLoopMinOccurrences(TNode node)
   return node.getOperator().getConst<RegExpLoop>().d_loopMinOcc;
 }
 
-/**
- * Mapping to a dummy node for marking an attribute on internal quantified
- * formulas. This ensures that reductions are deterministic.
- */
-struct QInternalVarAttributeId
-{
-};
-typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
-
 Node mkForallInternal(Node bvl, Node body)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  QInternalVarAttribute qiva;
-  Node qvar;
-  if (bvl.hasAttribute(qiva))
-  {
-    qvar = bvl.getAttribute(qiva);
-  }
-  else
-  {
-    SkolemManager* sm = nm->getSkolemManager();
-    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
-    // this dummy variable marks that the quantified formula is internal
-    qvar.setAttribute(InternalQuantAttribute(), true);
-    // remember the dummy variable
-    bvl.setAttribute(qiva, qvar);
-  }
-  // make the internal attribute, and put it in a singleton list
-  Node ip = nm->mkNode(INST_ATTRIBUTE, qvar);
-  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
-  // make the overall formula
-  return nm->mkNode(FORALL, bvl, body, ipl);
+  return quantifiers::BoundedIntegers::mkBoundedForall(bvl, body);
 }
 
 }  // namespace utils

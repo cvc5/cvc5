@@ -19,12 +19,10 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "printer/ast/ast_printer.h"
-#include "printer/cvc/cvc_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
@@ -43,9 +41,6 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
 
     case Language::LANG_TPTP:
       return unique_ptr<Printer>(new printer::tptp::TptpPrinter());
-
-    case Language::LANG_CVC:
-      return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
     case Language::LANG_SYGUS_V2:
       // sygus version 2.0 does not have discrepancies with smt2, hence we use
@@ -303,7 +298,7 @@ void Printer::toStreamCmdSetUserAttribute(std::ostream& out,
   printUnknownCommand(out, "set-user-attribute");
 }
 
-void Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
+void Printer::toStreamCmdCheckSat(std::ostream& out) const
 {
   printUnknownCommand(out, "check-sat");
 }
@@ -415,7 +410,8 @@ void Printer::toStreamCmdGetAbduct(std::ostream& out,
 }
 
 void Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
-                                                  Node n) const
+                                                  Node n,
+                                                  bool doFull) const
 {
   printUnknownCommand(out, "get-quantifier-elimination");
 }
@@ -438,12 +434,6 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
 void Printer::toStreamCmdGetAssertions(std::ostream& out) const
 {
   printUnknownCommand(out, "get-assertions");
-}
-
-void Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                            Result::Sat status) const
-{
-  printUnknownCommand(out, "set-info");
 }
 
 void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
@@ -505,12 +495,6 @@ void Printer::toStreamCmdResetAssertions(std::ostream& out) const
 void Printer::toStreamCmdQuit(std::ostream& out) const
 {
   printUnknownCommand(out, "quit");
-}
-
-void Printer::toStreamCmdComment(std::ostream& out,
-                                 const std::string& comment) const
-{
-  printUnknownCommand(out, "comment");
 }
 
 void Printer::toStreamCmdDeclareHeap(std::ostream& out,

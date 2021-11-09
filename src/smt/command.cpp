@@ -30,14 +30,14 @@
 #include "expr/node.h"
 #include "expr/symbol_manager.h"
 #include "expr/type_node.h"
-#include "options/options.h"
 #include "options/main_options.h"
+#include "options/options.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
-#include "smt/dump.h"
 #include "smt/model.h"
+#include "util/smt2_quote_string.h"
 #include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
@@ -275,7 +275,6 @@ TypeNode Command::grammarToTypeNode(api::Grammar* grammar)
                             : sortToTypeNode(grammar->resolve());
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* class EmptyCommand                                                         */
 /* -------------------------------------------------------------------------- */
@@ -303,19 +302,10 @@ void EmptyCommand::toStream(std::ostream& out,
 /* class EchoCommand                                                          */
 /* -------------------------------------------------------------------------- */
 
-EchoCommand::EchoCommand(std::string output)
-{
-  // escape all double-quotes
-  size_t pos = 0;
-  while ((pos = output.find('"', pos)) != string::npos)
-  {
-    output.replace(pos, 1, "\"\"");
-    pos += 2;
-  }
-  d_output = '"' + output + '"';
-}
+EchoCommand::EchoCommand(std::string output) : d_output(output) {}
 
 std::string EchoCommand::getOutput() const { return d_output; }
+
 void EchoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   /* we don't have an output stream here, nothing to do */
@@ -326,7 +316,7 @@ void EchoCommand::invoke(api::Solver* solver,
                          SymbolManager* sm,
                          std::ostream& out)
 {
-  out << d_output << std::endl;
+  out << cvc5::quoteString(d_output) << std::endl;
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
                            << std::endl;
   d_commandStatus = CommandSuccess::instance();
@@ -336,6 +326,7 @@ void EchoCommand::invoke(api::Solver* solver,
 }
 
 Command* EchoCommand::clone() const { return new EchoCommand(d_output); }
+
 std::string EchoCommand::getCommandName() const { return "echo"; }
 
 void EchoCommand::toStream(std::ostream& out,
@@ -450,20 +441,15 @@ void PopCommand::toStream(std::ostream& out,
 /* class CheckSatCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-CheckSatCommand::CheckSatCommand() : d_term() {}
+CheckSatCommand::CheckSatCommand() {}
 
-CheckSatCommand::CheckSatCommand(const api::Term& term) : d_term(term) {}
-
-api::Term CheckSatCommand::getTerm() const { return d_term; }
 void CheckSatCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   Trace("dtview::command") << "* ~COMMAND: " << getCommandName() << "~"
                            << std::endl;
   try
   {
-    d_result =
-        d_term.isNull() ? solver->checkSat() : solver->checkSatAssuming(d_term);
-
+    d_result = solver->checkSat();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -473,6 +459,7 @@ void CheckSatCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 api::Result CheckSatCommand::getResult() const { return d_result; }
+
 void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -488,7 +475,7 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 
 Command* CheckSatCommand::clone() const
 {
-  CheckSatCommand* c = new CheckSatCommand(d_term);
+  CheckSatCommand* c = new CheckSatCommand();
   c->d_result = d_result;
   return c;
 }
@@ -500,7 +487,7 @@ void CheckSatCommand::toStream(std::ostream& out,
                                size_t dag,
                                Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdCheckSat(out, termToNode(d_term));
+  Printer::getPrinter(language)->toStreamCmdCheckSat(out);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1003,7 +990,6 @@ void ResetAssertionsCommand::toStream(std::ostream& out,
 
 void QuitCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  Dump("benchmark") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1016,29 +1002,6 @@ void QuitCommand::toStream(std::ostream& out,
                            Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdQuit(out);
-}
-
-/* -------------------------------------------------------------------------- */
-/* class CommentCommand                                                       */
-/* -------------------------------------------------------------------------- */
-
-CommentCommand::CommentCommand(std::string comment) : d_comment(comment) {}
-std::string CommentCommand::getComment() const { return d_comment; }
-void CommentCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  Dump("benchmark") << *this;
-  d_commandStatus = CommandSuccess::instance();
-}
-
-Command* CommentCommand::clone() const { return new CommentCommand(d_comment); }
-std::string CommentCommand::getCommandName() const { return "comment"; }
-
-void CommentCommand::toStream(std::ostream& out,
-                              int toDepth,
-                              size_t dag,
-                              Language language) const
-{
-  Printer::getPrinter(language)->toStreamCmdComment(out, d_comment);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1203,8 +1166,8 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareFunction(out,
-                                                            termToNode(d_func));
+  Printer::getPrinter(language)->toStreamCmdDeclareFunction(
+      out, d_symbol, sortToTypeNode(d_func.getSort()));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1348,46 +1311,44 @@ void DefineSortCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
-                                             api::Term func,
-                                             api::Term formula,
-                                             bool global)
+                                             api::Sort sort,
+                                             api::Term formula)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_formals(),
-      d_formula(formula),
-      d_global(global)
+      d_sort(sort),
+      d_formula(formula)
 {
 }
 
 DefineFunctionCommand::DefineFunctionCommand(
     const std::string& id,
-    api::Term func,
     const std::vector<api::Term>& formals,
-    api::Term formula,
-    bool global)
+    api::Sort sort,
+    api::Term formula)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_formals(formals),
-      d_formula(formula),
-      d_global(global)
+      d_sort(sort),
+      d_formula(formula)
 {
 }
 
-api::Term DefineFunctionCommand::getFunction() const { return d_func; }
 const std::vector<api::Term>& DefineFunctionCommand::getFormals() const
 {
   return d_formals;
 }
 
+api::Sort DefineFunctionCommand::getSort() const { return d_sort; }
+
 api::Term DefineFunctionCommand::getFormula() const { return d_formula; }
+
 void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    if (!d_func.isNull())
-    {
-      solver->defineFun(d_func, d_formals, d_formula, d_global);
-    }
+    bool global = sm->getGlobalDeclarations();
+    api::Term fun =
+        solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
+    sm->getSymbolTable()->bind(fun.toString(), fun, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1398,8 +1359,7 @@ void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* DefineFunctionCommand::clone() const
 {
-  return new DefineFunctionCommand(
-      d_symbol, d_func, d_formals, d_formula, d_global);
+  return new DefineFunctionCommand(d_symbol, d_formals, d_sort, d_formula);
 }
 
 std::string DefineFunctionCommand::getCommandName() const
@@ -1412,16 +1372,11 @@ void DefineFunctionCommand::toStream(std::ostream& out,
                                      size_t dag,
                                      Language language) const
 {
-  TypeNode rangeType = termToNode(d_func).getType();
-  if (rangeType.isFunction())
-  {
-    rangeType = rangeType.getRangeType();
-  }
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
-      d_func.toString(),
+      d_symbol,
       termVectorToNodes(d_formals),
-      rangeType,
+      sortToTypeNode(d_sort),
       termToNode(d_formula));
 }
 
@@ -1430,12 +1385,7 @@ void DefineFunctionCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-
-    api::Term func,
-    const std::vector<api::Term>& formals,
-    api::Term formula,
-    bool global)
-    : d_global(global)
+    api::Term func, const std::vector<api::Term>& formals, api::Term formula)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1443,12 +1393,10 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 }
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-
     const std::vector<api::Term>& funcs,
     const std::vector<std::vector<api::Term>>& formals,
-    const std::vector<api::Term>& formulas,
-    bool global)
-    : d_funcs(funcs), d_formals(formals), d_formulas(formulas), d_global(global)
+    const std::vector<api::Term>& formulas)
+    : d_funcs(funcs), d_formals(formals), d_formulas(formulas)
 {
 }
 
@@ -1472,7 +1420,8 @@ void DefineFunctionRecCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->defineFunsRec(d_funcs, d_formals, d_formulas, d_global);
+    bool global = sm->getGlobalDeclarations();
+    solver->defineFunsRec(d_funcs, d_formals, d_formulas, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1483,7 +1432,7 @@ void DefineFunctionRecCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas, d_global);
+  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const
@@ -1519,7 +1468,7 @@ api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
 
 void DeclareHeapCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  solver->declareSeparationHeap(d_locSort, d_dataSort);
+  solver->declareSepHeap(d_locSort, d_dataSort);
 }
 
 Command* DeclareHeapCommand::clone() const
@@ -2270,7 +2219,7 @@ void GetQuantifierEliminationCommand::toStream(std::ostream& out,
                                                Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetQuantifierElimination(
-      out, termToNode(d_term));
+      out, termToNode(d_term), d_doFull);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2367,7 +2316,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
   }
   else
   {
-    if (options::dumpUnsatCoresFull())
+    if (options::printUnsatCoresFull())
     {
       // use the assertions
       UnsatCore ucr(termVectorToNodes(d_result));
@@ -2549,61 +2498,6 @@ void GetAssertionsCommand::toStream(std::ostream& out,
 }
 
 /* -------------------------------------------------------------------------- */
-/* class SetBenchmarkStatusCommand                                            */
-/* -------------------------------------------------------------------------- */
-
-SetBenchmarkStatusCommand::SetBenchmarkStatusCommand(BenchmarkStatus status)
-    : d_status(status)
-{
-}
-
-BenchmarkStatus SetBenchmarkStatusCommand::getStatus() const
-{
-  return d_status;
-}
-
-void SetBenchmarkStatusCommand::invoke(api::Solver* solver, SymbolManager* sm)
-{
-  try
-  {
-    stringstream ss;
-    ss << d_status;
-    solver->setInfo("status", ss.str());
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* SetBenchmarkStatusCommand::clone() const
-{
-  return new SetBenchmarkStatusCommand(d_status);
-}
-
-std::string SetBenchmarkStatusCommand::getCommandName() const
-{
-  return "set-info";
-}
-
-void SetBenchmarkStatusCommand::toStream(std::ostream& out,
-                                         int toDepth,
-                                         size_t dag,
-                                         Language language) const
-{
-  Result::Sat status = Result::SAT_UNKNOWN;
-  switch (d_status)
-  {
-    case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;
-    case BenchmarkStatus::SMT_UNSATISFIABLE: status = Result::UNSAT; break;
-    case BenchmarkStatus::SMT_UNKNOWN: status = Result::SAT_UNKNOWN; break;
-  }
-
-  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, status);
-}
-
-/* -------------------------------------------------------------------------- */
 /* class SetBenchmarkLogicCommand                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -2663,10 +2557,14 @@ void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setInfo(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     // As per SMT-LIB spec, silently accept unknown set-info keys
     d_commandStatus = CommandSuccess::instance();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2705,9 +2603,13 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
     d_commandStatus = CommandSuccess::instance();
   }
+  catch (api::CVC5ApiUnsupportedException&)
+  {
+    d_commandStatus = new CommandUnsupported();
+  }
   catch (api::CVC5ApiRecoverableException& e)
   {
-    d_commandStatus = new CommandRecoverableFailure(e.what());
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2764,9 +2666,13 @@ void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setOption(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     d_commandStatus = new CommandUnsupported();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2802,7 +2708,7 @@ void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getOption(d_flag);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     d_commandStatus = new CommandUnsupported();
   }

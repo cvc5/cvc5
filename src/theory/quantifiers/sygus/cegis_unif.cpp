@@ -23,6 +23,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 

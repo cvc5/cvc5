@@ -25,10 +25,10 @@ set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
 add_custom_target(
-  docs ALL
-  DEPENDS docs-cpp docs-python gen-options
+  docs
+  DEPENDS docs-cpp docs-java docs-python gen-options cvc5-bin
   COMMAND
-    ${SPHINX_EXECUTABLE} -b html -c ${CMAKE_CURRENT_BINARY_DIR}
+    ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
     -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_DIR}
     -Dbreathe_projects.std=${CPP_DOXYGEN_XML_DIR} ${SPHINX_INPUT_DIR}
@@ -46,7 +46,7 @@ add_custom_command(
 
 set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)
 add_custom_target(
-  docs-gh ALL
+  docs-gh
   DEPENDS docs
   # remove existing sphinx-gh/ directory
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${SPHINX_GH_OUTPUT_DIR}

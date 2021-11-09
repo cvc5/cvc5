@@ -867,10 +867,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode stype = nm->mkSelectorType(dtt, t);
   Node nindex = nm->mkConst(Rational(index));
-  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR,
-                           stype,
-                           nindex,
-                           NodeManager::SKOLEM_NO_NOTIFY);
+  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, stype, nindex);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
@@ -910,8 +907,6 @@ std::unordered_set<TypeNode> DType::getSubfieldTypes() const
 
 std::ostream& operator<<(std::ostream& os, const DType& dt)
 {
-  // can only output datatypes in the cvc5 native language
-  language::SetLanguage::Scope ls(os, Language::LANG_CVC);
   dt.toStream(os);
   return os;
 }

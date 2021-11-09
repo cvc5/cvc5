@@ -167,12 +167,10 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    CVC5Message() << toRemove << " " << toAdd << endl;
     d_tableau.pivot(toRemove, toAdd, d_trackCallback);
     d_basicVariableUpdates(toAdd);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    CVC5Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
   }
 }
@@ -405,23 +403,6 @@ void LinearEqualityModule::debugCheckTableau(){
     Assert(sum == shouldBe);
   }
 }
-bool LinearEqualityModule::debugEntireLinEqIsConsistent(const string& s){
-  bool result = true;
-  for(ArithVar var = 0, end = d_tableau.getNumColumns(); var != end; ++var){
-    //  for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
-    //ArithVar var = d_arithvarNodeMap.asArithVar(*i);
-    if(!d_variables.assignmentIsConsistent(var)){
-      d_variables.printModel(var);
-      Warning() << s << ":" << "Assignment is not consistent for " << var ;
-      if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
-      }
-      Warning() << endl;
-      result = false;
-    }
-  }
-  return result;
-}
 
 DeltaRational LinearEqualityModule::computeRowBound(RowIndex ridx, bool rowUb, ArithVar skip) const {
   DeltaRational sum(0,0);
@@ -482,7 +463,9 @@ const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool ro
   return NULL;
 }
 
-void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
+void LinearEqualityModule::propagateBasicFromRow(ConstraintP c,
+                                                 bool produceProofs)
+{
   Assert(c != NullConstraint);
   Assert(c->isUpperBound() || c->isLowerBound());
   Assert(!c->assertedToTheTheory());
@@ -493,7 +476,7 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
   ConstraintCPVec bounds;
-  RationalVectorP coeffs = ARITH_NULLPROOF(new RationalVector());
+  RationalVectorP coeffs = produceProofs ? new RationalVector() : nullptr;
   propagateRow(bounds, ridx, upperBound, c, coeffs);
   c->impliedByFarkas(bounds, coeffs, false);
   c->tryToPropagate();
