@@ -1,5 +1,9 @@
-; COMMAND-LINE: --strings-exp
 ; EXPECT: unsat
+; COMMAND-LINE: --strings-exp
+; COMMAND-LINE: --strings-exp --produce-proofs
+;; The second command line option is to test unsat core checking with
+;; proofs, which at one point had issues for this benchmark due to
+;; cycle detection in LazyCDProofChain
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :check-unsat-cores true)
