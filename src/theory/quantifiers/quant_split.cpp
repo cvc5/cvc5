@@ -62,12 +62,13 @@ void QuantDSplit::checkOwnership(Node q)
       }
       else
       {
-        if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
+        if (options().quantifiers.quantDynamicSplit
+            == options::QuantDSplitMode::AGG)
         {
           // split if it is a finite datatype
           doSplit = isFinite;
         }
-        else if (options::quantDynamicSplit()
+        else if (options().quantifiers.quantDynamicSplit
                  == options::QuantDSplitMode::DEFAULT)
         {
           if (!qbi.isFiniteBound(q, q[0][i]))
