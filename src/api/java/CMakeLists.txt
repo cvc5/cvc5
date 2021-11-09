@@ -28,8 +28,6 @@ set(JAVA_KIND_FILE
 add_custom_command(
   OUTPUT
     ${JAVA_KIND_FILE}
-  BYPRODUCTS
-    ${JAVA_KIND_FILE}
   COMMAND
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
