@@ -30,11 +30,11 @@ class NormalForm
   /**
    * Returns true if n is considered a to be a (canonical) constant bag value.
    * A canonical bag value is one whose AST is:
-   *   (union_disjoint (bagMake e1 c1) ...
-   *      (union_disjoint (mkBag e_{n-1} c_{n-1}) (bagMake e_n c_n))))
+   *   (union_disjoint (bag e1 c1) ...
+   *      (union_disjoint (bag e_{n-1} c_{n-1}) (bag e_n c_n))))
    * where c1 ... cn are positive integers, e1 ... en are constants, and the
    * node identifier of these constants are such that: e1 < ... < en.
-   * Also handles the corner cases of empty bag and bag constructed by bagMake
+   * Also handles the corner cases of empty bag and bag constructed by bag
    */
   static bool isConstant(TNode n);
   /**
@@ -112,8 +112,8 @@ class NormalForm
                                       T5&& remainderOfB);
   /**
    * evaluate n as follows:
-   * - (bagMake a 0) = (emptybag T) where T is the type of the original bag
-   * - (bagMake a (-c)) = (emptybag T) where T is the type the original bag,
+   * - (bag a 0) = (emptybag T) where T is the type of the original bag
+   * - (bag a (-c)) = (emptybag T) where T is the type the original bag,
    *                                and c > 0 is a constant
    */
   static Node evaluateMakeBag(TNode n);
@@ -135,8 +135,8 @@ class NormalForm
   /**
    * evaluates union disjoint node such that the returned node is a canonical
    * bag that has the form
-   * (union_disjoint (bagMake e1 c1) ...
-   *   (union_disjoint  * (mkBag e_{n-1} c_{n-1}) (bagMake e_n c_n)))) where
+   * (union_disjoint (bag e1 c1) ...
+   *   (union_disjoint  * (bag e_{n-1} c_{n-1}) (bag e_n c_n)))) where
    *   c1... cn are positive integers, e1 ... en are constants, and the node
    * identifier of these constants are such that: e1 < ... < en.
    * @param n has the form (union_disjoint A B) where A, B are constant bags
