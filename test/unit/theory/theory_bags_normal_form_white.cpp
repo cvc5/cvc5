@@ -413,7 +413,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_card)
 {
   // Examples
   // --------
-  //  - (card (bag.emptyString)) = 0
+  //  - (card (bag.empty String)) = 0
   //  - (choose (BAG_MAKE "x" 4)) = 4
   //  - (choose (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "y" 1))) = 5
   Node empty = d_nodeManager->mkConst(
