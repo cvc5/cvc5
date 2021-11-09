@@ -1223,19 +1223,17 @@ bool AletheProofPostprocessCallback::update(Node res,
       // s1 ... sn))
     case PfRule::CONG:
     {
-      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
-          || args[0] == ProofRuleChecker::mkKindNode(kind::EXISTS))
+      if (res[0].isClosure())
       {
         std::vector<Node> vpis;
         bool success = true;
         for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
         {
-          Node vpi =
-              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]);
+          Node vpi = children[0][0][i].eqNode(children[0][1][i]);
           new_args.push_back(vpi);
           vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
-          success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+          success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
         }
         vpis.push_back(children[1]);
         return success
