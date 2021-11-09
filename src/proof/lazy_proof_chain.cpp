@@ -109,13 +109,8 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       }
       // map node whose proof node must be expanded to the respective poof node
       toConnect[cur] = curPfn;
-      // We may not want to recursively connect this proof or, if it's
-      // assumption, there is nothing to connect, so we skip. Note that in the
-      // special case in which curPfn is an assumption and cur is actually the
-      // initial fact that getProofFor is called on, the cycle detection below
-      // would prevent this method from generating the assumption proof for it,
-      // which would be wrong.
-      if (!rec || curPfn->getRule() == PfRule::ASSUME)
+      // We may not want to recursively connect this proof so we skip.
+      if (!rec)
       {
         visited[cur] = true;
         continue;
@@ -126,34 +121,58 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       // retrieve free assumptions and their respective proof nodes
       std::map<Node, std::vector<std::shared_ptr<ProofNode>>> famap;
       expr::getFreeAssumptionsMap(curPfn, famap);
-      if (Trace.isOn("lazy-cdproofchain"))
-      {
-        unsigned alreadyToVisit = 0;
-        Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: " << famap.size()
-            << " free assumptions:\n";
-        for (auto fap : famap)
-        {
-          Trace("lazy-cdproofchain")
-              << "LazyCDProofChain::getProofFor:  - " << fap.first << "\n";
-          alreadyToVisit +=
-              std::find(visit.begin(), visit.end(), fap.first) != visit.end()
-                  ? 1
-                  : 0;
-        }
-        Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: " << alreadyToVisit
-            << " already to visit\n";
-      }
-      // If we are controlling cycle, check whether any of the assumptions of
-      // cur would provoke a cycle. In such a case we treat cur as an
-      // assumption, removing it from toConnect, and do not proceed to expand
-      // any of its assumptions.
       if (d_cyclic)
       {
+        // First check for a trivial cycle, which is when cur is a free
+        // assumption of curPfn. Note that in the special case in the special
+        // case in which curPfn has cur as an assumption and cur is actually the
+        // initial fact that getProofFor is called on, the general cycle
+        // detection below would prevent this method from generating a proof for
+        // cur, which would be wrong since there is a justification for it in
+        // curPfn.
+        bool isCyclic = false;
+        for (const auto& fap : famap)
+        {
+          if (cur == fap.first)
+          {
+            // connect it to one of the assumption proof nodes
+            toConnect[cur] = fap.second[0];
+            isCyclic = true;
+            break;
+          }
+        }
+        if (isCyclic)
+        {
+          Trace("lazy-cdproofchain")
+              << "LazyCDProofChain::getProofFor: trivial cycle detected for "
+              << cur << ", abort\n";
+          visited[cur] = true;
+          continue;
+        }
+        if (Trace.isOn("lazy-cdproofchain"))
+        {
+          unsigned alreadyToVisit = 0;
+          Trace("lazy-cdproofchain")
+              << "LazyCDProofChain::getProofFor: " << famap.size()
+              << " free assumptions:\n";
+          for (auto fap : famap)
+          {
+            Trace("lazy-cdproofchain")
+                << "LazyCDProofChain::getProofFor:  - " << fap.first << "\n";
+            alreadyToVisit +=
+                std::find(visit.begin(), visit.end(), fap.first) != visit.end()
+                    ? 1
+                    : 0;
+          }
+          Trace("lazy-cdproofchain")
+              << "LazyCDProofChain::getProofFor: " << alreadyToVisit
+              << " already to visit\n";
+        }
+        // If we are controlling cycle, check whether any of the assumptions of
+        // cur would provoke a cycle. In such we remove cur from toConnect and
+        // do not proceed to expand any of its assumptions.
         Trace("lazy-cdproofchain") << "LazyCDProofChain::getProofFor: marking "
                                    << cur << " for cycle check\n";
-        bool isCyclic = false;
         // enqueue free assumptions to process
         for (const auto& fap : famap)
         {

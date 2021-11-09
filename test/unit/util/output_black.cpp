@@ -30,12 +30,10 @@ class TestUtilBlackOutput : public TestInternal
     TestInternal::SetUp();
     DebugChannel.setStream(&d_debugStream);
     TraceChannel.setStream(&d_traceStream);
-    MessageChannel.setStream(&d_messageStream);
     WarningChannel.setStream(&d_warningStream);
 
     d_debugStream.str("");
     d_traceStream.str("");
-    d_messageStream.str("");
     d_warningStream.str("");
   }
 
@@ -50,7 +48,6 @@ class TestUtilBlackOutput : public TestInternal
   }
   std::stringstream d_debugStream;
   std::stringstream d_traceStream;
-  std::stringstream d_messageStream;
   std::stringstream d_warningStream;
 };
 
@@ -63,7 +60,6 @@ TEST_F(TestUtilBlackOutput, output)
   Debug.on("foo");
   Debug("foo") << "testing3";
 
-  CVC5Message() << "a message";
   Warning() << "bad warning!";
 
   Trace.on("foo");
@@ -76,7 +72,6 @@ TEST_F(TestUtilBlackOutput, output)
 #ifdef CVC5_MUZZLE
 
   ASSERT_EQ(d_debugStream.str(), "");
-  ASSERT_EQ(d_messageStream.str(), "");
   ASSERT_EQ(d_warningStream.str(), "");
   ASSERT_EQ(d_traceStream.str(), "");
 
@@ -88,7 +83,6 @@ TEST_F(TestUtilBlackOutput, output)
   ASSERT_EQ(d_debugStream.str(), "");
 #endif /* CVC5_DEBUG */
 
-  ASSERT_EQ(d_messageStream.str(), "a message");
   ASSERT_EQ(d_warningStream.str(), "bad warning!");
 
 #ifdef CVC5_TRACING
@@ -124,7 +118,6 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   ASSERT_FALSE(Debug.isOn("foo"));
   ASSERT_FALSE(Trace.isOn("foo"));
   ASSERT_FALSE(Warning.isOn());
-  ASSERT_FALSE(CVC5Message.isOn());
 
   cout << "debug" << std::endl;
   Debug("foo") << failure() << std::endl;
@@ -132,8 +125,6 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   Trace("foo") << failure() << std::endl;
   cout << "warning" << std::endl;
   Warning() << failure() << std::endl;
-  cout << "message" << std::endl;
-  CVC5Message() << failure() << std::endl;
 #endif
 }
 
@@ -162,10 +153,6 @@ TEST_F(TestUtilBlackOutput, simple_print)
   Warning() << "baz foo";
   ASSERT_EQ(d_warningStream.str(), std::string());
   d_warningStream.str("");
-
-  CVC5Message() << "baz foo";
-  ASSERT_EQ(d_messageStream.str(), std::string());
-  d_messageStream.str("");
 
 #else /* CVC5_MUZZLE */
 
@@ -198,10 +185,6 @@ TEST_F(TestUtilBlackOutput, simple_print)
   Warning() << "baz foo";
   ASSERT_EQ(d_warningStream.str(), std::string("baz foo"));
   d_warningStream.str("");
-
-  CVC5Message() << "baz foo";
-  ASSERT_EQ(d_messageStream.str(), std::string("baz foo"));
-  d_messageStream.str("");
 
 #endif /* CVC5_MUZZLE */
 }
