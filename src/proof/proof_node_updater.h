@@ -67,6 +67,17 @@ class ProofNodeUpdaterCallback
                       const std::vector<Node>& args,
                       CDProof* cdp,
                       bool& continueUpdate);
+
+  /**
+   * Finalize the proof rule application, store steps in cdp. Return true if
+   * the proof changed. It can be assumed that cdp contains proofs of each
+   * fact in children.
+   */
+  bool finalize(Node res,
+                PfRule id,
+                const std::vector<Node>& children,
+                const std::vector<Node>& args,
+                CDProof* cdp);
 };
 
 /**
@@ -93,7 +104,8 @@ class ProofNodeUpdater
   ProofNodeUpdater(ProofNodeManager* pnm,
                    ProofNodeUpdaterCallback& cb,
                    bool mergeSubproofs = false,
-                   bool autoSym = true);
+                   bool autoSym = true,
+                   bool runFinalize = false);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
@@ -157,6 +169,8 @@ class ProofNodeUpdater
    * automatically introduce SYMM steps.
    */
   bool d_autoSym;
+  /** Whether to run a finalizing method on proof nodes post-traversal time. */
+  bool d_runFinalize;
 };
 
 }  // namespace cvc5
