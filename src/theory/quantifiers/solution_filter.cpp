@@ -76,7 +76,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
   }
   // check which solutions would have been filtered if the current had come
   // first
-  if (options::sygusFilterSolRevSubsume())
+  if (options().quantifiers.sygusFilterSolRevSubsume)
   {
     std::vector<Node> nsubsume;
     for (const Node& s : d_curr_sols)

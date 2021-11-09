@@ -59,8 +59,6 @@ options {
 #  define ANTLR3_INLINE_INPUT_8BIT
 #endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
 
-#include "parser/antlr_tracing.h"
-
 }/* @lexer::includes */
 
 @lexer::postinclude {
@@ -79,7 +77,6 @@ using namespace cvc5::parser;
 #include <memory>
 
 #include "base/check.h"
-#include "parser/antlr_tracing.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "smt/command.h"
@@ -1304,7 +1301,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
       }
       expr = MK_TERM(kind, args);
     }
-  | LPAREN_TOK COMPREHENSION_TOK
+  | LPAREN_TOK SET_COMPREHENSION_TOK
     { PARSER_STATE->pushScope(); }
     boundVarList[bvl]
     {
@@ -1313,7 +1310,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
     term[f, f2] { args.push_back(f); }
     term[f, f2] {
       args.push_back(f);
-      expr = MK_TERM(api::COMPREHENSION, args);
+      expr = MK_TERM(api::SET_COMPREHENSION, args);
     }
     RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
@@ -1546,7 +1543,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
  * as (3).
  * - Overloaded non-parametric constructors (as C T) return the appropriate
  * expression, analogous to the parametric cases above.
- * - For other ascripted nullary constants like (as emptyset (Set T)),
+ * - For other ascripted nullary constants like (as set.empty (Set T)),
  * (as sep.nil T), we return the appropriate expression (3).
  * - For array constant specifications (as const (Array T1 T2)), we return (1)
  * and (4), where kind is set to STORE_ALL and type is set to (Array T1 T2),
@@ -2223,7 +2220,7 @@ DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'decla
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'par';
-COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'comprehension';
+SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'set.comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'is';
 UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'update';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'match';

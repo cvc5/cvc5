@@ -4,6 +4,6 @@
 
 (declare-fun x () (Set (Tuple Int Int)))
 (declare-fun y () (Set (Tuple Int Int)))
-(assert (= y (tclosure x)))
-(assert (not (subset (join (join x x) x) y)))
+(assert (= y (rel.tclosure x)))
+(assert (not (set.subset (rel.join (rel.join x x) x) y)))
 (check-sat)

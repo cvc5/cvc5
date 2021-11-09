@@ -394,7 +394,7 @@ class NodeManager
    * - We can avoid creating a temporary vector in some cases, e.g., when we
    *   want to create a node with a fixed, large number of children
    * - It makes sure that calls to `mkNode` that braced-init-lists work as
-   *   expected, e.g., mkNode(REGEXP_EMPTY, {}) will call this overload instead
+   *   expected, e.g., mkNode(REGEXP_NONE, {}) will call this overload instead
    *   of creating a node with a null node as a child.
    */
   Node mkNode(Kind kind, std::initializer_list<TNode> children);

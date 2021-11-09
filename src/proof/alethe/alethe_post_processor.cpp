@@ -403,7 +403,7 @@ bool AletheProofPostprocessCallback::update(Node res,
               vrule = AletheRule::DIV_SIMPLIFY;
               break;
             }
-            case kind::PRODUCT:
+            case kind::RELATION_PRODUCT:
             {
               vrule = AletheRule::PROD_SIMPLIFY;
               break;

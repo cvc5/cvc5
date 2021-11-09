@@ -231,7 +231,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
     }
     ++eqcs_i;
   }
-  if (!options::ufHoExt())
+  if (!options().uf.ufHoExt)
   {
     // we are not applying extensionality, thus we are incomplete if functions
     // are present

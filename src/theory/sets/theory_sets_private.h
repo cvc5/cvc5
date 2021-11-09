@@ -64,14 +64,14 @@ class TheorySetsPrivate : protected EnvObj
   void fullEffortReset();
   /**
    * This implements an inference schema based on the "downwards closure" of
-   * set membership. This roughly corresponds to the rules UNION DOWN I and II,
-   * INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for set
-   * difference.
+   * set membership. This roughly corresponds to the rules SET_UNION DOWN I and
+   * II, INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for
+   * set difference.
    */
   void checkDownwardsClosure();
   /**
    * This implements an inference schema based on the "upwards closure" of
-   * set membership. This roughly corresponds to the rules UNION UP, INTER
+   * set membership. This roughly corresponds to the rules SET_UNION UP, INTER
    * UP I and II from Bansal et al IJCAR 2016, as well as rules for set
    * difference.
    */
@@ -200,12 +200,7 @@ class TheorySetsPrivate : protected EnvObj
   bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
 
  private:
-  /** get choose function
-   *
-   * Returns the existing uninterpreted function for the choose operator for the
-   * given set type, or creates a new one if it does not exist.
-   */
-  Node getChooseFunction(const TypeNode& setType);
+
   /** expand the definition of the choose operator */
   TrustNode expandChooseOperator(const Node& node,
                                  std::vector<SkolemLemma>& lems);
@@ -230,9 +225,6 @@ class TheorySetsPrivate : protected EnvObj
 
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
-
-  /** a map that stores the choose functions for set types */
-  std::map<TypeNode, Node> d_chooseFunctions;
 
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */
