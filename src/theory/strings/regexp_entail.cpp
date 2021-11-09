@@ -116,7 +116,8 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             mchildren.pop_back();
             do_next = true;
           }
-          else if (rc.getKind() == REGEXP_RANGE || rc.getKind() == REGEXP_SIGMA)
+          else if (rc.getKind() == REGEXP_RANGE
+                   || rc.getKind() == REGEXP_ALLCHAR)
           {
             if (!isConstRegExp(rc))
             {
@@ -513,11 +514,11 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::String& s,
         return true;
       }
     }
-    case REGEXP_EMPTY:
+    case REGEXP_NONE:
     {
       return false;
     }
-    case REGEXP_SIGMA:
+    case REGEXP_ALLCHAR:
     {
       if (s.size() == index_start + 1)
       {
@@ -654,7 +655,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
       return ret;
     }
   }
-  else if (n.getKind() == REGEXP_SIGMA || n.getKind() == REGEXP_RANGE)
+  else if (n.getKind() == REGEXP_ALLCHAR || n.getKind() == REGEXP_RANGE)
   {
     return nm->mkConst(Rational(1));
   }
@@ -710,7 +711,7 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node sigma = nm->mkNode(REGEXP_SIGMA, std::vector<Node>{});
+  Node sigma = nm->mkNode(REGEXP_ALLCHAR, std::vector<Node>{});
   Node sigmaStar = nm->mkNode(REGEXP_STAR, sigma);
 
   std::vector<Node> v1, v2;

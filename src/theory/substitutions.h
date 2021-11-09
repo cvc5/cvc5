@@ -151,7 +151,6 @@ class SubstitutionMap
    * Print to the output stream
    */
   void print(std::ostream& out) const;
-  void debugPrint() const;
 
 }; /* class SubstitutionMap */
 
