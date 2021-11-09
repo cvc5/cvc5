@@ -2552,7 +2552,7 @@ std::string Term::getSymbol() const
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_node->hasAttribute(expr::VarNameAttr()))
       << "Invalid call to '" << __PRETTY_FUNCTION__
-      << "'expected the term to have a symbol.";
+      << "', expected the term to have a symbol.";
   //////// all checks before this line
   return d_node->getAttribute(expr::VarNameAttr());
   ////////
