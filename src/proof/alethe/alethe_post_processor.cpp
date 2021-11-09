@@ -19,10 +19,10 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
-#include "proof/alethe/alethe_proof_rule.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
@@ -1222,34 +1222,34 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-      // ======== Congruence
-      // In the case that the kind of the function symbol ?f is forall or
-      // exists, the cong rule needs to be converted into a bind rule. The first
-      // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
-      //
-      //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-      //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
-      //
-      //  ----- REFL ... ----- REFL
-      //   VP1            VPn         P2 ... Pn
-      //  --------------------------------------- bind, ((:= (v1 A1) w1) ... (:=
-      //  (vn An) wn))
-      //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-      //   (forall ((w1 B1)...(wn Bn)) s2)))*
-      //
-      //  VPi: (cl (= vi wi))*
-      //
-      //  * the corresponding proof node is (or (= vi vi))
-      //
-      // Otherwise, the rule follows the singleton pattern, i.e.:
-      //
-      //    P1 ... Pn
-      //  -------------------------------------------------------- cong
-      //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
-      //
-      // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
-      // s1
-      // ... sn))
+    // ======== Congruence
+    // In the case that the kind of the function symbol ?f is forall or
+    // exists, the cong rule needs to be converted into a bind rule. The first
+    // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+    //
+    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+    //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
+    //
+    //  ----- REFL ... ----- REFL
+    //   VP1            VPn         P2 ... Pn
+    //  --------------------------------------- bind, ((:= (v1 A1) w1) ... (:=
+    //  (vn An) wn))
+    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //   (forall ((w1 B1)...(wn Bn)) s2)))*
+    //
+    //  VPi: (cl (= vi wi))*
+    //
+    //  * the corresponding proof node is (or (= vi vi))
+    //
+    // Otherwise, the rule follows the singleton pattern, i.e.:
+    //
+    //    P1 ... Pn
+    //  -------------------------------------------------------- cong
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
+    //
+    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
+    // s1
+    // ... sn))
     case PfRule::CONG:
     {
       if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
@@ -1405,7 +1405,8 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ======== Skolem intro
     /*case PfRule::SKOLEM_INTRO:
     {
-      return addAletheStep(AletheRule::REFL,res,nm->mkNode(kind::SEXPR,d_cl,res),{},{},*cdp);
+      return
+    addAletheStep(AletheRule::REFL,res,nm->mkNode(kind::SEXPR,d_cl,res),{},{},*cdp);
     }*/
     // ======== Skolemize
     // See proof_rule.h for documentation on the SKOLEMIZE rule. This
@@ -1421,44 +1422,52 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Otherwise, if the child has the form (not (exist
     case PfRule::SKOLEMIZE:
     {
-	    //TODO: Add ANCHOR, map skolemized variable to substitutions skv_1
-	    //SkolemManager::getWitnessForm
-	    //Get choice term that corresponds to skv_1
-	    //F*sigma needs to be changed s.t. all occurences of skv_1 are replaced with the choice term
-	    //LOOK AT LEAN for replacement
-	    // NodeConverter will eventually be changed to do this
-	    // LeanNodeConverter
-	    // choice terms itself might contain skv variables
-	    // getSkolemTermVectors then I can get skolems
-	    //
+      // TODO: Add ANCHOR, map skolemized variable to substitutions skv_1
+      // SkolemManager::getWitnessForm
+      // Get choice term that corresponds to skv_1
+      // F*sigma needs to be changed s.t. all occurences of skv_1 are replaced
+      // with the choice term LOOK AT LEAN for replacement
+      // NodeConverter will eventually be changed to do this
+      // LeanNodeConverter
+      // choice terms itself might contain skv variables
+      // getSkolemTermVectors then I can get skolems
+      //
       /*if (res.getKind() != kind::NOT)
       {
-	Node choice;
+        Node choice;
         Node vp1 = nm->mkNode(
             kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
         return addAletheStep(AletheRule::SKO_EX, vp1, vp1, {}, {}, *cdp)
                && cdp->addStep(
                    res, PfRule::EQ_RESOLVE, {vp1, children[0]}, args);
       }*/
-	    if(res.getKind() == kind::NOT){
-	    std::cout << "children " << children << std::endl;
-	    std::cout << "res " << res << std::endl;
-	    std::cout << "skv_1 " << args << std::endl;
-	    Node temp = SkolemManager::getWitnessForm(res);
-	    std::cout << "children[0] "  << children[0] << SkolemManager::getWitnessForm(children[0]) <<std::endl;
-	    std::cout << "children[0][0][0][0] "  << children[0][0][0][0] << "    " << SkolemManager::getWitnessForm(children[0][0][0][0]) <<std::endl;
-	    std::cout << "children[0][0][1] "  << children[0][0][1] <<  SkolemManager::getWitnessForm(children[0][0][1]) <<std::endl;
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0][0], res));
-      return addAletheStep(AletheRule::ANCHOR_SKO_FORALL, vp1, vp1, {}, {}, *cdp)
-             && addAletheStep(AletheRule::RESOLUTION,
-                              res,
-                              nm->mkNode(kind::SEXPR, d_cl, res),
-                              {vp1, children[0]},
-                              {},
-                              *cdp);
-	    }
-	    return addAletheStep(AletheRule::ALL_SIMPLIFY,res,res,{},children,*cdp);
+      if (res.getKind() == kind::NOT)
+      {
+        std::cout << "children " << children << std::endl;
+        std::cout << "res " << res << std::endl;
+        std::cout << "skv_1 " << args << std::endl;
+        Node temp = SkolemManager::getWitnessForm(res);
+        std::cout << "children[0] " << children[0]
+                  << SkolemManager::getWitnessForm(children[0]) << std::endl;
+        std::cout << "children[0][0][0][0] " << children[0][0][0][0] << "    "
+                  << SkolemManager::getWitnessForm(children[0][0][0][0])
+                  << std::endl;
+        std::cout << "children[0][0][1] " << children[0][0][1]
+                  << SkolemManager::getWitnessForm(children[0][0][1])
+                  << std::endl;
+        Node vp1 = nm->mkNode(
+            kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0][0], res));
+        return addAletheStep(
+                   AletheRule::ANCHOR_SKO_FORALL, vp1, vp1, {}, {}, *cdp)
+               && addAletheStep(AletheRule::RESOLUTION,
+                                res,
+                                nm->mkNode(kind::SEXPR, d_cl, res),
+                                {vp1, children[0]},
+                                {},
+                                *cdp);
+      }
+      return addAletheStep(
+          AletheRule::ALL_SIMPLIFY, res, res, {}, children, *cdp);
     }
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
