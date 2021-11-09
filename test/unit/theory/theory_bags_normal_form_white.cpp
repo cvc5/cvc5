@@ -95,11 +95,11 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_count)
 {
   // Examples
   // -------
-  // (bag.count "x" (bag.emptyString)) = 0
+  // (bag.count "x" (as bag.empty (Bag String))) = 0
   // (bag.count "x" (bag "y" 5)) = 0
   // (bag.count "x" (bag "x" 4)) = 4
-  // (bag.count "x" (union_disjoint (bag "x" 4) (bag "y" 5)) = 4
-  // (bag.count "x" (union_disjoint (bag "y" 5) (bag "z" 5)) = 0
+  // (bag.count "x" (bag.union_disjoint (bag "x" 4) (bag "y" 5)) = 4
+  // (bag.count "x" (bag.union_disjoint (bag "y" 5) (bag "z" 5)) = 0
 
   Node zero = d_nodeManager->mkConst(Rational(0));
   Node four = d_nodeManager->mkConst(Rational(4));
@@ -142,9 +142,10 @@ TEST_F(TestTheoryWhiteBagsNormalForm, duplicate_removal)
 {
   // Examples
   // --------
-  //  - (duplicate_removal (bag.emptyString)) = (bag.emptyString)
-  //  - (duplicate_removal (bag "x" 4)) = (bag.empty"x" 1)
-  //  - (duplicate_removal (bag.union_disjoint(bag "x" 3) (bag "y" 5)) =
+  // - (bag.duplicate_removal (as bag.empty (Bag String))) = (as bag.empty (Bag
+  // String))
+  // - (bag.duplicate_removal (bag "x" 4)) = (bag.empty"x" 1)
+  // - (bag.duplicate_removal (bag.union_disjoint(bag "x" 3) (bag "y" 5)) =
   //     (bag.union_disjoint(bag "x" 1) (bag "y" 1)
 
   Node emptybag = d_nodeManager->mkConst(
@@ -180,13 +181,13 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_max)
 {
   // Example
   // -------
-  // input: (union_max A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.union_max A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (union_disjoint A B)
-  //        where A = (BAG_MAKE "x" 4)
-  //              B = (union_disjoint (BAG_MAKE "y" 1) (BAG_MAKE "z" 2)))
+  //    (bag.union_disjoint A B)
+  //        where A = (bag "x" 4)
+  //              B = (bag.union_disjoint (bag "y" 1) (bag "z" 2)))
 
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
@@ -237,7 +238,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint1)
   ASSERT_EQ(unionDisjointAB, NormalForm::evaluate(unionDisjointAB));
 
   Node unionDisjointBA = d_nodeManager->mkNode(BAG_UNION_DISJOINT, B, A);
-  // unionDisjointAB is is the normal form of unionDisjointBA
+  // unionDisjointAB is the normal form of unionDisjointBA
   ASSERT_FALSE(unionDisjointBA.isConst());
   ASSERT_EQ(unionDisjointAB, NormalForm::evaluate(unionDisjointBA));
 
@@ -264,13 +265,13 @@ TEST_F(TestTheoryWhiteBagsNormalForm, union_disjoint2)
 {
   // Example
   // -------
-  // input: (union_disjoint A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.union_disjoint A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (union_disjoint A B)
-  //        where A = (BAG_MAKE "x" 7)
-  //              B = (union_disjoint (BAG_MAKE "y" 1) (BAG_MAKE "z" 2)))
+  //    (bag.union_disjoint A B)
+  //        where A = (bag "x" 7)
+  //              B = (bag.union_disjoint (bag "y" 1) (bag "z" 2)))
 
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
@@ -304,11 +305,11 @@ TEST_F(TestTheoryWhiteBagsNormalForm, intersection_min)
 {
   // Example
   // -------
-  // input: (intersection_min A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.intersection_min A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (BAG_MAKE "x" 3)
+  //    (bag "x" 3)
 
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
@@ -339,11 +340,11 @@ TEST_F(TestTheoryWhiteBagsNormalForm, difference_subtract)
 {
   // Example
   // -------
-  // input: (difference_subtract A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.difference_subtract A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (union_disjoint (BAG_MAKE "x" 1) (BAG_MAKE "z" 2))
+  //    (bag.union_disjoint (bag "x" 1) (bag "z" 2))
 
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
@@ -376,11 +377,11 @@ TEST_F(TestTheoryWhiteBagsNormalForm, difference_remove)
 {
   // Example
   // -------
-  // input: (difference_remove A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.difference_remove A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (BAG_MAKE "z" 2)
+  //    (bag "z" 2)
 
   Node x = d_nodeManager->mkConst(String("x"));
   Node y = d_nodeManager->mkConst(String("y"));
@@ -413,9 +414,9 @@ TEST_F(TestTheoryWhiteBagsNormalForm, bag_card)
 {
   // Examples
   // --------
-  //  - (card (bag.empty String)) = 0
-  //  - (choose (BAG_MAKE "x" 4)) = 4
-  //  - (choose (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "y" 1))) = 5
+  //  - (bag.card (as bag.empty (Bag String))) = 0
+  //  - (bag.choose (bag "x" 4)) = 4
+  //  - (bag.choose (bag.union_disjoint (bag "x" 4) (bag "y" 1))) = 5
   Node empty = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
   Node x = d_nodeManager->mkConst(String("x"));
@@ -445,10 +446,10 @@ TEST_F(TestTheoryWhiteBagsNormalForm, is_singleton)
 {
   // Examples
   // --------
-  //  - (bag.is_singleton (bag.emptyString)) = false
-  //  - (bag.is_singleton (BAG_MAKE "x" 1)) = true
-  //  - (bag.is_singleton (BAG_MAKE "x" 4)) = false
-  //  - (bag.is_singleton (union_disjoint (BAG_MAKE "x" 1) (BAG_MAKE "y" 1))) =
+  //  - (bag.is_singleton (as bag.empty (Bag String))) = false
+  //  - (bag.is_singleton (bag "x" 1)) = true
+  //  - (bag.is_singleton (bag "x" 4)) = false
+  //  - (bag.is_singleton (bag.union_disjoint (bag "x" 1) (bag "y" 1))) =
   //     false
   Node falseNode = d_nodeManager->mkConst(false);
   Node trueNode = d_nodeManager->mkConst(true);
@@ -486,10 +487,10 @@ TEST_F(TestTheoryWhiteBagsNormalForm, from_set)
 {
   // Examples
   // --------
-  //  - (bag.from_set (emptyset String)) = (bag.emptyString)
-  //  - (bag.from_set (singleton "x")) = (bag "x" 1)
-  //  - (bag.to_set (union (singleton "x") (singleton "y"))) =
-  //     (bag.union_disjoint(bag "x" 1) (bag "y" 1))
+  //  - (bag.from_set (as set.empty (Bag String))) = (as bag.empty (Bag String))
+  //  - (bag.from_set (set.singleton "x")) = (bag "x" 1)
+  //  - (bag.from_set (set.union (set.singleton "x") (set.singleton "y"))) =
+  //     (bag.union_disjoint (bag "x" 1) (bag "y" 1))
 
   Node emptyset = d_nodeManager->mkConst(
       EmptySet(d_nodeManager->mkSetType(d_nodeManager->stringType())));
@@ -525,10 +526,10 @@ TEST_F(TestTheoryWhiteBagsNormalForm, to_set)
 {
   // Examples
   // --------
-  //  - (bag.to_set (bag.emptyString)) = (emptyset String)
-  //  - (bag.to_set (bag "x" 4)) = (singleton "x")
+  //  - (bag.to_set (as bag.empty (Bag String))) = (as set.empty (Bag String))
+  //  - (bag.to_set (bag "x" 4)) = (set.singleton "x")
   //  - (bag.to_set (bag.union_disjoint(bag "x" 3) (bag "y" 5)) =
-  //     (union (singleton "x") (singleton "y")))
+  //     (set.union (set.singleton "x") (set.singleton "y")))
 
   Node emptyset = d_nodeManager->mkConst(
       EmptySet(d_nodeManager->mkSetType(d_nodeManager->stringType())));
