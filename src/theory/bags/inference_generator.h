@@ -57,7 +57,7 @@ class InferenceGenerator
    *        (bag.count e skolem) (ite (>= c 1) c 0)))
    * 2- e, x are known to be disequal, then we infer:
    *    (=>
-   *      (distinct x e))
+   *      (distinct x e)
    *      (= (bag.count e skolem) 0))
    * 3- if neither holds, we infer:
    *    (= (bag.count e skolem) (ite (and (= e x) (>= c 1)) c 0)))
