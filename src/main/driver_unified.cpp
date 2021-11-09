@@ -184,16 +184,15 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
       auto& out = solver->getDriverOptions().out();
       out << Configuration::getPackageName() << " "
-                    << Configuration::getVersionString();
+          << Configuration::getVersionString();
       if (Configuration::isGitBuild())
       {
         out << " [" << Configuration::getGitInfo() << "]";
       }
-      out << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                    << " assertions:"
-                    << (Configuration::isAssertionBuild() ? "on" : "off")
-                    << std::endl
-                    << std::endl << Configuration::copyright() << std::endl;
+      out << (Configuration::isDebugBuild() ? " DEBUG" : "") << " assertions:"
+          << (Configuration::isAssertionBuild() ? "on" : "off") << std::endl
+          << std::endl
+          << Configuration::copyright() << std::endl;
 
       while(true) {
         try {
