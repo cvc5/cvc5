@@ -158,11 +158,13 @@ void ArraySolver::checkTerms(Kind k)
       }
       else if (ck != CONST_SEQUENCE)
       {
-        // otherwise, if the normal form is not a constant sequence, the equivalence class is pure wrt concatenation.
+        // otherwise, if the normal form is not a constant sequence, the
+        // equivalence class is pure wrt concatenation.
         d_currTerms[k].push_back(t);
         continue;
       }
-      // if the normal form is a constant sequence, it is treated as a concatenation
+      // if the normal form is a constant sequence, it is treated as a
+      // concatenation
     }
     // otherwise, we are the concatenation of the components
     // NOTE: for nth, split on index vs component lengths, do not introduce ITE
