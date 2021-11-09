@@ -1273,8 +1273,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (= F true)
     case PfRule::TRUE_INTRO:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res, children[0]));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
       return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
              && addAletheStep(AletheRule::EQUIV2, vp2, vp2, {vp1}, {}, *cdp)
@@ -1297,8 +1296,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is F
     case PfRule::TRUE_ELIM:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
       return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
              && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp)
@@ -1328,8 +1326,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (= F false)
     case PfRule::FALSE_INTRO:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res, children[0]));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
       Node vp3 = nm->mkNode(
           kind::SEXPR, d_cl, children[0].notNode().notNode(), children[0][0]);
@@ -1364,8 +1361,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (not F)
     case PfRule::FALSE_ELIM:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
 
       return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
