@@ -69,8 +69,8 @@ TEST_F(TestTheoryWhiteBagsTypeRule, duplicate_removal_operator)
   Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(),
                                   elements[0],
                                   d_nodeManager->mkConst(Rational(10)));
-  ASSERT_NO_THROW(d_nodeManager->mkNode(DUPLICATE_REMOVAL, bag));
-  ASSERT_EQ(d_nodeManager->mkNode(DUPLICATE_REMOVAL, bag).getType(),
+  ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag));
+  ASSERT_EQ(d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag).getType(),
             bag.getType());
 }
 
