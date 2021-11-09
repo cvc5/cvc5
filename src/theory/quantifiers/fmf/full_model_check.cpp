@@ -626,7 +626,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   FirstOrderModelFmc* fmfmc = static_cast<FirstOrderModelFmc*>(fm);
   if (effort == 0)
   {
-    if (options::mbqiMode() == options::MbqiMode::NONE)
+    if (options().quantifiers.mbqiMode == options::MbqiMode::NONE)
     {
       // just exhaustive instantiate
       Node c = mkCondDefault(fmfmc, f);
@@ -708,7 +708,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_star_insts[f].push_back(i);
         continue;
       }
-      if (options::fmfBound() || options::stringExp())
+      if (options().quantifiers.fmfBound || options().strings.stringExp)
       {
         std::vector<Node> cond;
         cond.push_back(d_quant_cond[f]);
@@ -734,7 +734,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
-        if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+        if (d_qstate.isInConflict() || options().quantifiers.fmfOneInstPerRound)
         {
           break;
         }
@@ -887,7 +887,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
-          if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+          if (d_qstate.isInConflict()
+              || options().quantifiers.fmfOneInstPerRound)
           {
             break;
           }
@@ -1367,7 +1368,7 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
 
 
 bool FullModelChecker::useSimpleModels() {
-  return options::fmfFmcSimple();
+  return options().quantifiers.fmfFmcSimple;
 }
 void FullModelChecker::registerQuantifiedFormula(Node q)
 {
