@@ -12,7 +12,7 @@
 
 
 (assert (or (> (+ x y z) 3) (< (p x (+ (* 3 y) (* 3 z))) 5)))
-(assert (subset A (insert y (singleton z))))
+(assert (set.subset A (set.insert y (set.singleton z))))
 
 
 

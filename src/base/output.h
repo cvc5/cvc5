@@ -263,23 +263,6 @@ public:
 
 }; /* class WarningC */
 
-/** The message output class */
-class MessageC
-{
-  std::ostream* d_os;
-
-public:
-  explicit MessageC(std::ostream* os) : d_os(os) {}
-
-  Cvc5ostream operator()() const { return Cvc5ostream(d_os); }
-
-  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
-  std::ostream& getStream() const { return *d_os; }
-  std::ostream* getStreamPointer() const { return d_os; }
-
-  bool isOn() const { return d_os != &null_os; }
-}; /* class MessageC */
-
 /** The trace output class */
 class TraceC
 {
@@ -368,8 +351,6 @@ public:
 extern DebugC DebugChannel CVC5_EXPORT;
 /** The warning output singleton */
 extern WarningC WarningChannel CVC5_EXPORT;
-/** The message output singleton */
-extern MessageC MessageChannel CVC5_EXPORT;
 /** The trace output singleton */
 extern TraceC TraceChannel CVC5_EXPORT;
 /** The dump output singleton */
@@ -382,8 +363,6 @@ extern DumpOutC DumpOutChannel CVC5_EXPORT;
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
 #define WarningOnce \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
-#define CVC5Message \
-  ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::MessageChannel
 #define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
 #define DumpOut \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DumpOutChannel
@@ -402,8 +381,6 @@ extern DumpOutC DumpOutChannel CVC5_EXPORT;
    || !::cvc5::WarningChannel.warnOnce(__FILE__, __LINE__)) \
       ? ::cvc5::nullStream                                  \
       : ::cvc5::WarningChannel
-#define CVC5Message \
-  (!::cvc5::MessageChannel.isOn()) ? ::cvc5::nullStream : ::cvc5::MessageChannel
 #ifdef CVC5_TRACING
 #define Trace ::cvc5::TraceChannel
 #else /* CVC5_TRACING */

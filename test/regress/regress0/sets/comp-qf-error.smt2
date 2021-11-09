@@ -9,6 +9,6 @@
 (declare-fun x () (Set U))
 
 
-(assert (subset x (comprehension ((z U)) (not (= z a)) z)))
+(assert (set.subset x (set.comprehension ((z U)) (not (= z a)) z)))
 
 (check-sat)

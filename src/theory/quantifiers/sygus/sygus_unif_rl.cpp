@@ -52,7 +52,7 @@ void SygusUnifRl::initializeCandidate(
   // based on the strategy inferred for each function, determine if we are
   // using a unification strategy that is compatible our approach.
   StrategyRestrictions restrictions;
-  if (options::sygusBoolIteReturnConst())
+  if (options().quantifiers.sygusBoolIteReturnConst)
   {
     restrictions.d_iteReturnBoolConst = true;
   }
@@ -67,7 +67,7 @@ void SygusUnifRl::initializeCandidate(
     d_cand_to_hd_count[f] = 0;
   }
   // check whether we are using condition enumeration
-  options::SygusUnifPiMode mode = options::sygusUnifPi();
+  options::SygusUnifPiMode mode = options().quantifiers.sygusUnifPi;
   d_useCondPool = mode == options::SygusUnifPiMode::CENUM
                   || mode == options::SygusUnifPiMode::CENUM_IGAIN;
   d_useCondPoolIGain = mode == options::SygusUnifPiMode::CENUM_IGAIN;
