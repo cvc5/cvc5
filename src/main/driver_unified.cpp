@@ -159,7 +159,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&cvc5::null_os);
     TraceChannel.setStream(&cvc5::null_os);
-    MessageChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
   }
 
@@ -183,18 +182,17 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
                              dopts.in(),
                              dopts.out());
 
-      CVC5Message() << Configuration::getPackageName() << " "
-                    << Configuration::getVersionString();
+      auto& out = solver->getDriverOptions().out();
+      out << Configuration::getPackageName() << " "
+          << Configuration::getVersionString();
       if (Configuration::isGitBuild())
       {
-        CVC5Message() << " [" << Configuration::getGitInfo() << "]";
+        out << " [" << Configuration::getGitInfo() << "]";
       }
-      CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                    << " assertions:"
-                    << (Configuration::isAssertionBuild() ? "on" : "off")
-                    << endl
-                    << endl;
-      CVC5Message() << Configuration::copyright() << endl;
+      out << (Configuration::isDebugBuild() ? " DEBUG" : "") << " assertions:"
+          << (Configuration::isAssertionBuild() ? "on" : "off") << std::endl
+          << std::endl
+          << Configuration::copyright() << std::endl;
 
       while(true) {
         try {
