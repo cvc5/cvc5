@@ -1128,6 +1128,17 @@ class CVC5_EXPORT Term
   Op getOp() const;
 
   /**
+   * @return true if the term has a name.
+   */
+  bool hasName() const;
+
+  /**
+   * Asserts hasName().
+   * @return the raw name of the term.
+   */
+  std::string getName() const;
+
+  /**
    * @return true if this Term is a null term
    */
   bool isNull() const;

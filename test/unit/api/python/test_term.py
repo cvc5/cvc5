@@ -207,6 +207,21 @@ def test_get_op(solver):
     children = [c for c in headTerm]
     assert headTerm == solver.mkTerm(headTerm.getOp(), children)
 
+def test_get_name(solver):
+    n = Term(solver)
+    t = solver.mkBoolean(True)
+    c = solver.mkConst(solver.getBooleanSort(), "|\\|")
+
+    with pytest.raises(RuntimeError):
+        n.hasName()
+    assert not t.hasName()
+    assert c.hasName()
+
+    with pytest.raises(RuntimeError):
+        n.getName()
+    with pytest.raises(RuntimeError):
+        t.getName()
+    assert c.getName() == "|\\|"
 
 def test_is_null(solver):
     x = Term(solver)

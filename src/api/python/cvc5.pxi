@@ -2830,6 +2830,12 @@ cdef class Term:
         op.cop = self.cterm.getOp()
         return op
 
+    def hasName(self):
+        return self.cterm.hasName()
+
+    def getName(self):
+        return self.cterm.getName().decode()
+
     def isNull(self):
         return self.cterm.isNull()
 

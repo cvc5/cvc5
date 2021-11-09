@@ -201,6 +201,27 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getOp(long pointer);
 
   /**
+   * @return true if the term has a name.
+   */
+  public boolean hasName()
+  {
+    return hasName(pointer);
+  }
+
+  private native boolean hasName(long pointer);
+
+  /**
+   * Asserts hasName().
+   * @return the raw name of the term.
+   */
+  public String getName()
+  {
+    return getName(pointer);
+  }
+
+  private native String getName(long pointer);
+
+  /**
    * @return true if this Term is a null term
    */
   public boolean isNull()

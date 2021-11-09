@@ -53,6 +53,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "expr/uninterpreted_constant.h"
@@ -2531,6 +2532,29 @@ Op Term::getOp() const
   // Notice this is the only case where getKindHelper is used, since the
   // cases above do not have special cases for intToExtKind.
   return Op(d_solver, getKindHelper());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Term::hasName() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->hasAttribute(expr::VarNameAttr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Term::getName() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(d_node->hasAttribute(expr::VarNameAttr()))
+      << "Invalid call to '" << __PRETTY_FUNCTION__
+      << "'expected the term to have a name.";
+  //////// all checks before this line
+  return d_node->getAttribute(expr::VarNameAttr());
   ////////
   CVC5_API_TRY_CATCH_END;
 }

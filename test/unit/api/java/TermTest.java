@@ -219,6 +219,21 @@ class TermTest
     Term nilOpTerm = list.getConstructorTerm("nil");
   }
 
+  @Test void getName() throws CVC5ApiException
+  {
+    Term n = d_solver.getNullTerm();
+    Term t = d_solver.mkBoolean(true);
+    Term c = d_solver.mkConst(d_solver.getBooleanSort(), "|\\|");
+
+    assertThrows(CVC5ApiException.class, () -> n.hasName());
+    assertFalse(t.hasName());
+    assertTrue(c.hasName());
+
+    assertThrows(CVC5ApiException.class, () -> n.getName());
+    assertThrows(CVC5ApiException.class, () -> t.getName());
+    assertEquals(c.getName(), "|\\|");
+  }
+
   @Test void isNull() throws CVC5ApiException
   {
     Term x = d_solver.getNullTerm();
