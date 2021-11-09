@@ -70,6 +70,7 @@ option(ENABLE_GPL "Enable GPL dependencies")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for build types
+option(BUILD_SHARED_LIBS          "Build shared libraries and binary")
 cvc5_option(ENABLE_ASAN           "Enable ASAN build")
 cvc5_option(ENABLE_UBSAN          "Enable UBSan build")
 cvc5_option(ENABLE_TSAN           "Enable TSan build")
@@ -83,7 +84,6 @@ cvc5_option(ENABLE_STATISTICS     "Enable statistics")
 cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
-cvc5_option(ENABLE_STATIC_BUILD   "Enable building static libraries and binary")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
 # >> 2-valued: ON OFF
@@ -263,6 +263,20 @@ enable_testing()
 #-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
 
+if(BUILD_SHARED_LIBS)
+  if (WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .dll .lib .a)
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .so .dylib .a)
+  endif()
+else()
+  if (WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a .dll)
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .so .dylib)
+  endif()
+endif()
+
 if(USE_PYTHON2)
   find_package(PythonInterp 2.7 REQUIRED)
 else()
@@ -302,29 +316,14 @@ endif()
 
 if(ENABLE_COVERAGE)
   include(CodeCoverage)
-  APPEND_COVERAGE_COMPILER_FLAGS()
+  append_coverage_compiler_flags()
   add_definitions(-DCVC5_COVERAGE)
-  # Note: The ctest command returns a non-zero exit code if tests fail or run
-  # into a timeout. As a consequence, the coverage report is not generated. To
-  # prevent this we always return with exit code 0 after the ctest command has
-  # finished.
-  setup_target_for_coverage_gcovr_html(
-    NAME coverage-test
-    EXECUTABLE
-      ctest -j${CTEST_NTHREADS} -LE "example"
-        --output-on-failure $$ARGS || exit 0
-    DEPENDS
-      build-tests)
-
-  # Adds targets `coverage` and `coverage-reset` for manually generating
-  # coverage reports for specific executions.
-  #
-  # Target coverage-reset resets all the coverage counters to zero, while
-  # target coverage will generate a coverage report for all executions since
-  # the last coverage-reset.
-  setup_target_for_coverage_lcov_no_executable(
+  setup_code_coverage_fastcov(
     NAME coverage
-    DEPENDENCIES cvc5-bin)
+    PATH "${PROJECT_SOURCE_DIR}"
+    EXCLUDE "${CMAKE_BINARY_DIR}/deps/*"
+    DEPENDENCIES cvc5-bin
+  )
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
@@ -440,7 +439,9 @@ include(fuzzing-murxla)
 #-----------------------------------------------------------------------------#
 
 include(ConfigureCvc5)
-if(ENABLE_STATIC_BUILD)
+if(BUILD_SHARED_LIBS)
+  set(CVC5_STATIC_BUILD OFF)
+else()
   set(CVC5_STATIC_BUILD ON)
 endif()
 
@@ -449,6 +450,10 @@ endif()
 
 add_subdirectory(src)
 
+if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
+  message(STATUS "Python bindings can only be built in a shared build.")
+  set(BUILD_BINDINGS_PYTHON OFF)
+endif()
 if(BUILD_BINDINGS_PYTHON)
   set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
   add_subdirectory(src/api/python)
@@ -481,9 +486,9 @@ include(CMakePackageConfigHelpers)
 # (in the assumption that only reasonably experienced users use this and
 # also that custom installation prefixes are not used for longer periods of
 # time anyway). Also, we print a big warning with further instructions.
-if(NOT ENABLE_STATIC_BUILD)
+if(BUILD_SHARED_LIBS)
   # Get the libraries that cvc5 links against
-  get_target_property(libs cvc5-shared INTERFACE_LINK_LIBRARIES)
+  get_target_property(libs cvc5 INTERFACE_LINK_LIBRARIES)
   set(LIBS_SHARED_FROM_DEPS "")
   foreach(lib ${libs})
     # Filter out those that are linked dynamically and come from deps/install
@@ -592,7 +597,7 @@ print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
 print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
 print_config("Valgrind                  " ${ENABLE_VALGRIND})
 message("")
-print_config("Static build              " ${ENABLE_STATIC_BUILD})
+print_config("Shared build              " ${BUILD_SHARED_LIBS})
 print_config("Python bindings           " ${BUILD_BINDINGS_PYTHON})
 print_config("Java bindings             " ${BUILD_BINDINGS_JAVA})
 print_config("Python2                   " ${USE_PYTHON2})

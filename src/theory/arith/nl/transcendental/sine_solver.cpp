@@ -50,7 +50,10 @@ inline Node mkValidPhase(TNode a, TNode pi)
 }
 }  // namespace
 
-SineSolver::SineSolver(TranscendentalState* tstate) : d_data(tstate) {}
+SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
+    : EnvObj(env), d_data(tstate)
+{
+}
 
 SineSolver::~SineSolver() {}
 
@@ -109,7 +112,7 @@ void SineSolver::checkInitialRefine()
         d_tf_initial_refine[t] = true;
         Node symn = nm->mkNode(Kind::SINE,
                                nm->mkNode(Kind::MULT, d_data->d_neg_one, t[0]));
-        symn = Rewriter::rewrite(symn);
+        symn = rewrite(symn);
         // Can assume it is its own master since phase is split over 0,
         // hence  -pi <= t[0] <= pi implies -pi <= -t[0] <= pi.
         d_data->d_trMaster[symn] = symn;
@@ -381,7 +384,7 @@ void SineSolver::doTangentLemma(
 
   Trace("nl-ext-sine") << "*** Tangent plane lemma (pre-rewrite): " << lem
                        << std::endl;
-  lem = Rewriter::rewrite(lem);
+  lem = rewrite(lem);
   Trace("nl-ext-sine") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9

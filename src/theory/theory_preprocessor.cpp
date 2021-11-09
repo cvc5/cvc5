@@ -16,6 +16,7 @@
 #include "theory/theory_preprocessor.h"
 
 #include "expr/skolem_manager.h"
+#include "expr/term_context_stack.h"
 #include "proof/lazy_proof.h"
 #include "smt/logic_exception.h"
 #include "theory/logic_info.h"
@@ -30,11 +31,9 @@ namespace theory {
 TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     : EnvObj(env),
       d_engine(engine),
-      d_ppCache(userContext()),
-      d_rtfCache(userContext()),
+      d_cache(userContext()),
       d_tfr(env),
       d_tpg(nullptr),
-      d_tpgRtf(nullptr),
       d_tpgRew(nullptr),
       d_tspg(nullptr),
       d_lp(nullptr)
@@ -50,13 +49,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
                                 "TheoryPreprocessor::preprocess_rewrite",
-                                &d_iqtc));
-    d_tpgRtf.reset(new TConvProofGenerator(pnm,
-                                           u,
-                                           TConvPolicy::FIXPOINT,
-                                           TConvCachePolicy::NEVER,
-                                           "TheoryPreprocessor::rtf",
-                                           &d_iqtc));
+                                &d_rtfc));
     d_tpgRew.reset(new TConvProofGenerator(pnm,
                                            u,
                                            TConvPolicy::ONCE,
@@ -71,7 +64,7 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
     // removal+rewriting.
     std::vector<ProofGenerator*> ts;
     ts.push_back(d_tpgRew.get());
-    ts.push_back(d_tpgRtf.get());
+    ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext(), "TheoryPreprocessor::sequence"));
   }
@@ -97,7 +90,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   // An example of this is (forall ((x Int)) (and (tail L) (P x))) which
   // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
   // must be preprocessed as a child here.
-  Node irNode = rewriteWithProof(node, d_tpgRew.get(), true);
+  Node irNode = rewriteWithProof(node, d_tpgRew.get(), true, 0);
 
   // run theory preprocessing
   TrustNode tpp = theoryPreprocess(irNode, newLemmas);
@@ -223,190 +216,187 @@ RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()
   return d_tfr;
 }
 
-struct preprocess_stack_element
-{
-  TNode node;
-  bool children_added;
-  preprocess_stack_element(TNode n) : node(n), children_added(false) {}
-};
-
 TrustNode TheoryPreprocessor::theoryPreprocess(
     TNode assertion, std::vector<SkolemLemma>& newLemmas)
 {
-  Trace("theory::preprocess")
-      << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
-  // spendResource();
-
-  // Do a topological sort of the subexpressions and substitute them
-  vector<preprocess_stack_element> toVisit;
-  toVisit.push_back(assertion);
-
-  while (!toVisit.empty())
+  // Map from (term, term context identifier) to the term that it was
+  // theory-preprocessed to. This is used when the result of the current node
+  // should be set to the final result of converting its theory-preprocessed
+  // form.
+  std::unordered_map<std::pair<Node, uint32_t>,
+                     Node,
+                     PairHashFunction<Node, uint32_t, std::hash<Node>>>
+      wasPreprocessed;
+  std::unordered_map<
+      std::pair<Node, uint32_t>,
+      Node,
+      PairHashFunction<Node, uint32_t, std::hash<Node>>>::iterator itw;
+  NodeManager* nm = NodeManager::currentNM();
+  TCtxStack ctx(&d_rtfc);
+  std::vector<bool> processedChildren;
+  ctx.pushInitial(assertion);
+  processedChildren.push_back(false);
+  std::pair<Node, uint32_t> initial = ctx.getCurrent();
+  std::pair<Node, uint32_t> curr;
+  Node node;
+  uint32_t nodeVal;
+  TppCache::const_iterator itc;
+  while (!ctx.empty())
   {
-    // The current node we are processing
-    preprocess_stack_element& stackHead = toVisit.back();
-    TNode current = stackHead.node;
-
-    Trace("theory::preprocess-debug")
-        << "TheoryPreprocessor::theoryPreprocess processing " << current
-        << endl;
-
-    // If node already in the cache we're done, pop from the stack
-    if (d_rtfCache.find(current) != d_rtfCache.end())
+    curr = ctx.getCurrent();
+    itc = d_cache.find(curr);
+    node = curr.first;
+    nodeVal = curr.second;
+    Trace("tpp-debug") << "Visit " << node << ", " << nodeVal << std::endl;
+    if (itc != d_cache.end())
     {
-      toVisit.pop_back();
+      Trace("tpp-debug") << "...already computed" << std::endl;
+      ctx.pop();
+      processedChildren.pop_back();
+      // already computed
       continue;
     }
-
-    TheoryId tid = Theory::theoryOf(current);
-
-    if (!logicInfo().isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+    // if we have yet to process children
+    if (!processedChildren.back())
     {
-      stringstream ss;
-      ss << "The logic was specified as " << logicInfo().getLogicString()
-         << ", which doesn't include " << tid
-         << ", but got a preprocessing-time fact for that theory." << endl
-         << "The fact:" << endl
-         << current;
-      throw LogicException(ss.str());
-    }
-    // If this is an atom, we preprocess its terms with the theory ppRewriter
-    if (tid != THEORY_BOOL)
-    {
-      Node ppRewritten = ppTheoryRewrite(current, newLemmas);
-      Assert(Rewriter::rewrite(ppRewritten) == ppRewritten);
-      if (isProofEnabled() && ppRewritten != current)
+      // check if we should replace the current node by a Skolem
+      TrustNode newLem;
+      bool inQuant, inTerm;
+      RtfTermContext::getFlags(nodeVal, inQuant, inTerm);
+      Assert(!inQuant);
+      TrustNode currTrn = d_tfr.runCurrent(node, inTerm, newLem);
+      // if we replaced by a skolem, we do not recurse
+      if (!currTrn.isNull())
       {
-        TrustNode trn =
-            TrustNode::mkTrustRewrite(current, ppRewritten, d_tpg.get());
-        registerTrustedRewrite(trn, d_tpgRtf.get(), true);
+        Node ret = currTrn.getNode();
+        // if this is the first time we've seen this term, we have a new lemma
+        // which we add to our vectors
+        if (!newLem.isNull())
+        {
+          newLemmas.push_back(theory::SkolemLemma(newLem, ret));
+        }
+        // register the rewrite into the proof generator
+        if (isProofEnabled())
+        {
+          registerTrustedRewrite(currTrn, d_tpg.get(), true, nodeVal);
+        }
+        Trace("tpp-debug") << "...replace by skolem" << std::endl;
+        d_cache.insert(curr, ret);
+        continue;
       }
-
-      // Term formula removal without fixed point. We do not need to do fixed
-      // point since newLemmas are theory-preprocessed until fixed point in
-      // preprocessInternal (at top-level, when procLemmas=true).
-      TrustNode ttfr = d_tfr.run(ppRewritten, newLemmas, false);
-      Node rtfNode = ppRewritten;
-      if (!ttfr.isNull())
+      size_t nchild = node.getNumChildren();
+      if (nchild > 0)
       {
-        rtfNode = ttfr.getNode();
-        registerTrustedRewrite(ttfr, d_tpgRtf.get(), true);
+        if (node.isClosure())
+        {
+          // currently, we never do any term formula removal in quantifier
+          // bodies
+        }
+        else
+        {
+          Trace("tpp-debug") << "...recurse to children" << std::endl;
+          // recurse if we have children
+          processedChildren[processedChildren.size() - 1] = true;
+          for (size_t i = 0; i < nchild; i++)
+          {
+            ctx.pushChild(node, nodeVal, i);
+            processedChildren.push_back(false);
+          }
+          continue;
+        }
+      }
+      else
+      {
+        Trace("tpp-debug") << "...base case" << std::endl;
+      }
+    }
+    Trace("tpp-debug") << "...reconstruct" << std::endl;
+    // otherwise, we are now finished processing children, pop the current node
+    // and compute the result
+    ctx.pop();
+    processedChildren.pop_back();
+    // if this was preprocessed previously, we set our result to the final
+    // form of the preprocessed form of this.
+    itw = wasPreprocessed.find(curr);
+    if (itw != wasPreprocessed.end())
+    {
+      // we preprocessed it to something else, carry that
+      std::pair<Node, uint32_t> key(itw->second, nodeVal);
+      itc = d_cache.find(key);
+      Assert(itc != d_cache.end());
+      d_cache.insert(curr, itc->second);
+      wasPreprocessed.erase(curr);
+      continue;
+    }
+    Node ret = node;
+    Node pret = node;
+    if (!node.isClosure() && node.getNumChildren() > 0)
+    {
+      // if we have not already computed the result
+      std::vector<Node> newChildren;
+      bool childChanged = false;
+      if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        newChildren.push_back(node.getOperator());
+      }
+      // reconstruct from the children
+      std::pair<Node, uint32_t> currChild;
+      for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
+      {
+        // recompute the value of the child
+        uint32_t val = d_rtfc.computeValue(node, nodeVal, i);
+        currChild = std::pair<Node, uint32_t>(node[i], val);
+        itc = d_cache.find(currChild);
+        Assert(itc != d_cache.end());
+        Node newChild = (*itc).second;
+        Assert(!newChild.isNull());
+        childChanged |= (newChild != node[i]);
+        newChildren.push_back(newChild);
+      }
+      // If changes, we reconstruct the node
+      if (childChanged)
+      {
+        ret = nm->mkNode(node.getKind(), newChildren);
       }
       // Finish the conversion by rewriting. Notice that we must consider this a
       // pre-rewrite since we do not recursively register the rewriting steps
       // of subterms of rtfNode. For example, if this step rewrites
       // (not A) ---> B, then if registered a pre-rewrite, it will apply when
-      // reconstructing proofs via d_tpgRtf. However, if it is a post-rewrite
+      // reconstructing proofs via d_tpg. However, if it is a post-rewrite
       // it will fail to apply if another call to this class registers A -> C,
       // in which case (not C) will be returned instead of B (see issue 6754).
-      Node retNode = rewriteWithProof(rtfNode, d_tpgRtf.get(), true);
-      d_rtfCache[current] = retNode;
+      pret = rewriteWithProof(ret, d_tpg.get(), false, nodeVal);
+    }
+    // if we did not rewrite above, we are ready to theory preprocess
+    if (pret == ret)
+    {
+      pret = preprocessWithProof(ret, newLemmas, nodeVal);
+    }
+    // if we changed due to rewriting or preprocessing, we traverse again
+    if (pret != ret)
+    {
+      // must restart
+      ctx.push(node, nodeVal);
+      processedChildren.push_back(true);
+      ctx.push(pret, nodeVal);
+      processedChildren.push_back(false);
+      wasPreprocessed[curr] = pret;
       continue;
     }
-
-    // Not yet substituted, so process
-    if (stackHead.children_added)
-    {
-      // Children have been processed, so substitute
-      NodeBuilder builder(current.getKind());
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        builder << current.getOperator();
-      }
-      for (unsigned i = 0; i < current.getNumChildren(); ++i)
-      {
-        Assert(d_rtfCache.find(current[i]) != d_rtfCache.end());
-        builder << d_rtfCache[current[i]].get();
-      }
-      // Mark the substitution and continue
-      Node result = builder;
-      // always rewrite here, since current may not be in rewritten form after
-      // reconstruction
-      result = rewriteWithProof(result, d_tpgRtf.get(), false);
-      Trace("theory::preprocess-debug")
-          << "TheoryPreprocessor::theoryPreprocess setting " << current
-          << " -> " << result << endl;
-      d_rtfCache[current] = result;
-      toVisit.pop_back();
-    }
-    else
-    {
-      // Mark that we have added the children if any
-      if (current.getNumChildren() > 0)
-      {
-        stackHead.children_added = true;
-        // We need to add the children
-        for (TNode::iterator child_it = current.begin();
-             child_it != current.end();
-             ++child_it)
-        {
-          TNode childNode = *child_it;
-          if (d_rtfCache.find(childNode) == d_rtfCache.end())
-          {
-            toVisit.push_back(childNode);
-          }
-        }
-      }
-      else
-      {
-        // No children, so we're done
-        Trace("theory::preprocess-debug")
-            << "SubstitutionMap::internalSubstitute setting " << current
-            << " -> " << current << endl;
-        d_rtfCache[current] = current;
-        toVisit.pop_back();
-      }
-    }
+    // cache
+    d_cache.insert(curr, ret);
   }
-  Assert(d_rtfCache.find(assertion) != d_rtfCache.end());
-  // Return the substituted version
-  Node res = d_rtfCache[assertion];
-  return TrustNode::mkTrustRewrite(assertion, res, d_tpg.get());
-}
-
-// Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
-                                         std::vector<SkolemLemma>& lems)
-{
-  NodeMap::iterator find = d_ppCache.find(term);
-  if (find != d_ppCache.end())
-  {
-    return (*find).second;
-  }
-  if (term.getNumChildren() == 0)
-  {
-    return preprocessWithProof(term, lems);
-  }
-  // should be in rewritten form here
-  Assert(term == Rewriter::rewrite(term));
-  Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-  // do not rewrite inside quantifiers
-  Node newTerm = term;
-  if (!term.isClosure())
-  {
-    NodeBuilder newNode(term.getKind());
-    if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
-    {
-      newNode << term.getOperator();
-    }
-    for (const Node& nt : term)
-    {
-      newNode << ppTheoryRewrite(nt, lems);
-    }
-    newTerm = Node(newNode);
-    newTerm = rewriteWithProof(newTerm, d_tpg.get(), false);
-  }
-  newTerm = preprocessWithProof(newTerm, lems);
-  d_ppCache[term] = newTerm;
-  Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
-  return newTerm;
+  itc = d_cache.find(initial);
+  Assert(itc != d_cache.end());
+  return TrustNode::mkTrustRewrite(assertion, (*itc).second, d_tpg.get());
 }
 
 Node TheoryPreprocessor::rewriteWithProof(Node term,
                                           TConvProofGenerator* pg,
-                                          bool isPre)
+                                          bool isPre,
+                                          uint32_t tctx)
 {
-  Node termr = Rewriter::rewrite(term);
+  Node termr = rewrite(term);
   // store rewrite step if tracking proofs and it rewrites
   if (isProofEnabled())
   {
@@ -415,21 +405,21 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
     {
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) "
                          << term << " -> " << termr << std::endl;
-      // always use term context hash 0 (default)
-      pg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term}, isPre);
+      pg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term}, isPre, tctx);
     }
   }
   return termr;
 }
 
 Node TheoryPreprocessor::preprocessWithProof(Node term,
-                                             std::vector<SkolemLemma>& lems)
+                                             std::vector<SkolemLemma>& lems,
+                                             uint32_t tctx)
 {
   // Important that it is in rewritten form, to ensure that the rewrite steps
   // recorded in d_tpg are functional. In other words, there should not
   // be steps from the same term to multiple rewritten forms, which would be
   // the case if we registered a preprocessing step for a non-rewritten term.
-  Assert(term == Rewriter::rewrite(term));
+  Assert(term == rewrite(term));
   Trace("tpp-debug2") << "preprocessWithProof " << term
                       << ", #lems = " << lems.size() << std::endl;
   // We never call ppRewrite on equalities here, since equalities have a
@@ -462,18 +452,18 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   Assert(term != termr);
   if (isProofEnabled())
   {
-    registerTrustedRewrite(trn, d_tpg.get(), false);
+    registerTrustedRewrite(trn, d_tpg.get(), false, tctx);
   }
   // Rewrite again here, which notice is a *pre* rewrite.
-  termr = rewriteWithProof(termr, d_tpg.get(), true);
-  return ppTheoryRewrite(termr, lems);
+  return rewriteWithProof(termr, d_tpg.get(), true, tctx);
 }
 
 bool TheoryPreprocessor::isProofEnabled() const { return d_tpg != nullptr; }
 
 void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
                                                 TConvProofGenerator* pg,
-                                                bool isPre)
+                                                bool isPre,
+                                                uint32_t tctx)
 {
   if (!isProofEnabled() || trn.isNull())
   {
@@ -491,7 +481,7 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
                          "TheoryPreprocessor::preprocessWithProof");
     // always use term context hash 0 (default)
     pg->addRewriteStep(
-        term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true);
+        term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true, tctx);
   }
   else
   {
@@ -503,7 +493,8 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
                        PfRule::THEORY_PREPROCESS,
                        {},
                        {term.eqNode(termr)},
-                       isPre);
+                       isPre,
+                       tctx);
   }
 }
 

@@ -1130,22 +1130,22 @@ cdef class Solver:
             term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
         return term
 
-    def mkRegexpEmpty(self):
+    def mkRegexpNone(self):
         """Create a regular expression empty term.
 
         :return: the empty term
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRegexpEmpty()
+        term.cterm = self.csolver.mkRegexpNone()
         return term
 
-    def mkRegexpSigma(self):
+    def mkRegexpAllchar(self):
         """Create a regular expression sigma term.
 
         :return: the sigma term
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRegexpSigma()
+        term.cterm = self.csolver.mkRegexpAllchar()
         return term
 
     def mkEmptySet(self, Sort s):
@@ -2047,25 +2047,25 @@ cdef class Solver:
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
 
-    def getSeparationHeap(self):
+    def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
 
         :return: The term for the heap
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.getSeparationHeap()
+        term.cterm = self.csolver.getValueSepHeap()
         return term
 
-    def getSeparationNilTerm(self):
+    def getValueSepNil(self):
         """When using separation logic, obtain the term for nil.
 
         :return: The term for nil
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.getSeparationNilTerm()
+        term.cterm = self.csolver.getValueSepNil()
         return term
 
-    def declareSeparationHeap(self, Sort locType, Sort dataType):
+    def declareSepHeap(self, Sort locType, Sort dataType):
         """
         When using separation logic, this sets the location sort and the
         datatype sort to the given ones. This method should be invoked exactly
@@ -2074,7 +2074,7 @@ cdef class Solver:
         :param locSort: The location sort of the heap
         :param dataSort: The data sort of the heap
         """
-        self.csolver.declareSeparationHeap(locType.csort, dataType.csort)
+        self.csolver.declareSepHeap(locType.csort, dataType.csort)
 
     def declarePool(self, str symbol, Sort sort, initValue):
         """Declare a symbolic pool of terms with the given initial value.

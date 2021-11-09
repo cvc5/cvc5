@@ -141,7 +141,7 @@ bool InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     eq = d_false;
   }
-  else if (Rewriter::rewrite(eq) == d_true)
+  else if (rewrite(eq) == d_true)
   {
     // if trivial, return
     return false;
@@ -185,13 +185,13 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
     processConflict(ii);
     return;
   }
-  else if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
+  else if (asLemma || options().strings.stringInferAsLemmas || !ii.isFact())
   {
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
     addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(ii)));
     return;
   }
-  if (options::stringInferSym())
+  if (options().strings.stringInferSym)
   {
     std::vector<Node> unproc;
     for (const Node& ac : ii.d_premises)
@@ -234,7 +234,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
 bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
 {
   Node eq = a.eqNode(b);
-  eq = Rewriter::rewrite(eq);
+  eq = rewrite(eq);
   if (eq.isConst())
   {
     return false;
@@ -243,7 +243,7 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   InferInfo iiSplit(infer);
   iiSplit.d_sim = this;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  eq = Rewriter::rewrite(eq);
+  eq = rewrite(eq);
   addPendingPhaseRequirement(eq, preq);
   addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSplit)));
   return true;
@@ -325,7 +325,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
     utils::flattenOp(AND, ec, exp);
   }
   std::vector<Node> noExplain;
-  if (!options::stringRExplainLemmas())
+  if (!options().strings.stringRExplainLemmas)
   {
     // if we aren't regressing the explanation, we add all literals to
     // noExplain and ignore ii.d_ant.

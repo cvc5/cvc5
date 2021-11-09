@@ -147,7 +147,7 @@ void TermRegistry::preRegisterTerm(TNode n)
       << "TheoryString::preregister : " << n << std::endl;
   // check for logic exceptions
   Kind k = n.getKind();
-  if (!options::stringExp())
+  if (!options().strings.stringExp)
   {
     if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
         || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
@@ -259,7 +259,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     d_functionsTerms.push_back(n);
   }
-  if (options::stringFMF())
+  if (options().strings.stringFMF)
   {
     if (tn.isStringLike())
     {
@@ -289,7 +289,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   TypeNode tn = n.getType();
   if (!tn.isStringLike())
   {
-    if (options::stringEagerLen())
+    if (options().strings.stringEagerLen)
     {
       do_register = effort == 0;
     }
@@ -372,7 +372,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   if (n.getKind() != STRING_CONCAT && !n.isConst())
   {
     Node lsumb = nm->mkNode(STRING_LENGTH, n);
-    lsum = Rewriter::rewrite(lsumb);
+    lsum = rewrite(lsumb);
     // can register length term if it does not rewrite
     if (lsum == lsumb)
     {
@@ -381,7 +381,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
     }
   }
   Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
-  Node eq = Rewriter::rewrite(sk.eqNode(n));
+  Node eq = rewrite(sk.eqNode(n));
   d_proxyVar[n] = sk;
   // If we are introducing a proxy for a constant or concat term, we do not
   // need to send lemmas about its length, since its length is already
@@ -410,7 +410,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
       }
     }
     lsum = nm->mkNode(PLUS, nodeVec);
-    lsum = Rewriter::rewrite(lsum);
+    lsum = rewrite(lsum);
   }
   else if (n.isConst())
   {
@@ -418,7 +418,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   }
   Assert(!lsum.isNull());
   d_proxyVarToLength[sk] = lsum;
-  Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
+  Node ceq = rewrite(skl.eqNode(lsum));
 
   Node ret = nm->mkNode(AND, eq, ceq);
 
@@ -538,16 +538,16 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
   Node n_len_eq_z = n_len.eqNode(d_zero);
   Node n_len_eq_z_2 = n.eqNode(emp);
   Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
-  Node case_emptyr = Rewriter::rewrite(case_empty);
+  Node case_emptyr = rewrite(case_empty);
   if (!case_emptyr.isConst())
   {
     // prefer trying the empty case first
     // notice that requirePhase must only be called on rewritten literals that
     // occur in the CNF stream.
-    n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
+    n_len_eq_z = rewrite(n_len_eq_z);
     Assert(!n_len_eq_z.isConst());
     reqPhase[n_len_eq_z] = true;
-    n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
+    n_len_eq_z_2 = rewrite(n_len_eq_z_2);
     Assert(!n_len_eq_z_2.isConst());
     reqPhase[n_len_eq_z_2] = true;
   }
@@ -576,7 +576,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
       return Node::null();
     }
     Node eq = n.eqNode(pn);
-    eq = Rewriter::rewrite(eq);
+    eq = rewrite(eq);
     if (std::find(exp.begin(), exp.end(), eq) == exp.end())
     {
       exp.push_back(eq);
@@ -643,7 +643,7 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
     return;
   }
   Trace("strings-subs-proxy") << "Input : " << n << std::endl;
-  Node ns = Rewriter::rewrite(n);
+  Node ns = rewrite(n);
   if (ns.getKind() == EQUAL)
   {
     for (size_t i = 0; i < 2; i++)

@@ -44,51 +44,52 @@ public class SygusInv
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    Solver slv = new Solver();
-
-    // required options
-    slv.setOption("lang", "sygus2");
-    slv.setOption("incremental", "false");
-
-    // set the logic
-    slv.setLogic("LIA");
-
-    Sort integer = slv.getIntegerSort();
-    Sort bool = slv.getBooleanSort();
-
-    Term zero = slv.mkInteger(0);
-    Term one = slv.mkInteger(1);
-    Term ten = slv.mkInteger(10);
-
-    // declare input variables for functions
-    Term x = slv.mkVar(integer, "x");
-    Term xp = slv.mkVar(integer, "xp");
-
-    // (ite (< x 10) (= xp (+ x 1)) (= xp x))
-    Term ite = slv.mkTerm(ITE,
-        slv.mkTerm(LT, x, ten),
-        slv.mkTerm(EQUAL, xp, slv.mkTerm(PLUS, x, one)),
-        slv.mkTerm(EQUAL, xp, x));
-
-    // define the pre-conditions, transition relations, and post-conditions
-    Term pre_f = slv.defineFun("pre-f", new Term[] {x}, bool, slv.mkTerm(EQUAL, x, zero));
-    Term trans_f = slv.defineFun("trans-f", new Term[] {x, xp}, bool, ite);
-    Term post_f = slv.defineFun("post-f", new Term[] {x}, bool, slv.mkTerm(LEQ, x, ten));
-
-    // declare the invariant-to-synthesize
-    Term inv_f = slv.synthInv("inv-f", new Term[] {x});
-
-    slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
-
-    // print solutions if available
-    if (slv.checkSynth().isUnsat())
+    try (Solver slv = new Solver())
     {
-      // Output should be equivalent to:
-      // (
-      //   (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
-      // )
-      Term[] terms = new Term[] {inv_f};
-      Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
+      // required options
+      slv.setOption("lang", "sygus2");
+      slv.setOption("incremental", "false");
+
+      // set the logic
+      slv.setLogic("LIA");
+
+      Sort integer = slv.getIntegerSort();
+      Sort bool = slv.getBooleanSort();
+
+      Term zero = slv.mkInteger(0);
+      Term one = slv.mkInteger(1);
+      Term ten = slv.mkInteger(10);
+
+      // declare input variables for functions
+      Term x = slv.mkVar(integer, "x");
+      Term xp = slv.mkVar(integer, "xp");
+
+      // (ite (< x 10) (= xp (+ x 1)) (= xp x))
+      Term ite = slv.mkTerm(ITE,
+          slv.mkTerm(LT, x, ten),
+          slv.mkTerm(EQUAL, xp, slv.mkTerm(PLUS, x, one)),
+          slv.mkTerm(EQUAL, xp, x));
+
+      // define the pre-conditions, transition relations, and post-conditions
+      Term pre_f = slv.defineFun("pre-f", new Term[] {x}, bool, slv.mkTerm(EQUAL, x, zero));
+      Term trans_f = slv.defineFun("trans-f", new Term[] {x, xp}, bool, ite);
+      Term post_f = slv.defineFun("post-f", new Term[] {x}, bool, slv.mkTerm(LEQ, x, ten));
+
+      // declare the invariant-to-synthesize
+      Term inv_f = slv.synthInv("inv-f", new Term[] {x});
+
+      slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f);
+
+      // print solutions if available
+      if (slv.checkSynth().isUnsat())
+      {
+        // Output should be equivalent to:
+        // (
+        //   (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
+        // )
+        Term[] terms = new Term[] {inv_f};
+        Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
+      }
     }
   }
 }

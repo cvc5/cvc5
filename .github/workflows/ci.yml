@@ -8,7 +8,7 @@ jobs:
         include:
           - name: ubuntu:production
             os: ubuntu-latest
-            config: production --auto-download --all-bindings --editline --docs --static
+            config: production --auto-download --all-bindings --editline --docs
             cache-key: production
             python-bindings: true
             build-documentation: true
@@ -19,7 +19,7 @@ jobs:
 
           - name: macos:production
             os: macos-11
-            config: production --auto-download --all-bindings --editline --static
+            config: production --auto-download --all-bindings --editline
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -38,7 +38,7 @@ jobs:
 
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
-            config: production --auto-download --assertions --tracing --unit-testing --editline
+            config: production --auto-download --assertions --tracing --unit-testing --java-bindings --editline
             cache-key: dbg
             check-units: true
             exclude_regress: 3-4
@@ -89,6 +89,17 @@ jobs:
         check-unit-tests: ${{ matrix.check-units }}
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: ${{ matrix.exclude_regress }}
+  
+    - name: Run tests
+      uses: ./.github/actions/run-tests
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        check-examples: false
+        check-install: false
+        check-python-bindings: false
+        check-unit-tests: ${{ matrix.check-units }}
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: 1-4
 
     - name: Build documentation
       if: matrix.build-documentation

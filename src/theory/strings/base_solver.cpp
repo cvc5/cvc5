@@ -605,7 +605,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     {
       // if constant, compare
       Node cmp = nm->mkNode(GEQ, lr, nm->mkConst(Rational(card_need)));
-      cmp = Rewriter::rewrite(cmp);
+      cmp = rewrite(cmp);
       needsSplit = !cmp.getConst<bool>();
     }
     else
@@ -686,7 +686,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       }
       Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
       Node cons = nm->mkNode(GEQ, len, k_node);
-      cons = Rewriter::rewrite(cons);
+      cons = rewrite(cons);
       ei->d_cardinalityLemK.set(int_k + 1);
       if (!cons.isConst() || !cons.getConst<bool>())
       {

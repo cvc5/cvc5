@@ -426,7 +426,7 @@ class CardinalityExtension : protected EnvObj
   /**
    * Decision strategy for combined cardinality constraints. This asserts
    * the minimal combined cardinality constraint positively in the SAT
-   * context. It is enabled by options::ufssFairness(). For details, see
+   * context. It is enabled by the ufssFairness option. For details, see
    * the extension to multiple sorts in Section 6.3 of Reynolds et al,
    * "Constraint Solving for Finite Model Finding in SMT Solvers", TPLP 2017.
    */

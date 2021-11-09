@@ -239,7 +239,7 @@ bool CegSingleInv::solve()
   Result::Sat res = r.asSatisfiabilityResult().isSat();
   if (res != Result::UNSAT)
   {
-    Warning() << "Warning : the single invocation solver determined the SyGuS "
+    warning() << "Warning : the single invocation solver determined the SyGuS "
                  "conjecture"
               << (res == Result::SAT ? " is" : " may be") << " infeasible"
               << std::endl;

@@ -32,7 +32,7 @@ cvc5_set_option(ENABLE_DUMPING OFF)
 # enable_muzzle=yes
 cvc5_set_option(ENABLE_MUZZLE ON)
 # enable_valgrind=no
-cvc5_set_option(ENABLE_STATIC_BUILD ON)
+cvc5_set_option(BUILD_SHARED_LIBS OFF)
 cvc5_set_option(ENABLE_UNIT_TESTING OFF)
 
 # By default, we include all dependencies in our competition build that are

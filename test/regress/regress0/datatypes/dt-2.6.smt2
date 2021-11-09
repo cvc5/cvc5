@@ -3,7 +3,7 @@
 (set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((IntList 0)) (
-((empty) (insert ( head Int ) ( tail IntList ) ))
+((empty) (set.insert ( head Int ) ( tail IntList ) ))
 ))
 
 (declare-fun x () IntList)
