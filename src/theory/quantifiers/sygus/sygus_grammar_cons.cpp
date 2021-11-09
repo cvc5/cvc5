@@ -990,7 +990,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
 
       // add for union, difference, intersection
-      std::vector<Kind> bin_kinds = {UNION, INTERSECTION, SETMINUS};
+      std::vector<Kind> bin_kinds = {SET_UNION, SET_INTERSECTION, SET_MINUS};
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(unres_t);
       cargsBinary.push_back(unres_t);
@@ -1456,8 +1456,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsMember;
       cargsMember.push_back(unresElemType);
       cargsMember.push_back(unres_types[iuse]);
-      Trace("sygus-grammar-def") << "...for MEMBER" << std::endl;
-      sdtBool.addConstructor(MEMBER, cargsMember);
+      Trace("sygus-grammar-def") << "...for SET_MEMBER" << std::endl;
+      sdtBool.addConstructor(SET_MEMBER, cargsMember);
     }
   }
   // add Boolean connectives, if not in a degenerate case of (recursively)

@@ -217,6 +217,8 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/alethe/alethe_nosubtype_node_converter.cpp
+  proof/alethe/alethe_nosubtype_node_converter.h
   proof/alethe/alethe_node_converter.cpp
   proof/alethe/alethe_node_converter.h
   proof/alethe/alethe_post_processor.cpp
@@ -1119,6 +1121,8 @@ libcvc5_add_sources(
   theory/uf/eq_proof.h
   theory/uf/function_const.cpp
   theory/uf/function_const.h
+  theory/uf/lambda_lift.cpp
+  theory/uf/lambda_lift.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
   theory/uf/proof_equality_engine.cpp

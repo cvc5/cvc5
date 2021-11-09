@@ -7,8 +7,8 @@
 (declare-fun x () (Set Real))
 (declare-fun y () (Set Real))
 
-(assert (member 0.5 y))
-(assert (member y s))
-(assert (or (= s t) (= s (singleton (singleton 1.0))) (= s (singleton (singleton 0.0)))))
+(assert (set.member 0.5 y))
+(assert (set.member y s))
+(assert (or (= s t) (= s (set.singleton (set.singleton 1.0))) (= s (set.singleton (set.singleton 0.0)))))
 
 (check-sat)

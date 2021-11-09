@@ -8,6 +8,6 @@
 (assert (= z (tuple 1 2 3)))
 (declare-fun zt () (Tuple Int Int Int))
 (assert (= zt (tuple 3 2 1)))
-(assert (member z x))
-(assert (not (member zt (transpose x))))
+(assert (set.member z x))
+(assert (not (set.member zt (rel.transpose x))))
 (check-sat)

@@ -1585,6 +1585,10 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/choose1.smt2
+  regress1/bags/choose2.smt2
+  regress1/bags/choose3.smt2
+  regress1/bags/choose4.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
   regress1/bags/duplicate_removal1.smt2
@@ -1966,6 +1970,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4813-qe-quant.smt2
   regress1/quantifiers/issue4849-nqe.smt2
   regress1/quantifiers/issue5019-cegqi-i.smt2
+  regress1/quantifiers/issue5278-ext-rewrite-rec.smt2
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2

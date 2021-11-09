@@ -112,6 +112,17 @@ enum class SkolemFunId
    * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
+  /** An interpreted function for bag.choose operator:
+   * (bag.choose A) is expanded as
+   * (witness ((x elementType))
+   *    (ite
+   *      (= A (as emptybag (Bag E)))
+   *      (= x (uf A))
+   *      (and (>= (bag.count x A) 1) (= x (uf A)))
+   * where uf: (Bag E) -> E is a skolem function, and E is the type of elements
+   * of A
+   */
+  BAGS_CHOOSE,
   /** An uninterpreted function for bag.map operator:
    * To compute (bag.count y (map f A)), we need to find the distinct
    * elements in A that are mapped to y by function f (i.e., preimage of {y}).
@@ -128,6 +139,17 @@ enum class SkolemFunId
    * sum(i) = sum (i-1) + (bag.count (uf i) A)
    */
   BAGS_MAP_SUM,
+  /** An interpreted function for bag.choose operator:
+   * (choose A) is expanded as
+   * (witness ((x elementType))
+   *    (ite
+   *      (= A (as emptyset (Set E)))
+   *      (= x (uf A))
+   *      (and (member x A) (= x uf(A)))
+   * where uf: (Set E) -> E is a skolem function, and E is the type of elements
+   * of A
+   */
+  SETS_CHOOSE,
   /** Higher-order type match predicate, see HoTermDb */
   HO_TYPE_MATCH_PRED,
 };
