@@ -2799,7 +2799,7 @@ set(regression_disabled_tests
   ###
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
-  # disabled temporarily until lazy lambda handling is fuzz_1_to_52_merged
+  # disabled temporarily until lazy lambda handling is merged
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
