@@ -28,7 +28,7 @@ class TypeNode;
  * The class is an operator for kind BAG_MAKE used to construct bags.
  * It specifies the type of the element especially when it is a constant.
  * e.g. the type of rational 1 is Int, however
- * (mkBag (mkBag_op Real) 1) is of type (Bag Real), not (Bag Int).
+ * (bagMake (mkBag_op Real) 1) is of type (Bag Real), not (Bag Int).
  * Note that the type passed to the constructor is the element's type, not the
  * bag type.
  */

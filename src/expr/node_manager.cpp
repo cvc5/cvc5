@@ -1041,7 +1041,7 @@ Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
 Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
 {
   Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkBag. The type '" << n.getType()
+      << "Invalid operands for bagMake. The type '" << n.getType()
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
   Node op = mkConst(BagMakeOp(t));

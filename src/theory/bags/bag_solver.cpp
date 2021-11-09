@@ -70,7 +70,7 @@ void BagSolver::postCheck()
       switch (k)
       {
         case kind::BAG_EMPTY: checkEmpty(n); break;
-        case kind::BAG_MAKE: checkMkBag(n); break;
+        case kind::BAG_MAKE: checkBagMake(n); break;
         case kind::BAG_UNION_DISJOINT: checkUnionDisjoint(n); break;
         case kind::BAG_UNION_MAX: checkUnionMax(n); break;
         case kind::BAG_INTERSECTION_MIN: checkIntersectionMin(n); break;
@@ -164,15 +164,15 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   }
 }
 
-void BagSolver::checkMkBag(const Node& n)
+void BagSolver::checkBagMake(const Node& n)
 {
   Assert(n.getKind() == BAG_MAKE);
   Trace("bags::BagSolver::postCheck")
-      << "BagSolver::checkMkBag Elements of " << n
+      << "BagSolver::checkBagMake Elements of " << n
       << " are: " << d_state.getElements(n) << std::endl;
   for (const Node& e : d_state.getElements(n))
   {
-    InferInfo i = d_ig.mkBag(n, e);
+    InferInfo i = d_ig.bagMake(n, e);
     d_im.lemmaTheoryInference(&i);
   }
 }

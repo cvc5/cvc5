@@ -59,7 +59,7 @@ class InferenceGenerator
    *    (= (bag.count e skolem) (ite (and (= e x) (>= c 1)) c 0)))
    * where skolem = (bag x c) is a fresh variable
    */
-  InferInfo mkBag(Node n, Node e);
+  InferInfo bagMake(Node n, Node e);
   /**
    * @param n is (= A B) where A, B are bags of type (Bag E), and
    * (not (= A B)) is an assertion in the equality engine

@@ -53,7 +53,7 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::mkBag(Node n, Node e)
+InferInfo InferenceGenerator::bagMake(Node n, Node e)
 {
   Assert(n.getKind() == BAG_MAKE);
   Assert(e.getType() == n.getType().getBagElementType());

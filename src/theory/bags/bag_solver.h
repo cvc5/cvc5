@@ -50,11 +50,11 @@ class BagSolver : protected EnvObj
    * Example: Suppose n = (bag x c), and we have two count terms (bag.count x n)
    * and (bag.count y n).
    * This function will add inferences for the count terms as documented in
-   * InferenceGenerator::mkBag.
+   * InferenceGenerator::bagMake.
    * Note that element y may not be in bag n. See the documentation of
    * SolverState::getElements.
    */
-  void checkMkBag(const Node& n);
+  void checkBagMake(const Node& n);
   /**
    * @param n is a bag that has the form (op A B)
    * @return the set union of known elements in (op A B) , A, and B.
