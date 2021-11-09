@@ -1193,34 +1193,34 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-      // ======== Congruence
-      // In the case that the kind of the function symbol f? is FORALL or
-      // EXISTS, the cong rule needs to be converted into a bind rule. The first
-      // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
-      //
-      //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-      //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
-      //
-      //  ----- REFL ... ----- REFL
-      //   VP1            VPn             P2
-      //  --------------------------------------- bind,
-      //                                          ((:= (v1 A1) v1) ...
-      //                                          (:= (vn An) vn))
-      //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-      //   (forall ((v1 B1)...(vn Bn)) s2)))**
-      //
-      //  VPi: (cl (= vi vi))*
-      //
-      //  * the corresponding proof node is (or (= vi vi))
-      //
-      // Otherwise, the rule follows the singleton pattern, i.e.:
-      //
-      //    P1 ... Pn
-      //  -------------------------------------------------------- cong
-      //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
-      //
-      // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
-      // s1 ... sn))
+    // ======== Congruence
+    // In the case that the kind of the function symbol f? is FORALL or
+    // EXISTS, the cong rule needs to be converted into a bind rule. The first
+    // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+    //
+    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+    //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
+    //
+    //  ----- REFL ... ----- REFL
+    //   VP1            VPn             P2
+    //  --------------------------------------- bind,
+    //                                          ((:= (v1 A1) v1) ...
+    //                                          (:= (vn An) vn))
+    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //   (forall ((v1 B1)...(vn Bn)) s2)))**
+    //
+    //  VPi: (cl (= vi vi))*
+    //
+    //  * the corresponding proof node is (or (= vi vi))
+    //
+    // Otherwise, the rule follows the singleton pattern, i.e.:
+    //
+    //    P1 ... Pn
+    //  -------------------------------------------------------- cong
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
+    //
+    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
+    // s1 ... sn))
     case PfRule::CONG:
     {
       if (res[0].isClosure())
