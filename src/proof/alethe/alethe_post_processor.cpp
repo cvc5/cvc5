@@ -1162,6 +1162,95 @@ bool AletheProofPostprocessCallback::update(Node res,
              && addAletheStepFromOr(
                  AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
+    //================================================= Equality rules
+    // The following rules are all translated according to the singleton
+    // pattern.
+    case PfRule::REFL:
+    {
+      return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    case PfRule::SYMM:
+    {
+      return addAletheStep(
+          res.getKind() == kind::NOT ? AletheRule::NOT_SYMM : AletheRule::SYMM,
+          res,
+          nm->mkNode(kind::SEXPR, d_cl, res),
+          children,
+          {},
+          *cdp);
+    }
+    case PfRule::TRANS:
+    {
+      return addAletheStep(AletheRule::TRANS,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Congruence
+    // In the case that the kind of the function symbol f? is FORALL or
+    // EXISTS, the cong rule needs to be converted into a bind rule. The first
+    // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+    //
+    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+    //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
+    //
+    //  ----- REFL ... ----- REFL
+    //   VP1            VPn             P2
+    //  --------------------------------------- bind,
+    //                                          ((:= (v1 A1) v1) ...
+    //                                          (:= (vn An) vn))
+    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //   (forall ((v1 B1)...(vn Bn)) s2)))**
+    //
+    //  VPi: (cl (= vi vi))*
+    //
+    //  * the corresponding proof node is (or (= vi vi))
+    //
+    // Otherwise, the rule follows the singleton pattern, i.e.:
+    //
+    //    P1 ... Pn
+    //  -------------------------------------------------------- cong
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
+    //
+    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
+    // s1 ... sn))
+    case PfRule::CONG:
+    {
+      if (res[0].isClosure())
+      {
+        std::vector<Node> vpis;
+        bool success = true;
+        for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
+             i++)
+        {
+          Node vpi = children[0][0][i].eqNode(children[0][1][i]);
+          new_args.push_back(vpi);
+          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
+          success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+        }
+        vpis.push_back(children[1]);
+        return success
+               && addAletheStep(AletheRule::ANCHOR_BIND,
+                                res,
+                                nm->mkNode(kind::SEXPR, d_cl, res),
+                                vpis,
+                                new_args,
+                                *cdp);
+      }
+      return addAletheStep(AletheRule::CONG,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
