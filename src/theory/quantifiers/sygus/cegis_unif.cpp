@@ -416,7 +416,7 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
       d_parent(parent)
 {
   d_initialized = false;
-  options::SygusUnifPiMode mode = options::sygusUnifPi();
+  options::SygusUnifPiMode mode = options().quantifiers.sygusUnifPi;
   d_useCondPool = mode == options::SygusUnifPiMode::CENUM
                   || mode == options::SygusUnifPiMode::CENUM_IGAIN;
 }

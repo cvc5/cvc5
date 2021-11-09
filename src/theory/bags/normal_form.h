@@ -166,8 +166,8 @@ class NormalForm
   static Node evaluateDifferenceRemove(TNode n);
   /**
    * @param n has the form (bag.choose A) where A is a constant bag
-   * @return the first element of A if A is not empty. Otherwise, it returns the
-   * first element returned by the type enumerator for the elements
+   * @return x if n has the form (bag.choose (bag x c)). Otherwise an error is
+   * thrown.
    */
   static Node evaluateChoose(TNode n);
   /**
