@@ -52,7 +52,7 @@ RegExpSolver::RegExpSolver(Env& env,
       d_regexp_opr(env, tr.getSkolemCache())
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
-  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY);
+  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_NONE);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -656,8 +656,8 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
   Node ret = r;
   switch (r.getKind())
   {
-    case REGEXP_EMPTY:
-    case REGEXP_SIGMA:
+    case REGEXP_NONE:
+    case REGEXP_ALLCHAR:
     case REGEXP_RANGE: break;
     case STRING_TO_REGEXP:
     {

@@ -713,7 +713,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace_re)
 
   std::vector<Node> emptyVec;
   Node sigStar = d_nodeManager->mkNode(
-      kind::REGEXP_STAR, d_nodeManager->mkNode(kind::REGEXP_SIGMA, emptyVec));
+      kind::REGEXP_STAR, d_nodeManager->mkNode(kind::REGEXP_ALLCHAR, emptyVec));
   Node foo = d_nodeManager->mkConst(String("FOO"));
   Node a = d_nodeManager->mkConst(String("A"));
   Node b = d_nodeManager->mkConst(String("B"));
@@ -833,7 +833,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_replace_all)
 
   std::vector<Node> emptyVec;
   Node sigStar = d_nodeManager->mkNode(
-      kind::REGEXP_STAR, d_nodeManager->mkNode(kind::REGEXP_SIGMA, emptyVec));
+      kind::REGEXP_STAR, d_nodeManager->mkNode(kind::REGEXP_ALLCHAR, emptyVec));
   Node foo = d_nodeManager->mkConst(String("FOO"));
   Node a = d_nodeManager->mkConst(String("A"));
   Node b = d_nodeManager->mkConst(String("B"));
@@ -1796,7 +1796,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_membership)
     // (str.contains x "ABC")
     Node sig_star = d_nodeManager->mkNode(
         kind::REGEXP_STAR,
-        d_nodeManager->mkNode(kind::REGEXP_SIGMA, vec_empty));
+        d_nodeManager->mkNode(kind::REGEXP_ALLCHAR, vec_empty));
     Node lhs = d_nodeManager->mkNode(
         kind::STRING_IN_REGEXP,
         x,
@@ -1814,7 +1814,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_membership)
     // (str.contains x "ABC")
     Node sig_star = d_nodeManager->mkNode(
         kind::REGEXP_STAR,
-        d_nodeManager->mkNode(kind::REGEXP_SIGMA, vec_empty));
+        d_nodeManager->mkNode(kind::REGEXP_ALLCHAR, vec_empty));
     Node lhs = d_nodeManager->mkNode(
         kind::STRING_IN_REGEXP,
         x,
@@ -1832,7 +1832,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_regexp_concat)
   Node x = d_nodeManager->mkVar("x", strType);
   Node y = d_nodeManager->mkVar("y", strType);
   Node allStar = d_nodeManager->mkNode(
-      kind::REGEXP_STAR, d_nodeManager->mkNode(kind::REGEXP_SIGMA, emptyArgs));
+      kind::REGEXP_STAR,
+      d_nodeManager->mkNode(kind::REGEXP_ALLCHAR, emptyArgs));
   Node xReg = d_nodeManager->mkNode(kind::STRING_TO_REGEXP, x);
   Node yReg = d_nodeManager->mkNode(kind::STRING_TO_REGEXP, y);
 
