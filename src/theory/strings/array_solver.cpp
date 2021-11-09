@@ -119,8 +119,10 @@ void ArraySolver::checkTerms(Kind k)
     {
       Trace("seq-array-debug") << "...norm form size 1" << std::endl;
       // NOTE: could split on n=0 if needed, do not introduce ITE
-      if (nf.d_nf[0].getKind() == SEQ_UNIT)
+      Kind ck = nf.d_nf[0].getKind();
+      if (ck == SEQ_UNIT)
       {
+        Trace("seq-array-debug") << "...unit case" << std::endl;
         // do we know whether n = 0 ?
         // x = (seq.unit m) => (seq.update x n z) = ite(n=0, z, (seq.unit m))
         // x = (seq.unit m) => (seq.nth x n) = ite(n=0, m, Uf(x, n))
@@ -154,9 +156,13 @@ void ArraySolver::checkTerms(Kind k)
           d_im.sendInference(exp, eq, iid);
         }
       }
-      // otherwise, the equivalence class is pure wrt concatenation
-      d_currTerms[k].push_back(t);
-      continue;
+      else if (ck != CONST_SEQUENCE)
+      {
+        // otherwise, if the normal form is not a constant sequence, the equivalence class is pure wrt concatenation.
+        d_currTerms[k].push_back(t);
+        continue;
+      }
+      // if the normal form is a constant sequence, it is treated as a concatenation
     }
     // otherwise, we are the concatenation of the components
     // NOTE: for nth, split on index vs component lengths, do not introduce ITE
