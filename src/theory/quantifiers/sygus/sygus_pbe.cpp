@@ -51,7 +51,7 @@ bool SygusPbe::initialize(Node conj,
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
 
-  if (!options::sygusUnifPbe())
+  if (!options().quantifiers.sygusUnifPbe)
   {
     // we are not doing unification
     return false;
@@ -162,7 +162,10 @@ void SygusPbe::getTermList(const std::vector<Node>& candidates,
   }
 }
 
-bool SygusPbe::allowPartialModel() { return !options::sygusPbeMultiFair(); }
+bool SygusPbe::allowPartialModel()
+{
+  return !options().quantifiers.sygusPbeMultiFair;
+}
 
 bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    const std::vector<Node>& enum_values,
@@ -194,13 +197,13 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       }
     }
     // Assume two enumerators of types T1 and T2.
-    // If options::sygusPbeMultiFair() is true,
+    // If the sygusPbeMultiFair option is true,
     // we ensure that all values of type T1 and size n are enumerated before
     // any term of type T2 of size n+d, and vice versa, where d is
-    // set by options::sygusPbeMultiFairDiff(). If d is zero, then our
+    // set by the sygusPbeMultiFairDiff option. If d is zero, then our
     // enumeration is such that all terms of T1 or T2 of size n are considered
     // before any term of size n+1.
-    int diffAllow = options::sygusPbeMultiFairDiff();
+    int diffAllow = options().quantifiers.sygusPbeMultiFairDiff;
     std::vector<unsigned> enum_consider;
     for (unsigned i = 0, esize = enums.size(); i < esize; i++)
     {
@@ -208,7 +211,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       {
         Assert(szs[i] >= min_term_size);
         int diff = szs[i] - min_term_size;
-        if (!options::sygusPbeMultiFair() || diff <= diffAllow)
+        if (!options().quantifiers.sygusPbeMultiFair || diff <= diffAllow)
         {
           enum_consider.push_back(i);
         }

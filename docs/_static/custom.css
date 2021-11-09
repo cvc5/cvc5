@@ -98,3 +98,7 @@ a:hover, a:focus {
 .hide-toctree {
   display: none;
 }
+
+.expert-option {
+  opacity: 0.7;
+}

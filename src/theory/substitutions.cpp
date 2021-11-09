@@ -215,8 +215,6 @@ void SubstitutionMap::print(ostream& out) const {
   }
 }
 
-void SubstitutionMap::debugPrint() const { print(CVC5Message.getStream()); }
-
 }  // namespace theory
 
 std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i) {
