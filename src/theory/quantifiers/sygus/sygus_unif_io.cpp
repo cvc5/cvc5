@@ -807,7 +807,7 @@ bool SygusUnifIo::constructSolution(std::vector<Node>& sols,
 Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
 {
   Node c = d_candidate;
-  if (!d_solution.isNull() && !options::sygusStream())
+  if (!d_solution.isNull() && !options().quantifiers.sygusStream)
   {
     // already has a solution
     return d_solution;

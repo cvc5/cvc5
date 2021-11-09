@@ -595,20 +595,20 @@ TEST_F(TestApiBlackSolver, mkReal)
   ASSERT_NO_THROW(d_solver.mkReal(val4, val4));
 }
 
-TEST_F(TestApiBlackSolver, mkRegexpEmpty)
+TEST_F(TestApiBlackSolver, mkRegexpNone)
 {
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpEmpty()));
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
 }
 
-TEST_F(TestApiBlackSolver, mkRegexpSigma)
+TEST_F(TestApiBlackSolver, mkRegexpAllchar)
 {
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAllchar()));
 }
 
 TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
@@ -646,8 +646,8 @@ TEST_F(TestApiBlackSolver, mkTerm)
 
   // mkTerm(Kind kind) const
   ASSERT_NO_THROW(d_solver.mkTerm(PI));
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_EMPTY));
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_SIGMA));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR));
   ASSERT_THROW(d_solver.mkTerm(CONST_BITVECTOR), CVC5ApiException);
 
   // mkTerm(Kind kind, Term child) const
