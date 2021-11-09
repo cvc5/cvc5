@@ -634,23 +634,23 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     {
       for (const Node& fa : fassumps)
       {
-        Trace("sat-proof") << "- ";
         auto it = d_cnfStream->getTranslationCache().find(fa);
         if (it != d_cnfStream->getTranslationCache().end())
         {
-          Trace("sat-proof") << it->second << "\n";
+          Trace("sat-proof") << "- " << it->second << "\n";
           Trace("sat-proof") << "  - " << fa << "\n";
           continue;
         }
         // then it's a clause
+        std::stringstream ss;
         Assert(fa.getKind() == kind::OR);
         for (const Node& n : fa)
         {
           it = d_cnfStream->getTranslationCache().find(n);
           Assert(it != d_cnfStream->getTranslationCache().end());
-          Trace("sat-proof") << it->second << " ";
+          ss << it->second << " ";
         }
-        Trace("sat-proof") << "\n";
+        Trace("sat-proof") << "- " << ss.str() << "\n";
         Trace("sat-proof") << "  - " << fa << "\n";
       }
     }

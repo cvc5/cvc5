@@ -51,7 +51,7 @@ class NormalForm {
       while (++it != elements.end())
       {
         Node singleton = nm->mkSingleton(elementType, *it);
-        cur = nm->mkNode(kind::UNION, singleton, cur);
+        cur = nm->mkNode(kind::SET_UNION, singleton, cur);
       }
       return cur;
     }
@@ -69,19 +69,24 @@ class NormalForm {
   static bool checkNormalConstant(TNode n) {
     Debug("sets-checknormal") << "[sets-checknormal] checkNormal " << n << " :"
                               << std::endl;
-    if (n.getKind() == kind::EMPTYSET) {
+    if (n.getKind() == kind::SET_EMPTY)
+    {
       return true;
-    } else if (n.getKind() == kind::SINGLETON) {
+    }
+    else if (n.getKind() == kind::SET_SINGLETON)
+    {
       return n[0].isConst();
-    } else if (n.getKind() == kind::UNION) {
+    }
+    else if (n.getKind() == kind::SET_UNION)
+    {
       // assuming (union {SmallestNodeID} ... (union {BiggerNodeId} ...
 
       Node orig = n;
       TNode prvs;
       // check intermediate nodes
-      while (n.getKind() == kind::UNION)
+      while (n.getKind() == kind::SET_UNION)
       {
-        if (n[0].getKind() != kind::SINGLETON || !n[0][0].isConst())
+        if (n[0].getKind() != kind::SET_SINGLETON || !n[0][0].isConst())
         {
           // not a constant
           Trace("sets-isconst") << "sets::isConst: " << orig << " not due to "
@@ -103,7 +108,7 @@ class NormalForm {
       }
 
       // check SmallestNodeID is smallest
-      if (n.getKind() != kind::SINGLETON || !n[0].isConst())
+      if (n.getKind() != kind::SET_SINGLETON || !n[0].isConst())
       {
         Trace("sets-isconst") << "sets::isConst: " << orig
                               << " not due to final " << n << std::endl;
@@ -133,15 +138,17 @@ class NormalForm {
   static std::set<Node> getElementsFromNormalConstant(TNode n) {
     Assert(n.isConst());
     std::set<Node> ret;
-    if (n.getKind() == kind::EMPTYSET) {
+    if (n.getKind() == kind::SET_EMPTY)
+    {
       return ret;
     }
-    while (n.getKind() == kind::UNION) {
-      Assert(n[0].getKind() == kind::SINGLETON);
+    while (n.getKind() == kind::SET_UNION)
+    {
+      Assert(n[0].getKind() == kind::SET_SINGLETON);
       ret.insert(ret.begin(), n[0][0]);
       n = n[1];
     }
-    Assert(n.getKind() == kind::SINGLETON);
+    Assert(n.getKind() == kind::SET_SINGLETON);
     ret.insert(n[0]);
     return ret;
   }

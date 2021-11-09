@@ -306,15 +306,15 @@ Node LfscNodeConverter::postConvert(Node n)
     children.insert(children.end(), n.begin(), n.end());
     return nm->mkNode(APPLY_UF, children);
   }
-  else if (k == EMPTYSET || k == UNIVERSE_SET || k == EMPTYBAG)
+  else if (k == SET_EMPTY || k == SET_UNIVERSE || k == EMPTYBAG)
   {
     Node t = typeAsNode(convertType(tn));
     TypeNode etype = nm->mkFunctionType(d_sortType, tn);
     Node ef = getSymbolInternal(
         k,
         etype,
-        k == EMPTYSET ? "emptyset"
-                      : (k == UNIVERSE_SET ? "univset" : "emptybag"));
+        k == SET_EMPTY ? "set.empty"
+                       : (k == SET_UNIVERSE ? "set.universe" : "emptybag"));
     return nm->mkNode(APPLY_UF, ef, t);
   }
   else if (n.isClosure())
@@ -934,7 +934,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       ret = maybeMkSkolemFun(op, macroApply);
       Assert(!ret.isNull());
     }
-    else if (k == SINGLETON || k == MK_BAG)
+    else if (k == SET_SINGLETON || k == MK_BAG)
     {
       if (!macroApply)
       {

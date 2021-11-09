@@ -30,7 +30,7 @@ PreprocessingPassResult PreprocessingPass::apply(
     AssertionPipeline* assertionsToPreprocess) {
   TimerStat::CodeTimer codeTimer(d_timer);
   Trace("preprocessing") << "PRE " << d_name << std::endl;
-  Chat() << d_name << "..." << std::endl;
+  verbose(2) << d_name << "..." << std::endl;
   PreprocessingPassResult result = applyInternal(assertionsToPreprocess);
   Trace("preprocessing") << "POST " << d_name << std::endl;
   return result;

@@ -273,26 +273,27 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {SEP_STAR, cvc5::Kind::SEP_STAR},
     {SEP_WAND, cvc5::Kind::SEP_WAND},
     /* Sets ---------------------------------------------------------------- */
-    {EMPTYSET, cvc5::Kind::EMPTYSET},
-    {UNION, cvc5::Kind::UNION},
-    {INTERSECTION, cvc5::Kind::INTERSECTION},
-    {SETMINUS, cvc5::Kind::SETMINUS},
-    {SUBSET, cvc5::Kind::SUBSET},
-    {MEMBER, cvc5::Kind::MEMBER},
-    {SINGLETON, cvc5::Kind::SINGLETON},
-    {INSERT, cvc5::Kind::INSERT},
-    {CARD, cvc5::Kind::CARD},
-    {COMPLEMENT, cvc5::Kind::COMPLEMENT},
-    {UNIVERSE_SET, cvc5::Kind::UNIVERSE_SET},
-    {JOIN, cvc5::Kind::JOIN},
-    {PRODUCT, cvc5::Kind::PRODUCT},
-    {TRANSPOSE, cvc5::Kind::TRANSPOSE},
-    {TCLOSURE, cvc5::Kind::TCLOSURE},
-    {JOIN_IMAGE, cvc5::Kind::JOIN_IMAGE},
-    {IDEN, cvc5::Kind::IDEN},
-    {COMPREHENSION, cvc5::Kind::COMPREHENSION},
-    {CHOOSE, cvc5::Kind::CHOOSE},
-    {IS_SINGLETON, cvc5::Kind::IS_SINGLETON},
+    {SET_EMPTY, cvc5::Kind::SET_EMPTY},
+    {SET_UNION, cvc5::Kind::SET_UNION},
+    {SET_INTERSECTION, cvc5::Kind::SET_INTERSECTION},
+    {SET_MINUS, cvc5::Kind::SET_MINUS},
+    {SET_SUBSET, cvc5::Kind::SET_SUBSET},
+    {SET_MEMBER, cvc5::Kind::SET_MEMBER},
+    {SET_SINGLETON, cvc5::Kind::SET_SINGLETON},
+    {SET_INSERT, cvc5::Kind::SET_INSERT},
+    {SET_CARD, cvc5::Kind::SET_CARD},
+    {SET_COMPLEMENT, cvc5::Kind::SET_COMPLEMENT},
+    {SET_UNIVERSE, cvc5::Kind::SET_UNIVERSE},
+    {SET_COMPREHENSION, cvc5::Kind::SET_COMPREHENSION},
+    {SET_CHOOSE, cvc5::Kind::SET_CHOOSE},
+    {SET_IS_SINGLETON, cvc5::Kind::SET_IS_SINGLETON},
+    /* Relations ----------------------------------------------------------- */
+    {RELATION_JOIN, cvc5::Kind::RELATION_JOIN},
+    {RELATION_PRODUCT, cvc5::Kind::RELATION_PRODUCT},
+    {RELATION_TRANSPOSE, cvc5::Kind::RELATION_TRANSPOSE},
+    {RELATION_TCLOSURE, cvc5::Kind::RELATION_TCLOSURE},
+    {RELATION_JOIN_IMAGE, cvc5::Kind::RELATION_JOIN_IMAGE},
+    {RELATION_IDEN, cvc5::Kind::RELATION_IDEN},
     /* Bags ---------------------------------------------------------------- */
     {UNION_MAX, cvc5::Kind::UNION_MAX},
     {UNION_DISJOINT, cvc5::Kind::UNION_DISJOINT},
@@ -348,8 +349,8 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {REGEXP_RANGE, cvc5::Kind::REGEXP_RANGE},
     {REGEXP_REPEAT, cvc5::Kind::REGEXP_REPEAT},
     {REGEXP_LOOP, cvc5::Kind::REGEXP_LOOP},
-    {REGEXP_EMPTY, cvc5::Kind::REGEXP_EMPTY},
-    {REGEXP_SIGMA, cvc5::Kind::REGEXP_SIGMA},
+    {REGEXP_NONE, cvc5::Kind::REGEXP_NONE},
+    {REGEXP_ALLCHAR, cvc5::Kind::REGEXP_ALLCHAR},
     {REGEXP_COMPLEMENT, cvc5::Kind::REGEXP_COMPLEMENT},
     // maps to the same kind as the string versions
     {SEQ_CONCAT, cvc5::Kind::STRING_CONCAT},
@@ -582,26 +583,27 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::SEP_STAR, SEP_STAR},
         {cvc5::Kind::SEP_WAND, SEP_WAND},
         /* Sets ------------------------------------------------------------ */
-        {cvc5::Kind::EMPTYSET, EMPTYSET},
-        {cvc5::Kind::UNION, UNION},
-        {cvc5::Kind::INTERSECTION, INTERSECTION},
-        {cvc5::Kind::SETMINUS, SETMINUS},
-        {cvc5::Kind::SUBSET, SUBSET},
-        {cvc5::Kind::MEMBER, MEMBER},
-        {cvc5::Kind::SINGLETON, SINGLETON},
-        {cvc5::Kind::INSERT, INSERT},
-        {cvc5::Kind::CARD, CARD},
-        {cvc5::Kind::COMPLEMENT, COMPLEMENT},
-        {cvc5::Kind::UNIVERSE_SET, UNIVERSE_SET},
-        {cvc5::Kind::JOIN, JOIN},
-        {cvc5::Kind::PRODUCT, PRODUCT},
-        {cvc5::Kind::TRANSPOSE, TRANSPOSE},
-        {cvc5::Kind::TCLOSURE, TCLOSURE},
-        {cvc5::Kind::JOIN_IMAGE, JOIN_IMAGE},
-        {cvc5::Kind::IDEN, IDEN},
-        {cvc5::Kind::COMPREHENSION, COMPREHENSION},
-        {cvc5::Kind::CHOOSE, CHOOSE},
-        {cvc5::Kind::IS_SINGLETON, IS_SINGLETON},
+        {cvc5::Kind::SET_EMPTY, SET_EMPTY},
+        {cvc5::Kind::SET_UNION, SET_UNION},
+        {cvc5::Kind::SET_INTERSECTION, SET_INTERSECTION},
+        {cvc5::Kind::SET_MINUS, SET_MINUS},
+        {cvc5::Kind::SET_SUBSET, SET_SUBSET},
+        {cvc5::Kind::SET_MEMBER, SET_MEMBER},
+        {cvc5::Kind::SET_SINGLETON, SET_SINGLETON},
+        {cvc5::Kind::SET_INSERT, SET_INSERT},
+        {cvc5::Kind::SET_CARD, SET_CARD},
+        {cvc5::Kind::SET_COMPLEMENT, SET_COMPLEMENT},
+        {cvc5::Kind::SET_UNIVERSE, SET_UNIVERSE},
+        {cvc5::Kind::SET_COMPREHENSION, SET_COMPREHENSION},
+        {cvc5::Kind::SET_CHOOSE, SET_CHOOSE},
+        {cvc5::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
+        /* Relations ------------------------------------------------------- */
+        {cvc5::Kind::RELATION_JOIN, RELATION_JOIN},
+        {cvc5::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
+        {cvc5::Kind::RELATION_TRANSPOSE, RELATION_TRANSPOSE},
+        {cvc5::Kind::RELATION_TCLOSURE, RELATION_TCLOSURE},
+        {cvc5::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
+        {cvc5::Kind::RELATION_IDEN, RELATION_IDEN},
         /* Bags ------------------------------------------------------------ */
         {cvc5::Kind::UNION_MAX, UNION_MAX},
         {cvc5::Kind::UNION_DISJOINT, UNION_DISJOINT},
@@ -618,7 +620,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
-        {cvc5::Kind::BAG_MAP,BAG_MAP},
+        {cvc5::Kind::BAG_MAP, BAG_MAP},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -659,8 +661,8 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::REGEXP_REPEAT_OP, REGEXP_REPEAT},
         {cvc5::Kind::REGEXP_LOOP, REGEXP_LOOP},
         {cvc5::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
-        {cvc5::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
-        {cvc5::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
+        {cvc5::Kind::REGEXP_NONE, REGEXP_NONE},
+        {cvc5::Kind::REGEXP_ALLCHAR, REGEXP_ALLCHAR},
         {cvc5::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
         {cvc5::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
         {cvc5::Kind::SEQ_UNIT, SEQ_UNIT},
@@ -846,6 +848,27 @@ class CVC5ApiRecoverableExceptionStream
     if (std::uncaught_exceptions() == 0)
     {
       throw CVC5ApiRecoverableException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
+
+class CVC5ApiUnsupportedExceptionStream
+{
+ public:
+  CVC5ApiUnsupportedExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC5ApiUnsupportedExceptionStream() noexcept(false)
+  {
+    if (std::uncaught_exceptions() == 0)
+    {
+      throw CVC5ApiUnsupportedException(d_stream.str());
     }
   }
 
@@ -3245,12 +3268,12 @@ void Term::collectSet(std::set<Term>& set,
                       const Solver* slv)
 {
   // We asserted that node has a set type, and node.isConst()
-  // Thus, node only contains of EMPTYSET, UNION and SINGLETON.
+  // Thus, node only contains of SET_EMPTY, SET_UNION and SET_SINGLETON.
   switch (node.getKind())
   {
-    case cvc5::Kind::EMPTYSET: break;
-    case cvc5::Kind::SINGLETON: set.emplace(Term(slv, node[0])); break;
-    case cvc5::Kind::UNION:
+    case cvc5::Kind::SET_EMPTY: break;
+    case cvc5::Kind::SET_SINGLETON: set.emplace(Term(slv, node[0])); break;
+    case cvc5::Kind::SET_UNION:
     {
       for (const auto& sub : node)
       {
@@ -5080,14 +5103,14 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 
 Term Solver::mkTermFromKind(Kind kind) const
 {
-  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_EMPTY
-                                   || kind == REGEXP_SIGMA || kind == SEP_EMP,
+  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_NONE
+                                   || kind == REGEXP_ALLCHAR || kind == SEP_EMP,
                                kind)
-      << "PI, REGEXP_EMPTY, REGEXP_SIGMA or SEP_EMP";
+      << "PI, REGEXP_NONE, REGEXP_ALLCHAR or SEP_EMP";
   //////// all checks before this line
   Node res;
   cvc5::Kind k = extToIntKind(kind);
-  if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
+  if (kind == REGEXP_NONE || kind == REGEXP_ALLCHAR)
   {
     Assert(isDefinedIntKind(k));
     res = d_nodeMgr->mkNode(k, std::vector<Node>());
@@ -5155,7 +5178,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   {
     // default case, same as above
     checkMkTerm(kind, children.size());
-    if (kind == api::SINGLETON)
+    if (kind == api::SET_SINGLETON)
     {
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()
@@ -5773,24 +5796,24 @@ Term Solver::mkReal(int64_t num, int64_t den) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkRegexpEmpty() const
+Term Solver::mkRegexpNone() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_EMPTY, std::vector<cvc5::Node>());
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_NONE, std::vector<cvc5::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkRegexpSigma() const
+Term Solver::mkRegexpAllchar() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_SIGMA, std::vector<cvc5::Node>());
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
@@ -5885,7 +5908,7 @@ Term Solver::mkUniverseSet(const Sort& sort) const
   //////// all checks before this line
 
   Node res = getNodeManager()->mkNullaryOperator(*sort.d_type,
-                                                 cvc5::kind::UNIVERSE_SET);
+                                                 cvc5::kind::SET_UNIVERSE);
   // TODO(#2771): Reenable?
   // (void)res->getType(true); /* kick off type checking */
   return Term(this, res);
@@ -6917,8 +6940,8 @@ std::vector<Term> Solver::getAssertions(void) const
 std::string Solver::getInfo(const std::string& flag) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_CHECK(d_slv->isValidGetInfoFlag(flag))
-      << "Unrecognized flag for getInfo.";
+  CVC5_API_UNSUPPORTED_CHECK(d_slv->isValidGetInfoFlag(flag))
+      << "Unrecognized flag: " << flag << ".";
   //////// all checks before this line
   return d_slv->getInfo(flag);
   ////////
@@ -6927,11 +6950,14 @@ std::string Solver::getInfo(const std::string& flag) const
 
 std::string Solver::getOption(const std::string& option) const
 {
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return d_slv->getOption(option);
-  ////////
-  CVC5_API_TRY_CATCH_END;
+  try
+  {
+    return d_slv->getOption(option);
+  }
+  catch (OptionException& e)
+  {
+    throw CVC5ApiUnsupportedException(e.getMessage());
+  }
 }
 
 // Supports a visitor from a list of lambdas
@@ -7564,13 +7590,14 @@ void Solver::resetAssertions(void) const
 void Solver::setInfo(const std::string& keyword, const std::string& value) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_RECOVERABLE_ARG_CHECK_EXPECTED(
+  CVC5_API_UNSUPPORTED_CHECK(
       keyword == "source" || keyword == "category" || keyword == "difficulty"
-          || keyword == "filename" || keyword == "license" || keyword == "name"
-          || keyword == "notes" || keyword == "smt-lib-version"
-          || keyword == "status",
-      keyword)
-      << "'source', 'category', 'difficulty', 'filename', 'license', 'name', "
+      || keyword == "filename" || keyword == "license" || keyword == "name"
+      || keyword == "notes" || keyword == "smt-lib-version"
+      || keyword == "status")
+      << "Unrecognized keyword: " << keyword
+      << ", expected 'source', 'category', 'difficulty', "
+         "'filename', 'license', 'name', "
          "'notes', 'smt-lib-version' or 'status'";
   CVC5_API_RECOVERABLE_ARG_CHECK_EXPECTED(
       keyword != "smt-lib-version" || value == "2" || value == "2.0"
@@ -7603,6 +7630,11 @@ void Solver::setOption(const std::string& option,
                        const std::string& value) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
+  std::vector<std::string> options = options::getNames();
+  CVC5_API_UNSUPPORTED_CHECK(
+      option.find("command-verbosity") != std::string::npos
+      || std::find(options.cbegin(), options.cend(), option) != options.cend())
+      << "Unrecognized option: " << option << '.';
   static constexpr auto mutableOpts = {"diagnostic-output-channel",
                                        "print-success",
                                        "regular-output-channel",

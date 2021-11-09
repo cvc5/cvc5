@@ -760,17 +760,17 @@ def _sphinx_help_render_option(res, opt):
     """Render an option to be displayed with sphinx."""
     indent = ' ' * 4
     desc = '``{}``'
+    if opt['alternate']:
+        desc += ' (also ``--no-*``)'
     val = indent + '{}'
+
     res.append('.. _lbl-option-{}:'.format(opt['long_name']))
     res.append('')
     if opt['expert']:
-        res.append('.. admonition:: This option is intended for Experts only!')
-        res.append(indent)
-        desc = indent + desc
-        val = indent + val
+        res.append('.. rst-class:: expert-option simple')
+        res.append('')
+        desc += '\n{0}.. rst-class:: float-right\n\n{0}**[experts only]**\n'.format(indent)
 
-    if opt['alternate']:
-        desc += ' (also ``--no-*``)'
     res.append(desc.format(' | '.join(opt['name'])))
     res.append(val.format(opt['help']))
 

@@ -440,7 +440,7 @@ bool AletheProofPostprocessCallback::update(Node res,
               vrule = AletheRule::DIV_SIMPLIFY;
               break;
             }
-            case kind::PRODUCT:
+            case kind::RELATION_PRODUCT:
             {
               vrule = AletheRule::PROD_SIMPLIFY;
               break;
@@ -1114,6 +1114,14 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       return addAletheStepFromOr(AletheRule::ITE_POS1, res, children, {}, *cdp);
     }
+    case PfRule::CNF_ITE_NEG1:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_ITE_NEG2:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_NEG1, res, children, {}, *cdp);
+    }
     // ======== CNF ITE Pos version 3
     //
     // ----- ITE_POS1            ----- ITE_POS2
@@ -1148,15 +1156,6 @@ bool AletheProofPostprocessCallback::update(Node res,
              && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
                  AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
-    }
-    // The following rules are all translated according to the clause pattern.
-    case PfRule::CNF_ITE_NEG1:
-    {
-      return addAletheStepFromOr(AletheRule::ITE_NEG2, res, children, {}, *cdp);
-    }
-    case PfRule::CNF_ITE_NEG2:
-    {
-      return addAletheStepFromOr(AletheRule::ITE_NEG1, res, children, {}, *cdp);
     }
     // ======== CNF ITE Neg version 3
     //
