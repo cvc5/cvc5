@@ -316,29 +316,14 @@ endif()
 
 if(ENABLE_COVERAGE)
   include(CodeCoverage)
-  APPEND_COVERAGE_COMPILER_FLAGS()
+  append_coverage_compiler_flags()
   add_definitions(-DCVC5_COVERAGE)
-  # Note: The ctest command returns a non-zero exit code if tests fail or run
-  # into a timeout. As a consequence, the coverage report is not generated. To
-  # prevent this we always return with exit code 0 after the ctest command has
-  # finished.
-  setup_target_for_coverage_gcovr_html(
-    NAME coverage-test
-    EXECUTABLE
-      ctest -j${CTEST_NTHREADS} -LE "example"
-        --output-on-failure $$ARGS || exit 0
-    DEPENDS
-      build-tests)
-
-  # Adds targets `coverage` and `coverage-reset` for manually generating
-  # coverage reports for specific executions.
-  #
-  # Target coverage-reset resets all the coverage counters to zero, while
-  # target coverage will generate a coverage report for all executions since
-  # the last coverage-reset.
-  setup_target_for_coverage_lcov_no_executable(
+  setup_code_coverage_fastcov(
     NAME coverage
-    DEPENDENCIES cvc5-bin)
+    PATH "${PROJECT_SOURCE_DIR}"
+    EXCLUDE "${CMAKE_BINARY_DIR}/deps/*"
+    DEPENDENCIES cvc5-bin
+  )
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)

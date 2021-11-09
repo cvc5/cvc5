@@ -215,8 +215,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkInteger(const uint64_t i) except +
         Term mkInteger(const string& s) except +
         Term mkReal(const string& s) except +
-        Term mkRegexpEmpty() except +
-        Term mkRegexpSigma() except +
+        Term mkRegexpNone() except +
+        Term mkRegexpAllchar() except +
         Term mkEmptySet(Sort s) except +
         Term mkEmptyBag(Sort s) except +
         Term mkSepEmp() except +

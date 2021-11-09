@@ -592,20 +592,20 @@ TEST_F(TestApiBlackSolver, mkReal)
   ASSERT_NO_THROW(d_solver.mkReal(val4, val4));
 }
 
-TEST_F(TestApiBlackSolver, mkRegexpEmpty)
+TEST_F(TestApiBlackSolver, mkRegexpNone)
 {
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpEmpty()));
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
 }
 
-TEST_F(TestApiBlackSolver, mkRegexpSigma)
+TEST_F(TestApiBlackSolver, mkRegexpAllchar)
 {
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAllchar()));
 }
 
 TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
@@ -643,8 +643,8 @@ TEST_F(TestApiBlackSolver, mkTerm)
 
   // mkTerm(Kind kind) const
   ASSERT_NO_THROW(d_solver.mkTerm(PI));
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_EMPTY));
-  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_SIGMA));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR));
   ASSERT_THROW(d_solver.mkTerm(CONST_BITVECTOR), CVC5ApiException);
 
   // mkTerm(Kind kind, Term child) const
@@ -2482,7 +2482,7 @@ TEST_F(TestApiBlackSolver, tupleProject)
       d_solver.mkBoolean(true),
       d_solver.mkInteger(3),
       d_solver.mkString("C"),
-      d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
+      d_solver.mkTerm(SET_SINGLETON, d_solver.mkString("Z"))};
 
   Term tuple = d_solver.mkTuple(sorts, elements);
 
@@ -2524,7 +2524,7 @@ TEST_F(TestApiBlackSolver, tupleProject)
   }
 
   ASSERT_EQ(
-      "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (singleton "
+      "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton "
       "\"Z\")))",
       projection.toString());
 }

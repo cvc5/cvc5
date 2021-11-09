@@ -121,7 +121,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
     if (fl.isNull())
     {
       if (!hasPivotIndex && c.getKind() == REGEXP_STAR
-          && c[0].getKind() == REGEXP_SIGMA)
+          && c[0].getKind() == REGEXP_ALLCHAR)
       {
         hasPivotIndex = true;
         pivotIndex = i;
@@ -167,7 +167,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         // We do not need to include memberships of the form
         //   (str.substr x n 1) in re.allchar
         // since we know that by construction, n < len( x ).
-        if (re[i].getKind() != REGEXP_SIGMA)
+        if (re[i].getKind() != REGEXP_ALLCHAR)
         {
           Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
           conc.push_back(currMem);
@@ -212,13 +212,13 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       gap_minsize.push_back(0);
       gap_exact.push_back(true);
     }
-    else if (c.getKind() == REGEXP_STAR && c[0].getKind() == REGEXP_SIGMA)
+    else if (c.getKind() == REGEXP_STAR && c[0].getKind() == REGEXP_ALLCHAR)
     {
       // found a gap of any size
       onlySigmasAndConsts = true;
       gap_exact[gap_exact.size() - 1] = false;
     }
-    else if (c.getKind() == REGEXP_SIGMA)
+    else if (c.getKind() == REGEXP_ALLCHAR)
     {
       // add one to the minimum size of the gap
       onlySigmasAndConsts = true;
@@ -565,7 +565,7 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   for (const Node& r : disj)
   {
     Assert(r.getKind() != REGEXP_UNION);
-    Assert(r.getKind() != REGEXP_SIGMA);
+    Assert(r.getKind() != REGEXP_ALLCHAR);
     lenOnePeriod = false;
     // lenOnePeriod is true if this regular expression is a single character
     // regular expression
