@@ -63,8 +63,13 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
   Node geq = d_nm->mkNode(GEQ, c, d_one);
   if (d_state->areEqual(e, x))
   {
-    // (= (bag.count e skolem) (ite (>= c 1) c 0)))
+    /* (=>
+     *   (= e x)
+     *   (bag.count e skolem) (ite (>= c 1) c 0)))
+     */
     InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG_SAME_ELEMENT);
+    Node equal = d_nm->mkNode(EQUAL, e, x);
+    inferInfo.d_premises.push_back(equal);
     Node skolem = getSkolem(n, inferInfo);
     Node count = getMultiplicityTerm(e, skolem);
     Node ite = d_nm->mkNode(ITE, geq, c, d_zero);
@@ -73,8 +78,13 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
   }
   if (d_state->areDisequal(e, x))
   {
-    //(= (bag.count e skolem) 0))
+    /* (=>
+     *   (distinct x e))
+     *   (= (bag.count e skolem) 0))
+     */
     InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG_SAME_ELEMENT);
+    Node equal = d_nm->mkNode(EQUAL, e, x);
+    inferInfo.d_premises.push_back(equal.notNode());
     Node skolem = getSkolem(n, inferInfo);
     Node count = getMultiplicityTerm(e, skolem);
     inferInfo.d_conclusion = count.eqNode(d_zero);

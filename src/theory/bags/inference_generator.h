@@ -52,9 +52,13 @@ class InferenceGenerator
    * @param e is a node of type E
    * @return an inference that represents the following cases:
    * 1- e, x are in the same equivalent class, then we infer:
-   *    (= (bag.count e skolem) (ite (>= c 1) c 0)))
+   *    (=>
+   *        (= e x)
+   *        (bag.count e skolem) (ite (>= c 1) c 0)))
    * 2- e, x are known to be disequal, then we infer:
-   *    (= (bag.count e skolem) 0))
+   *    (=>
+   *      (distinct x e))
+   *      (= (bag.count e skolem) 0))
    * 3- if neither holds, we infer:
    *    (= (bag.count e skolem) (ite (and (= e x) (>= c 1)) c 0)))
    * where skolem = (bag x c) is a fresh variable
