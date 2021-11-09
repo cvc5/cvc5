@@ -239,7 +239,7 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
     if (!bagType.isBag())
     {
       throw TypeCheckingExceptionPrivate(
-          n, "CHOOSE operator expects a bag, a non-bag is found");
+          n, "BAG_CHOOSE operator expects a bag, a non-bag is found");
     }
   }
   return bagType.getBagElementType();

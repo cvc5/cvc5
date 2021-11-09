@@ -56,30 +56,6 @@ namespace expr {
   class TypeChecker;
   }  // namespace expr
 
-/**
- * An interface that an interested party can implement and then subscribe
- * to NodeManager events via NodeManager::subscribeEvents(this).
- */
-class NodeManagerListener {
- public:
-  virtual ~NodeManagerListener() {}
-  virtual void nmNotifyNewSort(TypeNode tn, uint32_t flags) {}
-  virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
-  virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
-                                                  uint32_t flags) {}
-  virtual void nmNotifyNewDatatypes(const std::vector<TypeNode>& datatypes,
-                                    uint32_t flags)
-  {
-  }
-  virtual void nmNotifyNewVar(TNode n) {}
-  /**
-   * Notify a listener of a Node that's being GCed.  If this function stores a
-   * reference
-   * to the Node somewhere, very bad things will happen.
-   */
-  virtual void nmNotifyDeleteNode(TNode n) {}
-}; /* class NodeManagerListener */
-
 class NodeManager
 {
   friend class api::Solver;
@@ -174,11 +150,6 @@ class NodeManager
 
   /** unique vars per (Kind,Type) */
   std::map< Kind, std::map< TypeNode, Node > > d_unique_vars;
-
-  /**
-   * A list of subscribers for NodeManager events.
-   */
-  std::vector<NodeManagerListener*> d_listeners;
 
   /** A list of datatypes owned by this node manager */
   std::vector<std::unique_ptr<DType> > d_dtypes;
@@ -370,21 +341,6 @@ class NodeManager
   /** Get this node manager's bound variable manager */
   BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
 
-  /** Subscribe to NodeManager events */
-  void subscribeEvents(NodeManagerListener* listener) {
-    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener)
-           == d_listeners.end())
-        << "listener already subscribed";
-    d_listeners.push_back(listener);
-  }
-
-  /** Unsubscribe from NodeManager events */
-  void unsubscribeEvents(NodeManagerListener* listener) {
-    std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
-    Assert(elt != d_listeners.end()) << "listener not subscribed";
-    d_listeners.erase(elt);
-  }
-
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
    * associated with datatypes through the DatatypeIndexConstant class. The
@@ -438,7 +394,7 @@ class NodeManager
    * - We can avoid creating a temporary vector in some cases, e.g., when we
    *   want to create a node with a fixed, large number of children
    * - It makes sure that calls to `mkNode` that braced-init-lists work as
-   *   expected, e.g., mkNode(REGEXP_EMPTY, {}) will call this overload instead
+   *   expected, e.g., mkNode(REGEXP_NONE, {}) will call this overload instead
    *   of creating a node with a null node as a child.
    */
   Node mkNode(Kind kind, std::initializer_list<TNode> children);

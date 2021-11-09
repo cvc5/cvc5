@@ -35,7 +35,7 @@ namespace sets {
  * This class implements a variant of the procedure from Bansal et al, IJCAR
  * 2016. It is used during a full effort check in the following way:
  *    reset(); { registerTerm(n,lemmas); | n in CardTerms }  check();
- * where CardTerms is the set of all applications of CARD in the current
+ * where CardTerms is the set of all applications of SET_CARD in the current
  * context.
  *
  * The remaining public methods are used during model construction, i.e.
@@ -85,7 +85,7 @@ class CardinalityExtension : protected EnvObj
   /** register term
    *
    * Register that the term n exists in the current context, where n is an
-   * application of CARD.
+   * application of SET_CARD.
    */
   void registerTerm(Node n);
   /** check

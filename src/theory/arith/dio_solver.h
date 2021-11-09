@@ -383,9 +383,6 @@ private:
    */
   SumPair purifyIndex(TrailIndex i);
 
-
-  void debugPrintTrail(TrailIndex i) const;
-
 public:
   bool hasMoreDecompositionLemmas() const{
     return !d_decompositionLemmaQueue.empty();

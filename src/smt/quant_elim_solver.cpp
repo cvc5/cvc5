@@ -79,9 +79,9 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   {
     if (r.asSatisfiabilityResult().isSat() != Result::SAT && doFull)
     {
-      Notice()
+      verbose(1)
           << "While performing quantifier elimination, unexpected result : "
-          << r << " for query.";
+          << r << " for query." << std::endl;
       // failed, return original
       return q;
     }

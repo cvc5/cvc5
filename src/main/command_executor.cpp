@@ -200,8 +200,7 @@ bool solverInvoke(api::Solver* solver,
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    std::ostream& ss = solver->getOutput("raw-benchmark");
-    cmd->toStream(ss);
+    cmd->toStream(solver->getOutput("raw-benchmark"));
   }
 
   // In parse-only mode, we do not invoke any of the commands except define-fun
@@ -214,13 +213,6 @@ bool solverInvoke(api::Solver* solver,
   }
 
   cmd->invoke(solver, sm, out);
-  // ignore the error if the command-verbosity is 0 for this command
-  std::string commandName =
-      std::string("command-verbosity:") + cmd->getCommandName();
-  if (solver->getOption(commandName) == "0")
-  {
-    return true;
-  }
   return !cmd->fail();
 }
 

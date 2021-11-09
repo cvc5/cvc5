@@ -613,6 +613,7 @@ set(regress_0_tests
   regress0/fp/issue5734.smt2
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
+  regress0/fp/issue7569.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
@@ -775,7 +776,6 @@ set(regress_0_tests
   regress0/opt-abd-no-use.smt2
   regress0/options/ast-and-sexpr.smt2
   regress0/options/interactive-mode.smt2
-  regress0/options/invalid_dump.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -872,6 +872,7 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
+  regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -1309,6 +1310,7 @@ set(regress_0_tests
   regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
+  regress0/sygus/print-grammar.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
@@ -1509,6 +1511,7 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduction/abd-real-const.smt2
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848-2.smt2
@@ -1582,6 +1585,10 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/choose1.smt2
+  regress1/bags/choose2.smt2
+  regress1/bags/choose3.smt2
+  regress1/bags/choose4.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
   regress1/bags/duplicate_removal1.smt2
@@ -1636,6 +1643,7 @@ set(regress_1_tests
   regress1/datatypes/dt-color-2.6.smt2
   regress1/datatypes/dt-param-card4-unsat.smt2
   regress1/datatypes/issue3266-small.smt2
+  regress1/datatypes/issue4851-cdt-model.smt2
   regress1/datatypes/issue-variant-dt-zero.smt2
   regress1/datatypes/manos-model.smt2
   regress1/datatypes/non-simple-rec.smt2
@@ -1790,6 +1798,7 @@ set(regress_1_tests
   regress1/nl/nl-help-unsat-quant.smt2
   regress1/nl/nl-unk-quant.smt2
   regress1/nl/nl_uf_lalt.smt2
+  regress1/nl/nra-cad-performance.smt2
   regress1/nl/ones.smt2
   regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
@@ -1961,6 +1970,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4813-qe-quant.smt2
   regress1/quantifiers/issue4849-nqe.smt2
   regress1/quantifiers/issue5019-cegqi-i.smt2
+  regress1/quantifiers/issue5278-ext-rewrite-rec.smt2
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
@@ -2050,7 +2060,6 @@ set(regress_1_tests
   regress1/quantifiers/stream-x2014-09-18-unsat.smt2
   regress1/quantifiers/sygus-infer-nested.smt2
   regress1/quantifiers/sygus-inst-nia-psyco-060.smt2
-  regress1/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
   regress1/quantifiers/tpp-unit-fail-qbv.smt2
   regress1/quantifiers/var-eq-trigger.smt2
@@ -2581,7 +2590,6 @@ set(regress_2_tests
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_inc1.smt2
-  regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
@@ -2821,6 +2829,8 @@ set(regression_disabled_tests
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
+  # timeout after changes to theory preprocessing, note is non-linear and does not involve sygus-inst
+  regress1/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2
@@ -2854,6 +2864,8 @@ set(regression_disabled_tests
   # previously sygus inference did not apply, now (correctly) times out
   regress1/sygus/issue3498.smt2
   regress2/arith/miplib-opt1217--27.smt2
+  # times out after #7345
+  regress2/bv_to_int_mask_array_1.smt2
   regress2/nl/dumortier-050317.smt2
   # timeout on some builds after changes to justification heuristic
   regress2/nl/nt-lemmas-bad.smt2

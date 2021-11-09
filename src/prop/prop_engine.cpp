@@ -99,7 +99,8 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
     d_decisionEngine.reset(new decision::DecisionEngineEmpty(env));
   }
 
-  d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
+  d_satSolver =
+      SatSolverFactory::createCDCLTMinisat(d_env, smtStatisticsRegistry());
 
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first

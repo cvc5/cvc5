@@ -1794,7 +1794,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
 void TheoryArrays::propagateRowLemma(RowLemmaType lem)
 {
   Debug("pf::array") << "TheoryArrays: RowLemma Propagate called. "
-                        "options::arraysPropagate() = "
+                        "arraysPropagate = "
                      << options().arrays.arraysPropagate << std::endl;
 
   TNode a, b, i, j;

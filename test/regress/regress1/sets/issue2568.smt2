@@ -10,7 +10,7 @@
 (declare-fun s () (Set Int))
 (declare-fun u () Unit)
 
-(assert (= s (insert y s)))
+(assert (= s (set.insert y s)))
 (assert (=> b (= uu u)))
 
 (push 1)

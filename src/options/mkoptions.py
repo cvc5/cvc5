@@ -524,8 +524,9 @@ def generate_module_mode_impl(module):
         if option.name is None or not option.mode:
             continue
         cases = [
-            'case {type}::{enum}: return os << "{type}::{enum}";'.format(
-                type=option.type, enum=x) for x in option.mode.keys()
+            'case {type}::{enum}: return os << "{name}";'.format(
+                type=option.type, enum=enum, name=info[0]['name'])
+            for enum,info in option.mode.items()
         ]
         res.append(
             TPL_MODE_STREAM_OPERATOR.format(type=option.type,
@@ -759,17 +760,17 @@ def _sphinx_help_render_option(res, opt):
     """Render an option to be displayed with sphinx."""
     indent = ' ' * 4
     desc = '``{}``'
+    if opt['alternate']:
+        desc += ' (also ``--no-*``)'
     val = indent + '{}'
+
     res.append('.. _lbl-option-{}:'.format(opt['long_name']))
     res.append('')
     if opt['expert']:
-        res.append('.. admonition:: This option is intended for Experts only!')
-        res.append(indent)
-        desc = indent + desc
-        val = indent + val
+        res.append('.. rst-class:: expert-option simple')
+        res.append('')
+        desc += '\n{0}.. rst-class:: float-right\n\n{0}**[experts only]**\n'.format(indent)
 
-    if opt['alternate']:
-        desc += ' (also ``--no-*``)'
     res.append(desc.format(' | '.join(opt['name'])))
     res.append(val.format(opt['help']))
 

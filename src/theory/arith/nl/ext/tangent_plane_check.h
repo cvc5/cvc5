@@ -19,6 +19,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {
@@ -27,10 +28,10 @@ namespace nl {
 
 struct ExtState;
 
-class TangentPlaneCheck
+class TangentPlaneCheck : protected EnvObj
 {
  public:
-  TangentPlaneCheck(ExtState* data);
+  TangentPlaneCheck(Env& env, ExtState* data);
 
   /** check tangent planes
    *
