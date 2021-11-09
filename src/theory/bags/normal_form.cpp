@@ -15,6 +15,7 @@
 #include "normal_form.h"
 
 #include "expr/emptybag.h"
+#include "smt/logic_exception.h"
 #include "theory/sets/normal_form.h"
 #include "theory/type_enumerator.h"
 #include "util/rational.h"
@@ -104,7 +105,6 @@ Node NormalForm::evaluate(TNode n)
     case INTERSECTION_MIN: return evaluateIntersectionMin(n);
     case DIFFERENCE_SUBTRACT: return evaluateDifferenceSubtract(n);
     case DIFFERENCE_REMOVE: return evaluateDifferenceRemove(n);
-    case BAG_CHOOSE: return evaluateChoose(n);
     case BAG_CARD: return evaluateCard(n);
     case BAG_IS_SINGLETON: return evaluateIsSingleton(n);
     case BAG_FROM_SET: return evaluateFromSet(n);
@@ -564,29 +564,13 @@ Node NormalForm::evaluateChoose(TNode n)
   Assert(n.getKind() == BAG_CHOOSE);
   // Examples
   // --------
-  // - (choose (emptyBag String)) = "" // the empty string which is the first
-  //   element returned by the type enumerator
-  // - (choose (MK_BAG "x" 4)) = "x"
-  // - (choose (union_disjoint (MK_BAG "x" 4) (MK_BAG "y" 1))) = "x"
-  //     deterministically return the first element
-
-  if (n[0].getKind() == EMPTYBAG)
-  {
-    TypeNode elementType = n[0].getType().getBagElementType();
-    TypeEnumerator typeEnumerator(elementType);
-    // get the first value from the typeEnumerator
-    Node element = *typeEnumerator;
-    return element;
-  }
+  // - (bag.choose (MK_BAG "x" 4)) = "x"
 
   if (n[0].getKind() == MK_BAG)
   {
     return n[0][0];
   }
-  Assert(n[0].getKind() == UNION_DISJOINT);
-  // return the first element
-  // e.g. (choose (union_disjoint (MK_BAG "x" 4) (MK_BAG "y" 1)))
-  return n[0][0][0];
+  throw LogicException("BAG_CHOOSE_TOTAL is not supported yet");
 }
 
 Node NormalForm::evaluateCard(TNode n)
@@ -675,7 +659,6 @@ Node NormalForm::evaluateToSet(TNode n)
   Node set = sets::NormalForm::elementsToSet(setElements, setType);
   return set;
 }
-
 
 Node NormalForm::evaluateBagMap(TNode n)
 {

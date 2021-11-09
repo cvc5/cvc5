@@ -43,10 +43,13 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
       d_range(r),
       d_ranges_proxied(userContext())
 {
-  if( options::fmfBoundLazy() ){
+  if (options().quantifiers.fmfBoundLazy)
+  {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
-  }else{
+  }
+  else
+  {
     d_proxy_range = r;
   }
   if( !isProxy ){
@@ -323,7 +326,7 @@ void BoundedIntegers::checkOwnership(Node f)
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
 
   // determine if we should look at the quantified formula at all
-  if (!options::fmfBound())
+  if (!options().quantifiers.fmfBound)
   {
     // only applying it to internal quantifiers
     QuantAttributes& qattr = d_qreg.getQuantAttributes();

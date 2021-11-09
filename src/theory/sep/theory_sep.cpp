@@ -661,11 +661,11 @@ void TheorySep::postCheck(Effort level)
   bool addedLemma = false;
   bool needAddLemma = false;
   // check negated star / positive wand
-  if (options::sepCheckNeg())
+  if (options().sep.sepCheckNeg)
   {
     // get active labels
     std::map<Node, bool> active_lbl;
-    if (options::sepMinimalRefine())
+    if (options().sep.sepMinimalRefine)
     {
       for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
         Node fact = (*i);
@@ -1203,7 +1203,8 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
       tn_is_monotonic = tn.getCardinality().isInfinite();
     }
     //add a reference type for maximum occurrences of empty in a constraint
-    if( options::sepDisequalC() && tn_is_monotonic ){
+    if (options().sep.sepDisequalC && tn_is_monotonic)
+    {
       for( unsigned r=0; r<d_type_references_card[tn].size(); r++ ){
         Node e = d_type_references_card[tn][r];
         //ensure that it is distinct from all other references so far
@@ -1213,7 +1214,9 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
         }
         d_type_references_all[tn].push_back( e );
       }
-    }else{
+    }
+    else
+    {
       //break symmetries TODO
 
       d_type_references_all[tn].insert( d_type_references_all[tn].end(), d_type_references_card[tn].begin(), d_type_references_card[tn].end() );
@@ -1365,10 +1368,14 @@ Node TheorySep::instantiateLabel(Node n,
                                  unsigned ind)
 {
   Trace("sep-inst-debug") << "Instantiate label " << n << " " << lbl << " " << lbl_v << std::endl;
-  if( options::sepMinimalRefine() && lbl!=o_lbl && active_lbl.find( lbl )!=active_lbl.end() ){
+  if (options().sep.sepMinimalRefine && lbl != o_lbl
+      && active_lbl.find(lbl) != active_lbl.end())
+  {
     Trace("sep-inst") << "...do not instantiate " << o_lbl << " since it has an active sublabel " << lbl << std::endl;
     return Node::null();
-  }else{
+  }
+  else
+  {
     if( Trace.isOn("sep-inst") ){
       if( n.getKind()==kind::SEP_STAR || n.getKind()==kind::SEP_WAND  || n.getKind()==kind::SEP_PTO || n.getKind()==kind::SEP_EMP ){
         for( unsigned j=0; j<ind; j++ ){ Trace("sep-inst") << "  "; }
@@ -1438,7 +1445,8 @@ Node TheorySep::instantiateLabel(Node n,
           Assert(bchildren.size() > 1);
           conj.push_back( NodeManager::currentNM()->mkNode( kind::AND, bchildren ) );
 
-          if( options::sepChildRefine() ){
+          if (options().sep.sepChildRefine)
+          {
             //child-specific refinements (TODO: use ?)
             for( unsigned i=0; i<children.size(); i++ ){
               std::vector< Node > tchildren;

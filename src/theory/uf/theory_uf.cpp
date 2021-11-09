@@ -71,8 +71,8 @@ bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = d_instanceName + "theory::uf::ee";
-  if (options::finiteModelFind()
-      && options::ufssMode() != options::UfssMode::NONE)
+  if (options().quantifiers.finiteModelFind
+      && options().uf.ufssMode != options::UfssMode::NONE)
   {
     // need notifications about sorts
     esi.d_notifyNewClass = true;
@@ -88,9 +88,9 @@ void TheoryUF::finishInit() {
   d_valuation.setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
-  // options::ufssMode().
-  if (options::finiteModelFind()
-      && options::ufssMode() != options::UfssMode::NONE)
+  // the ufssMode option.
+  if (options().quantifiers.finiteModelFind
+      && options().uf.ufssMode != options::UfssMode::NONE)
   {
     d_thss.reset(new CardinalityExtension(d_env, d_state, d_im, this));
   }
@@ -352,7 +352,8 @@ void TheoryUF::presolve() {
   // TimerStat::CodeTimer codeTimer(d_presolveTimer);
 
   Debug("uf") << "uf: begin presolve()" << endl;
-  if(options::ufSymmetryBreaker()) {
+  if (options().uf.ufSymmetryBreaker)
+  {
     vector<Node> newClauses;
     d_symb.apply(newClauses);
     for(vector<Node>::const_iterator i = newClauses.begin();
@@ -486,7 +487,8 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
     }
   }
 
-  if(options::ufSymmetryBreaker()) {
+  if (options().uf.ufSymmetryBreaker)
+  {
     d_symb.assertFormula(n);
   }
 } /* TheoryUF::ppStaticLearn() */

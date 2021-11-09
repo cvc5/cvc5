@@ -57,8 +57,6 @@ set(GENERATED_FILES
 add_custom_command(
   OUTPUT
     ${GENERATED_FILES}
-  BYPRODUCTS
-    ${GENERATED_FILES}
   COMMAND
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
