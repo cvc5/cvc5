@@ -217,7 +217,7 @@
     (emptystr t)))
 
 
-; Flatten constants in str.++ application s. Notice that in the rewritten form
+; Flatten constants in str.++ application s. Notice that the rewritten form
 ; of strings in cvc5 are such that constants are grouped into constants of
 ; length >=1 which we call "word" constants. For example, the cvc5 rewritten
 ; form of (str.++ "A" "B" x) is (str.++ "AB" x) which in LFSC is represented as:
@@ -247,7 +247,7 @@
     (emptystr s))
 )
 
-; Helper for collect adjacent constants. This side condition takes as input
+; Helper for collecting adjacent constants. This side condition takes as input
 ; a str.++ application s. It returns a pair whose concatenation is equal to s,
 ; whose first component corresponds to a word constant, and whose second
 ; component is a str.++ application whose first element is not a character.
