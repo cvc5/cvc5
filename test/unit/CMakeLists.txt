@@ -14,7 +14,6 @@
 ##
 
 find_package(GTest REQUIRED)
-include(GoogleTest)
 
 include_directories(.)
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -40,7 +39,6 @@ macro(cvc5_add_unit_test is_white name output_dir)
   set(test_src ${CMAKE_CURRENT_LIST_DIR}/${name}.cpp)
   add_executable(${name} ${test_src})
   target_compile_definitions(${name} PRIVATE ${CVC5_UNIT_TEST_FLAGS_BLACK})
-  gtest_add_tests(TARGET ${name})
   target_link_libraries(${name} PUBLIC main-test GMP)
   target_link_libraries(${name} PUBLIC GTest::Main)
   target_link_libraries(${name} PUBLIC GTest::GTest)
