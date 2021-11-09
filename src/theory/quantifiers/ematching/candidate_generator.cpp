@@ -112,7 +112,8 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
     Assert(d_termIterList != nullptr);
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
-    while (d_termIter < d_termIterList->d_list.size())
+    size_t tlSize = d_termIterList->d_list.size();
+    while (d_termIter < tlSize)
     {
       Node n = d_termIterList->d_list[d_termIter];
       d_termIter++;
