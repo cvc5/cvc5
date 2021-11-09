@@ -1027,7 +1027,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
       constVal = d_solver->mkReal(sdiv.str());
     }
-    else if (constVal == api::CONST_RATIONAL && isNeg)
+    else if (constVal.getKind() == api::CONST_RATIONAL && isNeg)
     {
       std::stringstream sneg;
       sneg << "-" << constVal;
