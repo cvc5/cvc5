@@ -9,8 +9,6 @@ inputs:
     default: true
   check-python-bindings:
     default: false
-  check-unit-tests:
-    default: true
   regressions-args:
     default: ""
   regressions-exclude:
@@ -26,13 +24,6 @@ runs:
       env:
         CVC5_REGRESSION_ARGS: --no-early-exit
         RUN_REGRESSION_ARGS: ${{ inputs.regressions-args }}
-      working-directory: ${{ inputs.build-dir }}
-
-    - name: Run Unit Tests
-      shell: bash
-      run: |
-        if [[ "${{ inputs.check-unit-tests }}" != "true" ]]; then exit 0; fi
-        make -j${{ env.num_proc }} apitests units
       working-directory: ${{ inputs.build-dir }}
 
     - name: Install Check
