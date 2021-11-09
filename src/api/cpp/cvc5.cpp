@@ -2536,7 +2536,7 @@ Op Term::getOp() const
   CVC5_API_TRY_CATCH_END;
 }
 
-bool Term::hasName() const
+bool Term::hasSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -2546,13 +2546,13 @@ bool Term::hasName() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Term::getName() const
+std::string Term::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(d_node->hasAttribute(expr::VarNameAttr()))
       << "Invalid call to '" << __PRETTY_FUNCTION__
-      << "'expected the term to have a name.";
+      << "'expected the term to have a symbol.";
   //////// all checks before this line
   return d_node->getAttribute(expr::VarNameAttr());
   ////////

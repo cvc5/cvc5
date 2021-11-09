@@ -212,19 +212,19 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_EQ(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
 }
 
-TEST_F(TestApiBlackTerm, getName)
+TEST_F(TestApiBlackTerm, getSymbol)
 {
   Term n;
   Term t = d_solver.mkBoolean(true);
   Term c = d_solver.mkConst(d_solver.getBooleanSort(), "|\\|");
 
-  ASSERT_THROW(n.hasName(), CVC5ApiException);
-  ASSERT_FALSE(t.hasName());
-  ASSERT_TRUE(c.hasName());
+  ASSERT_THROW(n.hasSymbol(), CVC5ApiException);
+  ASSERT_FALSE(t.hasSymbol());
+  ASSERT_TRUE(c.hasSymbol());
 
-  ASSERT_THROW(n.getName(), CVC5ApiException);
-  ASSERT_THROW(t.getName(), CVC5ApiException);
-  ASSERT_EQ(c.getName(), "|\\|");
+  ASSERT_THROW(n.getSymbol(), CVC5ApiException);
+  ASSERT_THROW(t.getSymbol(), CVC5ApiException);
+  ASSERT_EQ(c.getSymbol(), "|\\|");
 }
 
 TEST_F(TestApiBlackTerm, isNull)
