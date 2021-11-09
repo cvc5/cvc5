@@ -340,7 +340,7 @@ class TheoryModel : protected EnvObj
   /** assign function value f to definition f_def */
   void assignFunctionDefinition( Node f, Node f_def );
   /** have we assigned function f? */
-  bool hasAssignedFunctionDefinition( Node f ) const { return d_uf_models.find( f )!=d_uf_models.end(); }
+  bool hasAssignedFunctionDefinition(Node f) const;
   /** get the list of functions to assign. 
   * This list will contain all terms of function type that are terms in d_equalityEngine.
   * If higher-order is enabled, we ensure that this list is sorted by type size.

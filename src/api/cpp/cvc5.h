@@ -3443,16 +3443,16 @@ class CVC5_EXPORT Solver
   Term mkReal(int64_t num, int64_t den) const;
 
   /**
-   * Create a regular expression empty term.
+   * Create a regular expression none (re.none) term.
    * @return the empty term
    */
-  Term mkRegexpEmpty() const;
+  Term mkRegexpNone() const;
 
   /**
-   * Create a regular expression sigma term.
+   * Create a regular expression allchar (re.allchar) term.
    * @return the sigma term
    */
-  Term mkRegexpSigma() const;
+  Term mkRegexpAllchar() const;
 
   /**
    * Create a constant representing an empty set of the given sort.
