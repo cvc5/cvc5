@@ -246,7 +246,7 @@ struct TranscendentalState
    * each transcendental function application. We store this set for each
    * Taylor degree.
    */
-  std::unordered_map<Node, std::map<unsigned, std::vector<Node>>>
+  std::unordered_map<Node, std::map<uint64_t, context::CDList<Node>>>
       d_secant_points;
 
   /** PI
