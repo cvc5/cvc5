@@ -116,7 +116,7 @@ class SygusInterpol : protected EnvObj
    * Get include_cons for mkSygusDefaultType.
    * mkSygusDefaultType() is a function to make default grammar. It has an
    * arguemnt include_cons, which will restrict what operators we want in the
-   * grammar. The return value depends on options::produceInterpols(). In
+   * grammar. The return value depends on the produceInterpols option. In
    * ASSUMPTIONS option, it will return the operators from axioms. In CONJECTURE
    * option, it will return the operators from conj. In SHARED option, it will
    * return the oprators shared by axioms and conj. In ALL option, it will
@@ -134,7 +134,7 @@ class SygusInterpol : protected EnvObj
    * Set up the grammar for the interpol-to-synthesis.
    *
    * The user-defined grammar will be encoded by itpGType. The options for
-   * grammar is given by options::produceInterpols(). In DEFAULT option, it will
+   * grammar is given by the produceInterpols option. In DEFAULT option, it will
    * set up the grammar from itpGType. And if itpGType is null, it will set up
    * the default grammar, which is built according to a policy handled by
    * getIncludeCons().

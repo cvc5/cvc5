@@ -40,7 +40,6 @@ jobs:
             os: ubuntu-18.04
             config: production --auto-download --assertions --tracing --unit-testing --java-bindings --editline
             cache-key: dbg
-            check-units: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof
 
@@ -86,7 +85,6 @@ jobs:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         check-examples: ${{ matrix.check-examples }}
         check-python-bindings: ${{ matrix.python-bindings }}
-        check-unit-tests: ${{ matrix.check-units }}
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: ${{ matrix.exclude_regress }}
   
@@ -97,7 +95,6 @@ jobs:
         check-examples: false
         check-install: false
         check-python-bindings: false
-        check-unit-tests: ${{ matrix.check-units }}
         regressions-args: ${{ matrix.run_regression_args }}
         regressions-exclude: 1-4
 

@@ -976,10 +976,11 @@ def test_get_set(solver):
     i2 = solver.mkInteger(7)
 
     s1 = solver.mkEmptySet(s)
-    s2 = solver.mkTerm(kinds.Singleton, i1)
-    s3 = solver.mkTerm(kinds.Singleton, i1)
-    s4 = solver.mkTerm(kinds.Singleton, i2)
-    s5 = solver.mkTerm(kinds.Union, s2, solver.mkTerm(kinds.Union, s3, s4))
+    s2 = solver.mkTerm(kinds.SetSingleton, i1)
+    s3 = solver.mkTerm(kinds.SetSingleton, i1)
+    s4 = solver.mkTerm(kinds.SetSingleton, i2)
+    s5 = solver.mkTerm(
+            kinds.SetUnion, s2, solver.mkTerm(kinds.SetUnion, s3, s4))
 
     assert s1.isSetValue()
     assert s2.isSetValue()

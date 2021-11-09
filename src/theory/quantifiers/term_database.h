@@ -200,7 +200,7 @@ class TermDb : public QuantifiersUtil {
    * It returns whether the term n should be indexed in the current context.
    *
    * If the argument useMode is true, then this method returns a value based on
-   * the option options::termDbMode().
+   * the option termDbMode.
    * Otherwise, it returns the lookup in the map d_has_map.
    */
   bool hasTermCurrent(Node n, bool useMode = true);

@@ -105,7 +105,7 @@ class KindsParser:
            BITVECTOR_ADD       -->  BVAdd
            APPLY_SELECTOR      -->  ApplySelector
            FLOATINGPOINT_ISNAN -->  FPIsNan
-           SETMINUS            -->  Setminus
+           SET_MINUS            -->  Setminus
 
         See the generated .pxi file for an explicit mapping
         '''
