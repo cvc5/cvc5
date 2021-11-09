@@ -116,7 +116,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::SKO_FORALL: return "sko_forall";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
-    case AletheRule::REORDER: return "reorder";
+    case AletheRule::REORDERING: return "reordering";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";
