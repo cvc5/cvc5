@@ -85,7 +85,6 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
         response = rewriteDifferenceSubtract(n);
         break;
       case BAG_DIFFERENCE_REMOVE: response = rewriteDifferenceRemove(n); break;
-      case BAG_CHOOSE: response = rewriteChoose(n); break;
       case BAG_CARD: response = rewriteCard(n); break;
       case BAG_IS_SINGLETON: response = rewriteIsSingleton(n); break;
       case BAG_FROM_SET: response = rewriteFromSet(n); break;

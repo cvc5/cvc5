@@ -105,7 +105,6 @@ Node NormalForm::evaluate(TNode n)
     case BAG_INTERSECTION_MIN: return evaluateIntersectionMin(n);
     case BAG_DIFFERENCE_SUBTRACT: return evaluateDifferenceSubtract(n);
     case BAG_DIFFERENCE_REMOVE: return evaluateDifferenceRemove(n);
-    case BAG_CHOOSE: return evaluateChoose(n);
     case BAG_CARD: return evaluateCard(n);
     case BAG_IS_SINGLETON: return evaluateIsSingleton(n);
     case BAG_FROM_SET: return evaluateFromSet(n);
