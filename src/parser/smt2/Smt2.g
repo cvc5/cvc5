@@ -59,8 +59,6 @@ options {
 #  define ANTLR3_INLINE_INPUT_8BIT
 #endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
 
-#include "parser/antlr_tracing.h"
-
 }/* @lexer::includes */
 
 @lexer::postinclude {
@@ -79,7 +77,6 @@ using namespace cvc5::parser;
 #include <memory>
 
 #include "base/check.h"
-#include "parser/antlr_tracing.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "smt/command.h"
