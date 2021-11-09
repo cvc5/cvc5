@@ -1196,20 +1196,20 @@ bool AletheProofPostprocessCallback::update(Node res,
       // ======== Congruence
       // In the case that the kind of the function symbol f? is FORALL or
       // EXISTS, the cong rule needs to be converted into a bind rule. The first
-      // n children will be refl rules, e.g. (= (v0 Int) (w0 Int)).
+      // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
       //
       //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-      //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
+      //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
       //
       //  ----- REFL ... ----- REFL
       //   VP1            VPn             P2
       //  --------------------------------------- bind,
-      //                                          ((:= (v1 A1) w1) ...
-      //                                          (:= (vn An) wn))
+      //                                          ((:= (v1 A1) v1) ...
+      //                                          (:= (vn An) vn))
       //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-      //   (forall ((w1 B1)...(wn Bn)) s2)))**
+      //   (forall ((v1 B1)...(vn Bn)) s2)))**
       //
-      //  VPi: (cl (= vi wi))*
+      //  VPi: (cl (= vi vi))*
       //
       //  * the corresponding proof node is (or (= vi vi))
       //
