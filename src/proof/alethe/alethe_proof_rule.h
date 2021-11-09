@@ -349,8 +349,8 @@ enum class AletheRule : uint32_t
   //  G > i. (= (ite F1 F2 F3) (and (=> F1 F2) (=> (not F1) (not F3))))
   CONNECTIVE_DEF,
   // ======== Simplify rules
-  // The following rules are simplifying rules introduced as tautologies that can be
-  // verified by a number of simple transformations
+  // The following rules are simplifying rules introduced as tautologies that
+  // can be verified by a number of simple transformations
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,
   AND_SIMPLIFY,
@@ -400,7 +400,7 @@ enum class AletheRule : uint32_t
   // > j. F2
   // where set representation of F1 and F2 are the same and the number of
   // literals in C2 is the same of that of C1.
-  REORDER,
+  REORDERING,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
