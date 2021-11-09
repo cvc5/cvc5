@@ -980,7 +980,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkReal__JJJ(
  * Method:    mkRegexpNone
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpEmpty(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpNone(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -995,7 +995,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpEmpty(
  * Method:    mkRegexpAllchar
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpSigma(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Solver_mkRegexpAllchar(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
