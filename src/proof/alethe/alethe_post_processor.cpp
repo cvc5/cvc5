@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -1405,7 +1406,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     /*case PfRule::SKOLEM_INTRO:
     {
       return addAletheStep(AletheRule::REFL,res,nm->mkNode(kind::SEXPR,d_cl,res),{},{},*cdp);
-    }
+    }*/
     // ======== Skolemize
     // See proof_rule.h for documentation on the SKOLEMIZE rule. This
     // comment uses variable names as introduced there.
@@ -1429,24 +1430,36 @@ bool AletheProofPostprocessCallback::update(Node res,
 	    // LeanNodeConverter
 	    // choice terms itself might contain skv variables
 	    // getSkolemTermVectors then I can get skolems
-      if (res.getKind() != kind::NOT)
+	    //
+      /*if (res.getKind() != kind::NOT)
       {
+	Node choice;
         Node vp1 = nm->mkNode(
             kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
         return addAletheStep(AletheRule::SKO_EX, vp1, vp1, {}, {}, *cdp)
                && cdp->addStep(
                    res, PfRule::EQ_RESOLVE, {vp1, children[0]}, args);
-      }
+      }*/
+	    if(res.getKind() == kind::NOT){
+	    std::cout << "children " << children << std::endl;
+	    std::cout << "res " << res << std::endl;
+	    std::cout << "skv_1 " << args << std::endl;
+	    Node temp = SkolemManager::getWitnessForm(res);
+	    std::cout << "children[0] "  << children[0] << SkolemManager::getWitnessForm(children[0]) <<std::endl;
+	    std::cout << "children[0][0][0][0] "  << children[0][0][0][0] << "    " << SkolemManager::getWitnessForm(children[0][0][0][0]) <<std::endl;
+	    std::cout << "children[0][0][1] "  << children[0][0][1] <<  SkolemManager::getWitnessForm(children[0][0][1]) <<std::endl;
       Node vp1 = nm->mkNode(
           kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0][0], res));
-      return addAletheStep(AletheRule::SKO_FORALL, vp1, vp1, {}, {}, *cdp)
+      return addAletheStep(AletheRule::ANCHOR_SKO_FORALL, vp1, vp1, {}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp1, children[0]},
                               {},
                               *cdp);
-    }*/
+	    }
+	    return addAletheStep(AletheRule::ALL_SIMPLIFY,res,res,{},children,*cdp);
+    }
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
     // comment uses variable names as introduced there.

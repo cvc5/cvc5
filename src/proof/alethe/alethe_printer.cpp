@@ -77,7 +77,7 @@ std::string AletheProofPrinter::alethePrinterInternal(
 
   // In case the rule is an anchor it is printed before its children. The
   // arguments of the anchor are printed as assumptions
-  if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)
+  if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND || vrule == AletheRule::ANCHOR_SKO_FORALL || vrule == AletheRule::ANCHOR_SKO_EX)
   {
     // Look up if subproof has already been printed
     auto it = steps[nested_level].find(pfn->getArguments()[2]);
@@ -122,7 +122,7 @@ std::string AletheProofPrinter::alethePrinterInternal(
     step_id++;
 
     // Print assumptions
-    if (vrule == AletheRule::ANCHOR_SUBPROOF)
+    if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_SKO_FORALL || vrule == AletheRule::ANCHOR_SKO_EX)
     {
       for (unsigned long int i = 3, size = pfn->getArguments().size(); i < size;
            i++)

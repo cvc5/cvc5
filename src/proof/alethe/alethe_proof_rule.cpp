@@ -30,6 +30,8 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::ASSUME: return "assume";
     case AletheRule::ANCHOR_SUBPROOF: return "subproof";
     case AletheRule::ANCHOR_BIND: return "bind";
+    case AletheRule::ANCHOR_SKO_FORALL: return "sko_forall";
+    case AletheRule::ANCHOR_SKO_EX: return "sko_ex";
     case AletheRule::TRUE: return "true";
     case AletheRule::FALSE: return "false";
     case AletheRule::NOT_NOT: return "not_not";
@@ -113,8 +115,6 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::LET: return "let";
     case AletheRule::QNT_SIMPLIFY: return "trust";
     case AletheRule::ALL_SIMPLIFY: return "trust";
-    case AletheRule::SKO_EX: return "sko_ex";
-    case AletheRule::SKO_FORALL: return "sko_forall";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
     case AletheRule::REORDERING: return "reordering";

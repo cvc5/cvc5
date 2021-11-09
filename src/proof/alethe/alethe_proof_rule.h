@@ -60,6 +60,8 @@ enum class AletheRule : uint32_t
   //
   // where y1,...,yn are not free in (forall (x1,...,xn) F2)
   ANCHOR_BIND,
+  ANCHOR_SKO_FORALL,
+  ANCHOR_SKO_EX,
   // ======== input
   // > i. F
   ASSUME,
