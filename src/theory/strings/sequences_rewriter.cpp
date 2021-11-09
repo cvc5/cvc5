@@ -789,10 +789,10 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
       changed = true;
       emptyRe = c;
     }
-    else if (c.getKind() == REGEXP_EMPTY)
+    else if (c.getKind() == REGEXP_NONE)
     {
       // re.++( ..., empty, ... ) ---> empty
-      Node ret = nm->mkNode(REGEXP_EMPTY);
+      Node ret = nm->mkNode(REGEXP_NONE);
       return returnRewrite(node, ret, Rewrite::RE_CONCAT_EMPTY);
     }
     else
@@ -868,7 +868,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
         {
           curr = Node::null();
         }
-        else if (curr[0].getKind() == REGEXP_SIGMA)
+        else if (curr[0].getKind() == REGEXP_ALLCHAR)
         {
           Assert(!lastAllStar);
           lastAllStar = true;
@@ -932,7 +932,7 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
     // ("")* ---> ""
     return returnRewrite(node, node[0], Rewrite::RE_STAR_EMPTY_STRING);
   }
-  else if (node[0].getKind() == REGEXP_EMPTY)
+  else if (node[0].getKind() == REGEXP_NONE)
   {
     // (empty)* ---> ""
     retNode = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
@@ -992,7 +992,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         }
       }
     }
-    else if (ni.getKind() == REGEXP_EMPTY)
+    else if (ni.getKind() == REGEXP_NONE)
     {
       if (nk == REGEXP_INTER)
       {
@@ -1000,7 +1000,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       }
       // otherwise, can ignore
     }
-    else if (ni.getKind() == REGEXP_STAR && ni[0].getKind() == REGEXP_SIGMA)
+    else if (ni.getKind() == REGEXP_STAR && ni[0].getKind() == REGEXP_ALLCHAR)
     {
       if (nk == REGEXP_UNION)
       {
@@ -1032,11 +1032,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         Node retNode;
         if (nk == REGEXP_INTER)
         {
-          retNode = nm->mkNode(kind::REGEXP_EMPTY);
+          retNode = nm->mkNode(kind::REGEXP_NONE);
         }
         else
         {
-          retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
+          retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
         }
         return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
       }
@@ -1047,11 +1047,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
   {
     if (nk == REGEXP_INTER)
     {
-      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
+      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
     }
     else
     {
-      retNode = nm->mkNode(kind::REGEXP_EMPTY);
+      retNode = nm->mkNode(kind::REGEXP_NONE);
     }
   }
   else
@@ -1091,7 +1091,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   if (u < l)
   {
     std::vector<Node> nvec;
-    retNode = nm->mkNode(REGEXP_EMPTY, nvec);
+    retNode = nm->mkNode(REGEXP_NONE, nvec);
   }
   else if (u == l)
   {
@@ -1184,7 +1184,7 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
   if (ch[0] > ch[1])
   {
     // re.range( "B", "A" ) ---> re.none
-    Node retNode = nm->mkNode(REGEXP_EMPTY);
+    Node retNode = nm->mkNode(REGEXP_NONE);
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_EMPTY);
   }
   return node;
@@ -1199,7 +1199,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   TypeNode stype = x.getType();
   TypeNode rtype = r.getType();
 
-  if(r.getKind() == kind::REGEXP_EMPTY) 
+  if (r.getKind() == kind::REGEXP_NONE)
   {
     Node retNode = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EMPTY);
@@ -1212,7 +1212,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     Node retNode = NodeManager::currentNM()->mkConst(test);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
   }
-  else if (r.getKind() == kind::REGEXP_SIGMA)
+  else if (r.getKind() == kind::REGEXP_ALLCHAR)
   {
     Node one = nm->mkConst(Rational(1));
     Node retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
@@ -1260,7 +1260,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
         }
       }
     }
-    if (r[0].getKind() == kind::REGEXP_SIGMA)
+    if (r[0].getKind() == kind::REGEXP_ALLCHAR)
     {
       Node retNode = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, retNode, Rewrite::RE_IN_SIGMA_STAR);
@@ -1277,12 +1277,12 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     for (size_t i = 0; i < nchildren; i++)
     {
       Node rc = r[i];
-      Assert(rc.getKind() != kind::REGEXP_EMPTY);
-      if (rc.getKind() == kind::REGEXP_SIGMA)
+      Assert(rc.getKind() != kind::REGEXP_NONE);
+      if (rc.getKind() == kind::REGEXP_ALLCHAR)
       {
         allSigmaMinSize++;
       }
-      else if (rc.getKind() == REGEXP_STAR && rc[0].getKind() == REGEXP_SIGMA)
+      else if (rc.getKind() == REGEXP_STAR && rc[0].getKind() == REGEXP_ALLCHAR)
       {
         allSigmaStrict = false;
       }
@@ -3245,7 +3245,7 @@ std::pair<size_t, size_t> SequencesRewriter::firstMatch(Node n, Node r)
   Assert(r.getType().isRegExp());
   NodeManager* nm = NodeManager::currentNM();
 
-  Node sigmaStar = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
+  Node sigmaStar = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
   Node re = nm->mkNode(REGEXP_CONCAT, r, sigmaStar);
   String s = n.getConst<String>();
 

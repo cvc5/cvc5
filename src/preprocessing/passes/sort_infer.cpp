@@ -19,7 +19,6 @@
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "smt/dump_manager.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
@@ -70,13 +69,9 @@ PreprocessingPassResult SortInferencePass::applyInternal(
           << endl;
       assertionsToPreprocess->push_back(nar);
     }
-    // indicate correspondence between the functions
-    smt::DumpManager* dm = d_env.getDumpManager();
-    for (const std::pair<const Node, Node>& mrf : model_replace_f)
-    {
-      dm->setPrintFuncInModel(mrf.first, false);
-      dm->setPrintFuncInModel(mrf.second, true);
-    }
+    // could indicate correspondence between the functions
+    // for (f1, f2) in model_replace_f, f1's model should be based on f2.
+    // See cvc4-wishues/issues/75.
   }
   // only need to compute monotonicity on the resulting formula if we are
   // using this option

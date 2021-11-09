@@ -54,7 +54,7 @@ macro(cvc5_add_example name src_files output_dir)
   endif()
 
   add_executable(${name} ${src_files_list})
-  target_link_libraries(${name} cvc5::cvc5-shared cvc5::cvc5parser-shared)
+  target_link_libraries(${name} cvc5::cvc5 cvc5::cvc5parser)
 
   # The test target is prefixed with the path,
   # e.g., for '<output_dir>/myexample.cpp'
@@ -105,6 +105,7 @@ if(TARGET cvc5::cvc5jar)
 endif()
 
 if(CVC5_BINDINGS_PYTHON)
+  message(STATUS "with Python examples")
   # If legacy Python API has been built
   add_subdirectory(api/python)
 endif()

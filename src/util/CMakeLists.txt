@@ -29,6 +29,8 @@ libcvc5_add_sources(
   cardinality_class.cpp
   cardinality_class.h
   dense_map.h
+  didyoumean.cpp
+  didyoumean.h
   divisible.cpp
   divisible.h
   floatingpoint.cpp

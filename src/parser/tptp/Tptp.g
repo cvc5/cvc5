@@ -58,8 +58,6 @@ options {
  */
 #define ANTLR3_INLINE_INPUT_ASCII
 
-#include "parser/antlr_tracing.h"
-
 }/* @lexer::includes */
 
 @lexer::postinclude {
@@ -92,7 +90,6 @@ using namespace cvc5::parser;
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
-#include "parser/antlr_tracing.h"
 
 }/* @parser::includes */
 

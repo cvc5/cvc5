@@ -20,7 +20,6 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/builtin/theory_builtin_rewriter.h" // for array and lambda representation
 
 #include <sstream>
 
@@ -107,54 +106,6 @@ class AbstractValueTypeRule {
   }
 };/* class AbstractValueTypeRule */
 
-class LambdaTypeRule {
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    if( n[0].getType(check) != nodeManager->boundVarListType() ) {
-      std::stringstream ss;
-      ss << "expected a bound var list for LAMBDA expression, got `"
-         << n[0].getType().toString() << "'";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
-    }
-    std::vector<TypeNode> argTypes;
-    for(TNode::iterator i = n[0].begin(); i != n[0].end(); ++i) {
-      argTypes.push_back((*i).getType());
-    }
-    TypeNode rangeType = n[1].getType(check);
-    return nodeManager->mkFunctionType(argTypes, rangeType);
-  }
-  // computes whether a lambda is a constant value, via conversion to array representation
-  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
-  {
-    Assert(n.getKind() == kind::LAMBDA);
-    //get array representation of this function, if possible
-    Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda(n);
-    if( !na.isNull() ){
-      Assert(na.getType().isArray());
-      Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
-      // must have the standard bound variable list
-      Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );
-      if( bvl==n[0] ){
-        //array must be constant
-        if( na.isConst() ){
-          Trace("lambda-const") << "*** Constant lambda : " << n;
-          Trace("lambda-const") << " since its array representation : " << na << " is constant." << std::endl;
-          return true;
-        }else{
-          Trace("lambda-const") << "Non-constant lambda : " << n << " since array is not constant." << std::endl;
-        } 
-      }else{
-        Trace("lambda-const") << "Non-constant lambda : " << n << " since its varlist is not standard." << std::endl;
-        Trace("lambda-const") << "  standard : " << bvl << std::endl;
-        Trace("lambda-const") << "   current : " << n[0] << std::endl;
-      } 
-    }else{
-      Trace("lambda-const") << "Non-constant lambda : " << n << " since it has no array representation." << std::endl;
-    } 
-    return false;
-  }
-};/* class LambdaTypeRule */
-
 class WitnessTypeRule
 {
  public:
@@ -197,37 +148,6 @@ class SortProperties {
   }
   static Node mkGroundTerm(TypeNode type);
 };/* class SortProperties */
-
-class FunctionProperties {
- public:
-  static Cardinality computeCardinality(TypeNode type);
-
-  /** Function type is well-founded if its component sorts are */
-  static bool isWellFounded(TypeNode type)
-  {
-    for (TypeNode::iterator i = type.begin(), i_end = type.end(); i != i_end;
-         ++i)
-    {
-      if (!(*i).isWellFounded())
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-  /**
-   * Ground term for function sorts is (lambda x. t) where x is the
-   * canonical variable list for its type and t is the canonical ground term of
-   * its range.
-   */
-  static Node mkGroundTerm(TypeNode type)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Node bvl = nm->getBoundVarListForFunctionType(type);
-    Node ret = type.getRangeType().mkGroundTerm();
-    return nm->mkNode(kind::LAMBDA, bvl, ret);
-  }
-};/* class FuctionProperties */
 
 }  // namespace builtin
 }  // namespace theory
