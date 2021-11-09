@@ -1426,7 +1426,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::MACRO_ARITH_SCALE_SUM_UB:
     {
       std::vector<Node> vp1s{d_cl};
-      for (Node child : children)
+      for (const Node& child : children)
       {
         vp1s.push_back(child.notNode());
       }
