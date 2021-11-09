@@ -1194,8 +1194,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                            *cdp);
     }
       // ======== Congruence
-      // In the case that the kind of the function symbol ?f is forall or
-      // exists, the cong rule needs to be converted into a bind rule. The first
+      // In the case that the kind of the function symbol f? is FORALL or
+      // EXISTS, the cong rule needs to be converted into a bind rule. The first
       // n children will be refl rules, e.g. (= (v0 Int) (w0 Int)).
       //
       //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
