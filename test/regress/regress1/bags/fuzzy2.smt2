@@ -11,5 +11,5 @@
       (= a (bag.union_max a D))
       (= a (bag.difference_subtract a (bag d 1)))
       (= a (bag.union_disjoint a D))
-      (= a (bag.intersection_min a D)))))
+      (= a (bag.inter_min a D)))))
 (check-sat)

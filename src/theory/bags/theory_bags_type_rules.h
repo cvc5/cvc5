@@ -30,7 +30,7 @@ namespace bags {
 
 /**
  * Type rule for binary operators (bag.union_max, bag.union_disjoint,
- * bag.intersection_min bag.difference_subtract, bag.difference_remove) to check
+ * bag.inter_min bag.difference_subtract, bag.difference_remove) to check
  * if the two arguments are of the same sort.
  */
 struct BinaryOperatorTypeRule

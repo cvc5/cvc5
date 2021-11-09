@@ -305,7 +305,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, intersection_min)
 {
   // Example
   // -------
-  // input: (bag.intersection_min A B)
+  // input: (bag.inter_min A B)
   //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
   //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:

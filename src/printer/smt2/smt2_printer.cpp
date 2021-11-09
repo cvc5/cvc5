@@ -1084,7 +1084,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_TYPE: return "Bag";
   case kind::BAG_UNION_MAX: return "bag.union_max";
   case kind::BAG_UNION_DISJOINT: return "bag.union_disjoint";
-  case kind::BAG_INTERSECTION_MIN: return "bag.intersection_min";
+  case kind::BAG_INTERSECTION_MIN: return "bag.inter_min";
   case kind::BAG_DIFFERENCE_SUBTRACT: return "bag.difference_subtract";
   case kind::BAG_DIFFERENCE_REMOVE: return "bag.difference_remove";
   case kind::BAG_SUBBAG: return "bag.subbag";
