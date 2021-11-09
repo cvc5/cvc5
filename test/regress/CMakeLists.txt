@@ -1593,6 +1593,10 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/choose1.smt2
+  regress1/bags/choose2.smt2
+  regress1/bags/choose3.smt2
+  regress1/bags/choose4.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
   regress1/bags/duplicate_removal1.smt2
@@ -1729,7 +1733,6 @@ set(regress_1_tests
   regress1/fmf/sort-inf-int.smt2
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
-  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.p
   regress1/ho/bound_var_bug.p
   regress1/ho/fta0328.lfho.p
@@ -2809,6 +2812,8 @@ set(regression_disabled_tests
   ###
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
+  # disabled temporarily until lazy lambda handling is merged
+  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
   # after disallowing solving for terms with quantifiers

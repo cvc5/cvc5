@@ -80,7 +80,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_extTheory),
       d_rsolver(
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
-      d_regexp_elim(options::regExpElimAgg(), d_pnm, userContext()),
+      d_regexp_elim(options().strings.regExpElimAgg, d_pnm, userContext()),
       d_stringsFmf(env, valuation, d_termReg)
 {
   d_termReg.finishInit(&d_im);
@@ -125,7 +125,7 @@ void TheoryStrings::finishInit()
   // witness is used to eliminate str.from_code
   d_valuation.setUnevaluatedKind(WITNESS);
 
-  bool eagerEval = options::stringEagerEval();
+  bool eagerEval = options().strings.stringEagerEval;
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::STRING_LENGTH, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_CONCAT, eagerEval);
@@ -188,11 +188,13 @@ TrustNode TheoryStrings::explain(TNode literal)
 }
 
 void TheoryStrings::presolve() {
-  Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
+  Debug("strings-presolve")
+      << "TheoryStrings::Presolving : get fmf options "
+      << (options().strings.stringFMF ? "true" : "false") << std::endl;
   d_strat.initializeStrategy();
 
   // if strings fmf is enabled, register the strategy
-  if (options::stringFMF())
+  if (options().strings.stringFMF)
   {
     d_stringsFmf.presolve();
     // This strategy is local to a check-sat call, since we refresh the strategy
@@ -844,7 +846,8 @@ void TheoryStrings::postCheck(Effort e)
 }
 
 bool TheoryStrings::needsCheckLastEffort() {
-  if( options::stringGuessModel() ){
+  if (options().strings.stringGuessModel)
+  {
     return d_esolver.hasExtendedFunctions();
   }
   return false;
@@ -1138,7 +1141,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   }
   TrustNode ret;
   Node atomRet = atom;
-  if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
+  if (options().strings.regExpElim && atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
     ret = d_regexp_elim.eliminateTrusted(atomRet);

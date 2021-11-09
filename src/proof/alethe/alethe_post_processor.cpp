@@ -158,7 +158,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  VP1             VP2_1  ...  VP2_n
     // ------------------------------------ RESOLUTION
     //               VP2a
-    // ------------------------------------ REORDER
+    // ------------------------------------ REORDERING
     //  VP2b
     // ------ DUPLICATED_LITERALS   ------- IMPLIES_NEG1
     //   VP3                          VP4
@@ -255,7 +255,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
         Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
         success &=
-            addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
+            addAletheStep(AletheRule::REORDERING, vp2b, vp2b, {vp2a}, {}, *cdp);
 
         vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
         success &= addAletheStep(
@@ -403,7 +403,7 @@ bool AletheProofPostprocessCallback::update(Node res,
               vrule = AletheRule::DIV_SIMPLIFY;
               break;
             }
-            case kind::PRODUCT:
+            case kind::RELATION_PRODUCT:
             {
               vrule = AletheRule::PROD_SIMPLIFY;
               break;
@@ -667,6 +667,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                            children,
                            {},
                            *cdp);
+    }
+    // ======== Reordering
+    // This rule is translated according to the clause pattern.
+    case PfRule::REORDERING:
+    {
+      return addAletheStepFromOr(
+          AletheRule::REORDERING, res, children, {}, *cdp);
     }
     // ======== Split
     // See proof_rule.h for documentation on the SPLIT rule. This comment
@@ -1091,7 +1098,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  VP1                       VP2
     // ------------------------------- RESOLUTION
     //             VP3
-    // ------------------------------- REORDER
+    // ------------------------------- REORDERING
     //             VP4
     // ------------------------------- DUPLICATED_LITERALS
     //  (cl (not (ite C F1 F2)) F1 F2)
@@ -1116,7 +1123,7 @@ bool AletheProofPostprocessCallback::update(Node res,
              && addAletheStep(AletheRule::ITE_POS2, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(
                  AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
-             && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
+             && addAletheStep(AletheRule::REORDERING, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
                  AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }
@@ -1126,7 +1133,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  VP1                       VP2
     // ------------------------------- RESOLUTION
     //             VP3
-    // ------------------------------- REORDER
+    // ------------------------------- REORDERING
     //             VP4
     // ------------------------------- DUPLICATED_LITERALS
     //  (cl (ite C F1 F2) C (not F2))
@@ -1151,7 +1158,7 @@ bool AletheProofPostprocessCallback::update(Node res,
              && addAletheStep(AletheRule::ITE_NEG2, vp2, vp2, {}, {}, *cdp)
              && addAletheStep(
                  AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
-             && addAletheStep(AletheRule::REORDER, vp4, vp4, {vp3}, {}, *cdp)
+             && addAletheStep(AletheRule::REORDERING, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
                  AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
     }

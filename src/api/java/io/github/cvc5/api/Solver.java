@@ -854,25 +854,25 @@ public class Solver implements IPointer, AutoCloseable
    * Create a regular expression empty term.
    * @return the empty term
    */
-  public Term mkRegexpEmpty()
+  public Term mkRegexpNone()
   {
-    long termPointer = mkRegexpEmpty(pointer);
+    long termPointer = mkRegexpNone(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpEmpty(long pointer);
+  private native long mkRegexpNone(long pointer);
 
   /**
    * Create a regular expression sigma term.
    * @return the sigma term
    */
-  public Term mkRegexpSigma()
+  public Term mkRegexpAllchar()
   {
-    long termPointer = mkRegexpSigma(pointer);
+    long termPointer = mkRegexpAllchar(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpSigma(long pointer);
+  private native long mkRegexpAllchar(long pointer);
 
   /**
    * Create a constant representing an empty set of the given sort.

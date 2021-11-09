@@ -48,7 +48,7 @@ sort STRING_TYPE \
 sort REGEXP_TYPE \
     Cardinality::INTEGERS \
     well-founded \
-    "NodeManager::currentNM()->mkNode(REGEXP_EMPTY)" \
+    "NodeManager::currentNM()->mkNode(REGEXP_NONE)" \
     "util/string.h" \
     "RegExp type"
 
@@ -103,8 +103,8 @@ operator REGEXP_OPT 1 "regexp ?"
 operator REGEXP_RANGE 2 "regexp range"
 operator REGEXP_COMPLEMENT 1 "regexp complement"
 
-operator REGEXP_EMPTY 0 "regexp empty"
-operator REGEXP_SIGMA 0 "regexp all characters"
+operator REGEXP_NONE 0 "regexp empty"
+operator REGEXP_ALLCHAR 0 "regexp all characters"
 
 constant REGEXP_REPEAT_OP \
   struct \
@@ -143,8 +143,8 @@ typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_COMPLEMENT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
 typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"
-typerule REGEXP_EMPTY "SimpleTypeRule<RRegExp>"
-typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
+typerule REGEXP_NONE "SimpleTypeRule<RRegExp>"
+typerule REGEXP_ALLCHAR "SimpleTypeRule<RRegExp>"
 
 ### operators that apply to both strings and sequences
 

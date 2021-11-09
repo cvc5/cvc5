@@ -399,6 +399,12 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     //reset the model
     d_fm->d_models[op]->reset();
 
+    // if we've already assigned the function, ignore
+    if (m->hasAssignedFunctionDefinition(op))
+    {
+      continue;
+    }
+
     std::vector< Node > add_conds;
     std::vector< Node > add_values;      
     bool needsDefault = true;
@@ -539,8 +545,15 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
 
   //make function values
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
-    Node f_def = getFunctionValue( fm, it->first, "$x" );
-    m->assignFunctionDefinition( it->first, f_def );
+    // For lazy lambda lifting, a function may already have been assigned
+    // during uf::HoExtension's collectModelValues method. In this case,
+    // the Def in it->second was not used, as all such functions are eagerly
+    // eliminated.
+    if (!m->hasAssignedFunctionDefinition(it->first))
+    {
+      Node f_def = getFunctionValue(fm, it->first, "$x");
+      m->assignFunctionDefinition(it->first, f_def);
+    }
   }
   return TheoryEngineModelBuilder::processBuildModel( m );
 }
@@ -626,7 +639,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   FirstOrderModelFmc* fmfmc = static_cast<FirstOrderModelFmc*>(fm);
   if (effort == 0)
   {
-    if (options::mbqiMode() == options::MbqiMode::NONE)
+    if (options().quantifiers.mbqiMode == options::MbqiMode::NONE)
     {
       // just exhaustive instantiate
       Node c = mkCondDefault(fmfmc, f);
@@ -690,9 +703,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           Node ev = d_quant_models[f].evaluate(fmfmc, inst);
           if (ev == d_true)
           {
-            CVC5Message() << "WARNING: instantiation was true! " << f << " "
-                          << mcond[i] << std::endl;
-            AlwaysAssert(false);
+            AlwaysAssert(false) << "WARNING: instantiation was true! " << f
+                                << " " << mcond[i] << std::endl;
           }
           else
           {
@@ -709,7 +721,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_star_insts[f].push_back(i);
         continue;
       }
-      if (options::fmfBound() || options::stringExp())
+      if (options().quantifiers.fmfBound || options().strings.stringExp)
       {
         std::vector<Node> cond;
         cond.push_back(d_quant_cond[f]);
@@ -735,7 +747,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
-        if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+        if (d_qstate.isInConflict() || options().quantifiers.fmfOneInstPerRound)
         {
           break;
         }
@@ -888,7 +900,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
-          if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+          if (d_qstate.isInConflict()
+              || options().quantifiers.fmfOneInstPerRound)
           {
             break;
           }
@@ -1368,7 +1381,7 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
 
 
 bool FullModelChecker::useSimpleModels() {
-  return options::fmfFmcSimple();
+  return options().quantifiers.fmfFmcSimple;
 }
 void FullModelChecker::registerQuantifiedFormula(Node q)
 {
