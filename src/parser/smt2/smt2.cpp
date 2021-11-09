@@ -1018,7 +1018,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       isNeg = true;
       constVal = constVal[0];
     }
-    if (constVal.getKind() == api::DIVISION && constVal[0].getKind()==api::CONST_RATIONAL && constVal[1].getKind()==api::CONST_RATIONAL)
+    if (constVal.getKind() == api::DIVISION
+        && constVal[0].getKind() == api::CONST_RATIONAL
+        && constVal[1].getKind() == api::CONST_RATIONAL)
     {
       std::stringstream sdiv;
       sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
