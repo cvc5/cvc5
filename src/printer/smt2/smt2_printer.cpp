@@ -330,8 +330,8 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-    case kind::EMPTYSET:
-      out << "(as emptyset ";
+    case kind::SET_EMPTY:
+      out << "(as set.empty ";
       toStreamType(out, n.getConst<EmptySet>().getType());
       out << ")";
       break;
@@ -688,7 +688,7 @@ void Smt2Printer::toStream(std::ostream& out,
     break;
 
   // sets
-  case kind::SINGLETON:
+  case kind::SET_SINGLETON:
   {
     out << smtKindString(k, d_variant) << " ";
     TypeNode elemType = n.getType().getSetElementType();
@@ -698,7 +698,7 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
   break;
-  case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
+  case kind::SET_UNIVERSE: out << "(as set.universe " << n.getType() << ")"; break;
 
   // bags
   case kind::MK_BAG:
@@ -1060,25 +1060,25 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::APPLY_UPDATER: return "update";
 
   // set theory
-  case kind::UNION: return "union";
-  case kind::INTERSECTION: return "intersection";
-  case kind::SETMINUS: return "setminus";
-  case kind::SUBSET: return "subset";
-  case kind::MEMBER: return "member";
+  case kind::SET_UNION: return "set.union";
+  case kind::SET_INTERSECTION: return "set.intersection";
+  case kind::SET_MINUS: return "set.minus";
+  case kind::SET_SUBSET: return "set.subset";
+  case kind::SET_MEMBER: return "set.member";
   case kind::SET_TYPE: return "Set";
-  case kind::SINGLETON: return "singleton";
-  case kind::INSERT: return "insert";
-  case kind::COMPLEMENT: return "complement";
-  case kind::CARD: return "card";
-  case kind::COMPREHENSION: return "comprehension";
-  case kind::CHOOSE: return "choose";
-  case kind::IS_SINGLETON: return "is_singleton";
-  case kind::JOIN: return "join";
-  case kind::PRODUCT: return "product";
-  case kind::TRANSPOSE: return "transpose";
-  case kind::TCLOSURE: return "tclosure";
-  case kind::IDEN: return "iden";
-  case kind::JOIN_IMAGE: return "join_image";
+  case kind::SET_SINGLETON: return "set.singleton";
+  case kind::SET_INSERT: return "set.insert";
+  case kind::SET_COMPLEMENT: return "set.complement";
+  case kind::SET_CARD: return "set.card";
+  case kind::SET_COMPREHENSION: return "set.comprehension";
+  case kind::SET_CHOOSE: return "set.choose";
+  case kind::SET_IS_SINGLETON: return "set.is_singleton";
+  case kind::RELATION_JOIN: return "rel.join";
+  case kind::RELATION_PRODUCT: return "rel.product";
+  case kind::RELATION_TRANSPOSE: return "rel.transpose";
+  case kind::RELATION_TCLOSURE: return "rel.tclosure";
+  case kind::RELATION_IDEN: return "rel.iden";
+  case kind::RELATION_JOIN_IMAGE: return "rel.join_image";
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";
@@ -1178,8 +1178,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_STOI: return "str.to_int";
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
-  case kind::REGEXP_EMPTY: return "re.none";
-  case kind::REGEXP_SIGMA: return "re.allchar";
+  case kind::REGEXP_NONE: return "re.none";
+  case kind::REGEXP_ALLCHAR: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
   case kind::REGEXP_INTER: return "re.inter";

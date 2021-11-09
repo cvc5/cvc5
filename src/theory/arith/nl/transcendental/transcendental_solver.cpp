@@ -182,7 +182,14 @@ void TranscendentalSolver::processSideEffect(const NlLemma& se)
     Node tf = std::get<0>(sp);
     unsigned d = std::get<1>(sp);
     Node c = std::get<2>(sp);
-    d_tstate.d_secant_points[tf][d].push_back(c);
+    // we have a CDList within the maps, creating it requires some care
+    auto& secant_points = d_tstate.d_secant_points[tf];
+    auto it = secant_points.find(d);
+    if (it == secant_points.end())
+    {
+      it = secant_points.emplace(d, d_tstate.d_env.getUserContext()).first;
+    }
+    it->second.push_back(c);
   }
 }
 

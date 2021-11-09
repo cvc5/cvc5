@@ -7,9 +7,9 @@
 
 (declare-fun x () Real)
 
-(assert (= (as univset (Set Real)) (as univset (Set Real))))
+(assert (= (as set.universe (Set Real)) (as set.universe (Set Real))))
 
-(assert (member x a))
+(assert (set.member x a))
 
 (assert (and (<= 5.5 x) (< x 5.8)))
 
