@@ -1011,7 +1011,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // resulting rational here. This also is applied for integral real values
     // like 5.0 which are converted to (/ 5 1) to distinguish them from
     // integer constants. We must ensure numerator and denominator are
-    // constant and the denominator is non-zero.
+    // constant and the denominator is non-zero. A similar issue happens for
+    // negative integers and reals, with unary minus.
     bool isNeg = false;
     if (constVal.getKind() == api::UMINUS)
     {
