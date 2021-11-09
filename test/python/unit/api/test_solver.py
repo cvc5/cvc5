@@ -690,8 +690,8 @@ def test_mk_term(solver):
 
     # mkTerm(Kind kind) const
     solver.mkPi()
-    solver.mkTerm(kinds.RegexpEmpty)
-    solver.mkTerm(kinds.RegexpSigma)
+    solver.mkTerm(kinds.RegexpNone)
+    solver.mkTerm(kinds.RegexpAllchar)
     with pytest.raises(RuntimeError):
         solver.mkTerm(kinds.ConstBV)
 
