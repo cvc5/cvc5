@@ -35,6 +35,7 @@ add_test (NAME python/api/${name}
   # directory for importing the python bindings
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
   set_tests_properties(python/api/${name} PROPERTIES
+      LABELS "api"
     ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
 endmacro()
 
