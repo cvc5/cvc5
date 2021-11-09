@@ -20,11 +20,13 @@ check_python_module("pytest")
 macro(cvc5_add_python_api_unit_test name filename)
 # We create test target 'python/unit/api/myapitest' and run it with
 # 'ctest -R "python/unit/api/myapitest"'.
-add_test (NAME ${name}
-  COMMAND ${PYTHON_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
-  # directory for importing the python bindings
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
-  set_tests_properties(${name} PROPERTIES LABELS "unit")
+  set(test_name unit/api/python/${name})
+  add_test (NAME ${test_name}
+    COMMAND ${PYTHON_EXECUTABLE}
+            -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+    # directory for importing the python bindings
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
+    set_tests_properties(${test_name} PROPERTIES LABELS "unit")
 endmacro()
 
 # add specific test files
