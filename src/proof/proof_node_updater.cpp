@@ -35,15 +35,26 @@ bool ProofNodeUpdaterCallback::update(Node res,
   return false;
 }
 
+bool ProofNodeUpdaterCallback::finalize(Node res,
+                                        PfRule id,
+                                        const std::vector<Node>& children,
+                                        const std::vector<Node>& args,
+                                        CDProof* cdp)
+{
+  return false;
+}
+
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
-                                   bool autoSym)
+                                   bool autoSym,
+                                   bool runFinalize)
     : d_pnm(pnm),
       d_cb(cb),
       d_debugFreeAssumps(false),
       d_mergeSubproofs(mergeSubproofs),
-      d_autoSym(autoSym)
+      d_autoSym(autoSym),
+      d_runFinalize(runFinalize)
 {
 }
 
@@ -240,6 +251,51 @@ void ProofNodeUpdater::runFinalize(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& resCacheNcWaiting,
     std::unordered_map<const ProofNode*, bool>& cfaMap)
 {
+  if (d_runFinalize)
+  {
+    PfRule id = cur->getRule();
+    // use CDProof to open a scope for which the callback updates
+    CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
+    const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
+    std::vector<Node> ccn;
+    for (const std::shared_ptr<ProofNode>& cp : cc)
+    {
+      Node cpres = cp->getResult();
+      ccn.push_back(cpres);
+      // store in the proof
+      cpf.addProof(cp);
+    }
+    Node res = cur->getResult();
+    Trace("pf-process-debug")
+        << "Finalizing (" << cur->getRule() << "): " << res << std::endl;
+    // only if the callback updated the node
+    if (d_cb.finalize(res, id, ccn, cur->getArguments(), &cpf))
+    {
+      std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
+      std::vector<Node> fullFa;
+      if (d_debugFreeAssumps)
+      {
+        expr::getFreeAssumptions(cur.get(), fullFa);
+        Trace("pfnu-debug") << "Original proof : " << *cur << std::endl;
+      }
+      // then, update the original proof node based on this one
+      Trace("pf-process-debug") << "Finalized node..." << std::endl;
+      d_pnm->updateNode(cur.get(), npn.get());
+      Trace("pf-process-debug") << "...finalized node finished." << std::endl;
+      if (d_debugFreeAssumps)
+      {
+        fullFa.insert(fullFa.end(), fa.begin(), fa.end());
+        // We have that npn is a node we occurring the final updated version of
+        // the proof. We can now debug based on the expected set of free
+        // assumptions.
+        Trace("pfnu-debug") << "Ensure finalized closed..." << std::endl;
+        pfnEnsureClosedWrt(
+            npn.get(), fullFa, "pfnu-debug", "ProofNodeUpdater:postfinalize");
+      }
+      Trace("pf-process-debug") << "..finished" << std::endl;
+    }
+    Trace("pf-process-debug") << "..finished" << std::endl;
+  }
   if (d_mergeSubproofs)
   {
     Node res = cur->getResult();
