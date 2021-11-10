@@ -18,7 +18,6 @@ Table of Contents
    binary/binary
    api/api
    examples/examples
-   languages
    theory
    references
    genindex
