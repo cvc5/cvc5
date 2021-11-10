@@ -8,7 +8,7 @@
 (assert (>= (set.card (set.union s u)) 8))
 ;(assert (<= (set.card (set.union t u)) 5))
 (assert (<= (set.card s) 5))
-(assert (= (as set.empty (Set E)) (set.intersection t u)))
+(assert (= (as set.empty (Set E)) (set.inter t u)))
 (declare-fun x1 () E)
 (declare-fun x2 () E)
 (declare-fun x3 () E)

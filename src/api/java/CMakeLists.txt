@@ -28,8 +28,6 @@ set(JAVA_KIND_FILE
 add_custom_command(
   OUTPUT
     ${JAVA_KIND_FILE}
-  BYPRODUCTS
-    ${JAVA_KIND_FILE}
   COMMAND
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genkinds.py"
@@ -142,6 +140,5 @@ add_jar(cvc5jar
   VERSION ${CVC5_VERSION}
   OUTPUT_NAME cvc5
 )
-set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)

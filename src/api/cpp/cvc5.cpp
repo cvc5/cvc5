@@ -275,7 +275,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     /* Sets ---------------------------------------------------------------- */
     {SET_EMPTY, cvc5::Kind::SET_EMPTY},
     {SET_UNION, cvc5::Kind::SET_UNION},
-    {SET_INTERSECTION, cvc5::Kind::SET_INTERSECTION},
+    {SET_INTER, cvc5::Kind::SET_INTER},
     {SET_MINUS, cvc5::Kind::SET_MINUS},
     {SET_SUBSET, cvc5::Kind::SET_SUBSET},
     {SET_MEMBER, cvc5::Kind::SET_MEMBER},
@@ -585,7 +585,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Sets ------------------------------------------------------------ */
         {cvc5::Kind::SET_EMPTY, SET_EMPTY},
         {cvc5::Kind::SET_UNION, SET_UNION},
-        {cvc5::Kind::SET_INTERSECTION, SET_INTERSECTION},
+        {cvc5::Kind::SET_INTER, SET_INTER},
         {cvc5::Kind::SET_MINUS, SET_MINUS},
         {cvc5::Kind::SET_SUBSET, SET_SUBSET},
         {cvc5::Kind::SET_MEMBER, SET_MEMBER},

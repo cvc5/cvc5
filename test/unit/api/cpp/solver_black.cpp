@@ -15,8 +15,8 @@
 
 #include <algorithm>
 
-#include "test_api.h"
 #include "base/output.h"
+#include "test_api.h"
 
 namespace cvc5 {
 
@@ -341,9 +341,12 @@ TEST_F(TestApiBlackSolver, mkBitVector)
 
   ASSERT_EQ(d_solver.mkBitVector(8, "0101", 2),
             d_solver.mkBitVector(8, "00000101", 2));
-  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 2), d_solver.mkBitVector(4, "1111", 2));
-  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 16), d_solver.mkBitVector(4, "1111", 2));
-  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 10), d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 2),
+            d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 16),
+            d_solver.mkBitVector(4, "1111", 2));
+  ASSERT_EQ(d_solver.mkBitVector(4, "-1", 10),
+            d_solver.mkBitVector(4, "1111", 2));
   ASSERT_EQ(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
   ASSERT_EQ(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
   ASSERT_EQ(d_solver.mkBitVector(8, "-1", 10),
@@ -1358,7 +1361,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     api::OptionInfo info = d_solver.getOptionInfo("verbosity");
     EXPECT_EQ("verbosity", info.name);
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
-    EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(info.valueInfo));
+    EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
+        info.valueInfo));
     auto numInfo = std::get<OptionInfo::NumberInfo<int64_t>>(info.valueInfo);
     EXPECT_EQ(0, numInfo.defaultValue);
     EXPECT_EQ(0, numInfo.currentValue);
@@ -1369,7 +1373,8 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     auto info = d_solver.getOptionInfo("random-freq");
     ASSERT_EQ(info.name, "random-freq");
     ASSERT_EQ(info.aliases, std::vector<std::string>{"random-frequency"});
-    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::NumberInfo<double>>(info.valueInfo));
+    ASSERT_TRUE(std::holds_alternative<api::OptionInfo::NumberInfo<double>>(
+        info.valueInfo));
     auto ni = std::get<api::OptionInfo::NumberInfo<double>>(info.valueInfo);
     ASSERT_EQ(ni.currentValue, 0.0);
     ASSERT_EQ(ni.defaultValue, 0.0);
@@ -2546,7 +2551,6 @@ TEST_F(TestApiBlackSolver, Output)
   ASSERT_TRUE(d_solver.isOutputOn("inst"));
   ASSERT_NE(cvc5::null_os.rdbuf(), d_solver.getOutput("inst").rdbuf());
 }
-
 
 TEST_F(TestApiBlackSolver, issue7000)
 {

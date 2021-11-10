@@ -2648,19 +2648,19 @@ enum RoundingMode
   ROUND_NEAREST_TIES_TO_EVEN,
   /**
    * Round towards positive infinity (+oo).
-   * The result shall be the format’s floating-point number (possibly +oo)
+   * The result shall be the format's floating-point number (possibly +oo)
    * closest to and no less than the infinitely precise result.
    */
   ROUND_TOWARD_POSITIVE,
   /**
    * Round towards negative infinity (-oo).
-   * The result shall be the format’s floating-point number (possibly -oo)
+   * The result shall be the format's floating-point number (possibly -oo)
    * closest to and no less than the infinitely precise result.
    */
   ROUND_TOWARD_NEGATIVE,
   /**
    * Round towards zero.
-   * The result shall be the format’s floating-point number closest to and no
+   * The result shall be the format's floating-point number closest to and no
    * greater in magnitude than the infinitely precise result.
    */
   ROUND_TOWARD_ZERO,
