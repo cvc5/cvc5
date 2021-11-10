@@ -2139,7 +2139,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SET_INTERSECTION,
+  SET_INTER,
   /**
    * Set subtraction.
    *
@@ -3016,25 +3016,25 @@ enum Kind : int32_t
    */
   REGEXP_LOOP,
   /**
-   * Regexp empty.
+   * Regexp none.
    *
    * Parameters: none
    *
    * Create with:
-   *   - `Solver::mkRegexpEmpty() const`
+   *   - `Solver::mkRegexpNone() const`
    *   - `Solver::mkTerm(Kind kind) const`
    */
-  REGEXP_EMPTY,
+  REGEXP_NONE,
   /**
    * Regexp all characters.
    *
    * Parameters: none
    *
    * Create with:
-   *   - `Solver::mkRegexpSigma() const`
+   *   - `Solver::mkRegexpAllchar() const`
    *   - `Solver::mkTerm(Kind kind) const`
    */
-  REGEXP_SIGMA,
+  REGEXP_ALLCHAR,
   /**
    * Regexp complement.
    *

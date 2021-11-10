@@ -275,7 +275,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     /* Sets ---------------------------------------------------------------- */
     {SET_EMPTY, cvc5::Kind::SET_EMPTY},
     {SET_UNION, cvc5::Kind::SET_UNION},
-    {SET_INTERSECTION, cvc5::Kind::SET_INTERSECTION},
+    {SET_INTER, cvc5::Kind::SET_INTER},
     {SET_MINUS, cvc5::Kind::SET_MINUS},
     {SET_SUBSET, cvc5::Kind::SET_SUBSET},
     {SET_MEMBER, cvc5::Kind::SET_MEMBER},
@@ -349,8 +349,8 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {REGEXP_RANGE, cvc5::Kind::REGEXP_RANGE},
     {REGEXP_REPEAT, cvc5::Kind::REGEXP_REPEAT},
     {REGEXP_LOOP, cvc5::Kind::REGEXP_LOOP},
-    {REGEXP_EMPTY, cvc5::Kind::REGEXP_EMPTY},
-    {REGEXP_SIGMA, cvc5::Kind::REGEXP_SIGMA},
+    {REGEXP_NONE, cvc5::Kind::REGEXP_NONE},
+    {REGEXP_ALLCHAR, cvc5::Kind::REGEXP_ALLCHAR},
     {REGEXP_COMPLEMENT, cvc5::Kind::REGEXP_COMPLEMENT},
     // maps to the same kind as the string versions
     {SEQ_CONCAT, cvc5::Kind::STRING_CONCAT},
@@ -585,7 +585,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Sets ------------------------------------------------------------ */
         {cvc5::Kind::SET_EMPTY, SET_EMPTY},
         {cvc5::Kind::SET_UNION, SET_UNION},
-        {cvc5::Kind::SET_INTERSECTION, SET_INTERSECTION},
+        {cvc5::Kind::SET_INTER, SET_INTER},
         {cvc5::Kind::SET_MINUS, SET_MINUS},
         {cvc5::Kind::SET_SUBSET, SET_SUBSET},
         {cvc5::Kind::SET_MEMBER, SET_MEMBER},
@@ -661,8 +661,8 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::REGEXP_REPEAT_OP, REGEXP_REPEAT},
         {cvc5::Kind::REGEXP_LOOP, REGEXP_LOOP},
         {cvc5::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
-        {cvc5::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
-        {cvc5::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
+        {cvc5::Kind::REGEXP_NONE, REGEXP_NONE},
+        {cvc5::Kind::REGEXP_ALLCHAR, REGEXP_ALLCHAR},
         {cvc5::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
         {cvc5::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
         {cvc5::Kind::SEQ_UNIT, SEQ_UNIT},
@@ -5103,14 +5103,14 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 
 Term Solver::mkTermFromKind(Kind kind) const
 {
-  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_EMPTY
-                                   || kind == REGEXP_SIGMA || kind == SEP_EMP,
+  CVC5_API_KIND_CHECK_EXPECTED(kind == PI || kind == REGEXP_NONE
+                                   || kind == REGEXP_ALLCHAR || kind == SEP_EMP,
                                kind)
-      << "PI, REGEXP_EMPTY, REGEXP_SIGMA or SEP_EMP";
+      << "PI, REGEXP_NONE, REGEXP_ALLCHAR or SEP_EMP";
   //////// all checks before this line
   Node res;
   cvc5::Kind k = extToIntKind(kind);
-  if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
+  if (kind == REGEXP_NONE || kind == REGEXP_ALLCHAR)
   {
     Assert(isDefinedIntKind(k));
     res = d_nodeMgr->mkNode(k, std::vector<Node>());
@@ -5796,24 +5796,24 @@ Term Solver::mkReal(int64_t num, int64_t den) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkRegexpEmpty() const
+Term Solver::mkRegexpNone() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_EMPTY, std::vector<cvc5::Node>());
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_NONE, std::vector<cvc5::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
 
-Term Solver::mkRegexpSigma() const
+Term Solver::mkRegexpAllchar() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   Node res =
-      d_nodeMgr->mkNode(cvc5::kind::REGEXP_SIGMA, std::vector<cvc5::Node>());
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
   ////////

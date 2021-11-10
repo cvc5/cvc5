@@ -1025,8 +1025,7 @@ int SortModel::addSplit(Region* r)
       }
       if (ss == b_t)
       {
-        CVC5Message() << "Bad split " << s << std::endl;
-        AlwaysAssert(false);
+        AlwaysAssert(false) << "Bad split " << s << std::endl;
       }
     }
     if (Trace.isOn("uf-ss-split-si"))
@@ -1243,7 +1242,8 @@ CardinalityExtension::CardinalityExtension(Env& env,
       d_min_pos_tn_master_card_set(context(), false),
       d_rel_eqc(context())
 {
-  if (options::ufssMode() == options::UfssMode::FULL && options::ufssFairness())
+  if (options().uf.ufssMode == options::UfssMode::FULL
+      && options().uf.ufssFairness)
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
@@ -1339,7 +1339,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
   Trace("uf-ss") << "Assert " << n << " " << isDecision << std::endl;
   bool polarity = n.getKind() != kind::NOT;
   TNode lit = polarity ? n : n[0];
-  if (options::ufssMode() == options::UfssMode::FULL)
+  if (options().uf.ufssMode == options::UfssMode::FULL)
   {
     if( lit.getKind()==CARDINALITY_CONSTRAINT ){
       const CardinalityConstraint& cc =
@@ -1350,7 +1350,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       uint32_t nCard = cc.getUpperBound().getUnsignedInt();
       Trace("uf-ss-debug") << "...check cardinality constraint : " << tn
                            << std::endl;
-      if (options::ufssFairnessMonotone())
+      if (options().uf.ufssFairnessMonotone)
       {
         SortInference* si = d_state.getSortInference();
         Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
@@ -1431,8 +1431,6 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
             if( !it->second->hasCardinalityAsserted() ){
               Trace("uf-ss-warn") << "WARNING: Assert " << n << " as a decision before cardinality for " << it->first << "." << std::endl;
-              // CVC5Message() << "Error: constraint asserted before cardinality
-              // for " << it->first << std::endl; Unimplemented();
             }
           }
         }
@@ -1487,7 +1485,7 @@ void CardinalityExtension::check(Theory::Effort level)
   }
   if (!d_state.isInConflict())
   {
-    if (options::ufssMode() == options::UfssMode::FULL)
+    if (options().uf.ufssMode == options::UfssMode::FULL)
     {
       Trace("uf-ss-solver")
           << "CardinalityExtension: check " << level << std::endl;
@@ -1516,7 +1514,7 @@ void CardinalityExtension::check(Theory::Effort level)
         }
       }
     }
-    else if (options::ufssMode() == options::UfssMode::NO_MINIMAL)
+    else if (options().uf.ufssMode == options::UfssMode::NO_MINIMAL)
     {
       if( level==Theory::EFFORT_FULL ){
         // split on an equality between two equivalence classes (at most one per type)
@@ -1590,7 +1588,7 @@ CardinalityExtension::CombinedCardinalityDecisionStrategy::identify() const
 
 void CardinalityExtension::preRegisterTerm(TNode n)
 {
-  if (options::ufssMode() != options::UfssMode::FULL)
+  if (options().uf.ufssMode != options::UfssMode::FULL)
   {
     return;
   }
@@ -1699,17 +1697,21 @@ void CardinalityExtension::initializeCombinedCardinality()
 /** check */
 void CardinalityExtension::checkCombinedCardinality()
 {
-  Assert(options::ufssMode() == options::UfssMode::FULL);
-  if( options::ufssFairness() ){
+  Assert(options().uf.ufssMode == options::UfssMode::FULL);
+  if (options().uf.ufssFairness)
+  {
     Trace("uf-ss-com-card-debug") << "Check combined cardinality, get maximum negative cardinalities..." << std::endl;
     uint32_t totalCombinedCard = 0;
     uint32_t maxMonoSlave = 0;
     TypeNode maxSlaveType;
     for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
       uint32_t max_neg = it->second->getMaximumNegativeCardinality();
-      if( !options::ufssFairnessMonotone() ){
+      if (!options().uf.ufssFairnessMonotone)
+      {
         totalCombinedCard += max_neg;
-      }else{
+      }
+      else
+      {
         std::map< TypeNode, bool >::iterator its = d_tn_mono_slave.find( it->first );
         if( its==d_tn_mono_slave.end() || !its->second ){
           totalCombinedCard += max_neg;
@@ -1722,7 +1724,8 @@ void CardinalityExtension::checkCombinedCardinality()
       }
     }
     Trace("uf-ss-com-card-debug") << "Check combined cardinality, total combined card : " << totalCombinedCard << std::endl;
-    if( options::ufssFairnessMonotone() ){
+    if (options().uf.ufssFairnessMonotone)
+    {
       Trace("uf-ss-com-card-debug") << "Max slave monotonic negated cardinality : " << maxMonoSlave << std::endl;
       if (!d_min_pos_tn_master_card_set.get()
           && maxMonoSlave > d_min_pos_tn_master_card.get())
@@ -1751,7 +1754,8 @@ void CardinalityExtension::checkCombinedCardinality()
       for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); 
            it != d_rep_model.end(); ++it ){
         bool doAdd = true;
-        if( options::ufssFairnessMonotone() ){
+        if (options().uf.ufssFairnessMonotone)
+        {
           std::map< TypeNode, bool >::iterator its =
             d_tn_mono_slave.find( it->first );
           if( its!=d_tn_mono_slave.end() && its->second ){

@@ -147,7 +147,7 @@ void Smt2::addDatatypesOperators()
 void Smt2::addStringOperators() {
   defineVar(
       "re.all",
-      getSolver()->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma()));
+      getSolver()->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpAllchar()));
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
   addOperator(api::STRING_SUBSTR, "str.substr");
@@ -594,7 +594,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
               d_solver->mkUniverseSet(d_solver->getBooleanSort()));
 
     addOperator(api::SET_UNION, "set.union");
-    addOperator(api::SET_INTERSECTION, "set.intersection");
+    addOperator(api::SET_INTER, "set.inter");
     addOperator(api::SET_MINUS, "set.minus");
     addOperator(api::SET_SUBSET, "set.subset");
     addOperator(api::SET_MEMBER, "set.member");
@@ -636,8 +636,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineType("RegLan", d_solver->getRegExpSort(), true, true);
     defineType("Int", d_solver->getIntegerSort(), true, true);
 
-    defineVar("re.none", d_solver->mkRegexpEmpty());
-    defineVar("re.allchar", d_solver->mkRegexpSigma());
+    defineVar("re.none", d_solver->mkRegexpNone());
+    defineVar("re.allchar", d_solver->mkRegexpAllchar());
 
     // Boolean is a placeholder
     defineVar("seq.empty",
