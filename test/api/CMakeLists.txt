@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar
+#   Aina Niemetz, Andrew V. Jones, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
