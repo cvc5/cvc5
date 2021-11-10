@@ -76,7 +76,7 @@ void TheorySets::finishInit()
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(SET_SINGLETON);
   d_equalityEngine->addFunctionKind(SET_UNION);
-  d_equalityEngine->addFunctionKind(SET_INTERSECTION);
+  d_equalityEngine->addFunctionKind(SET_INTER);
   d_equalityEngine->addFunctionKind(SET_MINUS);
   d_equalityEngine->addFunctionKind(SET_MEMBER);
   d_equalityEngine->addFunctionKind(SET_SUBSET);
