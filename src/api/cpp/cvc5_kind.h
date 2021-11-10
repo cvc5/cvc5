@@ -2135,7 +2135,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SET_INTERSECTION,
+  SET_INTER,
   /**
    * Set subtraction.
    *

@@ -81,7 +81,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                                nm->mkNode(kind::EQUAL, node[0], node[1][0]));
       }
       else if (node[1].getKind() == kind::SET_UNION
-               || node[1].getKind() == kind::SET_INTERSECTION
+               || node[1].getKind() == kind::SET_INTER
                || node[1].getKind() == kind::SET_MINUS)
       {
         std::vector<Node> children;
@@ -157,7 +157,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     else if (node[1].getKind() == kind::SET_MINUS && node[1][0] == node[0])
     {
       // (setminus A (setminus A B)) = (intersection A B)
-      Node intersection = nm->mkNode(SET_INTERSECTION, node[0], node[1][1]);
+      Node intersection = nm->mkNode(SET_INTER, node[0], node[1][1]);
       return RewriteResponse(REWRITE_AGAIN, intersection);
     }
     else if (node[1].getKind() == kind::SET_UNIVERSE)
@@ -185,7 +185,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }  // kind::SET_MINUS
 
-  case kind::SET_INTERSECTION:
+  case kind::SET_INTER:
   {
     if(node[0] == node[1]) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
@@ -289,7 +289,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           NodeManager::currentNM()->mkNode(
               kind::SET_CARD,
               NodeManager::currentNM()->mkNode(
-                  kind::SET_INTERSECTION, node[0][0], node[0][1])));
+                  kind::SET_INTER, node[0][0], node[0][1])));
       return RewriteResponse(REWRITE_DONE, ret );
     }
     else if (node[0].getKind() == kind::SET_MINUS)
@@ -300,7 +300,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           NodeManager::currentNM()->mkNode(
               kind::SET_CARD,
               NodeManager::currentNM()->mkNode(
-                  kind::SET_INTERSECTION, node[0][0], node[0][1])));
+                  kind::SET_INTER, node[0][0], node[0][1])));
       return RewriteResponse(REWRITE_DONE, ret );
     }
     break;
