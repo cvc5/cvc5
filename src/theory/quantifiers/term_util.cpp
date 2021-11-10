@@ -283,7 +283,7 @@ bool TermUtil::isAssoc(Kind k, bool reqNAry)
 {
   if (reqNAry)
   {
-    if (k == SET_UNION || k == SET_INTERSECTION)
+    if (k == SET_UNION || k == SET_INTER)
     {
       return false;
     }
@@ -292,7 +292,7 @@ bool TermUtil::isAssoc(Kind k, bool reqNAry)
          || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
-         || k == SET_UNION || k == SET_INTERSECTION || k == RELATION_JOIN
+         || k == SET_UNION || k == SET_INTER || k == RELATION_JOIN
          || k == RELATION_PRODUCT || k == SEP_STAR;
 }
 
@@ -300,7 +300,7 @@ bool TermUtil::isComm(Kind k, bool reqNAry)
 {
   if (reqNAry)
   {
-    if (k == SET_UNION || k == SET_INTERSECTION)
+    if (k == SET_UNION || k == SET_INTER)
     {
       return false;
     }
@@ -308,7 +308,7 @@ bool TermUtil::isComm(Kind k, bool reqNAry)
   return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
          || k == OR || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
-         || k == BITVECTOR_XNOR || k == SET_UNION || k == SET_INTERSECTION
+         || k == BITVECTOR_XNOR || k == SET_UNION || k == SET_INTER
          || k == SEP_STAR;
 }
 

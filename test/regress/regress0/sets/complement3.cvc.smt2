@@ -8,7 +8,7 @@
 (declare-fun C4 () (Set (Tuple Atom)))
 (declare-fun ATOM_UNIV () (Set (Tuple Atom)))
 (declare-fun V1 () Atom)
-(assert (= C32 (set.intersection (set.complement C2) (set.complement C4))))
+(assert (= C32 (set.inter (set.complement C2) (set.complement C4))))
 (assert (set.member (tuple V1) (set.complement C32)))
 (assert (= ATOM_UNIV (as set.universe (Set (Tuple Atom)))))
 (assert (set.member (tuple V1) ATOM_UNIV))
