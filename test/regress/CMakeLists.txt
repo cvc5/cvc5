@@ -1092,6 +1092,7 @@ set(regress_0_tests
   regress0/seq/seq-ex4.smt2
   regress0/seq/seq-ex5-dd.smt2
   regress0/seq/seq-ex5.smt2
+  regress0/seq/seqa-model-unsound-dd.smt2
   regress0/seq/seqArraySolver/array1.smt2
   regress0/seq/seqArraySolver/array2.smt2
   regress0/seq/seqArraySolver/array3.smt2
@@ -2060,6 +2061,7 @@ set(regress_1_tests
   regress1/quantifiers/seu169+1.smt2
   regress1/quantifiers/seq-solved-enum.smt2
   regress1/quantifiers/seq-unsolved-ematch.smt2
+  regress1/quantifiers/seqa-unsat-unknown-110921.smt2
   regress1/quantifiers/small-pipeline-fixpoint-3.smt2
   regress1/quantifiers/smtcomp-qbv-053118.smt2
   regress1/quantifiers/smtlib384a03.smt2

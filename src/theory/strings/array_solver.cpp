@@ -123,7 +123,9 @@ void ArraySolver::checkTerms(Kind k)
       Trace("seq-array-debug") << "...norm form size 1" << std::endl;
       // NOTE: could split on n=0 if needed, do not introduce ITE
       Kind ck = nf.d_nf[0].getKind();
-      if (ck == SEQ_UNIT)
+      // Note that (seq.unit c) is rewritten to CONST_SEQUENCE{c}, hence we
+      // check two cases here.
+      if (ck == SEQ_UNIT || (ck==CONST_SEQUENCE && Word::getLength(nf.d_nf[0])==1))
       {
         Trace("seq-array-debug") << "...unit case" << std::endl;
         // do we know whether n = 0 ?
@@ -141,7 +143,15 @@ void ArraySolver::checkTerms(Kind k)
         else
         {
           Assert(k == SEQ_NTH);
-          thenBranch = nf.d_nf[0][0];
+          if (ck==CONST_SEQUENCE)
+          {
+            const Sequence& seq = nf.d_nf[0].getConst<Sequence>();
+            thenBranch = seq.getVec()[0];
+          }
+          else
+          {
+            thenBranch = nf.d_nf[0][0];
+          }
           Node uf = SkolemCache::mkSkolemSeqNth(t[0].getType(), "Uf");
           elseBranch = nm->mkNode(APPLY_UF, uf, t[0], t[1]);
           iid = InferenceId::STRINGS_ARRAY_NTH_UNIT;
@@ -193,25 +203,39 @@ void ArraySolver::checkTerms(Kind k)
         currIndex = nm->mkNode(MINUS, currIndex, currSum);
       }
       Node cc;
-      if (k == STRING_UPDATE)
+      // If it is a constant of length one, then the update/nth is determined
+      // in this interval. This is important for completeness of this schema;
+      // otherwise we would conclude a trivial equality when update/nth is
+      // applied to a constant of length one. Notice this is done here as
+      // an optimization to short cut introducing terms like
+      // (seq.nth (seq.unit c) i), which by construction is only relevant in
+      // the context where i = 0, hence we replace by c here.
+      if (c.getKind()==CONST_SEQUENCE)
       {
-        cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
-      }
-      else
-      {
-        Assert(k == SEQ_NTH);
-        cc = nm->mkNode(SEQ_NTH, c, currIndex);
-        // If it is a constant of length one, then the nth is deterministic
-        // in this interval, so we return the element. This is also important
-        // for completeness of this schema; otherwise we would conclude
-        // a trivial equality when nth is applied to a constant of length one.
-        if (c.getKind()==CONST_SEQUENCE)
+        const Sequence& seq = c.getConst<Sequence>();
+        if (seq.size()==1)
         {
-          const Sequence& seq = c.getConst<Sequence>();
-          if (seq.size()==1)
+          if (k == STRING_UPDATE)
+          {
+            cc = nm->mkNode(ITE, t[1].eqNode(d_zero), t[2], c);
+          }
+          else
           {
             cc = seq.getVec()[0];
           }
+        }
+      }
+      // if we did not process as a constant of length one
+      if (cc.isNull())
+      {
+        if (k == STRING_UPDATE)
+        {
+          cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
+        }
+        else
+        {
+          Assert(k == SEQ_NTH);
+          cc = nm->mkNode(SEQ_NTH, c, currIndex);
         }
       }
       Trace("seq-array-debug") << "......component " << cc << std::endl;
