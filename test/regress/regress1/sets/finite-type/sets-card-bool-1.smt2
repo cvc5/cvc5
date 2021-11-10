@@ -7,6 +7,6 @@
 (declare-fun universe () (Set Bool))
 (assert (= (set.card A) 2))
 (assert (= (set.card B) 2))
-(assert (= (set.intersection A B) (as set.empty (Set Bool))))
+(assert (= (set.inter A B) (as set.empty (Set Bool))))
 (assert (= universe (as set.universe (Set Bool))))
 (check-sat)

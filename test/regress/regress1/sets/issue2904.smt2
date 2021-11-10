@@ -21,6 +21,6 @@
 (assert (> n (+ (* 2 f) m)))
 
 
-(assert (>= (set.card (set.minus UNIVERALSET (set.intersection (set.minus UNIVERALSET b) (set.minus UNIVERALSET c)))) n))
+(assert (>= (set.card (set.minus UNIVERALSET (set.inter (set.minus UNIVERALSET b) (set.minus UNIVERALSET c)))) n))
 
 (check-sat)

@@ -230,7 +230,7 @@
 (assert (! (= sk_?X_28$0 (lseg_domain$0 next$0 curr_3$0 null$0))
    :named invariant_18_4_69))
 
-(assert (! (= (as set.empty SetLoc) (set.intersection sk_?X_27$0 sk_?X_28$0))
+(assert (! (= (as set.empty SetLoc) (set.inter sk_?X_27$0 sk_?X_28$0))
    :named invariant_18_4_70))
 
 (assert (! (= Alloc$0 (set.union FP_Caller$0 Alloc$0))
@@ -246,7 +246,7 @@
 
 (assert (! (= FP_2$0
      (set.union (set.minus FP$0 FP_1$0)
-       (set.union (set.intersection Alloc$0 FP_1$0) (set.minus Alloc$0 Alloc$0))))
+       (set.union (set.inter Alloc$0 FP_1$0) (set.minus Alloc$0 Alloc$0))))
    :named framecondition_of_remove_loop_18_4_17))
 
 (assert (! (or (Btwn$0 next$0 lst$0 curr_2$0 curr_2$0)
@@ -311,7 +311,7 @@
 
 (assert (! (= sk_?X_30$0 FP_1$0) :named invariant_18_4_74))
 
-(assert (! (= (as set.empty SetLoc) (set.intersection sk_?X_32$0 sk_?X_31$0))
+(assert (! (= (as set.empty SetLoc) (set.inter sk_?X_32$0 sk_?X_31$0))
    :named invariant_18_4_75))
 
 (assert (! (not (= curr_3$0 null$0)) :named invariant_18_4_76))
@@ -320,7 +320,7 @@
    :named invariant_18_4_77))
 
 (assert (! (= sk_?X_29$0
-     (set.union (set.intersection Alloc$0 FP_1$0) (set.minus Alloc$0 Alloc$0)))
+     (set.union (set.inter Alloc$0 FP_1$0) (set.minus Alloc$0 Alloc$0)))
    :named invariant_18_4_78))
 
 (assert (! (= sk_?X_27$0 (lseg_domain$0 next$0 lst_1$0 curr_3$0))
