@@ -1011,12 +1011,31 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // resulting rational here. This also is applied for integral real values
     // like 5.0 which are converted to (/ 5 1) to distinguish them from
     // integer constants. We must ensure numerator and denominator are
-    // constant and the denominator is non-zero.
-    if (constVal.getKind() == api::DIVISION)
+    // constant and the denominator is non-zero. A similar issue happens for
+    // negative integers and reals, with unary minus.
+    bool isNeg = false;
+    if (constVal.getKind() == api::UMINUS)
+    {
+      isNeg = true;
+      constVal = constVal[0];
+    }
+    if (constVal.getKind() == api::DIVISION
+        && constVal[0].getKind() == api::CONST_RATIONAL
+        && constVal[1].getKind() == api::CONST_RATIONAL)
     {
       std::stringstream sdiv;
-      sdiv << constVal[0] << "/" << constVal[1];
+      sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
       constVal = d_solver->mkReal(sdiv.str());
+    }
+    else if (constVal.getKind() == api::CONST_RATIONAL && isNeg)
+    {
+      std::stringstream sneg;
+      sneg << "-" << constVal;
+      constVal = d_solver->mkInteger(sneg.str());
+    }
+    else
+    {
+      constVal = args[0];
     }
 
     if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
