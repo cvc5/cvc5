@@ -1,7 +1,7 @@
 C++ API Documentation
 =====================
 
-  * :doc:`Quickstart Guide <quickstart>`
+:doc:`Quickstart Guide <quickstart>`
 
 ``namespace cvc5::api {``
   
