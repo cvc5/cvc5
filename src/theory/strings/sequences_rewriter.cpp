@@ -978,6 +978,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
   Assert(nk == REGEXP_UNION || nk == REGEXP_INTER);
   Trace("strings-rewrite-debug")
       << "Strings::rewriteAndOrRegExp start " << node << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> node_vec;
   std::vector<Node> polRegExp[2];
   // list of constant string regular expressions (str.to_re c)
@@ -1015,7 +1016,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
     else if (std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end())
     {
-      if (nik == STRING_TO_REGEXP && nik[0].isConst())
+      if (nik == STRING_TO_REGEXP && ni[0].isConst())
       {
         if (nk == REGEXP_INTER)
         {
@@ -1038,19 +1039,20 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       else
       {
         otherRe.push_back(ni);
+        uint32_t pindex = nik == REGEXP_COMPLEMENT ? 1 : 0;
+        Node nia = pindex == 1 ? ni[0] : ni;
+        polRegExp[pindex].push_back(nia);
       }
       node_vec.push_back(ni);
-      uint32_t pindex = nik == REGEXP_COMPLEMENT ? 1 : 0;
-      Node nia = pindex == 1 ? ni[0] : ni;
-      polRegExp[pindex].push_back(nia);
     }
   }
   // go back and process constant strings against the others
-  if (!constStr.empty())
+  if (!constStrRe.empty())
   {
     std::unordered_set<Node> toRemove;
-    for (const Node& c : constStr)
+    for (const Node& c : constStrRe)
     {
+      Assert (c.getKind()==STRING_TO_REGEXP && c[0].getKind()==CONST_STRING);
       cvc5::String s = c[0].getConst<String>();
       for (const Node& r : otherRe)
       {
@@ -1103,7 +1105,6 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       }
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
   // use inclusion tests
   for (const Node& negMem : polRegExp[1])
   {
