@@ -17,7 +17,9 @@
 
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "util/rational.h"
+#include "expr/sequence.h"
 
 using namespace cvc5::context;
 using namespace cvc5::kind;
@@ -108,6 +110,7 @@ void ArraySolver::checkTerms(Kind k)
     Node r = d_state.getRepresentative(t[0]);
     NormalForm& nf = d_csolver.getNormalForm(r);
     Trace("seq-array-debug") << "...normal form " << nf.d_nf << std::endl;
+    std::vector<Node> nfChildren;
     if (nf.d_nf.empty())
     {
       // updates should have been reduced (UPD_EMPTYSTR)
@@ -155,6 +158,7 @@ void ArraySolver::checkTerms(Kind k)
           d_eqProc.insert(eq);
           d_im.sendInference(exp, eq, iid);
         }
+        continue;
       }
       else if (ck != CONST_SEQUENCE)
       {
@@ -164,14 +168,21 @@ void ArraySolver::checkTerms(Kind k)
         continue;
       }
       // if the normal form is a constant sequence, it is treated as a
-      // concatenation
+      // concatenation. We split per character and case split on whether the
+      // nth/update falls on each character below.
+      std::vector<Node> chars = Word::getChars(nf.d_nf[0]);
+      nfChildren.insert(nfChildren.end(), chars.begin(), chars.end());
+    }
+    else
+    {
+      nfChildren.insert(nfChildren.end(), nf.d_nf.begin(), nf.d_nf.end());
     }
     // otherwise, we are the concatenation of the components
     // NOTE: for nth, split on index vs component lengths, do not introduce ITE
     std::vector<Node> cond;
     std::vector<Node> cchildren;
     std::vector<Node> lacc;
-    for (const Node& c : nf.d_nf)
+    for (const Node& c : nfChildren)
     {
       Trace("seq-array-debug") << "...process " << c << std::endl;
       Node clen = nm->mkNode(STRING_LENGTH, c);
@@ -181,26 +192,37 @@ void ArraySolver::checkTerms(Kind k)
         Node currSum = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
         currIndex = nm->mkNode(MINUS, currIndex, currSum);
       }
+      Node cc;
       if (k == STRING_UPDATE)
       {
-        Node cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
-        Trace("seq-array-debug") << "......component " << cc << std::endl;
-        cchildren.push_back(cc);
+        cc = nm->mkNode(STRING_UPDATE, c, currIndex, t[2]);
       }
       else
       {
         Assert(k == SEQ_NTH);
-        Node cc = nm->mkNode(SEQ_NTH, c, currIndex);
-        Trace("seq-array-debug") << "......component " << cc << std::endl;
-        cchildren.push_back(cc);
+        cc = nm->mkNode(SEQ_NTH, c, currIndex);
+        // If it is a constant of length one, then the nth is deterministic
+        // in this interval, so we return the element. This is also important
+        // for completeness of this schema; otherwise we would conclude
+        // a trivial equality when nth is applied to a constant of length one.
+        if (c.getKind()==CONST_SEQUENCE)
+        {
+          const Sequence& seq = c.getConst<Sequence>();
+          if (seq.size()==1)
+          {
+            cc = seq.getVec()[0];
+          }
+        }
       }
+      Trace("seq-array-debug") << "......component " << cc << std::endl;
+      cchildren.push_back(cc);
       lacc.push_back(clen);
       if (k == SEQ_NTH)
       {
         Node currSumPost = lacc.size() == 1 ? lacc[0] : nm->mkNode(PLUS, lacc);
-        Node cc = nm->mkNode(LT, t[1], currSumPost);
-        Trace("seq-array-debug") << "......condition " << cc << std::endl;
-        cond.push_back(cc);
+        Node cf = nm->mkNode(LT, t[1], currSumPost);
+        Trace("seq-array-debug") << "......condition " << cf << std::endl;
+        cond.push_back(cf);
       }
     }
     // z = (seq.++ x y) =>
