@@ -207,6 +207,7 @@ def test_get_op(solver):
     children = [c for c in headTerm]
     assert headTerm == solver.mkTerm(headTerm.getOp(), children)
 
+
 def test_get_symbol(solver):
     n = Term(solver)
     t = solver.mkBoolean(True)
@@ -222,6 +223,7 @@ def test_get_symbol(solver):
     with pytest.raises(RuntimeError):
         t.getSymbol()
     assert c.getSymbol() == "|\\|"
+
 
 def test_is_null(solver):
     x = Term(solver)
