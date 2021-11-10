@@ -317,6 +317,10 @@ void TheoryUF::preRegisterTerm(TNode node)
 
   if (logicInfo().isHigherOrder())
   {
+    // When using lazy lambda handling, if node is a lambda function, it must
+    // be marked as a shared term. This is to ensure we split on the equality
+    // of lambda functions with other functions when doing care graph
+    // based theory combination.
     if (d_lambdaLift->isLambdaFunction(node))
     {
       addSharedTerm(node);
@@ -537,8 +541,15 @@ bool TheoryUF::areCareDisequal(TNode x, TNode y)
     TNode y_shared =
         d_equalityEngine->getTriggerTermRepresentative(y, THEORY_UF);
     EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-    if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
-      if (x.getType().isFunction())
+    if (eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_AND_PROPAGATED)
+    {
+      return true;
+    }
+    else if( eqStatus==EQUALITY_FALSE_IN_MODEL ){
+      // if x or y is a lambda function, and they are neither entailed to
+      // be equal or disequal, then we return false. This ensures the pair
+      // (x,y) may be considered for the care graph.
+      if (d_lambdaLift->isLambdaFunction(x) || d_lambdaLift->isLambdaFunction(y))
       {
         return false;
       }
