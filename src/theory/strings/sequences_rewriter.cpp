@@ -1015,22 +1015,23 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
     else if (std::find(node_vec.begin(), node_vec.end(), ni) == node_vec.end())
     {
-      if (nik==STRING_TO_REGEXP && nik[0].isConst())
+      if (nik == STRING_TO_REGEXP && nik[0].isConst())
       {
-        if (nk==REGEXP_INTER)
+        if (nk == REGEXP_INTER)
         {
           if (!constStrRe.empty())
           {
-            Assert (constStrRe[0][0]!=nik[0]);
+            Assert(constStrRe[0][0] != nik[0]);
             // (re.inter .. (str.to_re c1) .. (str.to_re c2) ..) ---> re.none
             // for distinct constant strings c1, c2.
             Node ret = nm->mkNode(kind::REGEXP_NONE);
-            return returnRewrite(node, ret, Rewrite::RE_INTER_CONST_CONST_CONFLICT);
+            return returnRewrite(
+                node, ret, Rewrite::RE_INTER_CONST_CONST_CONFLICT);
           }
         }
         else
         {
-          Assert (nk==REGEXP_UNION);
+          Assert(nk == REGEXP_UNION);
         }
         constStrRe.push_back(ni);
       }
@@ -1054,14 +1055,15 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       for (const Node& r : otherRe)
       {
         // skip if already removing, or not constant
-        if (!RegExpEntail::isConstRegExp(r) || toRemove.find(r)!=toRemove.end())
+        if (!RegExpEntail::isConstRegExp(r)
+            || toRemove.find(r) != toRemove.end())
         {
           continue;
         }
         // test whether x in node[1]
         if (RegExpEntail::testConstStringInRegExp(s, 0, r))
         {
-          if (nk==REGEXP_INTER)
+          if (nk == REGEXP_INTER)
           {
             // (re.inter .. (str.to_re c) .. R ..) --->
             // (re.inter .. (str.to_re c) .. ..) when c in R
@@ -1077,12 +1079,13 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         }
         else
         {
-          if (nk==REGEXP_INTER)
-          {            
+          if (nk == REGEXP_INTER)
+          {
             // (re.inter .. (str.to_re c) .. R ..) ---> re.none
             // if c is not a member of R.
             Node ret = nm->mkNode(kind::REGEXP_NONE);
-            return returnRewrite(node, ret, Rewrite::RE_INTER_CONST_RE_CONFLICT);
+            return returnRewrite(
+                node, ret, Rewrite::RE_INTER_CONST_RE_CONFLICT);
           }
         }
       }
@@ -1093,7 +1096,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       node_vec.clear();
       for (const Node& nvt : nodeVecTmp)
       {
-        if (toRemove.find(nvt)==toRemove.end())
+        if (toRemove.find(nvt) == toRemove.end())
         {
           node_vec.push_back(nvt);
         }
