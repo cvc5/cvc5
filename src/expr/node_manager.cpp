@@ -1033,8 +1033,8 @@ Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
       << "Invalid operands for mkSingleton. The type '" << n.getType()
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
-  Node op = mkConst(SingletonOp(t));
-  Node singleton = mkNode(kind::SINGLETON, op, n);
+  Node op = mkConst(SetSingletonOp(t));
+  Node singleton = mkNode(kind::SET_SINGLETON, op, n);
   return singleton;
 }
 

@@ -43,7 +43,8 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_qim(nullptr),
       d_qreg(qr),
       d_termsContext(),
-      d_termsContextUse(options::termDbCd() ? context() : &d_termsContext),
+      d_termsContextUse(options().quantifiers.termDbCd ? context()
+                                                       : &d_termsContext),
       d_processed(d_termsContextUse),
       d_typeMap(d_termsContextUse),
       d_ops(d_termsContextUse),
@@ -53,7 +54,7 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  if (!options::termDbCd())
+  if (!options().quantifiers.termDbCd)
   {
     // when not maintaining terms in a context-dependent manner, we clear during
     // each presolve, which requires maintaining a single outermost level
@@ -85,7 +86,7 @@ Node TermDb::getOperator(size_t i) const
 }
 
 /** ground terms */
-size_t TermDb::getNumGroundTerms(Node f) const
+size_t TermDb::getNumGroundTerms(TNode f) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
   if (it != d_opMap.end())
@@ -95,7 +96,7 @@ size_t TermDb::getNumGroundTerms(Node f) const
   return 0;
 }
 
-Node TermDb::getGroundTerm(Node f, size_t i) const
+Node TermDb::getGroundTerm(TNode f, size_t i) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
   if (it != d_opMap.end())
@@ -105,6 +106,16 @@ Node TermDb::getGroundTerm(Node f, size_t i) const
   }
   Assert(false);
   return Node::null();
+}
+
+DbList* TermDb::getGroundTermList(TNode f) const
+{
+  NodeDbListMap::const_iterator it = d_opMap.find(f);
+  if (it != d_opMap.end())
+  {
+    return it->second.get();
+  }
+  return nullptr;
 }
 
 size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
@@ -162,7 +173,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
     Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
                    << std::endl;
-    if (options::instMaxLevel() != -1)
+    if (options().quantifiers.instMaxLevel != -1)
     {
       QuantAttributes::setInstantiationLevelAttr(k, 0);
     }
@@ -175,10 +186,11 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
 Node TermDb::getMatchOperator( Node n ) {
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are
-  if (k == SELECT || k == STORE || k == UNION || k == INTERSECTION
-      || k == SUBSET || k == SETMINUS || k == MEMBER || k == SINGLETON
-      || k == APPLY_SELECTOR_TOTAL || k == APPLY_SELECTOR || k == APPLY_TESTER
-      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH)
+  if (k == SELECT || k == STORE || k == SET_UNION || k == SET_INTER
+      || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
+      || k == SET_SINGLETON || k == APPLY_SELECTOR_TOTAL || k == APPLY_SELECTOR
+      || k == APPLY_TESTER || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH
+      || k == STRING_LENGTH)
   {
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
@@ -284,7 +296,8 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     return;
   }
-  d_func_map_eqc_trie[f].clear();
+  TNodeTrie& tnt = d_func_map_eqc_trie[f];
+  tnt.clear();
   // get the matchable operators in the equivalence class of f
   std::vector<TNode> ops;
   getOperatorsFor(f, ops);
@@ -298,7 +311,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
       {
         computeArgReps(n);
         TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
-        d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
+        tnt.d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
   }
@@ -468,25 +481,27 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
     return d_has_map.find( n )!=d_has_map.end();
   }
   //some assertions are not sent to EE
-  if (options::termDbMode() == options::TermDbMode::ALL)
+  if (options().quantifiers.termDbMode == options::TermDbMode::ALL)
   {
     return true;
   }
-  else if (options::termDbMode() == options::TermDbMode::RELEVANT)
+  else if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
   {
     return d_has_map.find( n )!=d_has_map.end();
   }
-  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : " << options::termDbMode();
+  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : "
+                << options().quantifiers.termDbMode;
   return false;
 }
 
 bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
-  if( options::instMaxLevel()!=-1 ){
+  if (options().quantifiers.instMaxLevel != -1)
+  {
     if( n.hasAttribute(InstLevelAttribute()) ){
       int64_t fml =
           f.isNull() ? -1 : d_qreg.getQuantAttributes().getQuantInstLevel(f);
-      unsigned ml = fml>=0 ? fml : options::instMaxLevel();
+      unsigned ml = fml >= 0 ? fml : options().quantifiers.instMaxLevel;
 
       if( n.getAttribute(InstLevelAttribute())>ml ){
         Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
@@ -494,7 +509,8 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
         return false;
       }
     }else{
-      if( options::instLevelInputOnly() ){
+      if (options().quantifiers.instLevelInputOnly)
+      {
         Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
         return false;
       }
@@ -565,7 +581,7 @@ void TermDb::setHasTerm( Node n ) {
 }
 
 void TermDb::presolve() {
-  if (options::incrementalSolving() && !options::termDbCd())
+  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
   {
     d_termsContext.pop();
     d_termsContext.push();
@@ -590,7 +606,7 @@ bool TermDb::reset( Theory::Effort effort ){
   }
 
   //compute has map
-  if (options::termDbMode() == options::TermDbMode::RELEVANT)
+  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
   {
     d_has_map.clear();
     d_term_elig_eqc.clear();

@@ -52,7 +52,7 @@ RegExpSolver::RegExpSolver(Env& env,
       d_regexp_opr(env, tr.getSkolemCache())
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::cvc5::String(""));
-  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_EMPTY);
+  d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_NONE);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -247,7 +247,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         }
         else
         {
-          if (!options::stringExp())
+          if (!options().strings.stringExp)
           {
             throw LogicException(
                 "Strings Incomplete (due to Negative Membership) by default, "
@@ -413,7 +413,7 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
 bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
 {
   // do not compute intersections if the re intersection mode is none
-  if (options::stringRegExpInterMode() == options::RegExpInterMode::NONE)
+  if (options().strings.stringRegExpInterMode == options::RegExpInterMode::NONE)
   {
     return true;
   }
@@ -436,7 +436,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     }
     RegExpConstType rct = d_regexp_opr.getRegExpConstType(m[1]);
     if (rct == RE_C_VARIABLE
-        || (options::stringRegExpInterMode()
+        || (options().strings.stringRegExpInterMode
                 == options::RegExpInterMode::CONSTANT
             && rct != RE_C_CONRETE_CONSTANT))
     {
@@ -444,7 +444,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       // on option.
       continue;
     }
-    if (options::stringRegExpInterMode()
+    if (options().strings.stringRegExpInterMode
         == options::RegExpInterMode::ONE_CONSTANT)
     {
       if (!mi.isNull() && rcti >= RE_C_CONSTANT && rct >= RE_C_CONSTANT)
@@ -656,8 +656,8 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
   Node ret = r;
   switch (r.getKind())
   {
-    case REGEXP_EMPTY:
-    case REGEXP_SIGMA:
+    case REGEXP_NONE:
+    case REGEXP_ALLCHAR:
     case REGEXP_RANGE: break;
     case STRING_TO_REGEXP:
     {

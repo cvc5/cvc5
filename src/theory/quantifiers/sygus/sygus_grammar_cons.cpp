@@ -110,7 +110,8 @@ Node CegGrammarConstructor::process(Node q,
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
                  << std::endl;
   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-  if( options::sygusAddConstGrammar() ){
+  if (options().quantifiers.sygusAddConstGrammar)
+  {
     Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
     collectTerms( q[1], extra_cons );
   }
@@ -194,7 +195,8 @@ Node CegGrammarConstructor::process(Node q,
       TNode templ_arg = itta->second;
       Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of it
-      if( options::sygusTemplEmbedGrammar() ){
+      if (options().quantifiers.sygusTemplEmbedGrammar)
+      {
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
                              << " with arg " << templ_arg << std::endl;
         Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
@@ -988,7 +990,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
 
       // add for union, difference, intersection
-      std::vector<Kind> bin_kinds = {UNION, INTERSECTION, SETMINUS};
+      std::vector<Kind> bin_kinds = {SET_UNION, SET_INTER, SET_MINUS};
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(unres_t);
       cargsBinary.push_back(unres_t);
@@ -1454,8 +1456,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsMember;
       cargsMember.push_back(unresElemType);
       cargsMember.push_back(unres_types[iuse]);
-      Trace("sygus-grammar-def") << "...for MEMBER" << std::endl;
-      sdtBool.addConstructor(MEMBER, cargsMember);
+      Trace("sygus-grammar-def") << "...for SET_MEMBER" << std::endl;
+      sdtBool.addConstructor(SET_MEMBER, cargsMember);
     }
   }
   // add Boolean connectives, if not in a degenerate case of (recursively)

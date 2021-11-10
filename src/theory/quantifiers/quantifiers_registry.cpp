@@ -26,8 +26,8 @@ namespace quantifiers {
 QuantifiersRegistry::QuantifiersRegistry(Env& env)
     : QuantifiersUtil(env),
       d_quantAttr(),
-      d_quantBoundInf(options::fmfTypeCompletionThresh(),
-                      options::finiteModelFind()),
+      d_quantBoundInf(options().quantifiers.fmfTypeCompletionThresh,
+                      options().quantifiers.finiteModelFind),
       d_quantPreproc(env)
 {
 }

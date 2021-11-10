@@ -63,7 +63,7 @@ void SolverState::registerEqc(TypeNode tn, Node r)
 void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
 {
   Kind nk = n.getKind();
-  if (nk == MEMBER)
+  if (nk == SET_MEMBER)
   {
     if (r.isConst())
     {
@@ -81,7 +81,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
         if (d_members_index[s].find(x) == d_members_index[s].end())
         {
           d_members_index[s][x] = n;
-          d_op_list[MEMBER].push_back(n);
+          d_op_list[SET_MEMBER].push_back(n);
         }
       }
       else
@@ -90,28 +90,28 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       }
     }
   }
-  else if (nk == SINGLETON || nk == UNION || nk == INTERSECTION
-           || nk == SETMINUS || nk == EMPTYSET || nk == UNIVERSE_SET)
+  else if (nk == SET_SINGLETON || nk == SET_UNION || nk == SET_INTER
+           || nk == SET_MINUS || nk == SET_EMPTY || nk == SET_UNIVERSE)
   {
-    if (nk == SINGLETON)
+    if (nk == SET_SINGLETON)
     {
       Node re = d_ee->getRepresentative(n[0]);
       if (d_singleton_index.find(re) == d_singleton_index.end())
       {
         d_singleton_index[re] = n;
         d_eqc_singleton[r] = n;
-        d_op_list[SINGLETON].push_back(n);
+        d_op_list[SET_SINGLETON].push_back(n);
       }
       else
       {
         d_congruent[n] = d_singleton_index[re];
       }
     }
-    else if (nk == EMPTYSET)
+    else if (nk == SET_EMPTY)
     {
       d_eqc_emptyset[tnn] = r;
     }
-    else if (nk == UNIVERSE_SET)
+    else if (nk == SET_UNIVERSE)
     {
       Assert(options().sets.setsExt);
       d_eqc_univset[tnn] = r;
@@ -135,7 +135,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
   }
-  else if (nk == COMPREHENSION)
+  else if (nk == SET_COMPREHENSION)
   {
     d_compSets[r].push_back(n);
     d_allCompSets.push_back(n);
@@ -235,7 +235,7 @@ bool SolverState::isEntailed(Node n, bool polarity) const
     }
     return areDisequal(n[0], n[1]);
   }
-  else if (n.getKind() == MEMBER)
+  else if (n.getKind() == SET_MEMBER)
   {
     if (areEqual(n, polarity ? d_true : d_false))
     {
@@ -533,14 +533,14 @@ bool SolverState::merge(TNode t1,
   for (size_t i = 0, nmem2 = (*mem_i2).second; i < nmem2; i++)
   {
     Assert(i < d_members_data[t2].size()
-           && d_members_data[t2][i].getKind() == MEMBER);
+           && d_members_data[t2][i].getKind() == SET_MEMBER);
     Node m2 = d_members_data[t2][i];
     // check if redundant
     bool add = true;
     for (size_t j = 0; j < n_members; j++)
     {
       Assert(j < d_members_data[t1].size()
-             && d_members_data[t1][j].getKind() == MEMBER);
+             && d_members_data[t1][j].getKind() == SET_MEMBER);
       if (areEqual(m2[0], d_members_data[t1][j][0]))
       {
         add = false;
@@ -555,7 +555,7 @@ bool SolverState::merge(TNode t1,
         NodeManager* nm = NodeManager::currentNM();
         Assert(areEqual(m2[1], cset));
         Node exp = nm->mkNode(AND, m2[1].eqNode(cset), m2);
-        if (cset.getKind() == SINGLETON)
+        if (cset.getKind() == SET_SINGLETON)
         {
           if (cset[0] != m2[0])
           {

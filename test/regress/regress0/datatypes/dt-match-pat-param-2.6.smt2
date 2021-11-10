@@ -4,12 +4,12 @@
 (set-info :status sat)
 (declare-datatypes ( ( Tree 0) ( TreeList 0) ) (
  ( ( node ( value Int ) ( children TreeList) ))
-( ( empty ) ( insert ( head Tree) ( tail TreeList)) )
+( ( empty ) ( set.insert ( head Tree) ( tail TreeList)) )
 ))
 
 
 (declare-fun t () TreeList)
-(assert (<= 100 (match t ((empty (- 1)) ((insert x1 x2) (value x1))))))
+(assert (<= 100 (match t ((empty (- 1)) ((set.insert x1 x2) (value x1))))))
 
 
 (declare-datatypes ( ( PTree 1) ( PTreeList 1) ) (

@@ -213,13 +213,6 @@ bool solverInvoke(api::Solver* solver,
   }
 
   cmd->invoke(solver, sm, out);
-  // ignore the error if the command-verbosity is 0 for this command
-  std::string commandName =
-      std::string("command-verbosity:") + cmd->getCommandName();
-  if (solver->getOption(commandName) == "0")
-  {
-    return true;
-  }
   return !cmd->fail();
 }
 
