@@ -385,7 +385,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         {
           for (size_t j = (i + 1); j < lsize; j++)
           {
-            Node s = nm->mkNode(SET_INTERSECTION, labels[i], labels[j]);
+            Node s = nm->mkNode(SET_INTER, labels[i], labels[j]);
             Node ilem = s.eqNode(empSet);
             Trace("sep-lemma-debug")
                 << "Sep::Lemma : star reduction, disjoint : " << ilem
@@ -401,7 +401,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         Trace("sep-lemma-debug")
             << "Sep::Lemma : wand reduction, union : " << ulem << std::endl;
         c_lems.push_back(ulem);
-        Node s = nm->mkNode(SET_INTERSECTION, slbl, labels[0]);
+        Node s = nm->mkNode(SET_INTER, slbl, labels[0]);
         Node ilem = s.eqNode(empSet);
         Trace("sep-lemma-debug")
             << "Sep::Lemma : wand reduction, disjoint : " << ilem << std::endl;
@@ -1427,10 +1427,9 @@ Node TheorySep::instantiateLabel(Node n,
             Node sub_lbl = itl->second;
             Node lbl_mval = d_label_model[sub_lbl].getValue( rtn );
             for( unsigned j=0; j<vs.size(); j++ ){
-              bchildren.push_back(
-                  NodeManager::currentNM()
-                      ->mkNode(kind::SET_INTERSECTION, lbl_mval, vs[j])
-                      .eqNode(empSet));
+              bchildren.push_back(NodeManager::currentNM()
+                                      ->mkNode(kind::SET_INTER, lbl_mval, vs[j])
+                                      .eqNode(empSet));
             }
             vs.push_back( lbl_mval );
             if( vsu.isNull() ){
@@ -1476,11 +1475,10 @@ Node TheorySep::instantiateLabel(Node n,
           //disjoint constraints
           Node sub_lbl_0 = d_label_map[n][lbl][0];
           Node lbl_mval_0 = d_label_model[sub_lbl_0].getValue( rtn );
-          wchildren.push_back(
-              NodeManager::currentNM()
-                  ->mkNode(kind::SET_INTERSECTION, lbl_mval_0, lbl)
-                  .eqNode(empSet)
-                  .negate());
+          wchildren.push_back(NodeManager::currentNM()
+                                  ->mkNode(kind::SET_INTER, lbl_mval_0, lbl)
+                                  .eqNode(empSet)
+                                  .negate());
 
           //return the lemma
           wchildren.push_back( children[0].negate() );
