@@ -208,7 +208,7 @@ class AletheProofPostprocessNoSubtypeCallback : public ProofNodeUpdaterCallback
                 PfRule id,
                 const std::vector<Node>& children,
                 const std::vector<Node>& args,
-                CDProof* cdp);
+                CDProof* cdp) override;
 
  private:
   /** The proof node manager */

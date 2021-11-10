@@ -73,11 +73,11 @@ class ProofNodeUpdaterCallback
    * the proof changed. It can be assumed that cdp contains proofs of each
    * fact in children.
    */
-  bool finalize(Node res,
-                PfRule id,
-                const std::vector<Node>& children,
-                const std::vector<Node>& args,
-                CDProof* cdp);
+  virtual bool finalize(Node res,
+                        PfRule id,
+                        const std::vector<Node>& children,
+                        const std::vector<Node>& args,
+                        CDProof* cdp);
 };
 
 /**

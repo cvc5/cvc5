@@ -39,7 +39,6 @@ class AletheNoSubtypeNodeConverter : public NodeConverter
    * type f : Real -> Real -> Real, will be turned into (f 1.0 a). */
   Node postConvert(Node n) override;
 
- private:
   /** Convert all integer constants in `n` into CAST_TO_REAL applications.
    *
    * This method will fail if `n` has non-integer constants or uninterpreted

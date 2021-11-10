@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "base/configuration.h"
 #include "expr/node_algorithm.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
@@ -2068,6 +2069,106 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
       << "AletheProofPostprocessNoSubtypeCallback::finalize: " << res << " "
       << rule << " " << children << " / " << args
       << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  switch (rule)
+  {
+    case AletheRule::TRANS:
+    {
+      // get children
+      size_t size = children.size();
+      bool updated = false;
+      std::vector<Node> newChildren = children;
+      Node lastLink = cdp->getProofFor(children[0])->getArguments()[2][1];
+      // for each child check that the link in the transitivity chain is
+      // compatible with the previous one. Otherwise add a step that casts
+      // correctly
+      for (size_t i = 1; i < size; ++i)
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
+        AlwaysAssert(childPf->getArguments().size() >= 3);
+        Node links[2] = {lastLink, childPf->getArguments()[2][1]};
+        AlwaysAssert(links[0].getKind() == kind::EQUAL
+                     && links[1].getKind() == kind::EQUAL)
+            << "not equalities: " << links[0] << " .. " << links[1] << "\n";
+        if (links[0][1] == links[1][0])
+        {
+          lastLink = links[1];
+          continue;
+        }
+        updated = true;
+        AlwaysAssert(links[0][1].getType().isReal()
+                     && links[1][0].getType().isReal());
+        Trace("alethe-proof-subtyping")
+            << "\t..links l_" << (i - 1) << "[1] and l_" << i
+            << "[0] differ:\n\t\t\t" << links[0][1] << " .. " << links[1][0]
+            << "\n";
+        // Necessarily one of terms is an integer (and thus the other in the
+        // respective link). Both should be lifted to reals via a new step
+        // which will proxy the previous link into the chain
+        AlwaysAssert(!links[0][1].getType().isInteger()
+                     || links[1][0].getType().isInteger());
+        size_t intLink = links[0][1].getType().isInteger() ? 0 : 1;
+        size_t childUpdatedIndex = i - (1 - intLink);
+        Trace("alethe-proof-subtyping")
+            << "\t..int link is l_" << childUpdatedIndex << ": "
+            << links[intLink] << "\n";
+        // if (Configuration::isAssertionBuild())
+        // {
+        for (size_t j = 0; j < 2; ++j)
+        {
+          AlwaysAssert(links[intLink][1 - j].isConst()
+                       || !expr::hasSubtermKinds({kind::APPLY_UF, kind::SKOLEM},
+                                                 links[intLink][1 - j]))
+              << "Unconvertable " << links[intLink][1 - j];
+        }
+        // }
+        AlwaysAssert(
+            d_anc.traverseAndConvertAllConsts(links[intLink][1 - intLink])
+            == links[1 - intLink][intLink]);
+        // Add step for proxy
+        Node newChild =
+            nm->mkNode(kind::SEXPR,
+                       // d_cl
+                       childPf->getArguments()[2][0],
+                       // converted link
+                       d_anc.traverseAndConvertAllConsts(links[intLink]));
+        Trace("alethe-proof-subtyping")
+            << "\t..new l_" << childUpdatedIndex << ": " << newChild << "\n";
+        cdp->addStep(newChild,
+                     PfRule::ALETHE_RULE,
+                     {children[childUpdatedIndex]},
+                     {nm->mkConst<Rational>(
+                          static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
+                      newChild,
+                      newChild});
+        // update children
+        newChildren[childUpdatedIndex] = newChild;
+        // get new running last link
+        lastLink = newChild[1];
+      }
+      // Update proof step with new premises
+      if (updated)
+      {
+        // it must be the case that conclusion reflects new premises, i.e. that
+        // conclusion t1 = tn means that first premise has (as printed
+        // conclusion) "t1 = ..." and and last premise has "... = tn".
+        AlwaysAssert(
+            args[2][1][0]
+                == cdp->getProofFor(newChildren[0])->getArguments()[2][1][0]
+            && args[2][1][1]
+                   == cdp->getProofFor(newChildren.back())
+                          ->getArguments()[2][1][1]);
+        cdp->addStep(res, PfRule::ALETHE_RULE, newChildren, args);
+        return true;
+      }
+      break;
+    }
+    case AletheRule::CONG:
+    default:
+    {
+      break;
+    }
+  }
   AlwaysAssert(args.size() >= 3);
   return false;
 }

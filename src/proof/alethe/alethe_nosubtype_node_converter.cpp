@@ -132,7 +132,6 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
 
 Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
 {
-  AlwaysAssert(n.getType().isReal());
   std::unordered_map<Node, Node> visited;
   std::unordered_map<Node, Node>::iterator it;
   std::vector<Node> visit;
