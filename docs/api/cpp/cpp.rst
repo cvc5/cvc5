@@ -1,7 +1,37 @@
 C++ API Documentation
 =====================
 
-:doc:`Quickstart Guide <quickstart>`
+The C++ API is the primary interface for cvc5 and exposes the full functionality of cvc5.
+The :doc:`quickstart guide <quickstart>` gives a short introduction, while the following class hierarchy of the ``cvc5::api`` namespace provides more details on the individual classes.
+For most applications, the :cpp:class:`Solver <cvc5::api::Solver>` class is the main entry point to cvc5.
+
+
+.. container:: hide-toctree
+
+  .. toctree::
+    :maxdepth: 0
+
+    quickstart
+    exceptions
+    datatype
+    datatypeconstructor
+    datatypeconstructordecl
+    datatypedecl
+    datatypeselector
+    grammar
+    kind
+    op
+    optioninfo
+    result
+    roundingmode
+    solver
+    sort
+    statistics
+    term
+
+
+Class hierarchy
+^^^^^^^^^^^^^^^
 
 ``namespace cvc5::api {``
   
@@ -36,27 +66,3 @@ C++ API Documentation
     * class :cpp:class:`const_iterator <cvc5::api::Term::const_iterator>`
 
 ``}``
-
-
-.. container:: hide-toctree
-
-  .. toctree::
-    :maxdepth: 0
-
-    quickstart
-    exceptions
-    datatype
-    datatypeconstructor
-    datatypeconstructordecl
-    datatypedecl
-    datatypeselector
-    grammar
-    kind
-    op
-    optioninfo
-    result
-    roundingmode
-    solver
-    sort
-    statistics
-    term
