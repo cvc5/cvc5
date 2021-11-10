@@ -201,7 +201,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native long getOp(long pointer);
 
   /**
-   * @return true if the term has a name.
+   * @return true if the term has a symbol.
    */
   public boolean hasSymbol()
   {
@@ -212,7 +212,7 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
 
   /**
    * Asserts hasSymbol().
-   * @return the raw name of the term.
+   * @return the raw symbol of the term.
    */
   public String getSymbol()
   {

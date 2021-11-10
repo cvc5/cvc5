@@ -219,7 +219,7 @@ class TermTest
     Term nilOpTerm = list.getConstructorTerm("nil");
   }
 
-  @Test void getSymbol() throws CVC5ApiException
+  @Test void hasGetSymbol() throws CVC5ApiException
   {
     Term n = d_solver.getNullTerm();
     Term t = d_solver.mkBoolean(true);

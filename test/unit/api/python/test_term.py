@@ -208,7 +208,7 @@ def test_get_op(solver):
     assert headTerm == solver.mkTerm(headTerm.getOp(), children)
 
 
-def test_get_symbol(solver):
+def test_has_get_symbol(solver):
     n = Term(solver)
     t = solver.mkBoolean(True)
     c = solver.mkConst(solver.getBooleanSort(), "|\\|")

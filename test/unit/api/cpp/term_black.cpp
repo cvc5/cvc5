@@ -212,7 +212,7 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_EQ(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
 }
 
-TEST_F(TestApiBlackTerm, getSymbol)
+TEST_F(TestApiBlackTerm, hasGetSymbol)
 {
   Term n;
   Term t = d_solver.mkBoolean(true);
