@@ -80,7 +80,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_DUPLICATE_REMOVAL: response = rewriteDuplicateRemoval(n); break;
       case BAG_UNION_MAX: response = rewriteUnionMax(n); break;
       case BAG_UNION_DISJOINT: response = rewriteUnionDisjoint(n); break;
-      case BAG_INTERSECTION_MIN: response = rewriteIntersectionMin(n); break;
+      case BAG_INTER_MIN: response = rewriteIntersectionMin(n); break;
       case BAG_DIFFERENCE_SUBTRACT:
         response = rewriteDifferenceSubtract(n);
         break;
@@ -251,10 +251,8 @@ BagsRewriteResponse BagsRewriter::rewriteUnionDisjoint(const TNode& n) const
     // (bag.union_disjoint bag.empty A) = A
     return BagsRewriteResponse(n[1], Rewrite::UNION_DISJOINT_EMPTY_LEFT);
   }
-  if ((n[0].getKind() == BAG_UNION_MAX
-       && n[1].getKind() == BAG_INTERSECTION_MIN)
-      || (n[1].getKind() == BAG_UNION_MAX
-          && n[0].getKind() == BAG_INTERSECTION_MIN))
+  if ((n[0].getKind() == BAG_UNION_MAX && n[1].getKind() == BAG_INTER_MIN)
+      || (n[1].getKind() == BAG_UNION_MAX && n[0].getKind() == BAG_INTER_MIN))
 
   {
     // (bag.union_disjoint (bag.union_max A B) (bag.inter_min A B)) =
@@ -274,7 +272,7 @@ BagsRewriteResponse BagsRewriter::rewriteUnionDisjoint(const TNode& n) const
 
 BagsRewriteResponse BagsRewriter::rewriteIntersectionMin(const TNode& n) const
 {
-  Assert(n.getKind() == BAG_INTERSECTION_MIN);
+  Assert(n.getKind() == BAG_INTER_MIN);
   if (n[0].getKind() == BAG_EMPTY)
   {
     // (bag.inter_min bag.empty A) = bag.empty
@@ -363,7 +361,7 @@ BagsRewriteResponse BagsRewriter::rewriteDifferenceSubtract(
     }
   }
 
-  if (n[0].getKind() == BAG_INTERSECTION_MIN)
+  if (n[0].getKind() == BAG_INTER_MIN)
   {
     if (n[1] == n[0][0] || n[1] == n[0][1])
     {
@@ -408,7 +406,7 @@ BagsRewriteResponse BagsRewriter::rewriteDifferenceRemove(const TNode& n) const
     }
   }
 
-  if (n[0].getKind() == BAG_INTERSECTION_MIN)
+  if (n[0].getKind() == BAG_INTER_MIN)
   {
     if (n[1] == n[0][0] || n[1] == n[0][1])
     {

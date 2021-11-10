@@ -200,7 +200,7 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
 
 InferInfo InferenceGenerator::intersection(Node n, Node e)
 {
-  Assert(n.getKind() == BAG_INTERSECTION_MIN && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_INTER_MIN && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];

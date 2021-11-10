@@ -38,7 +38,7 @@ enumerator BAG_TYPE \
 # operators
 operator BAG_UNION_MAX         2  "union for bags (max)"
 operator BAG_UNION_DISJOINT    2  "disjoint union for bags (sum)"
-operator BAG_INTERSECTION_MIN  2  "bag intersection (min)"
+operator BAG_INTER_MIN         2  "bag intersection (min)"
 
 # {|("a", 2), ("b", 3)} \ {("a", 1)|} = {|("a", 1), ("b", 3)|}
 operator BAG_DIFFERENCE_SUBTRACT    2  "bag difference1 (subtracts multiplicities)"
@@ -78,7 +78,7 @@ operator BAG_MAP           2  "bag map function"
 
 typerule BAG_UNION_MAX           ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_UNION_DISJOINT      ::cvc5::theory::bags::BinaryOperatorTypeRule
-typerule BAG_INTERSECTION_MIN    ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule BAG_INTER_MIN           ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_DIFFERENCE_SUBTRACT ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_DIFFERENCE_REMOVE   ::cvc5::theory::bags::BinaryOperatorTypeRule
 typerule BAG_SUBBAG              ::cvc5::theory::bags::SubBagTypeRule

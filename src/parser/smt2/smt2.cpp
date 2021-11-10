@@ -617,7 +617,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->getNullSort()));
     addOperator(api::BAG_UNION_MAX, "bag.union_max");
     addOperator(api::BAG_UNION_DISJOINT, "bag.union_disjoint");
-    addOperator(api::BAG_INTERSECTION_MIN, "bag.inter_min");
+    addOperator(api::BAG_INTER_MIN, "bag.inter_min");
     addOperator(api::BAG_DIFFERENCE_SUBTRACT, "bag.difference_subtract");
     addOperator(api::BAG_DIFFERENCE_REMOVE, "bag.difference_remove");
     addOperator(api::BAG_SUBBAG, "bag.subbag");

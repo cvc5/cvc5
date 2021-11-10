@@ -102,7 +102,7 @@ Node NormalForm::evaluate(TNode n)
     case BAG_DUPLICATE_REMOVAL: return evaluateDuplicateRemoval(n);
     case BAG_UNION_DISJOINT: return evaluateUnionDisjoint(n);
     case BAG_UNION_MAX: return evaluateUnionMax(n);
-    case BAG_INTERSECTION_MIN: return evaluateIntersectionMin(n);
+    case BAG_INTER_MIN: return evaluateIntersectionMin(n);
     case BAG_DIFFERENCE_SUBTRACT: return evaluateDifferenceSubtract(n);
     case BAG_DIFFERENCE_REMOVE: return evaluateDifferenceRemove(n);
     case BAG_CARD: return evaluateCard(n);
@@ -413,7 +413,7 @@ Node NormalForm::evaluateUnionMax(TNode n)
 
 Node NormalForm::evaluateIntersectionMin(TNode n)
 {
-  Assert(n.getKind() == BAG_INTERSECTION_MIN);
+  Assert(n.getKind() == BAG_INTER_MIN);
   // Example
   // -------
   // input: (bag.inter_min A B)

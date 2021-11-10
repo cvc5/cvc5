@@ -34,7 +34,7 @@ TypeNode BinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
 {
   Assert(n.getKind() == kind::BAG_UNION_MAX
          || n.getKind() == kind::BAG_UNION_DISJOINT
-         || n.getKind() == kind::BAG_INTERSECTION_MIN
+         || n.getKind() == kind::BAG_INTER_MIN
          || n.getKind() == kind::BAG_DIFFERENCE_SUBTRACT
          || n.getKind() == kind::BAG_DIFFERENCE_REMOVE);
   TypeNode bagType = n[0].getType(check);

@@ -73,7 +73,7 @@ void BagSolver::postCheck()
         case kind::BAG_MAKE: checkBagMake(n); break;
         case kind::BAG_UNION_DISJOINT: checkUnionDisjoint(n); break;
         case kind::BAG_UNION_MAX: checkUnionMax(n); break;
-        case kind::BAG_INTERSECTION_MIN: checkIntersectionMin(n); break;
+        case kind::BAG_INTER_MIN: checkIntersectionMin(n); break;
         case kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
@@ -144,7 +144,7 @@ void BagSolver::checkUnionMax(const Node& n)
 
 void BagSolver::checkIntersectionMin(const Node& n)
 {
-  Assert(n.getKind() == BAG_INTERSECTION_MIN);
+  Assert(n.getKind() == BAG_INTER_MIN);
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {

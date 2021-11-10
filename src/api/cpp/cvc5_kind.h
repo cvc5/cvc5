@@ -2388,7 +2388,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  BAG_INTERSECTION_MIN,
+  BAG_INTER_MIN,
   /**
    * Bag difference subtract (subtracts multiplicities of the second from the
    * first).

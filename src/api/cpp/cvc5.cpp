@@ -297,7 +297,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     /* Bags ---------------------------------------------------------------- */
     {BAG_UNION_MAX, cvc5::Kind::BAG_UNION_MAX},
     {BAG_UNION_DISJOINT, cvc5::Kind::BAG_UNION_DISJOINT},
-    {BAG_INTERSECTION_MIN, cvc5::Kind::BAG_INTERSECTION_MIN},
+    {BAG_INTER_MIN, cvc5::Kind::BAG_INTER_MIN},
     {BAG_DIFFERENCE_SUBTRACT, cvc5::Kind::BAG_DIFFERENCE_SUBTRACT},
     {BAG_DIFFERENCE_REMOVE, cvc5::Kind::BAG_DIFFERENCE_REMOVE},
     {BAG_SUBBAG, cvc5::Kind::BAG_SUBBAG},
@@ -607,7 +607,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Bags ------------------------------------------------------------ */
         {cvc5::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
         {cvc5::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
-        {cvc5::Kind::BAG_INTERSECTION_MIN, BAG_INTERSECTION_MIN},
+        {cvc5::Kind::BAG_INTER_MIN, BAG_INTER_MIN},
         {cvc5::Kind::BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_SUBTRACT},
         {cvc5::Kind::BAG_DIFFERENCE_REMOVE, BAG_DIFFERENCE_REMOVE},
         {cvc5::Kind::BAG_SUBBAG, BAG_SUBBAG},

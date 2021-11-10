@@ -310,8 +310,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, union_disjoint)
   Node unionMaxAB = d_nodeManager->mkNode(BAG_UNION_MAX, A, B);
   Node unionMaxAC = d_nodeManager->mkNode(BAG_UNION_MAX, A, C);
   Node unionMaxBA = d_nodeManager->mkNode(BAG_UNION_MAX, B, A);
-  Node intersectionAB = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, B);
-  Node intersectionBA = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, B, A);
+  Node intersectionAB = d_nodeManager->mkNode(BAG_INTER_MIN, A, B);
+  Node intersectionBA = d_nodeManager->mkNode(BAG_INTER_MIN, B, A);
 
   // (bag.union_disjoint A (as bag.empty (Bag String))) = A
   Node unionDisjoint1 = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, emptyBag);
@@ -369,68 +369,68 @@ TEST_F(TestTheoryWhiteBagsRewriter, intersection_min)
 
   // (bag.inter_min A (as bag.empty (Bag String)) =
   // (as bag.empty (Bag String))
-  Node n1 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, emptyBag);
+  Node n1 = d_nodeManager->mkNode(BAG_INTER_MIN, A, emptyBag);
   RewriteResponse response1 = d_rewriter->postRewrite(n1);
   ASSERT_TRUE(response1.d_node == emptyBag
               && response1.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min (as bag.empty (Bag String)) A) =
   // (as bag.empty (Bag String))
-  Node n2 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, emptyBag, A);
+  Node n2 = d_nodeManager->mkNode(BAG_INTER_MIN, emptyBag, A);
   RewriteResponse response2 = d_rewriter->postRewrite(n2);
   ASSERT_TRUE(response2.d_node == emptyBag
               && response2.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min A A) = A
-  Node n3 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, A);
+  Node n3 = d_nodeManager->mkNode(BAG_INTER_MIN, A, A);
   RewriteResponse response3 = d_rewriter->postRewrite(n3);
   ASSERT_TRUE(response3.d_node == A
               && response3.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min A (bag.union_max A B) = A
-  Node n4 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, unionMaxAB);
+  Node n4 = d_nodeManager->mkNode(BAG_INTER_MIN, A, unionMaxAB);
   RewriteResponse response4 = d_rewriter->postRewrite(n4);
   ASSERT_TRUE(response4.d_node == A
               && response4.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min A (bag.union_max B A) = A
-  Node n5 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, unionMaxBA);
+  Node n5 = d_nodeManager->mkNode(BAG_INTER_MIN, A, unionMaxBA);
   RewriteResponse response5 = d_rewriter->postRewrite(n5);
   ASSERT_TRUE(response5.d_node == A
               && response4.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min (bag.union_max A B) A) = A
-  Node n6 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, unionMaxAB, A);
+  Node n6 = d_nodeManager->mkNode(BAG_INTER_MIN, unionMaxAB, A);
   RewriteResponse response6 = d_rewriter->postRewrite(n6);
   ASSERT_TRUE(response6.d_node == A
               && response6.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min (bag.union_max B A) A) = A
-  Node n7 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, unionMaxBA, A);
+  Node n7 = d_nodeManager->mkNode(BAG_INTER_MIN, unionMaxBA, A);
   RewriteResponse response7 = d_rewriter->postRewrite(n7);
   ASSERT_TRUE(response7.d_node == A
               && response7.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min A (bag.union_disjoint A B) = A
-  Node n8 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, unionDisjointAB);
+  Node n8 = d_nodeManager->mkNode(BAG_INTER_MIN, A, unionDisjointAB);
   RewriteResponse response8 = d_rewriter->postRewrite(n8);
   ASSERT_TRUE(response8.d_node == A
               && response8.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min A (bag.union_disjoint B A) = A
-  Node n9 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, unionDisjointBA);
+  Node n9 = d_nodeManager->mkNode(BAG_INTER_MIN, A, unionDisjointBA);
   RewriteResponse response9 = d_rewriter->postRewrite(n9);
   ASSERT_TRUE(response9.d_node == A
               && response9.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min (bag.union_disjoint A B) A) = A
-  Node n10 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, unionDisjointAB, A);
+  Node n10 = d_nodeManager->mkNode(BAG_INTER_MIN, unionDisjointAB, A);
   RewriteResponse response10 = d_rewriter->postRewrite(n10);
   ASSERT_TRUE(response10.d_node == A
               && response10.d_status == REWRITE_AGAIN_FULL);
 
   // (bag.inter_min (bag.union_disjoint B A) A) = A
-  Node n11 = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, unionDisjointBA, A);
+  Node n11 = d_nodeManager->mkNode(BAG_INTER_MIN, unionDisjointBA, A);
   RewriteResponse response11 = d_rewriter->postRewrite(n11);
   ASSERT_TRUE(response11.d_node == A
               && response11.d_status == REWRITE_AGAIN_FULL);
@@ -452,8 +452,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, difference_subtract)
   Node unionMaxBA = d_nodeManager->mkNode(BAG_UNION_MAX, B, A);
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
   Node unionDisjointBA = d_nodeManager->mkNode(BAG_UNION_DISJOINT, B, A);
-  Node intersectionAB = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, B);
-  Node intersectionBA = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, B, A);
+  Node intersectionAB = d_nodeManager->mkNode(BAG_INTER_MIN, A, B);
+  Node intersectionBA = d_nodeManager->mkNode(BAG_INTER_MIN, B, A);
 
   // (bag.difference_subtract A (as bag.empty (Bag String)) = A
   Node n1 = d_nodeManager->mkNode(BAG_DIFFERENCE_SUBTRACT, A, emptyBag);
@@ -545,8 +545,8 @@ TEST_F(TestTheoryWhiteBagsRewriter, difference_remove)
   Node unionMaxBA = d_nodeManager->mkNode(BAG_UNION_MAX, B, A);
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
   Node unionDisjointBA = d_nodeManager->mkNode(BAG_UNION_DISJOINT, B, A);
-  Node intersectionAB = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, B);
-  Node intersectionBA = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, B, A);
+  Node intersectionAB = d_nodeManager->mkNode(BAG_INTER_MIN, A, B);
+  Node intersectionBA = d_nodeManager->mkNode(BAG_INTER_MIN, B, A);
 
   // (bag.difference_remove A (as bag.empty (Bag String)) = A
   Node n1 = d_nodeManager->mkNode(BAG_DIFFERENCE_REMOVE, A, emptyBag);

@@ -327,7 +327,7 @@ TEST_F(TestTheoryWhiteBagsNormalForm, intersection_min)
 
   Node A = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_4, z_2);
   Node B = d_nodeManager->mkNode(BAG_UNION_DISJOINT, x_3, y_1);
-  Node input = d_nodeManager->mkNode(BAG_INTERSECTION_MIN, A, B);
+  Node input = d_nodeManager->mkNode(BAG_INTER_MIN, A, B);
 
   // output
   Node output = x_3;

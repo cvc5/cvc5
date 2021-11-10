@@ -68,7 +68,7 @@ void TheoryBags::finishInit()
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(BAG_UNION_MAX);
   d_equalityEngine->addFunctionKind(BAG_UNION_DISJOINT);
-  d_equalityEngine->addFunctionKind(BAG_INTERSECTION_MIN);
+  d_equalityEngine->addFunctionKind(BAG_INTER_MIN);
   d_equalityEngine->addFunctionKind(BAG_DIFFERENCE_SUBTRACT);
   d_equalityEngine->addFunctionKind(BAG_DIFFERENCE_REMOVE);
   d_equalityEngine->addFunctionKind(BAG_COUNT);
