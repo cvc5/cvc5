@@ -15,11 +15,11 @@
 
 #include "theory/strings/array_solver.h"
 
+#include "expr/sequence.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
-#include "expr/sequence.h"
 
 using namespace cvc5::context;
 using namespace cvc5::kind;
@@ -125,7 +125,8 @@ void ArraySolver::checkTerms(Kind k)
       Kind ck = nf.d_nf[0].getKind();
       // Note that (seq.unit c) is rewritten to CONST_SEQUENCE{c}, hence we
       // check two cases here.
-      if (ck == SEQ_UNIT || (ck==CONST_SEQUENCE && Word::getLength(nf.d_nf[0])==1))
+      if (ck == SEQ_UNIT
+          || (ck == CONST_SEQUENCE && Word::getLength(nf.d_nf[0]) == 1))
       {
         Trace("seq-array-debug") << "...unit case" << std::endl;
         // do we know whether n = 0 ?
@@ -143,7 +144,7 @@ void ArraySolver::checkTerms(Kind k)
         else
         {
           Assert(k == SEQ_NTH);
-          if (ck==CONST_SEQUENCE)
+          if (ck == CONST_SEQUENCE)
           {
             const Sequence& seq = nf.d_nf[0].getConst<Sequence>();
             thenBranch = seq.getVec()[0];
@@ -210,10 +211,10 @@ void ArraySolver::checkTerms(Kind k)
       // an optimization to short cut introducing terms like
       // (seq.nth (seq.unit c) i), which by construction is only relevant in
       // the context where i = 0, hence we replace by c here.
-      if (c.getKind()==CONST_SEQUENCE)
+      if (c.getKind() == CONST_SEQUENCE)
       {
         const Sequence& seq = c.getConst<Sequence>();
-        if (seq.size()==1)
+        if (seq.size() == 1)
         {
           if (k == STRING_UPDATE)
           {
