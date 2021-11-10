@@ -1,6 +1,6 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Andres Noetzli
+#   Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
@@ -12,11 +12,13 @@
 #
 # The build system configuration.
 ##
-
-add_subdirectory(cpp)
-if (BUILD_BINDINGS_PYTHON)
-  add_subdirectory(python)
-endif()
-if (BUILD_BINDINGS_JAVA)
-  add_subdirectory(java)
-endif()
+cvc5_add_unit_test_black(datatype_api_black api)
+cvc5_add_unit_test_black(grammar_black api)
+cvc5_add_unit_test_black(op_black api)
+cvc5_add_unit_test_white(op_white api)
+cvc5_add_unit_test_black(result_black api)
+cvc5_add_unit_test_black(solver_black api)
+cvc5_add_unit_test_white(solver_white api)
+cvc5_add_unit_test_black(sort_black api)
+cvc5_add_unit_test_black(term_black api)
+cvc5_add_unit_test_white(term_white api)

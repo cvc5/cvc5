@@ -30,7 +30,7 @@ TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check)
 {
-  Assert(n.getKind() == kind::SET_UNION || n.getKind() == kind::SET_INTERSECTION
+  Assert(n.getKind() == kind::SET_UNION || n.getKind() == kind::SET_INTER
          || n.getKind() == kind::SET_MINUS);
   TypeNode setType = n[0].getType(check);
   if (check)
@@ -57,7 +57,7 @@ bool SetsBinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager,
                                                 TNode n)
 {
   // only SET_UNION has a const rule in kinds.
-  // SET_INTERSECTION and SET_MINUS are not used in the canonical representation
+  // SET_INTER and SET_MINUS are not used in the canonical representation
   // of sets and therefore they do not have const rules in kinds
   Assert(n.getKind() == kind::SET_UNION);
   return NormalForm::checkNormalConstant(n);
