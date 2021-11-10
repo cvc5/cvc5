@@ -1022,7 +1022,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         {
           if (!constStrRe.empty())
           {
-            Assert(constStrRe[0][0] != nik[0]);
+            Assert(constStrRe[0][0] != ni[0]);
             // (re.inter .. (str.to_re c1) .. (str.to_re c2) ..) ---> re.none
             // for distinct constant strings c1, c2.
             Node ret = nm->mkNode(kind::REGEXP_NONE);
