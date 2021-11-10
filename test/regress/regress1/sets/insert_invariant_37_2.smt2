@@ -723,7 +723,7 @@
 (assert (! (not (set.member null$0 Alloc$0)) :named initial_footprint_of_insert_27_11_1))
 
 (assert (! (or (= prev_2$0 curr_2$0)
-       (set.member sk_?e_1$0 (set.intersection sk_?X_4$0 sk_?X_3$0))
+       (set.member sk_?e_1$0 (set.inter sk_?X_4$0 sk_?X_3$0))
        (and (set.member sk_?e_1$0 sk_FP$0) (not (set.member sk_?e_1$0 FP$0)))
        (and (set.member sk_?e$0 (set.union c1_2$0 c2_2$0)) (not (set.member sk_?e$0 content$0)))
        (and (set.member sk_?e$0 c1_2$0)

@@ -140,6 +140,5 @@ add_jar(cvc5jar
   VERSION ${CVC5_VERSION}
   OUTPUT_NAME cvc5
 )
-set_target_properties(cvc5jar PROPERTIES SOURCES "${JAVA_FILES}")
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)

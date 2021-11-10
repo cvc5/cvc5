@@ -1176,21 +1176,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case PfRule::SYMM:
     {
-      if (res.getKind() == kind::NOT)
-      {
-        return addAletheStep(AletheRule::NOT_SYMM,
-                             res,
-                             nm->mkNode(kind::SEXPR, d_cl, res),
-                             children,
-                             {},
-                             *cdp);
-      }
-      return addAletheStep(AletheRule::SYMM,
-                           res,
-                           nm->mkNode(kind::SEXPR, d_cl, res),
-                           children,
-                           {},
-                           *cdp);
+      return addAletheStep(
+          res.getKind() == kind::NOT ? AletheRule::NOT_SYMM : AletheRule::SYMM,
+          res,
+          nm->mkNode(kind::SEXPR, d_cl, res),
+          children,
+          {},
+          *cdp);
     }
     case PfRule::TRANS:
     {
@@ -1201,49 +1193,47 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-      // ======== Congruence
-      // In the case that the kind of the function symbol ?f is forall or
-      // exists, the cong rule needs to be converted into a bind rule. The first
-      // n children will be refl rules, e.g. (= (v0 Int) (w0 Int)).
-      //
-      //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-      //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
-      //
-      //  ----- REFL ... ----- REFL
-      //   VP1            VPn             P2
-      //  --------------------------------------- bind,
-      //                                          ((:= (v1 A1) w1) ...
-      //                                          (:= (vn An) wn))
-      //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-      //   (forall ((w1 B1)...(wn Bn)) s2)))**
-      //
-      //  VPi: (cl (= vi wi))*
-      //
-      //  * the corresponding proof node is (or (= vi vi))
-      //
-      // Otherwise, the rule follows the singleton pattern, i.e.:
-      //
-      //    P1 ... Pn
-      //  -------------------------------------------------------- cong
-      //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
-      //
-      // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
-      // s1 ... sn))
+    // ======== Congruence
+    // In the case that the kind of the function symbol f? is FORALL or
+    // EXISTS, the cong rule needs to be converted into a bind rule. The first
+    // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+    //
+    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+    //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
+    //
+    //  ----- REFL ... ----- REFL
+    //   VP1            VPn             P2
+    //  --------------------------------------- bind,
+    //                                          ((:= (v1 A1) v1) ...
+    //                                          (:= (vn An) vn))
+    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //   (forall ((v1 B1)...(vn Bn)) s2)))**
+    //
+    //  VPi: (cl (= vi vi))*
+    //
+    //  * the corresponding proof node is (or (= vi vi))
+    //
+    // Otherwise, the rule follows the singleton pattern, i.e.:
+    //
+    //    P1 ... Pn
+    //  -------------------------------------------------------- cong
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
+    //
+    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
+    // s1 ... sn))
     case PfRule::CONG:
     {
-      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
-          || args[0] == ProofRuleChecker::mkKindNode(kind::EXISTS))
+      if (res[0].isClosure())
       {
         std::vector<Node> vpis;
         bool success = true;
         for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
         {
-          Node vpi =
-              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]);
+          Node vpi = children[0][0][i].eqNode(children[0][1][i]);
           new_args.push_back(vpi);
           vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
-          success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+          success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
         }
         vpis.push_back(children[1]);
         return success
@@ -1273,8 +1263,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (= F true)
     case PfRule::TRUE_INTRO:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res, children[0]));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
       return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
              && addAletheStep(AletheRule::EQUIV2, vp2, vp2, {vp1}, {}, *cdp)
@@ -1297,8 +1286,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is F
     case PfRule::TRUE_ELIM:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
       return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
              && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp)
@@ -1328,8 +1316,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (= F false)
     case PfRule::FALSE_INTRO:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res, children[0]));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
       Node vp3 = nm->mkNode(
           kind::SEXPR, d_cl, children[0].notNode().notNode(), children[0][0]);
@@ -1364,8 +1351,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (not F)
     case PfRule::FALSE_ELIM:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
 
       return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
