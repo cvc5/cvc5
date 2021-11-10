@@ -45,10 +45,10 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriter(HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
-   * postRewrite nodes with kinds: BAG_MAKE, BAG_COUNT, UNION_MAX,
-   * UNION_DISJOINT, INTERSECTION_MIN, DIFFERENCE_SUBTRACT, DIFFERENCE_REMOVE,
-   * BAG_CHOOSE, BAG_CARD, BAG_IS_SINGLETON. See the rewrite rules for these
-   * kinds below.
+   * postRewrite nodes with kinds: BAG_MAKE, BAG_COUNT, BAG_UNION_MAX,
+   * BAG_UNION_DISJOINT, BAG_INTERSECTION_MIN, BAG_DIFFERENCE_SUBTRACT,
+   * BAG_DIFFERENCE_REMOVE, BAG_CHOOSE, BAG_CARD, BAG_IS_SINGLETON. See the
+   * rewrite rules for these kinds below.
    */
   RewriteResponse postRewrite(TNode n) override;
   /**
