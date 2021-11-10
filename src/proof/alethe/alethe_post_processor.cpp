@@ -1211,6 +1211,16 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case PfRule::SYMM:
+    {
+      return addAletheStep(
+          res.getKind() == kind::NOT ? AletheRule::NOT_SYMM : AletheRule::SYMM,
+          res,
+          nm->mkNode(kind::SEXPR, d_cl, res),
+          children,
+          {},
+          *cdp);
+    }
     case PfRule::TRANS:
     {
       return addAletheStep(AletheRule::TRANS,
@@ -1220,51 +1230,49 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-      // ======== Congruence
-      // In the case that the kind of the function symbol ?f is forall or
-      // exists, the cong rule needs to be converted into a bind rule. The first
-      // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
-      //
-      //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
-      //  (BOUND_VARIABLE LIST (w1 B1) ... (wn Bn)).
-      //
-      //  ----- REFL ... ----- REFL
-      //   VP1            VPn         P2 ... Pn
-      //  --------------------------------------- bind, ((:= (v1 A1) w1) ... (:=
-      //  (vn An) wn))
-      //   (cl (= (forall ((v1 A1)...(vn An)) t2)
-      //   (forall ((w1 B1)...(wn Bn)) s2)))*
-      //
-      //  VPi: (cl (= vi wi))*
-      //
-      //  * the corresponding proof node is (or (= vi vi))
-      //
-      // Otherwise, the rule follows the singleton pattern, i.e.:
-      //
-      //    P1 ... Pn
-      //  -------------------------------------------------------- cong
-      //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
-      //
-      // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
-      // s1
-      // ... sn))
+    // ======== Congruence
+    // In the case that the kind of the function symbol f? is FORALL or
+    // EXISTS, the cong rule needs to be converted into a bind rule. The first
+    // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+    //
+    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+    //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
+    //
+    //  ----- REFL ... ----- REFL
+    //   VP1            VPn             P2
+    //  --------------------------------------- bind,
+    //                                          ((:= (v1 A1) v1) ...
+    //                                          (:= (vn An) vn))
+    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //   (forall ((v1 B1)...(vn Bn)) s2)))**
+    //
+    //  VPi: (cl (= vi vi))*
+    //
+    //  * the corresponding proof node is (or (= vi vi))
+    //
+    // Otherwise, the rule follows the singleton pattern, i.e.:
+    //
+    //    P1 ... Pn
+    //  -------------------------------------------------------- cong
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
+    //
+    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
+    // s1 ... sn))
     case PfRule::CONG:
     {
-      if (args[0] == ProofRuleChecker::mkKindNode(kind::FORALL)
-          || args[0] == ProofRuleChecker::mkKindNode(kind::EXISTS))
+      if (res[0].isClosure())
       {
         std::vector<Node> vpis;
         bool success = true;
         for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
              i++)
         {
-          Node vpi =
-              nm->mkNode(kind::EQUAL, children[0][0][i], children[0][1][i]);
+          Node vpi = children[0][0][i].eqNode(children[0][1][i]);
           new_args.push_back(vpi);
           vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
-          success&& addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+          success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
         }
-        vpis.insert(vpis.end(), children.begin() + 1, children.end());
+        vpis.push_back(children[1]);
         return success
                && addAletheStep(AletheRule::ANCHOR_BIND,
                                 res,
@@ -1292,8 +1300,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (= F true)
     case PfRule::TRUE_INTRO:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res, children[0]));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
       return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
              && addAletheStep(AletheRule::EQUIV2, vp2, vp2, {vp1}, {}, *cdp)
@@ -1316,14 +1323,10 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is F
     case PfRule::TRUE_ELIM:
     {
-      bool success = true;
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
-      success &=
-          addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
-          && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp);
-      return success
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
@@ -1350,8 +1353,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (= F false)
     case PfRule::FALSE_INTRO:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, res, children[0]));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
       Node vp3 = nm->mkNode(
           kind::SEXPR, d_cl, children[0].notNode().notNode(), children[0][0]);
@@ -1386,8 +1388,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (not F)
     case PfRule::FALSE_ELIM:
     {
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
       Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
 
       return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
@@ -1411,15 +1412,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     // -------------------- RESOLUTION
     //     (cl F*sigma)^
     //
-    // VP1: (cl (or (not (forall ((x1 T1) ... (xn Tn)) F)
+    // VP1: (cl (or (not (forall ((x1 T1) ... (xn Tn)) F*sigma)
     // VP2: (cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
     //
     // ^ the corresponding proof node is F*sigma
     case PfRule::INSTANTIATE:
     {
-      for (size_t i = 0, size = children[0][0].end() - children[0][0].begin();
-           i < size;
-           i++)
+      for (size_t i = 0, size = children[0][0].getNumChildren(); i < size; i++)
       {
         new_args.push_back(children[0][0][i].eqNode(args[i]));
       }
@@ -1439,10 +1438,18 @@ bool AletheProofPostprocessCallback::update(Node res,
     //================================================= Arithmetic rules
     // ======== Adding Inequalities
     //
+    // ----- LIA_GENERIC
+    //  VP1                P1 ... Pn
+    // ------------------------------- RESOLUTION
+    //  (cl (>< t1 t2))*
+    //
+    // VP1: (cl (not l1) ... (not ln) (>< t1 t2))
+    //
+    // * the corresponding proof node is (>< t1 t2)
     case PfRule::MACRO_ARITH_SCALE_SUM_UB:
     {
       std::vector<Node> vp1s{d_cl};
-      for (auto child : children)
+      for (const Node& child : children)
       {
         vp1s.push_back(child.notNode());
       }
@@ -1459,19 +1466,20 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     // ======== Tightening Strict Integer Upper Bounds
+    //
+    // ----- LA_GENERIC, 1
+    //  VP1                      P
+    // ------------------------------------- RESOLUTION
+    //  (cl (<= i greatestIntLessThan(c)))*
+    //
+    // VP1: (cl (not (< i c)) (<= i greatestIntLessThan(c)))
+    //
+    // * the corresponding proof node is (<= i greatestIntLessThan(c))
     case PfRule::INT_TIGHT_UB:
     {
-      std::vector<Node> vp1s{d_cl};
-      for (auto child : children)
-      {
-        vp1s.push_back(child.notNode());
-      }
-      vp1s.push_back(res);
-      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
-      std::vector<Node> new_children = {vp1};
-      new_children.insert(new_children.end(), children.begin(), children.end());
-      new_args.insert(
-          new_args.begin(), children.size() + 1, nm->mkConst<Rational>(1));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
+      std::vector<Node> new_children = {vp1, children[0]};
+      new_args.push_back(nm->mkConst<Rational>(1));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1480,19 +1488,21 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    // ======== Tightening Strict Integer Lower Bounds
+    //
+    // ----- LA_GENERIC, 1
+    //  VP1                      P
+    // ------------------------------------- RESOLUTION
+    //  (cl (>= i leastIntGreaterThan(c)))*
+    //
+    // VP1: (cl (not (> i c)) (>= i leastIntGreaterThan(c)))
+    //
+    // * the corresponding proof node is (>= i leastIntGreaterThan(c))
     case PfRule::INT_TIGHT_LB:
     {
-      std::vector<Node> vp1s{d_cl};
-      for (auto child : children)
-      {
-        vp1s.push_back(child.notNode());
-      }
-      vp1s.push_back(res);
-      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
-      std::vector<Node> new_children = {vp1};
-      new_children.insert(new_children.end(), children.begin(), children.end());
-      new_args.insert(
-          new_args.begin(), children.size() + 1, nm->mkConst<Rational>(1));
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
+      std::vector<Node> new_children = {vp1, children[0]};
+      new_args.push_back(nm->mkConst<Rational>(1));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1745,28 +1755,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 *cdp);
       }
     }
-    //================================================= Extended rules
-    // ======== Symmetric
-    // This rule is translated according to the singleton pattern.
-    case PfRule::SYMM:
-    {
-      if (res.getKind() == kind::NOT)
-      {
-        return addAletheStep(AletheRule::NOT_SYMM,
-                             res,
-                             nm->mkNode(kind::SEXPR, d_cl, res),
-                             children,
-                             {},
-                             *cdp);
-      }
-      return addAletheStep(AletheRule::SYMM,
-                           res,
-                           nm->mkNode(kind::SEXPR, d_cl, res),
-                           children,
-                           {},
-                           *cdp);
-    }
-    //================================================= Arithmetic rules
     default:
     {
       Trace("alethe-proof")

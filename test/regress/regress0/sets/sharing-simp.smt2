@@ -9,7 +9,7 @@
 
 (assert (set.member x A))
 (assert (set.member y B))
-(assert (or (= C (set.intersection A B)) (= D (set.intersection A B))))
+(assert (or (= C (set.inter A B)) (= D (set.inter A B))))
 
 
 (check-sat)

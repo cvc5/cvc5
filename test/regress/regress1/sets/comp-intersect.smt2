@@ -9,6 +9,6 @@
 (assert (= x (set.comprehension ((z Int)) (> z 4) (* 5 z))))
 (assert (= y (set.comprehension ((z Int)) (< z 10) (+ (* 5 z) 1))))
 
-(assert (not (= (set.intersection x y) (as set.empty (Set Int)))))
+(assert (not (= (set.inter x y) (as set.empty (Set Int)))))
 
 (check-sat)

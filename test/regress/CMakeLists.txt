@@ -109,6 +109,7 @@ set(regress_0_tests
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4927-unsat-cores.smt2
+  regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -1599,6 +1600,7 @@ set(regress_1_tests
   regress1/bags/fuzzy3.smt2
   regress1/bags/fuzzy4.smt2
   regress1/bags/fuzzy5.smt2
+  regress1/bags/fuzzy6.smt2
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
@@ -2805,6 +2807,8 @@ set(regression_disabled_tests
   ###
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
+  # disabled temporarily until lazy lambda handling is merged
+  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
   # benchmark can be "unknown"
