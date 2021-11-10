@@ -135,7 +135,7 @@ class NormalForm
   /**
    * evaluates union disjoint node such that the returned node is a canonical
    * bag that has the form
-   * (union_disjoint (bag e1 c1) ...
+   * (bag.union_disjoint (bag e1 c1) ...
    *   (union_disjoint  * (bag e_{n-1} c_{n-1}) (bag e_n c_n)))) where
    *   c1... cn are positive integers, e1 ... en are constants, and the node
    * identifier of these constants are such that: e1 < ... < en.
