@@ -514,7 +514,7 @@ Node NormalForm::evaluateDifferenceRemove(TNode n)
   // Example
   // -------
   // input: (difference_subtract A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
   //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
   // output:
   //    (BAG_MAKE "z" 2)

@@ -113,7 +113,7 @@ class NormalForm
   /**
    * evaluate n as follows:
    * - (bag a 0) = (emptybag T) where T is the type of the original bag
-   * - (bag a (-c)) = (emptybag T) where T is the type the original bag,
+   * - (bag a (-c)) = (bag.empty T) where T is the type the original bag,
    *                                and c > 0 is a constant
    */
   static Node evaluateMakeBag(TNode n);
@@ -135,8 +135,8 @@ class NormalForm
   /**
    * evaluates union disjoint node such that the returned node is a canonical
    * bag that has the form
-   * (union_disjoint (bag e1 c1) ...
-   *   (union_disjoint  * (bag e_{n-1} c_{n-1}) (bag e_n c_n)))) where
+   * (bag.union_disjoint (bag e1 c1) ...
+   *   (bag.union_disjoint  * (bag e_{n-1} c_{n-1}) (bag e_n c_n)))) where
    *   c1... cn are positive integers, e1 ... en are constants, and the node
    * identifier of these constants are such that: e1 < ... < en.
    * @param n has the form (union_disjoint A B) where A, B are constant bags
