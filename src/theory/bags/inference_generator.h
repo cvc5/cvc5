@@ -50,13 +50,10 @@ class InferenceGenerator
   /**
    * @param n is (bag x c) of type (Bag E)
    * @param e is a node of type E
-   * @return an inference that represents the following cases:
-   * 1- e, x are in the same equivalent class, then we infer:
-   *    (= (bag.count e skolem) (ite (>= c 1) c 0)))
-   * 2- e, x are known to be disequal, then we infer:
-   *    (= (bag.count e skolem) 0))
-   * 3- if neither holds, we infer:
-   *    (= (bag.count e skolem) (ite (and (= e x) (>= c 1)) c 0)))
+   * @return an inference that represents the following lemma:
+   * (ite (and (= e x) (>= c 1))
+   *   (= (bag.count e skolem) c)
+   *   (= (bag.count e skolem) 0))
    * where skolem = (bag x c) is a fresh variable
    */
   InferInfo bagMake(Node n, Node e);

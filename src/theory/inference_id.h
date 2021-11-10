@@ -169,8 +169,6 @@ enum class InferenceId
 
   // ---------------------------------- bags theory
   BAGS_NON_NEGATIVE_COUNT,
-  BAGS_BAG_MAKE_DIFFERENT_ELEMENT,
-  BAGS_BAG_MAKE_SAME_ELEMENT,
   BAGS_BAG_MAKE,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,

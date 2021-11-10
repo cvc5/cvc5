@@ -43,10 +43,10 @@ int main()
     Term C = slv.mkConst(set, "C");
 
     Term unionAB = slv.mkTerm(SET_UNION, A, B);
-    Term lhs = slv.mkTerm(SET_INTERSECTION, unionAB, C);
+    Term lhs = slv.mkTerm(SET_INTER, unionAB, C);
 
-    Term intersectionAC = slv.mkTerm(SET_INTERSECTION, A, C);
-    Term intersectionBC = slv.mkTerm(SET_INTERSECTION, B, C);
+    Term intersectionAC = slv.mkTerm(SET_INTER, A, C);
+    Term intersectionBC = slv.mkTerm(SET_INTER, B, C);
     Term rhs = slv.mkTerm(SET_UNION, intersectionAC, intersectionBC);
 
     Term theorem = slv.mkTerm(EQUAL, lhs, rhs);
@@ -77,7 +77,7 @@ int main()
     Term singleton_three = slv.mkTerm(SET_SINGLETON, three);
     Term one_two = slv.mkTerm(SET_UNION, singleton_one, singleton_two);
     Term two_three = slv.mkTerm(SET_UNION, singleton_two, singleton_three);
-    Term intersection = slv.mkTerm(SET_INTERSECTION, one_two, two_three);
+    Term intersection = slv.mkTerm(SET_INTER, one_two, two_three);
 
     Term x = slv.mkConst(integer, "x");
 

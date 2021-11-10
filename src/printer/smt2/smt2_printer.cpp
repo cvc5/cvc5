@@ -1061,7 +1061,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 
   // set theory
   case kind::SET_UNION: return "set.union";
-  case kind::SET_INTERSECTION: return "set.intersection";
+  case kind::SET_INTER: return "set.inter";
   case kind::SET_MINUS: return "set.minus";
   case kind::SET_SUBSET: return "set.subset";
   case kind::SET_MEMBER: return "set.member";

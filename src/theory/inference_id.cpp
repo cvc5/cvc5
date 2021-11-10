@@ -104,10 +104,6 @@ const char* toString(InferenceId i)
     case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
 
     case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
-    case InferenceId::BAGS_BAG_MAKE_DIFFERENT_ELEMENT:
-      return "BAGS_BAG_MAKE_DIFFERENT_ELEMENT";
-    case InferenceId::BAGS_BAG_MAKE_SAME_ELEMENT:
-      return "BAGS_BAG_MAKE_SAME_ELEMENT";
     case InferenceId::BAGS_BAG_MAKE: return "BAGS_BAG_MAKE";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
