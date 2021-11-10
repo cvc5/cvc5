@@ -112,8 +112,8 @@ class NormalForm
                                       T5&& remainderOfB);
   /**
    * evaluate n as follows:
-   * - (bag a 0) = (emptybag T) where T is the type of the original bag
-   * - (bag a (-c)) = (bag.empty T) where T is the type the original bag,
+   * - (bag a 0) = (as bag.empty T) where T is the type of the original bag
+   * - (bag a (-c)) = (as bag.empty T) where T is the type the original bag,
    *                                and c > 0 is a constant
    */
   static Node evaluateMakeBag(TNode n);
@@ -126,7 +126,7 @@ class NormalForm
   static Node evaluateBagCount(TNode n);
 
   /**
-   * @param n has the form (duplicate_removal A) where A is a constant bag
+   * @param n has the form (bag.duplicate_removal A) where A is a constant bag
    * @return a constant bag constructed from the elements in A where each
    * element has multiplicity one
    */
@@ -139,28 +139,29 @@ class NormalForm
    *   (bag.union_disjoint  * (bag e_{n-1} c_{n-1}) (bag e_n c_n)))) where
    *   c1... cn are positive integers, e1 ... en are constants, and the node
    * identifier of these constants are such that: e1 < ... < en.
-   * @param n has the form (union_disjoint A B) where A, B are constant bags
+   * @param n has the form (bag.union_disjoint A B) where A, B are constant bags
    * @return the union disjoint of A and B
    */
   static Node evaluateUnionDisjoint(TNode n);
   /**
-   * @param n has the form (union_max A B) where A, B are constant bags
+   * @param n has the form (bag.union_max A B) where A, B are constant bags
    * @return the union max of A and B
    */
   static Node evaluateUnionMax(TNode n);
   /**
-   * @param n has the form (intersection_min A B) where A, B are constant bags
+   * @param n has the form (bag.inter_min A B) where A, B are constant bags
    * @return the intersection min of A and B
    */
   static Node evaluateIntersectionMin(TNode n);
   /**
-   * @param n has the form (difference_subtract A B) where A, B are constant
+   * @param n has the form (bag.difference_subtract A B) where A, B are constant
    * bags
    * @return the difference subtract of A and B
    */
   static Node evaluateDifferenceSubtract(TNode n);
   /**
-   * @param n has the form (difference_remove A B) where A, B are constant bags
+   * @param n has the form (bag.difference_remove A B) where A, B are constant
+   * bags
    * @return the difference remove of A and B
    */
   static Node evaluateDifferenceRemove(TNode n);

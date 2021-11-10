@@ -248,11 +248,11 @@ Node NormalForm::evaluateBagCount(TNode n)
   Assert(n.getKind() == BAG_COUNT);
   // Examples
   // --------
-  // - (bag.count "x" (emptybag String)) = 0
-  // - (bag.count "x" (mkBag "y" 5)) = 0
-  // - (bag.count "x" (mkBag "x" 4)) = 4
-  // - (bag.count "x" (union_disjoint (mkBag "x" 4) (mkBag "y" 5)) = 4
-  // - (bag.count "x" (union_disjoint (mkBag "y" 5) (mkBag "z" 5)) = 0
+  // - (bag.count "x" (as bag.empty (Bag String))) = 0
+  // - (bag.count "x" (bag "y" 5)) = 0
+  // - (bag.count "x" (bag "x" 4)) = 4
+  // - (bag.count "x" (bag.union_disjoint (bag "x" 4) (bag "y" 5)) = 4
+  // - (bag.count "x" (bag.union_disjoint (bag "y" 5) (bag "z" 5)) = 0
 
   std::map<Node, Rational> elements = getBagElements(n[1]);
   std::map<Node, Rational>::iterator it = elements.find(n[0]);
@@ -272,10 +272,11 @@ Node NormalForm::evaluateDuplicateRemoval(TNode n)
 
   // Examples
   // --------
-  //  - (duplicate_removal (emptybag String)) = (emptybag String)
-  //  - (duplicate_removal (mkBag "x" 4)) = (emptybag "x" 1)
-  //  - (duplicate_removal (disjoint_union (mkBag "x" 3) (mkBag "y" 5)) =
-  //     (disjoint_union (mkBag "x" 1) (mkBag "y" 1)
+  //  - (bag.duplicate_removal (as bag.empty (Bag String))) = (as bag.empty (Bag
+  //  String))
+  //  - (bag.duplicate_removal (bag "x" 4)) = (bag "x" 1)
+  //  - (bag.duplicate_removal (bag.disjoint_union (bag "x" 3) (bag "y" 5)) =
+  //     (bag.disjoint_union (bag "x" 1) (bag "y" 1)
 
   std::map<Node, Rational> oldElements = getBagElements(n[0]);
   // copy elements from the old bag
@@ -295,13 +296,13 @@ Node NormalForm::evaluateUnionDisjoint(TNode n)
   Assert(n.getKind() == BAG_UNION_DISJOINT);
   // Example
   // -------
-  // input: (union_disjoint A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.union_disjoint A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (union_disjoint A B)
-  //        where A = (BAG_MAKE "x" 7)
-  //              B = (union_disjoint (BAG_MAKE "y" 1) (BAG_MAKE "z" 2)))
+  //    (bag.union_disjoint A B)
+  //        where A = (bag "x" 7)
+  //              B = (bag.union_disjoint (bag "y" 1) (bag "z" 2)))
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -355,13 +356,13 @@ Node NormalForm::evaluateUnionMax(TNode n)
   Assert(n.getKind() == BAG_UNION_MAX);
   // Example
   // -------
-  // input: (union_max A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.union_max A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (union_disjoint A B)
-  //        where A = (BAG_MAKE "x" 4)
-  //              B = (union_disjoint (BAG_MAKE "y" 1) (BAG_MAKE "z" 2)))
+  //    (bag.union_disjoint A B)
+  //        where A = (bag "x" 4)
+  //              B = (bag.union_disjoint (bag "y" 1) (bag "z" 2)))
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -415,11 +416,11 @@ Node NormalForm::evaluateIntersectionMin(TNode n)
   Assert(n.getKind() == BAG_INTERSECTION_MIN);
   // Example
   // -------
-  // input: (intersectionMin A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.inter_min A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //        (BAG_MAKE "x" 3)
+  //        (bag "x" 3)
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -461,11 +462,11 @@ Node NormalForm::evaluateDifferenceSubtract(TNode n)
   Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT);
   // Example
   // -------
-  // input: (difference_subtract A B)
-  //    where A = (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  // input: (bag.difference_subtract A B)
+  //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (union_disjoint (BAG_MAKE "x" 1) (BAG_MAKE "z" 2))
+  //    (bag.union_disjoint (bag "x" 1) (bag "z" 2))
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -513,11 +514,11 @@ Node NormalForm::evaluateDifferenceRemove(TNode n)
   Assert(n.getKind() == BAG_DIFFERENCE_REMOVE);
   // Example
   // -------
-  // input: (difference_subtract A B)
+  // input: (bag.difference_remove A B)
   //    where A = (bag.union_disjoint (bag "x" 4) (bag "z" 2)))
-  //          B = (union_disjoint (BAG_MAKE "x" 3) (BAG_MAKE "y" 1)))
+  //          B = (bag.union_disjoint (bag "x" 3) (bag "y" 1)))
   // output:
-  //    (BAG_MAKE "z" 2)
+  //    (bag "z" 2)
 
   auto equal = [](std::map<Node, Rational>& elements,
                   std::map<Node, Rational>::const_iterator& itA,
@@ -564,7 +565,7 @@ Node NormalForm::evaluateChoose(TNode n)
   Assert(n.getKind() == BAG_CHOOSE);
   // Examples
   // --------
-  // - (bag.choose (MK_BAG "x" 4)) = "x"
+  // - (bag.choose (bag "x" 4)) = "x"
 
   if (n[0].getKind() == BAG_MAKE)
   {
@@ -578,9 +579,9 @@ Node NormalForm::evaluateCard(TNode n)
   Assert(n.getKind() == BAG_CARD);
   // Examples
   // --------
-  //  - (card (emptyBag String)) = 0
-  //  - (choose (BAG_MAKE "x" 4)) = 4
-  //  - (choose (union_disjoint (BAG_MAKE "x" 4) (BAG_MAKE "y" 1))) = 5
+  //  - (card (as bag.empty (Bag String))) = 0
+  //  - (choose (bag "x" 4)) = 4
+  //  - (choose (bag.union_disjoint (bag "x" 4) (bag "y" 1))) = 5
 
   std::map<Node, Rational> elements = getBagElements(n[0]);
   Rational sum(0);
@@ -599,11 +600,11 @@ Node NormalForm::evaluateIsSingleton(TNode n)
   Assert(n.getKind() == BAG_IS_SINGLETON);
   // Examples
   // --------
-  // - (bag.is_singleton (emptyBag String)) = false
-  // - (bag.is_singleton (BAG_MAKE "x" 1)) = true
-  // - (bag.is_singleton (BAG_MAKE "x" 4)) = false
-  // - (bag.is_singleton (union_disjoint (BAG_MAKE "x" 1) (BAG_MAKE "y" 1))) =
-  // false
+  // - (bag.is_singleton (as bag.empty (Bag String))) = false
+  // - (bag.is_singleton (bag "x" 1)) = true
+  // - (bag.is_singleton (bag "x" 4)) = false
+  // - (bag.is_singleton (bag.union_disjoint (bag "x" 1) (bag "y" 1)))
+  // = false
 
   if (n[0].getKind() == BAG_MAKE && n[0][1].getConst<Rational>().isOne())
   {
@@ -618,10 +619,10 @@ Node NormalForm::evaluateFromSet(TNode n)
 
   // Examples
   // --------
-  //  - (bag.from_set (set.empty String)) = (emptybag String)
-  //  - (bag.from_set (singleton "x")) = (mkBag "x" 1)
+  //  - (bag.from_set (as set.empty (Set String))) = (as bag.empty (Bag String))
+  //  - (bag.from_set (singleton "x")) = (bag "x" 1)
   //  - (bag.from_set (union (singleton "x") (singleton "y"))) =
-  //     (disjoint_union (mkBag "x" 1) (mkBag "y" 1))
+  //     (bag.disjoint_union (bag "x" 1) (bag "y" 1))
 
   NodeManager* nm = NodeManager::currentNM();
   std::set<Node> setElements =
@@ -643,9 +644,9 @@ Node NormalForm::evaluateToSet(TNode n)
 
   // Examples
   // --------
-  //  - (bag.to_set (emptybag String)) = (set.empty String)
-  //  - (bag.to_set (mkBag "x" 4)) = (singleton "x")
-  //  - (bag.to_set (disjoint_union (mkBag "x" 3) (mkBag "y" 5)) =
+  //  - (bag.to_set (as bag.empty (Bag String))) = (as set.empty (Set String))
+  //  - (bag.to_set (bag "x" 4)) = (singleton "x")
+  //  - (bag.to_set (bag.disjoint_union (bag "x" 3) (bag "y" 5)) =
   //     (union (singleton "x") (singleton "y")))
 
   NodeManager* nm = NodeManager::currentNM();
@@ -668,8 +669,8 @@ Node NormalForm::evaluateBagMap(TNode n)
   // Examples
   // --------
   // - (bag.map ((lambda ((x String)) "z")
-  //            (union_disjoint (bag "a" 2) (bag "b" 3)) =
-  //     (union_disjoint
+  //            (bag.union_disjoint (bag "a" 2) (bag "b" 3)) =
+  //     (bag.union_disjoint
   //       (bag ((lambda ((x String)) "z") "a") 2)
   //       (bag ((lambda ((x String)) "z") "b") 3)) =
   //     (bag "z" 5)
