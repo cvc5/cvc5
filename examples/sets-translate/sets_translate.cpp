@@ -146,7 +146,7 @@ class Mapper {
              << " ( (s1 " << name << ") (s2 " << name << ") )"
              << " " << name << ""
              << " ((_ map and) s1 s2))" << endl;
-      setoperators[make_pair(t, kind::SET_INTERSECTION)] =
+      setoperators[make_pair(t, kind::SET_INTER)] =
           em->mkVar(std::string("intersection") + elementTypeAsString,
                     em->mkFunctionType(t_t, t));
 

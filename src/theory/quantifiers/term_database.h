@@ -93,11 +93,13 @@ class TermDb : public QuantifiersUtil {
   * Get the number of ground terms with operator f that have been added to the
   * database
   */
-  size_t getNumGroundTerms(Node f) const;
+  size_t getNumGroundTerms(TNode f) const;
   /** get ground term for operator
   * Get the i^th ground term with operator f that has been added to the database
   */
-  Node getGroundTerm(Node f, size_t i) const;
+  Node getGroundTerm(TNode f, size_t i) const;
+  /** Get ground term list */
+  DbList* getGroundTermList(TNode f) const;
   /** get num type terms
   * Get the number of ground terms of tn that have been added to the database
   */

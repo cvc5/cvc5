@@ -9,7 +9,7 @@
 (assert (= (set.card A) 5))
 (assert (= (set.card B) 5))
 (assert (not (= A B)))
-(assert (= (set.card (set.intersection A B)) 2))
+(assert (= (set.card (set.inter A B)) 2))
 (assert (= (set.card (set.minus A B)) 3))
 (assert (= (set.card (set.minus B A)) 3))
 (assert (= universe (as set.universe (Set (_ BitVec 3)))))
