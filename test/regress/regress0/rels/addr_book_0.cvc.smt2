@@ -33,7 +33,7 @@
 (assert (set.member t_tup Target))
 (assert (set.subset (rel.join (rel.join Book addr) Target) Name))
 (assert (set.subset (rel.join Book names) Name))
-(assert (= (set.intersection Name Addr) (as set.empty (Set (Tuple Atom)))))
+(assert (= (set.inter Name Addr) (as set.empty (Set (Tuple Atom)))))
 (assert (= (rel.join (set.singleton n_tup) (rel.join (set.singleton b1_tup) addr)) (as set.empty (Set (Tuple Atom)))))
 (assert (let ((_let_1 (set.singleton n_tup))) (= (rel.join _let_1 (rel.join (set.singleton b2_tup) addr)) (set.union (rel.join _let_1 (rel.join (set.singleton b1_tup) addr)) (set.singleton t_tup)))))
 (assert (let ((_let_1 (set.singleton n_tup))) (= (rel.join _let_1 (rel.join (set.singleton b3_tup) addr)) (set.minus (rel.join _let_1 (rel.join (set.singleton b2_tup) addr)) (set.singleton t_tup)))))

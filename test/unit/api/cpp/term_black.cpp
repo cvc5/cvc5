@@ -807,10 +807,12 @@ TEST_F(TestApiBlackTerm, getReal)
   ASSERT_EQ((std::pair<int64_t, uint64_t>(127, 10)), real5.getReal64Value());
   ASSERT_EQ("127/10", real5.getRealValue());
 
-  ASSERT_EQ((std::pair<int64_t, uint64_t>(1, 4294967297)), real6.getReal64Value());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(1, 4294967297)),
+            real6.getReal64Value());
   ASSERT_EQ("1/4294967297", real6.getRealValue());
 
-  ASSERT_EQ((std::pair<int64_t, uint64_t>(4294967297, 1)), real7.getReal64Value());
+  ASSERT_EQ((std::pair<int64_t, uint64_t>(4294967297, 1)),
+            real7.getReal64Value());
   ASSERT_EQ("4294967297/1", real7.getRealValue());
 
   ASSERT_EQ("1/18446744073709551617", real8.getRealValue());

@@ -7,7 +7,7 @@
 (assert
   (and
     (= (as set.empty (Set E))
-       (set.intersection A B))
+       (set.inter A B))
     (set.subset C (set.union A B))
     (>= (set.card C) 5)
     (<= (set.card A) 2)

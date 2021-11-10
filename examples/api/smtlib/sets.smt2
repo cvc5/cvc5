@@ -10,8 +10,8 @@
 (check-sat-assuming
   (
     (distinct
-      (set.intersection (set.union A B) C)
-      (set.union (set.intersection A C) (set.intersection B C)))
+      (set.inter (set.union A B) C)
+      (set.union (set.inter A C) (set.inter B C)))
   )
 )
 
@@ -27,7 +27,7 @@
   (
     (set.member
       x
-      (set.intersection
+      (set.inter
         (set.union (set.singleton 1) (set.singleton 2))
         (set.union (set.singleton 2) (set.singleton 3))))
   )
