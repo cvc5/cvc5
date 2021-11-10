@@ -113,7 +113,7 @@ class NormalForm
   /**
    * evaluate n as follows:
    * - (bag a 0) = (emptybag T) where T is the type of the original bag
-   * - (bag a (-c)) = (emptybag T) where T is the type the original bag,
+   * - (bag a (-c)) = (bag.empty T) where T is the type the original bag,
    *                                and c > 0 is a constant
    */
   static Node evaluateMakeBag(TNode n);
