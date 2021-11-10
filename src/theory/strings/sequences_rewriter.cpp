@@ -1044,7 +1044,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       polRegExp[pindex].push_back(nia);
     }
   }
-  // go back and process constants against the others
+  // go back and process constant strings against the others
   if (!constStr.empty())
   {
     std::unordered_set<Node> toRemove;
@@ -1053,6 +1053,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       cvc5::String s = c[0].getConst<String>();
       for (const Node& r : otherRe)
       {
+        // skip if already removing, or not constant
         if (!RegExpEntail::isConstRegExp(r) || toRemove.find(r)!=toRemove.end())
         {
           continue;
@@ -1062,10 +1063,14 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         {
           if (nk==REGEXP_INTER)
           {
+            // (re.inter .. (str.to_re c) .. R ..) --->
+            // (re.inter .. (str.to_re c) .. ..) when c in R
             toRemove.insert(r);
           }
           else
           {
+            // (re.union .. (str.to_re c) .. R ..) --->
+            // (re.union .. .. R ..) when c in R
             toRemove.insert(c);
             break;
           }
@@ -1073,7 +1078,9 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         else
         {
           if (nk==REGEXP_INTER)
-          {
+          {            
+            // (re.inter .. (str.to_re c) .. R ..) ---> re.none
+            // if c is not a member of R.
             Node ret = nm->mkNode(kind::REGEXP_NONE);
             return returnRewrite(node, ret, Rewrite::RE_INTER_CONST_RE_CONFLICT);
           }
