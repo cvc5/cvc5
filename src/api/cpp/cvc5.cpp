@@ -5796,6 +5796,19 @@ Term Solver::mkReal(int64_t num, int64_t den) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Term Solver::mkRegexpAll() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Node res = d_nodeMgr->mkNode(
+      cvc5::kind::REGEXP_STAR,
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>()));
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Solver::mkRegexpNone() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
