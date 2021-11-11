@@ -190,16 +190,19 @@ void Assertions::addFormula(TNode n,
   // Ensure that it does not contain free variables
   if (maybeHasFv)
   {
-    if (expr::hasFreeVar(n))
+    bool wasShadow = false;
+    if (expr::hasFreeOrShadowedVar(n, wasShadow))
     {
+      std::string varType(wasShadow ? "shadowed" : "free");
       std::stringstream se;
       if (isFunDef)
       {
-        se << "Cannot process function definition with free variable.";
+        se << "Cannot process function definition with " << varType
+           << " variable.";
       }
       else
       {
-        se << "Cannot process assertion with free variable.";
+        se << "Cannot process assertion with " << varType << " variable.";
         if (language::isLangSygus(options().base.inputLanguage))
         {
           // Common misuse of SyGuS is to use top-level assert instead of
