@@ -282,12 +282,18 @@ bool hasBoundVar(TNode n)
 }
 
 /**
- * Get the free variables in n, that is, the subterms of n of kind
+ * Check variables internal, which is used as a helper to implement many of the
+ * methods in this file.
+ *
+ * This computes the free variables in n, that is, the subterms of n of kind
  * BOUND_VARIABLE that are not bound in n or occur in scope, adds these to fvs
  * if computeFv is true.
+ * 
  * @param n The node under investigation
  * @param fvs The set which free variables are added to
  * @param scope The scope we are considering.
+ * @param wasShadow Flag set to true if variable shadowing was encountered.
+ * Only computed if checkShadow is true.
  * @param computeFv If this flag is false, then we only return true/false and
  * do not add to fvs.
  * @param checkShadow If this flag is true, we immediately return true if a
@@ -298,6 +304,7 @@ bool hasBoundVar(TNode n)
 bool checkVariablesInternal(TNode n,
                             std::unordered_set<Node>& fvs,
                             std::unordered_set<TNode>& scope,
+                            bool& wasShadow,
                             bool computeFv = true,
                             bool checkShadow = false)
 {
@@ -341,6 +348,7 @@ bool checkVariablesInternal(TNode n,
           {
             if (scope.find(cn) != scope.end())
             {
+              wasShadow = true;
               return true;
             }
           }
@@ -353,7 +361,7 @@ bool checkVariablesInternal(TNode n,
           scope.insert(cn);
         }
         // must make recursive call to use separate cache
-        if (checkVariablesInternal(cur[1], fvs, scope, computeFv, checkShadow)
+        if (checkVariablesInternal(cur[1], fvs, scope, wasShadow, computeFv, checkShadow)
             && !computeFv)
         {
           return true;
@@ -378,6 +386,16 @@ bool checkVariablesInternal(TNode n,
   return !fvs.empty();
 }
 
+/** Same as above, without checking for shadowing */
+bool getVariablesInternal(TNode n,
+                            std::unordered_set<Node>& fvs,
+                            std::unordered_set<TNode>& scope,
+                            bool computeFv = true)
+{
+  bool wasShadow = false;
+  return checkVariablesInternal(n, fvs, scope, wasShadow, computeFv, false);
+}
+
 bool hasFreeVar(TNode n)
 {
   // optimization for variables and constants
@@ -387,10 +405,10 @@ bool hasFreeVar(TNode n)
   }
   std::unordered_set<Node> fvs;
   std::unordered_set<TNode> scope;
-  return checkVariablesInternal(n, fvs, scope, false);
+  return getVariablesInternal(n, fvs, scope, false);
 }
 
-bool hasFreeOrShadowedVar(TNode n)
+bool hasFreeOrShadowedVar(TNode n, bool& wasShadow)
 {
   // optimization for variables and constants
   if (n.getNumChildren() == 0)
@@ -399,7 +417,7 @@ bool hasFreeOrShadowedVar(TNode n)
   }
   std::unordered_set<Node> fvs;
   std::unordered_set<TNode> scope;
-  return checkVariablesInternal(n, fvs, scope, false, true);
+  return checkVariablesInternal(n, fvs, scope, wasShadow, false, true);
 }
 
 struct HasClosureTag
@@ -442,14 +460,20 @@ bool hasClosure(Node n)
 bool getFreeVariables(TNode n, std::unordered_set<Node>& fvs)
 {
   std::unordered_set<TNode> scope;
-  return checkVariablesInternal(n, fvs, scope);
+  return getVariablesInternal(n, fvs, scope);
 }
 
 bool getFreeVariablesScope(TNode n,
                            std::unordered_set<Node>& fvs,
                            std::unordered_set<TNode>& scope)
 {
-  return checkVariablesInternal(n, fvs, scope);
+  return getVariablesInternal(n, fvs, scope);
+}
+bool hasFreeVariablesScope(TNode n,
+                           std::unordered_set<TNode>& scope)
+{
+  std::unordered_set<Node> fvs;
+  return getVariablesInternal(n, fvs, scope, false);
 }
 
 bool getVariables(TNode n, std::unordered_set<TNode>& vs)

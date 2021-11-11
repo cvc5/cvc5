@@ -4694,6 +4694,7 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
 
 bool Grammar::containsFreeVariables(const Term& rule) const
 {
+  // we allow the argument list and non-terminal symbols to be in scope
   std::unordered_set<TNode> scope;
 
   for (const Term& sygusVar : d_sygusVars)
@@ -4706,8 +4707,7 @@ bool Grammar::containsFreeVariables(const Term& rule) const
     scope.emplace(*ntsymbol.d_node);
   }
 
-  std::unordered_set<Node> fvs;
-  return expr::getFreeVariablesScope(*rule.d_node, fvs, scope, false);
+  return expr::hasFreeVariablesScope(*rule.d_node, scope);
 }
 
 std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
@@ -5079,8 +5079,10 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
-  CVC5_API_RECOVERABLE_CHECK(!expr::hasFreeVar(term.getNode()))
-      << "Cannot get value of term containing free variables";
+  bool wasShadow = false;
+  bool freeOrShadowedVar = expr::hasFreeOrShadowedVar(term.getNode(), wasShadow);
+  CVC5_API_RECOVERABLE_CHECK(!freeOrShadowedVar)
+      << "Cannot get value of term containing " << (wasShadow ? "shadowed" : "free") << " variables";
   //////// all checks before this line
   Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);

@@ -89,9 +89,10 @@ bool hasFreeVar(TNode n);
  * of kind BOUND_VARIABLE that is not bound in n, or a BOUND_VARIABLE that
  * is shadowed (e.g. it is bound twice in the same context).
  * @param n The node under investigation
+ * @param wasShadow Set to true if n had a shadowed variable.
  * @return true iff this node contains a free or shadowed variable.
  */
-bool hasFreeOrShadowedVar(TNode n);
+bool hasFreeOrShadowedVar(TNode n, bool& wasShadow);
 
 /**
  * Returns true iff the node n contains a closure, that is, a node
@@ -120,6 +121,14 @@ bool getFreeVariables(TNode n, std::unordered_set<Node>& fvs);
  */
 bool getFreeVariablesScope(TNode n,
                            std::unordered_set<Node>& fvs,
+                           std::unordered_set<TNode>& scope);
+/**
+ * Return true if n has any free variables in the given scope.
+ * @param n The node under investigation
+ * @param scope The scope we are considering.
+ * @return true iff this node contains a free variable.
+ */
+bool hasFreeVariablesScope(TNode n,
                            std::unordered_set<TNode>& scope);
 
 /**
