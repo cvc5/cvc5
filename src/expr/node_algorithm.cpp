@@ -442,7 +442,7 @@ bool hasClosure(Node n)
     }
     else
     {
-      for (const auto& i = n.begin(); i != n.end() && !hasC; ++i)
+      for (auto i = n.begin(); i != n.end() && !hasC; ++i)
       {
         hasC = hasClosure(*i);
       }
