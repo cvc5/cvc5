@@ -391,6 +391,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term substitute(const vector[Term] & es, const vector[Term] & reps) except +
         bint hasOp() except +
         Op getOp() except +
+        bint hasSymbol() except +
+        string getSymbol() except +
         bint isNull() except +
         Term getConstArrayBase() except +
         Term notTerm() except +

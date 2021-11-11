@@ -1128,6 +1128,17 @@ class CVC5_EXPORT Term
   Op getOp() const;
 
   /**
+   * @return true if the term has a symbol.
+   */
+  bool hasSymbol() const;
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the term.
+   */
+  std::string getSymbol() const;
+
+  /**
    * @return true if this Term is a null term
    */
   bool isNull() const;
