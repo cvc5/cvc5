@@ -491,7 +491,8 @@ unsigned HoExtension::checkLazyLambda()
       continue;
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
-    Node lamRep; // the first lambda function we encounter in the equivalence class
+    Node lamRep;  // the first lambda function we encounter in the equivalence
+                  // class
     Node lamRepLam;
     std::unordered_set<Node> normalEqFunWait;
     while (!eqc_i.isFinished())
@@ -534,8 +535,8 @@ unsigned HoExtension::checkLazyLambda()
         Assert(!flam.isNull() && flam.getKind() == LAMBDA);
         Node lhs = flam[1];
         Node glam = lamRep < n ? lam : lamRepLam;
-        Trace("uf-ho-debug") << "  lambda are " << flam
-                             << " and " << glam << std::endl;
+        Trace("uf-ho-debug")
+            << "  lambda are " << flam << " and " << glam << std::endl;
         std::vector<Node> args(flam[0].begin(), flam[0].end());
         Node rhs = d_ll.betaReduce(glam, args);
         Node univ = nm->mkNode(FORALL, flam[0], lhs.eqNode(rhs));
