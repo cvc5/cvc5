@@ -639,6 +639,13 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
   }
 
+  @Test void mkRegexpAll()
+  {
+    Sort strSort = d_solver.getStringSort();
+    Term s = d_solver.mkConst(strSort, "s");
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAll()));
+  }
+
   @Test void mkRegexpAllchar()
   {
     Sort strSort = d_solver.getStringSort();

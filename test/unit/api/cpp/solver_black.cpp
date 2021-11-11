@@ -595,12 +595,11 @@ TEST_F(TestApiBlackSolver, mkReal)
   ASSERT_NO_THROW(d_solver.mkReal(val4, val4));
 }
 
-TEST_F(TestApiBlackSolver, mkRegexpNone)
+TEST_F(TestApiBlackSolver, mkRegexpAll)
 {
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
-  ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
+  ASSERT_NO_THROW(d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAll()));
 }
 
 TEST_F(TestApiBlackSolver, mkRegexpAllchar)
@@ -609,6 +608,14 @@ TEST_F(TestApiBlackSolver, mkRegexpAllchar)
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
       d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAllchar()));
+}
+
+TEST_F(TestApiBlackSolver, mkRegexpNone)
+{
+  Sort strSort = d_solver.getStringSort();
+  Term s = d_solver.mkConst(strSort, "s");
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
 }
 
 TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
