@@ -534,6 +534,8 @@ unsigned HoExtension::checkLazyLambda()
         Assert(!flam.isNull() && flam.getKind() == LAMBDA);
         Node lhs = flam[1];
         Node glam = lamRep < n ? lam : lamRepLam;
+        Trace("uf-ho-debug") << "  lambda are " << flam
+                             << " and " << glam << std::endl;
         std::vector<Node> args(flam[0].begin(), flam[0].end());
         Node rhs = d_ll.betaReduce(glam, args);
         Node univ = nm->mkNode(FORALL, flam[0], lhs.eqNode(rhs));
@@ -641,6 +643,8 @@ unsigned HoExtension::check()
     }
   } while (num_facts > 0);
 
+  // Apply extensionality, lazy lambda schemas in order. We make lazy lambda
+  // handling come last as it may introduce quantifiers.
   for (size_t i = 0; i < 2; i++)
   {
     unsigned num_lemmas = 0;
