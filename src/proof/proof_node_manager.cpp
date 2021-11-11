@@ -403,18 +403,19 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
 
 ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 {
-  std::unordered_set<ProofNode*> processed;
+  // processed is almost always size <= 1
+  std::vector<ProofNode*> processed;
   while (pn->getRule() == PfRule::SYMM)
   {
     std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
     if (pnc->getRule() == PfRule::SYMM)
     {
       pn = pnc->getChildren()[0].get();
-      if (processed.find(pn)!=processed.end())
+      if (std::find(processed.begin(), processed.end(), pn)!=processed.end())
       {
         Unreachable() << "Cyclic proof encountered when cancelling double symmetry";
       }
-      processed.insert(pn);
+      processed.push_back(pn);
     }
     else
     {
