@@ -19,10 +19,10 @@
 
 #include "base/configuration.h"
 #include "expr/node_algorithm.h"
+#include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
-#include "proof/alethe/alethe_proof_rule.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
@@ -723,14 +723,13 @@ bool AletheProofPostprocessCallback::update(Node res,
           && (args[0] != trueNode || children[0] != args[1]))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
-          // Add or step
-          std::vector<Node> subterms{d_cl};
-          subterms.insert(
-              subterms.end(), children[0].begin(), children[0].end());
-          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
-          addAletheStep(
-              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
-          new_children[0] = conclusion;
+        // Add or step
+        std::vector<Node> subterms{d_cl};
+        subterms.insert(subterms.end(), children[0].begin(), children[0].end());
+        Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+        addAletheStep(
+            AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+        new_children[0] = conclusion;
       }
       return addAletheStepFromOr(
           AletheRule::REORDERING, res, new_children, {}, *cdp);
@@ -2067,8 +2066,7 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
   }
   Trace("alethe-proof-subtyping")
       << "AletheProofPostprocessNoSubtypeCallback::finalize: " << res << " "
-      << rule << " " << children << " / " << args
-      << std::endl;
+      << rule << " " << children << " / " << args << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   bool updated = false;
   std::vector<Node> newChildren = children;
@@ -2222,7 +2220,8 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
                 && (differ[j] < size || updateChild))
             {
               Trace("alethe-proof-subtyping")
-                << "\t..need update " << i << "-th arg of conclusion[" << j << "]\n";
+                  << "\t..need update " << i << "-th arg of conclusion[" << j
+                  << "]\n";
               newConclusionChildren[j][i] =
                   d_anc.traverseAndConvertAllConsts(conclusion[j][i]);
               Trace("alethe-proof-subtyping")
