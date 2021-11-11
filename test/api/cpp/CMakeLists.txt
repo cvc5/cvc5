@@ -54,25 +54,3 @@ cvc5_add_api_test(issue4889)
 cvc5_add_api_test(issue6111)
 cvc5_add_api_test(proj-issue306)
 cvc5_add_api_test(proj-issue334)
-
-
-# if we've built using libedit, then we want the interactive shell tests
-if (USE_EDITLINE)
-
-  # Check for pexpect -- zero return code is success
-  execute_process(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import pexpect"
-    RESULT_VARIABLE PEXPECT_RC
-    ERROR_QUIET
-  )
-
-  # Add the test if we have pexpect
-  if(PEXPECT_RC EQUAL 0)
-    add_test(
-      NAME interactive_shell
-      COMMAND
-      "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/api/cpp/interactive_shell.py"
-      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-    )
-  endif()
-endif()
