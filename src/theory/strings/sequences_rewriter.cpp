@@ -1046,6 +1046,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       node_vec.push_back(ni);
     }
   }
+  Trace("strings-rewrite-debug") << "Partition constant components " << constStrRe.size() << " / " << otherRe.size() << std::endl;
   // go back and process constant strings against the others
   if (!constStrRe.empty())
   {
@@ -1056,15 +1057,18 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       cvc5::String s = c[0].getConst<String>();
       for (const Node& r : otherRe)
       {
+        Trace("strings-rewrite-debug") << "Check " << c << " vs " << r << std::endl;
         // skip if already removing, or not constant
         if (!RegExpEntail::isConstRegExp(r)
             || toRemove.find(r) != toRemove.end())
         {
+          Trace("strings-rewrite-debug") << "...skip" << std::endl;
           continue;
         }
         // test whether x in node[1]
         if (RegExpEntail::testConstStringInRegExp(s, 0, r))
         {
+          Trace("strings-rewrite-debug") << "...included" << std::endl;
           if (nk == REGEXP_INTER)
           {
             // (re.inter .. (str.to_re c) .. R ..) --->
@@ -1081,6 +1085,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         }
         else
         {
+          Trace("strings-rewrite-debug") << "...not included" << std::endl;
           if (nk == REGEXP_INTER)
           {
             // (re.inter .. (str.to_re c) .. R ..) ---> re.none
@@ -1092,7 +1097,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         }
       }
     }
-    if (toRemove.empty())
+    if (!toRemove.empty())
     {
       std::vector<Node> nodeVecTmp = node_vec;
       node_vec.clear();
