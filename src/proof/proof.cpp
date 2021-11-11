@@ -287,6 +287,22 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
 {
   if (!doCopy)
   {
+    // If we are automatically managing symmetry, we strip off SYMM steps.
+    // This avoids cyclic proofs in cases where P and (SYMM P) are added as
+    // proofs to the same CDProof.
+    if (d_autoSymm)
+    {
+      std::unordered_set<ProofNode*> processed;
+      while (pn->getRule()==PfRule::SYMM)
+      {
+        pn = pn->getChildren()[0];
+        if (std::find(processed.begin(), processed.end(), pn)!=processed.end())
+        {
+          Unreachable() << "Cyclic proof encountered when cancelling symmetry steps during addProof";
+        }
+        processed.push_back(pn);
+      }
+    }
     // If we aren't doing a deep copy, we either store pn or link its top
     // node into the existing pointer
     Node curFact = pn->getResult();

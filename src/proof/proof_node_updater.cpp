@@ -192,19 +192,13 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
   CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
   const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
   std::vector<Node> ccn;
-  Trace("ajr-temp") << "CDProof scope " << cur->getRule() << std::endl;
   for (const std::shared_ptr<ProofNode>& cp : cc)
   {
     Node cpres = cp->getResult();
     ccn.push_back(cpres);
-    Trace("ajr-temp") << "- assump " << cpres << std::endl;
     // store in the proof
-    if (!cpf.hasStep(cpres))
-    {
-      cpf.addProof(cp);
-    }
+    cpf.addProof(cp);
   }
-  Trace("ajr-temp") << "...end" << std::endl;
   Node res = cur->getResult();
   Trace("pf-process-debug")
       << "Updating (" << cur->getRule() << "): " << res << std::endl;
