@@ -128,8 +128,7 @@ bool getFreeVariablesScope(TNode n,
  * @param scope The scope we are considering.
  * @return true iff this node contains a free variable.
  */
-bool hasFreeVariablesScope(TNode n,
-                           std::unordered_set<TNode>& scope);
+bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope);
 
 /**
  * Get all variables in n.

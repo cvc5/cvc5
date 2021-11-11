@@ -197,7 +197,8 @@ void Assertions::addFormula(TNode n,
       std::stringstream se;
       if (isFunDef)
       {
-        se << "Cannot process function definition with " << varType << " variable.";
+        se << "Cannot process function definition with " << varType
+           << " variable.";
       }
       else
       {

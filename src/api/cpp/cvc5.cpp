@@ -5080,9 +5080,11 @@ Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
   bool wasShadow = false;
-  bool freeOrShadowedVar = expr::hasFreeOrShadowedVar(term.getNode(), wasShadow);
+  bool freeOrShadowedVar =
+      expr::hasFreeOrShadowedVar(term.getNode(), wasShadow);
   CVC5_API_RECOVERABLE_CHECK(!freeOrShadowedVar)
-      << "Cannot get value of term containing " << (wasShadow ? "shadowed" : "free") << " variables";
+      << "Cannot get value of term containing "
+      << (wasShadow ? "shadowed" : "free") << " variables";
   //////// all checks before this line
   Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);

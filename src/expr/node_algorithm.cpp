@@ -288,7 +288,7 @@ bool hasBoundVar(TNode n)
  * This computes the free variables in n, that is, the subterms of n of kind
  * BOUND_VARIABLE that are not bound in n or occur in scope, adds these to fvs
  * if computeFv is true.
- * 
+ *
  * @param n The node under investigation
  * @param fvs The set which free variables are added to
  * @param scope The scope we are considering.
@@ -361,7 +361,8 @@ bool checkVariablesInternal(TNode n,
           scope.insert(cn);
         }
         // must make recursive call to use separate cache
-        if (checkVariablesInternal(cur[1], fvs, scope, wasShadow, computeFv, checkShadow)
+        if (checkVariablesInternal(
+                cur[1], fvs, scope, wasShadow, computeFv, checkShadow)
             && !computeFv)
         {
           return true;
@@ -388,9 +389,9 @@ bool checkVariablesInternal(TNode n,
 
 /** Same as above, without checking for shadowing */
 bool getVariablesInternal(TNode n,
-                            std::unordered_set<Node>& fvs,
-                            std::unordered_set<TNode>& scope,
-                            bool computeFv = true)
+                          std::unordered_set<Node>& fvs,
+                          std::unordered_set<TNode>& scope,
+                          bool computeFv = true)
 {
   bool wasShadow = false;
   return checkVariablesInternal(n, fvs, scope, wasShadow, computeFv, false);
@@ -469,8 +470,7 @@ bool getFreeVariablesScope(TNode n,
 {
   return getVariablesInternal(n, fvs, scope);
 }
-bool hasFreeVariablesScope(TNode n,
-                           std::unordered_set<TNode>& scope)
+bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope)
 {
   std::unordered_set<Node> fvs;
   return getVariablesInternal(n, fvs, scope, false);
