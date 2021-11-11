@@ -411,9 +411,10 @@ ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
     if (pnc->getRule() == PfRule::SYMM)
     {
       pn = pnc->getChildren()[0].get();
-      if (std::find(processed.begin(), processed.end(), pn)!=processed.end())
+      if (std::find(processed.begin(), processed.end(), pn) != processed.end())
       {
-        Unreachable() << "Cyclic proof encountered when cancelling double symmetry";
+        Unreachable()
+            << "Cyclic proof encountered when cancelling double symmetry";
       }
       processed.push_back(pn);
     }
