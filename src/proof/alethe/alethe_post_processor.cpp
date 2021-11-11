@@ -2070,14 +2070,14 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
       << rule << " " << children << " / " << args
       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  bool updated = false;
+  std::vector<Node> newChildren = children;
   switch (rule)
   {
     case AletheRule::TRANS:
     {
       // get children
       size_t size = children.size();
-      bool updated = false;
-      std::vector<Node> newChildren = children;
       Node lastLink = cdp->getProofFor(children[0])->getArguments()[2][1];
       // for each child check that the link in the transitivity chain is
       // compatible with the previous one. Otherwise add a step that casts
@@ -2164,6 +2164,98 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
       break;
     }
     case AletheRule::CONG:
+    {
+      // given conclusion (= (f t11' ... tn1') (f t12' ... tn2')), for each
+      // child (= ti1 ti2), check whether ti{1,2} is the same as ti{1,2}'. If
+      // not, then we need to add a proxy step to the premise if ti{1,2}
+      // is integer and, if ti{1,2}' is integer, change the conclusion.
+      //
+      // An invariant is probably that I don't need to check ti1' vs ti2'
+      // because the above checks should cover this.
+      Node conclusion = args[2][1];
+      std::vector<Node> newConclusionChildren[2];
+      newConclusionChildren[0] = {conclusion[0].begin(), conclusion[0].end()};
+      newConclusionChildren[1] = {conclusion[1].begin(), conclusion[1].end()};
+      for (size_t i = 0, size = children.size(); i < size; ++i)
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
+        AlwaysAssert(childPf->getArguments().size() >= 3);
+        Node childConclusion = childPf->getArguments()[2][1];
+        size_t differ[2] = {conclusion[0][i] != childConclusion[0] ? i : size,
+                            conclusion[1][i] != childConclusion[1] ? i : size};
+        if (differ[0] < size || differ[1] < size)
+        {
+          updated = true;
+          Trace("alethe-proof-subtyping")
+              << "\t.." << i << "-th child " << i << " and " << i
+              << "-th arg of " << conclusion << " differ on positions "
+              << (differ[0] < size ? "0 " : "") << (differ[1] < size ? "1" : "")
+              << "\n";
+          // need to add proxy step
+          bool updateChild = childConclusion[0].getType().isInteger();
+          if (updateChild)
+          {
+            Trace("alethe-proof-subtyping")
+                << "\t..need proxy step for child\n";
+            Node newChild =
+                nm->mkNode(kind::SEXPR,
+                           // d_cl
+                           childPf->getArguments()[2][0],
+                           // converted link
+                           d_anc.traverseAndConvertAllConsts(childConclusion));
+            Trace("alethe-proof-subtyping")
+                << "\t\t..new child " << newChild << "\n";
+            cdp->addStep(newChild,
+                         PfRule::ALETHE_RULE,
+                         {children[i]},
+                         {nm->mkConst<Rational>(
+                              static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
+                          newChild,
+                          newChild});
+            // update children
+            newChildren[i] = newChild;
+          }
+          // Whether to change conclusion
+          for (size_t j = 0; j < 2; ++j)
+          {
+            if (conclusion[j][i].getType().isInteger()
+                && (differ[j] < size || updateChild))
+            {
+              Trace("alethe-proof-subtyping")
+                << "\t..need update " << i << "-th arg of conclusion[" << j << "]\n";
+              newConclusionChildren[j][i] =
+                  d_anc.traverseAndConvertAllConsts(conclusion[j][i]);
+              Trace("alethe-proof-subtyping")
+                  << "\t\t..arg " << conclusion[j][i] << " became "
+                  << newConclusionChildren[j][i] << "\n";
+            }
+          }
+        }
+      }
+      // Update proof step with new premises and possibly new conclusion
+      if (updated)
+      {
+        std::vector<Node> newArgs = args;
+        Kind k = conclusion[0].getKind();
+        if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+        {
+          Node op = conclusion[0].getOperator();
+          newConclusionChildren[0].insert(newConclusionChildren[0].begin(), op);
+          newConclusionChildren[1].insert(newConclusionChildren[0].begin(), op);
+        }
+        Node maybeNewConclusion =
+            nm->mkNode(k, newConclusionChildren[0])
+                .eqNode(nm->mkNode(k, newConclusionChildren[1]));
+        if (conclusion != maybeNewConclusion)
+        {
+          Trace("alethe-proof-subtyping")
+              << "\t..updated conclusion to " << maybeNewConclusion << "\n";
+          newArgs[2] = nm->mkNode(kind::SEXPR, args[2][0], maybeNewConclusion);
+        }
+        cdp->addStep(res, PfRule::ALETHE_RULE, newChildren, newArgs);
+        return true;
+      }
+    }
     default:
     {
       break;
