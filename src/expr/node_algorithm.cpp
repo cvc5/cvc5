@@ -348,12 +348,13 @@ bool checkVariablesInternal(TNode n,
           {
             // should not shadow
             Assert(scope.find(cn) == scope.end())
-              << "Shadowed variable " << cn << " in " << cur << "\n";
+                << "Shadowed variable " << cn << " in " << cur << "\n";
           }
           scope.insert(cn);
         }
         // must make recursive call to use separate cache
-        if (checkVariablesInternal(cur[1], fvs, scope, computeFv, checkShadow) && !computeFv)
+        if (checkVariablesInternal(cur[1], fvs, scope, computeFv, checkShadow)
+            && !computeFv)
         {
           return true;
         }

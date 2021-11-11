@@ -109,8 +109,7 @@ bool hasClosure(Node n);
  * @param fvs The set which free variables are added to
  * @return true iff this node contains a free variable.
  */
-bool getFreeVariables(TNode n,
-                      std::unordered_set<Node>& fvs);
+bool getFreeVariables(TNode n, std::unordered_set<Node>& fvs);
 /**
  * Get the free variables in n, that is, the subterms of n of kind
  * BOUND_VARIABLE that are not bound in n or occur in scope, adds these to fvs.
