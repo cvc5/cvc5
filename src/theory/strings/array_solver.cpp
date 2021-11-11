@@ -124,7 +124,10 @@ void ArraySolver::checkTerms(Kind k)
       // NOTE: could split on n=0 if needed, do not introduce ITE
       Kind ck = nf.d_nf[0].getKind();
       // Note that (seq.unit c) is rewritten to CONST_SEQUENCE{c}, hence we
-      // check two cases here.
+      // check two cases here. It is important for completeness of this schema
+      // to handle this differently from STRINGS_ARRAY_UPDATE_CONCAT /
+      // STRINGS_ARRAY_NTH_CONCAT. Otherwise we would conclude a trivial
+      // equality when update/nth is applied to a constant of length one.
       if (ck == SEQ_UNIT
           || (ck == CONST_SEQUENCE && Word::getLength(nf.d_nf[0]) == 1))
       {
@@ -180,8 +183,10 @@ void ArraySolver::checkTerms(Kind k)
       }
       // if the normal form is a constant sequence, it is treated as a
       // concatenation. We split per character and case split on whether the
-      // nth/update falls on each character below.
+      // nth/update falls on each character below, which must have a size
+      // greater than one.
       std::vector<Node> chars = Word::getChars(nf.d_nf[0]);
+      Assert (chars.size()>1);
       nfChildren.insert(nfChildren.end(), chars.begin(), chars.end());
     }
     else
@@ -205,9 +210,7 @@ void ArraySolver::checkTerms(Kind k)
       }
       Node cc;
       // If it is a constant of length one, then the update/nth is determined
-      // in this interval. This is important for completeness of this schema;
-      // otherwise we would conclude a trivial equality when update/nth is
-      // applied to a constant of length one. Notice this is done here as
+      // in this interval. Notice this is done here as
       // an optimization to short cut introducing terms like
       // (seq.nth (seq.unit c) i), which by construction is only relevant in
       // the context where i = 0, hence we replace by c here.
