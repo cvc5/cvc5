@@ -293,12 +293,14 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
     if (d_autoSymm)
     {
       std::unordered_set<ProofNode*> processed;
-      while (pn->getRule()==PfRule::SYMM)
+      while (pn->getRule() == PfRule::SYMM)
       {
         pn = pn->getChildren()[0];
-        if (std::find(processed.begin(), processed.end(), pn)!=processed.end())
+        if (std::find(processed.begin(), processed.end(), pn)
+            != processed.end())
         {
-          Unreachable() << "Cyclic proof encountered when cancelling symmetry steps during addProof";
+          Unreachable() << "Cyclic proof encountered when cancelling symmetry "
+                           "steps during addProof";
         }
         processed.push_back(pn);
       }
