@@ -90,6 +90,11 @@ Node LambdaLift::getLambdaFor(TNode skolem) const
   return it->second;
 }
 
+bool LambdaLift::isLambdaFunction(TNode n) const
+{
+  return !getLambdaFor(n).isNull();
+}
+
 Node LambdaLift::getAssertionFor(TNode node)
 {
   TNode skolem = getSkolemFor(node);
