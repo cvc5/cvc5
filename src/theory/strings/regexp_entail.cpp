@@ -717,7 +717,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
   {
     ret = d_aent.getConstantBoundLength(n[0], isLower);
   }
-  else if (k == REGEXP_SIGMA || k == REGEXP_RANGE)
+  else if (k == REGEXP_ALLCHAR || k == REGEXP_RANGE)
   {
     ret = nm->mkConst(Rational(1));
   }
