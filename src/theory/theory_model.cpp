@@ -690,11 +690,13 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
 
   if (logicInfo().isHigherOrder())
   {
-    //we must rewrite the function value since the definition needs to be a constant value
+    // we must rewrite the function value since the definition needs to be a
+    // constant value. This does not need to be the case if we are assigning a
+    // lambda to the equivalence class in isolation, so we do not assert that
+    // f_def is constant here.
     f_def = rewrite(f_def);
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
-    Assert(f_def.isConst()) << "Non-constant f_def: " << f_def;
   }
  
   // d_uf_models only stores models for variables
@@ -715,7 +717,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     while( !eqc_i.isFinished() ) {
       Node n = *eqc_i;
       // if an unassigned variable function
-      if( n.isVar() && d_uf_terms.find( n )!=d_uf_terms.end() && !hasAssignedFunctionDefinition( n ) ){
+      if (n.isVar() && !hasAssignedFunctionDefinition(n))
+      {
         d_uf_models[n] = f_def;
         Trace("model-builder") << "  Assigning function (" << n << ") to function definition of " << f << std::endl;
       }
@@ -723,6 +726,11 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     }
     Trace("model-builder-debug") << "  ...finished." << std::endl;
   }
+}
+
+bool TheoryModel::hasAssignedFunctionDefinition(Node f) const
+{
+  return d_uf_models.find(f) != d_uf_models.end();
 }
 
 std::vector< Node > TheoryModel::getFunctionsToAssign() {
@@ -733,6 +741,11 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
     Node n = it->first;
     Assert(!n.isNull());
+    // lambdas do not need assignments
+    if (n.getKind() == LAMBDA)
+    {
+      continue;
+    }
     // should not have been solved for in a substitution
     Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){

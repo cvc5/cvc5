@@ -82,39 +82,45 @@ void TheorySetsRels::check(Theory::Effort level)
         std::map<kind::Kind_t, std::vector<Node> >& kind_terms =
             d_terms_cache[rel_rep];
 
-        if( kind_terms.find(kind::TRANSPOSE) != kind_terms.end() ) {
-          std::vector<Node>& tp_terms = kind_terms[TRANSPOSE];
+        if (kind_terms.find(kind::RELATION_TRANSPOSE) != kind_terms.end())
+        {
+          std::vector<Node>& tp_terms = kind_terms[RELATION_TRANSPOSE];
           if( tp_terms.size() > 0 ) {
             applyTransposeRule( tp_terms );
             applyTransposeRule( tp_terms[0], rel_rep, exp );
           }
         }
-        if( kind_terms.find(kind::JOIN) != kind_terms.end() ) {
-          std::vector<Node>& join_terms = kind_terms[JOIN];
+        if (kind_terms.find(kind::RELATION_JOIN) != kind_terms.end())
+        {
+          std::vector<Node>& join_terms = kind_terms[RELATION_JOIN];
           for( unsigned int j = 0; j < join_terms.size(); j++ ) {
             applyJoinRule( join_terms[j], rel_rep, exp );
           }
         }
-        if( kind_terms.find(kind::PRODUCT) != kind_terms.end() ) {
-          std::vector<Node>& product_terms = kind_terms[PRODUCT];
+        if (kind_terms.find(kind::RELATION_PRODUCT) != kind_terms.end())
+        {
+          std::vector<Node>& product_terms = kind_terms[RELATION_PRODUCT];
           for( unsigned int j = 0; j < product_terms.size(); j++ ) {
             applyProductRule( product_terms[j], rel_rep, exp );
           }
         }
-        if( kind_terms.find(kind::TCLOSURE) != kind_terms.end() ) {
-          std::vector<Node>& tc_terms = kind_terms[TCLOSURE];
+        if (kind_terms.find(kind::RELATION_TCLOSURE) != kind_terms.end())
+        {
+          std::vector<Node>& tc_terms = kind_terms[RELATION_TCLOSURE];
           for( unsigned int j = 0; j < tc_terms.size(); j++ ) {
             applyTCRule( mem, tc_terms[j], rel_rep, exp );
           }
         }
-        if( kind_terms.find(kind::JOIN_IMAGE) != kind_terms.end() ) {
-          std::vector<Node>& join_image_terms = kind_terms[JOIN_IMAGE];
+        if (kind_terms.find(kind::RELATION_JOIN_IMAGE) != kind_terms.end())
+        {
+          std::vector<Node>& join_image_terms = kind_terms[RELATION_JOIN_IMAGE];
           for( unsigned int j = 0; j < join_image_terms.size(); j++ ) {
             applyJoinImageRule( mem, join_image_terms[j], exp );
           }
         }
-        if( kind_terms.find(kind::IDEN) != kind_terms.end() ) {
-          std::vector<Node>& iden_terms = kind_terms[IDEN];
+        if (kind_terms.find(kind::RELATION_IDEN) != kind_terms.end())
+        {
+          std::vector<Node>& iden_terms = kind_terms[RELATION_IDEN];
           for( unsigned int j = 0; j < iden_terms.size(); j++ ) {
             applyIdenRule( mem, iden_terms[j], exp );
           }
@@ -139,7 +145,8 @@ void TheorySetsRels::check(Theory::Effort level)
         Trace("rels-debug") << "[sets-rels] Check " << k_t_it->second.size()
                             << " terms of kind " << k_t_it->first << std::endl;
         std::vector<Node>::iterator term_it = k_t_it->second.begin();
-        if (k_t_it->first == kind::JOIN || k_t_it->first == kind::PRODUCT)
+        if (k_t_it->first == kind::RELATION_JOIN
+            || k_t_it->first == kind::RELATION_PRODUCT)
         {
           while (term_it != k_t_it->second.end())
           {
@@ -147,7 +154,7 @@ void TheorySetsRels::check(Theory::Effort level)
             ++term_it;
           }
         }
-        else if (k_t_it->first == kind::TRANSPOSE)
+        else if (k_t_it->first == kind::RELATION_TRANSPOSE)
         {
           while (term_it != k_t_it->second.end())
           {
@@ -155,7 +162,7 @@ void TheorySetsRels::check(Theory::Effort level)
             ++term_it;
           }
         }
-        else if (k_t_it->first == kind::TCLOSURE)
+        else if (k_t_it->first == kind::RELATION_TCLOSURE)
         {
           while (term_it != k_t_it->second.end())
           {
@@ -163,7 +170,7 @@ void TheorySetsRels::check(Theory::Effort level)
             ++term_it;
           }
         }
-        else if (k_t_it->first == kind::JOIN_IMAGE)
+        else if (k_t_it->first == kind::RELATION_JOIN_IMAGE)
         {
           while (term_it != k_t_it->second.end())
           {
@@ -171,7 +178,7 @@ void TheorySetsRels::check(Theory::Effort level)
             ++term_it;
           }
         }
-        else if (k_t_it->first == kind::IDEN)
+        else if (k_t_it->first == kind::RELATION_IDEN)
         {
           while (term_it != k_t_it->second.end())
           {
@@ -220,7 +227,9 @@ void TheorySetsRels::check(Theory::Effort level)
         if (erType.isBoolean() && eqc_rep.isConst())
         {
           // collect membership info
-          if( eqc_node.getKind() == kind::MEMBER && eqc_node[1].getType().getSetElementType().isTuple()) {
+          if (eqc_node.getKind() == kind::SET_MEMBER
+              && eqc_node[1].getType().getSetElementType().isTuple())
+          {
             Node tup_rep = getRepresentative( eqc_node[0] );
             Node rel_rep = getRepresentative( eqc_node[1] );
 
@@ -243,9 +252,13 @@ void TheorySetsRels::check(Theory::Effort level)
         }
         else if (erType.isSet() && erType.getSetElementType().isTuple())
         {
-          if( eqc_node.getKind() == kind::TRANSPOSE || eqc_node.getKind() == kind::JOIN ||
-              eqc_node.getKind() == kind::PRODUCT || eqc_node.getKind() == kind::TCLOSURE ||
-              eqc_node.getKind() == kind::JOIN_IMAGE || eqc_node.getKind() == kind::IDEN ) {
+          if (eqc_node.getKind() == kind::RELATION_TRANSPOSE
+              || eqc_node.getKind() == kind::RELATION_JOIN
+              || eqc_node.getKind() == kind::RELATION_PRODUCT
+              || eqc_node.getKind() == kind::RELATION_TCLOSURE
+              || eqc_node.getKind() == kind::RELATION_JOIN_IMAGE
+              || eqc_node.getKind() == kind::RELATION_IDEN)
+          {
             d_terms_cache[eqc_rep][eqc_node.getKind()].push_back(eqc_node);
           }
         // need to add all tuple elements as shared terms
@@ -269,11 +282,11 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "[Theory::Rels] Done with collecting relational terms!" << std::endl;
   }
 
-  /* JOIN-IMAGE UP  :   (x, x1) IS_IN R, ..., (x, xn) IS_IN R  (R JOIN_IMAGE n)
-  *                     -------------------------------------------------------
-  *                     x IS_IN (R JOIN_IMAGE n) || NOT DISTINCT(x1, ... , xn)
-  *
-  */
+  /* RELATION_JOIN-IMAGE UP:
+   *   (x, x1) IS_IN R, ..., (x, xn) IS_IN R  (R RELATION_JOIN_IMAGE n)
+   *   ----------------------------------------------------------------
+   *   x IS_IN (R RELATION_JOIN_IMAGE n) || NOT DISTINCT(x1, ... , xn)
+   */
 
   void TheorySetsRels::computeMembersForJoinImageTerm( Node join_image_term ) {
     Trace("rels-debug") << "\n[Theory::Rels] *********** Compute members for JoinImage Term = " << join_image_term << std::endl;
@@ -305,7 +318,7 @@ void TheorySetsRels::check(Theory::Effort level)
       const DType& dt =
           join_image_term.getType().getSetElementType().getDType();
       Node new_membership = nm->mkNode(
-          MEMBER,
+          SET_MEMBER,
           nm->mkNode(APPLY_CONSTRUCTOR, dt[0].getConstructor(), fst_mem_rep),
           join_image_term);
       if (d_state.isEntailed(new_membership, true))
@@ -365,10 +378,10 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for JoinImage Term" << join_image_term << "*********** " << std::endl;
   }
 
-  /* JOIN-IMAGE DOWN  : (x) IS_IN (R JOIN_IMAGE n)
-   *                     -------------------------------------------------------
-   *                     (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ...
-   * , xn)
+  /* RELATION_JOIN-IMAGE DOWN:
+   *   (x) IS_IN (R RELATION_JOIN_IMAGE n)
+   *   ------------------------------------------------------------
+   *   (x, x1) IS_IN R .... (x, xn) IS_IN R  DISTINCT(x1, ... , xn)
    *
    */
   void TheorySetsRels::applyJoinImageRule( Node mem_rep, Node join_image_term, Node exp ) {
@@ -411,7 +424,7 @@ void TheorySetsRels::check(Theory::Effort level)
           AND,
           conclusion,
           nm->mkNode(
-              MEMBER,
+              SET_MEMBER,
               RelsUtils::constructPair(join_image_rel, fst_mem_element, skolem),
               join_image_rel));
     }
@@ -423,11 +436,11 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyJoinImageRule ***********" << std::endl;
   }
 
-  /* IDENTITY-DOWN  : (x, y) IS_IN IDEN(R)
-  *               -------------------------------------------------------
-  *                   x = y,  (x IS_IN R)
-  *
-  */
+  /* IDENTITY-DOWN  : (x, y) IS_IN RELATION_IDEN(R)
+   *               -------------------------------------------------------
+   *                   x = y,  (x IS_IN R)
+   *
+   */
 
   void TheorySetsRels::applyIdenRule( Node mem_rep, Node iden_term, Node exp) {
     Trace("rels-debug") << "\n[Theory::Rels] *********** applyIdenRule on " << iden_term
@@ -442,7 +455,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node snd_mem = RelsUtils::nthElementOfTuple( exp[0], 1 );
     const DType& dt = iden_term[0].getType().getSetElementType().getDType();
     Node fact = nm->mkNode(
-        MEMBER,
+        SET_MEMBER,
         nm->mkNode(APPLY_CONSTRUCTOR, dt[0].getConstructor(), fst_mem),
         iden_term[0]);
 
@@ -455,11 +468,11 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyIdenRule on " << iden_term << std::endl;
   }
 
-  /* IDEN UP  : (x) IS_IN R        IDEN(R) IN T
-  *             --------------------------------
-  *                   (x, x) IS_IN IDEN(R)
-  *
-  */
+  /* RELATION_IDEN UP  : (x) IS_IN R        RELATION_IDEN(R) IN T
+   *             --------------------------------
+   *                   (x, x) IS_IN RELATION_IDEN(R)
+   *
+   */
 
   void TheorySetsRels::computeMembersForIdenTerm( Node iden_term ) {
     Trace("rels-debug") << "\n[Theory::Rels] *********** Compute members for Iden Term = " << iden_term << std::endl;
@@ -482,8 +495,9 @@ void TheorySetsRels::check(Theory::Effort level)
       if( (*mem_rep_exp_it)[1] != iden_term_rel ) {
         reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, (*mem_rep_exp_it)[1], iden_term_rel ) );
       }
-      sendInfer(
-          nm->mkNode(MEMBER, new_mem, iden_term), InferenceId::SETS_RELS_IDENTITY_UP, reason);
+      sendInfer(nm->mkNode(SET_MEMBER, new_mem, iden_term),
+                InferenceId::SETS_RELS_IDENTITY_UP,
+                reason);
       ++mem_rep_exp_it;
     }
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for Iden Term = " << iden_term << std::endl;
@@ -495,23 +509,27 @@ void TheorySetsRels::check(Theory::Effort level)
    */
 
   /*
-   * TCLOSURE TCLOSURE(x) = x | x.x | x.x.x | ... (| is union)
+   * RELATION_TCLOSURE RELATION_TCLOSURE(x) = x | x.x | x.x.x | ... (| is union)
    *
-   * TCLOSURE-UP I:   (a, b) IS_IN x            TCLOSURE(x) in T
+   * RELATION_TCLOSURE-UP I:   (a, b) IS_IN x            RELATION_TCLOSURE(x) in
+   * T
    *              ---------------------------------------------
-   *                              (a, b) IS_IN TCLOSURE(x)
+   *                              (a, b) IS_IN RELATION_TCLOSURE(x)
    *
    *
    *
-   * TCLOSURE-UP II : (a, b) IS_IN TCLOSURE(x)  (b, c) IS_IN TCLOSURE(x)
+   * RELATION_TCLOSURE-UP II : (a, b) IS_IN RELATION_TCLOSURE(x)  (b, c) IS_IN
+   * RELATION_TCLOSURE(x)
    *              -----------------------------------------------------------
-   *                            (a, c) IS_IN TCLOSURE(x)
+   *                            (a, c) IS_IN RELATION_TCLOSURE(x)
    *
    */
   void TheorySetsRels::applyTCRule( Node mem_rep, Node tc_rel, Node tc_rel_rep, Node exp ) {
-    Trace("rels-debug") << "[Theory::Rels] *********** Applying TCLOSURE rule on a tc term = " << tc_rel
-                            << ", its representative = " << tc_rel_rep
-                            << " with member rep = " << mem_rep << " and explanation = " << exp << std::endl;
+    Trace("rels-debug") << "[Theory::Rels] *********** Applying "
+                           "RELATION_TCLOSURE rule on a tc term = "
+                        << tc_rel << ", its representative = " << tc_rel_rep
+                        << " with member rep = " << mem_rep
+                        << " and explanation = " << exp << std::endl;
     MEM_IT mem_it = d_rReps_memberReps_cache.find( tc_rel[0] );
 
     if( mem_it != d_rReps_memberReps_cache.end() && d_rel_nodes.find( tc_rel ) == d_rel_nodes.end()
@@ -574,7 +592,7 @@ void TheorySetsRels::check(Theory::Effort level)
                                               tc_rel[0],
                                               SkolemCache::SK_TCLOSURE_DOWN2,
                                               "stc2");
-    Node mem_of_r = nm->mkNode(MEMBER, exp[0], tc_rel[0]);
+    Node mem_of_r = nm->mkNode(SET_MEMBER, exp[0], tc_rel[0]);
     Node sk_eq = nm->mkNode(EQUAL, sk_1, sk_2);
     Node reason   = exp;
 
@@ -587,15 +605,15 @@ void TheorySetsRels::check(Theory::Effort level)
         mem_of_r,
         nm->mkNode(
             AND,
-            nm->mkNode(MEMBER,
+            nm->mkNode(SET_MEMBER,
                        RelsUtils::constructPair(tc_rel, fst_element, sk_1),
                        tc_rel[0]),
-            nm->mkNode(MEMBER,
+            nm->mkNode(SET_MEMBER,
                        RelsUtils::constructPair(tc_rel, sk_2, snd_element),
                        tc_rel[0]),
             nm->mkNode(OR,
                        sk_eq,
-                       nm->mkNode(MEMBER,
+                       nm->mkNode(SET_MEMBER,
                                   RelsUtils::constructPair(tc_rel, sk_1, sk_2),
                                   tc_rel))));
 
@@ -742,11 +760,11 @@ void TheorySetsRels::check(Theory::Effort level)
       all_reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, tc_rel[0], reasons.back()[1]) );
     }
     if( all_reasons.size() > 1) {
-      sendInfer(nm->mkNode(MEMBER, tc_mem, tc_rel),
+      sendInfer(nm->mkNode(SET_MEMBER, tc_mem, tc_rel),
                 InferenceId::SETS_RELS_TCLOSURE_FWD,
                 nm->mkNode(AND, all_reasons));
     } else {
-      sendInfer(nm->mkNode(MEMBER, tc_mem, tc_rel),
+      sendInfer(nm->mkNode(SET_MEMBER, tc_mem, tc_rel),
                 InferenceId::SETS_RELS_TCLOSURE_FWD,
                 all_reasons.front());
     }
@@ -770,24 +788,25 @@ void TheorySetsRels::check(Theory::Effort level)
     }
   }
 
- /*  product-split rule:  (a, b) IS_IN (X PRODUCT Y)
-  *                     ----------------------------------
-  *                       a IS_IN X  && b IS_IN Y
-  *
-  *  product-compose rule: (a, b) IS_IN X    (c, d) IS_IN Y
-  *                        ---------------------------------
-  *                        (a, b, c, d) IS_IN (X PRODUCT Y)
-  */
-
+  /*  product-split rule:  (a, b) IS_IN (X RELATION_PRODUCT Y)
+   *                     ----------------------------------
+   *                       a IS_IN X  && b IS_IN Y
+   *
+   *  product-compose rule: (a, b) IS_IN X    (c, d) IS_IN Y
+   *                        ---------------------------------
+   *                        (a, b, c, d) IS_IN (X RELATION_PRODUCT Y)
+   */
 
   void TheorySetsRels::applyProductRule( Node pt_rel, Node pt_rel_rep, Node exp ) {
-    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying PRODUCT rule on producted term = " << pt_rel
-                            << ", its representative = " << pt_rel_rep
-                            << " with explanation = " << exp << std::endl;
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                           "RELATION_PRODUCT rule on producted term = "
+                        << pt_rel << ", its representative = " << pt_rel_rep
+                        << " with explanation = " << exp << std::endl;
 
     if(d_rel_nodes.find( pt_rel ) == d_rel_nodes.end()) {
-      Trace("rels-debug") <<  "\n[Theory::Rels] Apply PRODUCT-COMPOSE rule on term: " << pt_rel
-                          << " with explanation: " << exp << std::endl;
+      Trace("rels-debug")
+          << "\n[Theory::Rels] Apply RELATION_PRODUCT-COMPOSE rule on term: "
+          << pt_rel << " with explanation: " << exp << std::endl;
 
       computeMembersForBinOpRel( pt_rel );
       d_rel_nodes.insert( pt_rel );
@@ -814,8 +833,10 @@ void TheorySetsRels::check(Theory::Effort level)
     Node reason   = exp;
     Node mem1     = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, r1_element);
     Node mem2     = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, r2_element);
-    Node fact_1   = NodeManager::currentNM()->mkNode(kind::MEMBER, mem1, pt_rel[0]);
-    Node fact_2   = NodeManager::currentNM()->mkNode(kind::MEMBER, mem2, pt_rel[1]);
+    Node fact_1 =
+        NodeManager::currentNM()->mkNode(kind::SET_MEMBER, mem1, pt_rel[0]);
+    Node fact_2 =
+        NodeManager::currentNM()->mkNode(kind::SET_MEMBER, mem2, pt_rel[1]);
 
     if( pt_rel != exp[1] ) {
       reason = NodeManager::currentNM()->mkNode(kind::AND, exp, NodeManager::currentNM()->mkNode(kind::EQUAL, pt_rel, exp[1]));
@@ -824,23 +845,26 @@ void TheorySetsRels::check(Theory::Effort level)
     sendInfer(fact_2, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
   }
 
-  /* join-split rule:           (a, b) IS_IN (X JOIN Y)
+  /* join-split rule:           (a, b) IS_IN (X RELATION_JOIN Y)
    *                  --------------------------------------------
    *                  exists z | (a, z) IS_IN X  && (z, b) IS_IN Y
    *
    *
-   * join-compose rule: (a, b) IS_IN X    (b, c) IS_IN Y  NOT (t, u) IS_IN (X JOIN Y)
+   * join-compose rule: (a, b) IS_IN X    (b, c) IS_IN Y  NOT (t, u) IS_IN (X
+   * RELATION_JOIN Y)
    *                    -------------------------------------------------------------
-   *                                      (a, c) IS_IN (X JOIN Y)
+   *                                      (a, c) IS_IN (X RELATION_JOIN Y)
    */
 
   void TheorySetsRels::applyJoinRule( Node join_rel, Node join_rel_rep, Node exp ) {
-    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying JOIN rule on joined term = " << join_rel
-                            << ", its representative = " << join_rel_rep
-                            << " with explanation = " << exp << std::endl;
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                           "RELATION_JOIN rule on joined term = "
+                        << join_rel << ", its representative = " << join_rel_rep
+                        << " with explanation = " << exp << std::endl;
     if(d_rel_nodes.find( join_rel ) == d_rel_nodes.end()) {
-      Trace("rels-debug") <<  "\n[Theory::Rels] Apply JOIN-COMPOSE rule on term: " << join_rel
-                          << " with explanation: " << exp << std::endl;
+      Trace("rels-debug")
+          << "\n[Theory::Rels] Apply RELATION_JOIN-COMPOSE rule on term: "
+          << join_rel << " with explanation: " << exp << std::endl;
 
       computeMembersForBinOpRel( join_rel );
       d_rel_nodes.insert( join_rel );
@@ -890,19 +914,21 @@ void TheorySetsRels::check(Theory::Effort level)
     if( join_rel != exp[1] ) {
       reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, join_rel, exp[1]));
     }
-    Node fact = NodeManager::currentNM()->mkNode(kind::MEMBER, mem1, join_rel[0]);
+    Node fact =
+        NodeManager::currentNM()->mkNode(kind::SET_MEMBER, mem1, join_rel[0]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
-    fact = NodeManager::currentNM()->mkNode(kind::MEMBER, mem2, join_rel[1]);
+    fact =
+        NodeManager::currentNM()->mkNode(kind::SET_MEMBER, mem2, join_rel[1]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
     makeSharedTerm(shared_x, shared_type);
   }
 
   /*
-   * transpose-occur rule:    (a, b) IS_IN X   (TRANSPOSE X) in T
+   * transpose-occur rule:    (a, b) IS_IN X   (RELATION_TRANSPOSE X) in T
    *                         ---------------------------------------
-   *                            (b, a) IS_IN (TRANSPOSE X)
+   *                            (b, a) IS_IN (RELATION_TRANSPOSE X)
    *
-   * transpose-reverse rule:    (a, b) IS_IN (TRANSPOSE X)
+   * transpose-reverse rule:    (a, b) IS_IN (RELATION_TRANSPOSE X)
    *                         ---------------------------------------
    *                            (b, a) IS_IN X
    *
@@ -913,7 +939,10 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     NodeManager* nm = NodeManager::currentNM();
     for( unsigned int i = 1; i < tp_terms.size(); i++ ) {
-      Trace("rels-debug") << "\n[Theory::Rels] *********** Applying TRANSPOSE-Equal rule on transposed term = " << tp_terms[0] << " and " << tp_terms[i] << std::endl;
+      Trace("rels-debug")
+          << "\n[Theory::Rels] *********** Applying RELATION_TRANSPOSE-Equal "
+             "rule on transposed term = "
+          << tp_terms[0] << " and " << tp_terms[i] << std::endl;
       sendInfer(nm->mkNode(EQUAL, tp_terms[0][0], tp_terms[i][0]),
                 InferenceId::SETS_RELS_TRANSPOSE_EQ,
                 nm->mkNode(EQUAL, tp_terms[0], tp_terms[i]));
@@ -921,14 +950,16 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   void TheorySetsRels::applyTransposeRule( Node tp_rel, Node tp_rel_rep, Node exp ) {
-    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying TRANSPOSE rule on transposed term = " << tp_rel
-                        << ", its representative = " << tp_rel_rep
+    Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                           "RELATION_TRANSPOSE rule on transposed term = "
+                        << tp_rel << ", its representative = " << tp_rel_rep
                         << " with explanation = " << exp << std::endl;
     NodeManager* nm = NodeManager::currentNM();
 
     if(d_rel_nodes.find( tp_rel ) == d_rel_nodes.end()) {
-      Trace("rels-debug") <<  "\n[Theory::Rels] Apply TRANSPOSE-Compose rule on term: " << tp_rel
-                          << " with explanation: " << exp << std::endl;
+      Trace("rels-debug")
+          << "\n[Theory::Rels] Apply RELATION_TRANSPOSE-Compose rule on term: "
+          << tp_rel << " with explanation: " << exp << std::endl;
 
       computeMembersForUnaryOpRel( tp_rel );
       d_rel_nodes.insert( tp_rel );
@@ -940,7 +971,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if( tp_rel != exp[1] ) {
       reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, tp_rel, exp[1]));
     }
-    sendInfer(nm->mkNode(MEMBER, reversed_mem, tp_rel[0]),
+    sendInfer(nm->mkNode(SET_MEMBER, reversed_mem, tp_rel[0]),
               InferenceId::SETS_RELS_TRANSPOSE_REV,
               reason);
   }
@@ -963,13 +994,15 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "\n[Theory::Rels] computeMembersForBinOpRel for relation  " << rel << std::endl;
 
     switch(rel[0].getKind()) {
-      case kind::TRANSPOSE:
-      case kind::TCLOSURE: {
+      case kind::RELATION_TRANSPOSE:
+      case kind::RELATION_TCLOSURE:
+      {
         computeMembersForUnaryOpRel(rel[0]);
         break;
       }
-      case kind::JOIN:
-      case kind::PRODUCT: {
+      case kind::RELATION_JOIN:
+      case kind::RELATION_PRODUCT:
+      {
         computeMembersForBinOpRel(rel[0]);
         break;
       }
@@ -977,12 +1010,14 @@ void TheorySetsRels::check(Theory::Effort level)
         break;
     }
     switch(rel[1].getKind()) {
-      case kind::TRANSPOSE: {
+      case kind::RELATION_TRANSPOSE:
+      {
         computeMembersForUnaryOpRel(rel[1]);
         break;
       }
-      case kind::JOIN:
-      case kind::PRODUCT: {
+      case kind::RELATION_JOIN:
+      case kind::RELATION_PRODUCT:
+      {
         computeMembersForBinOpRel(rel[1]);
         break;
       }
@@ -997,14 +1032,10 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "\n[Theory::Rels] computeMembersForUnaryOpRel for relation  " << rel << std::endl;
 
     switch(rel[0].getKind()) {
-      case kind::TRANSPOSE:
-      case kind::TCLOSURE:
-        computeMembersForUnaryOpRel(rel[0]);
-        break;
-      case kind::JOIN:
-      case kind::PRODUCT:
-        computeMembersForBinOpRel(rel[0]);
-        break;
+      case kind::RELATION_TRANSPOSE:
+      case kind::RELATION_TCLOSURE: computeMembersForUnaryOpRel(rel[0]); break;
+      case kind::RELATION_JOIN:
+      case kind::RELATION_PRODUCT: computeMembersForBinOpRel(rel[0]); break;
       default:
         break;
     }
@@ -1022,7 +1053,7 @@ void TheorySetsRels::check(Theory::Effort level)
 
     Assert(members.size() == exps.size());
 
-    if (rel.getKind() == kind::TRANSPOSE)
+    if (rel.getKind() == kind::RELATION_TRANSPOSE)
     {
       for (size_t i = 0, msize = members.size(); i < msize; i++)
       {
@@ -1031,9 +1062,10 @@ void TheorySetsRels::check(Theory::Effort level)
           reason = nm->mkNode(
               kind::AND, reason, nm->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
-        sendInfer(nm->mkNode(MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
-                  InferenceId::SETS_RELS_TRANSPOSE_REV,
-                  reason);
+        sendInfer(
+            nm->mkNode(SET_MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
+            InferenceId::SETS_RELS_TRANSPOSE_REV,
+            reason);
       }
     }
   }
@@ -1042,12 +1074,12 @@ void TheorySetsRels::check(Theory::Effort level)
    * Explicitly compose the join or product relations of r1 and r2. For example,
    * consider the case that (a, b) in r1, (c, d) in r2.
    *
-   * For JOIN, we have three cases:
+   * For RELATION_JOIN, we have three cases:
    *   if b = c, we infer (a, d) in (join r1 r2)
    *   else, we mark b and c as shared terms; their equality will be split in
    *         theory combination if necessary.
    *
-   * For PRODUCT, we infer (a, b, c, d) in (product r1 r2).
+   * For RELATION_PRODUCT, we infer (a, b, c, d) in (product r1 r2).
    */
   void TheorySetsRels::composeMembersForRels( Node rel ) {
     Trace("rels-debug") << "[Theory::Rels] Start composing members for relation = " << rel << std::endl;
@@ -1074,7 +1106,7 @@ void TheorySetsRels::check(Theory::Effort level)
         std::vector<Node> tuple_elements;
         tuple_elements.push_back(tn.getDType()[0].getConstructor());
         std::vector<Node> reasons;
-        if (rk == kind::JOIN)
+        if (rk == kind::RELATION_JOIN)
         {
           Node r1_rmost =
               RelsUtils::nthElementOfTuple(r1_rep_exps[i][0], r1_tuple_len - 1);
@@ -1101,9 +1133,9 @@ void TheorySetsRels::check(Theory::Effort level)
           }
         }
 
-        if (rk == kind::PRODUCT || rk == kind::JOIN)
+        if (rk == kind::RELATION_PRODUCT || rk == kind::RELATION_JOIN)
         {
-          bool isProduct = rk == kind::PRODUCT;
+          bool isProduct = rk == kind::RELATION_PRODUCT;
           unsigned int k = 0;
           unsigned int l = 1;
 
@@ -1120,7 +1152,7 @@ void TheorySetsRels::check(Theory::Effort level)
 
           Node composed_tuple =
               nm->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
-          Node fact = nm->mkNode(kind::MEMBER, composed_tuple, rel);
+          Node fact = nm->mkNode(kind::SET_MEMBER, composed_tuple, rel);
           reasons.push_back( r1_rep_exps[i] );
           reasons.push_back( r2_rep_exps[j] );
 
@@ -1160,8 +1192,9 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
-    return k == TRANSPOSE || k == PRODUCT || k == JOIN || k == TCLOSURE
-           || k == IDEN || k == JOIN_IMAGE;
+    return k == RELATION_TRANSPOSE || k == RELATION_PRODUCT
+           || k == RELATION_JOIN || k == RELATION_TCLOSURE || k == RELATION_IDEN
+           || k == RELATION_JOIN_IMAGE;
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
@@ -1238,8 +1271,9 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   /*
-   * For each tuple n, we store a mapping between n and a list of its elements representatives
-   * in d_tuple_reps. This would later be used for applying JOIN operator.
+   * For each tuple n, we store a mapping between n and a list of its elements
+   * representatives in d_tuple_reps. This would later be used for applying
+   * RELATION_JOIN operator.
    */
   void TheorySetsRels::computeTupleReps( Node n ) {
     if( d_tuple_reps.find( n ) == d_tuple_reps.end() ){
@@ -1266,7 +1300,8 @@ void TheorySetsRels::check(Theory::Effort level)
         tuple_elements.push_back(element);
       }
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
-      tuple_reduct = NodeManager::currentNM()->mkNode(kind::MEMBER,tuple_reduct, n[1]);
+      tuple_reduct = NodeManager::currentNM()->mkNode(
+          kind::SET_MEMBER, tuple_reduct, n[1]);
       Node tuple_reduction_lemma = NodeManager::currentNM()->mkNode(kind::EQUAL, n, tuple_reduct);
       sendInfer(tuple_reduction_lemma, InferenceId::SETS_RELS_TUPLE_REDUCTION, d_trueNode);
       d_symbolic_tuples.insert(n);

@@ -44,8 +44,8 @@ TermRegistry::TermRegistry(Env& env,
 Node TermRegistry::getProxy(Node n)
 {
   Kind nk = n.getKind();
-  if (nk != EMPTYSET && nk != SINGLETON && nk != INTERSECTION && nk != SETMINUS
-      && nk != UNION && nk != UNIVERSE_SET)
+  if (nk != SET_EMPTY && nk != SET_SINGLETON && nk != SET_INTER
+      && nk != SET_MINUS && nk != SET_UNION && nk != SET_UNIVERSE)
   {
     return n;
   }
@@ -62,9 +62,9 @@ Node TermRegistry::getProxy(Node n)
   d_proxy_to_term[k] = n;
   Node eq = k.eqNode(n);
   sendSimpleLemmaInternal(eq, InferenceId::SETS_PROXY);
-  if (nk == SINGLETON)
+  if (nk == SET_SINGLETON)
   {
-    Node slem = nm->mkNode(MEMBER, n[0], k);
+    Node slem = nm->mkNode(SET_MEMBER, n[0], k);
     sendSimpleLemmaInternal(slem, InferenceId::SETS_PROXY_SINGLETON);
   }
   return k;
@@ -90,7 +90,7 @@ Node TermRegistry::getUnivSet(TypeNode tn)
     return it->second;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node n = nm->mkNullaryOperator(tn, UNIVERSE_SET);
+  Node n = nm->mkNullaryOperator(tn, SET_UNIVERSE);
   for (it = d_univset.begin(); it != d_univset.end(); ++it)
   {
     Node n1;
@@ -107,7 +107,7 @@ Node TermRegistry::getUnivSet(TypeNode tn)
     }
     if (!n1.isNull())
     {
-      Node ulem = nm->mkNode(SUBSET, n1, n2);
+      Node ulem = nm->mkNode(SET_SUBSET, n1, n2);
       Trace("sets-lemma") << "Sets::Lemma : " << ulem << " by univ-type"
                           << std::endl;
       d_im.lemma(ulem, InferenceId::SETS_UNIV_TYPE);

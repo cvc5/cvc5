@@ -61,13 +61,13 @@
 (assert (! (forall ((l1 Loc) (l2 Loc))
            (or (not Axiom$0)
                (or (= l1 l2) (< (read$0 data$0 l1) (read$0 data$0 l2))
-                   (not (Btwn$0 next$0 l1 l2 null$0)) (not (member l1 sk_?X$0))
-                   (not (member l2 sk_?X$0)))))
+                   (not (Btwn$0 next$0 l1 l2 null$0)) (not (set.member l1 sk_?X$0))
+                   (not (set.member l2 sk_?X$0)))))
    :named strict_sortedness))
 
 (assert (! (forall ((l1 Loc))
            (or (= l1 null$0)
-               (member (read$0 data$0 l1)
+               (set.member (read$0 data$0 l1)
                  (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                (not (Btwn$0 next$0 lst$0 l1 null$0))))
    :named sorted_set_1))
@@ -78,7 +78,7 @@
               (witness$0 (read$0 data$0 curr_2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (member (read$0 data$0 curr_2$0)
+            (set.member (read$0 data$0 curr_2$0)
               (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
         (or
             (and
@@ -86,12 +86,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 curr_2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 curr_2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
             (not
-                 (member (read$0 data$0 curr_2$0)
+                 (set.member (read$0 data$0 curr_2$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
    :named sorted_set_2))
 
@@ -101,7 +101,7 @@
               (witness$0 (read$0 data$0 prev_2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (member (read$0 data$0 prev_2$0)
+            (set.member (read$0 data$0 prev_2$0)
               (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
         (or
             (and
@@ -109,12 +109,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 prev_2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 prev_2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
             (not
-                 (member (read$0 data$0 prev_2$0)
+                 (set.member (read$0 data$0 prev_2$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
    :named sorted_set_2_1))
 
@@ -124,7 +124,7 @@
               (witness$0 (read$0 data$0 sk_l1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (member (read$0 data$0 sk_l1$0)
+            (set.member (read$0 data$0 sk_l1$0)
               (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
         (or
             (and
@@ -132,12 +132,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
             (not
-                 (member (read$0 data$0 sk_l1$0)
+                 (set.member (read$0 data$0 sk_l1$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
    :named sorted_set_2_2))
 
@@ -147,7 +147,7 @@
               (witness$0 (read$0 data$0 sk_l1_1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (member (read$0 data$0 sk_l1_1$0)
+            (set.member (read$0 data$0 sk_l1_1$0)
               (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
         (or
             (and
@@ -155,12 +155,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1_1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l1_1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
             (not
-                 (member (read$0 data$0 sk_l1_1$0)
+                 (set.member (read$0 data$0 sk_l1_1$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
    :named sorted_set_2_3))
 
@@ -170,7 +170,7 @@
               (witness$0 (read$0 data$0 sk_l2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (member (read$0 data$0 sk_l2$0)
+            (set.member (read$0 data$0 sk_l2$0)
               (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
         (or
             (and
@@ -178,12 +178,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
             (not
-                 (member (read$0 data$0 sk_l2$0)
+                 (set.member (read$0 data$0 sk_l2$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
    :named sorted_set_2_4))
 
@@ -193,7 +193,7 @@
               (witness$0 (read$0 data$0 sk_l2_1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (member (read$0 data$0 sk_l2_1$0)
+            (set.member (read$0 data$0 sk_l2_1$0)
               (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
         (or
             (and
@@ -201,12 +201,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2_1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l2_1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
             (not
-                 (member (read$0 data$0 sk_l2_1$0)
+                 (set.member (read$0 data$0 sk_l2_1$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
    :named sorted_set_2_5))
 
@@ -215,18 +215,18 @@
             (=
               (witness$0 sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+            (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
         (or
             (and
                  (= sk_?e$0
                    (read$0 data$0
                      (witness$0 sk_?e$0
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 sk_?e$0
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
-            (not (member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+            (not (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
    :named sorted_set_2_6))
 
 (assert (! (and
@@ -235,30 +235,30 @@
               (witness$0 sk_?e_3$0
                 (sorted_set_c$0 data$0 next$0 lst$0 null$0))
               null$0)
-            (member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
+            (set.member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))
         (or
             (and
                  (= sk_?e_3$0
                    (read$0 data$0
                      (witness$0 sk_?e_3$0
                        (sorted_set_c$0 data$0 next$0 lst$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 sk_?e_3$0
                      (sorted_set_c$0 data$0 next$0 lst$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 null$0)))
-            (not (member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
+            (not (set.member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 null$0)))))
    :named sorted_set_2_7))
 
 (assert (! (forall ((l1 Loc))
            (or (= l1 null$0)
-               (member (read$0 data$0 l1)
+               (set.member (read$0 data$0 l1)
                  (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                (not (Btwn$0 next$0 curr_2$0 l1 null$0))))
    :named sorted_set_1_1))
 
 (assert (! (forall ((l1 Loc))
            (or (= l1 curr_2$0)
-               (member (read$0 data$0 l1)
+               (set.member (read$0 data$0 l1)
                  (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                (not (Btwn$0 next$0 lst$0 l1 curr_2$0))))
    :named sorted_set_1_2))
@@ -269,7 +269,7 @@
               (witness$0 (read$0 data$0 curr_2$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (member (read$0 data$0 curr_2$0)
+            (set.member (read$0 data$0 curr_2$0)
               (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
         (or
             (and
@@ -277,12 +277,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 curr_2$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 curr_2$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
             (not
-                 (member (read$0 data$0 curr_2$0)
+                 (set.member (read$0 data$0 curr_2$0)
                    (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
    :named sorted_set_2_8))
 
@@ -292,7 +292,7 @@
               (witness$0 (read$0 data$0 prev_2$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (member (read$0 data$0 prev_2$0)
+            (set.member (read$0 data$0 prev_2$0)
               (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
         (or
             (and
@@ -300,12 +300,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 prev_2$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 prev_2$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
             (not
-                 (member (read$0 data$0 prev_2$0)
+                 (set.member (read$0 data$0 prev_2$0)
                    (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
    :named sorted_set_2_9))
 
@@ -315,7 +315,7 @@
               (witness$0 (read$0 data$0 sk_l1$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (member (read$0 data$0 sk_l1$0)
+            (set.member (read$0 data$0 sk_l1$0)
               (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
         (or
             (and
@@ -323,12 +323,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l1$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
             (not
-                 (member (read$0 data$0 sk_l1$0)
+                 (set.member (read$0 data$0 sk_l1$0)
                    (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
    :named sorted_set_2_10))
 
@@ -338,7 +338,7 @@
               (witness$0 (read$0 data$0 sk_l1_1$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (member (read$0 data$0 sk_l1_1$0)
+            (set.member (read$0 data$0 sk_l1_1$0)
               (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
         (or
             (and
@@ -346,12 +346,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1_1$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l1_1$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
             (not
-                 (member (read$0 data$0 sk_l1_1$0)
+                 (set.member (read$0 data$0 sk_l1_1$0)
                    (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
    :named sorted_set_2_11))
 
@@ -361,7 +361,7 @@
               (witness$0 (read$0 data$0 sk_l2$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (member (read$0 data$0 sk_l2$0)
+            (set.member (read$0 data$0 sk_l2$0)
               (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
         (or
             (and
@@ -369,12 +369,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l2$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
             (not
-                 (member (read$0 data$0 sk_l2$0)
+                 (set.member (read$0 data$0 sk_l2$0)
                    (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
    :named sorted_set_2_12))
 
@@ -384,7 +384,7 @@
               (witness$0 (read$0 data$0 sk_l2_1$0)
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (member (read$0 data$0 sk_l2_1$0)
+            (set.member (read$0 data$0 sk_l2_1$0)
               (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
         (or
             (and
@@ -392,12 +392,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2_1$0)
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l2_1$0)
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
             (not
-                 (member (read$0 data$0 sk_l2_1$0)
+                 (set.member (read$0 data$0 sk_l2_1$0)
                    (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
    :named sorted_set_2_13))
 
@@ -407,18 +407,18 @@
               (witness$0 sk_?e$0
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (member sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
         (or
             (and
                  (= sk_?e$0
                    (read$0 data$0
                      (witness$0 sk_?e$0
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 sk_?e$0
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
-            (not (member sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
+            (not (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
    :named sorted_set_2_14))
 
 (assert (! (and
@@ -427,19 +427,19 @@
               (witness$0 sk_?e_3$0
                 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
               null$0)
-            (member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
+            (set.member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))
         (or
             (and
                  (= sk_?e_3$0
                    (read$0 data$0
                      (witness$0 sk_?e_3$0
                        (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-                 (member
+                 (set.member
                    (witness$0 sk_?e_3$0
                      (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
                    (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0)))
             (not
-                 (member sk_?e_3$0
+                 (set.member sk_?e_3$0
                    (sorted_set_c$0 data$0 next$0 curr_2$0 null$0)))))
    :named sorted_set_2_15))
 
@@ -449,7 +449,7 @@
               (witness$0 (read$0 data$0 curr_2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (member (read$0 data$0 curr_2$0)
+            (set.member (read$0 data$0 curr_2$0)
               (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
         (or
             (and
@@ -457,12 +457,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 curr_2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 curr_2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
             (not
-                 (member (read$0 data$0 curr_2$0)
+                 (set.member (read$0 data$0 curr_2$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
    :named sorted_set_2_16))
 
@@ -472,7 +472,7 @@
               (witness$0 (read$0 data$0 prev_2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (member (read$0 data$0 prev_2$0)
+            (set.member (read$0 data$0 prev_2$0)
               (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
         (or
             (and
@@ -480,12 +480,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 prev_2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 prev_2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
             (not
-                 (member (read$0 data$0 prev_2$0)
+                 (set.member (read$0 data$0 prev_2$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
    :named sorted_set_2_17))
 
@@ -495,7 +495,7 @@
               (witness$0 (read$0 data$0 sk_l1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (member (read$0 data$0 sk_l1$0)
+            (set.member (read$0 data$0 sk_l1$0)
               (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
         (or
             (and
@@ -503,12 +503,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
             (not
-                 (member (read$0 data$0 sk_l1$0)
+                 (set.member (read$0 data$0 sk_l1$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
    :named sorted_set_2_18))
 
@@ -518,7 +518,7 @@
               (witness$0 (read$0 data$0 sk_l1_1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (member (read$0 data$0 sk_l1_1$0)
+            (set.member (read$0 data$0 sk_l1_1$0)
               (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
         (or
             (and
@@ -526,12 +526,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l1_1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l1_1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
             (not
-                 (member (read$0 data$0 sk_l1_1$0)
+                 (set.member (read$0 data$0 sk_l1_1$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
    :named sorted_set_2_19))
 
@@ -541,7 +541,7 @@
               (witness$0 (read$0 data$0 sk_l2$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (member (read$0 data$0 sk_l2$0)
+            (set.member (read$0 data$0 sk_l2$0)
               (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
         (or
             (and
@@ -549,12 +549,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l2$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
             (not
-                 (member (read$0 data$0 sk_l2$0)
+                 (set.member (read$0 data$0 sk_l2$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
    :named sorted_set_2_20))
 
@@ -564,7 +564,7 @@
               (witness$0 (read$0 data$0 sk_l2_1$0)
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (member (read$0 data$0 sk_l2_1$0)
+            (set.member (read$0 data$0 sk_l2_1$0)
               (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
         (or
             (and
@@ -572,12 +572,12 @@
                    (read$0 data$0
                      (witness$0 (read$0 data$0 sk_l2_1$0)
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (member
+                 (set.member
                    (witness$0 (read$0 data$0 sk_l2_1$0)
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
             (not
-                 (member (read$0 data$0 sk_l2_1$0)
+                 (set.member (read$0 data$0 sk_l2_1$0)
                    (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
    :named sorted_set_2_21))
 
@@ -587,18 +587,18 @@
               (witness$0 sk_?e$0
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
         (or
             (and
                  (= sk_?e$0
                    (read$0 data$0
                      (witness$0 sk_?e$0
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (member
+                 (set.member
                    (witness$0 sk_?e$0
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
-            (not (member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+            (not (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
    :named sorted_set_2_22))
 
 (assert (! (and
@@ -607,19 +607,19 @@
               (witness$0 sk_?e_3$0
                 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
               null$0)
-            (member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
+            (set.member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))
         (or
             (and
                  (= sk_?e_3$0
                    (read$0 data$0
                      (witness$0 sk_?e_3$0
                        (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-                 (member
+                 (set.member
                    (witness$0 sk_?e_3$0
                      (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
                    (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0)))
             (not
-                 (member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
+                 (set.member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0)))))
    :named sorted_set_2_23))
 
 (assert (! (= (read$1 next$0 null$0) null$0) :named read_null))
@@ -627,26 +627,26 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst$0 l1 null$0)
-                    (member l1 (sorted_set_domain$0 data$0 next$0 lst$0 null$0))
+                    (set.member l1 (sorted_set_domain$0 data$0 next$0 lst$0 null$0))
                     (not (= l1 null$0)))
                (and (or (= l1 null$0) (not (Btwn$0 next$0 lst$0 l1 null$0)))
                     (not
-                         (member l1
+                         (set.member l1
                            (sorted_set_domain$0 data$0 next$0 lst$0 null$0))))))
    :named sorted_set_footprint))
 
-(assert (! (or (member sk_?e_3$0 c2_2$0)
-       (and (member sk_?e_2$0 sk_FP_1$0) (not (member sk_?e_2$0 FP$0)))
-       (and (member sk_?e_3$0 (union c1_2$0 c2_2$0))
-            (not (member sk_?e_3$0 content$0)))
-       (and (member sk_?e_3$0 c1_2$0)
+(assert (! (or (set.member sk_?e_3$0 c2_2$0)
+       (and (set.member sk_?e_2$0 sk_FP_1$0) (not (set.member sk_?e_2$0 FP$0)))
+       (and (set.member sk_?e_3$0 (set.union c1_2$0 c2_2$0))
+            (not (set.member sk_?e_3$0 content$0)))
+       (and (set.member sk_?e_3$0 c1_2$0)
             (not
-                 (member sk_?e_3$0
+                 (set.member sk_?e_3$0
                    (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-       (and (member sk_?e_3$0 content$0)
-            (not (member sk_?e_3$0 (union c1_2$0 c2_2$0))))
-       (and (member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-            (not (member sk_?e_3$0 c1_2$0)))
+       (and (set.member sk_?e_3$0 content$0)
+            (not (set.member sk_?e_3$0 (set.union c1_2$0 c2_2$0))))
+       (and (set.member sk_?e_3$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
+            (not (set.member sk_?e_3$0 c1_2$0)))
        (and (not (= curr_2$0 null$0)) (not (= prev_2$0 null$0))
             (not (< (read$0 data$0 prev_2$0) (read$0 data$0 curr_2$0))))
        (not (= curr_2$0 lst$0)) (not (= prev_2$0 null$0))
@@ -663,14 +663,14 @@
 (assert (! (= sk_?X_3$0 (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0))
    :named invariant_37_2_3))
 
-(assert (! (= sk_?X_1$0 (union sk_?X_3$0 sk_?X_4$0)) :named invariant_37_2_4))
+(assert (! (= sk_?X_1$0 (set.union sk_?X_3$0 sk_?X_4$0)) :named invariant_37_2_4))
 
-(assert (! (= FP_Caller$0 (union FP$0 FP_Caller$0))
+(assert (! (= FP_Caller$0 (set.union FP$0 FP_Caller$0))
    :named precondition_of_insert_27_11))
 
 (assert (! (= sk_?X$0 FP$0) :named precondition_of_insert_27_11_1))
 
-(assert (! (= Alloc$0 (union FP_Caller$0 Alloc$0))
+(assert (! (= Alloc$0 (set.union FP_Caller$0 Alloc$0))
    :named initial_footprint_of_insert_27_11))
 
 (assert (! (= curr_2$0 lst$0) :named assign_31_2))
@@ -685,8 +685,8 @@
 
 (assert (! (or (sorted_set_struct$0 sk_?X_3$0 data$0 next$0 curr_2$0 null$0 c1_2$0)
        (not (Btwn$0 next$0 curr_2$0 null$0 null$0))
-       (! (and (Btwn$0 next$0 sk_l1$0 sk_l2$0 null$0) (member sk_l1$0 sk_?X_3$0)
-               (member sk_l2$0 sk_?X_3$0) (not (= sk_l1$0 sk_l2$0))
+       (! (and (Btwn$0 next$0 sk_l1$0 sk_l2$0 null$0) (set.member sk_l1$0 sk_?X_3$0)
+               (set.member sk_l2$0 sk_?X_3$0) (not (= sk_l1$0 sk_l2$0))
                (not (< (read$0 data$0 sk_l1$0) (read$0 data$0 sk_l2$0))))
           :named strict_sortedness_1))
    :named unnamed_1))
@@ -694,47 +694,47 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 lst$0 l1 curr_2$0)
-                    (member l1
+                    (set.member l1
                       (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0))
                     (not (= l1 curr_2$0)))
                (and
                     (or (= l1 curr_2$0)
                         (not (Btwn$0 next$0 lst$0 l1 curr_2$0)))
                     (not
-                         (member l1
+                         (set.member l1
                            (sorted_set_domain$0 data$0 next$0 lst$0 curr_2$0))))))
    :named sorted_set_footprint_1))
 
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 curr_2$0 l1 null$0)
-                    (member l1
+                    (set.member l1
                       (sorted_set_domain$0 data$0 next$0 curr_2$0 null$0))
                     (not (= l1 null$0)))
                (and
                     (or (= l1 null$0)
                         (not (Btwn$0 next$0 curr_2$0 l1 null$0)))
                     (not
-                         (member l1
+                         (set.member l1
                            (sorted_set_domain$0 data$0 next$0 curr_2$0
                              null$0))))))
    :named sorted_set_footprint_2))
 
-(assert (! (not (member null$0 Alloc$0)) :named initial_footprint_of_insert_27_11_1))
+(assert (! (not (set.member null$0 Alloc$0)) :named initial_footprint_of_insert_27_11_1))
 
 (assert (! (or (= prev_2$0 curr_2$0)
-       (member sk_?e_1$0 (intersection sk_?X_4$0 sk_?X_3$0))
-       (and (member sk_?e_1$0 sk_FP$0) (not (member sk_?e_1$0 FP$0)))
-       (and (member sk_?e$0 (union c1_2$0 c2_2$0)) (not (member sk_?e$0 content$0)))
-       (and (member sk_?e$0 c1_2$0)
-            (not (member sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
-       (and (member sk_?e$0 c2_2$0)
-            (not (member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
-       (and (member sk_?e$0 content$0) (not (member sk_?e$0 (union c1_2$0 c2_2$0))))
-       (and (member sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
-            (not (member sk_?e$0 c1_2$0)))
-       (and (member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
-            (not (member sk_?e$0 c2_2$0)))
+       (set.member sk_?e_1$0 (set.inter sk_?X_4$0 sk_?X_3$0))
+       (and (set.member sk_?e_1$0 sk_FP$0) (not (set.member sk_?e_1$0 FP$0)))
+       (and (set.member sk_?e$0 (set.union c1_2$0 c2_2$0)) (not (set.member sk_?e$0 content$0)))
+       (and (set.member sk_?e$0 c1_2$0)
+            (not (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))))
+       (and (set.member sk_?e$0 c2_2$0)
+            (not (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))))
+       (and (set.member sk_?e$0 content$0) (not (set.member sk_?e$0 (set.union c1_2$0 c2_2$0))))
+       (and (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 curr_2$0 null$0))
+            (not (set.member sk_?e$0 c1_2$0)))
+       (and (set.member sk_?e$0 (sorted_set_c$0 data$0 next$0 lst$0 curr_2$0))
+            (not (set.member sk_?e$0 c2_2$0)))
        (and (not (= curr_2$0 null$0)) (not (= prev_2$0 null$0))
             (not (< (read$0 data$0 prev_2$0) (read$0 data$0 curr_2$0))))
        (not (= (read$1 next$0 prev_2$0) curr_2$0))
@@ -765,14 +765,14 @@
 
 (assert (! (= prev_2$0 null$0) :named assign_32_2))
 
-(assert (! (= c2_2$0 (as emptyset SetInt)) :named assign_35_2))
+(assert (! (= c2_2$0 (as set.empty SetInt)) :named assign_35_2))
 
-(assert (! (= FP_Caller_1$0 (setminus FP_Caller$0 FP$0)) :named assign_29_0))
+(assert (! (= FP_Caller_1$0 (set.minus FP_Caller$0 FP$0)) :named assign_29_0))
 
 (assert (! (or (sorted_set_struct$0 sk_?X_5$0 data$0 next$0 lst$0 curr_2$0 c2_2$0)
        (not (Btwn$0 next$0 lst$0 curr_2$0 curr_2$0))
        (! (and (Btwn$0 next$0 sk_l1_1$0 sk_l2_1$0 curr_2$0)
-               (member sk_l1_1$0 sk_?X_5$0) (member sk_l2_1$0 sk_?X_5$0)
+               (set.member sk_l1_1$0 sk_?X_5$0) (set.member sk_l2_1$0 sk_?X_5$0)
                (not (= sk_l1_1$0 sk_l2_1$0))
                (not (< (read$0 data$0 sk_l1_1$0) (read$0 data$0 sk_l2_1$0))))
           :named strict_sortedness_2))

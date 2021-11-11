@@ -2117,7 +2117,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkEmptySet(const Sort& sort) const`
    */
-  EMPTYSET,
+  SET_EMPTY,
   /**
    * Set union.
    *
@@ -2128,7 +2128,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION,
+  SET_UNION,
   /**
    * Set intersection.
    *
@@ -2139,7 +2139,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INTERSECTION,
+  SET_INTER,
   /**
    * Set subtraction.
    *
@@ -2150,7 +2150,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SETMINUS,
+  SET_MINUS,
   /**
    * Subset predicate.
    *
@@ -2161,7 +2161,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SUBSET,
+  SET_SUBSET,
   /**
    * Set membership predicate.
    *
@@ -2172,7 +2172,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  MEMBER,
+  SET_MEMBER,
   /**
    * Construct a singleton set from an element given as a parameter.
    * The returned set has same type of the element.
@@ -2183,7 +2183,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  SINGLETON,
+  SET_SINGLETON,
   /**
    * The set obtained by inserting elements;
    *
@@ -2197,7 +2197,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INSERT,
+  SET_INSERT,
   /**
    * Set cardinality.
    *
@@ -2207,7 +2207,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  CARD,
+  SET_CARD,
   /**
    * Set complement with respect to finite universe.
    *
@@ -2217,82 +2217,19 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  COMPLEMENT,
+  SET_COMPLEMENT,
   /**
    * Finite universe set.
    * All set variables must be interpreted as subsets of it.
    *
-   * Note that UNIVERSE_SET is considered a special symbol of the theory of
+   * Note that SET_UNIVERSE is considered a special symbol of the theory of
    * sets and is not considered as a set value,
    * i.e., `Term::isSetValue() const` will return false.
    *
    * Create with:
    *   - `Solver::mkUniverseSet(const Sort& sort) const`
    */
-  UNIVERSE_SET,
-  /**
-   * Set join.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  JOIN,
-  /**
-   * Set cartesian product.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  PRODUCT,
-  /**
-   * Set transpose.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  TRANSPOSE,
-  /**
-   * Set transitive closure.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  TCLOSURE,
-  /**
-   * Set join image.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  JOIN_IMAGE,
-  /**
-   * Set identity.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  IDEN,
+  SET_UNIVERSE,
   /**
    * Set comprehension
    * A set comprehension is specified by a bound variable list x1 ... xn,
@@ -2316,7 +2253,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  COMPREHENSION,
+  SET_COMPREHENSION,
   /**
    * Returns an element from a given set.
    * If a set A = {x}, then the term (choose A) is equivalent to the term x.
@@ -2330,7 +2267,7 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  CHOOSE,
+  SET_CHOOSE,
   /**
    * Set is_singleton predicate.
    *
@@ -2340,8 +2277,76 @@ enum Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  IS_SINGLETON,
+  SET_IS_SINGLETON,
+
+  /* Relations ------------------------------------------------------------- */
+
+  /**
+   * Set join.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_JOIN,
+  /**
+   * Set cartesian product.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_PRODUCT,
+  /**
+   * Set transpose.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_TRANSPOSE,
+  /**
+   * Set transitive closure.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_TCLOSURE,
+  /**
+   * Set join image.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_JOIN_IMAGE,
+  /**
+   * Set identity.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_IDEN,
+
   /* Bags ------------------------------------------------------------------ */
+
   /**
    * Empty bag constant.
    *
@@ -3011,25 +3016,25 @@ enum Kind : int32_t
    */
   REGEXP_LOOP,
   /**
-   * Regexp empty.
+   * Regexp none.
    *
    * Parameters: none
    *
    * Create with:
-   *   - `Solver::mkRegexpEmpty() const`
+   *   - `Solver::mkRegexpNone() const`
    *   - `Solver::mkTerm(Kind kind) const`
    */
-  REGEXP_EMPTY,
+  REGEXP_NONE,
   /**
    * Regexp all characters.
    *
    * Parameters: none
    *
    * Create with:
-   *   - `Solver::mkRegexpSigma() const`
+   *   - `Solver::mkRegexpAllchar() const`
    *   - `Solver::mkTerm(Kind kind) const`
    */
-  REGEXP_SIGMA,
+  REGEXP_ALLCHAR,
   /**
    * Regexp complement.
    *

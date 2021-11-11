@@ -4,6 +4,6 @@
 (set-option :produce-models true)
 (declare-fun A () (Set Bool))
 (declare-fun x () Bool)
-(assert (member (member x A) A))
-(assert (> (card A) 1))
+(assert (set.member (set.member x A) A))
+(assert (> (set.card A) 1))
 (check-sat)

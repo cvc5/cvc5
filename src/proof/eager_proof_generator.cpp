@@ -134,6 +134,18 @@ TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
   return TrustNode::mkTrustRewrite(a, b, this);
 }
 
+TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
+                                                Node b,
+                                                PfRule id,
+                                                const std::vector<Node>& args)
+{
+  Node eq = a.eqNode(b);
+  CDProof cdp(d_pnm);
+  cdp.addStep(eq, id, {}, args);
+  std::shared_ptr<ProofNode> pf = cdp.getProofFor(eq);
+  return mkTrustedRewrite(a, b, pf);
+}
+
 TrustNode EagerProofGenerator::mkTrustedPropagation(
     Node n, Node exp, std::shared_ptr<ProofNode> pf)
 {

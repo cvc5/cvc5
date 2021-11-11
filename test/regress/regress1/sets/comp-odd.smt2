@@ -5,12 +5,12 @@
 
 (declare-fun x () (Set Int))
 
-(assert (subset x (comprehension ((z Int)) true (* 2 z))))
+(assert (set.subset x (set.comprehension ((z Int)) true (* 2 z))))
 
 (declare-fun a () Int)
 (declare-fun b () Int)
 
 (assert (= a (+ (* 8 b) 1)))
-(assert (member a x))
+(assert (set.member a x))
 
 (check-sat)

@@ -1484,7 +1484,7 @@ class CVC5_EXPORT Term
    * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
    * also @ref Term::operator>(const Term&) const).
    *
-   * Note that a universe set term (kind UNIVERSE_SET) is not considered to be
+   * Note that a universe set term (kind SET_UNIVERSE) is not considered to be
    * a set value.
    */
   bool isSetValue() const;
@@ -2648,19 +2648,19 @@ enum RoundingMode
   ROUND_NEAREST_TIES_TO_EVEN,
   /**
    * Round towards positive infinity (+oo).
-   * The result shall be the format’s floating-point number (possibly +oo)
+   * The result shall be the format's floating-point number (possibly +oo)
    * closest to and no less than the infinitely precise result.
    */
   ROUND_TOWARD_POSITIVE,
   /**
    * Round towards negative infinity (-oo).
-   * The result shall be the format’s floating-point number (possibly -oo)
+   * The result shall be the format's floating-point number (possibly -oo)
    * closest to and no less than the infinitely precise result.
    */
   ROUND_TOWARD_NEGATIVE,
   /**
    * Round towards zero.
-   * The result shall be the format’s floating-point number closest to and no
+   * The result shall be the format's floating-point number closest to and no
    * greater in magnitude than the infinitely precise result.
    */
   ROUND_TOWARD_ZERO,
@@ -3443,16 +3443,22 @@ class CVC5_EXPORT Solver
   Term mkReal(int64_t num, int64_t den) const;
 
   /**
-   * Create a regular expression empty term.
-   * @return the empty term
+   * Create a regular expression all (re.all) term.
+   * @return the all term
    */
-  Term mkRegexpEmpty() const;
+  Term mkRegexpAll() const;
 
   /**
-   * Create a regular expression sigma term.
-   * @return the sigma term
+   * Create a regular expression allchar (re.allchar) term.
+   * @return the allchar term
    */
-  Term mkRegexpSigma() const;
+  Term mkRegexpAllchar() const;
+
+  /**
+   * Create a regular expression none (re.none) term.
+   * @return the none term
+   */
+  Term mkRegexpNone() const;
 
   /**
    * Create a constant representing an empty set of the given sort.

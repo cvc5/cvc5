@@ -42,12 +42,12 @@ int main()
     Term B = slv.mkConst(set, "B");
     Term C = slv.mkConst(set, "C");
 
-    Term unionAB = slv.mkTerm(UNION, A, B);
-    Term lhs = slv.mkTerm(INTERSECTION, unionAB, C);
+    Term unionAB = slv.mkTerm(SET_UNION, A, B);
+    Term lhs = slv.mkTerm(SET_INTER, unionAB, C);
 
-    Term intersectionAC = slv.mkTerm(INTERSECTION, A, C);
-    Term intersectionBC = slv.mkTerm(INTERSECTION, B, C);
-    Term rhs = slv.mkTerm(UNION, intersectionAC, intersectionBC);
+    Term intersectionAC = slv.mkTerm(SET_INTER, A, C);
+    Term intersectionBC = slv.mkTerm(SET_INTER, B, C);
+    Term rhs = slv.mkTerm(SET_UNION, intersectionAC, intersectionBC);
 
     Term theorem = slv.mkTerm(EQUAL, lhs, rhs);
 
@@ -60,7 +60,7 @@ int main()
     Term A = slv.mkConst(set, "A");
     Term emptyset = slv.mkEmptySet(set);
 
-    Term theorem = slv.mkTerm(SUBSET, emptyset, A);
+    Term theorem = slv.mkTerm(SET_SUBSET, emptyset, A);
 
     cout << "cvc5 reports: " << theorem << " is " << slv.checkEntailed(theorem)
          << "." << endl;
@@ -72,16 +72,16 @@ int main()
     Term two = slv.mkInteger(2);
     Term three = slv.mkInteger(3);
 
-    Term singleton_one = slv.mkTerm(SINGLETON, one);
-    Term singleton_two = slv.mkTerm(SINGLETON, two);
-    Term singleton_three = slv.mkTerm(SINGLETON, three);
-    Term one_two = slv.mkTerm(UNION, singleton_one, singleton_two);
-    Term two_three = slv.mkTerm(UNION, singleton_two, singleton_three);
-    Term intersection = slv.mkTerm(INTERSECTION, one_two, two_three);
+    Term singleton_one = slv.mkTerm(SET_SINGLETON, one);
+    Term singleton_two = slv.mkTerm(SET_SINGLETON, two);
+    Term singleton_three = slv.mkTerm(SET_SINGLETON, three);
+    Term one_two = slv.mkTerm(SET_UNION, singleton_one, singleton_two);
+    Term two_three = slv.mkTerm(SET_UNION, singleton_two, singleton_three);
+    Term intersection = slv.mkTerm(SET_INTER, one_two, two_three);
 
     Term x = slv.mkConst(integer, "x");
 
-    Term e = slv.mkTerm(MEMBER, x, intersection);
+    Term e = slv.mkTerm(SET_MEMBER, x, intersection);
 
     Result result = slv.checkSatAssuming(e);
     cout << "cvc5 reports: " << e << " is " << result << "." << endl;
