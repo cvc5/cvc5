@@ -524,7 +524,7 @@ api::Term Tptp::mkLambdaWrapper(api::Kind k, api::Sort argType)
   // apply body of lambda to variables
   api::Term wrapper =
       d_solver->mkTerm(api::LAMBDA,
-                       d_solver->mkTerm(api::BOUND_VAR_LIST, lvars),
+                       d_solver->mkTerm(api::VARIABLE_LIST, lvars),
                        d_solver->mkTerm(k, lvars));
 
   return wrapper;
