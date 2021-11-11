@@ -491,7 +491,7 @@ unsigned HoExtension::checkLazyLambda()
       continue;
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
-    Node lamRep;
+    Node lamRep; // the first lambda function we encounter in the equivalence class
     Node lamRepLam;
     std::unordered_set<Node> normalEqFunWait;
     while (!eqc_i.isFinished())
