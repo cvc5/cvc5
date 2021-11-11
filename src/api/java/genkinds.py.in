@@ -102,6 +102,7 @@ CPP_JAVA_MAPPING = \
         r"<": "&lt;",
         r"@f\[": "",
         r"@f\]": "",
+        r"@note": "",
     }
 
 
