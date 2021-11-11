@@ -118,7 +118,8 @@ class RegExpEntail
   static Node getFixedLengthForRegexp(TNode n);
 
   /**
-   * Get constant bound on the strings that occur in regular expression n.
+   * Get constant lower or upper bound on the lengths of strings that occur in
+   * regular expression n. Return null if a constant bound cannot be determined.
    */
   Node getConstantBoundLengthForRegexp(TNode n, bool isLower = true) const;
   /**
@@ -137,9 +138,9 @@ class RegExpEntail
   static bool regExpIncludes(Node r1, Node r2);
 
  private:
-  /** Set bound cache */
+  /** Set bound cache, used for getConstantBoundLengthForRegexp */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);
-  /** Get bound cache */
+  /** Get bound cache, used for getConstantBoundLengthForRegexp */
   static Node getConstantBoundCache(TNode n, bool isLower);
   /** The underlying rewriter */
   Rewriter* d_rewriter;
