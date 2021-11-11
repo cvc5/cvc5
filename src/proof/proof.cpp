@@ -292,7 +292,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
     // proofs to the same CDProof.
     if (d_autoSymm)
     {
-      std::unordered_set<ProofNode*> processed;
+      std::vector<std::shared_ptr<ProofNode>> processed;
       while (pn->getRule() == PfRule::SYMM)
       {
         pn = pn->getChildren()[0];
