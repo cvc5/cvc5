@@ -18,6 +18,8 @@
 #include "expr/term_context.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 
 TCtxNode::TCtxNode(Node n, const TermContext* tctx)
@@ -52,7 +54,7 @@ Node TCtxNode::getNodeHash() const { return computeNodeHash(d_node, d_val); }
 Node TCtxNode::computeNodeHash(Node n, uint32_t val)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::SEXPR, n, nm->mkConst(Rational(val)));
+  return nm->mkNode(kind::SEXPR, n, nm->mkConst(CONST_RATIONAL, Rational(val)));
 }
 
 Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)

@@ -247,6 +247,36 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_api_Term_getOp(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_api_Term
+ * Method:    hasSymbol
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_api_Term_hasSymbol(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return static_cast<jboolean>(current->hasSymbol());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
+ * Method:    getSymbol
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_api_Term_getSymbol(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Term* current = reinterpret_cast<Term*>(pointer);
+  return env->NewStringUTF(current->getSymbol().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_api_Term
  * Method:    isNull
  * Signature: (J)Z
  */

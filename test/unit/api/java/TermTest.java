@@ -219,6 +219,21 @@ class TermTest
     Term nilOpTerm = list.getConstructorTerm("nil");
   }
 
+  @Test void hasGetSymbol() throws CVC5ApiException
+  {
+    Term n = d_solver.getNullTerm();
+    Term t = d_solver.mkBoolean(true);
+    Term c = d_solver.mkConst(d_solver.getBooleanSort(), "|\\|");
+
+    assertThrows(CVC5ApiException.class, () -> n.hasSymbol());
+    assertFalse(t.hasSymbol());
+    assertTrue(c.hasSymbol());
+
+    assertThrows(CVC5ApiException.class, () -> n.getSymbol());
+    assertThrows(CVC5ApiException.class, () -> t.getSymbol());
+    assertEquals(c.getSymbol(), "|\\|");
+  }
+
   @Test void isNull() throws CVC5ApiException
   {
     Term x = d_solver.getNullTerm();

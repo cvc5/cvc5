@@ -25,6 +25,8 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -33,8 +35,8 @@ namespace nl {
 FactoringCheck::FactoringCheck(Env& env, ExtState* data)
     : EnvObj(env), d_data(data)
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
 }
 
 void FactoringCheck::check(const std::vector<Node>& asserts,

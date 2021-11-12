@@ -74,7 +74,8 @@ Node ProofRuleChecker::mkKindNode(Kind k)
     // UNDEFINED_KIND is negative, hence return null to avoid cast
     return Node::null();
   }
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(k)));
+  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                           Rational(static_cast<uint32_t>(k)));
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics()

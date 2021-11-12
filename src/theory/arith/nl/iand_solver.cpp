@@ -47,9 +47,9 @@ IAndSolver::IAndSolver(Env& env,
   NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
-  d_two = nm->mkConst(Rational(2));
+  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  d_two = nm->mkConst(CONST_RATIONAL, Rational(2));
 }
 
 IAndSolver::~IAndSolver() {}
