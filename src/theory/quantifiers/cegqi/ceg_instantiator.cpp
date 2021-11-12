@@ -337,7 +337,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     return itv->second;
   }
   CegHandledStatus ret = CEG_UNHANDLED;
-  if (tn.isInteger() || tn.isArithmetic() || tn.isBoolean() || tn.isBitVector()
+  if (tn.isArithmetic() || tn.isBoolean() || tn.isBitVector()
       || tn.isFloatingPoint())
   {
     ret = CEG_HANDLED;
@@ -1410,7 +1410,7 @@ void CegInstantiator::processAssertions() {
     TheoryId tid = Theory::theoryOf( rtn );
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
-      if (rtn.isInteger() || rtn.isArithmetic())
+      if (rtn.isArithmetic())
       {
         rtn = rtn.getBaseType();
       }

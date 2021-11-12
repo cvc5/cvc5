@@ -344,7 +344,7 @@ TypeNode FloatingPointToFPRealTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode operandType = n[1].getType(check);
 
-    if (!(operandType.isArithmetic()))
+    if (!(operandType.isReal()))
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "conversion to floating-point from "
@@ -451,7 +451,7 @@ TypeNode FloatingPointToFPGenericTypeRule::computeType(NodeManager* nodeManager,
             n, "first argument must be a roundingmode");
       }
       TypeNode tn = n[1].getType(check);
-      if (!tn.isBitVector() && !tn.isFloatingPoint() && !tn.isArithmetic())
+      if (!tn.isBitVector() && !tn.isFloatingPoint() && !tn.isReal())
       {
         throw TypeCheckingExceptionPrivate(
             n, "second argument must be a bit-vector, floating-point or Real");
@@ -660,7 +660,7 @@ TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
 
     TypeNode defaultValueType = n[1].getType(check);
 
-    if (!defaultValueType.isArithmetic())
+    if (!defaultValueType.isReal())
     {
       throw TypeCheckingExceptionPrivate(
           n, "floating-point to real total needs a real second argument");

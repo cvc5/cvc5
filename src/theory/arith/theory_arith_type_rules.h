@@ -36,7 +36,8 @@ class ArithConstantTypeRule
 };
 
 /**
- * Type rule for arithmetic relations.
+ * Type rule for arithmetic relations. Returns Boolean. Throws a type error
+ * if the types of the children are not arithmetic or not comparable.
  */
 class ArithRelationTypeRule
 {

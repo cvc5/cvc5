@@ -35,8 +35,7 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
         Debug("pb") << "failed type checking: " << child << std::endl;
         Debug("pb") << "  integer: " << child.getType(check).isInteger()
                     << std::endl;
-        Debug("pb") << "  real: " << child.getType(check).isArithmetic()
-                    << std::endl;
+        Debug("pb") << "  real: " << child.getType(check).isReal() << std::endl;
         throw TypeCheckingExceptionPrivate(n,
                                            "expecting a Boolean subexpression");
       }

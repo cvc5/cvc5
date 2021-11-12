@@ -299,7 +299,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // distinct constants of the "unsorted" sort to represent them
     for (size_t i = 0; i < args.size(); ++i)
     {
-      if ((args[i].getSort().isReal() || args[i].getSort().isInteger())
+      if (args[i].getSort().isReal()
           && v.getSort().getFunctionDomainSorts()[i] == d_unsorted)
       {
         args[i] = convertRatToUnsorted(args[i]);
@@ -348,7 +348,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // SMT-LIB operator, meaning it can only be applied to integers, whereas
       // the TPTP to_real / to_rat do not have the same semantics.
       api::Sort s = args[0].getSort();
-      if (s.isReal() || s.isInteger())
+      if (s.isReal())
       {
         return args[0];
       }

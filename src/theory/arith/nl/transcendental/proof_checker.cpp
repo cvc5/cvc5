@@ -143,7 +143,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 4);
     Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
            && args[0].getConst<Rational>().isIntegral());
-    Assert(args[1].getType().isArithmetic());
+    Assert(args[1].getType().isReal());
     Assert(args[2].isConst() && args[2].getKind() == Kind::CONST_RATIONAL);
     Assert(args[3].isConst() && args[3].getKind() == Kind::CONST_RATIONAL);
     std::uint64_t d =
@@ -171,7 +171,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 4);
     Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
            && args[0].getConst<Rational>().isIntegral());
-    Assert(args[1].getType().isArithmetic());
+    Assert(args[1].getType().isReal());
     Assert(args[2].isConst() && args[2].getKind() == Kind::CONST_RATIONAL);
     Assert(args[3].isConst() && args[3].getKind() == Kind::CONST_RATIONAL);
     std::uint64_t d =
@@ -199,7 +199,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 2);
     Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
            && args[0].getConst<Rational>().isIntegral());
-    Assert(args[1].getType().isArithmetic());
+    Assert(args[1].getType().isReal());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];
@@ -215,7 +215,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getType().isArithmetic());
+    Assert(args[0].getType().isReal());
     Node s = nm->mkNode(Kind::SINE, args[0]);
     return nm->mkNode(AND, nm->mkNode(LEQ, s, one), nm->mkNode(GEQ, s, mone));
   }
@@ -250,7 +250,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getType().isArithmetic());
+    Assert(args[0].getType().isReal());
     Node s1 = nm->mkNode(Kind::SINE, args[0]);
     Node s2 = nm->mkNode(
         Kind::SINE, Rewriter::rewrite(nm->mkNode(Kind::MULT, mone, args[0])));
@@ -260,7 +260,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getType().isArithmetic());
+    Assert(args[0].getType().isReal());
     Node s = nm->mkNode(Kind::SINE, args[0]);
     return nm->mkNode(
         AND,
@@ -274,7 +274,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Assert(args[0].getType().isArithmetic());
+    Assert(args[0].getType().isReal());
     Node s = nm->mkNode(Kind::SINE, args[0]);
     return nm->mkNode(
         AND,
@@ -291,9 +291,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 6);
     Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
            && args[0].getConst<Rational>().isIntegral());
-    Assert(args[1].getType().isArithmetic());
-    Assert(args[2].getType().isArithmetic());
-    Assert(args[3].getType().isArithmetic());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].getType().isReal());
+    Assert(args[3].getType().isReal());
     Assert(args[4].isConst() && args[4].getKind() == Kind::CONST_RATIONAL);
     Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL);
     std::uint64_t d =
@@ -323,9 +323,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 5);
     Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
            && args[0].getConst<Rational>().isIntegral());
-    Assert(args[1].getType().isArithmetic());
-    Assert(args[2].getType().isArithmetic());
-    Assert(args[3].getType().isArithmetic());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].getType().isReal());
+    Assert(args[3].getType().isReal());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];
@@ -348,9 +348,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 6);
     Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
            && args[0].getConst<Rational>().isIntegral());
-    Assert(args[1].getType().isArithmetic());
-    Assert(args[2].getType().isArithmetic());
-    Assert(args[3].getType().isArithmetic());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].getType().isReal());
+    Assert(args[3].getType().isReal());
     Assert(args[4].isConst() && args[4].getKind() == Kind::CONST_RATIONAL);
     Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL);
     std::uint64_t d =
@@ -380,9 +380,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 5);
     Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
            && args[0].getConst<Rational>().isIntegral());
-    Assert(args[1].getType().isArithmetic());
-    Assert(args[2].getType().isArithmetic());
-    Assert(args[3].getType().isArithmetic());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].getType().isReal());
+    Assert(args[3].getType().isReal());
     std::uint64_t d =
         args[0].getConst<Rational>().getNumerator().toUnsignedInt();
     Node t = args[1];

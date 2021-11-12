@@ -316,7 +316,7 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
           n, "eqrange upper index type does not match array index type");
     }
     if (!indexType.isBitVector() && !indexType.isFloatingPoint()
-        && !indexType.isInteger() && !indexType.isArithmetic())
+        && !indexType.isArithmetic())
     {
       throw TypeCheckingExceptionPrivate(
           n,

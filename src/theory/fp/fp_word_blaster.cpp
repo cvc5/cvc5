@@ -845,7 +845,7 @@ Node FpWordBlaster::wordBlast(TNode node)
 
     Kind kind = cur.getKind();
 
-    if (t.isArithmetic() && kind != kind::FLOATINGPOINT_TO_REAL_TOTAL)
+    if (t.isReal() && kind != kind::FLOATINGPOINT_TO_REAL_TOTAL)
     {
       // The only nodes with Real sort in Theory FP are of kind
       // kind::FLOATINGPOINT_TO_REAL_TOTAL (kind::FLOATINGPOINT_TO_REAL is
