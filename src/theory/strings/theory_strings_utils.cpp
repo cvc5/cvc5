@@ -165,7 +165,8 @@ Node mkNLength(Node t)
 Node mkPrefix(Node t, Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(STRING_SUBSTR, t, nm->mkConst(Rational(0)), n);
+  return nm->mkNode(
+      STRING_SUBSTR, t, nm->mkConst(CONST_RATIONAL, Rational(0)), n);
 }
 
 Node mkSuffix(Node t, Node n)

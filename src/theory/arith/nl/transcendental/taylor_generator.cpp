@@ -19,6 +19,8 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -48,7 +50,7 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
   // the current factorial `counter!`
   Integer factorial = 1;
   // the current variable power `x^counter`
-  Node varpow = nm->mkConst(Rational(1));
+  Node varpow = nm->mkConst(CONST_RATIONAL, Rational(1));
   std::vector<Node> sum;
   for (std::uint64_t counter = 1; counter <= n; ++counter)
   {
@@ -57,7 +59,9 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       // Maclaurin series for exponential:
       //   \sum_{n=0}^\infty x^n / n!
       sum.push_back(
-          nm->mkNode(Kind::DIVISION, varpow, nm->mkConst<Rational>(factorial)));
+          nm->mkNode(Kind::DIVISION,
+                     varpow,
+                     nm->mkConst<Rational>(CONST_RATIONAL, factorial)));
     }
     else if (k == Kind::SINE)
     {
@@ -66,11 +70,12 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       if (counter % 2 == 0)
       {
         int sign = (counter % 4 == 0 ? -1 : 1);
-        sum.push_back(nm->mkNode(Kind::MULT,
-                                 nm->mkNode(Kind::DIVISION,
-                                            nm->mkConst<Rational>(sign),
-                                            nm->mkConst<Rational>(factorial)),
-                                 varpow));
+        sum.push_back(nm->mkNode(
+            Kind::MULT,
+            nm->mkNode(Kind::DIVISION,
+                       nm->mkConst<Rational>(CONST_RATIONAL, sign),
+                       nm->mkConst<Rational>(CONST_RATIONAL, factorial)),
+            varpow));
       }
     }
     factorial *= counter;
@@ -80,7 +85,9 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
   Node taylor_sum =
       Rewriter::rewrite(sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum));
   Node taylor_rem = Rewriter::rewrite(
-      nm->mkNode(Kind::DIVISION, varpow, nm->mkConst<Rational>(factorial)));
+      nm->mkNode(Kind::DIVISION,
+                 varpow,
+                 nm->mkConst<Rational>(CONST_RATIONAL, factorial)));
 
   auto res = std::make_pair(taylor_sum, taylor_rem);
 
@@ -113,10 +120,11 @@ void TaylorGenerator::getPolynomialApproximationBounds(
       pbounds.d_lower = taylor_sum;
       pbounds.d_upperNeg =
           Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru));
-      pbounds.d_upperPos = Rewriter::rewrite(
-          nm->mkNode(Kind::MULT,
-                     taylor_sum,
-                     nm->mkNode(Kind::PLUS, nm->mkConst(Rational(1)), ru)));
+      pbounds.d_upperPos = Rewriter::rewrite(nm->mkNode(
+          Kind::MULT,
+          taylor_sum,
+          nm->mkNode(
+              Kind::PLUS, nm->mkConst(CONST_RATIONAL, Rational(1)), ru)));
     }
     else
     {
@@ -198,11 +206,11 @@ std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf,
     // at zero, its trivial
     if (k == Kind::SINE)
     {
-      Node zero = nm->mkConst(Rational(0));
+      Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
       return std::pair<Node, Node>(zero, zero);
     }
     Assert(k == Kind::EXPONENTIAL);
-    Node one = nm->mkConst(Rational(1));
+    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
     return std::pair<Node, Node>(one, one);
   }
   bool isNeg = csign == -1;

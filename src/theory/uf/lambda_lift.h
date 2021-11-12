@@ -60,6 +60,8 @@ class LambdaLift : protected EnvObj
 
   /** Get the lambda term for skolem, if skolem is a lambda function. */
   Node getLambdaFor(TNode skolem) const;
+  /** Is skolem a lambda function? */
+  bool isLambdaFunction(TNode n) const;
 
   /**
    * Beta-reduce node. If node is APPLY_UF and its operator is a lambda
