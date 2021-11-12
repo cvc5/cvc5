@@ -2147,7 +2147,7 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         cdp->addStep(newChild,
                      PfRule::ALETHE_RULE,
                      {children[childUpdatedIndex]},
-                     {nm->mkConst<Rational>(
+                     {nm->mkConst(CONST_RATIONAL,
                           static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
                       newChild,
                       newChild});
@@ -2239,7 +2239,7 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
             cdp->addStep(newChild,
                          PfRule::ALETHE_RULE,
                          {children[i]},
-                         {nm->mkConst<Rational>(
+                         {nm->mkConst(CONST_RATIONAL,
                               static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
                           newChild,
                           newChild});
@@ -2346,7 +2346,7 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         cdp->addStep(res,
                      PfRule::ALETHE_RULE,
                      {newArgs[2]},
-                     {nm->mkConst<Rational>(
+                     {nm->mkConst(CONST_RATIONAL,
                           static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
                       res,
                       args[2]});
