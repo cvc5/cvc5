@@ -212,8 +212,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::CONCAT_CSPLIT)
     {
       Assert(children.size() == 2);
-      Node zero = nm->mkConst(Rational(0));
-      Node one = nm->mkConst(Rational(1));
+      Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+      Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
       if (children[1].getKind() != NOT || children[1][0].getKind() != EQUAL
           || children[1][0][0].getKind() != STRING_LENGTH
           || children[1][0][0][0] != t0 || children[1][0][1] != zero)
@@ -240,7 +240,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::CONCAT_CPROP)
     {
       Assert(children.size() == 2);
-      Node zero = nm->mkConst(Rational(0));
+      Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
 
       Trace("pfcheck-strings-cprop")
           << "CONCAT_PROP, isRev=" << isRev << std::endl;
@@ -352,7 +352,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node zero = nm->mkConst(Rational(0));
+    Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
     Node clen = nm->mkNode(STRING_LENGTH, nemp[0][0]);
     return clen.eqNode(zero).notNode();
   }
@@ -462,7 +462,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
            && args[1].getType().isStringLike());
     Node c1 = nm->mkNode(STRING_TO_CODE, args[0]);
     Node c2 = nm->mkNode(STRING_TO_CODE, args[1]);
-    Node eqNegOne = c1.eqNode(nm->mkConst(Rational(-1)));
+    Node eqNegOne = c1.eqNode(nm->mkConst(CONST_RATIONAL, Rational(-1)));
     Node deq = c1.eqNode(c2).negate();
     Node eqn = args[0].eqNode(args[1]);
     return nm->mkNode(kind::OR, eqNegOne, deq, eqn);

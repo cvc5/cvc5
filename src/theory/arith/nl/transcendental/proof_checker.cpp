@@ -83,9 +83,9 @@ Node TranscendentalProofRuleChecker::checkInternal(
     PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  auto zero = nm->mkConst<Rational>(0);
-  auto one = nm->mkConst<Rational>(1);
-  auto mone = nm->mkConst<Rational>(-1);
+  auto zero = nm->mkConst<Rational>(CONST_RATIONAL, 0);
+  auto one = nm->mkConst<Rational>(CONST_RATIONAL, 1);
+  auto mone = nm->mkConst<Rational>(CONST_RATIONAL, -1);
   auto pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   auto mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-trans-checker") << "Checking " << id << std::endl;
@@ -237,10 +237,13 @@ Node TranscendentalProofRuleChecker::checkInternal(
                 nm->mkNode(Kind::LEQ, x, pi),
             }),
             x.eqNode(y),
-            x.eqNode(nm->mkNode(
-                Kind::PLUS,
-                y,
-                nm->mkNode(Kind::MULT, nm->mkConst<Rational>(2), s, pi)))),
+            x.eqNode(
+                nm->mkNode(Kind::PLUS,
+                           y,
+                           nm->mkNode(Kind::MULT,
+                                      nm->mkConst<Rational>(CONST_RATIONAL, 2),
+                                      s,
+                                      pi)))),
         nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
   }
   else if (id == PfRule::ARITH_TRANS_SINE_SYMMETRY)

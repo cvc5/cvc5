@@ -31,7 +31,6 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace parser {

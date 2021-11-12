@@ -54,7 +54,7 @@ SkolemCache::SkolemCache(Rewriter* rr) : d_rr(rr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_strType = nm->stringType();
-  d_zero = nm->mkConst(Rational(0));
+  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 Node SkolemCache::mkSkolemCached(Node a, Node b, SkolemId id, const char* c)
@@ -217,26 +217,27 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
   {
     // SK_ID_VC_SPT(x, y) ---> SK_SUFFIX_REM(x, 1)
     id = SK_SUFFIX_REM;
-    b = nm->mkConst(Rational(1));
+    b = nm->mkConst(CONST_RATIONAL, Rational(1));
   }
   else if (id == SK_ID_VC_SPT_REV)
   {
     // SK_ID_VC_SPT_REV(x, y) ---> SK_PREFIX(x, (- (str.len x) 1))
     id = SK_PREFIX;
-    b = nm->mkNode(
-        MINUS, nm->mkNode(STRING_LENGTH, a), nm->mkConst(Rational(1)));
+    b = nm->mkNode(MINUS,
+                   nm->mkNode(STRING_LENGTH, a),
+                   nm->mkConst(CONST_RATIONAL, Rational(1)));
   }
   else if (id == SK_ID_DC_SPT)
   {
     // SK_ID_DC_SPT(x, y) ---> SK_PREFIX(x, 1)
     id = SK_PREFIX;
-    b = nm->mkConst(Rational(1));
+    b = nm->mkConst(CONST_RATIONAL, Rational(1));
   }
   else if (id == SK_ID_DC_SPT_REM)
   {
     // SK_ID_DC_SPT_REM(x, y) ---> SK_SUFFIX_REM(x, 1)
     id = SK_SUFFIX_REM;
-    b = nm->mkConst(Rational(1));
+    b = nm->mkConst(CONST_RATIONAL, Rational(1));
   }
   else if (id == SK_ID_DEQ_X)
   {

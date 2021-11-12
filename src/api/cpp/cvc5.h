@@ -48,6 +48,7 @@ class SolverEngine;
 class TypeNode;
 class Options;
 class Random;
+class Rational;
 class Result;
 class StatisticsRegistry;
 
@@ -4487,6 +4488,8 @@ class CVC5_EXPORT Solver
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
   Term mkValHelper(T t) const;
+  /** Helper for making rational values. */
+  Term mkRationalValHelper(const Rational& r) const;
   /** Helper for mkReal functions that take a string as argument. */
   Term mkRealFromStrHelper(const std::string& s) const;
   /** Helper for mkBitVector functions that take a string as argument. */

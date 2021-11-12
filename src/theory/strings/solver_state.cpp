@@ -34,7 +34,7 @@ SolverState::SolverState(Env& env, Valuation& v)
       d_pendingConflictSet(env.getContext(), false),
       d_pendingConflict(InferenceId::UNKNOWN)
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 

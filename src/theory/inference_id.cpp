@@ -19,6 +19,8 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 
@@ -466,7 +468,8 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 
 Node mkInferenceIdNode(InferenceId i)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
+  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                           Rational(static_cast<uint32_t>(i)));
 }
 
 bool getInferenceId(TNode n, InferenceId& i)

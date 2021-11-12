@@ -312,7 +312,7 @@ TEST_F(TestNodeBlackNodeBuilder, append)
 
   Node p = d_nodeManager->mkNode(
       EQUAL,
-      d_nodeManager->mkConst<Rational>(0),
+      d_nodeManager->mkConst<Rational>(CONST_RATIONAL, 0),
       d_nodeManager->mkNode(PLUS, r, d_nodeManager->mkNode(UMINUS, s), t));
   Node q = d_nodeManager->mkNode(AND, x, z, d_nodeManager->mkNode(NOT, y));
 

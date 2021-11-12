@@ -42,7 +42,7 @@ ArraySolver::ArraySolver(Env& env,
       d_eqProc(context())
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_zero = nm->mkConst(Rational(0));
+  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 ArraySolver::~ArraySolver() {}

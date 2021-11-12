@@ -1122,10 +1122,11 @@ TrustNode Constraint::split()
     auto nGeqPf = d_database->d_pnm->mkAssume(geqNode.negate());
     auto ltPf = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {nGeqPf}, {ltNode});
-    auto sumPf = d_database->d_pnm->mkNode(
-        PfRule::MACRO_ARITH_SCALE_SUM_UB,
-        {gtPf, ltPf},
-        {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
+    auto sumPf =
+        d_database->d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                                  {gtPf, ltPf},
+                                  {nm->mkConst(CONST_RATIONAL, Rational(-1)),
+                                   nm->mkConst(CONST_RATIONAL, Rational(1))});
     auto botPf = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
@@ -1808,7 +1809,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           std::vector<Node> farkasCoeffs;
           for (Rational r : *getFarkasCoefficients())
           {
-            farkasCoeffs.push_back(nm->mkConst<Rational>(r));
+            farkasCoeffs.push_back(nm->mkConst(CONST_RATIONAL, Rational(r)));
           }
 
           // Apply the scaled-sum rule.
@@ -2088,7 +2089,8 @@ Node Constraint::getProofLiteral() const
     default: Unreachable() << d_type;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node constPart = nm->mkConst<Rational>(d_value.getNoninfinitesimalPart());
+  Node constPart =
+      nm->mkConst(CONST_RATIONAL, Rational(d_value.getNoninfinitesimalPart()));
   Node posLit = nm->mkNode(cmp, varPart, constPart);
   return neg ? posLit.negate() : posLit;
 }
@@ -2112,13 +2114,13 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
                                    {d_pnm->mkAssume(lb.negate())},
                                    {b->getNegation()->getProofLiteral()});
     int sndSign = negateSecond ? -1 : 1;
-    auto bot_pf =
-        d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                      {d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
-                                     {pf_neg_la, pf_neg_lb},
-                                     {nm->mkConst<Rational>(-1 * sndSign),
-                                      nm->mkConst<Rational>(sndSign)})},
-                      {nm->mkConst(false)});
+    auto bot_pf = d_pnm->mkNode(
+        PfRule::MACRO_SR_PRED_TRANSFORM,
+        {d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                       {pf_neg_la, pf_neg_lb},
+                       {nm->mkConst(CONST_RATIONAL, Rational(-1 * sndSign)),
+                        nm->mkConst(CONST_RATIONAL, Rational(sndSign))})},
+        {nm->mkConst(false)});
     std::vector<Node> as;
     std::transform(orN.begin(), orN.end(), std::back_inserter(as), [](Node n) {
       return n.negate();

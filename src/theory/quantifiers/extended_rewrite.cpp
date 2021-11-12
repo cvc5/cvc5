@@ -49,7 +49,7 @@ ExtendedRewriter::ExtendedRewriter(Rewriter& rew, bool aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 void ExtendedRewriter::setCache(Node n, Node ret) const

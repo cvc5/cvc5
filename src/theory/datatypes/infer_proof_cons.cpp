@@ -108,7 +108,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         }
         if (argSuccess)
         {
-          narg = nm->mkConst(Rational(i));
+          narg = nm->mkConst(CONST_RATIONAL, Rational(i));
           break;
         }
       }
@@ -141,7 +141,7 @@ void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* 
         if (n >= 0)
         {
           Node t = exp[0];
-          Node nn = nm->mkConst(Rational(n));
+          Node nn = nm->mkConst(CONST_RATIONAL, Rational(n));
           Node eq = exp.eqNode(conc);
           cdp->addStep(eq, PfRule::DT_INST, {}, {t, nn});
           cdp->addStep(conc, PfRule::EQ_RESOLVE, {exp, eq}, {});

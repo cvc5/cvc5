@@ -30,7 +30,7 @@ namespace quantifiers {
 
 VtsTermCache::VtsTermCache(QuantifiersInferenceManager& qim) : d_qim(qim)
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 void VtsTermCache::getVtsTerms(std::vector<Node>& t,

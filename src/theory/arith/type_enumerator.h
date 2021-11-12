@@ -39,7 +39,10 @@ class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
            && type.getConst<TypeConstant>() == REAL_TYPE);
   }
 
-  Node operator*() override { return NodeManager::currentNM()->mkConst(d_rat); }
+  Node operator*() override
+  {
+    return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, d_rat);
+  }
   RationalEnumerator& operator++() override
   {
     // sequence is 0, then diagonal with negatives interleaved
@@ -82,7 +85,8 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
 
   Node operator*() override
   {
-    return NodeManager::currentNM()->mkConst(Rational(d_int));
+    return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL,
+                                             Rational(d_int));
   }
 
   IntegerEnumerator& operator++() override

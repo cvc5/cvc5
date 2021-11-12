@@ -84,7 +84,7 @@ void CegGrammarConstructor::collectTerms(
         TypeNode tn = cur.getType();
         Node c = cur;
         if( tn.isReal() ){
-          c = nm->mkConst( c.getConst<Rational>().abs() );
+          c = nm->mkConst(CONST_RATIONAL, c.getConst<Rational>().abs());
         }
         consts[tn].insert(c);
         if (tn.isInteger())
@@ -409,8 +409,8 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   NodeManager* nm = NodeManager::currentNM();
   if (type.isReal())
   {
-    ops.push_back(nm->mkConst(Rational(0)));
-    ops.push_back(nm->mkConst(Rational(1)));
+    ops.push_back(nm->mkConst(CONST_RATIONAL, Rational(0)));
+    ops.push_back(nm->mkConst(CONST_RATIONAL, Rational(1)));
   }
   else if (type.isBitVector())
   {
@@ -555,7 +555,7 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
   Assert(bArgType.isReal() || bArgType.isBitVector());
   if (bArgType.isReal())
   {
-    zarg = nm->mkConst(Rational(0));
+    zarg = nm->mkConst(CONST_RATIONAL, Rational(0));
   }
   else
   {
@@ -798,7 +798,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         /* Add operator 1 */
         Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
         std::vector<TypeNode> cargsEmpty;
-        sdts.back().addConstructor(nm->mkConst(Rational(1)), "1", cargsEmpty);
+        sdts.back().addConstructor(
+            nm->mkConst(CONST_RATIONAL, Rational(1)), "1", cargsEmpty);
         /* Add operator PLUS */
         Kind kind = PLUS;
         Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
