@@ -1065,7 +1065,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
           Trace("strings-rewrite-debug") << "...skip" << std::endl;
           continue;
         }
-        // test whether x in node[1]
+        // test whether c from (str.to_re c) is in r
         if (RegExpEntail::testConstStringInRegExp(s, 0, r))
         {
           Trace("strings-rewrite-debug") << "...included" << std::endl;
@@ -1099,8 +1099,8 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
     }
     if (!toRemove.empty())
     {
-      std::vector<Node> nodeVecTmp = node_vec;
-      node_vec.clear();
+      std::vector<Node> nodeVecTmp;
+      node_vec.swap(nodeVecTmp);
       for (const Node& nvt : nodeVecTmp)
       {
         if (toRemove.find(nvt) == toRemove.end())
