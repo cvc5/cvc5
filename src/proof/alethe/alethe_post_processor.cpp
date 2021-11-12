@@ -525,59 +525,6 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Because the RESOLUTION rule is merely a special case of CHAIN_RESOLUTION,
     // the same translation can be used for both.
     //
-    // The main complication for the translation is that in the case the
-    // conclusion C is (or G1 ... Gn), the result is ambigous. E.g.,
-    //
-    // (cl F1 (or F2 F3))    (cl (not F1))
-    // -------------------------------------- RESOLUTION
-    // (cl (or F2 F3))
-    //
-    // (cl F1 F2 F3)         (cl (not F1))
-    // -------------------------------------- RESOLUTION
-    // (cl F2 F3)
-    //
-    // both (cl (or F2 F3)) and (cl F2 F3) correspond to the same proof node (or
-    // F2 F3). One way to deal with this issue is for the translation to keep
-    // track of the current clause generated after each resolution (the
-    // resolvent) and then compare it to the result. E.g. in the first case
-    // current_resolvent = {(or F2 F3)} indicates that the result is a singleton
-    // clause, while in the second current_resolvent = {F2,F3}, indicating the
-    // result is a non-singleton clause.
-    //
-    // It is always clear what clauses to add to current_resolvent, except for
-    // when a child is an assumption or the result of an equality resolution
-    // step. In these cases it might be necessary to add an additional or step.
-    //
-    // If for any Ci, rule(Ci) = ASSUME or rule(Ci) = EQ_RESOLVE and Ci = (or F1
-    // ... Fn) and Ci != L_{i-1} (for C1, C1 != L_1) then:
-    //
-    //        (Pi:Ci)
-    // ---------------------- OR
-    //  (VPi:(cl F1 ... Fn))
-    //
-    // Otherwise VPi = Ci.
-    //
-    // However to determine whether C is a singleton clause or not it is not
-    // necessary to calculate the complete current resolvent. Instead it
-    // suffices to find the last introduction of the conclusion as a subterm of
-    // a child and then check if it is eliminated by a later resolution step. If
-    // the conclusion was not introduced as a subterm it has to be a
-    // non-singleton clause. If it was introduced but not eliminated, it follows
-    // that it is indeed not a singleton clause and should be printed as (cl F1
-    // ... Fn) instead of (cl (or F1 ... Fn)).
-    //
-    // This procedure is possible since the proof is already structured in a
-    // certain way. It can never contain a second occurrence of a literal when
-    // the first occurrence we found was eliminated from the proof. E.g.,
-    //
-    // (cl (not (or a b)))   (cl (or a b) (or a b))
-    // ---------------------------------------------
-    //                 (cl (or a b))
-    //
-    // is not possible because of the semantics of CHAIN_RESOLUTION, which only
-    // removes one occurence of the resolvent in the resolving clauses.
-    //
-    //
     // If C = (or F1 ... Fn) is a non-singleton clause, then:
     //
     //   VP1 ... VPn
@@ -603,14 +550,14 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (!expr::isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
-            AletheRule::RESOLUTION, res, children, {}, *cdp);
+            AletheRule::RESOLUTION, res, new_children, {}, *cdp);
       }
       return addAletheStep(AletheRule::RESOLUTION,
                            res,
-                           res == nm->mkConst(false)
+                           res == falseNode
                                ? nm->mkNode(kind::SEXPR, d_cl)
                                : nm->mkNode(kind::SEXPR, d_cl, res),
-                           children,
+                           new_children,
                            {},
                            *cdp);
     }
@@ -650,6 +597,20 @@ bool AletheProofPostprocessCallback::update(Node res,
     // This rule is translated according to the clauses pattern.
     case PfRule::REORDERING:
     {
+      Node trueNode = nm->mkConst(true);
+      std::vector<Node> new_children = children;
+      if (children[0].getKind() == kind::OR
+          && (args[0] != trueNode || children[0] != args[1]))
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
+        // Add or step
+        std::vector<Node> subterms{d_cl};
+        subterms.insert(subterms.end(), children[0].begin(), children[0].end());
+        Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+        addAletheStep(
+            AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+        new_children[0] = conclusion;
+      }
       return addAletheStepFromOr(
           AletheRule::REORDERING, res, children, {}, *cdp);
     }
@@ -1360,7 +1321,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  Then, apply the cvc5 rule EQ_RESOLVE to obtain F*sigma from this.
     //
     // Otherwise, if the child has the form (not (exist
-    case PfRule::SKOLEMIZE:
+    /*case PfRule::SKOLEMIZE:
     {
       // TODO: Add ANCHOR, map skolemized variable to substitutions skv_1
       // SkolemManager::getWitnessForm
@@ -1372,7 +1333,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       // choice terms itself might contain skv variables
       // getSkolemTermVectors then I can get skolems
       //
-      /*if (res.getKind() != kind::NOT)
+      if (res.getKind() != kind::NOT)
       {
         Node choice;
         Node vp1 = nm->mkNode(
@@ -1381,34 +1342,34 @@ bool AletheProofPostprocessCallback::update(Node res,
                && cdp->addStep(
                    res, PfRule::EQ_RESOLVE, {vp1, children[0]}, args);
       }*/
-      if (res.getKind() == kind::NOT)
-      {
-        std::cout << "children " << children << std::endl;
-        std::cout << "res " << res << std::endl;
-        std::cout << "skv_1 " << args << std::endl;
-        Node temp = SkolemManager::getWitnessForm(res);
-        std::cout << "children[0] " << children[0]
-                  << SkolemManager::getWitnessForm(children[0]) << std::endl;
-        std::cout << "children[0][0][0][0] " << children[0][0][0][0] << "    "
-                  << SkolemManager::getWitnessForm(children[0][0][0][0])
-                  << std::endl;
-        std::cout << "children[0][0][1] " << children[0][0][1]
-                  << SkolemManager::getWitnessForm(children[0][0][1])
-                  << std::endl;
-        Node vp1 = nm->mkNode(
-            kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0][0], res));
-        return addAletheStep(
-                   AletheRule::ANCHOR_SKO_FORALL, vp1, vp1, {}, {}, *cdp)
-               && addAletheStep(AletheRule::RESOLUTION,
-                                res,
-                                nm->mkNode(kind::SEXPR, d_cl, res),
-                                {vp1, children[0]},
-                                {},
-                                *cdp);
-      }
+    /*if (res.getKind() == kind::NOT)
+    {
+      std::cout << "children " << children << std::endl;
+      std::cout << "res " << res << std::endl;
+      std::cout << "skv_1 " << args << std::endl;
+      Node temp = SkolemManager::getWitnessForm(res);
+      std::cout << "children[0] " << children[0]
+                << SkolemManager::getWitnessForm(children[0]) << std::endl;
+      std::cout << "children[0][0][0][0] " << children[0][0][0][0] << "    "
+                << SkolemManager::getWitnessForm(children[0][0][0][0])
+                << std::endl;
+      std::cout << "children[0][0][1] " << children[0][0][1]
+                << SkolemManager::getWitnessForm(children[0][0][1])
+                << std::endl;
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0][0], res));
       return addAletheStep(
-          AletheRule::ALL_SIMPLIFY, res, res, {}, children, *cdp);
+                 AletheRule::ANCHOR_SKO_FORALL, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp1, children[0]},
+                              {},
+                              *cdp);
     }
+    return addAletheStep(
+        AletheRule::ALL_SIMPLIFY, res, res, {}, children, *cdp);
+  }*/
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
     // comment uses variable names as introduced there.
@@ -1845,7 +1806,133 @@ bool AletheProofPostprocessCallback::finalize(Node res,
                                               const std::vector<Node>& args,
                                               CDProof* cdp)
 {
-  // for the rules that take clauses (resolution, factoring, reordering, ...),
+  switch (id)
+  {
+    // The main complication in case of the RESOLUTION (and CHAIN_RESOLUTION)
+    // rule is that if the conclusion C is (or G1 ... Gn), the result is ambigous. E.g.,
+    //
+    // (cl F1 (or F2 F3))    (cl (not F1))
+    // -------------------------------------- RESOLUTION
+    // (cl (or F2 F3))
+    //
+    // (cl F1 F2 F3)         (cl (not F1))
+    // -------------------------------------- RESOLUTION
+    // (cl F2 F3)
+    //
+    // both (cl (or F2 F3)) and (cl F2 F3) correspond to the same proof node (or
+    // F2 F3). One way to deal with this issue is for the translation to keep
+    // track of the current clause generated after each resolution (the
+    // resolvent) and then compare it to the result. E.g. in the first case
+    // current_resolvent = {(or F2 F3)} indicates that the result is a singleton
+    // clause, while in the second current_resolvent = {F2,F3}, indicating the
+    // result is a non-singleton clause.
+    //
+    // It is always clear what clauses to add to current_resolvent. If for any Ci, Ci = (or F1... Fn) and Ci != L_{i-1} (for C1, C1 != L_1)
+    // then:
+    //
+    //        (Pi:Ci)
+    // ---------------------- OR
+    //  (VPi:(cl F1 ... Fn))
+    //
+    // Otherwise VPi = Ci.
+    //
+    // However to determine whether C is a singleton clause or not it is not
+    // necessary to calculate the complete current resolvent. Instead it
+    // suffices to find the last introduction of the conclusion as a subterm of
+    // a child and then check if it is eliminated by a later resolution step. If
+    // the conclusion was not introduced as a subterm it has to be a
+    // non-singleton clause. If it was introduced but not eliminated, it follows
+    // that it is indeed not a singleton clause and should be printed as (cl F1
+    // ... Fn) instead of (cl (or F1 ... Fn)).
+    //
+    // This procedure is possible since the proof is already structured in a
+    // certain way. It can never contain a second occurrence of a literal when
+    // the first occurrence we found was eliminated from the proof. E.g.,
+    //
+    // (cl (not (or a b)))   (cl (or a b) (or a b))
+    // ---------------------------------------------
+    //                 (cl (or a b))
+    //
+    // is not possible because of the semantics of CHAIN_RESOLUTION, which only
+    // removes one occurence of the resolvent in the resolving clauses.
+    case PfRule::RESOLUTION:
+    case PfRule::CHAIN_RESOLUTION:
+    {
+      std::vector<Node> new_children;
+      Node trueNode = nm->mkConst(true);
+      Node falseNode = nm->mkConst(false);
+      if (children[0].getKind() == kind::OR
+          && (args[0] != trueNode || children[0] != args[1]))
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
+        if (childPf->getRule() == PfRule::ASSUME
+            || childPf->getRule() == PfRule::EQ_RESOLVE)
+        {
+          // Add or step
+          std::vector<Node> subterms{d_cl};
+          subterms.insert(
+              subterms.end(), children[0].begin(), children[0].end());
+          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+          addAletheStep(
+              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+          new_children[0] = conclusion;
+        }
+      }
+      for (std::size_t i = 1, size = children.size(); i < size; ++i)
+      {
+        if (children[i].getKind() == kind::OR
+            && (args[2 * (i - 1)] != falseNode
+                || args[2 * (i - 1) + 1] != children[i]))
+        {
+          std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
+          if (childPf->getRule() == PfRule::ASSUME
+              || childPf->getRule() == PfRule::EQ_RESOLVE)
+          {
+            // Add or step
+            std::vector<Node> lits{d_cl};
+            lits.insert(lits.end(), children[i].begin(), children[i].end());
+            Node conclusion = nm->mkNode(kind::SEXPR, lits);
+            addAletheStep(AletheRule::OR,
+                          conclusion,
+                          conclusion,
+                          {children[i]},
+                          {},
+                          *cdp);
+            new_children[i] = conclusion;
+          }
+        }
+      }
+      cdp->addStep(res,
+                   PfRule::ALETHE_RULE,
+                   new_children,
+                   args,
+                   true,
+                   CDPOverwrite::ALWAYS);
+      return true;
+    }
+    case PfRule::FACTORING:
+    case PfRule::REORDERING:
+    {
+      std::cout << "REORDERING " << args[3][0] << std::endl;
+      if (args[3][0].getKind() == kind::OR)
+      {
+        // Add or step
+        std::vector<Node> subterms{d_cl};
+        subterms.insert(subterms.end(), children[0].begin(), children[0].end());
+        Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+        addAletheStep(
+            AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp)
+            && cdp->addStep(res,
+                            PfRule::ALETHE_RULE,
+                            {conclusion},
+                            args,
+                            true,
+                            CDPOverwrite::ALWAYS);
+        return true;
+      }
+    }
+  }
+
   // add OR rule to the premise if the premise is not a clause and should not be
   // a singleton. Since FACTORING and REORDERING always take non-singletons, add
   // OR if not a cl in the third argument.  For resolution, you need to check
@@ -1911,6 +1998,7 @@ bool AletheProofPostprocessCallback::finalize(Node res,
       }
 
   */
+
   return false;
 }
 
