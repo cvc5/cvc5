@@ -100,6 +100,8 @@ class ProofNodeUpdater
    * the same SCOPE that prove the same fact.
    * @param autoSym Whether intermediate CDProof objects passed to updater
    * callbacks automatically introduce SYMM steps.
+   * @param runFinalize Whether intermediate an update from the callback is run
+   * at post-traversial time. By default only pre-traversal updates are made.
    */
   ProofNodeUpdater(ProofNodeManager* pnm,
                    ProofNodeUpdaterCallback& cb,
