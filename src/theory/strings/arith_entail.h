@@ -145,7 +145,7 @@ class ArithEntail
 
   /**
    * Get constant bound on the length of s, if it can be determined.
-   * 
+   *
    * As a special case, this method will never return 0 as a lower bound for
    * the length of n, since this conveys no information.
    */

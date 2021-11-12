@@ -772,7 +772,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
     }
   }
   // should never return 0 for lower bound
-  Assert (ret.isNull() || !isLower || ret.getConst<Rational>().sgn()!=0);
+  Assert(ret.isNull() || !isLower || ret.getConst<Rational>().sgn() != 0);
   setConstantBoundCache(n, ret, isLower);
   return Node::null();
 }
