@@ -331,10 +331,6 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   CARDINALITY_CONSTRAINT,
-#if 0
-  /* Partial uninterpreted function application.  */
-  PARTIAL_APPLY_UF,
-#endif
   /**
    * Higher-order applicative encoding of function application, left
    * associative.
@@ -2139,7 +2135,7 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SET_INTERSECTION,
+  SET_INTER,
   /**
    * Set subtraction.
    *

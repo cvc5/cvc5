@@ -106,8 +106,6 @@ const char* toString(InferenceId i)
     case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
 
     case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
-    case InferenceId::BAGS_MK_BAG_DIFFERENT_ELEMENT: return "BAGS_MK_BAG_DIFFERENT_ELEMENT";
-    case InferenceId::BAGS_MK_BAG_SAME_ELEMENT: return "BAGS_MK_BAG_SAME_ELEMENT";
     case InferenceId::BAGS_MK_BAG: return "BAGS_MK_BAG";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
@@ -455,6 +453,8 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_MODEL_APP_ENCODE: return "UF_HO_MODEL_APP_ENCODE";
     case InferenceId::UF_HO_MODEL_EXTENSIONALITY:
       return "UF_HO_MODEL_EXTENSIONALITY";
+    case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
+    case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
 
     default: return "?";
   }

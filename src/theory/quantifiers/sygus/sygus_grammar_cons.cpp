@@ -991,7 +991,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
 
       // add for union, difference, intersection
-      std::vector<Kind> bin_kinds = {SET_UNION, SET_INTERSECTION, SET_MINUS};
+      std::vector<Kind> bin_kinds = {SET_UNION, SET_INTER, SET_MINUS};
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(unres_t);
       cargsBinary.push_back(unres_t);

@@ -97,7 +97,12 @@ CPP_JAVA_MAPPING = \
         r"std::vector<Term>": "Term[]",
         r"std::string": "String",
         r"&": "",
-        r"::": "."
+        r"::": ".",
+        r">": "&gt;",
+        r"<": "&lt;",
+        r"@f\[": "",
+        r"@f\]": "",
+        r"@note": "",
     }
 
 

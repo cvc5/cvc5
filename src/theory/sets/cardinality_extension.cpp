@@ -243,7 +243,7 @@ void CardinalityExtension::checkRegister()
         // if setminus, do for intersection instead
         if (n.getKind() == SET_MINUS)
         {
-          n = rewrite(nm->mkNode(SET_INTERSECTION, n[0], n[1]));
+          n = rewrite(nm->mkNode(SET_INTER, n[0], n[1]));
         }
         registerCardinalityTerm(n);
       }
@@ -269,7 +269,7 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Trace("sets-card") << "Cardinality lemmas for " << n << " : " << std::endl;
   std::vector<Node> cterms;
-  if (n.getKind() == SET_INTERSECTION)
+  if (n.getKind() == SET_INTER)
   {
     for (unsigned e = 0; e < 2; e++)
     {
@@ -382,7 +382,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
   for (const Node& n : nvsets)
   {
     Kind nk = n.getKind();
-    if (nk != SET_INTERSECTION && nk != SET_MINUS)
+    if (nk != SET_INTER && nk != SET_MINUS)
     {
       continue;
     }
@@ -390,7 +390,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
                         << std::endl;
     std::vector<Node> sib;
     unsigned true_sib = 0;
-    if (n.getKind() == SET_INTERSECTION)
+    if (n.getKind() == SET_INTER)
     {
       d_localBase[n] = n;
       for (unsigned e = 0; e < 2; e++)
@@ -402,7 +402,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     }
     else
     {
-      Node si = rewrite(nm->mkNode(SET_INTERSECTION, n[0], n[1]));
+      Node si = rewrite(nm->mkNode(SET_INTER, n[0], n[1]));
       sib.push_back(si);
       d_localBase[n] = si;
       Node osm = rewrite(nm->mkNode(SET_MINUS, n[1], n[0]));
@@ -491,7 +491,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
                 << "Sibling " << sib[si] << " is already empty." << std::endl;
           }
         }
-        if (!is_union && nk == SET_INTERSECTION && !u.isNull())
+        if (!is_union && nk == SET_INTER && !u.isNull())
         {
           // union is equal to other parent
           if (!d_state.areEqual(u, n[1 - e]))
@@ -579,7 +579,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
                               << " are equal, ids = " << card_parent_ids[l]
                               << " " << card_parent_ids[k] << std::endl;
           dup = true;
-          if (n.getKind() != SET_INTERSECTION)
+          if (n.getKind() != SET_INTER)
           {
             continue;
           }
@@ -818,7 +818,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Node r1 = e == 0 ? o0 : o1;
               Node r2 = e == 0 ? o1 : o0;
               // check if their intersection exists modulo equality
-              Node r1r2i = d_state.getBinaryOpTerm(SET_INTERSECTION, r1, r2);
+              Node r1r2i = d_state.getBinaryOpTerm(SET_INTER, r1, r2);
               if (!r1r2i.isNull())
               {
                 Trace("sets-nf-debug")
@@ -839,7 +839,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Assert(o0 != o1);
               Node kca = d_treg.getProxy(o0);
               Node kcb = d_treg.getProxy(o1);
-              Node intro = rewrite(nm->mkNode(SET_INTERSECTION, kca, kcb));
+              Node intro = rewrite(nm->mkNode(SET_INTER, kca, kcb));
               Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
                                << ", term is " << intro << std::endl;
               intro_sets.push_back(intro);
