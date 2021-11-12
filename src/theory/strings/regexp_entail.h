@@ -143,7 +143,7 @@ class RegExpEntail
  private:
   /** Set bound cache, used for getConstantBoundLengthForRegexp */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);
-  /** 
+  /**
    * Get bound cache, store in c and return true if the bound for n has been
    * computed. Used for getConstantBoundLengthForRegexp.
    */

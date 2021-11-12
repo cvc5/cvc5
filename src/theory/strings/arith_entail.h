@@ -196,7 +196,7 @@ class ArithEntail
                               bool isOverApprox = false);
   /** Set bound cache */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);
-  /** 
+  /**
    * Get bound cache, store in c and return true if the bound for n has been
    * computed. Used for getConstantBound and getConstantBoundLength.
    */
