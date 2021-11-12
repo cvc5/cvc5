@@ -495,7 +495,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   if (!type_asc_arg.isNull())
   {
-    if (force_nt.isReal())
+    if (force_nt.isArithmetic())
     {
       // we prefer using (/ x 1) instead of (to_real x) here.
       // the reason is that (/ x 1) is SMT-LIB compliant when x is a constant

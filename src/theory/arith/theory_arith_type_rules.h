@@ -36,6 +36,15 @@ class ArithConstantTypeRule
 };
 
 /**
+ * Type rule for arithmetic relations.
+ */
+class ArithRelationTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
  * Type rule for arithmetic operators.
  * Takes care of mixed-integer operators, cases and (total) division.
  */

@@ -130,7 +130,7 @@ Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   // arithmetic inequalities and disequalities
   if (atom.getKind() == GEQ
-      || (atom.getKind() == EQUAL && atom[0].getType().isReal()))
+      || (atom.getKind() == EQUAL && atom[0].getType().isArithmetic()))
   {
     return lit;
   }
@@ -149,7 +149,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   bool pol = lit.getKind() != NOT;
   // arithmetic inequalities and disequalities
   Assert(atom.getKind() == GEQ
-         || (atom.getKind() == EQUAL && atom[0].getType().isReal()));
+         || (atom.getKind() == EQUAL && atom[0].getType().isArithmetic()));
   // get model value for pv
   Node pv_value = ci->getModelValue(pv);
   // cannot contain infinity?
@@ -191,7 +191,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         }
         else
         {
-          Assert(d_type.isReal());
+          Assert(d_type.isArithmetic());
           // now is strict inequality
           uires = mkStrictCTT(uires);
         }
@@ -262,7 +262,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       }
       else
       {
-        Assert(d_type.isReal());
+        Assert(d_type.isArithmetic());
         uires = is_upper ? CEG_TT_LOWER_STRICT : CEG_TT_UPPER_STRICT;
       }
     }

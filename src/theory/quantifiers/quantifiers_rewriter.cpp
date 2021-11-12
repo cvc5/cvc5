@@ -723,7 +723,7 @@ Node QuantifiersRewriter::getVarElimEq(Node lit,
   Assert(lit.getKind() == EQUAL);
   Node slv;
   TypeNode tt = lit[0].getType();
-  if (tt.isReal())
+  if (tt.isArithmetic())
   {
     slv = getVarElimEqReal(lit, args, var);
   }
@@ -1098,7 +1098,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
                                   << ", pol = " << pol << "..." << std::endl;
     bool canSolve =
         lit.getKind() == GEQ
-        || (lit.getKind() == EQUAL && lit[0].getType().isReal() && !pol);
+        || (lit.getKind() == EQUAL && lit[0].getType().isArithmetic() && !pol);
     if (!canSolve)
     {
       continue;

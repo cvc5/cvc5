@@ -34,7 +34,7 @@ namespace theory {
  *   (b) c is null.
  *
  *   We say Node v is a {monomial variable} (or m-variable) if either:
- *   (a) v.getType().isReal() and v is not a constant, or
+ *   (a) v.getType().isArithmetic() and v is not a constant, or
  *   (b) v is null.
  *
  *   For m-constant or m-variable t, we write [t] to denote 1 if t.isNull() and

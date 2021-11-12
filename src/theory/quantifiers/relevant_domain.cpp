@@ -331,7 +331,8 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
         rdl.d_rd[1] = nullptr;
       }else{
         //solve the inequality for one/two variables, if possible
-        if( n[0].getType().isReal() ){
+        if (n[0].getType().isArithmetic())
+        {
           std::map< Node, Node > msum;
           if (ArithMSum::getMonomialSumLit(n, msum))
           {
