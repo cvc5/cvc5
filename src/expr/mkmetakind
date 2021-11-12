@@ -214,7 +214,8 @@ function constant {
   fi
 
   if [[ "$3" =~ '+'$ ]]; then
-    class="${3::-1}"
+    # Remove last character
+    class="${3%?}"
     skip_const_map=true
   else
     class="$3"
