@@ -30,8 +30,8 @@ class NormalForm
   /**
    * Returns true if n is considered a to be a (canonical) constant bag value.
    * A canonical bag value is one whose AST is:
-   *   (union_disjoint (bag e1 c1) ...
-   *      (union_disjoint (bag e_{n-1} c_{n-1}) (bag e_n c_n))))
+   *   (bag.union_disjoint (bag e1 c1) ...
+   *      (bag.union_disjoint (bag e_{n-1} c_{n-1}) (bag e_n c_n))))
    * where c1 ... cn are positive integers, e1 ... en are constants, and the
    * node identifier of these constants are such that: e1 < ... < en.
    * Also handles the corner cases of empty bag and bag constructed by bag
@@ -83,9 +83,9 @@ class NormalForm
    * and elements of B (elementsB with iterator itB).
    * The arguments below specify how these iterators are used to generate the
    * elements of the result (elements).
-   * @param n a node whose kind is a binary operator (union_disjoint, union_max,
-   * intersection_min, difference_subtract, difference_remove) and whose
-   * children are constant bags.
+   * @param n a node whose kind is a binary operator (bag.union_disjoint,
+   * union_max, intersection_min, difference_subtract, difference_remove) and
+   * whose children are constant bags.
    * @param equal a lambda expression that receives (elements, itA, itB) and
    * specify the action that needs to be taken when the elements of itA, itB are
    * equal.

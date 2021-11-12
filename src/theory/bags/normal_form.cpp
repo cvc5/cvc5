@@ -580,8 +580,8 @@ Node NormalForm::evaluateCard(TNode n)
   // Examples
   // --------
   //  - (card (as bag.empty (Bag String))) = 0
-  //  - (choose (bag "x" 4)) = 4
-  //  - (choose (bag.union_disjoint (bag "x" 4) (bag "y" 1))) = 5
+  //  - (bag.choose (bag "x" 4)) = 4
+  //  - (bag.choose (bag.union_disjoint (bag "x" 4) (bag "y" 1))) = 5
 
   std::map<Node, Rational> elements = getBagElements(n[0]);
   Rational sum(0);
@@ -620,8 +620,8 @@ Node NormalForm::evaluateFromSet(TNode n)
   // Examples
   // --------
   //  - (bag.from_set (as set.empty (Set String))) = (as bag.empty (Bag String))
-  //  - (bag.from_set (singleton "x")) = (bag "x" 1)
-  //  - (bag.from_set (union (singleton "x") (singleton "y"))) =
+  //  - (bag.from_set (set.singleton "x")) = (bag "x" 1)
+  //  - (bag.from_set (set.union (set.singleton "x") (set.singleton "y"))) =
   //     (bag.disjoint_union (bag "x" 1) (bag "y" 1))
 
   NodeManager* nm = NodeManager::currentNM();
@@ -645,9 +645,9 @@ Node NormalForm::evaluateToSet(TNode n)
   // Examples
   // --------
   //  - (bag.to_set (as bag.empty (Bag String))) = (as set.empty (Set String))
-  //  - (bag.to_set (bag "x" 4)) = (singleton "x")
+  //  - (bag.to_set (bag "x" 4)) = (set.singleton "x")
   //  - (bag.to_set (bag.disjoint_union (bag "x" 3) (bag "y" 5)) =
-  //     (union (singleton "x") (singleton "y")))
+  //     (set.union (set.singleton "x") (set.singleton "y")))
 
   NodeManager* nm = NodeManager::currentNM();
   std::map<Node, Rational> bagElements = getBagElements(n[0]);
