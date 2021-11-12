@@ -2094,31 +2094,38 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
           continue;
         }
         updated = true;
-        AlwaysAssert(links[0][1].getType().isReal()
-                     && links[1][0].getType().isReal());
         Trace("alethe-proof-subtyping")
             << "\t..links l_" << (i - 1) << "[1] and l_" << i
             << "[0] differ:\n\t\t\t" << links[0][1] << " .. " << links[1][0]
             << "\n";
-        // Necessarily one of terms is an integer (and thus the other in the
-        // respective link). Both should be lifted to reals via a new step
-        // which will proxy the previous link into the chain
-        AlwaysAssert(!links[0][1].getType().isInteger()
-                     || links[1][0].getType().isInteger());
-        size_t intLink = links[0][1].getType().isInteger() ? 0 : 1;
+        // AlwaysAssert(links[0][1].getType().isReal()
+        //              && links[1][0].getType().isReal());
+        // Necessarily one of the differing terms has an integer subterm that is
+        // a real subterm in the respective position of the other term. Both
+        // should be lifted to reals via a new step which will proxy the
+        // previous link into the chain
+        // AlwaysAssert(!links[0][1].getType().isInteger()
+        //              || links[1][0].getType().isInteger());
+        // We test which is the "int link" by the heuristic that the it's the
+        // one without CAST_TO_REAL / TO_REAL
+        size_t intLink = !expr::hasSubtermKinds(
+                             {kind::CAST_TO_REAL, kind::TO_REAL}, links[0][1])
+                             ? 0
+                             : 1;
+        // size_t intLink = links[0][1].getType().isInteger() ? 0 : 1;
         size_t childUpdatedIndex = i - (1 - intLink);
         Trace("alethe-proof-subtyping")
             << "\t..int link is l_" << childUpdatedIndex << ": "
             << links[intLink] << "\n";
         // if (Configuration::isAssertionBuild())
         // {
-        for (size_t j = 0; j < 2; ++j)
-        {
-          AlwaysAssert(links[intLink][1 - j].isConst()
-                       || !expr::hasSubtermKinds({kind::APPLY_UF, kind::SKOLEM},
-                                                 links[intLink][1 - j]))
-              << "Unconvertable " << links[intLink][1 - j];
-        }
+        // for (size_t j = 0; j < 2; ++j)
+        // {
+        //   AlwaysAssert(links[intLink][1 - j].isConst()
+        //                || !expr::hasSubtermKinds({kind::APPLY_UF, kind::SKOLEM},
+        //                                          links[intLink][1 - j]))
+        //       << "Unconvertable " << links[intLink][1 - j];
+        // }
         // }
         AlwaysAssert(
             d_anc.traverseAndConvertAllConsts(links[intLink][1 - intLink])
@@ -2185,12 +2192,33 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         {
           updated = true;
           Trace("alethe-proof-subtyping")
-              << "\t.." << i << "-th child " << i << " and " << i
-              << "-th arg of " << conclusion << " differ on positions "
+              << "\t.." << i << "-th child/conclusion args differ on positions "
               << (differ[0] < size ? "0 " : "") << (differ[1] < size ? "1" : "")
-              << "\n";
-          // need to add proxy step
-          bool updateChild = childConclusion[0].getType().isInteger();
+              << " of conclusion equality\n";
+          // Determine wether to add proxy step. Note that this is not something
+          // trivial, as it effectively amounts to a rewriting proof, since the
+          // part of the term to change may be deep within the term. Consider
+          // the example
+          //
+          //          ... (= ti1 ti2) ...
+          // -------------------------------------- CONG
+          // (= (f ... ti1' ...) (f ... ti2' ...))
+          //
+          // where ti2 != ti2' but they're not integer or real terms. Rather
+          // they're arbitrary terms that contain subterms t and t' which are
+          // one integer and one real (and not integer). To determine who of
+          // t/t' is the "true" real, we apply the heuristic of, according to
+          // which of ti{1,2}/ti{1,2}' differ, whether ti{1,2} contains casts.
+          // If it does not, then we assume that its differing subterm t is an
+          // integer.
+          //
+          // TODO: the foolproof way is to traverse both simultaneously until we
+          // find the difference (i.e. t vs t'), check how they differ, and
+          // determine whether the premise is the "integer one".
+          bool updateChild = !expr::hasSubtermKinds(
+              {kind::CAST_TO_REAL, kind::TO_REAL},
+              differ[0] == size ? childConclusion[1] : childConclusion[0]);
+          // bool updateChild = childConclusion[0].getType().isInteger();
           if (updateChild)
           {
             Trace("alethe-proof-subtyping")
@@ -2216,17 +2244,29 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
           // Whether to change conclusion
           for (size_t j = 0; j < 2; ++j)
           {
-            if (conclusion[j][i].getType().isInteger()
-                && (differ[j] < size || updateChild))
+            Node childArgToCompare =
+                updateChild ? newChildren[i][1][j] : childConclusion[j];
+            // We need to change conclusion if conclusion[j][i] is different
+            // from childArgToCompare, in which case necessarily
+            // conclusion[j][i] has a differing integer subterm from a real one
+            // in childArgToCompare
+            if (conclusion[j][i] != childArgToCompare)
+            // if (conclusion[j][i].getType().isInteger()
+            //     && (differ[j] < size || updateChild))
             {
               Trace("alethe-proof-subtyping")
                   << "\t..need update " << i << "-th arg of conclusion[" << j
                   << "]\n";
-              newConclusionChildren[j][i] =
-                  d_anc.traverseAndConvertAllConsts(conclusion[j][i]);
+              newConclusionChildren[j][i] = childArgToCompare;
+              // newConclusionChildren[j][i] =
+              //     d_anc.traverseAndConvertAllConsts(conclusion[j][i]);
+              AlwaysAssert(d_anc.traverseAndConvertAllConsts(conclusion[j][i])
+                           == childArgToCompare)
+                  << "Converted " << conclusion[j][i] << " differ from "
+                  << childArgToCompare << "\n";
               Trace("alethe-proof-subtyping")
                   << "\t\t..arg " << conclusion[j][i] << " became "
-                  << newConclusionChildren[j][i] << "\n";
+                  << childArgToCompare << "\n";
             }
           }
         }
@@ -2254,6 +2294,60 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         cdp->addStep(res, PfRule::ALETHE_RULE, newChildren, newArgs);
         return true;
       }
+      break;
+    }
+    case AletheRule::FORALL_INST:
+    {
+      // do substitution on quantifier body. If different, then just replace
+      //
+      // Conclusion (args[2]) is of the form:
+      //   (sexpr cl (or (not (forall (...) body)) inst))
+      Node body = args[2][1][0][0][1];
+      Node inst = args[2][1][1];
+      // subs are stored in args[3..] as (= v t)
+      std::vector<Node> vars, subs;
+      for (size_t i = 3, nc = args.size(); i < nc; ++i)
+      {
+        AlwaysAssert(args[i].getKind() == kind::EQUAL) << args[i];
+        vars.push_back(args[i][0]);
+        subs.push_back(args[i][1]);
+      }
+      Node bodyInst =
+          body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      // when this happen it's always the instance who is in the wrong: a real
+      // variable may be instantiated with an integer, but the opposite is not
+      // possible
+      if (bodyInst != inst)
+      {
+        Trace("alethe-proof-subtyping")
+            << "\t..quantif body instantiated " << bodyInst
+            << "\n\t..differs from the original " << inst << "\n";
+        std::vector<Node> newArgs = args;
+        // Rebuild conclusion. The negated forall is the same, only the inst
+        // changes.
+        Node newConclusion = nm->mkNode(kind::OR, args[2][1][0], bodyInst);
+        Trace("alethe-proof-subtyping")
+            << "\t..updated original conclusion " << args[2][1] << " to "
+            << newConclusion << "\n";
+        newArgs[2] = nm->mkNode(kind::SEXPR, args[2][0], newConclusion);
+        newArgs[1] = newArgs[2];
+        cdp->addStep(newArgs[2], PfRule::ALETHE_RULE, children, newArgs);
+        Trace("alethe-proof-subtyping")
+            << "\t..add a trust step to derive original conclusion from fixed "
+               "one\n";
+        // Add a new step that derives the original conclusion from the lifting
+        // of the modified body. This way we don't need to change the rest of
+        // the proof on account of the wrong instantiation
+        cdp->addStep(res,
+                     PfRule::ALETHE_RULE,
+                     {newArgs[2]},
+                     {nm->mkConst<Rational>(
+                          static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
+                      res,
+                      args[2]});
+        return true;
+      }
+      break;
     }
     default:
     {

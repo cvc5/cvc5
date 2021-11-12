@@ -142,20 +142,35 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
   {
     cur = visit.back();
     visit.pop_back();
-    AlwaysAssert(cur.getMetaKind() != kind::metakind::PARAMETERIZED);
+    Trace("alethe-proof-subtyping-convert")
+        << "traverseAndConvertAllConsts: convert " << cur << "\n";
+    if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      visited[cur] = cur;
+      Trace("alethe-proof-subtyping-convert")
+          << "traverseAndConvertAllConsts: ignore " << cur << " with kind "
+          << cur.getKind() << " and metakind " << cur.getMetaKind() << "\n";
+      continue;
+    }
     it = visited.find(cur);
     if (it == visited.end())
     {
-      if (cur.isConst())
+      if (cur.isConst() && cur.getType().isInteger())
       {
-        AlwaysAssert(cur.getType().isInteger());
         visited[cur] = nm->mkNode(kind::CAST_TO_REAL, cur);
         continue;
       }
-      AlwaysAssert(cur.getNumChildren() > 0);
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      if (cur.getNumChildren() > 0)
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.insert(visit.end(), cur.begin(), cur.end());
+        Trace("alethe-proof-subtyping-convert") << push;
+      }
+      else
+      {
+        visited[cur] = cur;
+      }
     }
     else if (it->second.isNull())
     {
@@ -168,6 +183,7 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
         children.push_back(visited[child]);
       }
       visited[cur] = !childChanged ? cur : nm->mkNode(cur.getKind(), children);
+      Trace("alethe-proof-subtyping-convert") << pop;
     }
   } while (!visit.empty());
   return visited[n];
