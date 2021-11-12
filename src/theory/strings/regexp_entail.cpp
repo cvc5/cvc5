@@ -755,11 +755,11 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
       }
       else if ((k == REGEXP_UNION) == isLower)
       {
-        rr = r < rr ? r : rr;
+        rr = std::min(r, rr);
       }
       else
       {
-        rr = r > rr ? r : rr;
+        rr = std::max(r, rr);
       }
       firstTime = false;
     }
