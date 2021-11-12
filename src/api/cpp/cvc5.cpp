@@ -296,16 +296,16 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {RELATION_JOIN_IMAGE, cvc5::Kind::RELATION_JOIN_IMAGE},
     {RELATION_IDEN, cvc5::Kind::RELATION_IDEN},
     /* Bags ---------------------------------------------------------------- */
-    {UNION_MAX, cvc5::Kind::UNION_MAX},
-    {UNION_DISJOINT, cvc5::Kind::UNION_DISJOINT},
-    {INTERSECTION_MIN, cvc5::Kind::INTERSECTION_MIN},
-    {DIFFERENCE_SUBTRACT, cvc5::Kind::DIFFERENCE_SUBTRACT},
-    {DIFFERENCE_REMOVE, cvc5::Kind::DIFFERENCE_REMOVE},
-    {SUBBAG, cvc5::Kind::SUBBAG},
+    {BAG_UNION_MAX, cvc5::Kind::BAG_UNION_MAX},
+    {BAG_UNION_DISJOINT, cvc5::Kind::BAG_UNION_DISJOINT},
+    {BAG_INTER_MIN, cvc5::Kind::BAG_INTER_MIN},
+    {BAG_DIFFERENCE_SUBTRACT, cvc5::Kind::BAG_DIFFERENCE_SUBTRACT},
+    {BAG_DIFFERENCE_REMOVE, cvc5::Kind::BAG_DIFFERENCE_REMOVE},
+    {BAG_SUBBAG, cvc5::Kind::BAG_SUBBAG},
     {BAG_COUNT, cvc5::Kind::BAG_COUNT},
-    {DUPLICATE_REMOVAL, cvc5::Kind::DUPLICATE_REMOVAL},
-    {MK_BAG, cvc5::Kind::MK_BAG},
-    {EMPTYBAG, cvc5::Kind::EMPTYBAG},
+    {BAG_DUPLICATE_REMOVAL, cvc5::Kind::BAG_DUPLICATE_REMOVAL},
+    {BAG_MAKE, cvc5::Kind::BAG_MAKE},
+    {BAG_EMPTY, cvc5::Kind::BAG_EMPTY},
     {BAG_CARD, cvc5::Kind::BAG_CARD},
     {BAG_CHOOSE, cvc5::Kind::BAG_CHOOSE},
     {BAG_IS_SINGLETON, cvc5::Kind::BAG_IS_SINGLETON},
@@ -606,16 +606,16 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
         {cvc5::Kind::RELATION_IDEN, RELATION_IDEN},
         /* Bags ------------------------------------------------------------ */
-        {cvc5::Kind::UNION_MAX, UNION_MAX},
-        {cvc5::Kind::UNION_DISJOINT, UNION_DISJOINT},
-        {cvc5::Kind::INTERSECTION_MIN, INTERSECTION_MIN},
-        {cvc5::Kind::DIFFERENCE_SUBTRACT, DIFFERENCE_SUBTRACT},
-        {cvc5::Kind::DIFFERENCE_REMOVE, DIFFERENCE_REMOVE},
-        {cvc5::Kind::SUBBAG, SUBBAG},
+        {cvc5::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
+        {cvc5::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
+        {cvc5::Kind::BAG_INTER_MIN, BAG_INTER_MIN},
+        {cvc5::Kind::BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_SUBTRACT},
+        {cvc5::Kind::BAG_DIFFERENCE_REMOVE, BAG_DIFFERENCE_REMOVE},
+        {cvc5::Kind::BAG_SUBBAG, BAG_SUBBAG},
         {cvc5::Kind::BAG_COUNT, BAG_COUNT},
-        {cvc5::Kind::DUPLICATE_REMOVAL, DUPLICATE_REMOVAL},
-        {cvc5::Kind::MK_BAG, MK_BAG},
-        {cvc5::Kind::EMPTYBAG, EMPTYBAG},
+        {cvc5::Kind::BAG_DUPLICATE_REMOVAL, BAG_DUPLICATE_REMOVAL},
+        {cvc5::Kind::BAG_MAKE, BAG_MAKE},
+        {cvc5::Kind::BAG_EMPTY, BAG_EMPTY},
         {cvc5::Kind::BAG_CARD, BAG_CARD},
         {cvc5::Kind::BAG_CHOOSE, BAG_CHOOSE},
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
@@ -5219,7 +5219,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // element type can be used safely here.
       res = getNodeManager()->mkSingleton(type, *children[0].d_node);
     }
-    else if (kind == api::MK_BAG)
+    else if (kind == api::BAG_MAKE)
     {
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()
