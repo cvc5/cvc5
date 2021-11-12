@@ -108,9 +108,11 @@ def gen_mk_const(expr):
 def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
-
     elif expr.sort and expr.sort.is_const:
-        return f'nm->mkConst({gen_mk_const(expr)})'
+        if isinstance(expr, CInt) or (isinstance(expr, App) and expr.op == Op.UMINUS):
+          return f'nm->mkConst(CONST_RATIONAL, {gen_mk_const(expr)})'
+        else:
+          return f'nm->mkConst({gen_mk_const(expr)})'
     elif isinstance(expr, Var):
         return expr.name
     elif isinstance(expr, App):
