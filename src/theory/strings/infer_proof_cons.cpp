@@ -499,7 +499,7 @@ void InferProofCons::convert(InferenceId infer,
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                       .eqNode(nm->mkConst(Rational(0)))
+                       .eqNode(nm->mkConst(CONST_RATIONAL, Rational(0)))
                        .notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
           rule = PfRule::CONCAT_CSPLIT;
@@ -530,7 +530,7 @@ void InferProofCons::convert(InferenceId infer,
         {
           // it should be the case that lenConstraint => lenReq
           lenReq = nm->mkNode(STRING_LENGTH, t0)
-                       .eqNode(nm->mkConst(Rational(0)))
+                       .eqNode(nm->mkConst(CONST_RATIONAL, Rational(0)))
                        .notNode();
           lenSuccess = convertLengthPf(lenReq, lenConstraint, psb);
           rule = PfRule::CONCAT_CPROP;
@@ -837,7 +837,7 @@ void InferProofCons::convert(InferenceId infer,
             std::vector<Node> childrenAE;
             childrenAE.push_back(eunf);
             std::vector<Node> argsAE;
-            argsAE.push_back(nm->mkConst(Rational(0)));
+            argsAE.push_back(nm->mkConst(CONST_RATIONAL, Rational(0)));
             Node eunfAE = psb.tryStep(PfRule::AND_ELIM, childrenAE, argsAE);
             Trace("strings-ipc-prefix")
                 << "--- and elim to " << eunfAE << std::endl;

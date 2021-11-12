@@ -35,6 +35,7 @@ namespace uf {
 
 class CardinalityExtension;
 class HoExtension;
+class LambdaLift;
 
 class TheoryUF : public Theory {
  public:
@@ -74,6 +75,8 @@ class TheoryUF : public Theory {
 private:
   /** The associated cardinality extension (or nullptr if it does not exist) */
   std::unique_ptr<CardinalityExtension> d_thss;
+  /** the lambda lifting utility */
+  std::unique_ptr<LambdaLift> d_lambdaLift;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 

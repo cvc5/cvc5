@@ -85,7 +85,8 @@ Node StringsFmf::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
     return Node::null();
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node lit = nm->mkNode(LEQ, d_inputVarLsum.get(), nm->mkConst(Rational(i)));
+  Node lit = nm->mkNode(
+      LEQ, d_inputVarLsum.get(), nm->mkConst(CONST_RATIONAL, Rational(i)));
   Trace("strings-fmf") << "StringsFMF::mkLiteral: " << lit << std::endl;
   return lit;
 }

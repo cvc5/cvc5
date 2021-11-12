@@ -37,9 +37,9 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
                                         const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  auto zero = nm->mkConst<Rational>(0);
-  auto one = nm->mkConst<Rational>(1);
-  auto mone = nm->mkConst<Rational>(-1);
+  auto zero = nm->mkConst<Rational>(CONST_RATIONAL, 0);
+  auto one = nm->mkConst<Rational>(CONST_RATIONAL, 1);
+  auto mone = nm->mkConst<Rational>(CONST_RATIONAL, -1);
   auto pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   auto mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-ext-checker") << "Checking " << id << std::endl;

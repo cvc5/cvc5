@@ -75,9 +75,10 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_equality)
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
   Node emptyString = d_nodeManager->mkConst(String(""));
-  Node constantBag = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                          emptyString,
-                                          d_nodeManager->mkConst(Rational(1)));
+  Node constantBag =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           emptyString,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)));
 
   // (= A A) = true where A is a bag
   Node n1 = A.eqNode(A);
@@ -106,15 +107,18 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_equality)
 TEST_F(TestTheoryWhiteBagsRewriter, mkBag_constant_element)
 {
   std::vector<Node> elements = getNStrings(1);
-  Node negative = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                       elements[0],
-                                       d_nodeManager->mkConst(Rational(-1)));
-  Node zero = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                   elements[0],
-                                   d_nodeManager->mkConst(Rational(0)));
-  Node positive = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                       elements[0],
-                                       d_nodeManager->mkConst(Rational(1)));
+  Node negative = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      elements[0],
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1)));
+  Node zero =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[0],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)));
+  Node positive =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[0],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)));
   Node emptybag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
   RewriteResponse negativeResponse = d_rewriter->postRewrite(negative);
@@ -136,16 +140,22 @@ TEST_F(TestTheoryWhiteBagsRewriter, mkBag_variable_element)
 {
   Node skolem =
       d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
-  Node variable = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                       skolem,
-                                       d_nodeManager->mkConst(Rational(-1)));
-  Node negative = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                       skolem,
-                                       d_nodeManager->mkConst(Rational(-1)));
-  Node zero = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), skolem, d_nodeManager->mkConst(Rational(0)));
-  Node positive = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), skolem, d_nodeManager->mkConst(Rational(1)));
+  Node variable = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      skolem,
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1)));
+  Node negative = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      skolem,
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1)));
+  Node zero =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           skolem,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)));
+  Node positive =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           skolem,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)));
   Node emptybag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
   RewriteResponse negativeResponse = d_rewriter->postRewrite(negative);
@@ -165,9 +175,9 @@ TEST_F(TestTheoryWhiteBagsRewriter, mkBag_variable_element)
 
 TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
 {
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node three = d_nodeManager->mkConst(Rational(3));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node three = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
   Node skolem =
       d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node emptyBag = d_nodeManager->mkConst(
@@ -193,14 +203,18 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_count)
 TEST_F(TestTheoryWhiteBagsRewriter, duplicate_removal)
 {
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
-  Node bag = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConst(Rational(5)));
+  Node bag =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           x,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(5)));
 
   // (bag.duplicate_removal (bag x n)) = (bag x 1)
   Node n = d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag);
   RewriteResponse response = d_rewriter->postRewrite(n);
-  Node noDuplicate = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConst(Rational(1)));
+  Node noDuplicate =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           x,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)));
   ASSERT_TRUE(response.d_node == noDuplicate
               && response.d_status == REWRITE_AGAIN_FULL);
 }
@@ -211,12 +225,14 @@ TEST_F(TestTheoryWhiteBagsRewriter, union_max)
   std::vector<Node> elements = getNStrings(2);
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[0],
-                                d_nodeManager->mkConst(Rational(n)));
-  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[1],
-                                d_nodeManager->mkConst(Rational(n + 1)));
+  Node A =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[0],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(n)));
+  Node B = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      elements[1],
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(n + 1)));
   Node unionMaxAB = d_nodeManager->mkNode(BAG_UNION_MAX, A, B);
   Node unionMaxBA = d_nodeManager->mkNode(BAG_UNION_MAX, B, A);
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
@@ -295,15 +311,18 @@ TEST_F(TestTheoryWhiteBagsRewriter, union_disjoint)
   std::vector<Node> elements = getNStrings(3);
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[0],
-                                d_nodeManager->mkConst(Rational(n)));
-  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[1],
-                                d_nodeManager->mkConst(Rational(n + 1)));
-  Node C = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[2],
-                                d_nodeManager->mkConst(Rational(n + 2)));
+  Node A =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[0],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(n)));
+  Node B = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      elements[1],
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(n + 1)));
+  Node C = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      elements[2],
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(n + 2)));
 
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
   Node unionDisjointBA = d_nodeManager->mkNode(BAG_UNION_DISJOINT, B, A);
@@ -356,12 +375,14 @@ TEST_F(TestTheoryWhiteBagsRewriter, intersection_min)
   std::vector<Node> elements = getNStrings(2);
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[0],
-                                d_nodeManager->mkConst(Rational(n)));
-  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[1],
-                                d_nodeManager->mkConst(Rational(n + 1)));
+  Node A =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[0],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(n)));
+  Node B = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      elements[1],
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(n + 1)));
   Node unionMaxAB = d_nodeManager->mkNode(BAG_UNION_MAX, A, B);
   Node unionMaxBA = d_nodeManager->mkNode(BAG_UNION_MAX, B, A);
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
@@ -442,12 +463,14 @@ TEST_F(TestTheoryWhiteBagsRewriter, difference_subtract)
   std::vector<Node> elements = getNStrings(2);
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[0],
-                                d_nodeManager->mkConst(Rational(n)));
-  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[1],
-                                d_nodeManager->mkConst(Rational(n + 1)));
+  Node A =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[0],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(n)));
+  Node B = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      elements[1],
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(n + 1)));
   Node unionMaxAB = d_nodeManager->mkNode(BAG_UNION_MAX, A, B);
   Node unionMaxBA = d_nodeManager->mkNode(BAG_UNION_MAX, B, A);
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
@@ -535,12 +558,14 @@ TEST_F(TestTheoryWhiteBagsRewriter, difference_remove)
   std::vector<Node> elements = getNStrings(2);
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[0],
-                                d_nodeManager->mkConst(Rational(n)));
-  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[1],
-                                d_nodeManager->mkConst(Rational(n + 1)));
+  Node A =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[0],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(n)));
+  Node B = d_nodeManager->mkBag(
+      d_nodeManager->stringType(),
+      elements[1],
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(n + 1)));
   Node unionMaxAB = d_nodeManager->mkNode(BAG_UNION_MAX, A, B);
   Node unionMaxBA = d_nodeManager->mkNode(BAG_UNION_MAX, B, A);
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
@@ -613,7 +638,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, difference_remove)
 TEST_F(TestTheoryWhiteBagsRewriter, choose)
 {
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
-  Node c = d_nodeManager->mkConst(Rational(3));
+  Node c = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
   Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(), x, c);
 
   // (bag.choose (bag x c)) = x where c is a constant > 0
@@ -628,16 +653,18 @@ TEST_F(TestTheoryWhiteBagsRewriter, bag_card)
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
   Node emptyBag = d_nodeManager->mkConst(
       EmptyBag(d_nodeManager->mkBagType(d_nodeManager->stringType())));
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node c = d_nodeManager->mkConst(Rational(3));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node c = d_nodeManager->mkConst(CONST_RATIONAL, Rational(3));
   Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(), x, c);
   std::vector<Node> elements = getNStrings(2);
-  Node A = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[0],
-                                d_nodeManager->mkConst(Rational(4)));
-  Node B = d_nodeManager->mkBag(d_nodeManager->stringType(),
-                                elements[1],
-                                d_nodeManager->mkConst(Rational(5)));
+  Node A =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[0],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(4)));
+  Node B =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           elements[1],
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(5)));
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
 
   // (bag.card (as bag.empty (Bag String)) = 0
@@ -679,7 +706,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, is_singleton)
   // (bag.is_singleton (bag x c) = (c == 1)
   Node n2 = d_nodeManager->mkNode(BAG_IS_SINGLETON, bag);
   RewriteResponse response2 = d_rewriter->postRewrite(n2);
-  Node one = d_nodeManager->mkConst(Rational(1));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
   Node equal = c.eqNode(one);
   ASSERT_TRUE(response2.d_node == equal
               && response2.d_status == REWRITE_AGAIN_FULL);
@@ -693,7 +720,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, from_set)
   // (bag.from_set (set.singleton (set.singleton_op Int) x)) = (bag x 1)
   Node n = d_nodeManager->mkNode(BAG_FROM_SET, singleton);
   RewriteResponse response = d_rewriter->postRewrite(n);
-  Node one = d_nodeManager->mkConst(Rational(1));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
   Node bag = d_nodeManager->mkBag(d_nodeManager->stringType(), x, one);
   ASSERT_TRUE(response.d_node == bag
               && response.d_status == REWRITE_AGAIN_FULL);
@@ -702,8 +729,10 @@ TEST_F(TestTheoryWhiteBagsRewriter, from_set)
 TEST_F(TestTheoryWhiteBagsRewriter, to_set)
 {
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->stringType());
-  Node bag = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), x, d_nodeManager->mkConst(Rational(5)));
+  Node bag =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           x,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(5)));
 
   // (bag.to_set (bag x n)) = (set.singleton (set.singleton_op T) x)
   Node n = d_nodeManager->mkNode(BAG_TO_SET, bag);
@@ -734,10 +763,14 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   std::vector<Node> elements = getNStrings(2);
   Node a = d_nodeManager->mkConst(String("a"));
   Node b = d_nodeManager->mkConst(String("b"));
-  Node A = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), a, d_nodeManager->mkConst(Rational(3)));
-  Node B = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), b, d_nodeManager->mkConst(Rational(4)));
+  Node A =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           a,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(3)));
+  Node B =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           b,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(4)));
   Node unionDisjointAB = d_nodeManager->mkNode(BAG_UNION_DISJOINT, A, B);
 
   ASSERT_TRUE(unionDisjointAB.isConst());
@@ -748,8 +781,10 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   // (bag "" 7))
   Node n2 = d_nodeManager->mkNode(BAG_MAP, lambda, unionDisjointAB);
   Node rewritten = Rewriter::rewrite(n2);
-  Node bag = d_nodeManager->mkBag(
-      d_nodeManager->stringType(), empty, d_nodeManager->mkConst(Rational(7)));
+  Node bag =
+      d_nodeManager->mkBag(d_nodeManager->stringType(),
+                           empty,
+                           d_nodeManager->mkConst(CONST_RATIONAL, Rational(7)));
   ASSERT_TRUE(rewritten == bag);
 }
 

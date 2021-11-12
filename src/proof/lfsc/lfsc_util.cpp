@@ -18,6 +18,8 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace proof {
 
@@ -66,7 +68,8 @@ LfscRule getLfscRule(Node n)
 
 Node mkLfscRuleNode(LfscRule r)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(r)));
+  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                           Rational(static_cast<uint32_t>(r)));
 }
 
 bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)

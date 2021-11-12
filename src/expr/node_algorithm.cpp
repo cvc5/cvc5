@@ -281,6 +281,122 @@ bool hasBoundVar(TNode n)
   return n.getAttribute(HasBoundVarAttr());
 }
 
+/**
+ * Check variables internal, which is used as a helper to implement many of the
+ * methods in this file.
+ *
+ * This computes the free variables in n, that is, the subterms of n of kind
+ * BOUND_VARIABLE that are not bound in n or occur in scope, adds these to fvs
+ * if computeFv is true.
+ *
+ * @param n The node under investigation
+ * @param fvs The set which free variables are added to
+ * @param scope The scope we are considering.
+ * @param wasShadow Flag set to true if variable shadowing was encountered.
+ * Only computed if checkShadow is true.
+ * @param computeFv If this flag is false, then we only return true/false and
+ * do not add to fvs.
+ * @param checkShadow If this flag is true, we immediately return true if a
+ * variable is shadowing. If this flag is false, we give an assertion failure
+ * when this occurs.
+ * @return true iff this node contains a free variable.
+ */
+bool checkVariablesInternal(TNode n,
+                            std::unordered_set<Node>& fvs,
+                            std::unordered_set<TNode>& scope,
+                            bool& wasShadow,
+                            bool computeFv = true,
+                            bool checkShadow = false)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    // can skip if it doesn't have a bound variable
+    if (!hasBoundVar(cur))
+    {
+      continue;
+    }
+    std::unordered_set<TNode>::iterator itv = visited.find(cur);
+    if (itv == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == kind::BOUND_VARIABLE)
+      {
+        if (scope.find(cur) == scope.end())
+        {
+          if (computeFv)
+          {
+            fvs.insert(cur);
+          }
+          else
+          {
+            return true;
+          }
+        }
+      }
+      else if (cur.isClosure())
+      {
+        // add to scope
+        for (const TNode& cn : cur[0])
+        {
+          if (checkShadow)
+          {
+            if (scope.find(cn) != scope.end())
+            {
+              wasShadow = true;
+              return true;
+            }
+          }
+          else
+          {
+            // should not shadow
+            Assert(scope.find(cn) == scope.end())
+                << "Shadowed variable " << cn << " in " << cur << "\n";
+          }
+          scope.insert(cn);
+        }
+        // must make recursive call to use separate cache
+        if (checkVariablesInternal(
+                cur[1], fvs, scope, wasShadow, computeFv, checkShadow)
+            && !computeFv)
+        {
+          return true;
+        }
+        // cleanup
+        for (const TNode& cn : cur[0])
+        {
+          scope.erase(cn);
+        }
+      }
+      else
+      {
+        if (cur.hasOperator())
+        {
+          visit.push_back(cur.getOperator());
+        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+  } while (!visit.empty());
+
+  return !fvs.empty();
+}
+
+/** Same as above, without checking for shadowing */
+bool getVariablesInternal(TNode n,
+                          std::unordered_set<Node>& fvs,
+                          std::unordered_set<TNode>& scope,
+                          bool computeFv = true)
+{
+  bool wasShadow = false;
+  return checkVariablesInternal(n, fvs, scope, wasShadow, computeFv, false);
+}
+
 bool hasFreeVar(TNode n)
 {
   // optimization for variables and constants
@@ -289,7 +405,20 @@ bool hasFreeVar(TNode n)
     return n.getKind() == kind::BOUND_VARIABLE;
   }
   std::unordered_set<Node> fvs;
-  return getFreeVariables(n, fvs, false);
+  std::unordered_set<TNode> scope;
+  return getVariablesInternal(n, fvs, scope, false);
+}
+
+bool hasFreeOrShadowedVar(TNode n, bool& wasShadow)
+{
+  // optimization for variables and constants
+  if (n.getNumChildren() == 0)
+  {
+    return n.getKind() == kind::BOUND_VARIABLE;
+  }
+  std::unordered_set<Node> fvs;
+  std::unordered_set<TNode> scope;
+  return checkVariablesInternal(n, fvs, scope, wasShadow, false, true);
 }
 
 struct HasClosureTag
@@ -329,81 +458,22 @@ bool hasClosure(Node n)
   return n.getAttribute(HasClosureAttr());
 }
 
-bool getFreeVariables(TNode n, std::unordered_set<Node>& fvs, bool computeFv)
+bool getFreeVariables(TNode n, std::unordered_set<Node>& fvs)
 {
   std::unordered_set<TNode> scope;
-  return getFreeVariablesScope(n, fvs, scope, computeFv);
+  return getVariablesInternal(n, fvs, scope);
 }
 
 bool getFreeVariablesScope(TNode n,
                            std::unordered_set<Node>& fvs,
-                           std::unordered_set<TNode>& scope,
-                           bool computeFv)
+                           std::unordered_set<TNode>& scope)
 {
-  std::unordered_set<TNode> visited;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    // can skip if it doesn't have a bound variable
-    if (!hasBoundVar(cur))
-    {
-      continue;
-    }
-    std::unordered_set<TNode>::iterator itv = visited.find(cur);
-    if (itv == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.getKind() == kind::BOUND_VARIABLE)
-      {
-        if (scope.find(cur) == scope.end())
-        {
-          if (computeFv)
-          {
-            fvs.insert(cur);
-          }
-          else
-          {
-            return true;
-          }
-        }
-      }
-      else if (cur.isClosure())
-      {
-        // add to scope
-        for (const TNode& cn : cur[0])
-        {
-          // should not shadow
-          Assert(scope.find(cn) == scope.end())
-              << "Shadowed variable " << cn << " in " << cur << "\n";
-          scope.insert(cn);
-        }
-        // must make recursive call to use separate cache
-        if (getFreeVariablesScope(cur[1], fvs, scope, computeFv) && !computeFv)
-        {
-          return true;
-        }
-        // cleanup
-        for (const TNode& cn : cur[0])
-        {
-          scope.erase(cn);
-        }
-      }
-      else
-      {
-        if (cur.hasOperator())
-        {
-          visit.push_back(cur.getOperator());
-        }
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-  } while (!visit.empty());
-
-  return !fvs.empty();
+  return getVariablesInternal(n, fvs, scope);
+}
+bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope)
+{
+  std::unordered_set<Node> fvs;
+  return getVariablesInternal(n, fvs, scope, false);
 }
 
 bool getVariables(TNode n, std::unordered_set<TNode>& vs)
