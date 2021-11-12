@@ -1444,7 +1444,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
       std::vector<Node> new_children = {vp1, children[0]};
-      new_args.push_back(nm->mkConst<Rational>(1));
+      new_args.push_back(nm->mkConst<Rational>(CONST_RATIONAL, 1));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -1467,7 +1467,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     {
       Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
       std::vector<Node> new_children = {vp1, children[0]};
-      new_args.push_back(nm->mkConst<Rational>(1));
+      new_args.push_back(nm->mkConst<Rational>(CONST_RATIONAL, 1));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
