@@ -742,14 +742,15 @@ void ArithEntail::setConstantBoundCache(TNode n, Node ret, bool isLower)
   }
 }
 
-Node ArithEntail::getConstantBoundCache(TNode n, bool isLower)
+bool ArithEntail::getConstantBoundCache(TNode n, bool isLower, Node& c)
 {
   if (isLower)
   {
     ArithEntailConstantBoundLower acbl;
     if (n.hasAttribute(acbl))
     {
-      return n.getAttribute(acbl);
+      c = n.getAttribute(acbl);
+      return true;
     }
   }
   else
@@ -757,17 +758,18 @@ Node ArithEntail::getConstantBoundCache(TNode n, bool isLower)
     ArithEntailConstantBoundUpper acbu;
     if (n.hasAttribute(acbu))
     {
-      return n.getAttribute(acbu);
+      c = n.getAttribute(acbu);
+      return true;
     }
   }
-  return Node::null();
+  return false;
 }
 
 Node ArithEntail::getConstantBound(TNode a, bool isLower)
 {
   Assert(d_rr->rewrite(a) == a);
-  Node ret = getConstantBoundCache(a, isLower);
-  if (!ret.isNull())
+  Node ret;
+  if (getConstantBoundCache(a, isLower, ret))
   {
     return ret;
   }
@@ -855,8 +857,8 @@ Node ArithEntail::getConstantBound(TNode a, bool isLower)
 Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
 {
   Assert(s.getType().isStringLike());
-  Node ret = getConstantBoundCache(s, isLower);
-  if (!ret.isNull())
+  Node ret;
+  if (getConstantBoundCache(s, isLower, ret))
   {
     return ret;
   }
@@ -895,8 +897,10 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
       ret = nm->mkConst(CONST_RATIONAL, sum);
     }
   }
-  // should never return 0 for lower bound
-  Assert(ret.isNull() || !isLower || ret.getConst<Rational>().sgn() != 0);
+  if (ret.isNull() && isLower)
+  {
+    ret = d_zero;
+  }
   // cache
   setConstantBoundCache(s, ret, isLower);
   return ret;

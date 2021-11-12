@@ -705,9 +705,11 @@ Node RegExpEntail::getFixedLengthForRegexp(TNode n)
 
 Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
 {
+  // FIXME
+  return Node::null();
   Assert(n.getType().isRegExp());
-  Node ret = getConstantBoundCache(n, isLower);
-  if (!ret.isNull())
+  Node ret;
+  if (getConstantBoundCache(n, isLower, ret))
   {
     return ret;
   }
@@ -771,10 +773,12 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
       ret = nm->mkConst(CONST_RATIONAL, rr);
     }
   }
-  // should never return 0 for lower bound
-  Assert(ret.isNull() || !isLower || ret.getConst<Rational>().sgn() != 0);
+  if (ret.isNull() && isLower)
+  {
+    ret = d_zero;
+  }
   setConstantBoundCache(n, ret, isLower);
-  return Node::null();
+  return ret;
 }
 
 bool RegExpEntail::regExpIncludes(Node r1, Node r2)
@@ -906,14 +910,15 @@ void RegExpEntail::setConstantBoundCache(TNode n, Node ret, bool isLower)
   }
 }
 
-Node RegExpEntail::getConstantBoundCache(TNode n, bool isLower)
+bool RegExpEntail::getConstantBoundCache(TNode n, bool isLower, Node& c)
 {
   if (isLower)
   {
     RegExpEntailConstantBoundLower rcbl;
     if (n.hasAttribute(rcbl))
     {
-      return n.getAttribute(rcbl);
+      c = n.getAttribute(rcbl);
+      return true;
     }
   }
   else
@@ -921,10 +926,11 @@ Node RegExpEntail::getConstantBoundCache(TNode n, bool isLower)
     RegExpEntailConstantBoundUpper rcbu;
     if (n.hasAttribute(rcbu))
     {
-      return n.getAttribute(rcbu);
+      c = n.getAttribute(rcbu);
+      return true;
     }
   }
-  return Node::null();
+  return false;
 }
 
 }  // namespace strings
