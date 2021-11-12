@@ -1117,7 +1117,7 @@ Node NodeManager::mkConstReal(const Rational& r)
 
 Node NodeManager::mkConstInt(const Rational& r)
 {
-  return mkConst(kind::CONST_RATIONAL, r);
+  return mkConst(kind::CONST_INTEGER, r);
 }
 
 }  // namespace cvc5
