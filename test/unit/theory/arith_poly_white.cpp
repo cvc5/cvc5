@@ -40,9 +40,9 @@ class TestTheoryWhiteArithPolyNorm : public TestSmt
 TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
 {
   TypeNode intType = d_nodeManager->integerType();
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node two = d_nodeManager->mkConst(Rational(2));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
   Node x = d_nodeManager->mkVar("x", intType);
   Node y = d_nodeManager->mkVar("y", intType);
   Node z = d_nodeManager->mkVar("z", intType);
@@ -101,10 +101,10 @@ TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_int)
 TEST_F(TestTheoryWhiteArithPolyNorm, check_poly_norm_real)
 {
   TypeNode realType = d_nodeManager->realType();
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node half = d_nodeManager->mkConst(Rational(1) / Rational(2));
-  Node two = d_nodeManager->mkConst(Rational(2));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node half = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1) / Rational(2));
+  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
   Node x = d_nodeManager->mkVar("x", realType);
   Node y = d_nodeManager->mkVar("y", realType);
 

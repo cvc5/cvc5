@@ -32,6 +32,8 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -329,11 +331,12 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       TNode isZero = d_watchedEqualities[s];
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
-      const auto sumPf = d_pnm->mkNode(
-          PfRule::MACRO_ARITH_SCALE_SUM_UB,
-          {isZeroPf, pf},
-          // Trick for getting correct, opposing signs.
-          {nm->mkConst(Rational(-1 * cSign)), nm->mkConst(Rational(cSign))});
+      const auto sumPf =
+          d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                        {isZeroPf, pf},
+                        // Trick for getting correct, opposing signs.
+                        {nm->mkConst(CONST_RATIONAL, Rational(-1 * cSign)),
+                         nm->mkConst(CONST_RATIONAL, Rational(cSign))});
       const auto botPf = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};

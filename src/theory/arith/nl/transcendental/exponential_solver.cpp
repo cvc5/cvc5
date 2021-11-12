@@ -29,6 +29,8 @@
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -228,7 +230,7 @@ void ExponentialSolver::doTangentLemma(TNode e,
     proof->addStep(lem,
                    PfRule::ARITH_TRANS_EXP_APPROX_BELOW,
                    {},
-                   {nm->mkConst<Rational>(d), e[0]});
+                   {nm->mkConst(CONST_RATIONAL, Rational(d)), e[0]});
   }
   d_data->d_im.addPendingLemma(
       lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);

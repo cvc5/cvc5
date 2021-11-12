@@ -202,12 +202,14 @@ Node NormalForm::constructConstantBagFromElements(
   }
   TypeNode elementType = t.getBagElementType();
   std::map<Node, Rational>::const_reverse_iterator it = elements.rbegin();
-  Node bag =
-      nm->mkBag(elementType, it->first, nm->mkConst<Rational>(it->second));
+  Node bag = nm->mkBag(elementType,
+                       it->first,
+                       nm->mkConst<Rational>(CONST_RATIONAL, it->second));
   while (++it != elements.rend())
   {
-    Node n =
-        nm->mkBag(elementType, it->first, nm->mkConst<Rational>(it->second));
+    Node n = nm->mkBag(elementType,
+                       it->first,
+                       nm->mkConst<Rational>(CONST_RATIONAL, it->second));
     bag = nm->mkNode(UNION_DISJOINT, n, bag);
   }
   return bag;
@@ -260,10 +262,10 @@ Node NormalForm::evaluateBagCount(TNode n)
   NodeManager* nm = NodeManager::currentNM();
   if (it != elements.end())
   {
-    Node count = nm->mkConst(it->second);
+    Node count = nm->mkConst(CONST_RATIONAL, it->second);
     return count;
   }
-  return nm->mkConst(Rational(0));
+  return nm->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 Node NormalForm::evaluateDuplicateRemoval(TNode n)
@@ -590,7 +592,7 @@ Node NormalForm::evaluateCard(TNode n)
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  Node sumNode = nm->mkConst(sum);
+  Node sumNode = nm->mkConst(CONST_RATIONAL, sum);
   return sumNode;
 }
 
