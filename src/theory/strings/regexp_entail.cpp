@@ -733,6 +733,8 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
       {
         if (k == REGEXP_UNION || (k == REGEXP_CONCAT && !isLower))
         {
+          // since the bound could not be determined on the component, the
+          // overall bound is undetermined.
           success = false;
           break;
         }
@@ -768,11 +770,6 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
     {
       ret = nm->mkConst(CONST_RATIONAL, rr);
     }
-  }
-  // zero is always a lower bound
-  if (isLower && ret.isNull())
-  {
-    ret = d_zero;
   }
   setConstantBoundCache(n, ret, isLower);
   return Node::null();
