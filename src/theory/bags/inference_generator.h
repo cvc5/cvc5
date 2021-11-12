@@ -63,101 +63,102 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   (not (= A B))
-   *   (not (= (count e A) (count e B))))
+   *   (not (= (bag.count e A) (bag.count e B))))
    *   where e is a fresh skolem of type E.
    */
   InferInfo bagDisequality(Node n);
   /**
-   * @param n is (as emptybag (Bag E))
+   * @param n is (as bag.empty (Bag E))
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= 0 (count e skolem)))
-   *   where skolem = (as emptybag (Bag String))
+   *   (= 0 (bag.count e skolem)))
+   *   where skolem = (as bag.empty (Bag E))
    */
   InferInfo empty(Node n, Node e);
   /**
-   * @param n is (union_disjoint A B) where A, B are bags of type (Bag E)
+   * @param n is (bag.union_disjoint A B) where A, B are bags of type (Bag E)
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e skolem)
-   *      (+ (count e A) (count e B))))
-   *  where skolem is a fresh variable equals (union_disjoint A B)
+   *   (= (bag.count e skolem)
+   *      (+ (bag.count e A) (bag.count e B))))
+   *  where skolem is a fresh variable equals (bag.union_disjoint A B)
    */
   InferInfo unionDisjoint(Node n, Node e);
   /**
-   * @param n is (union_disjoint A B) where A, B are bags of type (Bag E)
+   * @param n is (bag.union_disjoint A B) where A, B are bags of type (Bag E)
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
    *   (=
-   *     (count e skolem)
+   *     (bag.count e skolem)
    *     (ite
-   *       (> (count e A) (count e B))
-   *       (count e A)
-   *       (count e B)))))
-   * where skolem is a fresh variable equals (union_max A B)
+   *       (> (bag.count e A) (bag.count e B))
+   *       (bag.count e A)
+   *       (bag.count e B)))))
+   * where skolem is a fresh variable equals (bag.union_max A B)
    */
   InferInfo unionMax(Node n, Node e);
   /**
-   * @param n is (intersection_min A B) where A, B are bags of type (Bag E)
+   * @param n is (bag.inter_min A B) where A, B are bags of type (Bag E)
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
    *   (=
-   *     (count e skolem)
+   *     (bag.count e skolem)
    *     (ite(
-   *       (< (count e A) (count e B))
-   *       (count e A)
-   *       (count e B)))))
-   * where skolem is a fresh variable equals (intersection_min A B)
+   *       (< (bag.count e A) (bag.count e B))
+   *       (bag.count e A)
+   *       (bag.count e B)))))
+   * where skolem is a fresh variable equals (bag.inter_min A B)
    */
   InferInfo intersection(Node n, Node e);
   /**
-   * @param n is (difference_subtract A B) where A, B are bags of type (Bag E)
+   * @param n is (bag.difference_subtract A B) where A, B are bags of type
+   * (Bag E)
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
    *   (=
-   *     (count e skolem)
+   *     (bag.count e skolem)
    *     (ite
-   *       (>= (count e A) (count e B))
-   *       (- (count e A) (count e B))
+   *       (>= (bag.count e A) (bag.count e B))
+   *       (- (bag.count e A) (bag.count e B))
    *       0))))
-   * where skolem is a fresh variable equals (difference_subtract A B)
+   * where skolem is a fresh variable equals (bag.difference_subtract A B)
    */
   InferInfo differenceSubtract(Node n, Node e);
   /**
-   * @param n is (difference_remove A B) where A, B are bags of type (Bag E)
+   * @param n is (bag.difference_remove A B) where A, B are bags of type (Bag E)
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
    *   (=
-   *     (count e skolem)
+   *     (bag.count e skolem)
    *     (ite
-   *       (<= (count e B) 0)
-   *       (count e A)
+   *       (<= (bag.count e B) 0)
+   *       (bag.count e A)
    *       0))))
-   * where skolem is a fresh variable equals (difference_remove A B)
+   * where skolem is a fresh variable equals (bag.difference_remove A B)
    */
   InferInfo differenceRemove(Node n, Node e);
   /**
-   * @param n is (duplicate_removal A) where A is a bag of type (Bag E)
+   * @param n is (bag.duplicate_removal A) where A is a bag of type (Bag E)
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
    *   (=
-   *    (count e skolem)
-   *    (ite (>= (count e A) 1) 1 0))))
-   * where skolem is a fresh variable equals (duplicate_removal A)
+   *    (bag.count e skolem)
+   *    (ite (>= (bag.count e A) 1) 1 0))))
+   * where skolem is a fresh variable equals (bag.duplicate_removal A)
    */
   InferInfo duplicateRemoval(Node n, Node e);
   /**
@@ -171,7 +172,7 @@ class InferenceGenerator
    *   (>= preImageSize 0)
    *   (forall ((i Int))
    *          (let ((uf_i (uf i)))
-   *            (let ((count_uf_i (bag.count uf_i A)))
+   *            (let ((bag.count_uf_i (bag.count uf_i A)))
    *              (=>
    *               (and (>= i 1) (<= i preImageSize))
    *               (and
