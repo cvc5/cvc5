@@ -731,8 +731,17 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
       Node bc = getConstantBoundLengthForRegexp(nc, isLower);
       if (bc.isNull())
       {
-        success = false;
-        break;
+        if (k==REGEXP_UNION || (k==REGEXP_CONCAT && !isLower))
+        {
+          success = false;
+          break;
+        }
+        else
+        {
+          // if intersection, or we are computing lower bound for concat
+          // and the component cannot be determined, ignore it
+          continue;
+        }
       }
       Assert(bc.getKind() == CONST_RATIONAL);
       Rational r = bc.getConst<Rational>();
@@ -743,7 +752,6 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
       else if (firstTime)
       {
         rr = r;
-        firstTime = false;
       }
       else if ((k == REGEXP_UNION) == isLower)
       {
@@ -753,13 +761,16 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
       {
         rr = r > rr ? r : rr;
       }
+      firstTime = false;
     }
-    if (success)
+    // if we were successful and didn't ignore all components
+    if (success && !firstTime)
     {
-      ret = nm->mkConst(rr);
+      ret = nm->mkConst(CONST_RATIONAL, rr);
     }
   }
-  else if (isLower)
+  // zero is always a lower bound
+  if (isLower && ret.isNull())
   {
     ret = d_zero;
   }
