@@ -73,11 +73,11 @@ class ProofNodeUpdaterCallback
    * the proof changed. It can be assumed that cdp contains proofs of each
    * fact in children.
    */
-  bool finalize(Node res,
-                PfRule id,
-                const std::vector<Node>& children,
-                const std::vector<Node>& args,
-                CDProof* cdp);
+  virtual bool finalize(Node res,
+                        PfRule id,
+                        const std::vector<Node>& children,
+                        const std::vector<Node>& args,
+                        CDProof* cdp);
 };
 
 /**
@@ -100,6 +100,7 @@ class ProofNodeUpdater
    * the same SCOPE that prove the same fact.
    * @param autoSym Whether intermediate CDProof objects passed to updater
    * callbacks automatically introduce SYMM steps.
+
    * @param runFinalize Whether intermediate an update from the callback is run
    * at post-traversial time. By default only pre-traversal updates are made.
    */

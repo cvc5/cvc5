@@ -600,78 +600,17 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::RESOLUTION:
     case PfRule::CHAIN_RESOLUTION:
     {
-      Node trueNode = nm->mkConst(true);
-      Node falseNode = nm->mkConst(false);
-      std::vector<Node> new_children = children;
-
-      // If a child F = (or F1 ... Fn) is the result of ASSUME or
-      // EQ_RESOLVE it might be necessary to add an additional step with the
-      // Alethe or rule since otherwise it will be used as (cl (or F1 ... Fn)).
-
-      // The first child is used as a non-singleton clause if it is not equal
-      // to its pivot L_1. Since it's the first clause in the resolution it can
-      // only be equal to the pivot in the case the polarity is true.
-      if (children[0].getKind() == kind::OR
-          && (args[0] != trueNode || children[0] != args[1]))
-      {
-        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
-        if (childPf->getRule() == PfRule::ASSUME
-            || childPf->getRule() == PfRule::EQ_RESOLVE)
-        {
-          // Add or step
-          std::vector<Node> subterms{d_cl};
-          subterms.insert(
-              subterms.end(), children[0].begin(), children[0].end());
-          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
-          addAletheStep(
-              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
-          new_children[0] = conclusion;
-        }
-      }
-
-      // For all other children C_i the procedure is similar. There is however a
-      // key difference in the choice of the pivot element which is now the
-      // L_{i-1}, i.e. the pivot of the child with the result of the i-1
-      // resolution steps between the children before it. Therefore, if the
-      // policy id_{i-1} is true, the pivot has to appear negated in the child
-      // in which case it should not be a (cl (or F1 ... Fn)) node. The same is
-      // true if it isn't the pivot element.
-      for (std::size_t i = 1, size = children.size(); i < size; ++i)
-      {
-        if (children[i].getKind() == kind::OR
-            && (args[2 * (i - 1)] != falseNode
-                || args[2 * (i - 1) + 1] != children[i]))
-        {
-          std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
-          if (childPf->getRule() == PfRule::ASSUME
-              || childPf->getRule() == PfRule::EQ_RESOLVE)
-          {
-            // Add or step
-            std::vector<Node> lits{d_cl};
-            lits.insert(lits.end(), children[i].begin(), children[i].end());
-            Node conclusion = nm->mkNode(kind::SEXPR, lits);
-            addAletheStep(AletheRule::OR,
-                          conclusion,
-                          conclusion,
-                          {children[i]},
-                          {},
-                          *cdp);
-            new_children[i] = conclusion;
-          }
-        }
-      }
-
       if (!expr::isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
-            AletheRule::RESOLUTION, res, new_children, {}, *cdp);
+            AletheRule::RESOLUTION, res, children, {}, *cdp);
       }
       return addAletheStep(AletheRule::RESOLUTION,
                            res,
                            res == falseNode
                                ? nm->mkNode(kind::SEXPR, d_cl)
                                : nm->mkNode(kind::SEXPR, d_cl, res),
-                           new_children,
+                           children,
                            {},
                            *cdp);
     }
@@ -1781,6 +1720,82 @@ bool AletheProofPostprocessCallback::update(Node res,
   return false;
 }
 
+bool AletheProofPostprocessCallback::finalize(Node res,
+                                              PfRule id,
+                                              const std::vector<Node>& children,
+                                              const std::vector<Node>& args,
+                                              CDProof* cdp)
+{
+  // for the rules that take clauses (resolution, factoring, reordering, ...),
+  // add OR rule to the premise if the premise is not a clause and should not be
+  // a singleton. Since FACTORING and REORDERING always take non-singletons, add
+  // OR if not a cl in the third argument.  For resolution, you need to check
+  // all children to see whether they're singleton.
+
+
+  /*** TO CHANGE SO THAT RESOLUTION IS PROPERLY HANDLED
+
+      // If a child F = (or F1 ... Fn) is the result of ASSUME or
+      // EQ_RESOLVE it might be necessary to add an additional step with the
+      // Alethe or rule since otherwise it will be used as (cl (or F1 ... Fn)).
+
+      // The first child is used as a non-singleton clause if it is not equal
+      // to its pivot L_1. Since it's the first clause in the resolution it can
+      // only be equal to the pivot in the case the polarity is true.
+      if (children[0].getKind() == kind::OR
+          && (args[0] != trueNode || children[0] != args[1]))
+      {
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
+        if (childPf->getRule() == PfRule::ASSUME
+            || childPf->getRule() == PfRule::EQ_RESOLVE)
+        {
+          // Add or step
+          std::vector<Node> subterms{d_cl};
+          subterms.insert(
+              subterms.end(), children[0].begin(), children[0].end());
+          Node conclusion = nm->mkNode(kind::SEXPR, subterms);
+          addAletheStep(
+              AletheRule::OR, conclusion, conclusion, {children[0]}, {}, *cdp);
+          new_children[0] = conclusion;
+        }
+      }
+
+      // For all other children C_i the procedure is similar. There is however a
+      // key difference in the choice of the pivot element which is now the
+      // L_{i-1}, i.e. the pivot of the child with the result of the i-1
+      // resolution steps between the children before it. Therefore, if the
+      // policy id_{i-1} is true, the pivot has to appear negated in the child
+      // in which case it should not be a (cl (or F1 ... Fn)) node. The same is
+      // true if it isn't the pivot element.
+      for (std::size_t i = 1, size = children.size(); i < size; ++i)
+      {
+        if (children[i].getKind() == kind::OR
+            && (args[2 * (i - 1)] != falseNode
+                || args[2 * (i - 1) + 1] != children[i]))
+        {
+          std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
+          if (childPf->getRule() == PfRule::ASSUME
+              || childPf->getRule() == PfRule::EQ_RESOLVE)
+          {
+            // Add or step
+            std::vector<Node> lits{d_cl};
+            lits.insert(lits.end(), children[i].begin(), children[i].end());
+            Node conclusion = nm->mkNode(kind::SEXPR, lits);
+            addAletheStep(AletheRule::OR,
+                          conclusion,
+                          conclusion,
+                          {children[i]},
+                          {},
+                          *cdp);
+            new_children[i] = conclusion;
+          }
+        }
+      }
+
+  */
+  return false;
+}
+
 bool AletheProofPostprocessCallback::addAletheStep(
     AletheRule rule,
     Node res,
@@ -2029,7 +2044,7 @@ AletheProofPostprocess::~AletheProofPostprocess() {}
 void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Translate proof node
-  ProofNodeUpdater updater(d_pnm, d_cb, false, false);
+  ProofNodeUpdater updater(d_pnm, d_cb, false, false, true);
   updater.process(pf->getChildren()[0]);
 
   // In the Alethe proof format the final step has to be (cl). However, after
