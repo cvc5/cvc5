@@ -705,8 +705,6 @@ Node RegExpEntail::getFixedLengthForRegexp(TNode n)
 
 Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
 {
-  // FIXME
-  return Node::null();
   Assert(n.getType().isRegExp());
   Node ret;
   if (getConstantBoundCache(n, isLower, ret))
