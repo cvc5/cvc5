@@ -277,7 +277,9 @@ Node TypeNode::mkGroundValue() const
 
 bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
-bool TypeNode::isArithmetic() const { return isReal() || isInteger(); }
+// !!! Note that this will change to isReal() || isInteger() when subtyping is
+// eliminated
+bool TypeNode::isArithmetic() const { return isReal(); }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
