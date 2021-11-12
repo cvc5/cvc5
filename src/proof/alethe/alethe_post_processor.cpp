@@ -608,7 +608,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       return addAletheStep(AletheRule::RESOLUTION,
                            res,
-                           res == falseNode
+                           res == nm->mkConst(false)
                                ? nm->mkNode(kind::SEXPR, d_cl)
                                : nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
