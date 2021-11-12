@@ -3304,7 +3304,7 @@ enum Kind : int32_t
    * instantiation.
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind VARIABLE
+   *   - 1..n: Terms of any sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -3318,7 +3318,7 @@ enum Kind : int32_t
    * quantifier instantiation.
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind VARIABLE
+   *   - 1..n: Terms of any sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
