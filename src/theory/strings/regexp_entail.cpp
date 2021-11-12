@@ -731,7 +731,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
       Node bc = getConstantBoundLengthForRegexp(nc, isLower);
       if (bc.isNull())
       {
-        if (k==REGEXP_UNION || (k==REGEXP_CONCAT && !isLower))
+        if (k == REGEXP_UNION || (k == REGEXP_CONCAT && !isLower))
         {
           success = false;
           break;
