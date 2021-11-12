@@ -98,7 +98,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   // (bag.choose A) is expanded as
   // (witness ((x elementType))
   //    (ite
-  //      (= A (as emptybag (Bag E)))
+  //      (= A (as bag.empty (Bag E)))
   //      (= x (uf A))
   //      (and (>= (bag.count x A) 1) (= x (uf A)))
   // where uf: (Bag E) -> E is a skolem function, and E is the type of elements
