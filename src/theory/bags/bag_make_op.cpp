@@ -23,7 +23,7 @@ namespace cvc5 {
 
 std::ostream& operator<<(std::ostream& out, const BagMakeOp& op)
 {
-  return out << "(mkBag_op " << op.getType() << ')';
+  return out << "(BagMakeOp " << op.getType() << ')';
 }
 
 size_t BagMakeOpHashFunction::operator()(const BagMakeOp& op) const

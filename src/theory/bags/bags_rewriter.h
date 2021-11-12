@@ -52,7 +52,7 @@ class BagsRewriter : public TheoryRewriter
    */
   RewriteResponse postRewrite(TNode n) override;
   /**
-   * preRewrite nodes with kinds: EQUAL, SUBBAG.
+   * preRewrite nodes with kinds: EQUAL, BGA_SUBBAG.
    * See the rewrite rules for these kinds below.
    */
   RewriteResponse preRewrite(TNode n) override;
@@ -66,7 +66,7 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    * rewrites for n include:
-   * - (bag.subbag A B) = ((difference_subtract A B) == bag.empty)
+   * - (bag.subbag A B) = ((bag.difference_subtract A B) == bag.empty)
    */
   BagsRewriteResponse rewriteSubBag(const TNode& n) const;
 
@@ -89,85 +89,85 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (duplicate_removal (bag x n)) = (bag x 1)
+   *  - (bag.duplicate_removal (bag x n)) = (bag x 1)
    *     where n is a positive constant
    */
   BagsRewriteResponse rewriteDuplicateRemoval(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (union_max A bag.empty) = A
-   * - (union_max bag.empty A) = A
-   * - (union_max A A) = A
-   * - (union_max A (union_max A B)) = (union_max A B)
-   * - (union_max A (union_max B A)) = (union_max B A)
-   * - (union_max (union_max A B) A) = (union_max A B)
-   * - (union_max (union_max B A) A) = (union_max B A)
-   * - (union_max A (union_disjoint A B)) = (union_disjoint A B)
-   * - (union_max A (union_disjoint B A)) = (union_disjoint B A)
-   * - (union_max (union_disjoint A B) A) = (union_disjoint A B)
-   * - (union_max (union_disjoint B A) A) = (union_disjoint B A)
+   * - (bag.union_max A bag.empty) = A
+   * - (bag.union_max bag.empty A) = A
+   * - (bag.union_max A A) = A
+   * - (bag.union_max A (bag.union_max A B)) = (bag.union_max A B)
+   * - (bag.union_max A (bag.union_max B A)) = (bag.union_max B A)
+   * - (bag.union_max (bag.union_max A B) A) = (bag.union_max A B)
+   * - (bag.union_max (bag.union_max B A) A) = (bag.union_max B A)
+   * - (bag.union_max A (bag.union_disjoint A B)) = (bag.union_disjoint A B)
+   * - (bag.union_max A (bag.union_disjoint B A)) = (bag.union_disjoint B A)
+   * - (bag.union_max (bag.union_disjoint A B) A) = (bag.union_disjoint A B)
+   * - (bag.union_max (bag.union_disjoint B A) A) = (bag.union_disjoint B A)
    * - otherwise = n
    */
   BagsRewriteResponse rewriteUnionMax(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (union_disjoint A bag.empty) = A
-   * - (union_disjoint bag.empty A) = A
-   * - (union_disjoint (union_max A B) (intersection_min A B)) =
-   *         (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
+   * - (bag.union_disjoint A bag.empty) = A
+   * - (bag.union_disjoint bag.empty A) = A
+   * - (bag.union_disjoint (bag.union_max A B) (bag.inter_min A B)) =
+   *         (bag.union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
    * - other permutations of the above like swapping A and B, or swapping
-   *   intersection_min and union_max
+   *   bag.intersection_min and bag.union_max
    * - otherwise = n
    */
   BagsRewriteResponse rewriteUnionDisjoint(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (intersection_min A bag.empty) = bag.empty
-   * - (intersection_min bag.empty A) = bag.empty
-   * - (intersection_min A A) = A
-   * - (intersection_min A (union_disjoint A B)) = A
-   * - (intersection_min A (union_disjoint B A)) = A
-   * - (intersection_min (union_disjoint A B) A) = A
-   * - (intersection_min (union_disjoint B A) A) = A
-   * - (intersection_min A (union_max A B)) = A
-   * - (intersection_min A (union_max B A)) = A
-   * - (intersection_min (union_max A B) A) = A
-   * - (intersection_min (union_max B A) A) = A
+   * - (bag.inter_min A bag.empty) = bag.empty
+   * - (bag.inter_min bag.empty A) = bag.empty
+   * - (bag.inter_min A A) = A
+   * - (bag.inter_min A (bag.union_disjoint A B)) = A
+   * - (bag.inter_min A (bag.union_disjoint B A)) = A
+   * - (bag.inter_min (bag.union_disjoint A B) A) = A
+   * - (bag.inter_min (bag.union_disjoint B A) A) = A
+   * - (bag.inter_min A (bag.union_max A B)) = A
+   * - (bag.inter_min A (bag.union_max B A)) = A
+   * - (bag.inter_min (bag.union_max A B) A) = A
+   * - (bag.inter_min (bag.union_max B A) A) = A
    * - otherwise = n
    */
   BagsRewriteResponse rewriteIntersectionMin(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (difference_subtract A bag.empty) = A
-   * - (difference_subtract bag.empty A) = bag.empty
-   * - (difference_subtract A A) = bag.empty
-   * - (difference_subtract (union_disjoint A B) A) = B
-   * - (difference_subtract (union_disjoint B A) A) = B
-   * - (difference_subtract A (union_disjoint A B)) = bag.empty
-   * - (difference_subtract A (union_disjoint B A)) = bag.empty
-   * - (difference_subtract A (union_max A B)) = bag.empty
-   * - (difference_subtract A (union_max B A)) = bag.empty
-   * - (difference_subtract (intersection_min A B) A) = bag.empty
-   * - (difference_subtract (intersection_min B A) A) = bag.empty
+   * - (bag.difference_subtract A bag.empty) = A
+   * - (bag.difference_subtract bag.empty A) = bag.empty
+   * - (bag.difference_subtract A A) = bag.empty
+   * - (bag.difference_subtract (bag.union_disjoint A B) A) = B
+   * - (bag.difference_subtract (bag.union_disjoint B A) A) = B
+   * - (bag.difference_subtract A (bag.union_disjoint A B)) = bag.empty
+   * - (bag.difference_subtract A (bag.union_disjoint B A)) = bag.empty
+   * - (bag.difference_subtract A (bag.union_max A B)) = bag.empty
+   * - (bag.difference_subtract A (bag.union_max B A)) = bag.empty
+   * - (bag.difference_subtract (bag.inter_min A B) A) = bag.empty
+   * - (bag.difference_subtract (bag.inter_min B A) A) = bag.empty
    * - otherwise = n
    */
   BagsRewriteResponse rewriteDifferenceSubtract(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (difference_remove A bag.empty) = A
-   * - (difference_remove bag.empty A) = bag.empty
-   * - (difference_remove A A) = bag.empty
-   * - (difference_remove A (union_disjoint A B)) = bag.empty
-   * - (difference_remove A (union_disjoint B A)) = bag.empty
-   * - (difference_remove A (union_max A B)) = bag.empty
-   * - (difference_remove A (union_max B A)) = bag.empty
-   * - (difference_remove (intersection_min A B) A) = bag.empty
-   * - (difference_remove (intersection_min B A) A) = bag.empty
+   * - (bag.difference_remove A bag.empty) = A
+   * - (bag.difference_remove bag.empty A) = bag.empty
+   * - (bag.difference_remove A A) = bag.empty
+   * - (bag.difference_remove A (bag.union_disjoint A B)) = bag.empty
+   * - (bag.difference_remove A (bag.union_disjoint B A)) = bag.empty
+   * - (bag.difference_remove A (bag.union_max A B)) = bag.empty
+   * - (bag.difference_remove A (bag.union_max B A)) = bag.empty
+   * - (bag.difference_remove (bag.inter_min A B) A) = bag.empty
+   * - (bag.difference_remove (bag.inter_min B A) A) = bag.empty
    * - otherwise = n
    */
   BagsRewriteResponse rewriteDifferenceRemove(const TNode& n) const;
@@ -193,13 +193,13 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.from_set (singleton (singleton_op Int) x)) = (bag x 1)
+   *  - (bag.from_set (singleton (SetSingletonOp Int) x)) = (bag x 1)
    */
   BagsRewriteResponse rewriteFromSet(const TNode& n) const;
 
   /**
    *  rewrites for n include:
-   *  - (bag.to_set (bag x n)) = (singleton (singleton_op T) x)
+   *  - (bag.to_set (bag x n)) = (singleton (SetSingletonOp T) x)
    *     where n is a positive constant and T is the type of the bag's elements
    */
   BagsRewriteResponse rewriteToSet(const TNode& n) const;
@@ -217,8 +217,8 @@ class BagsRewriter : public TheoryRewriter
    *  - (bag.map (lambda ((x U)) t) bag.empty) = bag.empty
    *  - (bag.map (lambda ((x U)) t) (bag y z)) = (bag (apply (lambda ((x U)) t)
    * y) z)
-   *  - (bag.map (lambda ((x U)) t) (union_disjoint A B)) =
-   *       (union_disjoint
+   *  - (bag.map (lambda ((x U)) t) (bag.union_disjoint A B)) =
+   *       (bag.union_disjoint
    *          (bag ((lambda ((x U)) t) "a") 3)
    *          (bag ((lambda ((x U)) t) "b") 4))
    *
