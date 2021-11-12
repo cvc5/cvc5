@@ -643,16 +643,22 @@ def test_mk_real(solver):
     solver.mkReal(val4, val4)
 
 
-def test_mk_regexp_empty(solver):
+def test_mk_regexp_none(solver):
     strSort = solver.getStringSort()
     s = solver.mkConst(strSort, "s")
-    solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpEmpty())
+    solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpNone())
 
 
-def test_mk_regexp_sigma(solver):
+def test_mk_regexp_all(solver):
     strSort = solver.getStringSort()
     s = solver.mkConst(strSort, "s")
-    solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpSigma())
+    solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpAll())
+
+
+def test_mk_regexp_allchar(solver):
+    strSort = solver.getStringSort()
+    s = solver.mkConst(strSort, "s")
+    solver.mkTerm(kinds.StringInRegexp, s, solver.mkRegexpAllchar())
 
 
 def test_mk_sep_emp(solver):
@@ -690,8 +696,8 @@ def test_mk_term(solver):
 
     # mkTerm(Kind kind) const
     solver.mkPi()
-    solver.mkTerm(kinds.RegexpEmpty)
-    solver.mkTerm(kinds.RegexpSigma)
+    solver.mkTerm(kinds.RegexpNone)
+    solver.mkTerm(kinds.RegexpAllchar)
     with pytest.raises(RuntimeError):
         solver.mkTerm(kinds.ConstBV)
 

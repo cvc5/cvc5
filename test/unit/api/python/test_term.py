@@ -208,6 +208,23 @@ def test_get_op(solver):
     assert headTerm == solver.mkTerm(headTerm.getOp(), children)
 
 
+def test_has_get_symbol(solver):
+    n = Term(solver)
+    t = solver.mkBoolean(True)
+    c = solver.mkConst(solver.getBooleanSort(), "|\\|")
+
+    with pytest.raises(RuntimeError):
+        n.hasSymbol()
+    assert not t.hasSymbol()
+    assert c.hasSymbol()
+
+    with pytest.raises(RuntimeError):
+        n.getSymbol()
+    with pytest.raises(RuntimeError):
+        t.getSymbol()
+    assert c.getSymbol() == "|\\|"
+
+
 def test_is_null(solver):
     x = Term(solver)
     assert x.isNull()
@@ -976,10 +993,11 @@ def test_get_set(solver):
     i2 = solver.mkInteger(7)
 
     s1 = solver.mkEmptySet(s)
-    s2 = solver.mkTerm(kinds.Singleton, i1)
-    s3 = solver.mkTerm(kinds.Singleton, i1)
-    s4 = solver.mkTerm(kinds.Singleton, i2)
-    s5 = solver.mkTerm(kinds.Union, s2, solver.mkTerm(kinds.Union, s3, s4))
+    s2 = solver.mkTerm(kinds.SetSingleton, i1)
+    s3 = solver.mkTerm(kinds.SetSingleton, i1)
+    s4 = solver.mkTerm(kinds.SetSingleton, i2)
+    s5 = solver.mkTerm(
+            kinds.SetUnion, s2, solver.mkTerm(kinds.SetUnion, s3, s4))
 
     assert s1.isSetValue()
     assert s2.isSetValue()

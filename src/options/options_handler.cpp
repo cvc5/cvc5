@@ -74,9 +74,6 @@ void OptionsHandler::setErrStream(const std::string& flag, const ManagedErr& me)
 {
   Debug.setStream(me);
   Warning.setStream(me);
-  CVC5Message.setStream(me);
-  Notice.setStream(me);
-  Chat.setStream(me);
   Trace.setStream(me);
 }
 
@@ -135,26 +132,11 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&cvc5::null_os);
     TraceChannel.setStream(&cvc5::null_os);
-    NoticeChannel.setStream(&cvc5::null_os);
-    ChatChannel.setStream(&cvc5::null_os);
-    MessageChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
   } else {
-    if(value < 2) {
-      ChatChannel.setStream(&cvc5::null_os);
-    } else {
-      ChatChannel.setStream(&std::cout);
-    }
-    if(value < 1) {
-      NoticeChannel.setStream(&cvc5::null_os);
-    } else {
-      NoticeChannel.setStream(&std::cout);
-    }
     if(value < 0) {
-      MessageChannel.setStream(&cvc5::null_os);
       WarningChannel.setStream(&cvc5::null_os);
     } else {
-      MessageChannel.setStream(&std::cout);
       WarningChannel.setStream(&std::cerr);
     }
   }
@@ -276,9 +258,6 @@ void OptionsHandler::setPrintSuccess(const std::string& flag, bool value)
 {
   Debug.getStream() << Command::printsuccess(value);
   Trace.getStream() << Command::printsuccess(value);
-  Notice.getStream() << Command::printsuccess(value);
-  Chat.getStream() << Command::printsuccess(value);
-  CVC5Message.getStream() << Command::printsuccess(value);
   Warning.getStream() << Command::printsuccess(value);
   *d_options->base.out << Command::printsuccess(value);
 }
@@ -360,9 +339,6 @@ void OptionsHandler::setDefaultExprDepth(const std::string& flag, int depth)
 {
   Debug.getStream() << expr::ExprSetDepth(depth);
   Trace.getStream() << expr::ExprSetDepth(depth);
-  Notice.getStream() << expr::ExprSetDepth(depth);
-  Chat.getStream() << expr::ExprSetDepth(depth);
-  CVC5Message.getStream() << expr::ExprSetDepth(depth);
   Warning.getStream() << expr::ExprSetDepth(depth);
 }
 
@@ -370,9 +346,6 @@ void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
 {
   Debug.getStream() << expr::ExprDag(dag);
   Trace.getStream() << expr::ExprDag(dag);
-  Notice.getStream() << expr::ExprDag(dag);
-  Chat.getStream() << expr::ExprDag(dag);
-  CVC5Message.getStream() << expr::ExprDag(dag);
   Warning.getStream() << expr::ExprDag(dag);
 }
 

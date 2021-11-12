@@ -1,7 +1,7 @@
 ; EXPECT: sat
 
 ; Observed behavior:
-;   --check-model failed for set-term (union (z3f69 z3v151) (singleton z3v143))
+;   --check-model failed for set-term (set.union (z3f69 z3v151) (set.singleton z3v143))
 ; with different set of elements in the model for representative and the node
 ; itself.
 ;
@@ -23,15 +23,15 @@
 (set-info :status sat)
 (define-sort Elt () Int)
 (define-sort mySet () (Set Elt ))
-(define-fun smt_set_emp () mySet (as emptyset mySet))
-(define-fun smt_set_mem ((x Elt) (s mySet)) Bool (member x s))
-(define-fun smt_set_add ((s mySet) (x Elt)) mySet (union s (singleton x)))
-(define-fun smt_set_cup ((s1 mySet) (s2 mySet)) mySet (union s1 s2))
-(define-fun smt_set_cap ((s1 mySet) (s2 mySet)) mySet (intersection s1 s2))
+(define-fun smt_set_emp () mySet (as set.empty mySet))
+(define-fun smt_set_mem ((x Elt) (s mySet)) Bool (set.member x s))
+(define-fun smt_set_add ((s mySet) (x Elt)) mySet (set.union s (set.singleton x)))
+(define-fun smt_set_cup ((s1 mySet) (s2 mySet)) mySet (set.union s1 s2))
+(define-fun smt_set_cap ((s1 mySet) (s2 mySet)) mySet (set.inter s1 s2))
 ;(define-fun smt_set_com ((s mySet)) mySet ((_ map not) s))
-(define-fun smt_set_dif ((s1 mySet) (s2 mySet)) mySet (setminus s1 s2))
+(define-fun smt_set_dif ((s1 mySet) (s2 mySet)) mySet (set.minus s1 s2))
 ;(define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (= smt_set_emp (smt_set_dif s1 s2)))
-(define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (subset s1 s2))
+(define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (set.subset s1 s2))
 
 (declare-fun z3v58 () Int)
 (declare-fun z3v59 () Int)
@@ -69,16 +69,16 @@
                         (z3f69 z3v140))))
 
 (assert (= (z3f69 z3v152)
-           (smt_set_cup (singleton z3v143) (z3f69 z3v151))))
+           (smt_set_cup (set.singleton z3v143) (z3f69 z3v151))))
 
 (assert (= (z3f70 z3v152)
-           (smt_set_cup (singleton z3v143) (z3f70 z3v151))))
+           (smt_set_cup (set.singleton z3v143) (z3f70 z3v151))))
 
 (assert (and
         (= (z3f69 z3v142)
-           (smt_set_cup (singleton z3v143) (z3f69 z3v141)))
+           (smt_set_cup (set.singleton z3v143) (z3f69 z3v141)))
         (= (z3f70 z3v142)
-           (smt_set_cup (singleton z3v143) (z3f70 z3v141)))
+           (smt_set_cup (set.singleton z3v143) (z3f70 z3v141)))
          (= z3v142 (z3f92 z3v143 z3v141))
          (= z3v142 z3v144)
          (= (z3f62 z3v61) z3v61)

@@ -52,6 +52,12 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
               CDProof* cdp,
               bool& continueUpdate) override;
 
+  bool finalize(Node res,
+                PfRule id,
+                const std::vector<Node>& children,
+                const std::vector<Node>& args,
+                CDProof* cdp) override;
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -177,11 +183,48 @@ class AletheProofPostprocessNoSubtypeCallback : public ProofNodeUpdaterCallback
               CDProof* cdp,
               bool& continueUpdate) override;
 
+  /** This method checks whether a proof node, after the update above, is
+   * correct, changing it (or not) accordingly.
+   *
+   * The check is done according to the semantic of the rules. For now only
+   * instantiation and congruence reasoning is checked. The goal is to fix lost
+   * connections due to the removal of subtyping. This is done by introducing
+   * new steps.
+   *
+   *  x, y : Real
+   *  z, w : Int
+   *
+   *  f : (Real, Real) -> Real
+   *
+   *
+   *           z = w
+   *           ----------------------- CONG
+   *  x = y    to_real(z) = to_real(w)
+   *  -------------------------------- CONG
+   *  f(x,to_real(z)) = f(y,to_real(w))
+   *  --------------------------------  ??
+   *  f(x,z) = f(y,w)
+   *  Andrew Reynolds:
+   *  x = y  z = w
+   *  --------------
+   *  f(x,z)=f(y,w)
+   *
+   */
+  bool finalize(Node res,
+                PfRule id,
+                const std::vector<Node>& children,
+                const std::vector<Node>& args,
+                CDProof* cdp) override;
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The Alethe node converter to remove subtyping */
   AletheNoSubtypeNodeConverter d_anc;
+
+  /** Rules that may require finalizing. */
+  std::set<AletheRule> d_finalizeRules;
+  ;
 };
 
 /**

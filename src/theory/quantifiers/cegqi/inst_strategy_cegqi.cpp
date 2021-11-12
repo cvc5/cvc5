@@ -58,8 +58,8 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_added_cbqi_lemma(userContext()),
       d_vtsCache(new VtsTermCache(qim)),
       d_bv_invert(nullptr),
-      d_small_const_multiplier(
-          NodeManager::currentNM()->mkConst(Rational(1) / Rational(1000000))),
+      d_small_const_multiplier(NodeManager::currentNM()->mkConst(
+          CONST_RATIONAL, Rational(1) / Rational(1000000))),
       d_small_const(d_small_const_multiplier)
 {
   d_check_vts_lemma_lc = false;
@@ -453,7 +453,12 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       d_vtsCache->getVtsTerms(inf, true, false, false);
       for( unsigned i=0; i<inf.size(); i++ ){
         Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
-        Node inf_lem_lb = NodeManager::currentNM()->mkNode( GT, inf[i], NodeManager::currentNM()->mkConst( Rational(1)/d_small_const.getConst<Rational>() ) );
+        Node inf_lem_lb = NodeManager::currentNM()->mkNode(
+            GT,
+            inf[i],
+            NodeManager::currentNM()->mkConst(
+                CONST_RATIONAL,
+                Rational(1) / d_small_const.getConst<Rational>()));
         d_qim.lemma(inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
       }
     }

@@ -592,7 +592,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       Node res = pn->getResult();
       Assert(res.getNumChildren() == 2);
       Assert(res[1].getKind() == CONST_RATIONAL);
-      pf << h << h << res[1] << cs[0];
+      pf << h << h << d_tproc.convert(res[1]) << cs[0];
     }
     break;
     // strings

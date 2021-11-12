@@ -145,9 +145,7 @@ void Smt2::addDatatypesOperators()
 }
 
 void Smt2::addStringOperators() {
-  defineVar(
-      "re.all",
-      getSolver()->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma()));
+  defineVar("re.all", getSolver()->mkRegexpAll());
   addOperator(api::STRING_CONCAT, "str.++");
   addOperator(api::STRING_LENGTH, "str.len");
   addOperator(api::STRING_SUBSTR, "str.substr");
@@ -587,28 +585,29 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_SETS)) {
-    defineVar("emptyset", d_solver->mkEmptySet(d_solver->getNullSort()));
+    defineVar("set.empty", d_solver->mkEmptySet(d_solver->getNullSort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    defineVar("univset", d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+    defineVar("set.universe",
+              d_solver->mkUniverseSet(d_solver->getBooleanSort()));
 
-    addOperator(api::UNION, "union");
-    addOperator(api::INTERSECTION, "intersection");
-    addOperator(api::SETMINUS, "setminus");
-    addOperator(api::SUBSET, "subset");
-    addOperator(api::MEMBER, "member");
-    addOperator(api::SINGLETON, "singleton");
-    addOperator(api::INSERT, "insert");
-    addOperator(api::CARD, "card");
-    addOperator(api::COMPLEMENT, "complement");
-    addOperator(api::CHOOSE, "choose");
-    addOperator(api::IS_SINGLETON, "is_singleton");
-    addOperator(api::JOIN, "join");
-    addOperator(api::PRODUCT, "product");
-    addOperator(api::TRANSPOSE, "transpose");
-    addOperator(api::TCLOSURE, "tclosure");
-    addOperator(api::JOIN_IMAGE, "join_image");
-    addOperator(api::IDEN, "iden");
+    addOperator(api::SET_UNION, "set.union");
+    addOperator(api::SET_INTER, "set.inter");
+    addOperator(api::SET_MINUS, "set.minus");
+    addOperator(api::SET_SUBSET, "set.subset");
+    addOperator(api::SET_MEMBER, "set.member");
+    addOperator(api::SET_SINGLETON, "set.singleton");
+    addOperator(api::SET_INSERT, "set.insert");
+    addOperator(api::SET_CARD, "set.card");
+    addOperator(api::SET_COMPLEMENT, "set.complement");
+    addOperator(api::SET_CHOOSE, "set.choose");
+    addOperator(api::SET_IS_SINGLETON, "set.is_singleton");
+    addOperator(api::RELATION_JOIN, "rel.join");
+    addOperator(api::RELATION_PRODUCT, "rel.product");
+    addOperator(api::RELATION_TRANSPOSE, "rel.transpose");
+    addOperator(api::RELATION_TCLOSURE, "rel.tclosure");
+    addOperator(api::RELATION_JOIN_IMAGE, "rel.join_image");
+    addOperator(api::RELATION_IDEN, "rel.iden");
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
@@ -635,8 +634,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineType("RegLan", d_solver->getRegExpSort(), true, true);
     defineType("Int", d_solver->getIntegerSort(), true, true);
 
-    defineVar("re.none", d_solver->mkRegexpEmpty());
-    defineVar("re.allchar", d_solver->mkRegexpSigma());
+    defineVar("re.none", d_solver->mkRegexpNone());
+    defineVar("re.allchar", d_solver->mkRegexpAllchar());
 
     // Boolean is a placeholder
     defineVar("seq.empty",
@@ -1010,12 +1009,31 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     // resulting rational here. This also is applied for integral real values
     // like 5.0 which are converted to (/ 5 1) to distinguish them from
     // integer constants. We must ensure numerator and denominator are
-    // constant and the denominator is non-zero.
-    if (constVal.getKind() == api::DIVISION)
+    // constant and the denominator is non-zero. A similar issue happens for
+    // negative integers and reals, with unary minus.
+    bool isNeg = false;
+    if (constVal.getKind() == api::UMINUS)
+    {
+      isNeg = true;
+      constVal = constVal[0];
+    }
+    if (constVal.getKind() == api::DIVISION
+        && constVal[0].getKind() == api::CONST_RATIONAL
+        && constVal[1].getKind() == api::CONST_RATIONAL)
     {
       std::stringstream sdiv;
-      sdiv << constVal[0] << "/" << constVal[1];
+      sdiv << (isNeg ? "-" : "") << constVal[0] << "/" << constVal[1];
       constVal = d_solver->mkReal(sdiv.str());
+    }
+    else if (constVal.getKind() == api::CONST_RATIONAL && isNeg)
+    {
+      std::stringstream sneg;
+      sneg << "-" << constVal;
+      constVal = d_solver->mkInteger(sneg.str());
+    }
+    else
+    {
+      constVal = args[0];
     }
 
     if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
@@ -1120,10 +1138,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
     }
-    if (kind == api::SINGLETON && args.size() == 1)
+    if (kind == api::SET_SINGLETON && args.size() == 1)
     {
-      api::Term ret = d_solver->mkTerm(api::SINGLETON, args[0]);
-      Debug("parser") << "applyParseOp: return singleton " << ret << std::endl;
+      api::Term ret = d_solver->mkTerm(api::SET_SINGLETON, args[0]);
+      Debug("parser") << "applyParseOp: return set.singleton " << ret
+                      << std::endl;
       return ret;
     }
     else if (kind == api::CARDINALITY_CONSTRAINT)

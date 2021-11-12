@@ -54,10 +54,11 @@ bool TriggerTermInfo::isAtomicTriggerKind(Kind k)
   // where these two things require those kinds respectively.
   return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
          || k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL
-         || k == APPLY_TESTER || k == UNION || k == INTERSECTION || k == SUBSET
-         || k == SETMINUS || k == MEMBER || k == SINGLETON || k == SEP_PTO
-         || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR || k == HO_APPLY
-         || k == STRING_LENGTH || k == SEQ_NTH;
+         || k == APPLY_TESTER || k == SET_UNION || k == SET_INTER
+         || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
+         || k == SET_SINGLETON || k == SEP_PTO || k == BITVECTOR_TO_NAT
+         || k == INT_TO_BITVECTOR || k == HO_APPLY || k == STRING_LENGTH
+         || k == SEQ_NTH;
 }
 
 bool TriggerTermInfo::isRelationalTrigger(Node n)

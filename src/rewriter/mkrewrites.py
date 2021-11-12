@@ -63,8 +63,8 @@ def gen_kind(op):
         Op.REGEXP_OPT: 'REGEXP_OPT',
         Op.REGEXP_RANGE: 'REGEXP_RANGE',
         Op.REGEXP_COMPLEMENT: 'REGEXP_COMPLEMENT',
-        Op.REGEXP_EMPTY: 'REGEXP_EMPTY',
-        Op.REGEXP_SIGMA: 'REGEXP_SIGMA',
+        Op.REGEXP_NONE: 'REGEXP_NONE',
+        Op.REGEXP_ALLCHAR: 'REGEXP_ALLCHAR',
     }
     return op_to_kind[op]
 
@@ -108,9 +108,11 @@ def gen_mk_const(expr):
 def gen_mk_node(defns, expr):
     if defns is not None and expr in defns:
         return defns[expr]
-
     elif expr.sort and expr.sort.is_const:
-        return f'nm->mkConst({gen_mk_const(expr)})'
+        if isinstance(expr, CInt) or (isinstance(expr, App) and expr.op == Op.UMINUS):
+          return f'nm->mkConst(CONST_RATIONAL, {gen_mk_const(expr)})'
+        else:
+          return f'nm->mkConst({gen_mk_const(expr)})'
     elif isinstance(expr, Var):
         return expr.name
     elif isinstance(expr, App):

@@ -352,7 +352,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
       }
       else if (ne.getKind() == STRING_SUBSTR)
       {
-        Node zero = nm->mkConst(Rational(0));
+        Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
 
         if (d_arithEntail.check(ne[1], false)
             && d_arithEntail.check(ne[2], true))
@@ -586,7 +586,8 @@ Node SequencesRewriter::rewriteLength(Node node)
   Kind nk0 = node[0].getKind();
   if (node[0].isConst())
   {
-    Node retNode = nm->mkConst(Rational(Word::getLength(node[0])));
+    Node retNode =
+        nm->mkConst(CONST_RATIONAL, Rational(Word::getLength(node[0])));
     return returnRewrite(node, retNode, Rewrite::LEN_EVAL);
   }
   else if (nk0 == kind::STRING_CONCAT)
@@ -599,8 +600,8 @@ Node SequencesRewriter::rewriteLength(Node node)
       {
         if (tmpNode[i].isConst())
         {
-          node_vec.push_back(
-              nm->mkConst(Rational(Word::getLength(tmpNode[i]))));
+          node_vec.push_back(nm->mkConst(
+              CONST_RATIONAL, Rational(Word::getLength(tmpNode[i]))));
         }
         else
         {
@@ -633,7 +634,7 @@ Node SequencesRewriter::rewriteLength(Node node)
   }
   else if (nk0 == SEQ_UNIT)
   {
-    Node retNode = nm->mkConst(Rational(1));
+    Node retNode = nm->mkConst(CONST_RATIONAL, Rational(1));
     return returnRewrite(node, retNode, Rewrite::LEN_SEQ_UNIT);
   }
   return node;
@@ -789,10 +790,10 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
       changed = true;
       emptyRe = c;
     }
-    else if (c.getKind() == REGEXP_EMPTY)
+    else if (c.getKind() == REGEXP_NONE)
     {
       // re.++( ..., empty, ... ) ---> empty
-      Node ret = nm->mkNode(REGEXP_EMPTY);
+      Node ret = nm->mkNode(REGEXP_NONE);
       return returnRewrite(node, ret, Rewrite::RE_CONCAT_EMPTY);
     }
     else
@@ -868,7 +869,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
         {
           curr = Node::null();
         }
-        else if (curr[0].getKind() == REGEXP_SIGMA)
+        else if (curr[0].getKind() == REGEXP_ALLCHAR)
         {
           Assert(!lastAllStar);
           lastAllStar = true;
@@ -932,7 +933,7 @@ Node SequencesRewriter::rewriteStarRegExp(TNode node)
     // ("")* ---> ""
     return returnRewrite(node, node[0], Rewrite::RE_STAR_EMPTY_STRING);
   }
-  else if (node[0].getKind() == REGEXP_EMPTY)
+  else if (node[0].getKind() == REGEXP_NONE)
   {
     // (empty)* ---> ""
     retNode = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
@@ -992,7 +993,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         }
       }
     }
-    else if (ni.getKind() == REGEXP_EMPTY)
+    else if (ni.getKind() == REGEXP_NONE)
     {
       if (nk == REGEXP_INTER)
       {
@@ -1000,7 +1001,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       }
       // otherwise, can ignore
     }
-    else if (ni.getKind() == REGEXP_STAR && ni[0].getKind() == REGEXP_SIGMA)
+    else if (ni.getKind() == REGEXP_STAR && ni[0].getKind() == REGEXP_ALLCHAR)
     {
       if (nk == REGEXP_UNION)
       {
@@ -1032,11 +1033,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
         Node retNode;
         if (nk == REGEXP_INTER)
         {
-          retNode = nm->mkNode(kind::REGEXP_EMPTY);
+          retNode = nm->mkNode(kind::REGEXP_NONE);
         }
         else
         {
-          retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
+          retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
         }
         return returnRewrite(node, retNode, Rewrite::RE_ANDOR_INC_CONFLICT);
       }
@@ -1047,11 +1048,11 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
   {
     if (nk == REGEXP_INTER)
     {
-      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
+      retNode = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
     }
     else
     {
-      retNode = nm->mkNode(kind::REGEXP_EMPTY);
+      retNode = nm->mkNode(kind::REGEXP_NONE);
     }
   }
   else
@@ -1091,7 +1092,7 @@ Node SequencesRewriter::rewriteLoopRegExp(TNode node)
   if (u < l)
   {
     std::vector<Node> nvec;
-    retNode = nm->mkNode(REGEXP_EMPTY, nvec);
+    retNode = nm->mkNode(REGEXP_NONE, nvec);
   }
   else if (u == l)
   {
@@ -1184,7 +1185,7 @@ Node SequencesRewriter::rewriteRangeRegExp(TNode node)
   if (ch[0] > ch[1])
   {
     // re.range( "B", "A" ) ---> re.none
-    Node retNode = nm->mkNode(REGEXP_EMPTY);
+    Node retNode = nm->mkNode(REGEXP_NONE);
     return returnRewrite(node, retNode, Rewrite::RE_RANGE_EMPTY);
   }
   return node;
@@ -1199,7 +1200,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   TypeNode stype = x.getType();
   TypeNode rtype = r.getType();
 
-  if(r.getKind() == kind::REGEXP_EMPTY) 
+  if (r.getKind() == kind::REGEXP_NONE)
   {
     Node retNode = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EMPTY);
@@ -1212,9 +1213,9 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     Node retNode = NodeManager::currentNM()->mkConst(test);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
   }
-  else if (r.getKind() == kind::REGEXP_SIGMA)
+  else if (r.getKind() == kind::REGEXP_ALLCHAR)
   {
-    Node one = nm->mkConst(Rational(1));
+    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
     Node retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
     return returnRewrite(node, retNode, Rewrite::RE_IN_SIGMA);
   }
@@ -1247,7 +1248,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       Node flr = RegExpEntail::getFixedLengthForRegexp(r[0]);
       if (!flr.isNull())
       {
-        Node one = nm->mkConst(Rational(1));
+        Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
         if (flr == one)
         {
           NodeBuilder nb(AND);
@@ -1260,7 +1261,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
         }
       }
     }
-    if (r[0].getKind() == kind::REGEXP_SIGMA)
+    if (r[0].getKind() == kind::REGEXP_ALLCHAR)
     {
       Node retNode = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, retNode, Rewrite::RE_IN_SIGMA_STAR);
@@ -1277,12 +1278,12 @@ Node SequencesRewriter::rewriteMembership(TNode node)
     for (size_t i = 0; i < nchildren; i++)
     {
       Node rc = r[i];
-      Assert(rc.getKind() != kind::REGEXP_EMPTY);
-      if (rc.getKind() == kind::REGEXP_SIGMA)
+      Assert(rc.getKind() != kind::REGEXP_NONE);
+      if (rc.getKind() == kind::REGEXP_ALLCHAR)
       {
         allSigmaMinSize++;
       }
-      else if (rc.getKind() == REGEXP_STAR && rc[0].getKind() == REGEXP_SIGMA)
+      else if (rc.getKind() == REGEXP_STAR && rc[0].getKind() == REGEXP_ALLCHAR)
       {
         allSigmaStrict = false;
       }
@@ -1310,7 +1311,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       if (constStr.isNull())
       {
         // x in re.++(_*, _, _) ---> str.len(x) >= 2
-        Node num = nm->mkConst(Rational(allSigmaMinSize));
+        Node num = nm->mkConst(CONST_RATIONAL, Rational(allSigmaMinSize));
         Node lenx = nm->mkNode(STRING_LENGTH, x);
         Node retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
         return returnRewrite(node, retNode, Rewrite::RE_CONCAT_PURE_ALLCHAR);
@@ -1602,9 +1603,10 @@ TrustNode SequencesRewriter::expandDefinition(Node node)
     Node s = node[0];
     Node n = node[1];
     // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
-    Node cond = nm->mkNode(AND,
-                           nm->mkNode(LEQ, nm->mkConst(Rational(0)), n),
-                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
+    Node cond =
+        nm->mkNode(AND,
+                   nm->mkNode(LEQ, nm->mkConst(CONST_RATIONAL, Rational(0)), n),
+                   nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
     Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
     Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
     Node u = nm->mkNode(APPLY_UF, uf, s, n);
@@ -1654,7 +1656,7 @@ Node SequencesRewriter::rewriteCharAt(Node node)
 {
   Assert(node.getKind() == STRING_CHARAT);
   NodeManager* nm = NodeManager::currentNM();
-  Node one = nm->mkConst(Rational(1));
+  Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
   Node retNode = nm->mkNode(STRING_SUBSTR, node[0], node[1], one);
   return returnRewrite(node, retNode, Rewrite::CHARAT_ELIM);
 }
@@ -1732,7 +1734,7 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
     }
   }
-  Node zero = nm->mkConst(cvc5::Rational(0));
+  Node zero = nm->mkConst(CONST_RATIONAL, cvc5::Rational(0));
 
   // if entailed non-positive length or negative start point
   if (d_arithEntail.check(zero, node[1], true))
@@ -2331,7 +2333,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   if (node[2].isConst() && node[2].getConst<Rational>().sgn() < 0)
   {
     // z<0  implies  str.indexof( x, y, z ) --> -1
-    Node negone = nm->mkConst(Rational(-1));
+    Node negone = nm->mkConst(CONST_RATIONAL, Rational(-1));
     return returnRewrite(node, negone, Rewrite::IDOF_NEG);
   }
 
@@ -2349,7 +2351,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
       // We know that, due to limitations on the size of string constants
       // in our implementation, that accessing a position greater than
       // rMaxInt is guaranteed to be out of bounds.
-      Node negone = nm->mkConst(Rational(-1));
+      Node negone = nm->mkConst(CONST_RATIONAL, Rational(-1));
       return returnRewrite(node, negone, Rewrite::IDOF_MAX);
     }
     Assert(node[2].getConst<Rational>().sgn() >= 0);
@@ -2360,12 +2362,13 @@ Node SequencesRewriter::rewriteIndexof(Node node)
     std::size_t ret = Word::find(s, t, start);
     if (ret != std::string::npos)
     {
-      Node retv = nm->mkConst(Rational(static_cast<unsigned>(ret)));
+      Node retv =
+          nm->mkConst(CONST_RATIONAL, Rational(static_cast<unsigned>(ret)));
       return returnRewrite(node, retv, Rewrite::IDOF_FIND);
     }
     else if (children0.size() == 1)
     {
-      Node negone = nm->mkConst(Rational(-1));
+      Node negone = nm->mkConst(CONST_RATIONAL, Rational(-1));
       return returnRewrite(node, negone, Rewrite::IDOF_NFIND);
     }
   }
@@ -2377,14 +2380,14 @@ Node SequencesRewriter::rewriteIndexof(Node node)
       if (node[2].getConst<Rational>().sgn() == 0)
       {
         // indexof( x, x, 0 ) --> 0
-        Node zero = nm->mkConst(Rational(0));
+        Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
         return returnRewrite(node, zero, Rewrite::IDOF_EQ_CST_START);
       }
     }
     if (d_arithEntail.check(node[2], true))
     {
       // y>0  implies  indexof( x, x, y ) --> -1
-      Node negone = nm->mkConst(Rational(-1));
+      Node negone = nm->mkConst(CONST_RATIONAL, Rational(-1));
       return returnRewrite(node, negone, Rewrite::IDOF_EQ_NSTART);
     }
     Node emp = Word::mkEmptyWord(stype);
@@ -2415,7 +2418,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   if (d_arithEntail.check(len1, len0m2, true))
   {
     // len(x)-z < len(y)  implies  indexof( x, y, z ) ----> -1
-    Node negone = nm->mkConst(Rational(-1));
+    Node negone = nm->mkConst(CONST_RATIONAL, Rational(-1));
     return returnRewrite(node, negone, Rewrite::IDOF_LEN);
   }
 
@@ -2497,7 +2500,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
     else
     {
       // str.contains( x, y ) --> false  implies  str.indexof(x,y,z) --> -1
-      Node negone = nm->mkConst(Rational(-1));
+      Node negone = nm->mkConst(CONST_RATIONAL, Rational(-1));
       return returnRewrite(node, negone, Rewrite::IDOF_NCTN);
     }
   }
@@ -2552,12 +2555,12 @@ Node SequencesRewriter::rewriteIndexofRe(Node node)
   Node s = node[0];
   Node r = node[1];
   Node n = node[2];
-  Node zero = nm->mkConst(Rational(0));
+  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
   Node slen = nm->mkNode(STRING_LENGTH, s);
 
   if (d_arithEntail.check(zero, n, true) || d_arithEntail.check(n, slen, true))
   {
-    Node ret = nm->mkConst(Rational(-1));
+    Node ret = nm->mkConst(CONST_RATIONAL, Rational(-1));
     return returnRewrite(node, ret, Rewrite::INDEXOF_RE_INVALID_INDEX);
   }
 
@@ -2572,7 +2575,7 @@ Node SequencesRewriter::rewriteIndexofRe(Node node)
         // We know that, due to limitations on the size of string constants
         // in our implementation, that accessing a position greater than
         // rMaxInt is guaranteed to be out of bounds.
-        Node negone = nm->mkConst(Rational(-1));
+        Node negone = nm->mkConst(CONST_RATIONAL, Rational(-1));
         return returnRewrite(node, negone, Rewrite::INDEXOF_RE_MAX_INDEX);
       }
 
@@ -2580,6 +2583,7 @@ Node SequencesRewriter::rewriteIndexofRe(Node node)
       Node rem = nm->mkConst(s.getConst<String>().substr(start));
       std::pair<size_t, size_t> match = firstMatch(rem, r);
       Node ret = nm->mkConst(
+          CONST_RATIONAL,
           Rational(match.first == string::npos
                        ? -1
                        : static_cast<int64_t>(start + match.first)));
@@ -2843,8 +2847,8 @@ Node SequencesRewriter::rewriteReplace(Node node)
         nm->mkNode(kind::STRING_LENGTH, utils::mkConcat(children1, stype));
     Node maxLen1 = nm->mkNode(kind::PLUS, partLen1, lastChild1[2]);
 
-    Node zero = nm->mkConst(Rational(0));
-    Node one = nm->mkConst(Rational(1));
+    Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
     Node len0 = nm->mkNode(kind::STRING_LENGTH, node[0]);
     Node len0_1 = nm->mkNode(kind::PLUS, len0, one);
     // Check len(t) + j > len(x) + 1
@@ -3245,7 +3249,7 @@ std::pair<size_t, size_t> SequencesRewriter::firstMatch(Node n, Node r)
   Assert(r.getType().isRegExp());
   NodeManager* nm = NodeManager::currentNM();
 
-  Node sigmaStar = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA));
+  Node sigmaStar = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
   Node re = nm->mkNode(REGEXP_CONCAT, r, sigmaStar);
   String s = n.getConst<String>();
 
@@ -3367,7 +3371,8 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
   Node val;
   if (isPrefix)
   {
-    val = NodeManager::currentNM()->mkConst(::cvc5::Rational(0));
+    val =
+        NodeManager::currentNM()->mkConst(CONST_RATIONAL, ::cvc5::Rational(0));
   }
   else
   {

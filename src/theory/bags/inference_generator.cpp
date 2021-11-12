@@ -36,8 +36,8 @@ InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager* im)
   d_nm = NodeManager::currentNM();
   d_sm = d_nm->getSkolemManager();
   d_true = d_nm->mkConst(true);
-  d_zero = d_nm->mkConst(Rational(0));
-  d_one = d_nm->mkConst(Rational(1));
+  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
 }
 
 InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
@@ -58,41 +58,24 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
   Assert(n.getKind() == MK_BAG);
   Assert(e.getType() == n.getType().getBagElementType());
 
+  /*
+   * (ite (and (= e x) (>= c 1))
+   *   (= (bag.count e skolem) c)
+   *   (= (bag.count e skolem) 0))
+   */
   Node x = n[0];
   Node c = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG);
+  Node same = d_nm->mkNode(EQUAL, e, x);
   Node geq = d_nm->mkNode(GEQ, c, d_one);
-  if (d_state->areEqual(e, x))
-  {
-    // (= (bag.count e skolem) (ite (>= c 1) c 0)))
-    InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG_SAME_ELEMENT);
-    Node skolem = getSkolem(n, inferInfo);
-    Node count = getMultiplicityTerm(e, skolem);
-    Node ite = d_nm->mkNode(ITE, geq, c, d_zero);
-    inferInfo.d_conclusion = count.eqNode(ite);
-    return inferInfo;
-  }
-  if (d_state->areDisequal(e, x))
-  {
-    //(= (bag.count e skolem) 0))
-    InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG_SAME_ELEMENT);
-    Node skolem = getSkolem(n, inferInfo);
-    Node count = getMultiplicityTerm(e, skolem);
-    inferInfo.d_conclusion = count.eqNode(d_zero);
-    return inferInfo;
-  }
-  else
-  {
-    // (= (bag.count e skolem) (ite (and (= e x) (>= c 1)) c 0)))
-    InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG);
-    Node skolem = getSkolem(n, inferInfo);
-    Node count = getMultiplicityTerm(e, skolem);
-    Node same = d_nm->mkNode(EQUAL, e, x);
-    Node andNode = same.andNode(geq);
-    Node ite = d_nm->mkNode(ITE, andNode, c, d_zero);
-    Node equal = count.eqNode(ite);
-    inferInfo.d_conclusion = equal;
-    return inferInfo;
-  }
+  Node andNode = same.andNode(geq);
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(e, skolem);
+  Node equalC = d_nm->mkNode(EQUAL, count, c);
+  Node equalZero = d_nm->mkNode(EQUAL, count, d_zero);
+  Node ite = d_nm->mkNode(ITE, andNode, equalC, equalZero);
+  inferInfo.d_conclusion = ite;
+  return inferInfo;
 }
 
 /**
@@ -400,6 +383,8 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
 
   std::map<Node, Node> m;
   m[e] = conclusion;
+  Trace("bags::InferenceGenerator::mapDownwards")
+      << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return std::tuple(inferInfo, uf, preImageSize);
 }
 
@@ -426,8 +411,8 @@ InferInfo InferenceGenerator::mapUpwards(
   Node orNode = d_nm->mkNode(OR, notEqual, andNode);
   Node implies = d_nm->mkNode(IMPLIES, xInA, orNode);
   inferInfo.d_conclusion = implies;
-  std::cout << "Upwards conclusion: " << inferInfo.d_conclusion << std::endl
-            << std::endl;
+  Trace("bags::InferenceGenerator::mapUpwards")
+      << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return inferInfo;
 }
 

@@ -51,8 +51,8 @@ InferenceManager::InferenceManager(Env& env,
                  : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
+  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = nm->mkConst(CONST_RATIONAL, Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -185,13 +185,13 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
     processConflict(ii);
     return;
   }
-  else if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
+  else if (asLemma || options().strings.stringInferAsLemmas || !ii.isFact())
   {
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
     addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(ii)));
     return;
   }
-  if (options::stringInferSym())
+  if (options().strings.stringInferSym)
   {
     std::vector<Node> unproc;
     for (const Node& ac : ii.d_premises)
@@ -325,7 +325,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
     utils::flattenOp(AND, ec, exp);
   }
   std::vector<Node> noExplain;
-  if (!options::stringRExplainLemmas())
+  if (!options().strings.stringRExplainLemmas)
   {
     // if we aren't regressing the explanation, we add all literals to
     // noExplain and ignore ii.d_ant.

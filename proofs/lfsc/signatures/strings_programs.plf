@@ -48,6 +48,9 @@
 ; Convert t into a str.++ application, if it is not already in n-ary form.
 (program sc_string_nary_intro ((t term)) term (nary_intro f_str.++ t emptystr))
 
+; In the following, a "reduction predicate" refers to a formula that is used
+; to axiomatize an extended string function in terms of (simpler) functions.
+
 ; Compute the reduction predicate for (str.substr x n m) of sort s.
 (program sc_string_reduction_substr ((x term) (n term) (m term) (s sort)) term
   (let k (sc_mk_skolem (str.substr x n m))
@@ -89,7 +92,10 @@
       (= y (sc_mk_emptystr s))
       (= k n)
       (and (= xn (str.++ k1 (str.++ y (str.++ k2 (sc_mk_emptystr s)))))
-        (and (not (str.contains (str.++ k1 (str.++ (str.substr y (int 0) (a.- (str.len y) (int 1))) (sc_mk_emptystr s))) y))
+        (and (not (str.contains
+                    (str.++ k1
+                      (str.++ (str.substr y (int 0) (a.- (str.len y) (int 1)))
+                        (sc_mk_emptystr s))) y))
           (and (= k (a.+ n (a.+ (str.len k1) (int 0))))
             true)))
 )))))))
@@ -179,6 +185,15 @@
                 (f_str.indexof (sc_string_eager_reduction_indexof t112 t12 t2)))))))))
 )
 
+; A helper method for computing the conclusion of PfRule::RE_UNFOLD_POS.
+; For a regular expression (re.++ R1 ... Rn), this returns a pair of terms
+; where the first term is a concatentation (str.++ t1 ... tn) and the second
+; is a conjunction M of literals of the form (str.in_re ti Ri), such that
+;   (str.in_re x (re.++ R1 ... Rn))
+; is equivalent to
+;   (and (= x (str.++ t1 ... tn)) M)
+; We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
+; application of the unfolding skolem function skolem_re_unfold_pos.
 (program sc_re_unfold_pos_concat ((t term) (r term) (ro term) (i mpz)) termPair
   (match r
     ((apply r1 r2)
@@ -216,12 +231,14 @@
         ((char n) t12))))
     (emptystr t)))
 
-
-; Flatten constants in str.++ application s. Notice that in the rewritten form
+; Flatten constants in str.++ application s. Notice that the rewritten form
 ; of strings in cvc5 are such that constants are grouped into constants of
 ; length >=1 which we call "word" constants. For example, the cvc5 rewritten
 ; form of (str.++ "A" "B" x) is (str.++ "AB" x) which in LFSC is represented as:
+;    (str.++ (str.++ (char 65) (str.++ (char 66) emptystr)) (str.++ x emptystr))
+; For convenience, in this documentation, we will write this simply as:
 ;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; e.g. we assume that word constants are represented using char and emptystr.
 ; Many string rules rely on processing the prefix of strings, which in LFSC
 ; involves reasoning about the characters one-by-one. Since the above term
 ; has a level of nesting when word constants of size > 1 are involved, this
@@ -247,7 +264,7 @@
     (emptystr s))
 )
 
-; Helper for collect adjacent constants. This side condition takes as input
+; Helper for collecting adjacent constants. This side condition takes as input
 ; a str.++ application s. It returns a pair whose concatenation is equal to s,
 ; whose first component corresponds to a word constant, and whose second
 ; component is a str.++ application whose first element is not a character.

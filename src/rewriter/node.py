@@ -134,8 +134,8 @@ class Op(Enum):
     REGEXP_RANGE = auto()
     REGEXP_COMPLEMENT = auto()
 
-    REGEXP_EMPTY = auto()
-    REGEXP_SIGMA = auto()
+    REGEXP_NONE = auto()
+    REGEXP_ALLCHAR = auto()
 
 
 class BaseSort(Enum):

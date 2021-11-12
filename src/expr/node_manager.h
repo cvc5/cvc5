@@ -394,7 +394,7 @@ class NodeManager
    * - We can avoid creating a temporary vector in some cases, e.g., when we
    *   want to create a node with a fixed, large number of children
    * - It makes sure that calls to `mkNode` that braced-init-lists work as
-   *   expected, e.g., mkNode(REGEXP_EMPTY, {}) will call this overload instead
+   *   expected, e.g., mkNode(REGEXP_NONE, {}) will call this overload instead
    *   of creating a node with a null node as a child.
    */
   Node mkNode(Kind kind, std::initializer_list<TNode> children);
@@ -522,11 +522,17 @@ class NodeManager
   template <class T>
   Node mkConst(const T&);
 
+  /**
+   * Create a constant of type `T` with an explicit kind `k`.
+   */
+  template <class T>
+  Node mkConst(Kind k, const T&);
+
   template <class T>
   TypeNode mkTypeConst(const T&);
 
   template <class NodeClass, class T>
-  NodeClass mkConstInternal(const T&);
+  NodeClass mkConstInternal(Kind k, const T&);
 
   /** Create a node with children. */
   TypeNode mkTypeNode(Kind kind, TypeNode child1);
@@ -1187,22 +1193,29 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
 
 template <class T>
 Node NodeManager::mkConst(const T& val) {
-  return mkConstInternal<Node, T>(val);
+  return mkConstInternal<Node, T>(kind::metakind::ConstantMap<T>::kind, val);
+}
+
+template <class T>
+Node NodeManager::mkConst(Kind k, const T& val)
+{
+  return mkConstInternal<Node, T>(k, val);
 }
 
 template <class T>
 TypeNode NodeManager::mkTypeConst(const T& val) {
-  return mkConstInternal<TypeNode, T>(val);
+  return mkConstInternal<TypeNode, T>(kind::metakind::ConstantMap<T>::kind,
+                                      val);
 }
 
 template <class NodeClass, class T>
-NodeClass NodeManager::mkConstInternal(const T& val) {
-  // typedef typename kind::metakind::constantMap<T>::OwningTheory theory_t;
+NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
+{
   NVStorage<1> nvStorage;
   expr::NodeValue& nvStack = reinterpret_cast<expr::NodeValue&>(nvStorage);
 
   nvStack.d_id = 0;
-  nvStack.d_kind = kind::metakind::ConstantMap<T>::kind;
+  nvStack.d_kind = k;
   nvStack.d_rc = 0;
   nvStack.d_nchildren = 1;
 
@@ -1230,11 +1243,10 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
   }
 
   nv->d_nchildren = 0;
-  nv->d_kind = kind::metakind::ConstantMap<T>::kind;
+  nv->d_kind = k;
   nv->d_id = next_id++;// FIXME multithreading
   nv->d_rc = 0;
 
-  //OwningTheory::mkConst(val);
   new (&nv->d_children) T(val);
 
   poolInsert(nv);

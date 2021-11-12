@@ -45,8 +45,8 @@ BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
     : d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst(Rational(0));
-  d_one = d_nm->mkConst(Rational(1));
+  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
 }
 
 RewriteResponse BagsRewriter::postRewrite(TNode n)
@@ -60,6 +60,10 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   else if (n.getKind() == EQUAL)
   {
     response = postRewriteEqual(n);
+  }
+  else if (n.getKind() == BAG_CHOOSE)
+  {
+    response = rewriteChoose(n);
   }
   else if (NormalForm::areChildrenConstants(n))
   {
@@ -79,7 +83,6 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case INTERSECTION_MIN: response = rewriteIntersectionMin(n); break;
       case DIFFERENCE_SUBTRACT: response = rewriteDifferenceSubtract(n); break;
       case DIFFERENCE_REMOVE: response = rewriteDifferenceRemove(n); break;
-      case BAG_CHOOSE: response = rewriteChoose(n); break;
       case BAG_CARD: response = rewriteCard(n); break;
       case BAG_IS_SINGLETON: response = rewriteIsSingleton(n); break;
       case BAG_FROM_SET: response = rewriteFromSet(n); break;
@@ -417,7 +420,8 @@ BagsRewriteResponse BagsRewriter::rewriteDifferenceRemove(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteChoose(const TNode& n) const
 {
   Assert(n.getKind() == BAG_CHOOSE);
-  if (n[0].getKind() == MK_BAG && n[0][1].isConst())
+  if (n[0].getKind() == MK_BAG && n[0][1].isConst()
+      && n[0][1].getConst<Rational>() > 0)
   {
     // (bag.choose (mkBag x c)) = x where c is a constant > 0
     return BagsRewriteResponse(n[0][0], Rewrite::CHOOSE_MK_BAG);
@@ -461,9 +465,9 @@ BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
 BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
 {
   Assert(n.getKind() == BAG_FROM_SET);
-  if (n[0].getKind() == SINGLETON)
+  if (n[0].getKind() == SET_SINGLETON)
   {
-    // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
+    // (bag.from_set (set.singleton (singleton_op Int) x)) = (mkBag x 1)
     TypeNode type = n[0].getType().getSetElementType();
     Node bag = d_nm->mkBag(type, n[0][0], d_one);
     return BagsRewriteResponse(bag, Rewrite::FROM_SINGLETON);

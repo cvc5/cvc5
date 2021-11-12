@@ -21,6 +21,7 @@
 #include <sstream>
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -31,6 +32,7 @@
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
 #include "theory/uf/ho_extension.h"
+#include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace std;
@@ -46,6 +48,7 @@ TheoryUF::TheoryUF(Env& env,
                    std::string instanceName)
     : Theory(THEORY_UF, env, out, valuation, instanceName),
       d_thss(nullptr),
+      d_lambdaLift(new LambdaLift(env)),
       d_ho(nullptr),
       d_functionsTerms(context()),
       d_symb(env, instanceName),
@@ -71,8 +74,8 @@ bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = d_instanceName + "theory::uf::ee";
-  if (options::finiteModelFind()
-      && options::ufssMode() != options::UfssMode::NONE)
+  if (options().quantifiers.finiteModelFind
+      && options().uf.ufssMode != options::UfssMode::NONE)
   {
     // need notifications about sorts
     esi.d_notifyNewClass = true;
@@ -88,9 +91,9 @@ void TheoryUF::finishInit() {
   d_valuation.setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
-  // options::ufssMode().
-  if (options::finiteModelFind()
-      && options::ufssMode() != options::UfssMode::NONE)
+  // the ufssMode option.
+  if (options().quantifiers.finiteModelFind
+      && options().uf.ufssMode != options::UfssMode::NONE)
   {
     d_thss.reset(new CardinalityExtension(d_env, d_state, d_im, this));
   }
@@ -100,7 +103,7 @@ void TheoryUF::finishInit() {
   if (isHo)
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-    d_ho.reset(new HoExtension(d_env, d_state, d_im));
+    d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
 }
 
@@ -212,36 +215,39 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
                       << std::endl;
   Kind k = node.getKind();
+  bool isHol = logicInfo().isHigherOrder();
   if (k == kind::HO_APPLY || (node.isVar() && node.getType().isFunction()))
   {
-    if (!logicInfo().isHigherOrder())
+    if (!isHol)
     {
       std::stringstream ss;
       ss << "Partial function applications are only supported with "
             "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }
-    Node ret = d_ho->ppRewrite(node);
-    if (ret != node)
-    {
-      Trace("uf-exp-def") << "TheoryUF::ppRewrite: higher-order: " << node
-                          << " to " << ret << std::endl;
-      return TrustNode::mkTrustRewrite(node, ret, nullptr);
-    }
   }
   else if (k == kind::APPLY_UF)
   {
-    // check for higher-order
-    // logic exception if higher-order is not enabled
-    if (isHigherOrderType(node.getOperator().getType())
-        && !logicInfo().isHigherOrder())
+    if (!isHol && isHigherOrderType(node.getOperator().getType()))
     {
+      // check for higher-order
+      // logic exception if higher-order is not enabled
       std::stringstream ss;
       ss << "UF received an application whose operator has higher-order type "
          << node
-         << ", which is only supported with higher-order logic. Try adding the "
-            "logic prefix HO_.";
+         << ", which is only supported with higher-order logic. Try adding "
+            "the logic prefix HO_.";
       throw LogicException(ss.str());
+    }
+  }
+  if (isHol)
+  {
+    TrustNode ret = d_ho->ppRewrite(node, lems);
+    if (!ret.isNull())
+    {
+      Trace("uf-exp-def") << "TheoryUF::ppRewrite: higher-order: " << node
+                          << " to " << ret.getNode() << std::endl;
+      return ret;
     }
   }
   return TrustNode::null();
@@ -308,6 +314,18 @@ void TheoryUF::preRegisterTerm(TNode node)
     d_equalityEngine->addTerm(node);
     break;
   }
+
+  if (logicInfo().isHigherOrder())
+  {
+    // When using lazy lambda handling, if node is a lambda function, it must
+    // be marked as a shared term. This is to ensure we split on the equality
+    // of lambda functions with other functions when doing care graph
+    // based theory combination.
+    if (d_lambdaLift->isLambdaFunction(node))
+    {
+      addSharedTerm(node);
+    }
+  }
 }
 
 void TheoryUF::explain(TNode literal, Node& exp)
@@ -352,7 +370,8 @@ void TheoryUF::presolve() {
   // TimerStat::CodeTimer codeTimer(d_presolveTimer);
 
   Debug("uf") << "uf: begin presolve()" << endl;
-  if(options::ufSymmetryBreaker()) {
+  if (options().uf.ufSymmetryBreaker)
+  {
     vector<Node> newClauses;
     d_symb.apply(newClauses);
     for(vector<Node>::const_iterator i = newClauses.begin();
@@ -486,7 +505,8 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder& learned)
     }
   }
 
-  if(options::ufSymmetryBreaker()) {
+  if (options().uf.ufSymmetryBreaker)
+  {
     d_symb.assertFormula(n);
   }
 } /* TheoryUF::ppStaticLearn() */
@@ -521,7 +541,20 @@ bool TheoryUF::areCareDisequal(TNode x, TNode y)
     TNode y_shared =
         d_equalityEngine->getTriggerTermRepresentative(y, THEORY_UF);
     EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-    if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+    if (eqStatus == EQUALITY_FALSE || eqStatus == EQUALITY_FALSE_AND_PROPAGATED)
+    {
+      return true;
+    }
+    else if (eqStatus == EQUALITY_FALSE_IN_MODEL)
+    {
+      // if x or y is a lambda function, and they are neither entailed to
+      // be equal or disequal, then we return false. This ensures the pair
+      // (x,y) may be considered for the care graph.
+      if (d_lambdaLift->isLambdaFunction(x)
+          || d_lambdaLift->isLambdaFunction(y))
+      {
+        return false;
+      }
       return true;
     }
   }

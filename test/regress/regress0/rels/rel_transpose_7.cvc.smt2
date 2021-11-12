@@ -5,5 +5,5 @@
 (declare-fun x () (Set (Tuple Int Int)))
 (declare-fun y () (Set (Tuple Int Int)))
 (assert (= x y))
-(assert (not (= (transpose x) (transpose y))))
+(assert (not (= (rel.transpose x) (rel.transpose y))))
 (check-sat)

@@ -1086,11 +1086,6 @@ class CVC5_EXPORT SolverEngine
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
 
-  /**
-   * Verbosity of various commands.
-   */
-  std::map<std::string, int> d_commandVerbosity;
-
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
 

@@ -31,6 +31,7 @@
 #include "util/floatingpoint.h"
 
 using namespace std;
+using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace theory {
@@ -289,9 +290,13 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
   {
     // Get the values
-    Assert(m->hasTerm(abstract));
-    Assert(m->hasTerm(concrete[0]));
-    Assert(m->hasTerm(concrete[1]));
+    Assert(m->hasTerm(abstract)) << "Term " << abstract << " not in model";
+    Assert(m->hasTerm(concrete[0]))
+        << "Term " << concrete[0] << " not in model";
+    // Note: while the value for concrete[1] that we get from the model has to
+    // be const, it is not necessarily the case that `m->hasTerm(concrete[1])`.
+    // The arithmetic solver computes values for the variables in shared terms
+    // but does not necessarily add the shared terms themselves.
 
     Node abstractValue = m->getValue(abstract);
     Node rmValue = m->getValue(concrete[0]);
@@ -359,7 +364,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
         Node realValueOfAbstract =
             rewrite(nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
                                abstractValue,
-                               nm->mkConst(Rational(0U))));
+                               nm->mkConst(CONST_RATIONAL, Rational(0U))));
 
         Node bg = nm->mkNode(
             kind::IMPLIES,
@@ -562,10 +567,11 @@ void TheoryFp::registerTerm(TNode node)
                    nm->mkNode(kind::EQUAL, node, node[1]));
     handleLemma(pd, InferenceId::FP_REGISTER_TERM);
 
-    Node z =
-        nm->mkNode(kind::IMPLIES,
-                   nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
-                   nm->mkNode(kind::EQUAL, node, nm->mkConst(Rational(0U))));
+    Node z = nm->mkNode(
+        kind::IMPLIES,
+        nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
+        nm->mkNode(
+            kind::EQUAL, node, nm->mkConst(CONST_RATIONAL, Rational(0U))));
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -586,7 +592,8 @@ void TheoryFp::registerTerm(TNode node)
 
     Node z = nm->mkNode(
         kind::IMPLIES,
-        nm->mkNode(kind::EQUAL, node[1], nm->mkConst(Rational(0U))),
+        nm->mkNode(
+            kind::EQUAL, node[1], nm->mkConst(CONST_RATIONAL, Rational(0U))),
         nm->mkNode(kind::EQUAL,
                    node,
                    nm->mkConst(FloatingPoint::makeZero(

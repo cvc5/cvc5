@@ -21,6 +21,8 @@
 #include "proof/proof_node_manager.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace booleans {
@@ -31,7 +33,7 @@ namespace {
 template <typename T>
 Node mkRat(T val)
 {
-  return NodeManager::currentNM()->mkConst<Rational>(val);
+  return NodeManager::currentNM()->mkConst<Rational>(CONST_RATIONAL, val);
 }
 
 /**
