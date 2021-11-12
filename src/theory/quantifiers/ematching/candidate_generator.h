@@ -27,7 +27,6 @@ namespace quantifiers {
 
 class QuantifiersState;
 class TermRegistry;
-class DbList;
 
 namespace inst {
 
@@ -122,9 +121,9 @@ class CandidateGeneratorQE : public CandidateGenerator
   /** the equality class iterator (for cand_term_eqc) */
   eq::EqClassIterator d_eqc_iter;
   /** the TermDb index of the current ground term (for cand_term_db) */
-  size_t d_termIter;
+  int d_term_iter;
   /** the TermDb index of the current ground term (for cand_term_db) */
-  DbList* d_termIterList;
+  int d_term_iter_limit;
   /** the current equivalence class */
   Node d_eqc;
   /** candidate generation modes */
