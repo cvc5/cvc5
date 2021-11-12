@@ -920,7 +920,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       for (size_t j = 0, nargs = c.getNumArgs(); j < nargs; j++)
       {
         TypeNode tn = tspec[j];
-        Node rn = nm->mkConst(Rational(j));
+        Node rn = nm->mkConst(CONST_RATIONAL, Rational(j));
         Node cacheVal = BoundVarManager::getCacheValue(body, lit, rn);
         Node v = bvm->mkBoundVar<QRewDtExpandAttribute>(cacheVal, tn);
         newChildren.push_back(v);

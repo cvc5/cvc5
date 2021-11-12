@@ -19,6 +19,8 @@
 #include "theory/arith/infer_bounds.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -149,7 +151,7 @@ Node InferBoundsResult::getTerm() const { return d_term; }
 Node InferBoundsResult::getLiteral() const{
   const Rational& q = getValue().getNoninfinitesimalPart();
   NodeManager* nm = NodeManager::currentNM();
-  Node qnode = nm->mkConst(q);
+  Node qnode = nm->mkConst(CONST_RATIONAL, q);
 
   Kind k;
   if(d_upperBound){

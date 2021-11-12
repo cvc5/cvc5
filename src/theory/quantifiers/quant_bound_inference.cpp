@@ -61,9 +61,10 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
     if (!c.isLargeFinite())
     {
       NodeManager* nm = NodeManager::currentNM();
-      Node card = nm->mkConst(Rational(c.getFiniteCardinality()));
+      Node card =
+          nm->mkConst(CONST_RATIONAL, Rational(c.getFiniteCardinality()));
       // check if less than fixed upper bound
-      Node oth = nm->mkConst(Rational(maxCard));
+      Node oth = nm->mkConst(CONST_RATIONAL, Rational(maxCard));
       Node eq = nm->mkNode(LEQ, card, oth);
       eq = Rewriter::rewrite(eq);
       mc = eq.isConst() && eq.getConst<bool>();
