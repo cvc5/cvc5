@@ -144,7 +144,10 @@ class ArithEntail
   Node getConstantBound(TNode a, bool isLower = true);
 
   /**
-   * get constant bound on the length of s.
+   * Get constant bound on the length of s, if it can be determined.
+   * 
+   * As a special case, this method will never return 0 as a lower bound for
+   * the length of n, since this conveys no information.
    */
   Node getConstantBoundLength(TNode s, bool isLower = true) const;
   /**

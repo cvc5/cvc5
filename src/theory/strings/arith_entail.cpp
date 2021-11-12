@@ -863,7 +863,12 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
   NodeManager* nm = NodeManager::currentNM();
   if (s.isConst())
   {
-    ret = nm->mkConst(CONST_RATIONAL, Rational(Word::getLength(s)));
+    size_t len = Word::getLength(s);
+    // return null for lower bound on length
+    if (!isLower || len!=0)
+    {
+      ret = nm->mkConst(CONST_RATIONAL, Rational(len));
+    }
   }
   else if (s.getKind() == STRING_CONCAT)
   {
@@ -885,15 +890,13 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
       Assert(b.getKind() == CONST_RATIONAL);
       sum = sum + b.getConst<Rational>();
     }
-    if (success)
+    if (success && (!isLower || sum.sgn()!=0))
     {
       ret = nm->mkConst(CONST_RATIONAL, sum);
     }
   }
-  else if (isLower)
-  {
-    ret = d_zero;
-  }
+  // should never return 0 for lower bound
+  Assert (ret.isNull() || !isLower || ret.getConst<Rational>().sgn()!=0);
   // cache
   setConstantBoundCache(s, ret, isLower);
   return ret;

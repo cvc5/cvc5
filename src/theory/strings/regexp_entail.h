@@ -122,7 +122,7 @@ class RegExpEntail
    * regular expression n. Return null if a constant bound cannot be determined.
    *
    * As a special case, this method will never return 0 as a lower bound for
-   * the length of n, since this is assumed.
+   * the length of n, since this conveys no information.
    */
   Node getConstantBoundLengthForRegexp(TNode n, bool isLower = true) const;
   /**

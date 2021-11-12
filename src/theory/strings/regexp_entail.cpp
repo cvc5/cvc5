@@ -30,8 +30,8 @@ namespace strings {
 
 RegExpEntail::RegExpEntail(Rewriter* r) : d_rewriter(r), d_aent(r)
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
 }
 
 Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
@@ -719,7 +719,7 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
   }
   else if (k == REGEXP_ALLCHAR || k == REGEXP_RANGE)
   {
-    ret = nm->mkConst(Rational(1));
+    ret = d_one;
   }
   else if (k == REGEXP_UNION || k == REGEXP_INTER || k == REGEXP_CONCAT)
   {
@@ -771,6 +771,8 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
       ret = nm->mkConst(CONST_RATIONAL, rr);
     }
   }
+  // should never return 0 for lower bound
+  Assert (ret.isNull() || !isLower || ret.getConst<Rational>().sgn()!=0);
   setConstantBoundCache(n, ret, isLower);
   return Node::null();
 }
