@@ -76,7 +76,7 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(n, "SUBBAG operating on non-bag");
+      throw TypeCheckingExceptionPrivate(n, "BAG_SUBBAG operating on non-bag");
     }
     TypeNode secondBagType = n[1].getType(check);
     if (secondBagType != bagType)
@@ -84,7 +84,7 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
       if (!bagType.isComparableTo(secondBagType))
       {
         throw TypeCheckingExceptionPrivate(
-            n, "SUBBAG operating on bags of different types");
+            n, "BAG_SUBBAG operating on bags of different types");
       }
     }
   }
@@ -105,8 +105,8 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
           n, "checking for membership in a non-bag");
     }
     TypeNode elementType = n[0].getType(check);
-    // e.g. (count 1 (mkBag (mkBag_op Real) 1.0 3))) is 3 whereas
-    // (count 1.0 (mkBag (mkBag_op Int) 1 3))) throws a typing error
+    // e.g. (bag.count 1 (bag (BagMakeOp Real) 1.0 3))) is 3 whereas
+    // (bag.count 1.0 (bag (BagMakeOp Int) 1 3)) throws a typing error
     if (!elementType.isSubtypeOf(bagType.getBagElementType()))
     {
       std::stringstream ss;
@@ -131,7 +131,8 @@ TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
     if (!bagType.isBag())
     {
       std::stringstream ss;
-      ss << "Applying DUPLICATE_REMOVAL on a non-bag argument in term " << n;
+      ss << "Applying BAG_DUPLICATE_REMOVAL on a non-bag argument in term "
+         << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
   }
@@ -163,7 +164,7 @@ TypeNode BagMakeTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 
     TypeNode actualElementType = n[0].getType(check);
     // the type of the element should be a subtype of the type of the operator
-    // e.g. (mkBag (mkBag_op Real) 1 1) where 1 is an Int
+    // e.g. (bag (bag_op Real) 1 1) where 1 is an Int
     if (!actualElementType.isSubtypeOf(expectedElementType))
     {
       std::stringstream ss;
