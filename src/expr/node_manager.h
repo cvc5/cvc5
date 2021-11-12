@@ -544,7 +544,7 @@ class NodeManager
   /**
    * Make constant real. Returns constant of kind CONST_INTEGER with Rational
    * payload.
-   * 
+   *
    * !!! Note until subtypes are eliminated, this returns a constant of kind
    * CONST_RATIONAL.
    */
