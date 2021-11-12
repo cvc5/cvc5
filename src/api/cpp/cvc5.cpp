@@ -53,6 +53,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "expr/uninterpreted_constant.h"
@@ -2535,6 +2536,29 @@ Op Term::getOp() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Term::hasSymbol() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->hasAttribute(expr::VarNameAttr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Term::getSymbol() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(d_node->hasAttribute(expr::VarNameAttr()))
+      << "Invalid call to '" << __PRETTY_FUNCTION__
+      << "', expected the term to have a symbol.";
+  //////// all checks before this line
+  return d_node->getAttribute(expr::VarNameAttr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Term::isNull() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -4694,6 +4718,7 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
 
 bool Grammar::containsFreeVariables(const Term& rule) const
 {
+  // we allow the argument list and non-terminal symbols to be in scope
   std::unordered_set<TNode> scope;
 
   for (const Term& sygusVar : d_sygusVars)
@@ -4706,8 +4731,7 @@ bool Grammar::containsFreeVariables(const Term& rule) const
     scope.emplace(*ntsymbol.d_node);
   }
 
-  std::unordered_set<Node> fvs;
-  return expr::getFreeVariablesScope(*rule.d_node, fvs, scope, false);
+  return expr::hasFreeVariablesScope(*rule.d_node, scope);
 }
 
 std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
@@ -5079,8 +5103,12 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
-  CVC5_API_RECOVERABLE_CHECK(!expr::hasFreeVar(term.getNode()))
-      << "Cannot get value of term containing free variables";
+  bool wasShadow = false;
+  bool freeOrShadowedVar =
+      expr::hasFreeOrShadowedVar(term.getNode(), wasShadow);
+  CVC5_API_RECOVERABLE_CHECK(!freeOrShadowedVar)
+      << "Cannot get value of term containing "
+      << (wasShadow ? "shadowed" : "free") << " variables";
   //////// all checks before this line
   Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
@@ -5792,6 +5820,19 @@ Term Solver::mkReal(int64_t num, int64_t den) const
   //////// all checks before this line
   Term rational = mkValHelper<cvc5::Rational>(cvc5::Rational(num, den));
   return ensureRealSort(rational);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkRegexpAll() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Node res = d_nodeMgr->mkNode(
+      cvc5::kind::REGEXP_STAR,
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>()));
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

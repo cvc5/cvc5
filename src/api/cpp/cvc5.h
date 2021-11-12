@@ -1128,6 +1128,17 @@ class CVC5_EXPORT Term
   Op getOp() const;
 
   /**
+   * @return true if the term has a symbol.
+   */
+  bool hasSymbol() const;
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the term.
+   */
+  std::string getSymbol() const;
+
+  /**
    * @return true if this Term is a null term
    */
   bool isNull() const;
@@ -3443,16 +3454,22 @@ class CVC5_EXPORT Solver
   Term mkReal(int64_t num, int64_t den) const;
 
   /**
-   * Create a regular expression none (re.none) term.
-   * @return the empty term
+   * Create a regular expression all (re.all) term.
+   * @return the all term
    */
-  Term mkRegexpNone() const;
+  Term mkRegexpAll() const;
 
   /**
    * Create a regular expression allchar (re.allchar) term.
-   * @return the sigma term
+   * @return the allchar term
    */
   Term mkRegexpAllchar() const;
+
+  /**
+   * Create a regular expression none (re.none) term.
+   * @return the none term
+   */
+  Term mkRegexpNone() const;
 
   /**
    * Create a constant representing an empty set of the given sort.
