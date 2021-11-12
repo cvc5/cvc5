@@ -15,14 +15,15 @@
 
 #include "cvc5_private.h"
 
-#ifndef __CVC5__THEORY__UF__HO_EXTENSION_H
-#define __CVC5__THEORY__UF__HO_EXTENSION_H
+#ifndef CVC5__THEORY__UF__HO_EXTENSION_H
+#define CVC5__THEORY__UF__HO_EXTENSION_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "theory/skolem_lemma.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
@@ -31,7 +32,7 @@ namespace cvc5 {
 namespace theory {
 namespace uf {
 
-class TheoryUF;
+class LambdaLift;
 
 /** The higher-order extension of the theory of uninterpreted functions
  *
@@ -54,7 +55,10 @@ class HoExtension : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  HoExtension(Env& env, TheoryState& state, TheoryInferenceManager& im);
+  HoExtension(Env& env,
+              TheoryState& state,
+              TheoryInferenceManager& im,
+              LambdaLift& ll);
 
   /** ppRewrite
    *
@@ -65,7 +69,7 @@ class HoExtension : protected EnvObj
    * function variables for function heads that are not variables via the
    * getApplyUfForHoApply method below.
    */
-  Node ppRewrite(Node node);
+  TrustNode ppRewrite(Node node, std::vector<SkolemLemma>& lems);
 
   /** check higher order
    *
@@ -171,8 +175,20 @@ class HoExtension : protected EnvObj
 
   /** check whether app-completion should be applied for any
    * pair of terms in the equality engine.
+   *
+   * Returns the number of lemmas added on this call.
    */
   unsigned checkAppCompletion();
+  /**
+   * Check lazy lambda.
+   *
+   * This assumes that lambdas are not eagerly lifted to quantified formulas.
+   * It processes two lemma schemas, UF_HO_LAMBDA_UNIV_EQ and
+   * UF_HO_LAMBDA_APP_REDUCE. For details on these, see inference_id.h.
+   *
+   * Returns the number of lemmas added on this call.
+   */
+  unsigned checkLazyLambda();
   /** collect model info for higher-order term
    *
    * This adds required constraints to m for term n. In particular, if n is
@@ -182,24 +198,43 @@ class HoExtension : protected EnvObj
   bool collectModelInfoHoTerm(Node n, TheoryModel* m);
 
  private:
+  /** Cache lemma lem, return true if it does not already exist */
+  bool cacheLemma(TNode lem);
   /** common constants */
   Node d_true;
   /** Reference to the state object */
   TheoryState& d_state;
   /** Reference to the inference manager */
   TheoryInferenceManager& d_im;
+  /** Lambda lifting utility */
+  LambdaLift& d_ll;
   /** extensionality has been applied to these disequalities */
   NodeSet d_extensionality;
+  /**
+   * The lemmas we have sent. This is required since the UF inference manager
+   * does not cache lemmas.
+   */
+  NodeSet d_cachedLemmas;
+  /**
+   * In the following, we say that a "lambda function" is a variable k that was
+   * introduced by the lambda lifting utility, and has a corresponding lambda
+   * definition.
+   *
+   * This maps equivalence class representatives that have lambda functions in
+   * them to one such lambda function. This map is computed at each full effort
+   * and valid only during collectModelInfoHo.
+   */
+  std::unordered_map<Node, Node> d_lambdaEqc;
 
   /** cache of getExtensionalityDeq below */
   std::map<Node, Node> d_extensionality_deq;
 
   /** map from non-standard operators to their skolems */
   NodeNodeMap d_uf_std_skolem;
-}; /* class TheoryUF */
+};
 
 }  // namespace uf
 }  // namespace theory
 }  // namespace cvc5
 
-#endif /* __CVC5__THEORY__UF__HO_EXTENSION_H */
+#endif

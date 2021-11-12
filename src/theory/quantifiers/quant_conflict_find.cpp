@@ -2281,7 +2281,7 @@ TNode QuantConflictFind::getZero( Kind k ) {
   if( it==d_zero.end() ){
     Node nn;
     if( k==PLUS ){
-      nn = NodeManager::currentNM()->mkConst( Rational(0) );
+      nn = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
     }
     d_zero[k] = nn;
     return nn;

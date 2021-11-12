@@ -18,6 +18,8 @@
 #include "expr/node_manager_attributes.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 
 BoundVarManager::BoundVarManager() : d_keepCacheVals(false) {}
@@ -51,7 +53,7 @@ Node BoundVarManager::getCacheValue(TNode cv1, TNode cv2, size_t i)
 
 Node BoundVarManager::getCacheValue(size_t i)
 {
-  return NodeManager::currentNM()->mkConst(Rational(i));
+  return NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(i));
 }
 
 Node BoundVarManager::getCacheValue(TNode cv, size_t i)

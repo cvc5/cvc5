@@ -580,7 +580,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::String& s,
               }
               else
               {
-                Node num2 = nm->mkConst(cvc5::Rational(u - 1));
+                Node num2 = nm->mkConst(CONST_RATIONAL, cvc5::Rational(u - 1));
                 Node r2 = nm->mkNode(REGEXP_LOOP, r[0], r[1], num2);
                 if (testConstStringInRegExp(s, index_start + len, r2))
                 {
@@ -612,7 +612,7 @@ bool RegExpEntail::testConstStringInRegExp(cvc5::String& s,
             cvc5::String t = s.substr(index_start, len);
             if (testConstStringInRegExp(t, 0, r[0]))
             {
-              Node num2 = nm->mkConst(cvc5::Rational(l - 1));
+              Node num2 = nm->mkConst(CONST_RATIONAL, cvc5::Rational(l - 1));
               Node r2 = nm->mkNode(REGEXP_LOOP, r[0], num2, num2);
               if (testConstStringInRegExp(s, index_start + len, r2))
               {
@@ -664,7 +664,7 @@ Node RegExpEntail::getFixedLengthForRegexp(TNode n)
   }
   else if (k == REGEXP_ALLCHAR || k == REGEXP_RANGE)
   {
-    return nm->mkConst(Rational(1));
+    return nm->mkConst(CONST_RATIONAL, Rational(1));
   }
   else if (k == REGEXP_UNION || k == REGEXP_INTER)
   {

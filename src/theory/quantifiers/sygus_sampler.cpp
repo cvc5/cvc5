@@ -32,6 +32,8 @@
 #include "util/sampler.h"
 #include "util/string.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
@@ -587,14 +589,14 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       std::vector<Node> sum;
       for (unsigned j = 0, size = vec.size(); j < size; j++)
       {
-        Node digit = nm->mkConst(Rational(vec[j]) * curr);
+        Node digit = nm->mkConst(CONST_RATIONAL, Rational(vec[j]) * curr);
         sum.push_back(digit);
         curr = curr * baser;
       }
       Node ret;
       if (sum.empty())
       {
-        ret = nm->mkConst(Rational(0));
+        ret = nm->mkConst(CONST_RATIONAL, Rational(0));
       }
       else if (sum.size() == 1)
       {
@@ -629,7 +631,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
       else
       {
-        return nm->mkConst(sr / rr);
+        return nm->mkConst(CONST_RATIONAL, sr / rr);
       }
     }
   }

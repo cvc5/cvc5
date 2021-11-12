@@ -732,15 +732,15 @@ TEST_F(TestNodeBlackNode, isConst)
   Node cons_1_nil =
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(Rational(1)),
+                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
   Node cons_1_cons_2_nil = d_nodeManager->mkNode(
       APPLY_CONSTRUCTOR,
       cons,
-      d_nodeManager->mkConst(Rational(1)),
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(Rational(2)),
+                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(2)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
   ASSERT_TRUE(d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
   ASSERT_FALSE(cons_x_nil.isConst());
@@ -749,8 +749,8 @@ TEST_F(TestNodeBlackNode, isConst)
 
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
   Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 

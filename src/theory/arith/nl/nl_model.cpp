@@ -36,9 +36,9 @@ NlModel::NlModel() : d_used_approx(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_two = NodeManager::currentNM()->mkConst(Rational(2));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_two = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(2));
 }
 
 NlModel::~NlModel() {}
@@ -538,7 +538,8 @@ bool NlModel::solveEqualitySimple(Node eq,
       Assert(false);
       return false;
     }
-    Node val = nm->mkConst(-c.getConst<Rational>() / b.getConst<Rational>());
+    Node val = nm->mkConst(CONST_RATIONAL,
+                           -c.getConst<Rational>() / b.getConst<Rational>());
     if (Trace.isOn("nl-ext-cm"))
     {
       Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
@@ -1069,8 +1070,9 @@ void NlModel::getModelValueRepair(
       if (witnessToValue)
       {
         // witness is the midpoint
-        witness = nm->mkNode(
-            MULT, nm->mkConst(Rational(1, 2)), nm->mkNode(PLUS, l, u));
+        witness = nm->mkNode(MULT,
+                             nm->mkConst(CONST_RATIONAL, Rational(1, 2)),
+                             nm->mkNode(PLUS, l, u));
         witness = Rewriter::rewrite(witness);
         Trace("nl-model") << v << " witness is " << witness << std::endl;
       }

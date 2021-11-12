@@ -59,7 +59,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 TheorySetsPrivate::~TheorySetsPrivate()
