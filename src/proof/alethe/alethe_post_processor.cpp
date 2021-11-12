@@ -547,17 +547,18 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::RESOLUTION:
     case PfRule::CHAIN_RESOLUTION:
     {
+      Node falseNode = nm->mkConst(false);
       if (!expr::isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
-            AletheRule::RESOLUTION, res, new_children, {}, *cdp);
+            AletheRule::RESOLUTION, res, children, {}, *cdp);
       }
       return addAletheStep(AletheRule::RESOLUTION,
                            res,
                            res == falseNode
                                ? nm->mkNode(kind::SEXPR, d_cl)
                                : nm->mkNode(kind::SEXPR, d_cl, res),
-                           new_children,
+                           children,
                            {},
                            *cdp);
     }
@@ -1806,6 +1807,7 @@ bool AletheProofPostprocessCallback::finalize(Node res,
                                               const std::vector<Node>& args,
                                               CDProof* cdp)
 {
+  NodeManager* nm = NodeManager::currentNM();
   switch (id)
   {
     // The main complication in case of the RESOLUTION (and CHAIN_RESOLUTION)
@@ -2109,7 +2111,8 @@ bool AletheProofPostprocessFinalCallback::update(
     std::vector<Node> sanitized_args{
         res,
         res,
-        nm->mkConst(CONST_RATIONAL, static_cast<unsigned>(AletheRule::ASSUME))};
+        nm->mkConst<Rational>(CONST_RATIONAL,
+                              static_cast<unsigned>(AletheRule::ASSUME))};
     for (auto arg : args)
     {
       sanitized_args.push_back(d_anc.convert(arg));
@@ -2130,7 +2133,8 @@ bool AletheProofPostprocessFinalCallback::update(
   Node res2 = nm->mkNode(kind::SEXPR, d_cl);  // (cl)
 
   AletheRule vrule = static_cast<AletheRule>(std::stoul(args[0].toString()));
-  new_args.push_back(nm->mkConst(CONST_RATIONAL, static_cast<unsigned>(vrule)));
+  new_args.push_back(
+      nm->mkConst<Rational>(CONST_RATIONAL, static_cast<unsigned>(vrule)));
   new_args.push_back(vp1);
   // In the special case that false is an assumption, we print false instead of
   // (cl false)
@@ -2149,8 +2153,8 @@ bool AletheProofPostprocessFinalCallback::update(
       vp1, PfRule::ALETHE_RULE, children, new_args, true, CDPOverwrite::ALWAYS);
 
   new_args.clear();
-  new_args.push_back(
-      nm->mkConst(CONST_RATIONAL, static_cast<unsigned>(AletheRule::FALSE)));
+  new_args.push_back(nm->mkConst<Rational>(
+      CONST_RATIONAL, static_cast<unsigned>(AletheRule::FALSE)));
   new_args.push_back(vp2);
   new_args.push_back(nm->mkNode(kind::SEXPR, d_cl, vp2));  // (cl (not false))
   Trace("alethe-proof") << "... add Alethe step " << vp2 << " / "
@@ -2160,7 +2164,7 @@ bool AletheProofPostprocessFinalCallback::update(
       vp2, PfRule::ALETHE_RULE, {}, new_args, true, CDPOverwrite::ALWAYS);
 
   new_args.clear();
-  new_args.push_back(nm->mkConst(
+  new_args.push_back(nm->mkConst<Rational>(
       CONST_RATIONAL, static_cast<unsigned>(AletheRule::RESOLUTION)));
   new_args.push_back(res);
   new_args.push_back(res2);
@@ -2227,7 +2231,7 @@ bool AletheProofPostprocessNoSubtypeCallback::update(
     {
       Trace("alethe-proof-subtyping") << "\tTrivialized into REFL\n";
       // turn this step into a REFL one, ignore children and remaining arguments
-      newArgs[0] = NodeManager::currentNM()->mkConst(
+      newArgs[0] = NodeManager::currentNM()->mkConst<Rational>(
           CONST_RATIONAL, static_cast<unsigned>(AletheRule::REFL));
       cdp->addStep(res, id, {}, {newArgs.begin(), newArgs.begin() + 3});
     }
@@ -2328,14 +2332,14 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
                        d_anc.traverseAndConvertAllConsts(links[intLink]));
         Trace("alethe-proof-subtyping")
             << "\t..new l_" << childUpdatedIndex << ": " << newChild << "\n";
-        cdp->addStep(
-            newChild,
-            PfRule::ALETHE_RULE,
-            {children[childUpdatedIndex]},
-            {nm->mkConst(CONST_RATIONAL,
-                         static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
-             newChild,
-             newChild});
+        cdp->addStep(newChild,
+                     PfRule::ALETHE_RULE,
+                     {children[childUpdatedIndex]},
+                     {nm->mkConst<Rational>(
+                          CONST_RATIONAL,
+                          static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
+                      newChild,
+                      newChild});
         // update children
         newChildren[childUpdatedIndex] = newChild;
         // get new running last link
@@ -2529,14 +2533,14 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         // Add a new step that derives the original conclusion from the lifting
         // of the modified body. This way we don't need to change the rest of
         // the proof on account of the wrong instantiation
-        cdp->addStep(
-            res,
-            PfRule::ALETHE_RULE,
-            {newArgs[2]},
-            {nm->mkConst(CONST_RATIONAL,
-                         static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
-             res,
-             args[2]});
+        cdp->addStep(res,
+                     PfRule::ALETHE_RULE,
+                     {newArgs[2]},
+                     {nm->mkConst<Rational>(
+                          CONST_RATIONAL,
+                          static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
+                      res,
+                      args[2]});
         return true;
       }
       break;
