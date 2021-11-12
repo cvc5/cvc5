@@ -1047,18 +1047,21 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
       node_vec.push_back(ni);
     }
   }
-  Trace("strings-rewrite-debug") << "Partition constant components " << constStrRe.size() << " / " << otherRe.size() << std::endl;
+  Trace("strings-rewrite-debug")
+      << "Partition constant components " << constStrRe.size() << " / "
+      << otherRe.size() << std::endl;
   // go back and process constant strings against the others
   if (!constStrRe.empty())
   {
     std::unordered_set<Node> toRemove;
     for (const Node& c : constStrRe)
     {
-      Assert (c.getKind()==STRING_TO_REGEXP && c[0].getKind()==CONST_STRING);
+      Assert(c.getKind() == STRING_TO_REGEXP && c[0].getKind() == CONST_STRING);
       cvc5::String s = c[0].getConst<String>();
       for (const Node& r : otherRe)
       {
-        Trace("strings-rewrite-debug") << "Check " << c << " vs " << r << std::endl;
+        Trace("strings-rewrite-debug")
+            << "Check " << c << " vs " << r << std::endl;
         // skip if already removing, or not constant
         if (!RegExpEntail::isConstRegExp(r)
             || toRemove.find(r) != toRemove.end())
