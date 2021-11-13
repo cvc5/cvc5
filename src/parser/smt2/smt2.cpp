@@ -612,16 +612,16 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(theory::THEORY_BAGS))
   {
-    defineVar("emptybag", d_solver->mkEmptyBag(d_solver->getNullSort()));
-    addOperator(api::UNION_MAX, "union_max");
-    addOperator(api::UNION_DISJOINT, "union_disjoint");
-    addOperator(api::INTERSECTION_MIN, "intersection_min");
-    addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
-    addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
-    addOperator(api::SUBBAG, "subbag");
+    defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->getNullSort()));
+    addOperator(api::BAG_UNION_MAX, "bag.union_max");
+    addOperator(api::BAG_UNION_DISJOINT, "bag.union_disjoint");
+    addOperator(api::BAG_INTER_MIN, "bag.inter_min");
+    addOperator(api::BAG_DIFFERENCE_SUBTRACT, "bag.difference_subtract");
+    addOperator(api::BAG_DIFFERENCE_REMOVE, "bag.difference_remove");
+    addOperator(api::BAG_SUBBAG, "bag.subbag");
     addOperator(api::BAG_COUNT, "bag.count");
-    addOperator(api::DUPLICATE_REMOVAL, "duplicate_removal");
-    addOperator(api::MK_BAG, "bag");
+    addOperator(api::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal");
+    addOperator(api::BAG_MAKE, "bag");
     addOperator(api::BAG_CARD, "bag.card");
     addOperator(api::BAG_CHOOSE, "bag.choose");
     addOperator(api::BAG_IS_SINGLETON, "bag.is_singleton");
