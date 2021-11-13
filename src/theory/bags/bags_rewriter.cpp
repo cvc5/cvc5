@@ -521,7 +521,7 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
   Assert(n.getKind() == kind::BAG_MAP);
   if (n[1].isConst())
   {
-    // (bag.map f bag.empty) = bag.empty
+    // (bag.map f (as bag.empty (Bag T1)) = (as bag.empty (Bag T2))
     // (bag.map f (bag "a" 3)) = (bag (f "a") 3)
     std::map<Node, Rational> elements = NormalForm::getBagElements(n[1]);
     std::map<Node, Rational> mappedElements;
@@ -541,6 +541,7 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
   {
     case BAG_MAKE:
     {
+      // (bag.map f (bag x y)) = (bag (apply f x) y)
       Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], n[1][0]);
       Node ret =
           d_nm->mkBag(n[0].getType().getRangeType(), mappedElement, n[1][1]);
@@ -549,8 +550,10 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
 
     case BAG_UNION_DISJOINT:
     {
-      Node a = d_nm->mkNode(BAG_MAP, n[1][0]);
-      Node b = d_nm->mkNode(BAG_MAP, n[1][1]);
+      // (bag.map f (bag.union_disjoint A B)) =
+      //    (bag.union_disjoint (bag.map f A) (bag.map f B))
+      Node a = d_nm->mkNode(BAG_MAP, n[0], n[1][0]);
+      Node b = d_nm->mkNode(BAG_MAP, n[0], n[1][1]);
       Node ret = d_nm->mkNode(BAG_UNION_DISJOINT, a, b);
       return BagsRewriteResponse(ret, Rewrite::MAP_UNION_DISJOINT);
     }
