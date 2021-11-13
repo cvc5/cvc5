@@ -31,6 +31,7 @@ namespace bags {
 enum class Rewrite : uint32_t
 {
   NONE,  // no rewrite happened
+  CARD,
   CARD_DISJOINT,
   CARD_BAG_MAKE,
   CHOOSE_BAG_MAKE,

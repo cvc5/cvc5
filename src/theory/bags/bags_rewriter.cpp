@@ -449,12 +449,15 @@ BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
     Node plus = d_nm->mkNode(PLUS, A, B);
     return BagsRewriteResponse(plus, Rewrite::CARD_DISJOINT);
   }
+
+  // (bag.card A) = (bag.count 1 (bag.map (lambda ((x E)) 1) A)),
+  // where E is the type of elements of A
   TypeNode type = n[0].getType().getBagElementType();
   Node x = d_nm->mkBoundVar("x", type);
   Node lambda = d_nm->mkNode(LAMBDA, d_nm->mkNode(BOUND_VAR_LIST, x), d_one);
   Node map = d_nm->mkNode(kind::BAG_MAP, lambda, n[0]);
   Node countOne = d_nm->mkNode(kind::BAG_COUNT, d_one, map);
-  return BagsRewriteResponse(countOne, Rewrite::CARD_MK_BAG);
+  return BagsRewriteResponse(countOne, Rewrite::CARD);
 }
 
 BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
