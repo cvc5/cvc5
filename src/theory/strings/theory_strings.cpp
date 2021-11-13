@@ -767,8 +767,6 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
 
 void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
 {
-  d_eagerSolver.eqNotifyMerge(t1, t2);
-
   EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
   if (e2 == nullptr)
   {
@@ -776,6 +774,9 @@ void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
   }
   // always create it if e2 was non-null
   EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
+
+  d_eagerSolver.eqNotifyMerge(e1, t1, e2, t2);
+
   // add information from e2 to e1
   if (!e2->d_lengthTerm.get().isNull())
   {

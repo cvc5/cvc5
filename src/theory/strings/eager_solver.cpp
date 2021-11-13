@@ -79,15 +79,10 @@ void EagerSolver::eqNotifyNewClass(TNode t)
   }
 }
 
-void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
+void EagerSolver::eqNotifyMerge(EqcInfo* e1, TNode t1, EqcInfo* e2, TNode t2)
 {
-  EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
-  if (e2 == nullptr)
-  {
-    return;
-  }
-  // always create it if e2 was non-null
-  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
+  Assert(e1 != nullptr);
+  Assert(e2 != nullptr);
   // check for conflict
   Node conf = checkForMergeConflict(t1, t2, e1, e2);
   if (!conf.isNull())
