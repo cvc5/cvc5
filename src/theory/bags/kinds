@@ -15,7 +15,7 @@ properties parametric
 properties check presolve
 
 # constants
-constant EMPTYBAG \
+constant BAG_EMPTY \
     class \
     EmptyBag \
     ::cvc5::EmptyBagHashFunction \
@@ -36,27 +36,27 @@ enumerator BAG_TYPE \
     "theory/bags/theory_bags_type_enumerator.h"
 
 # operators
-operator UNION_MAX         2  "union for bags (max)"
-operator UNION_DISJOINT    2  "disjoint union for bags (sum)"
-operator INTERSECTION_MIN  2  "bag intersection (min)"
+operator BAG_UNION_MAX         2  "union for bags (max)"
+operator BAG_UNION_DISJOINT    2  "disjoint union for bags (sum)"
+operator BAG_INTER_MIN         2  "bag intersection (min)"
 
-# {("a", 2), ("b", 3)} \ {("a", 1)} = {("a", 1), ("b", 3)}
-operator DIFFERENCE_SUBTRACT    2  "bag difference1 (subtracts multiplicities)"
+# {|("a", 2), ("b", 3)} \ {("a", 1)|} = {|("a", 1), ("b", 3)|}
+operator BAG_DIFFERENCE_SUBTRACT    2  "bag difference1 (subtracts multiplicities)"
 
-# {("a", 2), ("b", 3)} \\ {("a", 1)} = {("b", 3)}
-operator DIFFERENCE_REMOVE 2  "bag difference remove (removes shared elements)"
+# {|("a", 2), ("b", 3)} \\ {("a", 1)|} = {|("b", 3)|}
+operator BAG_DIFFERENCE_REMOVE 2  "bag difference remove (removes shared elements)"
 
-operator SUBBAG            2  "inclusion predicate for bags (less than or equal multiplicities)"
-operator BAG_COUNT         2  "multiplicity of an element in a bag"
-operator DUPLICATE_REMOVAL 1  "eliminate duplicates in a bag (also known as the delta operator,or the squash operator)"
+operator BAG_SUBBAG            2  "inclusion predicate for bags (less than or equal multiplicities)"
+operator BAG_COUNT             2  "multiplicity of an element in a bag"
+operator BAG_DUPLICATE_REMOVAL 1  "eliminate duplicates in a bag (also known as the delta operator,or the squash operator)"
 
-constant MK_BAG_OP \
+constant BAG_MAKE_OP \
   class \
-	MakeBagOp \
-	::cvc5::MakeBagOpHashFunction \
-	"theory/bags/make_bag_op.h" \
-	"operator for MK_BAG; payload is an instance of the cvc5::MakeBagOp class"
-parameterized MK_BAG MK_BAG_OP 2 \
+	BagMakeOp \
+	::cvc5::BagMakeOpHashFunction \
+	"theory/bags/bag_make_op.h" \
+	"operator for BAG_MAKE; payload is an instance of the cvc5::BagMakeOp class"
+parameterized BAG_MAKE BAG_MAKE_OP 2 \
 "constructs a bag from one element along with its multiplicity"
 
 # The operator bag-is-singleton returns whether the given bag is a singleton
@@ -76,25 +76,25 @@ operator BAG_CHOOSE        1  "return an element in the bag given as a parameter
 # of the second argument, a bag of type (Bag T1), and returns a bag of type (Bag T2).
 operator BAG_MAP           2  "bag map function"
 
-typerule UNION_MAX           ::cvc5::theory::bags::BinaryOperatorTypeRule
-typerule UNION_DISJOINT      ::cvc5::theory::bags::BinaryOperatorTypeRule
-typerule INTERSECTION_MIN    ::cvc5::theory::bags::BinaryOperatorTypeRule
-typerule DIFFERENCE_SUBTRACT ::cvc5::theory::bags::BinaryOperatorTypeRule
-typerule DIFFERENCE_REMOVE   ::cvc5::theory::bags::BinaryOperatorTypeRule
-typerule SUBBAG              ::cvc5::theory::bags::SubBagTypeRule
-typerule BAG_COUNT           ::cvc5::theory::bags::CountTypeRule
-typerule DUPLICATE_REMOVAL   ::cvc5::theory::bags::DuplicateRemovalTypeRule
-typerule MK_BAG_OP           "SimpleTypeRule<RBuiltinOperator>"
-typerule MK_BAG              ::cvc5::theory::bags::MkBagTypeRule
-typerule EMPTYBAG            ::cvc5::theory::bags::EmptyBagTypeRule
-typerule BAG_CARD            ::cvc5::theory::bags::CardTypeRule
-typerule BAG_CHOOSE          ::cvc5::theory::bags::ChooseTypeRule
-typerule BAG_IS_SINGLETON    ::cvc5::theory::bags::IsSingletonTypeRule
-typerule BAG_FROM_SET        ::cvc5::theory::bags::FromSetTypeRule
-typerule BAG_TO_SET          ::cvc5::theory::bags::ToSetTypeRule
-typerule BAG_MAP            ::cvc5::theory::bags::BagMapTypeRule
+typerule BAG_UNION_MAX           ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule BAG_UNION_DISJOINT      ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule BAG_INTER_MIN           ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule BAG_DIFFERENCE_SUBTRACT ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule BAG_DIFFERENCE_REMOVE   ::cvc5::theory::bags::BinaryOperatorTypeRule
+typerule BAG_SUBBAG              ::cvc5::theory::bags::SubBagTypeRule
+typerule BAG_COUNT               ::cvc5::theory::bags::CountTypeRule
+typerule BAG_DUPLICATE_REMOVAL   ::cvc5::theory::bags::DuplicateRemovalTypeRule
+typerule BAG_MAKE_OP             "SimpleTypeRule<RBuiltinOperator>"
+typerule BAG_MAKE                ::cvc5::theory::bags::BagMakeTypeRule
+typerule BAG_EMPTY               ::cvc5::theory::bags::EmptyBagTypeRule
+typerule BAG_CARD                ::cvc5::theory::bags::CardTypeRule
+typerule BAG_CHOOSE              ::cvc5::theory::bags::ChooseTypeRule
+typerule BAG_IS_SINGLETON        ::cvc5::theory::bags::IsSingletonTypeRule
+typerule BAG_FROM_SET            ::cvc5::theory::bags::FromSetTypeRule
+typerule BAG_TO_SET              ::cvc5::theory::bags::ToSetTypeRule
+typerule BAG_MAP                 ::cvc5::theory::bags::BagMapTypeRule
 
-construle UNION_DISJOINT     ::cvc5::theory::bags::BinaryOperatorTypeRule
-construle MK_BAG             ::cvc5::theory::bags::MkBagTypeRule
+construle BAG_UNION_DISJOINT     ::cvc5::theory::bags::BinaryOperatorTypeRule
+construle BAG_MAKE               ::cvc5::theory::bags::BagMakeTypeRule
 
 endtheory
