@@ -787,10 +787,9 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(7)));
   //  - (bag.map f (bag.union_disjoint K1 K2)) =
   //      (bag.union_disjoint (bag.map f K1) (bag.map f K2))
-  Node k1 = d_nodeManager->getSkolemManager()->mkDummySkolem("K1", A.getType());
-  Node k2 = d_nodeManager->getSkolemManager()->mkDummySkolem("K2", A.getType());
-  Node f =
-      d_nodeManager->getSkolemManager()->mkDummySkolem("f", lambda.getType());
+  Node k1 = d_skolemManager->mkDummySkolem("K1", A.getType());
+  Node k2 = d_skolemManager->mkDummySkolem("K2", A.getType());
+  Node f = d_skolemManager->mkDummySkolem("f", lambda.getType());
   Node unionDisjointK1K2 = d_nodeManager->mkNode(BAG_UNION_DISJOINT, k1, k2);
   Node n3 = d_nodeManager->mkNode(BAG_MAP, f, unionDisjointK1K2);
   Node rewritten3 = Rewriter::rewrite(n3);
