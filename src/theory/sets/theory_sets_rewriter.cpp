@@ -650,10 +650,9 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
     {
       // (set.map f (set.singleton x)) = (set.singleton (f x))
       Node mappedElement = nm->mkNode(APPLY_UF, n[0], n[1][0]);
-      Node ret = nm->mkSingleton(n[0].getType().getRangeType(), mappedElement);
+      Node ret = nm->mkSingleton(rangeType, mappedElement);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
-
     case SET_UNION:
     {
       // (set.map f (set.union A B)) = (set.union (set.map f A) (set.map f B))
