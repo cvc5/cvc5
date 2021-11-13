@@ -10,14 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * White box testing of bags rewriter
+ * White box testing of sets rewriter
  */
 
 #include "expr/dtype.h"
 #include "expr/emptyset.h"
 #include "test_smt.h"
 #include "theory/sets/theory_sets_rewriter.h"
-#include "theory/strings/type_enumerator.h"
 #include "util/rational.h"
 #include "util/string.h"
 
