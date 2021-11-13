@@ -125,7 +125,7 @@ class CandidateGeneratorQE : public CandidateGenerator
   int d_termIter;
   /** the TermDb index of the current ground term (for cand_term_db) */
   int d_termIter_limit;
-    /** the TermDb index of the current ground term (for cand_term_db) */
+  /** the TermDb index of the current ground term (for cand_term_db) */
   DbList* d_termIterList;
   /** the current equivalence class */
   Node d_eqc;
