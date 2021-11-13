@@ -49,7 +49,6 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
                                            Node pat)
     : CandidateGenerator(qs, tr),
       d_termIter(-1),
-      d_termIter_limit(0),
       d_termIterList(nullptr),
       d_mode(cand_term_none)
 {
@@ -64,7 +63,6 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_termIter = 0;
   d_eqc = eqc;
   d_op = op;
-  d_termIter_limit = d_treg.getTermDatabase()->getNumGroundTerms(d_op);
   d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
   if (eqc.isNull())
   {
@@ -107,9 +105,15 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
+    if (d_termIterList==nullptr)
+    {
+      d_mode = cand_term_none;
+      return Node::null();
+    }
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
-    while (d_termIter < d_termIter_limit)
+    size_t tlLimit = d_termIterList->d_list.size();
+    while (d_termIter < tlLimit)
     {
       Node n = d_termIterList->d_list[d_termIter];
       d_termIter++;
