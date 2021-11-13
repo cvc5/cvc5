@@ -797,9 +797,6 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
   Node mapK2 = d_nodeManager->mkNode(BAG_MAP, f, k2);
   Node unionDisjointMapK1K2 =
       d_nodeManager->mkNode(BAG_UNION_DISJOINT, mapK1, mapK2);
-  std::cout << n3 << std::endl;
-  std::cout << rewritten3 << std::endl;
-  std::cout << unionDisjointMapK1K2 << std::endl;
   ASSERT_TRUE(rewritten3 == unionDisjointMapK1K2);
 }
 
