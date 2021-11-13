@@ -105,7 +105,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
-    if (d_termIterList==nullptr)
+    if (d_termIterList == nullptr)
     {
       d_mode = cand_term_none;
       return Node::null();
