@@ -288,6 +288,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {SET_COMPREHENSION, cvc5::Kind::SET_COMPREHENSION},
     {SET_CHOOSE, cvc5::Kind::SET_CHOOSE},
     {SET_IS_SINGLETON, cvc5::Kind::SET_IS_SINGLETON},
+    {SET_MAP, cvc5::Kind::SET_MAP},
     /* Relations ----------------------------------------------------------- */
     {RELATION_JOIN, cvc5::Kind::RELATION_JOIN},
     {RELATION_PRODUCT, cvc5::Kind::RELATION_PRODUCT},
@@ -598,6 +599,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::SET_COMPREHENSION, SET_COMPREHENSION},
         {cvc5::Kind::SET_CHOOSE, SET_CHOOSE},
         {cvc5::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
+        {cvc5::Kind::SET_MAP, SET_MAP},
         /* Relations ------------------------------------------------------- */
         {cvc5::Kind::RELATION_JOIN, RELATION_JOIN},
         {cvc5::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
