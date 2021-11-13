@@ -39,12 +39,12 @@ if __name__ == "__main__":
     B = slv.mkConst(set_, "B")
     C = slv.mkConst(set_, "C")
 
-    unionAB = slv.mkTerm(kinds.Union, A, B)
-    lhs = slv.mkTerm(kinds.Intersection, unionAB, C)
+    unionAB = slv.mkTerm(kinds.SetUnion, A, B)
+    lhs = slv.mkTerm(kinds.SetInter, unionAB, C)
 
-    intersectionAC = slv.mkTerm(kinds.Intersection, A, C)
-    intersectionBC = slv.mkTerm(kinds.Intersection, B, C)
-    rhs = slv.mkTerm(kinds.Union, intersectionAC, intersectionBC)
+    intersectionAC = slv.mkTerm(kinds.SetInter, A, C)
+    intersectionBC = slv.mkTerm(kinds.SetInter, B, C)
+    rhs = slv.mkTerm(kinds.SetUnion, intersectionAC, intersectionBC)
 
     theorem = slv.mkTerm(kinds.Equal, lhs, rhs)
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     A = slv.mkConst(set_, "A")
     emptyset = slv.mkEmptySet(set_)
 
-    theorem = slv.mkTerm(kinds.Subset, emptyset, A)
+    theorem = slv.mkTerm(kinds.SetSubset, emptyset, A)
 
     print("cvc5 reports: {} is {}".format(theorem,
                                           slv.checkEntailed(theorem)))
@@ -67,16 +67,16 @@ if __name__ == "__main__":
     two = slv.mkInteger(2)
     three = slv.mkInteger(3)
 
-    singleton_one = slv.mkTerm(kinds.Singleton, one)
-    singleton_two = slv.mkTerm(kinds.Singleton, two)
-    singleton_three = slv.mkTerm(kinds.Singleton, three)
-    one_two = slv.mkTerm(kinds.Union, singleton_one, singleton_two)
-    two_three = slv.mkTerm(kinds.Union, singleton_two, singleton_three)
-    intersection = slv.mkTerm(kinds.Intersection, one_two, two_three)
+    singleton_one = slv.mkTerm(kinds.SetSingleton, one)
+    singleton_two = slv.mkTerm(kinds.SetSingleton, two)
+    singleton_three = slv.mkTerm(kinds.SetSingleton, three)
+    one_two = slv.mkTerm(kinds.SetUnion, singleton_one, singleton_two)
+    two_three = slv.mkTerm(kinds.SetUnion, singleton_two, singleton_three)
+    intersection = slv.mkTerm(kinds.SetInter, one_two, two_three)
 
     x = slv.mkConst(integer, "x")
 
-    e = slv.mkTerm(kinds.Member, x, intersection)
+    e = slv.mkTerm(kinds.SetMember, x, intersection)
 
     result = slv.checkSatAssuming(e)
 

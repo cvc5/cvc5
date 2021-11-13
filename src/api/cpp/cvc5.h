@@ -48,6 +48,7 @@ class SolverEngine;
 class TypeNode;
 class Options;
 class Random;
+class Rational;
 class Result;
 class StatisticsRegistry;
 
@@ -116,6 +117,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
    */
   CVC5ApiRecoverableException(const std::stringstream& stream)
       : CVC5ApiException(stream.str())
+  {
+  }
+};
+
+/**
+ * Exception for unsupported command arguments.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiUnsupportedException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiUnsupportedException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiUnsupportedException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
   {
   }
 };
@@ -354,19 +380,19 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this a Boolean sort?
-   * @return true if the sort is a Boolean sort
+   * @return true if the sort is the Boolean sort
    */
   bool isBoolean() const;
 
   /**
    * Is this a integer sort?
-   * @return true if the sort is a integer sort
+   * @return true if the sort is the integer sort
    */
   bool isInteger() const;
 
   /**
    * Is this a real sort?
-   * @return true if the sort is a real sort
+   * @return true if the sort is the real sort
    */
   bool isReal() const;
 
@@ -462,7 +488,7 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this an array sort?
-   * @return true if the sort is a array sort
+   * @return true if the sort is an array sort
    */
   bool isArray() const;
 
@@ -485,8 +511,8 @@ class CVC5_EXPORT Sort
   bool isSequence() const;
 
   /**
-   * Is this a sort kind?
-   * @return true if this is a sort kind
+   * Is this an uninterpreted sort?
+   * @return true if this is an uninterpreted sort
    */
   bool isUninterpretedSort() const;
 
@@ -499,9 +525,9 @@ class CVC5_EXPORT Sort
   /**
    * Is this a first-class sort?
    * First-class sorts are sorts for which:
-   * (1) we handle equalities between terms of that type, and
-   * (2) they are allowed to be parameters of parametric sorts (e.g. index or
-   *     element sorts of arrays).
+   * 1. we handle equalities between terms of that type, and
+   * 2. they are allowed to be parameters of parametric sorts (e.g. index or
+   * element sorts of arrays).
    *
    * Examples of sorts that are not first-class include sort constructor sorts
    * and regular expression sorts.
@@ -641,7 +667,7 @@ class CVC5_EXPORT Sort
   Sort getArrayIndexSort() const;
 
   /**
-   * @return the array element sort of an array element sort
+   * @return the array element sort of an array sort
    */
   Sort getArrayElementSort() const;
 
@@ -1103,6 +1129,17 @@ class CVC5_EXPORT Term
   Op getOp() const;
 
   /**
+   * @return true if the term has a symbol.
+   */
+  bool hasSymbol() const;
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the term.
+   */
+  std::string getSymbol() const;
+
+  /**
    * @return true if this Term is a null term
    */
   bool isNull() const;
@@ -1459,7 +1496,7 @@ class CVC5_EXPORT Term
    * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
    * also @ref Term::operator>(const Term&) const).
    *
-   * Note that a universe set term (kind UNIVERSE_SET) is not considered to be
+   * Note that a universe set term (kind SET_UNIVERSE) is not considered to be
    * a set value.
    */
   bool isSetValue() const;
@@ -2623,19 +2660,19 @@ enum RoundingMode
   ROUND_NEAREST_TIES_TO_EVEN,
   /**
    * Round towards positive infinity (+oo).
-   * The result shall be the format’s floating-point number (possibly +oo)
+   * The result shall be the format's floating-point number (possibly +oo)
    * closest to and no less than the infinitely precise result.
    */
   ROUND_TOWARD_POSITIVE,
   /**
    * Round towards negative infinity (-oo).
-   * The result shall be the format’s floating-point number (possibly -oo)
+   * The result shall be the format's floating-point number (possibly -oo)
    * closest to and no less than the infinitely precise result.
    */
   ROUND_TOWARD_NEGATIVE,
   /**
    * Round towards zero.
-   * The result shall be the format’s floating-point number closest to and no
+   * The result shall be the format's floating-point number closest to and no
    * greater in magnitude than the infinitely precise result.
    */
   ROUND_TOWARD_ZERO,
@@ -3418,16 +3455,22 @@ class CVC5_EXPORT Solver
   Term mkReal(int64_t num, int64_t den) const;
 
   /**
-   * Create a regular expression empty term.
-   * @return the empty term
+   * Create a regular expression all (re.all) term.
+   * @return the all term
    */
-  Term mkRegexpEmpty() const;
+  Term mkRegexpAll() const;
 
   /**
-   * Create a regular expression sigma term.
-   * @return the sigma term
+   * Create a regular expression allchar (re.allchar) term.
+   * @return the allchar term
    */
-  Term mkRegexpSigma() const;
+  Term mkRegexpAllchar() const;
+
+  /**
+   * Create a regular expression none (re.none) term.
+   * @return the none term
+   */
+  Term mkRegexpNone() const;
 
   /**
    * Create a constant representing an empty set of the given sort.
@@ -3813,24 +3856,6 @@ class CVC5_EXPORT Solver
                  const Sort& sort,
                  const Term& term,
                  bool global = false) const;
-  /**
-   * Define n-ary function.
-   * SMT-LIB:
-   * \verbatim
-   * ( define-fun <function_def> )
-   * \endverbatim
-   * Create parameter 'fun' with mkConst().
-   * @param fun the sorted function
-   * @param bound_vars the parameters to this function
-   * @param term the function body
-   * @param global determines whether this definition is global (i.e. persists
-   *               when popping the context)
-   * @return the function
-   */
-  Term defineFun(const Term& fun,
-                 const std::vector<Term>& bound_vars,
-                 const Term& term,
-                 bool global = false) const;
 
   /**
    * Define recursive function.
@@ -4108,19 +4133,19 @@ class CVC5_EXPORT Solver
    * @param locSort The location sort of the heap
    * @param dataSort The data sort of the heap
    */
-  void declareSeparationHeap(const Sort& locSort, const Sort& dataSort) const;
+  void declareSepHeap(const Sort& locSort, const Sort& dataSort) const;
 
   /**
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  Term getSeparationHeap() const;
+  Term getValueSepHeap() const;
 
   /**
    * When using separation logic, obtain the term for nil.
    * @return The term for nil
    */
-  Term getSeparationNilTerm() const;
+  Term getValueSepNil() const;
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
@@ -4480,6 +4505,8 @@ class CVC5_EXPORT Solver
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
   Term mkValHelper(T t) const;
+  /** Helper for making rational values. */
+  Term mkRationalValHelper(const Rational& r) const;
   /** Helper for mkReal functions that take a string as argument. */
   Term mkRealFromStrHelper(const std::string& s) const;
   /** Helper for mkBitVector functions that take a string as argument. */

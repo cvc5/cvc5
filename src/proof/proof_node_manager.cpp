@@ -237,8 +237,9 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     {
       if (acu.find(a) == acu.end())
       {
-        Notice() << "ProofNodeManager::mkScope: assumption " << a
-                 << " does not match a free assumption in proof" << std::endl;
+        Trace("pnm") << "ProofNodeManager::mkScope: assumption " << a
+                     << " does not match a free assumption in proof"
+                     << std::endl;
       }
     }
   }
@@ -402,12 +403,20 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
 
 ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 {
+  // processed is almost always size <= 1
+  std::vector<ProofNode*> processed;
   while (pn->getRule() == PfRule::SYMM)
   {
     std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
     if (pnc->getRule() == PfRule::SYMM)
     {
       pn = pnc->getChildren()[0].get();
+      if (std::find(processed.begin(), processed.end(), pn) != processed.end())
+      {
+        Unreachable()
+            << "Cyclic proof encountered when cancelling double symmetry";
+      }
+      processed.push_back(pn);
     }
     else
     {

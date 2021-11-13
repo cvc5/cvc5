@@ -215,8 +215,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term mkInteger(const uint64_t i) except +
         Term mkInteger(const string& s) except +
         Term mkReal(const string& s) except +
-        Term mkRegexpEmpty() except +
-        Term mkRegexpSigma() except +
+        Term mkRegexpAll() except +
+        Term mkRegexpAllchar() except +
+        Term mkRegexpNone() except +
         Term mkEmptySet(Sort s) except +
         Term mkEmptyBag(Sort s) except +
         Term mkSepEmp() except +
@@ -266,7 +267,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Sort declareSort(const string& symbol, uint32_t arity) except +
         Term defineFun(const string& symbol, const vector[Term]& bound_vars,
                        Sort sort, Term term, bint glbl) except +
-        Term defineFun(Term fun, const vector[Term]& bound_vars, Term term, bint glbl) except +
         Term defineFunRec(const string& symbol, const vector[Term]& bound_vars,
                           Sort sort, Term term, bint glbl) except +
         Term defineFunRec(Term fun, const vector[Term]& bound_vars,
@@ -282,9 +282,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         vector[Term] getValue(const vector[Term]& terms) except +
         vector[Term] getModelDomainElements(Sort sort) except +
         bint isModelCoreSymbol(Term v) except +
-        void declareSeparationHeap(Sort locSort, Sort dataSort) except +
-        Term getSeparationHeap() except +
-        Term getSeparationNilTerm() except +
+        void declareSepHeap(Sort locSort, Sort dataSort) except +
+        Term getValueSepHeap() except +
+        Term getValueSepNil() except +
         Term declarePool(const string& name, Sort sort, vector[Term]& initValue) except +
         void pop(uint32_t nscopes) except +
         void push(uint32_t nscopes) except +
@@ -341,6 +341,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         bint isComparableTo(Sort s) except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
+        Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
         size_t getConstructorArity() except +
         vector[Sort] getConstructorDomainSorts() except +
         Sort getConstructorCodomainSort() except +
@@ -390,6 +391,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         Term substitute(const vector[Term] & es, const vector[Term] & reps) except +
         bint hasOp() except +
         Op getOp() except +
+        bint hasSymbol() except +
+        string getSymbol() except +
         bint isNull() except +
         Term getConstArrayBase() except +
         Term notTerm() except +

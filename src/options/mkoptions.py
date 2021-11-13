@@ -292,7 +292,6 @@ def generate_get_impl(modules):
 
 def _set_handlers(option):
     """Render handler call for options::set()."""
-    optname = option.long_name if option.long else ""
     if option.handler:
         if option.type == 'void':
             return 'opts.handler().{}(name)'.format(option.handler)
@@ -307,7 +306,6 @@ def _set_predicates(option):
     """Render predicate calls for options::set()."""
     if option.type == 'void':
         return []
-    optname = option.long_name if option.long else ""
     assert option.type != 'void'
     res = []
     if option.minimum:
@@ -419,9 +417,9 @@ def generate_module_includes(module):
 
 TPL_MODE_DECL = '''enum class {type}
 {{
-  {values}
+  {values},
+  __MAX_VALUE = {maxvalue}
 }};
-static constexpr size_t {type}__numValues = {nvalues};
 std::ostream& operator<<(std::ostream& os, {type} mode);
 {type} stringTo{type}(const std::string& optarg);
 '''
@@ -433,11 +431,11 @@ def generate_module_mode_decl(module):
     for option in module.options:
         if option.name is None or not option.mode:
             continue
+        values = list(option.mode.keys())
         res.append(
             TPL_MODE_DECL.format(type=option.type,
-                                 values=wrap_line(
-                                     ', '.join(option.mode.keys()), 2),
-                                 nvalues=len(option.mode)))
+                                 values=wrap_line(', '.join(values), 2),
+                                 maxvalue=values[-1]))
     return '\n'.join(res)
 
 
@@ -526,8 +524,9 @@ def generate_module_mode_impl(module):
         if option.name is None or not option.mode:
             continue
         cases = [
-            'case {type}::{enum}: return os << "{type}::{enum}";'.format(
-                type=option.type, enum=x) for x in option.mode.keys()
+            'case {type}::{enum}: return os << "{name}";'.format(
+                type=option.type, enum=enum, name=info[0]['name'])
+            for enum,info in option.mode.items()
         ]
         res.append(
             TPL_MODE_STREAM_OPERATOR.format(type=option.type,
@@ -761,17 +760,17 @@ def _sphinx_help_render_option(res, opt):
     """Render an option to be displayed with sphinx."""
     indent = ' ' * 4
     desc = '``{}``'
+    if opt['alternate']:
+        desc += ' (also ``--no-*``)'
     val = indent + '{}'
+
     res.append('.. _lbl-option-{}:'.format(opt['long_name']))
     res.append('')
     if opt['expert']:
-        res.append('.. admonition:: This option is intended for Experts only!')
-        res.append(indent)
-        desc = indent + desc
-        val = indent + val
+        res.append('.. rst-class:: expert-option simple')
+        res.append('')
+        desc += '\n{0}.. rst-class:: float-right\n\n{0}**[experts only]**\n'.format(indent)
 
-    if opt['alternate']:
-        desc += ' (also ``--no-*``)'
     res.append(desc.format(' | '.join(opt['name'])))
     res.append(val.format(opt['help']))
 
@@ -791,7 +790,7 @@ def generate_sphinx_help(modules):
     common = []
     others = {}
     for module, option in all_options(modules, False):
-        if option.type == 'undocumented':
+        if option.category == 'undocumented':
             continue
         if not option.long and not option.short:
             continue
@@ -812,6 +811,38 @@ def generate_sphinx_help(modules):
         res.append('-' * (len(module) + 8))
         for opt in others[module]:
             _sphinx_help_render_option(res, opt)
+
+    return '\n'.join(res)
+
+
+################################################################################
+# sphinx documentation for --output @ docs/output_tags_generated.rst
+
+
+def generate_sphinx_output_tags(modules, src_dir, build_dir):
+    """Render help for the --output option for sphinx."""
+    base = next(filter(lambda m: m.id == 'base', modules))
+    opt = next(filter(lambda o: o.name == 'outputTag', base.options))
+
+    # The programoutput extension has weird semantics about the cwd:
+    # https://sphinxcontrib-programoutput.readthedocs.io/en/latest/#usage
+    cwd = '/' + os.path.relpath(build_dir, src_dir)
+
+    res = []
+    for name,info in opt.mode.items():
+        info = info[0]
+        if 'description' not in info:
+            continue
+        res.append('{} (``-o {}``)'.format(name, info['name']))
+        res.append('~' * len(res[-1]))
+        res.append('')
+        res.append(info['description'])
+        if 'example-file' in info:
+            res.append('')
+            res.append('.. command-output:: bin/cvc5 -o {} ../test/regress/{}'.format(info['name'], info['example-file']))
+            res.append('  :cwd: {}'.format(cwd))
+        res.append('')
+        res.append('')
 
     return '\n'.join(res)
 
@@ -843,7 +874,7 @@ def codegen_module(module, dst_dir, tpls):
 # main code generation
 
 
-def codegen_all_modules(modules, build_dir, dst_dir, tpls):
+def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
     short, cmdline_opts, parseinternal = generate_parsing(modules)
     help_common, help_others = generate_cli_help(modules)
@@ -851,6 +882,8 @@ def codegen_all_modules(modules, build_dir, dst_dir, tpls):
     if os.path.isdir('{}/docs/'.format(build_dir)):
         write_file('{}/docs/'.format(build_dir), 'options_generated.rst',
                    generate_sphinx_help(modules))
+        write_file('{}/docs/'.format(build_dir), 'output_tags_generated.rst',
+                   generate_sphinx_output_tags(modules, src_dir, build_dir))
 
     data = {
         # options/options.h
@@ -1045,7 +1078,10 @@ def mkoptions_main():
     # Generate code
     for module in modules:
         codegen_module(module, dst_dir, module_tpls)
-    codegen_all_modules(modules, build_dir, dst_dir, global_tpls)
+    codegen_all_modules(modules, src_dir, build_dir, dst_dir, global_tpls)
+
+    # Generate output file to signal cmake when this script was run last
+    open(os.path.join(dst_dir, 'options/options.stamp'), 'w').write('')
 
 
 if __name__ == "__main__":

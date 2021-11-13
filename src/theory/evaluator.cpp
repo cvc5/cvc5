@@ -21,6 +21,8 @@
 #include "theory/theory.h"
 #include "util/integer.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 
@@ -115,7 +117,7 @@ Node EvalResult::toNode() const
   {
     case EvalResult::BOOL: return nm->mkConst(d_bool);
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
-    case EvalResult::RATIONAL: return nm->mkConst(d_rat);
+    case EvalResult::RATIONAL: return nm->mkConst(CONST_RATIONAL, d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
     case EvalResult::UCONST: return nm->mkConst(d_uc);
     default:
@@ -489,6 +491,13 @@ EvalResult Evaluator::evalInternal(
         {
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x.abs());
+          break;
+        }
+        case kind::CAST_TO_REAL:
+        {
+          // casting to real is a no-op
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x);
           break;
         }
         case kind::CONST_STRING:

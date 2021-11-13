@@ -120,63 +120,62 @@ class Mapper {
              << " ()"
              << " " << name
              << " ( (as const " << name << ") false ) )" << endl;
-      setoperators[ make_pair(t, kind::EMPTYSET) ] =
-        em->mkVar( std::string("emptyset") + elementTypeAsString,
-                   t);
+      setoperators[make_pair(t, kind::SET_EMPTY)] =
+          em->mkVar(std::string("emptyset") + elementTypeAsString, t);
 
       if(!enableAxioms)
         sout << "(define-fun singleton" << elementTypeAsString << "     "
              << " ( (x " << elementType << ") )"
              << " " << name << ""
              << " (store emptyset" << elementTypeAsString << " x true) )" << endl;
-      setoperators[ make_pair(t, kind::SINGLETON) ] =
-        em->mkVar( std::string("singleton") + elementTypeAsString,
-                   em->mkFunctionType( elementType, t ) );
+      setoperators[make_pair(t, kind::SET_SINGLETON)] =
+          em->mkVar(std::string("singleton") + elementTypeAsString,
+                    em->mkFunctionType(elementType, t));
 
       if(!enableAxioms)
         sout << "(define-fun union" << elementTypeAsString << "       "
              << " ( (s1 " << name << ") (s2 " << name << ") )"
              << " " << name << ""
              << " ((_ map or) s1 s2))" << endl;
-      setoperators[ make_pair(t, kind::UNION) ] =
-        em->mkVar( std::string("union") + elementTypeAsString,
-                   em->mkFunctionType( t_t, t ) );
+      setoperators[make_pair(t, kind::SET_UNION)] =
+          em->mkVar(std::string("union") + elementTypeAsString,
+                    em->mkFunctionType(t_t, t));
 
       if(!enableAxioms)
         sout << "(define-fun intersection" << elementTypeAsString << ""
              << " ( (s1 " << name << ") (s2 " << name << ") )"
              << " " << name << ""
              << " ((_ map and) s1 s2))" << endl;
-      setoperators[ make_pair(t, kind::INTERSECTION) ] =
-        em->mkVar( std::string("intersection") + elementTypeAsString,
-                   em->mkFunctionType( t_t, t ) );
+      setoperators[make_pair(t, kind::SET_INTER)] =
+          em->mkVar(std::string("intersection") + elementTypeAsString,
+                    em->mkFunctionType(t_t, t));
 
       if(!enableAxioms)
         sout << "(define-fun setminus" << elementTypeAsString << "    "
              << " ( (s1 " << name << ") (s2 " << name << ") )"
              << " " << name << ""
              << " (intersection" << elementTypeAsString << " s1 ((_ map not) s2)))" << endl;
-      setoperators[ make_pair(t, kind::SETMINUS) ] =
-        em->mkVar( std::string("setminus") + elementTypeAsString,
-                   em->mkFunctionType( t_t, t ) );
+      setoperators[make_pair(t, kind::SET_MINUS)] =
+          em->mkVar(std::string("setminus") + elementTypeAsString,
+                    em->mkFunctionType(t_t, t));
 
       if(!enableAxioms)
         sout << "(define-fun member" << elementTypeAsString << "          "
              << " ( (x " << elementType << ")" << " (s " << name << "))"
              << " Bool"
              << " (select s x) )" << endl;
-      setoperators[ make_pair(t, kind::MEMBER) ] =
-        em->mkVar( std::string("member") + elementTypeAsString,
-                   em->mkPredicateType( elet_t ) );
+      setoperators[make_pair(t, kind::SET_MEMBER)] =
+          em->mkVar(std::string("member") + elementTypeAsString,
+                    em->mkPredicateType(elet_t));
 
       if(!enableAxioms)
         sout << "(define-fun subset" << elementTypeAsString << "    "
              << " ( (s1 " << name << ") (s2 " << name << ") )"
              << " Bool"
              <<" (= emptyset" << elementTypeAsString << " (setminus" << elementTypeAsString << " s1 s2)) )" << endl;
-      setoperators[ make_pair(t, kind::SUBSET) ] =
-        em->mkVar( std::string("subset") + elementTypeAsString,
-                   em->mkPredicateType( t_t ) );
+      setoperators[make_pair(t, kind::SET_SUBSET)] =
+          em->mkVar(std::string("subset") + elementTypeAsString,
+                    em->mkPredicateType(t_t));
 
       if(enableAxioms) {
         int N = sizeof(setaxioms) / sizeof(setaxioms[0]);
@@ -193,9 +192,12 @@ class Mapper {
 
     }
     Expr ret;
-    if(e.getKind() == kind::EMPTYSET) {
+    if (e.getKind() == kind::SET_EMPTY)
+    {
       ret = setoperators[ make_pair(t, e.getKind()) ];
-    } else {
+    }
+    else
+    {
       vector<Expr> children = e.getChildren();
       children.insert(children.begin(), setoperators[ make_pair(t, e.getKind()) ]);
       ret = em->mkExpr(kind::APPLY_UF, children);

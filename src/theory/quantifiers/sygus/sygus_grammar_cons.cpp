@@ -21,6 +21,7 @@
 #include "expr/ascription_type.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -34,6 +35,7 @@
 #include "theory/strings/word.h"
 #include "util/floatingpoint.h"
 #include "util/string.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace cvc5::kind;
 
@@ -41,9 +43,10 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-CegGrammarConstructor::CegGrammarConstructor(TermDbSygus* tds,
+CegGrammarConstructor::CegGrammarConstructor(Env& env,
+                                             TermDbSygus* tds,
                                              SynthConjecture* p)
-    : d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
+    : EnvObj(env), d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
 {
 }
 
@@ -64,6 +67,7 @@ bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
 void CegGrammarConstructor::collectTerms(
     Node n, std::map<TypeNode, std::unordered_set<Node>>& consts)
 {
+  NodeManager * nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool> visited;
   std::unordered_map<TNode, bool>::iterator it;
   std::stack<TNode> visit;
@@ -80,11 +84,13 @@ void CegGrammarConstructor::collectTerms(
         TypeNode tn = cur.getType();
         Node c = cur;
         if( tn.isReal() ){
-          c = NodeManager::currentNM()->mkConst( c.getConst<Rational>().abs() );
+          c = nm->mkConst(CONST_RATIONAL, c.getConst<Rational>().abs());
         }
-        if( std::find( consts[tn].begin(), consts[tn].end(), c )==consts[tn].end() ){
-          Trace("cegqi-debug") << "...consider const : " << c << std::endl;
-          consts[tn].insert(c);
+        consts[tn].insert(c);
+        if (tn.isInteger())
+        {
+          TypeNode rtype = nm->realType();
+          consts[rtype].insert(c);
         }
       }
       // recurse
@@ -104,7 +110,8 @@ Node CegGrammarConstructor::process(Node q,
   Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
                  << std::endl;
   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
-  if( options::sygusAddConstGrammar() ){
+  if (options().quantifiers.sygusAddConstGrammar)
+  {
     Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
     collectTerms( q[1], extra_cons );
   }
@@ -167,6 +174,14 @@ Node CegGrammarConstructor::process(Node q,
                               exc_cons,
                               inc_cons,
                               term_irlv);
+      // print the grammar
+      if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
+      {
+        output(OutputTag::SYGUS_GRAMMAR)
+            << "(sygus-grammar " << ss.str()
+            << printer::smt2::Smt2Printer::sygusGrammarString(tn) << ")"
+            << std::endl;
+      }
     }
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "
@@ -180,7 +195,8 @@ Node CegGrammarConstructor::process(Node q,
       TNode templ_arg = itta->second;
       Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of it
-      if( options::sygusTemplEmbedGrammar() ){
+      if (options().quantifiers.sygusTemplEmbedGrammar)
+      {
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
                              << " with arg " << templ_arg << std::endl;
         Trace("cegqi-debug") << "  embed this template as a grammar..." << std::endl;
@@ -228,7 +244,7 @@ Node CegGrammarConstructor::process(Node q,
       Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of
       // it
-      if (!options::sygusTemplEmbedGrammar())
+      if (!options().quantifiers.sygusTemplEmbedGrammar)
       {
         // otherwise, apply it as a preprocessing pass
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
@@ -269,7 +285,7 @@ Node CegGrammarConstructor::process(Node q,
   qchildren.push_back(nm->mkNode(kind::BOUND_VAR_LIST, ebvl));
   if( qbody_subs!=q[1] ){
     Trace("cegqi") << "...rewriting : " << qbody_subs << std::endl;
-    qbody_subs = Rewriter::rewrite( qbody_subs );
+    qbody_subs = rewrite(qbody_subs);
     Trace("cegqi") << "...got : " << qbody_subs << std::endl;
   }
   qchildren.push_back(convertToEmbedding(qbody_subs));
@@ -393,8 +409,8 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   NodeManager* nm = NodeManager::currentNM();
   if (type.isReal())
   {
-    ops.push_back(nm->mkConst(Rational(0)));
-    ops.push_back(nm->mkConst(Rational(1)));
+    ops.push_back(nm->mkConst(CONST_RATIONAL, Rational(0)));
+    ops.push_back(nm->mkConst(CONST_RATIONAL, Rational(1)));
   }
   else if (type.isBitVector())
   {
@@ -539,7 +555,7 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
   Assert(bArgType.isReal() || bArgType.isBitVector());
   if (bArgType.isReal())
   {
-    zarg = nm->mkConst(Rational(0));
+    zarg = nm->mkConst(CONST_RATIONAL, Rational(0));
   }
   else
   {
@@ -782,7 +798,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         /* Add operator 1 */
         Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
         std::vector<TypeNode> cargsEmpty;
-        sdts.back().addConstructor(nm->mkConst(Rational(1)), "1", cargsEmpty);
+        sdts.back().addConstructor(
+            nm->mkConst(CONST_RATIONAL, Rational(1)), "1", cargsEmpty);
         /* Add operator PLUS */
         Kind kind = PLUS;
         Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
@@ -974,7 +991,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sdts[i].addConstructor(lambda, "singleton", cargsSingleton);
 
       // add for union, difference, intersection
-      std::vector<Kind> bin_kinds = {UNION, INTERSECTION, SETMINUS};
+      std::vector<Kind> bin_kinds = {SET_UNION, SET_INTER, SET_MINUS};
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(unres_t);
       cargsBinary.push_back(unres_t);
@@ -1440,8 +1457,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsMember;
       cargsMember.push_back(unresElemType);
       cargsMember.push_back(unres_types[iuse]);
-      Trace("sygus-grammar-def") << "...for MEMBER" << std::endl;
-      sdtBool.addConstructor(MEMBER, cargsMember);
+      Trace("sygus-grammar-def") << "...for SET_MEMBER" << std::endl;
+      sdtBool.addConstructor(SET_MEMBER, cargsMember);
     }
   }
   // add Boolean connectives, if not in a degenerate case of (recursively)

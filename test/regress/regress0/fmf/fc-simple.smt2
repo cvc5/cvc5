@@ -6,7 +6,7 @@
 (declare-fun a () U)
 (declare-fun c () U)
 
-(assert (fmf.card c 2))
-(assert (not (fmf.card a 4)))
+(assert (_ fmf.card U 2))
+(assert (not (_ fmf.card U 4)))
 
 (check-sat)

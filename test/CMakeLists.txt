@@ -41,8 +41,3 @@ add_subdirectory(api EXCLUDE_FROM_ALL)
 if(ENABLE_UNIT_TESTING)
   add_subdirectory(unit EXCLUDE_FROM_ALL)
 endif()
-
-# add Python bindings tests if building with Python bindings
-if (BUILD_BINDINGS_PYTHON)
-  add_subdirectory(python)
-endif()

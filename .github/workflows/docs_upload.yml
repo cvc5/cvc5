@@ -78,7 +78,7 @@ jobs:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
           if [ -n "$NAME" ]; then
-            mv docs-new target/docs-$NAME-$HASH
+            cp -r docs-new target/docs-$NAME-$HASH
             cd target/
 
             isdiff=$(diff -r -x "*.zip" docs-master/ docs-$NAME-$HASH >&2; echo $?; exit 0)
@@ -97,6 +97,24 @@ jobs:
 
               git push
             fi
+          else
+            echo "Ignored run"
+          fi
+
+      - name: Update docs for release
+        continue-on-error: true
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          if [ "$ISTAG" = true ]; then
+            git clone git@github.com:cvc5/docs-releases.git target-releases/
+            cp -r docs-new target-releases/$NAME
+            cd target-releases/
+
+            git add $NAME
+
+            git commit -m "Update docs for $NAME"
+            git push
           else
             echo "Ignored run"
           fi

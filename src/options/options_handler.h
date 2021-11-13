@@ -130,12 +130,6 @@ class OptionsHandler
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& flag);
 
-  /******************************* smt options *******************************/
-  /** Set a mode on the dumping output stream. */
-  void setDumpMode(const std::string& flag, const std::string& optarg);
-  /** Set the dumping output stream. */
-  void setDumpStream(const std::string& flag, const ManagedOut& mo);
-
  private:
   /** Pointer to the containing Options object.*/
   Options* d_options;

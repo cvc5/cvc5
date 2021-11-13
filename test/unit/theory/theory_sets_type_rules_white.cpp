@@ -19,10 +19,9 @@
 #include "theory/sets/singleton_op.h"
 #include "util/rational.h"
 
-namespace cvc5 {
-
 using namespace cvc5::api;
 
+namespace cvc5 {
 namespace test {
 
 class TestTheoryWhiteSetsTypeRuleApi : public TestApi
@@ -49,27 +48,28 @@ TEST_F(TestTheoryWhiteSetsTypeRuleApi, singleton_term)
   Term emptyReal = d_solver.mkEmptySet(d_solver.mkSetSort(realSort));
   Term integerOne = d_solver.mkInteger(1);
   Term realOne = d_solver.mkReal(1);
-  Term singletonInt = d_solver.mkTerm(api::SINGLETON, integerOne);
-  Term singletonReal = d_solver.mkTerm(api::SINGLETON, realOne);
+  Term singletonInt = d_solver.mkTerm(api::SET_SINGLETON, integerOne);
+  Term singletonReal = d_solver.mkTerm(api::SET_SINGLETON, realOne);
   // (union
   //    (singleton (singleton_op Int) 1)
   //    (as emptyset (Set Real)))
-  ASSERT_THROW(d_solver.mkTerm(UNION, singletonInt, emptyReal),
+  ASSERT_THROW(d_solver.mkTerm(SET_UNION, singletonInt, emptyReal),
                CVC5ApiException);
   // (union
   //    (singleton (singleton_op Real) 1)
   //    (as emptyset (Set Real)))
-  ASSERT_NO_THROW(d_solver.mkTerm(UNION, singletonReal, emptyReal));
+  ASSERT_NO_THROW(d_solver.mkTerm(SET_UNION, singletonReal, emptyReal));
 }
 
 TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
 {
   Node singletonInt =
-      d_nodeManager->mkConst(SingletonOp(d_nodeManager->integerType()));
+      d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->integerType()));
   Node singletonReal =
-      d_nodeManager->mkConst(SingletonOp(d_nodeManager->realType()));
-  Node intConstant = d_nodeManager->mkConst(Rational(1));
-  Node realConstant = d_nodeManager->mkConst(Rational(1, 5));
+      d_nodeManager->mkConst(SetSingletonOp(d_nodeManager->realType()));
+  Node intConstant = d_nodeManager->mkConst(kind::CONST_RATIONAL, Rational(1));
+  Node realConstant =
+      d_nodeManager->mkConst(kind::CONST_RATIONAL, Rational(1, 5));
   // (singleton (singleton_op Real) 1)
   ASSERT_NO_THROW(
       d_nodeManager->mkSingleton(d_nodeManager->realType(), intConstant));

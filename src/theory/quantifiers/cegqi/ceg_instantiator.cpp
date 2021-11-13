@@ -138,7 +138,8 @@ void TermProperties::composeProperty(TermProperties& p)
   else
   {
     NodeManager* nm = NodeManager::currentNM();
-    d_coeff = nm->mkConst(Rational(d_coeff.getConst<Rational>()
+    d_coeff = nm->mkConst(CONST_RATIONAL,
+                          Rational(d_coeff.getConst<Rational>()
                                    * p.d_coeff.getConst<Rational>()));
   }
 }
@@ -165,7 +166,8 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
     Assert(new_theta.getKind() == CONST_RATIONAL);
     Assert(pv_prop.d_coeff.getKind() == CONST_RATIONAL);
     NodeManager* nm = NodeManager::currentNM();
-    new_theta = nm->mkConst(Rational(new_theta.getConst<Rational>()
+    new_theta = nm->mkConst(CONST_RATIONAL,
+                            Rational(new_theta.getConst<Rational>()
                                      * pv_prop.d_coeff.getConst<Rational>()));
   }
   d_theta.push_back(new_theta);
@@ -629,7 +631,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     // - the instantiator uses model values at this effort or
     //   if we are solving for a subfield of a datatype (is_sv), and
     // - the instantiator allows model values.
-    if ((options::cegqiMultiInst() || !hasTriedInstantiation(pv))
+    if ((options().quantifiers.cegqiMultiInst || !hasTriedInstantiation(pv))
         && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
@@ -677,7 +679,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                            << "], rep=" << pvr << ", instantiator is "
                            << vinst->identify() << std::endl;
   Node pv_value;
-  if (options::cegqiModel())
+  if (options().quantifiers.cegqiModel)
   {
     pv_value = getModelValue(pv);
     Trace("cegqi-bound2") << "...M( " << pv << " ) = " << pv_value << std::endl;
@@ -730,7 +732,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
               {
                 return true;
               }
-              else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
+              else if (!options().quantifiers.cegqiMultiInst
+                       && hasTriedInstantiation(pv))
               {
                 return false;
               }
@@ -746,7 +749,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       {
         return true;
       }
-      else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
+      else if (!options().quantifiers.cegqiMultiInst
+               && hasTriedInstantiation(pv))
       {
         return false;
       }
@@ -817,7 +821,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                 {
                   return true;
                 }
-                else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
+                else if (!options().quantifiers.cegqiMultiInst
+                         && hasTriedInstantiation(pv))
                 {
                   return false;
                 }
@@ -866,7 +871,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
         {
           lits.insert(lit);
           Node plit;
-          if (options::cegqiRepeatLit() || !isSolvedAssertion(lit))
+          if (options().quantifiers.cegqiRepeatLit || !isSolvedAssertion(lit))
           {
             plit = vinst->hasProcessAssertion(this, sf, pv, lit, d_effort);
           }
@@ -892,7 +897,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
                 {
                   return true;
                 }
-                else if (!options::cegqiMultiInst() && hasTriedInstantiation(pv))
+                else if (!options().quantifiers.cegqiMultiInst
+                         && hasTriedInstantiation(pv))
                 {
                   return false;
                 }
@@ -1072,7 +1078,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node n = it->second;
       Trace("cegqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
                                << std::endl;
-      Assert(n.getType().isSubtypeOf(d_input_vars[i].getType()));
+      Assert(n.getType().isComparableTo(d_input_vars[i].getType()));
       subs.push_back( n );
     }
   }
@@ -1084,7 +1090,7 @@ bool CegInstantiator::doAddInstantiation(std::vector<Node>& vars,
       Node v = d_input_vars[i];
       Trace("cegqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
                          << v << " -> " << subs[i] << std::endl;
-      Assert(subs[i].getType().isSubtypeOf(v.getType()));
+      Assert(subs[i].getType().isComparableTo(v.getType()));
     }
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
@@ -1147,7 +1153,12 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
         if( !prop[i].d_coeff.isNull() ){
           Assert(vars[i].getType().isInteger());
           Assert(prop[i].d_coeff.isConst());
-          Node nn = NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/prop[i].d_coeff.getConst<Rational>() ) );
+          Node nn = NodeManager::currentNM()->mkNode(
+              MULT,
+              subs[i],
+              NodeManager::currentNM()->mkConst(
+                  CONST_RATIONAL,
+                  Rational(1) / prop[i].d_coeff.getConst<Rational>()));
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
           nn = rewrite(nn);
           nsubs.push_back( nn );
@@ -1195,8 +1206,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             Node c_coeff;
             if( !msum_coeff[it->first].isNull() ){
               c_coeff = rewrite(NodeManager::currentNM()->mkConst(
+                  CONST_RATIONAL,
                   pv_prop.d_coeff.getConst<Rational>()
-                  / msum_coeff[it->first].getConst<Rational>()));
+                      / msum_coeff[it->first].getConst<Rational>()));
             }else{
               c_coeff = pv_prop.d_coeff;
             }
@@ -1260,7 +1272,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
       }else{
         atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
         atom_lhs = rewrite(atom_lhs);
-        atom_rhs = nm->mkConst(Rational(0));
+        atom_rhs = nm->mkConst(CONST_RATIONAL, Rational(0));
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){

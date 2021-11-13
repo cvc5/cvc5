@@ -43,10 +43,13 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
       d_range(r),
       d_ranges_proxied(userContext())
 {
-  if( options::fmfBoundLazy() ){
+  if (options().quantifiers.fmfBoundLazy)
+  {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     d_proxy_range = isProxy ? r : sm->mkDummySkolem("pbir", r.getType());
-  }else{
+  }
+  else
+  {
     d_proxy_range = r;
   }
   if( !isProxy ){
@@ -56,7 +59,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
 Node BoundedIntegers::IntRangeDecisionHeuristic::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node cn = nm->mkConst(Rational(n == 0 ? 0 : n - 1));
+  Node cn = nm->mkConst(CONST_RATIONAL, Rational(n == 0 ? 0 : n - 1));
   return nm->mkNode(n == 0 ? LT : LEQ, d_proxy_range, cn);
 }
 
@@ -78,12 +81,13 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   d_ranges_proxied[curr] = true;
   NodeManager* nm = NodeManager::currentNM();
   Node currLit = getLiteral(curr);
-  Node lem =
-      nm->mkNode(EQUAL,
-                 currLit,
-                 nm->mkNode(curr == 0 ? LT : LEQ,
-                            d_range,
-                            nm->mkConst(Rational(curr == 0 ? 0 : curr - 1))));
+  Node lem = nm->mkNode(
+      EQUAL,
+      currLit,
+      nm->mkNode(
+          curr == 0 ? LT : LEQ,
+          d_range,
+          nm->mkConst(CONST_RATIONAL, Rational(curr == 0 ? 0 : curr - 1))));
   return lem;
 }
 
@@ -260,7 +264,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
         }
       }
     }
-  }else if( n.getKind()==MEMBER ){
+  }
+  else if (n.getKind() == SET_MEMBER)
+  {
     if( !pol && !hasNonBoundVar( q, n[1] ) ){
       std::vector< Node > bound_vars;
       std::map< Node, bool > visited;
@@ -273,7 +279,9 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
         bound_lit_pol_map[2][v] = pol;
       }
     }
-  }else{
+  }
+  else
+  {
     Assert(n.getKind() != LEQ && n.getKind() != LT && n.getKind() != GT);
   }
 }
@@ -319,7 +327,7 @@ void BoundedIntegers::checkOwnership(Node f)
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
 
   // determine if we should look at the quantified formula at all
-  if (!options::fmfBound())
+  if (!options().quantifiers.fmfBound)
   {
     // only applying it to internal quantifiers
     QuantAttributes& qattr = d_qreg.getQuantAttributes();
@@ -376,7 +384,7 @@ void BoundedIntegers::checkOwnership(Node f)
             setBoundVar = true;
             d_setm_range[f][v] = bound_lit_map[2][v][1];
             d_setm_range_lit[f][v] = bound_lit_map[2][v];
-            d_range[f][v] = nm->mkNode(CARD, d_setm_range[f][v]);
+            d_range[f][v] = nm->mkNode(SET_CARD, d_setm_range[f][v]);
             Trace("bound-int") << "Variable " << v
                                << " is bound because of set membership literal "
                                << bound_lit_map[2][v] << std::endl;
@@ -650,7 +658,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     return Node::null();
   }
   Trace("bound-int-rsi") << "Value is " << sr << std::endl;
-  if (sr.getKind() == EMPTYSET)
+  if (sr.getKind() == SET_EMPTY)
   {
     return sr;
   }
@@ -660,17 +668,17 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
 
   // we can use choice functions for canonical symbolic instantiations
   unsigned srCard = 0;
-  while (sr.getKind() == UNION)
+  while (sr.getKind() == SET_UNION)
   {
     srCard++;
     sr = sr[0];
   }
-  Assert(sr.getKind() == SINGLETON);
+  Assert(sr.getKind() == SET_SINGLETON);
   srCard++;
   // choices[i] stores the canonical symbolic representation of the (i+1)^th
   // element of sro
   std::vector<Node> choices;
-  Node srCardN = nm->mkNode(CARD, sro);
+  Node srCardN = nm->mkNode(SET_CARD, sro);
   Node choice_i;
   for (unsigned i = 0; i < srCard; i++)
   {
@@ -678,14 +686,15 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     {
       choice_i = nm->mkBoundVar(tne);
       choices.push_back(choice_i);
-      Node cBody = nm->mkNode(MEMBER, choice_i, sro);
+      Node cBody = nm->mkNode(SET_MEMBER, choice_i, sro);
       if (choices.size() > 1)
       {
         cBody = nm->mkNode(AND, cBody, nm->mkNode(DISTINCT, choices));
       }
       choices.pop_back();
       Node bvl = nm->mkNode(BOUND_VAR_LIST, choice_i);
-      Node cMinCard = nm->mkNode(LEQ, srCardN, nm->mkConst(Rational(i)));
+      Node cMinCard =
+          nm->mkNode(LEQ, srCardN, nm->mkConst(CONST_RATIONAL, Rational(i)));
       choice_i = nm->mkNode(WITNESS, bvl, nm->mkNode(OR, cMinCard, cBody));
       d_setm_choice[sro].push_back(choice_i);
     }
@@ -699,7 +708,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     }
     else
     {
-      nsr = nm->mkNode(UNION, nsr, sChoiceI);
+      nsr = nm->mkNode(SET_UNION, nsr, sChoiceI);
     }
   }
   // turns the concrete model value of sro into a canonical representation
@@ -809,7 +818,8 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node range = rewrite(nm->mkNode(MINUS, u, l));
         // 9999 is an arbitrary range past which we do not do exhaustive
         // bounded instantation, based on the check below.
-        Node ra = rewrite(nm->mkNode(LEQ, range, nm->mkConst(Rational(9999))));
+        Node ra = rewrite(nm->mkNode(
+            LEQ, range, nm->mkConst(CONST_RATIONAL, Rational(9999))));
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
@@ -820,7 +830,8 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for (long k = 0; k < rr; k++)
           {
-            Node t = nm->mkNode(PLUS, tl, nm->mkConst(Rational(k)));
+            Node t =
+                nm->mkNode(PLUS, tl, nm->mkConst(CONST_RATIONAL, Rational(k)));
             t = rewrite(t);
             elements.push_back( t );
           }
@@ -837,14 +848,16 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         return false;
       }else{
         Trace("bound-int-rsi") << "Bounded by set membership : " << srv << std::endl;
-        if( srv.getKind()!=EMPTYSET ){
+        if (srv.getKind() != SET_EMPTY)
+        {
           //collect the elements
-          while( srv.getKind()==UNION ){
-            Assert(srv[1].getKind() == kind::SINGLETON);
+          while (srv.getKind() == SET_UNION)
+          {
+            Assert(srv[1].getKind() == kind::SET_SINGLETON);
             elements.push_back( srv[1][0] );
             srv = srv[0];
           }
-          Assert(srv.getKind() == kind::SINGLETON);
+          Assert(srv.getKind() == kind::SET_SINGLETON);
           elements.push_back( srv[0] );
           //check if we need to do matching, for literals like ( tuple( v ) in S )
           Node t = d_setm_range_lit[q][v][0];

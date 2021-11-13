@@ -604,8 +604,9 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     if (lr.isConst())
     {
       // if constant, compare
-      Node cmp = nm->mkNode(GEQ, lr, nm->mkConst(Rational(card_need)));
-      cmp = Rewriter::rewrite(cmp);
+      Node cmp =
+          nm->mkNode(GEQ, lr, nm->mkConst(CONST_RATIONAL, Rational(card_need)));
+      cmp = rewrite(cmp);
       needsSplit = !cmp.getConst<bool>();
     }
     else
@@ -618,7 +619,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       bool success = true;
       while (r < card_need && success)
       {
-        Node rr = nm->mkConst(Rational(r));
+        Node rr = nm->mkConst(CONST_RATIONAL, Rational(r));
         if (d_state.areDisequal(rr, lr))
         {
           r++;
@@ -668,7 +669,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
                           << std::endl;
     if (int_k + 1 > ei->d_cardinalityLemK.get())
     {
-      Node k_node = nm->mkConst(Rational(int_k));
+      Node k_node = nm->mkConst(CONST_RATIONAL, Rational(int_k));
       // add cardinality lemma
       Node dist = nm->mkNode(DISTINCT, cols[i]);
       std::vector<Node> expn;
@@ -686,7 +687,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       }
       Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
       Node cons = nm->mkNode(GEQ, len, k_node);
-      cons = Rewriter::rewrite(cons);
+      cons = rewrite(cons);
       ei->d_cardinalityLemK.set(int_k + 1);
       if (!cons.isConst() || !cons.getConst<bool>())
       {

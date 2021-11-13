@@ -69,7 +69,7 @@ void DifficultyPostprocessCallback::getDifficultyMap(
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t>& d : d_accMap)
   {
-    dmap[d.first] = nm->mkConst(Rational(d.second));
+    dmap[d.first] = nm->mkConst(CONST_RATIONAL, Rational(d.second));
   }
 }
 

@@ -18,8 +18,11 @@
 #include "expr/node_algorithm.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_algorithm.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
+
+using namespace cvc5::kind;
 
 namespace cvc5 {
 
@@ -157,7 +160,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  VP1             VP2_1  ...  VP2_n
     // ------------------------------------ RESOLUTION
     //               VP2a
-    // ------------------------------------ REORDER
+    // ------------------------------------ REORDERING
     //  VP2b
     // ------ DUPLICATED_LITERALS   ------- IMPLIES_NEG1
     //   VP3                          VP4
@@ -254,7 +257,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         notAnd.push_back(children[0]);     //(cl (not (and F1 ... Fn))^n F)
         Node vp2b = nm->mkNode(kind::SEXPR, notAnd);
         success &=
-            addAletheStep(AletheRule::REORDER, vp2b, vp2b, {vp2a}, {}, *cdp);
+            addAletheStep(AletheRule::REORDERING, vp2b, vp2b, {vp2a}, {}, *cdp);
 
         vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
         success &= addAletheStep(
@@ -402,7 +405,7 @@ bool AletheProofPostprocessCallback::update(Node res,
               vrule = AletheRule::DIV_SIMPLIFY;
               break;
             }
-            case kind::PRODUCT:
+            case kind::RELATION_PRODUCT:
             {
               vrule = AletheRule::PROD_SIMPLIFY;
               break;
@@ -455,7 +458,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                    res,
                                    nm->mkNode(kind::SEXPR, d_cl, res),
                                    children,
-                                   {nm->mkConst(Rational(1))},
+                                   {nm->mkConst(CONST_RATIONAL, Rational(1))},
                                    *cdp);
             }
             default:
@@ -621,100 +624,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
 
-      // If res is not an or node, then it's necessarily a singleton clause.
-      bool isSingletonClause = res.getKind() != kind::OR;
-      // Otherwise, we need to determine if res, which is of the form (or t1 ...
-      // tn), corresponds to the clause (cl t1 ... tn) or to (cl (OR t1 ...
-      // tn)). The only way in which the latter can happen is if res occurs as a
-      // child in one of the premises, and is not eliminated afterwards. So we
-      // search for res as a subterm of some children, which would mark its last
-      // insertion into the resolution result. If res does not occur as the
-      // pivot to be eliminated in a subsequent premise, then, and only then, it
-      // is a singleton clause.
-      if (!isSingletonClause)
-      {
-        size_t i;
-        // Find out the last child to introduced res, if any. We only need to
-        // look at the last one because any previous introduction would have
-        // been eliminated.
-        //
-        // After the loop finishes i is the index of the child C_i that
-        // introduced res. If i=0 none of the children introduced res as a
-        // subterm and therefore it cannot be a singleton clause.
-        for (i = children.size(); i > 0; --i)
-        {
-          // only non-singleton clauses may be introducing
-          // res, so we only care about non-singleton or nodes. We check then
-          // against the kind and whether the whole or node occurs as a pivot of
-          // the respective resolution
-          if (children[i - 1].getKind() != kind::OR)
-          {
-            continue;
-          }
-          size_t pivotIndex = (i != 1) ? 2 * (i - 1) - 1 : 1;
-          if (args[pivotIndex] == children[i - 1]
-              || args[pivotIndex].notNode() == children[i - 1])
-          {
-            continue;
-          }
-          // if res occurs as a subterm of a non-singleton premise
-          if (std::find(children[i - 1].begin(), children[i - 1].end(), res)
-              != children[i - 1].end())
-          {
-            break;
-          }
-        }
-
-        // If res is a subterm of one of the children we still need to check if
-        // that subterm is eliminated
-        if (i > 0)
-        {
-          bool posFirst = (i == 1) ? (args[0] == trueNode)
-                                   : (args[(2 * (i - 1)) - 2] == trueNode);
-          Node pivot = (i == 1) ? args[1] : args[(2 * (i - 1)) - 1];
-
-          // Check if it is eliminated by the previous resolution step
-          if ((res == pivot && !posFirst)
-              || (res.notNode() == pivot && posFirst)
-              || (pivot.notNode() == res && posFirst))
-          {
-            // We decrease i by one, since it could have been the case that i
-            // was equal to children.size(), so that isSingletonClause is set to
-            // false
-            --i;
-          }
-          else
-          {
-            // Otherwise check if any subsequent premise eliminates it
-            for (; i < children.size(); ++i)
-            {
-              posFirst = args[(2 * i) - 2] == trueNode;
-              pivot = args[(2 * i) - 1];
-              // To eliminate res, the clause must contain it with opposite
-              // polarity. There are three successful cases, according to the
-              // pivot and its sign
-              //
-              // - res is the same as the pivot and posFirst is true, which
-              // means that the clause contains its negation and eliminates it
-              //
-              // - res is the negation of the pivot and posFirst is false, so
-              // the clause contains the node whose negation is res. Note that
-              // this case may either be res.notNode() == pivot or res ==
-              // pivot.notNode().
-              if ((res == pivot && posFirst)
-                  || (res.notNode() == pivot && !posFirst)
-                  || (pivot.notNode() == res && !posFirst))
-              {
-                break;
-              }
-            }
-          }
-        }
-        // if not eliminated (loop went to the end), then it's a singleton
-        // clause
-        isSingletonClause = i == children.size();
-      }
-      if (!isSingletonClause)
+      if (!expr::isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
             AletheRule::RESOLUTION, res, new_children, {}, *cdp);
@@ -759,6 +669,13 @@ bool AletheProofPostprocessCallback::update(Node res,
                            children,
                            {},
                            *cdp);
+    }
+    // ======== Reordering
+    // This rule is translated according to the clause pattern.
+    case PfRule::REORDERING:
+    {
+      return addAletheStepFromOr(
+          AletheRule::REORDERING, res, children, {}, *cdp);
     }
     // ======== Split
     // See proof_rule.h for documentation on the SPLIT rule. This comment
@@ -909,6 +826,656 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    // ======== Double negation elimination
+    // See proof_rule.h for documentation on the NOT_NOT_ELIM rule. This comment
+    // uses variable names as introduced there.
+    //
+    // ---------------------------------- NOT_NOT
+    //  (VP1:(cl (not (not (not F))) F))           (P:(not (not F)))
+    // ------------------------------------------------------------- RESOLUTION
+    //                            (cl F)*
+    //
+    // * the corresponding proof node is F
+    case PfRule::NOT_NOT_ELIM:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+
+      return addAletheStep(AletheRule::NOT_NOT, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp1, children[0]},
+                              {},
+                              *cdp);
+    }
+    // ======== Contradiction
+    // See proof_rule.h for documentation on the CONTRA rule. This
+    // comment uses variable names as introduced there.
+    //
+    //  P1   P2
+    // --------- RESOLUTION
+    //   (cl)*
+    //
+    // * the corresponding proof node is false
+    case PfRule::CONTRA:
+    {
+      return addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== And elimination
+    // This rule is translated according to the singleton pattern.
+    case PfRule::AND_ELIM:
+    {
+      return addAletheStep(AletheRule::AND,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== And introduction
+    // See proof_rule.h for documentation on the AND_INTRO rule. This
+    // comment uses variable names as introduced there.
+    //
+    //
+    // ----- AND_NEG
+    //  VP1            P1 ... Pn
+    // -------------------------- RESOLUTION
+    //   (cl (and F1 ... Fn))*
+    //
+    // VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn))
+    //
+    // * the corresponding proof node is (and F1 ... Fn)
+    case PfRule::AND_INTRO:
+    {
+      std::vector<Node> neg_Nodes = {d_cl,res};
+      for (size_t i = 0, size = children.size(); i < size; i++)
+      {
+        neg_Nodes.push_back(children[i].notNode());
+      }
+      Node vp1 = nm->mkNode(kind::SEXPR, neg_Nodes);
+
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+
+      return addAletheStep(AletheRule::AND_NEG, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
+    // ======== Not Or elimination
+    // This rule is translated according to the singleton pattern.
+    case PfRule::NOT_OR_ELIM:
+    {
+      return addAletheStep(AletheRule::NOT_OR,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Implication elimination
+    // This rule is translated according to the clause pattern.
+    case PfRule::IMPLIES_ELIM:
+    {
+      return addAletheStepFromOr(AletheRule::IMPLIES, res, children, {}, *cdp);
+    }
+    // ======== Not Implication elimination version 1
+    // This rule is translated according to the singleton pattern.
+    case PfRule::NOT_IMPLIES_ELIM1:
+    {
+      return addAletheStep(AletheRule::NOT_IMPLIES1,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Not Implication elimination version 2
+    // This rule is translated according to the singleton pattern.
+    case PfRule::NOT_IMPLIES_ELIM2:
+    {
+      return addAletheStep(AletheRule::NOT_IMPLIES2,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Various elimination rules
+    // The following rules are all translated according to the clause pattern.
+    case PfRule::EQUIV_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::EQUIV1, res, children, {}, *cdp);
+    }
+    case PfRule::EQUIV_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::EQUIV2, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_EQUIV_ELIM1:
+    {
+      return addAletheStepFromOr(
+          AletheRule::NOT_EQUIV1, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_EQUIV_ELIM2:
+    {
+      return addAletheStepFromOr(
+          AletheRule::NOT_EQUIV2, res, children, {}, *cdp);
+    }
+    case PfRule::XOR_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::XOR1, res, children, {}, *cdp);
+    }
+    case PfRule::XOR_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::XOR2, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_XOR_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_XOR1, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_XOR_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_XOR2, res, children, {}, *cdp);
+    }
+    case PfRule::ITE_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::ITE2, res, children, {}, *cdp);
+    }
+    case PfRule::ITE_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::ITE1, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_ITE_ELIM1:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_ITE2, res, children, {}, *cdp);
+    }
+    case PfRule::NOT_ITE_ELIM2:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_ITE1, res, children, {}, *cdp);
+    }
+    //================================================= De Morgan rules
+    // ======== Not And
+    // This rule is translated according to the clause pattern.
+    case PfRule::NOT_AND:
+    {
+      return addAletheStepFromOr(AletheRule::NOT_AND, res, children, {}, *cdp);
+    }
+
+    //================================================= CNF rules
+    // The following rules are all translated according to the clause pattern.
+    case PfRule::CNF_AND_POS:
+    {
+      return addAletheStepFromOr(AletheRule::AND_POS, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_AND_NEG:
+    {
+      return addAletheStepFromOr(AletheRule::AND_NEG, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_OR_POS:
+    {
+      return addAletheStepFromOr(AletheRule::OR_POS, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_OR_NEG:
+    {
+      return addAletheStepFromOr(AletheRule::OR_NEG, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_IMPLIES_POS:
+    {
+      return addAletheStepFromOr(
+          AletheRule::IMPLIES_POS, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_IMPLIES_NEG1:
+    {
+      return addAletheStepFromOr(
+          AletheRule::IMPLIES_NEG1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_IMPLIES_NEG2:
+    {
+      return addAletheStepFromOr(
+          AletheRule::IMPLIES_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_EQUIV_POS1:
+    {
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_POS2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_EQUIV_POS2:
+    {
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_POS1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_EQUIV_NEG1:
+    {
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_EQUIV_NEG2:
+    {
+      return addAletheStepFromOr(
+          AletheRule::EQUIV_NEG1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_XOR_POS1:
+    {
+      return addAletheStepFromOr(AletheRule::XOR_POS1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_XOR_POS2:
+    {
+      return addAletheStepFromOr(AletheRule::XOR_POS2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_XOR_NEG1:
+    {
+      return addAletheStepFromOr(AletheRule::XOR_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_XOR_NEG2:
+    {
+      return addAletheStepFromOr(AletheRule::XOR_NEG1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_ITE_POS1:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_POS2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_ITE_POS2:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_POS1, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_ITE_NEG1:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_NEG2, res, children, {}, *cdp);
+    }
+    case PfRule::CNF_ITE_NEG2:
+    {
+      return addAletheStepFromOr(AletheRule::ITE_NEG1, res, children, {}, *cdp);
+    }
+    // ======== CNF ITE Pos version 3
+    //
+    // ----- ITE_POS1            ----- ITE_POS2
+    //  VP1                       VP2
+    // ------------------------------- RESOLUTION
+    //             VP3
+    // ------------------------------- REORDERING
+    //             VP4
+    // ------------------------------- DUPLICATED_LITERALS
+    //  (cl (not (ite C F1 F2)) F1 F2)
+    //
+    // VP1: (cl (not (ite C F1 F2)) C F2)
+    // VP2: (cl (not (ite C F1 F2)) (not C) F1)
+    // VP3: (cl (not (ite C F1 F2)) F2 (not (ite C F1 F2)) F1)
+    // VP4: (cl (not (ite C F1 F2)) (not (ite C F1 F2)) F1 F2)
+    //
+    // * the corresponding proof node is (or (not (ite C F1 F2)) F1 F2)
+    case PfRule::CNF_ITE_POS3:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
+      Node vp2 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0].notNode(), res[1]});
+      Node vp3 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], res[2], res[0], res[1]});
+      Node vp4 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], res[0], res[1], res[2]});
+
+      return addAletheStep(AletheRule::ITE_POS1, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::ITE_POS2, vp2, vp2, {}, {}, *cdp)
+             && addAletheStep(
+                 AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
+             && addAletheStep(AletheRule::REORDERING, vp4, vp4, {vp3}, {}, *cdp)
+             && addAletheStepFromOr(
+                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
+    }
+    // ======== CNF ITE Neg version 3
+    //
+    // ----- ITE_NEG1            ----- ITE_NEG2
+    //  VP1                       VP2
+    // ------------------------------- RESOLUTION
+    //             VP3
+    // ------------------------------- REORDERING
+    //             VP4
+    // ------------------------------- DUPLICATED_LITERALS
+    //  (cl (ite C F1 F2) C (not F2))
+    //
+    // VP1: (cl (ite C F1 F2) C (not F2))
+    // VP2: (cl (ite C F1 F2) (not C) (not F1))
+    // VP3: (cl (ite C F1 F2) (not F2) (ite C F1 F2) (not F1))
+    // VP4: (cl (ite C F1 F2) (ite C F1 F2) (not F1) (not F2))
+    //
+    // * the corresponding proof node is (or (ite C F1 F2) C (not F2))
+    case PfRule::CNF_ITE_NEG3:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0], res[2]});
+      Node vp2 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], args[0][0].notNode(), res[1]});
+      Node vp3 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], res[2], res[0], res[1]});
+      Node vp4 =
+          nm->mkNode(kind::SEXPR, {d_cl, res[0], res[0], res[1], res[2]});
+
+      return addAletheStep(AletheRule::ITE_NEG1, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::ITE_NEG2, vp2, vp2, {}, {}, *cdp)
+             && addAletheStep(
+                 AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
+             && addAletheStep(AletheRule::REORDERING, vp4, vp4, {vp3}, {}, *cdp)
+             && addAletheStepFromOr(
+                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
+    }
+    //================================================= Equality rules
+    // The following rules are all translated according to the singleton
+    // pattern.
+    case PfRule::REFL:
+    {
+      return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    case PfRule::SYMM:
+    {
+      return addAletheStep(
+          res.getKind() == kind::NOT ? AletheRule::NOT_SYMM : AletheRule::SYMM,
+          res,
+          nm->mkNode(kind::SEXPR, d_cl, res),
+          children,
+          {},
+          *cdp);
+    }
+    case PfRule::TRANS:
+    {
+      return addAletheStep(AletheRule::TRANS,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== Congruence
+    // In the case that the kind of the function symbol f? is FORALL or
+    // EXISTS, the cong rule needs to be converted into a bind rule. The first
+    // n children will be refl rules, e.g. (= (v0 Int) (v0 Int)).
+    //
+    //  Let t1 = (BOUND_VARIABLE LIST (v1 A1) ... (vn An)) and s1 =
+    //  (BOUND_VARIABLE LIST (v1 A1) ... (vn vn)).
+    //
+    //  ----- REFL ... ----- REFL
+    //   VP1            VPn             P2
+    //  --------------------------------------- bind,
+    //                                          ((:= (v1 A1) v1) ...
+    //                                          (:= (vn An) vn))
+    //   (cl (= (forall ((v1 A1)...(vn An)) t2)
+    //   (forall ((v1 B1)...(vn Bn)) s2)))**
+    //
+    //  VPi: (cl (= vi vi))*
+    //
+    //  * the corresponding proof node is (or (= vi vi))
+    //
+    // Otherwise, the rule follows the singleton pattern, i.e.:
+    //
+    //    P1 ... Pn
+    //  -------------------------------------------------------- cong
+    //   (cl (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))**
+    //
+    // ** the corresponding proof node is (= (<kind> f? t1 ... tn) (<kind> f?
+    // s1 ... sn))
+    case PfRule::CONG:
+    {
+      if (res[0].isClosure())
+      {
+        std::vector<Node> vpis;
+        bool success = true;
+        for (size_t i = 0, size = children[0][0].getNumChildren(); i < size;
+             i++)
+        {
+          Node vpi = children[0][0][i].eqNode(children[0][1][i]);
+          new_args.push_back(vpi);
+          vpis.push_back(nm->mkNode(kind::SEXPR, d_cl, vpi));
+          success &= addAletheStep(AletheRule::REFL, vpi, vpi, {}, {}, *cdp);
+        }
+        vpis.push_back(children[1]);
+        return success
+               && addAletheStep(AletheRule::ANCHOR_BIND,
+                                res,
+                                nm->mkNode(kind::SEXPR, d_cl, res),
+                                vpis,
+                                new_args,
+                                *cdp);
+      }
+      return addAletheStep(AletheRule::CONG,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    // ======== True intro
+    //
+    // ------------------------------- EQUIV_SIMPLIFY
+    //  (VP1:(cl (= (= F true) F)))
+    // ------------------------------- EQUIV2
+    //  (VP2:(cl (= F true) (not F)))           P
+    // -------------------------------------------- RESOLUTION
+    //  (cl (= F true))*
+    //
+    // * the corresponding proof node is (= F true)
+    case PfRule::TRUE_INTRO:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV2, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
+    // ======== True elim
+    //
+    // ------------------------------- EQUIV_SIMPLIFY
+    //  (VP1:(cl (= (= F true) F)))
+    // ------------------------------- EQUIV1
+    //  (VP2:(cl (not (= F true)) F))           P
+    // -------------------------------------------- RESOLUTION
+    //  (cl F)*
+    //
+    // * the corresponding proof node is F
+    case PfRule::TRUE_ELIM:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
+    // ======== False intro
+    //
+    // ----- EQUIV_SIMPLIFY
+    //  VP1
+    // ----- EQUIV2     ----- NOT_NOT
+    //  VP2              VP3
+    // ---------------------- RESOLUTION
+    //          VP4                        P
+    // -------------------------------------- RESOLUTION
+    //          (cl (= F false))*
+    //
+    // VP1: (cl (= (= F false) (not F)))
+    // VP2: (cl (= F false) (not (not F)))
+    // VP3: (cl (not (not (not F))) F)
+    // VP4: (cl (= F false) F)
+    //
+    // * the corresponding proof node is (= F false)
+    case PfRule::FALSE_INTRO:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, res.eqNode(children[0]));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, res, children[0].notNode());
+      Node vp3 = nm->mkNode(
+          kind::SEXPR, d_cl, children[0].notNode().notNode(), children[0][0]);
+      Node vp4 = nm->mkNode(kind::SEXPR, d_cl, res, children[0][0]);
+
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV2, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::NOT_NOT, vp3, vp3, {}, {}, *cdp)
+             && addAletheStep(
+                 AletheRule::RESOLUTION, vp4, vp4, {vp2, vp3}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp4, children[0]},
+                              {},
+                              *cdp);
+    }
+    // ======== False elim
+    //
+    // ----- EQUIV_SIMPLIFY
+    //  VP1
+    // ----- EQUIV1
+    //  VP2                P
+    // ---------------------- RESOLUTION
+    //     (cl (not F))*
+    //
+    // VP1: (cl (= (= F false) (not F)))
+    // VP2: (cl (not (= F false)) (not F))
+    // VP3: (cl (not (not (not F))) F)
+    // VP4: (cl (= F false) F)
+    //
+    // * the corresponding proof node is (not F)
+    case PfRule::FALSE_ELIM:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].eqNode(res));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+
+      return addAletheStep(AletheRule::EQUIV_SIMPLIFY, vp1, vp1, {}, {}, *cdp)
+             && addAletheStep(AletheRule::EQUIV1, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
+    //================================================= Quantifiers rules
+    // ======== Instantiate
+    // See proof_rule.h for documentation on the INSTANTIATE rule. This
+    // comment uses variable names as introduced there.
+    //
+    // ----- FORALL_INST, (= x1 t1) ... (= xn tn)
+    //  VP1
+    // ----- OR
+    //  VP2              P
+    // -------------------- RESOLUTION
+    //     (cl F*sigma)^
+    //
+    // VP1: (cl (or (not (forall ((x1 T1) ... (xn Tn)) F*sigma)
+    // VP2: (cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
+    //
+    // ^ the corresponding proof node is F*sigma
+    case PfRule::INSTANTIATE:
+    {
+      for (size_t i = 0, size = children[0][0].getNumChildren(); i < size; i++)
+      {
+        new_args.push_back(children[0][0][i].eqNode(args[i]));
+      }
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::OR, children[0].notNode(), res));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+      return addAletheStep(
+                 AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
+    //================================================= Arithmetic rules
+    // ======== Adding Inequalities
+    //
+    // ----- LIA_GENERIC
+    //  VP1                P1 ... Pn
+    // ------------------------------- RESOLUTION
+    //  (cl (>< t1 t2))*
+    //
+    // VP1: (cl (not l1) ... (not ln) (>< t1 t2))
+    //
+    // * the corresponding proof node is (>< t1 t2)
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+    {
+      std::vector<Node> vp1s{d_cl};
+      for (const Node& child : children)
+      {
+        vp1s.push_back(child.notNode());
+      }
+      vp1s.push_back(res);
+      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+      return addAletheStep(AletheRule::LIA_GENERIC, vp1, vp1, {}, args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
+    // ======== Tightening Strict Integer Upper Bounds
+    //
+    // ----- LA_GENERIC, 1
+    //  VP1                      P
+    // ------------------------------------- RESOLUTION
+    //  (cl (<= i greatestIntLessThan(c)))*
+    //
+    // VP1: (cl (not (< i c)) (<= i greatestIntLessThan(c)))
+    //
+    // * the corresponding proof node is (<= i greatestIntLessThan(c))
+    case PfRule::INT_TIGHT_UB:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
+      std::vector<Node> new_children = {vp1, children[0]};
+      new_args.push_back(nm->mkConst<Rational>(CONST_RATIONAL, 1));
+      return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
+    // ======== Tightening Strict Integer Lower Bounds
+    //
+    // ----- LA_GENERIC, 1
+    //  VP1                      P
+    // ------------------------------------- RESOLUTION
+    //  (cl (>= i leastIntGreaterThan(c)))*
+    //
+    // VP1: (cl (not (> i c)) (>= i leastIntGreaterThan(c)))
+    //
+    // * the corresponding proof node is (>= i leastIntGreaterThan(c))
+    case PfRule::INT_TIGHT_LB:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
+      std::vector<Node> new_children = {vp1, children[0]};
+      new_args.push_back(nm->mkConst<Rational>(CONST_RATIONAL, 1));
+      return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
@@ -937,8 +1504,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
   }
 
   std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(
-      NodeManager::currentNM()->mkConst<Rational>(static_cast<unsigned>(rule)));
+  new_args.push_back(NodeManager::currentNM()->mkConst(
+      CONST_RATIONAL, Rational(static_cast<unsigned>(rule))));
   new_args.push_back(res);
   new_args.push_back(sanitized_conclusion);
   new_args.insert(new_args.end(), args.begin(), args.end());

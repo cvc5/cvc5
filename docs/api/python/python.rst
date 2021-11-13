@@ -1,5 +1,3 @@
-.. _python-api:
-
 Python API Documentation
 ========================
 
@@ -13,7 +11,6 @@ Python API Documentation
     :maxdepth: 1
 
     quickstart
-    solver
     datatype
     datatypeconstructor
     datatypeconstructordecl
@@ -23,4 +20,6 @@ Python API Documentation
     op
     result
     roundingmode
+    solver
+    sort
     unknownexplanation
