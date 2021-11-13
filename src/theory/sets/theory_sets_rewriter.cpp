@@ -648,7 +648,7 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
     }
     case SET_SINGLETON:
     {
-      // (set.map f (singleton x)) = (singleton (f x))
+      // (set.map f (set.singleton x)) = (set.singleton (f x))
       Node mappedElement = nm->mkNode(APPLY_UF, n[0], n[1][0]);
       Node ret = nm->mkSingleton(n[0].getType().getRangeType(), mappedElement);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
