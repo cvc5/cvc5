@@ -131,7 +131,7 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
     TypeNode type2 = n[0].getType(check);
     TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
     // the type of the element should be a subtype of the type of the operator
-    // e.g. (singleton (singleton_op Real) 1) where 1 is an Int
+    // e.g. (set.singleton (SetSingletonOp Real) 1) where 1 is an Int
     if (leastCommonType.isNull() || leastCommonType != type1)
     {
       std::stringstream ss;
