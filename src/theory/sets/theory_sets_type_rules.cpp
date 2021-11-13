@@ -463,7 +463,7 @@ TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
     throw TypeCheckingExceptionPrivate(
         n, " JoinImage operates on a non-binary relation");
   }
-  if (tupleTypes[0] != tupleTypes[2])
+  if (tupleTypes[0] != tupleTypes[1])
   {
     // TODO: Investigate supporting JoinImage for general binary
     // relationshttps://github.com/cvc5/cvc5-projects/issues/346
