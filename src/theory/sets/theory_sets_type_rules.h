@@ -89,6 +89,15 @@ struct InsertTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+/**
+ * Type rule for (set.map f S) to make sure f is a unary function of type
+ * (-> T1 T2) where S is a bag of type (Set T1)
+ */
+struct SetMapTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct SetMapTypeRule */
+
 struct RelBinaryOperatorTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);

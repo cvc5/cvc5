@@ -2252,9 +2252,9 @@ enum Kind : int32_t
   SET_COMPREHENSION,
   /**
    * Returns an element from a given set.
-   * If a set A = {x}, then the term (choose A) is equivalent to the term x.
-   * If the set is empty, then (choose A) is an arbitrary value.
-   * If the set has cardinality > 1, then (choose A) will deterministically
+   * If a set A = {x}, then the term (set.choose A) is equivalent to the term x.
+   * If the set is empty, then (set.choose A) is an arbitrary value.
+   * If the set has cardinality > 1, then (set.choose A) will deterministically
    * return an element in A.
    *
    * Parameters:
@@ -2274,6 +2274,21 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
   SET_IS_SINGLETON,
+  /**
+   * set.map operator applies the first argument, a function of type (-> T1 T2),
+   * to every element of the second argument, a set of type (Set T1),
+   * and returns a set of type (Set T2).
+   *
+   * Parameters:
+   *   - 1: a function of type (-> T1 T2)
+   *   - 2: a set of type (Set T1)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
+   * const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+   SET_MAP,
 
   /* Relations ------------------------------------------------------------- */
 

@@ -330,6 +330,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }  // kind::SET_IS_SINGLETON
 
+  case SET_MAP: return postRewriteMap(node);
+
   case kind::RELATION_TRANSPOSE:
   {
     if (node[0].getKind() == kind::RELATION_TRANSPOSE)
@@ -628,6 +630,41 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   // could have an efficient normalizer for union here
 
   return RewriteResponse(REWRITE_DONE, node);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
+{
+  Assert(n.getKind() == kind::SET_MAP);
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = n[1].getKind();
+  TypeNode rangeType = n[0].getType().getRangeType();
+  switch (k)
+  {
+    case SET_EMPTY:
+    {
+      // (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
+      Node ret = nm->mkConst(EmptySet(nm->mkSetType(rangeType)));
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+    case SET_SINGLETON:
+    {
+      // (set.map f (singleton x)) = (singleton (f x))
+      Node mappedElement = nm->mkNode(APPLY_UF, n[0], n[1][0]);
+      Node ret = nm->mkSingleton(n[0].getType().getRangeType(), mappedElement);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    case SET_UNION:
+    {
+      // (set.map f (set.union A B)) = (set.union (set.map f A) (set.map f B))
+      Node a = nm->mkNode(SET_MAP, n[0], n[1][0]);
+      Node b = nm->mkNode(SET_MAP, n[0], n[1][1]);
+      Node ret = nm->mkNode(SET_UNION, a, b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
 }
 
 }  // namespace sets
