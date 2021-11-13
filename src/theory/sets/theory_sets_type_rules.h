@@ -132,6 +132,15 @@ struct InsertTypeRule
 };
 
 /**
+ * Type rule for (set.map f S) to make sure f is a unary function of type
+ * (-> T1 T2) where S is a bag of type (Set T1)
+ */
+struct SetMapTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct SetMapTypeRule */
+
+/**
  * Type rule for binary operators (rel.join, rel.product) to check
  * if the two arguments are relations (set of tuples).
  * For arguments A of type (Set (Tuple A1 ... Am)) and B of type
