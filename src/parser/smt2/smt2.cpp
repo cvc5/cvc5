@@ -602,6 +602,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::SET_COMPLEMENT, "set.complement");
     addOperator(api::SET_CHOOSE, "set.choose");
     addOperator(api::SET_IS_SINGLETON, "set.is_singleton");
+    addOperator(api::SET_MAP, "set.map");
     addOperator(api::RELATION_JOIN, "rel.join");
     addOperator(api::RELATION_PRODUCT, "rel.product");
     addOperator(api::RELATION_TRANSPOSE, "rel.transpose");
