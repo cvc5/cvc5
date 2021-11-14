@@ -3055,6 +3055,9 @@ set(regression_disabled_tests
 # > regression tests of levels 0 and 1
 
 get_target_property(path_to_cvc5 cvc5-bin RUNTIME_OUTPUT_DIRECTORY)
+get_target_property(cvc5_base_name cvc5-bin OUTPUT_NAME)
+# Full path to the 'cvc5' binary name including extension
+set(cvc5_full_path ${path_to_cvc5}/${cvc5_base_name}${CMAKE_EXECUTABLE_SUFFIX})
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
 
 add_custom_target(build-regress DEPENDS cvc5-bin)
@@ -3070,7 +3073,7 @@ macro(cvc5_add_regression_test level file)
     ${PYTHON_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX} ${CMAKE_CURRENT_LIST_DIR}/${file})
+    ${cvc5_full_path} ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
 
   # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:
