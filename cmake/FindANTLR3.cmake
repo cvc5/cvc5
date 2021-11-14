@@ -105,7 +105,8 @@ if(NOT ANTLR3_FOUND_SYSTEM)
 
     # On Windows, we need to have a shell interpreter to call 'configure'
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        find_program (SHELL "sh")
+        find_program (SHELL "sh" REQUIRED)
+        message(STATUS "Found shell interpreter: ${SHELL}")
     else()
         set(SHELL "")
     endif()
