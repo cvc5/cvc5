@@ -254,7 +254,9 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   d_termIter = 0;
   if (eqc.isNull())
   {
-    d_mode = cand_term_db;
+    // generates too many instantiations at top-level when eqc is null, thus
+    // set mode to none.
+    d_mode = cand_term_none;
   }
   else
   {
