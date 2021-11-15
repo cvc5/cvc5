@@ -855,7 +855,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         for (size_t j = 0, nchildi = children[i].getNumChildren(); j < nchildi;
              j++)
         {
-          Node nodej = nm->mkConst(Rational(j));
+          Node nodej = nm->mkConst(CONST_RATIONAL, Rational(j));
           cdp->addStep(
               children[i][j], PfRule::AND_ELIM, {children[i]}, {nodej});
         }
@@ -1086,8 +1086,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode child = children[i];
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp =
-          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConst(Rational(0)));
+      Node scalarCmp = nm->mkNode(
+          isPos ? GT : LT, scalar, nm->mkConst(CONST_RATIONAL, Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
       Assert(!scalarCmpOrTrue.isNull());

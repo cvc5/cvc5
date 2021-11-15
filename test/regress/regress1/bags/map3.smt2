@@ -6,5 +6,5 @@
 (define-fun f ((x Int)) Int (+ x 1))
 (assert (= B (bag.map f A)))
 (assert (= (bag.count (- 2) B) 57))
-(assert (= A (as emptybag (Bag Int)) ))
+(assert (= A (as bag.empty (Bag Int)) ))
 (check-sat)
