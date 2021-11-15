@@ -1926,7 +1926,8 @@ bool AletheProofPostprocessFinalCallback::update(
     std::vector<Node> sanitized_args{
         res,
         res,
-        nm->mkConst(CONST_RATIONAL, static_cast<unsigned>(AletheRule::ASSUME))};
+        nm->mkConst<Rational>(CONST_RATIONAL,
+                              static_cast<unsigned>(AletheRule::ASSUME))};
     for (auto arg : args)
     {
       sanitized_args.push_back(d_anc.convert(arg));
@@ -1947,7 +1948,8 @@ bool AletheProofPostprocessFinalCallback::update(
   Node res2 = nm->mkNode(kind::SEXPR, d_cl);  // (cl)
 
   AletheRule vrule = static_cast<AletheRule>(std::stoul(args[0].toString()));
-  new_args.push_back(nm->mkConst(CONST_RATIONAL, static_cast<unsigned>(vrule)));
+  new_args.push_back(
+      nm->mkConst<Rational>(CONST_RATIONAL, static_cast<unsigned>(vrule)));
   new_args.push_back(vp1);
   // In the special case that false is an assumption, we print false instead of
   // (cl false)
@@ -1966,8 +1968,8 @@ bool AletheProofPostprocessFinalCallback::update(
       vp1, PfRule::ALETHE_RULE, children, new_args, true, CDPOverwrite::ALWAYS);
 
   new_args.clear();
-  new_args.push_back(
-      nm->mkConst(CONST_RATIONAL, static_cast<unsigned>(AletheRule::FALSE)));
+  new_args.push_back(nm->mkConst<Rational>(
+      CONST_RATIONAL, static_cast<unsigned>(AletheRule::FALSE)));
   new_args.push_back(vp2);
   new_args.push_back(nm->mkNode(kind::SEXPR, d_cl, vp2));  // (cl (not false))
   Trace("alethe-proof") << "... add Alethe step " << vp2 << " / "
@@ -1977,8 +1979,8 @@ bool AletheProofPostprocessFinalCallback::update(
       vp2, PfRule::ALETHE_RULE, {}, new_args, true, CDPOverwrite::ALWAYS);
 
   new_args.clear();
-  new_args.push_back(
-      nm->mkConst(CONST_RATIONAL, static_cast<unsigned>(AletheRule::RESOLUTION)));
+  new_args.push_back(nm->mkConst<Rational>(
+      CONST_RATIONAL, static_cast<unsigned>(AletheRule::RESOLUTION)));
   new_args.push_back(res);
   new_args.push_back(res2);
   Trace("alethe-proof") << "... add Alethe step " << res << " / " << res2 << " "
@@ -2044,8 +2046,8 @@ bool AletheProofPostprocessNoSubtypeCallback::update(
     {
       Trace("alethe-proof-subtyping") << "\tTrivialized into REFL\n";
       // turn this step into a REFL one, ignore children and remaining arguments
-      newArgs[0] = NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-          static_cast<unsigned>(AletheRule::REFL));
+      newArgs[0] = NodeManager::currentNM()->mkConst<Rational>(
+          CONST_RATIONAL, static_cast<unsigned>(AletheRule::REFL));
       cdp->addStep(res, id, {}, {newArgs.begin(), newArgs.begin() + 3});
     }
     else
@@ -2147,7 +2149,8 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         cdp->addStep(newChild,
                      PfRule::ALETHE_RULE,
                      {children[childUpdatedIndex]},
-                     {nm->mkConst(CONST_RATIONAL,
+                     {nm->mkConst<Rational>(
+                          CONST_RATIONAL,
                           static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
                       newChild,
                       newChild});
@@ -2239,7 +2242,8 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
             cdp->addStep(newChild,
                          PfRule::ALETHE_RULE,
                          {children[i]},
-                         {nm->mkConst(CONST_RATIONAL,
+                         {nm->mkConst<Rational>(
+                              CONST_RATIONAL,
                               static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
                           newChild,
                           newChild});
@@ -2346,7 +2350,8 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         cdp->addStep(res,
                      PfRule::ALETHE_RULE,
                      {newArgs[2]},
-                     {nm->mkConst(CONST_RATIONAL,
+                     {nm->mkConst<Rational>(
+                          CONST_RATIONAL,
                           static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
                       res,
                       args[2]});
