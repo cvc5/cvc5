@@ -17,6 +17,8 @@
 
 #ifdef CVC5_POLY_IMP
 
+#include <optional>
+
 #include "theory/arith/nl/cad/projections.h"
 
 namespace cvc5 {
@@ -36,11 +38,12 @@ bool operator<(const CACInterval& lhs, const CACInterval& rhs)
   return lhs.d_interval < rhs.d_interval;
 }
 
+namespace {
 /**
  * Induces an ordering on poly intervals that is suitable for redundancy
  * removal as implemented in clean_intervals.
  */
-inline bool compareForCleanup(const Interval& lhs, const Interval& rhs)
+bool compareForCleanup(const Interval& lhs, const Interval& rhs)
 {
   const lp_value_t* ll = &(lhs.get_internal()->a);
   const lp_value_t* lu =
@@ -74,6 +77,9 @@ inline bool compareForCleanup(const Interval& lhs, const Interval& rhs)
   return false;
 }
 
+/**
+ * Check whether lhs covers rhs.
+ */
 bool intervalCovers(const Interval& lhs, const Interval& rhs)
 {
   const lp_value_t* ll = &(lhs.get_internal()->a);
@@ -106,6 +112,33 @@ bool intervalCovers(const Interval& lhs, const Interval& rhs)
   return true;
 }
 
+/**
+ * Check whether a and b together cover rhs.
+ */
+std::optional<bool> intervalsCover(const Interval& a, const Interval& b, const Interval& rhs)
+{
+  const lp_value_t* au = poly::get_upper(a).get_internal();
+  const lp_value_t* bl = poly::get_lower(b).get_internal();
+
+  // check whether a and b connect
+  int mc = lp_value_cmp(au, bl);
+  if (mc < 0) return {};
+  if (mc == 0 && poly::get_upper_open(a) && poly::get_lower_open(b)) return {};
+
+  Interval c(
+    poly::get_lower(a),
+    poly::get_lower_open(a),
+    poly::get_upper(b),
+    poly::get_upper_open(b)
+  );
+
+  return intervalCovers(c, rhs);
+}
+
+/**
+ * Check whether two intervals connect, assuming lhs < rhs.
+ * They connect, if their union has no gap.
+ */
 bool intervalConnect(const Interval& lhs, const Interval& rhs)
 {
   Assert(lhs < rhs) << "Can only check for a connection if lhs < rhs.";
@@ -137,6 +170,7 @@ bool intervalConnect(const Interval& lhs, const Interval& rhs)
   }
   return false;
 }
+}
 
 void cleanIntervals(std::vector<CACInterval>& intervals)
 {
@@ -150,11 +184,12 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
               return compareForCleanup(lhs.d_interval, rhs.d_interval);
             });
 
-  // Remove intervals that are covered by others.
-  // Implementation roughly follows
-  // https://en.cppreference.com/w/cpp/algorithm/remove Find first interval that
-  // covers the next one.
+  // First remove intervals that are completely covered by a single other
+  // interval. This corresponds to removing "redundancies of the first kind" as
+  // of 4.5.1 The implementation roughly follows
+  // https://en.cppreference.com/w/cpp/algorithm/remove
   std::size_t first = 0;
+  // Find first interval that is covered.
   for (std::size_t n = intervals.size(); first < n - 1; ++first)
   {
     if (intervalCovers(intervals[first].d_interval,
@@ -180,6 +215,23 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
     while (intervals.size() > first + 1)
     {
       intervals.pop_back();
+    }
+  }
+
+  // Now also remove intervals that are covered by the two adjacent intervals. This corresponds to removing "redundancies of the second kind" as of 4.5.2
+  for (size_t n = 1; n < intervals.size() - 1; ++n)
+  {
+    const auto& left = intervals[n - 1].d_interval;
+    const auto& mid = intervals[n].d_interval;
+    for (size_t r = n + 1; r < intervals.size(); ++r)
+    {
+      const auto& right = intervals[r].d_interval;
+      if (intervalsCover(left, right, mid))
+      {
+        std::cout << "Prune " << mid << std::endl;
+        std::cout << "Pruned by " << left << " and " << right << std::endl;
+        std::exit(1);
+      }
     }
   }
 }

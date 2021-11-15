@@ -67,14 +67,6 @@ bool operator==(const CACInterval& lhs, const CACInterval& rhs);
 /** Compare two intervals. */
 bool operator<(const CACInterval& lhs, const CACInterval& rhs);
 
-/** Check whether lhs covers rhs. */
-bool intervalCovers(const poly::Interval& lhs, const poly::Interval& rhs);
-/**
- * Check whether two intervals connect, assuming lhs < rhs.
- * They connect, if their union has no gap.
- */
-bool intervalConnect(const poly::Interval& lhs, const poly::Interval& rhs);
-
 /**
  * Sort intervals according to section 4.4.1.
  * Also removes fully redundant intervals as in 4.5. 1.
