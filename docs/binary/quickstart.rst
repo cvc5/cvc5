@@ -119,7 +119,7 @@ Example
 | The source code for this example can be found at `examples/api/smtlib/quickstart.smt2 <https://github.com/cvc5/cvc5/blob/master/examples/api/smtlib/quickstart.smt2>`_.
 
 .. api-examples::
+    ../../examples/api/smtlib/quickstart.smt2
     ../../examples/api/cpp/quickstart.cpp
     ../../examples/api/java/QuickStart.java
     ../../examples/api/python/quickstart.py
-    ../../examples/api/smtlib/quickstart.smt2

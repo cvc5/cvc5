@@ -18,6 +18,8 @@
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -76,16 +78,20 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
     auto* nm = NodeManager::currentNM();
     switch (relation)
     {
-      case Kind::LEQ: bound = nm->mkConst<Rational>(br.floor()); break;
+      case Kind::LEQ:
+        bound = nm->mkConst<Rational>(CONST_RATIONAL, br.floor());
+        break;
       case Kind::LT:
-        bound = nm->mkConst<Rational>((br - 1).ceiling());
+        bound = nm->mkConst<Rational>(CONST_RATIONAL, (br - 1).ceiling());
         relation = Kind::LEQ;
         break;
       case Kind::GT:
-        bound = nm->mkConst<Rational>((br + 1).floor());
+        bound = nm->mkConst<Rational>(CONST_RATIONAL, (br + 1).floor());
         relation = Kind::GEQ;
         break;
-      case Kind::GEQ: bound = nm->mkConst<Rational>(br.ceiling()); break;
+      case Kind::GEQ:
+        bound = nm->mkConst<Rational>(CONST_RATIONAL, br.ceiling());
+        break;
       default:;
     }
     Trace("bound-inf") << "Strengthened " << n << " to " << lhs << " "

@@ -31,7 +31,6 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace parser {
@@ -535,7 +534,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == api::EMPTYBAG)
+  else if (k == api::BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }

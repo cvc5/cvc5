@@ -332,7 +332,7 @@ Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
   if (tn.isInteger() || tn.isReal())
   {
     Rational c(val);
-    n = NodeManager::currentNM()->mkConst(c);
+    n = NodeManager::currentNM()->mkConst(CONST_RATIONAL, c);
   }
   else if (tn.isBitVector())
   {

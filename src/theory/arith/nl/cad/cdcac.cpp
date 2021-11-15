@@ -25,6 +25,8 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace std {
 /** Generic streaming operator for std::vector. */
 template <typename T>
@@ -271,7 +273,7 @@ PolyVector requiredCoefficientsLazardModified(
 
   // construct phi := (and (= p_i 0)) with p_i the coefficients of p
   std::vector<Node> conditions;
-  auto zero = NodeManager::currentNM()->mkConst(Rational(0));
+  auto zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   for (const auto& coeff : poly::coefficients(p))
   {
     conditions.emplace_back(NodeManager::currentNM()->mkNode(

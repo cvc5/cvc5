@@ -208,6 +208,23 @@ def test_get_op(solver):
     assert headTerm == solver.mkTerm(headTerm.getOp(), children)
 
 
+def test_has_get_symbol(solver):
+    n = Term(solver)
+    t = solver.mkBoolean(True)
+    c = solver.mkConst(solver.getBooleanSort(), "|\\|")
+
+    with pytest.raises(RuntimeError):
+        n.hasSymbol()
+    assert not t.hasSymbol()
+    assert c.hasSymbol()
+
+    with pytest.raises(RuntimeError):
+        n.getSymbol()
+    with pytest.raises(RuntimeError):
+        t.getSymbol()
+    assert c.getSymbol() == "|\\|"
+
+
 def test_is_null(solver):
     x = Term(solver)
     assert x.isNull()

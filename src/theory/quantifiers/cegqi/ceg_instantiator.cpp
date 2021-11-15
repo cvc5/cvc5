@@ -138,7 +138,8 @@ void TermProperties::composeProperty(TermProperties& p)
   else
   {
     NodeManager* nm = NodeManager::currentNM();
-    d_coeff = nm->mkConst(Rational(d_coeff.getConst<Rational>()
+    d_coeff = nm->mkConst(CONST_RATIONAL,
+                          Rational(d_coeff.getConst<Rational>()
                                    * p.d_coeff.getConst<Rational>()));
   }
 }
@@ -165,7 +166,8 @@ void SolvedForm::push_back(Node pv, Node n, TermProperties& pv_prop)
     Assert(new_theta.getKind() == CONST_RATIONAL);
     Assert(pv_prop.d_coeff.getKind() == CONST_RATIONAL);
     NodeManager* nm = NodeManager::currentNM();
-    new_theta = nm->mkConst(Rational(new_theta.getConst<Rational>()
+    new_theta = nm->mkConst(CONST_RATIONAL,
+                            Rational(new_theta.getConst<Rational>()
                                      * pv_prop.d_coeff.getConst<Rational>()));
   }
   d_theta.push_back(new_theta);
@@ -1151,7 +1153,12 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
         if( !prop[i].d_coeff.isNull() ){
           Assert(vars[i].getType().isInteger());
           Assert(prop[i].d_coeff.isConst());
-          Node nn = NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/prop[i].d_coeff.getConst<Rational>() ) );
+          Node nn = NodeManager::currentNM()->mkNode(
+              MULT,
+              subs[i],
+              NodeManager::currentNM()->mkConst(
+                  CONST_RATIONAL,
+                  Rational(1) / prop[i].d_coeff.getConst<Rational>()));
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
           nn = rewrite(nn);
           nsubs.push_back( nn );
@@ -1199,8 +1206,9 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             Node c_coeff;
             if( !msum_coeff[it->first].isNull() ){
               c_coeff = rewrite(NodeManager::currentNM()->mkConst(
+                  CONST_RATIONAL,
                   pv_prop.d_coeff.getConst<Rational>()
-                  / msum_coeff[it->first].getConst<Rational>()));
+                      / msum_coeff[it->first].getConst<Rational>()));
             }else{
               c_coeff = pv_prop.d_coeff;
             }
@@ -1264,7 +1272,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
       }else{
         atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
         atom_lhs = rewrite(atom_lhs);
-        atom_rhs = nm->mkConst(Rational(0));
+        atom_rhs = nm->mkConst(CONST_RATIONAL, Rational(0));
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){

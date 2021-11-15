@@ -595,12 +595,11 @@ TEST_F(TestApiBlackSolver, mkReal)
   ASSERT_NO_THROW(d_solver.mkReal(val4, val4));
 }
 
-TEST_F(TestApiBlackSolver, mkRegexpNone)
+TEST_F(TestApiBlackSolver, mkRegexpAll)
 {
   Sort strSort = d_solver.getStringSort();
   Term s = d_solver.mkConst(strSort, "s");
-  ASSERT_NO_THROW(
-      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
+  ASSERT_NO_THROW(d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAll()));
 }
 
 TEST_F(TestApiBlackSolver, mkRegexpAllchar)
@@ -609,6 +608,14 @@ TEST_F(TestApiBlackSolver, mkRegexpAllchar)
   Term s = d_solver.mkConst(strSort, "s");
   ASSERT_NO_THROW(
       d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAllchar()));
+}
+
+TEST_F(TestApiBlackSolver, mkRegexpNone)
+{
+  Sort strSort = d_solver.getStringSort();
+  Term s = d_solver.mkConst(strSort, "s");
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
 }
 
 TEST_F(TestApiBlackSolver, mkSepEmp) { ASSERT_NO_THROW(d_solver.mkSepEmp()); }
@@ -1594,7 +1601,7 @@ TEST_F(TestApiBlackSolver, getModelDomainElements2)
   Term x = d_solver.mkVar(uSort, "x");
   Term y = d_solver.mkVar(uSort, "y");
   Term eq = d_solver.mkTerm(EQUAL, x, y);
-  Term bvl = d_solver.mkTerm(BOUND_VAR_LIST, x, y);
+  Term bvl = d_solver.mkTerm(VARIABLE_LIST, x, y);
   Term f = d_solver.mkTerm(FORALL, bvl, eq);
   d_solver.assertFormula(f);
   d_solver.checkSat();
@@ -1667,7 +1674,7 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
   Term forall =
       d_solver.mkTerm(FORALL,
-                      d_solver.mkTerm(BOUND_VAR_LIST, x),
+                      d_solver.mkTerm(VARIABLE_LIST, x),
                       d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
   ASSERT_THROW(d_solver.getQuantifierElimination(Term()), CVC5ApiException);
   ASSERT_THROW(d_solver.getQuantifierElimination(Solver().mkBoolean(false)),
@@ -1680,7 +1687,7 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
   Term forall =
       d_solver.mkTerm(FORALL,
-                      d_solver.mkTerm(BOUND_VAR_LIST, x),
+                      d_solver.mkTerm(VARIABLE_LIST, x),
                       d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
   ASSERT_THROW(d_solver.getQuantifierEliminationDisjunct(Term()),
                CVC5ApiException);
