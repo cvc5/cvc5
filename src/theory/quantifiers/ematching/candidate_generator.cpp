@@ -48,7 +48,7 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
                                            TermRegistry& tr,
                                            Node pat)
     : CandidateGenerator(qs, tr),
-      d_termIter(-1),
+      d_termIter(0),
       d_termIterList(nullptr),
       d_mode(cand_term_none)
 {

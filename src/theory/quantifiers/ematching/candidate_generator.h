@@ -122,7 +122,7 @@ class CandidateGeneratorQE : public CandidateGenerator
   /** the equality class iterator (for cand_term_eqc) */
   eq::EqClassIterator d_eqc_iter;
   /** the TermDb index of the current ground term (for cand_term_db) */
-  int d_termIter;
+  size_t d_termIter;
   /** the TermDb index of the current ground term (for cand_term_db) */
   DbList* d_termIterList;
   /** the current equivalence class */
