@@ -373,7 +373,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     /* Quantifiers --------------------------------------------------------- */
     {FORALL, cvc5::Kind::FORALL},
     {EXISTS, cvc5::Kind::EXISTS},
-    {BOUND_VAR_LIST, cvc5::Kind::BOUND_VAR_LIST},
+    {VARIABLE_LIST, cvc5::Kind::BOUND_VAR_LIST},
     {INST_PATTERN, cvc5::Kind::INST_PATTERN},
     {INST_NO_PATTERN, cvc5::Kind::INST_NO_PATTERN},
     {INST_POOL, cvc5::Kind::INST_POOL},
@@ -673,7 +673,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Quantifiers ----------------------------------------------------- */
         {cvc5::Kind::FORALL, FORALL},
         {cvc5::Kind::EXISTS, EXISTS},
-        {cvc5::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
+        {cvc5::Kind::BOUND_VAR_LIST, VARIABLE_LIST},
         {cvc5::Kind::INST_PATTERN, INST_PATTERN},
         {cvc5::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
         {cvc5::Kind::INST_POOL, INST_POOL},
