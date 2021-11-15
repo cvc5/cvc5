@@ -42,7 +42,9 @@ a `cvc5::api::Solver solver` object.
 |                      |                                              |                                                                         |
 |                      |                                              | ``Term t = solver.mkTerm(Kind::SET_UNION, X, Y);``                      |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Intersection         | ``(set.minus X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_MINUS, X, Y);``                      |
+| Intersection         | ``(set.inter X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_INTER, X, Y);``                      |
++----------------------+----------------------------------------------+-------------------------------------------------------------------------+
+| Minus                | ``(set.minus X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_MINUS, X, Y);``                      |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Membership           | ``(set.member x X)``                         | ``Term x = solver.mkConst(solver.getIntegerSort(), "x");``              |
 |                      |                                              |                                                                         |
@@ -76,7 +78,7 @@ Semantics
 ^^^^^^^^^
 
 The semantics of most of the above operators (e.g., ``set.union``,
-``set.intersection``, difference) are straightforward.
+``set.inter``, difference) are straightforward.
 The semantics for the universe set and complement are more subtle and explained
 in the following.
 

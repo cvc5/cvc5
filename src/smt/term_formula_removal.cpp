@@ -342,48 +342,6 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       }
     }
   }
-  else if (node.getKind() == kind::LAMBDA)
-  {
-    // if a lambda, do lambda-lifting
-    if (!expr::hasFreeVar(node))
-    {
-      skolem = getSkolemForNode(node);
-      if (skolem.isNull())
-      {
-        Trace("rtf-proof-debug")
-            << "RemoveTermFormulas::run: make LAMBDA skolem" << std::endl;
-        // Make the skolem to represent the lambda
-        SkolemManager* sm = nodeManager->getSkolemManager();
-        skolem = sm->mkPurifySkolem(
-            node,
-            "lambdaF",
-            "a function introduced due to term-level lambda removal");
-        d_skolem_cache.insert(node, skolem);
-
-        // The new assertion
-        std::vector<Node> children;
-        // bound variable list
-        children.push_back(node[0]);
-        // body
-        std::vector<Node> skolem_app_c;
-        skolem_app_c.push_back(skolem);
-        skolem_app_c.insert(skolem_app_c.end(), node[0].begin(), node[0].end());
-        Node skolem_app = nodeManager->mkNode(kind::APPLY_UF, skolem_app_c);
-        children.push_back(skolem_app.eqNode(node[1]));
-        // axiom defining skolem
-        newAssertion = nodeManager->mkNode(kind::FORALL, children);
-
-        // Lambda lifting is trivial to justify, hence we don't set a proof
-        // generator here. In particular, replacing the skolem introduced
-        // here with its original lambda ensures the new assertion rewrites
-        // to true.
-        // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
-        //   forall x. k(x)=t[x]
-        // whose witness form rewrites
-        //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
-      }
-    }
-  }
   else if (node.getKind() == kind::WITNESS)
   {
     // If a witness choice

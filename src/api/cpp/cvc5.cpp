@@ -53,6 +53,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "expr/uninterpreted_constant.h"
@@ -275,7 +276,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     /* Sets ---------------------------------------------------------------- */
     {SET_EMPTY, cvc5::Kind::SET_EMPTY},
     {SET_UNION, cvc5::Kind::SET_UNION},
-    {SET_INTERSECTION, cvc5::Kind::SET_INTERSECTION},
+    {SET_INTER, cvc5::Kind::SET_INTER},
     {SET_MINUS, cvc5::Kind::SET_MINUS},
     {SET_SUBSET, cvc5::Kind::SET_SUBSET},
     {SET_MEMBER, cvc5::Kind::SET_MEMBER},
@@ -287,6 +288,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {SET_COMPREHENSION, cvc5::Kind::SET_COMPREHENSION},
     {SET_CHOOSE, cvc5::Kind::SET_CHOOSE},
     {SET_IS_SINGLETON, cvc5::Kind::SET_IS_SINGLETON},
+    {SET_MAP, cvc5::Kind::SET_MAP},
     /* Relations ----------------------------------------------------------- */
     {RELATION_JOIN, cvc5::Kind::RELATION_JOIN},
     {RELATION_PRODUCT, cvc5::Kind::RELATION_PRODUCT},
@@ -295,16 +297,16 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {RELATION_JOIN_IMAGE, cvc5::Kind::RELATION_JOIN_IMAGE},
     {RELATION_IDEN, cvc5::Kind::RELATION_IDEN},
     /* Bags ---------------------------------------------------------------- */
-    {UNION_MAX, cvc5::Kind::UNION_MAX},
-    {UNION_DISJOINT, cvc5::Kind::UNION_DISJOINT},
-    {INTERSECTION_MIN, cvc5::Kind::INTERSECTION_MIN},
-    {DIFFERENCE_SUBTRACT, cvc5::Kind::DIFFERENCE_SUBTRACT},
-    {DIFFERENCE_REMOVE, cvc5::Kind::DIFFERENCE_REMOVE},
-    {SUBBAG, cvc5::Kind::SUBBAG},
+    {BAG_UNION_MAX, cvc5::Kind::BAG_UNION_MAX},
+    {BAG_UNION_DISJOINT, cvc5::Kind::BAG_UNION_DISJOINT},
+    {BAG_INTER_MIN, cvc5::Kind::BAG_INTER_MIN},
+    {BAG_DIFFERENCE_SUBTRACT, cvc5::Kind::BAG_DIFFERENCE_SUBTRACT},
+    {BAG_DIFFERENCE_REMOVE, cvc5::Kind::BAG_DIFFERENCE_REMOVE},
+    {BAG_SUBBAG, cvc5::Kind::BAG_SUBBAG},
     {BAG_COUNT, cvc5::Kind::BAG_COUNT},
-    {DUPLICATE_REMOVAL, cvc5::Kind::DUPLICATE_REMOVAL},
-    {MK_BAG, cvc5::Kind::MK_BAG},
-    {EMPTYBAG, cvc5::Kind::EMPTYBAG},
+    {BAG_DUPLICATE_REMOVAL, cvc5::Kind::BAG_DUPLICATE_REMOVAL},
+    {BAG_MAKE, cvc5::Kind::BAG_MAKE},
+    {BAG_EMPTY, cvc5::Kind::BAG_EMPTY},
     {BAG_CARD, cvc5::Kind::BAG_CARD},
     {BAG_CHOOSE, cvc5::Kind::BAG_CHOOSE},
     {BAG_IS_SINGLETON, cvc5::Kind::BAG_IS_SINGLETON},
@@ -585,7 +587,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Sets ------------------------------------------------------------ */
         {cvc5::Kind::SET_EMPTY, SET_EMPTY},
         {cvc5::Kind::SET_UNION, SET_UNION},
-        {cvc5::Kind::SET_INTERSECTION, SET_INTERSECTION},
+        {cvc5::Kind::SET_INTER, SET_INTER},
         {cvc5::Kind::SET_MINUS, SET_MINUS},
         {cvc5::Kind::SET_SUBSET, SET_SUBSET},
         {cvc5::Kind::SET_MEMBER, SET_MEMBER},
@@ -597,6 +599,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::SET_COMPREHENSION, SET_COMPREHENSION},
         {cvc5::Kind::SET_CHOOSE, SET_CHOOSE},
         {cvc5::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
+        {cvc5::Kind::SET_MAP, SET_MAP},
         /* Relations ------------------------------------------------------- */
         {cvc5::Kind::RELATION_JOIN, RELATION_JOIN},
         {cvc5::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
@@ -605,16 +608,16 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
         {cvc5::Kind::RELATION_IDEN, RELATION_IDEN},
         /* Bags ------------------------------------------------------------ */
-        {cvc5::Kind::UNION_MAX, UNION_MAX},
-        {cvc5::Kind::UNION_DISJOINT, UNION_DISJOINT},
-        {cvc5::Kind::INTERSECTION_MIN, INTERSECTION_MIN},
-        {cvc5::Kind::DIFFERENCE_SUBTRACT, DIFFERENCE_SUBTRACT},
-        {cvc5::Kind::DIFFERENCE_REMOVE, DIFFERENCE_REMOVE},
-        {cvc5::Kind::SUBBAG, SUBBAG},
+        {cvc5::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
+        {cvc5::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
+        {cvc5::Kind::BAG_INTER_MIN, BAG_INTER_MIN},
+        {cvc5::Kind::BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_SUBTRACT},
+        {cvc5::Kind::BAG_DIFFERENCE_REMOVE, BAG_DIFFERENCE_REMOVE},
+        {cvc5::Kind::BAG_SUBBAG, BAG_SUBBAG},
         {cvc5::Kind::BAG_COUNT, BAG_COUNT},
-        {cvc5::Kind::DUPLICATE_REMOVAL, DUPLICATE_REMOVAL},
-        {cvc5::Kind::MK_BAG, MK_BAG},
-        {cvc5::Kind::EMPTYBAG, EMPTYBAG},
+        {cvc5::Kind::BAG_DUPLICATE_REMOVAL, BAG_DUPLICATE_REMOVAL},
+        {cvc5::Kind::BAG_MAKE, BAG_MAKE},
+        {cvc5::Kind::BAG_EMPTY, BAG_EMPTY},
         {cvc5::Kind::BAG_CARD, BAG_CARD},
         {cvc5::Kind::BAG_CHOOSE, BAG_CHOOSE},
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
@@ -1947,75 +1950,74 @@ Term Op::getIndexHelper(size_t index) const
   {
     case DIVISIBLE:
     {
-      t = d_solver->mkValHelper<Rational>(
+      t = d_solver->mkRationalValHelper(
           Rational(d_node->getConst<Divisible>().k));
       break;
     }
     case BITVECTOR_REPEAT:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<BitVectorRepeat>().d_repeatAmount);
       break;
     }
     case BITVECTOR_ZERO_EXTEND:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<BitVectorZeroExtend>().d_zeroExtendAmount);
       break;
     }
     case BITVECTOR_SIGN_EXTEND:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<BitVectorSignExtend>().d_signExtendAmount);
       break;
     }
     case BITVECTOR_ROTATE_LEFT:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<BitVectorRotateLeft>().d_rotateLeftAmount);
       break;
     }
     case BITVECTOR_ROTATE_RIGHT:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<BitVectorRotateRight>().d_rotateRightAmount);
       break;
     }
     case INT_TO_BITVECTOR:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<IntToBitVector>().d_size);
       break;
     }
     case IAND:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
-          d_node->getConst<IntAnd>().d_size);
+      t = d_solver->mkRationalValHelper(d_node->getConst<IntAnd>().d_size);
       break;
     }
     case FLOATINGPOINT_TO_UBV:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<FloatingPointToUBV>().d_bv_size.d_size);
       break;
     }
     case FLOATINGPOINT_TO_SBV:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<FloatingPointToSBV>().d_bv_size.d_size);
       break;
     }
     case REGEXP_REPEAT:
     {
-      t = d_solver->mkValHelper<cvc5::Rational>(
+      t = d_solver->mkRationalValHelper(
           d_node->getConst<RegExpRepeat>().d_repeatAmount);
       break;
     }
     case BITVECTOR_EXTRACT:
     {
       cvc5::BitVectorExtract ext = d_node->getConst<BitVectorExtract>();
-      t = index == 0 ? d_solver->mkValHelper<cvc5::Rational>(ext.d_high)
-                     : d_solver->mkValHelper<cvc5::Rational>(ext.d_low);
+      t = index == 0 ? d_solver->mkRationalValHelper(ext.d_high)
+                     : d_solver->mkRationalValHelper(ext.d_low);
       break;
     }
     case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
@@ -2023,20 +2025,18 @@ Term Op::getIndexHelper(size_t index) const
       cvc5::FloatingPointToFPIEEEBitVector ext =
           d_node->getConst<FloatingPointToFPIEEEBitVector>();
 
-      t = index == 0 ? d_solver->mkValHelper<cvc5::Rational>(
-              ext.getSize().exponentWidth())
-                     : d_solver->mkValHelper<cvc5::Rational>(
-                         ext.getSize().significandWidth());
+      t = index == 0
+              ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
+              : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
     case FLOATINGPOINT_TO_FP_FLOATINGPOINT:
     {
       cvc5::FloatingPointToFPFloatingPoint ext =
           d_node->getConst<FloatingPointToFPFloatingPoint>();
-      t = index == 0 ? d_solver->mkValHelper<cvc5::Rational>(
-              ext.getSize().exponentWidth())
-                     : d_solver->mkValHelper<cvc5::Rational>(
-                         ext.getSize().significandWidth());
+      t = index == 0
+              ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
+              : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
     case FLOATINGPOINT_TO_FP_REAL:
@@ -2044,47 +2044,43 @@ Term Op::getIndexHelper(size_t index) const
       cvc5::FloatingPointToFPReal ext =
           d_node->getConst<FloatingPointToFPReal>();
 
-      t = index == 0 ? d_solver->mkValHelper<cvc5::Rational>(
-              ext.getSize().exponentWidth())
-                     : d_solver->mkValHelper<cvc5::Rational>(
-                         ext.getSize().significandWidth());
+      t = index == 0
+              ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
+              : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
     case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
     {
       cvc5::FloatingPointToFPSignedBitVector ext =
           d_node->getConst<FloatingPointToFPSignedBitVector>();
-      t = index == 0 ? d_solver->mkValHelper<cvc5::Rational>(
-              ext.getSize().exponentWidth())
-                     : d_solver->mkValHelper<cvc5::Rational>(
-                         ext.getSize().significandWidth());
+      t = index == 0
+              ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
+              : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
     case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
     {
       cvc5::FloatingPointToFPUnsignedBitVector ext =
           d_node->getConst<FloatingPointToFPUnsignedBitVector>();
-      t = index == 0 ? d_solver->mkValHelper<cvc5::Rational>(
-              ext.getSize().exponentWidth())
-                     : d_solver->mkValHelper<cvc5::Rational>(
-                         ext.getSize().significandWidth());
+      t = index == 0
+              ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
+              : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
     case FLOATINGPOINT_TO_FP_GENERIC:
     {
       cvc5::FloatingPointToFPGeneric ext =
           d_node->getConst<FloatingPointToFPGeneric>();
-      t = index == 0 ? d_solver->mkValHelper<cvc5::Rational>(
-              ext.getSize().exponentWidth())
-                     : d_solver->mkValHelper<cvc5::Rational>(
-                         ext.getSize().significandWidth());
+      t = index == 0
+              ? d_solver->mkRationalValHelper(ext.getSize().exponentWidth())
+              : d_solver->mkRationalValHelper(ext.getSize().significandWidth());
       break;
     }
     case REGEXP_LOOP:
     {
       cvc5::RegExpLoop ext = d_node->getConst<RegExpLoop>();
-      t = index == 0 ? d_solver->mkValHelper<cvc5::Rational>(ext.d_loopMinOcc)
-                     : d_solver->mkValHelper<cvc5::Rational>(ext.d_loopMaxOcc);
+      t = index == 0 ? d_solver->mkRationalValHelper(ext.d_loopMinOcc)
+                     : d_solver->mkRationalValHelper(ext.d_loopMaxOcc);
 
       break;
     }
@@ -2093,7 +2089,7 @@ Term Op::getIndexHelper(size_t index) const
     {
       const std::vector<uint32_t>& projectionIndices =
           d_node->getConst<TupleProjectOp>().getIndices();
-      t = d_solver->mkValHelper<cvc5::Rational>(projectionIndices[index]);
+      t = d_solver->mkRationalValHelper(projectionIndices[index]);
       break;
     }
     default:
@@ -2531,6 +2527,29 @@ Op Term::getOp() const
   // Notice this is the only case where getKindHelper is used, since the
   // cases above do not have special cases for intToExtKind.
   return Op(d_solver, getKindHelper());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Term::hasSymbol() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->hasAttribute(expr::VarNameAttr());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Term::getSymbol() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(d_node->hasAttribute(expr::VarNameAttr()))
+      << "Invalid call to '" << __PRETTY_FUNCTION__
+      << "', expected the term to have a symbol.";
+  //////// all checks before this line
+  return d_node->getAttribute(expr::VarNameAttr());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -4694,6 +4713,7 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
 
 bool Grammar::containsFreeVariables(const Term& rule) const
 {
+  // we allow the argument list and non-terminal symbols to be in scope
   std::unordered_set<TNode> scope;
 
   for (const Term& sygusVar : d_sygusVars)
@@ -4706,8 +4726,7 @@ bool Grammar::containsFreeVariables(const Term& rule) const
     scope.emplace(*ntsymbol.d_node);
   }
 
-  std::unordered_set<Node> fvs;
-  return expr::getFreeVariablesScope(*rule.d_node, fvs, scope, false);
+  return expr::hasFreeVariablesScope(*rule.d_node, scope);
 }
 
 std::ostream& operator<<(std::ostream& out, const Grammar& grammar)
@@ -5022,6 +5041,14 @@ Term Solver::mkValHelper(T t) const
   return Term(this, res);
 }
 
+Term Solver::mkRationalValHelper(const Rational& r) const
+{
+  //////// all checks before this line
+  Node res = getNodeManager()->mkConst(kind::CONST_RATIONAL, r);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
+}
+
 Term Solver::mkRealFromStrHelper(const std::string& s) const
 {
   //////// all checks before this line
@@ -5030,7 +5057,7 @@ Term Solver::mkRealFromStrHelper(const std::string& s) const
     cvc5::Rational r = s.find('/') != std::string::npos
                            ? cvc5::Rational(s)
                            : cvc5::Rational::fromDecimal(s);
-    return mkValHelper<cvc5::Rational>(r);
+    return mkRationalValHelper(r);
   }
   catch (const std::invalid_argument& e)
   {
@@ -5079,8 +5106,12 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
-  CVC5_API_RECOVERABLE_CHECK(!expr::hasFreeVar(term.getNode()))
-      << "Cannot get value of term containing free variables";
+  bool wasShadow = false;
+  bool freeOrShadowedVar =
+      expr::hasFreeOrShadowedVar(term.getNode(), wasShadow);
+  CVC5_API_RECOVERABLE_CHECK(!freeOrShadowedVar)
+      << "Cannot get value of term containing "
+      << (wasShadow ? "shadowed" : "free") << " variables";
   //////// all checks before this line
   Node value = d_slv->getValue(*term.d_node);
   Term res = Term(this, value);
@@ -5190,7 +5221,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // element type can be used safely here.
       res = getNodeManager()->mkSingleton(type, *children[0].d_node);
     }
-    else if (kind == api::MK_BAG)
+    else if (kind == api::BAG_MAKE)
     {
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()
@@ -5324,7 +5355,8 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
     res = Term(this,
                d_nodeMgr->mkNode(extToIntKind(DIVISION),
                                  *res.d_node,
-                                 d_nodeMgr->mkConst(cvc5::Rational(1))));
+                                 d_nodeMgr->mkConst(kind::CONST_RATIONAL,
+                                                    cvc5::Rational(1))));
   }
   Assert(res.getSort() == sort);
   return res;
@@ -5754,7 +5786,7 @@ Term Solver::mkInteger(int64_t val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term integer = mkValHelper<cvc5::Rational>(cvc5::Rational(val));
+  Term integer = mkRationalValHelper(cvc5::Rational(val));
   Assert(integer.getSort() == getIntegerSort());
   return integer;
   ////////
@@ -5780,7 +5812,7 @@ Term Solver::mkReal(int64_t val) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term rational = mkValHelper<cvc5::Rational>(cvc5::Rational(val));
+  Term rational = mkRationalValHelper(cvc5::Rational(val));
   return ensureRealSort(rational);
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5790,8 +5822,21 @@ Term Solver::mkReal(int64_t num, int64_t den) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  Term rational = mkValHelper<cvc5::Rational>(cvc5::Rational(num, den));
+  Term rational = mkRationalValHelper(cvc5::Rational(num, den));
   return ensureRealSort(rational);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkRegexpAll() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  Node res = d_nodeMgr->mkNode(
+      cvc5::kind::REGEXP_STAR,
+      d_nodeMgr->mkNode(cvc5::kind::REGEXP_ALLCHAR, std::vector<cvc5::Node>()));
+  (void)res.getType(true); /* kick off type checking */
+  return Term(this, res);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

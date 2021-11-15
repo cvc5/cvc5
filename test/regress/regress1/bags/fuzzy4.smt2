@@ -7,8 +7,8 @@
 (assert
  (not
   (=
-   (= A (bag d (+ c (bag.count d (union_disjoint A A)))))
-   (= A (difference_remove (bag d c) A)))))
+   (= A (bag d (+ c (bag.count d (bag.union_disjoint A A)))))
+   (= A (bag.difference_remove (bag d c) A)))))
 (assert (= A (bag (tuple 0 0) 5)))
 (assert (= c (- 5)))
 (assert (= d (tuple 0 0)))

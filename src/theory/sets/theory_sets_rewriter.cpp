@@ -81,7 +81,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                                nm->mkNode(kind::EQUAL, node[0], node[1][0]));
       }
       else if (node[1].getKind() == kind::SET_UNION
-               || node[1].getKind() == kind::SET_INTERSECTION
+               || node[1].getKind() == kind::SET_INTER
                || node[1].getKind() == kind::SET_MINUS)
       {
         std::vector<Node> children;
@@ -157,7 +157,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     else if (node[1].getKind() == kind::SET_MINUS && node[1][0] == node[0])
     {
       // (setminus A (setminus A B)) = (intersection A B)
-      Node intersection = nm->mkNode(SET_INTERSECTION, node[0], node[1][1]);
+      Node intersection = nm->mkNode(SET_INTER, node[0], node[1][1]);
       return RewriteResponse(REWRITE_AGAIN, intersection);
     }
     else if (node[1].getKind() == kind::SET_UNIVERSE)
@@ -185,7 +185,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }  // kind::SET_MINUS
 
-  case kind::SET_INTERSECTION:
+  case kind::SET_INTER:
   {
     if(node[0] == node[1]) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
@@ -272,11 +272,13 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   {
     if(node[0].isConst()) {
       std::set<Node> elements = NormalForm::getElementsFromNormalConstant(node[0]);
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(Rational(elements.size())));
+      return RewriteResponse(
+          REWRITE_DONE, nm->mkConst(CONST_RATIONAL, Rational(elements.size())));
     }
     else if (node[0].getKind() == kind::SET_SINGLETON)
     {
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(Rational(1)));
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConst(CONST_RATIONAL, Rational(1)));
     }
     else if (node[0].getKind() == kind::SET_UNION)
     {
@@ -289,7 +291,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           NodeManager::currentNM()->mkNode(
               kind::SET_CARD,
               NodeManager::currentNM()->mkNode(
-                  kind::SET_INTERSECTION, node[0][0], node[0][1])));
+                  kind::SET_INTER, node[0][0], node[0][1])));
       return RewriteResponse(REWRITE_DONE, ret );
     }
     else if (node[0].getKind() == kind::SET_MINUS)
@@ -300,7 +302,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           NodeManager::currentNM()->mkNode(
               kind::SET_CARD,
               NodeManager::currentNM()->mkNode(
-                  kind::SET_INTERSECTION, node[0][0], node[0][1])));
+                  kind::SET_INTER, node[0][0], node[0][1])));
       return RewriteResponse(REWRITE_DONE, ret );
     }
     break;
@@ -327,6 +329,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     break;
   }  // kind::SET_IS_SINGLETON
+
+  case SET_MAP: return postRewriteMap(node);
 
   case kind::RELATION_TRANSPOSE:
   {
@@ -626,6 +630,40 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   // could have an efficient normalizer for union here
 
   return RewriteResponse(REWRITE_DONE, node);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
+{
+  Assert(n.getKind() == kind::SET_MAP);
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = n[1].getKind();
+  TypeNode rangeType = n[0].getType().getRangeType();
+  switch (k)
+  {
+    case SET_EMPTY:
+    {
+      // (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
+      Node ret = nm->mkConst(EmptySet(nm->mkSetType(rangeType)));
+      return RewriteResponse(REWRITE_DONE, ret);
+    }
+    case SET_SINGLETON:
+    {
+      // (set.map f (set.singleton x)) = (set.singleton (f x))
+      Node mappedElement = nm->mkNode(APPLY_UF, n[0], n[1][0]);
+      Node ret = nm->mkSingleton(rangeType, mappedElement);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case SET_UNION:
+    {
+      // (set.map f (set.union A B)) = (set.union (set.map f A) (set.map f B))
+      Node a = nm->mkNode(SET_MAP, n[0], n[1][0]);
+      Node b = nm->mkNode(SET_MAP, n[0], n[1][1]);
+      Node ret = nm->mkNode(SET_UNION, a, b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
 }
 
 }  // namespace sets

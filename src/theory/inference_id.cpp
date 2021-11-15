@@ -19,6 +19,8 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 
@@ -104,16 +106,15 @@ const char* toString(InferenceId i)
     case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
 
     case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
-    case InferenceId::BAGS_MK_BAG_DIFFERENT_ELEMENT: return "BAGS_MK_BAG_DIFFERENT_ELEMENT";
-    case InferenceId::BAGS_MK_BAG_SAME_ELEMENT: return "BAGS_MK_BAG_SAME_ELEMENT";
-    case InferenceId::BAGS_MK_BAG: return "BAGS_MK_BAG";
+    case InferenceId::BAGS_BAG_MAKE: return "BAGS_BAG_MAKE";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
     case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
     case InferenceId::BAGS_UNION_DISJOINT: return "BAGS_UNION_DISJOINT";
     case InferenceId::BAGS_UNION_MAX: return "BAGS_UNION_MAX";
     case InferenceId::BAGS_INTERSECTION_MIN: return "BAGS_INTERSECTION_MIN";
-    case InferenceId::BAGS_DIFFERENCE_SUBTRACT: return "BAGS_DIFFERENCE_SUBTRACT";
+    case InferenceId::BAGS_DIFFERENCE_SUBTRACT:
+      return "BAGS_DIFFERENCE_SUBTRACT";
     case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
     case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
     case InferenceId::BAGS_MAP: return "BAGS_MAP";
@@ -453,6 +454,8 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_MODEL_APP_ENCODE: return "UF_HO_MODEL_APP_ENCODE";
     case InferenceId::UF_HO_MODEL_EXTENSIONALITY:
       return "UF_HO_MODEL_EXTENSIONALITY";
+    case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
+    case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
 
     default: return "?";
   }
@@ -466,7 +469,8 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 
 Node mkInferenceIdNode(InferenceId i)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
+  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                           Rational(static_cast<uint32_t>(i)));
 }
 
 bool getInferenceId(TNode n, InferenceId& i)

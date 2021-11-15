@@ -50,7 +50,8 @@ TEST_F(TestNodeWhiteTypeNode, sub_types)
   TypeNode bvType = d_nodeManager->mkBitVectorType(32);
 
   Node x = d_nodeManager->mkBoundVar("x", realType);
-  Node xPos = d_nodeManager->mkNode(GT, x, d_nodeManager->mkConst(Rational(0)));
+  Node xPos = d_nodeManager->mkNode(
+      GT, x, d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)));
   TypeNode funtype = d_nodeManager->mkFunctionType(integerType, booleanType);
   Node lambda = d_nodeManager->mkVar("lambda", funtype);
   std::vector<Node> formals;

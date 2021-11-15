@@ -83,9 +83,9 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
 {
   d_termReg.finishInit(&d_im);
 
-  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -421,7 +421,7 @@ bool TheoryStrings::collectModelInfoType(
           lvalue++;
         }
         Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
-        lts_values[i] = nm->mkConst(Rational(lvalue));
+        lts_values[i] = nm->mkConst(CONST_RATIONAL, Rational(lvalue));
         values_used[lvalue] = Node::null();
       }
       Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
@@ -930,7 +930,7 @@ void TheoryStrings::computeCareGraph(){
 
 void TheoryStrings::checkRegisterTermsPreNormalForm()
 {
-  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
   for (const Node& eqc : seqc)
   {
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
@@ -959,9 +959,14 @@ void TheoryStrings::checkCodes()
     // str.code applied to the proxy variables for each equivalence classes that
     // are constants of size one
     std::vector<Node> const_codes;
-    const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+    const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
     for (const Node& eqc : seqc)
     {
+      if (!eqc.getType().isString())
+      {
+        continue;
+      }
+
       NormalForm& nfe = d_csolver.getNormalForm(eqc);
       if (nfe.d_nf.size() == 1 && nfe.d_nf[0].isConst())
       {
@@ -1025,7 +1030,7 @@ void TheoryStrings::checkCodes()
 
 void TheoryStrings::checkRegisterTermsNormalForms()
 {
-  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
   for (const Node& eqc : seqc)
   {
     NormalForm& nfi = d_csolver.getNormalForm(eqc);
@@ -1059,7 +1064,8 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     SkolemCache* sc = d_termReg.getSkolemCache();
     Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
     Node t = atom[0];
-    Node card = nm->mkConst(Rational(d_termReg.getAlphabetCardinality()));
+    Node card = nm->mkConst(CONST_RATIONAL,
+                            Rational(d_termReg.getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node emp = Word::mkEmptyWord(atom.getType());

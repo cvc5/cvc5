@@ -22,6 +22,8 @@
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -35,9 +37,9 @@ TranscendentalState::TranscendentalState(InferenceManager& im,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(new CDProofSet<CDProof>(
@@ -203,14 +205,20 @@ void TranscendentalState::mkPi()
   {
     d_pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
     d_pi_2 = Rewriter::rewrite(
-        nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(1) / Rational(2))));
+        nm->mkNode(Kind::MULT,
+                   d_pi,
+                   nm->mkConst(CONST_RATIONAL, Rational(1) / Rational(2))));
     d_pi_neg_2 = Rewriter::rewrite(
-        nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(-1) / Rational(2))));
-    d_pi_neg = Rewriter::rewrite(
-        nm->mkNode(Kind::MULT, d_pi, nm->mkConst(Rational(-1))));
+        nm->mkNode(Kind::MULT,
+                   d_pi,
+                   nm->mkConst(CONST_RATIONAL, Rational(-1) / Rational(2))));
+    d_pi_neg = Rewriter::rewrite(nm->mkNode(
+        Kind::MULT, d_pi, nm->mkConst(CONST_RATIONAL, Rational(-1))));
     // initialize bounds
-    d_pi_bound[0] = nm->mkConst(Rational(103993) / Rational(33102));
-    d_pi_bound[1] = nm->mkConst(Rational(104348) / Rational(33215));
+    d_pi_bound[0] =
+        nm->mkConst(CONST_RATIONAL, Rational(103993) / Rational(33102));
+    d_pi_bound[1] =
+        nm->mkConst(CONST_RATIONAL, Rational(104348) / Rational(33215));
   }
 }
 
@@ -336,19 +344,23 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
     {
       if (csign == 1)
       {
-        proof->addStep(
-            lem,
-            PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
-            {},
-            {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+                       {},
+                       {nm->mkConst<Rational>(CONST_RATIONAL, 2 * actual_d),
+                        tf[0],
+                        lower,
+                        upper});
       }
       else
       {
-        proof->addStep(
-            lem,
-            PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
-            {},
-            {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+                       {},
+                       {nm->mkConst<Rational>(CONST_RATIONAL, 2 * actual_d),
+                        tf[0],
+                        lower,
+                        upper});
       }
     }
     else if (tf.getKind() == Kind::SINE)
@@ -358,7 +370,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
                        {},
-                       {nm->mkConst<Rational>(2 * actual_d),
+                       {nm->mkConst<Rational>(CONST_RATIONAL, 2 * actual_d),
                         tf[0],
                         lower,
                         upper,
@@ -372,7 +384,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
         proof->addStep(lem,
                        PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
                        {},
-                       {nm->mkConst<Rational>(2 * actual_d),
+                       {nm->mkConst<Rational>(CONST_RATIONAL, 2 * actual_d),
                         tf[0],
                         lower,
                         upper,

@@ -5,6 +5,6 @@
 (declare-fun c () Int) ; c here is zero
 (assert
   (and
-    (= b (difference_subtract b a)) ; b is empty
+    (= b (bag.difference_subtract b a)) ; b is empty
     (= a (bag (tuple c 0) 1)))) ; a = {|(<0, 0>, 1)|}
 (check-sat)

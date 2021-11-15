@@ -37,8 +37,10 @@ RegExpOpr::RegExpOpr(Env& env, SkolemCache* sc)
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_emptyRegexp(NodeManager::currentNM()->mkNode(kind::REGEXP_NONE,
                                                      std::vector<Node>{})),
-      d_zero(NodeManager::currentNM()->mkConst(::cvc5::Rational(0))),
-      d_one(NodeManager::currentNM()->mkConst(::cvc5::Rational(1))),
+      d_zero(NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                               ::cvc5::Rational(0))),
+      d_one(NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                              ::cvc5::Rational(1))),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_ALLCHAR,
                                                std::vector<Node>{})),
       d_sigma_star(
@@ -909,7 +911,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
   Node r = mem[0][1];
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();
-  Node zero = nm->mkConst(Rational(0));
+  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
   Node conc;
   if (k == REGEXP_CONCAT)
   {
@@ -953,7 +955,7 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   Node r = mem[0][1];
   NodeManager* nm = NodeManager::currentNM();
   Assert(r.getKind() == REGEXP_CONCAT);
-  Node zero = nm->mkConst(Rational(0));
+  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
   // The following simplification states that
   //    ~( s in R1 ++ R2 ++... ++ Rn )
   // is equivalent to
@@ -1038,7 +1040,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
       }
       else
       {
-        Node ivalue = nm->mkConst(Rational(i));
+        Node ivalue = nm->mkConst(CONST_RATIONAL, Rational(i));
         Node sk = sm->mkSkolemFunction(SkolemFunId::RE_UNFOLD_POS_COMPONENT,
                                        s.getType(),
                                        {mem[0], mem[1], ivalue});
@@ -1321,7 +1323,8 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
             std::map< PairNodes, Node > cache2(cache);
             cache2[p] = NodeManager::currentNM()->mkNode(
                 kind::REGEXP_RV,
-                NodeManager::currentNM()->mkConst(cvc5::Rational(cnt)));
+                NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                                  cvc5::Rational(cnt)));
             rt = intersectInternal(r1l, r2l, cache2, cnt+1);
             cacheX[ pp ] = rt;
           }

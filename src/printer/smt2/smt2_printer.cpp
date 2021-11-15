@@ -336,8 +336,8 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ")";
       break;
 
-    case kind::EMPTYBAG:
-      out << "(as emptybag ";
+    case kind::BAG_EMPTY:
+      out << "(as bag.empty ";
       toStreamType(out, n.getConst<EmptyBag>().getType());
       out << ")";
       break;
@@ -701,9 +701,9 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SET_UNIVERSE: out << "(as set.universe " << n.getType() << ")"; break;
 
   // bags
-  case kind::MK_BAG:
+  case kind::BAG_MAKE:
   {
-    // print (bag (mkBag_op Real) 1 3) as (bag 1.0 3)
+    // print (bag (BAG_MAKE_OP Real) 1 3) as (bag 1.0 3)
     out << smtKindString(k, d_variant) << " ";
     TypeNode elemType = n.getType().getBagElementType();
     toStreamCastToType(
@@ -1061,7 +1061,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 
   // set theory
   case kind::SET_UNION: return "set.union";
-  case kind::SET_INTERSECTION: return "set.intersection";
+  case kind::SET_INTER: return "set.inter";
   case kind::SET_MINUS: return "set.minus";
   case kind::SET_SUBSET: return "set.subset";
   case kind::SET_MEMBER: return "set.member";
@@ -1073,6 +1073,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SET_COMPREHENSION: return "set.comprehension";
   case kind::SET_CHOOSE: return "set.choose";
   case kind::SET_IS_SINGLETON: return "set.is_singleton";
+  case kind::SET_MAP: return "set.map";
   case kind::RELATION_JOIN: return "rel.join";
   case kind::RELATION_PRODUCT: return "rel.product";
   case kind::RELATION_TRANSPOSE: return "rel.transpose";
@@ -1082,15 +1083,15 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";
-  case kind::UNION_MAX: return "union_max";
-  case kind::UNION_DISJOINT: return "union_disjoint";
-  case kind::INTERSECTION_MIN: return "intersection_min";
-  case kind::DIFFERENCE_SUBTRACT: return "difference_subtract";
-  case kind::DIFFERENCE_REMOVE: return "difference_remove";
-  case kind::SUBBAG: return "subbag";
+  case kind::BAG_UNION_MAX: return "bag.union_max";
+  case kind::BAG_UNION_DISJOINT: return "bag.union_disjoint";
+  case kind::BAG_INTER_MIN: return "bag.inter_min";
+  case kind::BAG_DIFFERENCE_SUBTRACT: return "bag.difference_subtract";
+  case kind::BAG_DIFFERENCE_REMOVE: return "bag.difference_remove";
+  case kind::BAG_SUBBAG: return "bag.subbag";
   case kind::BAG_COUNT: return "bag.count";
-  case kind::DUPLICATE_REMOVAL: return "duplicate_removal";
-  case kind::MK_BAG: return "bag";
+  case kind::BAG_DUPLICATE_REMOVAL: return "bag.duplicate_removal";
+  case kind::BAG_MAKE: return "bag";
   case kind::BAG_CARD: return "bag.card";
   case kind::BAG_CHOOSE: return "bag.choose";
   case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
