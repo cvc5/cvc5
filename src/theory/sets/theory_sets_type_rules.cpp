@@ -131,7 +131,7 @@ TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
     TypeNode type2 = n[0].getType(check);
     TypeNode leastCommonType = TypeNode::leastCommonTypeNode(type1, type2);
     // the type of the element should be a subtype of the type of the operator
-    // e.g. (singleton (singleton_op Real) 1) where 1 is an Int
+    // e.g. (set.singleton (SetSingletonOp Real) 1) where 1 is an Int
     if (leastCommonType.isNull() || leastCommonType != type1)
     {
       std::stringstream ss;
@@ -462,6 +462,13 @@ TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
   {
     throw TypeCheckingExceptionPrivate(
         n, " JoinImage operates on a non-binary relation");
+  }
+  if (tupleTypes[0] != tupleTypes[1])
+  {
+    // TODO: Investigate supporting JoinImage for general binary
+    // relationshttps://github.com/cvc5/cvc5-projects/issues/346
+    throw TypeCheckingExceptionPrivate(
+        n, " JoinImage operates on a pair of different types");
   }
   TypeNode valType = n[1].getType(check);
   if (valType != nodeManager->integerType())
