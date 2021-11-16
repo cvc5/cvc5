@@ -191,7 +191,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         }
         else
         {
-          Assert(d_type.isArithmetic());
+          Assert(d_type.isReal());
           // now is strict inequality
           uires = mkStrictCTT(uires);
         }
@@ -262,7 +262,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       }
       else
       {
-        Assert(d_type.isArithmetic());
+        Assert(d_type.isReal());
         uires = is_upper ? CEG_TT_LOWER_STRICT : CEG_TT_UPPER_STRICT;
       }
     }

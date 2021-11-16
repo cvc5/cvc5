@@ -557,7 +557,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
   }
   else
   {
-    if (n.getType().isArithmetic() && n.getConst<Rational>().sgn() < 0)
+    if (n.getType().isInteger() && n.getConst<Rational>().sgn() < 0)
     {
       // negative arguments
       if (ik == STRING_SUBSTR || ik == STRING_CHARAT)

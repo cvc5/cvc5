@@ -617,7 +617,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       return ret;
     }
   }
-  else if (tn.isArithmetic())
+  else if (tn.isReal())
   {
     Node s = getRandomValue(nm->integerType());
     Node r = getRandomValue(nm->integerType());
