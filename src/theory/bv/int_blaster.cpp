@@ -62,8 +62,8 @@ IntBlaster::IntBlaster(Env& env,
       d_introduceFreshIntVars(introduceFreshIntVars)
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst<Rational>(CONST_RATIONAL, 0);
-  d_one = d_nm->mkConst<Rational>(CONST_RATIONAL, 1);
+  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
 };
 
 IntBlaster::~IntBlaster() {}
@@ -109,18 +109,18 @@ Node IntBlaster::maxInt(uint64_t k)
 {
   Assert(k > 0);
   Rational max_value = intpow2(k) - 1;
-  return d_nm->mkConst<Rational>(CONST_RATIONAL, max_value);
+  return d_nm->mkConst(CONST_RATIONAL, max_value);
 }
 
 Node IntBlaster::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst<Rational>(CONST_RATIONAL, intpow2(k));
+  return d_nm->mkConst(CONST_RATIONAL, intpow2(k));
 }
 
 Node IntBlaster::modpow2(Node n, uint64_t exponent)
 {
-  Node p2 = d_nm->mkConst<Rational>(CONST_RATIONAL, intpow2(exponent));
+  Node p2 = d_nm->mkConst(CONST_RATIONAL, intpow2(exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -593,7 +593,7 @@ Node IntBlaster::translateWithChildren(
 Node IntBlaster::uts(Node x, uint64_t bvsize) {
   Node powNode = pow2(bvsize - 1);
   Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
-  Node two =  d_nm->mkConst<Rational>(2);
+  Node two =  d_nm->mkConst(CONST_RATIONAL, Rational(2));
   Node twoTimesNode = d_nm->mkNode(kind::MULT, two, modNode);
   return d_nm->mkNode(kind::MINUS, twoTimesNode, x);
 }
@@ -620,7 +620,7 @@ Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
           Rational max_of_amount = intpow2(amount) - 1;
           Rational mul = max_of_amount * intpow2(bvsize);
           Rational sum = mul + c;
-          returnNode = d_nm->mkConst(sum);
+          returnNode = d_nm->mkConst(CONST_RATIONAL, sum);
         }
       }
       else
@@ -632,7 +632,7 @@ Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
         else
         {
           Rational twoToKMinusOne(intpow2(bvsize - 1));
-          Node minSigned = d_nm->mkConst(twoToKMinusOne);
+          Node minSigned = d_nm->mkConst(CONST_RATIONAL, twoToKMinusOne);
           /* condition checks whether the msb is 1.
            * This holds when the integer value is smaller than
            * 100...0, which is 2^{bvsize-1}.
@@ -741,7 +741,8 @@ Node IntBlaster::translateNoChildren(Node original,
       // Bit-vector constants are transformed into their integer value.
       BitVector constant(original.getConst<BitVector>());
       Integer c = constant.toInteger();
-      translation = d_nm->mkConst<Rational>(CONST_RATIONAL, c);
+      Rational r = Rational(c, Integer(1));
+      translation = d_nm->mkConst(CONST_RATIONAL, r);
     }
     else
     {
@@ -823,6 +824,7 @@ bool IntBlaster::childrenTypesChanged(Node n)
   for (const Node& child : n)
   {
     TypeNode originalType = child.getType();
+    Assert(d_intblastCache.find(child) != d_intblastCache.end());
     TypeNode newType = d_intblastCache[child].get().getType();
     if (!newType.isSubtypeOf(originalType))
     {
@@ -917,7 +919,7 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
       body = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i));
     }
     ite = d_nm->mkNode(kind::ITE,
-                       d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)),
+                       d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst(CONST_RATIONAL, Rational(Integer(i), Integer(1)))),
                        body,
                        ite);
   }
