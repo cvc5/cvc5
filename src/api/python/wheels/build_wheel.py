@@ -17,12 +17,18 @@
 # Configures and builds in directory ./build
 # Creates wheel in ./dist
 #
+# Note: takes an *optional* environment variable VERSION_SUFFIX. If set, this
+# suffix will be appended to the pypi package version.
+# Example:
+#   VERSION_SUFFIX=testing python3 ./src/api/python/wheels/build_wheel.py bdist_wheel
+# would create versions X.Y.Z_testing
 ##
 
 import os
 import re
 import sys
 import platform
+import string
 import subprocess
 import multiprocessing
 import shutil
@@ -32,7 +38,8 @@ from setuptools.command.build_ext import build_ext
 from skbuild.cmaker import CMaker
 from distutils.version import LooseVersion
 
-WORKING_DIR="build"
+WORKING_DIR = "build"
+
 
 def get_project_src_path():
     # expecting this script to be in src/api/python/wheels
@@ -115,12 +122,12 @@ class CMakeBuild(build_ext):
         # find correct Python include directory and library
         # works even for nonstandard Python installations
         # (e.g., on pypa/manylinux)
-        args.append('-DPYTHON_VERSION_STRING:STRING=' + \
+        args.append('-DPYTHON_VERSION_STRING:STRING=' +
                     sys.version.split(' ')[0])
         python_version = CMaker.get_python_version()
-        args.append('-DPYTHON_INCLUDE_DIR:PATH=' + \
+        args.append('-DPYTHON_INCLUDE_DIR:PATH=' +
                     CMaker.get_python_include_dir(python_version))
-        args.append('-DPYTHON_LIBRARY:FILEPATH=' + \
+        args.append('-DPYTHON_LIBRARY:FILEPATH=' +
                     CMaker.get_python_library(python_version))
 
         config_filename = os.path.join(project_src_path, "configure.sh")
@@ -151,7 +158,8 @@ class CMakeBuild(build_ext):
 
 version_suffix = os.getenv('VERSION_SUFFIX', '')
 if len(version_suffix) > 0:
-    version_suffix = '_' + version_suffix
+    assert all(c in string.ascii_letters + string.digits for c in version_suffix)
+    assert version_suffix[0] in string.ascii_letters
     print("Setting version suffix to", version_suffix)
 
 
@@ -166,4 +174,3 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild),
     tests_require=['pytest']
 )
-
