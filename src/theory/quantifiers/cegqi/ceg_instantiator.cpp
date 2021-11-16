@@ -1271,8 +1271,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     bool pol = lit.getKind()!=NOT;
     //arithmetic inequalities and disequalities
     if (atom.getKind() == GEQ
-        || (atom.getKind() == EQUAL && !pol
-            && atom[0].getType().isRealOrInt()))
+        || (atom.getKind() == EQUAL && !pol && atom[0].getType().isRealOrInt()))
     {
       NodeManager* nm = NodeManager::currentNM();
       Assert(atom.getKind() != GEQ || atom[1].isConst());

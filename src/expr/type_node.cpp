@@ -96,8 +96,7 @@ CardinalityClass TypeNode::getCardinalityClass()
   {
     ret = CardinalityClass::FINITE;
   }
-  else if (isString() || isRegExp() || isSequence() || isRealOrInt()
-           || isBag())
+  else if (isString() || isRegExp() || isSequence() || isRealOrInt() || isBag())
   {
     ret = CardinalityClass::INFINITE;
   }
