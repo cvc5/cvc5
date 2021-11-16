@@ -211,6 +211,13 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // sign extend
+  Node signExtOp =
+      d_nodeManager->mkConst<BitVectorSignExtend>(BitVectorSignExtend(4));
+  original = d_nodeManager->mkNode(signExtOp, v1);
+  result = intBlaster.translateWithChildren(original, {i1}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
   // extract + BV ITE
   Node extract = theory::bv::utils::mkExtract(v1, 0, 0);
   original = d_nodeManager->mkNode(BITVECTOR_ITE, extract, v2, v1);
@@ -219,6 +226,32 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
       intBlaster.translateWithChildren(original, {intExtract, i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
   ASSERT_TRUE(intExtract.getType().isInteger());
+
+
+  // left shift 
+  original = d_nodeManager->mkNode(BITVECTOR_SHL, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
+  // logical right shift 
+  original = d_nodeManager->mkNode(BITVECTOR_LSHR, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
+  // arithmetic right shift 
+  original = d_nodeManager->mkNode(BITVECTOR_ASHR, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+ 
+  // bvand
+  original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
+  // bvor
+  original = d_nodeManager->mkNode(BITVECTOR_OR, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
 
   // concat
   original = d_nodeManager->mkNode(BITVECTOR_CONCAT, v1, v2);
