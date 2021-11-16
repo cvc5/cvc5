@@ -29,6 +29,7 @@
 #include "expr/node.h"
 #include "proof/lazy_proof_chain.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -45,7 +46,7 @@ namespace booleans {
  * the same fact is not output twice, so that the same edge in the
  * circuit isn't propagated twice, etc.
  */
-class CircuitPropagator
+class CircuitPropagator : protected EnvObj
 {
  public:
   /**
@@ -66,7 +67,7 @@ class CircuitPropagator
   /**
    * Construct a new CircuitPropagator.
    */
-  CircuitPropagator(bool enableForward = true, bool enableBackward = true);
+  CircuitPropagator(Env& env, bool enableForward = true, bool enableBackward = true);
 
   /** Get Node assignment in circuit.  Assert-fails if Node is unassigned. */
   bool getAssignment(TNode n) const
@@ -99,7 +100,7 @@ class CircuitPropagator
    * @return a trust node encapsulating the proof for a conflict as a lemma that
    * proves false, or the null trust node otherwise
    */
-  TrustNode propagate() CVC5_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT TrustNode propagate();
 
   /**
    * Get the back edges of this circuit.

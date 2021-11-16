@@ -47,9 +47,9 @@ IAndSolver::IAndSolver(Env& env,
   NodeManager* nm = NodeManager::currentNM();
   d_false = nm->mkConst(false);
   d_true = nm->mkConst(true);
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
-  d_two = nm->mkConst(Rational(2));
+  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  d_two = nm->mkConst(CONST_RATIONAL, Rational(2));
 }
 
 IAndSolver::~IAndSolver() {}
@@ -198,7 +198,7 @@ Node IAndSolver::convertToBvK(unsigned k, Node n) const
   NodeManager* nm = NodeManager::currentNM();
   Node iToBvOp = nm->mkConst(IntToBitVector(k));
   Node bn = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvOp, n);
-  return Rewriter::rewrite(bn);
+  return rewrite(bn);
 }
 
 Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
@@ -206,14 +206,14 @@ Node IAndSolver::mkIAnd(unsigned k, Node x, Node y) const
   NodeManager* nm = NodeManager::currentNM();
   Node iAndOp = nm->mkConst(IntAnd(k));
   Node ret = nm->mkNode(IAND, iAndOp, x, y);
-  ret = Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   return ret;
 }
 
 Node IAndSolver::mkIOr(unsigned k, Node x, Node y) const
 {
   Node ret = mkINot(k, mkIAnd(k, mkINot(k, x), mkINot(k, y)));
-  ret = Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   return ret;
 }
 
@@ -221,7 +221,7 @@ Node IAndSolver::mkINot(unsigned k, Node x) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Node ret = nm->mkNode(MINUS, d_iandUtils.twoToKMinusOne(k), x);
-  ret = Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   return ret;
 }
 
@@ -236,7 +236,7 @@ Node IAndSolver::valueBasedLemma(Node i)
 
   NodeManager* nm = NodeManager::currentNM();
   Node valC = nm->mkNode(IAND, i.getOperator(), valX, valY);
-  valC = Rewriter::rewrite(valC);
+  valC = rewrite(valC);
 
   Node lem = nm->mkNode(
       IMPLIES, nm->mkNode(AND, x.eqNode(valX), y.eqNode(valY)), i.eqNode(valC));

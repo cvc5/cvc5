@@ -24,9 +24,8 @@
 
 #include "context/context.h"
 #include "printer/printer.h"
-#include "smt/dump.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/solver_engine.h"
+#include "smt/solver_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
@@ -203,7 +202,6 @@ enum RewriteRuleId
   BBAddNeg,
   UltAddOne,
   ConcatToMult,
-  IsPowerOfTwo,
   MultSltMult,
   BitOfConst,
 };
@@ -370,7 +368,6 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case MultDistrib: out << "MultDistrib"; return out;
   case UltAddOne: out << "UltAddOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
-  case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   case MultSltMult: out << "MultSltMult"; return out;
   case NormalizeEqAddNeg: out << "NormalizeEqAddNeg"; return out;
   case BitOfConst: out << "BitOfConst"; return out;
@@ -410,9 +407,9 @@ class RewriteRule {
 
   // /* Statistics about the rule */
   // // NOTE: Cannot have static fields like this, or else you can't have
-  // // two SmtEngines in the process (the second-to-be-destroyed will
+  // // two SolverEngines in the process (the second-to-be-destroyed will
   // // have a dangling pointer and segfault).  If this statistic is needed,
-  // // fix the rewriter by making it an instance per-SmtEngine (instead of
+  // // fix the rewriter by making it an instance per-SolverEngine (instead of
   // // static).
   // static RuleStatistics* s_statistics;
 
@@ -589,7 +586,6 @@ struct AllRewriteRules {
   RewriteRule<MultDistrib>                    rule118;
   RewriteRule<UltAddOne> rule119;
   RewriteRule<ConcatToMult>                   rule120;
-  RewriteRule<IsPowerOfTwo>                   rule121;
   RewriteRule<RedorEliminate>                 rule122;
   RewriteRule<RedandEliminate>                rule123;
   RewriteRule<SignExtendEqConst>              rule124;

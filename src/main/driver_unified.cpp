@@ -36,7 +36,7 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "smt/command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "util/result.h"
 
 using namespace std;
@@ -100,16 +100,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
     printUsage(dopts, true);
     exit(1);
   }
-  else if (solver->getOptionInfo("language-help").boolValue())
-  {
-    main::printLanguageHelp(dopts.out());
-    exit(1);
-  }
-  else if (solver->getOptionInfo("version").boolValue())
-  {
-    dopts.out() << Configuration::about().c_str() << flush;
-    exit(0);
-  }
 
   segvSpin = solver->getOptionInfo("segv-spin").boolValue();
 
@@ -143,7 +133,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
-      solver->setOption("input-language", "cvc");
+      solver->setOption("input-language", "smt2");
     } else {
       size_t len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
@@ -151,9 +141,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
         solver->setOption("input-language", "tptp");
-      } else if(( len >= 4 && !strcmp(".cvc", filename + len - 4) )
-                || ( len >= 5 && !strcmp(".cvc4", filename + len - 5) )) {
-        solver->setOption("input-language", "cvc");
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
         // version 2 sygus is the default
@@ -172,9 +159,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
   if(Configuration::isMuzzledBuild()) {
     DebugChannel.setStream(&cvc5::null_os);
     TraceChannel.setStream(&cvc5::null_os);
-    NoticeChannel.setStream(&cvc5::null_os);
-    ChatChannel.setStream(&cvc5::null_os);
-    MessageChannel.setStream(&cvc5::null_os);
     WarningChannel.setStream(&cvc5::null_os);
   }
 
@@ -198,18 +182,17 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
                              dopts.in(),
                              dopts.out());
 
-      CVC5Message() << Configuration::getPackageName() << " "
-                    << Configuration::getVersionString();
+      auto& out = solver->getDriverOptions().out();
+      out << Configuration::getPackageName() << " "
+          << Configuration::getVersionString();
       if (Configuration::isGitBuild())
       {
-        CVC5Message() << " [" << Configuration::getGitId() << "]";
+        out << " [" << Configuration::getGitInfo() << "]";
       }
-      CVC5Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                    << " assertions:"
-                    << (Configuration::isAssertionBuild() ? "on" : "off")
-                    << endl
-                    << endl;
-      CVC5Message() << Configuration::copyright() << endl;
+      out << (Configuration::isDebugBuild() ? " DEBUG" : "") << " assertions:"
+          << (Configuration::isAssertionBuild() ? "on" : "off") << std::endl
+          << std::endl
+          << Configuration::copyright() << std::endl;
 
       while(true) {
         try {

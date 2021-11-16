@@ -33,21 +33,62 @@
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
 
+using namespace std;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace std;
-using namespace cvc5::theory;
-
 namespace {
+
+/**
+ * Trace nodes back to their assertions using CircuitPropagator's
+ * BackEdgesMap.
+ */
+void traceBackToAssertions(booleans::CircuitPropagator* propagator,
+                           const std::vector<Node>& nodes,
+                           std::vector<TNode>& assertions)
+{
+  const booleans::CircuitPropagator::BackEdgesMap& backEdges =
+      propagator->getBackEdges();
+  for (vector<Node>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
+  {
+    booleans::CircuitPropagator::BackEdgesMap::const_iterator j =
+        backEdges.find(*i);
+    // term must appear in map, otherwise how did we get here?!
+    Assert(j != backEdges.end());
+    // if term maps to empty, that means it's a top-level assertion
+    if (!(*j).second.empty())
+    {
+      traceBackToAssertions(propagator, (*j).second, assertions);
+    }
+    else
+    {
+      assertions.push_back(*i);
+    }
+  }
+}
+
+}  // namespace
+
+MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "miplib-trick"),
+      d_statistics(statisticsRegistry())
+{
+}
+
+MipLibTrick::~MipLibTrick()
+{
+}
 
 /**
  * Remove conjuncts in toRemove from conjunction n. Return # of removed
  * conjuncts.
  */
-size_t removeFromConjunction(Node& n,
-                             const std::unordered_set<unsigned long>& toRemove)
+size_t MipLibTrick::removeFromConjunction(
+    Node& n, const std::unordered_set<unsigned long>& toRemove)
 {
   Assert(n.getKind() == kind::AND);
   Node trueNode = NodeManager::currentNM()->mkConst(true);
@@ -109,7 +150,7 @@ size_t removeFromConjunction(Node& n,
       {
         n = b;
       }
-      n = Rewriter::rewrite(n);
+      n = rewrite(n);
       return removals;
     }
   }
@@ -118,69 +159,34 @@ size_t removeFromConjunction(Node& n,
   return 0;
 }
 
-/**
- * Trace nodes back to their assertions using CircuitPropagator's
- * BackEdgesMap.
- */
-void traceBackToAssertions(booleans::CircuitPropagator* propagator,
-                           const std::vector<Node>& nodes,
-                           std::vector<TNode>& assertions)
+void MipLibTrick::collectBooleanVariables(
+    AssertionPipeline* assertionsToPreprocess)
 {
-  const booleans::CircuitPropagator::BackEdgesMap& backEdges =
-      propagator->getBackEdges();
-  for (vector<Node>::const_iterator i = nodes.begin(); i != nodes.end(); ++i)
+  d_boolVars.clear();
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    booleans::CircuitPropagator::BackEdgesMap::const_iterator j =
-        backEdges.find(*i);
-    // term must appear in map, otherwise how did we get here?!
-    Assert(j != backEdges.end());
-    // if term maps to empty, that means it's a top-level assertion
-    if (!(*j).second.empty())
+    visit.push_back((*assertionsToPreprocess)[i]);
+  }
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
     {
-      traceBackToAssertions(propagator, (*j).second, assertions);
+      visited.insert(cur);
+      if (cur.isVar() && cur.getType().isBoolean())
+      {
+        d_boolVars.push_back(cur);
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
-    else
-    {
-      assertions.push_back(*i);
-    }
-  }
-}
-
-}  // namespace
-
-MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "miplib-trick")
-{
-  if (!options::incrementalSolving())
-  {
-    NodeManager::currentNM()->subscribeEvents(this);
-  }
-}
-
-MipLibTrick::~MipLibTrick()
-{
-  if (!options::incrementalSolving())
-  {
-    NodeManager::currentNM()->unsubscribeEvents(this);
-  }
-}
-
-void MipLibTrick::nmNotifyNewVar(TNode n)
-{
-  if (n.getType().isBoolean())
-  {
-    d_boolVars.push_back(n);
-  }
-}
-
-void MipLibTrick::nmNotifyNewSkolem(TNode n,
-                                    const std::string& comment,
-                                    uint32_t flags)
-{
-  if (n.getType().isBoolean())
-  {
-    d_boolVars.push_back(n);
-  }
+  } while (!visit.empty());
 }
 
 PreprocessingPassResult MipLibTrick::applyInternal(
@@ -188,7 +194,10 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 {
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          == assertionsToPreprocess->size());
-  Assert(!options::incrementalSolving());
+  Assert(!options().base.incrementalSolving);
+
+  // collect Boolean variables
+  collectBooleanVariables(assertionsToPreprocess);
 
   context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -204,7 +213,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
+  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0)),
+       one = nm->mkConst(CONST_RATIONAL, Rational(1));
   Node trueNode = nm->mkConst(true);
 
   unordered_map<TNode, Node> intVars;
@@ -528,14 +538,13 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               Node newVar = sm->mkDummySkolem(
                   ss.str(),
                   nm->integerType(),
-                  "a variable introduced due to scrubbing a miplib encoding",
-                  NodeManager::SKOLEM_EXACT_NAME);
-              Node geq = Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero));
-              Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
+                  "a variable introduced due to scrubbing a miplib encoding");
+              Node geq = rewrite(nm->mkNode(kind::GEQ, newVar, zero));
+              Node leq = rewrite(nm->mkNode(kind::LEQ, newVar, one));
               TrustNode tgeq = TrustNode::mkTrustLemma(geq, nullptr);
               TrustNode tleq = TrustNode::mkTrustLemma(leq, nullptr);
 
-              Node n = Rewriter::rewrite(geq.andNode(leq));
+              Node n = rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
               TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
               CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
@@ -564,29 +573,28 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             NodeBuilder sumb(kind::PLUS);
             for (size_t jj = 0; jj < pos.getNumChildren(); ++jj)
             {
-              sumb << nm->mkNode(
-                  kind::MULT, nm->mkConst(coef[pos_var][jj]), newVars[jj]);
+              sumb << nm->mkNode(kind::MULT,
+                                 nm->mkConst(CONST_RATIONAL, coef[pos_var][jj]),
+                                 newVars[jj]);
             }
             sum = sumb;
           }
           else
           {
-            sum = nm->mkNode(
-                kind::MULT, nm->mkConst(coef[pos_var][0]), newVars[0]);
+            sum = nm->mkNode(kind::MULT,
+                             nm->mkConst(CONST_RATIONAL, coef[pos_var][0]),
+                             newVars[0]);
           }
           Debug("miplib") << "vars[] " << var << endl
-                          << "    eq " << Rewriter::rewrite(sum) << endl;
-          Node newAssertion = var.eqNode(Rewriter::rewrite(sum));
+                          << "    eq " << rewrite(sum) << endl;
+          Node newAssertion = var.eqNode(rewrite(sum));
           if (top_level_substs.hasSubstitution(newAssertion[0]))
           {
-            // Warning() << "RE-SUBSTITUTION " << newAssertion[0] << endl;
-            // Warning() << "REPLACE         " << newAssertion[1] << endl;
-            // Warning() << "ORIG            " <<
-            // top_level_substs.getSubstitution(newAssertion[0]) << endl;
             Assert(top_level_substs.getSubstitution(newAssertion[0])
                    == newAssertion[1]);
           }
-          else if (pos.getNumChildren() <= options::arithMLTrickSubstitutions())
+          else if (pos.getNumChildren()
+                   <= options().arith.arithMLTrickSubstitutions)
           {
             top_level_substs.addSubstitution(newAssertion[0], newAssertion[1]);
             Debug("miplib") << "addSubs: " << newAssertion[0] << " to "
@@ -596,10 +604,10 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           {
             Debug("miplib")
                 << "skipSubs: " << newAssertion[0] << " to " << newAssertion[1]
-                << " (threshold is " << options::arithMLTrickSubstitutions()
-                << ")" << endl;
+                << " (threshold is "
+                << options().arith.arithMLTrickSubstitutions << ")" << endl;
           }
-          newAssertion = Rewriter::rewrite(newAssertion);
+          newAssertion = rewrite(newAssertion);
           Debug("miplib") << "  " << newAssertion << endl;
 
           assertionsToPreprocess->push_back(newAssertion);
@@ -640,9 +648,9 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           d_statistics.d_numMiplibAssertionsRemoved += removals;
         }
       }
-      Debug("miplib") << "had: " << assertion[i] << endl;
+      Debug("miplib") << "had: " << assertion << endl;
       assertionsToPreprocess->replace(
-          i, Rewriter::rewrite(top_level_substs.apply(assertion)));
+          i, rewrite(top_level_substs.apply(assertion)));
       Debug("miplib") << "now: " << assertion << endl;
     }
   }
@@ -654,8 +662,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-MipLibTrick::Statistics::Statistics()
-    : d_numMiplibAssertionsRemoved(smtStatisticsRegistry().registerInt(
+MipLibTrick::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_numMiplibAssertionsRemoved(reg.registerInt(
         "preprocessing::passes::MipLibTrick::numMiplibAssertionsRemoved"))
 {
 }

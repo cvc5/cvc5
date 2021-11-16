@@ -30,7 +30,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
-#include "theory/bags/make_bag_op.h"
+#include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
 #include "util/abstract_value.h"
 #include "util/bitvector.h"
@@ -40,8 +40,6 @@ using namespace std;
 using namespace cvc5::expr;
 
 namespace cvc5 {
-
-thread_local NodeManager* NodeManager::s_current = NULL;
 
 namespace {
 
@@ -97,14 +95,19 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAtt
 NodeManager::NodeManager()
     : d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
+      d_initialized(false),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false),
-      d_abstractValueCount(0),
-      d_skolemCounter(0)
+      d_abstractValueCount(0)
 {
-  init();
+}
+
+NodeManager* NodeManager::currentNM()
+{
+  thread_local static NodeManager nm;
+  return &nm;
 }
 
 bool NodeManager::isNAryKind(Kind k)
@@ -183,10 +186,15 @@ TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
 }
 
 void NodeManager::init() {
-  // `mkConst()` indirectly needs the correct NodeManager in scope because we
-  // call `NodeValue::inc()` which uses `NodeManager::curentNM()`
-  NodeManagerScope nms(this);
+  if (d_initialized)
+  {
+    return;
+  }
+  d_initialized = true;
 
+  // Note: This code cannot be part of the constructor because it indirectly
+  // calls `NodeManager::currentNM()`, which is where the `NodeManager` is
+  // being constructed.
   poolInsert( &expr::NodeValue::null() );
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
@@ -199,11 +207,6 @@ void NodeManager::init() {
 }
 
 NodeManager::~NodeManager() {
-  // have to ensure "this" is the current NodeManager during
-  // destruction of operators, because they get GCed.
-
-  NodeManagerScope nms(this);
-
   // Destroy skolem and bound var manager before cleaning up attributes and
   // zombies
   d_skManager = nullptr;
@@ -211,8 +214,8 @@ NodeManager::~NodeManager() {
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
-    // hopefully by this point all SmtEngines have been deleted
-    // already, along with all their attributes
+    // By this point, all SolverEngines should have been deleted, along with
+    // all their attributes
     d_attrManager->deleteAllAttributes();
   }
 
@@ -253,7 +256,10 @@ NodeManager::~NodeManager() {
     }
   }
 
-  poolRemove( &expr::NodeValue::null() );
+  if (d_initialized)
+  {
+    poolRemove(&expr::NodeValue::null());
+  }
 
   if(Debug.isOn("gc:leaks")) {
     Debug("gc:leaks") << "still in pool:" << endl;
@@ -359,10 +365,6 @@ void NodeManager::reclaimZombies() {
         TNode n;
         n.d_nv = nv;
         nv->d_rc = 1; // so that TNode doesn't assert-fail
-        for (NodeManagerListener* listener : d_listeners)
-        {
-          listener->nmNotifyDeleteNode(n);
-        }
         // this would mean that one of the listeners stowed away
         // a reference to this node!
         Assert(nv->d_rc == 1);
@@ -434,15 +436,6 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
 
 TypeNode NodeManager::getType(TNode n, bool check)
 {
-  // Many theories' type checkers call Node::getType() directly.  This
-  // is incorrect, since "this" might not be the caller's current node
-  // manager.  Rather than force the individual typecheckers not to do
-  // this (by policy, which would be imperfect and lead to
-  // hard-to-find bugs, which it has in the past), we just set this
-  // node manager to be current for the duration of this check.
-  //
-  NodeManagerScope nms(this);
-
   TypeNode typeNode;
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
   bool needsCheck = check && !getAttribute(n, TypeCheckedAttr());
@@ -505,25 +498,6 @@ TypeNode NodeManager::getType(TNode n, bool check)
   return typeNode;
 }
 
-Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, const std::string& comment, int flags) {
-  Node n = NodeBuilder(this, kind::SKOLEM);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  if((flags & SKOLEM_EXACT_NAME) == 0) {
-    stringstream name;
-    name << prefix << '_' << ++d_skolemCounter;
-    setAttribute(n, expr::VarNameAttr(), name.str());
-  } else {
-    setAttribute(n, expr::VarNameAttr(), prefix);
-  }
-  if((flags & SKOLEM_NO_NOTIFY) == 0) {
-    for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-      (*i)->nmNotifyNewSkolem(n, comment, (flags & SKOLEM_IS_GLOBAL) == SKOLEM_IS_GLOBAL);
-    }
-  }
-  return n;
-}
-
 TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
   CheckArgument(
@@ -562,7 +536,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     const std::set<TypeNode>& unresolvedTypes,
     uint32_t flags)
 {
-  NodeManagerScope nms(this);
   std::map<std::string, TypeNode> nameResolutions;
   std::vector<TypeNode> dtts;
 
@@ -683,11 +656,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         }
       }
     }
-  }
-
-  for (NodeManagerListener* nml : d_listeners)
-  {
-    nml->nmNotifyNewDatatypes(dtts, flags);
   }
 
   return dtts;
@@ -853,11 +821,7 @@ TypeNode NodeManager::mkSort(uint32_t flags) {
   NodeBuilder nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder(this, kind::SORT_TAG);
   nb << sortTag;
-  TypeNode tn = nb.constructTypeNode();
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
-  return tn;
+  return nb.constructTypeNode();
 }
 
 TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
@@ -866,9 +830,6 @@ TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
   nb << sortTag;
   TypeNode tn = nb.constructTypeNode();
   setAttribute(tn, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
   return tn;
 }
 
@@ -892,9 +853,6 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   nb.append(children);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyInstantiateSortConstructor(constructor, type, flags);
-  }
   return type;
 }
 
@@ -909,9 +867,6 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSortConstructor(type, flags);
-  }
   return type;
 }
 
@@ -921,9 +876,6 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
-  }
   return n;
 }
 
@@ -1044,9 +996,6 @@ Node NodeManager::mkVar(const TypeNode& type)
   Node n = NodeBuilder(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
-  }
   return n;
 }
 
@@ -1060,13 +1009,6 @@ Node NodeManager::mkBoundVar(const TypeNode& type) {
 Node NodeManager::mkInstConstant(const TypeNode& type) {
   Node n = NodeBuilder(this, kind::INST_CONSTANT);
   n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
-  return n;
-}
-
-Node NodeManager::mkBooleanTermVariable() {
-  Node n = NodeBuilder(this, kind::BOOLEAN_TERM_VARIABLE);
-  n.setAttribute(TypeAttr(), booleanType());
   n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
@@ -1091,8 +1033,8 @@ Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
       << "Invalid operands for mkSingleton. The type '" << n.getType()
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
-  Node op = mkConst(SingletonOp(t));
-  Node singleton = mkNode(kind::SINGLETON, op, n);
+  Node op = mkConst(SetSingletonOp(t));
+  Node singleton = mkNode(kind::SET_SINGLETON, op, n);
   return singleton;
 }
 
@@ -1102,8 +1044,8 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
       << "Invalid operands for mkBag. The type '" << n.getType()
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
-  Node op = mkConst(MakeBagOp(t));
-  Node bag = mkNode(kind::MK_BAG, op, n, m);
+  Node op = mkConst(BagMakeOp(t));
+  Node bag = mkNode(kind::BAG_MAKE, op, n, m);
   return bag;
 }
 

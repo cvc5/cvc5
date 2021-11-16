@@ -53,7 +53,8 @@ class QuantifiersInferenceManager;
 class SygusModule : protected EnvObj
 {
  public:
-  SygusModule(QuantifiersState& qs,
+  SygusModule(Env& env,
+              QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               TermDbSygus* tds,
               SynthConjecture* p);

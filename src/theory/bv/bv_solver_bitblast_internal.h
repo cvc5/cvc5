@@ -19,6 +19,7 @@
 #ifndef CVC5__THEORY__BV__BV_SOLVER_BITBLAST_INTERNAL_H
 #define CVC5__THEORY__BV__BV_SOLVER_BITBLAST_INTERNAL_H
 
+#include "smt/env_obj.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
@@ -37,12 +38,13 @@ namespace bv {
 class BVSolverBitblastInternal : public BVSolver
 {
  public:
-  BVSolverBitblastInternal(TheoryState* state,
+  BVSolverBitblastInternal(Env& env,
+                           TheoryState* state,
                            TheoryInferenceManager& inferMgr,
                            ProofNodeManager* pnm);
   ~BVSolverBitblastInternal() = default;
 
-  bool needsEqualityEngine(EeSetupInfo& esi) override { return true; }
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
 
   void preRegisterTerm(TNode n) override {}
 
@@ -77,6 +79,8 @@ class BVSolverBitblastInternal : public BVSolver
   std::unique_ptr<BBProof> d_bitblaster;
   /** Proof rule checker */
   BVProofRuleChecker d_checker;
+  /** Proof generator for unpacking BITVECTOR_EAGER_ATOM. */
+  std::unique_ptr<EagerProofGenerator> d_epg;
 };
 
 }  // namespace bv

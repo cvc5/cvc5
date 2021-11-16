@@ -21,6 +21,8 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace test {
 
@@ -247,7 +249,7 @@ TEST_F(TestUtilBlackDatatype, listIntUpdate)
   const DType& ldt = listType.getDType();
   Node updater = ldt[0][0].getUpdater();
   Node gt = listType.mkGroundTerm();
-  Node zero = d_nodeManager->mkConst(Rational(0));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
   Node truen = d_nodeManager->mkConst(true);
   // construct an update term
   Node uterm = d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, zero);

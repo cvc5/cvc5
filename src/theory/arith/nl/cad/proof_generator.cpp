@@ -21,6 +21,8 @@
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/indexed_root_predicate.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -94,7 +96,7 @@ CADProofGenerator::CADProofGenerator(context::Context* ctx,
     : d_pnm(pnm), d_proofs(pnm, ctx), d_current(nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
-  d_zero = NodeManager::currentNM()->mkConst<Rational>(0);
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 void CADProofGenerator::startNewProof()
@@ -102,9 +104,10 @@ void CADProofGenerator::startNewProof()
   d_current = d_proofs.allocateProof();
 }
 void CADProofGenerator::startRecursive() { d_current->openChild(); }
-void CADProofGenerator::endRecursive()
+void CADProofGenerator::endRecursive(size_t intervalId)
 {
-  d_current->setCurrent(PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
+  d_current->setCurrent(
+      intervalId, PfRule::ARITH_NL_CAD_RECURSIVE, {}, {d_false}, d_false);
   d_current->closeChild();
 }
 void CADProofGenerator::startScope()
@@ -114,7 +117,7 @@ void CADProofGenerator::startScope()
 }
 void CADProofGenerator::endScope(const std::vector<Node>& args)
 {
-  d_current->setCurrent(PfRule::SCOPE, {}, args, d_false);
+  d_current->setCurrent(0, PfRule::SCOPE, {}, args, d_false);
   d_current->closeChild();
 }
 
@@ -129,15 +132,19 @@ void CADProofGenerator::addDirect(Node var,
                                   const poly::Assignment& a,
                                   poly::SignCondition& sc,
                                   const poly::Interval& interval,
-                                  Node constraint)
+                                  Node constraint,
+                                  size_t intervalId)
 {
   if (is_minus_infinity(get_lower(interval))
       && is_plus_infinity(get_upper(interval)))
   {
     // "Full conflict", constraint excludes (-inf,inf)
     d_current->openChild();
-    d_current->setCurrent(
-        PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
+    d_current->setCurrent(intervalId,
+                          PfRule::ARITH_NL_CAD_DIRECT,
+                          {constraint},
+                          {d_false},
+                          d_false);
     d_current->closeChild();
     return;
   }
@@ -173,8 +180,11 @@ void CADProofGenerator::addDirect(Node var,
   // Add to proof manager
   startScope();
   d_current->openChild();
-  d_current->setCurrent(
-      PfRule::ARITH_NL_CAD_DIRECT, {constraint}, {d_false}, d_false);
+  d_current->setCurrent(intervalId,
+                        PfRule::ARITH_NL_CAD_DIRECT,
+                        {constraint},
+                        {d_false},
+                        d_false);
   d_current->closeChild();
   endScope(res);
 }

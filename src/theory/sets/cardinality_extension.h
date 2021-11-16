@@ -20,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "context/context.h"
+#include "smt/env_obj.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
 #include "theory/sets/term_registry.h"
@@ -34,7 +35,7 @@ namespace sets {
  * This class implements a variant of the procedure from Bansal et al, IJCAR
  * 2016. It is used during a full effort check in the following way:
  *    reset(); { registerTerm(n,lemmas); | n in CardTerms }  check();
- * where CardTerms is the set of all applications of CARD in the current
+ * where CardTerms is the set of all applications of SET_CARD in the current
  * context.
  *
  * The remaining public methods are used during model construction, i.e.
@@ -60,7 +61,7 @@ namespace sets {
  * normal forms, where the normal form for Set terms is a set of (equivalence
  * class representatives of) Venn regions that do not contain the empty set.
  */
-class CardinalityExtension
+class CardinalityExtension : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
 
@@ -69,7 +70,8 @@ class CardinalityExtension
    * Constructs a new instance of the cardinality solver w.r.t. the provided
    * contexts.
    */
-  CardinalityExtension(SolverState& s,
+  CardinalityExtension(Env& env,
+                       SolverState& s,
                        InferenceManager& im,
                        TermRegistry& treg);
 
@@ -83,7 +85,7 @@ class CardinalityExtension
   /** register term
    *
    * Register that the term n exists in the current context, where n is an
-   * application of CARD.
+   * application of SET_CARD.
    */
   void registerTerm(Node n);
   /** check

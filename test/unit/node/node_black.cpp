@@ -30,7 +30,7 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options_public.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "test_node.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
@@ -69,10 +69,10 @@ class TestNodeBlackNode : public TestNode
     Options opts;
     opts.base.outputLanguage = Language::LANG_AST;
     opts.base.outputLanguageWasSetByUser = true;
-    d_smt.reset(new SmtEngine(d_nodeManager.get(), &opts));
+    d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
   }
 
-  std::unique_ptr<SmtEngine> d_smt;
+  std::unique_ptr<SolverEngine> d_slvEngine;
 
   bool imp(bool a, bool b) const { return (!a) || (b); }
   bool iff(bool a, bool b) const { return (a && b) || ((!a) && (!b)); }
@@ -532,13 +532,13 @@ TEST_F(TestNodeBlackNode, toString)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "w", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "z", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder() << w << x << kind::OR;
   Node n = NodeBuilder() << m << y << z << kind::AND;
 
@@ -550,13 +550,13 @@ TEST_F(TestNodeBlackNode, toStream)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "w", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "z", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder() << x << y << kind::OR;
   Node n = NodeBuilder() << w << m << z << kind::AND;
   Node o = NodeBuilder() << n << n << kind::XOR;
@@ -619,13 +619,13 @@ TEST_F(TestNodeBlackNode, dagifier)
   TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
   Node x = d_skolemManager->mkDummySkolem(
-      "x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", intType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", intType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node f = d_skolemManager->mkDummySkolem(
-      "f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "f", fnType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node g = d_skolemManager->mkDummySkolem(
-      "g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "g", fnType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
   Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
   Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);
@@ -643,17 +643,17 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(Language::LANG_CVC);
+  sstr << Node::setdepth(-1) << Node::setlanguage(Language::LANG_SMTLIB_V2_6);
   sstr << Node::dag(false) << n;  // never dagify
   ASSERT_EQ(sstr.str(),
-            "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "
-            "y) OR (f(g(x)) = g(y))");
+            "(or (= (f (f (f x))) x) (= (f (f (f x))) y) (= (f x) (g x)) (= x "
+            "y) (= (f (g x)) (g y)))");
 }
 
 TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
   Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
   std::vector<Node> children;
   for (Node child : add)
@@ -667,7 +667,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)
 TEST_F(TestNodeBlackNode, for_each_over_nodes_as_tnode)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
   Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
   std::vector<TNode> children;
   for (TNode child : add)
@@ -681,7 +681,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_tnode)
 TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_node)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
   Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
   TNode add_tnode = add_node;
   std::vector<Node> children;
@@ -696,7 +696,7 @@ TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_node)
 TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_tnode)
 {
   const std::vector<Node> skolems =
-      makeNSkolemNodes(d_nodeManager.get(), 3, d_nodeManager->integerType());
+      makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
   Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
   TNode add_tnode = add_node;
   std::vector<TNode> children;
@@ -732,15 +732,15 @@ TEST_F(TestNodeBlackNode, isConst)
   Node cons_1_nil =
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(Rational(1)),
+                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
   Node cons_1_cons_2_nil = d_nodeManager->mkNode(
       APPLY_CONSTRUCTOR,
       cons,
-      d_nodeManager->mkConst(Rational(1)),
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(Rational(2)),
+                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(2)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
   ASSERT_TRUE(d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
   ASSERT_FALSE(cons_x_nil.isConst());
@@ -749,8 +749,8 @@ TEST_F(TestNodeBlackNode, isConst)
 
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
   Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 
@@ -801,8 +801,8 @@ TNode level1(NodeManager* nm) { return level0(nm); }
 TEST_F(TestNodeBlackNode, node_tnode_usage)
 {
   Node n;
-  ASSERT_NO_FATAL_FAILURE(n = level0(d_nodeManager.get()));
-  ASSERT_DEATH(n = level1(d_nodeManager.get()), "d_nv->d_rc > 0");
+  ASSERT_NO_FATAL_FAILURE(n = level0(d_nodeManager));
+  ASSERT_DEATH(n = level1(d_nodeManager), "d_nv->d_rc > 0");
 }
 
 }  // namespace test

@@ -180,7 +180,7 @@ Node HoElim::eliminateHo(Node n)
       if (cur.isVar())
       {
         Node ret = cur;
-        if (options::hoElim())
+        if (options().quantifiers.hoElim)
         {
           if (tn.isFunction())
           {
@@ -203,7 +203,7 @@ Node HoElim::eliminateHo(Node n)
       else
       {
         d_visited[cur] = Node::null();
-        if (cur.getKind() == APPLY_UF && options::hoElim())
+        if (cur.getKind() == APPLY_UF && options().quantifiers.hoElim)
         {
           Node op = cur.getOperator();
           // convert apply uf with variable arguments eagerly to ho apply
@@ -275,7 +275,7 @@ Node HoElim::eliminateHo(Node n)
           children.insert(children.begin(), retOp);
         }
         // process ho apply
-        if (ret.getKind() == HO_APPLY && options::hoElim())
+        if (ret.getKind() == HO_APPLY && options().quantifiers.hoElim)
         {
           TypeNode tnr = ret.getType();
           tnr = getUSort(tnr);
@@ -305,67 +305,76 @@ Node HoElim::eliminateHo(Node n)
 PreprocessingPassResult HoElim::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  // this preprocessing pass is only applicable if we are eliminating
+  // higher-order, or are adding the store axiom
+  if (!options().quantifiers.hoElim && !options().quantifiers.hoElimStoreAx)
+  {
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
   // step [1]: apply lambda lifting to eliminate all lambdas
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> axioms;
-  std::map<Node, Node> newLambda;
-  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  if (options().quantifiers.hoElim)
   {
-    Node prev = (*assertionsToPreprocess)[i];
-    Node res = eliminateLambdaComplete(prev, newLambda);
-    if (res != prev)
+    std::map<Node, Node> newLambda;
+    for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
-      res = theory::Rewriter::rewrite(res);
-      Assert(!expr::hasFreeVar(res));
-      assertionsToPreprocess->replace(i, res);
-    }
-  }
-  // do lambda lifting on new lambda definitions
-  // this will do fixed point to eliminate lambdas within lambda lifting axioms.
-  while (!newLambda.empty())
-  {
-    std::map<Node, Node> lproc = newLambda;
-    newLambda.clear();
-    for (const std::pair<const Node, Node>& l : lproc)
-    {
-      Node lambda = l.second;
-      std::vector<Node> vars;
-      std::vector<Node> nvars;
-      for (const Node& v : lambda[0])
+      Node prev = (*assertionsToPreprocess)[i];
+      Node res = eliminateLambdaComplete(prev, newLambda);
+      if (res != prev)
       {
-        Node bv = nm->mkBoundVar(v.getType());
-        vars.push_back(v);
-        nvars.push_back(bv);
+        res = rewrite(res);
+        Assert(!expr::hasFreeVar(res));
+        assertionsToPreprocess->replace(i, res);
       }
-
-      Node bd = lambda[1].substitute(
-          vars.begin(), vars.end(), nvars.begin(), nvars.end());
-      Node bvl = nm->mkNode(BOUND_VAR_LIST, nvars);
-
-      nvars.insert(nvars.begin(), l.first);
-      Node curr = nm->mkNode(APPLY_UF, nvars);
-
-      Node llfax = nm->mkNode(FORALL, bvl, curr.eqNode(bd));
-      Trace("ho-elim-ax") << "Lambda lifting axiom (pre-elim) " << llfax
-                          << " for " << lambda << std::endl;
-      Assert(!expr::hasFreeVar(llfax));
-      Node llfaxe = eliminateLambdaComplete(llfax, newLambda);
-      Trace("ho-elim-ax") << "Lambda lifting axiom " << llfaxe << " for "
-                          << lambda << std::endl;
-      axioms.push_back(llfaxe);
     }
-  }
+    // do lambda lifting on new lambda definitions
+    // this will do fixed point to eliminate lambdas within lambda lifting axioms.
+    while (!newLambda.empty())
+    {
+      std::map<Node, Node> lproc = newLambda;
+      newLambda.clear();
+      for (const std::pair<const Node, Node>& l : lproc)
+      {
+        Node lambda = l.second;
+        std::vector<Node> vars;
+        std::vector<Node> nvars;
+        for (const Node& v : lambda[0])
+        {
+          Node bv = nm->mkBoundVar(v.getType());
+          vars.push_back(v);
+          nvars.push_back(bv);
+        }
 
-  d_visited.clear();
-  // add lambda lifting axioms as a conjunction to the first assertion
-  if (!axioms.empty())
-  {
-    Node conj = nm->mkAnd(axioms);
-    conj = theory::Rewriter::rewrite(conj);
-    Assert(!expr::hasFreeVar(conj));
-    assertionsToPreprocess->conjoin(0, conj);
+        Node bd = lambda[1].substitute(
+            vars.begin(), vars.end(), nvars.begin(), nvars.end());
+        Node bvl = nm->mkNode(BOUND_VAR_LIST, nvars);
+
+        nvars.insert(nvars.begin(), l.first);
+        Node curr = nm->mkNode(APPLY_UF, nvars);
+
+        Node llfax = nm->mkNode(FORALL, bvl, curr.eqNode(bd));
+        Trace("ho-elim-ax") << "Lambda lifting axiom (pre-elim) " << llfax
+                            << " for " << lambda << std::endl;
+        Assert(!expr::hasFreeVar(llfax));
+        Node llfaxe = eliminateLambdaComplete(llfax, newLambda);
+        Trace("ho-elim-ax") << "Lambda lifting axiom " << llfaxe << " for "
+                            << lambda << std::endl;
+        axioms.push_back(llfaxe);
+      }
+    }
+
+    d_visited.clear();
+    // add lambda lifting axioms as a conjunction to the first assertion
+    if (!axioms.empty())
+    {
+      Node conj = nm->mkAnd(axioms);
+      conj = rewrite(conj);
+      Assert(!expr::hasFreeVar(conj));
+      assertionsToPreprocess->conjoin(0, conj);
+    }
+    axioms.clear();
   }
-  axioms.clear();
 
   // step [2]: eliminate all higher-order constraints
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
@@ -374,7 +383,7 @@ PreprocessingPassResult HoElim::applyInternal(
     Node res = eliminateHo(prev);
     if (res != prev)
     {
-      res = theory::Rewriter::rewrite(res);
+      res = rewrite(res);
       Assert(!expr::hasFreeVar(res));
       assertionsToPreprocess->replace(i, res);
     }
@@ -382,7 +391,7 @@ PreprocessingPassResult HoElim::applyInternal(
   // extensionality: process all function types
   for (const TypeNode& ftn : d_funTypes)
   {
-    if (options::hoElim())
+    if (options().quantifiers.hoElim)
     {
       Node h = getHoApplyUf(ftn);
       Trace("ho-elim-ax") << "Make extensionality for " << h << std::endl;
@@ -406,7 +415,7 @@ PreprocessingPassResult HoElim::applyInternal(
       // exists another function that acts like the "store" operator for
       // arrays, e.g. it is the same function with one I/O pair updated.
       // Without this axiom, the translation is model unsound.
-      if (options::hoElimStoreAx())
+      if (options().quantifiers.hoElimStoreAx)
       {
         Node u = nm->mkBoundVar("u", uf);
         Node v = nm->mkBoundVar("v", uf);
@@ -428,7 +437,7 @@ PreprocessingPassResult HoElim::applyInternal(
         Trace("ho-elim-ax") << "...store axiom : " << store << std::endl;
       }
     }
-    else if (options::hoElimStoreAx())
+    else if (options().quantifiers.hoElimStoreAx)
     {
       Node u = nm->mkBoundVar("u", ftn);
       Node v = nm->mkBoundVar("v", ftn);
@@ -456,7 +465,7 @@ PreprocessingPassResult HoElim::applyInternal(
   if (!axioms.empty())
   {
     Node conj = nm->mkAnd(axioms);
-    conj = theory::Rewriter::rewrite(conj);
+    conj = rewrite(conj);
     Assert(!expr::hasFreeVar(conj));
     assertionsToPreprocess->conjoin(0, conj);
   }

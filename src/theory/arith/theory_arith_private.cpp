@@ -37,6 +37,7 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/base_options.h"
+#include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
@@ -45,7 +46,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/approx_simplex.h"
-#include "theory/arith/arith_ite_utils.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
@@ -97,13 +97,11 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                            : nullptr),
       d_checker(),
       d_pfGen(new EagerProofGenerator(d_pnm, userContext())),
-      d_constraintDatabase(context(),
-                           userContext(),
+      d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
                            RaiseConflict(*this),
-                           d_pfGen.get(),
-                           d_pnm),
+                           d_pfGen.get()),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -123,7 +121,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
-      d_diosolver(context()),
+      d_diosolver(env),
       d_restartsCounter(0),
       d_tableauSizeHasBeenModified(false),
       d_tableauResetDensity(1.6),
@@ -131,23 +129,21 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_conflicts(context()),
       d_blackBoxConflict(context(), Node::null()),
       d_blackBoxConflictPf(context(), std::shared_ptr<ProofNode>(nullptr)),
-      d_congruenceManager(context(),
-                          userContext(),
+      d_congruenceManager(d_env,
                           d_constraintDatabase,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
-                          RaiseEqualityEngineConflict(*this),
-                          d_pnm),
+                          RaiseEqualityEngineConflict(*this)),
       d_cmEnabled(context(), options().arith.arithCongMan),
 
       d_dualSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_fcSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_soiSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
-          d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+          env, d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(context(), -1),
@@ -171,7 +167,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntAttempts(0u),
       d_newFacts(false),
       d_previousStatus(Result::SAT_UNKNOWN),
-      d_statistics("theory::arith::")
+      d_statistics(statisticsRegistry(), "theory::arith::")
 {
 }
 
@@ -260,153 +256,117 @@ TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
 }
 TheoryArithPrivate::ModelException::~ModelException() {}
 
-TheoryArithPrivate::Statistics::Statistics(const std::string& name)
+TheoryArithPrivate::Statistics::Statistics(StatisticsRegistry& reg,
+                                           const std::string& name)
     : d_statAssertUpperConflicts(
-        smtStatisticsRegistry().registerInt(name + "AssertUpperConflicts")),
+        reg.registerInt(name + "AssertUpperConflicts")),
       d_statAssertLowerConflicts(
-          smtStatisticsRegistry().registerInt(name + "AssertLowerConflicts")),
-      d_statUserVariables(
-          smtStatisticsRegistry().registerInt(name + "UserVariables")),
-      d_statAuxiliaryVariables(
-          smtStatisticsRegistry().registerInt(name + "AuxiliaryVariables")),
-      d_statDisequalitySplits(
-          smtStatisticsRegistry().registerInt(name + "DisequalitySplits")),
+          reg.registerInt(name + "AssertLowerConflicts")),
+      d_statUserVariables(reg.registerInt(name + "UserVariables")),
+      d_statAuxiliaryVariables(reg.registerInt(name + "AuxiliaryVariables")),
+      d_statDisequalitySplits(reg.registerInt(name + "DisequalitySplits")),
       d_statDisequalityConflicts(
-          smtStatisticsRegistry().registerInt(name + "DisequalityConflicts")),
-      d_simplifyTimer(
-          smtStatisticsRegistry().registerTimer(name + "simplifyTimer")),
-      d_staticLearningTimer(
-          smtStatisticsRegistry().registerTimer(name + "staticLearningTimer")),
-      d_presolveTime(
-          smtStatisticsRegistry().registerTimer(name + "presolveTime")),
-      d_newPropTime(
-          smtStatisticsRegistry().registerTimer(name + "newPropTimer")),
-      d_externalBranchAndBounds(smtStatisticsRegistry().registerInt(
-          name + "externalBranchAndBounds")),
-      d_initialTableauSize(
-          smtStatisticsRegistry().registerInt(name + "initialTableauSize")),
-      d_currSetToSmaller(
-          smtStatisticsRegistry().registerInt(name + "currSetToSmaller")),
-      d_smallerSetToCurr(
-          smtStatisticsRegistry().registerInt(name + "smallerSetToCurr")),
-      d_restartTimer(
-          smtStatisticsRegistry().registerTimer(name + "restartTimer")),
-      d_boundComputationTime(
-          smtStatisticsRegistry().registerTimer(name + "bound::time")),
-      d_boundComputations(smtStatisticsRegistry().registerInt(
-          name + "bound::boundComputations")),
-      d_boundPropagations(smtStatisticsRegistry().registerInt(
-          name + "bound::boundPropagations")),
-      d_unknownChecks(
-          smtStatisticsRegistry().registerInt(name + "status::unknowns")),
-      d_maxUnknownsInARow(smtStatisticsRegistry().registerInt(
-          name + "status::maxUnknownsInARow")),
-      d_avgUnknownsInARow(smtStatisticsRegistry().registerAverage(
-          name + "status::avgUnknownsInARow")),
-      d_revertsOnConflicts(smtStatisticsRegistry().registerInt(
-          name + "status::revertsOnConflicts")),
-      d_commitsOnConflicts(smtStatisticsRegistry().registerInt(
-          name + "status::commitsOnConflicts")),
-      d_nontrivialSatChecks(smtStatisticsRegistry().registerInt(
-          name + "status::nontrivialSatChecks")),
-      d_replayLogRecCount(
-          smtStatisticsRegistry().registerInt(name + "z::approx::replay::rec")),
-      d_replayLogRecConflictEscalation(smtStatisticsRegistry().registerInt(
-          name + "z::approx::replay::rec::escalation")),
-      d_replayLogRecEarlyExit(smtStatisticsRegistry().registerInt(
-          name + "z::approx::replay::rec::earlyexit")),
-      d_replayBranchCloseFailures(smtStatisticsRegistry().registerInt(
+          reg.registerInt(name + "DisequalityConflicts")),
+      d_simplifyTimer(reg.registerTimer(name + "simplifyTimer")),
+      d_staticLearningTimer(reg.registerTimer(name + "staticLearningTimer")),
+      d_presolveTime(reg.registerTimer(name + "presolveTime")),
+      d_newPropTime(reg.registerTimer(name + "newPropTimer")),
+      d_externalBranchAndBounds(
+          reg.registerInt(name + "externalBranchAndBounds")),
+      d_initialTableauSize(reg.registerInt(name + "initialTableauSize")),
+      d_currSetToSmaller(reg.registerInt(name + "currSetToSmaller")),
+      d_smallerSetToCurr(reg.registerInt(name + "smallerSetToCurr")),
+      d_restartTimer(reg.registerTimer(name + "restartTimer")),
+      d_boundComputationTime(reg.registerTimer(name + "bound::time")),
+      d_boundComputations(reg.registerInt(name + "bound::boundComputations")),
+      d_boundPropagations(reg.registerInt(name + "bound::boundPropagations")),
+      d_unknownChecks(reg.registerInt(name + "status::unknowns")),
+      d_maxUnknownsInARow(reg.registerInt(name + "status::maxUnknownsInARow")),
+      d_avgUnknownsInARow(
+          reg.registerAverage(name + "status::avgUnknownsInARow")),
+      d_revertsOnConflicts(
+          reg.registerInt(name + "status::revertsOnConflicts")),
+      d_commitsOnConflicts(
+          reg.registerInt(name + "status::commitsOnConflicts")),
+      d_nontrivialSatChecks(
+          reg.registerInt(name + "status::nontrivialSatChecks")),
+      d_replayLogRecCount(reg.registerInt(name + "z::approx::replay::rec")),
+      d_replayLogRecConflictEscalation(
+          reg.registerInt(name + "z::approx::replay::rec::escalation")),
+      d_replayLogRecEarlyExit(
+          reg.registerInt(name + "z::approx::replay::rec::earlyexit")),
+      d_replayBranchCloseFailures(reg.registerInt(
           name + "z::approx::replay::rec::branch::closefailures")),
-      d_replayLeafCloseFailures(smtStatisticsRegistry().registerInt(
+      d_replayLeafCloseFailures(reg.registerInt(
           name + "z::approx::replay::rec::leaf::closefailures")),
-      d_replayBranchSkips(smtStatisticsRegistry().registerInt(
-          name + "z::approx::replay::rec::branch::skips")),
-      d_mirCutsAttempted(smtStatisticsRegistry().registerInt(
-          name + "z::approx::cuts::mir::attempted")),
-      d_gmiCutsAttempted(smtStatisticsRegistry().registerInt(
-          name + "z::approx::cuts::gmi::attempted")),
-      d_branchCutsAttempted(smtStatisticsRegistry().registerInt(
-          name + "z::approx::cuts::branch::attempted")),
-      d_cutsReconstructed(smtStatisticsRegistry().registerInt(
-          name + "z::approx::cuts::reconstructed")),
-      d_cutsReconstructionFailed(smtStatisticsRegistry().registerInt(
-          name + "z::approx::cuts::reconstructed::failed")),
-      d_cutsProven(smtStatisticsRegistry().registerInt(
-          name + "z::approx::cuts::proofs")),
-      d_cutsProofFailed(smtStatisticsRegistry().registerInt(
-          name + "z::approx::cuts::proofs::failed")),
-      d_mipReplayLemmaCalls(smtStatisticsRegistry().registerInt(
-          name + "z::approx::external::calls")),
-      d_mipExternalCuts(smtStatisticsRegistry().registerInt(
-          name + "z::approx::external::cuts")),
-      d_mipExternalBranch(smtStatisticsRegistry().registerInt(
-          name + "z::approx::external::branches")),
-      d_inSolveInteger(smtStatisticsRegistry().registerInt(
-          name + "z::approx::inSolverInteger")),
-      d_branchesExhausted(smtStatisticsRegistry().registerInt(
-          name + "z::approx::exhausted::branches")),
-      d_execExhausted(smtStatisticsRegistry().registerInt(
-          name + "z::approx::exhausted::exec")),
-      d_pivotsExhausted(smtStatisticsRegistry().registerInt(
-          name + "z::approx::exhausted::pivots")),
-      d_panicBranches(
-          smtStatisticsRegistry().registerInt(name + "z::arith::paniclemmas")),
-      d_relaxCalls(
-          smtStatisticsRegistry().registerInt(name + "z::arith::relax::calls")),
-      d_relaxLinFeas(smtStatisticsRegistry().registerInt(
-          name + "z::arith::relax::feasible::res")),
-      d_relaxLinFeasFailures(smtStatisticsRegistry().registerInt(
-          name + "z::arith::relax::feasible::failures")),
-      d_relaxLinInfeas(smtStatisticsRegistry().registerInt(
-          name + "z::arith::relax::infeasible")),
-      d_relaxLinInfeasFailures(smtStatisticsRegistry().registerInt(
-          name + "z::arith::relax::infeasible::failures")),
-      d_relaxLinExhausted(smtStatisticsRegistry().registerInt(
-          name + "z::arith::relax::exhausted")),
-      d_relaxOthers(
-          smtStatisticsRegistry().registerInt(name + "z::arith::relax::other")),
-      d_applyRowsDeleted(smtStatisticsRegistry().registerInt(
-          name + "z::arith::cuts::applyRowsDeleted")),
-      d_replaySimplexTimer(smtStatisticsRegistry().registerTimer(
-          name + "z::approx::replay::simplex::timer")),
-      d_replayLogTimer(smtStatisticsRegistry().registerTimer(
-          name + "z::approx::replay::log::timer")),
-      d_solveIntTimer(
-          smtStatisticsRegistry().registerTimer(name + "z::solveInt::timer")),
-      d_solveRealRelaxTimer(smtStatisticsRegistry().registerTimer(
-          name + "z::solveRealRelax::timer")),
-      d_solveIntCalls(
-          smtStatisticsRegistry().registerInt(name + "z::solveInt::calls")),
-      d_solveStandardEffort(smtStatisticsRegistry().registerInt(
-          name + "z::solveInt::calls::standardEffort")),
-      d_approxDisabled(
-          smtStatisticsRegistry().registerInt(name + "z::approxDisabled")),
-      d_replayAttemptFailed(
-          smtStatisticsRegistry().registerInt(name + "z::replayAttemptFailed")),
-      d_cutsRejectedDuringReplay(smtStatisticsRegistry().registerInt(
-          name + "z::approx::replay::cuts::rejected")),
-      d_cutsRejectedDuringLemmas(smtStatisticsRegistry().registerInt(
-          name + "z::approx::external::cuts::rejected")),
-      d_satPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
-          name + "pivots::sat")),
-      d_unsatPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
-          name + "pivots::unsat")),
-      d_unknownPivots(smtStatisticsRegistry().registerHistogram<uint32_t>(
-          name + "pivots::unknown")),
-      d_solveIntModelsAttempts(smtStatisticsRegistry().registerInt(
-          name + "z::solveInt::models::attempts")),
-      d_solveIntModelsSuccessful(smtStatisticsRegistry().registerInt(
-          name + "zzz::solveInt::models::successful")),
-      d_mipTimer(smtStatisticsRegistry().registerTimer(
-          name + "z::approx::mip::timer")),
-      d_lpTimer(
-          smtStatisticsRegistry().registerTimer(name + "z::approx::lp::timer")),
-      d_mipProofsAttempted(smtStatisticsRegistry().registerInt(
-          name + "z::mip::proofs::attempted")),
-      d_mipProofsSuccessful(smtStatisticsRegistry().registerInt(
-          name + "z::mip::proofs::successful")),
-      d_numBranchesFailed(smtStatisticsRegistry().registerInt(
-          name + "z::mip::branch::proof::failed"))
+      d_replayBranchSkips(
+          reg.registerInt(name + "z::approx::replay::rec::branch::skips")),
+      d_mirCutsAttempted(
+          reg.registerInt(name + "z::approx::cuts::mir::attempted")),
+      d_gmiCutsAttempted(
+          reg.registerInt(name + "z::approx::cuts::gmi::attempted")),
+      d_branchCutsAttempted(
+          reg.registerInt(name + "z::approx::cuts::branch::attempted")),
+      d_cutsReconstructed(
+          reg.registerInt(name + "z::approx::cuts::reconstructed")),
+      d_cutsReconstructionFailed(
+          reg.registerInt(name + "z::approx::cuts::reconstructed::failed")),
+      d_cutsProven(reg.registerInt(name + "z::approx::cuts::proofs")),
+      d_cutsProofFailed(
+          reg.registerInt(name + "z::approx::cuts::proofs::failed")),
+      d_mipReplayLemmaCalls(
+          reg.registerInt(name + "z::approx::external::calls")),
+      d_mipExternalCuts(reg.registerInt(name + "z::approx::external::cuts")),
+      d_mipExternalBranch(
+          reg.registerInt(name + "z::approx::external::branches")),
+      d_inSolveInteger(reg.registerInt(name + "z::approx::inSolverInteger")),
+      d_branchesExhausted(
+          reg.registerInt(name + "z::approx::exhausted::branches")),
+      d_execExhausted(reg.registerInt(name + "z::approx::exhausted::exec")),
+      d_pivotsExhausted(reg.registerInt(name + "z::approx::exhausted::pivots")),
+      d_panicBranches(reg.registerInt(name + "z::arith::paniclemmas")),
+      d_relaxCalls(reg.registerInt(name + "z::arith::relax::calls")),
+      d_relaxLinFeas(reg.registerInt(name + "z::arith::relax::feasible::res")),
+      d_relaxLinFeasFailures(
+          reg.registerInt(name + "z::arith::relax::feasible::failures")),
+      d_relaxLinInfeas(reg.registerInt(name + "z::arith::relax::infeasible")),
+      d_relaxLinInfeasFailures(
+          reg.registerInt(name + "z::arith::relax::infeasible::failures")),
+      d_relaxLinExhausted(reg.registerInt(name + "z::arith::relax::exhausted")),
+      d_relaxOthers(reg.registerInt(name + "z::arith::relax::other")),
+      d_applyRowsDeleted(
+          reg.registerInt(name + "z::arith::cuts::applyRowsDeleted")),
+      d_replaySimplexTimer(
+          reg.registerTimer(name + "z::approx::replay::simplex::timer")),
+      d_replayLogTimer(
+          reg.registerTimer(name + "z::approx::replay::log::timer")),
+      d_solveIntTimer(reg.registerTimer(name + "z::solveInt::timer")),
+      d_solveRealRelaxTimer(
+          reg.registerTimer(name + "z::solveRealRelax::timer")),
+      d_solveIntCalls(reg.registerInt(name + "z::solveInt::calls")),
+      d_solveStandardEffort(
+          reg.registerInt(name + "z::solveInt::calls::standardEffort")),
+      d_approxDisabled(reg.registerInt(name + "z::approxDisabled")),
+      d_replayAttemptFailed(reg.registerInt(name + "z::replayAttemptFailed")),
+      d_cutsRejectedDuringReplay(
+          reg.registerInt(name + "z::approx::replay::cuts::rejected")),
+      d_cutsRejectedDuringLemmas(
+          reg.registerInt(name + "z::approx::external::cuts::rejected")),
+      d_satPivots(reg.registerHistogram<uint32_t>(name + "pivots::sat")),
+      d_unsatPivots(reg.registerHistogram<uint32_t>(name + "pivots::unsat")),
+      d_unknownPivots(
+          reg.registerHistogram<uint32_t>(name + "pivots::unknown")),
+      d_solveIntModelsAttempts(
+          reg.registerInt(name + "z::solveInt::models::attempts")),
+      d_solveIntModelsSuccessful(
+          reg.registerInt(name + "zzz::solveInt::models::successful")),
+      d_mipTimer(reg.registerTimer(name + "z::approx::mip::timer")),
+      d_lpTimer(reg.registerTimer(name + "z::approx::lp::timer")),
+      d_mipProofsAttempted(reg.registerInt(name + "z::mip::proofs::attempted")),
+      d_mipProofsSuccessful(
+          reg.registerInt(name + "z::mip::proofs::successful")),
+      d_numBranchesFailed(
+          reg.registerInt(name + "z::mip::branch::proof::failed"))
 {
 }
 
@@ -1045,7 +1005,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
       // ax + p = c -> (ax + p) -ax - c = -ax
       // x = (p - ax - c) * -1/a
       // Add the substitution if not recursive
-      Assert(elim == Rewriter::rewrite(elim));
+      Assert(elim == rewrite(elim));
 
       if (right.size() > options().arith.ppAssertMaxSubSize)
       {
@@ -1448,7 +1408,7 @@ TrustNode TheoryArithPrivate::dioCutting()
     Comparison leq = Comparison::mkComparison(LEQ, p, c);
     Comparison geq = Comparison::mkComparison(GEQ, p, c);
     Node lemma = NodeManager::currentNM()->mkNode(OR, leq.getNode(), geq.getNode());
-    Node rewrittenLemma = Rewriter::rewrite(lemma);
+    Node rewrittenLemma = rewrite(lemma);
     Debug("arith::dio::ex") << "dioCutting found the plane: " << plane.getNode() << endl;
     Debug("arith::dio::ex") << "resulting in the cut: " << lemma << endl;
     Debug("arith::dio::ex") << "rewritten " << rewrittenLemma << endl;
@@ -1467,10 +1427,10 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
       Pf pfLt =
           d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
-      Pf pfSum =
-          d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
-                        {pfGt, pfLt},
-                        {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
+      Pf pfSum = d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                               {pfGt, pfLt},
+                               {nm->mkConst<Rational>(CONST_RATIONAL, -1),
+                                nm->mkConst<Rational>(CONST_RATIONAL, 1)});
       Pf pfBot = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
       std::vector<Node> assumptions = {leq.getNode().negate(),
@@ -1539,7 +1499,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     bool isDistinct = simpleKind == DISTINCT;
     Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
     Assert(!isSetup(eq));
-    Node reEq = Rewriter::rewrite(eq);
+    Node reEq = rewrite(eq);
     Debug("arith::distinct::const") << "Assertion: " << assertion << std::endl;
     Debug("arith::distinct::const") << "Eq       : " << eq << std::endl;
     Debug("arith::distinct::const") << "reEq     : " << reEq << std::endl;
@@ -1785,7 +1745,7 @@ void TheoryArithPrivate::outputConflicts(){
       const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (Debug.isOn("arith::conflict"))
       {
-        pf.print(std::cout);
+        pf.print(std::cout, options().smt.produceProofs);
         std::cout << std::endl;
       }
       if (Debug.isOn("arith::pf::tree"))
@@ -2002,7 +1962,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   Assert(k == kind::LEQ || k == kind::GEQ);
 
   Node comparison = NodeManager::currentNM()->mkNode(k, sum, mkRationalNode(rhs));
-  Node rewritten = Rewriter::rewrite(comparison);
+  Node rewritten = rewrite(comparison);
   if(!(Comparison::isNormalAtom(rewritten))){
     return make_pair(NullConstraint, added);
   }
@@ -2101,11 +2061,12 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const C
   return replayGetConstraint(lhs, k, rhs, ci.getKlass() == BranchCutKlass);
 }
 
-// Node denseVectorToLiteral(const ArithVariables& vars, const DenseVector& dv, Kind k){
+// Node denseVectorToLiteral(const ArithVariables& vars, const DenseVector& dv,
+// Kind k){
 //   NodeManager* nm = NodeManager::currentNM();
 //   Node sumLhs = toSumNode(vars, dv.lhs);
 //   Node ineq = nm->mkNode(k, sumLhs, mkRationalNode(dv.rhs) );
-//   Node lit = Rewriter::rewrite(ineq);
+//   Node lit = rewrite(ineq);
 //   return lit;
 // }
 
@@ -2630,7 +2591,7 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
       Rational fl(maybe_value.value().floor());
       NodeManager* nm = NodeManager::currentNM();
       Node leq = nm->mkNode(kind::LEQ, n, mkRationalNode(fl));
-      Node norm = Rewriter::rewrite(leq);
+      Node norm = rewrite(leq);
       return norm;
     }
   }
@@ -2649,7 +2610,7 @@ Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo&
 
     NodeManager* nm = NodeManager::currentNM();
     Node ineq = nm->mkNode(k, sum, rhs);
-    return Rewriter::rewrite(ineq);
+    return rewrite(ineq);
   }
   return Node::null();
 }
@@ -2680,7 +2641,7 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
         const ConstraintCPVec& exp = cut->getExplanation();
         Node asLemma = Constraint::externalExplainByAssertions(exp);
 
-        Node implied = Rewriter::rewrite(cutConstraint);
+        Node implied = rewrite(cutConstraint);
         anythingnew = anythingnew || !isSatLiteral(implied);
 
         Node implication = asLemma.impNode(implied);
@@ -2935,11 +2896,9 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
 
   if(d_qflraStatus != Result::UNSAT){
     static const int64_t pass2Limit = 20;
-    int64_t oldCap = options().arith.arithStandardCheckVarOrderPivots;
-    Options::current().arith.arithStandardCheckVarOrderPivots = pass2Limit;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
+    simplex.setVarOrderPivotLimit(pass2Limit);
     d_qflraStatus = simplex.findModel(false);
-    Options::current().arith.arithStandardCheckVarOrderPivots = oldCap;
   }
 
   if(Debug.isOn("arith::importSolution")){
@@ -2965,7 +2924,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
       ++d_statistics.d_panicBranches;
       TrustNode branch = branchIntegerVariable(canBranch);
       Assert(branch.getNode().getKind() == kind::OR);
-      Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
+      Node rwbranch = rewrite(branch.getNode()[0]);
       if (!isSatLiteral(rwbranch))
       {
         d_approxCuts.push_back(branch);
@@ -3590,10 +3549,9 @@ bool TheoryArithPrivate::splitDisequalities(){
         TrustNode lemma = front->split();
         ++(d_statistics.d_statDisequalitySplits);
 
-        Debug("arith::lemma")
-            << "Now " << Rewriter::rewrite(lemma.getNode()) << endl;
+        Debug("arith::lemma") << "Now " << rewrite(lemma.getNode()) << endl;
         outputTrustedLemma(lemma, InferenceId::ARITH_SPLIT_DEQ);
-        //cout << "Now " << Rewriter::rewrite(lemma) << endl;
+        // cout << "Now " << rewrite(lemma) << endl;
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
         Debug("arith::eq") << "can drop as less than lb" << front << endl;
@@ -3734,7 +3692,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
     //Currently if the flag is set this came from an equality detected by the
     //equality engine in the the difference manager.
-    Node normalized = Rewriter::rewrite(toProp);
+    Node normalized = rewrite(toProp);
 
     ConstraintP constraint = d_constraintDatabase.lookup(normalized);
     if(constraint == NullConstraint){
@@ -4006,19 +3964,19 @@ bool TheoryArithPrivate::entireStateIsConsistent(const string& s){
     //ArithVar var = d_partialModel.asArithVar(*i);
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
-      Warning() << s << ":" << "Assignment is not consistent for " << var << d_partialModel.asNode(var);
+      warning() << s << ":" << "Assignment is not consistent for " << var << d_partialModel.asNode(var);
       if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
+        warning() << " (basic)";
       }
-      Warning() << endl;
+      warning() << std::endl;
       result = false;
     }else if(d_partialModel.isInteger(var) && !d_partialModel.integralAssignment(var)){
       d_partialModel.printModel(var);
-      Warning() << s << ":" << "Assignment is not integer for integer variable " << var << d_partialModel.asNode(var);
+      warning() << s << ":" << "Assignment is not integer for integer variable " << var << d_partialModel.asNode(var);
       if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
+        warning() << " (basic)";
       }
-      Warning() << endl;
+      warning() << std::endl;
       result = false;
     }
   }
@@ -4033,19 +3991,19 @@ bool TheoryArithPrivate::unenqueuedVariablesAreConsistent(){
       if(!d_errorSet.inError(var)){
 
         d_partialModel.printModel(var);
-        Warning() << "Unenqueued var is not consistent for " << var <<  d_partialModel.asNode(var);
+        warning() << "Unenqueued var is not consistent for " << var <<  d_partialModel.asNode(var);
         if(d_tableau.isBasic(var)){
-          Warning() << " (basic)";
+          warning() << " (basic)";
         }
-        Warning() << endl;
+        warning() << std::endl;
         result = false;
       } else if(Debug.isOn("arith::consistency::initial")){
         d_partialModel.printModel(var);
-        Warning() << "Initial var is not consistent for " << var <<  d_partialModel.asNode(var);
+        warning() << "Initial var is not consistent for " << var <<  d_partialModel.asNode(var);
         if(d_tableau.isBasic(var)){
-          Warning() << " (basic)";
+          warning() << " (basic)";
         }
-        Warning() << endl;
+        warning() << std::endl;
       }
      }
   }
@@ -4161,14 +4119,14 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
                            << endl;
 
       if(bestImplied->negationHasProof()){
-        Warning() << "the negation of " <<  bestImplied << " : " << endl
-                  << "has proof " << bestImplied->getNegation() << endl
+        warning() << "the negation of " <<  bestImplied << " : " << std::endl
+                  << "has proof " << bestImplied->getNegation() << std::endl
                   << bestImplied->getNegation()->externalExplainByAssertions()
-                  << endl;
+                  << std::endl;
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
-        d_linEq.propagateBasicFromRow(bestImplied);
+        d_linEq.propagateBasicFromRow(bestImplied, options().smt.produceProofs);
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
         if(Debug.isOn("arith::prop")){
@@ -4473,8 +4431,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
   if( !assertedToTheTheory && canBePropagated && !hasProof ){
     ConstraintCPVec explain;
-    ARITH_PROOF(d_farkasBuffer.clear());
-    RationalVectorP coeffs = ARITH_NULLPROOF(&d_farkasBuffer);
+    if (options().smt.produceProofs)
+    {
+      d_farkasBuffer.clear();
+    }
+    RationalVectorP coeffs =
+        options().smt.produceProofs ? &d_farkasBuffer : nullptr;
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied
@@ -4512,11 +4474,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         std::vector<Node> farkasCoefficients;
         farkasCoefficients.reserve(coeffs->size());
         auto nm = NodeManager::currentNM();
-        std::transform(
-            coeffs->begin(),
-            coeffs->end(),
-            std::back_inserter(farkasCoefficients),
-            [nm](const Rational& r) { return nm->mkConst<Rational>(r); });
+        std::transform(coeffs->begin(),
+                       coeffs->end(),
+                       std::back_inserter(farkasCoefficients),
+                       [nm](const Rational& r) {
+                         return nm->mkConst<Rational>(CONST_RATIONAL, r);
+                       });
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(
@@ -4638,7 +4601,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
   if(!successful) { return make_pair(false, Node::null()); }
 
   if(dp.getKind() == CONST_RATIONAL){
-    Node eval = Rewriter::rewrite(lit);
+    Node eval = rewrite(lit);
     Assert(eval.getKind() == kind::CONST_BOOLEAN);
     // if true, true is an acceptable explaination
     // if false, the node is uninterpreted and eval can be forgotten

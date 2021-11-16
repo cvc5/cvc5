@@ -11,22 +11,6 @@ name   = "Uninterpreted Functions Theory"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
-  name       = "ufssTotalityLimited"
-  category   = "regular"
-  long       = "uf-ss-totality-limited=N"
-  type       = "int64_t"
-  default    = "-1"
-  help       = "apply totality axioms, but only up to cardinality N (-1 == do not apply totality axioms, default)"
-
-[[option]]
-  name       = "ufssTotalitySymBreak"
-  category   = "regular"
-  long       = "uf-ss-totality-sym-break"
-  type       = "bool"
-  default    = "false"
-  help       = "apply symmetry breaking for totality axioms"
-
-[[option]]
   name       = "ufssAbortCardinality"
   category   = "regular"
   long       = "uf-ss-abort-card=N"
@@ -69,17 +53,17 @@ name   = "Uninterpreted Functions Theory"
   help       = "group monotone sorts when enforcing fairness for finite model finding"
 
 [[option]]
-  name       = "ufHo"
-  category   = "regular"
-  long       = "uf-ho"
-  type       = "bool"
-  default    = "false"
-  help       = "enable support for higher-order reasoning"
-
-[[option]]
   name       = "ufHoExt"
   category   = "regular"
   long       = "uf-ho-ext"
   type       = "bool"
   default    = "true"
   help       = "apply extensionality on function symbols"
+
+[[option]]
+  name       = "ufHoLazyLambdaLift"
+  category   = "regular"
+  long       = "uf-lazy-ll"
+  type       = "bool"
+  default    = "false"
+  help       = "do lambda lifting lazily"

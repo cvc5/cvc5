@@ -151,7 +151,7 @@ public:
    * differ from the input due to theory-rewriting and preprocessing,
    * as well as CNF conversion
    */
-  Node ensureLiteral(TNode n) CVC5_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT Node ensureLiteral(TNode n);
 
   /**
    * This returns the theory-preprocessed form of term n. The theory
@@ -231,11 +231,6 @@ public:
   context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
-  /**
-   * Is the cardinality of type tn finite? This method depends on whether
-   * finite model finding is enabled. For details, see theory_engine.h.
-   */
-  bool isFiniteType(TypeNode tn) const;
 };/* class Valuation */
 
 }  // namespace theory

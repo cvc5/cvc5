@@ -43,7 +43,7 @@ namespace api {
  * depends on the size of `cvc5::Kind` (`NodeValue::NBITS_KIND`, currently 10
  * bits, see expr/node_value.h).
  */
-enum CVC5_EXPORT Kind : int32_t
+enum Kind : int32_t
 {
   /**
    * Internal kind.
@@ -159,7 +159,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Lambda expression.
    *
    * Parameters:
-   *   - 1: BOUND_VAR_LIST
+   *   - 1: VARIABLE_LIST
    *   - 2: Lambda body
    *
    * Create with:
@@ -169,7 +169,7 @@ enum CVC5_EXPORT Kind : int32_t
   LAMBDA,
   /**
    * The syntax of a witness term is similar to a quantified formula except that
-   * only one bound variable is allowed.
+   * only one variable is allowed.
    * The term `(witness ((x T)) F)` returns an element `x` of type `T`
    * and asserts `F`.
    *
@@ -201,7 +201,7 @@ enum CVC5_EXPORT Kind : int32_t
    * whereas notice that `(or (= z 0) (not (= z 0)))` is true for any `z`.
    *
    * Parameters:
-   *   - 1: BOUND_VAR_LIST
+   *   - 1: VARIABLE_LIST
    *   - 2: Witness body
    *
    * Create with:
@@ -332,25 +332,6 @@ enum CVC5_EXPORT Kind : int32_t
    */
   CARDINALITY_CONSTRAINT,
   /**
-   * Cardinality value for uninterpreted sort S.
-   * An operator that returns an integer indicating the value of the cardinality
-   * of sort S.
-   *
-   * Parameters:
-   *   - 1: Term of sort S
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  CARDINALITY_VALUE,
-#if 0
-  /* Combined cardinality constraint.  */
-  COMBINED_CARDINALITY_CONSTRAINT,
-  /* Partial uninterpreted function application.  */
-  PARTIAL_APPLY_UF,
-#endif
-  /**
    * Higher-order applicative encoding of function application, left
    * associative.
    *
@@ -392,7 +373,12 @@ enum CVC5_EXPORT Kind : int32_t
    */
   MULT,
   /**
-   * Operator for Integer AND
+   * Operator for bit-wise AND over integers, parameterized by a (positive)
+   * bitwidth k.
+   *
+   * ((_ iand k) i1 i2) is equivalent to:
+   * (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
+   * for all integers i1, i2.
    *
    * Parameters:
    *   - 1: Size of the bit-vector that determines the semantics of the IAND
@@ -400,8 +386,8 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkOp(Kind kind, uint32_t param) const`
    *
-   * Apply integer conversion to bit-vector.
-
+   * Apply integer and.
+   *
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
@@ -413,15 +399,16 @@ enum CVC5_EXPORT Kind : int32_t
    */
   IAND,
   /**
-   * Operator for raising 2 to a non-negative integer  power
+   * Operator for raising 2 to a non-negative integer power.
    *
    * Create with:
    *   - `Solver::mkOp(Kind kind) const`
    *
-
    * Parameters:
    *   - 1: Op of kind IAND
    *   - 2: Integer term
+   *
+   * Apply 2 to the power operator.
    *
    * Create with:
    *   - `Solver::mkTerm(const Op& op, const Term& child) const`
@@ -765,6 +752,9 @@ enum CVC5_EXPORT Kind : int32_t
   TO_REAL,
   /**
    * Pi constant.
+   *
+   * Note that PI is considered a special symbol of sort Real, but is not
+   * a real value, i.e., `Term::isRealValue() const` will return false.
    *
    * Create with:
    *   - `Solver::mkPi() const`
@@ -1964,7 +1954,7 @@ enum CVC5_EXPORT Kind : int32_t
    * is represented by the AST
    *
    *     (MATCH l
-   *       (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
+   *       (MATCH_BIND_CASE (VARIABLE_LIST h t) (cons h t) h)
    *       (MATCH_CASE nil 0))
    *
    * The type of the last argument of each case term could be equal.
@@ -1997,7 +1987,7 @@ enum CVC5_EXPORT Kind : int32_t
    * A (non-constant) case expression to be used within a match expression.
    *
    * Parameters:
-   *   - 1: a BOUND_VAR_LIST Term containing the free variables of the case
+   *   - 1: a VARIABLE_LIST Term containing the free variables of the case
    *   - 2: Term denoting the pattern expression
    *   - 3: Term denoting the return value
    *
@@ -2064,17 +2054,10 @@ enum CVC5_EXPORT Kind : int32_t
    */
   SEP_NIL,
   /**
-   * Separation logic empty heap.
-   *
-   * Parameters:
-   *   - 1: Term of the same sort as the sort of the location of the heap
-   *         that is constrained to be empty
-   *   - 2: Term of the same sort as the data sort of the heap that is
-   *         that is constrained to be empty
+   * Separation logic empty heap constraint
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   *   - `Solver::mkTerm(Kind kind) const`
    */
   SEP_EMP,
   /**
@@ -2130,7 +2113,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkEmptySet(const Sort& sort) const`
    */
-  EMPTYSET,
+  SET_EMPTY,
   /**
    * Set union.
    *
@@ -2141,7 +2124,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION,
+  SET_UNION,
   /**
    * Set intersection.
    *
@@ -2152,7 +2135,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INTERSECTION,
+  SET_INTER,
   /**
    * Set subtraction.
    *
@@ -2163,7 +2146,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SETMINUS,
+  SET_MINUS,
   /**
    * Subset predicate.
    *
@@ -2174,7 +2157,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SUBSET,
+  SET_SUBSET,
   /**
    * Set membership predicate.
    *
@@ -2185,7 +2168,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  MEMBER,
+  SET_MEMBER,
   /**
    * Construct a singleton set from an element given as a parameter.
    * The returned set has same type of the element.
@@ -2196,7 +2179,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  SINGLETON,
+  SET_SINGLETON,
   /**
    * The set obtained by inserting elements;
    *
@@ -2210,7 +2193,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INSERT,
+  SET_INSERT,
   /**
    * Set cardinality.
    *
@@ -2220,7 +2203,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  CARD,
+  SET_CARD,
   /**
    * Set complement with respect to finite universe.
    *
@@ -2230,81 +2213,22 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  COMPLEMENT,
+  SET_COMPLEMENT,
   /**
    * Finite universe set.
    * All set variables must be interpreted as subsets of it.
    *
+   * Note that SET_UNIVERSE is considered a special symbol of the theory of
+   * sets and is not considered as a set value,
+   * i.e., `Term::isSetValue() const` will return false.
+   *
    * Create with:
    *   - `Solver::mkUniverseSet(const Sort& sort) const`
    */
-  UNIVERSE_SET,
-  /**
-   * Set join.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  JOIN,
-  /**
-   * Set cartesian product.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  PRODUCT,
-  /**
-   * Set transpose.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  TRANSPOSE,
-  /**
-   * Set transitive closure.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  TCLOSURE,
-  /**
-   * Set join image.
-   *
-   * Parameters:
-   *   - 1..2: Terms of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
-   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
-   */
-  JOIN_IMAGE,
-  /**
-   * Set identity.
-   *
-   * Parameters:
-   *   - 1: Term of set sort
-   *
-   * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
-   */
-  IDEN,
+  SET_UNIVERSE,
   /**
    * Set comprehension
-   * A set comprehension is specified by a bound variable list x1 ... xn,
+   * A set comprehension is specified by a variable list x1 ... xn,
    * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
    * above form has members given by the following semantics:
    * @f[
@@ -2316,7 +2240,7 @@ enum CVC5_EXPORT Kind : int32_t
    * y in the above formula.
    *
    * Parameters:
-   *   - 1: Term BOUND_VAR_LIST
+   *   - 1: Term VARIABLE_LIST
    *   - 2: Term denoting the predicate of the comprehension
    *   - 3: (optional) a Term denoting the generator for the comprehension
    *
@@ -2325,12 +2249,12 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  COMPREHENSION,
+  SET_COMPREHENSION,
   /**
    * Returns an element from a given set.
-   * If a set A = {x}, then the term (choose A) is equivalent to the term x.
-   * If the set is empty, then (choose A) is an arbitrary value.
-   * If the set has cardinality > 1, then (choose A) will deterministically
+   * If a set A = {x}, then the term (set.choose A) is equivalent to the term x.
+   * If the set is empty, then (set.choose A) is an arbitrary value.
+   * If the set has cardinality > 1, then (set.choose A) will deterministically
    * return an element in A.
    *
    * Parameters:
@@ -2339,7 +2263,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  CHOOSE,
+  SET_CHOOSE,
   /**
    * Set is_singleton predicate.
    *
@@ -2349,8 +2273,91 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  IS_SINGLETON,
+  SET_IS_SINGLETON,
+  /**
+   * set.map operator applies the first argument, a function of type (-> T1 T2),
+   * to every element of the second argument, a set of type (Set T1),
+   * and returns a set of type (Set T2).
+   *
+   * Parameters:
+   *   - 1: a function of type (-> T1 T2)
+   *   - 2: a set of type (Set T1)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2)
+   * const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+   SET_MAP,
+
+  /* Relations ------------------------------------------------------------- */
+
+  /**
+   * Set join.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_JOIN,
+  /**
+   * Set cartesian product.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_PRODUCT,
+  /**
+   * Set transpose.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_TRANSPOSE,
+  /**
+   * Set transitive closure.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_TCLOSURE,
+  /**
+   * Set join image.
+   *
+   * Parameters:
+   *   - 1..2: Terms of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  RELATION_JOIN_IMAGE,
+  /**
+   * Set identity.
+   *
+   * Parameters:
+   *   - 1: Term of set sort
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   */
+  RELATION_IDEN,
+
   /* Bags ------------------------------------------------------------------ */
+
   /**
    * Empty bag constant.
    *
@@ -2360,7 +2367,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   mkEmptyBag(const Sort& sort)
    */
-  EMPTYBAG,
+  BAG_EMPTY,
   /**
    * Bag max union.
    * Parameters:
@@ -2370,7 +2377,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION_MAX,
+  BAG_UNION_MAX,
   /**
    * Bag disjoint union (sum).
    *
@@ -2381,7 +2388,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  UNION_DISJOINT,
+  BAG_UNION_DISJOINT,
   /**
    * Bag intersection (min).
    *
@@ -2392,7 +2399,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  INTERSECTION_MIN,
+  BAG_INTER_MIN,
   /**
    * Bag difference subtract (subtracts multiplicities of the second from the
    * first).
@@ -2404,7 +2411,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DIFFERENCE_SUBTRACT,
+  BAG_DIFFERENCE_SUBTRACT,
   /**
    * Bag difference 2 (removes shared elements in the two bags).
    *
@@ -2415,7 +2422,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DIFFERENCE_REMOVE,
+  BAG_DIFFERENCE_REMOVE,
   /**
    * Inclusion predicate for bags
    * (multiplicities of the first bag <= multiplicities of the second bag).
@@ -2427,7 +2434,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  SUBBAG,
+  BAG_SUBBAG,
   /**
    * Element multiplicity in a bag
    *
@@ -2450,7 +2457,7 @@ enum CVC5_EXPORT Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  DUPLICATE_REMOVAL,
+  BAG_DUPLICATE_REMOVAL,
   /**
    * The bag of the single element given as a parameter.
    *
@@ -2460,7 +2467,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child) const`
    */
-  MK_BAG,
+  BAG_MAKE,
   /**
    * Bag cardinality.
    *
@@ -3020,25 +3027,25 @@ enum CVC5_EXPORT Kind : int32_t
    */
   REGEXP_LOOP,
   /**
-   * Regexp empty.
+   * Regexp none.
    *
    * Parameters: none
    *
    * Create with:
-   *   - `Solver::mkRegexpEmpty() const`
+   *   - `Solver::mkRegexpNone() const`
    *   - `Solver::mkTerm(Kind kind) const`
    */
-  REGEXP_EMPTY,
+  REGEXP_NONE,
   /**
    * Regexp all characters.
    *
    * Parameters: none
    *
    * Create with:
-   *   - `Solver::mkRegexpSigma() const`
+   *   - `Solver::mkRegexpAllchar() const`
    *   - `Solver::mkTerm(Kind kind) const`
    */
-  REGEXP_SIGMA,
+  REGEXP_ALLCHAR,
   /**
    * Regexp complement.
    *
@@ -3266,7 +3273,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Universally quantified formula.
    *
    * Parameters:
-   *   - 1: BOUND_VAR_LIST Term
+   *   - 1: VARIABLE_LIST Term
    *   - 2: Quantifier body
    *   - 3: (optional) INST_PATTERN_LIST Term
    *
@@ -3280,7 +3287,7 @@ enum CVC5_EXPORT Kind : int32_t
    * Existentially quantified formula.
    *
    * Parameters:
-   *   - 1: BOUND_VAR_LIST Term
+   *   - 1: VARIABLE_LIST Term
    *   - 2: Quantifier body
    *   - 3: (optional) INST_PATTERN_LIST Term
    *
@@ -3291,24 +3298,24 @@ enum CVC5_EXPORT Kind : int32_t
    */
   EXISTS,
   /**
-   * A list of bound variables (used to bind variables under a quantifier)
+   * A list of variables (used to bind variables under a quantifier)
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind BOUND_VARIABLE
+   *   - 1..n: Terms with kind VARIABLE
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2, const Term& child3) const`
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
-  BOUND_VAR_LIST,
+  VARIABLE_LIST,
   /**
    * An instantiation pattern.
    * Specifies a (list of) terms to be used as a pattern for quantifier
    * instantiation.
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind BOUND_VARIABLE
+   *   - 1..n: Terms of any sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`
@@ -3322,7 +3329,7 @@ enum CVC5_EXPORT Kind : int32_t
    * quantifier instantiation.
    *
    * Parameters: n > 1
-   *   - 1..n: Terms with kind BOUND_VARIABLE
+   *   - 1..n: Terms of any sort
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const`

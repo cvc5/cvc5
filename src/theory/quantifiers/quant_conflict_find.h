@@ -132,8 +132,6 @@ public:
 public:
   QuantInfo();
   ~QuantInfo();
-  /** Get quantifiers inference manager */
-  QuantifiersInferenceManager& getInferenceManager();
   std::vector< TNode > d_vars;
   std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
@@ -238,7 +236,8 @@ private:  //for equivalence classes
   bool areMatchDisequal( TNode n1, TNode n2 );
 
  public:
-  QuantConflictFind(QuantifiersState& qs,
+  QuantConflictFind(Env& env,
+                    QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
                     QuantifiersRegistry& qr,
                     TermRegistry& tr);

@@ -22,6 +22,7 @@
 #include "options/arith_options.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
@@ -31,38 +32,38 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
 
 ArithCongruenceManager::ArithCongruenceManager(
-    context::Context* c,
-    context::UserContext* u,
+    Env& env,
     ConstraintDatabase& cd,
     SetupLiteralCallBack setup,
     const ArithVariables& avars,
-    RaiseEqualityEngineConflict raiseConflict,
-    ProofNodeManager* pnm)
-    : d_inConflict(c),
+    RaiseEqualityEngineConflict raiseConflict)
+    : EnvObj(env),
+      d_inConflict(context()),
       d_raiseConflict(raiseConflict),
       d_notify(*this),
-      d_keepAlive(c),
-      d_propagatations(c),
-      d_explanationMap(c),
+      d_keepAlive(context()),
+      d_propagatations(context()),
+      d_explanationMap(context()),
       d_constraintDatabase(cd),
       d_setupLiteral(setup),
       d_avariables(avars),
       d_ee(nullptr),
-      d_satContext(c),
-      d_userContext(u),
-      d_pnm(pnm),
+      d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
+                                           : nullptr),
       // Construct d_pfGenEe with the SAT context, since its proof include
       // unclosed assumptions of theory literals.
-      d_pfGenEe(
-          new EagerProofGenerator(pnm, c, "ArithCongruenceManager::pfGenEe")),
+      d_pfGenEe(new EagerProofGenerator(
+          d_pnm, context(), "ArithCongruenceManager::pfGenEe")),
       // Construct d_pfGenEe with the USER context, since its proofs are closed.
       d_pfGenExplain(new EagerProofGenerator(
-          pnm, u, "ArithCongruenceManager::pfGenExplain")),
+          d_pnm, userContext(), "ArithCongruenceManager::pfGenExplain")),
       d_pfee(nullptr)
 {
 }
@@ -71,7 +72,7 @@ ArithCongruenceManager::~ArithCongruenceManager() {}
 
 bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 {
-  Assert(!options::arithEqSolver());
+  Assert(!options().arith.arithEqSolver);
   esi.d_notify = &d_notify;
   esi.d_name = "arithCong::ee";
   return true;
@@ -79,17 +80,16 @@ bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 
 void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
 {
-  if (options::arithEqSolver())
+  if (options().arith.arithEqSolver)
   {
     // use our own copy
-    d_allocEe.reset(
-        new eq::EqualityEngine(d_notify, d_satContext, "arithCong::ee", true));
+    d_allocEe = std::make_unique<eq::EqualityEngine>(
+        d_env, context(), d_notify, "arithCong::ee", true);
     d_ee = d_allocEe.get();
     if (d_pnm != nullptr)
     {
       // allocate an internal proof equality engine
-      d_allocPfee.reset(
-          new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
+      d_allocPfee = std::make_unique<eq::ProofEqEngine>(d_env, *d_ee);
       d_ee->setProofEqualityEngine(d_allocPfee.get());
     }
   }
@@ -331,11 +331,12 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       TNode isZero = d_watchedEqualities[s];
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
-      const auto sumPf = d_pnm->mkNode(
-          PfRule::MACRO_ARITH_SCALE_SUM_UB,
-          {isZeroPf, pf},
-          // Trick for getting correct, opposing signs.
-          {nm->mkConst(Rational(-1 * cSign)), nm->mkConst(Rational(cSign))});
+      const auto sumPf =
+          d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                        {isZeroPf, pf},
+                        // Trick for getting correct, opposing signs.
+                        {nm->mkConst(CONST_RATIONAL, Rational(-1 * cSign)),
+                         nm->mkConst(CONST_RATIONAL, Rational(cSign))});
       const auto botPf = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
       std::vector<Node> assumption = {isZero};
@@ -357,7 +358,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     return true;
   }
 
-  Node rewritten = Rewriter::rewrite(x);
+  Node rewritten = rewrite(x);
 
   //Need to still propagate this!
   if(rewritten.getKind() == kind::CONST_BOOLEAN){

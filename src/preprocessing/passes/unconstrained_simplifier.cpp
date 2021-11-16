@@ -30,17 +30,18 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
+using namespace std;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
 
-using namespace std;
-using namespace cvc5::theory;
-
 UnconstrainedSimplifier::UnconstrainedSimplifier(
     PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "unconstrained-simplifier"),
-      d_numUnconstrainedElim(smtStatisticsRegistry().registerInt(
+      d_numUnconstrainedElim(statisticsRegistry().registerInt(
           "preprocessor::number of unconstrained elims")),
       d_context(context()),
       d_substitutions(context())
@@ -231,7 +232,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               // Special case: condition is unconstrained, then and else are
               // different, and total cardinality of the type is 2, then the
               // result is unconstrained
-              Node test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
+              Node test = rewrite(parent[1].eqNode(parent[2]));
               if (test == nm->mkConst<bool>(false))
               {
                 ++d_numUnconstrainedElim;
@@ -514,9 +515,9 @@ void UnconstrainedSimplifier::processUnconstrained()
             if (current.getType().isInteger())
             {
               // div/mult by 1 should have been simplified
-              Assert(other != nm->mkConst<Rational>(1));
+              Assert(other != nm->mkConst(CONST_RATIONAL, Rational(1)));
               // div by -1 should have been simplified
-              if (other != nm->mkConst<Rational>(-1))
+              if (other != nm->mkConst(CONST_RATIONAL, Rational(-1)))
               {
                 break;
               }
@@ -529,8 +530,9 @@ void UnconstrainedSimplifier::processUnconstrained()
             else
             {
               // TODO(#2377): could build ITE here
-              Node test = other.eqNode(nm->mkConst<Rational>(0));
-              if (Rewriter::rewrite(test) != nm->mkConst<bool>(false))
+              Node test =
+                  other.eqNode(nm->mkConst(CONST_RATIONAL, Rational(0)));
+              if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;
               }
@@ -573,7 +575,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               Node test = nm->mkNode(extractOp, children);
               BitVector one(1, unsigned(1));
               test = test.eqNode(nm->mkConst<BitVector>(one));
-              if (Rewriter::rewrite(test) != nm->mkConst<bool>(true))
+              if (rewrite(test) != nm->mkConst<bool>(true))
               {
                 done = true;
                 break;
@@ -753,8 +755,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             }
             currentSub = newUnconstrainedVar(parent.getType(), currentSub);
             current = parent;
-            Node test =
-                Rewriter::rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
+            Node test = rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
             if (test == nm->mkConst<bool>(false))
             {
               break;
@@ -857,11 +858,10 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
   if (!d_unconstrained.empty())
   {
     processUnconstrained();
-    //    d_substitutions.print(CVC5Message.getStream());
     for (size_t i = 0, asize = assertions.size(); i < asize; ++i)
     {
       Node a = assertions[i];
-      Node as = Rewriter::rewrite(d_substitutions.apply(a));
+      Node as = rewrite(d_substitutions.apply(a));
       // replace the assertion
       assertionsToPreprocess->replace(i, as);
     }

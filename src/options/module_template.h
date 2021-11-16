@@ -42,24 +42,15 @@ ${modes_decl}$
 struct Holder${id_cap}$
 {
 // clang-format off
-${holder_spec}$
+${holder_decl}$
 // clang-format on
 };
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
 // clang-format off
-${wrap_funs}$
+${wrapper_functions}$
 // clang-format on
-
-namespace ${id}$
-{
-// clang-format off
-${option_names}$
-
-${defaults_decl}$
-// clang-format on
-}
 
 }  // namespace cvc5::options
 

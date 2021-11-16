@@ -20,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "smt/env_obj.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/rels_utils.h"
 #include "theory/sets/solver_state.h"
@@ -52,20 +53,22 @@ public:
  * for handling quantifier-free constraints in the theory of relations.
  *
  * In cvc5, relations are represented as sets of tuples. The theory of
- * relations includes constraints over operators, e.g. TRANSPOSE, JOIN and so
- * on, which apply to sets of tuples.
+ * relations includes constraints over operators, e.g. RELATION_TRANSPOSE,
+ * RELATION_JOIN and so on, which apply to sets of tuples.
  *
  * Since relations are a special case of sets, this class is implemented as an
  * extension of the theory of sets. That is, it shares many components of the
  * TheorySets object which owns it.
  */
-class TheorySetsRels {
+class TheorySetsRels : protected EnvObj
+{
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
-  TheorySetsRels(SolverState& s,
+  TheorySetsRels(Env& env,
+                 SolverState& s,
                  InferenceManager& im,
                  SkolemCache& skc,
                  TermRegistry& treg);
@@ -110,7 +113,7 @@ class TheorySetsRels {
   std::map< Node, std::vector< Node > >           d_rReps_memberReps_exp_cache;
 
   /** Mapping between a relation representative and its equivalent relations involving relational operators */
-  std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
+  std::map<Node, std::map<Kind, std::vector<Node> > > d_terms_cache;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
   std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;

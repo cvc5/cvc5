@@ -62,14 +62,14 @@ TEST_F(TestNodeBlackNodeBuilder, ctors)
   ASSERT_EQ(spec.getKind(), d_specKind);
   ASSERT_EQ(spec.getNumChildren(), 0u);
 
-  NodeBuilder from_nm(d_nodeManager.get());
+  NodeBuilder from_nm(d_nodeManager);
   ASSERT_EQ(from_nm.getKind(), UNDEFINED_KIND);
 #ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(from_nm.getNumChildren(),
                "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 
-  NodeBuilder from_nm_kind(d_nodeManager.get(), d_specKind);
+  NodeBuilder from_nm_kind(d_nodeManager, d_specKind);
   ASSERT_EQ(from_nm_kind.getKind(), d_specKind);
   ASSERT_EQ(from_nm_kind.getNumChildren(), 0u);
 
@@ -312,7 +312,7 @@ TEST_F(TestNodeBlackNodeBuilder, append)
 
   Node p = d_nodeManager->mkNode(
       EQUAL,
-      d_nodeManager->mkConst<Rational>(0),
+      d_nodeManager->mkConst<Rational>(CONST_RATIONAL, 0),
       d_nodeManager->mkNode(PLUS, r, d_nodeManager->mkNode(UMINUS, s), t));
   Node q = d_nodeManager->mkNode(AND, x, z, d_nodeManager->mkNode(NOT, y));
 

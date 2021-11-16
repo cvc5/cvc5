@@ -37,16 +37,16 @@ namespace arith {
 
 TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_ARITH, env, out, valuation),
-      d_ppRewriteTimer(smtStatisticsRegistry().registerTimer(
-          "theory::arith::ppRewriteTimer")),
+      d_ppRewriteTimer(
+          statisticsRegistry().registerTimer("theory::arith::ppRewriteTimer")),
       d_astate(env, valuation),
-      d_im(env, *this, d_astate, d_pnm),
-      d_ppre(context(), d_pnm),
+      d_im(env, *this, d_astate),
+      d_ppre(d_env),
       d_bab(env, d_astate, d_im, d_ppre, d_pnm),
       d_eqSolver(nullptr),
       d_internal(new TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
-      d_opElim(d_pnm, logicInfo()),
+      d_opElim(d_env),
       d_arithPreproc(env, d_astate, d_im, d_pnm, d_opElim),
       d_rewriter(d_opElim)
 {
@@ -167,7 +167,15 @@ void TheoryArith::postCheck(Effort level)
   {
     if (d_nonlinearExtension != nullptr)
     {
-      d_nonlinearExtension->check(level);
+      // If we computed lemmas in the last FULL_EFFORT check, send them now.
+      if (d_im.hasPendingLemma())
+      {
+        d_im.doPendingFacts();
+        d_im.doPendingLemmas();
+        d_im.doPendingPhaseRequirements();
+        return;
+      }
+      d_nonlinearExtension->finalizeModel(getValuation().getModel());
     }
     return;
   }
@@ -185,18 +193,26 @@ void TheoryArith::postCheck(Effort level)
   if (Theory::fullEffort(level))
   {
     d_arithModelCache.clear();
+    std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
     {
-      std::set<Node> termSet;
       updateModelCache(termSet);
-      d_nonlinearExtension->check(level);
-      d_nonlinearExtension->interceptModel(d_arithModelCache, termSet);
+      d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
     }
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
       d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
     }
+    // If we won't be doing a last call effort check (which implies that
+    // models will be computed), we must sanity check the integer model
+    // from the linear solver now. We also must update the model cache
+    // if we did not do so above.
+    if (d_nonlinearExtension == nullptr)
+    {
+      updateModelCache(termSet);
+    }
+    sanityCheckIntegerModel();
   }
 }
 
@@ -223,7 +239,7 @@ bool TheoryArith::preNotifyFact(
 bool TheoryArith::needsCheckLastEffort() {
   if (d_nonlinearExtension != nullptr)
   {
-    return d_nonlinearExtension->needsCheckLastEffort();
+    return d_nonlinearExtension->hasNlTerms();
   }
   return false;
 }
@@ -267,12 +283,6 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
 
   updateModelCache(termSet);
 
-  if (sanityCheckIntegerModel())
-  {
-    // We added a lemma
-    return false;
-  }
-
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : d_arithModelCache)
   {
@@ -313,10 +323,6 @@ void TheoryArith::notifyRestart(){
 
 void TheoryArith::presolve(){
   d_internal->presolve();
-  if (d_nonlinearExtension != nullptr)
-  {
-    d_nonlinearExtension->presolve();
-  }
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
@@ -325,8 +331,10 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node aval = Rewriter::rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
-  Node bval = Rewriter::rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  Node aval =
+      rewrite(a.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
+  Node bval =
+      rewrite(b.substitute(d_arithModelCache.begin(), d_arithModelCache.end()));
   if (aval == bval)
   {
     return EQUALITY_TRUE_IN_MODEL;
@@ -380,9 +388,9 @@ bool TheoryArith::sanityCheckIntegerModel()
       Trace("arith-check") << p.first << " -> " << p.second << std::endl;
       if (p.first.getType().isInteger() && !p.second.getType().isInteger())
       {
-        Assert(false) << "TheoryArithPrivate generated a bad model value for "
-                        "integer variable "
-                      << p.first << " : " << p.second;
+        warning() << "TheoryArithPrivate generated a bad model value for "
+                     "integer variable "
+                  << p.first << " : " << p.second << std::endl;
         // must branch and bound
         TrustNode lem =
             d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());

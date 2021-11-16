@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
@@ -47,10 +48,10 @@ namespace transcendental {
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class TranscendentalSolver
+class TranscendentalSolver : protected EnvObj
 {
  public:
-  TranscendentalSolver(InferenceManager& im, NlModel& m, Env& env);
+  TranscendentalSolver(Env& env, InferenceManager& im, NlModel& m);
   ~TranscendentalSolver();
 
   /** init last call
@@ -181,8 +182,8 @@ class TranscendentalSolver
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
    * all transcendental functions is 2*d_taylor_degree. This value is set
-   * initially to options::nlExtTfTaylorDegree() and may be incremented
-   * if the option options::nlExtTfIncPrecision() is enabled.
+   * initially to the nlExtTfTaylorDegree option and may be incremented
+   * if the option nlExtTfIncPrecision is enabled.
    */
   uint64_t d_taylor_degree;
 

@@ -59,20 +59,20 @@ QuantifiersEngine::QuantifiersEngine(
       d_qreg(qr),
       d_treg(tr),
       d_model(nullptr),
-      d_quants_prereg(qs.getUserContext()),
-      d_quants_red(qs.getUserContext()),
+      d_quants_prereg(userContext()),
+      d_quants_red(userContext()),
       d_numInstRoundsLemma(0)
 {
   Trace("quant-init-debug")
-      << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
-      << options::fmfBound() << std::endl;
+      << "Initialize model engine, mbqi : " << options().quantifiers.mbqiMode
+      << " " << options().quantifiers.fmfBound << std::endl;
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.
-  if (options::fmfBound() || options::stringExp()
-      || (options::finiteModelFind()
-          && (options::mbqiMode() == options::MbqiMode::FMC
-              || options::mbqiMode() == options::MbqiMode::TRUST)))
+  if (options().quantifiers.fmfBound || options().strings.stringExp
+      || (options().quantifiers.finiteModelFind
+          && (options().quantifiers.mbqiMode == options::MbqiMode::FMC
+              || options().quantifiers.mbqiMode == options::MbqiMode::TRUST)))
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
@@ -168,14 +168,15 @@ void QuantifiersEngine::ppNotifyAssertions(
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
       << std::endl;
-  if (options::instLevelInputOnly() && options::instMaxLevel() != -1)
+  if (options().quantifiers.instLevelInputOnly
+      && options().quantifiers.instMaxLevel != -1)
   {
     for (const Node& a : assertions)
     {
       quantifiers::QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
   }
-  if (options::sygus())
+  if (options().quantifiers.sygus)
   {
     quantifiers::SynthEngine* sye = d_qmodules->d_synth_e.get();
     for (const Node& a : assertions)
@@ -186,7 +187,7 @@ void QuantifiersEngine::ppNotifyAssertions(
   /* The SyGuS instantiation module needs a global view of all available
    * assertions to collect global terms that get added to each grammar.
    */
-  if (options::sygusInst())
+  if (options().quantifiers.sygusInst)
   {
     quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();
     si->ppNotifyAssertions(assertions);
@@ -250,8 +251,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
   d_qim.reset();
   bool setIncomplete = false;
   IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
-  if (options::instMaxRounds() >= 0
-      && d_numInstRoundsLemma >= static_cast<uint32_t>(options::instMaxRounds()))
+  if (options().quantifiers.instMaxRounds >= 0
+      && d_numInstRoundsLemma
+             >= static_cast<uint32_t>(options().quantifiers.instMaxRounds))
   {
     needsCheck = false;
     setIncomplete = true;
@@ -507,37 +509,37 @@ void QuantifiersEngine::notifyCombineTheories() {
   // in quantifiers state.
 }
 
-bool QuantifiersEngine::reduceQuantifier( Node q ) {
-  //TODO: this can be unified with preregistration: AlphaEquivalence takes ownership of reducable quants
-  BoolMap::const_iterator it = d_quants_red.find( q );
-  if( it==d_quants_red.end() ){
-    Node lem;
+bool QuantifiersEngine::reduceQuantifier(Node q)
+{
+  // TODO: this can be unified with preregistration: AlphaEquivalence takes
+  // ownership of reducable quants
+  BoolMap::const_iterator it = d_quants_red.find(q);
+  if (it == d_quants_red.end())
+  {
+    TrustNode tlem;
     InferenceId id = InferenceId::UNKNOWN;
-    std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
-    if( itr==d_quants_red_lem.end() ){
-      if (d_qmodules->d_alpha_equiv)
+    if (d_qmodules->d_alpha_equiv)
+    {
+      Trace("quant-engine-red")
+          << "Alpha equivalence " << q << "?" << std::endl;
+      // add equivalence with another quantified formula
+      tlem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
+      id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
+      if (!tlem.isNull())
       {
-        Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
-        //add equivalence with another quantified formula
-        lem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
-        id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
-        if( !lem.isNull() ){
-          Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
-          ++(d_qstate.getStats().d_red_alpha_equiv);
-        }
+        Trace("quant-engine-red")
+            << "...alpha equivalence success." << std::endl;
+        ++(d_qstate.getStats().d_red_alpha_equiv);
       }
-      d_quants_red_lem[q] = lem;
-    }else{
-      lem = itr->second;
     }
-    if( !lem.isNull() ){
-      d_qim.lemma(lem, id);
+    if (!tlem.isNull())
+    {
+      d_qim.trustedLemma(tlem, id);
     }
-    d_quants_red[q] = !lem.isNull();
-    return !lem.isNull();
-  }else{
-    return (*it).second;
+    d_quants_red[q] = !tlem.isNull();
+    return !tlem.isNull();
   }
+  return (*it).second;
 }
 
 void QuantifiersEngine::registerQuantifierInternal(Node f)
@@ -622,7 +624,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     {
       if (Trace.isOn("quantifiers-sk-debug"))
       {
-        Node slem = Rewriter::rewrite(lem.getNode());
+        Node slem = rewrite(lem.getNode());
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }

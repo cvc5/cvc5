@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "context/cdhashset.h"
+#include "smt/env_obj.h"
 #include "theory/decision_strategy.h"
 #include "theory/quantifiers/quant_module.h"
 
@@ -64,7 +65,8 @@ namespace quantifiers {
 class SygusInst : public QuantifiersModule
 {
  public:
-  SygusInst(QuantifiersState& qs,
+  SygusInst(Env& env,
+            QuantifiersState& qs,
             QuantifiersInferenceManager& qim,
             QuantifiersRegistry& qr,
             TermRegistry& tr);

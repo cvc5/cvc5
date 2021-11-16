@@ -17,7 +17,6 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "theory/evaluator.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -808,7 +807,7 @@ bool SygusUnifIo::constructSolution(std::vector<Node>& sols,
 Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
 {
   Node c = d_candidate;
-  if (!d_solution.isNull() && !options::sygusStream())
+  if (!d_solution.isNull() && !options().quantifiers.sygusStream)
   {
     // already has a solution
     return d_solution;

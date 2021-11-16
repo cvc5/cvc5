@@ -20,7 +20,7 @@ General options;
   --prefix=STR             install directory
   --program-prefix=STR     prefix of binaries prepended on make install
   --name=STR               use custom build directory name (optionally: +path)
-  --best                   turn on dependencies known to give best performance
+  --best                   turn on dependencies and options known to give best performance
   --gpl                    permit GPL dependencies, if available
   --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
@@ -31,8 +31,6 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
-  --static-binary          statically link against system libraries
-                           (must be disabled for static macOS builds) [default=yes]
   --auto-download          automatically download dependencies if necessary
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
@@ -53,12 +51,12 @@ The following flags enable optional features (disable with --no-<option name>).
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
   --werror                 build with -Werror
+  --ipo                    build with interprocedural optimization
 
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
   --cln                    use CLN instead of GMP
   --glpk                   use GLPK simplex solver
-  --abc                    use the ABC AIG library
   --cryptominisat          use the CryptoMiniSat SAT solver
   --kissat                 use the Kissat SAT solver
   --poly                   use the LibPoly library [default=yes]
@@ -66,7 +64,6 @@ The following flags enable optional packages (disable with --no-<option name>).
   --editline               support the editline library
 
 Optional Path to Optional Packages:
-  --abc-dir=PATH           path to top level of ABC source tree
   --glpk-dir=PATH          path to top level of GLPK installation
   --dep-path=PATH          path to a dependency installation dir
 
@@ -106,7 +103,6 @@ program_prefix=""
 
 buildtype=default
 
-abc=default
 asan=default
 assertions=default
 auto_download=default
@@ -130,8 +126,7 @@ python2=default
 python_bindings=default
 java_bindings=default
 editline=default
-shared=default
-static_binary=default
+build_shared=ON
 statistics=default
 tracing=default
 tsan=default
@@ -141,11 +136,9 @@ valgrind=default
 win64=default
 arm64=default
 werror=default
+ipo=default
 
-abc_dir=default
 glpk_dir=default
-
-lib_only=default
 
 #--------------------------------------------------------------------------#
 
@@ -156,9 +149,6 @@ do
   case $1 in
 
     -h|--help) usage;;
-
-    --abc) abc=ON;;
-    --no-abc) abc=OFF;;
 
     --asan) asan=ON;;
     --no-asan) asan=OFF;;
@@ -171,12 +161,15 @@ do
 
     --werror) werror=ON;;
 
+    --ipo) ipo=ON;;
+    --no-ipo) ipo=OFF;;
+
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
 
     # Best configuration
     --best)
-      abc=ON
+      ipo=ON
       cln=ON
       cryptominisat=ON
       glpk=ON
@@ -245,11 +238,8 @@ do
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
-    --static) shared=OFF; static_binary=ON;;
-    --no-static) shared=ON;;
-
-    --static-binary) static_binary=ON;;
-    --no-static-binary) static_binary=OFF;;
+    --static) build_shared=OFF;;
+    --no-static) build_shared=ON;;
 
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
@@ -285,16 +275,12 @@ do
     --editline) editline=ON;;
     --no-editline) editline=OFF;;
 
-    --abc-dir) die "missing argument to $1 (try -h)" ;;
-    --abc-dir=*) abc_dir=${1##*=} ;;
-
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
 
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
-    --lib-only) lib_only=ON ;;
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -330,6 +316,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
 [ $tsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_TSAN=$tsan"
+[ $ipo != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_IPO=$ipo"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $comp_inc != default ] \
@@ -351,10 +339,8 @@ fi
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $shared != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
-[ $static_binary != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
+[ $build_shared != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_SHARED_LIBS=$build_shared"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \
@@ -375,8 +361,6 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling"
 [ $editline != default ] \
   && cmake_opts="$cmake_opts -DUSE_EDITLINE=$editline"
-[ $abc != default ] \
-  && cmake_opts="$cmake_opts -DUSE_ABC=$abc"
 [ $cln != default ] \
   && cmake_opts="$cmake_opts -DUSE_CLN=$cln"
 [ $cryptominisat != default ] \
@@ -389,14 +373,10 @@ fi
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
-[ "$abc_dir" != default ] \
-  && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_PREFIX_PATH=$dep_path"
-[ "$lib_only" != default ] \
-    && cmake_opts="$cmake_opts -DBUILD_LIB_ONLY=$lib_only"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

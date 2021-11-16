@@ -60,7 +60,8 @@ class QuantifiersModule : protected EnvObj
   };
 
  public:
-  QuantifiersModule(quantifiers::QuantifiersState& qs,
+  QuantifiersModule(Env& env,
+                    quantifiers::QuantifiersState& qs,
                     quantifiers::QuantifiersInferenceManager& qim,
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr);
@@ -166,6 +167,8 @@ class QuantifiersModule : protected EnvObj
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** get the quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
+  /** get the term registry */
+  quantifiers::TermRegistry& getTermRegistry();
   //----------------------------end general queries
  protected:
   /** Reference to the state of the quantifiers engine */

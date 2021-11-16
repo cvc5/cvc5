@@ -18,22 +18,24 @@
 #pragma once
 
 #include "expr/node.h"
-#include "proof/method_id.h"
 #include "theory/theory_rewriter.h"
 
 namespace cvc5 {
 
+class Env;
 class TConvProofGenerator;
 class ProofNodeManager;
 class TrustNode;
 
 namespace theory {
 
+class Evaluator;
+
 /**
  * The main rewriter class.
  */
 class Rewriter {
-
+  friend class cvc5::Env;  // to set the resource manager
  public:
   Rewriter();
 
@@ -62,6 +64,9 @@ class Rewriter {
   Node rewriteEqualityExt(TNode node);
 
   /**
+   * !!! Temporary until static access to rewriter is eliminated. This method
+   * should be moved to same place as evaluate (currently in Env).
+   *
    * Extended rewrite of the given node. This method is implemented by a
    * custom ExtendRewriter class that wraps this class to perform custom
    * rewrites (usually those that are not useful for solving, but e.g. useful
@@ -103,23 +108,12 @@ class Rewriter {
   /** Get the theory rewriter for the given id */
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
 
-  /**
-   * Apply rewrite on n via the rewrite method identifier idr (see method_id.h).
-   * This encapsulates the exact behavior of a REWRITE step in a proof.
-   *
-   * @param n The node to rewrite,
-   * @param idr The method identifier of the rewriter, by default RW_REWRITE
-   * specifying a call to rewrite.
-   * @return The rewritten form of n.
-   */
-  Node rewriteViaMethod(TNode n, MethodId idr = MethodId::RW_REWRITE);
-
  private:
   /**
-   * Get the rewriter associated with the SmtEngine in scope.
+   * Get the rewriter associated with the SolverEngine in scope.
    *
    * TODO(#3468): Get rid of this function (it relies on there being an
-   * singleton with the current SmtEngine in scope)
+   * singleton with the current SolverEngine in scope)
    */
   static Rewriter* getInstance();
 
@@ -165,11 +159,25 @@ class Rewriter {
 
   void clearCachesInternal();
 
+  /**
+   * Has n been rewritten with proofs? This checks if n is in d_tpgNodes.
+   */
+  bool hasRewrittenWithProofs(TNode n) const;
+
+  /** The resource manager, for tracking resource usage */
+  ResourceManager* d_resourceManager;
+
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
 
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
+  /**
+   * Nodes rewritten with proofs. Since d_tpg contains a reference to all
+   * nodes that have been rewritten with proofs, we can keep only a TNode
+   * here.
+   */
+  std::unordered_set<TNode> d_tpgNodes;
 #ifdef CVC5_ASSERTIONS
   std::unique_ptr<std::unordered_set<Node>> d_rewriteStack = nullptr;
 #endif /* CVC5_ASSERTIONS */

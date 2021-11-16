@@ -21,11 +21,13 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "smt/env_obj.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
 
 namespace cvc5 {
 namespace theory {
@@ -37,12 +39,12 @@ namespace strings {
  * current context, and techniques for inferring when equivalence classes
  * are equivalent to constants.
  */
-class BaseSolver
+class BaseSolver : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  BaseSolver(SolverState& s, InferenceManager& im);
+  BaseSolver(Env& env, SolverState& s, InferenceManager& im);
   ~BaseSolver();
 
   //-----------------------inference steps
@@ -104,7 +106,7 @@ class BaseSolver
   /**
    * Get the set of equivalence classes of type string.
    */
-  const std::vector<Node>& getStringEqc() const;
+  const std::vector<Node>& getStringLikeEqc() const;
   //-----------------------end query functions
 
  private:
@@ -234,8 +236,8 @@ class BaseSolver
    * for more information.
    */
   std::map<Node, BaseEqcInfo> d_eqcInfo;
-  /** The list of equivalence classes of type string */
-  std::vector<Node> d_stringsEqc;
+  /** The list of equivalence classes of string-like types */
+  std::vector<Node> d_stringLikeEqc;
   /** A term index for each type, function kind pair */
   std::map<TypeNode, std::map<Kind, TermIndex> > d_termIndex;
   /** the cardinality of the alphabet */

@@ -49,18 +49,8 @@ if(NOT Poly_FOUND_SYSTEM)
 
   check_if_cross_compiling(CCWIN "Windows" "")
   if(CCWIN)
-    # Roughly following https://stackoverflow.com/a/44383330/2375725
-    set(patchcmd
-        # Avoid %z and %llu format specifiers
-        COMMAND find <SOURCE_DIR>/ -type f -exec
-                sed -i.orig "s/%z[diu]/%\" PRIu64 \"/g" {} +
-        COMMAND find <SOURCE_DIR>/ -type f -exec
-                sed -i.orig "s/%ll[du]/%\" PRIu64 \"/g" {} +
-        # Make sure the new macros are available
-        COMMAND find <SOURCE_DIR>/ -type f -exec
-                sed -i.orig "s/#include <stdio.h>/#include <stdio.h>\\n#include <inttypes.h>/" {} +
-        COMMAND find <SOURCE_DIR>/ -type f -exec
-                sed -i.orig "s/#include <cstdio>/#include <cstdio>\\n#include <inttypes.h>/" {} +
+    set(patchcmd COMMAND
+      ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
   else()
     unset(patchcmd)
@@ -69,6 +59,28 @@ if(NOT Poly_FOUND_SYSTEM)
   get_target_property(GMP_INCLUDE_DIR GMP INTERFACE_INCLUDE_DIRECTORIES)
   get_target_property(GMP_LIBRARY GMP IMPORTED_LOCATION)
   get_filename_component(GMP_LIB_PATH "${GMP_LIBRARY}" DIRECTORY)
+
+  set(POLY_BYPRODUCTS
+    <INSTALL_DIR>/lib/libpicpoly.a
+    <INSTALL_DIR>/lib/libpicpolyxx.a
+    <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}
+    <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}
+  )
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    list(APPEND POLY_BYPRODUCTS
+      <INSTALL_DIR>/lib/libpoly.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpoly.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpolyxx.0${CMAKE_SHARED_LIBRARY_SUFFIX}
+      <INSTALL_DIR>/lib/libpolyxx.0.1.9${CMAKE_SHARED_LIBRARY_SUFFIX}
+    )
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND POLY_BYPRODUCTS
+      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0
+      <INSTALL_DIR>/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0
+      <INSTALL_DIR>/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}.0.1.9
+    )
+  endif()
 
   ExternalProject_Add(
     Poly-EP
@@ -87,14 +99,14 @@ if(NOT Poly_FOUND_SYSTEM)
                -DLIBPOLY_BUILD_STATIC_PIC=ON
                -DCMAKE_INCLUDE_PATH=${GMP_INCLUDE_DIR}
                -DCMAKE_LIBRARY_PATH=${GMP_LIB_PATH}
-    BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
+    BUILD_COMMAND ${CMAKE_MAKE_PROGRAM}
+    COMMAND ${CMAKE_MAKE_PROGRAM} static_pic_poly static_pic_polyxx
     INSTALL_COMMAND ${CMAKE_MAKE_PROGRAM} install
     COMMAND ${CMAKE_COMMAND} -E copy src/libpicpoly.a
             <INSTALL_DIR>/lib/libpicpoly.a
     COMMAND ${CMAKE_COMMAND} -E copy src/libpicpolyxx.a
             <INSTALL_DIR>/lib/libpicpolyxx.a
-    BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libpicpoly.a
-                     <INSTALL_DIR>/lib/libpicpolyxx.a
+    BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
   )
   ExternalProject_Add_Step(
     Poly-EP cleanup
@@ -104,25 +116,45 @@ if(NOT Poly_FOUND_SYSTEM)
   add_dependencies(Poly-EP GMP)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
-  set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
+  if(BUILD_SHARED_LIBS)
+    set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  else()
+    set(Poly_LIBRARIES "${DEPS_BASE}/lib/libpicpoly.a")
+    set(PolyXX_LIBRARIES "${DEPS_BASE}/lib/libpicpolyxx.a")
+  endif()
+
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(Poly_LIBRARIES "${DEPS_BASE}/bin/libpoly${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(PolyXX_LIBRARIES "${DEPS_BASE}/bin/libpolyxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  endif()
 endif()
 
 set(Poly_FOUND TRUE)
 
-add_library(Poly STATIC IMPORTED GLOBAL)
-set_target_properties(Poly PROPERTIES IMPORTED_LOCATION "${Poly_LIBRARIES}")
-set_target_properties(
-  Poly PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+
+if(BUILD_SHARED_LIBS)
+  add_library(Poly SHARED IMPORTED GLOBAL)
+  add_library(Polyxx SHARED IMPORTED GLOBAL)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set_target_properties(Poly PROPERTIES IMPORTED_IMPLIB "${Poly_LIBRARIES}")
+    set_target_properties(Polyxx PROPERTIES IMPORTED_IMPLIB "${PolyXX_LIBRARIES}")
+  endif()
+else()
+  add_library(Poly STATIC IMPORTED GLOBAL)
+  add_library(Polyxx STATIC IMPORTED GLOBAL)
+endif()
+
+set_target_properties(Poly PROPERTIES
+  IMPORTED_LOCATION "${Poly_LIBRARIES}"
+  INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
 )
 target_link_libraries(Poly INTERFACE GMP)
-
-add_library(Polyxx STATIC IMPORTED GLOBAL)
-set_target_properties(Polyxx PROPERTIES IMPORTED_LOCATION "${PolyXX_LIBRARIES}")
-set_target_properties(
-  Polyxx PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+set_target_properties(Polyxx PROPERTIES
+  IMPORTED_LOCATION "${PolyXX_LIBRARIES}"
+  INTERFACE_INCLUDE_DIRECTORIES "${Poly_INCLUDE_DIR}"
+  INTERFACE_LINK_LIBRARIES Poly
 )
-set_target_properties(Polyxx PROPERTIES INTERFACE_LINK_LIBRARIES Poly)
 
 mark_as_advanced(Poly_FOUND)
 mark_as_advanced(Poly_FOUND_SYSTEM)
@@ -136,4 +168,11 @@ else()
   message(STATUS "Building Poly ${Poly_VERSION}: ${Poly_LIBRARIES}")
   add_dependencies(Poly Poly-EP)
   add_dependencies(Polyxx Poly-EP)
+
+  ExternalProject_Get_Property(Poly-EP BUILD_BYPRODUCTS INSTALL_DIR)
+  string(REPLACE "<INSTALL_DIR>" "${INSTALL_DIR}" BUILD_BYPRODUCTS "${BUILD_BYPRODUCTS}")
+  install(FILES
+    ${BUILD_BYPRODUCTS}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 endif()

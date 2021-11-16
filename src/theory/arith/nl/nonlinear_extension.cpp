@@ -44,20 +44,20 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_containing(containing),
       d_astate(state),
       d_im(containing.getInferenceManager()),
-      d_needsLastCall(false),
+      d_hasNlTerms(false),
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
-      d_extTheory(d_extTheoryCb, context(), userContext(), d_im),
+      d_extTheory(env, d_extTheoryCb, d_im),
       d_model(),
-      d_trSlv(d_im, d_model, d_astate.getEnv()),
-      d_extState(d_im, d_model, d_astate.getEnv()),
-      d_factoringSlv(&d_extState),
-      d_monomialBoundsSlv(&d_extState),
-      d_monomialSlv(&d_extState),
-      d_splitZeroSlv(&d_extState),
-      d_tangentPlaneSlv(&d_extState),
-      d_cadSlv(d_astate.getEnv(), d_im, d_model),
-      d_icpSlv(d_im),
+      d_trSlv(d_env, d_im, d_model),
+      d_extState(d_im, d_model, d_env),
+      d_factoringSlv(d_env, &d_extState),
+      d_monomialBoundsSlv(d_env, &d_extState),
+      d_monomialSlv(d_env, &d_extState),
+      d_splitZeroSlv(d_env, &d_extState),
+      d_tangentPlaneSlv(d_env, &d_extState),
+      d_cadSlv(d_env, d_im, d_model),
+      d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, state, d_model),
       d_pow2Slv(env, d_im, state, d_model)
 {
@@ -68,13 +68,13 @@ NonlinearExtension::NonlinearExtension(Env& env,
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
 
-  if (d_astate.getEnv().isTheoryProofProducing())
+  if (d_env.isTheoryProofProducing())
   {
-    ProofChecker* pc = d_astate.getEnv().getProofNodeManager()->getChecker();
+    ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
     d_proofChecker.registerTo(pc);
   }
 }
@@ -96,17 +96,16 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
 void NonlinearExtension::computeRelevantAssertions(
     const std::vector<Node>& assertions, std::vector<Node>& keep)
 {
-  Trace("nl-ext-rlv") << "Compute relevant assertions..." << std::endl;
-  Valuation v = d_containing.getValuation();
+  const Valuation& v = d_containing.getValuation();
   for (const Node& a : assertions)
   {
     if (v.isRelevant(a))
     {
-      keep.push_back(a);
+      keep.emplace_back(a);
     }
   }
-  Trace("nl-ext-rlv") << "...keep " << keep.size() << "/" << assertions.size()
-                      << " assertions" << std::endl;
+  Trace("nl-ext-rlv") << "...relevant assertions: " << keep.size() << "/"
+                      << assertions.size() << std::endl;
 }
 
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
@@ -187,25 +186,20 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
                   << std::endl;
 }
 
-std::vector<Node> NonlinearExtension::checkModelEval(
+std::vector<Node> NonlinearExtension::getUnsatisfiedAssertions(
     const std::vector<Node>& assertions)
 {
   std::vector<Node> false_asserts;
-  for (size_t i = 0; i < assertions.size(); ++i)
+  for (const auto& lit : assertions)
   {
-    Node lit = assertions[i];
-    Node atom = lit.getKind() == NOT ? lit[0] : lit;
     Node litv = d_model.computeConcreteModelValue(lit);
     Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
     if (litv != d_true)
     {
-      Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
+      Trace("nl-ext-mv-assert") << " [model-false]";
       false_asserts.push_back(lit);
     }
-    else
-    {
-      Trace("nl-ext-mv-assert") << std::endl;
-    }
+    Trace("nl-ext-mv-assert") << std::endl;
   }
   return false_asserts;
 }
@@ -245,59 +239,71 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   return ret;
 }
 
-void NonlinearExtension::check(Theory::Effort e)
+void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
+                                         const std::set<Node>& termSet)
 {
-  Trace("nl-ext") << std::endl;
-  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
-  if (e == Theory::EFFORT_FULL)
+  Trace("nl-ext") << "NonlinearExtension::checkFullEffort" << std::endl;
+
+  d_hasNlTerms = true;
+  if (options().arith.nlExtRewrites)
   {
-    d_needsLastCall = true;
-    if (options().arith.nlExtRewrites)
+    std::vector<Node> nred;
+    if (!d_extTheory.doInferences(0, nred))
     {
-      std::vector<Node> nred;
-      if (!d_extTheory.doInferences(0, nred))
+      Trace("nl-ext") << "...sent no lemmas, # extf to reduce = " << nred.size()
+                      << std::endl;
+      if (nred.empty())
       {
-        Trace("nl-ext") << "...sent no lemmas, # extf to reduce = "
-                        << nred.size() << std::endl;
-        if (nred.empty())
-        {
-          d_needsLastCall = false;
-        }
+        d_hasNlTerms = false;
       }
-      else
-      {
-        Trace("nl-ext") << "...sent lemmas." << std::endl;
-      }
+    }
+    else
+    {
+      Trace("nl-ext") << "...sent lemmas." << std::endl;
     }
   }
-  else
+
+  if (!hasNlTerms())
   {
-    // If we computed lemmas during collectModelInfo, send them now.
-    if (d_im.hasPendingLemma())
+    // no non-linear constraints, we are done
+    return;
+  }
+  Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
+  d_model.reset(d_containing.getValuation().getModel(), arithModel);
+  // run a last call effort check
+  Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
+  Result::Sat res = modelBasedRefinement(termSet);
+  if (res == Result::Sat::SAT)
+  {
+    Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
+    d_approximations.clear();
+    d_witnesses.clear();
+    // modify the model values
+    d_model.getModelValueRepair(arithModel,
+                                d_approximations,
+                                d_witnesses,
+                                options().smt.modelWitnessValue);
+  }
+}
+
+void NonlinearExtension::finalizeModel(TheoryModel* tm)
+{
+  Trace("nl-ext") << "NonlinearExtension::finalizeModel" << std::endl;
+
+  for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
+  {
+    if (a.second.second.isNull())
     {
-      d_im.doPendingFacts();
-      d_im.doPendingLemmas();
-      d_im.doPendingPhaseRequirements();
-      return;
+      tm->recordApproximation(a.first, a.second.first);
     }
-    // Otherwise, we will answer SAT. The values that we approximated are
-    // recorded as approximations here.
-    TheoryModel* tm = d_containing.getValuation().getModel();
-    for (std::pair<const Node, std::pair<Node, Node>>& a : d_approximations)
+    else
     {
-      if (a.second.second.isNull())
-      {
-        tm->recordApproximation(a.first, a.second.first);
-      }
-      else
-      {
-        tm->recordApproximation(a.first, a.second.first, a.second.second);
-      }
+      tm->recordApproximation(a.first, a.second.first, a.second.second);
     }
-    for (const auto& vw : d_witnesses)
-    {
-      tm->recordApproximation(vw.first, vw.second);
-    }
+  }
+  for (const auto& vw : d_witnesses)
+  {
+    tm->recordApproximation(vw.first, vw.second);
   }
 }
 
@@ -313,7 +319,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
   Trace("nl-ext-mv-assert")
       << "Getting model values... check for [model-false]" << std::endl;
   // get the assertions that are false in the model
-  const std::vector<Node> false_asserts = checkModelEval(assertions);
+  const std::vector<Node> false_asserts = getUnsatisfiedAssertions(assertions);
   Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
 
   // get the extended terms belonging to this theory
@@ -449,7 +455,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
         {
           for (const Node& eq : shared_term_value_splits)
           {
-            Node req = Rewriter::rewrite(eq);
+            Node req = rewrite(eq);
             Node literal = d_containing.getValuation().ensureLiteral(req);
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
@@ -500,37 +506,6 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
 
   // did not add lemmas
   return Result::Sat::SAT;
-}
-
-void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
-                                        const std::set<Node>& termSet)
-{
-  if (!needsCheckLastEffort())
-  {
-    // no non-linear constraints, we are done
-    return;
-  }
-  Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
-  d_model.reset(d_containing.getValuation().getModel(), arithModel);
-  // run a last call effort check
-  Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-  Result::Sat res = modelBasedRefinement(termSet);
-  if (res == Result::Sat::SAT)
-  {
-    Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
-    d_approximations.clear();
-    d_witnesses.clear();
-    // modify the model values
-    d_model.getModelValueRepair(arithModel,
-                                d_approximations,
-                                d_witnesses,
-                                options().smt.modelWitnessValue);
-  }
-}
-
-void NonlinearExtension::presolve()
-{
-  Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
 }
 
 void NonlinearExtension::runStrategy(Theory::Effort effort,

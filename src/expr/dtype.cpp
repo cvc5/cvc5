@@ -866,11 +866,8 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode stype = nm->mkSelectorType(dtt, t);
-  Node nindex = nm->mkConst(Rational(index));
-  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR,
-                           stype,
-                           nindex,
-                           NodeManager::SKOLEM_NO_NOTIFY);
+  Node nindex = nm->mkConst(CONST_RATIONAL, Rational(index));
+  s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, stype, nindex);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
@@ -895,10 +892,21 @@ const std::vector<std::shared_ptr<DTypeConstructor> >& DType::getConstructors()
   return d_constructors;
 }
 
+std::unordered_set<TypeNode> DType::getSubfieldTypes() const
+{
+  std::unordered_set<TypeNode> subFieldTypes;
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
+  {
+    for (size_t i = 0, nargs = ctor->getNumArgs(); i < nargs; i++)
+    {
+      subFieldTypes.insert(ctor->getArgType(i));
+    }
+  }
+  return subFieldTypes;
+}
+
 std::ostream& operator<<(std::ostream& os, const DType& dt)
 {
-  // can only output datatypes in the cvc5 native language
-  language::SetLanguage::Scope ls(os, Language::LANG_CVC);
   dt.toStream(os);
   return os;
 }

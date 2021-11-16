@@ -168,18 +168,18 @@ enum class InferenceId
   // ---------------------------------- end arrays theory
 
   // ---------------------------------- bags theory
-  BAG_NON_NEGATIVE_COUNT,
-  BAG_MK_BAG_SAME_ELEMENT,
-  BAG_MK_BAG,
-  BAG_EQUALITY,
-  BAG_DISEQUALITY,
-  BAG_EMPTY,
-  BAG_UNION_DISJOINT,
-  BAG_UNION_MAX,
-  BAG_INTERSECTION_MIN,
-  BAG_DIFFERENCE_SUBTRACT,
-  BAG_DIFFERENCE_REMOVE,
-  BAG_DUPLICATE_REMOVAL,
+  BAGS_NON_NEGATIVE_COUNT,
+  BAGS_BAG_MAKE,
+  BAGS_EQUALITY,
+  BAGS_DISEQUALITY,
+  BAGS_EMPTY,
+  BAGS_UNION_DISJOINT,
+  BAGS_UNION_MAX,
+  BAGS_INTERSECTION_MIN,
+  BAGS_DIFFERENCE_SUBTRACT,
+  BAGS_DIFFERENCE_REMOVE,
+  BAGS_DUPLICATE_REMOVAL,
+  BAGS_MAP,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -673,12 +673,25 @@ enum class InferenceId
   // is unknown, we apply the inference:
   //   len(s) != len(t) V len(s) = len(t)
   STRINGS_DEQ_LENGTH_SP,
+  // Disequality extensionality
+  // x != y => ( seq.len(x) != seq.len(y) or
+  //             ( seq.nth(x, d) != seq.nth(y, d) ^ 0 <= d < seq.len(x) ) )
+  STRINGS_DEQ_EXTENSIONALITY,
   //-------------------- codes solver
   // str.to_code( v ) = rewrite( str.to_code(c) )
   // where v is the proxy variable for c.
   STRINGS_CODE_PROXY,
   // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
   STRINGS_CODE_INJ,
+  //-------------------- sequence update solver
+  // update over unit
+  STRINGS_ARRAY_UPDATE_UNIT,
+  // update over conatenation
+  STRINGS_ARRAY_UPDATE_CONCAT,
+  // nth over unit
+  STRINGS_ARRAY_NTH_UNIT,
+  // nth over conatenation
+  STRINGS_ARRAY_NTH_CONCAT,
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
@@ -759,9 +772,11 @@ enum class InferenceId
   // f(x1, .., xn) and P is the reduction predicate for f
   // (see theory_strings_preprocess).
   STRINGS_REDUCTION,
-  //-------------------- prefix conflict
-  // prefix conflict (coarse-grained)
+  //-------------------- merge conflicts
+  // prefix conflict
   STRINGS_PREFIX_CONFLICT,
+  // arithmetic bound conflict
+  STRINGS_ARITH_BOUND_CONFLICT,
   //-------------------- other
   // a lemma added during term registration for an atomic term
   STRINGS_REGISTER_TERM_ATOMIC,
@@ -823,6 +838,15 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_MODEL_EXTENSIONALITY,
+  // equivalence of lambda functions
+  //   f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
+  // This is applied when lamda functions f and g are in the same eq class.
+  UF_HO_LAMBDA_UNIV_EQ,
+  // equivalence of a lambda function and an ordinary function
+  //   f = h => h(t) = reduce(lambda(f)(t))
+  // This is applied when lamda function f and ordinary function h are in the
+  // same eq class.
+  UF_HO_LAMBDA_APP_REDUCE,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
   //-------------------------------------- end uf theory

@@ -37,10 +37,13 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im,
-                                           NlModel& m,
-                                           Env& env)
-    : d_tstate(im, m, env), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
+TranscendentalSolver::TranscendentalSolver(Env& env,
+                                           InferenceManager& im,
+                                           NlModel& m)
+    : EnvObj(env),
+      d_tstate(im, m, env),
+      d_expSlv(env, &d_tstate),
+      d_sineSlv(env, &d_tstate)
 {
   d_taylor_degree = d_tstate.d_env.getOptions().arith.nlExtTfTaylorDegree;
 }
@@ -83,12 +86,10 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
-  std::vector<Node> pvars;
-  std::vector<Node> psubs;
-  for (const std::pair<const Node, Node>& tb : d_tstate.d_trMaster)
+  Subs subs;
+  for (const auto& sub : d_tstate.d_trMaster)
   {
-    pvars.push_back(tb.first);
-    psubs.push_back(tb.second);
+    subs.add(sub.first, sub.second);
   }
 
   // initialize representation of assertions
@@ -97,10 +98,10 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
 
   {
     Node pa = a;
-    if (!pvars.empty())
+    if (!subs.empty())
     {
-      pa = arithSubstitute(pa, pvars, psubs);
-      pa = Rewriter::rewrite(pa);
+      pa = arithSubstitute(pa, subs);
+      pa = rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
     {
@@ -145,8 +146,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
             Trace("nl-ext-cm")
                 << "...bound for " << stf << " : [" << bounds.first << ", "
                 << bounds.second << "]" << std::endl;
-            success = d_tstate.d_model.addCheckModelBound(
-                stf, bounds.first, bounds.second);
+            success =
+                d_tstate.d_model.addBound(stf, bounds.first, bounds.second);
           }
         }
       }
@@ -181,7 +182,14 @@ void TranscendentalSolver::processSideEffect(const NlLemma& se)
     Node tf = std::get<0>(sp);
     unsigned d = std::get<1>(sp);
     Node c = std::get<2>(sp);
-    d_tstate.d_secant_points[tf][d].push_back(c);
+    // we have a CDList within the maps, creating it requires some care
+    auto& secant_points = d_tstate.d_secant_points[tf];
+    auto it = secant_points.find(d);
+    if (it == secant_points.end())
+    {
+      it = secant_points.emplace(d, d_tstate.d_env.getUserContext()).first;
+    }
+    it->second.push_back(c);
   }
 }
 
@@ -332,11 +340,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
       Trace("nl-trans") << "...compare : " << comp << std::endl;
-      Node compr = Rewriter::rewrite(comp);
+      Node compr = rewrite(comp);
       Trace("nl-trans") << "...got : " << compr << std::endl;
       if (compr == d_tstate.d_true)
       {
-        poly_approx_c = Rewriter::rewrite(v_pab);
+        poly_approx_c = rewrite(v_pab);
         // beyond the bounds
         if (r == 0)
         {

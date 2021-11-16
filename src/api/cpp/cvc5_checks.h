@@ -43,6 +43,14 @@ namespace api {
   CVC5_PREDICT_TRUE(cond)                \
   ? (void)0 : OstreamVoider() & CVC5ApiRecoverableExceptionStream().ostream()
 
+/**
+ * The base check macro for throwing unsupported exceptions.
+ * Throws a CVC5ApiUnsupportedException if 'cond' is false.
+ */
+#define CVC5_API_UNSUPPORTED_CHECK(cond) \
+  CVC5_PREDICT_TRUE(cond)                \
+  ? (void)0 : OstreamVoider() & CVC5ApiUnsupportedExceptionStream().ostream()
+
 /* -------------------------------------------------------------------------- */
 /* Not null checks.                                                           */
 /* -------------------------------------------------------------------------- */
@@ -438,8 +446,6 @@ namespace api {
     CVC5_API_ARG_CHECK_NOT_NULL(sort);                      \
     CVC5_API_CHECK(this == sort.d_solver)                   \
         << "Given sort is not associated with this solver"; \
-    CVC5_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)  \
-        << "first-class sort as codomain sort";             \
     CVC5_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)   \
         << "function sort as codomain sort";                \
   } while (0)

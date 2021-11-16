@@ -25,7 +25,7 @@
 
 namespace cvc5 {
 
-enum class CVC5_EXPORT Language
+enum class Language
 {
   // SPECIAL "NON-LANGUAGE" LANGUAGES HAVE ENUM VALUE < 0
 
@@ -36,8 +36,6 @@ enum class CVC5_EXPORT Language
   LANG_SMTLIB_V2_6 = 0,
   /** The TPTP language */
   LANG_TPTP,
-  /** The cvc5 language */
-  LANG_CVC,
   /** The SyGuS language version 2.0 */
   LANG_SYGUS_V2,
 

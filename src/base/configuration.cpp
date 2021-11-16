@@ -18,19 +18,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 
+#include "base/Debug_tags.h"
+#include "base/Trace_tags.h"
 #include "base/configuration_private.h"
 #include "base/cvc5config.h"
-
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-#  include "base/Debug_tags.h"
-#endif /* CVC5_DEBUG && CVC5_TRACING */
-
-#ifdef CVC5_TRACING
-#  include "base/Trace_tags.h"
-#endif /* CVC5_TRACING */
 
 using namespace std;
 
@@ -78,24 +73,12 @@ bool Configuration::isCompetitionBuild() {
 
 bool Configuration::isStaticBuild()
 {
-#if defined(CVC5_STATIC_BUILD)
-  return true;
-#else
-  return false;
-#endif
+  return CVC5_STATIC_BUILD;
 }
 
 string Configuration::getPackageName() { return CVC5_PACKAGE_NAME; }
 
-string Configuration::getVersionString() { return CVC5_RELEASE_STRING; }
-
-unsigned Configuration::getVersionMajor() { return CVC5_MAJOR; }
-
-unsigned Configuration::getVersionMinor() { return CVC5_MINOR; }
-
-unsigned Configuration::getVersionRelease() { return CVC5_RELEASE; }
-
-std::string Configuration::getVersionExtra() { return CVC5_EXTRAVERSION; }
+string Configuration::getVersionString() { return CVC5_FULL_VERSION; }
 
 std::string Configuration::copyright() {
   std::stringstream ss;
@@ -127,16 +110,10 @@ std::string Configuration::copyright() {
      << "  See https://github.com/arminbiere/cadical for copyright "
      << "information.\n\n";
 
-  if (Configuration::isBuiltWithAbc()
-      || Configuration::isBuiltWithCryptominisat()
+  if (Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithEditline())
   {
-    if (Configuration::isBuiltWithAbc()) {
-      ss << "  ABC - A System for Sequential Synthesis and Verification\n"
-         << "  See http://bitbucket.org/alanmi/abc for copyright and\n"
-         << "  licensing information.\n\n";
-    }
     if (Configuration::isBuiltWithCryptominisat())
     {
       ss << "  CryptoMiniSat - An Advanced SAT Solver\n"
@@ -210,9 +187,9 @@ std::string Configuration::copyright() {
 
 std::string Configuration::about() {
   std::stringstream ss;
-  ss << "This is cvc5 version " << CVC5_RELEASE_STRING;
+  ss << "This is cvc5 version " << getVersionString();
   if (Configuration::isGitBuild()) {
-    ss << " [" << Configuration::getGitId() << "]";
+    ss << " [" << Configuration::getGitInfo() << "]";
   }
   ss << "\ncompiled with " << Configuration::getCompiler()
      << "\non " << Configuration::getCompiledDateTime() << "\n\n";
@@ -236,10 +213,6 @@ bool Configuration::isBuiltWithGlpk() {
   return IS_GLPK_BUILD;
 }
 
-bool Configuration::isBuiltWithAbc() {
-  return IS_ABC_BUILD;
-}
-
 bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;
 }
@@ -253,103 +226,34 @@ bool Configuration::isBuiltWithPoly()
   return IS_POLY_BUILD;
 }
 
-unsigned Configuration::getNumDebugTags() {
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-  /* -1 because a NULL pointer is inserted as the last value */
-  return (sizeof(Debug_tags) / sizeof(Debug_tags[0])) - 1;
-#else  /* CVC5_DEBUG && CVC5_TRACING */
-  return 0;
-#endif /* CVC5_DEBUG && CVC5_TRACING */
-}
-
-char const* const* Configuration::getDebugTags() {
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
+const std::vector<std::string>& Configuration::getDebugTags()
+{
   return Debug_tags;
-#else  /* CVC5_DEBUG && CVC5_TRACING */
-  static char const* no_tags[] = { NULL };
-  return no_tags;
-#endif /* CVC5_DEBUG && CVC5_TRACING */
 }
 
-int strcmpptr(const char **s1, const char **s2){
-  return strcmp(*s1,*s2);
+bool Configuration::isDebugTag(const std::string& tag)
+{
+  return std::find(Debug_tags.begin(), Debug_tags.end(), tag)
+         != Debug_tags.end();
 }
 
-bool Configuration::isDebugTag(char const *tag){
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-  unsigned ntags = getNumDebugTags();
-  char const* const* tags = getDebugTags();
-  for (unsigned i = 0; i < ntags; ++ i) {
-    if (strcmp(tag, tags[i]) == 0) {
-      return true;
-    }
-  }
-#endif /* CVC5_DEBUG && CVC5_TRACING */
-  return false;
-}
-
-unsigned Configuration::getNumTraceTags() {
-#if CVC5_TRACING
-  /* -1 because a NULL pointer is inserted as the last value */
-  return sizeof(Trace_tags) / sizeof(Trace_tags[0]) - 1;
-#else  /* CVC5_TRACING */
-  return 0;
-#endif /* CVC5_TRACING */
-}
-
-char const* const* Configuration::getTraceTags() {
-#if CVC5_TRACING
+const std::vector<std::string>& Configuration::getTraceTags()
+{
   return Trace_tags;
-#else  /* CVC5_TRACING */
-  static char const* no_tags[] = { NULL };
-  return no_tags;
-#endif /* CVC5_TRACING */
 }
 
-bool Configuration::isTraceTag(char const * tag){
-#if CVC5_TRACING
-  unsigned ntags = getNumTraceTags();
-  char const* const* tags = getTraceTags();
-  for (unsigned i = 0; i < ntags; ++ i) {
-    if (strcmp(tag, tags[i]) == 0) {
-      return true;
-    }
-  }
-#endif /* CVC5_TRACING */
-  return false;
+bool Configuration::isTraceTag(const std::string& tag)
+{
+  return std::find(Trace_tags.begin(), Trace_tags.end(), tag)
+         != Trace_tags.end();
 }
 
 bool Configuration::isGitBuild() {
-  return IS_GIT_BUILD;
+  return GIT_BUILD;
 }
 
-const char* Configuration::getGitBranchName() {
-  return GIT_BRANCH_NAME;
-}
-
-const char* Configuration::getGitCommit() {
-  return GIT_COMMIT;
-}
-
-bool Configuration::hasGitModifications() {
-  return GIT_HAS_MODIFICATIONS;
-}
-
-std::string Configuration::getGitId() {
-  if(! isGitBuild()) {
-    return "";
-  }
-
-  const char* branchName = getGitBranchName();
-  if(*branchName == '\0') {
-    branchName = "-";
-  }
-
-  stringstream ss;
-  ss << "git " << branchName << " " << string(getGitCommit()).substr(0, 8)
-     << (::cvc5::Configuration::hasGitModifications() ? " (with modifications)"
-                                                      : "");
-  return ss.str();
+std::string Configuration::getGitInfo() {
+  return CVC5_GIT_INFO;
 }
 
 std::string Configuration::getCompiler() {

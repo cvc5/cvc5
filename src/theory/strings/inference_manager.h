@@ -82,8 +82,7 @@ class InferenceManager : public InferenceManagerBuffered
                    SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,
-                   SequencesStatistics& statistics,
-                   ProofNodeManager* pnm);
+                   SequencesStatistics& statistics);
   ~InferenceManager() {}
 
   /**
@@ -249,8 +248,15 @@ class InferenceManager : public InferenceManagerBuffered
   ExtTheory& d_extt;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
-  /** Conversion from inferences to proofs */
+  /** Conversion from inferences to proofs for facts */
   std::unique_ptr<InferProofCons> d_ipc;
+  /**
+   * Conversion from inferences to proofs for lemmas and conflicts. This is
+   * separate from the above proof generator to avoid rare cases where the
+   * conclusion of a lemma is a duplicate of the conclusion of another lemma,
+   * or is a fact in the current equality engine.
+   */
+  std::unique_ptr<InferProofCons> d_ipcl;
   /** Common constants */
   Node d_true;
   Node d_false;

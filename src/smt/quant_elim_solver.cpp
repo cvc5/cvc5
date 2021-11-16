@@ -72,16 +72,16 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
   // We consider this to be an entailment check, which also avoids incorrect
-  // status reporting (see SmtEngineState::d_expectedStatus).
+  // status reporting (see SolverEngineState::d_expectedStatus).
   Result r = d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, true);
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
     if (r.asSatisfiabilityResult().isSat() != Result::SAT && doFull)
     {
-      Notice()
+      verbose(1)
           << "While performing quantifier elimination, unexpected result : "
-          << r << " for query.";
+          << r << " for query." << std::endl;
       // failed, return original
       return q;
     }
@@ -92,18 +92,27 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // version of the input quantified formula q.
     std::vector<Node> inst_qs;
     qe->getInstantiatedQuantifiedFormulas(inst_qs);
-    Assert(inst_qs.size() <= 1);
-    Node ret;
-    if (inst_qs.size() == 1)
+    Node topq;
+    // Find the quantified formula corresponding to the quantifier elimination
+    for (const Node& qinst : inst_qs)
     {
-      Node topq = inst_qs[0];
+      // Should have the same attribute mark as above
+      if (qinst.getNumChildren() == 3 && qinst[2] == n_attr)
+      {
+        topq = qinst;
+        break;
+      }
+    }
+    Node ret;
+    if (!topq.isNull())
+    {
       Assert(topq.getKind() == FORALL);
       Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
                       << topq << std::endl;
       std::vector<Node> insts;
       qe->getInstantiations(topq, insts);
       // note we do not convert to witness form here, since we could be
-      // an internal subsolver (SmtEngine::isInternalSubsolver).
+      // an internal subsolver (SolverEngine::isInternalSubsolver).
       ret = nm->mkAnd(insts);
       Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
       if (q.getKind() == EXISTS)

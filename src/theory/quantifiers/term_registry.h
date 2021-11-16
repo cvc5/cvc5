@@ -22,6 +22,8 @@
 #include <unordered_set>
 
 #include "context/cdhashset.h"
+#include "smt/env_obj.h"
+#include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -37,7 +39,7 @@ class FirstOrderModel;
  * Term Registry, which manages notifying modules within quantifiers about
  * (ground) terms that exist in the current context.
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
 
@@ -82,6 +84,8 @@ class TermRegistry
   TermDb* getTermDatabase() const;
   /** get term database sygus */
   TermDbSygus* getTermDatabaseSygus() const;
+  /** get entailment check utility */
+  EntailmentCheck* getEntailmentCheck() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
   /** get the term pools utility */
@@ -102,6 +106,8 @@ class TermRegistry
   std::unique_ptr<TermPools> d_termPools;
   /** term database */
   std::unique_ptr<TermDb> d_termDb;
+  /** entailment check */
+  std::unique_ptr<EntailmentCheck> d_echeck;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
   /** extended model object */

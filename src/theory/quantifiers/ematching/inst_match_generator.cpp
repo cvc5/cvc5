@@ -23,12 +23,14 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/ematching/relational_match_generator.h"
 #include "theory/quantifiers/ematching/var_match_generator.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -271,6 +273,9 @@ void InstMatchGenerator::initialize(Node q,
     Trace("inst-match-gen-warn")
         << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
   }
+  Trace("inst-match-gen") << "Candidate generator is "
+                          << (d_cg != nullptr ? d_cg->identify() : "null")
+                          << std::endl;
   gens.insert( gens.end(), d_children.begin(), d_children.end() );
 }
 
@@ -359,7 +364,8 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
     {
       if (pat.getKind() == GT)
       {
-        t_match = nm->mkNode(MINUS, t, nm->mkConst(Rational(1)));
+        t_match =
+            nm->mkNode(MINUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
       }else{
         t_match = t;
       }
@@ -375,12 +381,13 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
         else
         {
           Assert(t.getType().isReal());
-          t_match = nm->mkNode(PLUS, t, nm->mkConst(Rational(1)));
+          t_match =
+              nm->mkNode(PLUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
         }
       }
       else if (pat.getKind() == GEQ)
       {
-        t_match = nm->mkNode(PLUS, t, nm->mkConst(Rational(1)));
+        t_match = nm->mkNode(PLUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
       }
       else if (pat.getKind() == GT)
       {
@@ -614,7 +621,7 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
     InstMatchGenerator* init;
     std::map< Node, InstMatchGenerator * >::iterator iti = pat_map_init.find( pats[pCounter] );
     if( iti==pat_map_init.end() ){
-      init = new InstMatchGenerator(tparent, pats[pCounter]);
+      init = getInstMatchGenerator(tparent, q, pats[pCounter]);
     }else{
       init = iti->second;
     }
@@ -641,6 +648,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
                                                               Node q,
                                                               Node n)
 {
+  // maybe variable match generator
   if (n.getKind() != INST_CONSTANT)
   {
     Trace("var-trigger-debug")
@@ -667,6 +675,16 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
                            << ", var = " << x << ", subs = " << s << std::endl;
       return vmg;
     }
+  }
+  Trace("relational-trigger")
+      << "Is " << n << " a relational trigger?" << std::endl;
+  // relational triggers
+  bool hasPol, pol;
+  Node lit;
+  if (TriggerTermInfo::isUsableRelationTrigger(n, hasPol, pol, lit))
+  {
+    Trace("relational-trigger") << "...yes, for literal " << lit << std::endl;
+    return new RelationalMatchGenerator(tparent, lit, hasPol, pol);
   }
   return new InstMatchGenerator(tparent, n);
 }

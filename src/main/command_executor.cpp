@@ -27,7 +27,7 @@
 
 #include "main/main.h"
 #include "smt/command.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 
 namespace cvc5 {
 namespace main {
@@ -60,7 +60,7 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::storeOptionsAsOriginal()
 {
-  d_solver->d_originalOptions->copyValues(d_solver->d_smtEngine->getOptions());
+  d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
@@ -87,11 +87,6 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  if (d_solver->getOptionInfo("parse-only").boolValue())
-  {
-    return true;
-  }
-
   CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
   if(seq != nullptr) {
     // assume no error
@@ -167,11 +162,16 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if ((d_solver->getOptionInfo("dump-unsat-cores").boolValue()
-         || d_solver->getOptionInfo("dump-unsat-cores-full").boolValue())
+    if (d_solver->getOptionInfo("dump-unsat-cores").boolValue()
         && isResultUnsat)
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
+    }
+
+    if (d_solver->getOptionInfo("dump-difficulty").boolValue()
+        && (isResultUnsat || isResultSat || res.isSatUnknown()))
+    {
+      getterCommands.emplace_back(new GetDifficultyCommand());
     }
 
     if (!getterCommands.empty()) {
@@ -197,14 +197,22 @@ bool solverInvoke(api::Solver* solver,
                   Command* cmd,
                   std::ostream& out)
 {
-  cmd->invoke(solver, sm, out);
-  // ignore the error if the command-verbosity is 0 for this command
-  std::string commandName =
-      std::string("command-verbosity:") + cmd->getCommandName();
-  if (solver->getOption(commandName) == "0")
+  // print output for -o raw-benchmark
+  if (solver->isOutputOn("raw-benchmark"))
+  {
+    cmd->toStream(solver->getOutput("raw-benchmark"));
+  }
+
+  // In parse-only mode, we do not invoke any of the commands except define-fun
+  // commands. We invoke define-fun commands because they add function names
+  // to the symbol table.
+  if (solver->getOptionInfo("parse-only").boolValue()
+      && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr)
   {
     return true;
   }
+
+  cmd->invoke(solver, sm, out);
   return !cmd->fail();
 }
 

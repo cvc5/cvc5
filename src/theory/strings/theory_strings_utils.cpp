@@ -20,6 +20,7 @@
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
 #include "options/strings_options.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
@@ -36,7 +37,7 @@ namespace theory {
 namespace strings {
 namespace utils {
 
-uint32_t getAlphabetCardinality()
+uint32_t getDefaultAlphabetCardinality()
 {
   // 3*16^4 = 196608 values in the SMT-LIB standard for Unicode strings
   Assert(196608 <= String::num_codes());
@@ -164,7 +165,8 @@ Node mkNLength(Node t)
 Node mkPrefix(Node t, Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(STRING_SUBSTR, t, nm->mkConst(Rational(0)), n);
+  return nm->mkNode(
+      STRING_SUBSTR, t, nm->mkConst(CONST_RATIONAL, Rational(0)), n);
 }
 
 Node mkSuffix(Node t, Node n)
@@ -284,7 +286,7 @@ bool isConstantLike(Node n) { return n.isConst() || n.getKind() == SEQ_UNIT; }
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {
   size_t i = start;
-  while (i < rs.size() && rs[i].getKind() == REGEXP_SIGMA)
+  while (i < rs.size() && rs[i].getKind() == REGEXP_ALLCHAR)
   {
     i++;
   }
@@ -294,7 +296,7 @@ bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
     return false;
   }
 
-  return rs[i].getKind() == REGEXP_STAR && rs[i][0].getKind() == REGEXP_SIGMA;
+  return rs[i].getKind() == REGEXP_STAR && rs[i][0].getKind() == REGEXP_ALLCHAR;
 }
 
 bool isSimpleRegExp(Node r)
@@ -312,8 +314,9 @@ bool isSimpleRegExp(Node r)
         return false;
       }
     }
-    else if (n.getKind() != REGEXP_SIGMA
-             && (n.getKind() != REGEXP_STAR || n[0].getKind() != REGEXP_SIGMA))
+    else if (n.getKind() != REGEXP_ALLCHAR
+             && (n.getKind() != REGEXP_STAR
+                 || n[0].getKind() != REGEXP_ALLCHAR))
     {
       return false;
     }
@@ -375,7 +378,7 @@ bool isStringKind(Kind k)
 
 bool isRegExpKind(Kind k)
 {
-  return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
+  return k == REGEXP_NONE || k == REGEXP_ALLCHAR || k == STRING_TO_REGEXP
          || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
          || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
          || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
@@ -424,38 +427,9 @@ unsigned getLoopMinOccurrences(TNode node)
   return node.getOperator().getConst<RegExpLoop>().d_loopMinOcc;
 }
 
-/**
- * Mapping to a dummy node for marking an attribute on internal quantified
- * formulas. This ensures that reductions are deterministic.
- */
-struct QInternalVarAttributeId
-{
-};
-typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
-
 Node mkForallInternal(Node bvl, Node body)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  QInternalVarAttribute qiva;
-  Node qvar;
-  if (bvl.hasAttribute(qiva))
-  {
-    qvar = bvl.getAttribute(qiva);
-  }
-  else
-  {
-    SkolemManager* sm = nm->getSkolemManager();
-    qvar = sm->mkDummySkolem("qinternal", nm->booleanType());
-    // this dummy variable marks that the quantified formula is internal
-    qvar.setAttribute(InternalQuantAttribute(), true);
-    // remember the dummy variable
-    bvl.setAttribute(qiva, qvar);
-  }
-  // make the internal attribute, and put it in a singleton list
-  Node ip = nm->mkNode(INST_ATTRIBUTE, qvar);
-  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
-  // make the overall formula
-  return nm->mkNode(FORALL, bvl, body, ipl);
+  return quantifiers::BoundedIntegers::mkBoundedForall(bvl, body);
 }
 
 }  // namespace utils

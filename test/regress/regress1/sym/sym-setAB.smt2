@@ -6,6 +6,6 @@
 (declare-fun B () (Set Int))
 (declare-fun C () (Set Int))
 
-(assert (and (member x A) (member x B) (member x C)))
-(assert (member y C))
+(assert (and (set.member x A) (set.member x B) (set.member x C)))
+(assert (set.member y C))
 (check-sat)

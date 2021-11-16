@@ -22,17 +22,10 @@
 #include "base/check.h"
 #include "options/option_exception.h"
 
-// clang-format off
 namespace cvc5::options {
 
-${modes_impl}$
-
-namespace ${id}$
-{
 // clang-format off
-${defaults_impl}$
+${modes_impl}$
 // clang-format on
-}
 
 }  // namespace cvc5::options
-// clang-format on

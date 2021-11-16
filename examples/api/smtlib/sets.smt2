@@ -10,26 +10,26 @@
 (check-sat-assuming
   (
     (distinct
-      (intersection (union A B) C)
-      (union (intersection A C) (intersection B C)))
+      (set.inter (set.union A B) C)
+      (set.union (set.inter A C) (set.inter B C)))
   )
 )
 
 ; Verify emptset is a subset of any set
 (check-sat-assuming
   (
-    (not (subset (as emptyset (Set Int)) A))
+    (not (set.subset (as set.empty (Set Int)) A))
   )
 )
 
 ; Find an element in {1, 2} intersection {2, 3}, if there is one.
 (check-sat-assuming
   (
-    (member
+    (set.member
       x
-      (intersection
-        (union (singleton 1) (singleton 2))
-        (union (singleton 2) (singleton 3))))
+      (set.inter
+        (set.union (set.singleton 1) (set.singleton 2))
+        (set.union (set.singleton 2) (set.singleton 3))))
   )
 )
 

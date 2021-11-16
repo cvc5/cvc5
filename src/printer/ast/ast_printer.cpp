@@ -24,7 +24,6 @@
 #include "options/language.h"  // for LANG_AST
 #include "printer/let_binding.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
 
 using namespace std;
 
@@ -182,17 +181,9 @@ void AstPrinter::toStreamCmdPop(std::ostream& out) const {
   out << "Pop()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
+void AstPrinter::toStreamCmdCheckSat(std::ostream& out) const
 {
-  if (n.isNull())
-  {
-    out << "CheckSat()";
-  }
-  else
-  {
-    out << "CheckSat(" << n << ')';
-  }
-  out << std::endl;
+  out << "CheckSat()" << std::endl;
 }
 
 void AstPrinter::toStreamCmdCheckSatAssuming(
@@ -331,12 +322,6 @@ void AstPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
   out << "GetUnsatCore()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                               Result::Sat status) const
-{
-  out << "SetBenchmarkStatus(" << status << ')' << std::endl;
-}
-
 void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
                                               const std::string& logic) const
 {
@@ -378,12 +363,6 @@ void AstPrinter::toStreamCmdDatatypeDeclaration(
     out << t << ";" << endl;
   }
   out << "])" << std::endl;
-}
-
-void AstPrinter::toStreamCmdComment(std::ostream& out,
-                                    const std::string& comment) const
-{
-  out << "CommentCommand([" << comment << "])" << std::endl;
 }
 
 void AstPrinter::toStreamWithLetify(std::ostream& out,

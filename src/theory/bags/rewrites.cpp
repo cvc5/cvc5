@@ -27,12 +27,13 @@ const char* toString(Rewrite r)
   {
     case Rewrite::NONE: return "NONE";
     case Rewrite::CARD_DISJOINT: return "CARD_DISJOINT";
-    case Rewrite::CARD_MK_BAG: return "CARD_MK_BAG";
-    case Rewrite::CHOOSE_MK_BAG: return "CHOOSE_MK_BAG";
+    case Rewrite::CARD_BAG_MAKE: return "CARD_BAG_MAKE";
+    case Rewrite::CHOOSE_BAG_MAKE: return "CHOOSE_BAG_MAKE";
     case Rewrite::CONSTANT_EVALUATION: return "CONSTANT_EVALUATION";
     case Rewrite::COUNT_EMPTY: return "COUNT_EMPTY";
-    case Rewrite::COUNT_MK_BAG: return "COUNT_MK_BAG";
-    case Rewrite::DUPLICATE_REMOVAL_MK_BAG: return "DUPLICATE_REMOVAL_MK_BAG";
+    case Rewrite::COUNT_BAG_MAKE: return "COUNT_BAG_MAKE";
+    case Rewrite::DUPLICATE_REMOVAL_BAG_MAKE:
+      return "DUPLICATE_REMOVAL_BAG_MAKE";
     case Rewrite::EQ_CONST_FALSE: return "EQ_CONST_FALSE";
     case Rewrite::EQ_REFL: return "EQ_REFL";
     case Rewrite::EQ_SYM: return "EQ_SYM";
@@ -43,11 +44,11 @@ const char* toString(Rewrite r)
     case Rewrite::INTERSECTION_SAME: return "INTERSECTION_SAME";
     case Rewrite::INTERSECTION_SHARED_LEFT: return "INTERSECTION_SHARED_LEFT";
     case Rewrite::INTERSECTION_SHARED_RIGHT: return "INTERSECTION_SHARED_RIGHT";
-    case Rewrite::IS_SINGLETON_MK_BAG: return "IS_SINGLETON_MK_BAG";
+    case Rewrite::IS_SINGLETON_BAG_MAKE: return "IS_SINGLETON_BAG_MAKE";
     case Rewrite::MAP_CONST: return "MAP_CONST";
-    case Rewrite::MAP_MK_BAG: return "MAP_MK_BAG";
+    case Rewrite::MAP_BAG_MAKE: return "MAP_BAG_MAKE";
     case Rewrite::MAP_UNION_DISJOINT: return "MAP_UNION_DISJOINT";
-    case Rewrite::MK_BAG_COUNT_NEGATIVE: return "MK_BAG_COUNT_NEGATIVE";
+    case Rewrite::BAG_MAKE_COUNT_NEGATIVE: return "BAG_MAKE_COUNT_NEGATIVE";
     case Rewrite::REMOVE_FROM_UNION: return "REMOVE_FROM_UNION";
     case Rewrite::REMOVE_MIN: return "REMOVE_MIN";
     case Rewrite::REMOVE_RETURN_LEFT: return "REMOVE_RETURN_LEFT";

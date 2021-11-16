@@ -19,6 +19,7 @@
 
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "smt/env.h"
 #include "util/random.h"
 
 using namespace cvc5::kind;
@@ -75,7 +76,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
   }
   // check which solutions would have been filtered if the current had come
   // first
-  if (options::sygusFilterSolRevSubsume())
+  if (options().quantifiers.sygusFilterSolRevSubsume)
   {
     std::vector<Node> nsubsume;
     for (const Node& s : d_curr_sols)

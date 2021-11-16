@@ -60,7 +60,6 @@ bool PatternTermSelector::isUsable(Node n, Node q)
   {
     return true;
   }
-  std::map<Node, Node> coeffs;
   if (options::purifyTriggers())
   {
     Node x = getInversionVariable(n);
@@ -82,7 +81,7 @@ Node PatternTermSelector::getIsUsableEq(Node q, Node n)
       if (i == 1 && n.getKind() == EQUAL
           && !quantifiers::TermUtil::hasInstConstAttr(n[0]))
       {
-        return NodeManager::currentNM()->mkNode(n.getKind(), n[1], n[0]);
+        return NodeManager::currentNM()->mkNode(EQUAL, n[1], n[0]);
       }
       else
       {
@@ -679,7 +678,8 @@ Node PatternTermSelector::getInversion(Node n, Node x)
           Assert(nc.isConst());
           if (x.getType().isInteger())
           {
-            Node coeff = nm->mkConst(nc.getConst<Rational>().abs());
+            Node coeff =
+                nm->mkConst(CONST_RATIONAL, nc.getConst<Rational>().abs());
             if (!nc.getConst<Rational>().abs().isOne())
             {
               x = nm->mkNode(INTS_DIVISION_TOTAL, x, coeff);
@@ -691,7 +691,8 @@ Node PatternTermSelector::getInversion(Node n, Node x)
           }
           else
           {
-            Node coeff = nm->mkConst(Rational(1) / nc.getConst<Rational>());
+            Node coeff = nm->mkConst(CONST_RATIONAL,
+                                     Rational(1) / nc.getConst<Rational>());
             x = nm->mkNode(MULT, x, coeff);
           }
         }

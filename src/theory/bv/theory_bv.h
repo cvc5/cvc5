@@ -99,10 +99,6 @@ class TheoryBV : public Theory
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  /** Called by abstraction preprocessing pass. */
-  bool applyAbstraction(const std::vector<Node>& assertions,
-                        std::vector<Node>& new_assertions);
-
  private:
   void notifySharedTerm(TNode t) override;
 
@@ -137,7 +133,7 @@ class TheoryBV : public Theory
   /** TheoryBV statistics. */
   struct Statistics
   {
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& reg, const std::string& name);
     IntStat d_solveSubstitutions;
   } d_stats;
 

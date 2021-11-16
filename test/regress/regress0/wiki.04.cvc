@@ -1,4 +1,0 @@
-a, b, c : BOOLEAN;
-
-% EXPECT: entailed
-QUERY a AND b <=> b AND a;

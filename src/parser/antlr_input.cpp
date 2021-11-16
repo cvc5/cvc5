@@ -23,7 +23,6 @@
 #include "parser/antlr_line_buffered_input.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"
-#include "parser/cvc/cvc_input.h"
 #include "parser/input.h"
 #include "parser/memory_mapped_input_buffer.h"
 #include "parser/parser.h"
@@ -35,7 +34,6 @@
 using namespace std;
 using namespace cvc5;
 using namespace cvc5::parser;
-using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace parser {
@@ -188,11 +186,7 @@ AntlrInputStream::newStringInputStream(const std::string& input,
 AntlrInput* AntlrInput::newInput(const std::string& lang,
                                  AntlrInputStream& inputStream)
 {
-  if (lang == "LANG_CVC")
-  {
-    return new CvcInput(inputStream);
-  }
-  else if (lang == "LANG_SYGUS_V2")
+  if (lang == "LANG_SYGUS_V2")
   {
     return new SygusInput(inputStream);
   }

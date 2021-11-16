@@ -66,10 +66,6 @@ using __gnu_cxx::stdio_filebuf;
 char** commandCompletion(const char* text, int start, int end);
 char* commandGenerator(const char* text, int state);
 
-static const std::string cvc_commands[] = {
-#include "main/cvc_tokens.h"
-};/* cvc_commands */
-
 static const std::string smt2_commands[] = {
 #include "main/smt2_tokens.h"
 };/* smt2_commands */
@@ -93,7 +89,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
 {
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
-  d_parser = parserBuilder.build();
+  d_parser.reset(parserBuilder.build());
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
@@ -112,13 +108,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
     ::using_history();
 
     std::string lang = solver->getOption("input-language");
-    if (lang == "LANG_CVC")
-    {
-      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history";
-      commandsBegin = cvc_commands;
-      commandsEnd = cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
-    }
-    else if (lang == "LANG_TPTP")
+    if (lang == "LANG_TPTP")
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
       commandsBegin = tptp_commands;
@@ -139,13 +129,16 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
     d_usingEditline = true;
     int err = ::read_history(d_historyFilename.c_str());
     ::stifle_history(s_historyLimit);
-    if(Notice.isOn()) {
+    if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+    {
       if(err == 0) {
-        Notice() << "Read " << ::history_length << " lines of history from "
-                 << d_historyFilename << std::endl;
+        d_solver->getDriverOptions().err()
+            << "Read " << ::history_length << " lines of history from "
+            << d_historyFilename << std::endl;
       } else {
-        Notice() << "Could not read history from " << d_historyFilename
-                 << ": " << strerror(err) << std::endl;
+        d_solver->getDriverOptions().err()
+            << "Could not read history from " << d_historyFilename << ": "
+            << strerror(err) << std::endl;
       }
     }
   }
@@ -161,15 +154,20 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
 InteractiveShell::~InteractiveShell() {
 #if HAVE_LIBEDITLINE
   int err = ::write_history(d_historyFilename.c_str());
-  if(err == 0) {
-    Notice() << "Wrote " << ::history_length << " lines of history to "
-             << d_historyFilename << std::endl;
-  } else {
-    Notice() << "Could not write history to " << d_historyFilename
-             << ": " << strerror(err) << std::endl;
+  if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+  {
+    if (err == 0)
+    {
+      d_solver->getDriverOptions().err()
+          << "Wrote " << ::history_length << " lines of history to "
+          << d_historyFilename << std::endl;
+    } else {
+      d_solver->getDriverOptions().err()
+          << "Could not write history to " << d_historyFilename << ": "
+          << strerror(err) << std::endl;
+  }
   }
 #endif /* HAVE_LIBEDITLINE */
-  delete d_parser;
 }
 
 Command* InteractiveShell::readCommand()
@@ -365,7 +363,7 @@ restart:
     }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the
-    // line.  The first ones haven't yet been executed by the SmtEngine,
+    // line.  The first ones haven't yet been executed by the SolverEngine,
     // but the parser state has already made the variables and the mappings
     // in the symbol table.  So unfortunately, either we exit cvc5 entirely,
     // or we commit to the current line up to the command with the parse

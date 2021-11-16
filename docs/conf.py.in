@@ -42,6 +42,7 @@ extensions = [
         'sphinx.ext.autodoc',
         'sphinx.ext.autosectionlabel',
         'sphinxcontrib.bibtex',
+        'sphinxcontrib.programoutput',
         'sphinx_tabs.tabs',
         'examples',
         'include_build_file',
@@ -72,13 +73,21 @@ html_static_path = ['${CMAKE_CURRENT_SOURCE_DIR}/_static/']
 html_css_files = ['custom.css']
 html_show_sourcelink = False
 
-# -- Breathe configuration ---------------------------------------------------
+html_extra_path = []
+
+# -- C++ / Breathe configuration ---------------------------------------------
 breathe_default_project = "cvc5"
 breathe_domain_by_extension = {"h" : "cpp"}
 cpp_index_common_prefix = ["cvc5::api::"]
 
 # where to look for include-build-file
 ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']
+
+
+# -- Java configuration ------------------------------------------------------
+if tags.has('bindings_java'):
+        html_extra_path.append('${CMAKE_BINARY_DIR}/docs/api/java/build/')
+
 
 # -- SMT-LIB syntax highlighting ---------------------------------------------
 from smtliblexer import SmtLibLexer

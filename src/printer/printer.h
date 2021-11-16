@@ -87,6 +87,8 @@ class Printer
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
                                           const std::string& id,
                                           TypeNode type) const;
+  /** Variant of above for a pre-existing variable */
+  void toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const;
   /** Print declare-pool command */
   virtual void toStreamCmdDeclarePool(std::ostream& out,
                                       const std::string& id,
@@ -109,6 +111,8 @@ class Printer
                                          const std::vector<Node>& formals,
                                          TypeNode range,
                                          Node formula) const;
+  /** Variant of above that takes the definition */
+  void toStreamCmdDefineFunction(std::ostream& out, Node v, Node lambda) const;
 
   /** Print define-fun-rec command */
   virtual void toStreamCmdDefineFunctionRec(
@@ -116,6 +120,10 @@ class Printer
       const std::vector<Node>& funcs,
       const std::vector<std::vector<Node>>& formals,
       const std::vector<Node>& formulas) const;
+  /** Variant of above that takes the definition */
+  void toStreamCmdDefineFunctionRec(std::ostream& out,
+                                    const std::vector<Node>& funcs,
+                                    const std::vector<Node>& lambdas) const;
 
   /** Print set-user-attribute command */
   void toStreamCmdSetUserAttribute(std::ostream& out,
@@ -123,8 +131,7 @@ class Printer
                                    Node n) const;
 
   /** Print check-sat command */
-  virtual void toStreamCmdCheckSat(std::ostream& out,
-                                   Node n = Node::null()) const;
+  virtual void toStreamCmdCheckSat(std::ostream& out) const;
 
   /** Print check-sat-assuming command */
   virtual void toStreamCmdCheckSatAssuming(
@@ -148,6 +155,9 @@ class Printer
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
 
+  /** Print assume command */
+  virtual void toStreamCmdAssume(std::ostream& out, Node n) const;
+
   /** Print inv-constraint command */
   virtual void toStreamCmdInvConstraint(
       std::ostream& out, Node inv, Node pre, Node trans, Node post) const;
@@ -169,11 +179,11 @@ class Printer
   virtual void toStreamCmdGetModel(std::ostream& out) const;
 
   /** Print block-model command */
-  void toStreamCmdBlockModel(std::ostream& out) const;
+  virtual void toStreamCmdBlockModel(std::ostream& out) const;
 
   /** Print block-model-values command */
-  void toStreamCmdBlockModelValues(std::ostream& out,
-                                   const std::vector<Node>& nodes) const;
+  virtual void toStreamCmdBlockModelValues(
+      std::ostream& out, const std::vector<Node>& nodes) const;
 
   /** Print get-proof command */
   virtual void toStreamCmdGetProof(std::ostream& out) const;
@@ -182,10 +192,10 @@ class Printer
   void toStreamCmdGetInstantiations(std::ostream& out) const;
 
   /** Print get-interpol command */
-  void toStreamCmdGetInterpol(std::ostream& out,
-                              const std::string& name,
-                              Node conj,
-                              TypeNode sygusType) const;
+  virtual void toStreamCmdGetInterpol(std::ostream& out,
+                                      const std::string& name,
+                                      Node conj,
+                                      TypeNode sygusType) const;
 
   /** Print get-abduct command */
   virtual void toStreamCmdGetAbduct(std::ostream& out,
@@ -194,7 +204,9 @@ class Printer
                                     TypeNode sygusType) const;
 
   /** Print get-quantifier-elimination command */
-  void toStreamCmdGetQuantifierElimination(std::ostream& out, Node n) const;
+  virtual void toStreamCmdGetQuantifierElimination(std::ostream& out,
+                                                   Node n,
+                                                   bool doFull) const;
 
   /** Print get-unsat-assumptions command */
   virtual void toStreamCmdGetUnsatAssumptions(std::ostream& out) const;
@@ -202,12 +214,11 @@ class Printer
   /** Print get-unsat-core command */
   virtual void toStreamCmdGetUnsatCore(std::ostream& out) const;
 
+  /** Print get-difficulty command */
+  virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
-
-  /** Print set-info :status command */
-  virtual void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                             Result::Sat status) const;
 
   /** Print set-logic command */
   virtual void toStreamCmdSetBenchmarkLogic(std::ostream& out,
@@ -249,9 +260,6 @@ class Printer
   /** Print quit command */
   virtual void toStreamCmdQuit(std::ostream& out) const;
 
-  /** Print comment command */
-  virtual void toStreamCmdComment(std::ostream& out,
-                                  const std::string& comment) const;
   /** Declare heap command */
   virtual void toStreamCmdDeclareHeap(std::ostream& out,
                                       TypeNode locType,

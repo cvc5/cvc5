@@ -93,11 +93,13 @@ class TermDb : public QuantifiersUtil {
   * Get the number of ground terms with operator f that have been added to the
   * database
   */
-  size_t getNumGroundTerms(Node f) const;
+  size_t getNumGroundTerms(TNode f) const;
   /** get ground term for operator
   * Get the i^th ground term with operator f that has been added to the database
   */
-  Node getGroundTerm(Node f, size_t i) const;
+  Node getGroundTerm(TNode f, size_t i) const;
+  /** Get ground term list */
+  DbList* getGroundTermList(TNode f) const;
   /** get num type terms
   * Get the number of ground terms of tn that have been added to the database
   */
@@ -176,78 +178,6 @@ class TermDb : public QuantifiersUtil {
   *     equivalence class of r.
   */
   bool inRelevantDomain(TNode f, unsigned i, TNode r);
-  /** evaluate term
-   *
-   * Returns a term n' such that n = n' is entailed based on the equality
-   * information ee.  This function may generate new terms. In particular,
-   * we typically rewrite subterms of n of maximal size to terms that exist in
-   * the equality engine specified by ee.
-   *
-   * useEntailmentTests is whether to call the theory engine's entailmentTest
-   * on literals n for which this call fails to find a term n' that is
-   * equivalent to n, for increased precision. This is not frequently used.
-   *
-   * The vector exp stores the explanation for why n evaluates to that term,
-   * that is, if this call returns a non-null node n', then:
-   *   exp => n = n'
-   *
-   * If reqHasTerm, then we require that the returned term is a Boolean
-   * combination of terms that exist in the equality engine used by this call.
-   * If no such term is constructable, this call returns null. The motivation
-   * for setting this to true is to "fail fast" if we require the return value
-   * of this function to only involve existing terms. This is used e.g. in
-   * the "propagating instances" portion of conflict-based instantiation
-   * (quant_conflict_find.h).
-   */
-  Node evaluateTerm(TNode n,
-                    std::vector<Node>& exp,
-                    bool useEntailmentTests = false,
-                    bool reqHasTerm = false);
-  /** same as above, without exp */
-  Node evaluateTerm(TNode n,
-                    bool useEntailmentTests = false,
-                    bool reqHasTerm = false);
-  /** get entailed term
-   *
-   * If possible, returns a term n' such that:
-   * (1) n' exists in the current equality engine (as specified by the state),
-   * (2) n = n' is entailed in the current context.
-   * It returns null if no such term can be found.
-   * Wrt evaluateTerm, this version does not construct new terms, and
-   * thus is less aggressive.
-   */
-  TNode getEntailedTerm(TNode n);
-  /** get entailed term
-   *
-   * If possible, returns a term n' such that:
-   * (1) n' exists in the current equality engine (as specified by the state),
-   * (2) n * subs = n' is entailed in the current context, where * denotes
-   * substitution application.
-   * It returns null if no such term can be found.
-   * subsRep is whether the substitution maps to terms that are representatives
-   * according to the quantifiers state.
-   * Wrt evaluateTerm, this version does not construct new terms, and
-   * thus is less aggressive.
-   */
-  TNode getEntailedTerm(TNode n, std::map<TNode, TNode>& subs, bool subsRep);
-  /** is entailed
-   * Checks whether the current context entails n with polarity pol, based on
-   * the equality information in the quantifiers state. Returns true if the
-   * entailment can be successfully shown.
-   */
-  bool isEntailed(TNode n, bool pol);
-  /** is entailed
-   *
-   * Checks whether the current context entails ( n * subs ) with polarity pol,
-   * based on the equality information in the quantifiers state,
-   * where * denotes substitution application.
-   * subsRep is whether the substitution maps to terms that are representatives
-   * according to in the quantifiers state.
-   */
-  bool isEntailed(TNode n,
-                  std::map<TNode, TNode>& subs,
-                  bool subsRep,
-                  bool pol);
   /** is the term n active in the current context?
    *
   * By default, all terms are active. A term is inactive if:
@@ -270,7 +200,7 @@ class TermDb : public QuantifiersUtil {
    * It returns whether the term n should be indexed in the current context.
    *
    * If the argument useMode is true, then this method returns a value based on
-   * the option options::termDbMode().
+   * the option termDbMode.
    * Otherwise, it returns the lookup in the map d_has_map.
    */
   bool hasTermCurrent(Node n, bool useMode = true);
@@ -355,24 +285,6 @@ class TermDb : public QuantifiersUtil {
   //----------------------------- end implementation-specific
   /** set has term */
   void setHasTerm( Node n );
-  /** helper for evaluate term */
-  Node evaluateTerm2(TNode n,
-                     std::map<TNode, Node>& visited,
-                     std::vector<Node>& exp,
-                     bool useEntailmentTests,
-                     bool computeExp,
-                     bool reqHasTerm);
-  /** helper for get entailed term */
-  TNode getEntailedTerm2(TNode n,
-                         std::map<TNode, TNode>& subs,
-                         bool subsRep,
-                         bool hasSubs);
-  /** helper for is entailed */
-  bool isEntailed2(TNode n,
-                   std::map<TNode, TNode>& subs,
-                   bool subsRep,
-                   bool hasSubs,
-                   bool pol);
   /** compute uf eqc terms :
   * Ensure entries for f are in d_func_map_eqc_trie for all equivalence classes
   */

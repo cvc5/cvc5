@@ -91,7 +91,7 @@ void SolverState::collectBagsAndCountTerms()
       Node n = (*it);
       Trace("bags-eqc") << (*it) << " ";
       Kind k = n.getKind();
-      if (k == MK_BAG)
+      if (k == BAG_MAKE)
       {
         // for terms (bag x c) we need to store x by registering the count term
         // (bag.count x (bag x c))

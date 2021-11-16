@@ -212,8 +212,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::CONCAT_CSPLIT)
     {
       Assert(children.size() == 2);
-      Node zero = nm->mkConst(Rational(0));
-      Node one = nm->mkConst(Rational(1));
+      Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+      Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
       if (children[1].getKind() != NOT || children[1][0].getKind() != EQUAL
           || children[1][0][0].getKind() != STRING_LENGTH
           || children[1][0][0][0] != t0 || children[1][0][1] != zero)
@@ -240,7 +240,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::CONCAT_CPROP)
     {
       Assert(children.size() == 2);
-      Node zero = nm->mkConst(Rational(0));
+      Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
 
       Trace("pfcheck-strings-cprop")
           << "CONCAT_PROP, isRev=" << isRev << std::endl;
@@ -275,7 +275,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       t0 = nm->mkNode(STRING_CONCAT, isRev ? w1 : t0, isRev ? t0 : w1);
     }
     // use skolem cache
-    SkolemCache skc(false);
+    SkolemCache skc(nullptr);
     std::vector<Node> newSkolems;
     Node conc = CoreSolver::getConclusion(t0, s0, id, isRev, &skc, newSkolems);
     return conc;
@@ -294,10 +294,10 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    SkolemCache sc(false);
+    SkolemCache skc(nullptr);
     std::vector<Node> newSkolems;
     Node conc = CoreSolver::getConclusion(
-        atom[0][0], atom[1], id, isRev, &sc, newSkolems);
+        atom[0][0], atom[1], id, isRev, &skc, newSkolems);
     return conc;
   }
   else if (id == PfRule::STRING_REDUCTION
@@ -315,7 +315,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       Assert(args.size() == 1);
       // we do not use optimizations
-      SkolemCache skc(false);
+      SkolemCache skc(nullptr);
       std::vector<Node> conj;
       ret = StringsPreprocess::reduce(t, conj, &skc);
       conj.push_back(t.eqNode(ret));
@@ -324,8 +324,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::STRING_EAGER_REDUCTION)
     {
       Assert(args.size() == 1);
-      SkolemCache skc(false);
-      ret = TermRegistry::eagerReduce(t, &skc);
+      SkolemCache skc(nullptr);
+      ret = TermRegistry::eagerReduce(t, &skc, d_alphaCard);
     }
     else if (id == PfRule::STRING_LENGTH_POS)
     {
@@ -352,7 +352,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node zero = nm->mkConst(Rational(0));
+    Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
     Node clen = nm->mkNode(STRING_LENGTH, nemp[0][0]);
     return clen.eqNode(zero).notNode();
   }
@@ -412,8 +412,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     if (id == PfRule::RE_UNFOLD_POS)
     {
       std::vector<Node> newSkolems;
-      SkolemCache sc;
-      conc = RegExpOpr::reduceRegExpPos(skChild, &sc, newSkolems);
+      SkolemCache skc(nullptr);
+      conc = RegExpOpr::reduceRegExpPos(skChild, &skc, newSkolems);
     }
     else if (id == PfRule::RE_UNFOLD_NEG)
     {
@@ -462,7 +462,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
            && args[1].getType().isStringLike());
     Node c1 = nm->mkNode(STRING_TO_CODE, args[0]);
     Node c2 = nm->mkNode(STRING_TO_CODE, args[1]);
-    Node eqNegOne = c1.eqNode(nm->mkConst(Rational(-1)));
+    Node eqNegOne = c1.eqNode(nm->mkConst(CONST_RATIONAL, Rational(-1)));
     Node deq = c1.eqNode(c2).negate();
     Node eqn = args[0].eqNode(args[1]);
     return nm->mkNode(kind::OR, eqNegOne, deq, eqn);

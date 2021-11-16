@@ -76,6 +76,10 @@ const char* toString(Rewrite r)
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
     case Rewrite::RE_ANDOR_INC_CONFLICT: return "RE_ANDOR_INC_CONFLICT";
+    case Rewrite::RE_INTER_CONST_CONST_CONFLICT:
+      return "RE_INTER_CONST_CONST_CONFLICT";
+    case Rewrite::RE_INTER_CONST_RE_CONFLICT:
+      return "RE_INTER_CONST_RE_CONFLICT";
     case Rewrite::RE_CHAR_IN_STR_STAR: return "RE_CHAR_IN_STR_STAR";
     case Rewrite::RE_CONCAT: return "RE_CONCAT";
     case Rewrite::RE_CONCAT_FLATTEN: return "RE_CONCAT_FLATTEN";

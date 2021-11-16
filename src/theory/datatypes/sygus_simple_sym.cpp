@@ -17,6 +17,7 @@
 
 #include "expr/dtype_cons.h"
 #include "theory/quantifiers/term_util.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::kind;
@@ -244,7 +245,7 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_children[0].d_req_kind = PLUS;
           rt.d_children[0].d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[0].d_children[1].d_req_const =
-              NodeManager::currentNM()->mkConst(Rational(1));
+              NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
           rt.d_children[1].d_req_type = dt[c].getArgType(0);
         }
         else if (k == LT || k == GEQ)
@@ -255,7 +256,7 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_children[1].d_req_kind = PLUS;
           rt.d_children[1].d_children[0].d_req_type = dt[c].getArgType(0);
           rt.d_children[1].d_children[1].d_req_const =
-              NodeManager::currentNM()->mkConst(Rational(1));
+              NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
         }
       }
       else if (pk == BITVECTOR_NOT)
