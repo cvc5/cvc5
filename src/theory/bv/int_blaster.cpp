@@ -27,9 +27,8 @@
 #include "options/option_exception.h"
 #include "options/uf_options.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/rewriter.h"
-#include "theory/bv/theory_bv_utils.h"
 #include "theory/logic_info.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
@@ -590,63 +589,64 @@ Node IntBlaster::translateWithChildren(
   return returnNode;
 }
 
-Node IntBlaster::uts(Node x, uint64_t bvsize) {
+Node IntBlaster::uts(Node x, uint64_t bvsize)
+{
   Node powNode = pow2(bvsize - 1);
   Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
-  Node two =  d_nm->mkConst(CONST_RATIONAL, Rational(2));
+  Node two = d_nm->mkConst(CONST_RATIONAL, Rational(2));
   Node twoTimesNode = d_nm->mkNode(kind::MULT, two, modNode);
   return d_nm->mkNode(kind::MINUS, twoTimesNode, x);
 }
 
 Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
 {
-      Node returnNode;
-      if (x.isConst())
-      {
-        Rational c(x.getConst<Rational>());
-        Rational twoToKMinusOne(intpow2(bvsize - 1));
-        /* if the msb is 0, this is like zero_extend.
-         *  msb is 0 <-> the value is less than 2^{bvsize-1}
-         */
-        if (c < twoToKMinusOne || amount == 0)
-        {
-          returnNode = x;
-        }
-        else
-        {
-          /* otherwise, we add the integer equivalent of
-           * 11....1 `amount` times
-           */
-          Rational max_of_amount = intpow2(amount) - 1;
-          Rational mul = max_of_amount * intpow2(bvsize);
-          Rational sum = mul + c;
-          returnNode = d_nm->mkConst(CONST_RATIONAL, sum);
-        }
-      }
-      else
-      {
-        if (amount == 0)
-        {
-          returnNode = x;
-        }
-        else
-        {
-          Rational twoToKMinusOne(intpow2(bvsize - 1));
-          Node minSigned = d_nm->mkConst(CONST_RATIONAL, twoToKMinusOne);
-          /* condition checks whether the msb is 1.
-           * This holds when the integer value is smaller than
-           * 100...0, which is 2^{bvsize-1}.
-           */
-          Node condition = d_nm->mkNode(kind::LT, x, minSigned);
-          Node thenResult = x;
-          Node left = maxInt(amount);
-          Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
-          Node sum = d_nm->mkNode(kind::PLUS, mul, x);
-          Node elseResult = sum;
-          Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
-          returnNode = ite;
-        }
-      }
+  Node returnNode;
+  if (x.isConst())
+  {
+    Rational c(x.getConst<Rational>());
+    Rational twoToKMinusOne(intpow2(bvsize - 1));
+    /* if the msb is 0, this is like zero_extend.
+     *  msb is 0 <-> the value is less than 2^{bvsize-1}
+     */
+    if (c < twoToKMinusOne || amount == 0)
+    {
+      returnNode = x;
+    }
+    else
+    {
+      /* otherwise, we add the integer equivalent of
+       * 11....1 `amount` times
+       */
+      Rational max_of_amount = intpow2(amount) - 1;
+      Rational mul = max_of_amount * intpow2(bvsize);
+      Rational sum = mul + c;
+      returnNode = d_nm->mkConst(CONST_RATIONAL, sum);
+    }
+  }
+  else
+  {
+    if (amount == 0)
+    {
+      returnNode = x;
+    }
+    else
+    {
+      Rational twoToKMinusOne(intpow2(bvsize - 1));
+      Node minSigned = d_nm->mkConst(CONST_RATIONAL, twoToKMinusOne);
+      /* condition checks whether the msb is 1.
+       * This holds when the integer value is smaller than
+       * 100...0, which is 2^{bvsize-1}.
+       */
+      Node condition = d_nm->mkNode(kind::LT, x, minSigned);
+      Node thenResult = x;
+      Node left = maxInt(amount);
+      Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
+      Node sum = d_nm->mkNode(kind::PLUS, mul, x);
+      Node elseResult = sum;
+      Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
+      returnNode = ite;
+    }
+  }
   return returnNode;
 }
 
@@ -773,7 +773,7 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
   {
     intDomain.push_back(d.isBitVector() ? d_nm->integerType() : d);
   }
-  
+
   // create the new function symbol as a skolem
   std::ostringstream os;
   os << "__intblast_fun_" << bvUF << "_int";
@@ -782,7 +782,7 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
 
   // add definition of old function symbol to skolems.
-  
+
   // formal arguments of the lambda expression.
   std::vector<Node> args;
 
@@ -918,10 +918,14 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
     {
       body = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i));
     }
-    ite = d_nm->mkNode(kind::ITE,
-                       d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst(CONST_RATIONAL, Rational(Integer(i), Integer(1)))),
-                       body,
-                       ite);
+    ite = d_nm->mkNode(
+        kind::ITE,
+        d_nm->mkNode(
+            kind::EQUAL,
+            y,
+            d_nm->mkConst(CONST_RATIONAL, Rational(Integer(i), Integer(1)))),
+        body,
+        ite);
   }
   return ite;
 }
@@ -977,102 +981,107 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
   return result;
 }
 
-Node IntBlaster::createBVAndNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas) {
-      // We support three configurations:
-      // 1. translating to IAND
-      // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
-      // operators)
-      // 3. translating into a sum
+Node IntBlaster::createBVAndNode(Node x,
+                                 Node y,
+                                 uint64_t bvsize,
+                                 std::vector<Node>& lemmas)
+{
+  // We support three configurations:
+  // 1. translating to IAND
+  // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
+  // operators)
+  // 3. translating into a sum
   Node returnNode;
-      if (d_mode == options::SolveBVAsIntMode::IAND)
-      {
-        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
-        returnNode = d_nm->mkNode(
-            kind::IAND, iAndOp, x, y);
-      }
-      else if (d_mode == options::SolveBVAsIntMode::BV)
-      {
-        // translate the children back to BV
-        Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
-        Node bvx = d_nm->mkNode(intToBVOp, x);
-        Node bvy = d_nm->mkNode(intToBVOp, y);
-        // perform bvand on the bit-vectors
-        Node bvand = d_nm->mkNode(kind::BITVECTOR_AND, bvx, bvy);
-        // translate the result to integers
-        returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
-      }
-      else if (d_mode == options::SolveBVAsIntMode::SUM)
-      {
-        // Construct a sum of ites, based on granularity.
-        returnNode = d_iandUtils.createSumNode(x,
-                                               y,
-                                               bvsize,
-                                               d_granularity);
-      }
-      else
-      {
-        Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
-        // Enforce semantics over individual bits with iextract and ites
-        uint64_t granularity = options::BVAndIntegerGranularity();
+  if (d_mode == options::SolveBVAsIntMode::IAND)
+  {
+    Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+    returnNode = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+  }
+  else if (d_mode == options::SolveBVAsIntMode::BV)
+  {
+    // translate the children back to BV
+    Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
+    Node bvx = d_nm->mkNode(intToBVOp, x);
+    Node bvy = d_nm->mkNode(intToBVOp, y);
+    // perform bvand on the bit-vectors
+    Node bvand = d_nm->mkNode(kind::BITVECTOR_AND, bvx, bvy);
+    // translate the result to integers
+    returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
+  }
+  else if (d_mode == options::SolveBVAsIntMode::SUM)
+  {
+    // Construct a sum of ites, based on granularity.
+    returnNode = d_iandUtils.createSumNode(x, y, bvsize, d_granularity);
+  }
+  else
+  {
+    Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
+    // Enforce semantics over individual bits with iextract and ites
+    uint64_t granularity = options::BVAndIntegerGranularity();
 
-        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
-        Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
-        // get a skolem so the IAND solver knows not to do work
-        returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
-            iAnd,
-            "__intblast__iand",
-            "skolem for an IAND node in bitwise mode " + iAnd.toString());
-        addRangeConstraint(returnNode, bvsize, lemmas);
+    Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+    Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+    // get a skolem so the IAND solver knows not to do work
+    returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
+        iAnd,
+        "__intblast__iand",
+        "skolem for an IAND node in bitwise mode " + iAnd.toString());
+    addRangeConstraint(returnNode, bvsize, lemmas);
 
-        // eagerly add bitwise lemmas according to the provided granularity
-        uint64_t high_bit;
-        for (uint64_t j = 0; j < bvsize; j += granularity)
-        {
-          high_bit = j + granularity - 1;
-          // don't let high_bit pass bvsize
-          if (high_bit >= bvsize)
-          {
-            high_bit = bvsize - 1;
-          }
-          Node extractedReturnNode =
-              d_iandUtils.iextract(high_bit, j, returnNode);
-          addBitwiseConstraint(
-              extractedReturnNode.eqNode(
-                  d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)),
-              lemmas);
-        }
+    // eagerly add bitwise lemmas according to the provided granularity
+    uint64_t high_bit;
+    for (uint64_t j = 0; j < bvsize; j += granularity)
+    {
+      high_bit = j + granularity - 1;
+      // don't let high_bit pass bvsize
+      if (high_bit >= bvsize)
+      {
+        high_bit = bvsize - 1;
       }
-      return returnNode;
+      Node extractedReturnNode = d_iandUtils.iextract(high_bit, j, returnNode);
+      addBitwiseConstraint(
+          extractedReturnNode.eqNode(
+              d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)),
+          lemmas);
+    }
+  }
+  return returnNode;
 }
 
-Node IntBlaster::createBVOrNode(Node x, Node y, uint64_t bvsize, std::vector<Node>& lemmas) {
-      // Based on Hacker's Delight section 2-2 equation h:
-      // x+y = x|y + x&y
-      // from which we deduce:
-      // x|y = x+y - x&y
-      Node plus = createBVAddNode(x, y, bvsize);
-      Node bvand = createBVAndNode(x, y, bvsize, lemmas);
-      return createBVSubNode(plus, bvand, bvsize);
+Node IntBlaster::createBVOrNode(Node x,
+                                Node y,
+                                uint64_t bvsize,
+                                std::vector<Node>& lemmas)
+{
+  // Based on Hacker's Delight section 2-2 equation h:
+  // x+y = x|y + x&y
+  // from which we deduce:
+  // x|y = x+y - x&y
+  Node plus = createBVAddNode(x, y, bvsize);
+  Node bvand = createBVAndNode(x, y, bvsize, lemmas);
+  return createBVSubNode(plus, bvand, bvsize);
 }
 
-Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize) {
-      Node minus = d_nm->mkNode(kind::MINUS, x, y);
-      Node p2 = pow2(bvsize);
-      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, minus, p2);
+Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize)
+{
+  Node minus = d_nm->mkNode(kind::MINUS, x, y);
+  Node p2 = pow2(bvsize);
+  return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, minus, p2);
 }
 
-Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize) {
-      Node plus = d_nm->mkNode(kind::PLUS, x, y);
-      Node p2 = pow2(bvsize);
-      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
-
+Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize)
+{
+  Node plus = d_nm->mkNode(kind::PLUS, x, y);
+  Node p2 = pow2(bvsize);
+  return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
 }
 
-Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize) {
-      // Based on Hacker's Delight section 2-2 equation a:
-      // -x = ~x+1
-      Node p2 = pow2(bvsize);
-      return d_nm->mkNode(kind::MINUS, p2, n);
+Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize)
+{
+  // Based on Hacker's Delight section 2-2 equation a:
+  // -x = ~x+1
+  Node p2 = pow2(bvsize);
+  return d_nm->mkNode(kind::MINUS, p2, n);
 }
 
 Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)

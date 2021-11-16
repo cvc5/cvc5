@@ -227,22 +227,21 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   ASSERT_TRUE(result.getType().isInteger());
   ASSERT_TRUE(intExtract.getType().isInteger());
 
-
-  // left shift 
+  // left shift
   original = d_nodeManager->mkNode(BITVECTOR_SHL, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
-  // logical right shift 
+  // logical right shift
   original = d_nodeManager->mkNode(BITVECTOR_LSHR, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
-  // arithmetic right shift 
+  // arithmetic right shift
   original = d_nodeManager->mkNode(BITVECTOR_ASHR, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
- 
+
   // bvand
   original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
