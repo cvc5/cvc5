@@ -59,8 +59,8 @@ TrustNode Skolemize::process(Node q)
   }
   Node lem;
   ProofGenerator* pg = nullptr;
-  if (isProofEnabled() && !options::dtStcInduction()
-      && !options::intWfInduction())
+  if (isProofEnabled() && !options().quantifiers.dtStcInduction
+      && !options().quantifiers.intWfInduction)
   {
     ProofNodeManager * pnm = d_env.getProofNodeManager();
     // if using proofs and not using induction, we use the justified
@@ -285,10 +285,12 @@ Node Skolemize::mkSkolemizedBody(Node f,
     }
     else if (options::intWfInduction() && tn.isInteger())
     {
-      Node icond = nm->mkNode(GEQ, k, nm->mkConst(Rational(0)));
-      Node iret = ret.substitute(ind_vars[0],
-                                 nm->mkNode(MINUS, k, nm->mkConst(Rational(1))))
-                      .negate();
+      Node icond = nm->mkNode(GEQ, k, nm->mkConst(CONST_RATIONAL, Rational(0)));
+      Node iret =
+          ret.substitute(
+                 ind_vars[0],
+                 nm->mkNode(MINUS, k, nm->mkConst(CONST_RATIONAL, Rational(1))))
+              .negate();
       n_str_ind = nm->mkNode(OR, icond.negate(), iret);
       n_str_ind = nm->mkNode(AND, icond, n_str_ind);
     }

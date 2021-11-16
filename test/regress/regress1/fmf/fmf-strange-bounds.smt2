@@ -12,14 +12,14 @@
 
 (declare-fun h (U) Int)
 
-(assert (member 77 S))
+(assert (set.member 77 S))
 (assert (>= (h (f 77)) 3))
 (assert (>= (h (g 77)) 2))
 (assert (not (= (g 77) (f 77))))
 
 (assert (forall ((x Int) (z U)) (=> 
 (or (= z (f x)) (= z (g x)))
-(=> (member x S)
+(=> (set.member x S)
 (P x 0 z)))))
 
 (assert (forall ((x Int) (y Int) (z U)) (=>

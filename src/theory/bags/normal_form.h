@@ -30,11 +30,11 @@ class NormalForm
   /**
    * Returns true if n is considered a to be a (canonical) constant bag value.
    * A canonical bag value is one whose AST is:
-   *   (union_disjoint (mkBag e1 c1) ...
-   *      (union_disjoint (mkBag e_{n-1} c_{n-1}) (mkBag e_n c_n))))
+   *   (bag.union_disjoint (bag e1 c1) ...
+   *      (bag.union_disjoint (bag e_{n-1} c_{n-1}) (bag e_n c_n))))
    * where c1 ... cn are positive integers, e1 ... en are constants, and the
    * node identifier of these constants are such that: e1 < ... < en.
-   * Also handles the corner cases of empty bag and bag constructed by mkBag
+   * Also handles the corner cases of empty bag and bag constructed by bag
    */
   static bool isConstant(TNode n);
   /**
@@ -83,9 +83,9 @@ class NormalForm
    * and elements of B (elementsB with iterator itB).
    * The arguments below specify how these iterators are used to generate the
    * elements of the result (elements).
-   * @param n a node whose kind is a binary operator (union_disjoint, union_max,
-   * intersection_min, difference_subtract, difference_remove) and whose
-   * children are constant bags.
+   * @param n a node whose kind is a binary operator (bag.union_disjoint,
+   * union_max, intersection_min, difference_subtract, difference_remove) and
+   * whose children are constant bags.
    * @param equal a lambda expression that receives (elements, itA, itB) and
    * specify the action that needs to be taken when the elements of itA, itB are
    * equal.
@@ -112,8 +112,8 @@ class NormalForm
                                       T5&& remainderOfB);
   /**
    * evaluate n as follows:
-   * - (mkBag a 0) = (emptybag T) where T is the type of the original bag
-   * - (mkBag a (-c)) = (emptybag T) where T is the type the original bag,
+   * - (bag a 0) = (as bag.empty T) where T is the type of the original bag
+   * - (bag a (-c)) = (as bag.empty T) where T is the type the original bag,
    *                                and c > 0 is a constant
    */
   static Node evaluateMakeBag(TNode n);
@@ -126,7 +126,7 @@ class NormalForm
   static Node evaluateBagCount(TNode n);
 
   /**
-   * @param n has the form (duplicate_removal A) where A is a constant bag
+   * @param n has the form (bag.duplicate_removal A) where A is a constant bag
    * @return a constant bag constructed from the elements in A where each
    * element has multiplicity one
    */
@@ -135,39 +135,40 @@ class NormalForm
   /**
    * evaluates union disjoint node such that the returned node is a canonical
    * bag that has the form
-   * (union_disjoint (mkBag e1 c1) ...
-   *   (union_disjoint  * (mkBag e_{n-1} c_{n-1}) (mkBag e_n c_n)))) where
+   * (bag.union_disjoint (bag e1 c1) ...
+   *   (bag.union_disjoint  * (bag e_{n-1} c_{n-1}) (bag e_n c_n)))) where
    *   c1... cn are positive integers, e1 ... en are constants, and the node
    * identifier of these constants are such that: e1 < ... < en.
-   * @param n has the form (union_disjoint A B) where A, B are constant bags
+   * @param n has the form (bag.union_disjoint A B) where A, B are constant bags
    * @return the union disjoint of A and B
    */
   static Node evaluateUnionDisjoint(TNode n);
   /**
-   * @param n has the form (union_max A B) where A, B are constant bags
+   * @param n has the form (bag.union_max A B) where A, B are constant bags
    * @return the union max of A and B
    */
   static Node evaluateUnionMax(TNode n);
   /**
-   * @param n has the form (intersection_min A B) where A, B are constant bags
+   * @param n has the form (bag.inter_min A B) where A, B are constant bags
    * @return the intersection min of A and B
    */
   static Node evaluateIntersectionMin(TNode n);
   /**
-   * @param n has the form (difference_subtract A B) where A, B are constant
+   * @param n has the form (bag.difference_subtract A B) where A, B are constant
    * bags
    * @return the difference subtract of A and B
    */
   static Node evaluateDifferenceSubtract(TNode n);
   /**
-   * @param n has the form (difference_remove A B) where A, B are constant bags
+   * @param n has the form (bag.difference_remove A B) where A, B are constant
+   * bags
    * @return the difference remove of A and B
    */
   static Node evaluateDifferenceRemove(TNode n);
   /**
    * @param n has the form (bag.choose A) where A is a constant bag
-   * @return the first element of A if A is not empty. Otherwise, it returns the
-   * first element returned by the type enumerator for the elements
+   * @return x if n has the form (bag.choose (bag x c)). Otherwise an error is
+   * thrown.
    */
   static Node evaluateChoose(TNode n);
   /**

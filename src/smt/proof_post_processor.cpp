@@ -40,7 +40,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    ProofGenerator* pppg,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
-    : d_env(env),
+    : EnvObj(env),
       d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
       d_wfpm(env),
@@ -855,7 +855,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         for (size_t j = 0, nchildi = children[i].getNumChildren(); j < nchildi;
              j++)
         {
-          Node nodej = nm->mkConst(Rational(j));
+          Node nodej = nm->mkConst(CONST_RATIONAL, Rational(j));
           cdp->addStep(
               children[i][j], PfRule::AND_ELIM, {children[i]}, {nodej});
         }
@@ -959,7 +959,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // substitution.
     if (pfn == nullptr)
     {
-      Warning() << "resort to TRUST_SUBS" << std::endl
+      warning() << "resort to TRUST_SUBS" << std::endl
                 << eq << std::endl
                 << eqq << std::endl
                 << "from " << children << " applied to " << t << std::endl;
@@ -1086,8 +1086,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode child = children[i];
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
-      Node scalarCmp =
-          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConst(Rational(0)));
+      Node scalarCmp = nm->mkNode(
+          isPos ? GT : LT, scalar, nm->mkConst(CONST_RATIONAL, Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
       Assert(!scalarCmpOrTrue.isNull());
@@ -1233,10 +1233,11 @@ ProofPostproccess::ProofPostproccess(Env& env,
                                      ProofGenerator* pppg,
                                      rewriter::RewriteDb* rdb,
                                      bool updateScopedAssumptions)
-    : d_cb(env, pppg, rdb, updateScopedAssumptions),
+    : EnvObj(env),
+      d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
       d_updater(
-          env.getProofNodeManager(), d_cb, env.getOptions().proof.proofPpMerge),
+          env.getProofNodeManager(), d_cb, options().proof.proofPpMerge),
       d_finalCb(env.getProofNodeManager()),
       d_finalizer(env.getProofNodeManager(), d_finalCb)
 {

@@ -49,15 +49,15 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
       d_model(),
-      d_trSlv(d_im, d_model, d_env),
+      d_trSlv(d_env, d_im, d_model),
       d_extState(d_im, d_model, d_env),
-      d_factoringSlv(&d_extState),
-      d_monomialBoundsSlv(&d_extState),
-      d_monomialSlv(&d_extState),
-      d_splitZeroSlv(&d_extState),
-      d_tangentPlaneSlv(&d_extState),
+      d_factoringSlv(d_env, &d_extState),
+      d_monomialBoundsSlv(d_env, &d_extState),
+      d_monomialSlv(d_env, &d_extState),
+      d_splitZeroSlv(d_env, &d_extState),
+      d_tangentPlaneSlv(d_env, &d_extState),
       d_cadSlv(d_env, d_im, d_model),
-      d_icpSlv(d_im),
+      d_icpSlv(d_env, d_im),
       d_iandSlv(env, d_im, state, d_model),
       d_pow2Slv(env, d_im, state, d_model)
 {
@@ -68,9 +68,9 @@ NonlinearExtension::NonlinearExtension(Env& env,
   d_extTheory.addFunctionKind(kind::IAND);
   d_extTheory.addFunctionKind(kind::POW2);
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
 
   if (d_env.isTheoryProofProducing())
   {
@@ -455,7 +455,7 @@ Result::Sat NonlinearExtension::modelBasedRefinement(const std::set<Node>& termS
         {
           for (const Node& eq : shared_term_value_splits)
           {
-            Node req = Rewriter::rewrite(eq);
+            Node req = rewrite(eq);
             Node literal = d_containing.getValuation().ensureLiteral(req);
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;

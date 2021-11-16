@@ -209,7 +209,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
         << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
     Trace("strings-red-lemma") << "...from " << n << std::endl;
     Trace("strings-red-lemma")
-        << "Reduction_" << effort << " rewritten : " << Rewriter::rewrite(nnlem) << std::endl;
+        << "Reduction_" << effort << " rewritten : " << rewrite(nnlem)
+        << std::endl;
     d_im.sendInference(d_emptyVec, nnlem, InferenceId::STRINGS_REDUCTION, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on reduction." << std::endl;
@@ -259,6 +260,7 @@ void ExtfSolver::checkExtfEval(int effort)
   {
     // Setup information about n, including if it is equal to a constant.
     ExtfInfoTmp& einfo = d_extfInfoTmp[n];
+    Assert(einfo.d_exp.empty());
     Node r = d_state.getRepresentative(n);
     einfo.d_const = d_bsolver.getConstantEqc(r);
     // Get the current values of the children of n.
@@ -292,11 +294,11 @@ void ExtfSolver::checkExtfEval(int effort)
       Node sn = nm->mkNode(n.getKind(), schildren);
       Trace("strings-extf-debug")
           << "Check extf " << n << " == " << sn
-          << ", constant = " << einfo.d_const << ", effort=" << effort << "..."
-          << std::endl;
+          << ", constant = " << einfo.d_const << ", effort=" << effort
+          << ", exp " << exp << std::endl;
       einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
       // inference is rewriting the substituted node
-      Node nrc = Rewriter::rewrite(sn);
+      Node nrc = rewrite(sn);
       // if rewrites to a constant, then do the inference and mark as reduced
       if (nrc.isConst())
       {
@@ -323,7 +325,7 @@ void ExtfSolver::checkExtfEval(int effort)
               << "  get symbolic definition..." << std::endl;
           Node nrs;
           // only use symbolic definitions if option is set
-          if (options::stringInferSym())
+          if (options().strings.stringInferSym)
           {
             nrs = d_termReg.getSymbolicDefinition(sn, exps);
           }
@@ -331,7 +333,7 @@ void ExtfSolver::checkExtfEval(int effort)
           {
             Trace("strings-extf-debug")
                 << "  rewrite " << nrs << "..." << std::endl;
-            Node nrsr = Rewriter::rewrite(nrs);
+            Node nrsr = rewrite(nrs);
             // ensure the symbolic form is not rewritable
             if (nrsr != nrs)
             {
@@ -490,8 +492,9 @@ void ExtfSolver::checkExtfInference(Node n,
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr
-                              << " == " << in.d_const << std::endl;
+  Trace("strings-extf-infer")
+      << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const
+      << " with exp " << in.d_exp << std::endl;
 
   // add original to explanation
   if (n.getType().isBoolean())
@@ -542,7 +545,7 @@ void ExtfSolver::checkExtfInference(Node n,
         {
           children[index] = nrc;
           Node conc = nm->mkNode(STRING_CONTAINS, children);
-          conc = Rewriter::rewrite(pol ? conc : conc.negate());
+          conc = rewrite(pol ? conc : conc.negate());
           // check if it already (does not) hold
           if (d_state.hasTerm(conc))
           {
@@ -603,7 +606,7 @@ void ExtfSolver::checkExtfInference(Node n,
           Node onr = d_extfInfoTmp[nr[0]].d_ctn[opol][i];
           Node concOrig =
               nm->mkNode(STRING_CONTAINS, pol ? nr[1] : onr, pol ? onr : nr[1]);
-          Node conc = Rewriter::rewrite(concOrig);
+          Node conc = rewrite(concOrig);
           // For termination concerns, we only do the inference if the contains
           // does not rewrite (and thus does not introduce new terms).
           if (conc == concOrig)
@@ -652,7 +655,7 @@ void ExtfSolver::checkExtfInference(Node n,
   // If it's not a predicate, see if we can solve the equality n = c, where c
   // is the constant that extended term n is equal to.
   Node inferEq = nr.eqNode(in.d_const);
-  Node inferEqr = Rewriter::rewrite(inferEq);
+  Node inferEqr = rewrite(inferEq);
   Node inferEqrr = inferEqr;
   if (inferEqr.getKind() == EQUAL)
   {
@@ -661,9 +664,10 @@ void ExtfSolver::checkExtfInference(Node n,
   }
   if (inferEqrr != inferEqr)
   {
-    inferEqrr = Rewriter::rewrite(inferEqrr);
-    Trace("strings-extf-infer") << "checkExtfInference: " << inferEq
-                                << " ...reduces to " << inferEqrr << std::endl;
+    inferEqrr = rewrite(inferEqrr);
+    Trace("strings-extf-infer")
+        << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqrr
+        << " with explanation " << in.d_exp << std::endl;
     d_im.sendInternalInference(in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
   }
 }

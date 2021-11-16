@@ -34,7 +34,7 @@ SolverState::SolverState(Env& env, Valuation& v)
       d_pendingConflictSet(env.getContext(), false),
       d_pendingConflict(InferenceId::UNKNOWN)
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
@@ -100,8 +100,7 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
   {
     exp.push_back(te.eqNode(lengthTerm));
   }
-  return Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
+  return rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
 }
 
 Node SolverState::getLength(Node t, std::vector<Node>& exp)

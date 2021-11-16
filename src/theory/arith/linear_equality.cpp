@@ -167,12 +167,10 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    CVC5Message() << toRemove << " " << toAdd << endl;
     d_tableau.pivot(toRemove, toAdd, d_trackCallback);
     d_basicVariableUpdates(toAdd);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    CVC5Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
   }
 }
@@ -404,23 +402,6 @@ void LinearEqualityModule::debugCheckTableau(){
 
     Assert(sum == shouldBe);
   }
-}
-bool LinearEqualityModule::debugEntireLinEqIsConsistent(const string& s){
-  bool result = true;
-  for(ArithVar var = 0, end = d_tableau.getNumColumns(); var != end; ++var){
-    //  for(VarIter i = d_variables.begin(), end = d_variables.end(); i != end; ++i){
-    //ArithVar var = d_arithvarNodeMap.asArithVar(*i);
-    if(!d_variables.assignmentIsConsistent(var)){
-      d_variables.printModel(var);
-      Warning() << s << ":" << "Assignment is not consistent for " << var ;
-      if(d_tableau.isBasic(var)){
-        Warning() << " (basic)";
-      }
-      Warning() << endl;
-      result = false;
-    }
-  }
-  return result;
 }
 
 DeltaRational LinearEqualityModule::computeRowBound(RowIndex ridx, bool rowUb, ArithVar skip) const {

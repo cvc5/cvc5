@@ -19,7 +19,7 @@
 
 #include "base/check.h"
 #include "expr/emptybag.h"
-#include "theory/bags/make_bag_op.h"
+#include "theory/bags/bag_make_op.h"
 #include "theory/bags/normal_form.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
@@ -32,10 +32,11 @@ TypeNode BinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check)
 {
-  Assert(n.getKind() == kind::UNION_MAX || n.getKind() == kind::UNION_DISJOINT
-         || n.getKind() == kind::INTERSECTION_MIN
-         || n.getKind() == kind::DIFFERENCE_SUBTRACT
-         || n.getKind() == kind::DIFFERENCE_REMOVE);
+  Assert(n.getKind() == kind::BAG_UNION_MAX
+         || n.getKind() == kind::BAG_UNION_DISJOINT
+         || n.getKind() == kind::BAG_INTER_MIN
+         || n.getKind() == kind::BAG_DIFFERENCE_SUBTRACT
+         || n.getKind() == kind::BAG_DIFFERENCE_REMOVE);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
@@ -61,7 +62,7 @@ bool BinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 {
   // only UNION_DISJOINT has a const rule in kinds.
   // Other binary operators do not have const rules in kinds
-  Assert(n.getKind() == kind::UNION_DISJOINT);
+  Assert(n.getKind() == kind::BAG_UNION_DISJOINT);
   return NormalForm::isConstant(n);
 }
 
@@ -69,13 +70,13 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check)
 {
-  Assert(n.getKind() == kind::SUBBAG);
+  Assert(n.getKind() == kind::BAG_SUBBAG);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(n, "SUBBAG operating on non-bag");
+      throw TypeCheckingExceptionPrivate(n, "BAG_SUBBAG operating on non-bag");
     }
     TypeNode secondBagType = n[1].getType(check);
     if (secondBagType != bagType)
@@ -83,7 +84,7 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
       if (!bagType.isComparableTo(secondBagType))
       {
         throw TypeCheckingExceptionPrivate(
-            n, "SUBBAG operating on bags of different types");
+            n, "BAG_SUBBAG operating on bags of different types");
       }
     }
   }
@@ -104,8 +105,8 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
           n, "checking for membership in a non-bag");
     }
     TypeNode elementType = n[0].getType(check);
-    // e.g. (count 1 (mkBag (mkBag_op Real) 1.0 3))) is 3 whereas
-    // (count 1.0 (mkBag (mkBag_op Int) 1 3))) throws a typing error
+    // e.g. (bag.count 1 (bag (BagMakeOp Real) 1.0 3))) is 3 whereas
+    // (bag.count 1.0 (bag (BagMakeOp Int) 1 3)) throws a typing error
     if (!elementType.isSubtypeOf(bagType.getBagElementType()))
     {
       std::stringstream ss;
@@ -123,25 +124,26 @@ TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                bool check)
 {
-  Assert(n.getKind() == kind::DUPLICATE_REMOVAL);
+  Assert(n.getKind() == kind::BAG_DUPLICATE_REMOVAL);
   TypeNode bagType = n[0].getType(check);
   if (check)
   {
     if (!bagType.isBag())
     {
       std::stringstream ss;
-      ss << "Applying DUPLICATE_REMOVAL on a non-bag argument in term " << n;
+      ss << "Applying BAG_DUPLICATE_REMOVAL on a non-bag argument in term "
+         << n;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
   }
   return bagType;
 }
 
-TypeNode MkBagTypeRule::computeType(NodeManager* nm, TNode n, bool check)
+TypeNode BagMakeTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
-  Assert(n.getKind() == kind::MK_BAG && n.hasOperator()
-         && n.getOperator().getKind() == kind::MK_BAG_OP);
-  MakeBagOp op = n.getOperator().getConst<MakeBagOp>();
+  Assert(n.getKind() == kind::BAG_MAKE && n.hasOperator()
+         && n.getOperator().getKind() == kind::BAG_MAKE_OP);
+  BagMakeOp op = n.getOperator().getConst<BagMakeOp>();
   TypeNode expectedElementType = op.getType();
   if (check)
   {
@@ -149,20 +151,20 @@ TypeNode MkBagTypeRule::computeType(NodeManager* nm, TNode n, bool check)
     {
       std::stringstream ss;
       ss << "operands in term " << n << " are " << n.getNumChildren()
-         << ", but MK_BAG expects 2 operands.";
+         << ", but BAG_MAKE expects 2 operands.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     TypeNode type1 = n[1].getType(check);
     if (!type1.isInteger())
     {
       std::stringstream ss;
-      ss << "MK_BAG expects an integer for " << n[1] << ". Found" << type1;
+      ss << "BAG_MAKE expects an integer for " << n[1] << ". Found" << type1;
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
 
     TypeNode actualElementType = n[0].getType(check);
     // the type of the element should be a subtype of the type of the operator
-    // e.g. (mkBag (mkBag_op Real) 1 1) where 1 is an Int
+    // e.g. (bag (bag_op Real) 1 1) where 1 is an Int
     if (!actualElementType.isSubtypeOf(expectedElementType))
     {
       std::stringstream ss;
@@ -176,9 +178,9 @@ TypeNode MkBagTypeRule::computeType(NodeManager* nm, TNode n, bool check)
   return nm->mkBagType(expectedElementType);
 }
 
-bool MkBagTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool BagMakeTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getKind() == kind::MK_BAG);
+  Assert(n.getKind() == kind::BAG_MAKE);
   // for a bag to be a constant, both the element and its multiplicity should
   // be constants, and the multiplicity should be > 0.
   return n[0].isConst() && n[1].isConst()
@@ -206,7 +208,7 @@ TypeNode EmptyBagTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check)
 {
-  Assert(n.getKind() == kind::EMPTYBAG);
+  Assert(n.getKind() == kind::BAG_EMPTY);
   EmptyBag emptyBag = n.getConst<EmptyBag>();
   return emptyBag.getType();
 }
@@ -239,7 +241,7 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
     if (!bagType.isBag())
     {
       throw TypeCheckingExceptionPrivate(
-          n, "CHOOSE operator expects a bag, a non-bag is found");
+          n, "BAG_CHOOSE operator expects a bag, a non-bag is found");
     }
   }
   return bagType.getBagElementType();

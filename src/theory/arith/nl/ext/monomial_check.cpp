@@ -29,7 +29,8 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-MonomialCheck::MonomialCheck(ExtState* data) : d_data(data)
+MonomialCheck::MonomialCheck(Env& env, ExtState* data)
+    : EnvObj(env), d_data(data)
 {
   d_order_points.push_back(d_data->d_neg_one);
   d_order_points.push_back(d_data->d_zero);

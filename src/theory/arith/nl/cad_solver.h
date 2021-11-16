@@ -20,7 +20,7 @@
 
 #include "context/context.h"
 #include "expr/node.h"
-#include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
 
@@ -41,7 +41,7 @@ class NlModel;
  * A solver for nonlinear arithmetic that implements the CAD-based method
  * described in https://arxiv.org/pdf/2003.05633.pdf.
  */
-class CadSolver
+class CadSolver: protected EnvObj
 {
  public:
   CadSolver(Env& env, InferenceManager& im, NlModel& model);

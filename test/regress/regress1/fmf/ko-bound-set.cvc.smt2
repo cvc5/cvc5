@@ -6,5 +6,5 @@
 (set-option :produce-models true)
 (declare-fun X () (Set Int))
 (declare-fun Y () (Set Int))
-(assert (forall ((x Int)) (=> (member x X) (> x 0))))
-(check-sat-assuming ( (=> (and (= (card X) 5) (= Y (union X (singleton 9)))) (<= (card Y) 4)) ))
+(assert (forall ((x Int)) (=> (set.member x X) (> x 0))))
+(check-sat-assuming ( (=> (and (= (set.card X) 5) (= Y (set.union X (set.singleton 9)))) (<= (set.card Y) 4)) ))

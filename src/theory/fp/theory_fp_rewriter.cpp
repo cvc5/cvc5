@@ -41,6 +41,8 @@
 #include "theory/fp/fp_word_blaster.h"
 #include "util/floatingpoint.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace fp {
@@ -913,7 +915,7 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
     FloatingPoint::PartialRational res(arg.convertToRational());
 
     if (res.second) {
-      Node lit = NodeManager::currentNM()->mkConst(res.first);
+      Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, res.first);
       return RewriteResponse(REWRITE_DONE, lit);
     } else {
       // Can't constant fold the underspecified case
@@ -996,15 +998,15 @@ RewriteResponse maxTotal(TNode node, bool isPreRewrite)
       Rational partialValue(node[1].getConst<Rational>());
 
       Rational folded(arg.convertToRationalTotal(partialValue));
-      Node lit = NodeManager::currentNM()->mkConst(folded);
+      Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, folded);
       return RewriteResponse(REWRITE_DONE, lit);
 
     } else {
       FloatingPoint::PartialRational res(arg.convertToRational());
 
       if (res.second) {
-	Node lit = NodeManager::currentNM()->mkConst(res.first);
-	return RewriteResponse(REWRITE_DONE, lit);
+        Node lit = NodeManager::currentNM()->mkConst(CONST_RATIONAL, res.first);
+        return RewriteResponse(REWRITE_DONE, lit);
       } else {
 	// Can't constant fold the underspecified case
 	return RewriteResponse(REWRITE_DONE, node);

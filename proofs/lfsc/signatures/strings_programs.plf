@@ -1,0 +1,345 @@
+; depends: nary_programs.plf theory_def.plf
+
+; Make empty string of the given string-like sort s.
+(program sc_mk_emptystr ((s sort)) term
+  (match s
+    ((Seq t) (seq.empty s))
+    (String emptystr)))
+
+; Get the term corresponding to the prefix of term s of fixed length n.
+(program sc_skolem_prefix ((s term) (n term)) term 
+  (str.substr s (int 0) n)
+)
+
+; Get the term corresponding to the suffix of term s of fixed length n.
+(program sc_skolem_suffix_rem ((s term) (n term)) term
+  (str.substr s n (a.- (str.len s) n))
+)
+
+; Get the term corresponding to the prefix of s before the first occurrence of
+; t in s.
+(program sc_skolem_first_ctn_pre ((s term) (t term)) term 
+  (sc_skolem_prefix s (str.indexof s t (int 0))))
+
+; Get the term corresponding to the suffix of s after the first occurrence of
+; t in s.
+(program sc_skolem_first_ctn_post ((s term) (t term)) term 
+  (sc_skolem_suffix_rem s (a.+ (str.len (sc_skolem_first_ctn_pre s t)) (a.+ (str.len t) (int 0)))))
+
+; Head and tail for string concatenation.
+(program sc_string_head ((t term)) term (nary_head f_str.++ t))
+(program sc_string_tail ((t term)) term (nary_tail f_str.++ t))
+
+; Concatenation str.++ applications t1 and t2.
+(program sc_string_concat ((t1 term) (t2 term)) term (nary_concat f_str.++ t1 t2 emptystr))
+
+; Decompose str.++ term t into a head and tail.
+(program sc_string_decompose ((t term)) termPair (nary_decompose f_str.++ t emptystr))
+
+; Insert a string into str.++ term t.
+(program sc_string_insert ((elem term) (t term)) term (nary_insert f_str.++ elem t emptystr))
+
+; Return reverse of t if rev = tt, return t unchanged otherwise.
+(program sc_string_rev ((t term) (rev flag)) term (ifequal rev tt (nary_reverse f_str.++ t emptystr) t))
+
+; Convert a str.++ application t into its element, if it is a singleton, return t unchanged otherwise.
+(program sc_string_nary_elim ((t term)) term (nary_elim f_str.++ t emptystr))
+
+; Convert t into a str.++ application, if it is not already in n-ary form.
+(program sc_string_nary_intro ((t term)) term (nary_intro f_str.++ t emptystr))
+
+; In the following, a "reduction predicate" refers to a formula that is used
+; to axiomatize an extended string function in terms of (simpler) functions.
+
+; Compute the reduction predicate for (str.substr x n m) of sort s.
+(program sc_string_reduction_substr ((x term) (n term) (m term) (s sort)) term
+  (let k (sc_mk_skolem (str.substr x n m))
+  (let npm (a.+ n (a.+ m (int 0)))
+  (let k1 (sc_mk_skolem (sc_skolem_prefix x n))
+  (let k2 (sc_mk_skolem (sc_skolem_suffix_rem x npm))
+  (ite
+    ; condition
+    (and (a.>= n (int 0))
+      (and (a.> (str.len x) n)
+        (and (a.> m (int 0))
+          true)))
+    ; if branch
+    (and (= x (str.++ k1 (str.++ k (str.++ k2 (sc_mk_emptystr s)))))
+      (and (= (str.len k1) n)
+        (and (or (= (str.len k2) (a.- (str.len x) npm))
+                (or (= (str.len k2) (int 0))
+                  false))
+          (and (a.<= (str.len k) m)
+            true))))
+    ; else branch
+    (= k (sc_mk_emptystr s))
+    )))))
+)
+
+; Compute the reduction predicate for (str.indexof x y n) of sort s.
+(program sc_string_reduction_indexof ((x term) (y term) (n term) (s sort)) term
+  (let k (sc_mk_skolem (str.indexof x y n))
+  (let xn (str.substr x n (a.- (str.len x) n))
+  (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre xn y))
+  (let k2 (sc_mk_skolem (sc_skolem_first_ctn_post xn y))
+  (ite
+    (or (not (str.contains xn y))
+      (or (a.> n (str.len x))
+        (or (a.> (int 0) n)
+          false)))
+    (= k (int (~ 1)))
+    (ite
+      (= y (sc_mk_emptystr s))
+      (= k n)
+      (and (= xn (str.++ k1 (str.++ y (str.++ k2 (sc_mk_emptystr s)))))
+        (and (not (str.contains
+                    (str.++ k1
+                      (str.++ (str.substr y (int 0) (a.- (str.len y) (int 1)))
+                        (sc_mk_emptystr s))) y))
+          (and (= k (a.+ n (a.+ (str.len k1) (int 0))))
+            true)))
+)))))))
+
+; Compute the reduction predicate for term t of sort s. Note that the operators
+; listed in comments are missing from the signature currently.
+(program sc_string_reduction_pred ((t term) (s sort)) term
+  (match t 
+    ((apply t1 t2)
+      (match t1
+        ((apply t11 t12)
+          (match t11
+            ; str.contains
+            ((apply t111 t112) 
+              (match t111
+                (f_str.substr (sc_string_reduction_substr t112 t12 t2 s))
+                (f_str.indexof (sc_string_reduction_indexof t112 t12 t2 s))
+                ; str.replace
+            ; str.update
+            ; str.from_int
+            ; str.to_int
+            ; seq.nth
+            ; str.replaceall
+            ; str.replace_re
+            ; str.replace_re_all
+            ; str.tolower
+            ; str.toupper
+            ; str.rev
+            ; str.leq
+))))))))
+
+; Returns the reduction predicate and purification equality for term t
+; of sort s.
+(program sc_string_reduction ((t term) (s sort)) term
+  (and (sc_string_reduction_pred t s) (and (= t (sc_mk_skolem t)) true))
+)
+
+; Compute the eager reduction predicate for (str.contains t r) where s
+; is the sort of t and r.
+; This is the formula:
+;    (ite (str.contains t r) (= t (str.++ sk1 r sk2)) (not (= t r)))
+(program sc_string_eager_reduction_contains ((t term) (r term) (s sort)) term
+  (let k1 (sc_mk_skolem (sc_skolem_first_ctn_pre t r))
+  (let k2 (sc_mk_skolem (sc_skolem_first_ctn_post t r))
+  (ite
+    (str.contains t r)
+    (= t (str.++ k1 (str.++ r (str.++ k2 (sc_mk_emptystr s)))))
+    (not (= t r)))
+  ))
+)
+
+; Compute the eager reduction predicate for (str.code s), which is the formula:
+;   (ite (= (str.len s) 1) 
+;     (and (<= 0 (str.code s)) (< (str.code s) A))
+;     (= (str.code s) (- 1)))
+(program sc_string_eager_reduction_to_code ((s term)) term
+  (let t (str.to_code s)
+  (ite
+    (= (str.len s) (int 1))
+    (and (a.>= t (int 0)) (and (a.< t (int 196608)) true))
+    (= t (int (~ 1)))))
+)
+
+; Compute the eager reduction predicate for (str.indexof x y n), which is the
+; formula: 
+; (and 
+;   (or (= (str.indexof x y n) (- 1)) (>= (str.indexof x y n) n)) 
+;   (<= (str.indexof x y n) (str.len x)))
+(program sc_string_eager_reduction_indexof ((x term) (y term) (n term)) term
+  (let t (str.indexof x y n)
+  (and (or (= t (int (~ 1))) (or (a.>= t n) false))
+    (and (a.<= t (str.len x))
+      true)))
+)
+
+; Compute the eager reduction predicate of term t of sort s.
+(program sc_string_eager_reduction ((t term) (s sort)) term
+  (match t 
+    ((apply t1 t2)
+      (match t1
+        (f_str.to_code (sc_string_eager_reduction_to_code t2))
+        ((apply t11 t12)
+          (match t11
+            (f_str.contains (sc_string_eager_reduction_contains t12 t2 s))
+            ((apply t111 t112)
+              (match t111
+                (f_str.indexof (sc_string_eager_reduction_indexof t112 t12 t2)))))))))
+)
+
+; A helper method for computing the conclusion of PfRule::RE_UNFOLD_POS.
+; For a regular expression (re.++ R1 ... Rn), this returns a pair of terms
+; where the first term is a concatentation (str.++ t1 ... tn) and the second
+; is a conjunction M of literals of the form (str.in_re ti Ri), such that
+;   (str.in_re x (re.++ R1 ... Rn))
+; is equivalent to
+;   (and (= x (str.++ t1 ... tn)) M)
+; We use the optimization that Rj may be (str.to_re tj); otherwise tj is an
+; application of the unfolding skolem function skolem_re_unfold_pos.
+(program sc_re_unfold_pos_concat ((t term) (r term) (ro term) (i mpz)) termPair
+  (match r
+    ((apply r1 r2)
+      (match (sc_re_unfold_pos_concat t r2 ro (mp_add i 1))
+        ((pair p1 p2)
+        (let r12 (getarg f_re.++ r1)
+        (let r122 (try_getarg f_str.to_re r12)
+        (ifequal r122 r12 
+          (let k (skolem_re_unfold_pos t ro i)
+          (pair (str.++ k p1) (and (str.in_re k r12) p2)))
+          (pair (str.++ r122 p1) p2)))))))
+    (default (pair emptystr true))
+))
+
+; Returns a formula corresponding to a conjunction saying that each of the
+; elements of str.++ application t is empty. For example for
+;   (str.++ x (str.++ y ""))
+; this returns:
+;  (and (= x "") (and (= y "") true))
+(program sc_non_empty_concats ((t term)) term
+  (match t
+    ((apply t1 t2)
+      (and (not (= (getarg f_str.++ t1) emptystr)) (sc_non_empty_concats t2)))
+    (emptystr true)))
+
+; Get first character or empty string from term t.
+; If t is of the form (str.++ (char n) ...), return (char n).
+; If t is of the form emptystr, return emptystr.
+; Otherwise, this side condition fails
+(program sc_string_first_char_or_empty ((t term)) term
+  (match t
+    ((apply t1 t2)
+      (let t12 (getarg f_str.++ t1)
+      (match t12
+        ((char n) t12))))
+    (emptystr t)))
+
+
+; Flatten constants in str.++ application s. Notice that the rewritten form
+; of strings in cvc5 are such that constants are grouped into constants of
+; length >=1 which we call "word" constants. For example, the cvc5 rewritten
+; form of (str.++ "A" "B" x) is (str.++ "AB" x) which in LFSC is represented as:
+;    (str.++ (str.++ (char 65) (str.++ (char 66) emptystr)) (str.++ x emptystr))
+; For convenience, in this documentation, we will write this simply as:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; e.g. we assume that word constants are represented using char and emptystr.
+; Many string rules rely on processing the prefix of strings, which in LFSC
+; involves reasoning about the characters one-by-one. Since the above term
+; has a level of nesting when word constants of size > 1 are involved, this
+; method is used to "flatten" str.++ applications so that we have a uniform
+; way of reasoning about them in proof rules. In this method, we take a
+; str.++ application corresponding to a string term in cvc5 rewritten form.
+; It returns the flattened form such that there are no nested applications of
+; str.++. For example, given input:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; we return:
+;    (str.++ "A" (str.++ "B" (str.++ x "")))
+; Notice that this is done for all word constants in the chain recursively.
+; It does not insist that the nested concatenations are over characters only.
+; This rule may fail if s is not a str.++ application corresponding to a term
+; in cvc5 rewritten form.
+(program sc_string_flatten ((s term)) term
+  (match s
+    ((apply s1 s2)
+      (let s12 (getarg f_str.++ s1)
+        ; Must handle nested concatenation for word constant. We know there is no nested concatenation within s12, so we don't need to flatten it.
+        ; Since s12 may not be a concat term, we must use n-ary intro to ensure it is in n-ary form
+        (sc_string_concat (sc_string_nary_intro s12) (sc_string_flatten s2))))
+    (emptystr s))
+)
+
+; Helper for collecting adjacent constants. This side condition takes as input
+; a str.++ application s. It returns a pair whose concatenation is equal to s,
+; whose first component corresponds to a word constant, and whose second
+; component is a str.++ application whose first element is not a character.
+; For example, for:
+;   (str.++ "A" (str.++ "B" (str.++ x "")))
+; We return:
+;   (pair (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+(program sc_string_collect_acc ((s term)) termPair
+  (match s
+    ((apply s1 s2)
+      (match (getarg f_str.++ s1)
+        ((char n)
+          (match (sc_string_collect_acc s2)
+            ((pair ssc1 ssc2) (pair (apply s1 ssc1) ssc2))))
+        (default (pair emptystr s))))
+    (emptystr (pair emptystr s)))
+)
+
+; Collect adjacent constants for the prefix of string s. For example:
+;    (str.++ "A" (str.++ "B" (str.++ x "")))
+; we return:
+;    (str.++ (str.++ "A" (str.++ "B" "")) (str.++ x ""))
+; This side condition may fail if s is not a str.++ application.
+; Notice that the collection of constants is done for all word constants in the
+; term s recursively.
+(program sc_string_collect ((s term)) term
+  (match (sc_string_collect_acc s)
+    ((pair sc1 sc2)
+      (match sc1
+        ; did not strip a constant prefix
+        (emptystr 
+          (match s
+            ((apply s1 s2) (apply s1 (sc_string_collect s2)))
+            (emptystr s)))
+        ; stripped a constant prefix, must eliminate singleton
+        (default (str.++ (sc_string_nary_elim sc1) (sc_string_collect sc2))))))
+)
+
+; Strip equal prefix of s and t. This returns the pair corresponding to s and
+; t after dropping the maximal equal prefix removed. For example, for:
+;   (str.++ x (str.++ y (str.++ z "")))
+;   (str.++ x (str.++ w ""))
+; This method will return:
+;   (pair (str.++ y (str.++ z "")) (str.++ w ""))
+; This side condition may fail if s or t is not a str.++ application.
+(program sc_strip_prefix ((s term) (t term)) termPair
+  (match s
+    ((apply s1 s2)
+      (let s12 (getarg f_str.++ s1)
+        (match t
+          ((apply t1 t2)
+            (let t12 (getarg f_str.++ t1)
+              (ifequal s12 t12
+                (sc_strip_prefix s2 t2)
+                (pair s t))))
+          (emptystr (pair s t)))))
+    (emptystr (pair s t)))
+)
+
+; Converts a str.++ application into "flat form" so that we are ready to
+; process its prefix. This consists of the following steps:
+; (1) convert s to n-ary form if it is not already a str.++ application,
+; (2) flatten so that its constant prefix,
+; (3) (optionally) reverse.
+(program sc_string_to_flat_form ((s term) (rev flag)) term
+  ; intro, flatten, reverse
+  (sc_string_rev (sc_string_flatten (sc_string_nary_intro s)) rev))
+
+; Converts a term in "flat form" to a term that is in a form that corresponds
+; to one in cvc5 rewritten form. This is the dual method to
+; sc_string_to_flat_form. This consists of the following steps:
+; (1) (optionally) reverse,
+; (2) collect constants 
+; (3) eliminate n-ary form to its element if the term is a singleton list.
+(program sc_string_from_flat_form ((s term) (rev flag)) term
+  ; reverse, collect, elim
+  (sc_string_nary_elim (sc_string_collect (sc_string_rev s rev))))

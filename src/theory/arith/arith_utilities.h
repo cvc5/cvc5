@@ -44,7 +44,7 @@ typedef std::unordered_map<Node, ArithVar> NodeToArithVarMap;
 typedef DenseMap<Node> ArithVarToNodeMap;
 
 inline Node mkRationalNode(const Rational& q){
-  return NodeManager::currentNM()->mkConst<Rational>(q);
+  return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, q);
 }
 
 inline Node mkBoolNode(bool b){

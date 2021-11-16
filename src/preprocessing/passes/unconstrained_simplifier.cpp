@@ -30,12 +30,13 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
+using namespace std;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
-
-using namespace std;
-using namespace cvc5::theory;
 
 UnconstrainedSimplifier::UnconstrainedSimplifier(
     PreprocessingPassContext* preprocContext)
@@ -514,9 +515,9 @@ void UnconstrainedSimplifier::processUnconstrained()
             if (current.getType().isInteger())
             {
               // div/mult by 1 should have been simplified
-              Assert(other != nm->mkConst<Rational>(1));
+              Assert(other != nm->mkConst(CONST_RATIONAL, Rational(1)));
               // div by -1 should have been simplified
-              if (other != nm->mkConst<Rational>(-1))
+              if (other != nm->mkConst(CONST_RATIONAL, Rational(-1)))
               {
                 break;
               }
@@ -529,7 +530,8 @@ void UnconstrainedSimplifier::processUnconstrained()
             else
             {
               // TODO(#2377): could build ITE here
-              Node test = other.eqNode(nm->mkConst<Rational>(0));
+              Node test =
+                  other.eqNode(nm->mkConst(CONST_RATIONAL, Rational(0)));
               if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;
@@ -856,7 +858,6 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
   if (!d_unconstrained.empty())
   {
     processUnconstrained();
-    //    d_substitutions.print(CVC5Message.getStream());
     for (size_t i = 0, asize = assertions.size(); i < asize; ++i)
     {
       Node a = assertions[i];

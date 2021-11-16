@@ -31,7 +31,6 @@
 #include "smt/command.h"
 
 using namespace std;
-using namespace cvc5::kind;
 
 namespace cvc5 {
 namespace parser {
@@ -531,11 +530,11 @@ api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
 api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
 {
   api::Kind k = t.getKind();
-  if (k == api::EMPTYSET)
+  if (k == api::SET_EMPTY)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == api::EMPTYBAG)
+  else if (k == api::BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }
@@ -555,7 +554,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     }
     t = d_solver->mkEmptySequence(s.getSequenceElementSort());
   }
-  else if (k == api::UNIVERSE_SET)
+  else if (k == api::SET_UNIVERSE)
   {
     t = d_solver->mkUniverseSet(s);
   }

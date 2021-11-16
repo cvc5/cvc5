@@ -34,8 +34,9 @@ namespace cvc5 {
 namespace theory {
 namespace booleans {
 
-CircuitPropagator::CircuitPropagator(bool enableForward, bool enableBackward)
-    : d_context(),
+CircuitPropagator::CircuitPropagator(Env& env, bool enableForward, bool enableBackward)
+    : EnvObj(env),
+      d_context(),
       d_propagationQueue(),
       d_propagationQueueClearer(&d_context, d_propagationQueue),
       d_conflict(&d_context, TrustNode()),
@@ -86,14 +87,9 @@ void CircuitPropagator::assertTrue(TNode assertion)
     // Analyze the assertion for back-edges and all that
     computeBackEdges(assertion);
     // Assign the given assertion to true
-    if (isProofEnabled())
-    {
-      assignAndEnqueue(assertion, true, d_pnm->mkAssume(assertion));
-    }
-    else
-    {
-      assignAndEnqueue(assertion, true, nullptr);
-    }
+    assignAndEnqueue(assertion,
+                     true,
+                     isProofEnabled() ? d_pnm->mkAssume(assertion) : nullptr);
   }
 }
 
@@ -118,7 +114,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
   {
     if (proof == nullptr)
     {
-      Warning() << "CircuitPropagator: Proof is missing for " << n << std::endl;
+      warning() << "CircuitPropagator: Proof is missing for " << n << std::endl;
       Assert(false);
     }
     else
@@ -127,7 +123,7 @@ void CircuitPropagator::assignAndEnqueue(TNode n,
       Node expected = value ? Node(n) : n.negate();
       if (proof->getResult() != expected)
       {
-        Warning() << "CircuitPropagator: Incorrect proof: " << expected
+        warning() << "CircuitPropagator: Incorrect proof: " << expected
                   << " vs. " << proof->getResult() << std::endl
                   << *proof << std::endl;
       }
@@ -741,7 +737,7 @@ TrustNode CircuitPropagator::propagate()
         }
         else
         {
-          Warning() << "CircuitPropagator: Proof is missing for " << lit
+          warning() << "CircuitPropagator: Proof is missing for " << lit
                     << std::endl;
           TrustNode tlit = TrustNode::mkTrustLemma(lit, nullptr);
           d_learnedLiterals.push_back(tlit);
@@ -804,11 +800,11 @@ void CircuitPropagator::addProof(TNode f, std::shared_ptr<ProofNode> pf)
                             << "\t" << *pf << std::endl;
       d_epg->setProofFor(f, std::move(pf));
     }
-    else
+    else if (Trace.isOn("circuit-prop"))
     {
       auto prf = d_epg->getProofFor(f);
-      Trace("circuit-prop") << "Ignoring proof, we already have" << std::endl
-                            << "\t" << *prf << std::endl;
+      Trace("circuit-prop") << "Ignoring proof\n\t" << *pf
+                            << "\nwe already have\n\t" << *prf << std::endl;
     }
   }
 }

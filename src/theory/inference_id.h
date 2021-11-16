@@ -169,8 +169,7 @@ enum class InferenceId
 
   // ---------------------------------- bags theory
   BAGS_NON_NEGATIVE_COUNT,
-  BAGS_MK_BAG_SAME_ELEMENT,
-  BAGS_MK_BAG,
+  BAGS_BAG_MAKE,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_EMPTY,
@@ -491,7 +490,6 @@ enum class InferenceId
   SETS_RELS_JOIN_IMAGE_UP,
   SETS_RELS_JOIN_SPLIT_1,
   SETS_RELS_JOIN_SPLIT_2,
-  SETS_RELS_JOIN_ELEM_SPLIT,
   SETS_RELS_PRODUCE_COMPOSE,
   SETS_RELS_PRODUCT_SPLIT,
   SETS_RELS_TCLOSURE_FWD,
@@ -840,6 +838,15 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_MODEL_EXTENSIONALITY,
+  // equivalence of lambda functions
+  //   f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
+  // This is applied when lamda functions f and g are in the same eq class.
+  UF_HO_LAMBDA_UNIV_EQ,
+  // equivalence of a lambda function and an ordinary function
+  //   f = h => h(t) = reduce(lambda(f)(t))
+  // This is applied when lamda function f and ordinary function h are in the
+  // same eq class.
+  UF_HO_LAMBDA_APP_REDUCE,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
   //-------------------------------------- end uf theory

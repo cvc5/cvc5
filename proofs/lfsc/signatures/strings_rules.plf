@@ -1,0 +1,124 @@
+; depends: strings_programs.plf
+
+(declare string_length_non_empty (! s term (! p (holds (not (= s emptystr))) (holds (not (= (str.len s) (int 0)))))))
+
+; Computes the conclusion of the PfRule::CONCAT_EQ rule
+(program sc_concat_eq ((s term) (t term) (rev flag)) term
+  (match (sc_strip_prefix
+           (sc_string_to_flat_form s rev) 
+           (sc_string_to_flat_form t rev))
+    ((pair ss ts)
+      (= 
+        (sc_string_from_flat_form ss rev)
+        (sc_string_from_flat_form ts rev)))))
+
+(declare concat_eq (! s term 
+                   (! t term 
+                   (! res term 
+                   (! rev flag
+                   (! p (holds (= s t))
+                   (! r (^ (sc_concat_eq s t rev) res) 
+                      (holds res))))))))
+
+; Computes whether the heads of the premise (= s t) match s1 and t1 for the
+; PfRule::CONCAT_UNIFY rule
+(program sc_concat_unify ((s term) (t term) (s1 term) (t1 term) (rev flag)) Ok
+  (ifequal (sc_string_head (sc_string_rev s rev)) s1
+    (ifequal (sc_string_head (sc_string_rev t rev)) t1
+      ok
+      (fail Ok))
+    (fail Ok)))
+
+(declare concat_unify (! s term
+                      (! t term
+                      (! s1 term
+                      (! t1 term
+                      (! rev flag
+                      (! p (holds (= s t))
+                      (! p1 (holds (= (str.len s1) (str.len t1)))
+                      (! r (^ (sc_concat_unify s t s1 t1 rev) ok)
+                          (holds (= s1 t1)))))))))))
+
+; Computes the conclusion of the PfRule::CONCAT_CSPLIT rule
+(program sc_concat_csplit ((thead term) (t term) (s term) (rev flag)) term
+  (match (sc_string_to_flat_form t rev)
+    ((apply t1 t2)
+      (ifequal (getarg f_str.++ t1) thead
+        (match (sc_string_to_flat_form s rev)
+          ((apply s1 s2)
+            (let s12 (getarg f_str.++ s1)
+            (match s12
+              ((char n)
+                (= thead
+                (ifequal rev ff
+                  (str.++ s12 (str.++ (sc_mk_skolem (sc_skolem_suffix_rem thead (int 1))) emptystr))
+                  (str.++ (sc_mk_skolem (sc_skolem_prefix thead (a.- (str.len thead) (int 1)))) (str.++ s12 emptystr)))))))))
+          (fail term))))
+)
+
+(declare concat_csplit 
+  (! t1 term
+  (! t term
+  (! s term
+  (! res term
+  (! rev flag
+  (! p1 (holds (= t s))
+  (! p2 (holds (not (= (str.len t1) (int 0))))
+  (! r (^ (sc_concat_csplit t1 t s rev) res)
+    (holds res))))))))))
+
+; Checks whether the conditions on the premise (= s t) is satisfied for the
+; PfRule::CONCAT_CONFLICT rule
+(program sc_concat_conflict ((s term) (t term) (rev flag)) Ok
+  (match (sc_strip_prefix
+           (sc_string_to_flat_form s rev)
+           (sc_string_to_flat_form t rev))
+    ((pair ss ts)
+      (ifequal
+        (sc_string_first_char_or_empty ss)
+        (sc_string_first_char_or_empty ts)
+        (fail Ok)
+        ok))))
+
+(declare concat_conflict (! s term
+                         (! t term
+                         (! rev flag
+                         (! p (holds (= s t))
+                         (! r (^ (sc_concat_conflict s t rev) ok)
+                            (holds false)))))))
+
+(declare string_length_pos (! t term 
+  (holds (or (and (= (str.len t) (int 0)) (and (= t emptystr) true)) (or (a.> (str.len t) (int 0)) false)))))
+
+(declare re_inter (! x term (! s term (! t term (! p1 (holds (str.in_re x s)) (! p2 (holds (str.in_re x t)) 
+  (holds (str.in_re x (re.inter s t)))))))))
+
+(declare string_reduction (! r term (! t term (! s sort (! u (^ (sc_string_reduction t s) r)
+  (holds r))))))))
+
+(declare string_eager_reduction (! r term (! t term (! s sort (! u (^ (sc_string_eager_reduction t s) r)
+  (holds r))))))
+
+; Computes the conclusion of PfRule::RE_UNFOLD_POS
+(program sc_re_unfold_pos ((t term) (r term)) term
+  (match r
+    ((apply r1 r2)
+      (match r1
+        ; case for star
+        (f_re.*
+          (let rr (re.++ r2 (re.++ r (re.++ r2 re.empty)))
+          (match (sc_re_unfold_pos_concat t rr rr 0)
+            ((pair p1 p2)
+              (or (= t emptystr)
+                (or (str.in_re t r2)
+                  (or (and (sc_string_nary_elim (and (= t p1) p2)) (sc_non_empty_concats p1))
+                    false)))))))
+        ((apply r11 r12)
+          (match r11
+            ; case for concatenation
+            (f_re.++
+              (match (sc_re_unfold_pos_concat t r r 0)
+                ((pair p1 p2) (sc_string_nary_elim (and (= t p1) p2)))))
+))))))
+
+(declare re_unfold_pos (! t term (! r term (! s term (! f (holds (str.in_re t r)) (! u (^ (sc_re_unfold_pos t r) s) (holds s)))))))

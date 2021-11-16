@@ -569,8 +569,8 @@ cdef class Result:
 
     def isNull(self):
         """
-            :return: True if Result is empty, i.e., a nullary Result,
-            and not an actual result returned from a :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
+            :return: True if Result is empty, i.e., a nullary Result, and not an actual result returned from a
+                     :cpp:func:`Solver::checkSat() <cvc5::api::Solver::checkSat>` (and friends) query.
         """
         return self.cr.isNull()
 
@@ -1130,22 +1130,31 @@ cdef class Solver:
             term.cterm = self.csolver.mkReal("{}/{}".format(val, den).encode())
         return term
 
-    def mkRegexpEmpty(self):
-        """Create a regular expression empty term.
+    def mkRegexpAll(self):
+        """Create a regular expression all (re.all) term.
 
-        :return: the empty term
+        :return: the all term
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRegexpEmpty()
+        term.cterm = self.csolver.mkRegexpAll()
         return term
 
-    def mkRegexpSigma(self):
-        """Create a regular expression sigma term.
+    def mkRegexpAllchar(self):
+        """Create a regular expression allchar (re.allchar) term.
 
-        :return: the sigma term
+        :return: the allchar term
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.mkRegexpSigma()
+        term.cterm = self.csolver.mkRegexpAllchar()
+        return term
+
+    def mkRegexpNone(self):
+        """Create a regular expression none (re.none) term.
+
+        :return: the none term
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkRegexpNone()
         return term
 
     def mkEmptySet(self, Sort s):
@@ -1811,14 +1820,8 @@ cdef class Solver:
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
-    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
-        """
-        Define n-ary function.
-        Supports two uses:
-
-        - ``Term defineFun(str symbol, List[Term] bound_vars, Sort sort, Term term, bool glbl)``
-        - ``Term defineFun(Term fun, List[Term] bound_vars, Term term, bool glbl)``
-
+    def defineFun(self, str symbol, list bound_vars, Sort sort, Term term, glbl=False):
+        """Define n-ary function.
 
         SMT-LIB:
 
@@ -1830,27 +1833,20 @@ cdef class Solver:
         :param bound_vars: the parameters to this function
         :param sort: the sort of the return value of this function
         :param term: the function body
-        :param global: determines whether this definition is global (i.e. persists when popping the context)
+        :param glbl: determines whether this definition is global (i.e. persists when popping the context)
         :return: the function
         """
-        cdef Term term = Term(self)
+        cdef Term fun = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
 
-        if t is not None:
-            term.cterm = self.csolver.defineFun((<str?> sym_or_fun).encode(),
-                                                <const vector[c_Term] &> v,
-                                                (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm,
-                                                <bint> glbl)
-        else:
-            term.cterm = self.csolver.defineFun((<Term?> sym_or_fun).cterm,
-                                                <const vector[c_Term]&> v,
-                                                (<Term?> sort_or_term).cterm,
-                                                <bint> glbl)
-
-        return term
+        fun.cterm = self.csolver.defineFun(symbol.encode(),
+                                           <const vector[c_Term] &> v,
+                                           sort.csort,
+                                           term.cterm,
+                                           <bint> glbl)
+        return fun
 
     def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         """Define recursive functions.
@@ -2060,25 +2056,25 @@ cdef class Solver:
         """
         return self.csolver.isModelCoreSymbol(v.cterm)
 
-    def getSeparationHeap(self):
+    def getValueSepHeap(self):
         """When using separation logic, obtain the term for the heap.
 
         :return: The term for the heap
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.getSeparationHeap()
+        term.cterm = self.csolver.getValueSepHeap()
         return term
 
-    def getSeparationNilTerm(self):
+    def getValueSepNil(self):
         """When using separation logic, obtain the term for nil.
 
         :return: The term for nil
         """
         cdef Term term = Term(self)
-        term.cterm = self.csolver.getSeparationNilTerm()
+        term.cterm = self.csolver.getValueSepNil()
         return term
 
-    def declareSeparationHeap(self, Sort locType, Sort dataType):
+    def declareSepHeap(self, Sort locType, Sort dataType):
         """
         When using separation logic, this sets the location sort and the
         datatype sort to the given ones. This method should be invoked exactly
@@ -2087,7 +2083,7 @@ cdef class Solver:
         :param locSort: The location sort of the heap
         :param dataSort: The data sort of the heap
         """
-        self.csolver.declareSeparationHeap(locType.csort, dataType.csort)
+        self.csolver.declareSepHeap(locType.csort, dataType.csort)
 
     def declarePool(self, str symbol, Sort sort, initValue):
         """Declare a symbolic pool of terms with the given initial value.
@@ -2842,6 +2838,12 @@ cdef class Term:
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
         return op
+
+    def hasSymbol(self):
+        return self.cterm.hasSymbol()
+
+    def getSymbol(self):
+        return self.cterm.getSymbol().decode()
 
     def isNull(self):
         return self.cterm.isNull()

@@ -31,16 +31,11 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
     super(solver, pointer);
   }
 
-  protected static native void deletePointer(long pointer);
+  protected native void deletePointer(long pointer);
 
   public long getPointer()
   {
     return pointer;
-  }
-
-  @Override public void finalize()
-  {
-    deletePointer(pointer);
   }
 
   // endregion
@@ -204,6 +199,27 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   }
 
   private native long getOp(long pointer);
+
+  /**
+   * @return true if the term has a symbol.
+   */
+  public boolean hasSymbol()
+  {
+    return hasSymbol(pointer);
+  }
+
+  private native boolean hasSymbol(long pointer);
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the term.
+   */
+  public String getSymbol()
+  {
+    return getSymbol(pointer);
+  }
+
+  private native String getSymbol(long pointer);
 
   /**
    * @return true if this Term is a null term

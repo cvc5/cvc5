@@ -30,10 +30,8 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_ensure_closed.h"
 #include "prop/prop_engine.h"
-#include "smt/dump.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
-#include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -145,17 +143,17 @@ void TheoryEngine::finishInit()
   CVC5_FOR_EACH_THEORY;
 
   // Initialize the theory combination architecture
-  if (options::tcMode() == options::TcMode::CARE_GRAPH)
+  if (options().theory.tcMode == options::TcMode::CARE_GRAPH)
   {
     d_tc.reset(new CombinationCareGraph(d_env, *this, paraTheories));
   }
   else
   {
     Unimplemented() << "TheoryEngine::finishInit: theory combination mode "
-                    << options::tcMode() << " not supported";
+                    << options().theory.tcMode << " not supported";
   }
   // create the relevance filter if any option requires it
-  if (options::relevanceFilter() || options::produceDifficulty())
+  if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
     d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
   }
@@ -247,7 +245,7 @@ TheoryEngine::TheoryEngine(Env& env)
     d_theoryOut[theoryId] = NULL;
   }
 
-  if (options::sortInference())
+  if (options().smt.sortInference)
   {
     d_sortInfer.reset(new SortInference(env));
   }
@@ -344,54 +342,6 @@ void TheoryEngine::printAssertions(const char* tag) {
               Trace(tag) << "[" << i << "]: " << (*it) << endl;
           }
         }
-      }
-    }
-  }
-}
-
-void TheoryEngine::dumpAssertions(const char* tag) {
-  if (Dump.isOn(tag)) {
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "Starting completeness check");
-    for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-      Theory* theory = d_theoryTable[theoryId];
-      if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-        printer.toStreamCmdSetInfo(out, "notes", "Completeness check");
-        printer.toStreamCmdPush(out);
-
-        // Dump the shared terms
-        if (d_logicInfo.isSharingEnabled()) {
-          printer.toStreamCmdSetInfo(out, "notes", "Shared terms");
-          context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
-          for (unsigned i = 0; it != it_end; ++ it, ++i) {
-              stringstream ss;
-              ss << (*it);
-              printer.toStreamCmdSetInfo(out, "notes", ss.str());
-          }
-        }
-
-        // Dump the assertions
-        printer.toStreamCmdSetInfo(out, "notes", "Assertions");
-        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-        for (; it != it_end; ++ it) {
-          // Get the assertion
-          Node assertionNode = (*it).d_assertion;
-          // Purify all the terms
-
-          if ((*it).d_isPreregistered)
-          {
-            printer.toStreamCmdSetInfo(out, "notes", "Preregistered");
-          }
-          else
-          {
-            printer.toStreamCmdSetInfo(out, "notes", "Shared assertion");
-          }
-          printer.toStreamCmdAssert(out, assertionNode);
-        }
-        printer.toStreamCmdCheckSat(out);
-
-        printer.toStreamCmdPop(out);
       }
     }
   }
@@ -544,12 +494,6 @@ void TheoryEngine::check(Theory::Effort effort) {
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
   }
-  // If fulleffort, check all theories
-  if(Dump.isOn("theory::fullcheck") && Theory::fullEffort(effort)) {
-    if (!d_inConflict && !needCheck()) {
-      dumpAssertions("theory::fullcheck");
-    }
-  }
 }
 
 void TheoryEngine::propagate(Theory::Effort effort)
@@ -594,9 +538,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                                 << conflict[i] << endl;
         return false;
       }
-      if (conflict[i] != Rewriter::rewrite(conflict[i])) {
-        Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
-                                << conflict[i] << " vs " << Rewriter::rewrite(conflict[i]) << endl;
+      if (conflict[i] != rewrite(conflict[i]))
+      {
+        Debug("properConflict")
+            << "Bad conflict is due to atom not in normal form: " << conflict[i]
+            << " vs " << rewrite(conflict[i]) << endl;
         return false;
       }
     }
@@ -611,9 +557,11 @@ bool TheoryEngine::properConflict(TNode conflict) const {
                               << conflict << endl;
       return false;
     }
-    if (conflict != Rewriter::rewrite(conflict)) {
-      Debug("properConflict") << "Bad conflict is due to atom not in normal form: "
-                              << conflict << " vs " << Rewriter::rewrite(conflict) << endl;
+    if (conflict != rewrite(conflict))
+    {
+      Debug("properConflict")
+          << "Bad conflict is due to atom not in normal form: " << conflict
+          << " vs " << rewrite(conflict) << endl;
       return false;
     }
   }
@@ -633,7 +581,7 @@ TheoryModel* TheoryEngine::getBuiltModel()
   Assert(d_tc != nullptr);
   // If this method was called, we should be in SAT mode, and produceModels
   // should be true.
-  AlwaysAssert(options::produceModels());
+  AlwaysAssert(options().smt.produceModels);
   if (!d_inSatMode)
   {
     // not available, perhaps due to interuption.
@@ -961,7 +909,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
              && assertion[0].getKind() == kind::EQUAL));
 
   // Normalize
-  Node normalizedLiteral = Rewriter::rewrite(assertion);
+  Node normalizedLiteral = rewrite(assertion);
 
   // See if it rewrites false directly -> conflict
   if (normalizedLiteral.isConst()) {
@@ -1268,7 +1216,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
     }
 
     // Rewrite the equality
-    Node eqNormalized = Rewriter::rewrite(atoms[i]);
+    Node eqNormalized = rewrite(atoms[i]);
 
     Debug("theory::atoms") << "TheoryEngine::ensureLemmaAtoms(): " << eq
                            << " with nf " << eqNormalized << endl;
@@ -1351,15 +1299,6 @@ void TheoryEngine::lemma(TrustNode tlemma,
     tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
   }
 
-  if(Dump.isOn("t-lemmas")) {
-    // we dump the negation of the lemma, to show validity of the lemma
-    Node n = lemma.negate();
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "theory lemma: expect valid");
-    printer.toStreamCmdCheckSatAssuming(out, {n});
-  }
-
   // assert the lemma
   d_propEngine->assertLemma(tlemma, p);
 
@@ -1411,13 +1350,6 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
 
   // Mark that we are in conflict
   markInConflict();
-
-  if(Dump.isOn("t-conflicts")) {
-    const Printer& printer = d_env.getPrinter();
-    std::ostream& out = d_env.getDumpOut();
-    printer.toStreamCmdSetInfo(out, "notes", "theory conflict: expect unsat");
-    printer.toStreamCmdCheckSatAssuming(out, {conflict});
-  }
 
   // In the multiple-theories case, we need to reconstruct the conflict
   if (d_logicInfo.isSharingEnabled()) {
@@ -1793,7 +1725,7 @@ TrustNode TheoryEngine::getExplanation(
           continue;
         }
         // otherwise should hold by rewriting
-        Assert(Rewriter::rewrite(tConc) == Rewriter::rewrite(tExp));
+        Assert(rewrite(tConc) == rewrite(tExp));
         // tExp
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc
@@ -1892,7 +1824,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
               // assertions with unevaluable operators, e.g. transcendental
               // functions. It also may happen for separation logic, where
               // check-model support is limited.
-              Warning() << ss.str();
+              warning() << ss.str();
             }
           }
         }

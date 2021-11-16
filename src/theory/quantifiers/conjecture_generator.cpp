@@ -279,7 +279,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
                 Assert(eqt.getType() == tn);
                 registerPattern(eqt, tn);
                 if (isUniversalLessThan(eqt, t)
-                    || (options::conjectureUeeIntro()
+                    || (options().quantifiers.conjectureUeeIntro
                         && d_pattern_fun_sum[t] >= d_pattern_fun_sum[eqt]))
                 {
                   setUniversalRelevant(eqt);
@@ -344,12 +344,13 @@ bool ConjectureGenerator::needsCheck( Theory::Effort e ) {
 }
 
 bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
-  if( options::conjectureGenGtEnum()>0 ){
+  if (options().quantifiers.conjectureGenGtEnum > 0)
+  {
     std::map< Node, bool >::iterator it = d_uf_enum.find( n.getOperator() );
     if( it==d_uf_enum.end() ){
       d_uf_enum[n.getOperator()] = true;
       std::vector< Node > lem;
-      getEnumeratePredUfTerm( n, options::conjectureGenGtEnum(), lem );
+      getEnumeratePredUfTerm(n, options().quantifiers.conjectureGenGtEnum, lem);
       if( !lem.empty() ){
         for (const Node& l : lem)
         {
@@ -665,7 +666,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       std::vector< TypeNode > rt_types;
       std::map< TypeNode, std::map< int, std::vector< Node > > > conj_lhs;
       unsigned addedLemmas = 0;
-      unsigned maxDepth = options::conjectureGenMaxDepth();
+      unsigned maxDepth = options().quantifiers.conjectureGenMaxDepth;
       for( unsigned depth=1; depth<=maxDepth; depth++ ){
         Trace("sg-proc") << "Generate relevant LHS at depth " << depth << "..." << std::endl;
         Trace("sg-rel-term") << "Relevant terms of depth " << depth << " : " << std::endl;
@@ -676,7 +677,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         while( d_tge.getNextTerm() ){
           //construct term
           Node nn = d_tge.getTerm();
-          if( !options::conjectureFilterCanonical() || considerTermCanon( nn, true ) ){
+          if (!options().quantifiers.conjectureFilterCanonical
+              || considerTermCanon(nn, true))
+          {
             rel_term_count++;
             Trace("sg-rel-term") << "*** Relevant term : ";
             d_tge.debugPrint( "sg-rel-term", "sg-rel-term-debug2" );
@@ -771,7 +774,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               }
             }
             Trace("sg-gen-tg-debug") << "...done build substitutions for ground EQC" << std::endl;
-          }else{
+          }
+          else
+          {
             Trace("sg-gen-tg-debug") << "> not canonical : " << nn << std::endl;
           }
         }
@@ -827,7 +832,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           //consider against all LHS up to depth
           if( rdepth==depth ){
             for( unsigned lhs_depth = 1; lhs_depth<=depth; lhs_depth++ ){
-              if( (int)addedLemmas<options::conjectureGenPerRound() ){
+              if ((int)addedLemmas
+                  < options().quantifiers.conjectureGenPerRound)
+              {
                 Trace("sg-proc") << "Consider conjectures at depth (" << lhs_depth << ", " << rdepth << ")..." << std::endl;
                 for( std::map< TypeNode, std::vector< Node > >::iterator it = conj_rhs.begin(); it != conj_rhs.end(); ++it ){
                   for( unsigned j=0; j<it->second.size(); j++ ){
@@ -840,11 +847,13 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               }
             }
           }
-          if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+          if ((int)addedLemmas >= options().quantifiers.conjectureGenPerRound)
+          {
             break;
           }
         }
-        if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+        if ((int)addedLemmas >= options().quantifiers.conjectureGenPerRound)
+        {
           break;
         }
       }
@@ -887,7 +896,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
 unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
   if( !d_waiting_conjectures_lhs.empty() ){
     Trace("sg-proc") << "Generated " << d_waiting_conjectures_lhs.size() << " conjectures at depth " << ldepth << "/" << rdepth << "." << std::endl;
-    if( (int)addedLemmas<options::conjectureGenPerRound() ){
+    if ((int)addedLemmas < options().quantifiers.conjectureGenPerRound)
+    {
       /*
       std::vector< unsigned > indices;
       for( unsigned i=0; i<d_waiting_conjectures_lhs.size(); i++ ){
@@ -908,9 +918,14 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
           //we have determined a relevant subgoal
           Node lhs = d_waiting_conjectures_lhs[i];
           Node rhs = d_waiting_conjectures_rhs[i];
-          if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
+          if (options().quantifiers.conjectureFilterCanonical
+              && (getUniversalRepresentative(lhs) != lhs
+                  || getUniversalRepresentative(rhs) != rhs))
+          {
             //skip
-          }else{
+          }
+          else
+          {
             Trace("sg-engine") << "*** Consider conjecture : " << lhs << " == " << rhs << std::endl;
             Trace("sg-engine-debug") << "      score : " << d_waiting_conjectures_score[i] << std::endl;
             if( optStatsOnly() ){
@@ -932,7 +947,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               }else{
                 rsg = lhs.eqNode( rhs );
               }
-              rsg = Rewriter::rewrite( rsg );
+              rsg = rewrite(rsg);
               d_conjectures.push_back( rsg );
               d_eq_conjectures[lhs].push_back( rhs );
               d_eq_conjectures[rhs].push_back( lhs );
@@ -942,7 +957,9 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
                                     InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT);
               d_qim.addPendingPhaseRequirement(rsg, false);
               addedLemmas++;
-              if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+              if ((int)addedLemmas
+                  >= options().quantifiers.conjectureGenPerRound)
+              {
                 break;
               }
             }
@@ -1304,10 +1321,12 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
         return -1;
       }
     }
-    //check if canonical representation (should be, but for efficiency this is not guarenteed)
-    //if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
-    //  Trace("sg-cconj") << "  -> after processing, not canonical." << std::endl;
-    //  return -1;
+    // check if canonical representation (should be, but for efficiency this is
+    // not guarenteed) if( options().quantifiers.conjectureFilterCanonical && (
+    // getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs
+    // )!=rhs ) ){
+    //  Trace("sg-cconj") << "  -> after processing, not canonical." <<
+    //  std::endl; return -1;
     //}
 
     int score;
@@ -1315,7 +1334,8 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
 
     Trace("sg-cconj") << "Consider possible candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
     //find witness for counterexample, if possible
-    if( options::conjectureFilterModel() ){
+    if (options().quantifiers.conjectureFilterModel)
+    {
       Assert(d_rel_pattern_var_sum.find(lhs) != d_rel_pattern_var_sum.end());
       Trace("sg-cconj-debug") << "Notify substitutions over " << d_rel_pattern_var_sum[lhs] << " variables." << std::endl;
       std::map< TNode, TNode > subs;
@@ -1342,7 +1362,9 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
       for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
         Trace("sg-cconj") << "     #witnesses for " << it->first << " : " << it->second.size() << std::endl;
       }
-    }else{
+    }
+    else
+    {
       score = 1;
     }
 

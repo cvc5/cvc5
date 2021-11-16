@@ -155,7 +155,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   TimerStat::CodeTimer solveTimer(d_stats.d_solveTime);
 
-  Chat() << "solving..." << endl;
+  d_env.verbose(2) << "solving..." << std::endl;
   Trace("smt") << "SmtSolver::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
 
@@ -228,7 +228,7 @@ void SmtSolver::processAssertions(Assertions& as)
 
   // Push the formula to SAT
   {
-    Chat() << "converting to CNF..." << endl;
+    d_env.verbose(2) << "converting to CNF..." << endl;
     const std::vector<Node>& assertions = ap.ref();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter

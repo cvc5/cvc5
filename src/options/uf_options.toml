@@ -59,3 +59,11 @@ name   = "Uninterpreted Functions Theory"
   type       = "bool"
   default    = "true"
   help       = "apply extensionality on function symbols"
+
+[[option]]
+  name       = "ufHoLazyLambdaLift"
+  category   = "regular"
+  long       = "uf-lazy-ll"
+  type       = "bool"
+  default    = "false"
+  help       = "do lambda lifting lazily"

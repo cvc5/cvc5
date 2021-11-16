@@ -36,7 +36,6 @@
 #include "options/smt_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
-#include "smt/dump.h"
 #include "smt/model.h"
 #include "util/smt2_quote_string.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -209,9 +208,7 @@ void Command::invoke(api::Solver* solver, SymbolManager* sm, std::ostream& out)
   invoke(solver, sm);
   if (!(isMuted() && ok()))
   {
-    printResult(
-        out,
-        std::stoul(solver->getOption("command-verbosity:" + getCommandName())));
+    printResult(out);
   }
 }
 
@@ -227,14 +224,11 @@ void CommandStatus::toStream(std::ostream& out, Language language) const
   Printer::getPrinter(language)->toStream(out, this);
 }
 
-void Command::printResult(std::ostream& out, uint32_t verbosity) const
+void Command::printResult(std::ostream& out) const
 {
-  if (d_commandStatus != NULL)
+  if (d_commandStatus != nullptr)
   {
-    if ((!ok() && verbosity >= 1) || verbosity >= 2)
-    {
-      out << *d_commandStatus;
-    }
+    out << *d_commandStatus;
   }
 }
 
@@ -321,9 +315,7 @@ void EchoCommand::invoke(api::Solver* solver,
   Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~"
                            << std::endl;
   d_commandStatus = CommandSuccess::instance();
-  printResult(
-      out,
-      std::stoul(solver->getOption("command-verbosity:" + getCommandName())));
+  printResult(out);
 }
 
 Command* EchoCommand::clone() const { return new EchoCommand(d_output); }
@@ -461,11 +453,11 @@ void CheckSatCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 api::Result CheckSatCommand::getResult() const { return d_result; }
 
-void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void CheckSatCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -532,12 +524,11 @@ api::Result CheckSatAssumingCommand::getResult() const
   return d_result;
 }
 
-void CheckSatAssumingCommand::printResult(std::ostream& out,
-                                          uint32_t verbosity) const
+void CheckSatAssumingCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -587,11 +578,11 @@ void QueryCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 api::Result QueryCommand::getResult() const { return d_result; }
-void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void QueryCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -896,11 +887,11 @@ void CheckSynthCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 api::Result CheckSynthCommand::getResult() const { return d_result; }
-void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void CheckSynthCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -991,7 +982,6 @@ void ResetAssertionsCommand::toStream(std::ostream& out,
 
 void QuitCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  Dump("benchmark") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1168,8 +1158,8 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
                                       size_t dag,
                                       Language language) const
 {
-  Printer::getPrinter(language)->toStreamCmdDeclareFunction(out,
-                                                            termToNode(d_func));
+  Printer::getPrinter(language)->toStreamCmdDeclareFunction(
+      out, d_symbol, sortToTypeNode(d_func.getSort()));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1313,46 +1303,44 @@ void DefineSortCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
-                                             api::Term func,
-                                             api::Term formula,
-                                             bool global)
+                                             api::Sort sort,
+                                             api::Term formula)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_formals(),
-      d_formula(formula),
-      d_global(global)
+      d_sort(sort),
+      d_formula(formula)
 {
 }
 
 DefineFunctionCommand::DefineFunctionCommand(
     const std::string& id,
-    api::Term func,
     const std::vector<api::Term>& formals,
-    api::Term formula,
-    bool global)
+    api::Sort sort,
+    api::Term formula)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
       d_formals(formals),
-      d_formula(formula),
-      d_global(global)
+      d_sort(sort),
+      d_formula(formula)
 {
 }
 
-api::Term DefineFunctionCommand::getFunction() const { return d_func; }
 const std::vector<api::Term>& DefineFunctionCommand::getFormals() const
 {
   return d_formals;
 }
 
+api::Sort DefineFunctionCommand::getSort() const { return d_sort; }
+
 api::Term DefineFunctionCommand::getFormula() const { return d_formula; }
+
 void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    if (!d_func.isNull())
-    {
-      solver->defineFun(d_func, d_formals, d_formula, d_global);
-    }
+    bool global = sm->getGlobalDeclarations();
+    api::Term fun =
+        solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
+    sm->getSymbolTable()->bind(fun.toString(), fun, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1363,8 +1351,7 @@ void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* DefineFunctionCommand::clone() const
 {
-  return new DefineFunctionCommand(
-      d_symbol, d_func, d_formals, d_formula, d_global);
+  return new DefineFunctionCommand(d_symbol, d_formals, d_sort, d_formula);
 }
 
 std::string DefineFunctionCommand::getCommandName() const
@@ -1377,16 +1364,11 @@ void DefineFunctionCommand::toStream(std::ostream& out,
                                      size_t dag,
                                      Language language) const
 {
-  TypeNode rangeType = termToNode(d_func).getType();
-  if (rangeType.isFunction())
-  {
-    rangeType = rangeType.getRangeType();
-  }
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
-      d_func.toString(),
+      d_symbol,
       termVectorToNodes(d_formals),
-      rangeType,
+      sortToTypeNode(d_sort),
       termToNode(d_formula));
 }
 
@@ -1395,12 +1377,7 @@ void DefineFunctionCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-
-    api::Term func,
-    const std::vector<api::Term>& formals,
-    api::Term formula,
-    bool global)
-    : d_global(global)
+    api::Term func, const std::vector<api::Term>& formals, api::Term formula)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1408,12 +1385,10 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 }
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-
     const std::vector<api::Term>& funcs,
     const std::vector<std::vector<api::Term>>& formals,
-    const std::vector<api::Term>& formulas,
-    bool global)
-    : d_funcs(funcs), d_formals(formals), d_formulas(formulas), d_global(global)
+    const std::vector<api::Term>& formulas)
+    : d_funcs(funcs), d_formals(formals), d_formulas(formulas)
 {
 }
 
@@ -1437,7 +1412,8 @@ void DefineFunctionRecCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->defineFunsRec(d_funcs, d_formals, d_formulas, d_global);
+    bool global = sm->getGlobalDeclarations();
+    solver->defineFunsRec(d_funcs, d_formals, d_formulas, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1448,7 +1424,7 @@ void DefineFunctionRecCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas, d_global);
+  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const
@@ -1484,7 +1460,7 @@ api::Sort DeclareHeapCommand::getDataSort() const { return d_dataSort; }
 
 void DeclareHeapCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  solver->declareSeparationHeap(d_locSort, d_dataSort);
+  solver->declareSepHeap(d_locSort, d_dataSort);
 }
 
 Command* DeclareHeapCommand::clone() const
@@ -1530,11 +1506,11 @@ void SimplifyCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 api::Term SimplifyCommand::getResult() const { return d_result; }
-void SimplifyCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void SimplifyCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -1609,11 +1585,11 @@ void GetValueCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 api::Term GetValueCommand::getResult() const { return d_result; }
-void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void GetValueCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -1687,12 +1663,11 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 api::Term GetAssignmentCommand::getResult() const { return d_result; }
-void GetAssignmentCommand::printResult(std::ostream& out,
-                                       uint32_t verbosity) const
+void GetAssignmentCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -1748,11 +1723,11 @@ void GetModelCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetModelCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void GetModelCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -1899,7 +1874,7 @@ void GetProofCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void GetProofCommand::printResult(std::ostream& out) const
 {
   if (ok())
   {
@@ -1907,7 +1882,7 @@ void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
   else
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
 }
 
@@ -1953,12 +1928,11 @@ void GetInstantiationsCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetInstantiationsCommand::printResult(std::ostream& out,
-                                           uint32_t verbosity) const
+void GetInstantiationsCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -2032,12 +2006,11 @@ void GetInterpolCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetInterpolCommand::printResult(std::ostream& out,
-                                     uint32_t verbosity) const
+void GetInterpolCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -2122,11 +2095,11 @@ void GetAbductCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void GetAbductCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -2203,12 +2176,11 @@ api::Term GetQuantifierEliminationCommand::getResult() const
 {
   return d_result;
 }
-void GetQuantifierEliminationCommand::printResult(std::ostream& out,
-                                                  uint32_t verbosity) const
+void GetQuantifierEliminationCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -2235,7 +2207,7 @@ void GetQuantifierEliminationCommand::toStream(std::ostream& out,
                                                Language language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetQuantifierElimination(
-      out, termToNode(d_term));
+      out, termToNode(d_term), d_doFull);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2266,12 +2238,11 @@ std::vector<api::Term> GetUnsatAssumptionsCommand::getResult() const
   return d_result;
 }
 
-void GetUnsatAssumptionsCommand::printResult(std::ostream& out,
-                                             uint32_t verbosity) const
+void GetUnsatAssumptionsCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -2323,12 +2294,11 @@ void GetUnsatCoreCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetUnsatCoreCommand::printResult(std::ostream& out,
-                                      uint32_t verbosity) const
+void GetUnsatCoreCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -2400,12 +2370,11 @@ void GetDifficultyCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-void GetDifficultyCommand::printResult(std::ostream& out,
-                                       uint32_t verbosity) const
+void GetDifficultyCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -2480,12 +2449,11 @@ void GetAssertionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 std::string GetAssertionsCommand::getResult() const { return d_result; }
-void GetAssertionsCommand::printResult(std::ostream& out,
-                                       uint32_t verbosity) const
+void GetAssertionsCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else
   {
@@ -2573,10 +2541,14 @@ void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setInfo(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     // As per SMT-LIB spec, silently accept unknown set-info keys
     d_commandStatus = CommandSuccess::instance();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2615,9 +2587,13 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = sexprToString(solver->mkTerm(api::SEXPR, v));
     d_commandStatus = CommandSuccess::instance();
   }
+  catch (api::CVC5ApiUnsupportedException&)
+  {
+    d_commandStatus = new CommandUnsupported();
+  }
   catch (api::CVC5ApiRecoverableException& e)
   {
-    d_commandStatus = new CommandRecoverableFailure(e.what());
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2626,11 +2602,11 @@ void GetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 std::string GetInfoCommand::getResult() const { return d_result; }
-void GetInfoCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void GetInfoCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else if (d_result != "")
   {
@@ -2674,9 +2650,13 @@ void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     solver->setOption(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     d_commandStatus = new CommandUnsupported();
+  }
+  catch (api::CVC5ApiRecoverableException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.getMessage());
   }
   catch (exception& e)
   {
@@ -2712,7 +2692,7 @@ void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     d_result = solver->getOption(d_flag);
     d_commandStatus = CommandSuccess::instance();
   }
-  catch (api::CVC5ApiRecoverableException&)
+  catch (api::CVC5ApiUnsupportedException&)
   {
     d_commandStatus = new CommandUnsupported();
   }
@@ -2723,11 +2703,11 @@ void GetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 }
 
 std::string GetOptionCommand::getResult() const { return d_result; }
-void GetOptionCommand::printResult(std::ostream& out, uint32_t verbosity) const
+void GetOptionCommand::printResult(std::ostream& out) const
 {
   if (!ok())
   {
-    this->Command::printResult(out, verbosity);
+    this->Command::printResult(out);
   }
   else if (d_result != "")
   {
