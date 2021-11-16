@@ -137,7 +137,7 @@ bool intervalConnect(const Interval& lhs, const Interval& rhs)
     return true;
   }
   Assert(c == 0);
-  if (poly::get_upper_open(lhs) && poly::get_upper_open(rhs))
+  if (poly::get_upper_open(lhs) && poly::get_lower_open(rhs))
   {
     Trace("libpoly::interval_connect")
         << lhs << " and " << rhs
