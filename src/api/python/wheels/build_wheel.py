@@ -49,20 +49,21 @@ def get_cvc5_version():
 
     # read CMakeLists.txt to get version number
     version = dict()
-    str_pattern = 'set\(CVC5_(?P<component>MAJOR|MINOR|RELEASE)\s*(?P<version>\d+)\)'
+    str_pattern = 'set\(CVC5_LAST_RELEASE\s*"([^"]+)"\)'
     pattern = re.compile(str_pattern)
-    with open(os.path.join(project_src_path, 'CMakeLists.txt'), 'r') as f:
+    with open(os.path.join(project_src_path, 'cmake', 'version-base.cmake'), 'r') as f:
         for line in f:
             line = line.strip()
             m = pattern.search(line)
             if m:
+                version_str = m.group(1)
                 gd = m.groupdict()
-                version[gd['component']] = gd['version']
-                if len(version) == 3:
+                if len(version_str.split('.')) == 3:
+                    version = version_str.split('.')
                     break
 
-    assert len(version) == 3, 'Expecting MAJOR, MINOR and RELEASE'
-    return version['MAJOR'], version['MINOR'], version['RELEASE']
+    assert len(version) == 3, 'Could not find version'
+    return version
 
 
 class CMakeExtension(Extension):
@@ -110,7 +111,6 @@ class CMakeBuild(build_ext):
         # configure with the working directory python-build-wheel
         args = ['--python-bindings',
                 '--auto-download',
-                '--lib-only',
                 '--name='+WORKING_DIR]
         # find correct Python include directory and library
         # works even for nonstandard Python installations
