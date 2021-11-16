@@ -149,9 +149,14 @@ class CMakeBuild(build_ext):
         shutil.copytree(pycvc5_module, dst_name)
 
 
+version_suffix = os.getenv('VERSION_SUFFIX', '')
+if len(version_suffix) > 0:
+    version_suffix = '_' + version_suffix
+
+
 setup(
     name='pycvc5',
-    version='.'.join(get_cvc5_version()),
+    version='.'.join(get_cvc5_version()) + version_suffix,
     long_description='Python bindings for cvc5',
     url='https://github.com/cvc5/cvc5',
     license='BSD-3-Clause',
