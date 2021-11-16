@@ -151,10 +151,9 @@ bool intervalConnect(const Interval& lhs, const Interval& rhs)
 }
 
 /**
- * Check whether a and b together cover rhs.
+ * Check whether the union of a and b covers rhs.
  * First check whether a and b connect, and then defer the containment check to
  * intervalCovers.
- * If a and b do not connect, rew
  */
 std::optional<bool> intervalsCover(const Interval& a,
                                    const Interval& b,
