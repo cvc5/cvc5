@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A simple demonstration of reasoning about relations with CVC4 via Java API.
+ * A simple demonstration of reasoning about relations with cvc5 via Java API.
  */
 
 import static io.github.cvc5.api.Kind.*;
