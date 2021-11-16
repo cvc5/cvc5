@@ -130,7 +130,7 @@ Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   // arithmetic inequalities and disequalities
   if (atom.getKind() == GEQ
-      || (atom.getKind() == EQUAL && atom[0].getType().isArithmetic()))
+      || (atom.getKind() == EQUAL && atom[0].getType().isRealOrInt()))
   {
     return lit;
   }
@@ -149,7 +149,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   bool pol = lit.getKind() != NOT;
   // arithmetic inequalities and disequalities
   Assert(atom.getKind() == GEQ
-         || (atom.getKind() == EQUAL && atom[0].getType().isArithmetic()));
+         || (atom.getKind() == EQUAL && atom[0].getType().isRealOrInt()));
   // get model value for pv
   Node pv_value = ci->getModelValue(pv);
   // cannot contain infinity?

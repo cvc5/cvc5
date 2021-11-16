@@ -59,7 +59,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
     }
     if (check)
     {
-      if (!childType.isArithmetic())
+      if (!childType.isRealOrInt())
       {
         throw TypeCheckingExceptionPrivate(n,
                                            "expecting an arithmetic subterm");
@@ -91,7 +91,7 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   {
     Assert(n.getNumChildren() == 2);
     TypeNode t1 = n[0].getType(check);
-    if (!t1.isArithmetic())
+    if (!t1.isRealOrInt())
     {
       throw TypeCheckingExceptionPrivate(
           n, "expecting an arithmetic term for arithmetic relation");
@@ -188,7 +188,7 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
           n, "expecting boolean term as first argument");
     }
     TypeNode t2 = n[1].getType(check);
-    if (!t2.isArithmetic())
+    if (!t2.isRealOrInt())
     {
       throw TypeCheckingExceptionPrivate(
           n, "expecting polynomial as second argument");

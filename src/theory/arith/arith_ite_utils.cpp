@@ -59,7 +59,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   switch(n.getKind()){
   case ITE:{
     Node c = n[0], t = n[1], e = n[2];
-    if (n.getType().isArithmetic())
+    if (n.getType().isRealOrInt())
     {
       Node rc = reduceVariablesInItes(c);
       Node rt = reduceVariablesInItes(t);
@@ -99,7 +99,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
     }
   }break;
   default:
-    if (n.getType().isArithmetic() && Polynomial::isMember(n))
+    if (n.getType().isRealOrInt() && Polynomial::isMember(n))
     {
       Node newn = Node::null();
       if(!d_contains.containsTermITE(n)){
@@ -186,7 +186,7 @@ const Integer& ArithIteUtils::gcdIte(Node n){
       return d_one;
     }
   }
-  else if (n.getKind() == kind::ITE && n.getType().isArithmetic())
+  else if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
   {
     const Integer& tgcd = gcdIte(n[1]);
     if(tgcd.isOne()){
@@ -218,7 +218,7 @@ Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
 
 Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
   Assert(n.getKind() == kind::ITE);
-  Assert(n.getType().isArithmetic());
+  Assert(n.getType().isRealOrInt());
   const Integer& gcd = gcdIte(n);
   if(gcd.isOne()){
     Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
@@ -242,7 +242,7 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
   if(d_reduceGcd.find(n) != d_reduceGcd.end()){
     return d_reduceGcd[n];
   }
-  if (n.getKind() == kind::ITE && n.getType().isArithmetic())
+  if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
   {
     return reduceIteConstantIteByGCD(n);
   }

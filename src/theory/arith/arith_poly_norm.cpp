@@ -173,7 +173,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
 
 PolyNorm PolyNorm::mkPolyNorm(TNode n)
 {
-  Assert(n.getType().isArithmetic());
+  Assert(n.getType().isRealOrInt());
   Rational one(1);
   Node null;
   std::unordered_map<TNode, PolyNorm> visited;

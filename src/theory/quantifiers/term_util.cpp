@@ -329,7 +329,7 @@ bool TermUtil::isBoolConnectiveTerm( TNode n ) {
 Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
 {
   Node n;
-  if (tn.isArithmetic())
+  if (tn.isRealOrInt())
   {
     Rational c(val);
     n = NodeManager::currentNM()->mkConst(CONST_RATIONAL, c);
@@ -382,7 +382,7 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
   status = -1;
   if (!offset_val.isNull())
   {
-    if (tn.isArithmetic())
+    if (tn.isRealOrInt())
     {
       val_o = Rewriter::rewrite(
           NodeManager::currentNM()->mkNode(PLUS, val, offset_val));

@@ -1274,7 +1274,7 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
     throw LogicException(ss.str());
   }
   Assert(!d_partialModel.hasArithVar(x));
-  Assert(x.getType().isArithmetic());  // real or integer
+  Assert(x.getType().isRealOrInt());  // real or integer
 
   ArithVar max = d_partialModel.getNumberOfVariables();
   ArithVar varX = d_partialModel.allocate(x, aux);
@@ -3044,7 +3044,7 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
   case kind::LT:
     return !isSatLiteral(n);
   case kind::EQUAL:
-    if (n[0].getType().isArithmetic())
+    if (n[0].getType().isRealOrInt())
     {
       return !isSatLiteral(n);
     }

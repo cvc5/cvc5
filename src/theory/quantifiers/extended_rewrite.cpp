@@ -291,7 +291,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n) const
       << "Do aggressive rewrites on " << n << std::endl;
   bool polarity = n.getKind() != NOT;
   Node ret_atom = n.getKind() == NOT ? n[0] : n;
-  if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isArithmetic())
+  if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isRealOrInt())
       || ret_atom.getKind() == GEQ)
   {
     // ITE term removal in polynomials

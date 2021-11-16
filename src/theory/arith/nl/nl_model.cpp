@@ -205,7 +205,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       if (visited.find(cur) == visited.end())
       {
         visited.insert(cur);
-        if (cur.getType().isArithmetic() && !cur.isConst())
+        if (cur.getType().isRealOrInt() && !cur.isConst())
         {
           Kind k = cur.getKind();
           if (k != MULT && k != PLUS && k != NONLINEAR_MULT

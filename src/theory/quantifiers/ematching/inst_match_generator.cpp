@@ -380,7 +380,7 @@ int InstMatchGenerator::getMatch(Node f, Node t, InstMatch& m)
         }
         else
         {
-          Assert(t.getType().isArithmetic());
+          Assert(t.getType().isRealOrInt());
           t_match =
               nm->mkNode(PLUS, t, nm->mkConst(CONST_RATIONAL, Rational(1)));
         }

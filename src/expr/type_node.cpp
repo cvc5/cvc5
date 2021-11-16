@@ -96,7 +96,7 @@ CardinalityClass TypeNode::getCardinalityClass()
   {
     ret = CardinalityClass::FINITE;
   }
-  else if (isString() || isRegExp() || isSequence() || isArithmetic()
+  else if (isString() || isRegExp() || isSequence() || isRealOrInt()
            || isBag())
   {
     ret = CardinalityClass::INFINITE;
@@ -279,7 +279,7 @@ bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
 // !!! Note that this will change to isReal() || isInteger() when subtyping is
 // eliminated
-bool TypeNode::isArithmetic() const { return isReal(); }
+bool TypeNode::isRealOrInt() const { return isReal(); }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
