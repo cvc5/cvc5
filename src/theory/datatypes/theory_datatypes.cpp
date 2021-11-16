@@ -68,7 +68,7 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
-  d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   d_dtfCounter = 0;
 
   // indicate we are using the default theory state object

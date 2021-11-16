@@ -20,6 +20,8 @@
 #include "theory/theory_model.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 
@@ -33,7 +35,7 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, uint64_t> p : d_dfmap)
   {
-    dmap[p.first] = nm->mkConst(Rational(p.second));
+    dmap[p.first] = nm->mkConst(CONST_RATIONAL, Rational(p.second));
   }
 }
 

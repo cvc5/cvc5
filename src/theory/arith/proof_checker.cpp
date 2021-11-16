@@ -25,6 +25,8 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 namespace arith {
@@ -47,7 +49,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                                           const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  auto zero = nm->mkConst<Rational>(0);
+  auto zero = nm->mkConst<Rational>(CONST_RATIONAL, 0);
   if (Debug.isOn("arith::pf::check"))
   {
     Debug("arith::pf::check") << "Arith PfRule:" << id << std::endl;
@@ -241,10 +243,12 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
                 << "Bad kind: " << children[i].getKind() << std::endl;
           }
         }
-        leftSum << nm->mkNode(
-            Kind::MULT, nm->mkConst<Rational>(scalar), children[i][0]);
-        rightSum << nm->mkNode(
-            Kind::MULT, nm->mkConst<Rational>(scalar), children[i][1]);
+        leftSum << nm->mkNode(Kind::MULT,
+                              nm->mkConst<Rational>(CONST_RATIONAL, scalar),
+                              children[i][0]);
+        rightSum << nm->mkNode(Kind::MULT,
+                               nm->mkConst<Rational>(CONST_RATIONAL, scalar),
+                               children[i][1]);
       }
       Node r = nm->mkNode(strict ? Kind::LT : Kind::LEQ,
                           leftSum.constructNode(),
@@ -271,7 +275,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       {
         Rational originalBound = children[0][1].getConst<Rational>();
         Rational newBound = leastIntGreaterThan(originalBound);
-        Node rational = nm->mkConst<Rational>(newBound);
+        Node rational = nm->mkConst<Rational>(CONST_RATIONAL, newBound);
         return nm->mkNode(kind::GEQ, children[0][0], rational);
       }
     }
@@ -296,7 +300,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       {
         Rational originalBound = children[0][1].getConst<Rational>();
         Rational newBound = greatestIntLessThan(originalBound);
-        Node rational = nm->mkConst<Rational>(newBound);
+        Node rational = nm->mkConst<Rational>(CONST_RATIONAL, newBound);
         return nm->mkNode(kind::LEQ, children[0][0], rational);
       }
     }

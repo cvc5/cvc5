@@ -108,6 +108,10 @@ class TheoryStrings : public Theory {
   void conflict(TNode a, TNode b);
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
+  /** Called just after the merge of two equivalence classes */
+  void eqNotifyMerge(TNode t1, TNode t2);
+  /** called a disequality is added */
+  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** preprocess rewrite */
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   /** Collect model values in m based on the relevant terms given by termSet */
@@ -118,9 +122,7 @@ class TheoryStrings : public Theory {
   /** NotifyClass for equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
   public:
-   NotifyClass(TheoryStrings& ts) : d_str(ts), d_eagerSolver(ts.d_eagerSolver)
-   {
-   }
+   NotifyClass(TheoryStrings& ts) : d_str(ts) {}
    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
    {
      Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate
@@ -156,19 +158,17 @@ class TheoryStrings : public Theory {
     {
       Debug("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
                        << std::endl;
-      d_eagerSolver.eqNotifyMerge(t1, t2);
+      d_str.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
       Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
-      d_eagerSolver.eqNotifyDisequal(t1, t2, reason);
+      d_str.eqNotifyDisequal(t1, t2, reason);
     }
 
    private:
     /** The theory of strings object to notify */
     TheoryStrings& d_str;
-    /** The eager solver of the theory of strings */
-    EagerSolver& d_eagerSolver;
   };/* class TheoryStrings::NotifyClass */
   /** compute care graph */
   void computeCareGraph() override;

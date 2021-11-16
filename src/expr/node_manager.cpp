@@ -30,7 +30,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
-#include "theory/bags/make_bag_op.h"
+#include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
 #include "util/abstract_value.h"
 #include "util/bitvector.h"
@@ -1044,8 +1044,8 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
       << "Invalid operands for mkBag. The type '" << n.getType()
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
-  Node op = mkConst(MakeBagOp(t));
-  Node bag = mkNode(kind::MK_BAG, op, n, m);
+  Node op = mkConst(BagMakeOp(t));
+  Node bag = mkNode(kind::BAG_MAKE, op, n, m);
   return bag;
 }
 

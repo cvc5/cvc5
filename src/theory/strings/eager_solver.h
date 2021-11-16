@@ -46,9 +46,7 @@ class EagerSolver : protected EnvObj
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
   /** called when two equivalence classes merge */
-  void eqNotifyMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  void eqNotifyMerge(EqcInfo* e1, TNode t1, EqcInfo* e2, TNode t2);
   /** notify fact, called when a fact is asserted to theory of strings */
   void notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal);
 
