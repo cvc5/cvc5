@@ -152,6 +152,7 @@ class CMakeBuild(build_ext):
 version_suffix = os.getenv('VERSION_SUFFIX', '')
 if len(version_suffix) > 0:
     version_suffix = '_' + version_suffix
+    print("Setting version suffix to", version_suffix)
 
 
 setup(
