@@ -66,14 +66,14 @@ void TheoryBags::finishInit()
   d_valuation.setUnevaluatedKind(WITNESS);
 
   // functions we are doing congruence over
-  d_equalityEngine->addFunctionKind(UNION_MAX);
-  d_equalityEngine->addFunctionKind(UNION_DISJOINT);
-  d_equalityEngine->addFunctionKind(INTERSECTION_MIN);
-  d_equalityEngine->addFunctionKind(DIFFERENCE_SUBTRACT);
-  d_equalityEngine->addFunctionKind(DIFFERENCE_REMOVE);
+  d_equalityEngine->addFunctionKind(BAG_UNION_MAX);
+  d_equalityEngine->addFunctionKind(BAG_UNION_DISJOINT);
+  d_equalityEngine->addFunctionKind(BAG_INTER_MIN);
+  d_equalityEngine->addFunctionKind(BAG_DIFFERENCE_SUBTRACT);
+  d_equalityEngine->addFunctionKind(BAG_DIFFERENCE_REMOVE);
   d_equalityEngine->addFunctionKind(BAG_COUNT);
-  d_equalityEngine->addFunctionKind(DUPLICATE_REMOVAL);
-  d_equalityEngine->addFunctionKind(MK_BAG);
+  d_equalityEngine->addFunctionKind(BAG_DUPLICATE_REMOVAL);
+  d_equalityEngine->addFunctionKind(BAG_MAKE);
   d_equalityEngine->addFunctionKind(BAG_CARD);
   d_equalityEngine->addFunctionKind(BAG_FROM_SET);
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
@@ -98,7 +98,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   // (bag.choose A) is expanded as
   // (witness ((x elementType))
   //    (ite
-  //      (= A (as emptybag (Bag E)))
+  //      (= A (as bag.empty (Bag E)))
   //      (= x (uf A))
   //      (and (>= (bag.count x A) 1) (= x (uf A)))
   // where uf: (Bag E) -> E is a skolem function, and E is the type of elements

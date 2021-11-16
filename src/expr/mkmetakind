@@ -254,11 +254,6 @@ $2 ${class};"
   register_metakind CONSTANT "$1" 0
 
   if [[ "${payload_seen}" != true ]]; then
-    metakind_getConst_decls="${metakind_getConst_decls}
-template <>
-${class} const& NodeValue::getConst< ${class} >() const;
-"
-
     metakind_constantMaps="${metakind_constantMaps}
 // The reinterpret_cast of d_children to \"${class} const*\"
 // flags a \"strict aliasing\" warning; it's okay, because we never access
@@ -293,16 +288,9 @@ struct ConstantMap< ${class} > {
 "
   fi
 
-  metakind_constantMaps_decls="${metakind_constantMaps_decls}
-template <>
-struct ConstantMapReverse< ::cvc5::kind::$1 > {
-  using T = ${class};
-};/* ConstantMapReverse< ::cvc5::kind::$1 > */
-"
-
   metakind_compares="${metakind_compares}
     case kind::$1:
-      return NodeValueConstCompare< kind::$1, pool >::compare(nv1, nv2);
+      return NodeValueConstCompare<kind::$1, ${class}, pool>::compare(nv1, nv2);
 "
   metakind_constHashes="${metakind_constHashes}
   case kind::$1:
@@ -435,7 +423,6 @@ for var in \
     metakind_kinds \
     metakind_constantMaps \
     metakind_constantMaps_decls \
-    metakind_getConst_decls \
     metakind_compares \
     metakind_constHashes \
     metakind_constPrinters \

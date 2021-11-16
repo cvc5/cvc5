@@ -45,14 +45,14 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriter(HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
-   * postRewrite nodes with kinds: MK_BAG, BAG_COUNT, UNION_MAX, UNION_DISJOINT,
-   * INTERSECTION_MIN, DIFFERENCE_SUBTRACT, DIFFERENCE_REMOVE, BAG_CHOOSE,
-   * BAG_CARD, BAG_IS_SINGLETON.
-   * See the rewrite rules for these kinds below.
+   * postRewrite nodes with kinds: BAG_MAKE, BAG_COUNT, BAG_UNION_MAX,
+   * BAG_UNION_DISJOINT, BAG_INTER_MIN, BAG_DIFFERENCE_SUBTRACT,
+   * BAG_DIFFERENCE_REMOVE, BAG_CHOOSE, BAG_CARD, BAG_IS_SINGLETON. See the
+   * rewrite rules for these kinds below.
    */
   RewriteResponse postRewrite(TNode n) override;
   /**
-   * preRewrite nodes with kinds: EQUAL, SUBBAG.
+   * preRewrite nodes with kinds: EQUAL, BGA_SUBBAG.
    * See the rewrite rules for these kinds below.
    */
   RewriteResponse preRewrite(TNode n) override;
@@ -66,14 +66,14 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    * rewrites for n include:
-   * - (bag.is_included A B) = ((difference_subtract A B) == emptybag)
+   * - (bag.subbag A B) = ((bag.difference_subtract A B) == bag.empty)
    */
   BagsRewriteResponse rewriteSubBag(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (bag x 0) = (emptybag T) where T is the type of x
-   * - (bag x (-c)) = (emptybag T) where T is the type of x, and c > 0 is a
+   * - (bag x 0) = (bag.empty T) where T is the type of x
+   * - (bag x (-c)) = (bag.empty T) where T is the type of x, and c > 0 is a
    *   constant
    * - otherwise = n
    */
@@ -81,7 +81,7 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    * rewrites for n include:
-   * - (bag.count x emptybag) = 0
+   * - (bag.count x bag.empty) = 0
    * - (bag.count x (bag x c)) = (ite (>= c 1) c 0)
    * - otherwise = n
    */
@@ -89,85 +89,85 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (duplicate_removal (bag x n)) = (bag x 1)
+   *  - (bag.duplicate_removal (bag x n)) = (bag x 1)
    *     where n is a positive constant
    */
   BagsRewriteResponse rewriteDuplicateRemoval(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (union_max A emptybag) = A
-   * - (union_max emptybag A) = A
-   * - (union_max A A) = A
-   * - (union_max A (union_max A B)) = (union_max A B)
-   * - (union_max A (union_max B A)) = (union_max B A)
-   * - (union_max (union_max A B) A) = (union_max A B)
-   * - (union_max (union_max B A) A) = (union_max B A)
-   * - (union_max A (union_disjoint A B)) = (union_disjoint A B)
-   * - (union_max A (union_disjoint B A)) = (union_disjoint B A)
-   * - (union_max (union_disjoint A B) A) = (union_disjoint A B)
-   * - (union_max (union_disjoint B A) A) = (union_disjoint B A)
+   * - (bag.union_max A bag.empty) = A
+   * - (bag.union_max bag.empty A) = A
+   * - (bag.union_max A A) = A
+   * - (bag.union_max A (bag.union_max A B)) = (bag.union_max A B)
+   * - (bag.union_max A (bag.union_max B A)) = (bag.union_max B A)
+   * - (bag.union_max (bag.union_max A B) A) = (bag.union_max A B)
+   * - (bag.union_max (bag.union_max B A) A) = (bag.union_max B A)
+   * - (bag.union_max A (bag.union_disjoint A B)) = (bag.union_disjoint A B)
+   * - (bag.union_max A (bag.union_disjoint B A)) = (bag.union_disjoint B A)
+   * - (bag.union_max (bag.union_disjoint A B) A) = (bag.union_disjoint A B)
+   * - (bag.union_max (bag.union_disjoint B A) A) = (bag.union_disjoint B A)
    * - otherwise = n
    */
   BagsRewriteResponse rewriteUnionMax(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (union_disjoint A emptybag) = A
-   * - (union_disjoint emptybag A) = A
-   * - (union_disjoint (union_max A B) (intersection_min A B)) =
-   *         (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
+   * - (bag.union_disjoint A bag.empty) = A
+   * - (bag.union_disjoint bag.empty A) = A
+   * - (bag.union_disjoint (bag.union_max A B) (bag.inter_min A B)) =
+   *         (bag.union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
    * - other permutations of the above like swapping A and B, or swapping
-   *   intersection_min and union_max
+   *   bag.intersection_min and bag.union_max
    * - otherwise = n
    */
   BagsRewriteResponse rewriteUnionDisjoint(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (intersection_min A emptybag) = emptybag
-   * - (intersection_min emptybag A) = emptybag
-   * - (intersection_min A A) = A
-   * - (intersection_min A (union_disjoint A B)) = A
-   * - (intersection_min A (union_disjoint B A)) = A
-   * - (intersection_min (union_disjoint A B) A) = A
-   * - (intersection_min (union_disjoint B A) A) = A
-   * - (intersection_min A (union_max A B)) = A
-   * - (intersection_min A (union_max B A)) = A
-   * - (intersection_min (union_max A B) A) = A
-   * - (intersection_min (union_max B A) A) = A
+   * - (bag.inter_min A bag.empty) = bag.empty
+   * - (bag.inter_min bag.empty A) = bag.empty
+   * - (bag.inter_min A A) = A
+   * - (bag.inter_min A (bag.union_disjoint A B)) = A
+   * - (bag.inter_min A (bag.union_disjoint B A)) = A
+   * - (bag.inter_min (bag.union_disjoint A B) A) = A
+   * - (bag.inter_min (bag.union_disjoint B A) A) = A
+   * - (bag.inter_min A (bag.union_max A B)) = A
+   * - (bag.inter_min A (bag.union_max B A)) = A
+   * - (bag.inter_min (bag.union_max A B) A) = A
+   * - (bag.inter_min (bag.union_max B A) A) = A
    * - otherwise = n
    */
   BagsRewriteResponse rewriteIntersectionMin(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (difference_subtract A emptybag) = A
-   * - (difference_subtract emptybag A) = emptybag
-   * - (difference_subtract A A) = emptybag
-   * - (difference_subtract (union_disjoint A B) A) = B
-   * - (difference_subtract (union_disjoint B A) A) = B
-   * - (difference_subtract A (union_disjoint A B)) = emptybag
-   * - (difference_subtract A (union_disjoint B A)) = emptybag
-   * - (difference_subtract A (union_max A B)) = emptybag
-   * - (difference_subtract A (union_max B A)) = emptybag
-   * - (difference_subtract (intersection_min A B) A) = emptybag
-   * - (difference_subtract (intersection_min B A) A) = emptybag
+   * - (bag.difference_subtract A bag.empty) = A
+   * - (bag.difference_subtract bag.empty A) = bag.empty
+   * - (bag.difference_subtract A A) = bag.empty
+   * - (bag.difference_subtract (bag.union_disjoint A B) A) = B
+   * - (bag.difference_subtract (bag.union_disjoint B A) A) = B
+   * - (bag.difference_subtract A (bag.union_disjoint A B)) = bag.empty
+   * - (bag.difference_subtract A (bag.union_disjoint B A)) = bag.empty
+   * - (bag.difference_subtract A (bag.union_max A B)) = bag.empty
+   * - (bag.difference_subtract A (bag.union_max B A)) = bag.empty
+   * - (bag.difference_subtract (bag.inter_min A B) A) = bag.empty
+   * - (bag.difference_subtract (bag.inter_min B A) A) = bag.empty
    * - otherwise = n
    */
   BagsRewriteResponse rewriteDifferenceSubtract(const TNode& n) const;
 
   /**
    * rewrites for n include:
-   * - (difference_remove A emptybag) = A
-   * - (difference_remove emptybag A) = emptybag
-   * - (difference_remove A A) = emptybag
-   * - (difference_remove A (union_disjoint A B)) = emptybag
-   * - (difference_remove A (union_disjoint B A)) = emptybag
-   * - (difference_remove A (union_max A B)) = emptybag
-   * - (difference_remove A (union_max B A)) = emptybag
-   * - (difference_remove (intersection_min A B) A) = emptybag
-   * - (difference_remove (intersection_min B A) A) = emptybag
+   * - (bag.difference_remove A bag.empty) = A
+   * - (bag.difference_remove bag.empty A) = bag.empty
+   * - (bag.difference_remove A A) = bag.empty
+   * - (bag.difference_remove A (bag.union_disjoint A B)) = bag.empty
+   * - (bag.difference_remove A (bag.union_disjoint B A)) = bag.empty
+   * - (bag.difference_remove A (bag.union_max A B)) = bag.empty
+   * - (bag.difference_remove A (bag.union_max B A)) = bag.empty
+   * - (bag.difference_remove (bag.inter_min A B) A) = bag.empty
+   * - (bag.difference_remove (bag.inter_min B A) A) = bag.empty
    * - otherwise = n
    */
   BagsRewriteResponse rewriteDifferenceRemove(const TNode& n) const;
@@ -193,13 +193,13 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.from_set (singleton (singleton_op Int) x)) = (bag x 1)
+   *  - (bag.from_set (singleton (SetSingletonOp Int) x)) = (bag x 1)
    */
   BagsRewriteResponse rewriteFromSet(const TNode& n) const;
 
   /**
    *  rewrites for n include:
-   *  - (bag.to_set (bag x n)) = (singleton (singleton_op T) x)
+   *  - (bag.to_set (bag x n)) = (singleton (SetSingletonOp T) x)
    *     where n is a positive constant and T is the type of the bag's elements
    */
   BagsRewriteResponse rewriteToSet(const TNode& n) const;
@@ -214,14 +214,11 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.map (lambda ((x U)) t) emptybag) = emptybag
-   *  - (bag.map (lambda ((x U)) t) (bag y z)) = (bag (apply (lambda ((x U)) t)
-   * y) z)
-   *  - (bag.map (lambda ((x U)) t) (union_disjoint A B)) =
-   *       (union_disjoint
-   *          (bag ((lambda ((x U)) t) "a") 3)
-   *          (bag ((lambda ((x U)) t) "b") 4))
-   *
+   *  - (bag.map f (as bag.empty (Bag T1)) = (as bag.empty (Bag T2))
+   *  - (bag.map f (bag x y)) = (bag (apply f x) y)
+   *  - (bag.map f (bag.union_disjoint A B)) =
+   *       (bag.union_disjoint (bag.map f A) (bag.map f B))
+   *  where f: T1 -> T2
    */
   BagsRewriteResponse postRewriteMap(const TNode& n) const;
 

@@ -53,9 +53,9 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::mkBag(Node n, Node e)
+InferInfo InferenceGenerator::bagMake(Node n, Node e)
 {
-  Assert(n.getKind() == MK_BAG);
+  Assert(n.getKind() == BAG_MAKE);
   Assert(e.getType() == n.getType().getBagElementType());
 
   /*
@@ -65,7 +65,7 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
    */
   Node x = n[0];
   Node c = n[1];
-  InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE);
   Node same = d_nm->mkNode(EQUAL, e, x);
   Node geq = d_nm->mkNode(GEQ, c, d_one);
   Node andNode = same.andNode(geq);
@@ -141,7 +141,7 @@ Node InferenceGenerator::getSkolem(Node& n, InferInfo& inferInfo)
 
 InferInfo InferenceGenerator::empty(Node n, Node e)
 {
-  Assert(n.getKind() == EMPTYBAG);
+  Assert(n.getKind() == BAG_EMPTY);
   Assert(e.getType() == n.getType().getBagElementType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_EMPTY);
@@ -155,7 +155,7 @@ InferInfo InferenceGenerator::empty(Node n, Node e)
 
 InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
 {
-  Assert(n.getKind() == UNION_DISJOINT && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_UNION_DISJOINT && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -177,7 +177,7 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
 
 InferInfo InferenceGenerator::unionMax(Node n, Node e)
 {
-  Assert(n.getKind() == UNION_MAX && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_UNION_MAX && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -200,7 +200,7 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
 
 InferInfo InferenceGenerator::intersection(Node n, Node e)
 {
-  Assert(n.getKind() == INTERSECTION_MIN && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_INTER_MIN && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -221,7 +221,7 @@ InferInfo InferenceGenerator::intersection(Node n, Node e)
 
 InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 {
-  Assert(n.getKind() == DIFFERENCE_SUBTRACT && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -243,7 +243,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 
 InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
 {
-  Assert(n.getKind() == DIFFERENCE_REMOVE && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_DIFFERENCE_REMOVE && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -265,7 +265,7 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
 
 InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
 {
-  Assert(n.getKind() == DUPLICATE_REMOVAL && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_DUPLICATE_REMOVAL && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];

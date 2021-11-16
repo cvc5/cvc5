@@ -60,14 +60,14 @@ BagEnumerator& BagEnumerator::operator++()
   Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
   TypeNode elementType = d_elementTypeEnumerator.getType();
   Node singleton = d_nodeManager->mkBag(elementType, d_element, one);
-  if (d_currentBag.getKind() == kind::EMPTYBAG)
+  if (d_currentBag.getKind() == kind::BAG_EMPTY)
   {
     d_currentBag = singleton;
   }
   else
   {
-    d_currentBag =
-        d_nodeManager->mkNode(kind::UNION_DISJOINT, singleton, d_currentBag);
+    d_currentBag = d_nodeManager->mkNode(
+        kind::BAG_UNION_DISJOINT, singleton, d_currentBag);
   }
 
   d_currentBag = Rewriter::rewrite(d_currentBag);
