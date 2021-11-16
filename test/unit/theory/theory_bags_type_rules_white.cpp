@@ -71,8 +71,8 @@ TEST_F(TestTheoryWhiteBagsTypeRule, duplicate_removal_operator)
       d_nodeManager->stringType(),
       elements[0],
       d_nodeManager->mkConst(CONST_RATIONAL, Rational(10)));
-  ASSERT_NO_THROW(d_nodeManager->mkNode(DUPLICATE_REMOVAL, bag));
-  ASSERT_EQ(d_nodeManager->mkNode(DUPLICATE_REMOVAL, bag).getType(),
+  ASSERT_NO_THROW(d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag));
+  ASSERT_EQ(d_nodeManager->mkNode(BAG_DUPLICATE_REMOVAL, bag).getType(),
             bag.getType());
 }
 
@@ -93,9 +93,9 @@ TEST_F(TestTheoryWhiteBagsTypeRule, mkBag_operator)
                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)));
 
   // only positive multiplicity are constants
-  ASSERT_FALSE(MkBagTypeRule::computeIsConst(d_nodeManager, negative));
-  ASSERT_FALSE(MkBagTypeRule::computeIsConst(d_nodeManager, zero));
-  ASSERT_TRUE(MkBagTypeRule::computeIsConst(d_nodeManager, positive));
+  ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager, negative));
+  ASSERT_FALSE(BagMakeTypeRule::computeIsConst(d_nodeManager, zero));
+  ASSERT_TRUE(BagMakeTypeRule::computeIsConst(d_nodeManager, positive));
 }
 
 TEST_F(TestTheoryWhiteBagsTypeRule, from_set_operator)
