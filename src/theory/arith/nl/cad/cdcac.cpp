@@ -184,7 +184,7 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
     {
       if (poly::contains(i.d_interval, suggested))
       {
-        d_initialAssignment.clear();
+        //d_initialAssignment.clear();
         return sampleOutside(infeasible, sample);
       }
     }
