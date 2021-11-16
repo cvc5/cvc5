@@ -74,6 +74,12 @@ bool operator<(const CACInterval& lhs, const CACInterval& rhs);
 void cleanIntervals(std::vector<CACInterval>& intervals);
 
 /**
+ * Removes redundant intervals as in 4.5. 2.
+ * Assumes the intervals to be sorted and cleaned, i.e. that cleanIntervals(intervals) has been called beforehand.
+ */
+void removeRedundantIntervals(std::vector<CACInterval>& intervals);
+
+/**
  * Collect all origins from the list of intervals to construct the origins for a
  * whole covering.
  */

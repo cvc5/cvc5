@@ -217,22 +217,47 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
       intervals.pop_back();
     }
   }
+}
 
-  // Now also remove intervals that are covered by the two adjacent intervals. This corresponds to removing "redundancies of the second kind" as of 4.5.2
-  for (size_t n = 1; n < intervals.size() - 1; ++n)
+void removeRedundantIntervals(std::vector<CACInterval>& intervals)
+{
+  // mid-1 -> interval below
+  // mid   -> current interval
+  // right -> interval above
+  size_t mid = 1;
+  size_t right = 2;
+  size_t n = intervals.size();
+  while (right < n)
   {
-    const auto& left = intervals[n - 1].d_interval;
-    const auto& mid = intervals[n].d_interval;
-    for (size_t r = n + 1; r < intervals.size(); ++r)
+    bool found = false;
+    for (size_t r = right; r < n; ++r)
     {
-      const auto& right = intervals[r].d_interval;
-      if (intervalsCover(left, right, mid))
+      const auto& below = intervals[mid - 1].d_interval;
+      const auto& middle = intervals[mid].d_interval;
+      const auto& above = intervals[r].d_interval;
+      if (intervalsCover(below, above, middle))
       {
-        std::cout << "Prune " << mid << std::endl;
-        std::cout << "Pruned by " << left << " and " << right << std::endl;
-        std::exit(1);
+        found = true;
+        break;
       }
     }
+    if (found)
+    {
+      intervals[mid] = std::move(intervals[right]);
+    }
+    else
+    {
+      ++mid;
+      if (mid < right)
+      {
+        intervals[mid] = std::move(intervals[right]);
+      }
+    }
+    ++right;
+  }
+  while (intervals.size() > mid + 1)
+  {
+    intervals.pop_back();
   }
 }
 
