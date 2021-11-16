@@ -69,14 +69,16 @@ bool operator<(const CACInterval& lhs, const CACInterval& rhs);
 
 /**
  * Sort intervals according to section 4.4.1.
- * Also removes fully redundant intervals as in 4.5. 1.
+ * Also removes fully redundant intervals as in 4.5. 1.; these are intervals
+ * that are fully contained within a single other interval.
  */
 void cleanIntervals(std::vector<CACInterval>& intervals);
 
 /**
- * Removes redundant intervals as in 4.5. 2.
- * Assumes the intervals to be sorted and cleaned, i.e. that
- * cleanIntervals(intervals) has been called beforehand.
+ * Removes redundant intervals as in 4.5. 2.; these are intervals that are
+ * covered by two other intervals, but not by a single one. Assumes the
+ * intervals to be sorted and cleaned, i.e. that cleanIntervals(intervals) has
+ * been called beforehand.
  */
 void removeRedundantIntervals(std::vector<CACInterval>& intervals);
 
