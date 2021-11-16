@@ -37,41 +37,30 @@ EagerSolver::~EagerSolver() {}
 void EagerSolver::eqNotifyNewClass(TNode t)
 {
   Kind k = t.getKind();
-  if (k == STRING_LENGTH || k == STRING_TO_CODE)
+  if (k == STRING_LENGTH)
   {
-    eq::EqualityEngine* ee = d_state.getEqualityEngine();
-    Node r = ee->getRepresentative(t[0]);
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(r);
-    if (k == STRING_LENGTH)
+    // also assume it as upper/lower bound as applicable for the equivalence
+    // class info of t.
+    EqcInfo* eil = nullptr;
+    for (size_t i = 0; i < 2; i++)
     {
-      ei->d_lengthTerm = t;
-      // also assume it as upper/lower bound as applicable for the equivalence
-      // class info of t.
-      EqcInfo* eil = nullptr;
-      for (size_t i = 0; i < 2; i++)
+      Node b = getBoundForLength(t, i == 0);
+      if (b.isNull())
       {
-        Node b = getBoundForLength(t, i == 0);
-        if (b.isNull())
-        {
-          continue;
-        }
-        if (eil == nullptr)
-        {
-          eil = d_state.getOrMakeEqcInfo(t);
-        }
-        if (i == 0)
-        {
-          eil->d_firstBound = t;
-        }
-        else if (i == 1)
-        {
-          eil->d_secondBound = t;
-        }
+        continue;
       }
-    }
-    else
-    {
-      ei->d_codeTerm = t[0];
+      if (eil == nullptr)
+      {
+        eil = d_state.getOrMakeEqcInfo(t);
+      }
+      if (i == 0)
+      {
+        eil->d_firstBound = t;
+      }
+      else if (i == 1)
+      {
+        eil->d_secondBound = t;
+      }
     }
   }
   else if (t.isConst())
@@ -90,15 +79,10 @@ void EagerSolver::eqNotifyNewClass(TNode t)
   }
 }
 
-void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
+void EagerSolver::eqNotifyMerge(EqcInfo* e1, TNode t1, EqcInfo* e2, TNode t2)
 {
-  EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
-  if (e2 == nullptr)
-  {
-    return;
-  }
-  // always create it if e2 was non-null
-  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
+  Assert(e1 != nullptr);
+  Assert(e2 != nullptr);
   // check for conflict
   Node conf = checkForMergeConflict(t1, t2, e1, e2);
   if (!conf.isNull())
@@ -108,33 +92,6 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
                          : InferenceId::STRINGS_ARITH_BOUND_CONFLICT;
     d_state.setPendingMergeConflict(conf, id);
     return;
-  }
-  // add information from e2 to e1
-  if (!e2->d_lengthTerm.get().isNull())
-  {
-    e1->d_lengthTerm.set(e2->d_lengthTerm);
-  }
-  if (!e2->d_codeTerm.get().isNull())
-  {
-    e1->d_codeTerm.set(e2->d_codeTerm);
-  }
-  if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
-  {
-    e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
-  }
-  if (!e2->d_normalizedLength.get().isNull())
-  {
-    e1->d_normalizedLength.set(e2->d_normalizedLength);
-  }
-}
-
-void EagerSolver::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
-{
-  if (t1.getType().isStringLike())
-  {
-    // store disequalities between strings, may need to check if their lengths
-    // are equal/disequal
-    d_state.addDisequality(t1, t2);
   }
 }
 

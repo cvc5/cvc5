@@ -164,7 +164,7 @@ public class Relations
       Term member = solver.mkTerm(MEMBER, xxTuple, ancestor);
       Term notMember = solver.mkTerm(NOT, member);
 
-      Term quantifiedVariables = solver.mkTerm(BOUND_VAR_LIST, x);
+      Term quantifiedVariables = solver.mkTerm(VARIABLE_LIST, x);
       Term noSelfAncestor = solver.mkTerm(FORALL, quantifiedVariables, notMember);
 
       // formulas

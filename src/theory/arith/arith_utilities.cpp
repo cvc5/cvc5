@@ -164,7 +164,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
         curr_r = Rational(curr - 1) / den;
       }
       curr_r = curr_r * pow_ten;
-      cret = nm->mkConst(csign == 1 ? curr_r : -curr_r);
+      cret = nm->mkConst(CONST_RATIONAL, csign == 1 ? curr_r : -curr_r);
     }
     else
     {

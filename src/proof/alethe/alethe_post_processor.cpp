@@ -22,6 +22,8 @@
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 
 namespace proof {
@@ -456,7 +458,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                    res,
                                    nm->mkNode(kind::SEXPR, d_cl, res),
                                    children,
-                                   {nm->mkConst(Rational(1))},
+                                   {nm->mkConst(CONST_RATIONAL, Rational(1))},
                                    *cdp);
             }
             default:
@@ -1363,6 +1365,117 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    //================================================= Quantifiers rules
+    // ======== Instantiate
+    // See proof_rule.h for documentation on the INSTANTIATE rule. This
+    // comment uses variable names as introduced there.
+    //
+    // ----- FORALL_INST, (= x1 t1) ... (= xn tn)
+    //  VP1
+    // ----- OR
+    //  VP2              P
+    // -------------------- RESOLUTION
+    //     (cl F*sigma)^
+    //
+    // VP1: (cl (or (not (forall ((x1 T1) ... (xn Tn)) F*sigma)
+    // VP2: (cl (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
+    //
+    // ^ the corresponding proof node is F*sigma
+    case PfRule::INSTANTIATE:
+    {
+      for (size_t i = 0, size = children[0][0].getNumChildren(); i < size; i++)
+      {
+        new_args.push_back(children[0][0][i].eqNode(args[i]));
+      }
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::OR, children[0].notNode(), res));
+      Node vp2 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
+      return addAletheStep(
+                 AletheRule::FORALL_INST, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::OR, vp2, vp2, {vp1}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp2, children[0]},
+                              {},
+                              *cdp);
+    }
+    //================================================= Arithmetic rules
+    // ======== Adding Inequalities
+    //
+    // ----- LIA_GENERIC
+    //  VP1                P1 ... Pn
+    // ------------------------------- RESOLUTION
+    //  (cl (>< t1 t2))*
+    //
+    // VP1: (cl (not l1) ... (not ln) (>< t1 t2))
+    //
+    // * the corresponding proof node is (>< t1 t2)
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+    {
+      std::vector<Node> vp1s{d_cl};
+      for (const Node& child : children)
+      {
+        vp1s.push_back(child.notNode());
+      }
+      vp1s.push_back(res);
+      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
+      std::vector<Node> new_children = {vp1};
+      new_children.insert(new_children.end(), children.begin(), children.end());
+      return addAletheStep(AletheRule::LIA_GENERIC, vp1, vp1, {}, args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
+    // ======== Tightening Strict Integer Upper Bounds
+    //
+    // ----- LA_GENERIC, 1
+    //  VP1                      P
+    // ------------------------------------- RESOLUTION
+    //  (cl (<= i greatestIntLessThan(c)))*
+    //
+    // VP1: (cl (not (< i c)) (<= i greatestIntLessThan(c)))
+    //
+    // * the corresponding proof node is (<= i greatestIntLessThan(c))
+    case PfRule::INT_TIGHT_UB:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
+      std::vector<Node> new_children = {vp1, children[0]};
+      new_args.push_back(nm->mkConst<Rational>(CONST_RATIONAL, 1));
+      return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
+    // ======== Tightening Strict Integer Lower Bounds
+    //
+    // ----- LA_GENERIC, 1
+    //  VP1                      P
+    // ------------------------------------- RESOLUTION
+    //  (cl (>= i leastIntGreaterThan(c)))*
+    //
+    // VP1: (cl (not (> i c)) (>= i leastIntGreaterThan(c)))
+    //
+    // * the corresponding proof node is (>= i leastIntGreaterThan(c))
+    case PfRule::INT_TIGHT_LB:
+    {
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
+      std::vector<Node> new_children = {vp1, children[0]};
+      new_args.push_back(nm->mkConst<Rational>(CONST_RATIONAL, 1));
+      return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              new_children,
+                              {},
+                              *cdp);
+    }
     default:
     {
       return addAletheStep(AletheRule::UNDEFINED,
@@ -1391,8 +1504,8 @@ bool AletheProofPostprocessCallback::addAletheStep(
   }
 
   std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(
-      NodeManager::currentNM()->mkConst<Rational>(static_cast<unsigned>(rule)));
+  new_args.push_back(NodeManager::currentNM()->mkConst(
+      CONST_RATIONAL, Rational(static_cast<unsigned>(rule))));
   new_args.push_back(res);
   new_args.push_back(sanitized_conclusion);
   new_args.insert(new_args.end(), args.begin(), args.end());
