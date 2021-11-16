@@ -10,7 +10,7 @@
    (and
     (not
      (= (= A (bag (tuple 0 c) (+ c c)))
-        (= A (difference_remove (bag d c) A))))
+        (= A (bag.difference_remove (bag d c) A))))
     (not
      (= (= A (bag (tuple 0 1) c_plus_1))
         (= A (bag (tuple c 1) c_plus_1)))))))
