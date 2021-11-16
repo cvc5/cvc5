@@ -66,7 +66,7 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
     out << ' ' << getId();
   } else if (getMetaKind() == kind::metakind::CONSTANT) {
     out << ' ';
-    kind::metakind::NodeValueConstPrinter::toStream(out, this);
+    kind::metakind::nodeValueConstantToStream(out, this);
   } else {
     if (nv_begin() != nv_end()) {
       for (const_nv_iterator child = nv_begin(); child != nv_end(); ++child) {
