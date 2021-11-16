@@ -224,7 +224,7 @@ public class Statistics
     solver.assertFormula(noSelfAncestor);
 
     // check sat
-    Result result = solver.checkSat();
+    solver.checkSat();
 
     return solver;
   }
