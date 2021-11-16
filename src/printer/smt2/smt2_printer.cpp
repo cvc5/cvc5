@@ -182,7 +182,7 @@ void Smt2Printer::toStream(std::ostream& out,
       default:
         // fall back on whatever operator<< does on underlying type; we
         // might luck out and be SMT-LIB v2 compliant
-        kind::metakind::NodeValueConstPrinter::toStream(out, n);
+        n.constToStream(out);
       }
       break;
     case kind::BITVECTOR_TYPE:
@@ -454,7 +454,7 @@ void Smt2Printer::toStream(std::ostream& out,
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
-      kind::metakind::NodeValueConstPrinter::toStream(out, n);
+      n.constToStream(out);
     }
 
     return;
@@ -1073,6 +1073,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SET_COMPREHENSION: return "set.comprehension";
   case kind::SET_CHOOSE: return "set.choose";
   case kind::SET_IS_SINGLETON: return "set.is_singleton";
+  case kind::SET_MAP: return "set.map";
   case kind::RELATION_JOIN: return "rel.join";
   case kind::RELATION_PRODUCT: return "rel.product";
   case kind::RELATION_TRANSPOSE: return "rel.transpose";

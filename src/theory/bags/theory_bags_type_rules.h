@@ -31,7 +31,7 @@ namespace bags {
 /**
  * Type rule for binary operators (bag.union_max, bag.union_disjoint,
  * bag.inter_min bag.difference_subtract, bag.difference_remove) to check
- * if the two arguments are of the same sort.
+ * if the two arguments are bags of the same sort.
  */
 struct BinaryOperatorTypeRule
 {
@@ -40,8 +40,8 @@ struct BinaryOperatorTypeRule
 }; /* struct BinaryOperatorTypeRule */
 
 /**
- * Type rule for binary operator bag.subbag to check if the two arguments have
- * the same sort.
+ * Type rule for binary operator bag.subbag to check if the two arguments are
+ * bags of the same sort.
  */
 struct SubBagTypeRule
 {
@@ -76,7 +76,7 @@ struct BagMakeTypeRule
 }; /* struct BagMakeTypeRule */
 
 /**
- * Type rule for bag.is_singleton to check the argument is of a bag.
+ * Type rule for (bag.is_singleton B) to check the argument B is a bag.
  */
 struct IsSingletonTypeRule
 {
@@ -84,7 +84,7 @@ struct IsSingletonTypeRule
 }; /* struct IsSingletonTypeRule */
 
 /**
- * Type rule for (as bag.empty (Bag ...))
+ * Type rule for (as bag.empty (Bag T)) where T is a type
  */
 struct EmptyBagTypeRule
 {
@@ -92,7 +92,7 @@ struct EmptyBagTypeRule
 }; /* struct EmptyBagTypeRule */
 
 /**
- * Type rule for (bag.card ..) to check the argument is of a bag.
+ * Type rule for (bag.card B) to check the argument B is a bag.
  */
 struct CardTypeRule
 {
@@ -100,7 +100,7 @@ struct CardTypeRule
 }; /* struct CardTypeRule */
 
 /**
- * Type rule for (bag.choose ..) to check the argument is of a bag.
+ * Type rule for (bag.choose B) to check the argument B is a bag.
  */
 struct ChooseTypeRule
 {
