@@ -14,48 +14,45 @@
  *
  * To run the resulting class file, you need to do something like the
  * following:
- *
+ *   javac  "-cp" "../build/src/api/java/cvc5.jar" SimpleVC.java
  *   java \
- *     -cp path/to/CVC4.jar:SimpleVC.jar \
- *     -Djava.library.path=/dir/containing/libcvc4jni.so \
+ *     "-Djava.library.path=../build/src/api/java" "-cp" "../build/src/api/java/cvc5.jar:." \
  *     SimpleVC
- *
  */
 
-import edu.stanford.CVC4.*;
+import static io.github.cvc5.api.Kind.*;
 
-public class SimpleVC {
-  public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+import io.github.cvc5.api.*;
 
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
+public class SimpleVC
+{
+  public static void main(String[] args)
+  {
+    Solver slv = new Solver();
 
     // Prove that for integers x and y:
     //   x > 0 AND y > 0  =>  2x + y >= 3
 
-    Type integer = em.integerType();
+    Sort integer = slv.getIntegerSort();
 
-    Expr x = em.mkVar("x", integer);
-    Expr y = em.mkVar("y", integer);
-    Expr zero = em.mkConst(new Rational(0));
+    Term x = slv.mkConst(integer, "x");
+    Term y = slv.mkConst(integer, "y");
+    Term zero = slv.mkInteger(0);
 
-    Expr x_positive = em.mkExpr(Kind.GT, x, zero);
-    Expr y_positive = em.mkExpr(Kind.GT, y, zero);
+    Term x_positive = slv.mkTerm(Kind.GT, x, zero);
+    Term y_positive = slv.mkTerm(Kind.GT, y, zero);
 
-    Expr two = em.mkConst(new Rational(2));
-    Expr twox = em.mkExpr(Kind.MULT, two, x);
-    Expr twox_plus_y = em.mkExpr(Kind.PLUS, twox, y);
+    Term two = slv.mkInteger(2);
+    Term twox = slv.mkTerm(Kind.MULT, two, x);
+    Term twox_plus_y = slv.mkTerm(Kind.PLUS, twox, y);
 
-    Expr three = em.mkConst(new Rational(3));
-    Expr twox_plus_y_geq_3 = em.mkExpr(Kind.GEQ, twox_plus_y, three);
+    Term three = slv.mkInteger(3);
+    Term twox_plus_y_geq_3 = slv.mkTerm(Kind.GEQ, twox_plus_y, three);
 
-    Expr formula =
-        em.mkExpr(Kind.AND, x_positive, y_positive).impExpr(twox_plus_y_geq_3);
+    Term formula = slv.mkTerm(Kind.AND, x_positive, y_positive).impTerm(twox_plus_y_geq_3);
 
-    System.out.println(
-        "Checking entailment of formula " + formula + " with CVC4.");
-    System.out.println("CVC4 should report ENTAILED.");
-    System.out.println("Result from CVC4 is: " + smt.checkEntailed(formula));
+    System.out.println("Checking entailment of formula " + formula + " with cvc5.");
+    System.out.println("cvc5 should report ENTAILED.");
+    System.out.println("Result from cvc5 is: " + slv.checkEntailed(formula));
   }
 }
