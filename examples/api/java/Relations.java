@@ -144,7 +144,7 @@ public class Relations
       Term unionFatherMother = solver.mkTerm(SET_UNION, father, mother);
       Term parentIsFatherOrMother = solver.mkTerm(EQUAL, parent, unionFatherMother);
 
-      // (assert (= parent (set.union father mother)))
+      // (assert (= descendant (rel.tclosure parent)))
       Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, parent);
       Term descendantFormula = solver.mkTerm(EQUAL, descendant, transitiveClosure);
 
