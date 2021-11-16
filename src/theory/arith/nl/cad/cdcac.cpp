@@ -704,10 +704,10 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
       if (copy.size() != intervals.size())
       {
         Trace("cdcac") << "Before pruning:";
-        for (const auto& i: copy) Trace("cdcac") << " " << i.d_interval;
+        for (const auto& i : copy) Trace("cdcac") << " " << i.d_interval;
         Trace("cdcac") << std::endl;
         Trace("cdcac") << "After pruning: ";
-        for (const auto& i: intervals) Trace("cdcac") << " " << i.d_interval;
+        for (const auto& i : intervals) Trace("cdcac") << " " << i.d_interval;
         Trace("cdcac") << std::endl;
       }
     }

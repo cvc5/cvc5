@@ -115,7 +115,9 @@ bool intervalCovers(const Interval& lhs, const Interval& rhs)
 /**
  * Check whether a and b together cover rhs.
  */
-std::optional<bool> intervalsCover(const Interval& a, const Interval& b, const Interval& rhs)
+std::optional<bool> intervalsCover(const Interval& a,
+                                   const Interval& b,
+                                   const Interval& rhs)
 {
   const lp_value_t* au = poly::get_upper(a).get_internal();
   const lp_value_t* bl = poly::get_lower(b).get_internal();
@@ -125,12 +127,10 @@ std::optional<bool> intervalsCover(const Interval& a, const Interval& b, const I
   if (mc < 0) return {};
   if (mc == 0 && poly::get_upper_open(a) && poly::get_lower_open(b)) return {};
 
-  Interval c(
-    poly::get_lower(a),
-    poly::get_lower_open(a),
-    poly::get_upper(b),
-    poly::get_upper_open(b)
-  );
+  Interval c(poly::get_lower(a),
+             poly::get_lower_open(a),
+             poly::get_upper(b),
+             poly::get_upper_open(b));
 
   return intervalCovers(c, rhs);
 }
@@ -170,7 +170,7 @@ bool intervalConnect(const Interval& lhs, const Interval& rhs)
   }
   return false;
 }
-}
+}  // namespace
 
 void cleanIntervals(std::vector<CACInterval>& intervals)
 {

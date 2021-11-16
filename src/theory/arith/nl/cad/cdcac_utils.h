@@ -75,7 +75,8 @@ void cleanIntervals(std::vector<CACInterval>& intervals);
 
 /**
  * Removes redundant intervals as in 4.5. 2.
- * Assumes the intervals to be sorted and cleaned, i.e. that cleanIntervals(intervals) has been called beforehand.
+ * Assumes the intervals to be sorted and cleaned, i.e. that
+ * cleanIntervals(intervals) has been called beforehand.
  */
 void removeRedundantIntervals(std::vector<CACInterval>& intervals);
 
