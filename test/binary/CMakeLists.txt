@@ -17,9 +17,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 include_directories(${CMAKE_BINARY_DIR}/src)
 
-add_custom_target(binarytests
-  COMMAND ctest --output-on-failure -L "binary" -j${CTEST_NTHREADS} $$ARGS)
-
 # if we've built using libedit, (--editline) then we want the interactive shell tests
 if (USE_EDITLINE)
 
@@ -32,6 +29,8 @@ if (USE_EDITLINE)
 
   # Add the test if we have pexpect
   if(PEXPECT_RC EQUAL 0)
+    add_custom_target(binarytests
+      COMMAND ctest --output-on-failure -L "binary" -j${CTEST_NTHREADS} $$ARGS)
     add_test(
       NAME interactive_shell
       COMMAND
