@@ -113,39 +113,16 @@ bool intervalCovers(const Interval& lhs, const Interval& rhs)
 }
 
 /**
- * Check whether a and b together cover rhs.
- */
-std::optional<bool> intervalsCover(const Interval& a,
-                                   const Interval& b,
-                                   const Interval& rhs)
-{
-  const lp_value_t* au = poly::get_upper(a).get_internal();
-  const lp_value_t* bl = poly::get_lower(b).get_internal();
-
-  // check whether a and b connect
-  int mc = lp_value_cmp(au, bl);
-  if (mc < 0) return {};
-  if (mc == 0 && poly::get_upper_open(a) && poly::get_lower_open(b)) return {};
-
-  Interval c(poly::get_lower(a),
-             poly::get_lower_open(a),
-             poly::get_upper(b),
-             poly::get_upper_open(b));
-
-  return intervalCovers(c, rhs);
-}
-
-/**
  * Check whether two intervals connect, assuming lhs < rhs.
  * They connect, if their union has no gap.
  */
 bool intervalConnect(const Interval& lhs, const Interval& rhs)
 {
   Assert(lhs < rhs) << "Can only check for a connection if lhs < rhs.";
-  const lp_value_t* lu = lhs.get_internal()->is_point
-                             ? &(lhs.get_internal()->a)
-                             : &(lhs.get_internal()->b);
-  const lp_value_t* rl = &(rhs.get_internal()->a);
+
+  const lp_value_t* lu = poly::get_upper(lhs).get_internal();
+  const lp_value_t* rl = poly::get_lower(rhs).get_internal();
+
   int c = lp_value_cmp(lu, rl);
   if (c < 0)
   {
@@ -160,15 +137,37 @@ bool intervalConnect(const Interval& lhs, const Interval& rhs)
     return true;
   }
   Assert(c == 0);
-  if (lhs.get_internal()->is_point || rhs.get_internal()->is_point
-      || !lhs.get_internal()->b_open || !rhs.get_internal()->a_open)
+  if (poly::get_upper_open(lhs) && poly::get_upper_open(rhs))
   {
     Trace("libpoly::interval_connect")
         << lhs << " and " << rhs
-        << " touch and the intermediate point is covered." << std::endl;
-    return true;
+        << " touch and the intermediate point is not covered." << std::endl;
+    return false;
   }
-  return false;
+  Trace("libpoly::interval_connect")
+      << lhs << " and " << rhs
+      << " touch and the intermediate point is covered." << std::endl;
+  return true;
+}
+
+/**
+ * Check whether a and b together cover rhs.
+ * First check whether a and b connect, and then defer the containment check to
+ * intervalCovers.
+ * If a and b do not connect, rew
+ */
+std::optional<bool> intervalsCover(const Interval& a,
+                                   const Interval& b,
+                                   const Interval& rhs)
+{
+  if (!intervalConnect(a, b)) return {};
+
+  Interval c(poly::get_lower(a),
+             poly::get_lower_open(a),
+             poly::get_upper(b),
+             poly::get_upper_open(b));
+
+  return intervalCovers(c, rhs);
 }
 }  // namespace
 
