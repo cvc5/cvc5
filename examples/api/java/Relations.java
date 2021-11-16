@@ -148,7 +148,7 @@ public class Relations
       Term transitiveClosure = solver.mkTerm(RELATION_TCLOSURE, parent);
       Term descendantFormula = solver.mkTerm(EQUAL, descendant, transitiveClosure);
 
-      // (assert (= parent (set.union father mother)))
+      // (assert (= ancestor (rel.transpose descendant)))
       Term transpose = solver.mkTerm(RELATION_TRANSPOSE, descendant);
       Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transpose);
 
