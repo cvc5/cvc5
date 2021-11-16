@@ -255,8 +255,16 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   if (eqc.isNull())
   {
     // generates too many instantiations at top-level when eqc is null, thus
-    // set mode to none.
-    d_mode = cand_term_none;
+    // set mode to none unless option is set.
+    if (options::quantifiers.consExpandTriggers)
+    {
+      d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
+      d_mode = cand_term_db;
+    }
+    else
+    {
+      d_mode = cand_term_none;
+    }
   }
   else
   {
