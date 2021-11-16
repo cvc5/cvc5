@@ -662,7 +662,7 @@ Node IntBlaster::translateNoChildren(Node original,
 
   // The translation is done differently for variables (bound or free)  and
   // constants (values)
-  Assert(original.isVar() || original.isConst());
+  Assert(original.isVar() || original.isConst() || original.isNullaryOp());
   if (original.isVar())
   {
     if (original.getType().isBitVector())
@@ -735,7 +735,7 @@ Node IntBlaster::translateNoChildren(Node original,
   }
   else
   {
-    // original is a constant (value)
+    // original is a constant (value) or a nullary op (e.g., PI)
     if (original.getKind() == kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
@@ -746,7 +746,7 @@ Node IntBlaster::translateNoChildren(Node original,
     }
     else
     {
-      // Other constants stay the same.
+      // Other constants or nullary ops stay the same.
       translation = original;
     }
   }
