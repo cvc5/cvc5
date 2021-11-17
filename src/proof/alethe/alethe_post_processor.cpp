@@ -26,6 +26,7 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
+#include "options/proof_options.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
@@ -584,7 +585,7 @@ bool AletheProofPostprocessCallback::update(Node res,
           if (child != res)
           {
             return addAletheStepFromOr(
-                AletheRule::CONTRACTION, res, children, args, *cdp);
+                AletheRule::CONTRACTION, res, children, {}, *cdp);
           }
         }
       }
@@ -592,7 +593,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           args,
+                           {},
                            *cdp);
     }
     // ======== Reordering
@@ -600,7 +601,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::REORDERING:
     {
       return addAletheStepFromOr(
-          AletheRule::REORDERING, res, children, args, *cdp);
+          AletheRule::REORDERING, res, children, {}, *cdp);
     }
     // ======== Split
     // See proof_rule.h for documentation on the SPLIT rule. This comment
@@ -1795,7 +1796,6 @@ bool AletheProofPostprocessCallback::finalize(Node res,
                                               CDProof* cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> new_args;
   AletheRule rule = getAletheRule(args[0]);
   Trace("alethe-proof") << "... finalizer for rule " << rule << " / " << res
                        << std::endl;
@@ -1803,9 +1803,17 @@ bool AletheProofPostprocessCallback::finalize(Node res,
   {
     case AletheRule::RESOLUTION:
     {
+      if (args.size() < 4)
+      {
+        return false;
+      }
       // In this case might have been printed as (cl (or a b)) but is not used
       // as a singleton
       std::vector<Node> new_children = children;
+      std::vector<Node> new_args =
+          options::proofAletheResPivots()
+              ? args
+              : std::vector<Node>(args.begin(), args.begin() + 3);
       Node trueNode = nm->mkConst(true);
       Node falseNode = nm->mkConst(false);
       bool hasUpdated = false;
@@ -1871,12 +1879,12 @@ bool AletheProofPostprocessCallback::finalize(Node res,
           }
         }
       }
-      if (hasUpdated)
+      if (hasUpdated || !options::proofAletheResPivots())
       {
         Trace("alethe-proof")
             << "... update alethe step in finalizer " << res << " "
             << new_children << " / " << args << std::endl;
-        cdp->addStep(res, PfRule::ALETHE_RULE, new_children, args);
+        cdp->addStep(res, PfRule::ALETHE_RULE, new_children, new_args);
         return true;
       }
       return false;
