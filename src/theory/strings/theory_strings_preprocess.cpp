@@ -53,9 +53,9 @@ Node StringsPreprocess::reduce(Node t,
       << "StringsPreprocess::reduce: " << t << std::endl;
   Node retNode = t;
   NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConst(Rational(0));
-  Node one = nm->mkConst(Rational(1));
-  Node negOne = nm->mkConst(Rational(-1));
+  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  Node negOne = nm->mkConst(CONST_RATIONAL, Rational(-1));
 
   if( t.getKind() == kind::STRING_SUBSTR ) {
     // processing term:  substr( s, n, m )
@@ -184,7 +184,7 @@ Node StringsPreprocess::reduce(Node t,
     Node skk = sc->mkTypedSkolemCached(
         nm->integerType(), t, SkolemCache::SK_PURIFY, "iok");
 
-    Node negone = nm->mkConst(Rational(-1));
+    Node negone = nm->mkConst(CONST_RATIONAL, Rational(-1));
 
     // substr( x, n, len( x ) - n )
     Node st = nm->mkNode(STRING_SUBSTR,
@@ -364,7 +364,7 @@ Node StringsPreprocess::reduce(Node t,
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
     Node c = nm->mkNode(MINUS, nm->mkNode(STRING_TO_CODE, sx), c0);
 
-    Node ten = nm->mkConst(Rational(10));
+    Node ten = nm->mkConst(CONST_RATIONAL, Rational(10));
     Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
     Node leadingZeroPos =
         nm->mkNode(AND, x.eqNode(zero), nm->mkNode(GT, leni, one));
@@ -431,7 +431,7 @@ Node StringsPreprocess::reduce(Node t,
         MINUS,
         nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, s, k, one)),
         c0);
-    Node ten = nm->mkConst(Rational(10));
+    Node ten = nm->mkConst(CONST_RATIONAL, Rational(10));
     Node kc3 = nm->mkNode(
         OR, nm->mkNode(LT, codeSk, zero), nm->mkNode(GEQ, codeSk, ten));
     conc1.push_back(nm->mkNode(OR, sEmpty, nm->mkNode(AND, kc1, kc2, kc3)));
@@ -865,10 +865,12 @@ Node StringsPreprocess::reduce(Node t,
     Node ci = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
     Node ri = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, one));
 
-    Node lb = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
-    Node ub = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
-    Node offset =
-        nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? -32 : 32));
+    Node lb = nm->mkConst(CONST_RATIONAL,
+                          Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
+    Node ub = nm->mkConst(CONST_RATIONAL,
+                          Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
+    Node offset = nm->mkConst(
+        CONST_RATIONAL, Rational(t.getKind() == STRING_TOUPPER ? -32 : 32));
 
     Node res = nm->mkNode(
         ITE,

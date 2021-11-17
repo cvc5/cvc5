@@ -105,10 +105,8 @@ Node NaryBuilder::zeroArity(Kind k){
     return nm->mkConst(true);
   case OR:
     return nm->mkConst(false);
-  case PLUS:
-    return nm->mkConst(Rational(0));
-  case MULT:
-    return nm->mkConst(Rational(1));
+  case PLUS: return nm->mkConst(CONST_RATIONAL, Rational(0));
+  case MULT: return nm->mkConst(CONST_RATIONAL, Rational(1));
   default:
     return Node::null();
   }

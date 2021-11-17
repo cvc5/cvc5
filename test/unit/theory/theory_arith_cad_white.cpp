@@ -37,6 +37,7 @@
 namespace cvc5::test {
 
 using namespace cvc5;
+using namespace cvc5::kind;
 using namespace cvc5::theory;
 using namespace cvc5::theory::arith;
 using namespace cvc5::theory::arith::nl;
@@ -54,7 +55,10 @@ class TestTheoryWhiteArithCAD : public TestSmt
     nodeManager = d_nodeManager;
   }
 
-  Node dummy(int i) const { return d_nodeManager->mkConst(Rational(i)); }
+  Node dummy(int i) const
+  {
+    return d_nodeManager->mkConst(CONST_RATIONAL, Rational(i));
+  }
 
   Theory::Effort d_level = Theory::EFFORT_FULL;
   std::unique_ptr<TypeNode> d_realType;
@@ -181,14 +185,15 @@ TEST_F(TestTheoryWhiteArithCAD, lazard_simp)
   Node a = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkVar(*d_realType);
   Node orig = d_nodeManager->mkAnd(std::vector<Node>{
-      d_nodeManager->mkNode(Kind::EQUAL, a, d_nodeManager->mkConst(d_zero)),
+      d_nodeManager->mkNode(
+          Kind::EQUAL, a, d_nodeManager->mkConst(CONST_RATIONAL, d_zero)),
       d_nodeManager->mkNode(
           Kind::EQUAL,
           d_nodeManager->mkNode(
               Kind::PLUS,
               d_nodeManager->mkNode(Kind::NONLINEAR_MULT, a, c),
-              d_nodeManager->mkConst(d_one)),
-          d_nodeManager->mkConst(d_zero))});
+              d_nodeManager->mkConst(CONST_RATIONAL, d_one)),
+          d_nodeManager->mkConst(CONST_RATIONAL, d_zero))});
 
   {
     Node rewritten = Rewriter::rewrite(orig);
@@ -356,10 +361,10 @@ void test_delta(const std::vector<Node>& a)
 TEST_F(TestTheoryWhiteArithCAD, test_delta_one)
 {
   std::vector<Node> a;
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node mone = d_nodeManager->mkConst(Rational(-1));
-  Node fifth = d_nodeManager->mkConst(Rational(1, 2));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node mone = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
+  Node fifth = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 2));
   Node g = make_real_variable("g");
   Node l = make_real_variable("l");
   Node q = make_real_variable("q");
@@ -379,10 +384,10 @@ TEST_F(TestTheoryWhiteArithCAD, test_delta_one)
 TEST_F(TestTheoryWhiteArithCAD, test_delta_two)
 {
   std::vector<Node> a;
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node mone = d_nodeManager->mkConst(Rational(-1));
-  Node fifth = d_nodeManager->mkConst(Rational(1, 2));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node mone = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
+  Node fifth = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 2));
   Node g = make_real_variable("g");
   Node l = make_real_variable("l");
   Node q = make_real_variable("q");

@@ -32,8 +32,10 @@
 #include "util/iand.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+using namespace cvc5::kind;
 using namespace cvc5::theory;
+
+namespace cvc5 {
 
 namespace {
 
@@ -57,8 +59,8 @@ IntBlaster::IntBlaster(Env& env,
       d_introduceFreshIntVars(introduceFreshIntVars)
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst<Rational>(0);
-  d_one = d_nm->mkConst<Rational>(1);
+  d_zero = d_nm->mkConst<Rational>(CONST_RATIONAL, 0);
+  d_one = d_nm->mkConst<Rational>(CONST_RATIONAL, 1);
 };
 
 IntBlaster::~IntBlaster() {}
@@ -80,18 +82,18 @@ Node IntBlaster::maxInt(uint64_t k)
 {
   Assert(k > 0);
   Rational max_value = intpow2(k) - 1;
-  return d_nm->mkConst<Rational>(max_value);
+  return d_nm->mkConst<Rational>(CONST_RATIONAL, max_value);
 }
 
 Node IntBlaster::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst<Rational>(intpow2(k));
+  return d_nm->mkConst<Rational>(CONST_RATIONAL, intpow2(k));
 }
 
 Node IntBlaster::modpow2(Node n, uint64_t exponent)
 {
-  Node p2 = d_nm->mkConst<Rational>(intpow2(exponent));
+  Node p2 = d_nm->mkConst<Rational>(CONST_RATIONAL, intpow2(exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -657,7 +659,7 @@ Node IntBlaster::translateNoChildren(Node original,
       // Bit-vector constants are transformed into their integer value.
       BitVector constant(original.getConst<BitVector>());
       Integer c = constant.toInteger();
-      translation = d_nm->mkConst<Rational>(c);
+      translation = d_nm->mkConst<Rational>(CONST_RATIONAL, c);
     }
     else
     {

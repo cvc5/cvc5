@@ -393,7 +393,9 @@ def generate_getinfo_impl(modules):
         elif option.type == 'double' or is_numeric_cpp_type(option.type):
             constr = 'OptionInfo::NumberInfo<{type}>{{{default}, {value}, {minimum}, {maximum}}}'
         elif option.mode:
-            fmt['modes'] = ', '.join(['"{}"'.format(s) for s in sorted(option.mode.keys())])
+            modes = { key: value[0]['name'] for key,value in option.mode.items() }
+            fmt['modes'] = ', '.join(['"{}"'.format(s) for s in sorted(modes.values())])
+            fmt['default'] = modes[fmt['default']]
             constr = 'OptionInfo::ModeInfo{{"{default}", {value}, {{ {modes} }}}}'
         else:
             constr = 'OptionInfo::VoidInfo{{}}'

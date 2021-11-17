@@ -660,11 +660,14 @@ set(regress_0_tests
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
+  regress0/ho/lazy-lambda-model.smt2
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/qgu-fuzz-ho-1-dd.smt2
   regress0/ho/qgu-fuzz-ho-2-dd-no-ext.smt2
   regress0/ho/shadowing-defs.smt2
+  regress0/ho/simple-conf-lazy-lambda-lift.smt2
+  regress0/ho/simple-conf-lazy-lambda-lift-app.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2
   regress0/ho/trans.smt2
@@ -799,6 +802,7 @@ set(regress_0_tests
   regress0/parser/linear_arithmetic_err3.smt2
   regress0/parser/named-attr-error.smt2
   regress0/parser/named-attr.smt2
+  regress0/parser/quoted-define-fun.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -869,6 +873,7 @@ set(regress_0_tests
   regress0/proofs/project-issue317-inc-sat-conflictlit.smt2
   regress0/proofs/project-issue330-eqproof.smt2
   regress0/proofs/proj-issue326-nl-bounds-check.smt2
+  regress0/proofs/proj-issue342-eager-checking-no-proof-checking.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
@@ -1084,6 +1089,7 @@ set(regress_0_tests
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
+  regress0/seq/proj-issue340.smt2
   regress0/seq/rev.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
@@ -1613,6 +1619,7 @@ set(regress_1_tests
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
+  regress1/bags/map-lazy-lam.smt2
   regress1/bags/map1.smt2
   regress1/bags/map2.smt2
   regress1/bags/map3.smt2
@@ -1737,8 +1744,10 @@ set(regress_1_tests
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.p
+  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bound_var_bug.p
   regress1/ho/fta0328.lfho.p
+  regress1/ho/ho-fun-sharing-dd.smt2
   regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
@@ -2816,8 +2825,6 @@ set(regression_disabled_tests
   ###
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
-  # disabled temporarily until lazy lambda handling is merged
-  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
   # after disallowing solving for terms with quantifiers

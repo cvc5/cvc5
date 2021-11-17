@@ -106,7 +106,7 @@ class BaseSolver : protected EnvObj
   /**
    * Get the set of equivalence classes of type string.
    */
-  const std::vector<Node>& getStringEqc() const;
+  const std::vector<Node>& getStringLikeEqc() const;
   //-----------------------end query functions
 
  private:
@@ -236,8 +236,8 @@ class BaseSolver : protected EnvObj
    * for more information.
    */
   std::map<Node, BaseEqcInfo> d_eqcInfo;
-  /** The list of equivalence classes of type string */
-  std::vector<Node> d_stringsEqc;
+  /** The list of equivalence classes of string-like types */
+  std::vector<Node> d_stringLikeEqc;
   /** A term index for each type, function kind pair */
   std::map<TypeNode, std::map<Kind, TermIndex> > d_termIndex;
   /** the cardinality of the alphabet */

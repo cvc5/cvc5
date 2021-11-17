@@ -124,7 +124,7 @@ void MonomialIndex::addTerm(Node n,
 
 MonomialDb::MonomialDb()
 {
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
 }
 
 void MonomialDb::registerMonomial(Node n)

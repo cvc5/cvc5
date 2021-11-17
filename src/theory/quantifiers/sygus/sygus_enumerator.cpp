@@ -257,7 +257,7 @@ void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
         // more aggressive merging of constructor classes. On the negative side,
         // this adds another level of indirection to remember which argument
         // positions the argument types occur in, for each constructor.
-        Node n = nm->mkConst(Rational(i));
+        Node n = nm->mkConst(CONST_RATIONAL, Rational(i));
         nToC[n] = i;
         tnit.add(n, argTypes[i]);
       }

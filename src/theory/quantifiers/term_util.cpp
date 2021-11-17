@@ -329,10 +329,10 @@ bool TermUtil::isBoolConnectiveTerm( TNode n ) {
 Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
 {
   Node n;
-  if (tn.isInteger() || tn.isReal())
+  if (tn.isRealOrInt())
   {
     Rational c(val);
-    n = NodeManager::currentNM()->mkConst(c);
+    n = NodeManager::currentNM()->mkConst(CONST_RATIONAL, c);
   }
   else if (tn.isBitVector())
   {
@@ -382,7 +382,7 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
   status = -1;
   if (!offset_val.isNull())
   {
-    if (tn.isInteger() || tn.isReal())
+    if (tn.isRealOrInt())
     {
       val_o = Rewriter::rewrite(
           NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
@@ -557,7 +557,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
   }
   else
   {
-    if (n.getType().isReal() && n.getConst<Rational>().sgn() < 0)
+    if (n.getType().isInteger() && n.getConst<Rational>().sgn() < 0)
     {
       // negative arguments
       if (ik == STRING_SUBSTR || ik == STRING_CHARAT)

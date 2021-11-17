@@ -1274,7 +1274,7 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
     throw LogicException(ss.str());
   }
   Assert(!d_partialModel.hasArithVar(x));
-  Assert(x.getType().isReal());  // real or integer
+  Assert(x.getType().isRealOrInt());  // real or integer
 
   ArithVar max = d_partialModel.getNumberOfVariables();
   ArithVar varX = d_partialModel.allocate(x, aux);
@@ -1427,10 +1427,10 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
       Pf pfLt =
           d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
-      Pf pfSum =
-          d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
-                        {pfGt, pfLt},
-                        {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
+      Pf pfSum = d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
+                               {pfGt, pfLt},
+                               {nm->mkConst<Rational>(CONST_RATIONAL, -1),
+                                nm->mkConst<Rational>(CONST_RATIONAL, 1)});
       Pf pfBot = d_pnm->mkNode(
           PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
       std::vector<Node> assumptions = {leq.getNode().negate(),
@@ -3044,12 +3044,17 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
   case kind::LT:
     return !isSatLiteral(n);
   case kind::EQUAL:
-    if(n[0].getType().isReal()){
+    if (n[0].getType().isRealOrInt())
+    {
       return !isSatLiteral(n);
-    }else if(n[0].getType().isBoolean()){
+    }
+    else if (n[0].getType().isBoolean())
+    {
       return hasFreshArithLiteral(n[0]) ||
         hasFreshArithLiteral(n[1]);
-    }else{
+    }
+    else
+    {
       return false;
     }
   case kind::IMPLIES:
@@ -4474,11 +4479,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
         std::vector<Node> farkasCoefficients;
         farkasCoefficients.reserve(coeffs->size());
         auto nm = NodeManager::currentNM();
-        std::transform(
-            coeffs->begin(),
-            coeffs->end(),
-            std::back_inserter(farkasCoefficients),
-            [nm](const Rational& r) { return nm->mkConst<Rational>(r); });
+        std::transform(coeffs->begin(),
+                       coeffs->end(),
+                       std::back_inserter(farkasCoefficients),
+                       [nm](const Rational& r) {
+                         return nm->mkConst<Rational>(CONST_RATIONAL, r);
+                       });
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(

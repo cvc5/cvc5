@@ -18,6 +18,8 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 
 const char* toString(MethodId id)
@@ -49,7 +51,8 @@ std::ostream& operator<<(std::ostream& out, MethodId id)
 
 Node mkMethodId(MethodId id)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(id)));
+  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                           Rational(static_cast<uint32_t>(id)));
 }
 
 bool getMethodId(TNode n, MethodId& i)

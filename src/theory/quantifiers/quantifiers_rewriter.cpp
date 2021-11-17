@@ -723,7 +723,7 @@ Node QuantifiersRewriter::getVarElimEq(Node lit,
   Assert(lit.getKind() == EQUAL);
   Node slv;
   TypeNode tt = lit[0].getType();
-  if (tt.isReal())
+  if (tt.isRealOrInt())
   {
     slv = getVarElimEqReal(lit, args, var);
   }
@@ -920,7 +920,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       for (size_t j = 0, nargs = c.getNumArgs(); j < nargs; j++)
       {
         TypeNode tn = tspec[j];
-        Node rn = nm->mkConst(Rational(j));
+        Node rn = nm->mkConst(CONST_RATIONAL, Rational(j));
         Node cacheVal = BoundVarManager::getCacheValue(body, lit, rn);
         Node v = bvm->mkBoundVar<QRewDtExpandAttribute>(cacheVal, tn);
         newChildren.push_back(v);
@@ -1098,7 +1098,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
                                   << ", pol = " << pol << "..." << std::endl;
     bool canSolve =
         lit.getKind() == GEQ
-        || (lit.getKind() == EQUAL && lit[0].getType().isReal() && !pol);
+        || (lit.getKind() == EQUAL && lit[0].getType().isRealOrInt() && !pol);
     if (!canSolve)
     {
       continue;

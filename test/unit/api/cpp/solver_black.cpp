@@ -1390,9 +1390,9 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-    EXPECT_EQ("NONE", modeInfo.defaultValue);
+    EXPECT_EQ("none", modeInfo.defaultValue);
     EXPECT_EQ("none", modeInfo.currentValue);
-    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "NONE")
+    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
   }
 }
@@ -1601,7 +1601,7 @@ TEST_F(TestApiBlackSolver, getModelDomainElements2)
   Term x = d_solver.mkVar(uSort, "x");
   Term y = d_solver.mkVar(uSort, "y");
   Term eq = d_solver.mkTerm(EQUAL, x, y);
-  Term bvl = d_solver.mkTerm(BOUND_VAR_LIST, x, y);
+  Term bvl = d_solver.mkTerm(VARIABLE_LIST, x, y);
   Term f = d_solver.mkTerm(FORALL, bvl, eq);
   d_solver.assertFormula(f);
   d_solver.checkSat();
@@ -1674,7 +1674,7 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
   Term forall =
       d_solver.mkTerm(FORALL,
-                      d_solver.mkTerm(BOUND_VAR_LIST, x),
+                      d_solver.mkTerm(VARIABLE_LIST, x),
                       d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
   ASSERT_THROW(d_solver.getQuantifierElimination(Term()), CVC5ApiException);
   ASSERT_THROW(d_solver.getQuantifierElimination(Solver().mkBoolean(false)),
@@ -1687,7 +1687,7 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
   Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
   Term forall =
       d_solver.mkTerm(FORALL,
-                      d_solver.mkTerm(BOUND_VAR_LIST, x),
+                      d_solver.mkTerm(VARIABLE_LIST, x),
                       d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
   ASSERT_THROW(d_solver.getQuantifierEliminationDisjunct(Term()),
                CVC5ApiException);

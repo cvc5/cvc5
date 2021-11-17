@@ -25,6 +25,8 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
 
+using namespace cvc5::kind;
+
 namespace std {
 /** Generic streaming operator for std::vector. */
 template <typename T>
@@ -271,7 +273,7 @@ PolyVector requiredCoefficientsLazardModified(
 
   // construct phi := (and (= p_i 0)) with p_i the coefficients of p
   std::vector<Node> conditions;
-  auto zero = NodeManager::currentNM()->mkConst(Rational(0));
+  auto zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   for (const auto& coeff : poly::coefficients(p))
   {
     conditions.emplace_back(NodeManager::currentNM()->mkNode(
@@ -692,19 +694,36 @@ bool CDCAC::hasRootBelow(const poly::Polynomial& p,
 
 void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 {
+  cleanIntervals(intervals);
+  if (options().arith.nlCadPrune)
+  {
+    if (Trace.isOn("cdcac"))
+    {
+      auto copy = intervals;
+      removeRedundantIntervals(intervals);
+      if (copy.size() != intervals.size())
+      {
+        Trace("cdcac") << "Before pruning:";
+        for (const auto& i : copy) Trace("cdcac") << " " << i.d_interval;
+        Trace("cdcac") << std::endl;
+        Trace("cdcac") << "After pruning: ";
+        for (const auto& i : intervals) Trace("cdcac") << " " << i.d_interval;
+        Trace("cdcac") << std::endl;
+      }
+    }
+    else
+    {
+      removeRedundantIntervals(intervals);
+    }
+  }
   if (isProofEnabled())
   {
-    cleanIntervals(intervals);
     d_proof->pruneChildren([&intervals](std::size_t id) {
       return std::find_if(intervals.begin(),
                           intervals.end(),
                           [id](const CACInterval& i) { return i.d_id == id; })
              != intervals.end();
     });
-  }
-  else
-  {
-    cleanIntervals(intervals);
   }
 }
 

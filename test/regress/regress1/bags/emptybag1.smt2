@@ -4,7 +4,7 @@
 (declare-fun x () String)
 (declare-fun y () Int)
 (assert (= x "x"))
-(assert (= A (as emptybag (Bag String))))
+(assert (= A (as bag.empty (Bag String))))
 (assert (= (bag.count x A) y))
 (assert(> y 1))
 (check-sat)
