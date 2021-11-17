@@ -2184,6 +2184,8 @@ AletheProofPostprocessNoSubtypeCallback::
 {
   d_finalizeRules = {
       AletheRule::CONG, AletheRule::TRANS, AletheRule::FORALL_INST};
+  NodeManager* nm = NodeManager::currentNM();
+  d_cl = nm->mkBoundVar("cl", nm->sExprType());
 }
 
 bool AletheProofPostprocessNoSubtypeCallback::shouldUpdate(
@@ -2266,15 +2268,26 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
     {
       // get children
       size_t size = children.size();
-      Node lastLink = cdp->getProofFor(children[0])->getArguments()[2][1];
+      const std::vector<Node>& child0Args =cdp->getProofFor(children[0])->getArguments();
+      AlwaysAssert(child0Args.size() >= 3);
+      AlwaysAssert(child0Args[2].getKind() != kind::SEXPR
+                   || child0Args[2].getNumChildren() == 2);
+      Node lastLink = child0Args[2].getKind() == kind::SEXPR ? child0Args[2][1]
+                                                             : child0Args[2];
       // for each child check that the link in the transitivity chain is
       // compatible with the previous one. Otherwise add a step that casts
       // correctly
       for (size_t i = 1; i < size; ++i)
       {
-        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
-        AlwaysAssert(childPf->getArguments().size() >= 3);
-        Node links[2] = {lastLink, childPf->getArguments()[2][1]};
+        const std::vector<Node>& childArgs =
+            cdp->getProofFor(children[i])->getArguments();
+        AlwaysAssert(childArgs.size() >= 3);
+        AlwaysAssert(childArgs[2].getKind() != kind::SEXPR
+                     || childArgs[2].getNumChildren() == 2);
+        Node childConclusion = childArgs[2].getKind() == kind::SEXPR
+                                   ? childArgs[2][1]
+                                   : childArgs[2];
+        Node links[2] = {lastLink, childConclusion};
         AlwaysAssert(links[0].getKind() == kind::EQUAL
                      && links[1].getKind() == kind::EQUAL)
             << "not equalities: " << links[0] << " .. " << links[1] << "\n";
@@ -2325,7 +2338,7 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         Node newChild =
             nm->mkNode(kind::SEXPR,
                        // d_cl
-                       childPf->getArguments()[2][0],
+                       d_cl,
                        // converted link
                        d_anc.traverseAndConvertAllConsts(links[intLink]));
         Trace("alethe-proof-subtyping")
@@ -2375,14 +2388,23 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
       newConclusionChildren[1] = {conclusion[1].begin(), conclusion[1].end()};
       for (size_t i = 0, size = children.size(); i < size; ++i)
       {
-        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
-        AlwaysAssert(childPf->getArguments().size() >= 3);
-        Node childConclusion = childPf->getArguments()[2][1];
+        const std::vector<Node>& childArgs = cdp->getProofFor(children[i])->getArguments();
+        AlwaysAssert(childArgs.size() >= 3);
+        AlwaysAssert(childArgs[2].getKind() != kind::SEXPR
+                     || childArgs[2].getNumChildren() == 2);
+        Node childConclusion = childArgs[2].getKind() == kind::SEXPR
+                                   ? childArgs[2][1]
+                                   : childArgs[2];
+        Trace("alethe-proof-subtyping")
+            << "\t..original conclusion " << i << ": " << childConclusion << "\n";
+
         size_t differ[2] = {conclusion[0][i] != childConclusion[0] ? i : size,
                             conclusion[1][i] != childConclusion[1] ? i : size};
         if (differ[0] < size || differ[1] < size)
         {
           updated = true;
+          Trace("alethe-proof-subtyping")
+              << "\t..child " << i << ": " << childConclusion << "\n";
           Trace("alethe-proof-subtyping")
               << "\t.." << i << "-th child/conclusion args differ on positions "
               << (differ[0] < size ? "0 " : "") << (differ[1] < size ? "1" : "")
@@ -2418,7 +2440,7 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
             Node newChild =
                 nm->mkNode(kind::SEXPR,
                            // d_cl
-                           childPf->getArguments()[2][0],
+                           d_cl,
                            // converted link
                            d_anc.traverseAndConvertAllConsts(childConclusion));
             Trace("alethe-proof-subtyping")

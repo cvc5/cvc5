@@ -224,7 +224,8 @@ class AletheProofPostprocessNoSubtypeCallback : public ProofNodeUpdaterCallback
 
   /** Rules that may require finalizing. */
   std::set<AletheRule> d_finalizeRules;
-  ;
+
+  Node d_cl;
 };
 
 /**
