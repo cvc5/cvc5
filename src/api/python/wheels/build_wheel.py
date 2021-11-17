@@ -162,6 +162,7 @@ version_suffix = os.getenv('VERSION_SUFFIX', '')
 if len(version_suffix) > 0:
     assert all(c in string.ascii_letters + string.digits for c in version_suffix)
     assert version_suffix[0] in string.ascii_letters
+    assert version_suffix[-1] in string.ascii_digits
     print("Setting version suffix to", version_suffix)
 
 
