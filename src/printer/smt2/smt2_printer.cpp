@@ -182,7 +182,7 @@ void Smt2Printer::toStream(std::ostream& out,
       default:
         // fall back on whatever operator<< does on underlying type; we
         // might luck out and be SMT-LIB v2 compliant
-        kind::metakind::NodeValueConstPrinter::toStream(out, n);
+        n.constToStream(out);
       }
       break;
     case kind::BITVECTOR_TYPE:
@@ -454,7 +454,7 @@ void Smt2Printer::toStream(std::ostream& out,
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
-      kind::metakind::NodeValueConstPrinter::toStream(out, n);
+      n.constToStream(out);
     }
 
     return;
