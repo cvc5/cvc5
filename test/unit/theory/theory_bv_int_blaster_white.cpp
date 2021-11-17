@@ -278,14 +278,6 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   original = d_nodeManager->mkNode(BITVECTOR_ULTBV, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
-
-  // function application
-  TypeNode funType = d_nodeManager->mkFunctionType({bvType}, bvType);
-  Node f = d_nodeManager->mkVar("f", funType);
-  Node g = intBlaster.translateNoChildren(f, lemmas, skolems);
-  original = d_nodeManager->mkNode(APPLY_UF, f, v1);
-  result = intBlaster.translateWithChildren(original, {g, i1}, lemmas);
-  ASSERT_TRUE(result.getType().isInteger());
 }
 
 }  // namespace test
