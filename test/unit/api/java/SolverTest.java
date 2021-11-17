@@ -1435,9 +1435,9 @@ class SolverTest
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ModeInfo.class));
       OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getBaseInfo();
-      assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
+      assertions.add(() -> assertEquals("none", modeInfo.getDefaultValue()));
       assertions.add(() -> assertEquals("none", modeInfo.getCurrentValue()));
-      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
     }
     assertAll(assertions);
   }
