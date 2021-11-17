@@ -20,8 +20,10 @@
 # Note: takes an *optional* environment variable VERSION_SUFFIX. If set, this
 # suffix will be appended to the pypi package version.
 # Example:
-#   VERSION_SUFFIX=testing python3 ./src/api/python/wheels/build_wheel.py bdist_wheel
-# would create versions X.Y.Z_testing
+#   VERSION_SUFFIX=rc1 python3 ./src/api/python/wheels/build_wheel.py bdist_wheel
+# would create versions X.Y.Zrc1
+#
+# The suffix should start with a letter, and end with a number
 ##
 
 import os
