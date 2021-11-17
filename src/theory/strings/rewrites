@@ -1,5 +1,13 @@
+; --- should be independent of type
+
 (define-rule str-eq-refl ((t String)) (= t t) true)
 (define-rule str-eq-symm ((t String) (s String)) (= t s) (= s t))
+
+(define-rule str-ite-true-cond ((x String) (y String)) (ite true x y) x)
+(define-rule str-ite-false-cond ((x String) (y String)) (ite false x y) y)
+(define-rule str-ite-not-cond ((c Bool) (x String) (y String)) (ite (not c) x y) (ite c y x))
+
+; ---
 
 (define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list))
   (str.++ xs (str.++ s ys) zs)
@@ -36,8 +44,7 @@
   (and (>= n 0) (>= (str.len s) (+ n m)))
   (str.len (str.substr s n m))
   m)
-  
-  
+
 (define-rule re-in-empty ((t String)) (str.in_re t re.none) false)
 (define-rule re-in-sigma ((t String)) (str.in_re t re.allchar) (= (str.len t) 1))
 (define-rule re-in-sigma-star ((t String)) (str.in_re t (re.* re.allchar)) true)
@@ -93,6 +100,8 @@
 ;  (not (= (str.substr s 0 1) (str.substr t 0 1)))
 ;  (= s t)
 ;  false)
+
+(define-rule str-contains-refl ((x String)) (str.contains x x) true)
 
 (define-cond-rule str-contains-split-char ((x String) (y String) (z String :list) (w String))
   (= (str.len w) 1)
