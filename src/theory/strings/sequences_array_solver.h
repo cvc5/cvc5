@@ -60,6 +60,13 @@ class SequencesArraySolver : protected EnvObj
    * this map.
    */
   const std::map<Node, Node>& getWriteModel(Node eqc);
+  
+  /** 
+   * Get connected sequences
+   * @return a map M such that sequence equivalence class representatives x and
+   * y are connected if an only if M[x] = M[y].
+   */
+  const std::map<Node, Node>& getConnectedSequences();
 
  private:
   /** The solver state object */
@@ -76,6 +83,8 @@ class SequencesArraySolver : protected EnvObj
   ExtTheory& d_extt;
   /** The write model */
   std::map<Node, std::map<Node, Node>> d_writeModel;
+  /** Connected */
+  std::map<Node, Node> d_connectedSeq;
   context::CDHashSet<Node> d_lem;
 
   // ========= data structure =========
@@ -86,6 +95,8 @@ class SequencesArraySolver : protected EnvObj
   void checkNth(const std::vector<Node>& nthTerms);
 
   void checkUpdate(const std::vector<Node>& updateTerms);
+  
+  void computeConnected(const std::vector<Node>& updateTerms);
 };
 
 }  // namespace strings

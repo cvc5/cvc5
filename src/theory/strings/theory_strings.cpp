@@ -379,6 +379,11 @@ mti.d_nthTerms; for (const Node& t : terms)
   // confirmed by calculus invariant, see paper
   Trace("strings-model") << "Assign to equivalence classes..." << std::endl;
   std::map<Node, Node> pure_eq_assign;
+  const std::map<Node, Node>* conSeq = nullptr;
+  if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
+  {
+    conSeq = &d_asolver.getConnectedSequences();
+  }
   //step 3 : assign values to equivalence classes that are pure variables
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;

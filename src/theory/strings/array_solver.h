@@ -72,6 +72,7 @@ class ArraySolver : protected EnvObj
    * this map.
    */
   const std::map<Node, Node>& getWriteModel(Node eqc);
+  const std::map<Node, Node>& getConnectedSequences();
 
  private:
   /** check terms of given kind */

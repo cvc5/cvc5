@@ -303,6 +303,11 @@ const std::map<Node, Node>& ArraySolver::getWriteModel(Node eqc)
   return d_sasolver.getWriteModel(eqc);
 }
 
+const std::map<Node, Node>& ArraySolver::getConnectedSequences()
+{
+  return d_sasolver.getConnectedSequences();
+}
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace cvc5

@@ -168,18 +168,26 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
   NodeManager* nm = NodeManager::currentNM();
 
   Trace("seq-array-debug") << "NTH SIZE: " << nthTerms.size() << std::endl;
-  for (const Node& n : nthTerms)
+  if (Trace.isOn("seq-array-terms"))
   {
-    Trace("seq-array-terms") << n << std::endl;
+    for (const Node& n : nthTerms)
+    {
+      Trace("seq-array-terms") << n << std::endl;
+    }
   }
   Trace("seq-array-debug") << "UPDATE SIZE: " << updateTerms.size()
                            << std::endl;
-  for (const Node& n : updateTerms)
+  if (Trace.isOn("seq-array-terms"))
   {
-    Trace("seq-array-terms") << n << std::endl;
+    for (const Node& n : updateTerms)
+    {
+      Trace("seq-array-terms") << n << std::endl;
+    }
   }
   Trace("seq-update") << "SequencesArraySolver::check..." << std::endl;
   d_writeModel.clear();
+  // AJR: i think d_index_map should be cleared at the beginning of each check?
+  d_index_map.clear();
   for (const Node& n : nthTerms)
   {
     // (seq.nth n[0] n[1])
@@ -220,16 +228,72 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
   }
   checkNth(nthTerms);
   checkUpdate(updateTerms);
+  // compute connected sequences
+  if (!d_im.hasSent())
+  {
+    computeConnected(updateTerms);
+  }
+}
+
+void SequencesArraySolver::computeConnected(const std::vector<Node>& updateTerms)
+{
+  d_connectedSeq.clear();
+  std::map<Node, Node> conTmp;
+  std::map<Node, Node>::iterator it;
+  for (const Node& n : updateTerms)
+  {
+    Node newRep;
+    for (size_t i=0; i<2; i++)
+    {
+      Node s = i==0 ? n[0] : n;
+      TNode r = d_state.getRepresentative(s);
+      // get the find
+      it = conTmp.find(r);
+      while (it!=conTmp.end())
+      {
+        r = it->second;
+        it = conTmp.find(r);
+      }
+      if (i==0)
+      {
+        newRep = r;
+      }
+      else if (newRep!=r)
+      {
+        conTmp[newRep] = r;
+      }
+    }
+  }
+  // go back and normalize the find to representatives
+  for (std::pair<const Node, Node>& c : conTmp)
+  {
+    TNode r = c.first;
+    it = conTmp.find(r);
+    while (it!=conTmp.end())
+    {
+      r = it->second;
+      it = conTmp.find(r);
+    }
+    d_connectedSeq[c.first] = r;
+  }
 }
 
 const std::map<Node, Node>& SequencesArraySolver::getWriteModel(Node eqc)
 {
-  Trace("seq-write-model") << "write model of " << eqc << ":" << std::endl;
-  for (auto& x : d_writeModel[eqc])
+  if (Trace.isOn("seq-write-model"))
   {
-    Trace("seq-write-model") << x.first << ": " << x.second << std::endl;
+    Trace("seq-write-model") << "write model of " << eqc << ":" << std::endl;
+    for (auto& x : d_writeModel[eqc])
+    {
+      Trace("seq-write-model") << x.first << ": " << x.second << std::endl;
+    }
   }
   return d_writeModel[eqc];
+}
+
+const std::map<Node, Node>& SequencesArraySolver::getConnectedSequences()
+{
+  return d_connectedSeq;
 }
 
 }  // namespace strings
