@@ -1476,7 +1476,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
-        // ======== Trichotomy of the reals
+    // ======== Trichotomy of the reals
     // See proof_rule.h for documentation on the ARITH_TRICHOTOMY rule. This
     // comment uses variable names as introduced there.
     //
@@ -1492,7 +1492,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // cases resolution on VP2 A B yields (not (<=x c)) or (not (<= c x)) and
     // comp_simplify is used to transform it into C. Otherwise,
     //
-    //  VP2   A   B 
+    //  VP2   A   B
     // ---------------- RESOLUTION
     //  (cl C)*
     //
@@ -1507,44 +1507,59 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (res.getKind() == kind::EQUAL)
       {
         equal = res;
+        if (children[0].getKind() == kind::LEQ)
+        {
+          greater = children[0];
+          lesser = children[1];
+        }
+        else
+        {
+          greater = children[1];
+          lesser = children[0];
+        }
       }
-      else if (children[0].getKind() == kind::NOT)
-      {
-        equal = children[0];
-      }
-      else if (children[1].getKind() == kind::NOT)
-      {
-        equal = children[1];
-      }
-
-      if (res.getKind() == kind::GT)
+      // Add case where res is not =
+      else if (res.getKind() == kind::GT)
       {
         greater = res;
+        if (children[0].getKind() == kind::NOT)
+        {
+          equal = children[0];
+          lesser = children[1];
+        }
+        else
+        {
+          equal = children[1];
+          lesser = children[0];
+        }
       }
-      else if (children[0].getKind() == kind::LEQ)
-      {
-        greater = children[0];
-      }
-      else if (children[1].getKind() == kind::LEQ)
-      {
-        greater = children[1];
-      }
-
-      if (res.getKind() == kind::LT)
+      else
       {
         lesser = res;
-      }
-      else if (children[0].getKind() == kind::GEQ)
-      {
-        lesser = children[0];
-      }
-      else if (children[1].getKind() == kind::GEQ)
-      {
-        lesser = children[1];
+        if (children[0].getKind() == kind::NOT)
+        {
+          equal = children[0];
+          greater = children[1];
+        }
+        else
+        {
+          equal = children[1];
+          greater = children[0];
+        }
       }
 
-      Node x = equal[0][0];
-      Node c = equal[0][1];
+      Node x;
+      Node c;
+      if (equal.getKind() == kind::NOT)
+      {
+        x = equal[0][0];
+        c = equal[0][1];
+      }
+      else
+      {
+        x = equal[0];
+        c = equal[1];
+      }
       Node vp_child1 = children[0];
       Node vp_child2 = children[1];
 
