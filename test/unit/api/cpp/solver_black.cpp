@@ -1390,9 +1390,9 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ(std::vector<std::string>{}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-    EXPECT_EQ("NONE", modeInfo.defaultValue);
+    EXPECT_EQ("none", modeInfo.defaultValue);
     EXPECT_EQ("none", modeInfo.currentValue);
-    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "NONE")
+    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
   }
 }
