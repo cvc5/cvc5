@@ -133,3 +133,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "add optional annotations to proofs"
+
+[[option]]
+  name       = "proofAletheResPivots"
+  category   = "regular"
+  long       = "proof-alethe-res-pivots"
+  type       = "bool"
+  default    = "false"
+  help       = "Add pivots to Alethe resolution steps"
