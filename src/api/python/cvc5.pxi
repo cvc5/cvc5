@@ -1107,8 +1107,8 @@ cdef class Solver:
     def mkReal(self, val, den=None):
         """Create a real constant.
 
-        :param: `val` the value of the term. Can be an integer, float, or string. It will be formatted as a string before the term is built.
-        :param: `den` if not None, the value is `val`/`den`
+        :param val: the value of the term. Can be an integer, float, or string. It will be formatted as a string before the term is built.
+        :param den: if not None, the value is `val`/`den`
         :return: a real term with literal value
 
         Can be used in various forms:
@@ -1245,9 +1245,9 @@ cdef class Solver:
         - ``Term mkBitVector(int size, string val, int base)``
 
         :return: a bit-vector literal term
-        :param: `size` an integer size.
-        :param: `val` an integer representating the value, in the first form. In the second form, a string representing the value.
-        :param: `base` the base of the string representation (second form only)
+        :param size: an integer size.
+        :param val: an integer representating the value, in the first form. In the second form, a string representing the value.
+        :param base: the base of the string representation (second form only)
         """
         cdef Term term = Term(self)
         if len(args) == 0:
@@ -1453,7 +1453,7 @@ cdef class Solver:
     def mkDatatypeConstructorDecl(self, str name):
         """
         :return: a datatype constructor declaration
-        :param: `name` the constructor's name
+        :param name: the constructor's name
         """
         cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl(self)
         ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
@@ -2740,6 +2740,9 @@ cdef class Sort:
 
 
 cdef class Term:
+    """
+    A cvc5 Term.
+    """
     cdef c_Term cterm
     cdef Solver solver
     def __cinit__(self, Solver solver):
@@ -2788,20 +2791,27 @@ cdef class Term:
         return ctermhash(self.cterm)
 
     def getNumChildren(self):
+        """:return: the number of children of this term."""
         return self.cterm.getNumChildren()
 
     def getId(self):
+        """:return: the id of this term."""
         return self.cterm.getId()
 
     def getKind(self):
+        """:return: the kind of this term."""
         return kind(<int> self.cterm.getKind())
 
     def getSort(self):
+        """:return: the sort of this term."""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
         return sort
 
     def substitute(self, term_or_list_1, term_or_list_2):
+        """:return: the result of simultaneously replacing the term(s) 
+	   stored in `term_or_list_1` by the term(s) stored in `term_or_list_2`.
+	"""
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
         # lists for substitutions
@@ -2832,115 +2842,239 @@ cdef class Term:
         return term
 
     def hasOp(self):
+        """:return: True iff this term has an operator."""
         return self.cterm.hasOp()
 
     def getOp(self):
+        """
+	    :return: the Op used to create this Term.
+
+	    Note: This is safe to call when hasOp() returns True.
+	"""
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
         return op
 
     def hasSymbol(self):
+        """:return: True iff this term has a symbol."""
         return self.cterm.hasSymbol()
 
     def getSymbol(self):
+        """
+	   Asserts hasSymbol().
+
+	   :return: the raw symbol of the term.
+	"""
         return self.cterm.getSymbol().decode()
 
     def isNull(self):
+        """:return: True iff this term is a null term."""
         return self.cterm.isNull()
 
     def notTerm(self):
+        """
+	   Boolean negation.
+
+	   :return: the Boolean negation of this term.
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.notTerm()
         return term
 
     def andTerm(self, Term t):
+        """
+	   Boolean and.
+
+           :param t: a Boolean term
+	   :return: the conjunction of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.andTerm((<Term> t).cterm)
         return term
 
     def orTerm(self, Term t):
+        """
+	   Boolean or.
+
+           :param t: a Boolean term
+	   :return: the disjunction of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.orTerm(t.cterm)
         return term
 
     def xorTerm(self, Term t):
+        """
+	   Boolean exclusive or.
+
+           :param t: a Boolean term
+	   :return: the exclusive disjunction of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.xorTerm(t.cterm)
         return term
 
     def eqTerm(self, Term t):
+        """
+	   Equality
+
+           :param t: a Boolean term
+	   :return: the Boolean equivalence of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.eqTerm(t.cterm)
         return term
 
     def impTerm(self, Term t):
+        """
+	   Boolean Implication.
+
+           :param t: a Boolean term
+	   :return: the implication of this term and the given term
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.impTerm(t.cterm)
         return term
 
     def iteTerm(self, Term then_t, Term else_t):
+        """
+	   If-then-else with this term as the Boolean condition.
+
+           :param then_t: the `then` term
+           :param else_t: the `else` term
+	   :return: the if-then-else term with this term as the Boolean condition
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.iteTerm(then_t.cterm, else_t.cterm)
         return term
 
     def isConstArray(self):
+        """:return: True iff this term is a constant array."""
         return self.cterm.isConstArray()
 
     def getConstArrayBase(self):
+        """
+	   Asserts isConstArray().
+
+	   :return: the base (element stored at all indicies) of this 
+	   constant array
+	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getConstArrayBase()
         return term
 
     def isBooleanValue(self):
+        """:return: True iff this term is a Boolean value."""
         return self.cterm.isBooleanValue()
 
     def getBooleanValue(self):
+        """
+	   Asserts isBooleanValue()
+
+	   :return: the representation of a Boolean value as a native Boolean value.
+	"""
         return self.cterm.getBooleanValue()
 
     def isStringValue(self):
+        """:return: True iff this term is a string value."""
         return self.cterm.isStringValue()
 
     def getStringValue(self):
+        """
+           Note: This method is not to be confused with toString() which
+	   returns the term in some string representation, whatever data it
+	   may hold.
+	   Asserts isStringValue().
+
+	   :return: the string term as a native string value.
+	"""
         cdef Py_ssize_t size
         cdef c_wstring s = self.cterm.getStringValue()
         return PyUnicode_FromWideChar(s.data(), s.size())
 
     def isIntegerValue(self):
+        """:return: True iff this term is an integer value."""
         return self.cterm.isIntegerValue()
+    
+    def getIntegerValue(self):
+        """
+	   Asserts isIntegerValue()
+
+	   :return: the integer term as a native python integer.
+	"""
+        return int(self.cterm.getIntegerValue().decode())
+
     def isAbstractValue(self):
+        """:return: True iff this term is an abstract value."""
         return self.cterm.isAbstractValue()
 
     def getAbstractValue(self):
+        """
+	   Asserts isAbstractValue()
+
+	   :return: the representation of an abstract value as a string.
+	"""
         return self.cterm.getAbstractValue().decode()
 
     def isFloatingPointPosZero(self):
+        """:return: True iff the term is the floating-point value for positive zero."""
         return self.cterm.isFloatingPointPosZero()
 
     def isFloatingPointNegZero(self):
+        """:return: True iff the term is the floating-point value for negative zero."""
         return self.cterm.isFloatingPointNegZero()
 
     def isFloatingPointPosInf(self):
+        """:return: True iff the term is the floating-point value for positive infinity."""
         return self.cterm.isFloatingPointPosInf()
 
     def isFloatingPointNegInf(self):
+        """:return: True iff the term is the floating-point value for negative infinity."""
         return self.cterm.isFloatingPointNegInf()
 
     def isFloatingPointNaN(self):
+        """:return: True iff the term is the floating-point value for not a number."""
         return self.cterm.isFloatingPointNaN()
 
     def isFloatingPointValue(self):
+        """:return: True iff this term is a floating-point value."""
         return self.cterm.isFloatingPointValue()
 
     def getFloatingPointValue(self):
+        """
+	   Asserts isFloatingPointVAlue().
+
+	   :return: the representation of a floating-point value as a tuple
+	   of the exponent width, the significand width and a bit-vector value.
+	"""
         cdef c_tuple[uint32_t, uint32_t, c_Term] t = self.cterm.getFloatingPointValue()
         cdef Term term = Term(self.solver)
         term.cterm = get2(t)
         return (get0(t), get1(t), term)
 
     def isSetValue(self):
+        """
+            :return: True if the term is a set value.
+            
+            A term is a set value if it is considered to be a (canonical) constant set
+            value.  A canonical set value is one whose AST is:
+            ```
+              (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+            ```
+            where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
+            also @ref Term::operator>(const Term&) const).
+            
+            Note that a universe set term (kind SET_UNIVERSE) is not considered to be
+            a set value.
+	"""
         return self.cterm.isSetValue()
 
     def getSetValue(self):
+        """
+	   Asserts isSetValue()
+
+	   :return: the representation of a set value as a set of terms.
+	"""
         elems = set()
         for e in self.cterm.getSetValue():
             term = Term(self.solver)
@@ -2949,9 +3083,19 @@ cdef class Term:
         return elems
 
     def isSequenceValue(self):
+        """:return: True iff this term is a sequence value."""
         return self.cterm.isSequenceValue()
 
     def getSequenceValue(self):
+        """
+	   Asserts isSequenceValue().
+           
+	   Note that it is usually necessary for sequences to call
+           `Solver::simplify()` to turn a sequence that is constructed by, e.g.,
+           concatenation of unit sequences, into a sequence value.
+	  
+	   :return: the representation of a sequence value as a vector of terms.
+	"""
         elems = []
         for e in self.cterm.getSequenceValue():
             term = Term(self.solver)
@@ -2960,9 +3104,16 @@ cdef class Term:
         return elems
 
     def isUninterpretedValue(self):
+        """:return: True iff this term is a value from an uninterpreted sort."""
         return self.cterm.isUninterpretedValue()
 
     def getUninterpretedValue(self):
+        """
+	   Asserts isUninterpretredValue()
+
+	   :return: the representation of an uninterpreted value as a pair of 
+	   its sort and its index.
+	"""
         cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedValue()
         cdef Sort sort = Sort(self.solver)
         sort.csort = p.first
@@ -2970,9 +3121,15 @@ cdef class Term:
         return (sort, i)
 
     def isTupleValue(self):
+        """:return: True iff this term is a tuple value."""
         return self.cterm.isTupleValue()
 
     def getTupleValue(self):
+        """
+	   Asserts isTupleValue()
+
+	   :return: the representation of a tuple value as a vector of terms.
+	"""
         elems = []
         for e in self.cterm.getTupleValue():
             term = Term(self.solver)
@@ -2980,21 +3137,33 @@ cdef class Term:
             elems.append(term)
         return elems
 
-    def getIntegerValue(self):
-        return int(self.cterm.getIntegerValue().decode())
-
     def isRealValue(self):
+        """
+	    :return: True iff this term is a rational value.
+
+	    Note that a term of kind PI is not considered to be a real value.
+	"""
         return self.cterm.isRealValue()
 
     def getRealValue(self):
-        """Returns the value of a real term as a Fraction"""
+        """
+	   Asserts isRealValue()
+
+	   :return: the representation of a rational value as a python Fraction.
+	"""
         return Fraction(self.cterm.getRealValue().decode())
 
     def isBitVectorValue(self):
+        """:return: True iff this term is a bit-vector value."""
         return self.cterm.isBitVectorValue()
 
     def getBitVectorValue(self, base = 2):
-        """Returns the value of a bit-vector term as a 0/1 string"""
+        """
+	   Asserts isBitvectorValue()
+
+	   :return: the representation of a bit-vector value in string representation. 
+	   Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexdecimal string).
+	"""
         return self.cterm.getBitVectorValue(base).decode()
 
     def toPythonObj(self):
