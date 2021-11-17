@@ -57,22 +57,16 @@ def get_cvc5_version():
     project_src_path = get_project_src_path()
 
     # read CMakeLists.txt to get version number
-    version = dict()
+    version = ''
     str_pattern = 'set\(CVC5_LAST_RELEASE\s*"([^"]+)"\)'
     pattern = re.compile(str_pattern)
     with open(os.path.join(project_src_path, 'cmake', 'version-base.cmake'), 'r') as f:
-        for line in f:
-            line = line.strip()
-            m = pattern.search(line)
-            if m:
-                version_str = m.group(1)
-                gd = m.groupdict()
-                if len(version_str.split('.')) == 3:
-                    version = version_str.split('.')
-                    break
-
-    assert len(version) == 3, 'Could not find version'
-    return version
+        m = pattern.search(f.read())
+        if m:
+            version = m.group(1)
+            return version
+        else:
+            raise Exception('Could not find version')
 
 
 class CMakeExtension(Extension):
@@ -168,7 +162,7 @@ if len(version_suffix) > 0:
 
 setup(
     name='pycvc5',
-    version='.'.join(get_cvc5_version()) + version_suffix,
+    version=get_cvc5_version() + version_suffix,
     long_description='Python bindings for cvc5',
     url='https://github.com/cvc5/cvc5',
     license='BSD-3-Clause',
