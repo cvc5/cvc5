@@ -2415,14 +2415,14 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
                            d_anc.traverseAndConvertAllConsts(childConclusion));
             Trace("alethe-proof-subtyping")
                 << "\t\t..new child " << newChild << "\n";
-            cdp->addStep(
-                newChild,
-                PfRule::ALETHE_RULE,
-                {children[i]},
-                {nm->mkConst(CONST_RATIONAL,
-                             static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
-                 newChild,
-                 newChild});
+            cdp->addStep(newChild,
+                         PfRule::ALETHE_RULE,
+                         {children[i]},
+                         {nm->mkConst<Rational>(
+                              CONST_RATIONAL,
+                              static_cast<unsigned>(AletheRule::ALL_SIMPLIFY)),
+                          newChild,
+                          newChild});
             // update children
             newChildren[i] = newChild;
           }
