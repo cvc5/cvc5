@@ -119,9 +119,11 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND:
     case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
+    case PLUS: nullTerm = nm->mkConst(CONST_RATIONAL, Rational(0)); break;
     case MULT:
-    case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
+    case NONLINEAR_MULT:
+      nullTerm = nm->mkConst(CONST_RATIONAL, Rational(1));
+      break;
     case STRING_CONCAT:
       // handles strings and sequences
       nullTerm = theory::strings::Word::mkEmptyWord(tn);

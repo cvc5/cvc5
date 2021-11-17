@@ -39,9 +39,6 @@ void printUsage(const std::string& msg, std::ostream& os);
  */
 void printShortUsage(const std::string& msg, std::ostream& os);
 
-/** Print help for the --lang command line option */
-void printLanguageHelp(std::ostream& os);
-
 /**
  * Initialize the Options object options based on the given
  * command-line arguments given in argc and argv.  The return value

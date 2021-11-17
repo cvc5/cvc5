@@ -23,14 +23,13 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "smt/env_obj.h"
 #include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5 {
-
-class Env;
 
 namespace rewriter {
 class RewriteDb;
@@ -39,10 +38,10 @@ class RewriteDb;
 namespace smt {
 
 /**
- * A callback class used by SmtEngine for post-processing proof nodes by
+ * A callback class used by SolverEngine for post-processing proof nodes by
  * connecting proofs of preprocessing, and expanding macro PfRule applications.
  */
-class ProofPostprocessCallback : public ProofNodeUpdaterCallback
+class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvObj
 {
  public:
   ProofPostprocessCallback(Env& env,
@@ -77,8 +76,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** Common constants */
   Node d_true;
-  /** Reference to the env */
-  Env& d_env;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** The preprocessing proof generator */
@@ -244,11 +241,11 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 
 /**
  * The proof postprocessor module. This postprocesses the final proof
- * produced by an SmtEngine. Its main two tasks are to:
+ * produced by an SolverEngine. Its main two tasks are to:
  * (1) Connect proofs of preprocessing,
  * (2) Expand macro PfRule applications.
  */
-class ProofPostproccess
+class ProofPostproccess : protected EnvObj
 {
  public:
   /**

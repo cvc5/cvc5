@@ -34,7 +34,7 @@ US = '_'
 NL = '\n'
 
 # Expected C++ Enum Declarations
-ENUM_START = 'enum CVC5_EXPORT Kind'
+ENUM_START = 'enum Kind'
 ENUM_END = CCB + SC
 
 # Comments and Macro Tokens
@@ -105,7 +105,7 @@ class KindsParser:
            BITVECTOR_ADD       -->  BVAdd
            APPLY_SELECTOR      -->  ApplySelector
            FLOATINGPOINT_ISNAN -->  FPIsNan
-           SETMINUS            -->  Setminus
+           SET_MINUS            -->  Setminus
 
         See the generated .pxi file for an explicit mapping
         '''

@@ -49,8 +49,6 @@ Node EnvObj::evaluate(TNode n,
   return d_env.evaluate(n, args, vals, visited, useRewriter);
 }
 
-const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }
-
 const Options& EnvObj::options() const { return d_env.getOptions(); }
 
 context::Context* EnvObj::context() const { return d_env.getContext(); }
@@ -60,9 +58,32 @@ context::UserContext* EnvObj::userContext() const
   return d_env.getUserContext();
 }
 
+const LogicInfo& EnvObj::logicInfo() const { return d_env.getLogicInfo(); }
+
+ResourceManager* EnvObj::resourceManager() const
+{
+  return d_env.getResourceManager();
+}
+
 StatisticsRegistry& EnvObj::statisticsRegistry() const
 {
   return d_env.getStatisticsRegistry();
 }
+
+bool EnvObj::isOutputOn(OutputTag tag) const { return d_env.isOutputOn(tag); }
+
+std::ostream& EnvObj::output(OutputTag tag) const { return d_env.output(tag); }
+
+bool EnvObj::isVerboseOn(int64_t level) const
+{
+  return d_env.isVerboseOn(level);
+}
+
+std::ostream& EnvObj::verbose(int64_t level) const
+{
+  return d_env.verbose(level);
+}
+
+std::ostream& EnvObj::warning() const { return verbose(0); }
 
 }  // namespace cvc5

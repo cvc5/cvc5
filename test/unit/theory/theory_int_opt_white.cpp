@@ -18,11 +18,11 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+using namespace cvc5::smt;
+
 namespace cvc5 {
-
-using namespace theory;
-using namespace smt;
-
 namespace test {
 
 class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
@@ -31,10 +31,10 @@ class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("produce-assertions", "true");
-    d_smtEngine->finishInit();
+    d_slvEngine->setOption("produce-assertions", "true");
+    d_slvEngine->finishInit();
 
-    d_optslv.reset(new OptimizationSolver(d_smtEngine.get()));
+    d_optslv.reset(new OptimizationSolver(d_slvEngine.get()));
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
   }
 
@@ -44,8 +44,8 @@ class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
 
 TEST_F(TestTheoryWhiteIntOpt, max)
 {
-  Node ub = d_nodeManager->mkConst(Rational("100"));
-  Node lb = d_nodeManager->mkConst(Rational("0"));
+  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
+  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -56,8 +56,8 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   /* Result of asserts is:
       0 < max_cost < 100
   */
-  d_smtEngine->assertFormula(upb);
-  d_smtEngine->assertFormula(lowb);
+  d_slvEngine->assertFormula(upb);
+  d_slvEngine->assertFormula(lowb);
 
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->addObjective(max_cost, OptimizationObjective::MAXIMIZE);
@@ -70,13 +70,13 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
             Rational("99"));
 
-  d_smtEngine->resetAssertions();
+  d_slvEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, min)
 {
-  Node ub = d_nodeManager->mkConst(Rational("100"));
-  Node lb = d_nodeManager->mkConst(Rational("0"));
+  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
+  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -87,8 +87,8 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   /* Result of asserts is:
       0 < max_cost < 100
   */
-  d_smtEngine->assertFormula(upb);
-  d_smtEngine->assertFormula(lowb);
+  d_slvEngine->assertFormula(upb);
+  d_slvEngine->assertFormula(lowb);
 
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->addObjective(max_cost, OptimizationObjective::MINIMIZE);
@@ -101,13 +101,13 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
             Rational("1"));
 
-  d_smtEngine->resetAssertions();
+  d_slvEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, result)
 {
-  Node ub = d_nodeManager->mkConst(Rational("100"));
-  Node lb = d_nodeManager->mkConst(Rational("0"));
+  Node ub = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
+  Node lb = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
 
   // Objectives to be optimized max_cost is max objective
   Node max_cost = d_nodeManager->mkVar(*d_intType);
@@ -118,8 +118,8 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   /* Result of asserts is:
       0 > max_cost > 100
   */
-  d_smtEngine->assertFormula(upb);
-  d_smtEngine->assertFormula(lowb);
+  d_slvEngine->assertFormula(upb);
+  d_slvEngine->assertFormula(lowb);
 
   // We activate our objective so the subsolver knows to optimize it
   d_optslv->addObjective(max_cost, OptimizationObjective::MAXIMIZE);
@@ -129,14 +129,14 @@ TEST_F(TestTheoryWhiteIntOpt, result)
 
   // We expect our check to have returned UNSAT
   ASSERT_EQ(r.isSat(), Result::UNSAT);
-  d_smtEngine->resetAssertions();
+  d_slvEngine->resetAssertions();
 }
 
 TEST_F(TestTheoryWhiteIntOpt, open_interval)
 {
-  Node ub1 = d_nodeManager->mkConst(Rational("100"));
-  Node lb1 = d_nodeManager->mkConst(Rational("0"));
-  Node lb2 = d_nodeManager->mkConst(Rational("110"));
+  Node ub1 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("100"));
+  Node lb1 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
+  Node lb2 = d_nodeManager->mkConst(CONST_RATIONAL, Rational("110"));
 
   Node cost1 = d_nodeManager->mkVar(*d_intType);
   Node cost2 = d_nodeManager->mkVar(*d_intType);
@@ -145,10 +145,10 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
       0 < cost1 < 100
       110 < cost2
   */
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::LT, lb1, cost1));
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::LT, cost1, ub1));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::LT, lb1, cost1));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::LT, cost1, ub1));
 
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::LT, lb2, cost2));
+  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::LT, lb2, cost2));
 
   /* Optimization objective:
       cost1 + cost2
@@ -164,7 +164,7 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
   // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
   ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
             Rational("112"));
-  d_smtEngine->resetAssertions();
+  d_slvEngine->resetAssertions();
 }
 
 }  // namespace test

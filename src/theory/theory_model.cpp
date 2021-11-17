@@ -14,13 +14,14 @@
  */
 #include "theory/theory_model.h"
 
+#include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
-#include "smt/smt_engine.h"
+#include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
 
@@ -142,7 +143,7 @@ Node TheoryModel::getValue(TNode n) const
   }
   else if (nn.getKind() == kind::LAMBDA)
   {
-    if (options::condenseFunctionValues())
+    if (options().theory.condenseFunctionValues)
     {
       // normalize the body. Do not normalize the entire node, which
       // involves array normalization.
@@ -253,17 +254,12 @@ Node TheoryModel::getModelValue(TNode n) const
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
     {
+      const CardinalityConstraint& cc =
+          ret.getOperator().getConst<CardinalityConstraint>();
       Debug("model-getvalue-debug")
-          << "get cardinality constraint " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(getCardinality(ret[0].getType()).getFiniteCardinality()
-                        <= ret[1].getConst<Rational>().getNumerator());
-    }
-    else if (ret.getKind() == kind::CARDINALITY_VALUE)
-    {
-      Debug("model-getvalue-debug")
-          << "get cardinality value " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(
-          Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
+          << "get cardinality constraint " << cc.getType() << std::endl;
+      ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
+                        <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,
     // we only return it if we an evaluated kind. This can occur if the
@@ -694,11 +690,13 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
 
   if (logicInfo().isHigherOrder())
   {
-    //we must rewrite the function value since the definition needs to be a constant value
+    // we must rewrite the function value since the definition needs to be a
+    // constant value. This does not need to be the case if we are assigning a
+    // lambda to the equivalence class in isolation, so we do not assert that
+    // f_def is constant here.
     f_def = rewrite(f_def);
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
-    Assert(f_def.isConst()) << "Non-constant f_def: " << f_def;
   }
  
   // d_uf_models only stores models for variables
@@ -719,7 +717,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     while( !eqc_i.isFinished() ) {
       Node n = *eqc_i;
       // if an unassigned variable function
-      if( n.isVar() && d_uf_terms.find( n )!=d_uf_terms.end() && !hasAssignedFunctionDefinition( n ) ){
+      if (n.isVar() && !hasAssignedFunctionDefinition(n))
+      {
         d_uf_models[n] = f_def;
         Trace("model-builder") << "  Assigning function (" << n << ") to function definition of " << f << std::endl;
       }
@@ -727,6 +726,11 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     }
     Trace("model-builder-debug") << "  ...finished." << std::endl;
   }
+}
+
+bool TheoryModel::hasAssignedFunctionDefinition(Node f) const
+{
+  return d_uf_models.find(f) != d_uf_models.end();
 }
 
 std::vector< Node > TheoryModel::getFunctionsToAssign() {
@@ -737,6 +741,11 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
     Node n = it->first;
     Assert(!n.isNull());
+    // lambdas do not need assignments
+    if (n.getKind() == LAMBDA)
+    {
+      continue;
+    }
     // should not have been solved for in a substitution
     Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){

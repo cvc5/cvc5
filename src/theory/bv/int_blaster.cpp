@@ -27,13 +27,15 @@
 #include "options/option_exception.h"
 #include "options/uf_options.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/rewriter.h"
+#include "theory/logic_info.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+using namespace cvc5::kind;
 using namespace cvc5::theory;
+
+namespace cvc5 {
 
 namespace {
 
@@ -42,23 +44,26 @@ Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 }  // namespace
 
-IntBlaster::IntBlaster(context::Context* c,
+IntBlaster::IntBlaster(Env& env,
                        options::SolveBVAsIntMode mode,
                        uint64_t granularity,
                        bool introduceFreshIntVars)
-    : d_binarizeCache(c),
-      d_intblastCache(c),
-      d_rangeAssertions(c),
-      d_bitwiseAssertions(c),
+    : EnvObj(env),
+      d_binarizeCache(userContext()),
+      d_intblastCache(userContext()),
+      d_rangeAssertions(userContext()),
+      d_bitwiseAssertions(userContext()),
       d_mode(mode),
       d_granularity(granularity),
-      d_context(c),
+      d_context(userContext()),
       d_introduceFreshIntVars(introduceFreshIntVars)
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst<Rational>(0);
-  d_one = d_nm->mkConst<Rational>(1);
+  d_zero = d_nm->mkConst<Rational>(CONST_RATIONAL, 0);
+  d_one = d_nm->mkConst<Rational>(CONST_RATIONAL, 1);
 };
+
+IntBlaster::~IntBlaster() {}
 
 void IntBlaster::addRangeConstraint(Node node,
                                     uint64_t size,
@@ -77,18 +82,18 @@ Node IntBlaster::maxInt(uint64_t k)
 {
   Assert(k > 0);
   Rational max_value = intpow2(k) - 1;
-  return d_nm->mkConst<Rational>(max_value);
+  return d_nm->mkConst<Rational>(CONST_RATIONAL, max_value);
 }
 
 Node IntBlaster::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst<Rational>(intpow2(k));
+  return d_nm->mkConst<Rational>(CONST_RATIONAL, intpow2(k));
 }
 
 Node IntBlaster::modpow2(Node n, uint64_t exponent)
 {
-  Node p2 = d_nm->mkConst<Rational>(intpow2(exponent));
+  Node p2 = d_nm->mkConst<Rational>(CONST_RATIONAL, intpow2(exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -125,7 +130,7 @@ Node IntBlaster::intBlast(Node n,
                           std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
 
   // helper vector for traversal.
   std::vector<Node> toVisit;
@@ -500,7 +505,7 @@ Node IntBlaster::translateWithChildren(
        * of the bounds that were relevant for the original
        * bit-vectors.
        */
-      if (childrenTypesChanged(original) && options::ufHo())
+      if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
       {
         throw OptionException("bv-to-int does not support higher order logic ");
       }
@@ -654,7 +659,7 @@ Node IntBlaster::translateNoChildren(Node original,
       // Bit-vector constants are transformed into their integer value.
       BitVector constant(original.getConst<BitVector>());
       Integer c = constant.toInteger();
-      translation = d_nm->mkConst<Rational>(c);
+      translation = d_nm->mkConst<Rational>(CONST_RATIONAL, c);
     }
     else
     {

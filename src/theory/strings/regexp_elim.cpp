@@ -15,6 +15,7 @@
 
 #include "theory/strings/regexp_elim.h"
 
+#include "expr/bound_var_manager.h"
 #include "options/strings_options.h"
 #include "proof/proof_node_manager.h"
 #include "theory/rewriter.h"
@@ -28,6 +29,22 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 namespace strings {
+
+/**
+ * Attributes used for constructing unique bound variables. The following
+ * attributes are used to construct (deterministic) bound variables for
+ * eliminations within eliminateConcat and eliminateStar respectively.
+ */
+struct ReElimConcatIndexAttributeId
+{
+};
+typedef expr::Attribute<ReElimConcatIndexAttributeId, Node>
+    ReElimConcatIndexAttribute;
+struct ReElimStarIndexAttributeId
+{
+};
+typedef expr::Attribute<ReElimStarIndexAttributeId, Node>
+    ReElimStarIndexAttribute;
 
 RegExpElimination::RegExpElimination(bool isAgg,
                                      ProofNodeManager* pnm,
@@ -77,10 +94,11 @@ TrustNode RegExpElimination::eliminateTrusted(Node atom)
 Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
 {
   NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
-  Node zero = nm->mkConst(Rational(0));
+  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
   std::vector<Node> children;
   utils::getConcat(re, children);
 
@@ -103,7 +121,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
     if (fl.isNull())
     {
       if (!hasPivotIndex && c.getKind() == REGEXP_STAR
-          && c[0].getKind() == REGEXP_SIGMA)
+          && c[0].getKind() == REGEXP_ALLCHAR)
       {
         hasPivotIndex = true;
         pivotIndex = i;
@@ -149,7 +167,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
         // We do not need to include memberships of the form
         //   (str.substr x n 1) in re.allchar
         // since we know that by construction, n < len( x ).
-        if (re[i].getKind() != REGEXP_SIGMA)
+        if (re[i].getKind() != REGEXP_ALLCHAR)
         {
           Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
           conc.push_back(currMem);
@@ -194,13 +212,13 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       gap_minsize.push_back(0);
       gap_exact.push_back(true);
     }
-    else if (c.getKind() == REGEXP_STAR && c[0].getKind() == REGEXP_SIGMA)
+    else if (c.getKind() == REGEXP_STAR && c[0].getKind() == REGEXP_ALLCHAR)
     {
       // found a gap of any size
       onlySigmasAndConsts = true;
       gap_exact[gap_exact.size() - 1] = false;
     }
-    else if (c.getKind() == REGEXP_SIGMA)
+    else if (c.getKind() == REGEXP_ALLCHAR)
     {
       // add one to the minimum size of the gap
       onlySigmasAndConsts = true;
@@ -235,7 +253,9 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       {
         // the gap to this child is at least gap_minsize[i]
         prev_end =
-            nm->mkNode(PLUS, prev_end, nm->mkConst(Rational(gap_minsize[i])));
+            nm->mkNode(PLUS,
+                       prev_end,
+                       nm->mkConst(CONST_RATIONAL, Rational(gap_minsize[i])));
       }
       prev_ends.push_back(prev_end);
       Node sc = sep_children[i];
@@ -260,12 +280,17 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
           }
           // if the gap after this one is strict, we need a non-greedy find
           // thus, we add a symbolic constant
-          Node k = nm->mkBoundVar(nm->integerType());
+          Node cacheVal = BoundVarManager::getCacheValue(
+              atom, nm->mkConst(CONST_RATIONAL, Rational(i)));
+          TypeNode intType = nm->integerType();
+          Node k =
+              bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
           non_greedy_find_vars.push_back(k);
           prev_end = nm->mkNode(PLUS, prev_end, k);
         }
         Node curr = nm->mkNode(STRING_INDEXOF, x, sc, prev_end);
-        Node idofFind = curr.eqNode(nm->mkConst(Rational(-1))).negate();
+        Node idofFind =
+            curr.eqNode(nm->mkConst(CONST_RATIONAL, Rational(-1))).negate();
         conj.push_back(idofFind);
         prev_end = nm->mkNode(PLUS, curr, lensc);
       }
@@ -280,7 +305,7 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       // then the last indexof/substr constraint entails the following
       // constraint, so it is not necessary to add.
       // Below, we may write "A" for (str.to.re "A") and _ for re.allchar:
-      Node cEnd = nm->mkConst(Rational(gap_minsize_end));
+      Node cEnd = nm->mkConst(CONST_RATIONAL, Rational(gap_minsize_end));
       if (gap_exact_end)
       {
         Assert(!sep_children.empty());
@@ -452,7 +477,10 @@ Node RegExpElimination::eliminateConcat(Node atom, bool isAgg)
       }
       else
       {
-        k = nm->mkBoundVar(nm->integerType());
+        Node cacheVal = BoundVarManager::getCacheValue(
+            atom, nm->mkConst(CONST_RATIONAL, Rational(i)));
+        TypeNode intType = nm->integerType();
+        k = bvm->mkBoundVar<ReElimConcatIndexAttribute>(cacheVal, intType);
         Node bound =
             nm->mkNode(AND,
                        nm->mkNode(LEQ, zero, k),
@@ -509,10 +537,11 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   // only aggressive rewrites below here
 
   NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
-  Node zero = nm->mkConst(Rational(0));
+  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
   // for regular expression star,
   // if the period is a fixed constant, we can turn it into a bounded
   // quantifier
@@ -530,15 +559,16 @@ Node RegExpElimination::eliminateStar(Node atom, bool isAgg)
   }
   bool lenOnePeriod = true;
   std::vector<Node> char_constraints;
-  Node index = nm->mkBoundVar(nm->integerType());
-  Node substr_ch =
-      nm->mkNode(STRING_SUBSTR, x, index, nm->mkConst(Rational(1)));
+  TypeNode intType = nm->integerType();
+  Node index = bvm->mkBoundVar<ReElimStarIndexAttribute>(atom, intType);
+  Node substr_ch = nm->mkNode(
+      STRING_SUBSTR, x, index, nm->mkConst(CONST_RATIONAL, Rational(1)));
   substr_ch = Rewriter::rewrite(substr_ch);
   // handle the case where it is purely characters
   for (const Node& r : disj)
   {
     Assert(r.getKind() != REGEXP_UNION);
-    Assert(r.getKind() != REGEXP_SIGMA);
+    Assert(r.getKind() != REGEXP_ALLCHAR);
     lenOnePeriod = false;
     // lenOnePeriod is true if this regular expression is a single character
     // regular expression

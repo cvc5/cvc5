@@ -2,12 +2,11 @@ id     = "DRIVER"
 name   = "Driver"
 
 [[option]]
-  name       = "version"
   category   = "common"
   short      = "V"
   long       = "version"
-  type       = "bool"
-  alternate  = false
+  type       = "void"
+  handler    = "showVersion"
   help       = "identify this cvc5 binary"
 
 [[option]]
@@ -30,7 +29,7 @@ name   = "Driver"
   category   = "common"
   long       = "copyright"
   type       = "void"
-  handler    = "copyright"
+  handler    = "showCopyright"
   help       = "show cvc5 copyright information"
 
 [[option]]
@@ -127,9 +126,9 @@ name   = "Driver"
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
-  name       = "dumpUnsatCoresFull"
+  name       = "printUnsatCoresFull"
   category   = "regular"
-  long       = "dump-unsat-cores-full"
+  long       = "print-unsat-cores-full"
   type       = "bool"
   default    = "false"
   help       = "dump the full unsat core, including unlabeled assertions"

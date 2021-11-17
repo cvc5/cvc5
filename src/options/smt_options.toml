@@ -2,23 +2,6 @@ id     = "SMT"
 name   = "SMT Layer"
 
 [[option]]
-  name       = "dumpModeString"
-  category   = "common"
-  long       = "dump=MODE"
-  type       = "std::string"
-  help       = "dump preprocessed assertions, etc., see --dump=help"
-  predicates = ["setDumpMode"]
-
-[[option]]
-  name       = "dumpToFileName"
-  category   = "common"
-  long       = "dump-to=FILE"
-  type       = "ManagedOut"
-  help       = "all dumping goes to FILE (instead of stdout)"
-  predicates = ["setDumpStream"]
-  includes   = ["<iostream>", "options/managed_streams.h"]
-
-[[option]]
   name       = "ackermann"
   category   = "regular"
   long       = "ackermann"
@@ -255,19 +238,11 @@ name   = "SMT Layer"
   help       = "support the get-assignment command"
 
 [[option]]
-  name       = "interactiveMode"
-  long       = "interactive-mode"
-  category   = "undocumented"
-  type       = "bool"
-  predicates = ["setProduceAssertions"]
-  help       = "deprecated name for produce-assertions"
-
-[[option]]
   name       = "produceAssertions"
   category   = "common"
   long       = "produce-assertions"
   type       = "bool"
-  predicates = ["setProduceAssertions"]
+  alias      = ["interactive-mode"]
   help       = "keep an assertions list (enables get-assertions command)"
 
 [[option]]

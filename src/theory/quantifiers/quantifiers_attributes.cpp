@@ -17,6 +17,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/rational.h"
@@ -32,7 +33,7 @@ namespace quantifiers {
 
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && !d_isInternal;
+  return !d_sygus && !d_quant_elim && !isFunDef() && !d_isQuantBounded;
 }
 
 QuantAttributes::QuantAttributes() {}
@@ -112,7 +113,7 @@ Node QuantAttributes::getFunDefBody( Node q ) {
       }else if( q[1][1]==h ){
         return q[1][0];
       }
-      else if (q[1][0].getType().isReal())
+      else if (q[1][0].getType().isRealOrInt())
       {
         // solve for h in the equality
         std::map<Node, Node> msum;
@@ -194,9 +195,8 @@ void QuantAttributes::computeAttributes( Node q ) {
   {
     Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
-      CVC5Message() << "Cannot define function " << f << " more than once."
-                    << std::endl;
-      AlwaysAssert(false);
+      AlwaysAssert(false) << "Cannot define function " << f
+                          << " more than once." << std::endl;
     }
     d_fun_defs[f] = true;
   }
@@ -297,10 +297,11 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           qa.d_quant_elim_partial = true;
           //don't set owner, should happen naturally
         }
-        if (avar.getAttribute(InternalQuantAttribute()))
+        if (BoundedIntegers::isBoundedForallAttribute(avar))
         {
-          Trace("quant-attr") << "Attribute : internal : " << q << std::endl;
-          qa.d_isInternal = true;
+          Trace("quant-attr")
+              << "Attribute : bounded quantifiers : " << q << std::endl;
+          qa.d_isQuantBounded = true;
         }
         if( avar.hasAttribute(QuantIdNumAttribute()) ){
           qa.d_qid_num = avar;
@@ -357,12 +358,12 @@ bool QuantAttributes::isQuantElimPartial( Node q ) {
   }
 }
 
-bool QuantAttributes::isInternal(Node q) const
+bool QuantAttributes::isQuantBounded(Node q) const
 {
   std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
   if (it != d_qattr.end())
   {
-    return it->second.d_isInternal;
+    return it->second.d_isQuantBounded;
   }
   return false;
 }

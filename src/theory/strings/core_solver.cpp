@@ -50,9 +50,9 @@ CoreSolver::CoreSolver(Env& env,
       d_nfPairs(context()),
       d_extDeq(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -131,7 +131,7 @@ void CoreSolver::checkCycles()
   d_eqc.clear();
   // Rebuild strings eqc based on acyclic ordering, first copy the equivalence
   // classes from the base solver.
-  const std::vector<Node>& eqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& eqc = d_bsolver.getStringLikeEqc();
   d_strings_eqc.clear();
   for (const Node& r : eqc)
   {
@@ -776,12 +776,12 @@ Node CoreSolver::getConclusion(Node x,
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
-      conc = nm->mkNode(
-          AND,
-          conc,
-          sk1.eqNode(emp).negate(),
-          nm->mkNode(
-              GT, nm->mkNode(STRING_LENGTH, sk1), nm->mkConst(Rational(0))));
+      conc = nm->mkNode(AND,
+                        conc,
+                        sk1.eqNode(emp).negate(),
+                        nm->mkNode(GT,
+                                   nm->mkNode(STRING_LENGTH, sk1),
+                                   nm->mkConst(CONST_RATIONAL, Rational(0))));
     }
   }
   else if (rule == PfRule::CONCAT_CSPLIT)
@@ -1191,7 +1191,7 @@ void CoreSolver::processNEqc(Node eqc,
         continue;
       }
       Node eq = ni.first.eqNode(nj.first);
-      eq = Rewriter::rewrite(eq);
+      eq = rewrite(eq);
       if (eq == d_false)
       {
         std::vector<Node> exp;
@@ -1468,7 +1468,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           << "Non-simple Case 1 : string lengths neither equal nor disequal"
           << std::endl;
       Node lenEq = nm->mkNode(EQUAL, xLenTerm, yLenTerm);
-      lenEq = Rewriter::rewrite(lenEq);
+      lenEq = rewrite(lenEq);
       iinfo.d_conc = nm->mkNode(OR, lenEq, lenEq.negate());
       iinfo.setId(InferenceId::STRINGS_LEN_SPLIT);
       info.d_pendingPhase[lenEq] = true;
@@ -1534,7 +1534,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         //
         // E.g. "abc" ++ ... = nc ++ ... ---> (nc = "") v (nc != "")
         Node eq = nc.eqNode(emp);
-        eq = Rewriter::rewrite(eq);
+        eq = rewrite(eq);
         if (eq.isConst())
         {
           // If the equality rewrites to a constant, we must use the
@@ -1544,7 +1544,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           Node p = skc->mkSkolemCached(nc, SkolemCache::SK_PURIFY, "lsym");
           Node pEq = p.eqNode(emp);
           // should not be constant
-          Assert(!Rewriter::rewrite(pEq).isConst());
+          Assert(!rewrite(pEq).isConst());
           // infer the purification equality, and the (dis)equality
           // with the empty string in the direction that the rewriter
           // inferred
@@ -1635,7 +1635,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     int32_t lentTestSuccess = -1;
     Node lenConstraint;
-    if (options::stringCheckEntailLen())
+    if (options().strings.stringCheckEntailLen)
     {
       // If length entailment checks are enabled, we can save the case split by
       // inferring that `x` has to be longer than `y` or vice-versa.
@@ -1647,7 +1647,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         {
           Node lt1 = e == 0 ? xLenTerm : yLenTerm;
           Node lt2 = e == 0 ? yLenTerm : xLenTerm;
-          Node entLit = Rewriter::rewrite(nm->mkNode(GT, lt1, lt2));
+          Node entLit = rewrite(nm->mkNode(GT, lt1, lt2));
           std::pair<bool, Node> et = d_state.entailmentCheck(
               options::TheoryOfMode::THEORY_OF_TYPE_BASED, entLit);
           if (et.first)
@@ -1784,11 +1784,13 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   TypeNode stype = veci[loop_index].getType();
 
-  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
+  if (options().strings.stringProcessLoopMode
+      == options::ProcessLoopMode::ABORT)
   {
     throw LogicException("Looping word equation encountered.");
   }
-  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE
+  else if (options().strings.stringProcessLoopMode
+               == options::ProcessLoopMode::NONE
            || stype.isSequence())
   {
     // note we cannot convert looping word equations into regular expressions if
@@ -1848,7 +1850,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   {
     Node t = i == 0 ? veci[loop_index] : t_yz;
     split_eq = t.eqNode(emp);
-    Node split_eqr = Rewriter::rewrite(split_eq);
+    Node split_eqr = rewrite(split_eq);
     // the equality could rewrite to false
     if (!split_eqr.isConst())
     {
@@ -1906,11 +1908,11 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
         v2.insert(v2.begin(), y);
         v2.insert(v2.begin(), z);
         restr = utils::mkNConcat(z, y);
-        cc = Rewriter::rewrite(s_zy.eqNode(utils::mkNConcat(v2, stype)));
+        cc = rewrite(s_zy.eqNode(utils::mkNConcat(v2, stype)));
       }
       else
       {
-        cc = Rewriter::rewrite(s_zy.eqNode(utils::mkNConcat(z, y)));
+        cc = rewrite(s_zy.eqNode(utils::mkNConcat(z, y)));
       }
       if (cc == d_false)
       {
@@ -1932,12 +1934,12 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   }
   else
   {
-    if (options::stringProcessLoopMode()
+    if (options().strings.stringProcessLoopMode
         == options::ProcessLoopMode::SIMPLE_ABORT)
     {
       throw LogicException("Normal looping word equation encountered.");
     }
-    else if (options::stringProcessLoopMode()
+    else if (options().strings.stringProcessLoopMode
              == options::ProcessLoopMode::SIMPLE)
     {
       d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
@@ -2081,7 +2083,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
     return;
   }
 
-  if (options::stringsDeqExt())
+  if (options().strings.stringsDeqExt)
   {
     processDeqExtensionality(ni, nj);
     return;
@@ -2463,8 +2465,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   NodeManager* nm = NodeManager::currentNM();
   SkolemCache* sc = d_termReg.getSkolemCache();
   TypeNode intType = nm->integerType();
-  Node k = sc->mkTypedSkolemCached(
-      intType, n1, n2, SkolemCache::SK_DEQ_DIFF, "diff");
+  Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
   Node deq = eq.negate();
   Node ss1, ss2;
   if (n1.getType().isString())
@@ -2550,6 +2551,7 @@ void CoreSolver::checkNormalFormsDeq()
   
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
+  NodeManager* nm = NodeManager::currentNM();
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
   for (const Node& eq : deqs)
   {
@@ -2564,9 +2566,8 @@ void CoreSolver::checkNormalFormsDeq()
         EqcInfo* ei = d_state.getOrMakeEqcInfo(n[i], false);
         lt[i] = ei ? ei->d_lengthTerm : Node::null();
         if( lt[i].isNull() ){
-          lt[i] = eq[i];
+          lt[i] = nm->mkNode(STRING_LENGTH, eq[i]);
         }
-        lt[i] = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt[i] );
       }
       if (!d_state.areEqual(lt[0], lt[1]) && !d_state.areDisequal(lt[0], lt[1]))
       {
@@ -2642,14 +2643,13 @@ void CoreSolver::checkLengthsEqc() {
         << "Process length constraints for " << d_strings_eqc[i] << std::endl;
     // check if there is a length term for this equivalence class
     EqcInfo* ei = d_state.getOrMakeEqcInfo(d_strings_eqc[i], false);
-    Node lt = ei ? ei->d_lengthTerm : Node::null();
-    if (lt.isNull())
+    Node llt = ei ? ei->d_lengthTerm : Node::null();
+    if (llt.isNull())
     {
       Trace("strings-process-debug")
           << "No length term for eqc " << d_strings_eqc[i] << std::endl;
       continue;
     }
-    Node llt = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, lt);
     // now, check if length normalization has occurred
     if (ei->d_normalizedLength.get().isNull())
     {
@@ -2669,9 +2669,9 @@ void CoreSolver::checkLengthsEqc() {
       // if not, add the lemma
       std::vector<Node> ant;
       ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
-      ant.push_back(lt.eqNode(nfi.d_base));
+      ant.push_back(llt[0].eqNode(nfi.d_base));
       Node lc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, nf);
-      Node lcr = Rewriter::rewrite(lc);
+      Node lcr = rewrite(lc);
       Trace("strings-process-debug")
           << "Rewrote length " << lc << " to " << lcr << std::endl;
       if (!d_state.areEqual(llt, lcr))
@@ -2688,7 +2688,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
 {
   InferInfo& ii = cii.d_infer;
   // rewrite the conclusion, ensure non-trivial
-  Node concr = Rewriter::rewrite(ii.d_conc);
+  Node concr = rewrite(ii.d_conc);
 
   if (concr == d_true)
   {
@@ -2704,7 +2704,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
   // send phase requirements
   for (const std::pair<const Node, bool>& pp : cii.d_pendingPhase)
   {
-    Node ppr = Rewriter::rewrite(pp.first);
+    Node ppr = rewrite(pp.first);
     d_im.addPendingPhaseRequirement(ppr, pp.second);
   }
 

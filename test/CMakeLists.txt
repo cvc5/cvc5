@@ -35,16 +35,10 @@ add_custom_target(check
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
-if (NOT BUILD_LIB_ONLY)
-  add_subdirectory(regress)
-endif()
+add_subdirectory(regress)
 add_subdirectory(api EXCLUDE_FROM_ALL)
+add_subdirectory(binary EXCLUDE_FROM_ALL)
 
 if(ENABLE_UNIT_TESTING)
   add_subdirectory(unit EXCLUDE_FROM_ALL)
-endif()
-
-# add Python bindings tests if building with Python bindings
-if (BUILD_BINDINGS_PYTHON)
-  add_subdirectory(python)
 endif()

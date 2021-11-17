@@ -78,12 +78,11 @@ Trigger::Trigger(Env& env,
     extNodes.push_back(ns);
   }
   d_trNode = NodeManager::currentNM()->mkNode(SEXPR, extNodes);
-  if (d_env.isOutputOn(options::OutputTag::TRIGGER))
+  if (isOutputOn(OutputTag::TRIGGER))
   {
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    d_env.getOutput(options::OutputTag::TRIGGER)
-        << "(trigger " << qa.quantToString(q) << " " << d_trNode << ")"
-        << std::endl;
+    output(OutputTag::TRIGGER) << "(trigger " << qa.quantToString(q) << " "
+                               << d_trNode << ")" << std::endl;
   }
   QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){
@@ -96,9 +95,12 @@ Trigger::Trigger(Env& env,
       ++(stats.d_simple_triggers);
     }
   }else{
-    if( options::multiTriggerCache() ){
+    if (options().quantifiers.multiTriggerCache)
+    {
       d_mg = new InstMatchGeneratorMulti(this, q, d_nodes);
-    }else{
+    }
+    else
+    {
       d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, q, d_nodes);
     }
     if (Trace.isOn("multi-trigger"))

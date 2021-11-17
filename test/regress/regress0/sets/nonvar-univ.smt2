@@ -6,8 +6,8 @@
 (declare-fun P ((Set Int)) Bool)
 
 (assert (P x))
-(assert (not (P (singleton 0))))
-(assert (member 1 x))
-(assert (not (member 0 (as univset (Set Int)))))
+(assert (not (P (set.singleton 0))))
+(assert (set.member 1 x))
+(assert (not (set.member 0 (as set.universe (Set Int)))))
 
 (check-sat)

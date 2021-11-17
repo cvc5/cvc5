@@ -147,17 +147,17 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
   // external query
-  if (options::sygusQueryGenDumpFiles()
+  if (options().quantifiers.sygusQueryGenDumpFiles
       == options::SygusQueryDumpFilesMode::ALL)
   {
     dumpQuery(qy, spIndex);
   }
 
-  if (options::sygusQueryGenCheck())
+  if (options().quantifiers.sygusQueryGenCheck)
   {
     Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
     // make the satisfiability query
-    std::unique_ptr<SmtEngine> queryChecker;
+    std::unique_ptr<SolverEngine> queryChecker;
     initializeChecker(queryChecker, qy);
     Result r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
@@ -177,7 +177,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       ss << "but cvc5 answered unsat!" << std::endl;
       AlwaysAssert(false) << ss.str();
     }
-    if (options::sygusQueryGenDumpFiles()
+    if (options().quantifiers.sygusQueryGenDumpFiles
         == options::SygusQueryDumpFilesMode::UNSOLVED)
     {
       if (r.asSatisfiabilityResult().isSat() != Result::SAT)

@@ -29,9 +29,9 @@ namespace sets {
 
 TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SETS, env, out, valuation),
-      d_skCache(),
+      d_skCache(env.getRewriter()),
       d_state(env, valuation, d_skCache),
-      d_im(env, *this, d_state, d_pnm),
+      d_im(env, *this, d_state),
       d_internal(
           new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_pnm)),
       d_notify(*d_internal.get(), d_im)
@@ -66,30 +66,30 @@ void TheorySets::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
 
-  d_valuation.setUnevaluatedKind(COMPREHENSION);
+  d_valuation.setUnevaluatedKind(SET_COMPREHENSION);
   // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
   // Universe set is not evaluated. This is moreover important for ensuring that
   // we do not eliminate terms whose value involves the universe set.
-  d_valuation.setUnevaluatedKind(UNIVERSE_SET);
+  d_valuation.setUnevaluatedKind(SET_UNIVERSE);
 
   // functions we are doing congruence over
-  d_equalityEngine->addFunctionKind(SINGLETON);
-  d_equalityEngine->addFunctionKind(UNION);
-  d_equalityEngine->addFunctionKind(INTERSECTION);
-  d_equalityEngine->addFunctionKind(SETMINUS);
-  d_equalityEngine->addFunctionKind(MEMBER);
-  d_equalityEngine->addFunctionKind(SUBSET);
+  d_equalityEngine->addFunctionKind(SET_SINGLETON);
+  d_equalityEngine->addFunctionKind(SET_UNION);
+  d_equalityEngine->addFunctionKind(SET_INTER);
+  d_equalityEngine->addFunctionKind(SET_MINUS);
+  d_equalityEngine->addFunctionKind(SET_MEMBER);
+  d_equalityEngine->addFunctionKind(SET_SUBSET);
   // relation operators
-  d_equalityEngine->addFunctionKind(PRODUCT);
-  d_equalityEngine->addFunctionKind(JOIN);
-  d_equalityEngine->addFunctionKind(TRANSPOSE);
-  d_equalityEngine->addFunctionKind(TCLOSURE);
-  d_equalityEngine->addFunctionKind(JOIN_IMAGE);
-  d_equalityEngine->addFunctionKind(IDEN);
+  d_equalityEngine->addFunctionKind(RELATION_PRODUCT);
+  d_equalityEngine->addFunctionKind(RELATION_JOIN);
+  d_equalityEngine->addFunctionKind(RELATION_TRANSPOSE);
+  d_equalityEngine->addFunctionKind(RELATION_TCLOSURE);
+  d_equalityEngine->addFunctionKind(RELATION_JOIN_IMAGE);
+  d_equalityEngine->addFunctionKind(RELATION_IDEN);
   d_equalityEngine->addFunctionKind(APPLY_CONSTRUCTOR);
   // we do congruence over cardinality
-  d_equalityEngine->addFunctionKind(CARD);
+  d_equalityEngine->addFunctionKind(SET_CARD);
 
   // finish initialization internally
   d_internal->finishInit();
@@ -133,10 +133,10 @@ void TheorySets::preRegisterTerm(TNode node)
 TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
-  if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
-      || nk == COMPREHENSION)
+  if (nk == SET_UNIVERSE || nk == SET_COMPLEMENT || nk == RELATION_JOIN_IMAGE
+      || nk == SET_COMPREHENSION)
   {
-    if (!options::setsExt())
+    if (!options().sets.setsExt)
     {
       std::stringstream ss;
       ss << "Extended set operators are not supported in default mode, try "
@@ -144,7 +144,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  if (nk == COMPREHENSION)
+  if (nk == SET_COMPREHENSION)
   {
     // set comprehension is an implicit quantifier, require it in the logic
     if (!logicInfo().isQuantified())
@@ -173,7 +173,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
       // may appear when this option is enabled, and solving for such a set
       // impacts the semantics of universe set, see
       // regress0/sets/pre-proc-univ.smt2
-      if (!in[0].getType().isSet() || !options::setsExt())
+      if (!in[0].getType().isSet() || !options().sets.setsExt)
       {
         outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
@@ -181,7 +181,7 @@ Theory::PPAssertStatus TheorySets::ppAssert(
     }
     else if (in[1].isVar() && isLegalElimination(in[1], in[0]))
     {
-      if (!in[0].getType().isSet() || !options::setsExt())
+      if (!in[0].getType().isSet() || !options().sets.setsExt)
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;

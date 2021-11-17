@@ -38,6 +38,7 @@ namespace cad {
  * https://arxiv.org/pdf/2003.05633.pdf.
  *
  * It consists of
+ * - the interval id, used to map the interval to its (partial) proof,
  * - the actual interval, either an open or a point interal,
  * - the characterizing polynomials of the lower and upper bound,
  * - the characterizing polynomials in the main variable,
@@ -46,6 +47,8 @@ namespace cad {
  */
 struct CACInterval
 {
+  /** Id of this interval to couple it to the proof */
+  size_t d_id;
   /** The actual interval. */
   poly::Interval d_interval;
   /** The polynomials characterizing the lower bound. */
@@ -64,19 +67,20 @@ bool operator==(const CACInterval& lhs, const CACInterval& rhs);
 /** Compare two intervals. */
 bool operator<(const CACInterval& lhs, const CACInterval& rhs);
 
-/** Check whether lhs covers rhs. */
-bool intervalCovers(const poly::Interval& lhs, const poly::Interval& rhs);
-/**
- * Check whether two intervals connect, assuming lhs < rhs.
- * They connect, if their union has no gap.
- */
-bool intervalConnect(const poly::Interval& lhs, const poly::Interval& rhs);
-
 /**
  * Sort intervals according to section 4.4.1.
- * Also removes fully redundant intervals as in 4.5. 1.
+ * Also removes fully redundant intervals as in 4.5. 1.; these are intervals
+ * that are fully contained within a single other interval.
  */
 void cleanIntervals(std::vector<CACInterval>& intervals);
+
+/**
+ * Removes redundant intervals as in 4.5. 2.; these are intervals that are
+ * covered by two other intervals, but not by a single one. Assumes the
+ * intervals to be sorted and cleaned, i.e. that cleanIntervals(intervals) has
+ * been called beforehand.
+ */
+void removeRedundantIntervals(std::vector<CACInterval>& intervals);
 
 /**
  * Collect all origins from the list of intervals to construct the origins for a

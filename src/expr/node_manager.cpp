@@ -30,10 +30,11 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
-#include "theory/bags/make_bag_op.h"
+#include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
 #include "util/abstract_value.h"
 #include "util/bitvector.h"
+#include "util/rational.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -100,8 +101,7 @@ NodeManager::NodeManager()
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false),
-      d_abstractValueCount(0),
-      d_skolemCounter(0)
+      d_abstractValueCount(0)
 {
 }
 
@@ -215,8 +215,8 @@ NodeManager::~NodeManager() {
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
-    // hopefully by this point all SmtEngines have been deleted
-    // already, along with all their attributes
+    // By this point, all SolverEngines should have been deleted, along with
+    // all their attributes
     d_attrManager->deleteAllAttributes();
   }
 
@@ -366,10 +366,6 @@ void NodeManager::reclaimZombies() {
         TNode n;
         n.d_nv = nv;
         nv->d_rc = 1; // so that TNode doesn't assert-fail
-        for (NodeManagerListener* listener : d_listeners)
-        {
-          listener->nmNotifyDeleteNode(n);
-        }
         // this would mean that one of the listeners stowed away
         // a reference to this node!
         Assert(nv->d_rc == 1);
@@ -501,25 +497,6 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
   Debug("getType") << "type of " << &n << " " <<  n << " is " << typeNode << endl;
   return typeNode;
-}
-
-Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, const std::string& comment, int flags) {
-  Node n = NodeBuilder(this, kind::SKOLEM);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  if((flags & SKOLEM_EXACT_NAME) == 0) {
-    stringstream name;
-    name << prefix << '_' << ++d_skolemCounter;
-    setAttribute(n, expr::VarNameAttr(), name.str());
-  } else {
-    setAttribute(n, expr::VarNameAttr(), prefix);
-  }
-  if((flags & SKOLEM_NO_NOTIFY) == 0) {
-    for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-      (*i)->nmNotifyNewSkolem(n, comment, (flags & SKOLEM_IS_GLOBAL) == SKOLEM_IS_GLOBAL);
-    }
-  }
-  return n;
 }
 
 TypeNode NodeManager::mkBagType(TypeNode elementType)
@@ -680,11 +657,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         }
       }
     }
-  }
-
-  for (NodeManagerListener* nml : d_listeners)
-  {
-    nml->nmNotifyNewDatatypes(dtts, flags);
   }
 
   return dtts;
@@ -850,11 +822,7 @@ TypeNode NodeManager::mkSort(uint32_t flags) {
   NodeBuilder nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder(this, kind::SORT_TAG);
   nb << sortTag;
-  TypeNode tn = nb.constructTypeNode();
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
-  return tn;
+  return nb.constructTypeNode();
 }
 
 TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
@@ -863,9 +831,6 @@ TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
   nb << sortTag;
   TypeNode tn = nb.constructTypeNode();
   setAttribute(tn, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
   return tn;
 }
 
@@ -889,9 +854,6 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   nb.append(children);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyInstantiateSortConstructor(constructor, type, flags);
-  }
   return type;
 }
 
@@ -906,9 +868,6 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSortConstructor(type, flags);
-  }
   return type;
 }
 
@@ -918,9 +877,6 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
-  }
   return n;
 }
 
@@ -1041,9 +997,6 @@ Node NodeManager::mkVar(const TypeNode& type)
   Node n = NodeBuilder(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
-  }
   return n;
 }
 
@@ -1057,13 +1010,6 @@ Node NodeManager::mkBoundVar(const TypeNode& type) {
 Node NodeManager::mkInstConstant(const TypeNode& type) {
   Node n = NodeBuilder(this, kind::INST_CONSTANT);
   n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
-  return n;
-}
-
-Node NodeManager::mkBooleanTermVariable() {
-  Node n = NodeBuilder(this, kind::BOOLEAN_TERM_VARIABLE);
-  n.setAttribute(TypeAttr(), booleanType());
   n.setAttribute(TypeCheckedAttr(), true);
   return n;
 }
@@ -1088,8 +1034,8 @@ Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
       << "Invalid operands for mkSingleton. The type '" << n.getType()
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
-  Node op = mkConst(SingletonOp(t));
-  Node singleton = mkNode(kind::SINGLETON, op, n);
+  Node op = mkConst(SetSingletonOp(t));
+  Node singleton = mkNode(kind::SET_SINGLETON, op, n);
   return singleton;
 }
 
@@ -1099,8 +1045,8 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
       << "Invalid operands for mkBag. The type '" << n.getType()
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
-  Node op = mkConst(MakeBagOp(t));
-  Node bag = mkNode(kind::MK_BAG, op, n, m);
+  Node op = mkConst(BagMakeOp(t));
+  Node bag = mkNode(kind::BAG_MAKE, op, n, m);
   return bag;
 }
 
@@ -1162,6 +1108,17 @@ Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
   }
   nb.append(children.begin(), children.end());
   return nb.constructNode();
+}
+
+Node NodeManager::mkConstReal(const Rational& r)
+{
+  return mkConst(kind::CONST_RATIONAL, r);
+}
+
+Node NodeManager::mkConstInt(const Rational& r)
+{
+  // !!!! Note will update to CONST_INTEGER.
+  return mkConst(kind::CONST_RATIONAL, r);
 }
 
 }  // namespace cvc5

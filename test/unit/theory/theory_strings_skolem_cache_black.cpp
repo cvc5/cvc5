@@ -21,10 +21,10 @@
 #include "util/rational.h"
 #include "util/string.h"
 
+using namespace cvc5::kind;
+using namespace cvc5::theory::strings;
+
 namespace cvc5 {
-
-using namespace theory::strings;
-
 namespace test {
 
 class TestTheoryBlackStringsSkolemCache : public TestSmt
@@ -33,7 +33,7 @@ class TestTheoryBlackStringsSkolemCache : public TestSmt
 
 TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
 {
-  Node zero = d_nodeManager->mkConst(Rational(0));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
   Node n = d_skolemManager->mkDummySkolem("n", d_nodeManager->integerType());
   Node a = d_skolemManager->mkDummySkolem("a", d_nodeManager->stringType());
   Node b = d_skolemManager->mkDummySkolem("b", d_nodeManager->stringType());
@@ -46,7 +46,7 @@ TEST_F(TestTheoryBlackStringsSkolemCache, mkSkolemCached)
       d_nodeManager->mkNode(kind::STRING_INDEXOF, a, b, zero));
   Node sc = d_nodeManager->mkNode(kind::STRING_SUBSTR, c, zero, n);
 
-  SkolemCache sk;
+  SkolemCache sk(nullptr);
 
   // Check that skolems are shared between:
   //

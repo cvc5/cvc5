@@ -89,7 +89,7 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // bound variable v is (bvar x T)
     TypeNode intType = nm->integerType();
-    Node x = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
+    Node x = nm->mkConst(CONST_RATIONAL, Rational(getOrAssignIndexForVar(n)));
     Node tc = typeAsNode(convertType(tn));
     TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
@@ -136,7 +136,8 @@ Node LfscNodeConverter::postConvert(Node n)
     TypeNode intType = nm->integerType();
     TypeNode varType = nm->mkFunctionType({intType, d_sortType}, tn);
     Node var = mkInternalSymbol("var", varType);
-    Node index = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
+    Node index =
+        nm->mkConst(CONST_RATIONAL, Rational(getOrAssignIndexForVar(n)));
     Node tc = typeAsNode(convertType(tn));
     return nm->mkNode(APPLY_UF, var, index, tc);
   }
@@ -197,7 +198,7 @@ Node LfscNodeConverter::postConvert(Node n)
       {
         // use LFSC syntax for mpz negation
         Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn, tn), "~");
-        arg = nm->mkNode(APPLY_UF, mpzn, nm->mkConst(r.abs()));
+        arg = nm->mkNode(APPLY_UF, mpzn, nm->mkConst(CONST_RATIONAL, r.abs()));
       }
       else
       {
@@ -226,7 +227,7 @@ Node LfscNodeConverter::postConvert(Node n)
   {
     TypeNode btn = nm->booleanType();
     TypeNode tnv = nm->mkFunctionType(btn, tn);
-    TypeNode btnv = nm->mkFunctionType(btn, btn);
+    TypeNode btnv = nm->mkFunctionType({btn, btn}, btn);
     BitVector bv = n.getConst<BitVector>();
     size_t w = bv.getSize();
     Node ret = getSymbolInternal(k, btn, "bvn");
@@ -306,15 +307,15 @@ Node LfscNodeConverter::postConvert(Node n)
     children.insert(children.end(), n.begin(), n.end());
     return nm->mkNode(APPLY_UF, children);
   }
-  else if (k == EMPTYSET || k == UNIVERSE_SET || k == EMPTYBAG)
+  else if (k == SET_EMPTY || k == SET_UNIVERSE || k == BAG_EMPTY)
   {
     Node t = typeAsNode(convertType(tn));
     TypeNode etype = nm->mkFunctionType(d_sortType, tn);
     Node ef = getSymbolInternal(
         k,
         etype,
-        k == EMPTYSET ? "emptyset"
-                      : (k == UNIVERSE_SET ? "univset" : "emptybag"));
+        k == SET_EMPTY ? "set.empty"
+                       : (k == SET_UNIVERSE ? "set.universe" : "bag.empty"));
     return nm->mkNode(APPLY_UF, ef, t);
   }
   else if (n.isClosure())
@@ -343,14 +344,29 @@ Node LfscNodeConverter::postConvert(Node n)
     Node rop = getSymbolInternal(
         k, relType, printer::smt2::Smt2Printer::smtKindString(k));
     RegExpLoop op = n.getOperator().getConst<RegExpLoop>();
-    Node n1 = nm->mkConst(Rational(op.d_loopMinOcc));
-    Node n2 = nm->mkConst(Rational(op.d_loopMaxOcc));
+    Node n1 = nm->mkConst(CONST_RATIONAL, Rational(op.d_loopMinOcc));
+    Node n2 = nm->mkConst(CONST_RATIONAL, Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
   }
   else if (k == MATCH)
   {
     // currently unsupported
     return n;
+  }
+  else if (k == BITVECTOR_BB_TERM)
+  {
+    TypeNode btn = nm->booleanType();
+    // (bbT t1 ... tn) is (bbT t1 (bbT t2 ... (bbT tn emptybv)))
+    // where notice that each bbT has a different type
+    Node curr = getNullTerminator(BITVECTOR_CONCAT, tn);
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
+    {
+      TypeNode bvt = nm->mkBitVectorType(i + 1);
+      TypeNode ftype = nm->mkFunctionType({btn, curr.getType()}, bvt);
+      Node bbt = getSymbolInternal(k, ftype, "bbT");
+      curr = nm->mkNode(APPLY_UF, bbt, n[nchild - (i + 1)], curr);
+    }
+    return curr;
   }
   else if (k == SEP_NIL)
   {
@@ -469,14 +485,16 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
   else if (k == BITVECTOR_TYPE)
   {
     tnn = d_typeKindToNodeCons[k];
-    Node w = nm->mkConst(Rational(tn.getBitVectorSize()));
+    Node w = nm->mkConst(CONST_RATIONAL, Rational(tn.getBitVectorSize()));
     tnn = nm->mkNode(APPLY_UF, tnn, w);
   }
   else if (k == FLOATINGPOINT_TYPE)
   {
     tnn = d_typeKindToNodeCons[k];
-    Node e = nm->mkConst(Rational(tn.getFloatingPointExponentSize()));
-    Node s = nm->mkConst(Rational(tn.getFloatingPointSignificandSize()));
+    Node e = nm->mkConst(CONST_RATIONAL,
+                         Rational(tn.getFloatingPointExponentSize()));
+    Node s = nm->mkConst(CONST_RATIONAL,
+                         Rational(tn.getFloatingPointSignificandSize()));
     tnn = nm->mkNode(APPLY_UF, tnn, e, s);
   }
   else if (tn.getNumChildren() == 0)
@@ -591,8 +609,8 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name)
 bool LfscNodeConverter::shouldTraverse(Node n)
 {
   Kind k = n.getKind();
-  // don't convert bound variable list directly
-  if (k == BOUND_VAR_LIST)
+  // don't convert bound variable or instantiation pattern list directly
+  if (k == BOUND_VAR_LIST || k == INST_PATTERN_LIST)
   {
     return false;
   }
@@ -704,7 +722,8 @@ void LfscNodeConverter::getCharVectorInternal(Node c, std::vector<Node>& chars)
   Node aconstf = getSymbolInternal(CONST_STRING, tnc, "char");
   for (unsigned i = 0, size = vec.size(); i < size; i++)
   {
-    Node cc = nm->mkNode(APPLY_UF, aconstf, nm->mkConst(Rational(vec[i])));
+    Node cc = nm->mkNode(
+        APPLY_UF, aconstf, nm->mkConst(CONST_RATIONAL, Rational(vec[i])));
     chars.push_back(cc);
   }
 }
@@ -727,36 +746,42 @@ std::vector<Node> LfscNodeConverter::getOperatorIndices(Kind k, Node n)
     case BITVECTOR_EXTRACT:
     {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
-      indices.push_back(nm->mkConst(Rational(p.d_high)));
-      indices.push_back(nm->mkConst(Rational(p.d_low)));
+      indices.push_back(nm->mkConst(CONST_RATIONAL, Rational(p.d_high)));
+      indices.push_back(nm->mkConst(CONST_RATIONAL, Rational(p.d_low)));
       break;
     }
     case BITVECTOR_REPEAT:
       indices.push_back(
-          nm->mkConst(Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
+          nm->mkConst(CONST_RATIONAL,
+                      Rational(n.getConst<BitVectorRepeat>().d_repeatAmount)));
       break;
     case BITVECTOR_ZERO_EXTEND:
       indices.push_back(nm->mkConst(
+          CONST_RATIONAL,
           Rational(n.getConst<BitVectorZeroExtend>().d_zeroExtendAmount)));
       break;
     case BITVECTOR_SIGN_EXTEND:
       indices.push_back(nm->mkConst(
+          CONST_RATIONAL,
           Rational(n.getConst<BitVectorSignExtend>().d_signExtendAmount)));
       break;
     case BITVECTOR_ROTATE_LEFT:
       indices.push_back(nm->mkConst(
+          CONST_RATIONAL,
           Rational(n.getConst<BitVectorRotateLeft>().d_rotateLeftAmount)));
       break;
     case BITVECTOR_ROTATE_RIGHT:
       indices.push_back(nm->mkConst(
+          CONST_RATIONAL,
           Rational(n.getConst<BitVectorRotateRight>().d_rotateRightAmount)));
       break;
     case INT_TO_BITVECTOR:
-      indices.push_back(
-          nm->mkConst(Rational(n.getConst<IntToBitVector>().d_size)));
+      indices.push_back(nm->mkConst(
+          CONST_RATIONAL, Rational(n.getConst<IntToBitVector>().d_size)));
       break;
     case IAND:
-      indices.push_back(nm->mkConst(Rational(n.getConst<IntAnd>().d_size)));
+      indices.push_back(
+          nm->mkConst(CONST_RATIONAL, Rational(n.getConst<IntAnd>().d_size)));
       break;
     case APPLY_TESTER:
     {
@@ -908,7 +933,7 @@ Node LfscNodeConverter::getOperatorOfTerm(Node n, bool macroApply)
       ret = maybeMkSkolemFun(op, macroApply);
       Assert(!ret.isNull());
     }
-    else if (k == SINGLETON || k == MK_BAG)
+    else if (k == SET_SINGLETON || k == BAG_MAKE)
     {
       if (!macroApply)
       {
@@ -997,7 +1022,7 @@ Node LfscNodeConverter::getOperatorOfClosure(Node q, bool macroApply)
 Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
+  Node x = nm->mkConst(CONST_RATIONAL, Rational(getOrAssignIndexForVar(v)));
   Node tc = typeAsNode(convertType(v.getType()));
   return nm->mkNode(APPLY_UF, cop, x, tc);
 }

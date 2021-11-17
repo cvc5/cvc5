@@ -21,29 +21,52 @@ namespace cvc5 {
 namespace theory {
 namespace builtin {
 
-FunctionEnumerator::FunctionEnumerator(TypeNode type,
-                                       TypeEnumeratorProperties* tep)
-    : TypeEnumeratorBase<FunctionEnumerator>(type),
-      d_arrayEnum(TheoryBuiltinRewriter::getArrayTypeForFunctionType(type), tep)
+UninterpretedSortEnumerator::UninterpretedSortEnumerator(
+    TypeNode type, TypeEnumeratorProperties* tep)
+    : TypeEnumeratorBase<UninterpretedSortEnumerator>(type), d_count(0)
 {
-  Assert(type.getKind() == kind::FUNCTION_TYPE);
-  d_bvl = NodeManager::currentNM()->getBoundVarListForFunctionType(type);
+  Assert(type.getKind() == kind::SORT_TYPE);
+  d_has_fixed_bound = false;
+  Trace("uf-type-enum") << "UF enum " << type << ", tep = " << tep << std::endl;
+  if (tep && tep->d_fixed_usort_card)
+  {
+    d_has_fixed_bound = true;
+    std::map<TypeNode, Integer>::iterator it = tep->d_fixed_card.find(type);
+    if (it != tep->d_fixed_card.end())
+    {
+      d_fixed_bound = it->second;
+    }
+    else
+    {
+      d_fixed_bound = Integer(1);
+    }
+    Trace("uf-type-enum") << "...fixed bound : " << d_fixed_bound << std::endl;
+  }
 }
 
-Node FunctionEnumerator::operator*()
+Node UninterpretedSortEnumerator::operator*()
 {
   if (isFinished())
   {
     throw NoMoreValuesException(getType());
   }
-  Node a = *d_arrayEnum;
-  return TheoryBuiltinRewriter::getLambdaForArrayRepresentation(a, d_bvl);
+  return NodeManager::currentNM()->mkConst(
+      UninterpretedConstant(getType(), d_count));
 }
 
-FunctionEnumerator& FunctionEnumerator::operator++()
+UninterpretedSortEnumerator& UninterpretedSortEnumerator::operator++()
 {
-  ++d_arrayEnum;
+  d_count += 1;
   return *this;
+}
+
+bool UninterpretedSortEnumerator::isFinished()
+{
+  if (d_has_fixed_bound)
+  {
+    return d_count >= d_fixed_bound;
+  }
+  return false;
 }
 
 }  // namespace builtin

@@ -10,44 +10,44 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * An example of interacting with unsat cores using CVC4's Java API.
+ * An example of interacting with unsat cores using cvc5's Java API.
  */
 
-import edu.stanford.CVC4.*;
-import java.util.Iterator;
+import io.github.cvc5.api.*;
+import java.util.Arrays;
 
-public class UnsatCores {
-  public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+public class UnsatCores
+{
+  public static void main(String[] args) throws CVC5ApiException
+  {
+    try (Solver solver = new Solver())
+    {
+      // Enable the production of unsat cores
+      solver.setOption("produce-unsat-cores", "true");
 
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
+      Sort boolSort = solver.getBooleanSort();
+      Term a = solver.mkConst(boolSort, "A");
+      Term b = solver.mkConst(boolSort, "B");
 
-    // Enable the production of unsat cores
-    smt.setOption("produce-unsat-cores", new SExpr(true));
+      // A ^ B
+      solver.assertFormula(solver.mkTerm(Kind.AND, a, b));
+      // ~(A v B)
+      solver.assertFormula(solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.OR, a, b)));
 
-    Type boolType = em.booleanType();
-    Expr a = em.mkVar("A", boolType);
-    Expr b = em.mkVar("B", boolType);
+      Result res = solver.checkSat(); // result is unsat
 
-    // A ^ B
-    smt.assertFormula(em.mkExpr(Kind.AND, a, b));
-    // ~(A v B)
-    smt.assertFormula(em.mkExpr(Kind.NOT, em.mkExpr(Kind.OR, a, b)));
+      // Retrieve the unsat core
+      Term[] unsatCore = solver.getUnsatCore();
 
-    Result res = smt.checkSat(); // result is unsat
+      // Print the unsat core
+      System.out.println("Unsat Core: " + Arrays.asList(unsatCore));
 
-    // Retrieve the unsat core
-    UnsatCore unsatCore = smt.getUnsatCore();
-    
-    // Print the unsat core
-    System.out.println("Unsat Core: " + unsatCore);
-
-    // Iterate over expressions in the unsat core. The `UnsatCore` class
-    // implements the `Iterable<Expr>` interface.
-    System.out.println("--- Unsat Core ---");
-    for (Expr e : unsatCore) {
-      System.out.println(e);
+      // Iterate over expressions in the unsat core.
+      System.out.println("--- Unsat Core ---");
+      for (Term e : unsatCore)
+      {
+        System.out.println(e);
+      }
     }
   }
 }

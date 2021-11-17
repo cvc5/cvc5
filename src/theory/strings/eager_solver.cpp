@@ -16,6 +16,7 @@
 #include "theory/strings/eager_solver.h"
 
 #include "theory/strings/theory_strings_utils.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -23,34 +24,53 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(SolverState& state) : d_state(state) {}
+EagerSolver::EagerSolver(Env& env,
+                         SolverState& state,
+                         TermRegistry& treg,
+                         ArithEntail& aent)
+    : EnvObj(env), d_state(state), d_treg(treg), d_aent(aent)
+{
+}
 
 EagerSolver::~EagerSolver() {}
 
 void EagerSolver::eqNotifyNewClass(TNode t)
 {
   Kind k = t.getKind();
-  if (k == STRING_LENGTH || k == STRING_TO_CODE)
+  if (k == STRING_LENGTH)
   {
-    eq::EqualityEngine* ee = d_state.getEqualityEngine();
-    Node r = ee->getRepresentative(t[0]);
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(r);
-    if (k == STRING_LENGTH)
+    // also assume it as upper/lower bound as applicable for the equivalence
+    // class info of t.
+    EqcInfo* eil = nullptr;
+    for (size_t i = 0; i < 2; i++)
     {
-      ei->d_lengthTerm = t[0];
-    }
-    else
-    {
-      ei->d_codeTerm = t[0];
+      Node b = getBoundForLength(t, i == 0);
+      if (b.isNull())
+      {
+        continue;
+      }
+      if (eil == nullptr)
+      {
+        eil = d_state.getOrMakeEqcInfo(t);
+      }
+      if (i == 0)
+      {
+        eil->d_firstBound = t;
+      }
+      else if (i == 1)
+      {
+        eil->d_secondBound = t;
+      }
     }
   }
   else if (t.isConst())
   {
-    if (t.getType().isStringLike())
+    TypeNode tn = t.getType();
+    if (tn.isStringLike() || tn.isInteger())
     {
       EqcInfo* ei = d_state.getOrMakeEqcInfo(t);
-      ei->d_prefixC = t;
-      ei->d_suffixC = t;
+      ei->d_firstBound = t;
+      ei->d_secondBound = t;
     }
   }
   else if (k == STRING_CONCAT)
@@ -59,51 +79,19 @@ void EagerSolver::eqNotifyNewClass(TNode t)
   }
 }
 
-void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
+void EagerSolver::eqNotifyMerge(EqcInfo* e1, TNode t1, EqcInfo* e2, TNode t2)
 {
-  EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
-  if (e2 == nullptr)
+  Assert(e1 != nullptr);
+  Assert(e2 != nullptr);
+  // check for conflict
+  Node conf = checkForMergeConflict(t1, t2, e1, e2);
+  if (!conf.isNull())
   {
+    InferenceId id = t1.getType().isStringLike()
+                         ? InferenceId::STRINGS_PREFIX_CONFLICT
+                         : InferenceId::STRINGS_ARITH_BOUND_CONFLICT;
+    d_state.setPendingMergeConflict(conf, id);
     return;
-  }
-  Assert(t1.getType().isStringLike());
-  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
-  // add information from e2 to e1
-  if (!e2->d_lengthTerm.get().isNull())
-  {
-    e1->d_lengthTerm.set(e2->d_lengthTerm);
-  }
-  if (!e2->d_codeTerm.get().isNull())
-  {
-    e1->d_codeTerm.set(e2->d_codeTerm);
-  }
-  if (!e2->d_prefixC.get().isNull())
-  {
-    d_state.setPendingPrefixConflictWhen(
-        e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
-  }
-  if (!e2->d_suffixC.get().isNull())
-  {
-    d_state.setPendingPrefixConflictWhen(
-        e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
-  }
-  if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
-  {
-    e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
-  }
-  if (!e2->d_normalizedLength.get().isNull())
-  {
-    e1->d_normalizedLength.set(e2->d_normalizedLength);
-  }
-}
-
-void EagerSolver::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
-{
-  if (t1.getType().isStringLike())
-  {
-    // store disequalities between strings, may need to check if their lengths
-    // are equal/disequal
-    d_state.addDisequality(t1, t2);
   }
 }
 
@@ -126,9 +114,50 @@ void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
       Trace("strings-eager-pconf-debug")
           << "New term: " << concat << " for " << t << " with prefix " << c
           << " (" << (r == 1) << ")" << std::endl;
-      d_state.setPendingPrefixConflictWhen(ei->addEndpointConst(t, c, r == 1));
+      Node conf = ei->addEndpointConst(t, c, r == 1);
+      if (!conf.isNull())
+      {
+        d_state.setPendingMergeConflict(conf,
+                                        InferenceId::STRINGS_PREFIX_CONFLICT);
+        return;
+      }
     }
   }
+}
+
+Node EagerSolver::checkForMergeConflict(Node a,
+                                        Node b,
+                                        EqcInfo* ea,
+                                        EqcInfo* eb)
+{
+  Assert(eb != nullptr && ea != nullptr);
+  Assert(a.getType() == b.getType());
+  Assert(a.getType().isStringLike() || a.getType().isInteger());
+  // check prefix, suffix
+  for (size_t i = 0; i < 2; i++)
+  {
+    Node n = i == 0 ? eb->d_firstBound.get() : eb->d_secondBound.get();
+    if (!n.isNull())
+    {
+      Node conf;
+      if (a.getType().isStringLike())
+      {
+        conf = ea->addEndpointConst(n, Node::null(), i == 1);
+      }
+      else
+      {
+        Trace("strings-eager-aconf-debug")
+            << "addArithmeticBound " << n << " into " << a << " from " << b
+            << std::endl;
+        conf = addArithmeticBound(ea, n, i == 0);
+      }
+      if (!conf.isNull())
+      {
+        return conf;
+      }
+    }
+  }
+  return Node::null();
 }
 
 void EagerSolver::notifyFact(TNode atom,
@@ -145,6 +174,75 @@ void EagerSolver::notifyFact(TNode atom,
       addEndpointsToEqcInfo(atom, atom[1], eqc);
     }
   }
+}
+
+Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
+{
+  Assert(e != nullptr);
+  Assert(!t.isNull());
+  Node tb = t.isConst() ? t : getBoundForLength(t, isLower);
+  Assert(!tb.isNull() && tb.getKind() == CONST_RATIONAL)
+      << "Unexpected bound " << tb << " from " << t;
+  Rational br = tb.getConst<Rational>();
+  Node prev = isLower ? e->d_firstBound : e->d_secondBound;
+  // check if subsumed
+  if (!prev.isNull())
+  {
+    // convert to bound
+    Node prevb = prev.isConst() ? prev : getBoundForLength(prev, isLower);
+    Assert(!prevb.isNull() && prevb.getKind() == CONST_RATIONAL);
+    Rational prevbr = prevb.getConst<Rational>();
+    if (prevbr == br || (br < prevbr) == isLower)
+    {
+      // subsumed
+      return Node::null();
+    }
+  }
+  Node prevo = isLower ? e->d_secondBound : e->d_firstBound;
+  Trace("strings-eager-aconf-debug")
+      << "Check conflict for bounds " << t << " " << prevo << std::endl;
+  if (!prevo.isNull())
+  {
+    // are we in conflict?
+    Node prevob = prevo.isConst() ? prevo : getBoundForLength(prevo, !isLower);
+    Assert(!prevob.isNull() && prevob.getKind() == CONST_RATIONAL);
+    Rational prevobr = prevob.getConst<Rational>();
+    if (prevobr != br && (prevobr < br) == isLower)
+    {
+      // conflict
+      Node ret = EqcInfo::mkMergeConflict(t, prevo);
+      Trace("strings-eager-aconf")
+          << "String: eager arithmetic bound conflict: " << ret << std::endl;
+      return ret;
+    }
+  }
+  if (isLower)
+  {
+    e->d_firstBound = t;
+  }
+  else
+  {
+    e->d_secondBound = t;
+  }
+  return Node::null();
+}
+
+Node EagerSolver::getBoundForLength(Node len, bool isLower)
+{
+  Assert(len.getKind() == STRING_LENGTH);
+  // it is prohibitively expensive to convert to original form and rewrite,
+  // since this may invoke the rewriter on lengths of complex terms. Instead,
+  // we convert to original term the argument, then call the utility method
+  // for computing the length of the argument, implicitly under an application
+  // of length (ArithEntail::getConstantBoundLength).
+  // convert to original form
+  Node olent = SkolemManager::getOriginalForm(len[0]);
+  // get the bound
+  Node c = d_aent.getConstantBoundLength(olent, isLower);
+  Trace("strings-eager-aconf-debug")
+      << "Constant " << (isLower ? "lower" : "upper") << " bound for " << len
+      << " is " << c << ", from original form " << olent << std::endl;
+  return c;
 }
 
 }  // namespace strings

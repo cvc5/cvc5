@@ -309,7 +309,7 @@ Node LearnedRewrite::rewriteLearned(Node n,
       // could also do num + k*den checks
     }
   }
-  else if (k == GEQ || (k == EQUAL && nr[0].getType().isReal()))
+  else if (k == GEQ || (k == EQUAL && nr[0].getType().isRealOrInt()))
   {
     std::map<Node, Node> msum;
     if (ArithMSum::getMonomialSumLit(nr, msum))

@@ -19,6 +19,8 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
+using namespace cvc5::kind;
+
 namespace cvc5 {
 namespace theory {
 
@@ -103,18 +105,19 @@ const char* toString(InferenceId i)
       return "ARRAYS_CONST_ARRAY_DEFAULT";
     case InferenceId::ARRAYS_EQ_TAUTOLOGY: return "ARRAYS_EQ_TAUTOLOGY";
 
-    case InferenceId::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
-    case InferenceId::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
-    case InferenceId::BAG_MK_BAG: return "BAG_MK_BAG";
-    case InferenceId::BAG_EQUALITY: return "BAG_EQUALITY";
-    case InferenceId::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
-    case InferenceId::BAG_EMPTY: return "BAG_EMPTY";
-    case InferenceId::BAG_UNION_DISJOINT: return "BAG_UNION_DISJOINT";
-    case InferenceId::BAG_UNION_MAX: return "BAG_UNION_MAX";
-    case InferenceId::BAG_INTERSECTION_MIN: return "BAG_INTERSECTION_MIN";
-    case InferenceId::BAG_DIFFERENCE_SUBTRACT: return "BAG_DIFFERENCE_SUBTRACT";
-    case InferenceId::BAG_DIFFERENCE_REMOVE: return "BAG_DIFFERENCE_REMOVE";
-    case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
+    case InferenceId::BAGS_NON_NEGATIVE_COUNT: return "BAGS_NON_NEGATIVE_COUNT";
+    case InferenceId::BAGS_BAG_MAKE: return "BAGS_BAG_MAKE";
+    case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
+    case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
+    case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
+    case InferenceId::BAGS_UNION_DISJOINT: return "BAGS_UNION_DISJOINT";
+    case InferenceId::BAGS_UNION_MAX: return "BAGS_UNION_MAX";
+    case InferenceId::BAGS_INTERSECTION_MIN: return "BAGS_INTERSECTION_MIN";
+    case InferenceId::BAGS_DIFFERENCE_SUBTRACT:
+      return "BAGS_DIFFERENCE_SUBTRACT";
+    case InferenceId::BAGS_DIFFERENCE_REMOVE: return "BAGS_DIFFERENCE_REMOVE";
+    case InferenceId::BAGS_DUPLICATE_REMOVAL: return "BAGS_DUPLICATE_REMOVAL";
+    case InferenceId::BAGS_MAP: return "BAGS_MAP";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
@@ -401,6 +404,13 @@ const char* toString(InferenceId i)
       return "STRINGS_DEQ_EXTENSIONALITY";
     case InferenceId::STRINGS_CODE_PROXY: return "STRINGS_CODE_PROXY";
     case InferenceId::STRINGS_CODE_INJ: return "STRINGS_CODE_INJ";
+    case InferenceId::STRINGS_ARRAY_UPDATE_UNIT:
+      return "STRINGS_ARRAY_UPDATE_UNIT";
+    case InferenceId::STRINGS_ARRAY_UPDATE_CONCAT:
+      return "STRINGS_ARRAY_UPDATE_CONCAT";
+    case InferenceId::STRINGS_ARRAY_NTH_UNIT: return "STRINGS_ARRAY_NTH_UNIT";
+    case InferenceId::STRINGS_ARRAY_NTH_CONCAT:
+      return "STRINGS_ARRAY_NTH_CONCAT";
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";
     case InferenceId::STRINGS_RE_UNFOLD_POS: return "STRINGS_RE_UNFOLD_POS";
     case InferenceId::STRINGS_RE_UNFOLD_NEG: return "STRINGS_RE_UNFOLD_NEG";
@@ -422,6 +432,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_CTN_POS: return "STRINGS_CTN_POS";
     case InferenceId::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
     case InferenceId::STRINGS_PREFIX_CONFLICT: return "STRINGS_PREFIX_CONFLICT";
+    case InferenceId::STRINGS_ARITH_BOUND_CONFLICT:
+      return "STRINGS_ARITH_BOUND_CONFLICT";
     case InferenceId::STRINGS_REGISTER_TERM_ATOMIC:
       return "STRINGS_REGISTER_TERM_ATOMIC";
     case InferenceId::STRINGS_REGISTER_TERM: return "STRINGS_REGISTER_TERM";
@@ -442,6 +454,8 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_MODEL_APP_ENCODE: return "UF_HO_MODEL_APP_ENCODE";
     case InferenceId::UF_HO_MODEL_EXTENSIONALITY:
       return "UF_HO_MODEL_EXTENSIONALITY";
+    case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
+    case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
 
     default: return "?";
   }
@@ -455,7 +469,8 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 
 Node mkInferenceIdNode(InferenceId i)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(i)));
+  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
+                                           Rational(static_cast<uint32_t>(i)));
 }
 
 bool getInferenceId(TNode n, InferenceId& i)

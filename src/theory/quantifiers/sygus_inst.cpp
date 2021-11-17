@@ -250,7 +250,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
   SygusExplain syexplain(db);
   NodeManager* nm = NodeManager::currentNM();
-  options::SygusInstMode mode = options::sygusInstMode();
+  options::SygusInstMode mode = options().quantifiers.sygusInstMode;
 
   for (const Node& q : d_active_quant)
   {
@@ -346,8 +346,8 @@ void SygusInst::registerQuantifier(Node q)
   std::unordered_set<Node> term_irrelevant;
 
   /* Collect relevant local ground terms for each variable type. */
-  if (options::sygusInstScope() == options::SygusInstScope::IN
-      || options::sygusInstScope() == options::SygusInstScope::BOTH)
+  if (options().quantifiers.sygusInstScope == options::SygusInstScope::IN
+      || options().quantifiers.sygusInstScope == options::SygusInstScope::BOTH)
   {
     std::unordered_map<TypeNode, std::unordered_set<Node>> relevant_terms;
     for (const Node& var : q[0])
@@ -378,8 +378,8 @@ void SygusInst::registerQuantifier(Node q)
   }
 
   /* Collect relevant global ground terms for each variable type. */
-  if (options::sygusInstScope() == options::SygusInstScope::OUT
-      || options::sygusInstScope() == options::SygusInstScope::BOTH)
+  if (options().quantifiers.sygusInstScope == options::SygusInstScope::OUT
+      || options().quantifiers.sygusInstScope == options::SygusInstScope::BOTH)
   {
     for (const Node& var : q[0])
     {
@@ -539,7 +539,6 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   Node body =
       q[1].substitute(q[0].begin(), q[0].end(), evals.begin(), evals.end());
   Node lem = nm->mkNode(kind::OR, lit.negate(), body.negate());
-  lem = Rewriter::rewrite(lem);
 
   d_ce_lemmas.emplace(std::make_pair(q, lem));
   Trace("sygus-inst") << "Register CE Lemma: " << lem << std::endl;

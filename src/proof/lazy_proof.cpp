@@ -26,8 +26,11 @@ namespace cvc5 {
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
                          ProofGenerator* dpg,
                          context::Context* c,
-                         const std::string& name)
-    : CDProof(pnm, c, name), d_gens(c ? c : &d_context), d_defaultGen(dpg)
+                         const std::string& name,
+                         bool autoSym)
+    : CDProof(pnm, c, name, autoSym),
+      d_gens(c ? c : &d_context),
+      d_defaultGen(dpg)
 {
 }
 

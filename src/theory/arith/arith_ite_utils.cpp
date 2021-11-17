@@ -23,8 +23,8 @@
 #include "base/output.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
-#include "options/smt_options.h"
 #include "preprocessing/util/ite_utilities.h"
+#include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
@@ -59,7 +59,8 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   switch(n.getKind()){
   case ITE:{
     Node c = n[0], t = n[1], e = n[2];
-    if(n.getType().isReal()){
+    if (n.getType().isRealOrInt())
+    {
       Node rc = reduceVariablesInItes(c);
       Node rt = reduceVariablesInItes(t);
       Node re = reduceVariablesInItes(e);
@@ -84,7 +85,9 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         d_varParts[n] = vpite;
         return sum;
       }
-    }else{ // non-arith ite
+    }
+    else
+    {  // non-arith ite
       if(!d_contains.containsTermITE(n)){
         // don't bother adding to d_reduceVar
         return n;
@@ -96,13 +99,14 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
     }
   }break;
   default:
-    if(n.getType().isReal() && Polynomial::isMember(n)){
+    if (n.getType().isRealOrInt() && Polynomial::isMember(n))
+    {
       Node newn = Node::null();
       if(!d_contains.containsTermITE(n)){
         newn = n;
       }else if(n.getNumChildren() > 0){
         newn = applyReduceVariablesInItes(n);
-        newn = Rewriter::rewrite(newn);
+        newn = rewrite(newn);
         Assert(Polynomial::isMember(newn));
       }else{
         newn = n;
@@ -126,7 +130,9 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         d_reduceVar[n] = newn;
         return newn;
       }
-    }else{
+    }
+    else
+    {
       if(!d_contains.containsTermITE(n)){
         return n;
       }
@@ -144,14 +150,15 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
 }
 
 ArithIteUtils::ArithIteUtils(
+    Env& env,
     preprocessing::util::ContainsTermITEVisitor& contains,
-    context::Context* uc,
     SubstitutionMap& subs)
-    : d_contains(contains),
+    : EnvObj(env),
+      d_contains(contains),
       d_subs(subs),
       d_one(1),
-      d_subcount(uc, 0),
-      d_skolems(uc),
+      d_subcount(userContext(), 0),
+      d_skolems(userContext()),
       d_implies(),
       d_orBinEqs()
 {
@@ -178,7 +185,9 @@ const Integer& ArithIteUtils::gcdIte(Node n){
     }else{
       return d_one;
     }
-  }else if(n.getKind() == kind::ITE && n.getType().isReal()){
+  }
+  else if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
+  {
     const Integer& tgcd = gcdIte(n[1]);
     if(tgcd.isOne()){
       d_gcds[n] = d_one;
@@ -209,7 +218,7 @@ Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
 
 Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
   Assert(n.getKind() == kind::ITE);
-  Assert(n.getType().isReal());
+  Assert(n.getType().isRealOrInt());
   const Integer& gcd = gcdIte(n);
   if(gcd.isOne()){
     Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
@@ -233,7 +242,8 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
   if(d_reduceGcd.find(n) != d_reduceGcd.end()){
     return d_reduceGcd[n];
   }
-  if(n.getKind() == kind::ITE && n.getType().isReal()){
+  if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
+  {
     return reduceIteConstantIteByGCD(n);
   }
 
@@ -273,7 +283,7 @@ void ArithIteUtils::addSubstitution(TNode f, TNode t){
 }
 
 Node ArithIteUtils::applySubstitutions(TNode f){
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
   return d_subs.apply(f);
 }
 
@@ -287,7 +297,7 @@ Node ArithIteUtils::selectForCmp(Node n) const{
 }
 
 void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
   for(size_t i=0, N=assertions.size(); i < N; ++i){
     collectAssertions(assertions[i]);
   }
@@ -384,7 +394,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   //Node n = 
   Node n = applySubstitutions(binor);
   if(n != binor){
-    n = Rewriter::rewrite(n);
+    n = rewrite(n);
 
     if(!(n.getKind() == kind::OR &&
 	 n.getNumChildren() == 2 &&

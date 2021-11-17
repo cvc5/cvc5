@@ -76,7 +76,11 @@ class RelevanceManager
   typedef context::CDList<Node> NodeList;
 
  public:
-  RelevanceManager(context::UserContext* userContext, Valuation val);
+  /**
+   * @param lemContext The context which lemmas live at
+   * @param val The valuation class, for computing what is relevant.
+   */
+  RelevanceManager(context::Context* lemContext, Valuation val);
   /**
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before

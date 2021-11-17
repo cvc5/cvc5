@@ -205,7 +205,7 @@ uint64_t HigherOrderTrigger::addInstantiations()
 
 bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  if (options::hoMatching())
+  if (options().quantifiers.hoMatching)
   {
     // get substitution corresponding to m
     std::vector<TNode> vars;
@@ -238,6 +238,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
     d_lchildren.clear();
     d_arg_to_arg_rep.clear();
     d_arg_vector.clear();
+    EntailmentCheck* echeck = d_treg.getEntailmentCheck();
     for (std::pair<const TNode, std::vector<Node> >& ha : ho_var_apps_subs)
     {
       TNode var = ha.first;
@@ -291,8 +292,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
           {
             if (!d_qstate.areEqual(itf->second, args[k]))
             {
-              if (!d_treg.getTermDatabase()->isEntailed(
-                      itf->second.eqNode(args[k]), true))
+              if (!echeck->isEntailed(itf->second.eqNode(args[k]), true))
               {
                 fixed_vals[k] = Node::null();
               }
@@ -342,7 +342,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
               // value at this argument position
               d_arg_vector[vnum][index].push_back(bv_at_index);
               d_arg_vector[vnum][index].push_back(itf->second);
-              if (!options::hoMatchingVarArgPriority())
+              if (!options().quantifiers.hoMatchingVarArgPriority)
               {
                 std::reverse(d_arg_vector[vnum][index].begin(),
                              d_arg_vector[vnum][index].end());

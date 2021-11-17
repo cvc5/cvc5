@@ -3,6 +3,6 @@
 (declare-sort Loc 0)
 (declare-const l Loc)
 (declare-heap (Loc Loc))
-(assert (sep (not (_ emp Loc Loc)) (not (_ emp Loc Loc))))
+(assert (sep (not sep.emp) (not sep.emp)))
 (assert (pto l l))
 (check-sat)

@@ -95,7 +95,27 @@ public:
 
   }; /* BinaryHeap<>::handle */
 
-  class const_iterator : public std::iterator<std::input_iterator_tag, Elem> {
+  class const_iterator {
+  public:
+    /* The following types are required by trait std::iterator_traits */
+
+    /** Iterator tag */
+    using iterator_category = std::forward_iterator_tag;
+
+    /** The type of the item */
+    using value_type = Elem;
+
+    /** The pointer type of the item */
+    using pointer = const Elem*;
+
+    /** The reference type of the item */
+    using reference = const Elem&;
+
+    /** The type returned when two iterators are subtracted */
+    using difference_type = std::ptrdiff_t;
+
+    /* End of std::iterator_traits required types */
+
   private:
     typename ElementVector::const_iterator d_iter;
     friend class BinaryHeap;

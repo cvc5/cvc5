@@ -18,7 +18,7 @@
 %            Maximal clause size   :    4 (   3 average)
 %            Number of predicates  :    2 (   0 propositional; 2-2 arity)
 %            Number of functors    :    5 (   2 constant; 0-2 arity)
-%            Number of variables   :   23 (   2 singleton)
+%            Number of variables   :   23 (   2 set.singleton)
 %            Maximal term depth    :    2 (   1 average)
 % SPC      : CNF_UNS_RFO_SEQ_NHN
 
