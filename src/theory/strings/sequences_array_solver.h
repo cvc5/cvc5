@@ -60,8 +60,8 @@ class SequencesArraySolver : protected EnvObj
    * this map.
    */
   const std::map<Node, Node>& getWriteModel(Node eqc);
-  
-  /** 
+
+  /**
    * Get connected sequences
    * @return a map M such that sequence equivalence class representatives x and
    * y are connected if an only if M[x] = M[y].
@@ -95,7 +95,7 @@ class SequencesArraySolver : protected EnvObj
   void checkNth(const std::vector<Node>& nthTerms);
 
   void checkUpdate(const std::vector<Node>& updateTerms);
-  
+
   void computeConnected(const std::vector<Node>& updateTerms);
 };
 

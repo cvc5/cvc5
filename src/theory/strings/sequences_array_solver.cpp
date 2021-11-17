@@ -235,7 +235,8 @@ void SequencesArraySolver::check(const std::vector<Node>& nthTerms,
   }
 }
 
-void SequencesArraySolver::computeConnected(const std::vector<Node>& updateTerms)
+void SequencesArraySolver::computeConnected(
+    const std::vector<Node>& updateTerms)
 {
   d_connectedSeq.clear();
   std::map<Node, Node> conTmp;
@@ -243,22 +244,22 @@ void SequencesArraySolver::computeConnected(const std::vector<Node>& updateTerms
   for (const Node& n : updateTerms)
   {
     Node newRep;
-    for (size_t i=0; i<2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
-      Node s = i==0 ? n[0] : n;
+      Node s = i == 0 ? n[0] : n;
       TNode r = d_state.getRepresentative(s);
       // get the find
       it = conTmp.find(r);
-      while (it!=conTmp.end())
+      while (it != conTmp.end())
       {
         r = it->second;
         it = conTmp.find(r);
       }
-      if (i==0)
+      if (i == 0)
       {
         newRep = r;
       }
-      else if (newRep!=r)
+      else if (newRep != r)
       {
         conTmp[newRep] = r;
       }
@@ -269,7 +270,7 @@ void SequencesArraySolver::computeConnected(const std::vector<Node>& updateTerms
   {
     TNode r = c.first;
     it = conTmp.find(r);
-    while (it!=conTmp.end())
+    while (it != conTmp.end())
     {
       r = it->second;
       it = conTmp.find(r);
