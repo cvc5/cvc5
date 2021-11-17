@@ -22,4 +22,6 @@ Alternatively, the :doc:`z3py compatibility API <z3compat/z3compat>` is a more p
 Which Python API should I use?
 ------------------------------
 
-Most of the time, use the :doc:`z3py compatibility API <z3compat/z3compat>`.
+If you are a new user, or already have an application that uses Z3's python API, use the :doc:`z3py compatibility API <z3compat/z3compat>`.
+
+If you would like a more feature-complete python API, with the ability to do almost everything that the cpp API allows, use the :doc:`regular Python API <regular/python>`.
