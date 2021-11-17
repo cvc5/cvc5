@@ -47,9 +47,12 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
   Node count = d_nm->mkNode(BAG_COUNT, e, n);
-
-  Node gte = d_nm->mkNode(GEQ, count, d_zero);
+  Node skolem = d_sm->mkPurifySkolem(count, "bag.count");
+  Node equal = d_nm->mkNode(EQUAL, count, skolem);
+  d_state->getEqualityEngine()->assertEquality(equal, true, d_true);
+  Node gte = d_nm->mkNode(GEQ, skolem, d_zero);
   inferInfo.d_conclusion = gte;
+  inferInfo.d_skolems[skolem] = count;
   return inferInfo;
 }
 

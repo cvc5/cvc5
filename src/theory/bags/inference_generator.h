@@ -40,10 +40,9 @@ class InferenceGenerator
   /**
    * @param A is a bag of type (Bag E)
    * @param e is a node of type E
-   * @return an inference that represents the following implication
-   * (=>
-   *   true
-   *   (>= (bag.count e A) 0)
+   * @return an inference that represents the following lemma
+   * (>= skolem 0)
+   * where skolem = (bag.count e A)
    */
   InferInfo nonNegativeCount(Node n, Node e);
 
