@@ -28,31 +28,32 @@ public class SimpleVC
 {
   public static void main(String[] args)
   {
-    Solver slv = new Solver();
+    try (Solver slv = new Solver())
+    {
+      // Prove that for integers x and y:
+      //   x > 0 AND y > 0  =>  2x + y >= 3
 
-    // Prove that for integers x and y:
-    //   x > 0 AND y > 0  =>  2x + y >= 3
+      Sort integer = slv.getIntegerSort();
 
-    Sort integer = slv.getIntegerSort();
+      Term x = slv.mkConst(integer, "x");
+      Term y = slv.mkConst(integer, "y");
+      Term zero = slv.mkInteger(0);
 
-    Term x = slv.mkConst(integer, "x");
-    Term y = slv.mkConst(integer, "y");
-    Term zero = slv.mkInteger(0);
+      Term x_positive = slv.mkTerm(Kind.GT, x, zero);
+      Term y_positive = slv.mkTerm(Kind.GT, y, zero);
 
-    Term x_positive = slv.mkTerm(Kind.GT, x, zero);
-    Term y_positive = slv.mkTerm(Kind.GT, y, zero);
+      Term two = slv.mkInteger(2);
+      Term twox = slv.mkTerm(Kind.MULT, two, x);
+      Term twox_plus_y = slv.mkTerm(Kind.PLUS, twox, y);
 
-    Term two = slv.mkInteger(2);
-    Term twox = slv.mkTerm(Kind.MULT, two, x);
-    Term twox_plus_y = slv.mkTerm(Kind.PLUS, twox, y);
+      Term three = slv.mkInteger(3);
+      Term twox_plus_y_geq_3 = slv.mkTerm(Kind.GEQ, twox_plus_y, three);
 
-    Term three = slv.mkInteger(3);
-    Term twox_plus_y_geq_3 = slv.mkTerm(Kind.GEQ, twox_plus_y, three);
+      Term formula = slv.mkTerm(Kind.AND, x_positive, y_positive).impTerm(twox_plus_y_geq_3);
 
-    Term formula = slv.mkTerm(Kind.AND, x_positive, y_positive).impTerm(twox_plus_y_geq_3);
-
-    System.out.println("Checking entailment of formula " + formula + " with cvc5.");
-    System.out.println("cvc5 should report ENTAILED.");
-    System.out.println("Result from cvc5 is: " + slv.checkEntailed(formula));
+      System.out.println("Checking entailment of formula " + formula + " with cvc5.");
+      System.out.println("cvc5 should report ENTAILED.");
+      System.out.println("Result from cvc5 is: " + slv.checkEntailed(formula));
+    }
   }
 }
