@@ -105,7 +105,7 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc)
   while (tvars.size() <= i)
   {
     std::stringstream oss;
-    oss << tn;
+    oss << (tn.isFunction() ? tn.getRangeType() : tn);
     std::string typ_name = oss.str();
     while (typ_name[0] == '(')
     {
@@ -165,7 +165,7 @@ Node TermCanonize::getCanonicalTerm(
     var_count[key]++;
     Node fv = getCanonicalFreeVar(tn, vn, tc);
     visited[n] = fv;
-    Trace("canon-term-debug") << "...allocate variable." << std::endl;
+    Trace("canon-term-debug") << "...allocate variable " << fv << std::endl;
     return fv;
   }
   else if (n.getNumChildren() > 0)
