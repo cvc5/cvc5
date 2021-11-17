@@ -500,6 +500,14 @@ name   = "Arithmetic Theory"
   help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
 
 [[option]]
+  name       = "nlCadPrune"
+  category   = "regular"
+  long       = "nl-cad-prune"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to prune intervals more agressively"
+
+[[option]]
   name       = "nlCadUseInitial"
   category   = "regular"
   long       = "nl-cad-initial"
