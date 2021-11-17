@@ -154,7 +154,7 @@ Node PatternTermSelector::getIsUsableTrigger(Node n, Node q)
   else if (TriggerTermInfo::isRelationalTrigger(n))
   {
     Node rtr = getIsUsableEq(q, n);
-    if (rtr.isNull() && n[0].getType().isReal())
+    if (rtr.isNull() && n[0].getType().isRealOrInt())
     {
       // try to solve relation
       std::map<Node, Node> m;
