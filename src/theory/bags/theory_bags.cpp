@@ -233,6 +233,12 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       Node key = d_state.getRepresentative(e);
       Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
       Node value = d_state.getRepresentative(countTerm);
+      if (value == countTerm)
+      {
+        value = d_valuation.getPreprocessedTerm(countTerm);
+        Trace("bags-model") << "d_valuation.getPreprocessedTerm(" << countTerm
+                            << ") = " << value << std::endl;
+      }
       elementReps[key] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
