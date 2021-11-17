@@ -94,7 +94,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::NOT_ITE1: return "not_ite1";
     case AletheRule::NOT_ITE2: return "not_ite2";
     case AletheRule::ITE_INTRO: return "ite_intro";
-    case AletheRule::DUPLICATED_LITERALS: return "contraction";
+    case AletheRule::CONTRACTION: return "contraction";
     case AletheRule::CONNECTIVE_DEF: return "connective_def";
     case AletheRule::ITE_SIMPLIFY: return "trust";
     case AletheRule::EQ_SIMPLIFY: return "trust";
