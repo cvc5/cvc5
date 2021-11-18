@@ -5033,7 +5033,7 @@ void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
 /* .......................................................................... */
 
 template <typename T>
-Term Solver::mkValHelper(T t) const
+Term Solver::mkValHelper(const T& t) const
 {
   //////// all checks before this line
   Node res = getNodeManager()->mkConst(t);
