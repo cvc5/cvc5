@@ -2459,11 +2459,11 @@ enum Kind : int32_t
    */
   BAG_DUPLICATE_REMOVAL,
   /**
-   * Construct a bag with the given element contained n times.
+   * Construct a bag with the given element and given multiplicity.
    *
    * Parameters:
    *   - 1: The element
-   *   - 2: The number of times the element is to be contained (n)
+   *   - 2: The multiplicity of the element. 
    *
    * Create with:
    *   - `Solver::mkTerm(Kind kind, const Term& child, const Term& child) const`
