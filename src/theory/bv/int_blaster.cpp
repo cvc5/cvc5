@@ -101,7 +101,7 @@ Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
   Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
   Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
   Node result = d_nm->mkNode(kind::AND, lower, upper);
-  return Rewriter::rewrite(result);
+  return rewrite(result);
 }
 
 Node IntBlaster::maxInt(uint64_t k)
