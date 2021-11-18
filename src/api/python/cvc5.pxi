@@ -3060,13 +3060,13 @@ cdef class Term:
             
             A term is a set value if it is considered to be a (canonical) constant set
             value.  A canonical set value is one whose AST is:
-            ```
-              (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
-            ```
-            where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
-            also @ref Term::operator>(const Term&) const).
             
-            Note that a universe set term (kind SET_UNIVERSE) is not considered to be
+                (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+            
+            where ``c1 ... cn`` are values ordered by id such that ``c1 > ... > cn`` (see
+            also :cpp:func:`Term::operator>(const Term&) const`).
+            
+            Note that a universe set term ``(kind SET_UNIVERSE)`` is not considered to be
             a set value.
 	"""
         return self.cterm.isSetValue()
