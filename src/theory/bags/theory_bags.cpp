@@ -198,7 +198,6 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
   Trace("bags-model") << "Term set: " << termSet << std::endl;
 
   std::set<Node> processedBags;
-  std::map<Node, Node> preprocessedTerms;
 
   // get the relevant bag equivalence classes
   for (const Node& n : termSet)
@@ -232,24 +231,11 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     std::map<Node, Node> elementReps;
     for (const Node& e : elements)
     {
-      Node key = preprocessedTerms[e];
-      if (key.isNull())
-      {
-        key = d_valuation.getPreprocessedTerm(e);
-        preprocessedTerms[e] = key;
-      }
-      Trace("bags-model") << "Element preprocessedTerms[" << e << "] = " << key
-                          << std::endl;
       Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
-      Node value = preprocessedTerms[countTerm];
-      if (value.isNull())
-      {
-        value = d_valuation.getPreprocessedTerm(countTerm);
-        preprocessedTerms[countTerm] = value;
-      }
-      Trace("bags-model") << "Multiplicity preprocessedTerms[" << countTerm
+      Node value = d_state.getPreProcessedTerm(countTerm);
+      Trace("bags-model") << "getPreProcessedTerm[" << countTerm
                           << "] = " << value << std::endl;
-      elementReps[key] = value;
+      elementReps[e] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
     rep = rewrite(rep);

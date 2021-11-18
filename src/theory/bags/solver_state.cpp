@@ -132,6 +132,18 @@ void SolverState::collectDisequalBagTerms()
   }
 }
 
+Node SolverState::getPreProcessedTerm(Node n)
+{
+  std::map<Node, Node>::iterator it = d_preprocessedTerms.find(n);
+  if (it != d_preprocessedTerms.end())
+  {
+    return it->second;
+  }
+  Node preprocessed = d_valuation.getPreprocessedTerm(n);
+  d_preprocessedTerms[n] = preprocessed;
+  return preprocessed;
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace cvc5

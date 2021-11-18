@@ -47,8 +47,8 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_NON_NEGATIVE_COUNT);
   Node count = d_nm->mkNode(BAG_COUNT, e, n);
-
-  Node gte = d_nm->mkNode(GEQ, count, d_zero);
+  Node preprocessedCount = d_state->getPreProcessedTerm(count);
+  Node gte = d_nm->mkNode(GEQ, preprocessedCount, d_zero);
   inferInfo.d_conclusion = gte;
   return inferInfo;
 }
