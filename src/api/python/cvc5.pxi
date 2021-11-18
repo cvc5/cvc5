@@ -2742,6 +2742,7 @@ cdef class Sort:
 cdef class Term:
     """
     A cvc5 Term.
+    Wrapper class for :cpp:class:`cvc5::api::Term`.
     """
     cdef c_Term cterm
     cdef Solver solver
@@ -2809,8 +2810,9 @@ cdef class Term:
         return sort
 
     def substitute(self, term_or_list_1, term_or_list_2):
-        """:return: the result of simultaneously replacing the term(s) 
-	   stored in `term_or_list_1` by the term(s) stored in `term_or_list_2`.
+        """
+	   :return: the result of simultaneously replacing the term(s) 
+	   stored in `term_or_list_1` by the term(s) stored in `term_or_list_2` in this term.
 	"""
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
