@@ -64,11 +64,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_eqc = eqc;
   d_op = op;
   d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
-  if (d_termIterList == nullptr)
-  {
-    d_mode = cand_term_none;
-  }
-  else if (eqc.isNull())
+  if (eqc.isNull())
   {
     d_mode = cand_term_db;
   }else{
@@ -109,11 +105,15 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
-    Assert(d_termIterList != nullptr);
+    if (d_termIterList == nullptr)
+    {
+      d_mode = cand_term_none;
+      return Node::null();
+    }
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
-    size_t tlSize = d_termIterList->d_list.size();
-    while (d_termIter < tlSize)
+    size_t tlLimit = d_termIterList->d_list.size();
+    while (d_termIter < tlLimit)
     {
       Node n = d_termIterList->d_list[d_termIter];
       d_termIter++;
@@ -254,8 +254,17 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   d_termIter = 0;
   if (eqc.isNull())
   {
-    d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
-    d_mode = d_termIterList == nullptr ? cand_term_none : cand_term_db;
+    // generates too many instantiations at top-level when eqc is null, thus
+    // set mode to none unless option is set.
+    if (options::consExpandTriggers())
+    {
+      d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
+      d_mode = cand_term_db;
+    }
+    else
+    {
+      d_mode = cand_term_none;
+    }
   }
   else
   {
