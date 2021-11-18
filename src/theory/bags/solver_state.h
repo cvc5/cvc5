@@ -66,7 +66,7 @@ class SolverState : public TheoryState
   /** return preprocessed term for count term n and cache it in
    * d_preprocessedCountTerms */
   Node preprocessCountTerm(Node n);
-  /** return the cached preprocessed count term, or n if it not cached */
+  /** return the cached preprocessed count term */
   Node lookupPreprocessedCountTerm(Node n);
 
  private:
