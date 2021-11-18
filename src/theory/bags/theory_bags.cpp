@@ -236,7 +236,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     {
       Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
       Node value = d_state.lookupPreprocessedCountTerm(countTerm);
-      Assert(!value.isNull()) << "lookupCountTerm[" << countTerm << "] = null";
+      Assert(!value.isNull()) << "lookupCountTerm(" << countTerm << ") = null";
       elementReps[e] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
