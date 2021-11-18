@@ -2799,11 +2799,11 @@ cdef class Term:
         return self.cterm.getId()
 
     def getKind(self):
-        """:return: the kind of this term."""
+        """:return: the :py:class:`pycvc5.Kind` of this term."""
         return kind(<int> self.cterm.getKind())
 
     def getSort(self):
-        """:return: the sort of this term."""
+        """:return: the :py:class:`pycvc5.Sort` of this term."""
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.cterm.getSort()
         return sort
@@ -2847,9 +2847,9 @@ cdef class Term:
 
     def getOp(self):
         """
-	    :return: the Op used to create this Term.
+	    :return: the :py:class:`pycvc5.Op` used to create this Term.
 
-	    Note: This is safe to call when hasOp() returns True.
+	    Note: This is safe to call when :py:meth:`hasOp()` returns True.
 	"""
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
@@ -2861,7 +2861,7 @@ cdef class Term:
 
     def getSymbol(self):
         """
-	   Asserts hasSymbol().
+	   Asserts :py:meth:`hasSymbol()`.
 
 	   :return: the raw symbol of the term.
 	"""
@@ -2954,7 +2954,7 @@ cdef class Term:
 
     def getConstArrayBase(self):
         """
-	   Asserts isConstArray().
+	   Asserts :py:meth:`isConstArray()`.
 
 	   :return: the base (element stored at all indicies) of this 
 	   constant array
@@ -2969,7 +2969,7 @@ cdef class Term:
 
     def getBooleanValue(self):
         """
-	   Asserts isBooleanValue()
+	   Asserts py:meth:`isBooleanValue()`
 
 	   :return: the representation of a Boolean value as a native Boolean value.
 	"""
@@ -2981,10 +2981,10 @@ cdef class Term:
 
     def getStringValue(self):
         """
-           Note: This method is not to be confused with toString() which
+           Note: This method is not to be confused with :py:meth:`toString()` which
 	   returns the term in some string representation, whatever data it
 	   may hold.
-	   Asserts isStringValue().
+	   Asserts :py:meth:`isStringValue()`.
 
 	   :return: the string term as a native string value.
 	"""
