@@ -3000,8 +3000,8 @@ cdef class Term:
     
     def getIntegerValue(self):
         """
-	   Asserts isIntegerValue()
-
+	   Asserts :py:meth:`isIntegerValue()`.
+	   
 	   :return: the integer term as a native python integer.
 	"""
         return int(self.cterm.getIntegerValue().decode())
@@ -3012,7 +3012,7 @@ cdef class Term:
 
     def getAbstractValue(self):
         """
-	   Asserts isAbstractValue()
+	   Asserts :py:meth:'isAbstractValue()'.
 
 	   :return: the representation of an abstract value as a string.
 	"""
@@ -3044,7 +3044,7 @@ cdef class Term:
 
     def getFloatingPointValue(self):
         """
-	   Asserts isFloatingPointVAlue().
+	   Asserts :py:meth:'isFloatingPointVAlue()'.
 
 	   :return: the representation of a floating-point value as a tuple
 	   of the exponent width, the significand width and a bit-vector value.
@@ -3073,7 +3073,7 @@ cdef class Term:
 
     def getSetValue(self):
         """
-	   Asserts isSetValue()
+	   Asserts :py:meth:'isSetValue()'.
 
 	   :return: the representation of a set value as a set of terms.
 	"""
@@ -3090,7 +3090,7 @@ cdef class Term:
 
     def getSequenceValue(self):
         """
-	   Asserts isSequenceValue().
+	   Asserts :py:meth:'isSequenceValue()'.
            
 	   Note that it is usually necessary for sequences to call
            `Solver::simplify()` to turn a sequence that is constructed by, e.g.,
@@ -3111,7 +3111,7 @@ cdef class Term:
 
     def getUninterpretedValue(self):
         """
-	   Asserts isUninterpretredValue()
+	   Asserts :py:meth:'isUninterpretredValue()'.
 
 	   :return: the representation of an uninterpreted value as a pair of 
 	   its sort and its index.
@@ -3128,7 +3128,7 @@ cdef class Term:
 
     def getTupleValue(self):
         """
-	   Asserts isTupleValue()
+	   Asserts :py:meth:'isTupleValue()'.
 
 	   :return: the representation of a tuple value as a vector of terms.
 	"""
@@ -3149,7 +3149,7 @@ cdef class Term:
 
     def getRealValue(self):
         """
-	   Asserts isRealValue()
+	   Asserts :py:meth:'isRealValue()'.
 
 	   :return: the representation of a rational value as a python Fraction.
 	"""
@@ -3161,7 +3161,7 @@ cdef class Term:
 
     def getBitVectorValue(self, base = 2):
         """
-	   Asserts isBitvectorValue()
+	   Asserts :py:meth:'isBitvectorValue()'.
 
 	   :return: the representation of a bit-vector value in string representation. 
 	   Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexdecimal string).
