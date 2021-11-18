@@ -257,6 +257,9 @@ class TheoryStrings : public Theory {
    * value since it may conflict with other skeletons we have assigned.
    */
   Node mkSkeletonFor(Node value);
+  /**
+   */
+  Node mkSkeletonFromBase(Node r, size_t currIndex, size_t nextIndex);
   //-----------------------end inference steps
   /** run the given inference step */
   void runInferStep(InferStep s, int effort);
