@@ -9,6 +9,6 @@ Additionally, a more pythonic Python API is availble at https://github.com/cvc5/
 .. toctree::
    :maxdepth: 1
 
-   cpp/cpp
-   java/index
-   python/python
+   C++ API <cpp/cpp>
+   Java API <java/index>
+   Python API <python/python>
