@@ -259,6 +259,14 @@ name   = "Quantifiers"
   help       = "use triggers that do not contain all free variables"
 
 [[option]]
+  name       = "consExpandTriggers"
+  category   = "regular"
+  long       = "cons-exp-triggers"
+  type       = "bool"
+  default    = "false"
+  help       = "use constructor expansion for single constructor datatypes triggers"
+
+[[option]]
   name       = "multiTriggerWhenSingle"
   category   = "regular"
   long       = "multi-trigger-when-single"
