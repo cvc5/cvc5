@@ -1340,7 +1340,7 @@ void DefineFunctionCommand::invoke(api::Solver* solver, SymbolManager* sm)
     bool global = sm->getGlobalDeclarations();
     api::Term fun =
         solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
-    sm->getSymbolTable()->bind(fun.toString(), fun, global);
+    sm->getSymbolTable()->bind(d_symbol, fun, global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

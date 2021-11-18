@@ -20,9 +20,6 @@
 
 #include "cvc5_private.h"
 
-// circular dependency
-#include "expr/metakind.h"
-
 #ifndef CVC5__EXPR__NODE_VALUE_H
 #define CVC5__EXPR__NODE_VALUE_H
 
@@ -30,6 +27,7 @@
 #include <string>
 
 #include "expr/kind.h"
+#include "expr/metakind.h"
 #include "options/language.h"
 
 namespace cvc5 {
@@ -45,13 +43,12 @@ namespace expr {
 
 namespace kind {
   namespace metakind {
-  template < ::cvc5::Kind k, bool pool>
+
+  template < ::cvc5::Kind k, class T, bool pool>
   struct NodeValueConstCompare;
 
   struct NodeValueCompare;
-  struct NodeValueConstPrinter;
 
-  void deleteNodeValueConstant(::cvc5::expr::NodeValue* nv);
   }  // namespace metakind
   }  // namespace kind
 
@@ -68,13 +65,14 @@ class NodeValue
   friend class ::cvc5::NodeBuilder;
   friend class ::cvc5::NodeManager;
 
-  template <Kind k, bool pool>
-  friend struct ::cvc5::kind::metakind::NodeValueConstCompare;
+  template <Kind k, class T, bool pool>
+  friend struct kind::metakind::NodeValueConstCompare;
 
-  friend struct ::cvc5::kind::metakind::NodeValueCompare;
-  friend struct ::cvc5::kind::metakind::NodeValueConstPrinter;
+  friend struct kind::metakind::NodeValueCompare;
 
-  friend void ::cvc5::kind::metakind::deleteNodeValueConstant(NodeValue* nv);
+  friend void kind::metakind::nodeValueConstantToStream(std::ostream& out,
+                                                        const NodeValue* nv);
+  friend void kind::metakind::deleteNodeValueConstant(NodeValue* nv);
 
   friend class RefCountGuard;
 
@@ -185,7 +183,7 @@ class NodeValue
 
   /** If this is a CONST_* Node, extract the constant from it.  */
   template <class T>
-  inline const T& getConst() const;
+  const T& getConst() const;
 
   static inline NodeValue& null()
   {

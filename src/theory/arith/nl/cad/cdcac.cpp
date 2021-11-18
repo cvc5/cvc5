@@ -694,19 +694,36 @@ bool CDCAC::hasRootBelow(const poly::Polynomial& p,
 
 void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 {
+  cleanIntervals(intervals);
+  if (options().arith.nlCadPrune)
+  {
+    if (Trace.isOn("cdcac"))
+    {
+      auto copy = intervals;
+      removeRedundantIntervals(intervals);
+      if (copy.size() != intervals.size())
+      {
+        Trace("cdcac") << "Before pruning:";
+        for (const auto& i : copy) Trace("cdcac") << " " << i.d_interval;
+        Trace("cdcac") << std::endl;
+        Trace("cdcac") << "After pruning: ";
+        for (const auto& i : intervals) Trace("cdcac") << " " << i.d_interval;
+        Trace("cdcac") << std::endl;
+      }
+    }
+    else
+    {
+      removeRedundantIntervals(intervals);
+    }
+  }
   if (isProofEnabled())
   {
-    cleanIntervals(intervals);
     d_proof->pruneChildren([&intervals](std::size_t id) {
       return std::find_if(intervals.begin(),
                           intervals.end(),
                           [id](const CACInterval& i) { return i.d_id == id; })
              != intervals.end();
     });
-  }
-  else
-  {
-    cleanIntervals(intervals);
   }
 }
 

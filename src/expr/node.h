@@ -160,12 +160,6 @@ class NodeValue;
   class ExprSetDepth;
   }  // namespace expr
 
-namespace kind {
-  namespace metakind {
-    struct NodeValueConstPrinter;
-    }  // namespace metakind
-    }  // namespace kind
-
 /**
  * Encapsulation of an NodeValue pointer.  The reference count is
  * maintained in the NodeValue if ref_count is true.
@@ -209,8 +203,6 @@ class NodeTemplate {
 
   friend class ::cvc5::expr::attr::AttributeManager;
   friend struct ::cvc5::expr::attr::SmtAttributes;
-
-  friend struct ::cvc5::kind::metakind::NodeValueConstPrinter;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions
@@ -832,6 +824,11 @@ public:
   {
     assertTNodeNotExpired();
     d_nv->toStream(out, toDepth, dagThreshold, language);
+  }
+
+  void constToStream(std::ostream& out) const
+  {
+    kind::metakind::nodeValueConstantToStream(out, d_nv);
   }
 
   /**
