@@ -593,6 +593,10 @@ TEST_F(TestApiBlackSolver, mkReal)
   ASSERT_NO_THROW(d_solver.mkReal(val2, val2));
   ASSERT_NO_THROW(d_solver.mkReal(val3, val3));
   ASSERT_NO_THROW(d_solver.mkReal(val4, val4));
+  ASSERT_NO_THROW(d_solver.mkReal("-1/-1"));
+  ASSERT_NO_THROW(d_solver.mkReal("1/-1"));
+  ASSERT_NO_THROW(d_solver.mkReal("-1/1"));
+  ASSERT_NO_THROW(d_solver.mkReal("1/1"));
 }
 
 TEST_F(TestApiBlackSolver, mkRegexpAll)

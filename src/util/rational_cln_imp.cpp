@@ -49,6 +49,48 @@ Rational Rational::fromDecimal(const std::string& dec) {
   }
 }
 
+Rational::Rational(const char* s, unsigned base)
+{
+  try
+  {
+    const char* p = strchr(s, '/');
+    /* read_rational() does not support the case where the denominator is
+     * negative.  In this case we split the string into numerator and
+     * denominator and build rational out of two Integers. */
+    if (p && p != s && p[1] == '-')
+    {
+      size_t len = strlen(s);
+      size_t pos = p - s;
+      char str[len + 1];
+      strncpy(str, s, len);
+      str[len] = 0;
+      str[pos] = 0;
+      Integer num = Integer(str, base);
+      Integer den = Integer(str + pos + 1, base);
+      d_value = num.get_cl_I() / den.get_cl_I();
+    }
+    else
+    {
+      cln::cl_read_flags flags;
+      flags.syntax = cln::syntax_rational;
+      flags.lsyntax = cln::lsyntax_standard;
+      flags.rational_base = base;
+      d_value = read_rational(flags, s, NULL, NULL);
+    }
+  }
+  catch (...)
+  {
+    std::stringstream ss;
+    ss << "Rational() failed to parse value \"" << s << "\" in base=" << base;
+    throw std::invalid_argument(ss.str());
+  }
+}
+
+Rational::Rational(const std::string& s, unsigned base)
+    : Rational(s.c_str(), base)
+{
+}
+
 int Rational::sgn() const
 {
   if (cln::zerop(d_value))
