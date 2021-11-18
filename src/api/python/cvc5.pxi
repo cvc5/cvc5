@@ -2971,7 +2971,7 @@ cdef class Term:
 
     def getBooleanValue(self):
         """
-	   Asserts py:meth:`isBooleanValue()`
+	   Asserts :py:meth:`isBooleanValue()`
 
 	   :return: the representation of a Boolean value as a native Boolean value.
 	"""
@@ -2983,7 +2983,7 @@ cdef class Term:
 
     def getStringValue(self):
         """
-           Note: This method is not to be confused with :py:meth:`toString()` which
+           Note: This method is not to be confused with :py:meth:`__str__()` which
 	   returns the term in some string representation, whatever data it
 	   may hold.
 	   Asserts :py:meth:`isStringValue()`.
@@ -3012,7 +3012,7 @@ cdef class Term:
 
     def getAbstractValue(self):
         """
-	   Asserts :py:meth:'isAbstractValue()'.
+	   Asserts :py:meth:`isAbstractValue()`.
 
 	   :return: the representation of an abstract value as a string.
 	"""
@@ -3044,7 +3044,7 @@ cdef class Term:
 
     def getFloatingPointValue(self):
         """
-	   Asserts :py:meth:'isFloatingPointVAlue()'.
+	   Asserts :py:meth:`isFloatingPointValue()`.
 
 	   :return: the representation of a floating-point value as a tuple
 	   of the exponent width, the significand width and a bit-vector value.
@@ -3073,7 +3073,7 @@ cdef class Term:
 
     def getSetValue(self):
         """
-	   Asserts :py:meth:'isSetValue()'.
+	   Asserts :py:meth:`isSetValue()`.
 
 	   :return: the representation of a set value as a set of terms.
 	"""
@@ -3090,10 +3090,10 @@ cdef class Term:
 
     def getSequenceValue(self):
         """
-	   Asserts :py:meth:'isSequenceValue()'.
+	   Asserts :py:meth:`isSequenceValue()`.
            
 	   Note that it is usually necessary for sequences to call
-           `Solver::simplify()` to turn a sequence that is constructed by, e.g.,
+           :py:meth:`Solver::simplify()` to turn a sequence that is constructed by, e.g.,
            concatenation of unit sequences, into a sequence value.
 	  
 	   :return: the representation of a sequence value as a vector of terms.
@@ -3111,7 +3111,7 @@ cdef class Term:
 
     def getUninterpretedValue(self):
         """
-	   Asserts :py:meth:'isUninterpretredValue()'.
+	   Asserts :py:meth:`isUninterpretedValue()`.
 
 	   :return: the representation of an uninterpreted value as a pair of 
 	   its sort and its index.
@@ -3128,7 +3128,7 @@ cdef class Term:
 
     def getTupleValue(self):
         """
-	   Asserts :py:meth:'isTupleValue()'.
+	   Asserts :py:meth:`isTupleValue()`.
 
 	   :return: the representation of a tuple value as a vector of terms.
 	"""
@@ -3149,7 +3149,7 @@ cdef class Term:
 
     def getRealValue(self):
         """
-	   Asserts :py:meth:'isRealValue()'.
+	   Asserts :py:meth:`isRealValue()`.
 
 	   :return: the representation of a rational value as a python Fraction.
 	"""
@@ -3161,7 +3161,7 @@ cdef class Term:
 
     def getBitVectorValue(self, base = 2):
         """
-	   Asserts :py:meth:'isBitvectorValue()'.
+	   Asserts :py:meth:`isBitvectorValue()`.
 
 	   :return: the representation of a bit-vector value in string representation. 
 	   Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexdecimal string).
