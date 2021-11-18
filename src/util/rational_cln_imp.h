@@ -77,8 +77,8 @@ class CVC5_EXPORT Rational
    * Throws std::invalid_argument if the string is not a valid rational, i.e.,
    * if it does not match sign{digit}+/sign{digit}+.
    */
-  explicit Rational(const char* s, unsigned base = 10);
-  Rational(const std::string& s, unsigned base = 10);
+  explicit Rational(const char* s, uint32_t base = 10);
+  Rational(const std::string& s, uint32_t base = 10);
 
   /**
    * Creates a Rational from another Rational, q, by performing a deep copy.

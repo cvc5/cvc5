@@ -12,6 +12,8 @@
  *
  * A multi-precision rational constant.
  */
+#include <cln/integer_io.h>
+
 #include <sstream>
 #include <string>
 
@@ -49,32 +51,28 @@ Rational Rational::fromDecimal(const std::string& dec) {
   }
 }
 
-Rational::Rational(const char* s, unsigned base)
+Rational::Rational(const char* s, uint32_t base)
 {
   try
   {
+    cln::cl_read_flags flags;
+    flags.rational_base = base;
+    flags.lsyntax = cln::lsyntax_standard;
+
     const char* p = strchr(s, '/');
     /* read_rational() does not support the case where the denominator is
-     * negative.  In this case we split the string into numerator and
-     * denominator and build rational out of two Integers. */
-    if (p && p != s && p[1] == '-')
+     * negative.  In this case we read the numerator and denominator via
+     * read_integer() and build a rational out of two integers. */
+    if (p)
     {
-      size_t len = strlen(s);
-      size_t pos = p - s;
-      char str[len + 1];
-      strncpy(str, s, len);
-      str[len] = 0;
-      str[pos] = 0;
-      Integer num = Integer(str, base);
-      Integer den = Integer(str + pos + 1, base);
-      d_value = num.get_cl_I() / den.get_cl_I();
+      flags.syntax = cln::syntax_integer;
+      auto num = cln::read_integer(flags, s, p, nullptr);
+      auto den = cln::read_integer(flags, p + 1, nullptr, nullptr);
+      d_value = num / den;
     }
     else
     {
-      cln::cl_read_flags flags;
       flags.syntax = cln::syntax_rational;
-      flags.lsyntax = cln::lsyntax_standard;
-      flags.rational_base = base;
       d_value = read_rational(flags, s, NULL, NULL);
     }
   }
@@ -86,7 +84,7 @@ Rational::Rational(const char* s, unsigned base)
   }
 }
 
-Rational::Rational(const std::string& s, unsigned base)
+Rational::Rational(const std::string& s, uint32_t base)
     : Rational(s.c_str(), base)
 {
 }
