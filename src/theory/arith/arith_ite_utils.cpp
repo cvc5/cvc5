@@ -59,7 +59,8 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   switch(n.getKind()){
   case ITE:{
     Node c = n[0], t = n[1], e = n[2];
-    if(n.getType().isReal()){
+    if (n.getType().isRealOrInt())
+    {
       Node rc = reduceVariablesInItes(c);
       Node rt = reduceVariablesInItes(t);
       Node re = reduceVariablesInItes(e);
@@ -84,7 +85,9 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         d_varParts[n] = vpite;
         return sum;
       }
-    }else{ // non-arith ite
+    }
+    else
+    {  // non-arith ite
       if(!d_contains.containsTermITE(n)){
         // don't bother adding to d_reduceVar
         return n;
@@ -96,7 +99,8 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
     }
   }break;
   default:
-    if(n.getType().isReal() && Polynomial::isMember(n)){
+    if (n.getType().isRealOrInt() && Polynomial::isMember(n))
+    {
       Node newn = Node::null();
       if(!d_contains.containsTermITE(n)){
         newn = n;
@@ -126,7 +130,9 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         d_reduceVar[n] = newn;
         return newn;
       }
-    }else{
+    }
+    else
+    {
       if(!d_contains.containsTermITE(n)){
         return n;
       }
@@ -179,7 +185,9 @@ const Integer& ArithIteUtils::gcdIte(Node n){
     }else{
       return d_one;
     }
-  }else if(n.getKind() == kind::ITE && n.getType().isReal()){
+  }
+  else if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
+  {
     const Integer& tgcd = gcdIte(n[1]);
     if(tgcd.isOne()){
       d_gcds[n] = d_one;
@@ -210,7 +218,7 @@ Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
 
 Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
   Assert(n.getKind() == kind::ITE);
-  Assert(n.getType().isReal());
+  Assert(n.getType().isRealOrInt());
   const Integer& gcd = gcdIte(n);
   if(gcd.isOne()){
     Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
@@ -234,7 +242,8 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
   if(d_reduceGcd.find(n) != d_reduceGcd.end()){
     return d_reduceGcd[n];
   }
-  if(n.getKind() == kind::ITE && n.getType().isReal()){
+  if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
+  {
     return reduceIteConstantIteByGCD(n);
   }
 

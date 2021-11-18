@@ -45,6 +45,7 @@ class SkolemManager;
 class BoundVarManager;
 
 class DType;
+class Rational;
 
 namespace expr {
   namespace attr {
@@ -532,6 +533,21 @@ class NodeManager
 
   template <class NodeClass, class T>
   NodeClass mkConstInternal(Kind k, const T&);
+
+  /**
+   * Make constant real. Returns constant of kind CONST_RATIONAL with Rational
+   * payload.
+   */
+  Node mkConstReal(const Rational& r);
+
+  /**
+   * Make constant real. Returns constant of kind CONST_INTEGER with Rational
+   * payload.
+   *
+   * !!! Note until subtypes are eliminated, this returns a constant of kind
+   * CONST_RATIONAL.
+   */
+  Node mkConstInt(const Rational& r);
 
   /** Create a node with children. */
   TypeNode mkTypeNode(Kind kind, TypeNode child1);
