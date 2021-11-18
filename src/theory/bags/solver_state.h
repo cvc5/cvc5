@@ -63,8 +63,11 @@ class SolverState : public TheoryState
   void initialize();
   /** return disequal bag terms */
   const std::set<Node>& getDisequalBagTerms();
-  /** get the preprocessedTerm for node n */
-  Node getPreProcessedTerm(Node n);
+  /** return preprocessed term for count term n and cache it in
+   * d_preprocessedCountTerms */
+  Node preprocessCountTerm(Node n);
+  /** return the cached preprocessed count term, or n if it not cached */
+  Node lookupPreprocessedCountTerm(Node n);
 
  private:
   /** clear all bags data structures */
@@ -90,7 +93,7 @@ class SolverState : public TheoryState
   /** Disequal bag terms */
   std::set<Node> d_deq;
   /** map from terms to preprocessedTerms*/
-  std::map<Node, Node> d_preprocessedTerms;
+  std::map<Node, Node> d_preprocessedCountTerms;
 }; /* class SolverState */
 
 }  // namespace bags

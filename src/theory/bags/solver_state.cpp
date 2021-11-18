@@ -63,6 +63,7 @@ void SolverState::reset()
   d_bagElements.clear();
   d_bags.clear();
   d_deq.clear();
+  d_preprocessedCountTerms.clear();
 }
 
 void SolverState::initialize()
@@ -132,16 +133,28 @@ void SolverState::collectDisequalBagTerms()
   }
 }
 
-Node SolverState::getPreProcessedTerm(Node n)
+Node SolverState::preprocessCountTerm(Node n)
 {
-  std::map<Node, Node>::iterator it = d_preprocessedTerms.find(n);
-  if (it != d_preprocessedTerms.end())
+  Assert(n.getKind() == BAG_COUNT);
+  std::map<Node, Node>::iterator it = d_preprocessedCountTerms.find(n);
+  if (it != d_preprocessedCountTerms.end())
   {
     return it->second;
   }
   Node preprocessed = d_valuation.getPreprocessedTerm(n);
-  d_preprocessedTerms[n] = preprocessed;
+  d_preprocessedCountTerms[n] = preprocessed;
   return preprocessed;
+}
+
+Node SolverState::lookupPreprocessedCountTerm(Node n)
+{
+  Assert(n.getKind() == BAG_COUNT);
+  std::map<Node, Node>::iterator it = d_preprocessedCountTerms.find(n);
+  if (it != d_preprocessedCountTerms.end())
+  {
+    return it->second;
+  }
+  return n;
 }
 
 }  // namespace bags
