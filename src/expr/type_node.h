@@ -485,6 +485,9 @@ private:
   /** Is this a string-like type? (string or sequence) */
   bool isStringLike() const;
 
+  /** Is this the integer or real type? */
+  bool isRealOrInt() const;
+
   /** Is this the Rounding Mode type? */
   bool isRoundingMode() const;
 

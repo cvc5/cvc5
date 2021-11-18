@@ -500,6 +500,14 @@ name   = "Arithmetic Theory"
   help       = "whether to use the cylindrical algebraic coverings solver for non-linear arithmetic"
 
 [[option]]
+  name       = "nlCadPrune"
+  category   = "regular"
+  long       = "nl-cad-prune"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to prune intervals more agressively"
+
+[[options]]
   name       = "nlCadLinearModel"
   category   = "regular"
   long       = "nl-cad-linear-model=MODE"
