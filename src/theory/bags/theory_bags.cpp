@@ -218,7 +218,8 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     processedBags.insert(r);
 
     std::set<Node> solverElements = d_state.getElements(r);
-    Trace("bags-model") << "Solver Elements of bag " << n << " are: " << std::endl
+    Trace("bags-model") << "Solver Elements of bag " << n
+                        << " are: " << std::endl
                         << solverElements << std::endl;
     std::set<Node> elements;
     // only consider terms in termSet and ignore other elements in the solver
@@ -234,9 +235,8 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     for (const Node& e : elements)
     {
       Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
-      Node value = d_state.preprocessCountTerm(countTerm);
-      Trace("bags-model") << "lookupCountTerm[" << countTerm
-                          << "] = " << value << std::endl;
+      Node value = d_state.lookupPreprocessedCountTerm(countTerm);
+      Assert(!value.isNull()) << "lookupCountTerm[" << countTerm << "] = null";
       elementReps[e] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);

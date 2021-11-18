@@ -149,12 +149,7 @@ Node SolverState::preprocessCountTerm(Node n)
 Node SolverState::lookupPreprocessedCountTerm(Node n)
 {
   Assert(n.getKind() == BAG_COUNT);
-  std::map<Node, Node>::iterator it = d_preprocessedCountTerms.find(n);
-  if (it != d_preprocessedCountTerms.end())
-  {
-    return it->second;
-  }
-  return n;
+  return d_preprocessedCountTerms[n];
 }
 
 }  // namespace bags
