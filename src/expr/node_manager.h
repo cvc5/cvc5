@@ -28,6 +28,7 @@
 
 #include "base/check.h"
 #include "expr/kind.h"
+#include "expr/node_builder.h"
 #include "expr/node_value.h"
 #include "util/floatingpoint_size.h"
 
@@ -1030,14 +1031,6 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
 
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
-
-}  // namespace cvc5
-
-#include "expr/node_builder.h"
-
-namespace cvc5 {
-
-// general expression-builders
 
 inline Kind NodeManager::operatorToKind(TNode n) {
   return kind::operatorToKind(n.d_nv);
