@@ -3173,13 +3173,14 @@ cdef class Term:
         Converts a constant value Term to a Python object.
 
         Currently supports:
-          Boolean -- returns a Python bool
-          Int     -- returns a Python int
-          Real    -- returns a Python Fraction
-          BV      -- returns a Python int (treats BV as unsigned)
-          String  -- returns a Python Unicode string
-          Array   -- returns a Python dict mapping indices to values
-                  -- the constant base is returned as the default value
+
+          - Boolean -- returns a Python bool
+          - Int     -- returns a Python int
+          - Real    -- returns a Python Fraction
+          - BV      -- returns a Python int (treats BV as unsigned)
+          - String  -- returns a Python Unicode string
+          - Array   -- returns a Python dict mapping indices to values. the constant base is returned as the default value
+
         """
 
         if self.isBooleanValue():
