@@ -659,6 +659,8 @@ TEST_F(TestApiBlackSolver, mkTerm)
 
   // mkTerm(Kind kind, Term child) const
   ASSERT_NO_THROW(d_solver.mkTerm(NOT, d_solver.mkTrue()));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(BAG_MAKE, d_solver.mkTrue(), d_solver.mkInteger(1)));
   ASSERT_THROW(d_solver.mkTerm(NOT, Term()), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(NOT, a), CVC5ApiException);
   ASSERT_THROW(slv.mkTerm(NOT, d_solver.mkTrue()), CVC5ApiException);
