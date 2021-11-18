@@ -94,7 +94,7 @@ bool TriggerTermInfo::isUsableRelationTrigger(Node n,
     lit = lit[0];
   }
   // is it a relational trigger?
-  if ((lit.getKind() == EQUAL && lit[0].getType().isReal())
+  if ((lit.getKind() == EQUAL && lit[0].getType().isRealOrInt())
       || lit.getKind() == GEQ)
   {
     // if one side of the relation is a variable and the other side is a ground
