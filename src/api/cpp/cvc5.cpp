@@ -127,9 +127,6 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {OR, cvc5::Kind::OR},
     {XOR, cvc5::Kind::XOR},
     {ITE, cvc5::Kind::ITE},
-    {MATCH, cvc5::Kind::MATCH},
-    {MATCH_CASE, cvc5::Kind::MATCH_CASE},
-    {MATCH_BIND_CASE, cvc5::Kind::MATCH_BIND_CASE},
     /* UF ------------------------------------------------------------------ */
     {APPLY_UF, cvc5::Kind::APPLY_UF},
     {CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT},
@@ -266,6 +263,9 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {APPLY_TESTER, cvc5::Kind::APPLY_TESTER},
     {APPLY_UPDATER, cvc5::Kind::APPLY_UPDATER},
     {DT_SIZE, cvc5::Kind::DT_SIZE},
+    {MATCH, cvc5::Kind::MATCH},
+    {MATCH_CASE, cvc5::Kind::MATCH_CASE},
+    {MATCH_BIND_CASE, cvc5::Kind::MATCH_BIND_CASE},
     {TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT},
     /* Separation Logic ---------------------------------------------------- */
     {SEP_NIL, cvc5::Kind::SEP_NIL},
@@ -407,9 +407,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::OR, OR},
         {cvc5::Kind::XOR, XOR},
         {cvc5::Kind::ITE, ITE},
-        {cvc5::Kind::MATCH, MATCH},
-        {cvc5::Kind::MATCH_CASE, MATCH_CASE},
-        {cvc5::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
         /* UF -------------------------------------------------------------- */
         {cvc5::Kind::APPLY_UF, APPLY_UF},
         {cvc5::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
@@ -576,6 +573,9 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
         {cvc5::Kind::APPLY_UPDATER, APPLY_UPDATER},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
+        {cvc5::Kind::MATCH, MATCH},
+        {cvc5::Kind::MATCH_CASE, MATCH_CASE},
+        {cvc5::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
         {cvc5::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
         {cvc5::Kind::TUPLE_PROJECT_OP, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
