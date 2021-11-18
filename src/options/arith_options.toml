@@ -507,7 +507,7 @@ name   = "Arithmetic Theory"
   default    = "false"
   help       = "whether to prune intervals more agressively"
 
-[[options]]
+[[option]]
   name       = "nlCadLinearModel"
   category   = "regular"
   long       = "nl-cad-linear-model=MODE"
