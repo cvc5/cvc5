@@ -597,6 +597,7 @@ TEST_F(TestApiBlackSolver, mkReal)
   ASSERT_NO_THROW(d_solver.mkReal("1/-1"));
   ASSERT_NO_THROW(d_solver.mkReal("-1/1"));
   ASSERT_NO_THROW(d_solver.mkReal("1/1"));
+  ASSERT_THROW(d_solver.mkReal("/-5"), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkRegexpAll)
