@@ -528,10 +528,10 @@ mti.d_nthTerms; for (const Node& t : terms)
             if (nextIndex > currIndex)
             {
               // allocate arbitrary value to fill gap
-              Assert (conSeq!=nullptr);
+              Assert(conSeq != nullptr);
               Node base = eqc;
               itcs = conSeq->find(eqc);
-              if (itcs!=conSeq->end())
+              if (itcs != conSeq->end())
               {
                 base = itcs->second;
               }
@@ -749,20 +749,23 @@ Node TheoryStrings::mkSkeletonFor(Node c)
   return utils::mkConcat(skChildren, c.getType());
 }
 
-Node TheoryStrings::mkSkeletonFromBase(Node r, size_t currIndex, size_t nextIndex)
+Node TheoryStrings::mkSkeletonFromBase(Node r,
+                                       size_t currIndex,
+                                       size_t nextIndex)
 {
-  Assert (!r.isNull());
-  Assert (r.getType().isSequence());
+  Assert(!r.isNull());
+  Assert(r.getType().isSequence());
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   std::vector<Node> cacheVals;
   cacheVals.push_back(r);
   std::vector<Node> skChildren;
   TypeNode etn = r.getType().getSequenceElementType();
-  for (size_t i=currIndex; i<nextIndex; i++)
+  for (size_t i = currIndex; i < nextIndex; i++)
   {
     cacheVals.push_back(nm->mkConst(CONST_RATIONAL, Rational(currIndex)));
-    Node kv = sm->mkSkolemFunction(SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
+    Node kv = sm->mkSkolemFunction(
+        SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
     skChildren.push_back(nm->mkNode(SEQ_UNIT, kv));
     cacheVals.pop_back();
   }
