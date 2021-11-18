@@ -16,7 +16,6 @@
 #include "cvc5_private.h"
 
 /* circular dependency; force node.h first */
-//#include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 
