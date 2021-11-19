@@ -13,3 +13,5 @@ VERSION_SUFFIX="$1" ./contrib/packaging_python/create_wheel.sh /opt/python/cp39-
 VERSION_SUFFIX="$1" ./contrib/packaging_python/create_wheel.sh /opt/python/cp310-cp310/bin/python "$OPTS"
 
 #cp dist*/wheelhouse/*.whl ../build
+ls -al
+ls -al dist*/
