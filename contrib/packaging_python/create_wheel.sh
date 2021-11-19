@@ -42,28 +42,8 @@ elif [ "$(uname)" == "Darwin" ]; then
 else
     echo "Unhandled system $(uname) for packing libraries with wheel."
 fi
+
 popd
 
-cd $DIR
-
-if [ -f $DIR/$DISTDIR/wheelhouse/*.whl ]; then
-    # the fixed up wheel is in the wheelhouse directory
-    # delete the old one
-    rm ./$DISTDIR/*.whl
-
-    FILES=( "$DIR/$DISTDIR/wheelhouse/*.whl" )
-    WHEELFILE="${files[0]}"
-    echo ""
-    echo "It appears the pycvc5 wheel was built successfully"
-    echo "It's recommended to test it locally, by deleting the library"
-    echo "e.g. rm -r ./build"
-    echo "Then installing and making sure the library was bundled"
-    echo "  with the wheel correctly."
-    echo "pip install $WHEELFILE"
-    echo "python3 -c 'import pycvc5; solver=pycvc5.Solver(); print(solver.getIntegerSort())'"
-    echo "If it seems fine, you can upload to PyPi with:"
-    echo "        twine upload $WHEELFILE"
-    echo "or to TestPyPi with "
-    echo "        twine upload --repository testpypi $WHEELFILE"
-fi
-
+rm -rf $DISTDIR
+mv build_wheel/$DISTDIR .
