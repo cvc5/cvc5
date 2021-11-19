@@ -334,13 +334,13 @@ enum class AletheRule : uint32_t
   // ite, i.e. Gi := (ite Fi Hi Hi'), then Fi = (ite Fi (= Gi Hi) (= Gi Hi')) if
   // Hi is of sort Bool
   ITE_INTRO,
-  // ======== duplicated_literals
+  // ======== contraction
   // > i. (cl F1 ... Fn)
   // ...
   // > j. (cl Fk1 ... Fkm)
   // where m <= n and k1,...,km is a monotonic map to 1,...,n such that Fk1 ...
   // Fkm are pairwise distinct and {F1,...,Fn} = {Fk1 ... Fkm}
-  DUPLICATED_LITERALS,
+  CONTRACTION,
   // ======== connective_def
   //  G > i. (= (xor F1 F2) (or (and (not F1) F2) (and F1 (not F2))))
   // or
