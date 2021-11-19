@@ -3059,7 +3059,7 @@ cdef class Term:
                 (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
             
             where ``c1 ... cn`` are values ordered by id such that ``c1 > ... > cn`` (see
-            also :cpp:func:`Term::operator>(const Term&) const`).
+            also :cpp:func:`cvc5::api::Term::operator>(const Term&) const`).
             
             Note that a universe set term ``(kind SET_UNIVERSE)`` is not considered to be
             a set value.
@@ -3090,7 +3090,7 @@ cdef class Term:
 	   Asserts :py:meth:`isSequenceValue()`.
            
 	   Note that it is usually necessary for sequences to call
-           :py:meth:`Solver::simplify()` to turn a sequence that is constructed by, e.g.,
+           :py:meth:`Solver::simplify(Term t)` to turn a sequence that is constructed by, e.g.,
            concatenation of unit sequences, into a sequence value.
 	  
 	   :return: the representation of a sequence value as a vector of terms.
@@ -3157,7 +3157,7 @@ cdef class Term:
 
     def getBitVectorValue(self, base = 2):
         """
-	   Asserts :py:meth:`isBitvectorValue()`.
+	   Asserts :py:meth:`isBitVectorValue()`.
 	   Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexdecimal string).
 
 	   :return: the representation of a bit-vector value in string representation. 
