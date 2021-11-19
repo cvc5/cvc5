@@ -86,7 +86,6 @@ def validate_exception():
             return False
 
     if not caught_on_heap or not caught_on_nil:
-
         return False
 
     # All tests pass!
