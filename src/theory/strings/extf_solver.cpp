@@ -112,7 +112,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   else if (k == STRING_CONTAINS && pol == -1)
   {
-    if (effort == 3)
+    int reffort = options().strings.stringGuessModel ? 3 : 2;
+    if (effort == reffort)
     {
       Node x = n[0];
       Node s = n[1];
@@ -152,7 +153,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // never necessary to reduce seq.unit or str.in_re here.
     return false;
   }
-  else if (effort < 2)
+  else if (effort != 2)
   {
     return false;
   }
