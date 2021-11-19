@@ -2495,7 +2495,7 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
         {
           Node op = conclusion[0].getOperator();
           newConclusionChildren[0].insert(newConclusionChildren[0].begin(), op);
-          newConclusionChildren[1].insert(newConclusionChildren[0].begin(), op);
+          newConclusionChildren[1].insert(newConclusionChildren[1].begin(), op);
         }
         Node maybeNewConclusion =
             nm->mkNode(k, newConclusionChildren[0])
