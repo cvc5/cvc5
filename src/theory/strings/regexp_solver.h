@@ -78,7 +78,7 @@ class RegExpSolver : protected EnvObj
    * The argument mems maps representative string terms r to memberships of the
    * form (t in R) or ~(t in R), where t = r currently holds in the equality
    * engine of the theory of strings.
-   * 
+   *
    * We check in two phases:
    * (1) checkInclInter which checks if there are conflicts due to quick
    * inclusion/intersection testing. This method returns true if a conflict is
