@@ -53,7 +53,7 @@ def validate_exception():
 
     # If this is UNSAT, we have an issue so bail-out
     if not r.isSat():
-        return -1
+        return False
 
     # We now try to obtain our separation logic expressions from the solver --
     # we want to validate that we get our expected exceptions.
@@ -73,7 +73,7 @@ def validate_exception():
         caught_on_heap = True
         # Check we get the correct exception string
         if str(e) != expected:
-            return -1
+            return False
 
     # test the nil expression
     try:
@@ -83,14 +83,14 @@ def validate_exception():
 
         # Check we get the correct exception string
         if str(e) != expected:
-            return -1
+            return False
 
     if not caught_on_heap or not caught_on_nil:
 
-        return -1
+        return False
 
     # All tests pass!
-    return 0
+    return True
 
 
 # Test function to demonstrate the use of, and validate the capability, of
@@ -151,7 +151,7 @@ def validate_getters():
 
     # If this is UNSAT, we have an issue so bail-out
     if not r.isSat():
-        return -1
+        return False
 
     # Obtain our separation logic terms from the solver
     heap_expr = slv.getValueSepHeap()
@@ -159,11 +159,11 @@ def validate_getters():
 
     # If the heap is not a separating conjunction, bail-out
     if (heap_expr.getKind() != kinds.SepStar):
-        return -1
+        return False
 
     # If nil is not a direct equality, bail-out
     if (nil_expr.getKind() != kinds.Equal):
-        return -1
+        return False
 
     # Obtain the values for our "pointers"
     val_for_p1 = slv.getValue(p1)
@@ -177,7 +177,7 @@ def validate_getters():
     for child in heap_expr:
         # If we don't have a PTO operator, bail-out
         if (child.getKind() != kinds.SepPto):
-            return -1
+            return False
 
         # Find both sides of the PTO operator
         addr = slv.getValue(child[0])
@@ -189,7 +189,7 @@ def validate_getters():
 
             # If it doesn't match the random constant, we have a problem
             if value != random_constant:
-                return -1
+                return False
             continue
 
         if (addr == val_for_p2):
@@ -200,18 +200,18 @@ def validate_getters():
             # something has gone wrong!
 
             if int(str(value)) <= int(str(random_constant)):
-                return -1
+                return False
             continue
 
         # We should only have two addresses in heap, so if we haven't hit the
         # "continue" for p1 or p2, then bail-out
 
-        return -1
+        return True
 
     # If we complete the loop and we haven't validated both p1 and p2, then we
     # have a problem
     if (not checked_p1 or not checked_p2):
-        return -1
+        return False
 
     # We now get our value for what nil is
     value_for_nil = slv.getValue(nil_expr[1])
@@ -220,20 +220,14 @@ def validate_getters():
     # nil to
 
     if (value_for_nil != expr_nil_val):
-        return -1
+        return False
 
     # All tests pass!
-    return 0
+    return True
 
 
 # check that we get an exception when we should
-check_exception = validate_exception()
-
-if check_exception:
-    assert False
+assert validate_exception()
 
 # check the getters
-check_getters = validate_getters()
-
-if check_getters:
-    assert False
+assert validate_getters()
