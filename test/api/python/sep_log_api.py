@@ -53,7 +53,6 @@ def validate_exception():
 
     # If this is UNSAT, we have an issue so bail-out
     if not r.isSat():
-
         return -1
 
     # We now try to obtain our separation logic expressions from the solver --
