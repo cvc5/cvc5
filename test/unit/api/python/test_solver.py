@@ -346,7 +346,8 @@ def test_mk_bit_vector(solver):
     with pytest.raises(RuntimeError):
         solver.mkBitVector(8, "fzff", 16)
 
-    assert solver.mkBitVector(8, "0101", 2) == solver.mkBitVector(8, "00000101", 2)
+    assert solver.mkBitVector(8, "0101",
+                              2) == solver.mkBitVector(8, "00000101", 2)
     assert solver.mkBitVector(4, "1010", 2) == solver.mkBitVector(4, "10", 10)
     assert solver.mkBitVector(4, "1010", 2) == solver.mkBitVector(4, "a", 16)
     assert str(solver.mkBitVector(8, "01010101", 2)) == "#b01010101"
@@ -422,6 +423,7 @@ def test_mk_floating_point(solver):
     with pytest.raises(RuntimeError):
         slv.mkFloatingPoint(3, 5, t1)
 
+
 def test_mk_cardinality_constraint(solver):
     su = solver.mkUninterpretedSort("u")
     si = solver.getIntegerSort()
@@ -433,6 +435,7 @@ def test_mk_cardinality_constraint(solver):
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkCardinalityConstraint(su, 3)
+
 
 def test_mk_empty_set(solver):
     slv = pycvc5.Solver()
@@ -854,20 +857,24 @@ def test_mk_true(solver):
 
 
 def test_mk_tuple(solver):
-    solver.mkTuple([solver.mkBitVectorSort(3)], [solver.mkBitVector(3, "101", 2)])
+    solver.mkTuple([solver.mkBitVectorSort(3)],
+                   [solver.mkBitVector(3, "101", 2)])
     solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
 
     with pytest.raises(RuntimeError):
         solver.mkTuple([], [solver.mkBitVector(3, "101", 2)])
     with pytest.raises(RuntimeError):
-        solver.mkTuple([solver.mkBitVectorSort(4)], [solver.mkBitVector(3, "101", 2)])
+        solver.mkTuple([solver.mkBitVectorSort(4)],
+                       [solver.mkBitVector(3, "101", 2)])
     with pytest.raises(RuntimeError):
         solver.mkTuple([solver.getIntegerSort()], [solver.mkReal("5.3")])
     slv = pycvc5.Solver()
     with pytest.raises(RuntimeError):
-        slv.mkTuple([solver.mkBitVectorSort(3)], [slv.mkBitVector(3, "101", 2)])
+        slv.mkTuple([solver.mkBitVectorSort(3)],
+                    [slv.mkBitVector(3, "101", 2)])
     with pytest.raises(RuntimeError):
-        slv.mkTuple([slv.mkBitVectorSort(3)], [solver.mkBitVector(3, "101", 2)])
+        slv.mkTuple([slv.mkBitVectorSort(3)],
+                    [solver.mkBitVector(3, "101", 2)])
 
 
 def test_mk_universe_set(solver):
@@ -1931,16 +1938,16 @@ def test_define_fun_global(solver):
 
 
 def test_define_sort(solver):
-        sortVar0 = solver.mkParamSort("T0")
-        sortVar1 = solver.mkParamSort("T1")
-        intSort = solver.getIntegerSort()
-        realSort = solver.getRealSort()
-        arraySort0 = solver.mkArraySort(sortVar0, sortVar0)
-        arraySort1 = solver.mkArraySort(sortVar0, sortVar1)
-        # Now create instantiations of the defined sorts
-        arraySort0.substitute(sortVar0, intSort)
+    sortVar0 = solver.mkParamSort("T0")
+    sortVar1 = solver.mkParamSort("T1")
+    intSort = solver.getIntegerSort()
+    realSort = solver.getRealSort()
+    arraySort0 = solver.mkArraySort(sortVar0, sortVar0)
+    arraySort1 = solver.mkArraySort(sortVar0, sortVar1)
+    # Now create instantiations of the defined sorts
+    arraySort0.substitute(sortVar0, intSort)
 
-        arraySort1.substitute(sortVar0, sortVar1, [intSort, realSort])
+    arraySort1.substitute(sortVar0, sortVar1, [intSort, realSort])
 
 
 def test_get_model_domain_elements(solver):
@@ -2186,55 +2193,54 @@ def test_synth_fun(solver):
     with pytest.raises(RuntimeError):
         slv.synthFun("f1", [x], solver.getBooleanSort())
 
- def test_tuple_project(solver):
-        sorts = [solver.getBooleanSort(),\
-                                   solver.getIntegerSort(),\
-                                   solver.getStringSort(),\
-                                   solver.mkSetSort(solver.getStringSort())]
-        elements = [\
-            solver.mkBoolean(true), \
-            solver.mkInteger(3),\
-            solver.mkString("C"),\
-            solver.mkTerm(SET_SINGLETON, solver.mkString("Z"))]
 
-        tuple = solver.mkTuple(sorts, elements)
+def test_tuple_project(solver):
+    sorts = [solver.getBooleanSort(),\
+                               solver.getIntegerSort(),\
+                               solver.getStringSort(),\
+                               solver.mkSetSort(solver.getStringSort())]
+    elements = [\
+        solver.mkBoolean(true), \
+        solver.mkInteger(3),\
+        solver.mkString("C"),\
+        solver.mkTerm(SET_SINGLETON, solver.mkString("Z"))]
 
-        indices1 = []
-        indices2 = [0]
-        indices3 = [0, 1]
-        indices4 = [0, 0, 2, 2, 3, 3, 0]
-        indices5 = [4]
-        indices6 = [0, 4]
+    tuple = solver.mkTuple(sorts, elements)
 
-        solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices1), tuple)
+    indices1 = []
+    indices2 = [0]
+    indices3 = [0, 1]
+    indices4 = [0, 0, 2, 2, 3, 3, 0]
+    indices5 = [4]
+    indices6 = [0, 4]
 
-        solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices2), tuple)
+    solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices1), tuple)
 
-        solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices3), tuple)
+    solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices2), tuple)
 
-        solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices4), tuple)
+    solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices3), tuple)
 
-        with pytest.raises(RuntimeError):
-            solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices5), tuple)
-        with pytest.raises(RuntimeError):
-            solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices6), tuple)
+    solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices4), tuple)
 
-        indices = [0, 3, 2, 0, 1, 2]
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices5), tuple)
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices6), tuple)
 
-        op = solver.mkOp(TUPLE_PROJECT, indices)
-        projection = solver.mkTerm(op, tuple)
+    indices = [0, 3, 2, 0, 1, 2]
 
-        datatype = tuple.getSort().getDatatype()
-        constructor = datatype[0]
+    op = solver.mkOp(TUPLE_PROJECT, indices)
+    projection = solver.mkTerm(op, tuple)
 
-        for i in range(indices.size()):
+    datatype = tuple.getSort().getDatatype()
+    constructor = datatype[0]
 
-            selectorTerm = constructor[indices[i]].getSelectorTerm()
-            selectedTerm = solver.mkTerm(APPLY_SELECTkinds.Or, selectorTerm, tuple)
-            simplifiedTerm = solver.simplify(selectedTerm)
-            assert elements[indices[i]] == simplifiedTerm
+    for i in range(indices.size()):
 
-            assert "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
-                projection)
+        selectorTerm = constructor[indices[i]].getSelectorTerm()
+        selectedTerm = solver.mkTerm(APPLY_SELECTkinds.Or, selectorTerm, tuple)
+        simplifiedTerm = solver.simplify(selectedTerm)
+        assert elements[indices[i]] == simplifiedTerm
 
-
+        assert "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
+            projection)
