@@ -144,7 +144,8 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
     visit.pop_back();
     Trace("alethe-proof-subtyping-convert")
         << "traverseAndConvertAllConsts: convert " << cur << "\n";
-    if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+    if (cur.getMetaKind() == kind::metakind::PARAMETERIZED
+        || cur.getKind() == kind::CAST_TO_REAL)
     {
       visited[cur] = cur;
       Trace("alethe-proof-subtyping-convert")
@@ -157,6 +158,7 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
     {
       if (cur.isConst() && cur.getType().isInteger())
       {
+        Trace("alethe-proof-subtyping-convert") << "..cast int conts to real\n";
         visited[cur] = nm->mkNode(kind::CAST_TO_REAL, cur);
         continue;
       }
@@ -174,6 +176,7 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
     }
     else if (it->second.isNull())
     {
+      Trace("alethe-proof-subtyping-convert") << pop;
       bool childChanged = false;
       std::vector<Node> children;
       for (const Node& child : cur)
@@ -183,7 +186,11 @@ Node AletheNoSubtypeNodeConverter::traverseAndConvertAllConsts(Node n)
         children.push_back(visited[child]);
       }
       visited[cur] = !childChanged ? cur : nm->mkNode(cur.getKind(), children);
-      Trace("alethe-proof-subtyping-convert") << pop;
+      if (Trace.isOn("alethe-proof-subtyping-convert") && childChanged)
+      {
+        Trace("alethe-proof-subtyping-convert")
+            << "..rebuilt " << cur << " into " << visited[cur] << "\n";
+      }
     }
   } while (!visit.empty());
   return visited[n];
