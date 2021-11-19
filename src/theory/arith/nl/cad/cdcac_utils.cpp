@@ -17,6 +17,8 @@
 
 #ifdef CVC5_POLY_IMP
 
+#include <optional>
+
 #include "theory/arith/nl/cad/projections.h"
 
 namespace cvc5 {
@@ -36,11 +38,12 @@ bool operator<(const CACInterval& lhs, const CACInterval& rhs)
   return lhs.d_interval < rhs.d_interval;
 }
 
+namespace {
 /**
  * Induces an ordering on poly intervals that is suitable for redundancy
  * removal as implemented in clean_intervals.
  */
-inline bool compareForCleanup(const Interval& lhs, const Interval& rhs)
+bool compareForCleanup(const Interval& lhs, const Interval& rhs)
 {
   const lp_value_t* ll = &(lhs.get_internal()->a);
   const lp_value_t* lu =
@@ -74,6 +77,9 @@ inline bool compareForCleanup(const Interval& lhs, const Interval& rhs)
   return false;
 }
 
+/**
+ * Check whether lhs covers rhs.
+ */
 bool intervalCovers(const Interval& lhs, const Interval& rhs)
 {
   const lp_value_t* ll = &(lhs.get_internal()->a);
@@ -106,13 +112,17 @@ bool intervalCovers(const Interval& lhs, const Interval& rhs)
   return true;
 }
 
+/**
+ * Check whether two intervals connect, assuming lhs < rhs.
+ * They connect, if their union has no gap.
+ */
 bool intervalConnect(const Interval& lhs, const Interval& rhs)
 {
   Assert(lhs < rhs) << "Can only check for a connection if lhs < rhs.";
-  const lp_value_t* lu = lhs.get_internal()->is_point
-                             ? &(lhs.get_internal()->a)
-                             : &(lhs.get_internal()->b);
-  const lp_value_t* rl = &(rhs.get_internal()->a);
+
+  const lp_value_t* lu = poly::get_upper(lhs).get_internal();
+  const lp_value_t* rl = poly::get_lower(rhs).get_internal();
+
   int c = lp_value_cmp(lu, rl);
   if (c < 0)
   {
@@ -127,16 +137,38 @@ bool intervalConnect(const Interval& lhs, const Interval& rhs)
     return true;
   }
   Assert(c == 0);
-  if (lhs.get_internal()->is_point || rhs.get_internal()->is_point
-      || !lhs.get_internal()->b_open || !rhs.get_internal()->a_open)
+  if (poly::get_upper_open(lhs) && poly::get_lower_open(rhs))
   {
     Trace("libpoly::interval_connect")
         << lhs << " and " << rhs
-        << " touch and the intermediate point is covered." << std::endl;
-    return true;
+        << " touch and the intermediate point is not covered." << std::endl;
+    return false;
   }
-  return false;
+  Trace("libpoly::interval_connect")
+      << lhs << " and " << rhs
+      << " touch and the intermediate point is covered." << std::endl;
+  return true;
 }
+
+/**
+ * Check whether the union of a and b covers rhs.
+ * First check whether a and b connect, and then defer the containment check to
+ * intervalCovers.
+ */
+std::optional<bool> intervalsCover(const Interval& a,
+                                   const Interval& b,
+                                   const Interval& rhs)
+{
+  if (!intervalConnect(a, b)) return {};
+
+  Interval c(poly::get_lower(a),
+             poly::get_lower_open(a),
+             poly::get_upper(b),
+             poly::get_upper_open(b));
+
+  return intervalCovers(c, rhs);
+}
+}  // namespace
 
 void cleanIntervals(std::vector<CACInterval>& intervals)
 {
@@ -150,11 +182,12 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
               return compareForCleanup(lhs.d_interval, rhs.d_interval);
             });
 
-  // Remove intervals that are covered by others.
-  // Implementation roughly follows
-  // https://en.cppreference.com/w/cpp/algorithm/remove Find first interval that
-  // covers the next one.
+  // First remove intervals that are completely covered by a single other
+  // interval. This corresponds to removing "redundancies of the first kind" as
+  // of 4.5.1 The implementation roughly follows
+  // https://en.cppreference.com/w/cpp/algorithm/remove
   std::size_t first = 0;
+  // Find first interval that is covered.
   for (std::size_t n = intervals.size(); first < n - 1; ++first)
   {
     if (intervalCovers(intervals[first].d_interval,
@@ -181,6 +214,48 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
     {
       intervals.pop_back();
     }
+  }
+}
+
+void removeRedundantIntervals(std::vector<CACInterval>& intervals)
+{
+  // mid-1 -> interval below
+  // mid   -> current interval
+  // right -> interval above
+  size_t mid = 1;
+  size_t right = 2;
+  size_t n = intervals.size();
+  while (right < n)
+  {
+    bool found = false;
+    for (size_t r = right; r < n; ++r)
+    {
+      const auto& below = intervals[mid - 1].d_interval;
+      const auto& middle = intervals[mid].d_interval;
+      const auto& above = intervals[r].d_interval;
+      if (intervalsCover(below, above, middle))
+      {
+        found = true;
+        break;
+      }
+    }
+    if (found)
+    {
+      intervals[mid] = std::move(intervals[right]);
+    }
+    else
+    {
+      ++mid;
+      if (mid < right)
+      {
+        intervals[mid] = std::move(intervals[right]);
+      }
+    }
+    ++right;
+  }
+  while (intervals.size() > mid + 1)
+  {
+    intervals.pop_back();
   }
 }
 

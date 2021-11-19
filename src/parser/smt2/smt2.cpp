@@ -879,7 +879,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
 
 api::Term Smt2::parseOpToExpr(ParseOp& p)
 {
-  Debug("parser") << "parseOpToExpr: " << p << std::endl;
+  Trace("parser") << "parseOpToExpr: " << p << std::endl;
   api::Term expr;
   if (p.d_kind != api::NULL_EXPR || !p.d_type.isNull())
   {

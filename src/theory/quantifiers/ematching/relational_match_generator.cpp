@@ -35,7 +35,7 @@ RelationalMatchGenerator::RelationalMatchGenerator(Trigger* tparent,
       d_pol(pol),
       d_counter(0)
 {
-  Assert((rtrigger.getKind() == EQUAL && rtrigger[0].getType().isReal())
+  Assert((rtrigger.getKind() == EQUAL && rtrigger[0].getType().isRealOrInt())
          || rtrigger.getKind() == GEQ);
   Trace("relational-match-gen")
       << "Relational trigger: " << rtrigger << ", hasPol/pol = " << hasPol
