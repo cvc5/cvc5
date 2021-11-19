@@ -2811,8 +2811,7 @@ cdef class Term:
 
     def substitute(self, term_or_list_1, term_or_list_2):
         """
-	   :return: the result of simultaneously replacing the term(s) 
-	   stored in `term_or_list_1` by the term(s) stored in `term_or_list_2` in this term.
+	   :return: the result of simultaneously replacing the term(s) stored in `term_or_list_1` by the term(s) stored in `term_or_list_2` in this term.
 	"""
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
@@ -2849,9 +2848,9 @@ cdef class Term:
 
     def getOp(self):
         """
-	    :return: the :py:class:`pycvc5.Op` used to create this Term.
-
 	    Note: This is safe to call when :py:meth:`hasOp()` returns True.
+
+	    :return: the :py:class:`pycvc5.Op` used to create this Term.
 	"""
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
@@ -2958,8 +2957,7 @@ cdef class Term:
         """
 	   Asserts :py:meth:`isConstArray()`.
 
-	   :return: the base (element stored at all indicies) of this 
-	   constant array
+	   :return: the base (element stored at all indicies) of this constant array
 	"""
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getConstArrayBase()
@@ -3046,8 +3044,7 @@ cdef class Term:
         """
 	   Asserts :py:meth:`isFloatingPointValue()`.
 
-	   :return: the representation of a floating-point value as a tuple
-	   of the exponent width, the significand width and a bit-vector value.
+	   :return: the representation of a floating-point value as a tuple of the exponent width, the significand width and a bit-vector value.
 	"""
         cdef c_tuple[uint32_t, uint32_t, c_Term] t = self.cterm.getFloatingPointValue()
         cdef Term term = Term(self.solver)
@@ -3056,8 +3053,6 @@ cdef class Term:
 
     def isSetValue(self):
         """
-            :return: True if the term is a set value.
-            
             A term is a set value if it is considered to be a (canonical) constant set
             value.  A canonical set value is one whose AST is:
             
@@ -3068,6 +3063,8 @@ cdef class Term:
             
             Note that a universe set term ``(kind SET_UNIVERSE)`` is not considered to be
             a set value.
+
+            :return: True if the term is a set value.    
 	"""
         return self.cterm.isSetValue()
 
@@ -3113,8 +3110,7 @@ cdef class Term:
         """
 	   Asserts :py:meth:`isUninterpretedValue()`.
 
-	   :return: the representation of an uninterpreted value as a pair of 
-	   its sort and its index.
+	   :return: the representation of an uninterpreted value as a pair of its sort and its index.
 	"""
         cdef pair[c_Sort, int32_t] p = self.cterm.getUninterpretedValue()
         cdef Sort sort = Sort(self.solver)
@@ -3141,10 +3137,10 @@ cdef class Term:
 
     def isRealValue(self):
         """
-	    :return: True iff this term is a rational value.
-
 	    Note that a term of kind PI is not considered to be a real value.
-	"""
+
+	    :return: True iff this term is a rational value.
+        """
         return self.cterm.isRealValue()
 
     def getRealValue(self):
@@ -3162,9 +3158,9 @@ cdef class Term:
     def getBitVectorValue(self, base = 2):
         """
 	   Asserts :py:meth:`isBitvectorValue()`.
+	   Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexdecimal string).
 
 	   :return: the representation of a bit-vector value in string representation. 
-	   Supported bases are 2 (bit string), 10 (decimal string) or 16 (hexdecimal string).
 	"""
         return self.cterm.getBitVectorValue(base).decode()
 
