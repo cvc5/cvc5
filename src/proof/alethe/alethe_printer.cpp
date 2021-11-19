@@ -75,8 +75,7 @@ std::string AletheProofPrinter::alethePrinterInternal(
   AletheRule vrule =
       static_cast<AletheRule>(std::stoul(pfn->getArguments()[0].toString()));
 
-  // In case the rule is an anchor it is printed before its children. The
-  // arguments of the anchor are printed as assumptions
+  // In case the rule is an anchor it is printed before its children.
   if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND
       || vrule == AletheRule::ANCHOR_SKO_FORALL
       || vrule == AletheRule::ANCHOR_SKO_EX)
@@ -100,7 +99,14 @@ std::string AletheProofPrinter::alethePrinterInternal(
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << vrule << " "
         << " / " << pfn->getArguments() << std::endl;
-    out << "(anchor :step " << prefix << "t" << step_id;  // << " :args (";
+    out << "(anchor :step " << prefix << "t" << step_id;
+
+    // Append index of anchor to prefix so that all steps in the subproof use it
+    prefix.append("t" + std::to_string(step_id) + ".");
+    step_id++;
+
+    // If the subproof is a bind the arguments need to be printed as
+    // assignments, i.e. args=[(= v0 v1)] is printed as (:= (v0 Int) v1).
     if (vrule == AletheRule::ANCHOR_BIND)
     {
       out << " :args (";
@@ -117,19 +123,14 @@ std::string AletheProofPrinter::alethePrinterInternal(
       }
       out << ")";
     }
+    // In all other cases there are no arguments
     out << ")\n";
 
-    // Append index of anchor to prefix so that all steps in the subproof use it
-    prefix.append("t" + std::to_string(step_id) + ".");
-    step_id++;
-
-    // Print assumptions
-    if (vrule == AletheRule::ANCHOR_SUBPROOF
-        || vrule == AletheRule::ANCHOR_SKO_FORALL
-        || vrule == AletheRule::ANCHOR_SKO_EX)
+    // If the subproof is a genuine subproof the arguments are printed as
+    // assumptions
+    if (vrule == AletheRule::ANCHOR_SUBPROOF)
     {
-      for (unsigned long int i = 3, size = pfn->getArguments().size(); i < size;
-           i++)
+      for (size_t i = 3, size = pfn->getArguments().size(); i < size; i++)
       {
         Trace("alethe-printer")
             << "... print assumption " << pfn->getArguments()[i] << std::endl;
@@ -146,60 +147,37 @@ std::string AletheProofPrinter::alethePrinterInternal(
   }
 
   // Assumptions are printed at the anchor and therefore have to be in the list
-  // of assumptions when an assume is reached
+  // of assumptions when an assume is reached.
   if (vrule == AletheRule::ASSUME)
   {
     Trace("alethe-printer")
         << "... reached assumption " << pfn->getResult() << " " << vrule << " "
         << " / " << pfn->getArguments() << std::endl;
 
-    auto it = assumptions[nested_level].find(pfn->getArguments()[2]);
-
-    if (it != assumptions[nested_level].end())
+    // While in most cases the assumption is printed at the same level than the
+    // step whose premise it is, it is possible that it is from a different
+    // level. Thus, the whole list needs to be traversed. Since this case is rare
+    // adapting the prefix should be rarely necessary.
+    for (size_t i = nested_level; i >= 0; i--)
     {
-      Trace("alethe-printer")
-          << "... search assumption in list " << pfn->getArguments()[2] << "/"
-          << assumptions[nested_level] << std::endl;
-      return prefix + "a" + std::to_string(it->second);
-    }
-    // temp, hotfix
-    for (int i = nested_level; i >= 0; i--)
-    {
-      auto prefix2 = prefix;
-      auto it2 = assumptions[i].find(pfn->getArguments()[2]);
-      prefix2 = prefix2.substr(0, prefix2.find_last_of("."));
-      Trace("alethe-printer") << prefix2 << std::endl;
-      prefix2 = prefix2.substr(0, prefix2.find_last_of(".") + 1);
-      Trace("alethe-printer") << prefix2 << std::endl;
-
-      if (it2 != assumptions[i].end())
+      auto it = assumptions[i].find(pfn->getArguments()[2]);
+      if (it != assumptions[i].end())
       {
+        std::string new_prefix = prefix;
+        // get substring of prefix
+        for (size_t j = 0; j < nested_level - i; j++)
+        {
+          new_prefix = new_prefix.substr(0, new_prefix.find_last_of("."));
+          new_prefix = new_prefix.substr(0, new_prefix.find_last_of(".") + 1);
+        }
         Trace("alethe-printer")
             << "... search assumption in list on level " << i << ": "
             << pfn->getArguments()[2] << "/" << assumptions[i] << "     "
-            << prefix2 << std::endl;
-        return prefix2 + "a" + std::to_string(it2->second);
+            << new_prefix << std::endl;
+        return new_prefix + "a" + std::to_string(it->second);
       }
     }
 
-    // temp, hotfix
-    for (int i = nested_level; i >= 0; i--)
-    {
-      auto prefix2 = prefix;
-      auto it3 = assumptions[i].find(pfn->getArguments()[2]);
-      if (it3 != assumptions[i].end())
-      {
-        Trace("alethe-printer")
-            << "... search assumption in list on level " << i << ": "
-            << pfn->getArguments()[2] << "/" << assumptions[i] << "     "
-            << prefix2 << std::endl;
-        prefix2 = prefix2.substr(0, prefix2.find_last_of("."));
-        Trace("alethe-printer") << prefix2 << std::endl;
-        prefix2 = prefix2.substr(0, prefix2.find_last_of(".") + 1);
-        Trace("alethe-printer") << prefix2 << std::endl;
-        return prefix2 + "a" + std::to_string(it->second);
-      }
-    }
     Trace("alethe-printer") << "... printing failed! Encountered assumption "
                                "that has not been printed! "
                             << pfn->getArguments()[2] << "/"
@@ -209,22 +187,12 @@ std::string AletheProofPrinter::alethePrinterInternal(
 
   // Print children
   std::vector<std::string> child_prefixes;
-  for (auto child : pfn->getChildren())
+  for (const std::shared_ptr<ProofNode> child : pfn->getChildren())
   {
     child_prefixes.push_back(alethePrinterInternal(out, child));
   }
 
-  // If rule is REORDER the rule should not be printed for now since they cannot
-  // be reconstructed in Isabelle yet.
-  /*if (vrule == AletheRule::REORDER)
-  {
-    Trace("alethe-printer")
-        << "... skip reordering " << pfn->getResult() << " "
-        << vrule << " / " << pfn->getArguments() << std::endl;
-    return child_prefixes[0];
-  }*/
-
-  // If the rule is a subproof a subproof step needs to be printed
+  // If the rule is a subproof a final subproof step needs to be printed
   if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)
   {
     Trace("alethe-printer")
@@ -235,9 +203,8 @@ std::string AletheProofPrinter::alethePrinterInternal(
     // print subproof or bind
     out << "(step " << prefix << " " << pfn->getArguments()[2] << " :rule "
         << vrule;
-    // Discharge assumptions
-    // It is not clear from the onomicon whether the assumptions should be
-    // discharged in this way or not.
+
+    // Discharge assumptions in the case of subproof
     if (vrule == AletheRule::ANCHOR_SUBPROOF)
     {
       out << " :discharge (";
