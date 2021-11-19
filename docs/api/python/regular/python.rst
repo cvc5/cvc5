@@ -17,6 +17,7 @@ Python API Documentation
     datatypedecl
     datatypeselector
     grammar
+    kind
     op
     result
     roundingmode
