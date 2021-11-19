@@ -2811,7 +2811,7 @@ cdef class Term:
 
     def substitute(self, term_or_list_1, term_or_list_2):
         """
-	   :return: the result of simultaneously replacing the term(s) stored in `term_or_list_1` by the term(s) stored in `term_or_list_2` in this term.
+	   :return: the result of simultaneously replacing the term(s) stored in ``term_or_list_1`` by the term(s) stored in ``term_or_list_2`` in this term.
 	"""
         # The resulting term after substitution
         cdef Term term = Term(self.solver)
