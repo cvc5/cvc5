@@ -81,10 +81,11 @@ ExtfSolver::~ExtfSolver() {}
 bool ExtfSolver::doReduction(int effort, Node n)
 {
   Assert(d_extfInfoTmp.find(n) != d_extfInfoTmp.end());
+  Trace("strings-extf-debug") << "doReduction " << n << ", effort " << effort << std::endl;
   if (!d_extfInfoTmp[n].d_modelActive)
   {
     // n is not active in the model, no need to reduce
-  Trace("strings-extf-debug") << "...skip due to model active" << std::endl;
+    Trace("strings-extf-debug") << "...skip due to model active" << std::endl;
     return false;
   }
   if (d_reduced.find(n)!=d_reduced.end())
@@ -93,9 +94,6 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
     return false;
   }
-  // determine the effort level to process the extf at
-  // 0 - at assertion time, 1+ - after no other reduction is applicable
-  int r_effort = -1;
   // polarity : 1 true, -1 false, 0 neither
   int pol = 0;
   Kind k = n.getKind();
@@ -103,67 +101,58 @@ bool ExtfSolver::doReduction(int effort, Node n)
   {
     pol = d_extfInfoTmp[n].d_const.getConst<bool>() ? 1 : -1;
   }
-  if (k == STRING_CONTAINS)
+  // determine if it is the right effort
+  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol))
   {
-    if (pol == 1)
+    if (effort!=1)
     {
-      r_effort = 1;
+      return false;
     }
-    else if (pol == -1)
+  }
+  else if (k == STRING_CONTAINS && pol == -1)
+  {
+    if (effort == 3)
     {
-      if (effort == 3)
+      Node x = n[0];
+      Node s = n[1];
+      std::vector<Node> lexp;
+      Node lenx = d_state.getLength(x, lexp);
+      Node lens = d_state.getLength(s, lexp);
+      if (d_state.areEqual(lenx, lens))
       {
-        Node x = n[0];
-        Node s = n[1];
-        std::vector<Node> lexp;
-        Node lenx = d_state.getLength(x, lexp);
-        Node lens = d_state.getLength(s, lexp);
-        if (d_state.areEqual(lenx, lens))
+        Trace("strings-extf-debug")
+            << "  resolve extf : " << n
+            << " based on equal lengths disequality." << std::endl;
+        // We can reduce negative contains to a disequality when lengths are
+        // equal. In other words, len( x ) = len( s ) implies
+        //   ~contains( x, s ) reduces to x != s.
+        if (!d_state.areDisequal(x, s))
         {
-          Trace("strings-extf-debug")
-              << "  resolve extf : " << n
-              << " based on equal lengths disequality." << std::endl;
-          // We can reduce negative contains to a disequality when lengths are
-          // equal. In other words, len( x ) = len( s ) implies
-          //   ~contains( x, s ) reduces to x != s.
-          if (!d_state.areDisequal(x, s))
-          {
-            // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
-            lexp.push_back(lenx.eqNode(lens));
-            lexp.push_back(n.negate());
-            Node xneqs = x.eqNode(s).negate();
-            d_im.sendInference(
-                lexp, xneqs, InferenceId::STRINGS_CTN_NEG_EQUAL, false, true);
-          }
-          // this depends on the current assertions, so this
-          // inference is context-dependent
-          d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
-          return true;
+          // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
+          lexp.push_back(lenx.eqNode(lens));
+          lexp.push_back(n.negate());
+          Node xneqs = x.eqNode(s).negate();
+          d_im.sendInference(
+              lexp, xneqs, InferenceId::STRINGS_CTN_NEG_EQUAL, false, true);
         }
-        else
-        {
-          r_effort = 3;
-        }
+        // this depends on the current assertions, so this
+        // inference is context-dependent
+        d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
+        return true;
       }
     }
+    else
+    {
+      return false;
+    }
   }
-  else if (k == STRING_SUBSTR)
+  else if (k == SEQ_UNIT || k == STRING_IN_REGEXP)
   {
-    r_effort = 1;
-  }
-  else if (k == SEQ_UNIT)
-  {
-    // never necessary to reduce seq.unit
+    // never necessary to reduce seq.unit or str.in_re here.
     return false;
   }
-  else if (k != STRING_IN_REGEXP)
+  else if (effort!=2)
   {
-    r_effort = 2;
-  }
-  if (effort < r_effort)
-  {
-    Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
-    // not the right effort level to reduce
     return false;
   }
   Node c_n = pol == -1 ? n.negate() : n;

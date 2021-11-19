@@ -68,6 +68,19 @@ enum InferStep
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 
+enum InferSubStep
+{
+  // not specified
+  NONE,
+  // eval initial
+  EVAL_INIT,
+  // eval for normal forms
+  EVAL_NORMAL_FORM,
+  // run in model
+  MODEL,
+};
+//std::ostream& operator<<(std::ostream& out, InferSubStep i);
+
 /**
  * The strategy of theory of strings.
  *
