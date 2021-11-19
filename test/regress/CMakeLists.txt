@@ -1090,6 +1090,7 @@ set(regress_0_tests
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
   regress0/seq/proj-issue340.smt2
+  regress0/seq/quant_len_trigger.smt2
   regress0/seq/rev.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
@@ -1114,7 +1115,7 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/seq/seq-types.smt2
-  regress0/seq/quant_len_trigger.smt2
+  regress0/seq/update-eq-unsat.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
