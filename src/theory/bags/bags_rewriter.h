@@ -181,8 +181,7 @@ class BagsRewriter : public TheoryRewriter
    * rewrites for n include:
    * - (bag.card (bag x c)) = c where c is a constant > 0
    * - (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
-   * - (bag.card A) = (bag.count 1 (bag.map (lambda ((x E)) 1) A))
-   *   where E is the type of elements of A
+   * - otherwise = n
    */
   BagsRewriteResponse rewriteCard(const TNode& n) const;
 
