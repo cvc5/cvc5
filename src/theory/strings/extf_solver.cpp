@@ -149,9 +149,11 @@ bool ExtfSolver::doReduction(int effort, Node n)
       return false;
     }
   }
-  else if (k == SEQ_UNIT || k == STRING_IN_REGEXP)
+  else if (k == SEQ_UNIT || k == STRING_IN_REGEXP || (k == STRING_CONTAINS && pol == 0))
   {
     // never necessary to reduce seq.unit or str.in_re here.
+    // also, we do not reduce str.contains that are preregistered but not
+    // asserted (pol=0).
     return false;
   }
   else if (effort != 2)
