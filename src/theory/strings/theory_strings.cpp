@@ -723,7 +723,7 @@ void TheoryStrings::postCheck(Effort e)
 }
 
 bool TheoryStrings::needsCheckLastEffort() {
-  if (options().strings.stringGuessModel)
+  if (options().strings.stringModelBasedReduction)
   {
     return d_esolver.hasExtendedFunctions();
   }

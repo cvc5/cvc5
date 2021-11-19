@@ -114,7 +114,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   else if (k == STRING_CONTAINS && pol == -1)
   {
     // negative contains reduces at level 2, or 3 if guessing model
-    int reffort = options().strings.stringGuessModel ? 3 : 2;
+    int reffort = options().strings.stringModelBasedReduction ? 3 : 2;
     if (effort == reffort)
     {
       Node x = n[0];
