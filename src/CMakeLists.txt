@@ -344,8 +344,6 @@ libcvc5_add_sources(
   smt/witness_form.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  smt_util/nary_builder.cpp
-  smt_util/nary_builder.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
