@@ -171,6 +171,11 @@ void EagerSolver::notifyFact(TNode atom,
         // conflict, we are done
         return;
       }
+      else if (!options().strings.stringsEagerLenEntRegexp)
+      {
+        // do not infer length constraints if option is disabled
+        return;
+      }
       // also infer length constraints if the first is a variable
       if (atom[0].isVar())
       {

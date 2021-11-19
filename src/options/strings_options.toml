@@ -199,3 +199,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "use extensionality for string disequalities"
+
+[[option]]
+  name       = "stringsEagerLenEntRegexp"
+  category   = "regular"
+  long       = "strings-eager-len-re"
+  type       = "bool"
+  default    = "false"
+  help       = "use regular expressions for eager length conflicts"
