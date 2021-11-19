@@ -131,6 +131,8 @@ void LeanPrinter::printProof(std::ostream& out,
   // ProofNode tree
   const std::vector<Node>& args = pfn->getArguments();
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
+  Assert(pfn->getRule() == PfRule::LEAN_RULE)
+      << "Wrong proof node " << *pfn.get() << "\n";
   LeanRule id = getLeanRule(args[0]);
   if (id == LeanRule::SCOPE)
   {
