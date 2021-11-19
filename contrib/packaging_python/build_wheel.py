@@ -95,8 +95,6 @@ class CMakeBuild(build_ext):
         return tag == "windows"
 
     def build_extension(self, ext):
-        # force cmake to use the right python executable
-        subprocess.check_call(['cmake', '..', '-DPYTHON_EXECUTABLE:FILEPATH=' + sys.executable])
         # find correct Python include directory and library
         # works even for nonstandard Python installations
         # (e.g., on pypa/manylinux)
@@ -112,7 +110,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', '..'] + args)
 
         # build the main library
-        subprocess.check_call(['cmake', '--build', '.', "--target", "cvc5"])
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'cvc5', '-j', '10'])
 
         # build the python binding
         python_build_dir = os.path.join("src", "api", "python")

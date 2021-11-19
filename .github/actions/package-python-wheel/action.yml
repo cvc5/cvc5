@@ -1,5 +1,5 @@
-name: Package python wheel
-description: Package cvc5 into a python wheel for a given python version
+name: Package python wheels
+description: Package cvc5 into python wheels for all supported python versions
 runs:
   using: composite
   steps:
@@ -13,6 +13,6 @@ runs:
         fi
 
         docker run --rm \
-          -v `pwd`:/home/pycvc5-manylinux2014 \
+          -v `pwd`:/home/pycvc5 \
           pycvc5-manylinux2014 \
           ./contrib/packaging_python/build.sh

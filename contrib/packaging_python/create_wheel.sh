@@ -2,18 +2,8 @@
 
 DIR=$(pwd)
 
-usage()
-{
-    echo "$0 <python3 binary>"
-    echo "Builds wheels and places in dist<python version>"
-}
-
-if [[ "$1" == "--help" ]]; then
-    usage
-    exit 1
-fi
-
 PYTHONBIN=$1
+CONFIG="$2"
 VERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
 CURDIR=$(basename $DIR)
 
@@ -22,23 +12,31 @@ if [[ "$CURDIR" != "cvc5" ]]; then
     exit 1
 fi
 
+# setup and activate venv
+echo "Making venv"
 ENVDIR=env$VERSION
 $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
-pip install --upgrade pip
-pip install --upgrade setuptools
-
+# install packages
+pip install --upgrade pip setuptools auditwheel
 pip install twine Cython pytest toml scikit-build
-
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install delocate
 fi
 
+# configure cvc5
+echo "Configuring"
+./configure.sh $CONFIG --python-bindings --name=build_wheel
+
+# building wheel
 echo "Building pycvc5 wheel"
+
+pushd build_wheel
 DISTDIR=dist$VERSION
-VERSION_SUFFIX=$VERSION_SUFFIX python3 ./contrib/packaging_python/build_wheel.py bdist_wheel -d $DISTDIR
+VERSION_SUFFIX=$VERSION_SUFFIX python3 $DIR/contrib/packaging_python/build_wheel.py bdist_wheel -d $DISTDIR
+
 cd $DISTDIR
 
 # resolve the links and bundle the library with auditwheel
@@ -50,6 +48,7 @@ elif [ "$(uname)" == "Darwin" ]; then
 else
     echo "Unhandled system $(uname) for packing libraries with wheel."
 fi
+popd
 
 cd $DIR
 
