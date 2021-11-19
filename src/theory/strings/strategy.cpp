@@ -132,7 +132,8 @@ void Strategy::initializeStrategy()
     }
     if (options::stringExp())
     {
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2);
+      int effort = options::stringGuessModel() ? 2 : 3;
+      addStrategyStep(CHECK_EXTF_REDUCTION, effort);
     }
     addStrategyStep(CHECK_MEMBERSHIP);
     addStrategyStep(CHECK_CARDINALITY);

@@ -160,7 +160,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   {
     r_effort = 2;
   }
-  if (effort != r_effort)
+  if (effort < r_effort)
   {
     Trace("strings-extf-debug") << "...skip due to effort" << std::endl;
     // not the right effort level to reduce
