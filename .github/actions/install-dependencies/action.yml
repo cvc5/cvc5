@@ -87,7 +87,6 @@ runs:
       run: |
         echo "::group::Install software for Python packaging"
         if [[ "${{ inputs.with-python-packaging }}" != "true" ]]; then exit 0; fi
-        python3 -m pip install venv
         echo "::endgroup::"
     
     - name: Install software for documentation
