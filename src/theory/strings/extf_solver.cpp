@@ -105,6 +105,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   // determine if it is the right effort
   if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol == 1))
   {
+    // we reduce these semi-eagerly, at effort 1
     if (effort != 1)
     {
       return false;

@@ -119,7 +119,7 @@ name   = "Strings Theory"
   category   = "regular"
   long       = "strings-guess-model"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use model guessing to avoid string extended function reductions"
 
 [[option]]
