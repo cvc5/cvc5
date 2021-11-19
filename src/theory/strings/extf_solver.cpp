@@ -195,7 +195,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
            || k == STRING_STOI || k == STRING_REPLACE || k == STRING_REPLACE_ALL
            || k == SEQ_NTH || k == STRING_REPLACE_RE
            || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
-           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV) << "Unknown reduction: " << k;
+           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV)
+        << "Unknown reduction: " << k;
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
@@ -409,7 +410,7 @@ void ExtfSolver::checkExtfEval(int effort)
         }
         reduced = true;
       }
-      else if (effort<3)
+      else if (effort < 3)
       {
         // if this was a predicate which changed after substitution + rewriting
         if (!einfo.d_const.isNull() && nrc.getType().isBoolean() && nrc != n)
@@ -439,7 +440,7 @@ void ExtfSolver::checkExtfEval(int effort)
     // checkExtfInference below.
     // if not reduced and not processed
     if (!reduced && !n.isNull()
-        && inferProcessed.find(n) == inferProcessed.end() && effort<3)
+        && inferProcessed.find(n) == inferProcessed.end() && effort < 3)
     {
       inferProcessed.insert(n);
       if (effort == 1)

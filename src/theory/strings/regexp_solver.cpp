@@ -268,7 +268,7 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
               "Strings Incomplete (due to Negative Membership) by default, "
               "try --strings-exp option.");
         }
-        //doSimplify = !mbr || effort>0;
+        // doSimplify = !mbr || effort>0;
       }
       if (doSimplify)
       {
