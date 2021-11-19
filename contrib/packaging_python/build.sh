@@ -12,4 +12,4 @@ VERSION_SUFFIX="$1" ./contrib/packaging_python/create_wheel.sh /opt/python/cp38-
 VERSION_SUFFIX="$1" ./contrib/packaging_python/create_wheel.sh /opt/python/cp39-cp39/bin/python "$OPTS"
 VERSION_SUFFIX="$1" ./contrib/packaging_python/create_wheel.sh /opt/python/cp310-cp310/bin/python "$OPTS"
 
-cp dist*/wheelhouse/*.whl ../build
+#cp dist*/wheelhouse/*.whl ../build
