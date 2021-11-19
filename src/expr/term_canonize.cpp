@@ -104,15 +104,22 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc)
   std::vector<Node>& tvars = d_cn_free_var[key];
   while (tvars.size() <= i)
   {
-    std::stringstream oss;
-    oss << tn;
-    std::string typ_name = oss.str();
-    while (typ_name[0] == '(')
-    {
-      typ_name.erase(typ_name.begin());
-    }
     std::stringstream os;
-    os << typ_name[0] << i;
+    if (tn.isFunction())
+    {
+      os << "f" << i;
+    }
+    else
+    {
+      std::stringstream oss;
+      oss << tn;
+      std::string typ_name = oss.str();
+      while (typ_name[0] == '(')
+      {
+        typ_name.erase(typ_name.begin());
+      }
+      os << typ_name[0] << i;
+    }
     Node x = nm->mkBoundVar(os.str().c_str(), tn);
     d_fvIndex[x] = tvars.size();
     tvars.push_back(x);
@@ -165,7 +172,7 @@ Node TermCanonize::getCanonicalTerm(
     var_count[key]++;
     Node fv = getCanonicalFreeVar(tn, vn, tc);
     visited[n] = fv;
-    Trace("canon-term-debug") << "...allocate variable." << std::endl;
+    Trace("canon-term-debug") << "...allocate variable " << fv << std::endl;
     return fv;
   }
   else if (n.getNumChildren() > 0)
