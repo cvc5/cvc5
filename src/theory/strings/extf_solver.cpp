@@ -150,10 +150,10 @@ bool ExtfSolver::doReduction(int effort, Node n)
       return false;
     }
   }
-  else if (k == SEQ_UNIT || k == STRING_IN_REGEXP
+  else if (k == SEQ_UNIT || k == STRING_IN_REGEXP || k == STRING_TO_CODE
            || (k == STRING_CONTAINS && pol == 0))
   {
-    // never necessary to reduce seq.unit or str.in_re here.
+    // never necessary to reduce seq.unit. str.to_code or str.in_re here.
     // also, we do not reduce str.contains that are preregistered but not
     // asserted (pol=0).
     return false;
@@ -187,7 +187,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // context-dependent because it depends on the polarity of n itself
     d_extt.markReduced(n, ExtReducedId::STRINGS_POS_CTN, true);
   }
-  else if (k != kind::STRING_TO_CODE)
+  else
   {
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_UPDATE || k == STRING_CONTAINS
@@ -195,7 +195,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
            || k == STRING_STOI || k == STRING_REPLACE || k == STRING_REPLACE_ALL
            || k == SEQ_NTH || k == STRING_REPLACE_RE
            || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
-           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV);
+           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV) << "Unknown reduction: " << k;
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
@@ -409,7 +409,7 @@ void ExtfSolver::checkExtfEval(int effort)
         }
         reduced = true;
       }
-      else
+      else if (effort<3)
       {
         // if this was a predicate which changed after substitution + rewriting
         if (!einfo.d_const.isNull() && nrc.getType().isBoolean() && nrc != n)
@@ -417,7 +417,6 @@ void ExtfSolver::checkExtfEval(int effort)
           bool pol = einfo.d_const == d_true;
           Node nrcAssert = pol ? nrc : nrc.negate();
           Node nAssert = pol ? n : n.negate();
-          Assert(effort < 3);
           einfo.d_exp.push_back(nAssert);
           Trace("strings-extf-debug") << "  decomposable..." << std::endl;
           Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
@@ -440,10 +439,9 @@ void ExtfSolver::checkExtfEval(int effort)
     // checkExtfInference below.
     // if not reduced and not processed
     if (!reduced && !n.isNull()
-        && inferProcessed.find(n) == inferProcessed.end())
+        && inferProcessed.find(n) == inferProcessed.end() && effort<3)
     {
       inferProcessed.insert(n);
-      Assert(effort < 3);
       if (effort == 1)
       {
         Trace("strings-extf")

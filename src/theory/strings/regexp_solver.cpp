@@ -152,9 +152,7 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
   // we unfolded
   std::unordered_set<Node> repUnfold;
   // check positive (e=0), then negative (e=1) memberships
-  // size_t minE = options().strings.stringModelBasedReduction && effort!=0 ? 1
-  // : 0; size_t maxE = options().strings.stringModelBasedReduction && effort==0
-  // ? 1 : 2;
+  bool mbr = options().strings.stringModelBasedReduction;
   for (size_t e = 0; e < 2; e++)
   {
     for (const std::pair<const Node, Node>& mp : allMems)
@@ -182,7 +180,6 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
       {
         continue;
       }
-      bool flag = true;
       Node x = atom[0];
       Node r = atom[1];
       Assert(rep == d_state.getRepresentative(x));
@@ -258,9 +255,10 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
         // than disequalities), and are easier to check.
         continue;
       }
+      bool doSimplify = true;
       if (polarity)
       {
-        flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
+        doSimplify = checkPDerivative(x, r, atom, addedLemma, rnfexp);
       }
       else
       {
@@ -270,8 +268,9 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
               "Strings Incomplete (due to Negative Membership) by default, "
               "try --strings-exp option.");
         }
+        //doSimplify = !mbr || effort>0;
       }
-      if (flag)
+      if (doSimplify)
       {
         // check if the term is atomic
         Trace("strings-regexp")
