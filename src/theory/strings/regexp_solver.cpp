@@ -64,7 +64,8 @@ Node RegExpSolver::mkAnd(Node c1, Node c2)
 
 void RegExpSolver::checkMemberships(int effort)
 {
-  Trace("regexp-process") << "Checking Memberships, effort = " << effort << " ... " << std::endl;
+  Trace("regexp-process") << "Checking Memberships, effort = " << effort
+                          << " ... " << std::endl;
   // add the memberships
   std::vector<Node> mems = d_esolver.getActive(STRING_IN_REGEXP);
   // maps representatives to regular expression memberships in that class
@@ -106,7 +107,8 @@ void RegExpSolver::checkMemberships(int effort)
 bool RegExpSolver::checkInclInter(
     const std::map<Node, std::vector<Node> >& mems)
 {
-  Trace("regexp-process") << "Checking inclusion/intersection ... " << std::endl;
+  Trace("regexp-process") << "Checking inclusion/intersection ... "
+                          << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& mr : mems)
   {
     // copy the vector because it is modified in the call below
@@ -153,8 +155,8 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
   std::unordered_set<Node> repUnfold;
   // check positive (e=0), then negative (e=1) memberships
   bool mbr = options().strings.stringModelBasedReduction;
-  size_t startE = mbr ? ( effort>0 ? 1 : 0) : 0;
-  size_t endE = mbr ? ( effort>0 ? 2 : 1) : 2;
+  size_t startE = mbr ? (effort > 0 ? 1 : 0) : 0;
+  size_t endE = mbr ? (effort > 0 ? 2 : 1) : 2;
   for (size_t e = startE; e < endE; e++)
   {
     for (const std::pair<const Node, Node>& mp : allMems)
@@ -182,9 +184,10 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
       {
         continue;
       }
-      if (effort>0 && !d_esolver.isActiveInModel(atom))
+      if (effort > 0 && !d_esolver.isActiveInModel(atom))
       {
-        Trace("strings-regexp") << "...ignore since inactive in model" << std::endl;
+        Trace("strings-regexp")
+            << "...ignore since inactive in model" << std::endl;
         continue;
       }
       Node x = atom[0];

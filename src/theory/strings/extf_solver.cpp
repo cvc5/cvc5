@@ -717,9 +717,9 @@ std::vector<Node> ExtfSolver::getActive(Kind k) const
 bool ExtfSolver::isActiveInModel(Node n) const
 {
   std::map<Node, ExtfInfoTmp>::const_iterator it = d_extfInfoTmp.find(n);
-  if (it==d_extfInfoTmp.end())
+  if (it == d_extfInfoTmp.end())
   {
-    Assert (false) << "isActiveInModel: Expected extf info for " << n;
+    Assert(false) << "isActiveInModel: Expected extf info for " << n;
     return true;
   }
   return it->second.d_modelActive;
