@@ -26,7 +26,6 @@ const char* toString(Rewrite r)
   switch (r)
   {
     case Rewrite::NONE: return "NONE";
-    case Rewrite::CARD: return "CARD";
     case Rewrite::CARD_DISJOINT: return "CARD_DISJOINT";
     case Rewrite::CARD_BAG_MAKE: return "CARD_BAG_MAKE";
     case Rewrite::CHOOSE_BAG_MAKE: return "CHOOSE_BAG_MAKE";
