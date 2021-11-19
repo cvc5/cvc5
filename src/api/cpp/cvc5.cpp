@@ -127,9 +127,6 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {OR, cvc5::Kind::OR},
     {XOR, cvc5::Kind::XOR},
     {ITE, cvc5::Kind::ITE},
-    {MATCH, cvc5::Kind::MATCH},
-    {MATCH_CASE, cvc5::Kind::MATCH_CASE},
-    {MATCH_BIND_CASE, cvc5::Kind::MATCH_BIND_CASE},
     /* UF ------------------------------------------------------------------ */
     {APPLY_UF, cvc5::Kind::APPLY_UF},
     {CARDINALITY_CONSTRAINT, cvc5::Kind::CARDINALITY_CONSTRAINT},
@@ -266,6 +263,9 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {APPLY_TESTER, cvc5::Kind::APPLY_TESTER},
     {APPLY_UPDATER, cvc5::Kind::APPLY_UPDATER},
     {DT_SIZE, cvc5::Kind::DT_SIZE},
+    {MATCH, cvc5::Kind::MATCH},
+    {MATCH_CASE, cvc5::Kind::MATCH_CASE},
+    {MATCH_BIND_CASE, cvc5::Kind::MATCH_BIND_CASE},
     {TUPLE_PROJECT, cvc5::Kind::TUPLE_PROJECT},
     /* Separation Logic ---------------------------------------------------- */
     {SEP_NIL, cvc5::Kind::SEP_NIL},
@@ -288,6 +288,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {SET_COMPREHENSION, cvc5::Kind::SET_COMPREHENSION},
     {SET_CHOOSE, cvc5::Kind::SET_CHOOSE},
     {SET_IS_SINGLETON, cvc5::Kind::SET_IS_SINGLETON},
+    {SET_MAP, cvc5::Kind::SET_MAP},
     /* Relations ----------------------------------------------------------- */
     {RELATION_JOIN, cvc5::Kind::RELATION_JOIN},
     {RELATION_PRODUCT, cvc5::Kind::RELATION_PRODUCT},
@@ -296,16 +297,16 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {RELATION_JOIN_IMAGE, cvc5::Kind::RELATION_JOIN_IMAGE},
     {RELATION_IDEN, cvc5::Kind::RELATION_IDEN},
     /* Bags ---------------------------------------------------------------- */
-    {UNION_MAX, cvc5::Kind::UNION_MAX},
-    {UNION_DISJOINT, cvc5::Kind::UNION_DISJOINT},
-    {INTERSECTION_MIN, cvc5::Kind::INTERSECTION_MIN},
-    {DIFFERENCE_SUBTRACT, cvc5::Kind::DIFFERENCE_SUBTRACT},
-    {DIFFERENCE_REMOVE, cvc5::Kind::DIFFERENCE_REMOVE},
-    {SUBBAG, cvc5::Kind::SUBBAG},
+    {BAG_UNION_MAX, cvc5::Kind::BAG_UNION_MAX},
+    {BAG_UNION_DISJOINT, cvc5::Kind::BAG_UNION_DISJOINT},
+    {BAG_INTER_MIN, cvc5::Kind::BAG_INTER_MIN},
+    {BAG_DIFFERENCE_SUBTRACT, cvc5::Kind::BAG_DIFFERENCE_SUBTRACT},
+    {BAG_DIFFERENCE_REMOVE, cvc5::Kind::BAG_DIFFERENCE_REMOVE},
+    {BAG_SUBBAG, cvc5::Kind::BAG_SUBBAG},
     {BAG_COUNT, cvc5::Kind::BAG_COUNT},
-    {DUPLICATE_REMOVAL, cvc5::Kind::DUPLICATE_REMOVAL},
-    {MK_BAG, cvc5::Kind::MK_BAG},
-    {EMPTYBAG, cvc5::Kind::EMPTYBAG},
+    {BAG_DUPLICATE_REMOVAL, cvc5::Kind::BAG_DUPLICATE_REMOVAL},
+    {BAG_MAKE, cvc5::Kind::BAG_MAKE},
+    {BAG_EMPTY, cvc5::Kind::BAG_EMPTY},
     {BAG_CARD, cvc5::Kind::BAG_CARD},
     {BAG_CHOOSE, cvc5::Kind::BAG_CHOOSE},
     {BAG_IS_SINGLETON, cvc5::Kind::BAG_IS_SINGLETON},
@@ -372,7 +373,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     /* Quantifiers --------------------------------------------------------- */
     {FORALL, cvc5::Kind::FORALL},
     {EXISTS, cvc5::Kind::EXISTS},
-    {BOUND_VAR_LIST, cvc5::Kind::BOUND_VAR_LIST},
+    {VARIABLE_LIST, cvc5::Kind::BOUND_VAR_LIST},
     {INST_PATTERN, cvc5::Kind::INST_PATTERN},
     {INST_NO_PATTERN, cvc5::Kind::INST_NO_PATTERN},
     {INST_POOL, cvc5::Kind::INST_POOL},
@@ -406,9 +407,6 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::OR, OR},
         {cvc5::Kind::XOR, XOR},
         {cvc5::Kind::ITE, ITE},
-        {cvc5::Kind::MATCH, MATCH},
-        {cvc5::Kind::MATCH_CASE, MATCH_CASE},
-        {cvc5::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
         /* UF -------------------------------------------------------------- */
         {cvc5::Kind::APPLY_UF, APPLY_UF},
         {cvc5::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
@@ -575,6 +573,9 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::APPLY_TESTER, APPLY_TESTER},
         {cvc5::Kind::APPLY_UPDATER, APPLY_UPDATER},
         {cvc5::Kind::DT_SIZE, DT_SIZE},
+        {cvc5::Kind::MATCH, MATCH},
+        {cvc5::Kind::MATCH_CASE, MATCH_CASE},
+        {cvc5::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
         {cvc5::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
         {cvc5::Kind::TUPLE_PROJECT_OP, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
@@ -598,6 +599,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::SET_COMPREHENSION, SET_COMPREHENSION},
         {cvc5::Kind::SET_CHOOSE, SET_CHOOSE},
         {cvc5::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
+        {cvc5::Kind::SET_MAP, SET_MAP},
         /* Relations ------------------------------------------------------- */
         {cvc5::Kind::RELATION_JOIN, RELATION_JOIN},
         {cvc5::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
@@ -606,16 +608,16 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
         {cvc5::Kind::RELATION_IDEN, RELATION_IDEN},
         /* Bags ------------------------------------------------------------ */
-        {cvc5::Kind::UNION_MAX, UNION_MAX},
-        {cvc5::Kind::UNION_DISJOINT, UNION_DISJOINT},
-        {cvc5::Kind::INTERSECTION_MIN, INTERSECTION_MIN},
-        {cvc5::Kind::DIFFERENCE_SUBTRACT, DIFFERENCE_SUBTRACT},
-        {cvc5::Kind::DIFFERENCE_REMOVE, DIFFERENCE_REMOVE},
-        {cvc5::Kind::SUBBAG, SUBBAG},
+        {cvc5::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
+        {cvc5::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
+        {cvc5::Kind::BAG_INTER_MIN, BAG_INTER_MIN},
+        {cvc5::Kind::BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_SUBTRACT},
+        {cvc5::Kind::BAG_DIFFERENCE_REMOVE, BAG_DIFFERENCE_REMOVE},
+        {cvc5::Kind::BAG_SUBBAG, BAG_SUBBAG},
         {cvc5::Kind::BAG_COUNT, BAG_COUNT},
-        {cvc5::Kind::DUPLICATE_REMOVAL, DUPLICATE_REMOVAL},
-        {cvc5::Kind::MK_BAG, MK_BAG},
-        {cvc5::Kind::EMPTYBAG, EMPTYBAG},
+        {cvc5::Kind::BAG_DUPLICATE_REMOVAL, BAG_DUPLICATE_REMOVAL},
+        {cvc5::Kind::BAG_MAKE, BAG_MAKE},
+        {cvc5::Kind::BAG_EMPTY, BAG_EMPTY},
         {cvc5::Kind::BAG_CARD, BAG_CARD},
         {cvc5::Kind::BAG_CHOOSE, BAG_CHOOSE},
         {cvc5::Kind::BAG_IS_SINGLETON, BAG_IS_SINGLETON},
@@ -671,7 +673,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         /* Quantifiers ----------------------------------------------------- */
         {cvc5::Kind::FORALL, FORALL},
         {cvc5::Kind::EXISTS, EXISTS},
-        {cvc5::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
+        {cvc5::Kind::BOUND_VAR_LIST, VARIABLE_LIST},
         {cvc5::Kind::INST_PATTERN, INST_PATTERN},
         {cvc5::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
         {cvc5::Kind::INST_POOL, INST_POOL},
@@ -5219,7 +5221,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // element type can be used safely here.
       res = getNodeManager()->mkSingleton(type, *children[0].d_node);
     }
-    else if (kind == api::MK_BAG)
+    else if (kind == api::BAG_MAKE)
     {
       // the type of the term is the same as the type of the internal node
       // see Term::getSort()

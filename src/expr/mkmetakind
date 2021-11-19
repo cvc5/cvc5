@@ -57,6 +57,18 @@ metakind_operatorKinds=
 seen_theory=false
 seen_theory_builtin=false
 
+payloads_seen=()
+
+function contains {
+  elem=$1
+  shift
+  arr=("$@")
+  for e in "${arr[@]}"; do
+    [[ "$e" == "$elem" ]] && return 0
+  done
+  return 1
+}
+
 function theory {
   # theory ID T header
 
@@ -222,6 +234,13 @@ function constant {
     skip_const_map=false
   fi
 
+  if contains "${class}" "${payloads_seen[@]}"; then
+    payload_seen=true
+  else
+    payload_seen=false
+    payloads_seen=(${payloads_seen[@]} "${class}")
+  fi
+
   if [[ "$2" != "skip" ]]; then
     metakind_fwd_decls="${metakind_fwd_decls}
 $2 ${class};"
@@ -233,27 +252,9 @@ $2 ${class};"
 #include \"$5\""
   fi
   register_metakind CONSTANT "$1" 0
-  metakind_getConst_decls="${metakind_getConst_decls}
-template <>
-${class} const& NodeValue::getConst< ${class} >() const;
-"
-  if [ "${skip_const_map}" != true ]; then
-    metakind_constantMaps_decls="${metakind_constantMaps_decls}
-template <>
-struct ConstantMap< ${class} > {
-  static constexpr Kind kind = ::cvc5::kind::$1;
-};/* ConstantMap< ${class} > */
-"
-  fi
 
-  metakind_constantMaps_decls="${metakind_constantMaps_decls}
-template <>
-struct ConstantMapReverse< ::cvc5::kind::$1 > {
-  using T = ${class};
-};/* ConstantMapReverse< ::cvc5::kind::$1 > */
-"
-
-  metakind_constantMaps="${metakind_constantMaps}
+  if [[ "${payload_seen}" != true ]]; then
+    metakind_constantMaps="${metakind_constantMaps}
 // The reinterpret_cast of d_children to \"${class} const*\"
 // flags a \"strict aliasing\" warning; it's okay, because we never access
 // the embedded constant as a NodeValue* child, and never access an embedded
@@ -276,9 +277,20 @@ ${class} const& NodeValue::getConst< ${class} >() const {
 #pragma GCC diagnostic warning \"-Wstrict-aliasing\"
 
 "
+  fi
+
+  if [ "${skip_const_map}" != true ]; then
+    metakind_constantMaps_decls="${metakind_constantMaps_decls}
+template <>
+struct ConstantMap< ${class} > {
+  static constexpr Kind kind = ::cvc5::kind::$1;
+};/* ConstantMap< ${class} > */
+"
+  fi
+
   metakind_compares="${metakind_compares}
     case kind::$1:
-      return NodeValueConstCompare< kind::$1, pool >::compare(nv1, nv2);
+      return NodeValueConstCompare<kind::$1, ${class}, pool>::compare(nv1, nv2);
 "
   metakind_constHashes="${metakind_constHashes}
   case kind::$1:
@@ -411,7 +423,6 @@ for var in \
     metakind_kinds \
     metakind_constantMaps \
     metakind_constantMaps_decls \
-    metakind_getConst_decls \
     metakind_compares \
     metakind_constHashes \
     metakind_constPrinters \

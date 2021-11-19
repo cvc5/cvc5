@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class for MK_BAG operator.
+ * A class for BAG_MAKE operator.
  */
 
-#include "make_bag_op.h"
+#include "bag_make_op.h"
 
 #include <iostream>
 
@@ -21,28 +21,28 @@
 
 namespace cvc5 {
 
-std::ostream& operator<<(std::ostream& out, const MakeBagOp& op)
+std::ostream& operator<<(std::ostream& out, const BagMakeOp& op)
 {
-  return out << "(mkBag_op " << op.getType() << ')';
+  return out << "(BagMakeOp " << op.getType() << ')';
 }
 
-size_t MakeBagOpHashFunction::operator()(const MakeBagOp& op) const
+size_t BagMakeOpHashFunction::operator()(const BagMakeOp& op) const
 {
   return std::hash<TypeNode>()(op.getType());
 }
 
-MakeBagOp::MakeBagOp(const TypeNode& elementType)
+BagMakeOp::BagMakeOp(const TypeNode& elementType)
     : d_type(new TypeNode(elementType))
 {
 }
 
-MakeBagOp::MakeBagOp(const MakeBagOp& op) : d_type(new TypeNode(op.getType()))
+BagMakeOp::BagMakeOp(const BagMakeOp& op) : d_type(new TypeNode(op.getType()))
 {
 }
 
-const TypeNode& MakeBagOp::getType() const { return *d_type; }
+const TypeNode& BagMakeOp::getType() const { return *d_type; }
 
-bool MakeBagOp::operator==(const MakeBagOp& op) const
+bool BagMakeOp::operator==(const BagMakeOp& op) const
 {
   return getType() == op.getType();
 }

@@ -30,10 +30,11 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
-#include "theory/bags/make_bag_op.h"
+#include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
 #include "util/abstract_value.h"
 #include "util/bitvector.h"
+#include "util/rational.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -1044,8 +1045,8 @@ Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
       << "Invalid operands for mkBag. The type '" << n.getType()
       << "' of node '" << n << "' is not a subtype of '" << t << "'."
       << std::endl;
-  Node op = mkConst(MakeBagOp(t));
-  Node bag = mkNode(kind::MK_BAG, op, n, m);
+  Node op = mkConst(BagMakeOp(t));
+  Node bag = mkNode(kind::BAG_MAKE, op, n, m);
   return bag;
 }
 
@@ -1107,6 +1108,17 @@ Node NodeManager::mkNode(TNode opNode, std::initializer_list<TNode> children)
   }
   nb.append(children.begin(), children.end());
   return nb.constructNode();
+}
+
+Node NodeManager::mkConstReal(const Rational& r)
+{
+  return mkConst(kind::CONST_RATIONAL, r);
+}
+
+Node NodeManager::mkConstInt(const Rational& r)
+{
+  // !!!! Note will update to CONST_INTEGER.
+  return mkConst(kind::CONST_RATIONAL, r);
 }
 
 }  // namespace cvc5

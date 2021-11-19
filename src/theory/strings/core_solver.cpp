@@ -131,7 +131,7 @@ void CoreSolver::checkCycles()
   d_eqc.clear();
   // Rebuild strings eqc based on acyclic ordering, first copy the equivalence
   // classes from the base solver.
-  const std::vector<Node>& eqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& eqc = d_bsolver.getStringLikeEqc();
   d_strings_eqc.clear();
   for (const Node& r : eqc)
   {
