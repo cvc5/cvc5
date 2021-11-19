@@ -93,7 +93,8 @@ void RegExpSolver::checkMemberships(int effort)
   check(assertedMems, effort);
 }
 
-void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems, int effort)
+void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems,
+                         int effort)
 {
   bool addedLemma = false;
   bool changed = false;

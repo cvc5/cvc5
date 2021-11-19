@@ -103,7 +103,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     pol = d_extfInfoTmp[n].d_const.getConst<bool>() ? 1 : -1;
   }
   // determine if it is the right effort
-  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol==1))
+  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol == 1))
   {
     if (effort != 1)
     {
