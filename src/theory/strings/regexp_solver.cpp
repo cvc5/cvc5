@@ -64,6 +64,7 @@ Node RegExpSolver::mkAnd(Node c1, Node c2)
 
 void RegExpSolver::checkMemberships(int effort)
 {
+  Trace("regexp-process") << "Checking Memberships, effort = " << effort << " ... " << std::endl;
   // add the memberships
   std::vector<Node> mems = d_esolver.getActive(STRING_IN_REGEXP);
   // maps representatives to regular expression memberships in that class
@@ -105,8 +106,7 @@ void RegExpSolver::checkMemberships(int effort)
 bool RegExpSolver::checkInclInter(
     const std::map<Node, std::vector<Node> >& mems)
 {
-
-  Trace("regexp-process") << "Checking Memberships ... " << std::endl;
+  Trace("regexp-process") << "Checking inclusion/intersection ... " << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& mr : mems)
   {
     // copy the vector because it is modified in the call below
@@ -130,8 +130,8 @@ bool RegExpSolver::checkInclInter(
 void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
                                int effort)
 {
+  Trace("regexp-process") << "Checking unfold ... " << std::endl;
   bool addedLemma = false;
-  bool changed = false;
   std::vector<Node> processed;
   Trace("regexp-debug")
       << "... No Intersect Conflict in Memberships, addedLemma: " << addedLemma
@@ -153,7 +153,9 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
   std::unordered_set<Node> repUnfold;
   // check positive (e=0), then negative (e=1) memberships
   bool mbr = options().strings.stringModelBasedReduction;
-  for (size_t e = 0; e < 2; e++)
+  size_t startE = mbr ? ( effort>0 ? 1 : 0) : 0;
+  size_t endE = mbr ? ( effort>0 ? 2 : 1) : 2;
+  for (size_t e = startE; e < endE; e++)
   {
     for (const std::pair<const Node, Node>& mp : allMems)
     {
@@ -178,6 +180,11 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
       bool polarity = assertion.getKind() != NOT;
       if (polarity != (e == 0))
       {
+        continue;
+      }
+      if (effort>0 && !d_esolver.isActiveInModel(atom))
+      {
+        Trace("strings-regexp") << "...ignore since inactive in model" << std::endl;
         continue;
       }
       Node x = atom[0];
@@ -209,6 +216,7 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
       }
       // If r is not a constant regular expression, we update it based on
       // normal forms, which may concretize its variables.
+      bool changed = false;
       if (!d_regexp_opr.checkConstRegExp(r))
       {
         r = getNormalSymRegExp(r, rnfexp);
@@ -268,7 +276,6 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
               "Strings Incomplete (due to Negative Membership) by default, "
               "try --strings-exp option.");
         }
-        // doSimplify = !mbr || effort>0;
       }
       if (doSimplify)
       {

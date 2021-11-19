@@ -80,10 +80,9 @@ ExtfSolver::~ExtfSolver() {}
 
 bool ExtfSolver::doReduction(int effort, Node n)
 {
-  Assert(d_extfInfoTmp.find(n) != d_extfInfoTmp.end());
   Trace("strings-extf-debug")
       << "doReduction " << n << ", effort " << effort << std::endl;
-  if (!d_extfInfoTmp[n].d_modelActive)
+  if (!isActiveInModel(n))
   {
     // n is not active in the model, no need to reduce
     Trace("strings-extf-debug") << "...skip due to model active" << std::endl;
@@ -713,6 +712,17 @@ bool ExtfSolver::hasExtendedFunctions() const { return d_hasExtf.get(); }
 std::vector<Node> ExtfSolver::getActive(Kind k) const
 {
   return d_extt.getActive(k);
+}
+
+bool ExtfSolver::isActiveInModel(Node n) const
+{
+  std::map<Node, ExtfInfoTmp>::const_iterator it = d_extfInfoTmp.find(n);
+  if (it==d_extfInfoTmp.end())
+  {
+    Assert (false) << "isActiveInModel: Expected extf info for " << n;
+    return true;
+  }
+  return it->second.d_modelActive;
 }
 
 bool StringsExtfCallback::getCurrentSubstitution(
