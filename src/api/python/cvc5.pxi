@@ -3059,7 +3059,7 @@ cdef class Term:
                 (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
             
             where ``c1 ... cn`` are values ordered by id such that ``c1 > ... > cn`` (see
-            also :cpp:func:`cvc5::api::Term::operator>(const Term&) const`).
+            also :cpp:func:`cvc5::api::Term::operator>()`).
             
             Note that a universe set term ``(kind SET_UNIVERSE)`` is not considered to be
             a set value.
