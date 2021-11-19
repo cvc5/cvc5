@@ -65,7 +65,7 @@ class RegExpSolver : protected EnvObj
    * for Regular Membership and Length Constraints over Unbounded Strings",
    * FroCoS 2015.
    */
-  void checkMemberships();
+  void checkMemberships(int effort);
 
  private:
   /** check
@@ -79,7 +79,7 @@ class RegExpSolver : protected EnvObj
    * form (t in R) or ~(t in R), where t = r currently holds in the equality
    * engine of the theory of strings.
    */
-  void check(const std::map<Node, std::vector<Node>>& mems);
+  void check(const std::map<Node, std::vector<Node>>& mems, int effort);
   /**
    * Check memberships in equivalence class for regular expression
    * inclusion.

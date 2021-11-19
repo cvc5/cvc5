@@ -103,7 +103,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     pol = d_extfInfoTmp[n].d_const.getConst<bool>() ? 1 : -1;
   }
   // determine if it is the right effort
-  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol))
+  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol==1))
   {
     if (effort != 1)
     {
@@ -112,6 +112,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   else if (k == STRING_CONTAINS && pol == -1)
   {
+    // negative contains reduces at level 2, or 3 if guessing model
     int reffort = options().strings.stringGuessModel ? 3 : 2;
     if (effort == reffort)
     {
@@ -155,6 +156,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   }
   else if (effort != 2)
   {
+    // all other operators reduce at level 2
     return false;
   }
   Node c_n = pol == -1 ? n.negate() : n;

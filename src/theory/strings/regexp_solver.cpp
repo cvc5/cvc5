@@ -62,7 +62,7 @@ Node RegExpSolver::mkAnd(Node c1, Node c2)
   return NodeManager::currentNM()->mkNode(AND, c1, c2);
 }
 
-void RegExpSolver::checkMemberships()
+void RegExpSolver::checkMemberships(int effort)
 {
   // add the memberships
   std::vector<Node> mems = d_esolver.getActive(STRING_IN_REGEXP);
@@ -90,10 +90,10 @@ void RegExpSolver::checkMemberships()
           << "  irrelevant (non-asserted) membership : " << n << std::endl;
     }
   }
-  check(assertedMems);
+  check(assertedMems, effort);
 }
 
-void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
+void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems, int effort)
 {
   bool addedLemma = false;
   bool changed = false;
