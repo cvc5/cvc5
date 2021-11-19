@@ -497,7 +497,7 @@ name   = "Arithmetic Theory"
   long       = "nl-cad"
   type       = "bool"
   default    = "false"
-  help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
+  help       = "whether to use the cylindrical algebraic coverings solver for non-linear arithmetic"
 
 [[option]]
   name       = "nlCadPrune"
@@ -508,12 +508,22 @@ name   = "Arithmetic Theory"
   help       = "whether to prune intervals more agressively"
 
 [[option]]
-  name       = "nlCadUseInitial"
+  name       = "nlCadLinearModel"
   category   = "regular"
-  long       = "nl-cad-initial"
-  type       = "bool"
-  default    = "false"
-  help       = "whether to use the linear model as initial guess for the cylindrical algebraic decomposition solver"
+  long       = "nl-cad-linear-model=MODE"
+  type       = "NlCadLinearModelMode"
+  default    = "NONE"
+  help       = "whether to use the linear model as initial guess for the cylindrical algebraic coverings solver"
+  help_mode  = "Modes for the usage of the linear model in non-linear arithmetic."
+[[option.mode.NONE]]
+  name       = "none"
+  help       = "Do not use linear model to seed nonlinear model"
+[[option.mode.INITIAL]]
+  name       = "initial"
+  help       = "Use linear model to seed nonlinear model initially, discard it when it does not work"
+[[option.mode.PERSISTENT]]
+  name       = "persistent"
+  help       = "Use linear model to seed nonlinear model whenever possible"
 
 [[option]]
   name       = "nlCadProjection"

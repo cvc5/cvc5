@@ -79,7 +79,7 @@ void CDCAC::computeVariableOrdering()
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
 {
-  if (!options().arith.nlCadUseInitial) return;
+  if (options().arith.nlCadLinearModel == options::NlCadLinearModelMode::NONE) return;
   d_initialAssignment.clear();
   Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
   for (const auto& var : d_variableOrdering)
@@ -176,7 +176,7 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
                                      poly::Value& sample,
                                      std::size_t cur_variable)
 {
-  if (options().arith.nlCadUseInitial
+  if (options().arith.nlCadLinearModel != options::NlCadLinearModelMode::NONE
       && cur_variable < d_initialAssignment.size())
   {
     const poly::Value& suggested = d_initialAssignment[cur_variable];
@@ -184,7 +184,10 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
     {
       if (poly::contains(i.d_interval, suggested))
       {
-        d_initialAssignment.clear();
+        if (options().arith.nlCadLinearModel == options::NlCadLinearModelMode::INITIAL)
+        {
+          d_initialAssignment.clear();
+        }
         return sampleOutside(infeasible, sample);
       }
     }
