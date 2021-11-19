@@ -130,7 +130,7 @@ void Strategy::initializeStrategy()
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
-    if (options::stringExp() && !options::stringGuessModel())
+    if (options::stringExp())
     {
       addStrategyStep(CHECK_EXTF_REDUCTION, 2);
     }
@@ -140,9 +140,9 @@ void Strategy::initializeStrategy()
     if (options::stringExp() && options::stringGuessModel())
     {
       step_begin[Theory::EFFORT_LAST_CALL] = d_infer_steps.size();
-      // these two steps are run in parallel
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2, false);
       addStrategyStep(CHECK_EXTF_EVAL, 3);
+      addStrategyStep(CHECK_EXTF_REDUCTION, 3);
+      addStrategyStep(CHECK_MEMBERSHIP, 3);
       step_end[Theory::EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
     }
     // set the beginning/ending ranges

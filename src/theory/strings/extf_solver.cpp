@@ -111,7 +111,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     }
     else if (pol == -1)
     {
-      if (effort == 2)
+      if (effort == 3)
       {
         Node x = n[0];
         Node s = n[1];
@@ -142,7 +142,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
         }
         else
         {
-          r_effort = 2;
+          r_effort = 3;
         }
       }
     }
