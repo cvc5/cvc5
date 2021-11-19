@@ -1,0 +1,45 @@
+on: [push, pull_request]
+name: PyPi packaging
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+      with:
+        with-documentation: false
+        with-python-bindings: true
+        with-python-packaging: true
+
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
+      with:
+        cache-key: cvc5-pypi
+
+    - name: Configure and build
+      id: configure-and-build
+      uses: ./.github/actions/configure-and-build
+      with:
+        configure-config: production --auto-download --python-bindings
+        build-shared: true
+        build-static: false
+
+    - name: ccache Statistics
+      run: ccache -s
+
+    - name: Run tests
+      uses: ./.github/actions/run-tests
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
+        check-examples: ${{ matrix.check-examples }}
+        check-python-bindings: ${{ matrix.python-bindings }}
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: ${{ matrix.exclude_regress }}
+  
+    - name: Package PyPi wheel packages
+      uses: ./.github/actions/package-python-wheel
