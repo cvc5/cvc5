@@ -15,9 +15,9 @@
 
 #include "theory/strings/eager_solver.h"
 
+#include "options/strings_options.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
-#include "options/strings_options.h"
 
 using namespace cvc5::kind;
 
