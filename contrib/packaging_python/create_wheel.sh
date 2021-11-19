@@ -5,12 +5,6 @@ DIR=$(pwd)
 PYTHONBIN=$1
 CONFIG="$2"
 VERSION=$($PYTHONBIN -c "import sys; print(sys.version.split()[0])")
-CURDIR=$(basename $DIR)
-
-if [[ "$CURDIR" != "cvc5" ]]; then
-    echo "Expecting to be run from cvc5 directory but actually run from $DIR"
-    exit 1
-fi
 
 # setup and activate venv
 echo "Making venv"
