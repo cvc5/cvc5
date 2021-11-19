@@ -109,9 +109,10 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
       if (n[i].getType().isInteger())
       {
         Trace("alethe-proof-subtyping")
-            << "\t\t..arith term arg " << n[i] << " (kind " << n[i].getKind()
-            << ") is integer but should be real, from arg " << hasReal << " "
-            << n[hasReal] << " (kind " << n[hasReal].getKind() << ")\n";
+            << "\t\t..arg " << i << ", arith term " << n[i] << " (kind "
+            << n[i].getKind() << "), is integer but should be real, from arg "
+            << hasReal << " " << n[hasReal] << " (kind " << n[hasReal].getKind()
+            << ")\n";
         if (!n[i].isConst())
         {
           // there are two cases here: either this is a term that contains
