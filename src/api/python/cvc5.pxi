@@ -3090,7 +3090,7 @@ cdef class Term:
 	   Asserts :py:meth:`isSequenceValue()`.
            
 	   Note that it is usually necessary for sequences to call
-           :py:meth:`Solver::simplify(Term t)` to turn a sequence that is constructed by, e.g.,
+           :py:meth:`Solver.simplify()` to turn a sequence that is constructed by, e.g.,
            concatenation of unit sequences, into a sequence value.
 	  
 	   :return: the representation of a sequence value as a vector of terms.
