@@ -81,7 +81,8 @@ ExtfSolver::~ExtfSolver() {}
 bool ExtfSolver::doReduction(int effort, Node n)
 {
   Assert(d_extfInfoTmp.find(n) != d_extfInfoTmp.end());
-  Trace("strings-extf-debug") << "doReduction " << n << ", effort " << effort << std::endl;
+  Trace("strings-extf-debug")
+      << "doReduction " << n << ", effort " << effort << std::endl;
   if (!d_extfInfoTmp[n].d_modelActive)
   {
     // n is not active in the model, no need to reduce
@@ -104,7 +105,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
   // determine if it is the right effort
   if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol))
   {
-    if (effort!=1)
+    if (effort != 1)
     {
       return false;
     }
@@ -151,7 +152,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // never necessary to reduce seq.unit or str.in_re here.
     return false;
   }
-  else if (effort!=2)
+  else if (effort != 2)
   {
     return false;
   }

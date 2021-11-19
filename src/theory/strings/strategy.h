@@ -79,7 +79,7 @@ enum InferSubStep
   // run in model
   MODEL,
 };
-//std::ostream& operator<<(std::ostream& out, InferSubStep i);
+// std::ostream& operator<<(std::ostream& out, InferSubStep i);
 
 /**
  * The strategy of theory of strings.
