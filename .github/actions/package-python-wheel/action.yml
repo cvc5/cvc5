@@ -13,7 +13,6 @@ runs:
         fi
 
         docker run --rm \
-          -v `pwd`/contrib/packaging_python/shared:/home/pycvc5-manylinux2014/shared \
-          -v `pwd`/build:/home/pycvc5-manylinux2014/build \
+          -v `pwd`:/home/pycvc5-manylinux2014 \
           pycvc5-manylinux2014 \
-          ./shared/build.sh
+          ./contrib/packaging_python/build.sh
