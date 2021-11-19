@@ -2,10 +2,6 @@
 
 set -xe
 
-git clone https://github.com/cvc5/cvc5.git
-
-cd cvc5
-
 echo VERSION_SUFFIX: "$1"
 
 VERSION_SUFFIX="$1" ./contrib/packaging_python/create_wheel.sh /opt/python/cp36-cp36m/bin/python
