@@ -307,7 +307,7 @@ Node TheoryArraysRewriter::expandEqRange(TNode node)
   {
     kle = kind::FLOATINGPOINT_LEQ;
   }
-  else if (type.isInteger() || type.isReal())
+  else if (type.isRealOrInt())
   {
     kle = kind::LEQ;
   }
