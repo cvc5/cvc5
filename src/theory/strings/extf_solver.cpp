@@ -152,7 +152,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // never necessary to reduce seq.unit or str.in_re here.
     return false;
   }
-  else if (effort != 2)
+  else if (effort < 2)
   {
     return false;
   }
