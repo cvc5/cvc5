@@ -32,14 +32,14 @@ jobs:
     - name: ccache Statistics
       run: ccache -s
 
-    - name: Run tests
-      uses: ./.github/actions/run-tests
-      with:
-        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
-        check-examples: ${{ matrix.check-examples }}
-        check-python-bindings: ${{ matrix.python-bindings }}
-        regressions-args: ${{ matrix.run_regression_args }}
-        regressions-exclude: ${{ matrix.exclude_regress }}
+#    - name: Run tests
+#      uses: ./.github/actions/run-tests
+#      with:
+#        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
+#        check-examples: ${{ matrix.check-examples }}
+#        check-python-bindings: ${{ matrix.python-bindings }}
+#        regressions-args: ${{ matrix.run_regression_args }}
+#        regressions-exclude: ${{ matrix.exclude_regress }}
   
     - name: Package PyPi wheel packages
       uses: ./.github/actions/package-python-wheel
