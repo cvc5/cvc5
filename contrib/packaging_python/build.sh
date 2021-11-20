@@ -11,6 +11,9 @@ pwd
 echo $PATH
 
 ls -al
+ls -al /usr/
+ls -al /usr/lib/
+ls -al /usr/lib64/
 ls -al /usr/lib64/ccache/
 
 for version in "36"
