@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "expr/metakind.h"
+#include "expr/node_manager.h"
 #include "expr/node_value.h"
 
 // clang-format off
@@ -231,6 +232,7 @@ ${metakind_ubchildren}
 
   return ubs[k];
 }
+
 }  // namespace metakind
 
 /**
