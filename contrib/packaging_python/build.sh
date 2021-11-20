@@ -6,6 +6,8 @@ echo VERSION_SUFFIX: "$2"
 
 OPTS="production --auto-download"
 
+pwd
+
 echo $PATH
 
 ls -al
