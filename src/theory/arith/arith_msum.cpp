@@ -249,7 +249,7 @@ Node ArithMSum::solveEqualityFor(Node lit, Node v)
       return lit[1 - r];
     }
   }
-  if (tn.isReal())
+  if (tn.isRealOrInt())
   {
     std::map<Node, Node> msum;
     if (ArithMSum::getMonomialSumLit(lit, msum))

@@ -337,7 +337,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     return itv->second;
   }
   CegHandledStatus ret = CEG_UNHANDLED;
-  if (tn.isInteger() || tn.isReal() || tn.isBoolean() || tn.isBitVector()
+  if (tn.isRealOrInt() || tn.isBoolean() || tn.isBitVector()
       || tn.isFloatingPoint())
   {
     ret = CEG_HANDLED;
@@ -482,15 +482,24 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
   if( d_instantiator.find( v )==d_instantiator.end() ){
     TypeNode tn = v.getType();
     Instantiator * vinst;
-    if( tn.isReal() ){
+    if (tn.isRealOrInt())
+    {
       vinst = new ArithInstantiator(d_env, tn, d_parent->getVtsTermCache());
-    }else if( tn.isDatatype() ){
+    }
+    else if (tn.isDatatype())
+    {
       vinst = new DtInstantiator(d_env, tn);
-    }else if( tn.isBitVector() ){
+    }
+    else if (tn.isBitVector())
+    {
       vinst = new BvInstantiator(d_env, tn, d_parent->getBvInverter());
-    }else if( tn.isBoolean() ){
+    }
+    else if (tn.isBoolean())
+    {
       vinst = new ModelValueInstantiator(d_env, tn);
-    }else{
+    }
+    else
+    {
       //default
       vinst = new Instantiator(d_env, tn);
     }
@@ -1261,7 +1270,9 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     Node atom = lit.getKind()==NOT ? lit[0] : lit;
     bool pol = lit.getKind()!=NOT;
     //arithmetic inequalities and disequalities
-    if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
+    if (atom.getKind() == GEQ
+        || (atom.getKind() == EQUAL && !pol && atom[0].getType().isRealOrInt()))
+    {
       NodeManager* nm = NodeManager::currentNM();
       Assert(atom.getKind() != GEQ || atom[1].isConst());
       Node atom_lhs;
@@ -1296,7 +1307,9 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
           }
         }
       }
-    }else{
+    }
+    else
+    {
       // don't know how to apply substitution to literal
     }
   }
@@ -1396,7 +1409,8 @@ void CegInstantiator::processAssertions() {
     TheoryId tid = Theory::theoryOf( rtn );
     //if we care about the theory of this eqc
     if( std::find( d_tids.begin(), d_tids.end(), tid )!=d_tids.end() ){
-      if( rtn.isInteger() || rtn.isReal() ){
+      if (rtn.isRealOrInt())
+      {
         rtn = rtn.getBaseType();
       }
       Trace("cegqi-proc-debug") << "...type eqc: " << r << std::endl;
