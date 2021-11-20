@@ -126,6 +126,9 @@ bool RegExpSolver::checkInclInter(
       return true;
     }
   }
+  Trace("regexp-debug")
+      << "... No Intersect Conflict in Memberships"
+      << std::endl;
   return false;
 }
 
@@ -135,9 +138,6 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
   Trace("regexp-process") << "Checking unfold ... " << std::endl;
   bool addedLemma = false;
   std::vector<Node> processed;
-  Trace("regexp-debug")
-      << "... No Intersect Conflict in Memberships, addedLemma: " << addedLemma
-      << std::endl;
 
   // get all memberships
   std::map<Node, Node> allMems;
@@ -163,6 +163,11 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
     {
       Node assertion = mp.first;
       Node rep = mp.second;
+      bool polarity = assertion.getKind() != NOT;
+      if (polarity != (e == 0))
+      {
+        continue;
+      }
       // check regular expression membership
       Trace("regexp-debug")
           << "Check : " << assertion << " "
@@ -179,11 +184,6 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
           << std::endl;
       Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
       Assert(atom == rewrite(atom));
-      bool polarity = assertion.getKind() != NOT;
-      if (polarity != (e == 0))
-      {
-        continue;
-      }
       if (effort > 0 && !d_esolver.isActiveInModel(atom))
       {
         Trace("strings-regexp")
@@ -378,25 +378,15 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
       // Both regular expression memberships have the same polarity
       if (m1Neg == m2Neg)
       {
-        if (d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
+        if (!m1Neg && d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
         {
-          if (m1Neg)
-          {
-            // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
-            //   mark ~str.in.re(x, R2) as reduced
-            d_im.markReduced(m2Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG);
-            remove.insert(m2);
-          }
-          else
-          {
-            // str.in.re(x, R1) includes str.in.re(x, R2) --->
-            //   mark str.in.re(x, R1) as reduced
-            d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
-            remove.insert(m1);
+          // str.in.re(x, R1) includes str.in.re(x, R2) --->
+          //   mark str.in.re(x, R1) as reduced
+          d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
+          remove.insert(m1);
 
-            // We don't need to process m1 anymore
-            break;
-          }
+          // We don't need to process m1 anymore
+          break;
         }
       }
       else

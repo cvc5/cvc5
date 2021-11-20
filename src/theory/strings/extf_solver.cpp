@@ -439,7 +439,7 @@ void ExtfSolver::checkExtfEval(int effort)
     // checkExtfInference below.
     // if not reduced and not processed
     if (!reduced && !n.isNull()
-        && inferProcessed.find(n) == inferProcessed.end() && effort < 3)
+        && inferProcessed.find(n) == inferProcessed.end())
     {
       inferProcessed.insert(n);
       if (effort == 1)
@@ -449,7 +449,10 @@ void ExtfSolver::checkExtfEval(int effort)
       }
       // we take to_reduce to be the (partially) reduced version of n, which
       // is justified by the explanation in einfo.
-      checkExtfInference(n, to_reduce, einfo, effort);
+      if (effort < 3)
+      {
+        checkExtfInference(n, to_reduce, einfo, effort);
+      }
       if (Trace.isOn("strings-extf-list"))
       {
         Trace("strings-extf-list") << "  * " << to_reduce;
