@@ -355,7 +355,7 @@ bool RegExpEntail::isConstRegExp(TNode t)
           return false;
         }
       }
-      else if (ck==REGEXP_RV)
+      else if (ck == REGEXP_RV)
       {
         return false;
       }
