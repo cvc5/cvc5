@@ -94,5 +94,68 @@ NodeValue::iterator<NodeTemplate<false> > operator+(
   return i + p;
 }
 
+std::ostream& operator<<(std::ostream& out, const NodeValue& nv)
+{
+  nv.toStream(out,
+              Node::setdepth::getDepth(out),
+              Node::dag::getDag(out),
+              Node::setlanguage::getLanguage(out));
+  return out;
+}
+
+void NodeValue::markRefCountMaxedOut()
+{
+  Assert(NodeManager::currentNM() != nullptr)
+      << "No current NodeManager on incrementing of NodeValue: "
+         "maybe a public cvc5 interface function is missing a "
+         "NodeManagerScope ?";
+  NodeManager::currentNM()->markRefCountMaxedOut(this);
+}
+
+void NodeValue::markForDeletion()
+{
+  Assert(NodeManager::currentNM() != nullptr)
+      << "No current NodeManager on destruction of NodeValue: "
+         "maybe a public cvc5 interface function is missing a "
+         "NodeManagerScope ?";
+  NodeManager::currentNM()->markForDeletion(this);
+}
+
+bool NodeValue::isBeingDeleted() const
+{
+  return NodeManager::currentNM() != NULL
+         && NodeManager::currentNM()->isCurrentlyDeleting(this);
+}
+
 }  // namespace expr
+
+#ifdef CVC5_DEBUG
+
+/**
+ * Pretty printer for use within gdb.  This is not intended to be used
+ * outside of gdb.  This writes to the Warning() stream and immediately
+ * flushes the stream.
+ */
+void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv)
+{
+  Warning() << Node::setdepth(-1) << Node::dag(true)
+            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
+  Warning().flush();
+}
+
+void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv)
+{
+  Warning() << Node::setdepth(-1) << Node::dag(false)
+            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
+  Warning().flush();
+}
+
+void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv)
+{
+  nv->printAst(Warning(), 0);
+  Warning().flush();
+}
+
+#endif /* CVC5_DEBUG */
+
 }  // namespace cvc5

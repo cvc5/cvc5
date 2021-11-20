@@ -15,9 +15,6 @@
 
 #include "cvc5_private.h"
 
-// circular dependency
-#include "expr/node_value.h"
-
 #ifndef CVC5__NODE_H
 #define CVC5__NODE_H
 
@@ -35,6 +32,7 @@
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/node_value.h"
 #include "options/language.h"
 #include "options/set_language.h"
 #include "util/hash.h"
