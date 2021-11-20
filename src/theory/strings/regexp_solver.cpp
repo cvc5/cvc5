@@ -374,13 +374,27 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
       bool m2Neg = m2.getKind() == NOT;
       Node m2Lit = m2Neg ? m2[0] : m2;
 
-      // Both regular expression memberships have the same polarity
       if (m1Neg == m2Neg)
       {
+        // Both regular expression memberships have positive polarity
         if (!m1Neg && d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
         {
           // str.in.re(x, R1) includes str.in.re(x, R2) --->
           //   mark str.in.re(x, R1) as reduced
+
+          // Notice that we do not do this for two negative memberships,
+          // since negative memberships may reduce to another membership
+          // that is included in the original, thus making the justification for
+          // the reduction cyclic.  For example, to reduce:
+          //  (not (str.in_re x (re.++ (re.* R1) R2)))
+          // We may rely on justifying this by the fact that (writing x[i:j] for
+          // substring) either:
+          //  (not (str.in_re x[:0] (re.* R1)))
+          //  (not (str.in_re x[0:] R2))
+          // The first is trivially satisfied, the second is equivalent to
+          //  (not (str.in_re x R2))
+          // where R2 is included in (re.++ (re.* R1) R2)). However, we cannot
+          // mark the latter as reduced.
           d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
           remove.insert(m1);
 
