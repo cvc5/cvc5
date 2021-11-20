@@ -30,6 +30,7 @@
 #include "theory/rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/logic_info.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
@@ -102,7 +103,7 @@ Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
   Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
   Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
   Node result = d_nm->mkNode(kind::AND, lower, upper);
-  return Rewriter::rewrite(result);
+  return rewrite(result);
 }
 
 Node IntBlaster::maxInt(uint64_t k)
@@ -600,53 +601,53 @@ Node IntBlaster::uts(Node x, uint64_t bvsize) {
 
 Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
 {
-      Node returnNode;
-      if (x.isConst())
-      {
-        Rational c(x.getConst<Rational>());
-        Rational twoToKMinusOne(intpow2(bvsize - 1));
-        /* if the msb is 0, this is like zero_extend.
-         *  msb is 0 <-> the value is less than 2^{bvsize-1}
-         */
-        if (c < twoToKMinusOne || amount == 0)
-        {
-          returnNode = x;
-        }
-        else
-        {
-          /* otherwise, we add the integer equivalent of
-           * 11....1 `amount` times
-           */
-          Rational max_of_amount = intpow2(amount) - 1;
-          Rational mul = max_of_amount * intpow2(bvsize);
-          Rational sum = mul + c;
-          returnNode = d_nm->mkConst(CONST_RATIONAL, sum);
-        }
-      }
-      else
-      {
-        if (amount == 0)
-        {
-          returnNode = x;
-        }
-        else
-        {
-          Rational twoToKMinusOne(intpow2(bvsize - 1));
-          Node minSigned = d_nm->mkConst(CONST_RATIONAL, twoToKMinusOne);
-          /* condition checks whether the msb is 1.
-           * This holds when the integer value is smaller than
-           * 100...0, which is 2^{bvsize-1}.
-           */
-          Node condition = d_nm->mkNode(kind::LT, x, minSigned);
-          Node thenResult = x;
-          Node left = maxInt(amount);
-          Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
-          Node sum = d_nm->mkNode(kind::PLUS, mul, x);
-          Node elseResult = sum;
-          Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
-          returnNode = ite;
-        }
-      }
+  Node returnNode;
+  if (x.isConst())
+  {
+    Rational c(x.getConst<Rational>());
+    Rational twoToKMinusOne(intpow2(bvsize - 1));
+    /* if the msb is 0, this is like zero_extend.
+     *  msb is 0 <-> the value is less than 2^{bvsize-1}
+     */
+    if (c < twoToKMinusOne || amount == 0)
+    {
+      returnNode = x;
+    }
+    else
+    {
+      /* otherwise, we add the integer equivalent of
+       * 11....1 `amount` times
+       */
+      Rational max_of_amount = intpow2(amount) - 1;
+      Rational mul = max_of_amount * intpow2(bvsize);
+      Rational sum = mul + c;
+      returnNode = d_nm->mkConst(CONST_RATIONAL, sum);
+    }
+  }
+  else
+  {
+    if (amount == 0)
+    {
+      returnNode = x;
+    }
+    else
+    {
+      Rational twoToKMinusOne(intpow2(bvsize - 1));
+      Node minSigned = d_nm->mkConst(CONST_RATIONAL, twoToKMinusOne);
+      /* condition checks whether the msb is 1.
+       * This holds when the integer value is smaller than
+       * 100...0, which is 2^{bvsize-1}.
+       */
+      Node condition = d_nm->mkNode(kind::LT, x, minSigned);
+      Node thenResult = x;
+      Node left = maxInt(amount);
+      Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
+      Node sum = d_nm->mkNode(kind::PLUS, mul, x);
+      Node elseResult = sum;
+      Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
+      returnNode = ite;
+    }
+  }
   return returnNode;
 }
 
@@ -918,10 +919,14 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
     {
       body = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i));
     }
-    ite = d_nm->mkNode(kind::ITE,
-                       d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst(CONST_RATIONAL, Rational(Integer(i), Integer(1)))),
-                       body,
-                       ite);
+    ite = d_nm->mkNode(
+        kind::ITE,
+        d_nm->mkNode(
+            kind::EQUAL,
+            y,
+            d_nm->mkConst(CONST_RATIONAL, Rational(Integer(i), Integer(1)))),
+        body,
+        ite);
   }
   return ite;
 }

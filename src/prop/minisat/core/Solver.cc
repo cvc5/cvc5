@@ -355,66 +355,67 @@ CRef Solver::reason(Var x) {
   if (assertionLevelOnly())
   {
     explLevel = assertionLevel;
-    }
-    else
+  }
+  else
+  {
+    int i, j;
+    Lit prev = lit_Undef;
+    for (i = 0, j = 0; i < explanation.size(); ++i)
     {
-      int i, j;
-      Lit prev = lit_Undef;
-      for (i = 0, j = 0; i < explanation.size(); ++i)
+      // This clause is valid theory propagation, so its level is the level of
+      // the top literal
+      explLevel = std::max(explLevel, intro_level(var(explanation[i])));
+
+      Assert(value(explanation[i]) != l_Undef);
+      Assert(i == 0
+             || trail_index(var(explanation[0]))
+                    > trail_index(var(explanation[i])));
+
+      // Always keep the first literal
+      if (i == 0)
       {
-        // This clause is valid theory propagation, so its level is the level of
-        // the top literal
-        explLevel = std::max(explLevel, intro_level(var(explanation[i])));
-
-        Assert(value(explanation[i]) != l_Undef);
-        Assert(i == 0
-               || trail_index(var(explanation[0]))
-                      > trail_index(var(explanation[i])));
-
-        // Always keep the first literal
-        if (i == 0)
-        {
-          prev = explanation[j++] = explanation[i];
-          continue;
-        }
-        // Ignore duplicate literals
-        if (explanation[i] == prev)
-        {
-          continue;
-        }
-        // Ignore zero level literals
-        if (level(var(explanation[i])) == 0
-            && user_level(var(explanation[i]) == 0))
-        {
-          continue;
-        }
-        // Keep this literal
         prev = explanation[j++] = explanation[i];
+        continue;
       }
-      explanation.shrink(i - j);
-
-      Trace("pf::sat") << "Solver::reason: explanation = ";
-      for (int k = 0; k < explanation.size(); ++k)
+      // Ignore duplicate literals
+      if (explanation[i] == prev)
       {
-        Trace("pf::sat") << explanation[k] << " ";
+        continue;
       }
-      Trace("pf::sat") << std::endl;
-
-      // We need an explanation clause so we add a fake literal
-      if (j == 1)
+      // Ignore zero level literals
+      if (level(var(explanation[i])) == 0
+          && user_level(var(explanation[i]) == 0))
       {
-        // Add not TRUE to the clause
-        explanation.push(mkLit(varTrue, true));
+        continue;
       }
+      // Keep this literal
+      prev = explanation[j++] = explanation[i];
     }
+    explanation.shrink(i - j);
 
-    // Construct the reason
-    CRef real_reason = ca.alloc(explLevel, explanation, true);
-    vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
-    clauses_removable.push(real_reason);
-    attachClause(real_reason);
+    Trace("pf::sat") << "Solver::reason: explanation = ";
+    for (int k = 0; k < explanation.size(); ++k)
+    {
+      Trace("pf::sat") << explanation[k] << " ";
+    }
+    Trace("pf::sat") << std::endl;
 
-    return real_reason;
+    // We need an explanation clause so we add a fake literal
+    if (j == 1)
+    {
+      // Add not TRUE to the clause
+      explanation.push(mkLit(varTrue, true));
+    }
+  }
+
+  // Construct the reason
+  CRef real_reason = ca.alloc(explLevel, explanation, true);
+  vardata[x] = VarData(
+      real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
+  clauses_removable.push(real_reason);
+  attachClause(real_reason);
+
+  return real_reason;
 }
 
 bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)

@@ -2459,13 +2459,15 @@ enum Kind : int32_t
    */
   BAG_DUPLICATE_REMOVAL,
   /**
-   * The bag of the single element given as a parameter.
+   * Construct a bag with the given element and given multiplicity.
    *
    * Parameters:
-   *   - 1: Single element
+   *   - 1: The element
+   *   - 2: The multiplicity of the element. 
    *
    * Create with:
-   *   - `Solver::mkTerm(Kind kind, const Term& child) const`
+   *   - `Solver::mkTerm(Kind kind, const Term& child, const Term& child) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BAG_MAKE,
   /**

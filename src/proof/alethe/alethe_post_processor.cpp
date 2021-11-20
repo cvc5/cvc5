@@ -162,7 +162,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //               VP2a
     // ------------------------------------ REORDERING
     //  VP2b
-    // ------ DUPLICATED_LITERALS   ------- IMPLIES_NEG1
+    // ------ CONTRACTION           ------- IMPLIES_NEG1
     //   VP3                          VP4
     // ------------------------------------  RESOLUTION    ------- IMPLIES_NEG2
     //    VP5                                                VP6
@@ -188,7 +188,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     //                                    --------- IMPLIES_SIMPLIFY
     //    T1                                 VP9
-    // --------- DUPLICATED_LITERALS      --------- EQUIV_1
+    // --------- CONTRACTION              --------- EQUIV_1
     //    VP8                                VP10
     // -------------------------------------------- RESOLUTION
     //          (cl (not (and F1 ... Fn)))*
@@ -200,7 +200,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // Otherwise,
     //                T1
-    //  ------------------------------ DUPLICATED_LITERALS
+    //  ------------------------------ CONTRACTION
     //   (cl (=> (and F1 ... Fn) F))**
     //
     //
@@ -260,8 +260,8 @@ bool AletheProofPostprocessCallback::update(Node res,
             addAletheStep(AletheRule::REORDERING, vp2b, vp2b, {vp2a}, {}, *cdp);
 
         vp3 = nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
-        success &= addAletheStep(
-            AletheRule::DUPLICATED_LITERALS, vp3, vp3, {vp2b}, {}, *cdp);
+        success &=
+            addAletheStep(AletheRule::CONTRACTION, vp3, vp3, {vp2b}, {}, *cdp);
       }
 
       Node vp8 = nm->mkNode(
@@ -285,13 +285,13 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       if (children[0] != nm->mkConst(false))
       {
-        success &= addAletheStep(
-            AletheRule::DUPLICATED_LITERALS, res, vp8, {vp7}, {}, *cdp);
+        success &=
+            addAletheStep(AletheRule::CONTRACTION, res, vp8, {vp7}, {}, *cdp);
       }
       else
       {
-        success &= addAletheStep(
-            AletheRule::DUPLICATED_LITERALS, vp8, vp8, {vp7}, {}, *cdp);
+        success &=
+            addAletheStep(AletheRule::CONTRACTION, vp8, vp8, {vp7}, {}, *cdp);
 
         Node vp9 =
             nm->mkNode(kind::SEXPR,
@@ -646,7 +646,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // Fn) Otherwise, VC2 = (cl C2).
     //
     //    P
-    // ------- DUPLICATED_LITERALS
+    // ------- CONTRACTION
     //   VC2*
     //
     // * the corresponding proof node is C2
@@ -659,11 +659,11 @@ bool AletheProofPostprocessCallback::update(Node res,
           if (child != res)
           {
             return addAletheStepFromOr(
-                AletheRule::DUPLICATED_LITERALS, res, children, {}, *cdp);
+                AletheRule::CONTRACTION, res, children, {}, *cdp);
           }
         }
       }
-      return addAletheStep(AletheRule::DUPLICATED_LITERALS,
+      return addAletheStep(AletheRule::CONTRACTION,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
@@ -716,7 +716,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //   P1       VP21   ...   VP2n
     //  ---------------------------- RESOLUTION
     //              VP3
-    //  ---------------------------- DUPLICATED_LITERALS
+    //  ---------------------------- CONTRACTION
     //              VP4
     //
     //  for i=1 to n, VP2i: (cl (or G1 ... Gn) (not Gi))
@@ -785,8 +785,8 @@ bool AletheProofPostprocessCallback::update(Node res,
               AletheRule::RESOLUTION, vp3, vp3, vp2Nodes, {}, *cdp);
 
           Node vp4 = nm->mkNode(kind::SEXPR, d_cl, children[0]);
-          success &= addAletheStep(
-              AletheRule::DUPLICATED_LITERALS, vp4, vp4, {vp3}, {}, *cdp);
+          success &=
+              addAletheStep(AletheRule::CONTRACTION, vp4, vp4, {vp3}, {}, *cdp);
           child1 = vp4;
         }
       }
@@ -1102,7 +1102,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //             VP3
     // ------------------------------- REORDERING
     //             VP4
-    // ------------------------------- DUPLICATED_LITERALS
+    // ------------------------------- CONTRACTION
     //  (cl (not (ite C F1 F2)) F1 F2)
     //
     // VP1: (cl (not (ite C F1 F2)) C F2)
@@ -1127,7 +1127,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                  AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
              && addAletheStep(AletheRule::REORDERING, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
-                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
+                 AletheRule::CONTRACTION, res, {vp4}, {}, *cdp);
     }
     // ======== CNF ITE Neg version 3
     //
@@ -1137,7 +1137,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //             VP3
     // ------------------------------- REORDERING
     //             VP4
-    // ------------------------------- DUPLICATED_LITERALS
+    // ------------------------------- CONTRACTION
     //  (cl (ite C F1 F2) C (not F2))
     //
     // VP1: (cl (ite C F1 F2) C (not F2))
@@ -1162,7 +1162,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                  AletheRule::RESOLUTION, vp3, vp3, {vp1, vp2}, {}, *cdp)
              && addAletheStep(AletheRule::REORDERING, vp4, vp4, {vp3}, {}, *cdp)
              && addAletheStepFromOr(
-                 AletheRule::DUPLICATED_LITERALS, res, {vp4}, {}, *cdp);
+                 AletheRule::CONTRACTION, res, {vp4}, {}, *cdp);
     }
     //================================================= Equality rules
     // The following rules are all translated according to the singleton
