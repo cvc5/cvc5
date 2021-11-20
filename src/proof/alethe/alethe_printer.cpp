@@ -152,14 +152,17 @@ std::string AletheProofPrinter::alethePrinterInternal(
   {
     Trace("alethe-printer")
         << "... reached assumption " << pfn->getResult() << " " << vrule << " "
-        << " / " << pfn->getArguments() << std::endl;
+        << " / " << pfn->getArguments() << " " << nested_level << std::endl;
 
     // While in most cases the assumption is printed at the same level than the
     // step whose premise it is, it is possible that it is from a different
     // level. Thus, the whole list needs to be traversed. Since this case is rare
     // adapting the prefix should be rarely necessary.
-    for (size_t i = nested_level; i >= 0; i--)
+    for (int i = nested_level; i >= 0; i--)
     {
+      // This could just be pfn->getResult() since Assumptions are not changed
+      // when printed. However, in case this ever changes this uses the 2nd
+      // argument
       auto it = assumptions[i].find(pfn->getArguments()[2]);
       if (it != assumptions[i].end())
       {
@@ -171,7 +174,7 @@ std::string AletheProofPrinter::alethePrinterInternal(
           new_prefix = new_prefix.substr(0, new_prefix.find_last_of(".") + 1);
         }
         Trace("alethe-printer")
-            << "... search assumption in list on level " << i << ": "
+            << "... found assumption in list on level " << i << ": "
             << pfn->getArguments()[2] << "/" << assumptions[i] << "     "
             << new_prefix << std::endl;
         return new_prefix + "a" + std::to_string(it->second);
