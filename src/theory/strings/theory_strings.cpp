@@ -149,7 +149,7 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
-  
+
   // memberships are not relevant for model building
   d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
 }
@@ -729,7 +729,8 @@ bool TheoryStrings::needsCheckLastEffort() {
   if (options().strings.stringModelBasedReduction)
   {
     bool hasExtf = d_esolver.hasExtendedFunctions();
-    Trace("strings-process") << "needsCheckLastEffort: hasExtf = " << hasExtf << std::endl;
+    Trace("strings-process")
+        << "needsCheckLastEffort: hasExtf = " << hasExtf << std::endl;
     return hasExtf;
   }
   return false;

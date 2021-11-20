@@ -126,9 +126,8 @@ bool RegExpSolver::checkInclInter(
       return true;
     }
   }
-  Trace("regexp-debug")
-      << "... No Intersect Conflict in Memberships"
-      << std::endl;
+  Trace("regexp-debug") << "... No Intersect Conflict in Memberships"
+                        << std::endl;
   return false;
 }
 
