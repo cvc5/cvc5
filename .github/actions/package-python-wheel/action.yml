@@ -15,4 +15,4 @@ runs:
         docker run --rm \
           -v `pwd`:/home/pycvc5 \
           pycvc5-manylinux2014 \
-          ./contrib/packaging_python/build.sh
+          ./contrib/packaging_python/build.sh "36 37 38 39 310"
