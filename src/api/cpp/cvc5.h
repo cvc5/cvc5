@@ -4504,7 +4504,7 @@ class CVC5_EXPORT Solver
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
-  Term mkValHelper(T t) const;
+  Term mkValHelper(const T& t) const;
   /** Helper for making rational values. */
   Term mkRationalValHelper(const Rational& r) const;
   /** Helper for mkReal functions that take a string as argument. */
