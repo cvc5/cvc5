@@ -168,7 +168,7 @@ std::string AletheProofPrinter::alethePrinterInternal(
       {
         std::string new_prefix = prefix;
         // get substring of prefix
-        for (size_t j = 0; j < nested_level - i; j++)
+        for (int j = 0; j < nested_level - i; j++)
         {
           new_prefix = new_prefix.substr(0, new_prefix.find_last_of("."));
           new_prefix = new_prefix.substr(0, new_prefix.find_last_of(".") + 1);
