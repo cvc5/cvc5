@@ -6,6 +6,11 @@ echo VERSION_SUFFIX: "$2"
 
 OPTS="production --auto-download"
 
+echo $PATH
+
+ls -al
+ls -al /usr/lib64/ccache/
+
 for version in "36"
 do
     VERSION_SUFFIX="$2" ./contrib/packaging_python/create_wheel.sh /opt/python/cp${version}-cp${version}m/bin/python "$OPTS"
