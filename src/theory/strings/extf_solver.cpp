@@ -299,6 +299,9 @@ void ExtfSolver::checkExtfEval(int effort)
       // if rewrites to a constant, then do the inference and mark as reduced
       if (nrc.isConst())
       {
+        // at effort=3, our substitution is from the model, and we don't do
+        // inferences based on the model, instead we check whether the
+        // cosntraint is already equal to its expected value below.
         if (effort < 3)
         {
           d_extt.markReduced(n, ExtReducedId::STRINGS_SR_CONST);
@@ -412,6 +415,7 @@ void ExtfSolver::checkExtfEval(int effort)
       else if (effort < 3)
       {
         // if this was a predicate which changed after substitution + rewriting
+        // We only do this before models are constructed (effort<3)
         if (!einfo.d_const.isNull() && nrc.getType().isBoolean() && nrc != n)
         {
           bool pol = einfo.d_const == d_true;
@@ -448,7 +452,8 @@ void ExtfSolver::checkExtfEval(int effort)
             << "  cannot rewrite extf : " << to_reduce << std::endl;
       }
       // we take to_reduce to be the (partially) reduced version of n, which
-      // is justified by the explanation in einfo.
+      // is justified by the explanation in einfo. We only do this if we are
+      // not based on the model (effort<3).
       if (effort < 3)
       {
         checkExtfInference(n, to_reduce, einfo, effort);

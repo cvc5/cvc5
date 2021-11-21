@@ -376,30 +376,46 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
 
       if (m1Neg == m2Neg)
       {
-        // Both regular expression memberships have positive polarity
-        if (!m1Neg && d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
+        // Check whether the RE in membership m1 contains the one in m2, if
+        // so then m1 can be marked reduced if positive polarity, m2 if
+        // negative polarity.
+        // Notice that we do not do this if the non-reduced membership has
+        // already been unfolded, since memberships may reduce to other
+        // memberships that are included in the original, thus making the
+        // justification for the reduction cyclic.  For example, to reduce:
+        //  (not (str.in_re x (re.++ (re.* R1) R2)))
+        // We may rely on justifying this by the fact that (writing x[i:j] for
+        // substring) either:
+        //  (not (str.in_re x[:0] (re.* R1)))
+        //  (not (str.in_re x[0:] R2))
+        // The first is trivially satisfied, the second is equivalent to
+        //  (not (str.in_re x R2))
+        // where R2 is included in (re.++ (re.* R1) R2)). However, we cannot
+        // mark the latter as reduced.
+        bool basisUnfolded = d_regexp_ucached.find(m1Neg ? m1 : m2)!=d_regexp_ucached.end();
+        if (!basisUnfolded)
         {
-          // str.in.re(x, R1) includes str.in.re(x, R2) --->
-          //   mark str.in.re(x, R1) as reduced
+          // Both regular expression memberships have positive polarity
+          if (d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
+          {
+            if (m1Neg)
+            {
+              // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
+              //   mark ~str.in.re(x, R2) as reduced
+              d_im.markReduced(m2Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG);
+              remove.insert(m2);
+            }
+            else
+            {
+              // str.in.re(x, R1) includes str.in.re(x, R2) --->
+              //   mark str.in.re(x, R1) as reduced
+              d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
+              remove.insert(m1);
 
-          // Notice that we do not do this for two negative memberships,
-          // since negative memberships may reduce to another membership
-          // that is included in the original, thus making the justification for
-          // the reduction cyclic.  For example, to reduce:
-          //  (not (str.in_re x (re.++ (re.* R1) R2)))
-          // We may rely on justifying this by the fact that (writing x[i:j] for
-          // substring) either:
-          //  (not (str.in_re x[:0] (re.* R1)))
-          //  (not (str.in_re x[0:] R2))
-          // The first is trivially satisfied, the second is equivalent to
-          //  (not (str.in_re x R2))
-          // where R2 is included in (re.++ (re.* R1) R2)). However, we cannot
-          // mark the latter as reduced.
-          d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
-          remove.insert(m1);
-
-          // We don't need to process m1 anymore
-          break;
+              // We don't need to process m1 anymore
+              break;
+            }
+          }
         }
       }
       else
