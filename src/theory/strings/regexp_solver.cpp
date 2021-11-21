@@ -392,7 +392,8 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
         //  (not (str.in_re x R2))
         // where R2 is included in (re.++ (re.* R1) R2)). However, we cannot
         // mark the latter as reduced.
-        bool basisUnfolded = d_regexp_ucached.find(m1Neg ? m1 : m2)!=d_regexp_ucached.end();
+        bool basisUnfolded =
+            d_regexp_ucached.find(m1Neg ? m1 : m2) != d_regexp_ucached.end();
         if (!basisUnfolded)
         {
           // Both regular expression memberships have positive polarity
