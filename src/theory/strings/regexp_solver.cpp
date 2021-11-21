@@ -95,7 +95,7 @@ void RegExpSolver::checkMemberships(int effort)
   if (effort == 0)
   {
     // First check for conflict. We do this only if effort is 0, otherwise
-    // we have already run.
+    // we have already run these checks in this SAT context.
     if (checkInclInter(assertedMems))
     {
       return;

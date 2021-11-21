@@ -1790,8 +1790,6 @@ TrustNode TheoryEngine::getExplanation(
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
-  bool hasFailure = false;
-  std::stringstream serror;
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -1818,8 +1816,7 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
             if (val == d_false)
             {
               // Always an error if it is false
-              hasFailure = true;
-              serror << ss.str();
+              InternalError() << ss.str();
             }
             else
             {
@@ -1833,10 +1830,6 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         }
       }
     }
-  }
-  if (hasFailure)
-  {
-    InternalError() << serror.str();
   }
 }
 
