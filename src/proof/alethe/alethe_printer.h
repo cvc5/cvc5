@@ -24,6 +24,13 @@ namespace cvc5 {
 
 namespace proof {
 
+/**
+ * The Alethe printer, which prints proof nodes in a Alethe proof, according to
+ * the proof rules defined in alethe_proof_rule.h.
+ *
+ * It expects to print proof nodes that have processed by the Alethe proof post
+ * processor.
+ */
 class AletheProofPrinter
 {
  public:
@@ -36,24 +43,31 @@ class AletheProofPrinter
    * @param out The stream to write to
    * @param pfn The proof node to be printed
    */
-  void alethePrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+  void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
  private:
-  /** Used for printing the node after the initial anchor has been printed */
-  std::string alethePrinterInternal(std::ostream& out,
+  /** Used for printing the node after the initial Alethe anchor has been
+   * printed
+   *
+   * The initial anchor introduces the initial assumptions of the problem, which
+   * correspond to the problem assertions.
+   */
+  std::string printIntenal(std::ostream& out,
                                     std::shared_ptr<ProofNode> pfn);
   /** The current level of nesting, which increases if a subproof is entered */
-  int nested_level;
+  size_t d_nested_level;
   /** Current step id */
-  int step_id;
+  size_t d_step_id;
   /** The current prefix which is updated whenever a subproof is encountered
-   * E.g. prefix = "t19.t2." */
-  std::string prefix;
+   *
+   * E.g. the prefix "t19.t2." is used when we are under a subproof started at
+   * step "t19" and another at "t2" without leaving the first subproof. */
+  std::string d_prefix;
   /** A list of assumption lists, one for every level of the nested proof node
    */
-  std::vector<std::unordered_map<Node, int>> assumptions;
+  std::vector<std::unordered_map<Node, size_t>> d_assumptions;
   /** A list of step lists, one for every level of the nested proof node */
-  std::vector<std::unordered_map<Node, int>> steps;
+  std::vector<std::unordered_map<Node, size_t>> d_steps;
 };
 
 }  // namespace proof
