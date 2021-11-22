@@ -1362,7 +1362,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       Node retNode = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, retNode, Rewrite::RE_IN_SIGMA_STAR);
     }
-    else if (r[0].getKind()==REGEXP_CONCAT)
+    else if (r[0].getKind() == REGEXP_CONCAT)
     {
       bool isAllchar = true;
       for (const Node& rc : r[0])
