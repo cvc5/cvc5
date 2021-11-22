@@ -21,7 +21,7 @@
 #include <string>
 
 #include "base/check.h"
-#include "options/set_language.h"
+#include "options/io_utils.h"
 
 using namespace std;
 
@@ -289,7 +289,7 @@ ostream& operator<<(ostream& out, enum Result::UnknownExplanation e)
 }
 
 ostream& operator<<(ostream& out, const Result& r) {
-  r.toStream(out, language::SetLanguage::getLanguage(out));
+  r.toStream(out, options::ioutils::getOutputLang(out));
   return out;
 } /* operator<<(ostream&, const Result&) */
 
