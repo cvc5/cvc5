@@ -230,8 +230,7 @@ class NodeValue
 
   void toStream(std::ostream& out,
                 int toDepth = -1,
-                size_t dag = 1,
-                Language = Language::LANG_AUTO) const;
+                size_t dag = 1) const;
 
   void printAst(std::ostream& out, int indent = 0) const;
 
@@ -509,8 +508,7 @@ inline T NodeValue::iterator<T>::operator*() const {
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
   nv.toStream(out,
               options::ioutils::getNodeDepth(out),
-              options::ioutils::getDagThresh(out),
-              options::ioutils::getOutputLang(out));
+              options::ioutils::getDagThresh(out));
   return out;
 }
 

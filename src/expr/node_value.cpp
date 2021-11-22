@@ -25,6 +25,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/options.h"
 #include "printer/printer.h"
@@ -36,23 +37,20 @@ namespace expr {
 
 string NodeValue::toString() const {
   stringstream ss;
-
-  Language outlang =
-      (this == &null()) ? Language::LANG_AUTO : options::outputLanguage();
-  toStream(ss, -1, false, outlang);
+  toStream(ss, -1, false);
   return ss.str();
 }
 
 void NodeValue::toStream(std::ostream& out,
                          int toDepth,
-                         size_t dag,
-                         Language language) const
+                         size_t dag) const
 {
   // Ensure that this node value is live for the length of this call.
   // It really breaks things badly if we don't have a nonzero ref
   // count, even just for printing.
   RefCountGuard guard(this);
 
+  auto language = options::ioutils::getOutputLang(out);
   Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, dag);
 }
 
