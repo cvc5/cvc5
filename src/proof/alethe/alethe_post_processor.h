@@ -58,6 +58,12 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                 const std::vector<Node>& args,
                 CDProof* cdp) override;
 
+  bool finalStep(Node res,
+                 PfRule id,
+                 const std::vector<Node>& children,
+                 const std::vector<Node>& args,
+                 CDProof* cdp);
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -123,42 +129,6 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
  * Thus, an additional resolution step with (cl (not true)) has to be added to
  * transfer (cl false) into (cl).
  */
-class AletheProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
-{
- public:
-  AletheProofPostprocessFinalCallback(ProofNodeManager* pnm,
-                                      AletheNodeConverter& anc);
-  ~AletheProofPostprocessFinalCallback() {}
-  /** Should proof pn be updated? It should, if the last step is printed as (cl
-   * false) or if it is an assumption (in that case it is printed as false).
-   * Since the proof node should not be traversed, this method will always set
-   * continueUpdate to false.
-   */
-  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa,
-                    bool& continueUpdate) override;
-  /**
-   * This method gets a proof node pn. If the last step of the proof is false
-   * which is printed as (cl false) it updates the proof for false such that
-   * (cl) is printed instead.
-   */
-  bool update(Node res,
-              PfRule id,
-              const std::vector<Node>& children,
-              const std::vector<Node>& args,
-              CDProof* cdp,
-              bool& continueUpdate) override;
-
- private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
-  /** The Alethe node converter */
-  AletheNodeConverter& d_anc;
-  /** The cl operator is defined as described in the
-   * AletheProofPostprocessCallback class above
-   **/
-  Node d_cl;
-};
 
 class AletheProofPostprocessNoSubtypeCallback : public ProofNodeUpdaterCallback
 {
@@ -245,8 +215,6 @@ class AletheProofPostprocess
   ProofNodeManager* d_pnm;
   /** The post process callback */
   AletheProofPostprocessCallback d_cb;
-  /** The final post process callback */
-  AletheProofPostprocessFinalCallback d_fcb;
   /** The no subtype callback */
   AletheProofPostprocessNoSubtypeCallback d_nst;
 };

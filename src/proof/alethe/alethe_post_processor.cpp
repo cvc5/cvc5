@@ -1310,27 +1310,27 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  Then, apply the cvc5 rule EQ_RESOLVE to obtain F*sigma from this.
     //
     // Otherwise, if the child has the form (not (exist
-    /*case PfRule::SKOLEMIZE:
+    // case PfRule::SKOLEMIZE:
+    // {
+    // TODO: Add ANCHOR, map skolemized variable to substitutions skv_1
+    // SkolemManager::getWitnessForm
+    // Get choice term that corresponds to skv_1
+    // F*sigma needs to be changed s.t. all occurences of skv_1 are replaced
+    // with the choice term LOOK AT LEAN for replacement
+    // NodeConverter will eventually be changed to do this
+    // LeanNodeConverter
+    // choice terms itself might contain skv variables
+    // getSkolemTermVectors then I can get skolems
+    //
+    /*if (res.getKind() != kind::NOT)
     {
-      // TODO: Add ANCHOR, map skolemized variable to substitutions skv_1
-      // SkolemManager::getWitnessForm
-      // Get choice term that corresponds to skv_1
-      // F*sigma needs to be changed s.t. all occurences of skv_1 are replaced
-      // with the choice term LOOK AT LEAN for replacement
-      // NodeConverter will eventually be changed to do this
-      // LeanNodeConverter
-      // choice terms itself might contain skv variables
-      // getSkolemTermVectors then I can get skolems
-      //
-      if (res.getKind() != kind::NOT)
-      {
-        Node choice;
-        Node vp1 = nm->mkNode(
-            kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
-        return addAletheStep(AletheRule::SKO_EX, vp1, vp1, {}, {}, *cdp)
-               && cdp->addStep(
-                   res, PfRule::EQ_RESOLVE, {vp1, children[0]}, args);
-      }*/
+      Node choice;
+      Node vp1 = nm->mkNode(
+          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
+      return addAletheStep(AletheRule::SKO_EX, vp1, vp1, {}, {}, *cdp)
+             && cdp->addStep(
+                 res, PfRule::EQ_RESOLVE, {vp1, children[0]}, args);
+    }*/
     /*if (res.getKind() == kind::NOT)
     {
       std::cout << "children " << children << std::endl;
@@ -2002,107 +2002,26 @@ bool AletheProofPostprocessCallback::finalize(Node res,
   return false;
 }
 
-bool AletheProofPostprocessCallback::addAletheStep(
-    AletheRule rule,
-    Node res,
-    Node conclusion,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof& cdp)
-{
-  // delete attributes
-  Node sanitized_conclusion = conclusion;
-  if (expr::hasClosure(conclusion))
-  {
-    sanitized_conclusion = d_anc.convert(conclusion);
-  }
-
-  std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(NodeManager::currentNM()->mkConst(
-      CONST_RATIONAL, Rational(static_cast<unsigned>(rule))));
-  new_args.push_back(res);
-  new_args.push_back(sanitized_conclusion);
-  new_args.insert(new_args.end(), args.begin(), args.end());
-  Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
-                        << " " << rule << " " << children << " / " << new_args
-                        << std::endl;
-  return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
-}
-
-bool AletheProofPostprocessCallback::addAletheStepFromOr(
-    AletheRule rule,
-    Node res,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof& cdp)
-{
-  std::vector<Node> subterms = {d_cl};
-  subterms.insert(subterms.end(), res.begin(), res.end());
-  Node conclusion = NodeManager::currentNM()->mkNode(kind::SEXPR, subterms);
-  return addAletheStep(rule, res, conclusion, children, args, cdp);
-}
-
-AletheProofPostprocessFinalCallback::AletheProofPostprocessFinalCallback(
-    ProofNodeManager* pnm, AletheNodeConverter& anc)
-    : d_pnm(pnm), d_anc(anc)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  d_cl = nm->mkBoundVar("cl", nm->sExprType());
-}
-
-bool AletheProofPostprocessFinalCallback::shouldUpdate(
-    std::shared_ptr<ProofNode> pn,
-    const std::vector<Node>& fa,
-    bool& continueUpdate)
-{
-  // The proof node should not be traversed further
-  continueUpdate = false;
-
-  // If the last proof rule was not translated yet
-  if (pn->getRule() != PfRule::ALETHE_RULE)
-  {
-    return true;
-  }
-  // This case can only occur if the last step is an assumption
-  if ((pn->getArguments()[2].end() - pn->getArguments()[2].begin()) <= 1)
-  {
-    return true;
-  }
-  // If the proof node has result (false) additional steps have to be added.
-  if (pn->getArguments()[2][1].toString()
-      == NodeManager::currentNM()->mkConst(false).toString())
-  {
-    return true;
-  }
-  return false;
-}
-
-// The last step of the proof was:
-//
-// Children:  (P1:C1) ... (Pn:Cn)
-// Arguments: (AletheRule::VRULE,false,(cl false))
-// ---------------------
-// Conclusion: (false)
-//
-// In Alethe:
-//
-//  P1 ... Pn
-// ------------------- VRULE   ---------------------- FALSE
-//  (VP1:(cl false))*           (VP2:(cl (not true)))
-// -------------------------------------------------- RESOLUTION
-//                       (cl)**
-//
-// *  the corresponding proof node is ((false))
-// ** the corresponding proof node is (false)
-bool AletheProofPostprocessFinalCallback::update(
+bool AletheProofPostprocessCallback::finalStep(
     Node res,
     PfRule id,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
-    CDProof* cdp,
-    bool& continueUpdate)
+    CDProof* cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
+
+  if (
+      // If the last proof rule was not translated yet
+      (id == PfRule::ALETHE_RULE) &&
+      // This case can only occur if the last step is an assumption
+      ((args[2].end() - args[2].begin()) > 1) &&
+      // If the proof node has result (false) additional steps have to be added.
+      (args[2][1].toString() != nm->mkConst(false).toString()))
+  {
+    return false;
+  }
+
   // remove attribute for outermost scope
   if (id != PfRule::ALETHE_RULE)
   {
@@ -2177,6 +2096,82 @@ bool AletheProofPostprocessFinalCallback::update(
                           CDPOverwrite::ALWAYS);
   return success;
 }
+
+bool AletheProofPostprocessCallback::addAletheStep(
+    AletheRule rule,
+    Node res,
+    Node conclusion,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{
+  // delete attributes
+  Node sanitized_conclusion = conclusion;
+  if (expr::hasClosure(conclusion))
+  {
+    sanitized_conclusion = d_anc.convert(conclusion);
+  }
+
+  std::vector<Node> new_args = std::vector<Node>();
+  new_args.push_back(NodeManager::currentNM()->mkConst(
+      CONST_RATIONAL, Rational(static_cast<unsigned>(rule))));
+  new_args.push_back(res);
+  new_args.push_back(sanitized_conclusion);
+  new_args.insert(new_args.end(), args.begin(), args.end());
+  Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
+                        << " " << rule << " " << children << " / " << new_args
+                        << std::endl;
+  return cdp.addStep(res, PfRule::ALETHE_RULE, children, new_args);
+}
+
+bool AletheProofPostprocessCallback::addAletheStepFromOr(
+    AletheRule rule,
+    Node res,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{
+  std::vector<Node> subterms = {d_cl};
+  subterms.insert(subterms.end(), res.begin(), res.end());
+  Node conclusion = NodeManager::currentNM()->mkNode(kind::SEXPR, subterms);
+  return addAletheStep(rule, res, conclusion, children, args, cdp);
+}
+
+/*AletheProofPostprocessFinalCallback::AletheProofPostprocessFinalCallback(
+    ProofNodeManager* pnm, AletheNodeConverter& anc)
+    : d_pnm(pnm), d_anc(anc)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  d_cl = nm->mkBoundVar("cl", nm->sExprType());
+}*/
+
+// The last step of the proof was:
+//
+// Children:  (P1:C1) ... (Pn:Cn)
+// Arguments: (AletheRule::VRULE,false,(cl false))
+// ---------------------
+// Conclusion: (false)
+//
+// In Alethe:
+//
+//  P1 ... Pn
+// ------------------- VRULE   ---------------------- FALSE
+//  (VP1:(cl false))*           (VP2:(cl (not true)))
+// -------------------------------------------------- RESOLUTION
+//                       (cl)**
+//
+// *  the corresponding proof node is ((false))
+// ** the corresponding proof node is (false)
+/*bool AletheProofPostprocessFinalCallback::update(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate)
+{
+
+}*/
 
 AletheProofPostprocessNoSubtypeCallback::
     AletheProofPostprocessNoSubtypeCallback(ProofNodeManager* pnm)
@@ -2576,7 +2571,7 @@ bool AletheProofPostprocessNoSubtypeCallback::finalize(
 
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
                                                AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc), d_nst(d_pnm)
+    : d_pnm(pnm), d_cb(d_pnm, anc), d_nst(d_pnm)
 {
 }
 
@@ -2593,8 +2588,27 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   // required.
   // The function has the additional purpose of sanitizing the attributes of the
   // first SCOPE
-  ProofNodeUpdater finalize(d_pnm, d_fcb, false, false);
-  finalize.process(pf);
+  CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", true);
+  const std::vector<std::shared_ptr<ProofNode>>& cc = pf->getChildren();
+  std::vector<Node> ccn;
+  for (const std::shared_ptr<ProofNode>& cp : cc)
+  {
+    Node cpres = cp->getResult();
+    ccn.push_back(cpres);
+    // store in the proof
+    cpf.addProof(cp);
+  }
+  if (d_cb.finalStep(
+          pf->getResult(), pf->getRule(), ccn, pf->getArguments(), &cpf))
+  {
+    std::shared_ptr<ProofNode> npn = cpf.getProofFor(pf->getResult());
+
+    // then, update the original proof node based on this one
+    Trace("pf-process-debug") << "Update node..." << std::endl;
+    // TODO: MAKE THIS WORK
+    // d_pnm->updateNode(pf.get(), npn.get());
+    Trace("pf-process-debug") << "...update node finished." << std::endl;
+  }
 
   Trace("alethe-proof-subtyping") << "\n--------------------------------\n";
   ProofNodeUpdater finalFinal(d_pnm, d_nst, false, false, true);
