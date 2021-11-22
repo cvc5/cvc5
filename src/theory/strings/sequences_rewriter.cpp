@@ -1375,6 +1375,9 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       }
       if (isAllchar)
       {
+        // For example:
+        // (str.in_re x (re.* re.allchar re.allchar)) --->
+        // (= (mod (str.len x) 2) 0)
         Node zero = nm->mkConstInt(Rational(0));
         Node factor = nm->mkConstInt(Rational(r[0].getNumChildren()));
         Node t = nm->mkNode(INTS_MODULUS, nm->mkNode(STRING_LENGTH, x), factor);
