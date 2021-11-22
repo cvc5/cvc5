@@ -26,15 +26,15 @@ namespace proof {
 
 AletheProofPrinter::AletheProofPrinter()
 {
-  nested_level = 0;
-  step_id = 1;
-  prefix = "";
-  assumptions.push_back({});
-  steps.push_back({});
+  d_nested_level = 0;
+  d_step_id = 1;
+  d_prefix = "";
+  d_assumptions.push_back({});
+  d_steps.push_back({});
 }
 
-void AletheProofPrinter::alethePrinter(std::ostream& out,
-                                       std::shared_ptr<ProofNode> pfn)
+void AletheProofPrinter::print(std::ostream& out,
+                               std::shared_ptr<ProofNode> pfn)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
   const std::vector<Node>& args = pfn->getArguments();
@@ -45,19 +45,19 @@ void AletheProofPrinter::alethePrinter(std::ostream& out,
     Trace("alethe-printer")
         << "... print assumption " << args[i] << std::endl;
     out << "(assume a" << i - 3 << " " << args[i] << ")\n";
-    assumptions[0][args[i]] = i - 3;
+    d_assumptions[0][args[i]] = i - 3;
   }
 
   // Then, print the rest of the proof node
-  alethePrinterInternal(out, pfn->getChildren()[0]);
+  printInternal(out, pfn->getChildren()[0]);
 }
 
-std::string AletheProofPrinter::alethePrinterInternal(
-    std::ostream& out, std::shared_ptr<ProofNode> pfn)
+std::string AletheProofPrinter::printInternal(std::ostream& out,
+                                              std::shared_ptr<ProofNode> pfn)
 {
   // Store current id in case a subproof overwrites step_id
-  int current_step_id = step_id;
-  return prefix + current_t;
+  size_t current_step_id = d_step_id;
+  return d_prefix;
 }
 
 }  // namespace proof
