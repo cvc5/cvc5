@@ -17,6 +17,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <threads.h>
 
 namespace cvc5::options::ioutils {
 namespace {
@@ -45,13 +46,13 @@ T getData(std::ios_base& ios, int iosIndex, T defaultValue)
 
 }  // namespace
 
-const int s_iosDagThresh = std::ios_base::xalloc();
-const int s_iosNodeDepth = std::ios_base::xalloc();
-const int s_iosOutputLang = std::ios_base::xalloc();
+const static int s_iosDagThresh = std::ios_base::xalloc();
+const static int s_iosNodeDepth = std::ios_base::xalloc();
+const static int s_iosOutputLang = std::ios_base::xalloc();
 
-int64_t s_dagThreshDefault = 1;
-int64_t s_nodeDepthDefault = -1;
-Language s_outputLangDefault = Language::LANG_AUTO;
+static thread_local int64_t s_dagThreshDefault = 1;
+static thread_local int64_t s_nodeDepthDefault = -1;
+static thread_local Language s_outputLangDefault = Language::LANG_AUTO;
 
 void setDefaultDagThresh(int64_t value) { s_dagThreshDefault = value; }
 void setDefaultNodeDepth(int64_t value) { s_nodeDepthDefault = value; }
