@@ -26,36 +26,34 @@ namespace proof {
 
 AletheProofPrinter::AletheProofPrinter()
 {
-  nested_level = 0;
-  step_id = 1;
-  prefix = "";
-  assumptions.push_back({});
-  steps.push_back({});
+  d_nested_level = 0;
+  d_step_id = 1;
+  d_prefix = "";
+  d_assumptions.push_back({});
+  d_steps.push_back({});
 }
 
-void AletheProofPrinter::alethePrinter(std::ostream& out,
-                                       std::shared_ptr<ProofNode> pfn)
+void AletheProofPrinter::print(std::ostream& out,
+                               std::shared_ptr<ProofNode> pfn)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
-
+  const std::vector<Node>& args = pfn->getArguments();
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
-  for (unsigned long int i = 3, size = pfn->getArguments().size(); i < size;
-       i++)
+  for (size_t i = 3, size = args.size(); i < size; i++)
   {
     Trace("alethe-printer")
-        << "... print assumption " << pfn->getArguments()[i] << std::endl;
-    out << "(assume a" << std::to_string(i - 3) << " " << pfn->getArguments()[i]
-        << ")\n";
-    assumptions[0][pfn->getArguments()[i]] = i - 3;
+        << "... print assumption " << args[i] << std::endl;
+    out << "(assume a" << i - 3 << " " << args[i] << ")\n";
+    d_assumptions[0][args[i]] = i - 3;
   }
 
   // Then, print the rest of the proof node
-  alethePrinterInternal(out, pfn->getChildren()[0]);
+  printInternal(out, pfn->getChildren()[0]);
 }
 
-std::string AletheProofPrinter::alethePrinterInternal(
-    std::ostream& out, std::shared_ptr<ProofNode> pfn)
+std::string AletheProofPrinter::printInternal(std::ostream& out,
+                                              std::shared_ptr<ProofNode> pfn)
 {
   // Store current id in case a subproof overwrites step_id
   int current_step_id = step_id;
