@@ -17,7 +17,6 @@
 
 #include <iomanip>
 #include <iostream>
-#include <threads.h>
 
 namespace cvc5::options::ioutils {
 namespace {
