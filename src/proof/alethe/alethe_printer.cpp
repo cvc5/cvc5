@@ -66,7 +66,7 @@ std::string AletheProofPrinter::printInternal(
   {
     Trace("alethe-printer")
         << "... printing failed! Encountered untranslated Node. "
-        << pfn->getResult() << " " << toString(pfn->getRule()) << " "
+        << pfn->getResult() << " " << pfn->getRule() << " "
         << " / " << args << std::endl;
     return "";
   }
@@ -109,8 +109,8 @@ std::string AletheProofPrinter::printInternal(
       out << " :args (";
       for (unsigned long int j = 3, size = args.size(); j < size; j++)
       {
-        out << "(:= (" << args[j][0].toString() << " "
-            << args[j][0].getType().toString() << ") " << args[j][1].toString()
+        out << "(:= (" << args[j][0] << " "
+            << args[j][0].getType() << ") " << args[j][1]
             << ")";
         if (j != args.size() - 1)
         {
@@ -130,7 +130,7 @@ std::string AletheProofPrinter::printInternal(
       {
         Trace("alethe-printer")
             << "... print assumption " << args[i] << std::endl;
-        out << "(assume " << d_prefix << "a" << std::to_string(i - 3) << " "
+        out << "(assume " << d_prefix << "a" << i - 3 << " "
             << args[i] << ")\n";
         d_assumptions[d_nested_level][args[i]] = i - 3;
       }
@@ -144,7 +144,7 @@ std::string AletheProofPrinter::printInternal(
 
   // Assumptions are printed at the anchor and therefore have to be in the list
   // of assumptions when an assume is reached.
-  if (arule == AletheRule::ASSUME)
+  else if (arule == AletheRule::ASSUME)
   {
     Trace("alethe-printer")
         << "... reached assumption " << pfn->getResult() << " " << arule << " "
@@ -154,7 +154,7 @@ std::string AletheProofPrinter::printInternal(
     // step whose premise it is, it is possible that it is from a different
     // level. Thus, the whole list needs to be traversed. Since this case is
     // rare adapting the prefix should be rarely necessary.
-    for (size_t i = d_nested_level; i >= 0; i--)
+    for (size_t i = d_nested_level + 1; i > 0; i--)
     {
       // This could just be pfn->getResult() since Assumptions are not changed
       // when printed. However, in case this ever changes this uses the 2nd
@@ -244,7 +244,7 @@ std::string AletheProofPrinter::printInternal(
   current_t = "t" + std::to_string(d_step_id);
   d_steps[d_nested_level][args[2]] = d_step_id;
   out << "(step " << d_prefix << current_t << " ";
-  out << args[2].toString() << " :rule " << arule;
+  out << args[2] << " :rule " << arule;
   if (args.size() > 3)
   {
     out << " :args (";
@@ -252,12 +252,11 @@ std::string AletheProofPrinter::printInternal(
     {
       if (arule == AletheRule::FORALL_INST)
       {
-        out << "(:= " << args[i][0].toString() << " " << args[i][1].toString()
-            << ")";
+        out << "(:= " << args[i][0] << " " << args[i][1] << ")";
       }
       else
       {
-        out << args[i].toString();
+        out << args[i];
       }
       if (i != args.size() - 1)
       {
