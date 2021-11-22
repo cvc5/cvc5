@@ -43,7 +43,7 @@ class AletheProofPrinter
    * @param out The stream to write to
    * @param pfn The proof node to be printed
    */
-  void alethePrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn);
+  void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
  private:
   /** Used for printing the node after the initial Alethe anchor has been
