@@ -24,6 +24,13 @@ namespace cvc5 {
 
 namespace proof {
 
+/**
+ * The Alethe printer, which prints proof nodes in a Alethe proof, according to
+ * the proof rules defined in alethe_proof_rule.h.
+ *
+ * It expects to print proof nodes that have processed by the Alethe proof post
+ * processor.
+ */
 class AletheProofPrinter
 {
  public:
@@ -39,7 +46,12 @@ class AletheProofPrinter
   void alethePrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
  private:
-  /** Used for printing the node after the initial anchor has been printed */
+  /** Used for printing the node after the initial Alethe anchor has been
+   * printed
+   *
+   * The initial anchor introduces the initial assumptions of the problem, which
+   * correspond to the problem assertions.
+   */
   std::string alethePrinterInternal(std::ostream& out,
                                     std::shared_ptr<ProofNode> pfn);
   /** The current level of nesting, which increases if a subproof is entered */
@@ -47,7 +59,9 @@ class AletheProofPrinter
   /** Current step id */
   int step_id;
   /** The current prefix which is updated whenever a subproof is encountered
-   * E.g. prefix = "t19.t2." */
+   *
+   * E.g. the prefix "t19.t2." is used when we are under a subproof started at
+   * step "t19" and another at "t2" without leaving the first subproof. */
   std::string prefix;
   /** A list of assumption lists, one for every level of the nested proof node
    */
