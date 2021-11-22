@@ -70,8 +70,7 @@ std::string AletheProofPrinter::printInternal(
   }
 
   // Get the alethe proof rule
-  AletheRule vrule =
-      static_cast<AletheRule>(std::stoul(pfn->getArguments()[0].toString()));
+  AletheRule vrule = getAletheRule(args[0]);
 
   // In case the rule is an anchor it is printed before its children.
   if (vrule == AletheRule::ANCHOR_SUBPROOF || vrule == AletheRule::ANCHOR_BIND)
