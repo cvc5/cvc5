@@ -243,7 +243,7 @@ void BagSolver::checkMap(Node n)
           std::make_shared<context::CDHashSet<Node> >(userContext());
       d_mapCache.insert(n, set);
     }
-    d_mapCache[n].get()->insert(y);
+    d_mapCache[n].get()->insert(y[0]);
   }
 }
 
