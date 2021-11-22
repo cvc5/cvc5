@@ -37,17 +37,15 @@ void AletheProofPrinter::alethePrinter(std::ostream& out,
                                        std::shared_ptr<ProofNode> pfn)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
-
+  const std::vector<Node>& args = pfn->getArguments();
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
-  for (unsigned long int i = 3, size = pfn->getArguments().size(); i < size;
-       i++)
+  for (size_t i = 3, size = args.size(); i < size; i++)
   {
     Trace("alethe-printer")
-        << "... print assumption " << pfn->getArguments()[i] << std::endl;
-    out << "(assume a" << std::to_string(i - 3) << " " << pfn->getArguments()[i]
-        << ")\n";
-    assumptions[0][pfn->getArguments()[i]] = i - 3;
+        << "... print assumption " << args[i] << std::endl;
+    out << "(assume a" << i - 3 << " " << args[i] << ")\n";
+    assumptions[0][args[i]] = i - 3;
   }
 
   // Then, print the rest of the proof node
