@@ -32,11 +32,10 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "options/io_utils.h"
 #include "options/language.h"
-#include "options/set_language.h"
 #include "util/hash.h"
 #include "util/utility.h"
 
@@ -833,32 +832,6 @@ public:
   }
 
   /**
-   * IOStream manipulator to set the maximum depth of Nodes when
-   * pretty-printing.  -1 means print to any depth.  E.g.:
-   *
-   *   // let a, b, c, and d be VARIABLEs
-   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
-   *   out << setdepth(3) << n;
-   *
-   * gives "(OR a b (AND c (NOT d)))", but
-   *
-   *   out << setdepth(1) << [same node as above]
-   *
-   * gives "(OR a b (...))"
-   */
-  typedef expr::ExprSetDepth setdepth;
-
-  /**
-   * IOStream manipulator to print expressions as DAGs (or not).
-   */
-  typedef expr::ExprDag dag;
-
-  /**
-   * IOStream manipulator to set the output language for Exprs.
-   */
-  typedef language::SetLanguage setlanguage;
-
-  /**
    * Very basic pretty printer for Node.
    * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
@@ -893,9 +866,9 @@ public:
  */
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
   n.toStream(out,
-             Node::setdepth::getDepth(out),
-             Node::dag::getDag(out),
-             Node::setlanguage::getLanguage(out));
+             options::ioutils::getNodeDepth(out),
+             options::ioutils::getDagThresh(out),
+             options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -1437,53 +1410,6 @@ Node NodeTemplate<ref_count>::substitute(
     return n;
   }
 }
-
-#ifdef CVC5_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- *
- * Note that this function cannot be a template, since the compiler
- * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
- * So we implement twice.  We mark as __attribute__((used)) so that
- * GCC emits code for it even though static analysis indicates it's
- * never called.
- *
- * Tim's Note: I moved this into the node.h file because this allows gdb
- * to find the symbol, and use it, which is the first standard this code needs
- * to meet. A cleaner solution is welcomed.
- */
-static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintNodeNoDag(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-
-static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintTNodeNoDag(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC5_DEBUG */
 
 }  // namespace cvc5
 
