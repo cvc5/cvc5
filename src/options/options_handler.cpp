@@ -335,7 +335,7 @@ void OptionsHandler::setBitblastAig(const std::string& flag, bool arg)
   }
 }
 
-void OptionsHandler::setDefaultExprDepth(const std::string& flag, int depth)
+void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
 {
   ioutils::setDefaultNodeDepth(depth);
   ioutils::applyNodeDepth(Debug.getStream(), depth);
@@ -343,7 +343,7 @@ void OptionsHandler::setDefaultExprDepth(const std::string& flag, int depth)
   ioutils::applyNodeDepth(Warning.getStream(), depth);
 }
 
-void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
+void OptionsHandler::setDefaultDagThresh(const std::string& flag, int64_t dag)
 {
   ioutils::setDefaultDagThresh(dag);
   ioutils::applyDagThresh(Debug.getStream(), dag);

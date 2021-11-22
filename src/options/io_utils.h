@@ -38,28 +38,28 @@
  */
 namespace cvc5::options::ioutils {
 /** Set the default dag threshold */
-void setDefaultDagThresh(int value);
+void setDefaultDagThresh(int64_t value);
 /** Set the default node depth */
-void setDefaultNodeDepth(int value);
+void setDefaultNodeDepth(int64_t value);
 /** Set the default output language */
 void setDefaultOutputLang(Language value);
 
 /** Apply the given dag threshold to the ios object */
-void applyDagThresh(std::ios_base& ios, int dagThresh);
+void applyDagThresh(std::ios_base& ios, int64_t dagThresh);
 /** Apply the given node depth to the ios object */
-void applyNodeDepth(std::ios_base& ios, int nodeDepth);
+void applyNodeDepth(std::ios_base& ios, int64_t nodeDepth);
 /** Apply the given output language to the ios object */
 void applyOutputLang(std::ios_base& ios, Language outputLang);
 /** Apply the given values to the ios object */
 void apply(std::ios_base& ios,
-           int dagThresh,
-           int nodeDepth,
+           int64_t dagThresh,
+           int64_t nodeDepth,
            Language outputLang);
 
 /** Get the dag threshold from the ios object */
-int getDagThresh(std::ios_base& ios);
+int64_t getDagThresh(std::ios_base& ios);
 /** Get the node depth from the ios object */
-int getNodeDepth(std::ios_base& ios);
+int64_t getNodeDepth(std::ios_base& ios);
 /** Get the output language from the ios object */
 Language getOutputLang(std::ios_base& ios);
 
@@ -81,9 +81,9 @@ class Scope
   /** The ios object */
   std::ios_base& d_ios;
   /** The stored dag threshold */
-  int d_dagThresh;
+  int64_t d_dagThresh;
   /** The stored node depth */
-  int d_nodeDepth;
+  int64_t d_nodeDepth;
   /** The stored output language */
   Language d_outputLang;
 };

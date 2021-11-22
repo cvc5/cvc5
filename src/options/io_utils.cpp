@@ -49,19 +49,19 @@ const int s_iosDagThresh = std::ios_base::xalloc();
 const int s_iosNodeDepth = std::ios_base::xalloc();
 const int s_iosOutputLang = std::ios_base::xalloc();
 
-int s_dagThreshDefault = 1;
-int s_nodeDepthDefault = -1;
+int64_t s_dagThreshDefault = 1;
+int64_t s_nodeDepthDefault = -1;
 Language s_outputLangDefault = Language::LANG_AUTO;
 
-void setDefaultDagThresh(int value) { s_dagThreshDefault = value; }
-void setDefaultNodeDepth(int value) { s_nodeDepthDefault = value; }
+void setDefaultDagThresh(int64_t value) { s_dagThreshDefault = value; }
+void setDefaultNodeDepth(int64_t value) { s_nodeDepthDefault = value; }
 void setDefaultOutputLang(Language value) { s_outputLangDefault = value; }
 
-void applyDagThresh(std::ios_base& ios, int dagThresh)
+void applyDagThresh(std::ios_base& ios, int64_t dagThresh)
 {
   setData(ios, s_iosDagThresh, dagThresh);
 }
-void applyNodeDepth(std::ios_base& ios, int nodeDepth)
+void applyNodeDepth(std::ios_base& ios, int64_t nodeDepth)
 {
   setData(ios, s_iosNodeDepth, nodeDepth);
 }
@@ -71,8 +71,8 @@ void applyOutputLang(std::ios_base& ios, Language outputLang)
 }
 
 void apply(std::ios_base& ios,
-           int dagThresh,
-           int nodeDepth,
+           int64_t dagThresh,
+           int64_t nodeDepth,
            Language outputLang)
 {
   applyDagThresh(ios, dagThresh);
@@ -80,11 +80,11 @@ void apply(std::ios_base& ios,
   applyOutputLang(ios, outputLang);
 }
 
-int getDagThresh(std::ios_base& ios)
+int64_t getDagThresh(std::ios_base& ios)
 {
   return getData(ios, s_iosDagThresh, s_dagThreshDefault);
 }
-int getNodeDepth(std::ios_base& ios)
+int64_t getNodeDepth(std::ios_base& ios)
 {
   return getData(ios, s_iosNodeDepth, s_nodeDepthDefault);
 }
