@@ -55,8 +55,6 @@ void AletheProofPrinter::print(std::ostream& out,
 std::string AletheProofPrinter::printInternal(std::ostream& out,
                                               std::shared_ptr<ProofNode> pfn)
 {
-  // Store current id in case a subproof overwrites step_id
-  size_t current_step_id = d_step_id;
   return d_prefix;
 }
 
