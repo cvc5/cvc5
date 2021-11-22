@@ -110,14 +110,16 @@ EvalResult::~EvalResult()
   }
 }
 
-Node EvalResult::toNode() const
+Node EvalResult::toNode(const TypeNode& tn) const
 {
   NodeManager* nm = NodeManager::currentNM();
   switch (d_tag)
   {
     case EvalResult::BOOL: return nm->mkConst(d_bool);
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
-    case EvalResult::RATIONAL: return nm->mkConst(CONST_RATIONAL, d_rat);
+    case EvalResult::RATIONAL:
+      return tn.isNull() ? nm->mkConstReal(d_rat)
+                         : nm->mkConstRealOrInt(tn, d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
     case EvalResult::UCONST: return nm->mkConst(d_uc);
     default:
@@ -170,7 +172,8 @@ Node Evaluator::eval(TNode n,
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
-  Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
+  Node ret =
+      evalInternal(n, args, vals, evalAsNode, results).toNode(n.getType());
   // if we failed to evaluate
   if (ret.isNull() && d_rr != nullptr)
   {
@@ -410,6 +413,7 @@ EvalResult Evaluator::evalInternal(
         }
 
         case kind::CONST_RATIONAL:
+        case kind::CONST_INTEGER:
         {
           const Rational& r = currNodeVal.getConst<Rational>();
           results[currNode] = EvalResult(r);
@@ -941,7 +945,7 @@ Node Evaluator::reconstruct(TNode n,
     else
     {
       // otherwise, use the evaluation
-      echildren.push_back(itr->second.toNode());
+      echildren.push_back(itr->second.toNode(currNodeChild.getType()));
     }
   }
   // The value is the result of our (partially) successful evaluation

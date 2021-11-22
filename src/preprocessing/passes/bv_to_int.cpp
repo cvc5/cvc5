@@ -68,18 +68,18 @@ Node BVToInt::maxInt(uint64_t k)
 {
   Assert(k > 0);
   Rational max_value = intpow2(k) - 1;
-  return d_nm->mkConst(CONST_RATIONAL, max_value);
+  return d_nm->mkConstInt(max_value);
 }
 
 Node BVToInt::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst(CONST_RATIONAL, Rational(intpow2(k)));
+  return d_nm->mkConstInt(Rational(intpow2(k)));
 }
 
 Node BVToInt::modpow2(Node n, uint64_t exponent)
 {
-  Node p2 = d_nm->mkConst(CONST_RATIONAL, Rational(intpow2(exponent)));
+  Node p2 = d_nm->mkConstInt(Rational(intpow2(exponent)));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -546,7 +546,7 @@ Node BVToInt::translateWithChildren(Node original,
           Rational max_of_amount = intpow2(amount) - 1;
           Rational mul = max_of_amount * intpow2(bvsize);
           Rational sum = mul + c;
-          returnNode = d_nm->mkConst(CONST_RATIONAL, sum);
+          returnNode = d_nm->mkConstInt(sum);
         }
       }
       else
@@ -559,7 +559,7 @@ Node BVToInt::translateWithChildren(Node original,
         else
         {
           Rational twoToKMinusOne(intpow2(bvsize - 1));
-          Node minSigned = d_nm->mkConst(CONST_RATIONAL, twoToKMinusOne);
+          Node minSigned = d_nm->mkConstInt(twoToKMinusOne);
           /* condition checks whether the msb is 1.
            * This holds when the integer value is smaller than
            * 100...0, which is 2^{bvsize-1}.
@@ -767,7 +767,7 @@ Node BVToInt::translateNoChildren(Node original)
       // Bit-vector constants are transformed into their integer value.
       BitVector constant(original.getConst<BitVector>());
       Integer c = constant.toInteger();
-      translation = d_nm->mkConst(CONST_RATIONAL, Rational(c));
+      translation = d_nm->mkConstInt(Rational(c));
     }
     else
     {
@@ -936,8 +936,8 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
       d_rangeAssertions(userContext())
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = d_nm->mkConstInt(Rational(0));
+  d_one = d_nm->mkConstInt(Rational(1));
 };
 
 PreprocessingPassResult BVToInt::applyInternal(
@@ -1005,8 +1005,7 @@ Node BVToInt::createShiftNode(vector<Node> children,
     }
     ite = d_nm->mkNode(
         kind::ITE,
-        d_nm->mkNode(
-            kind::EQUAL, y, d_nm->mkConst(CONST_RATIONAL, Rational(i))),
+        d_nm->mkNode(kind::EQUAL, y, d_nm->mkConstInt(Rational(i))),
         body,
         ite);
   }

@@ -60,9 +60,9 @@ TermRegistry::TermRegistry(Env& env,
               : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_zero = nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = nm->mkConst(CONST_RATIONAL, Rational(1));
-  d_negOne = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
+  d_negOne = NodeManager::currentNM()->mkConstInt(Rational(-1));
   Assert(options().strings.stringsAlphaCard <= String::num_codes());
   d_alphaCard = options().strings.stringsAlphaCard;
 }
@@ -81,13 +81,12 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
   if (tk == STRING_TO_CODE)
   {
     // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
-    Node code_len =
-        utils::mkNLength(t[0]).eqNode(nm->mkConst(CONST_RATIONAL, Rational(1)));
-    Node code_eq_neg1 = t.eqNode(nm->mkConst(CONST_RATIONAL, Rational(-1)));
-    Node code_range = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, t, nm->mkConst(CONST_RATIONAL, Rational(0))),
-        nm->mkNode(LT, t, nm->mkConst(CONST_RATIONAL, Rational(alphaCard))));
+    Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConstInt(Rational(1)));
+    Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
+    Node code_range =
+        nm->mkNode(AND,
+                   nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
+                   nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
@@ -98,17 +97,16 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     //
     // where f in { str.indexof, str.indexof_re }
     Node l = nm->mkNode(STRING_LENGTH, t[0]);
-    lemma = nm->mkNode(
-        AND,
-        nm->mkNode(OR,
-                   t.eqNode(nm->mkConst(CONST_RATIONAL, Rational(-1))),
-                   nm->mkNode(GEQ, t, t[2])),
-        nm->mkNode(LEQ, t, l));
+    lemma = nm->mkNode(AND,
+                       nm->mkNode(OR,
+                                  t.eqNode(nm->mkConstInt(Rational(-1))),
+                                  nm->mkNode(GEQ, t, t[2])),
+                       nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)
   {
     // (>= (str.to_int x) (- 1))
-    lemma = nm->mkNode(GEQ, t, nm->mkConst(CONST_RATIONAL, Rational(-1)));
+    lemma = nm->mkNode(GEQ, t, nm->mkConstInt(Rational(-1)));
   }
   else if (tk == STRING_CONTAINS)
   {
@@ -126,7 +124,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 Node TermRegistry::lengthPositive(Node t)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+  Node zero = nm->mkConstInt(Rational(0));
   Node emp = Word::mkEmptyWord(t.getType());
   Node tlen = nm->mkNode(STRING_LENGTH, t);
   Node tlenEqZero = tlen.eqNode(zero);
@@ -416,7 +414,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   }
   else if (n.isConst())
   {
-    lsum = nm->mkConst(CONST_RATIONAL, Rational(Word::getLength(n)));
+    lsum = nm->mkConstInt(Rational(Word::getLength(n)));
   }
   Assert(!lsum.isNull());
   d_proxyVarToLength[sk] = lsum;
@@ -486,7 +484,7 @@ bool TermRegistry::isHandledUpdate(Node n)
   {
     lenN = nm->mkNode(STRING_LENGTH, n[2]);
   }
-  Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  Node one = nm->mkConstInt(Rational(1));
   return d_aent.checkEq(lenN, one);
 }
 

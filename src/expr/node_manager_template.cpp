@@ -1284,4 +1284,15 @@ Node NodeManager::mkConstInt(const Rational& r)
   return mkConst(kind::CONST_RATIONAL, r);
 }
 
+Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
+{
+  Assert(tn.isRealOrInt()) << "Expected real or int for mkConstRealOrInt, got "
+                           << tn;
+  if (tn.isReal())
+  {
+    return mkConstReal(r);
+  }
+  return mkConstInt(r);
+}
+
 }  // namespace cvc5

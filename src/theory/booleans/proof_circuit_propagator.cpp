@@ -33,7 +33,7 @@ namespace {
 template <typename T>
 Node mkRat(T val)
 {
-  return NodeManager::currentNM()->mkConst<Rational>(CONST_RATIONAL, val);
+  return NodeManager::currentNM()->mkConstInt(Rational(val));
 }
 
 /**

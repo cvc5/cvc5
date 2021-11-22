@@ -94,10 +94,8 @@ int RelationalMatchGenerator::getNextMatch(Node q, InstMatch& m)
     s = rhs;
     if (!checkPol)
     {
-      s = nm->mkNode(
-          PLUS,
-          s,
-          nm->mkConst(CONST_RATIONAL, Rational(d_rel == GEQ ? -1 : 1)));
+      // NOTE: could use real if s is real?
+      s = nm->mkNode(PLUS, s, nm->mkConstInt(Rational(d_rel == GEQ ? -1 : 1)));
     }
     d_counter++;
     Trace("relational-match-gen")

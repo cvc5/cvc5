@@ -77,7 +77,7 @@ struct EvalResult
    * Converts the result to a Node. If the result is not valid, this function
    * returns the null node.
    */
-  Node toNode() const;
+  Node toNode(const TypeNode& tn = TypeNode::null()) const;
 };
 
 class Rewriter;

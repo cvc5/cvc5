@@ -181,7 +181,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   Assert(e != nullptr);
   Assert(!t.isNull());
   Node tb = t.isConst() ? t : getBoundForLength(t, isLower);
-  Assert(!tb.isNull() && tb.getKind() == CONST_RATIONAL)
+  Assert(!tb.isNull() && tb.isConst() && tb.getType().isInteger())
       << "Unexpected bound " << tb << " from " << t;
   Rational br = tb.getConst<Rational>();
   Node prev = isLower ? e->d_firstBound : e->d_secondBound;
@@ -190,7 +190,7 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   {
     // convert to bound
     Node prevb = prev.isConst() ? prev : getBoundForLength(prev, isLower);
-    Assert(!prevb.isNull() && prevb.getKind() == CONST_RATIONAL);
+    Assert(!prevb.isNull() && prevb.isConst() && prevb.getType().isInteger());
     Rational prevbr = prevb.getConst<Rational>();
     if (prevbr == br || (br < prevbr) == isLower)
     {
@@ -205,7 +205,8 @@ Node EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
   {
     // are we in conflict?
     Node prevob = prevo.isConst() ? prevo : getBoundForLength(prevo, !isLower);
-    Assert(!prevob.isNull() && prevob.getKind() == CONST_RATIONAL);
+    Assert(!prevob.isNull() && prevob.isConst()
+           && prevob.getType().isInteger());
     Rational prevobr = prevob.getConst<Rational>();
     if (prevobr != br && (prevobr < br) == isLower)
     {

@@ -319,10 +319,10 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
       throw TypeCheckingExceptionPrivate(
           n, "expecting datatype bound term to have datatype argument.");
     }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
+    if (!n[1].isConst() || n[1].getType().isInteger())
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "datatype bound must be a constant");
+      throw TypeCheckingExceptionPrivate(
+          n, "datatype bound must be a constant integer");
     }
     if (n[1].getConst<Rational>().getNumerator().sgn() == -1)
     {
@@ -333,34 +333,9 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode DtSygusBoundTypeRule::computeType(NodeManager* nodeManager,
-                                           TNode n,
-                                           bool check)
-{
-  if (check)
-  {
-    if (!n[0].getType().isDatatype())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound takes a datatype");
-    }
-    if (n[1].getKind() != kind::CONST_RATIONAL)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound must be a constant");
-    }
-    if (n[1].getConst<Rational>().getNumerator().sgn() == -1)
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "datatype sygus bound must be non-negative");
-    }
-  }
-  return nodeManager->booleanType();
-}
-
-TypeNode DtSyguEvalTypeRule::computeType(NodeManager* nodeManager,
-                                         TNode n,
-                                         bool check)
+TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
+                                          TNode n,
+                                          bool check)
 {
   TypeNode headType = n[0].getType(check);
   if (!headType.isDatatype())
