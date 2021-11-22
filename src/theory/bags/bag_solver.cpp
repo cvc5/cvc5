@@ -234,7 +234,7 @@ void BagSolver::checkMap(Node n)
     d_im.lemmaTheoryInference(&downInference);
     for (const Node& x : upwards)
     {
-      InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y[0], x);
+      InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y[0], x[0]);
       d_im.lemmaTheoryInference(&upInference);
     }
     if (!d_mapCache.count(n))

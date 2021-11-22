@@ -45,7 +45,8 @@ void SolverState::registerCountTerm(TNode n)
   Assert(n.getKind() == BAG_COUNT);
   Node element = getRepresentative(n[0]);
   Node bag = getRepresentative(n[1]);
-  d_bagElements[bag].insert(element);
+  Node count = d_nm->mkNode(BAG_COUNT, element, bag);
+  d_bagElements[bag].insert(count);
 }
 
 const std::set<Node>& SolverState::getBags() { return d_bags; }
