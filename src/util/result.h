@@ -120,9 +120,9 @@ class Result
   std::string getInputName() const { return d_inputName; }
 
   /**
-   * Write a Result out to a stream in this language.
+   * Write a Result out to a stream.
    */
-  void toStream(std::ostream& out, Language language) const;
+  void toStream(std::ostream& out) const;
 
   /**
    * This is mostly the same the default

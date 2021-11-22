@@ -289,7 +289,7 @@ ostream& operator<<(ostream& out, enum Result::UnknownExplanation e)
 }
 
 ostream& operator<<(ostream& out, const Result& r) {
-  r.toStream(out, options::ioutils::getOutputLang(out));
+  r.toStream(out);
   return out;
 } /* operator<<(ostream&, const Result&) */
 
@@ -354,8 +354,9 @@ void Result::toStreamTptp(std::ostream& out) const {
   out << " for " << getInputName();
 }
 
-void Result::toStream(std::ostream& out, Language language) const
+void Result::toStream(std::ostream& out) const
 {
+  Language language = options::ioutils::getOutputLang(out);
   switch (language) {
     case Language::LANG_SYGUS_V2: toStreamSmt2(out); break;
     case Language::LANG_TPTP: toStreamTptp(out); break;
