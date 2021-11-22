@@ -152,7 +152,9 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
   // representatives of strings that are the LHS of positive memberships that
   // we unfolded
   std::unordered_set<Node> repUnfold;
-  // check positive (e=0), then negative (e=1) memberships
+  // Check positive (e=0), then negative (e=1) memberships. If we are doing
+  // model-based reductions, we process positive ones at effort=0, and negative
+  // ones at effort=3.
   bool mbr = options().strings.stringModelBasedReduction;
   size_t startE = mbr ? (effort > 0 ? 1 : 0) : 0;
   size_t endE = mbr ? (effort > 0 ? 2 : 1) : 2;

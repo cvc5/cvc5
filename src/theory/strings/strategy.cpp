@@ -140,9 +140,9 @@ void Strategy::initializeStrategy()
     if (options::stringModelBasedReduction())
     {
       step_begin[Theory::EFFORT_LAST_CALL] = d_infer_steps.size();
+      addStrategyStep(CHECK_EXTF_EVAL, 3);
       if (options::stringExp())
       {
-        addStrategyStep(CHECK_EXTF_EVAL, 3);
         addStrategyStep(CHECK_EXTF_REDUCTION, 3);
       }
       addStrategyStep(CHECK_MEMBERSHIP, 3);
