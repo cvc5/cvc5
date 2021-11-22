@@ -52,7 +52,7 @@ class AletheProofPrinter
    * The initial anchor introduces the initial assumptions of the problem, which
    * correspond to the problem assertions.
    */
-  std::string printIntenal(std::ostream& out,
+  std::string printInternal(std::ostream& out,
                                     std::shared_ptr<ProofNode> pfn);
   /** The current level of nesting, which increases if a subproof is entered */
   size_t d_nested_level;
