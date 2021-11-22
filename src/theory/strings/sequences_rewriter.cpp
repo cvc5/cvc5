@@ -1362,6 +1362,26 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       Node retNode = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, retNode, Rewrite::RE_IN_SIGMA_STAR);
     }
+    else if (r[0].getKind()==REGEXP_CONCAT)
+    {
+      bool isAllchar = true;
+      for (const Node& rc : r[0])
+      {
+        if (rc.getKind() != REGEXP_ALLCHAR)
+        {
+          isAllchar = false;
+          break;
+        }
+      }
+      if (isAllchar)
+      {
+        Node zero = nm->mkConstInt(Rational(0));
+        Node factor = nm->mkConstInt(Rational(r[0].getNumChildren()));
+        Node t = nm->mkNode(INTS_MODULUS, nm->mkNode(STRING_LENGTH, x), factor);
+        Node retNode = t.eqNode(zero);
+        return returnRewrite(node, retNode, Rewrite::RE_IN_CHAR_MODULUS_STAR);
+      }
+    }
   }
   else if (r.getKind() == kind::REGEXP_CONCAT)
   {
