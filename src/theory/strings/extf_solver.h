@@ -155,6 +155,12 @@ class ExtfSolver : protected EnvObj
    * context (see ExtTheory::getActive).
    */
   std::vector<Node> getActive(Kind k) const;
+  /**
+   * Return true if n is active in the model. If this method returns false,
+   * then n is already satisfied in the model (its value in the model is
+   * the same as its representative in the equality engine).
+   */
+  bool isActiveInModel(Node n) const;
   //---------------------------------- end information about ExtTheory
   /**
    * Print the relevant information regarding why we have a model, return as a
