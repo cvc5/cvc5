@@ -355,6 +355,8 @@ const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
 
 void RelevanceManager::notifyLemma(Node n)
 {
+  // only consider lemmas that were sent at full effort, when we have a
+  // complete SAT assignment.
   if (d_dman != nullptr && d_inFullEffortCheck)
   {
     // ensure we know which literals are relevant, and why
