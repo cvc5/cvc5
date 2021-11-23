@@ -51,6 +51,8 @@ libcvc5_add_sources(
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
   options/decision_weight.h
+  options/io_utils.cpp
+  options/io_utils.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -61,8 +63,6 @@ libcvc5_add_sources(
   options/options_handler.h
   options/options_listener.h
   options/options_public.h
-  options/set_language.cpp
-  options/set_language.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/learned_literal_manager.cpp
@@ -352,8 +352,6 @@ libcvc5_add_sources(
   smt/witness_form.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  smt_util/nary_builder.cpp
-  smt_util/nary_builder.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
@@ -537,6 +535,8 @@ libcvc5_add_sources(
   theory/assertion.h
   theory/atom_requests.cpp
   theory/atom_requests.h
+  theory/bags/bag_make_op.cpp
+  theory/bags/bag_make_op.h
   theory/bags/bags_rewriter.cpp
   theory/bags/bags_rewriter.h
   theory/bags/bag_solver.cpp
@@ -549,8 +549,6 @@ libcvc5_add_sources(
   theory/bags/inference_generator.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
-  theory/bags/make_bag_op.cpp
-  theory/bags/make_bag_op.h
   theory/bags/normal_form.cpp
   theory/bags/normal_form.h
   theory/bags/rewrites.cpp

@@ -1435,9 +1435,9 @@ class SolverTest
           () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ModeInfo.class));
       OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getBaseInfo();
-      assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
+      assertions.add(() -> assertEquals("none", modeInfo.getDefaultValue()));
       assertions.add(() -> assertEquals("none", modeInfo.getCurrentValue()));
-      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
     }
     assertAll(assertions);
   }
@@ -1649,7 +1649,7 @@ class SolverTest
     Term x = d_solver.mkVar(uSort, "x");
     Term y = d_solver.mkVar(uSort, "y");
     Term eq = d_solver.mkTerm(EQUAL, x, y);
-    Term bvl = d_solver.mkTerm(BOUND_VAR_LIST, x, y);
+    Term bvl = d_solver.mkTerm(VARIABLE_LIST, x, y);
     Term f = d_solver.mkTerm(FORALL, bvl, eq);
     d_solver.assertFormula(f);
     d_solver.checkSat();
@@ -1717,9 +1717,8 @@ class SolverTest
   @Test void getQuantifierElimination()
   {
     Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-    Term forall = d_solver.mkTerm(FORALL,
-        d_solver.mkTerm(BOUND_VAR_LIST, x),
-        d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
+    Term forall = d_solver.mkTerm(
+        FORALL, d_solver.mkTerm(VARIABLE_LIST, x), d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
     assertThrows(
         CVC5ApiException.class, () -> d_solver.getQuantifierElimination(d_solver.getNullTerm()));
     Solver slv = new Solver();
@@ -1733,9 +1732,8 @@ class SolverTest
   @Test void getQuantifierEliminationDisjunct()
   {
     Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-    Term forall = d_solver.mkTerm(FORALL,
-        d_solver.mkTerm(BOUND_VAR_LIST, x),
-        d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
+    Term forall = d_solver.mkTerm(
+        FORALL, d_solver.mkTerm(VARIABLE_LIST, x), d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.getQuantifierEliminationDisjunct(d_solver.getNullTerm()));
 

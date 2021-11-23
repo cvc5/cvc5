@@ -25,6 +25,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/options.h"
 #include "printer/printer.h"
@@ -36,23 +37,20 @@ namespace expr {
 
 string NodeValue::toString() const {
   stringstream ss;
-
-  Language outlang =
-      (this == &null()) ? Language::LANG_AUTO : options::outputLanguage();
-  toStream(ss, -1, false, outlang);
+  toStream(ss, -1, false);
   return ss.str();
 }
 
 void NodeValue::toStream(std::ostream& out,
                          int toDepth,
-                         size_t dag,
-                         Language language) const
+                         size_t dag) const
 {
   // Ensure that this node value is live for the length of this call.
   // It really breaks things badly if we don't have a nonzero ref
   // count, even just for printing.
   RefCountGuard guard(this);
 
+  auto language = options::ioutils::getOutputLang(out);
   Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, dag);
 }
 
@@ -66,7 +64,7 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
     out << ' ' << getId();
   } else if (getMetaKind() == kind::metakind::CONSTANT) {
     out << ' ';
-    kind::metakind::NodeValueConstPrinter::toStream(out, this);
+    kind::metakind::nodeValueConstantToStream(out, this);
   } else {
     if (nv_begin() != nv_end()) {
       for (const_nv_iterator child = nv_begin(); child != nv_end(); ++child) {
@@ -92,6 +90,38 @@ NodeValue::iterator<NodeTemplate<false> > operator+(
     NodeValue::iterator<NodeTemplate<false> > i)
 {
   return i + p;
+}
+
+std::ostream& operator<<(std::ostream& out, const NodeValue& nv)
+{
+  nv.toStream(out,
+              options::ioutils::getNodeDepth(out),
+              options::ioutils::getDagThresh(out));
+  return out;
+}
+
+void NodeValue::markRefCountMaxedOut()
+{
+  Assert(NodeManager::currentNM() != nullptr)
+      << "No current NodeManager on incrementing of NodeValue: "
+         "maybe a public cvc5 interface function is missing a "
+         "NodeManagerScope ?";
+  NodeManager::currentNM()->markRefCountMaxedOut(this);
+}
+
+void NodeValue::markForDeletion()
+{
+  Assert(NodeManager::currentNM() != nullptr)
+      << "No current NodeManager on destruction of NodeValue: "
+         "maybe a public cvc5 interface function is missing a "
+         "NodeManagerScope ?";
+  NodeManager::currentNM()->markForDeletion(this);
+}
+
+bool NodeValue::isBeingDeleted() const
+{
+  return NodeManager::currentNM() != NULL
+         && NodeManager::currentNM()->isCurrentlyDeleting(this);
 }
 
 }  // namespace expr

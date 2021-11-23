@@ -102,7 +102,6 @@ namespace cvc5 {
 
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
-#include "options/set_language.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2.h"
@@ -1396,7 +1395,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           cargs.push_back(f);
           cargs.insert(cargs.end(),args.begin(),args.end());
           api::Term c = MK_TERM(api::APPLY_CONSTRUCTOR,cargs);
-          api::Term bvla = MK_TERM(api::BOUND_VAR_LIST,args);
+          api::Term bvla = MK_TERM(api::VARIABLE_LIST,args);
           api::Term mc = MK_TERM(api::MATCH_BIND_CASE, bvla, c, f3);
           matchcases.push_back(mc);
           // now, pop the scope
@@ -1427,7 +1426,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           api::Term mc;
           if (f.getKind() == api::VARIABLE)
           {
-            api::Term bvlf = MK_TERM(api::BOUND_VAR_LIST, f);
+            api::Term bvlf = MK_TERM(api::VARIABLE_LIST, f);
             mc = MK_TERM(api::MATCH_BIND_CASE, bvlf, f, f3);
           }
           else
@@ -1935,7 +1934,7 @@ boundVarList[cvc5::api::Term& expr]
    {
      std::vector<cvc5::api::Term> args =
          PARSER_STATE->bindBoundVars(sortedVarNames);
-     expr = MK_TERM(api::BOUND_VAR_LIST, args);
+     expr = MK_TERM(api::VARIABLE_LIST, args);
    }
  ;
 

@@ -802,6 +802,7 @@ set(regress_0_tests
   regress0/parser/linear_arithmetic_err3.smt2
   regress0/parser/named-attr-error.smt2
   regress0/parser/named-attr.smt2
+  regress0/parser/quoted-define-fun.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -872,6 +873,7 @@ set(regress_0_tests
   regress0/proofs/project-issue317-inc-sat-conflictlit.smt2
   regress0/proofs/project-issue330-eqproof.smt2
   regress0/proofs/proj-issue326-nl-bounds-check.smt2
+  regress0/proofs/proj-issue342-eager-checking-no-proof-checking.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
@@ -1087,6 +1089,7 @@ set(regress_0_tests
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
+  regress0/seq/proj-issue340.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1589,6 +1592,7 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/card1.smt2
   regress1/bags/choose1.smt2
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
@@ -2311,6 +2315,7 @@ set(regress_1_tests
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
   regress1/strings/issue6973-dup-lemma-conc.smt2
+  regress1/strings/issue7677-test-const-rv.smt2 
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

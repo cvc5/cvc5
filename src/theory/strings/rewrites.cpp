@@ -76,6 +76,10 @@ const char* toString(Rewrite r)
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
     case Rewrite::RE_ANDOR_INC_CONFLICT: return "RE_ANDOR_INC_CONFLICT";
+    case Rewrite::RE_INTER_CONST_CONST_CONFLICT:
+      return "RE_INTER_CONST_CONST_CONFLICT";
+    case Rewrite::RE_INTER_CONST_RE_CONFLICT:
+      return "RE_INTER_CONST_RE_CONFLICT";
     case Rewrite::RE_CHAR_IN_STR_STAR: return "RE_CHAR_IN_STR_STAR";
     case Rewrite::RE_CONCAT: return "RE_CONCAT";
     case Rewrite::RE_CONCAT_FLATTEN: return "RE_CONCAT_FLATTEN";
@@ -85,6 +89,7 @@ const char* toString(Rewrite r)
     case Rewrite::RE_EMPTY_IN_STR_STAR: return "RE_EMPTY_IN_STR_STAR";
     case Rewrite::RE_IN_DIST_CHAR_STAR: return "RE_IN_DIST_CHAR_STAR";
     case Rewrite::RE_IN_SIGMA_STAR: return "RE_IN_SIGMA_STAR";
+    case Rewrite::RE_IN_CHAR_MODULUS_STAR: return "RE_IN_CHAR_MODULUS_STAR";
     case Rewrite::RE_LOOP: return "RE_LOOP";
     case Rewrite::RE_LOOP_STAR: return "RE_LOOP_STAR";
     case Rewrite::RE_OR_ALL: return "RE_OR_ALL";
