@@ -65,9 +65,9 @@ class AletheProofPrinter
   std::string d_prefix;
   /** A list of assumption lists, one for every level of the nested proof node
    */
-  std::vector<std::unordered_map<Node, size_t>> d_assumptions;
+  std::vector<std::unordered_map<Node, std::string>> d_assumptions;
   /** A list of step lists, one for every level of the nested proof node */
-  std::vector<std::unordered_map<Node, size_t>> d_steps;
+  std::vector<std::unordered_map<Node, std::string>> d_steps;
 };
 
 }  // namespace proof
