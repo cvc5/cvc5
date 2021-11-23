@@ -164,7 +164,7 @@ TrustNode TrustSubstitutionMap::applyTrusted(Node n, bool doRewrite)
   Node eq = n.eqNode(ns);
   // If we haven't already stored an index, remember the index. Otherwise, a
   // (possibly shorter) prefix of the substitution already suffices to show eq
-  if (d_eqtIndex.find(eq)==d_eqtIndex.end())
+  if (d_eqtIndex.find(eq) == d_eqtIndex.end())
   {
     d_eqtIndex[eq] = d_tsubs.size();
   }
@@ -199,7 +199,8 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
     return d_subsPg->getProofFor(eq);
   }
   Trace("trust-subs-pf") << "getProofFor " << eq << std::endl;
-  AlwaysAssert (d_proving.find(eq)==d_proving.end()) << "Repeat getProofFor in TrustSubstitutionMap " << eq;
+  AlwaysAssert(d_proving.find(eq) == d_proving.end())
+      << "Repeat getProofFor in TrustSubstitutionMap " << eq;
   d_proving.insert(eq);
   NodeUIntMap::iterator it = d_eqtIndex.find(eq);
   Assert(it != d_eqtIndex.end());
