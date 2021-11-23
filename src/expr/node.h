@@ -15,9 +15,6 @@
 
 #include "cvc5_private.h"
 
-// circular dependency
-#include "expr/node_value.h"
-
 #ifndef CVC5__NODE_H
 #define CVC5__NODE_H
 
@@ -34,6 +31,7 @@
 #include "base/output.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/node_value.h"
 #include "options/io_utils.h"
 #include "options/language.h"
 #include "util/hash.h"
@@ -819,11 +817,10 @@ public:
    */
   inline void toStream(std::ostream& out,
                        int toDepth = -1,
-                       size_t dagThreshold = 1,
-                       Language language = Language::LANG_AUTO) const
+                       size_t dagThreshold = 1) const
   {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, dagThreshold, language);
+    d_nv->toStream(out, toDepth, dagThreshold);
   }
 
   void constToStream(std::ostream& out) const
@@ -867,8 +864,7 @@ public:
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
   n.toStream(out,
              options::ioutils::getNodeDepth(out),
-             options::ioutils::getDagThresh(out),
-             options::ioutils::getOutputLang(out));
+             options::ioutils::getDagThresh(out));
   return out;
 }
 
