@@ -15,8 +15,7 @@
 
 #include "cvc5_private.h"
 
-// circular dependency
-#include "expr/node_value.h"
+#include "expr/node.h"
 
 #ifndef CVC5__TYPE_NODE_H
 #define CVC5__TYPE_NODE_H
@@ -29,6 +28,7 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/node_value.h"
 #include "util/cardinality_class.h"
 
 namespace cvc5 {
@@ -729,7 +729,7 @@ private:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
-  n.toStream(out, Node::setlanguage::getLanguage(out));
+  n.toStream(out, options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -1004,38 +1004,6 @@ inline unsigned TypeNode::getFloatingPointSignificandSize() const {
   Assert(isFloatingPoint());
   return getConst<FloatingPointSize>().significandWidth();
 }
-
-#ifdef CVC5_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- *
- * Note that this function cannot be a template, since the compiler
- * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
- * So we implement twice.  We mark as __attribute__((used)) so that
- * GCC emits code for it even though static analysis indicates it's
- * never called.
- *
- * Tim's Note: I moved this into the node.h file because this allows gdb
- * to find the symbol, and use it, which is the first standard this code needs
- * to meet. A cleaner solution is welcomed.
- */
-static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC5_DEBUG */
 
 }  // namespace cvc5
 
