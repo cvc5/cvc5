@@ -23,4 +23,5 @@ Python API Documentation
     roundingmode
     solver
     sort
+    term 
     unknownexplanation
