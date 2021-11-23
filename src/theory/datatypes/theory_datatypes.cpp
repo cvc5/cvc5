@@ -1007,10 +1007,11 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       // uninterpreted sorts and arrays, where the solver does not fully
       // handle values of the sort. The call to mkGroundTerm does not introduce
       // values for these sorts.
-      rrs = r.getType().mkGroundTerm();
+      NodeManager* nm = NodeManager::currentNM();
+      rrs = nm->mkGroundTerm(r.getType());
       Trace("datatypes-wrong-sel")
           << "Bad apply " << r << " term = " << rrs
-          << ", value = " << r.getType().mkGroundValue() << std::endl;
+          << ", value = " << nm->mkGroundValue(r.getType()) << std::endl;
     }
     else
     {

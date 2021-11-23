@@ -410,7 +410,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     else
     {
       // call mkGroundValue or mkGroundTerm based on isValue
-      arg = isValue ? selType.mkGroundValue() : selType.mkGroundTerm();
+      arg = isValue ? nm->mkGroundValue(selType) : nm->mkGroundTerm(selType);
     }
     if (arg.isNull())
     {

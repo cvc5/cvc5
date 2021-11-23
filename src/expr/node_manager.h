@@ -73,6 +73,18 @@ class NodeManager
    */
   static bool isNAryKind(Kind k);
 
+  /**
+   * Returns a node representing the operator of this `TypeNode`.
+   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these) have an
+   * operator. "Little-p parameterized" types (like Array), are OPERATORs, not
+   * PARAMETERIZEDs.
+   */
+  static Node operatorFromType(const TypeNode& tn)
+  {
+    Assert(tn.getMetaKind() == kind::metakind::PARAMETERIZED);
+    return Node(tn.d_nv->getOperator());
+  }
+
  private:
   /**
    * Instead of creating an instance using the constructor,
@@ -447,6 +459,24 @@ class NodeManager
   Node mkBoundVar(const std::string& name, const TypeNode& type);
 
   Node mkBoundVar(const TypeNode& type);
+
+  /**
+   * Construct and return a ground term of a given type. If the type is not
+   * well founded, this function throws an exception.
+   *
+   * @param tn The type
+   * @return a ground term of the type
+   */
+  Node mkGroundTerm(const TypeNode& tn);
+
+  /**
+   * Construct and return a ground value of a given type. If the type is not
+   * well founded, this function throws an exception.
+   *
+   * @param tn The type
+   * @return a ground value of the type
+   */
+  Node mkGroundValue(const TypeNode& tn);
 
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType( TypeNode tn );

@@ -218,16 +218,6 @@ private:
   }
 
   /**
-   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these)
-   * have an operator.  "Little-p parameterized" types (like Array),
-   * are OPERATORs, not PARAMETERIZEDs.
-   */
-  inline Node getOperator() const {
-    Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
-    return Node(d_nv->getOperator());
-  }
-
-  /**
    * Returns the unique id of this node
    *
    * @return the id
@@ -442,22 +432,6 @@ private:
    * @return true iff the type is well-founded
    */
   bool isWellFounded() const;
-
-  /**
-   * Construct and return a ground term of this type.  If the type is
-   * not well founded, this function throws an exception.
-   *
-   * @return a ground term of the type
-   */
-  Node mkGroundTerm() const;
-
-  /**
-   * Construct and return a ground value of this type.  If the type is
-   * not well founded, this function throws an exception.
-   *
-   * @return a ground value of the type
-   */
-  Node mkGroundValue() const;
 
   /**
    * Is this type a subtype of the given type?
@@ -700,10 +674,6 @@ private:
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
   static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
 
-  /** get ensure type condition
-   *  Return value is a condition that implies that n has type tn.
-  */
-  static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
   static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
@@ -974,15 +944,6 @@ inline bool TypeNode::isPredicate() const {
 
 inline bool TypeNode::isPredicateLike() const {
   return isFunctionLike() && getRangeType().isBoolean();
-}
-
-inline TypeNode TypeNode::getRangeType() const {
-  if(isTester()) {
-    return NodeManager::currentNM()->booleanType();
-  }
-  Assert(isFunction() || isConstructor() || isSelector())
-      << "Cannot get range type of " << *this;
-  return (*this)[getNumChildren() - 1];
 }
 
 /** Is this a floating-point type of with <code>exp</code> exponent bits
