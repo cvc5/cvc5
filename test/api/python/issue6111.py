@@ -14,7 +14,7 @@
 ##
 
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 
 solver = pycvc5.Solver()
 solver.setLogic("QF_BV")
@@ -25,7 +25,7 @@ zero = solver.mkBitVector(bvsort12979.getBitVectorSize(), "0", 10)
 args1 = []
 args1.append(zero)
 args1.append(input2_1)
-bvult_res = solver.mkTerm(kinds.BVUlt, args1)
+bvult_res = solver.mkTerm(Kind.BVUlt, args1)
 solver.assertFormula(bvult_res)
 
 bvsort4 = solver.mkBitVectorSort(4)
@@ -36,13 +36,13 @@ concat_result_43 = solver.mkConst(bvsort8, "concat_result_43")
 args2 = []
 args2.append(concat_result_42)
 args2.append(
-    solver.mkTerm(solver.mkOp(kinds.BVExtract, 7, 4), [concat_result_43]))
-solver.assertFormula(solver.mkTerm(kinds.Equal, args2))
+    solver.mkTerm(solver.mkOp(Kind.BVExtract, 7, 4), [concat_result_43]))
+solver.assertFormula(solver.mkTerm(Kind.Equal, args2))
 
 args3 = []
 args3.append(concat_result_42)
 args3.append(
-    solver.mkTerm(solver.mkOp(kinds.BVExtract, 3, 0), [concat_result_43]))
-solver.assertFormula(solver.mkTerm(kinds.Equal, args3))
+    solver.mkTerm(solver.mkOp(Kind.BVExtract, 3, 0), [concat_result_43]))
+solver.assertFormula(solver.mkTerm(Kind.Equal, args3))
 
 print(solver.checkSat())
