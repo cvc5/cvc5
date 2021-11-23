@@ -107,10 +107,7 @@ void RelevanceManager::beginRound()
   d_inFullEffortCheck = true;
 }
 
-void RelevanceManager::endRound()
-{
-  d_inFullEffortCheck = false;
-}
+void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
 
 void RelevanceManager::computeRelevance()
 {

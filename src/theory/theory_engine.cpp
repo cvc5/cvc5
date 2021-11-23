@@ -486,15 +486,16 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
-    if( Theory::fullEffort(effort)) {
+    if (Theory::fullEffort(effort))
+    {
       if (d_relManager != nullptr)
       {
         d_relManager->endRound();
       }
       if (!d_inConflict && !needCheck())
       {
-        // Do post-processing of model from the theories (e.g. used for THEORY_SEP
-        // to construct heap model)
+        // Do post-processing of model from the theories (e.g. used for
+        // THEORY_SEP to construct heap model)
         d_tc->postProcessModel(d_incomplete.get());
       }
     }
