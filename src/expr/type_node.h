@@ -15,8 +15,7 @@
 
 #include "cvc5_private.h"
 
-// circular dependency
-#include "expr/node_value.h"
+#include "expr/node.h"
 
 #ifndef CVC5__TYPE_NODE_H
 #define CVC5__TYPE_NODE_H
@@ -29,6 +28,7 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/node_value.h"
 #include "util/cardinality_class.h"
 
 namespace cvc5 {

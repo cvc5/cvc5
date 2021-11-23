@@ -92,5 +92,37 @@ NodeValue::iterator<NodeTemplate<false> > operator+(
   return i + p;
 }
 
+std::ostream& operator<<(std::ostream& out, const NodeValue& nv)
+{
+  nv.toStream(out,
+              options::ioutils::getNodeDepth(out),
+              options::ioutils::getDagThresh(out));
+  return out;
+}
+
+void NodeValue::markRefCountMaxedOut()
+{
+  Assert(NodeManager::currentNM() != nullptr)
+      << "No current NodeManager on incrementing of NodeValue: "
+         "maybe a public cvc5 interface function is missing a "
+         "NodeManagerScope ?";
+  NodeManager::currentNM()->markRefCountMaxedOut(this);
+}
+
+void NodeValue::markForDeletion()
+{
+  Assert(NodeManager::currentNM() != nullptr)
+      << "No current NodeManager on destruction of NodeValue: "
+         "maybe a public cvc5 interface function is missing a "
+         "NodeManagerScope ?";
+  NodeManager::currentNM()->markForDeletion(this);
+}
+
+bool NodeValue::isBeingDeleted() const
+{
+  return NodeManager::currentNM() != NULL
+         && NodeManager::currentNM()->isCurrentlyDeleting(this);
+}
+
 }  // namespace expr
 }  // namespace cvc5
