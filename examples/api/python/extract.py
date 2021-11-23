@@ -17,7 +17,7 @@
 ##
 
 from pycvc5 import Solver
-from pycvc5.kinds import BVExtract, Equal
+from pycvc5.Kind import BVExtract, Equal
 
 if __name__ == "__main__":
     slv = Solver()
