@@ -479,20 +479,6 @@ inline NodeValue* NodeValue::getChild(int i) const {
 }
 
 }  // namespace expr
-
-#ifdef CVC5_DEBUG
-
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- */
-void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv);
-void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv);
-void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv);
-
-#endif /* CVC5_DEBUG */
-
 }  // namespace cvc5
 
 #endif /* CVC5__EXPR__NODE_VALUE_H */

@@ -97,9 +97,9 @@ NodeValue::iterator<NodeTemplate<false> > operator+(
 std::ostream& operator<<(std::ostream& out, const NodeValue& nv)
 {
   nv.toStream(out,
-              Node::setdepth::getDepth(out),
-              Node::dag::getDag(out),
-              Node::setlanguage::getLanguage(out));
+              options::ioutils::getNodeDepth(out),
+              options::ioutils::getDagThresh(out),
+              options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -128,34 +128,4 @@ bool NodeValue::isBeingDeleted() const
 }
 
 }  // namespace expr
-
-#ifdef CVC5_DEBUG
-
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- */
-void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv)
-{
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
-  Warning().flush();
-}
-
-void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv)
-{
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
-  Warning().flush();
-}
-
-void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv)
-{
-  nv->printAst(Warning(), 0);
-  Warning().flush();
-}
-
-#endif /* CVC5_DEBUG */
-
 }  // namespace cvc5

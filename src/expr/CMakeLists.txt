@@ -32,8 +32,6 @@ libcvc5_add_sources(
   emptyset.h
   emptybag.cpp
   emptybag.h
-  expr_iomanip.cpp
-  expr_iomanip.h
   kind_map.h
   match_trie.cpp
   match_trie.h
