@@ -120,7 +120,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
 
-  autoupdate:
+  update-pr:
     runs-on: ubuntu-latest
     needs: build
     if: github.repository == 'cvc5/cvc5' && github.event == 'push'
