@@ -17,6 +17,6 @@ import pycvc5
 
 s1 = pycvc5.Solver()
 s2 = pycvc5.Solver()
-r = s1.checkEntailed(s1.mkBoolean(True))
+r1 = s1.checkEntailed(s1.mkBoolean(True))
 r2 = s2.checkEntailed(s2.mkBoolean(True))
-print(0 if r.isEntailed() and r2.isEntailed() else 1)
+assert r1.isEntailed() and r2.isEntailed()
