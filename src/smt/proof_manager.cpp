@@ -199,7 +199,7 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp;
-    vpp.alethePrinter(out, fp);
+    vpp.print(out, fp);
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
   {

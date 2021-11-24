@@ -29,9 +29,9 @@ namespace theory {
 namespace bags {
 
 /**
- * Type rule for binary operators (union_max, union_disjoint, intersection_min
- * difference_subtract, difference_remove)
- * to check if the two arguments are of the same sort.
+ * Type rule for binary operators (bag.union_max, bag.union_disjoint,
+ * bag.inter_min bag.difference_subtract, bag.difference_remove) to check
+ * if the two arguments are bags of the same sort.
  */
 struct BinaryOperatorTypeRule
 {
@@ -40,8 +40,8 @@ struct BinaryOperatorTypeRule
 }; /* struct BinaryOperatorTypeRule */
 
 /**
- * Type rule for binary operator subbag to check if the two arguments have the
- * same sort.
+ * Type rule for binary operator bag.subbag to check if the two arguments are
+ * bags of the same sort.
  */
 struct SubBagTypeRule
 {
@@ -58,7 +58,7 @@ struct CountTypeRule
 }; /* struct CountTypeRule */
 
 /**
- * Type rule for duplicate_removal to check the argument is of a bag.
+ * Type rule for bag.duplicate_removal to check the argument is of a bag.
  */
 struct DuplicateRemovalTypeRule
 {
@@ -69,22 +69,22 @@ struct DuplicateRemovalTypeRule
  * Type rule for (bag op e) operator to check the sort of e matches the sort
  * stored in op.
  */
-struct MkBagTypeRule
+struct BagMakeTypeRule
 {
   static TypeNode computeType(NodeManager* nm, TNode n, bool check);
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
-}; /* struct MkBagTypeRule */
+}; /* struct BagMakeTypeRule */
 
 /**
- * Type rule for bag.is_singleton to check the argument is of a bag.
+ * Type rule for (bag.is_singleton B) to check the argument B is a bag.
  */
 struct IsSingletonTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-}; /* struct IsMkBagTypeRule */
+}; /* struct IsSingletonTypeRule */
 
 /**
- * Type rule for (as emptybag (Bag ...))
+ * Type rule for (as bag.empty (Bag T)) where T is a type
  */
 struct EmptyBagTypeRule
 {
@@ -92,7 +92,7 @@ struct EmptyBagTypeRule
 }; /* struct EmptyBagTypeRule */
 
 /**
- * Type rule for (bag.card ..) to check the argument is of a bag.
+ * Type rule for (bag.card B) to check the argument B is a bag.
  */
 struct CardTypeRule
 {
@@ -100,7 +100,7 @@ struct CardTypeRule
 }; /* struct CardTypeRule */
 
 /**
- * Type rule for (bag.choose ..) to check the argument is of a bag.
+ * Type rule for (bag.choose B) to check the argument B is a bag.
  */
 struct ChooseTypeRule
 {

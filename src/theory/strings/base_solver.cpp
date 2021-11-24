@@ -46,7 +46,7 @@ void BaseSolver::checkInit()
   // build term index
   d_eqcInfo.clear();
   d_termIndex.clear();
-  d_stringsEqc.clear();
+  d_stringLikeEqc.clear();
 
   Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
   // count of congruent, non-congruent per operator (independent of type),
@@ -65,7 +65,7 @@ void BaseSolver::checkInit()
       std::map<Kind, TermIndex>& tti = d_termIndex[tn];
       if (tn.isStringLike())
       {
-        d_stringsEqc.push_back(eqc);
+        d_stringLikeEqc.push_back(eqc);
         emps = Word::mkEmptyWord(tn);
       }
       Node var;
@@ -512,7 +512,7 @@ void BaseSolver::checkCardinality()
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
   std::map<TypeNode, std::vector<std::vector<Node> > > cols;
   std::map<TypeNode, std::vector<Node> > lts;
-  d_state.separateByLength(d_stringsEqc, cols, lts);
+  d_state.separateByLength(d_stringLikeEqc, cols, lts);
   for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& c : cols)
   {
     checkCardinalityType(c.first, c.second, lts[c.first]);
@@ -759,9 +759,9 @@ Node BaseSolver::explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp)
   return Node::null();
 }
 
-const std::vector<Node>& BaseSolver::getStringEqc() const
+const std::vector<Node>& BaseSolver::getStringLikeEqc() const
 {
-  return d_stringsEqc;
+  return d_stringLikeEqc;
 }
 
 Node BaseSolver::TermIndex::add(TNode n,

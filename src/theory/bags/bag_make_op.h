@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class for MK_BAG operator.
+ * A class for BAG_MAKE operator.
  */
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__MAKE_BAG_OP_H
-#define CVC5__MAKE_BAG_OP_H
+#ifndef CVC5__BAG_MAKE_OP_H
+#define CVC5__BAG_MAKE_OP_H
 
 #include <memory>
 
@@ -25,39 +25,39 @@ namespace cvc5 {
 class TypeNode;
 
 /**
- * The class is an operator for kind MK_BAG used to construct bags.
+ * The class is an operator for kind BAG_MAKE used to construct bags.
  * It specifies the type of the element especially when it is a constant.
  * e.g. the type of rational 1 is Int, however
- * (mkBag (mkBag_op Real) 1) is of type (Bag Real), not (Bag Int).
+ * (bag (BagMakeOp Real) 1) is of type (Bag Real), not (Bag Int).
  * Note that the type passed to the constructor is the element's type, not the
  * bag type.
  */
-class MakeBagOp
+class BagMakeOp
 {
  public:
-  explicit MakeBagOp(const TypeNode& elementType);
-  MakeBagOp(const MakeBagOp& op);
+  explicit BagMakeOp(const TypeNode& elementType);
+  BagMakeOp(const BagMakeOp& op);
 
   /** return the type of the current object */
   const TypeNode& getType() const;
 
-  bool operator==(const MakeBagOp& op) const;
+  bool operator==(const BagMakeOp& op) const;
 
  private:
   /** a pointer to the type of the bag element */
   std::unique_ptr<TypeNode> d_type;
-}; /* class MakeBagOp */
+}; /* class BagMakeOp */
 
-std::ostream& operator<<(std::ostream& out, const MakeBagOp& op);
+std::ostream& operator<<(std::ostream& out, const BagMakeOp& op);
 
 /**
- * Hash function for the MakeBagOpHashFunction objects.
+ * Hash function for the BagMakeOpHashFunction objects.
  */
-struct MakeBagOpHashFunction
+struct BagMakeOpHashFunction
 {
-  size_t operator()(const MakeBagOp& op) const;
-}; /* struct MakeBagOpHashFunction */
+  size_t operator()(const BagMakeOp& op) const;
+}; /* struct BagMakeOpHashFunction */
 
 }  // namespace cvc5
 
-#endif /* CVC5__MAKE_BAG_OP_H */
+#endif /* CVC5__BAG_MAKE_OP_H */

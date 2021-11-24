@@ -67,10 +67,6 @@ Optional Path to Optional Packages:
   --glpk-dir=PATH          path to top level of GLPK installation
   --dep-path=PATH          path to a dependency installation dir
 
-Build limitations:
-  --lib-only               only build the library, but not the executable or
-                           the parser (default: off)
-
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
 

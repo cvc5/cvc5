@@ -229,6 +229,8 @@ libcvc5_add_sources(
   proof/alethe/alethe_node_converter.h
   proof/alethe/alethe_post_processor.cpp
   proof/alethe/alethe_post_processor.h
+  proof/alethe/alethe_printer.h
+  proof/alethe/alethe_printer.cpp
   proof/alethe/alethe_proof_rule.cpp
   proof/alethe/alethe_proof_rule.h
   proof/alethe/alethe_printer.cpp
@@ -352,8 +354,6 @@ libcvc5_add_sources(
   smt/witness_form.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
-  smt_util/nary_builder.cpp
-  smt_util/nary_builder.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
@@ -537,6 +537,8 @@ libcvc5_add_sources(
   theory/assertion.h
   theory/atom_requests.cpp
   theory/atom_requests.h
+  theory/bags/bag_make_op.cpp
+  theory/bags/bag_make_op.h
   theory/bags/bags_rewriter.cpp
   theory/bags/bags_rewriter.h
   theory/bags/bag_solver.cpp
@@ -549,8 +551,6 @@ libcvc5_add_sources(
   theory/bags/inference_generator.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
-  theory/bags/make_bag_op.cpp
-  theory/bags/make_bag_op.h
   theory/bags/normal_form.cpp
   theory/bags/normal_form.h
   theory/bags/rewrites.cpp
