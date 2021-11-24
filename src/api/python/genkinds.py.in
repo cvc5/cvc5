@@ -45,16 +45,22 @@ r"""cdef extern from "api/cpp/cvc5_kind.h" namespace "cvc5::api":
 """
 
 KINDS_PXI_TOP = \
-r"""# distutils: language = c++
+r'''# distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
 from cvc5kinds cimport Kind as c_Kind
 from enum import Enum
 
 class Kind(Enum):
-"""
+    """The Kinds enum"""
+    def __new__(cls, value, doc):
+        self = object.__new__(cls)
+        self._value_ = value
+        self.__doc__ = doc
+        return self
+'''
 
-KINDS_ATTR_TEMPLATE = r'''        {name}=c_Kind.{kind}
+KINDS_ATTR_TEMPLATE = r'''    {name}=c_Kind.{kind}, """{doc}"""
 '''
 
 def gen_pxd(parser: KindsParser, filename):
@@ -74,7 +80,8 @@ def gen_pxi(parser : KindsParser, filename):
     with open(filename, "w") as f:
         f.write(KINDS_PXI_TOP)
         for kind, name in parser.kinds.items():
-            f.write(KINDS_ATTR_TEMPLATE.format(name=name, kind=kind))
+            doc = parser.kinds_doc.get(name, '')
+            f.write(KINDS_ATTR_TEMPLATE.format(name=name, kind=kind, doc=doc))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Read a kinds header file and generate a '
