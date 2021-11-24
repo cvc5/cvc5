@@ -110,3 +110,15 @@ jobs:
       with:
         binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
         github-token: ${{ secrets.GITHUB_TOKEN }}
+
+
+  autoupdate:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5' && github.event == 'push'
+    steps:
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@v0.5.1
+        with:
+          token: ${{ secrets.ACTION_USER_TOKEN }}
+          base: 'master'
+          required_approval_count: 1
