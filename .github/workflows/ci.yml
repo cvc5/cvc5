@@ -1,8 +1,9 @@
-on: [push, pull_request]
+on: [push, pull_request, pull_request_target]
 name: CI
 
 jobs:
   build:
+    if: github.event == 'push' || github.event == 'pull_request'
     strategy:
       matrix:
         include:
@@ -123,3 +124,14 @@ jobs:
           token: ${{ secrets.ACTION_USER_TOKEN }}
           base: 'master'
           required_approval_count: 1
+
+  cancel:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5' && github.event == 'pull_request_target'
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          # cancel builds from ci workflow
+          workflow_id: 903674
+          access_token: ${{ github.token }}
