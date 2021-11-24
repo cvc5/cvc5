@@ -109,6 +109,7 @@ CutInfo::CutInfo(CutInfoKlass kl, int eid, int o)
       d_cutRhs(),
       d_cutVec(),
       d_mAtCreation(-1),
+      d_N(-1),
       d_rowId(-1),
       d_exactPrecision(nullptr),
       d_explanation(nullptr)
