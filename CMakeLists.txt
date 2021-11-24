@@ -251,10 +251,22 @@ endif()
 # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 
-# Set visibility to default if unit tests are enabled
+# Set visibility to default if unit tests are enabled. If unit tests are
+# enabled, we also check if we can execute white box unit tests (some versions
+# of Clang have issues with the required flag).
+set(ENABLE_WHITEBOX_UNIT_TESTING OFF)
 if(ENABLE_UNIT_TESTING)
   set(CMAKE_CXX_VISIBILITY_PRESET default)
   set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
+
+  # Check if Clang version has the bug that was fixed in
+  # https://reviews.llvm.org/D93104
+  set(ENABLE_WHITEBOX_UNIT_TESTING ON)
+  check_cxx_compiler_flag("-faccess-control" HAVE_CXX_FLAGfaccess_control)
+  if(NOT HAVE_CXX_FLAGfaccess_control)
+    set(ENABLE_WHITEBOX_UNIT_TESTING OFF)
+    message(STATUS "Disabling white box unit tests")
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
