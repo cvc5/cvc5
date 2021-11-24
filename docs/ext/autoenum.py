@@ -29,13 +29,11 @@ class EnumDocumenter(ClassDocumenter):
                     more_content: Optional[StringList],
                     no_docstring: bool = False) -> None:
         """Add the docstring for this object."""
-        super().add_content(more_content, no_docstring)
 
-        source_name = self.get_sourcename()
-        for line in self.object.__doc__.split('\n'):
-            self.add_line(line, source_name)
-        self.add_line('', source_name)
-        self.add_line('', source_name)
+        # overriding this flag prints __doc__ just as we want to.
+        self.doc_as_attr = False
+        super().add_content(more_content, no_docstring)
+        self.doc_as_attr = True
 
 
 def setup(app: Sphinx) -> None:
