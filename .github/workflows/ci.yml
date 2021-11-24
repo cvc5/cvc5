@@ -3,7 +3,6 @@ name: CI
 
 jobs:
   build:
-    if: github.event == 'push' || github.event == 'pull_request'
     strategy:
       matrix:
         include:
@@ -54,6 +53,7 @@ jobs:
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    if: github.event == 'push' || github.event == 'pull_request'
 
     steps:
 
