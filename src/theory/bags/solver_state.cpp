@@ -46,6 +46,8 @@ void SolverState::registerCountTerm(TNode n)
   Node bag = getRepresentative(n[1]);
   Node element = getRepresentative(n[0]);
   Node count = d_nm->mkNode(BAG_COUNT, element, bag);
+  Trace("SolverState::registerCountTerm")
+      << "registering count term " << n << " as " << count << std::endl;
   d_bagElements[bag].insert(count);
 }
 
