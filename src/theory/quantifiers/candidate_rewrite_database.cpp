@@ -150,6 +150,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
         {
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
+          NodeManager* nm = NodeManager::currentNM();
           is_unique_term = true;
           std::vector<Node> vars;
           d_sampler->getVariables(vars);
@@ -166,7 +167,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
               if (itf == d_fv_to_skolem.end())
               {
                 // not in conjecture, can use arbitrary value
-                val = v.getType().mkGroundTerm();
+                val = nm->mkGroundTerm(v.getType());
               }
               else
               {

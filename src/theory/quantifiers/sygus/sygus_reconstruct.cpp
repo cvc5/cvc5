@@ -442,9 +442,10 @@ Node SygusReconstruct::mkGround(Node n) const
   std::unordered_map<TNode, TNode> subs;
 
   // generate a ground value for each one of those variables
+  NodeManager* nm = NodeManager::currentNM();
   for (const TNode& var : vars)
   {
-    subs.emplace(var, var.getType().mkGroundValue());
+    subs.emplace(var, nm->mkGroundValue(var.getType()));
   }
 
   // substitute the variables with ground values
