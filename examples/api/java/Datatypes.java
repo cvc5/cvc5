@@ -66,7 +66,7 @@ public class Datatypes
         System.out.println(" + arg: " + j.next());
       }
     }
-    System.out.println("\n");
+    System.out.println();
 
     // Alternatively, you can use for each loops.
     for (DatatypeConstructor c : consList)
@@ -78,6 +78,19 @@ public class Datatypes
       }
     }
     System.out.println();
+
+    // You can also define a tester term for constructor 'cons': (_ is cons)
+    Term t_is_cons =
+        slv.mkTerm(Kind.APPLY_TESTER, consList.getConstructor("cons").getTesterTerm(), t);
+    System.out.println("t_is_cons is " + t_is_cons + "\n");
+    slv.assertFormula(t_is_cons);
+    // Updating t at 'head' with value 1 is defined as follows:
+    Term t_updated = slv.mkTerm(Kind.APPLY_UPDATER,
+        consList.getConstructor("cons").getSelector("head").getUpdaterTerm(),
+        t,
+        slv.mkInteger(1));
+    System.out.println("t_updated is " + t_updated + "\n");
+    slv.assertFormula(slv.mkTerm(Kind.DISTINCT, t, t_updated));
 
     // You can also define parameterized datatypes.
     // This example builds a simple parameterized list of sort T, with one
@@ -156,7 +169,7 @@ public class Datatypes
 
       System.out.println("\n"
           + ">>> Alternatively, use declareDatatype");
-      System.out.println("\n");
+      System.out.println();
 
       DatatypeConstructorDecl cons2 = slv.mkDatatypeConstructorDecl("cons");
       cons2.addSelector("head", slv.getIntegerSort());
