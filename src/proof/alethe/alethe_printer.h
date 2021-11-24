@@ -53,21 +53,20 @@ class AletheProofPrinter
    * correspond to the problem assertions.
    */
   std::string printInternal(std::ostream& out,
-                                    std::shared_ptr<ProofNode> pfn);
+                                    std::shared_ptr<ProofNode> pfn,
+				    std::unordered_map<Node,std::string> assumptions,
+				    std::unordered_map<Node,std::string> steps,
+				    std::string current_prefix,
+				    int* current_step_id);
   /** The current level of nesting, which increases if a subproof is entered */
-  size_t d_nested_level;
   /** Current step id */
-  size_t d_step_id;
   /** The current prefix which is updated whenever a subproof is encountered
    *
    * E.g. the prefix "t19.t2." is used when we are under a subproof started at
    * step "t19" and another at "t2" without leaving the first subproof. */
-  std::string d_prefix;
   /** A list of assumption lists, one for every level of the nested proof node
    */
-  std::vector<std::unordered_map<Node, std::string>> d_assumptions;
   /** A list of step lists, one for every level of the nested proof node */
-  std::vector<std::unordered_map<Node, std::string>> d_steps;
 };
 
 }  // namespace proof
