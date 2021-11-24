@@ -126,6 +126,10 @@ option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 # Api documentation
 option(BUILD_DOCS "Build Api documentation")
 
+# Link against static system libraries
+cvc5_option(STATIC_BINARY "Link against static system libraries \
+(enabled by default for static builds)")
+
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
 
@@ -443,6 +447,9 @@ if(BUILD_SHARED_LIBS)
   set(CVC5_STATIC_BUILD OFF)
 else()
   set(CVC5_STATIC_BUILD ON)
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    cvc5_set_option(STATIC_BINARY ON)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
