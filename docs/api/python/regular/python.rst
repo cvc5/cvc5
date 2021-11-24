@@ -1,4 +1,4 @@
-Python API Documentation
+regular Python API
 ========================
 
 .. only:: not bindings_python

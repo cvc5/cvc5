@@ -1,4 +1,4 @@
-Python API Documentation
+Python API
 ========================
 
 .. toctree::
