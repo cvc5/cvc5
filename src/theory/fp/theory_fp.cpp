@@ -684,8 +684,6 @@ void TheoryFp::postCheck(Effort level)
     Trace("fp-abstraction")
         << "TheoryFp::check(): checking abstractions" << std::endl;
     TheoryModel* m = getValuation().getModel();
-    bool lemmaAdded = false;
-
     for (const auto& [abstract, concrete] : d_abstractionMap)
     {
       Trace("fp-abstraction")
@@ -694,7 +692,7 @@ void TheoryFp::postCheck(Effort level)
       {  // Is actually used in the model
         Trace("fp-abstraction")
             << "TheoryFp::check(): ... relevant" << std::endl;
-        lemmaAdded |= refineAbstraction(m, abstract, concrete);
+        refineAbstraction(m, abstract, concrete);
       }
       else
       {
