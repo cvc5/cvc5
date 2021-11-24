@@ -1967,7 +1967,10 @@ void GetInstantiationsCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetInterpolCommand::GetInterpolCommand(const std::string& name, api::Term conj)
-    : d_name(name), d_conj(conj), d_resultStatus(false)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar(nullptr),
+      d_resultStatus(false)
 {
 }
 GetInterpolCommand::GetInterpolCommand(const std::string& name,
@@ -2057,7 +2060,10 @@ void GetInterpolCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetAbductCommand::GetAbductCommand(const std::string& name, api::Term conj)
-    : d_name(name), d_conj(conj), d_resultStatus(false)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar(nullptr),
+      d_resultStatus(false)
 {
 }
 GetAbductCommand::GetAbductCommand(const std::string& name,

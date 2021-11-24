@@ -374,10 +374,9 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out,
-                       Language language = Language::LANG_AUTO) const
+  inline void toStream(std::ostream& out) const
   {
-    d_nv->toStream(out, -1, 0, language);
+    d_nv->toStream(out, -1, 0);
   }
 
   /**
@@ -729,7 +728,7 @@ private:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
-  n.toStream(out, options::ioutils::getOutputLang(out));
+  n.toStream(out);
   return out;
 }
 

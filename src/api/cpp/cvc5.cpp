@@ -5247,14 +5247,14 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
 
 Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
 {
-  // Note: Op and children are checked in the caller to avoid double checks
-  checkMkTerm(op.d_kind, children.size());
-  //////// all checks before this line
-
   if (!op.isIndexedHelper())
   {
     return mkTermHelper(op.d_kind, children);
   }
+
+  // Note: Op and children are checked in the caller to avoid double checks
+  checkMkTerm(op.d_kind, children.size());
+  //////// all checks before this line
 
   const cvc5::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Node> echildren = Term::termVectorToNodes(children);
