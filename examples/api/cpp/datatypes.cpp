@@ -93,7 +93,7 @@ void test(Solver& slv, Sort& consListSort)
                               consList["cons"]["head"].getUpdaterTerm(),
                               t,
                               slv.mkInteger(1));
-  std::cout << "t_upated is " << t_updated << std::endl << std::endl;
+  std::cout << "t_updated is " << t_updated << std::endl << std::endl;
   slv.assertFormula(slv.mkTerm(DISTINCT, t, t_updated));
 
   // You can also define parameterized datatypes.
