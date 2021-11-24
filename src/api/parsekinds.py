@@ -128,10 +128,9 @@ class KindsParser:
             "Expecting to end with / but got %s" % comment[-1]
         res = ""
         for line in comment.strip("/* \t").split("\n"):
-            line = line.strip("*")
-            if line:
-                res += line
-                res += "\n"
+            line = line.replace('\\rst', '').replace('\\endrst', '')
+            line = line.strip("*") + "\n"
+            res += line
         return res
 
     def ignore_block(self, line):
