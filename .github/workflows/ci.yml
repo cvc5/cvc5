@@ -114,6 +114,7 @@ jobs:
 
   autoupdate:
     runs-on: ubuntu-latest
+    needs: build
     if: github.repository == 'cvc5/cvc5' && github.event == 'push'
     steps:
       - name: Automatically update PR
