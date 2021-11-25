@@ -67,11 +67,11 @@ prefix).
    * @return The full id (including the prefix) of the last step of pfn.
    */
   std::string printInternal(std::ostream& out,
-                                    std::shared_ptr<ProofNode> pfn,
-				    std::unordered_map<Node,std::string> assumptions,
-				    std::unordered_map<Node,std::string> steps,
-				    std::string current_prefix,
-				    int* current_step_id);
+                            std::shared_ptr<ProofNode> pfn,
+                            std::unordered_map<Node, std::string> assumptions,
+                            std::unordered_map<Node, std::string> steps,
+                            std::string current_prefix,
+                            int* current_step_id);
 };
 
 }  // namespace proof

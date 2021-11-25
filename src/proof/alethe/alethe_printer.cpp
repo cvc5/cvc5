@@ -24,20 +24,19 @@ namespace cvc5 {
 
 namespace proof {
 
-AletheProofPrinter::AletheProofPrinter(){}
+AletheProofPrinter::AletheProofPrinter() {}
 
 void AletheProofPrinter::print(std::ostream& out,
                                std::shared_ptr<ProofNode> pfn)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
-  std::unordered_map<Node,std::string> assumptions;
+  std::unordered_map<Node, std::string> assumptions;
   const std::vector<Node>& args = pfn->getArguments();
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
   for (size_t i = 3, size = args.size(); i < size; i++)
   {
-    Trace("alethe-printer")
-        << "... print assumption " << args[i] << std::endl;
+    Trace("alethe-printer") << "... print assumption " << args[i] << std::endl;
     out << "(assume a" << i - 3 << " " << args[i] << ")\n";
     assumptions[args[i]] = "a" + std::to_string(i - 3);
   }
@@ -48,11 +47,12 @@ void AletheProofPrinter::print(std::ostream& out,
 }
 
 std::string AletheProofPrinter::printInternal(
-    std::ostream& out, std::shared_ptr<ProofNode> pfn,
-				    std::unordered_map<Node,std::string> assumptions,
-				    std::unordered_map<Node,std::string> steps,
-				    std::string current_prefix,
-				    int* current_step_id)
+    std::ostream& out,
+    std::shared_ptr<ProofNode> pfn,
+    std::unordered_map<Node, std::string> assumptions,
+    std::unordered_map<Node, std::string> steps,
+    std::string current_prefix,
+    int* current_step_id)
 {
   int current_step_id_temp = *current_step_id;
   std::vector<std::string> new_assumptions;
@@ -102,9 +102,8 @@ std::string AletheProofPrinter::printInternal(
       out << " :args (";
       for (unsigned long int j = 3, size = args.size(); j < size; j++)
       {
-        out << "(:= (" << args[j][0] << " "
-            << args[j][0].getType() << ") " << args[j][1]
-            << ")";
+        out << "(:= (" << args[j][0] << " " << args[j][0].getType() << ") "
+            << args[j][1] << ")";
         if (j != args.size() - 1)
         {
           out << " ";
@@ -116,18 +115,19 @@ std::string AletheProofPrinter::printInternal(
     out << ")\n";
 
     // If the subproof is a genuine subproof the arguments are printed as
-    // assumptions. To be able to discharge the assumptions afterwards we need to store them.
+    // assumptions. To be able to discharge the assumptions afterwards we need
+    // to store them.
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
       for (size_t i = 3, size = args.size(); i < size; i++)
       {
-	std::string assumption_name = current_prefix + ".a" + std::to_string(i-3);
+        std::string assumption_name =
+            current_prefix + ".a" + std::to_string(i - 3);
         Trace("alethe-printer")
             << "... print assumption " << args[i] << std::endl;
-        out << "(assume " << assumption_name << " "
-            << args[i] << ")\n";
+        out << "(assume " << assumption_name << " " << args[i] << ")\n";
         assumptions[args[i]] = assumption_name;
-	new_assumptions.push_back(assumption_name);
+        new_assumptions.push_back(assumption_name);
       }
     }
   }
@@ -143,37 +143,36 @@ std::string AletheProofPrinter::printInternal(
     auto it = assumptions.find(args[2]);
     if (it != assumptions.end())
     {
-      Trace("alethe-printer")
-          << "... found assumption in list " << ": " << args[2]
-          << "/" << assumptions << "     " << it->second << std::endl;
+      Trace("alethe-printer") << "... found assumption in list "
+                              << ": " << args[2] << "/" << assumptions
+                              << "     " << it->second << std::endl;
       return it->second;
     }
 
-
-    Trace("alethe-printer")
-        << "... printing failed! Encountered assumption "
-           "that has not been printed! "
-        << args[2] << "/" << assumptions << std::endl;
+    Trace("alethe-printer") << "... printing failed! Encountered assumption "
+                               "that has not been printed! "
+                            << args[2] << "/" << assumptions << std::endl;
     return "";
   }
 
   // Print children
   std::vector<std::string> child_prefixes;
   std::string current_prefix_temp = current_prefix;
-  if(current_prefix != "" && current_prefix.back() != '.'){
+  if (current_prefix != "" && current_prefix.back() != '.')
+  {
     current_prefix_temp.append(".");
   }
   for (const std::shared_ptr<ProofNode> child : pfn->getChildren())
   {
-    child_prefixes.push_back(printInternal(out, child, assumptions, steps, current_prefix_temp, current_step_id));
+    child_prefixes.push_back(printInternal(
+        out, child, assumptions, steps, current_prefix_temp, current_step_id));
   }
-
 
   // If the rule is a subproof a final subproof step needs to be printed
   if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
   {
-    Trace("alethe-printer") << "... print anchor node " << pfn->getResult() << " "
-                            << arule << " / " << args << std::endl;
+    Trace("alethe-printer") << "... print anchor node " << pfn->getResult()
+                            << " " << arule << " / " << args << std::endl;
 
     out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
 
