@@ -55,15 +55,15 @@ class AletheProofPrinter
    * @param out The stream to write to
    * @param pfn The proof node to be printed
    * @param assumptions The list of assumptions made before the current step,
-that can be accessed as premises in it
+   * that are visible as premises to that step
    * @param steps The list of steps occuring before the current step, that can
-be accessed as premises in it
+   * that are visible as premises to that step
    * @param current_prefix The current prefix which is updated whenever a
-subproof is encountered E.g., the prefix "t19.t2." is used when we are under a
-subproof started at step "t19" and another at "t2" without leaving the first
-subproof.
+   * subproof is encountered E.g., the prefix "t19.t2." is used when we are under a
+   * subproof started at step "t19" and another at "t2" without leaving the first
+   * subproof.
    * @param current_step_id The id of a step within a subproof (without the
-prefix).
+   * prefix).
    * @return The full id (including the prefix) of the last step of pfn.
    */
   std::string printInternal(std::ostream& out,
