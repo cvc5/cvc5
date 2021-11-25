@@ -43,7 +43,7 @@ void AletheProofPrinter::print(std::ostream& out,
 
   // Then, print the rest of the proof node
   int one = 1;
-  printInternal(out, pfn->getChildren()[0], assumptions, {}, "", &one);
+  printInternal(out, pfn->getChildren()[0], assumptions, {}, "", one);
 }
 
 std::string AletheProofPrinter::printInternal(
@@ -52,9 +52,9 @@ std::string AletheProofPrinter::printInternal(
     std::unordered_map<Node, std::string> assumptions,
     std::unordered_map<Node, std::string> steps,
     std::string current_prefix,
-    int* current_step_id)
+    int& current_step_id)
 {
-  int current_step_id_temp = *current_step_id;
+  int current_step_id_temp = current_step_id;
   std::vector<std::string> new_assumptions;
   const std::vector<Node>& args = pfn->getArguments();
 
@@ -89,11 +89,11 @@ std::string AletheProofPrinter::printInternal(
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << arule << " "
         << " / " << args << std::endl;
-    out << "(anchor :step " << current_prefix << "t" << *current_step_id;
+    out << "(anchor :step " << current_prefix << "t" << current_step_id;
 
     // Append index of anchor to prefix so that all steps in the subproof use it
-    current_prefix.append("t" + std::to_string(*current_step_id));
-    *current_step_id = 1;
+    current_prefix.append("t" + std::to_string(current_step_id));
+    current_step_id = 1;
 
     // If the subproof is a bind the arguments need to be printed as
     // assignments, i.e. args=[(= v0 v1)] is printed as (:= (v0 Int) v1).
@@ -176,7 +176,7 @@ std::string AletheProofPrinter::printInternal(
 
     out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
 
-    *current_step_id = current_step_id_temp + 1;
+    current_step_id = current_step_id_temp + 1;
     // Discharge assumptions in the case of subproof
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
@@ -210,10 +210,10 @@ std::string AletheProofPrinter::printInternal(
   Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
                           << arule << " / " << args << std::endl;
   std::string current_t =
-      current_prefix + "t" + std::to_string(*current_step_id);
+      current_prefix + "t" + std::to_string(current_step_id);
   out << "(step " << current_t << " ";
   out << args[2] << " :rule " << arule;
-  *current_step_id = *current_step_id + 1;
+  current_step_id = current_step_id + 1;
   if (args.size() > 3)
   {
     out << " :args (";
