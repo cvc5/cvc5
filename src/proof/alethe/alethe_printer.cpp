@@ -44,7 +44,7 @@ void AletheProofPrinter::print(std::ostream& out,
 
   // Then, print the rest of the proof node
   int one = 1;
-  printInternal(out, pfn->getChildren()[0],assumptions,{},"",&one);
+  printInternal(out, pfn->getChildren()[0], assumptions, {}, "", &one);
 }
 
 std::string AletheProofPrinter::printInternal(
@@ -210,7 +210,8 @@ std::string AletheProofPrinter::printInternal(
   // Print current step
   Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
                           << arule << " / " << args << std::endl;
-  std::string current_t = current_prefix + "t" + std::to_string(*current_step_id);
+  std::string current_t =
+      current_prefix + "t" + std::to_string(*current_step_id);
   out << "(step " << current_t << " ";
   out << args[2] << " :rule " << arule;
   *current_step_id = *current_step_id + 1;
