@@ -26,6 +26,7 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 #include "options/proof_options.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "theory/builtin/proof_checker.h"
@@ -2606,7 +2607,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;
     // TODO: MAKE THIS WORK
-    // d_pnm->updateNode(pf.get(), npn.get());
+    d_pnm->updateNode(pf.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
   }
 
