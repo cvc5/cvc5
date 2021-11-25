@@ -42,8 +42,7 @@ void AletheProofPrinter::print(std::ostream& out,
   }
 
   // Then, print the rest of the proof node
-  int one = 1;
-  printInternal(out, pfn->getChildren()[0], assumptions, {}, "", one);
+  printInternal(out, pfn->getChildren()[0], assumptions, {}, "", 1);
 }
 
 std::string AletheProofPrinter::printInternal(
