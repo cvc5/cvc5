@@ -24,32 +24,24 @@ namespace cvc5 {
 
 namespace proof {
 
-AletheProofPrinter::AletheProofPrinter()
-{
-  d_nested_level = 0;
-  d_step_id = 1;
-  d_prefix = "";
-  d_assumptions.push_back({});
-  d_steps.push_back({});
-}
-
 void AletheProofPrinter::print(std::ostream& out,
                                std::shared_ptr<ProofNode> pfn)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
+  std::unordered_map<Node, std::string> assumptions;
   const std::vector<Node>& args = pfn->getArguments();
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
   for (size_t i = 3, size = args.size(); i < size; i++)
   {
-    Trace("alethe-printer")
-        << "... print assumption " << args[i] << std::endl;
+    Trace("alethe-printer") << "... print assumption " << args[i] << std::endl;
     out << "(assume a" << i - 3 << " " << args[i] << ")\n";
-    d_assumptions[0][args[i]] = i - 3;
+    assumptions[args[i]] = "a" + std::to_string(i - 3);
   }
 
   // Then, print the rest of the proof node
-  printInternal(out, pfn->getChildren()[0]);
+  int start_t = 1;
+  printInternal(out, pfn->getChildren()[0], assumptions, {}, "", start_t);
 }
 
 std::string AletheProofPrinter::printInternal(
