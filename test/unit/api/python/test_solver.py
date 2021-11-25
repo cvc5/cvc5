@@ -696,8 +696,22 @@ def test_mk_term(solver):
 
     # mkTerm(Kind kind) const
     solver.mkPi()
+    solver.mkTerm(kinds.Pi)
+    solver.mkTerm(kinds.Pi, v6)
+    solver.mkTerm(solver.mkOp(kinds.Pi))
+    solver.mkTerm(solver.mkOp(kinds.Pi), v6)
     solver.mkTerm(kinds.RegexpNone)
+    solver.mkTerm(kinds.RegexpNone, v6)
+    solver.mkTerm(solver.mkOp(kinds.RegexpNone))
+    solver.mkTerm(solver.mkOp(kinds.RegexpNone), v6)
     solver.mkTerm(kinds.RegexpAllchar)
+    solver.mkTerm(kinds.RegexpAllchar, v6)
+    solver.mkTerm(solver.mkOp(kinds.RegexpAllchar))
+    solver.mkTerm(solver.mkOp(kinds.RegexpAllchar), v6)
+    solver.mkTerm(kinds.SepEmp)
+    solver.mkTerm(kinds.SepEmp, v6)
+    solver.mkTerm(solver.mkOp(kinds.SepEmp))
+    solver.mkTerm(solver.mkOp(kinds.SepEmp), v6)
     with pytest.raises(RuntimeError):
         solver.mkTerm(kinds.ConstBV)
 
