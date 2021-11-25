@@ -658,8 +658,21 @@ TEST_F(TestApiBlackSolver, mkTerm)
 
   // mkTerm(Kind kind) const
   ASSERT_NO_THROW(d_solver.mkTerm(PI));
+  ASSERT_NO_THROW(d_solver.mkTerm(PI, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(PI)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(PI), v6));
   ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_NONE)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_NONE), v6));
   ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_ALLCHAR)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_ALLCHAR), v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(SEP_EMP));
+  ASSERT_NO_THROW(d_solver.mkTerm(SEP_EMP, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SEP_EMP)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SEP_EMP), v6));
   ASSERT_THROW(d_solver.mkTerm(CONST_BITVECTOR), CVC5ApiException);
 
   // mkTerm(Kind kind, Term child) const
