@@ -85,7 +85,8 @@ std::string AletheProofPrinter::printInternal(
       return it->second;
     }
 
-    // Otherwise, print anchor
+    // Otherwise, add it to the list of steps and print anchor
+    steps.push_back(args[2]);
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << arule << " "
         << " / " << args << std::endl;
@@ -201,7 +202,6 @@ std::string AletheProofPrinter::printInternal(
 
   // If the current step is already printed return its id
   auto it = steps.find(args[2]);
-
   if (it != steps.end())
   {
     Trace("alethe-printer")
@@ -211,6 +211,7 @@ std::string AletheProofPrinter::printInternal(
   }
 
   // Print current step
+  steps.push_back(args[2]);
   Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
                           << arule << " / " << args << std::endl;
   std::string current_t =
