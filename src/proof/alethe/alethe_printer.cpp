@@ -54,8 +54,8 @@ std::string AletheProofPrinter::printInternal(
     std::string current_prefix,
     int& current_step_id)
 {
-  int current_step_id_temp = current_step_id;
-  std::vector<std::string> new_assumptions;
+  int step_id = current_step_id;
+  std::vector<std::string> current_assumptions;
   const std::vector<Node>& args = pfn->getArguments();
 
   // If the proof node is untranslated a problem might have occured during
@@ -93,6 +93,8 @@ std::string AletheProofPrinter::printInternal(
 
     // Append index of anchor to prefix so that all steps in the subproof use it
     current_prefix.append("t" + std::to_string(current_step_id));
+
+    // Reset the current step id s.t. the numbering inside the subproof starts with 1
     current_step_id = 1;
 
     // If the subproof is a bind the arguments need to be printed as
@@ -100,7 +102,7 @@ std::string AletheProofPrinter::printInternal(
     if (arule == AletheRule::ANCHOR_BIND)
     {
       out << " :args (";
-      for (unsigned long int j = 3, size = args.size(); j < size; j++)
+      for (size_t j = 3, size = args.size(); j < size; j++)
       {
         out << "(:= (" << args[j][0] << " " << args[j][0].getType() << ") "
             << args[j][1] << ")";
@@ -127,7 +129,7 @@ std::string AletheProofPrinter::printInternal(
             << "... print assumption " << args[i] << std::endl;
         out << "(assume " << assumption_name << " " << args[i] << ")\n";
         assumptions[args[i]] = assumption_name;
-        new_assumptions.push_back(assumption_name);
+        current_assumptions.push_back(assumption_name);
       }
     }
   }
@@ -157,15 +159,15 @@ std::string AletheProofPrinter::printInternal(
 
   // Print children
   std::vector<std::string> child_prefixes;
-  std::string current_prefix_temp = current_prefix;
+  std::string prefix = current_prefix;
   if (current_prefix != "" && current_prefix.back() != '.')
   {
-    current_prefix_temp.append(".");
+    prefix.append(".");
   }
   for (const std::shared_ptr<ProofNode> child : pfn->getChildren())
   {
     child_prefixes.push_back(printInternal(
-        out, child, assumptions, steps, current_prefix_temp, current_step_id));
+        out, child, assumptions, steps, prefix, current_step_id));
   }
 
   // If the rule is a subproof a final subproof step needs to be printed
@@ -176,15 +178,18 @@ std::string AletheProofPrinter::printInternal(
 
     out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
 
-    current_step_id = current_step_id_temp + 1;
+    // Reset step id to the number before the subproof + 1
+    current_step_id = step_id + 1;
+
     // Discharge assumptions in the case of subproof
+    // The assumptions of this level have been stored in current_assumptions
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
       out << " :discharge (";
-      for (unsigned long int j = 0; j < new_assumptions.size(); j++)
+      for (unsigned long int j = 0; j < current_assumptions.size(); j++)
       {
-        out << new_assumptions[j];
-        if (j != new_assumptions.size() - 1)
+        out << current_assumptions[j];
+        if (j != current_assumptions.size() - 1)
         {
           out << " ";
         }
