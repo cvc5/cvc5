@@ -696,8 +696,22 @@ def test_mk_term(solver):
 
     # mkTerm(Kind kind) const
     solver.mkPi()
+    solver.mkTerm(Kind.Pi)
+    solver.mkTerm(Kind.Pi, v6)
+    solver.mkTerm(solver.mkOp(kinds.Pi))
+    solver.mkTerm(solver.mkOp(kinds.Pi), v6)
     solver.mkTerm(Kind.RegexpNone)
+    solver.mkTerm(Kind.RegexpNone, v6)
+    solver.mkTerm(solver.mkOp(kinds.RegexpNone))
+    solver.mkTerm(solver.mkOp(kinds.RegexpNone), v6)
     solver.mkTerm(Kind.RegexpAllchar)
+    solver.mkTerm(Kind.RegexpAllchar, v6)
+    solver.mkTerm(solver.mkOp(kinds.RegexpAllchar))
+    solver.mkTerm(solver.mkOp(kinds.RegexpAllchar), v6)
+    solver.mkTerm(Kind.SepEmp)
+    solver.mkTerm(Kind.SepEmp, v6)
+    solver.mkTerm(solver.mkOp(kinds.SepEmp))
+    solver.mkTerm(solver.mkOp(kinds.SepEmp), v6)
     with pytest.raises(RuntimeError):
         solver.mkTerm(Kind.ConstBV)
 
@@ -749,7 +763,7 @@ def test_mk_term(solver):
 
     # Test cases that are nary via the API but have arity = 2 internally
     s_bool = solver.getBooleanSort()
-    t_bool = solver.mkConst(s_boo, "t_bool")
+    t_bool = solver.mkConst(s_bool, "t_bool")
     solver.mkTerm(kinds.Implies, [t_bool, t_bool, t_bool])
     solver.mkTerm(kinds.Xor, [t_bool, t_bool, t_bool])
     solver.mkTerm(solver.mkOp(kinds.Xor), [t_bool, t_bool, t_bool])
