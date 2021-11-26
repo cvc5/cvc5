@@ -56,8 +56,8 @@ class AletheProofPrinter
    * @param pfn The proof node to be printed
    * @param assumptions The list of assumptions made before the current step,
    * that are visible as premises to that step
-   * @param steps The list of steps occuring before the current step, that can
-   * that are visible as premises to that step
+   * @param steps The list of steps occurring before the current step, that are
+   * visible as premises to that step
    * @param current_prefix The current prefix which is updated whenever a
    * subproof is encountered E.g., the prefix "t19.t2." is used when we are
    * under a subproof started at step "t19" and another at "t2" without leaving
