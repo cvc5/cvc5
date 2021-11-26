@@ -188,13 +188,10 @@ std::string AletheProofPrinter::printInternal(
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
       out << " :discharge (";
-      for (unsigned long int j = 0; j < current_assumptions.size(); j++)
+      for (size j = 0, size = current_assumptions.size(); j < size; j++)
       {
-        out << current_assumptions[j];
-        if (j != current_assumptions.size() - 1)
-        {
-          out << " ";
-        }
+        out << current_assumptions[j]
+            << (j != current_assumptions.size() - 1 ? " " : "");
       }
       out << ")";
     }
