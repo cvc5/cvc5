@@ -241,13 +241,9 @@ std::string AletheProofPrinter::printInternal(
   if (pfn->getChildren().size() >= 1)
   {
     out << " :premises (";
-    for (unsigned long int i = 0, size = child_prefixes.size(); i < size; i++)
+    for (size_t i = 0, size = child_prefixes.size(); i < size; i++)
     {
-      out << child_prefixes[i];
-      if (i != child_prefixes.size() - 1)
-      {
-        out << " ";
-      }
+      out << child_prefixes[i] << (i != size - 1? " " : "");
     }
     out << "))\n";
   }
