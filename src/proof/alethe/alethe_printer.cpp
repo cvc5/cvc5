@@ -165,7 +165,7 @@ std::string AletheProofPrinter::printInternal(
   {
     prefix.append(".");
   }
-  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
   for (const std::shared_ptr<ProofNode>& child : children)
   {
     child_prefixes.push_back(
@@ -188,7 +188,7 @@ std::string AletheProofPrinter::printInternal(
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
       out << " :discharge (";
-      for (size j = 0, size = current_assumptions.size(); j < size; j++)
+      for (size_t j = 0, size = current_assumptions.size(); j < size; j++)
       {
         out << current_assumptions[j]
             << (j != current_assumptions.size() - 1 ? " " : "");
