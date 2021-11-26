@@ -85,7 +85,8 @@ std::string AletheProofPrinter::printInternal(
       return it->second;
     }
 
-    // Otherwise, print anchor
+    // Otherwise, add it to the list of steps and print anchor
+    steps.push_back(args[2]);
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << arule << " "
         << " / " << args << std::endl;
@@ -94,7 +95,8 @@ std::string AletheProofPrinter::printInternal(
     // Append index of anchor to prefix so that all steps in the subproof use it
     current_prefix.append("t" + std::to_string(current_step_id));
 
-    // Reset the current step id s.t. the numbering inside the subproof starts with 1
+    // Reset the current step id s.t. the numbering inside the subproof starts
+    // with 1
     current_step_id = 1;
 
     // If the subproof is a bind the arguments need to be printed as
@@ -164,10 +166,11 @@ std::string AletheProofPrinter::printInternal(
   {
     prefix.append(".");
   }
-  for (const std::shared_ptr<ProofNode> child : pfn->getChildren())
+  const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
+  for (const std::shared_ptr<ProofNode>& child : children)
   {
-    child_prefixes.push_back(printInternal(
-        out, child, assumptions, steps, prefix, current_step_id));
+    child_prefixes.push_back(
+        printInternal(out, child, assumptions, steps, prefix, current_step_id));
   }
 
   // If the rule is a subproof a final subproof step needs to be printed
@@ -186,13 +189,10 @@ std::string AletheProofPrinter::printInternal(
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
       out << " :discharge (";
-      for (unsigned long int j = 0; j < current_assumptions.size(); j++)
+      for (size_t j = 0, size = current_assumptions.size(); j < size; j++)
       {
-        out << current_assumptions[j];
-        if (j != current_assumptions.size() - 1)
-        {
-          out << " ";
-        }
+        out << current_assumptions[j]
+            << (j != current_assumptions.size() - 1 ? " " : "");
       }
       out << ")";
     }
@@ -202,7 +202,6 @@ std::string AletheProofPrinter::printInternal(
 
   // If the current step is already printed return its id
   auto it = steps.find(args[2]);
-
   if (it != steps.end())
   {
     Trace("alethe-printer")
@@ -212,13 +211,13 @@ std::string AletheProofPrinter::printInternal(
   }
 
   // Print current step
+  steps.push_back(args[2]);
   Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
                           << arule << " / " << args << std::endl;
   std::string current_t =
       current_prefix + "t" + std::to_string(current_step_id);
-  out << "(step " << current_t << " ";
-  out << args[2] << " :rule " << arule;
-  current_step_id = current_step_id + 1;
+  out << "(step " << current_t << " " << args[2] << " :rule " << arule;
+  current_step_id++;
   if (args.size() > 3)
   {
     out << " :args (";
@@ -242,13 +241,9 @@ std::string AletheProofPrinter::printInternal(
   if (pfn->getChildren().size() >= 1)
   {
     out << " :premises (";
-    for (unsigned long int i = 0, size = child_prefixes.size(); i < size; i++)
+    for (size_t i = 0, size = child_prefixes.size(); i < size; i++)
     {
-      out << child_prefixes[i];
-      if (i != child_prefixes.size() - 1)
-      {
-        out << " ";
-      }
+      out << child_prefixes[i] << (i != size - 1? " " : "");
     }
     out << "))\n";
   }
