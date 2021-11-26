@@ -24,6 +24,8 @@ namespace cvc5 {
 
 namespace proof {
 
+AletheProofPrinter::AletheProofPrinter() {}
+
 void AletheProofPrinter::print(std::ostream& out,
                                std::shared_ptr<ProofNode> pfn)
 {
