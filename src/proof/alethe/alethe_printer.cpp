@@ -165,7 +165,8 @@ std::string AletheProofPrinter::printInternal(
   {
     prefix.append(".");
   }
-  for (const std::shared_ptr<ProofNode> child : pfn->getChildren())
+  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+  for (const std::shared_ptr<ProofNode>& child : children)
   {
     child_prefixes.push_back(
         printInternal(out, child, assumptions, steps, prefix, current_step_id));
