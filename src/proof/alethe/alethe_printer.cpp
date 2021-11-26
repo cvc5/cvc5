@@ -215,9 +215,8 @@ std::string AletheProofPrinter::printInternal(
                           << arule << " / " << args << std::endl;
   std::string current_t =
       current_prefix + "t" + std::to_string(current_step_id);
-  out << "(step " << current_t << " ";
-  out << args[2] << " :rule " << arule;
-  current_step_id = current_step_id + 1;
+  out << "(step " << current_t << " " << args[2] << " :rule " << arule;
+  current_step_id++;
   if (args.size() > 3)
   {
     out << " :args (";
