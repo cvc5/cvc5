@@ -88,7 +88,6 @@ std::string AletheProofPrinter::printInternal(
     // Otherwise, print anchor
     std::string current_t =
         current_prefix + "t" + std::to_string(current_step_id);
-    steps[args[2]] = current_t;
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << arule << " "
         << " / " << args << std::endl;
@@ -182,6 +181,8 @@ std::string AletheProofPrinter::printInternal(
                             << " " << arule << " / " << args << std::endl;
 
     out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
+
+    steps[args[2]] = current_prefix;
 
     // Reset step id to the number before the subproof + 1
     current_step_id = step_id + 1;
