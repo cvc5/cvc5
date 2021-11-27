@@ -85,12 +85,14 @@ std::string AletheProofPrinter::printInternal(
       return it->second;
     }
 
-    // Otherwise, add it to the list of steps and print anchor
-    steps.push_back(args[2]);
+    // Otherwise, print anchor
+    std::string current_t =
+        current_prefix + "t" + std::to_string(current_step_id);
+    steps[args[2]] = current_t;
     Trace("alethe-printer")
         << "... print anchor " << pfn->getResult() << " " << arule << " "
         << " / " << args << std::endl;
-    out << "(anchor :step " << current_prefix << "t" << current_step_id;
+    out << "(anchor :step " << current_t;
 
     // Append index of anchor to prefix so that all steps in the subproof use it
     current_prefix.append("t" + std::to_string(current_step_id));
@@ -161,16 +163,16 @@ std::string AletheProofPrinter::printInternal(
 
   // Print children
   std::vector<std::string> child_prefixes;
-  std::string prefix = current_prefix;
+  std::string new_prefix = current_prefix;
   if (current_prefix != "" && current_prefix.back() != '.')
   {
-    prefix.append(".");
+    new_prefix.append(".");
   }
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
   for (const std::shared_ptr<ProofNode>& child : children)
   {
-    child_prefixes.push_back(
-        printInternal(out, child, assumptions, steps, prefix, current_step_id));
+    child_prefixes.push_back(printInternal(
+        out, child, assumptions, steps, new_prefix, current_step_id));
   }
 
   // If the rule is a subproof a final subproof step needs to be printed
@@ -211,11 +213,11 @@ std::string AletheProofPrinter::printInternal(
   }
 
   // Print current step
-  steps.push_back(args[2]);
   Trace("alethe-printer") << "... print node " << pfn->getResult() << " "
                           << arule << " / " << args << std::endl;
   std::string current_t =
       current_prefix + "t" + std::to_string(current_step_id);
+  steps[args[2]] = current_t;
   out << "(step " << current_t << " " << args[2] << " :rule " << arule;
   current_step_id++;
   if (args.size() > 3)
