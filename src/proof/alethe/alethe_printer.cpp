@@ -94,7 +94,7 @@ std::string AletheProofPrinter::printInternal(
     out << "(anchor :step " << current_t;
 
     // Append index of anchor to prefix so that all steps in the subproof use it
-    current_prefix.append("t" + std::to_string(current_step_id));
+    current_prefix.append("t" + std::to_string(current_step_id) + ".");
 
     // Reset the current step id s.t. the numbering inside the subproof starts
     // with 1
@@ -127,7 +127,7 @@ std::string AletheProofPrinter::printInternal(
       for (size_t i = 3, size = args.size(); i < size; i++)
       {
         std::string assumption_name =
-            current_prefix + ".a" + std::to_string(i - 3);
+            current_prefix + "a" + std::to_string(i - 3);
         Trace("alethe-printer")
             << "... print assumption " << args[i] << std::endl;
         out << "(assume " << assumption_name << " " << args[i] << ")\n";
@@ -162,16 +162,12 @@ std::string AletheProofPrinter::printInternal(
 
   // Print children
   std::vector<std::string> child_prefixes;
-  std::string new_prefix = current_prefix;
-  if (current_prefix != "" && current_prefix.back() != '.')
-  {
-    new_prefix.append(".");
-  }
+
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
   for (const std::shared_ptr<ProofNode>& child : children)
   {
     child_prefixes.push_back(printInternal(
-        out, child, assumptions, steps, new_prefix, current_step_id));
+        out, child, assumptions, steps, current_prefix, current_step_id));
   }
 
   // If the rule is a subproof a final subproof step needs to be printed
@@ -180,6 +176,7 @@ std::string AletheProofPrinter::printInternal(
     Trace("alethe-printer") << "... print anchor node " << pfn->getResult()
                             << " " << arule << " / " << args << std::endl;
 
+    current_prefix.pop_back();
     out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
 
     steps[args[2]] = current_prefix;
