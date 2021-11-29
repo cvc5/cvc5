@@ -2530,12 +2530,9 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
       Assert(d_partialModel.canBeReleased(v));
       if(!d_tableau.isBasic(v)){
         /* if it is not basic make it basic. */
-        ArithVar b = ARITHVAR_SENTINEL;
-        for(Tableau::ColIterator ci = d_tableau.colIterator(v); !ci.atEnd(); ++ci){
-          const Tableau::Entry& e = *ci;
-          b = d_tableau.rowIndexToBasic(e.getRowIndex());
-          break;
-        }
+        auto ci = d_tableau.colIterator(v);
+        Assert(!ci.atEnd());
+        ArithVar b = d_tableau.rowIndexToBasic(ci->getRowIndex());
         Assert(b != ARITHVAR_SENTINEL);
         DeltaRational cp = d_partialModel.getAssignment(b);
         if(d_partialModel.cmpAssignmentLowerBound(b) < 0){
