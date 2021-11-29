@@ -1,3 +1,4 @@
+; REQUIRES: poly
 (set-logic QF_NRA)
 (set-info :status sat)
 (declare-fun a () Real)
