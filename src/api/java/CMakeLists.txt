@@ -143,6 +143,7 @@ add_jar(cvc5jar
 
 add_dependencies(cvc5jar generate-java-kinds cvc5jni cvc5)
 
+# install in the same directory of cvc5-targets
 install(TARGETS cvc5jni
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
