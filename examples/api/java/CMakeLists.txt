@@ -14,7 +14,6 @@
 ##
 
 set(EXAMPLES_API_JAVA
-  # disabled until bindings for the new API are in place (issue #2284)
    BitVectors
    BitVectorsAndArrays
    Combination

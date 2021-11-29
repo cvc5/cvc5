@@ -95,13 +95,13 @@ if(TARGET cvc5::cvc5jar)
     get_filename_component(LIB_PATH ${LIB} DIRECTORY)
     set(JNI_LIBRARIES_PATHS "${JNI_LIBRARIES_PATHS}${LIB_PATH}:")
   endforeach()
+
   message(STATUS "JNI_LIBRARIES_PATHS: ${JNI_LIBRARIES_PATHS}")
   get_target_property(CVC5_LIB_FILE cvc5::cvc5 LOCATION)
   get_filename_component(CVC5_JNI_PATH ${CVC5_LIB_FILE} DIRECTORY)
   message(STATUS "CVC5_JNI_PATH: ${CVC5_JNI_PATH}")
 
 
-  # disabled until bindings for the new API are in place (issue #2284)
   get_target_property(CVC5_JAR cvc5::cvc5jar JAR_FILE)
   message(STATUS "cvc5jar: ${CVC5_JAR}")
 
@@ -114,9 +114,8 @@ if(TARGET cvc5::cvc5jar)
         -Djava.library.path=${CVC5_JNI_PATH}
         SimpleVC
   )
- set_tests_properties(java/SimpleVC PROPERTIES
-   ENVIRONMENT "LD_LIBRARY_PATH=${JNI_LIBRARIES_PATHS}")
-  # TODO(project wishue #83): enable java examples
+  set_tests_properties(java/SimpleVC PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=${JNI_LIBRARIES_PATHS}")
   add_subdirectory(api/java)
 endif()
 
