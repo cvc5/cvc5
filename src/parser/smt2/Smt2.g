@@ -102,7 +102,6 @@ namespace cvc5 {
 
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
-#include "options/set_language.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2.h"

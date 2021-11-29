@@ -114,9 +114,9 @@ class OptionsHandler
 
   /******************************* expr options *******************************/
   /** Set ExprSetDepth on all output streams */
-  void setDefaultExprDepth(const std::string& flag, int depth);
+  void setDefaultExprDepth(const std::string& flag, int64_t depth);
   /** Set ExprDag on all output streams */
-  void setDefaultDagThresh(const std::string& flag, int dag);
+  void setDefaultDagThresh(const std::string& flag, int64_t dag);
 
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */

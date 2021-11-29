@@ -102,7 +102,7 @@ class NodeValue
       return iterator<NodeTemplate<true> >(d_i);
     }
 
-    inline T operator*() const;
+    T operator*() const { return T(*d_i); }
 
     bool operator==(const iterator& i) const { return d_i == i.d_i; }
 
@@ -230,8 +230,7 @@ class NodeValue
 
   void toStream(std::ostream& out,
                 int toDepth = -1,
-                size_t dag = 1,
-                Language = Language::LANG_AUTO) const;
+                size_t dag = 1) const;
 
   void printAst(std::ostream& out, int indent = 0) const;
 
@@ -295,8 +294,38 @@ class NodeValue
   /** Private constructor for the null value. */
   NodeValue(int);
 
-  void inc();
-  void dec();
+  void inc()
+  {
+    Assert(!isBeingDeleted())
+        << "NodeValue is currently being deleted "
+           "and increment is being called on it. Don't Do That!";
+    // FIXME multithreading
+    if (__builtin_expect((d_rc < MAX_RC - 1), true))
+    {
+      ++d_rc;
+    }
+    else if (__builtin_expect((d_rc == MAX_RC - 1), false))
+    {
+      ++d_rc;
+      markRefCountMaxedOut();
+    }
+  }
+
+  void dec()
+  {
+    // FIXME multithreading
+    if (__builtin_expect((d_rc < MAX_RC), true))
+    {
+      --d_rc;
+      if (__builtin_expect((d_rc == 0), false))
+      {
+        markForDeletion();
+      }
+    }
+  }
+
+  void markRefCountMaxedOut();
+  void markForDeletion();
 
   /** Decrement ref counts of children */
   inline void decrRefCounts();
@@ -389,16 +418,7 @@ struct NodeValueIDEquality {
   }
 };
 
-
-inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
-
-}  // namespace expr
-}  // namespace cvc5
-
-#include "expr/node_manager.h"
-
-namespace cvc5 {
-namespace expr {
+std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 
 inline NodeValue::NodeValue(int) :
   d_id(0),
@@ -410,37 +430,6 @@ inline NodeValue::NodeValue(int) :
 inline void NodeValue::decrRefCounts() {
   for(nv_iterator i = nv_begin(); i != nv_end(); ++i) {
     (*i)->dec();
-  }
-}
-
-inline void NodeValue::inc() {
-  Assert(!isBeingDeleted())
-      << "NodeValue is currently being deleted "
-         "and increment is being called on it. Don't Do That!";
-  // FIXME multithreading
-  if (__builtin_expect((d_rc < MAX_RC - 1), true)) {
-    ++d_rc;
-  } else if (__builtin_expect((d_rc == MAX_RC - 1), false)) {
-    ++d_rc;
-    Assert(NodeManager::currentNM() != NULL)
-        << "No current NodeManager on incrementing of NodeValue: "
-           "maybe a public cvc5 interface function is missing a "
-           "NodeManagerScope ?";
-    NodeManager::currentNM()->markRefCountMaxedOut(this);
-  }
-}
-
-inline void NodeValue::dec() {
-  // FIXME multithreading
-  if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
-    --d_rc;
-    if(__builtin_expect( ( d_rc == 0 ), false )) {
-      Assert(NodeManager::currentNM() != NULL)
-          << "No current NodeManager on destruction of NodeValue: "
-             "maybe a public cvc5 interface function is missing a "
-             "NodeManagerScope ?";
-      NodeManager::currentNM()->markForDeletion(this);
-    }
   }
 }
 
@@ -474,11 +463,6 @@ inline NodeValue::iterator<T> NodeValue::end() const {
   return iterator<T>(d_children + d_nchildren);
 }
 
-inline bool NodeValue::isBeingDeleted() const {
-  return NodeManager::currentNM() != NULL &&
-    NodeManager::currentNM()->isCurrentlyDeleting(this);
-}
-
 inline NodeValue* NodeValue::getOperator() const {
   Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
   return d_children[0];
@@ -494,50 +478,6 @@ inline NodeValue* NodeValue::getChild(int i) const {
 }
 
 }  // namespace expr
-}  // namespace cvc5
-
-#include "expr/node.h"
-
-namespace cvc5 {
-namespace expr {
-
-template <typename T>
-inline T NodeValue::iterator<T>::operator*() const {
-  return T(*d_i);
-}
-
-inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
-  nv.toStream(out,
-              Node::setdepth::getDepth(out),
-              Node::dag::getDag(out),
-              Node::setlanguage::getLanguage(out));
-  return out;
-}
-
-}  // namespace expr
-
-#ifdef CVC5_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- */
-static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << *nv << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv) {
-  nv->printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC5_DEBUG */
-
 }  // namespace cvc5
 
 #endif /* CVC5__EXPR__NODE_VALUE_H */

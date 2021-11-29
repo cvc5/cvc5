@@ -593,6 +593,11 @@ TEST_F(TestApiBlackSolver, mkReal)
   ASSERT_NO_THROW(d_solver.mkReal(val2, val2));
   ASSERT_NO_THROW(d_solver.mkReal(val3, val3));
   ASSERT_NO_THROW(d_solver.mkReal(val4, val4));
+  ASSERT_NO_THROW(d_solver.mkReal("-1/-1"));
+  ASSERT_NO_THROW(d_solver.mkReal("1/-1"));
+  ASSERT_NO_THROW(d_solver.mkReal("-1/1"));
+  ASSERT_NO_THROW(d_solver.mkReal("1/1"));
+  ASSERT_THROW(d_solver.mkReal("/-5"), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkRegexpAll)
@@ -653,8 +658,21 @@ TEST_F(TestApiBlackSolver, mkTerm)
 
   // mkTerm(Kind kind) const
   ASSERT_NO_THROW(d_solver.mkTerm(PI));
+  ASSERT_NO_THROW(d_solver.mkTerm(PI, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(PI)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(PI), v6));
   ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_NONE)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_NONE), v6));
   ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_ALLCHAR)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_ALLCHAR), v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(SEP_EMP));
+  ASSERT_NO_THROW(d_solver.mkTerm(SEP_EMP, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SEP_EMP)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SEP_EMP), v6));
   ASSERT_THROW(d_solver.mkTerm(CONST_BITVECTOR), CVC5ApiException);
 
   // mkTerm(Kind kind, Term child) const
@@ -695,6 +713,44 @@ TEST_F(TestApiBlackSolver, mkTerm)
   ASSERT_THROW(d_solver.mkTerm(EQUAL, v2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(EQUAL, v3), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(DISTINCT, v6), CVC5ApiException);
+
+  // Test cases that are nary via the API but have arity = 2 internally
+  Sort s_bool = d_solver.getBooleanSort();
+  Term t_bool = d_solver.mkConst(s_bool, "t_bool");
+  ASSERT_NO_THROW(d_solver.mkTerm(IMPLIES, {t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(IMPLIES), {t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(d_solver.mkTerm(XOR, {t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(XOR), {t_bool, t_bool, t_bool}));
+  Term t_int = d_solver.mkConst(d_solver.getIntegerSort(), "t_int");
+  ASSERT_NO_THROW(d_solver.mkTerm(DIVISION, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(DIVISION), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(INTS_DIVISION, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(INTS_DIVISION), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(MINUS, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(MINUS), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(EQUAL), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(LT, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(LT), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(GT, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(GT), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(LEQ, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(LEQ), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(GEQ, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(GEQ), {t_int, t_int, t_int}));
+  Term t_reg = d_solver.mkConst(d_solver.getRegExpSort(), "t_reg");
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_DIFF, {t_reg, t_reg, t_reg}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(REGEXP_DIFF), {t_reg, t_reg, t_reg}));
+  Term t_fun = d_solver.mkConst(
+      d_solver.mkFunctionSort({s_bool, s_bool, s_bool}, s_bool));
+  ASSERT_NO_THROW(d_solver.mkTerm(HO_APPLY, {t_fun, t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(HO_APPLY),
+                                  {t_fun, t_bool, t_bool, t_bool}));
 }
 
 TEST_F(TestApiBlackSolver, mkTermFromOp)
