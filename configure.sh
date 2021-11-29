@@ -31,6 +31,7 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
+  --static-binary          link against static system libraries
   --auto-download          automatically download dependencies if necessary
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
@@ -123,6 +124,7 @@ python_bindings=default
 java_bindings=default
 editline=default
 build_shared=ON
+static_binary=default
 statistics=default
 tracing=default
 tsan=default
@@ -237,6 +239,9 @@ do
     --static) build_shared=OFF;;
     --no-static) build_shared=ON;;
 
+    --static-binary) static_binary=ON;;
+    --no-static-binary) static_binary=OFF;;
+
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
 
@@ -337,6 +342,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $build_shared != default ] \
   && cmake_opts="$cmake_opts -DBUILD_SHARED_LIBS=$build_shared"
+[ $static_binary != default ] \
+  && cmake_opts="$cmake_opts -DSTATIC_BINARY=$static_binary"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \
