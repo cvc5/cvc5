@@ -33,8 +33,7 @@ def define_fun_to_string(f, params, body):
     for i in range(0, len(params)):
         if i > 0:
             result += " "
-        else:
-            result += "(" + str(params[i]) + " " + str(params[i].getSort()) + ")"
+        result += "(" + str(params[i]) + " " + str(params[i].getSort()) + ")"
     result += ") " + str(sort) + " " + str(body) + ")"
     return result
 
