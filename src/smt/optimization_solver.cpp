@@ -32,102 +32,31 @@ using namespace cvc5::omt;
 namespace cvc5 {
 namespace smt {
 
-std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
-{
-  // check the output language first
-  Language lang = options::ioutils::getOutputLang(out);
-  if (!language::isLangSmt2(lang))
-  {
-    Unimplemented()
-        << "Only the SMTLib2 language supports optimization right now";
-  }
-  out << "(" << result.getResult();
-  switch (result.getResult().isSat())
-  {
-    case Result::SAT:
-    case Result::SAT_UNKNOWN:
-    {
-      switch (result.isInfinity())
-      {
-        case OptimizationResult::FINITE:
-          out << "\t" << result.getValue();
-          break;
-        case OptimizationResult::POSTITIVE_INF: out << "\t+Inf"; break;
-        case OptimizationResult::NEGATIVE_INF: out << "\t-Inf"; break;
-        default: break;
-      }
-      break;
-    }
-    case Result::UNSAT: break;
-    default: Unreachable();
-  }
-  out << ")";
-  return out;
-}
-
-std::ostream& operator<<(std::ostream& out,
-                         const OptimizationObjective& objective)
-{
-  // check the output language first
-  Language lang = options::ioutils::getOutputLang(out);
-  if (!language::isLangSmt2(lang))
-  {
-    Unimplemented()
-        << "Only the SMTLib2 language supports optimization right now";
-  }
-  out << "(";
-  switch (objective.getType())
-  {
-    case OptimizationObjective::MAXIMIZE: out << "maximize "; break;
-    case OptimizationObjective::MINIMIZE: out << "minimize "; break;
-    default: Unreachable();
-  }
-  TNode target = objective.getTarget();
-  TypeNode type = target.getType();
-  out << target;
-  if (type.isBitVector())
-  {
-    out << (objective.bvIsSigned() ? " :signed" : " :unsigned");
-  }
-  out << ")";
-  return out;
-}
-
 OptimizationSolver::OptimizationSolver(SolverEngine* parent)
-    : d_parent(parent),
-      d_optChecker(),
-      d_objectives(parent->getUserContext()),
-      d_results()
+    : d_parent(parent), d_optChecker(), d_objectives()
 {
 }
 
 Result OptimizationSolver::checkOpt(ObjectiveCombination combination)
 {
-  // if the results of the previous call have different size than the
-  // objectives, then we should clear the pareto optimization context
-  if (d_results.size() != d_objectives.size()) d_optChecker.reset();
-  // initialize the result vector
-  d_results.clear();
-  for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
-  {
-    d_results.emplace_back();
-  }
   switch (combination)
   {
-    case BOX: return optimizeBox(); break;
-    case LEXICOGRAPHIC: return optimizeLexicographicIterative(); break;
-    case PARETO: return optimizeParetoNaiveGIA(); break;
+    case omt::ObjectiveCombination::BOX: return optimizeBox(); break;
+    case omt::ObjectiveCombination::LEXICOGRAPHIC:
+      return optimizeLexicographicIterative();
+      break;
+    case omt::ObjectiveCombination::PARETO:
+      return optimizeParetoNaiveGIA();
+      break;
     default:
       CVC5_FATAL()
           << "Unknown objective combination, "
-          << "valid objective combinations are BOX, LEXICOGRAPHIC and PARETO";
+          << "valid objective combinations are BOX(0), LEXICOGRAPHIC(1) and PARETO(2)";
   }
   Unreachable();
 }
 
-void OptimizationSolver::addObjective(TNode target,
-                                      OptimizationObjective::ObjectiveType type,
-                                      bool bvSigned)
+void OptimizationSolver::addObjective(TNode target, omt::OptType type)
 {
   if (!OMTOptimizer::nodeSupportsOptimization(target))
   {
@@ -135,12 +64,27 @@ void OptimizationSolver::addObjective(TNode target,
         << "Objective failed to add: Target node does not support optimization";
   }
   d_optChecker.reset();
-  d_objectives.emplace_back(target, type, bvSigned);
+  d_objectives.emplace_back(target, type);
+  d_targetLookup.insert({target, d_objectives.size() - 1});
 }
 
-std::vector<OptimizationResult> OptimizationSolver::getValues()
+void OptimizationSolver::clearObjectives()
 {
-  return d_results;
+  d_objectives.clear();
+  d_targetLookup.clear();
+}
+bool OptimizationSolver::isOptTarget(TNode n)
+{
+  return (d_targetLookup.find(n) != d_targetLookup.end());
+}
+Node OptimizationSolver::getOptValue(TNode target)
+{
+  auto iter = d_targetLookup.find(target);
+  if (iter == d_targetLookup.end())
+  {
+    return Node();
+  }
+  return d_objectives[iter->second].getOptResult().getOptimalValue();
 }
 
 std::unique_ptr<SolverEngine> OptimizationSolver::createOptCheckerWithTimeout(
@@ -175,19 +119,19 @@ Result OptimizationSolver::optimizeBox()
   {
     optimizer = OMTOptimizer::getOptimizerForObjective(d_objectives[i]);
     // checks whether the objective type is maximize or minimize
-    switch (d_objectives[i].getType())
+    if (d_objectives[i].isMaximize())
     {
-      case OptimizationObjective::MAXIMIZE:
-        partialResult = optimizer->maximize(d_optChecker.get(),
-                                            d_objectives[i].getTarget());
-        break;
-      case OptimizationObjective::MINIMIZE:
-        partialResult = optimizer->minimize(d_optChecker.get(),
-                                            d_objectives[i].getTarget());
-        break;
-      default:
-        CVC5_FATAL()
-            << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
+      partialResult =
+          optimizer->maximize(d_optChecker.get(), d_objectives[i].getTarget());
+    }
+    else if (d_objectives[i].isMinimize())
+    {
+      partialResult =
+          optimizer->minimize(d_optChecker.get(), d_objectives[i].getTarget());
+    }
+    else
+    {
+      Unreachable();
     }
     // match the optimization result type, and aggregate the results of
     // subproblems
@@ -198,7 +142,7 @@ Result OptimizationSolver::optimizeBox()
         // the assertions are unsatisfiable
         for (size_t j = 0; j < numObj; ++j)
         {
-          d_results[j] = partialResult;
+          d_objectives[j].setOptResult(partialResult);
         }
         d_optChecker.reset();
         return partialResult.getResult();
@@ -208,7 +152,7 @@ Result OptimizationSolver::optimizeBox()
       default: Unreachable();
     }
 
-    d_results[i] = partialResult;
+    d_objectives[i].setOptResult(partialResult);
   }
   // kill optChecker after optimization ends
   d_optChecker.reset();
@@ -231,22 +175,22 @@ Result OptimizationSolver::optimizeLexicographicIterative()
   {
     optimizer = OMTOptimizer::getOptimizerForObjective(d_objectives[i]);
     // checks if the objective is maximize or minimize
-    switch (d_objectives[i].getType())
+    if (d_objectives[i].isMaximize())
     {
-      case OptimizationObjective::MAXIMIZE:
-        partialResult = optimizer->maximize(d_optChecker.get(),
-                                            d_objectives[i].getTarget());
-        break;
-      case OptimizationObjective::MINIMIZE:
-        partialResult = optimizer->minimize(d_optChecker.get(),
-                                            d_objectives[i].getTarget());
-        break;
-      default:
-        CVC5_FATAL()
-            << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
+      partialResult =
+          optimizer->maximize(d_optChecker.get(), d_objectives[i].getTarget());
+    }
+    else if (d_objectives[i].isMinimize())
+    {
+      partialResult =
+          optimizer->minimize(d_optChecker.get(), d_objectives[i].getTarget());
+    }
+    else
+    {
+      Unreachable();
     }
 
-    d_results[i] = partialResult;
+    d_objectives[i].setOptResult(partialResult);
 
     // checks the optimization result of the current objective
     switch (partialResult.getResult().isSat())
@@ -254,7 +198,9 @@ Result OptimizationSolver::optimizeLexicographicIterative()
       case Result::SAT:
         // assert target[i] == value[i] and proceed
         d_optChecker->assertFormula(d_optChecker->getNodeManager()->mkNode(
-            kind::EQUAL, d_objectives[i].getTarget(), d_results[i].getValue()));
+            kind::EQUAL,
+            d_objectives[i].getTarget(),
+            d_objectives[i].getOptResult().getOptimalValue()));
         break;
       case Result::UNSAT:
         d_optChecker.reset();
@@ -267,7 +213,7 @@ Result OptimizationSolver::optimizeLexicographicIterative()
 
     // if the result for the current objective is unbounded
     // (result is not finite) then just stop
-    if (partialResult.isInfinity() != OptimizationResult::FINITE) break;
+    if (partialResult.isInfinity()) break;
   }
   // kill optChecker in case pareto misuses it
   d_optChecker.reset();
@@ -298,8 +244,8 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
       // until no more optimal value could be found
       for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
       {
-        d_results[i] = OptimizationResult(
-            satResult, d_optChecker->getValue(d_objectives[i].getTarget()));
+        d_objectives[i].setOptResult(OptimizationResult(
+            satResult, d_optChecker->getValue(d_objectives[i].getTarget())));
       }
       break;
     }
@@ -324,17 +270,17 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
     {
       // for maximize value[i] <= obj[i],
       // for minimize obj[i] <= value[i]
-      noWorseObj.push_back(
-          OMTOptimizer::mkWeakIncrementalExpression(nm,
-                                                    d_objectives[i].getTarget(),
-                                                    d_results[i].getValue(),
-                                                    d_objectives[i]));
+      noWorseObj.push_back(OMTOptimizer::mkWeakIncrementalExpression(
+          nm,
+          d_objectives[i].getTarget(),
+          d_objectives[i].getOptResult().getOptimalValue(),
+          d_objectives[i]));
       // for maximize value[i] < obj[i],
       // for minimize obj[i] < value[i]
       someObjBetter.push_back(OMTOptimizer::mkStrongIncrementalExpression(
           nm,
           d_objectives[i].getTarget(),
-          d_results[i].getValue(),
+          d_objectives[i].getOptResult().getOptimalValue(),
           d_objectives[i]));
     }
     d_optChecker->assertFormula(nm->mkAnd(noWorseObj));
@@ -359,8 +305,8 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
         // if result is SAT, update d_results to the more optimal values
         for (size_t i = 0, numObj = d_objectives.size(); i < numObj; ++i)
         {
-          d_results[i] = OptimizationResult(
-              satResult, d_optChecker->getValue(d_objectives[i].getTarget()));
+          d_objectives[i].setOptResult(OptimizationResult(
+              satResult, d_optChecker->getValue(d_objectives[i].getTarget())));
         }
         break;
       }

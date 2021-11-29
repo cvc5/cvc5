@@ -18,7 +18,57 @@
 using namespace cvc5::omt;
 using namespace cvc5;
 
-Objective::Objective(TNode target, Type type)
+OptimizationResult::OptimizationResult(Result r, TNode val)
+    : d_result(r), d_value(val)
+{
+}
+Node OptimizationResult::getOptimalValue() const { return d_value; }
+Result OptimizationResult::getResult() const { return d_result; }
+// currently we don't yet have infinity
+bool OptimizationResult::isInfinity() const { return false; }
+bool OptimizationResult::isNull() const { return d_result.isNull(); }
+void OptimizationResult::set(Result r, TNode val)
+{
+  d_result = r;
+  d_value = val;
+}
+void OptimizationResult::setOptimalValue(TNode val) { d_value = val; }
+void OptimizationResult::setResult(Result r) { d_result = r; }
+
+std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
+{
+  // check the output language first
+  Language lang = options::ioutils::getOutputLang(out);
+  if (!language::isLangSmt2(lang))
+  {
+    Unimplemented()
+        << "Only the SMTLib2 language supports optimization right now";
+  }
+  out << "(" << result.getResult();
+  switch (result.getResult().isSat())
+  {
+    case Result::SAT:
+    case Result::SAT_UNKNOWN:
+    {
+      if (!result.isInfinity())
+      {
+        out << "\t" << result.getOptimalValue();
+      }
+      else
+      {
+        out << "\t" << result.getOptimalValue() << " * "
+            << "Inf";
+      }
+      break;
+    }
+    case Result::UNSAT: break;
+    default: Unreachable();
+  }
+  out << ")";
+  return out;
+}
+
+Objective::Objective(TNode target, OptType type)
     : d_target(target), d_type(type), d_result()
 {
   if (isBVUnsigned())
@@ -29,33 +79,65 @@ Objective::Objective(TNode target, Type type)
 
 bool Objective::isMaximize() const
 {
-  return d_type == MAXIMIZE || d_type == BV_MAXIMIZE_UNSIGNED;
+  return d_type == OptType::MAXIMIZE || d_type == OptType::BV_MAXIMIZE_UNSIGNED;
 }
 
 bool Objective::isMinimize() const
 {
-  return d_type == MINIMIZE || d_type == BV_MINIMIZE_UNSIGNED;
+  return d_type == OptType::MINIMIZE || d_type == OptType::BV_MINIMIZE_UNSIGNED;
 }
 
 bool Objective::isBVUnsigned() const
 {
   return isBV()
-         && (d_type == BV_MAXIMIZE_UNSIGNED || d_type == BV_MINIMIZE_UNSIGNED);
+         && (d_type == OptType::BV_MAXIMIZE_UNSIGNED
+             || d_type == OptType::BV_MINIMIZE_UNSIGNED);
 }
 
 bool Objective::isBVSigned() const
 {
-  return isBV() && (d_type == MAXIMIZE || d_type == MINIMIZE);
+  return isBV() && (d_type == OptType::MAXIMIZE || d_type == OptType::MINIMIZE);
 }
 
 bool Objective::isBV() const { return d_target.getType().isBitVector(); }
 
 TNode Objective::getTarget() const { return d_target; }
 
-Objective::Type Objective::getType() const { return d_type; }
+OptType Objective::getType() const { return d_type; }
 
 bool Objective::hasResult() const { return !(d_result.isNull()); }
 
-TNode Objective::getResult() const { return d_result; }
+OptimizationResult Objective::getOptResult() const { return d_result; }
 
-void Objective::setResult(TNode res) const { d_result = res; }
+void Objective::setOptResult(const OptimizationResult& res) const
+{
+  d_result = res;
+}
+
+std::ostream& operator<<(std::ostream& out, const Objective& objective)
+{
+  // check the output language first
+  Language lang = options::ioutils::getOutputLang(out);
+  if (!language::isLangSmt2(lang))
+  {
+    Unimplemented()
+        << "Only the SMTLib2 language supports optimization right now";
+  }
+  out << "(";
+  if (objective.isMinimize())
+  {
+    out << "minimize ";
+  }
+  else if (objective.isMaximize())
+  {
+    out << "maximize ";
+  }
+  TNode target = objective.getTarget();
+  out << target;
+  if (objective.isBV())
+  {
+    out << (objective.isBVSigned() ? " :signed" : " :unsigned");
+  }
+  out << ")";
+  return out;
+}

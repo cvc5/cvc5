@@ -57,28 +57,27 @@ TEST_F(TestTheoryWhiteOptMultigoal, box)
   OptimizationSolver optSolver(d_slvEngine.get());
 
   // minimize x
-  optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
+  optSolver.addObjective(x, omt::OptType::BV_MINIMIZE_UNSIGNED);
   // maximize y with `signed` comparison over bit-vectors.
-  optSolver.addObjective(y, OptimizationObjective::MAXIMIZE, true);
+  optSolver.addObjective(y, omt::OptType::MAXIMIZE);
   // maximize z
-  optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
+  optSolver.addObjective(z, omt::OptType::BV_MAXIMIZE_UNSIGNED);
 
   // Box optimization
-  Result r = optSolver.checkOpt(OptimizationSolver::BOX);
+  Result r = optSolver.checkOpt(omt::ObjectiveCombination::BOX);
 
   ASSERT_EQ(r.isSat(), Result::SAT);
 
-  std::vector<OptimizationResult> results = optSolver.getValues();
-
   // x == 18
-  ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
+  ASSERT_EQ(optSolver.getOptValue(x).getConst<BitVector>(),
+            BitVector(32u, 18u));
 
   // y == 0x7FFFFFFF
-  ASSERT_EQ(results[1].getValue().getConst<BitVector>(),
+  ASSERT_EQ(optSolver.getOptValue(y).getConst<BitVector>(),
             BitVector(32u, (unsigned)0x7FFFFFFF));
 
   // z == 0xFFFFFFFF
-  ASSERT_EQ(results[2].getValue().getConst<BitVector>(),
+  ASSERT_EQ(optSolver.getOptValue(z).getConst<BitVector>(),
             BitVector(32u, (unsigned)0xFFFFFFFF));
 }
 
@@ -99,26 +98,26 @@ TEST_F(TestTheoryWhiteOptMultigoal, lex)
   OptimizationSolver optSolver(d_slvEngine.get());
 
   // minimize x
-  optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
+  optSolver.addObjective(x, omt::OptType::BV_MINIMIZE_UNSIGNED);
   // maximize y with `signed` comparison over bit-vectors.
-  optSolver.addObjective(y, OptimizationObjective::MAXIMIZE, true);
+  optSolver.addObjective(y, omt::OptType::MAXIMIZE);
   // maximize z
-  optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
+  optSolver.addObjective(z, omt::OptType::BV_MAXIMIZE_UNSIGNED);
 
-  Result r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
+  Result r = optSolver.checkOpt(omt::ObjectiveCombination::LEXICOGRAPHIC);
 
   ASSERT_EQ(r.isSat(), Result::SAT);
 
-  std::vector<OptimizationResult> results = optSolver.getValues();
-
   // x == 18
-  ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
+  ASSERT_EQ(optSolver.getOptValue(x).getConst<BitVector>(),
+            BitVector(32u, 18u));
 
   // y == 18
-  ASSERT_EQ(results[1].getValue().getConst<BitVector>(), BitVector(32u, 18u));
+  ASSERT_EQ(optSolver.getOptValue(y).getConst<BitVector>(),
+            BitVector(32u, 18u));
 
   // z == 0xFFFFFFFF
-  ASSERT_EQ(results[2].getValue().getConst<BitVector>(),
+  ASSERT_EQ(optSolver.getOptValue(z).getConst<BitVector>(),
             BitVector(32u, (unsigned)0xFFFFFFFF));
 }
 
@@ -176,8 +175,8 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
     (maximize b)
    */
   OptimizationSolver optSolver(d_slvEngine.get());
-  optSolver.addObjective(a, OptimizationObjective::MAXIMIZE);
-  optSolver.addObjective(b, OptimizationObjective::MAXIMIZE);
+  optSolver.addObjective(a, omt::OptType::BV_MAXIMIZE_UNSIGNED);
+  optSolver.addObjective(b, omt::OptType::BV_MAXIMIZE_UNSIGNED);
 
   Result r;
 
@@ -185,116 +184,53 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   std::set<std::pair<uint32_t, uint32_t>> possibleResults = {
       {1, 3}, {2, 2}, {3, 1}};
 
-  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  r = optSolver.checkOpt(omt::ObjectiveCombination::PARETO);
   ASSERT_EQ(r.isSat(), Result::SAT);
-  std::vector<OptimizationResult> results = optSolver.getValues();
-  std::pair<uint32_t, uint32_t> res = {
-      results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
-      results[1].getValue().getConst<BitVector>().toInteger().toUnsignedInt()};
-  for (auto& rn : results)
-  {
-    std::cout << rn.getValue().getConst<BitVector>().toInteger().toUnsignedInt()
-              << " ";
-  }
-  std::cout << std::endl;
+  std::pair<uint32_t, uint32_t> res = {optSolver.getOptValue(a)
+                                           .getConst<BitVector>()
+                                           .toInteger()
+                                           .toUnsignedInt(),
+                                       optSolver.getOptValue(b)
+                                           .getConst<BitVector>()
+                                           .toInteger()
+                                           .toUnsignedInt()};
+
+  std::cout << "(" << res.first << ", " << res.second << ")" << std::endl;
+
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  r = optSolver.checkOpt(omt::ObjectiveCombination::PARETO);
   ASSERT_EQ(r.isSat(), Result::SAT);
-  results = optSolver.getValues();
-  res = {
-      results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
-      results[1].getValue().getConst<BitVector>().toInteger().toUnsignedInt()};
-  for (auto& rn : results)
-  {
-    std::cout << rn.getValue().getConst<BitVector>().toInteger().toUnsignedInt()
-              << " ";
-  }
-  std::cout << std::endl;
+  res = {optSolver.getOptValue(a)
+             .getConst<BitVector>()
+             .toInteger()
+             .toUnsignedInt(),
+         optSolver.getOptValue(b)
+             .getConst<BitVector>()
+             .toInteger()
+             .toUnsignedInt()};
+  std::cout << "(" << res.first << ", " << res.second << ")" << std::endl;
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  r = optSolver.checkOpt(omt::ObjectiveCombination::PARETO);
   ASSERT_EQ(r.isSat(), Result::SAT);
-  results = optSolver.getValues();
-  res = {
-      results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
-      results[1].getValue().getConst<BitVector>().toInteger().toUnsignedInt()};
-  for (auto& rn : results)
-  {
-    std::cout << rn.getValue().getConst<BitVector>().toInteger().toUnsignedInt()
-              << " ";
-  }
-  std::cout << std::endl;
+  res = {optSolver.getOptValue(a)
+             .getConst<BitVector>()
+             .toInteger()
+             .toUnsignedInt(),
+         optSolver.getOptValue(b)
+             .getConst<BitVector>()
+             .toInteger()
+             .toUnsignedInt()};
+  std::cout << "(" << res.first << ", " << res.second << ")" << std::endl;
   ASSERT_EQ(possibleResults.count(res), 1);
   possibleResults.erase(res);
 
-  r = optSolver.checkOpt(OptimizationSolver::PARETO);
+  r = optSolver.checkOpt(omt::ObjectiveCombination::PARETO);
   ASSERT_EQ(r.isSat(), Result::UNSAT);
   ASSERT_EQ(possibleResults.size(), 0);
-}
-
-TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
-{
-  d_slvEngine->resetAssertions();
-  Node x = d_nodeManager->mkVar(*d_BV32Type);
-  Node y = d_nodeManager->mkVar(*d_BV32Type);
-  Node z = d_nodeManager->mkVar(*d_BV32Type);
-
-  // 18 <= x
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(
-      kind::BITVECTOR_ULE, d_nodeManager->mkConst(BitVector(32u, 18u)), x));
-
-  // y <= x
-  d_slvEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, y, x));
-
-  OptimizationSolver optSolver(d_slvEngine.get());
-
-  // minimize x
-  optSolver.addObjective(x, OptimizationObjective::MINIMIZE, false);
-
-  // push
-  d_slvEngine->push();
-
-  // maximize y with `signed` comparison over bit-vectors.
-  optSolver.addObjective(y, OptimizationObjective::MAXIMIZE, true);
-  // maximize z
-  optSolver.addObjective(z, OptimizationObjective::MAXIMIZE, false);
-
-  // Lexico optimization
-  Result r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
-
-  ASSERT_EQ(r.isSat(), Result::SAT);
-
-  std::vector<OptimizationResult> results = optSolver.getValues();
-
-  // x == 18
-  ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
-
-  // y == 18
-  ASSERT_EQ(results[1].getValue().getConst<BitVector>(), BitVector(32u, 18u));
-
-  // z == 0xFFFFFFFF
-  ASSERT_EQ(results[2].getValue().getConst<BitVector>(),
-            BitVector(32u, (unsigned)0xFFFFFFFF));
-
-  // pop
-  d_slvEngine->pop();
-
-  // now we only have one objective: (minimize x)
-  r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
-  ASSERT_EQ(r.isSat(), Result::SAT);
-  results = optSolver.getValues();
-  ASSERT_EQ(results.size(), 1);
-  ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
-
-  // resetting the assertions also resets the optimization objectives
-  d_slvEngine->resetAssertions();
-  r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
-  ASSERT_EQ(r.isSat(), Result::SAT);
-  results = optSolver.getValues();
-  ASSERT_EQ(results.size(), 0);
 }
 
 }  // namespace test

@@ -30,7 +30,7 @@ bool OMTOptimizer::nodeSupportsOptimization(TNode node)
 }
 
 std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
-    const OptimizationObjective& objective)
+    const Objective& objective)
 {
   // the datatype of the target node
   TypeNode objectiveType = objective.getTarget().getType(true);
@@ -43,7 +43,7 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
   {
     // bitvector type: use OMTOptimizerBitVector
     return std::unique_ptr<OMTOptimizer>(
-        new OMTOptimizerBitVector(objective.bvIsSigned()));
+        new OMTOptimizerBitVector(objective.isBVSigned()));
   }
   else
   {
@@ -52,11 +52,10 @@ std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForObjective(
   }
 }
 
-Node OMTOptimizer::mkStrongIncrementalExpression(
-    NodeManager* nm,
-    TNode lhs,
-    TNode rhs,
-    const OptimizationObjective& objective)
+Node OMTOptimizer::mkStrongIncrementalExpression(NodeManager* nm,
+                                                 TNode lhs,
+                                                 TNode rhs,
+                                                 const Objective& objective)
 {
   constexpr const char lhsTypeError[] =
       "lhs type does not match or is not implicitly convertable to the target "
@@ -65,63 +64,60 @@ Node OMTOptimizer::mkStrongIncrementalExpression(
       "rhs type does not match or is not implicitly convertable to the target "
       "type";
   TypeNode targetType = objective.getTarget().getType();
-  switch (objective.getType())
+  if (objective.isMinimize())
   {
-    case OptimizationObjective::MINIMIZE:
+    if (targetType.isInteger())
     {
-      if (targetType.isInteger())
-      {
-        Assert(lhs.getType().isInteger()) << lhsTypeError;
-        Assert(rhs.getType().isInteger()) << rhsTypeError;
-        return nm->mkNode(Kind::LT, lhs, rhs);
-      }
-      else if (targetType.isBitVector())
-      {
-        Assert(lhs.getType() == targetType) << lhsTypeError;
-        Assert(rhs.getType() == targetType) << rhsTypeError;
-        return (objective.bvIsSigned())
-                   ? (nm->mkNode(Kind::BITVECTOR_SLT, lhs, rhs))
-                   : (nm->mkNode(Kind::BITVECTOR_ULT, lhs, rhs));
-      }
-      else
-      {
-        Unimplemented() << "Target type " << targetType
-                        << " does not support optimization";
-      }
+      Assert(lhs.getType().isInteger()) << lhsTypeError;
+      Assert(rhs.getType().isInteger()) << rhsTypeError;
+      return nm->mkNode(Kind::LT, lhs, rhs);
     }
-    case OptimizationObjective::MAXIMIZE:
+    else if (targetType.isBitVector())
     {
-      if (targetType.isInteger())
-      {
-        Assert(lhs.getType().isInteger()) << lhsTypeError;
-        Assert(rhs.getType().isInteger()) << rhsTypeError;
-        return nm->mkNode(Kind::GT, lhs, rhs);
-      }
-      else if (targetType.isBitVector())
-      {
-        Assert(lhs.getType() == targetType) << lhsTypeError;
-        Assert(rhs.getType() == targetType) << rhsTypeError;
-        return (objective.bvIsSigned())
-                   ? (nm->mkNode(Kind::BITVECTOR_SGT, lhs, rhs))
-                   : (nm->mkNode(Kind::BITVECTOR_UGT, lhs, rhs));
-      }
-      else
-      {
-        Unimplemented() << "Target type " << targetType
-                        << " does not support optimization";
-      }
+      Assert(lhs.getType() == targetType) << lhsTypeError;
+      Assert(rhs.getType() == targetType) << rhsTypeError;
+      return (objective.isBVSigned())
+                 ? (nm->mkNode(Kind::BITVECTOR_SLT, lhs, rhs))
+                 : (nm->mkNode(Kind::BITVECTOR_ULT, lhs, rhs));
     }
-    default:
-      CVC5_FATAL() << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
+    else
+    {
+      Unimplemented() << "Target type " << targetType
+                      << " does not support optimization";
+    }
   }
-  Unreachable();
+  else if (objective.isMaximize())
+  {
+    if (targetType.isInteger())
+    {
+      Assert(lhs.getType().isInteger()) << lhsTypeError;
+      Assert(rhs.getType().isInteger()) << rhsTypeError;
+      return nm->mkNode(Kind::GT, lhs, rhs);
+    }
+    else if (targetType.isBitVector())
+    {
+      Assert(lhs.getType() == targetType) << lhsTypeError;
+      Assert(rhs.getType() == targetType) << rhsTypeError;
+      return (objective.isBVSigned())
+                 ? (nm->mkNode(Kind::BITVECTOR_SGT, lhs, rhs))
+                 : (nm->mkNode(Kind::BITVECTOR_UGT, lhs, rhs));
+    }
+    else
+    {
+      Unimplemented() << "Target type " << targetType
+                      << " does not support optimization";
+    }
+  }
+  else
+  {
+    Unreachable();
+  }
 }
 
-Node OMTOptimizer::mkWeakIncrementalExpression(
-    NodeManager* nm,
-    TNode lhs,
-    TNode rhs,
-    const OptimizationObjective& objective)
+Node OMTOptimizer::mkWeakIncrementalExpression(NodeManager* nm,
+                                               TNode lhs,
+                                               TNode rhs,
+                                               const Objective& objective)
 {
   constexpr const char lhsTypeError[] =
       "lhs type does not match or is not implicitly convertable to the target "
@@ -130,56 +126,54 @@ Node OMTOptimizer::mkWeakIncrementalExpression(
       "rhs type does not match or is not implicitly convertable to the target "
       "type";
   TypeNode targetType = objective.getTarget().getType();
-  switch (objective.getType())
+  if (objective.isMinimize())
   {
-    case OptimizationObjective::MINIMIZE:
+    if (targetType.isInteger())
     {
-      if (targetType.isInteger())
-      {
-        Assert(lhs.getType().isInteger()) << lhsTypeError;
-        Assert(rhs.getType().isInteger()) << rhsTypeError;
-        return nm->mkNode(Kind::LEQ, lhs, rhs);
-      }
-      else if (targetType.isBitVector())
-      {
-        Assert(lhs.getType() == targetType) << lhsTypeError;
-        Assert(rhs.getType() == targetType) << rhsTypeError;
-        return (objective.bvIsSigned())
-                   ? (nm->mkNode(Kind::BITVECTOR_SLE, lhs, rhs))
-                   : (nm->mkNode(Kind::BITVECTOR_ULE, lhs, rhs));
-      }
-      else
-      {
-        Unimplemented() << "Target type " << targetType
-                        << " does not support optimization";
-      }
+      Assert(lhs.getType().isInteger()) << lhsTypeError;
+      Assert(rhs.getType().isInteger()) << rhsTypeError;
+      return nm->mkNode(Kind::LEQ, lhs, rhs);
     }
-    case OptimizationObjective::MAXIMIZE:
+    else if (targetType.isBitVector())
     {
-      if (targetType.isInteger())
-      {
-        Assert(lhs.getType().isInteger()) << lhsTypeError;
-        Assert(rhs.getType().isInteger()) << rhsTypeError;
-        return nm->mkNode(Kind::GEQ, lhs, rhs);
-      }
-      else if (targetType.isBitVector())
-      {
-        Assert(lhs.getType() == targetType) << lhsTypeError;
-        Assert(rhs.getType() == targetType) << rhsTypeError;
-        return (objective.bvIsSigned())
-                   ? (nm->mkNode(Kind::BITVECTOR_SGE, lhs, rhs))
-                   : (nm->mkNode(Kind::BITVECTOR_UGE, lhs, rhs));
-      }
-      else
-      {
-        Unimplemented() << "Target type " << targetType
-                        << " does not support optimization";
-      }
+      Assert(lhs.getType() == targetType) << lhsTypeError;
+      Assert(rhs.getType() == targetType) << rhsTypeError;
+      return (objective.isBVSigned())
+                 ? (nm->mkNode(Kind::BITVECTOR_SLE, lhs, rhs))
+                 : (nm->mkNode(Kind::BITVECTOR_ULE, lhs, rhs));
     }
-    default:
-      CVC5_FATAL() << "Optimization objective is neither MAXIMIZE nor MINIMIZE";
+    else
+    {
+      Unimplemented() << "Target type " << targetType
+                      << " does not support optimization";
+    }
   }
-  Unreachable();
+  else if (objective.isMaximize())
+  {
+    if (targetType.isInteger())
+    {
+      Assert(lhs.getType().isInteger()) << lhsTypeError;
+      Assert(rhs.getType().isInteger()) << rhsTypeError;
+      return nm->mkNode(Kind::GEQ, lhs, rhs);
+    }
+    else if (targetType.isBitVector())
+    {
+      Assert(lhs.getType() == targetType) << lhsTypeError;
+      Assert(rhs.getType() == targetType) << rhsTypeError;
+      return (objective.isBVSigned())
+                 ? (nm->mkNode(Kind::BITVECTOR_SGE, lhs, rhs))
+                 : (nm->mkNode(Kind::BITVECTOR_UGE, lhs, rhs));
+    }
+    else
+    {
+      Unimplemented() << "Target type " << targetType
+                      << " does not support optimization";
+    }
+  }
+  else
+  {
+    Unreachable();
+  }
 }
 
 }  // namespace cvc5::omt

@@ -46,6 +46,7 @@
 #include "smt/logic_exception.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
+#include "smt/optimization_solver.h"
 #include "smt/preprocessor.h"
 #include "smt/proof_manager.h"
 #include "smt/quant_elim_solver.h"
@@ -95,6 +96,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
+      d_optSolver(nullptr),
       d_isInternalSubsolver(false),
       d_stats(nullptr),
       d_scope(nullptr)
@@ -121,6 +123,8 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
   d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
+  // make the optimization solver
+  d_optSolver.reset(new OptimizationSolver(this));
 }
 
 bool SolverEngine::isFullyInited() const { return d_state->isFullyInited(); }
@@ -944,6 +948,40 @@ Result SolverEngine::checkSynth()
 /*
    --------------------------------------------------------------------------
     End of Handling SyGuS commands
+   --------------------------------------------------------------------------
+*/
+
+/*
+   --------------------------------------------------------------------------
+    Handling Optimization commands
+   --------------------------------------------------------------------------
+*/
+
+Result SolverEngine::optimizeSat(
+  const std::vector<std::pair<Node, int>>& objectives, 
+  int optimizationType)
+{
+  d_optSolver->clearObjectives();
+  for (auto &p : objectives)
+  {
+    d_optSolver->addObjective(p.first, omt::OptType(p.second));
+  }
+  return d_optSolver->checkOpt(omt::ObjectiveCombination(optimizationType));
+}
+
+Result SolverEngine::optimizeSatNext()
+{
+  return d_optSolver->checkOpt(omt::ObjectiveCombination::PARETO);
+}
+
+Node SolverEngine::getOptimalValue(const Node& ex)
+{
+  return d_optSolver->getOptValue(ex);
+}
+
+/*
+   --------------------------------------------------------------------------
+    End of Handling Optimization commands
    --------------------------------------------------------------------------
 */
 

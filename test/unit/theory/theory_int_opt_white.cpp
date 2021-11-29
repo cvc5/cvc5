@@ -60,14 +60,14 @@ TEST_F(TestTheoryWhiteIntOpt, max)
   d_slvEngine->assertFormula(lowb);
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->addObjective(max_cost, OptimizationObjective::MAXIMIZE);
+  d_optslv->addObjective(max_cost, omt::OptType::MAXIMIZE);
 
   Result r = d_optslv->checkOpt();
 
   ASSERT_EQ(r.isSat(), Result::SAT);
 
   // We expect max_cost == 99
-  ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
+  ASSERT_EQ(d_optslv->getOptValue(max_cost).getConst<Rational>(),
             Rational("99"));
 
   d_slvEngine->resetAssertions();
@@ -91,14 +91,14 @@ TEST_F(TestTheoryWhiteIntOpt, min)
   d_slvEngine->assertFormula(lowb);
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->addObjective(max_cost, OptimizationObjective::MINIMIZE);
+  d_optslv->addObjective(max_cost, omt::OptType::MINIMIZE);
 
   Result r = d_optslv->checkOpt();
 
   ASSERT_EQ(r.isSat(), Result::SAT);
 
   // We expect max_cost == 99
-  ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
+  ASSERT_EQ(d_optslv->getOptValue(max_cost).getConst<Rational>(),
             Rational("1"));
 
   d_slvEngine->resetAssertions();
@@ -122,7 +122,7 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   d_slvEngine->assertFormula(lowb);
 
   // We activate our objective so the subsolver knows to optimize it
-  d_optslv->addObjective(max_cost, OptimizationObjective::MAXIMIZE);
+  d_optslv->addObjective(max_cost, omt::OptType::MAXIMIZE);
 
   // This should return OPT_UNSAT since 0 > x > 100 is impossible.
   Result r = d_optslv->checkOpt();
@@ -155,14 +155,14 @@ TEST_F(TestTheoryWhiteIntOpt, open_interval)
   */
   Node cost3 = d_nodeManager->mkNode(kind::PLUS, cost1, cost2);
 
-  d_optslv->addObjective(cost3, OptimizationObjective::MINIMIZE);
+  d_optslv->addObjective(cost3, omt::OptType::MINIMIZE);
 
   Result r = d_optslv->checkOpt();
 
   ASSERT_EQ(r.isSat(), Result::SAT);
 
   // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
-  ASSERT_EQ(d_optslv->getValues()[0].getValue().getConst<Rational>(),
+  ASSERT_EQ(d_optslv->getOptValue(cost3).getConst<Rational>(),
             Rational("112"));
   d_slvEngine->resetAssertions();
 }

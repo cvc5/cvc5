@@ -90,6 +90,7 @@ class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
 class QuantElimSolver;
+class OptimizationSolver;
 
 struct SolverEngineStatistics;
 class SolverEngineScope;
@@ -458,6 +459,35 @@ class CVC5_EXPORT SolverEngine
   Result checkSynth();
 
   /*------------------------- end of sygus commands ------------------------*/
+
+  /*---------------------------- optimization commands  ---------------------------*/
+
+  /**
+   * Perform optimization query with objectives specified, 
+   * and multiple objective combination approach is indicated in optimizationType
+   * @param objectives the list of objectives, each with a pair target expression Node,
+   *  optimization type 
+   *  (0:=MINIMIZE/1:=MAXIMIZE/2:=BV_MINIMIZE_UNSIGNED/3:=BV_MAXIMIZE_UNSIGNED),
+   * @param optimizationType the combination type for multi-objective, possible values:
+   *  0:=BOX/1:=LEXICOGRAPHIC/2:=PARETO
+   * @return the result of this optimization
+   */
+  Result optimizeSat(const std::vector<std::pair<Node, int>>& objectives, 
+                     int optimizationType);
+
+  /**
+   * Retrieve the next set of solution in pareto optimization
+   */
+  Result optimizeSatNext();
+
+  /**
+   * Get the optimal value of expression ex after an optimizeSat call
+   * @param ex the expression node
+   * @return the optimal value of ex, 
+   *   if ex is not a target or optimization failed, null will be returned
+   */
+  Node getOptimalValue(const Node& ex);
+  /*------------------------- end of optimization commands ------------------------*/
 
   /**
    * Declare pool whose initial value is the terms in initValue. A pool is
@@ -1076,6 +1106,9 @@ class CVC5_EXPORT SolverEngine
   std::unique_ptr<smt::InterpolationSolver> d_interpolSolver;
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
+
+  /** The solver for optimization queries */
+  std::unique_ptr<smt::OptimizationSolver> d_optSolver;
 
   /**
    * The logic set by the user. The actual logic, which may extend the user's

@@ -28,9 +28,9 @@ class OMTOptimizerInteger : public OMTOptimizer
  public:
   OMTOptimizerInteger() = default;
   virtual ~OMTOptimizerInteger() = default;
-  smt::OptimizationResult minimize(SolverEngine* optChecker,
+  OptimizationResult minimize(SolverEngine* optChecker,
                                    TNode target) override;
-  smt::OptimizationResult maximize(SolverEngine* optChecker,
+  OptimizationResult maximize(SolverEngine* optChecker,
                                    TNode target) override;
 
  private:
@@ -39,7 +39,7 @@ class OMTOptimizerInteger : public OMTOptimizer
    * isMinimize = true will trigger minimization,
    * otherwise trigger maximization
    **/
-  smt::OptimizationResult optimize(SolverEngine* optChecker,
+  OptimizationResult optimize(SolverEngine* optChecker,
                                    TNode target,
                                    bool isMinimize);
 };
