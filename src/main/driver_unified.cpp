@@ -69,14 +69,7 @@ std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
          << std::endl
          << std::endl
          << "cvc5 options:" << std::endl;
-      if (full)
-      {
-        main::printUsage(ss.str(), dopts.out());
-      }
-      else
-      {
-        main::printShortUsage(ss.str(), dopts.out());
-      }
+      main::printUsage(ss.str(), dopts.out());
     }
 
 int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)

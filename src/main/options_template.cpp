@@ -71,15 +71,6 @@ void printUsage(const std::string& msg, std::ostream& os)
      << optionsFootnote << std::endl;
 }
 
-void printShortUsage(const std::string& msg, std::ostream& os)
-{
-  os << msg << "\n"
-     << commonOptionsDescription << std::endl
-     << optionsFootnote << std::endl
-     << "For full usage, please use --help." << std::endl
-     << std::endl;
-}
-
 /**
  * This is a table of long options.  By policy, each short option
  * should have an equivalent long option (but the reverse isn't the

@@ -32,14 +32,6 @@ namespace cvc5::main {
 void printUsage(const std::string& msg, std::ostream& os);
 
 /**
- * Print command-line option usage message for only the most-commonly
- * used options.  The message is prefixed by "msg"---which could be
- * an error message causing the usage output in the first place, e.g.
- * "no such option --foo"
- */
-void printShortUsage(const std::string& msg, std::ostream& os);
-
-/**
  * Initialize the Options object options based on the given
  * command-line arguments given in argc and argv.  The return value
  * is what's left of the command line (that is, the non-option
