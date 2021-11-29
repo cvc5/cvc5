@@ -63,10 +63,17 @@ static const std::string optionsFootnote = "\n\
 ";
 // clang-format on
 
-void printUsage(const std::string& msg, std::ostream& os)
+void printUsage(const std::string& binary, std::ostream& os)
 {
-  os << msg << "\n"
-     << commonOptionsDescription << "\n\n"
+  os << "usage: " << binary << " [options] [input-file]" << std::endl
+     << std::endl
+     << "Without an input file, or with `-', cvc5 reads from standard "
+        "input."
+     << std::endl
+     << std::endl
+     << "cvc5 options:" << std::endl
+     << commonOptionsDescription << std::endl
+     << std::endl
      << additionalOptionsDescription << std::endl
      << optionsFootnote << std::endl;
 }
