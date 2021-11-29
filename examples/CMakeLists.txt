@@ -97,6 +97,7 @@ if(TARGET cvc5::cvc5jar)
   endforeach()
 
   message(STATUS "JNI_LIBRARIES_PATHS: ${JNI_LIBRARIES_PATHS}")
+  # get directory build/install/lib where libcvc5jni is installed
   get_target_property(CVC5_LIB_FILE cvc5::cvc5 LOCATION)
   get_filename_component(CVC5_JNI_PATH ${CVC5_LIB_FILE} DIRECTORY)
   message(STATUS "CVC5_JNI_PATH: ${CVC5_JNI_PATH}")
