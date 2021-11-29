@@ -71,7 +71,7 @@ class AletheProofPrinter
                             std::unordered_map<Node, std::string> assumptions,
                             std::unordered_map<Node, std::string> steps,
                             std::string current_prefix,
-                            int& current_step_id);
+                            uint32_t& current_step_id);
 };
 
 }  // namespace proof
