@@ -1319,7 +1319,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    if (isLemmaPropertyNeedsJustify(p))
+    if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
     {
       d_relManager->notifyPreprocessedAssertion(retLemma);
       d_relManager->notifyPreprocessedAssertions(skAsserts);
