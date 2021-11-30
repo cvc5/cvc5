@@ -694,7 +694,8 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         // cvc5::DType class, but this actually needs to be checked.
         if (!selectorType.getRangeType().isFirstClass())
         {
-          throw Exception("cannot use fields in datatypes that are not first class types");
+          throw Exception(
+              "cannot use fields in datatypes that are not first class types");
         }
       }
     }
