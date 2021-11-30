@@ -214,28 +214,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     case kind::TO_REAL:
     case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
     case kind::TO_INTEGER:
-      if(t[0].isConst()) {
-        return RewriteResponse(
-            REWRITE_DONE,
-            NodeManager::currentNM()->mkConst(
-                CONST_RATIONAL, Rational(t[0].getConst<Rational>().floor())));
-      }
-      if(t[0].getType().isInteger()) {
-        return RewriteResponse(REWRITE_DONE, t[0]);
-      }
-      //Unimplemented() << "TO_INTEGER, nonconstant";
-      //return rewriteToInteger(t);
-      return RewriteResponse(REWRITE_DONE, t);
     case kind::IS_INTEGER:
-      if(t[0].isConst()) {
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(t[0].getConst<Rational>().getDenominator() == 1));
-      }
-      if(t[0].getType().isInteger()) {
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
-      }
-      //Unimplemented() << "IS_INTEGER, nonconstant";
-      //return rewriteIsInteger(t);
-      return RewriteResponse(REWRITE_DONE, t);
+      return rewriteExtIntegerOp(t, false);
     case kind::POW:
       {
         if(t[1].getKind() == kind::CONST_RATIONAL){
@@ -843,6 +823,35 @@ RewriteResponse ArithRewriter::rewriteIntsDivMod(TNode t, bool pre)
       Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, t[0], t[1]);
       return returnRewrite(t, ret, Rewrite::DIV_TOTAL_BY_CONST);
     }
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t, bool pre)
+{
+  Assert (t.getKind()==kind::TO_INTEGER || t.getKind()==kind::IS_INTEGER);
+  bool isPred = t.getKind()==kind::TO_INTEGER;
+  NodeManager * nm = NodeManager::currentNM();
+  if(t[0].isConst()) {
+    Node ret;
+    if (isPred)
+    {
+      ret = nm->mkConst(t[0].getConst<Rational>().getDenominator() == 1);
+    }
+    else
+    {
+      ret = nm->mkConstInt(Rational(t[0].getConst<Rational>().floor()))
+    }
+    return returnRewrite(t, ret, Rewrite::INT_EXT_CONST);
+  }
+  if(t[0].getType().isInteger()) {
+    Node ret = isPred ? nm->mkConst(true) : t[0];
+    return returnRewrite(t, ret, Rewrite::INT_EXT_INT);
+  }
+  if (t[0].getKind()==kind::PI)
+  {
+    Node ret = isPred ? nm->mkConst(false) : nm->mkConstReal(Rational(3));
+    return returnRewrite(t, ret, Rewrite::INT_EXT_PI);
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
