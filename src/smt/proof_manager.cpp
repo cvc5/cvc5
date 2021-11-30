@@ -237,7 +237,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
     // In some cases, a lemma may be marked as having a difficulty
     // internally, e.g. for lemmas that require justification, which we should
     // skip or otherwise we end up with an open proof below.
-    if (std::find(asserts.begin(), asserts.end(), ppa.first)!=asserts.end())
+    if (std::find(asserts.begin(), asserts.end(), ppa.first) != asserts.end())
     {
       ppAsserts.push_back(ppa.first);
     }
