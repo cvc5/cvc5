@@ -444,10 +444,6 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
-        if(num > PARSER_STATE->scopeLevel()) {
-          PARSER_STATE->parseError("Attempted to pop above the top stack "
-                                   "frame.");
-        }
         if(num == 0) {
           cmd->reset(new EmptyCommand());
         } else if(num == 1) {
