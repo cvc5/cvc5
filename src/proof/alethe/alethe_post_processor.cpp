@@ -2023,79 +2023,44 @@ bool AletheProofPostprocessCallback::finalStep(
     return false;
   }
 
-  // remove attribute for outermost scope
-  if (id != PfRule::ALETHE_RULE)
-  {
-    std::vector<Node> sanitized_args{
-        res,
-        res,
-        nm->mkConst<Rational>(CONST_RATIONAL,
-                              static_cast<unsigned>(AletheRule::ASSUME))};
-    for (auto arg : args)
-    {
-      sanitized_args.push_back(d_anc.convert(arg));
-    }
-    return cdp->addStep(res,
-                        PfRule::ALETHE_RULE,
-                        children,
-                        sanitized_args,
-                        true,
-                        CDPOverwrite::ALWAYS);
-  }
-
   bool success = true;
-  std::vector<Node> new_args = std::vector<Node>();
 
   Node vp1 = nm->mkNode(kind::SEXPR, res);    // ((false))
   Node vp2 = nm->mkConst(false).notNode();    // (not true)
   Node res2 = nm->mkNode(kind::SEXPR, d_cl);  // (cl)
-
   AletheRule vrule = getAletheRule(args[0]);
-  new_args.push_back(
-      nm->mkConst<Rational>(CONST_RATIONAL, static_cast<unsigned>(vrule)));
-  new_args.push_back(vp1);
+
   // In the special case that false is an assumption, we print false instead of
   // (cl false)
-  if (vrule == AletheRule::ASSUME)
-  {
-    new_args.push_back(res);  // (false)
-  }
-  else
-  {
-    new_args.push_back(nm->mkNode(kind::SEXPR, d_cl, res));  // (cl false)
-  }
+  success &= addAletheStep(
+      vrule,
+      vp1,
+      (vrule == AletheRule::ASSUME ? res : nm->mkNode(kind::SEXPR, d_cl, res)),
+      children,
+      {},
+      *cdp);
   Trace("alethe-proof") << "... add Alethe step " << vp1 << " / "
                         << nm->mkNode(kind::SEXPR, d_cl, res) << " " << vrule
                         << " " << children << " / {}" << std::endl;
-  success &= cdp->addStep(
-      vp1, PfRule::ALETHE_RULE, children, new_args, true, CDPOverwrite::ALWAYS);
 
-  new_args.clear();
-  new_args.push_back(nm->mkConst<Rational>(
-      CONST_RATIONAL, static_cast<unsigned>(AletheRule::FALSE)));
-  new_args.push_back(vp2);
-  new_args.push_back(nm->mkNode(kind::SEXPR, d_cl, vp2));  // (cl (not false))
+  success &= addAletheStep(
+      AletheRule::FALSE, vp2, nm->mkNode(kind::SEXPR, d_cl, vp2), {}, {}, *cdp);
   Trace("alethe-proof") << "... add Alethe step " << vp2 << " / "
                         << nm->mkNode(kind::SEXPR, d_cl, vp2) << " "
                         << AletheRule::FALSE << " {} / {}" << std::endl;
-  success &= cdp->addStep(
-      vp2, PfRule::ALETHE_RULE, {}, new_args, true, CDPOverwrite::ALWAYS);
 
-  new_args.clear();
-  new_args.push_back(nm->mkConst<Rational>(
-      CONST_RATIONAL, static_cast<unsigned>(AletheRule::RESOLUTION)));
-  new_args.push_back(res);
-  new_args.push_back(res2);
+  success &=
+      addAletheStep(AletheRule::RESOLUTION, res, res2, {vp2, vp1}, {}, *cdp);
   Trace("alethe-proof") << "... add Alethe step " << res << " / " << res2 << " "
                         << AletheRule::RESOLUTION << " {" << vp2 << ", " << vp1
                         << " / {}" << std::endl;
-  success &= cdp->addStep(res,
-                          PfRule::ALETHE_RULE,
-                          {vp2, vp1},
-                          new_args,
-                          true,
-                          CDPOverwrite::ALWAYS);
-  return success;
+  if (!success)
+  {
+    Trace("alethe-proof") << "... Error while printing final Steps"
+                          << std::endl;
+  }
+
+  return true;
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
