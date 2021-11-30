@@ -2244,7 +2244,7 @@ def test_tuple_project(solver):
                                solver.getStringSort(),\
                                solver.mkSetSort(solver.getStringSort())]
     elements = [\
-        solver.mkBoolean(true), \
+        solver.mkBoolean(True), \
         solver.mkInteger(3),\
         solver.mkString("C"),\
         solver.mkTerm(SET_SINGLETON, solver.mkString("Z"))]
