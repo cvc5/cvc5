@@ -48,6 +48,7 @@ TEST_F(TestBlackOptions, set)
                                     "version"};
   for (const auto& name : options::getNames())
   {
+    std::cout << "... " << name << std::endl;
     if (muted.count(name))
     {
       testing::internal::CaptureStdout();
