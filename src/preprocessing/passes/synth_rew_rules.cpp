@@ -286,7 +286,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     if (!ctt.isBoolean() || options().quantifiers.sygusRewSynthInputUseBool
         || ct.getKind() == BOUND_VARIABLE)
     {
-      Assert(tvars.find(ctt) != tvars.end()) << "Unexpected type " << ctt << " for " << ct;
+      Assert(tvars.find(ctt) != tvars.end())
+          << "Unexpected type " << ctt << " for " << ct;
       for (const Node& v : tvars[ctt])
       {
         std::stringstream ssc;
