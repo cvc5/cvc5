@@ -57,7 +57,7 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
   static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
   /** Entry for applications of to_int and is_int */
-  static RewriteResponse rewriteExtIntegerOp(TNode t, bool pre);
+  static RewriteResponse rewriteExtIntegerOp(TNode t);
 
   static RewriteResponse preRewritePlus(TNode t);
   static RewriteResponse postRewritePlus(TNode t);

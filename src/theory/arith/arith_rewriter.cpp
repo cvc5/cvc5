@@ -214,7 +214,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       return RewriteResponse(REWRITE_DONE, t);
     case kind::TO_REAL:
     case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
-    case kind::TO_INTEGER:return rewriteExtIntegerOp(t, false);
+    case kind::TO_INTEGER:return rewriteExtIntegerOp(t);
     case kind::POW:
       {
         if(t[1].getKind() == kind::CONST_RATIONAL){
@@ -647,7 +647,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
 
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
   if(atom.getKind() == kind::IS_INTEGER) {
-    return rewriteExtIntegerOp(atom, false);
+    return rewriteExtIntegerOp(atom);
   } else if(atom.getKind() == kind::DIVISIBLE) {
     if(atom[0].isConst()) {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(bool((atom[0].getConst<Rational>() / atom.getOperator().getConst<Divisible>().k).isIntegral())));
@@ -819,7 +819,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivMod(TNode t, bool pre)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t, bool pre)
+RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t)
 {
   Assert(t.getKind() == kind::TO_INTEGER || t.getKind() == kind::IS_INTEGER);
   bool isPred = t.getKind() == kind::IS_INTEGER;
