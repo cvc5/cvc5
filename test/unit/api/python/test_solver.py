@@ -1991,7 +1991,7 @@ def test_define_sort(solver):
     # Now create instantiations of the defined sorts
     arraySort0.substitute(sortVar0, intSort)
 
-    arraySort1.substitute(sortVar0, sortVar1, [intSort, realSort])
+    arraySort1.substitute([sortVar0, sortVar1], [intSort, realSort])
 
 
 def test_get_model_domain_elements(solver):
