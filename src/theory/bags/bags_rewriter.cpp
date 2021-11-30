@@ -567,27 +567,35 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
   Assert(n.getKind() == kind::BAG_FOLD);
   Node f = n[0];
   Node t = n[1];
-  Node A = n[2];
-  if(A.isConst())
+  Node bag = n[2];
+  if (bag.isConst())
   {
     Node value = NormalForm::evaluateBagFold(n);
-    return BagsRewriteResponse(value, Rewrite::MAP_CONST);
+    return BagsRewriteResponse(value, Rewrite::FOLD_CONST);
   }
-  Kind k = n[1].getKind();
+  Kind k = bag.getKind();
   switch (k)
   {
-    case BAG_EMPTY:
-    {
-      return BagsRewriteResponse(t, Rewrite::MAP_CONST);
-    }
     case BAG_MAKE:
     {
-      if (A[1].isConst() && A[1].getConst<Rational>() > Rational(0))
+      if (bag[1].isConst() && bag[1].getConst<Rational>() > Rational(0))
       {
-        Node ret = d_nm->mkNode(APPLY_UF, f, t, A[0]);
-        return BagsRewriteResponse(ret, Rewrite::MAP_BAG_MAKE);
+        // (bag.fold f t (bag x n)) = (apply f t ... (apply f t (apply f t x)))
+        //  n times, where n > 0
+        Node value = NormalForm::evaluateBagFold(n);
+        return BagsRewriteResponse(value, Rewrite::FOLD_BAG);
       }
       break;
+    }
+    case BAG_UNION_DISJOINT:
+    {
+      // (bag.fold f t (bag.union_disjoint A B)) =
+      //       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
+      Node A = bag[0] < bag[1] ? bag[0] : bag[1];
+      Node B = bag[0] < bag[1] ? bag[1] : bag[0];
+      Node foldA = d_nm->mkNode(BAG_FOLD, f, t, A);
+      Node fold = d_nm->mkNode(BAG_FOLD, f, foldA, B);
+      return BagsRewriteResponse(fold, Rewrite::FOLD_UNION_DISJOINT);
     }
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }

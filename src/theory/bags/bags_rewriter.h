@@ -224,11 +224,12 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.map f (as bag.empty (Bag T1)) = (as bag.empty (Bag T2))
-   *  - (bag.map f (bag x y)) = (bag (apply f x) y)
-   *  - (bag.map f (bag.union_disjoint A B)) =
-   *       (bag.union_disjoint (bag.map f A) (bag.map f B))
-   *  where f: T1 -> T2
+   *  - (bag.fold f t (as bag.empty (Bag T1))) = t
+   *  - (bag.fold f t (bag x n)) = (apply f t ... (apply f t (apply f t x)))
+   *    n times where n > 0
+   *  - (bag.fold f t (bag.union_disjoint A B)) =
+   *       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
+   *  where f: T1 -> T2 -> T2
    */
   BagsRewriteResponse postRewriteFold(const TNode& n) const;
 
