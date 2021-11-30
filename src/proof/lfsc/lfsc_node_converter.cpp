@@ -542,7 +542,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
     if (tnn.isNull())
     {
       std::stringstream ss;
-      tn.toStream(ss, Language::LANG_SMTLIB_V2_6);
+      options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+      tn.toStream(ss);
       if (tn.isSort() || (tn.isDatatype() && !tn.isTuple()))
       {
         std::stringstream sss;

@@ -37,8 +37,8 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
     std::vector<Node> children{op};
     for (size_t i = 0, size = n.getNumChildren(); i < size; ++i)
     {
-      if (!argTypes[i].isReal() || argTypes[i].isInteger()
-          || !n[i].getType().isInteger())
+      if (!argTypes[i].isRealOrInt() || argTypes[i].isInteger()
+          || !n[i].isConst() || !n[i].getType().isInteger())
       {
         children.push_back(n[i]);
         continue;
