@@ -188,6 +188,14 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   }
   Trace("srs-input") << "...finished." << std::endl;
 
+  // if the problem is trivial, e.g. contains no non-constant terms, then we
+  // exit with an exception.
+  if (allVars.empty())
+  {
+    throw Exception("No terms to consider for synthesizing rewrites");
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
+
   Trace("srs-input") << "Convert subterms to free variable form..."
                      << std::endl;
   // Replace all free variables with bound variables. This ensures that
@@ -271,7 +279,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
     // add the variables for the type
     TypeNode ctt = ct.getType();
-    Assert(tvars.find(ctt) != tvars.end());
     std::vector<TypeNode> argList;
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
@@ -279,6 +286,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     if (!ctt.isBoolean() || options().quantifiers.sygusRewSynthInputUseBool
         || ct.getKind() == BOUND_VARIABLE)
     {
+      Assert(tvars.find(ctt) != tvars.end()) << "Unexpected type " << ctt << " for " << ct;
       for (const Node& v : tvars[ctt])
       {
         std::stringstream ssc;
