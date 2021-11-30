@@ -49,8 +49,8 @@ void AletheProofPrinter::print(std::ostream& out,
 std::string AletheProofPrinter::printInternal(
     std::ostream& out,
     std::shared_ptr<ProofNode> pfn,
-    std::unordered_map<Node, std::string> assumptions,
-    std::unordered_map<Node, std::string> steps,
+    const std::unordered_map<Node, std::string>& assumptions,
+    const std::unordered_map<Node, std::string>& steps,
     std::string current_prefix,
     uint32_t& current_step_id)
 {
