@@ -233,8 +233,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    */
   Node eliminateCrowdingLits(const std::vector<Node>& clauseLits,
                              const std::vector<Node>& targetClauseLits,
-                             const std::vector<Node>& children,
-                             const std::vector<Node>& args,
+                             std::vector<Node> children,
+                             std::vector<Node> args,
                              CDProof* cdp);
 };
 
