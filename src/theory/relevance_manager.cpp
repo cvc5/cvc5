@@ -29,7 +29,6 @@ RelevanceManager::RelevanceManager(context::Context* lemContext, Valuation val)
     : d_val(val),
       d_input(lemContext),
       d_computed(false),
-      d_inFullEffortCheck(false),
       d_success(false),
       d_trackRSetExp(false),
       d_miniscopeTopLevel(true)
@@ -104,10 +103,7 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
 void RelevanceManager::beginRound()
 {
   d_computed = false;
-  d_inFullEffortCheck = true;
 }
-
-void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
 
 void RelevanceManager::computeRelevance()
 {
@@ -116,24 +112,34 @@ void RelevanceManager::computeRelevance()
   d_rsetExp.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int> cache;
+  d_success = true;
   for (const Node& node: d_input)
   {
     TNode n = node;
     int val = justify(n, cache);
     if (val != 1)
     {
-      std::stringstream serr;
-      serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
-           << n;
-      Trace("rel-manager") << serr.str() << std::endl;
-      Assert(false) << serr.str();
+      if (Trace.isOn("rel-manager"))
+      {
+        std::stringstream serr;
+        serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
+            << n;
+        Trace("rel-manager") << serr.str() << std::endl;
+      }
       d_success = false;
-      d_rset.clear();
-      return;
+      // If we fail to justify an assertion, we set success to false and
+      // continue to try to justify the remaining assertions. This is important
+      // for cases where the difficulty manager is measuring based on lemmas
+      // that are being sent at STANDARD effort, before all assertions are
+      // satisfied.
     }
   }
+  if (!d_success)
+  {
+    d_rset.clear();
+    return;
+  }
   Trace("rel-manager") << "...success, size = " << d_rset.size() << std::endl;
-  d_success = true;
 }
 
 bool RelevanceManager::isBooleanConnective(TNode cur)
@@ -357,7 +363,7 @@ void RelevanceManager::notifyLemma(Node n)
 {
   // only consider lemmas that were sent at full effort, when we have a
   // complete SAT assignment.
-  if (d_dman != nullptr && d_inFullEffortCheck)
+  if (d_dman != nullptr)
   {
     // ensure we know which literals are relevant, and why
     computeRelevance();

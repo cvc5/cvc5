@@ -69,6 +69,7 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
     bool pol = nc.getKind() != kind::NOT;
     TNode atom = pol ? nc : nc[0];
     it = rse.find(atom);
+    Trace("diff-man-debug") << "Check literal: " << atom << ", has reason = " << ( it != rse.end()) << std::endl;
     if (it != rse.end())
     {
       incrementDifficulty(it->second);
