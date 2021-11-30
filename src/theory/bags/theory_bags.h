@@ -94,6 +94,8 @@ class TheoryBags : public Theory
                                  std::vector<SkolemLemma>& lems);
   /** expand the definition of bag.card operator */
   TrustNode expandCardOperator(TNode n, std::vector<SkolemLemma>& lems);
+  /** expand the definition of bag.fold operator */
+  TrustNode expandFoldOperator(TNode n, std::vector<SkolemLemma>& lems);
 
   /** The state of the bags solver at full effort */
   SolverState d_state;

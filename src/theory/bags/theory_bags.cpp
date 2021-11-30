@@ -15,11 +15,14 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
@@ -87,6 +90,7 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   {
     case kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
     case kind::BAG_CARD: return expandCardOperator(atom, lems);
+    case kind::BAG_FOLD: return expandFoldOperator(atom, lems);
     default: return TrustNode::null();
   }
 }
@@ -131,9 +135,9 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
 
-TrustNode TheoryBags::expandCardOperator(TNode n,
-                                         std::vector<SkolemLemma>& vector)
+TrustNode TheoryBags::expandCardOperator(TNode n, std::vector<SkolemLemma>&)
 {
+  Assert(n.getKind() == BAG_CARD);
   if (d_env.getLogicInfo().isHigherOrder())
   {
     // (bag.card A) = (bag.count 1 (bag.map (lambda ((x E)) 1) A)),
@@ -148,6 +152,114 @@ TrustNode TheoryBags::expandCardOperator(TNode n,
     Trace("TheoryBags::ppRewrite")
         << "ppRewrite(" << n << ") = " << countOne << std::endl;
     return TrustNode::mkTrustRewrite(n, countOne, nullptr);
+  }
+  return TrustNode::null();
+}
+
+/**
+ * A bound variable corresponding to the universally quantified integer
+ * variable used to range over the distinct elements in a bag, used
+ * for axiomatizing the behavior of some term.
+ */
+struct IndexVarAttributeId
+{
+};
+typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
+
+TrustNode TheoryBags::expandFoldOperator(TNode node,
+                                         std::vector<SkolemLemma>& lems)
+{
+  Assert(node.getKind() == BAG_FOLD);
+  if (d_env.getLogicInfo().isHigherOrder())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    Node f = node[0];
+    Node t = node[1];
+    Node A = node[2];
+    Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+    // types
+    TypeNode bagType = A.getType();
+    TypeNode elementType = A.getType().getBagElementType();
+    TypeNode integerType = nm->integerType();
+    TypeNode ufType = nm->mkFunctionType(integerType, elementType);
+    TypeNode resultType = t.getType();
+    TypeNode combineType = nm->mkFunctionType(integerType, resultType);
+    TypeNode unionDisjointType = nm->mkFunctionType(integerType, bagType);
+    // skolem functions
+    Node n = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_CARD, integerType, A);
+    Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_FOLD_ELEMENTS, ufType, A);
+    Node unionDisjoint = sm->mkSkolemFunction(
+        SkolemFunId::BAGS_FOLD_UNION_DISJOINT, unionDisjointType, A);
+    Node combine = sm->mkSkolemFunction(
+        SkolemFunId::BAGS_FOLD_COMBINE, combineType, {f, t, A});
+
+    /* (and
+     *  (forall ((i Int))
+     *    (let ((iMinusOne (- i 1)))
+     *      (let ((uf_i (uf i)))
+     *        (=>
+     *          (and (>= i 1) (<= i n))
+     *          (and
+     *            (= (combine i) (f uf_i (combine iMinusOne)))
+     *            (=
+     *              (unionDisjoint i)
+     *              (bag.union_disjoint
+     *                (bag uf_i 1)
+     *                (unionDisjoint iMinusOne))))))))
+     *   (= (combine 0) t)
+     *   (= (unionDisjoint 0) (as bag.empty (Bag T1)))
+     *   (= A (unionDisjoint n))
+     *   (>= n 0))
+    */                     
+    BoundVarManager* bvm = nm->getBoundVarManager();
+    Node i = bvm->mkBoundVar<IndexVarAttribute>(node, "i", nm->integerType());
+    Node iList = nm->mkNode(BOUND_VAR_LIST, i);
+    Node iMinusOne = nm->mkNode(MINUS, i, one);
+    Node uf_i = nm->mkNode(APPLY_UF, uf, i);
+    Node combine_0 = nm->mkNode(APPLY_UF, combine, zero);
+    Node combine_iMinusOne = nm->mkNode(APPLY_UF, combine, iMinusOne);
+    Node combine_i = nm->mkNode(APPLY_UF, combine, i);
+    Node combine_n = nm->mkNode(APPLY_UF, combine, n);
+    Node unionDisjoint_0 = nm->mkNode(APPLY_UF, unionDisjoint, zero);
+    Node unionDisjoint_iMinusOne =
+        nm->mkNode(APPLY_UF, unionDisjoint, iMinusOne);
+    Node unionDisjoint_i = nm->mkNode(APPLY_UF, unionDisjoint, i);
+    Node unionDisjoint_n = nm->mkNode(APPLY_UF, unionDisjoint, n);
+    Node combine_0_equal = combine_0.eqNode(t);
+    Node combine_i_equal =
+        combine_i.eqNode(nm->mkNode(APPLY_UF, f, uf_i, combine_iMinusOne));
+    Node unionDisjoint_0_equal =
+        unionDisjoint_0.eqNode(nm->mkConst(EmptyBag(bagType)));
+    Node singleton = nm->mkBag(elementType, uf_i, one);
+
+    Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
+        nm->mkNode(BAG_UNION_DISJOINT, singleton, unionDisjoint_iMinusOne));
+    Node interval_i =
+        nm->mkNode(AND, nm->mkNode(GEQ, i, one), nm->mkNode(LEQ, i, n));
+
+    Node body_i =
+        nm->mkNode(IMPLIES,
+                   interval_i,
+                   nm->mkNode(AND, combine_i_equal, unionDisjoint_i_equal));
+    Node forAll_i =
+        quantifiers::BoundedIntegers::mkBoundedForall(iList, body_i);
+    Node nonNegative = nm->mkNode(GEQ, n, zero);
+    Node unionDisjoint_n_equal = A.eqNode(unionDisjoint_n);
+    Node andNode = nm->mkNode(AND,
+                              {forAll_i,
+                               combine_0_equal,
+                               unionDisjoint_0_equal,
+                               unionDisjoint_n_equal,
+                               nonNegative});
+    Trace("TheoryBags::ppRewrite")
+        << "ppRewrite(" << node << ") = " << combine_n << " such that"
+        << std::endl
+        << andNode << std::endl;
+
+    d_im.lemma(andNode, InferenceId::BAGS_MAP);
+    return TrustNode::mkTrustRewrite(node, combine_n, nullptr);
   }
   return TrustNode::null();
 }

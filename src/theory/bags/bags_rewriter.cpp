@@ -90,6 +90,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_FROM_SET: response = rewriteFromSet(n); break;
       case BAG_TO_SET: response = rewriteToSet(n); break;
       case BAG_MAP: response = postRewriteMap(n); break;
+      case BAG_FOLD: response = postRewriteFold(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -559,6 +560,38 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
 
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
+{
+  Assert(n.getKind() == kind::BAG_FOLD);
+  Node f = n[0];
+  Node t = n[1];
+  Node A = n[2];
+  if(A.isConst())
+  {
+    Node value = NormalForm::evaluateBagFold(n);
+    return BagsRewriteResponse(value, Rewrite::MAP_CONST);
+  }
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case BAG_EMPTY:
+    {
+      return BagsRewriteResponse(t, Rewrite::MAP_CONST);
+    }
+    case BAG_MAKE:
+    {
+      if (A[1].isConst() && A[1].getConst<Rational>() > Rational(0))
+      {
+        Node ret = d_nm->mkNode(APPLY_UF, f, t, A[0]);
+        return BagsRewriteResponse(ret, Rewrite::MAP_BAG_MAKE);
+      }
+      break;
+    }
+    default: return BagsRewriteResponse(n, Rewrite::NONE);
+  }
+  return BagsRewriteResponse(n, Rewrite::NONE);
 }
 }  // namespace bags
 }  // namespace theory

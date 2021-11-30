@@ -78,6 +78,8 @@ class BagSolver : protected EnvObj
   void checkDisequalBagTerms();
   /** apply inference rules for map operator */
   void checkMap(Node n);
+  /** apply inference rules for fold operator */
+  void checkFold(Node n);
 
   /** The solver state object */
   SolverState& d_state;
