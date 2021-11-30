@@ -75,7 +75,13 @@ class NormalForm
   static Node constructBagFromElements(TypeNode t,
                                        const std::map<Node, Node>& elements);
 
-// private:
+  /**
+   * @param n has the form (bag.fold f t A) where A is a constant bag
+   * @return a single value which is the result of the fold
+   */
+  static Node evaluateBagFold(TNode n);
+
+ private:
   /**
    * a high order helper function that return a constant bag that is the result
    * of (op A B) where op is a binary operator and A, B are constant bags.
@@ -196,11 +202,6 @@ class NormalForm
    * @return a constant bag constructed from the images of elements in A.
    */
   static Node evaluateBagMap(TNode n);
-  /**
-   * @param n has the form (bag.fold f t A) where A is a constant bag
-   * @return a single value which is the result of the fold
-   */
-  static Node evaluateBagFold(TNode n);
 };
 }  // namespace bags
 }  // namespace theory
