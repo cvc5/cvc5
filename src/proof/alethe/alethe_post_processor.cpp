@@ -1513,14 +1513,15 @@ bool AletheProofPostprocessCallback::finalStep(
     CDProof* cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
+  Node falseNode = nm->mkConst(false);
 
   if (
       // If the last proof rule was not translated yet
       (id == PfRule::ALETHE_RULE) &&
       // This case can only occur if the last step is an assumption
-      ((args[2].end() - args[2].begin()) > 1) &&
+      (args[2].getNumChildren() > 1) &&
       // If the proof node has result (false) additional steps have to be added.
-      (args[2][1].toString() != nm->mkConst(false).toString()))
+      (args[2][1] != falseNode))
   {
     return false;
   }
@@ -1533,16 +1534,11 @@ bool AletheProofPostprocessCallback::finalStep(
         res,
         nm->mkConst<Rational>(CONST_RATIONAL,
                               static_cast<unsigned>(AletheRule::ASSUME))};
-    for (auto arg : args)
+    for (const Node& arg : args)
     {
       sanitized_args.push_back(d_anc.convert(arg));
     }
-    return cdp->addStep(res,
-                        PfRule::ALETHE_RULE,
-                        children,
-                        sanitized_args,
-                        true,
-                        CDPOverwrite::ALWAYS);
+    return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitized_args);
   }
 
   bool success = true;
