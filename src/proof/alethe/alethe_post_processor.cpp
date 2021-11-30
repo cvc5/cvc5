@@ -1525,8 +1525,27 @@ bool AletheProofPostprocessCallback::finalStep(
     return false;
   }
 
-  bool success = true;
+  // remove attribute for outermost scope
+  if (id != PfRule::ALETHE_RULE)
+  {
+    std::vector<Node> sanitized_args{
+        res,
+        res,
+        nm->mkConst<Rational>(CONST_RATIONAL,
+                              static_cast<unsigned>(AletheRule::ASSUME))};
+    for (auto arg : args)
+    {
+      sanitized_args.push_back(d_anc.convert(arg));
+    }
+    return cdp->addStep(res,
+                        PfRule::ALETHE_RULE,
+                        children,
+                        sanitized_args,
+                        true,
+                        CDPOverwrite::ALWAYS);
+  }
 
+  bool success = true;
   Node vp1 = nm->mkNode(kind::SEXPR, res);    // ((false))
   Node vp2 = nm->mkConst(false).notNode();    // (not true)
   Node res2 = nm->mkNode(kind::SEXPR, d_cl);  // (cl)
