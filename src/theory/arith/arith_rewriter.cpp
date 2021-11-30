@@ -840,13 +840,13 @@ RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t, bool pre)
     }
     else
     {
-      ret = nm->mkConstInt(Rational(t[0].getConst<Rational>().floor()))
+      ret = nm->mkConstInt(Rational(t[0].getConst<Rational>().floor()));
     }
     return returnRewrite(t, ret, Rewrite::INT_EXT_CONST);
   }
   if (t[0].getType().isInteger())
   {
-    Node ret = isPred ? nm->mkConst(true) : t[0];
+    Node ret = isPred ? nm->mkConst(true) : Node(t[0]);
     return returnRewrite(t, ret, Rewrite::INT_EXT_INT);
   }
   if (t[0].getKind() == kind::PI)
