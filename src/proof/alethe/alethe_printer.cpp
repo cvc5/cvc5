@@ -49,14 +49,16 @@ void AletheProofPrinter::print(std::ostream& out,
 std::string AletheProofPrinter::printInternal(
     std::ostream& out,
     std::shared_ptr<ProofNode> pfn,
-    std::unordered_map<Node, std::string> assumptions,
-    std::unordered_map<Node, std::string> steps,
+    const std::unordered_map<Node, std::string>& assumptions,
+    const std::unordered_map<Node, std::string>& steps,
     std::string current_prefix,
     uint32_t& current_step_id)
 {
   int step_id = current_step_id;
   std::vector<std::string> current_assumptions;
   const std::vector<Node>& args = pfn->getArguments();
+  std::unordered_map<Node, std::string> new_assumptions = assumptions;
+  std::unordered_map<Node, std::string> new_steps = steps;
 
   // If the proof node is untranslated a problem might have occured during
   // postprocessing
@@ -131,7 +133,7 @@ std::string AletheProofPrinter::printInternal(
         Trace("alethe-printer")
             << "... print assumption " << args[i] << std::endl;
         out << "(assume " << assumption_name << " " << args[i] << ")\n";
-        assumptions[args[i]] = assumption_name;
+        new_assumptions[args[i]] = assumption_name;
         current_assumptions.push_back(assumption_name);
       }
     }
@@ -166,8 +168,14 @@ std::string AletheProofPrinter::printInternal(
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
   for (const std::shared_ptr<ProofNode>& child : children)
   {
-    child_prefixes.push_back(printInternal(
-        out, child, assumptions, steps, current_prefix, current_step_id));
+    std::string child_prefix = printInternal(out,
+                                             child,
+                                             new_assumptions,
+                                             new_steps,
+                                             current_prefix,
+                                             current_step_id);
+    new_steps[args[2]] = child_prefix;
+    child_prefixes.push_back(child_prefix);
   }
 
   // If the rule is a subproof a final subproof step needs to be printed
@@ -179,7 +187,7 @@ std::string AletheProofPrinter::printInternal(
     current_prefix.pop_back();
     out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
 
-    steps[args[2]] = current_prefix;
+    new_steps[args[2]] = current_prefix;
 
     // Reset step id to the number before the subproof + 1
     current_step_id = step_id + 1;
@@ -201,8 +209,8 @@ std::string AletheProofPrinter::printInternal(
   }
 
   // If the current step is already printed return its id
-  auto it = steps.find(args[2]);
-  if (it != steps.end())
+  auto it = new_steps.find(args[2]);
+  if (it != new_steps.end())
   {
     Trace("alethe-printer")
         << "... step is already printed " << pfn->getResult() << " " << arule
@@ -215,7 +223,6 @@ std::string AletheProofPrinter::printInternal(
                           << arule << " / " << args << std::endl;
   std::string current_t =
       current_prefix + "t" + std::to_string(current_step_id);
-  steps[args[2]] = current_t;
   out << "(step " << current_t << " " << args[2] << " :rule " << arule;
   current_step_id++;
   if (args.size() > 3)
