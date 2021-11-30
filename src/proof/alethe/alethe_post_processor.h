@@ -52,8 +52,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
               bool& continueUpdate) override;
   /**
    * This method is used to add an additional application of the or-rule between
-   * a conclusion (cl (or F1 ... Fn)) and a rule that uses this conclusion as
-   * premise and treats it as a clause, i.e. assumes that it has to be printed
+   * a conclusion (cl (or F1 ... Fn)) and a rule that uses this conclusion as a
+   * premise and treats it as a clause, i.e. assumes that it has been printed
    * as (cl F1 ... Fn).
    */
   bool finalize(Node res,
