@@ -278,7 +278,8 @@ void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
     if (!hasConstant)
     {
       // add an arbitrary one
-      Node op = st.mkGroundTerm();
+      NodeManager* nm = NodeManager::currentNM();
+      Node op = nm->mkGroundTerm(st);
       // use same naming convention as SygusDatatype
       std::stringstream ss;
       ss << getName() << "_" << getNumConstructors() << "_" << op;

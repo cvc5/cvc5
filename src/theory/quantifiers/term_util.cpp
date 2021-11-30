@@ -500,8 +500,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
         return n;
       }
     }
-    else if (ik == BITVECTOR_UDIV || ik == BITVECTOR_UDIV
-             || ik == BITVECTOR_SDIV)
+    else if (ik == BITVECTOR_UDIV || ik == BITVECTOR_SDIV)
     {
       if (arg == 0)
       {

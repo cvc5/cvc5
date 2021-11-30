@@ -1755,7 +1755,8 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
     if (node.getKind() == SEQ_NTH_TOTAL)
     {
       // return arbitrary term
-      Node ret = s.getType().getSequenceElementType().mkGroundValue();
+      NodeManager* nm = NodeManager::currentNM();
+      Node ret = nm->mkGroundValue(s.getType().getSequenceElementType());
       return returnRewrite(node, ret, Rewrite::SEQ_NTH_TOTAL_OOB);
     }
     else

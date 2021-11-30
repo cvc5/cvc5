@@ -440,7 +440,8 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
       // evaluates to the first ground value of type tn.
-      Node gt = tn.mkGroundValue();
+      NodeManager* nm = NodeManager::currentNM();
+      Node gt = nm->mkGroundValue(tn);
       Assert(!gt.isNull());
       if (tn.isDatatype() && !tn.isInstantiatedDatatype())
       {
