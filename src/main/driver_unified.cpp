@@ -72,15 +72,24 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Parse the options
   std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
-
-  auto limit = install_time_limit(solver->getOptionInfo("tlimit").uintValue());
-
-  if (solver->getOptionInfo("help").boolValue())
+  if (solver.getOptionInfo("help").boolValue())
   {
     main::printUsage(progName, dopts.out());
     exit(1);
   }
+  for (const auto& name : {"show-config",
+                           "copyright",
+                           "show-debug-tags",
+                           "show-trace-tags",
+                           "version"})
+  {
+    if (solver.getOptionInfo(name).boolValue())
+    {
+      std::exit(0);
+    }
+  }
 
+  auto limit = install_time_limit(solver->getOptionInfo("tlimit").uintValue());
   segvSpin = solver->getOptionInfo("segv-spin").boolValue();
 
   // If in competition mode, set output stream option to flush immediately
