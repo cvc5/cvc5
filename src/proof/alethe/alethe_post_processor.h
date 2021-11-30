@@ -138,8 +138,6 @@ class AletheProofPostprocess
   ProofNodeManager* d_pnm;
   /** The post process callback */
   AletheProofPostprocessCallback d_cb;
-  /** The final post process callback */
-  AletheProofPostprocessFinalCallback d_fcb;
 };
 
 }  // namespace proof

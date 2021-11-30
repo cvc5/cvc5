@@ -1605,20 +1605,9 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
 
-bool AletheProofPostprocessFinalCallback::update(
-    Node res,
-    PfRule id,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof* cdp,
-    bool& continueUpdate)
-{
-  return true;
-}
-
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
                                                AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc)
+    : d_pnm(pnm), d_cb(d_pnm, anc)
 {
 }
 
