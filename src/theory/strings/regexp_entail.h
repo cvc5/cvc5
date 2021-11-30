@@ -120,9 +120,7 @@ class RegExpEntail
   /**
    * Get constant lower or upper bound on the lengths of strings that occur in
    * regular expression n. Return null if a constant bound cannot be determined.
-   *
-   * As a special case, this method will never return 0 as a lower bound for
-   * the length of n, since this conveys no information.
+   * This method will always worst case return 0 as a lower bound.
    */
   Node getConstantBoundLengthForRegexp(TNode n, bool isLower = true) const;
   /**
