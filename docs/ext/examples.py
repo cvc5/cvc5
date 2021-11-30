@@ -37,7 +37,7 @@ class APIExamples(SphinxDirective):
             'group': 'py-regular'
         },
         '<z3pycompat>.*\.py$': {
-            'title': 'Python z3pycompat',
+            'title': 'Python z3py',
             'lang': 'python',
             'group': 'py-z3pycompat'
         },
@@ -78,7 +78,7 @@ class APIExamples(SphinxDirective):
                     break
             if lang == None:
                 self.logger.warning(
-                    f'file type of {location} could not be detexted')
+                    f'file type of {location} could not be detected')
                 title = os.path.splitext(file)[1]
                 lang = title
 
