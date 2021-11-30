@@ -69,7 +69,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-html_theme_options = {}
+html_theme_options = {
+    'navigation_depth': 5
+}
 html_static_path = ['${CMAKE_CURRENT_SOURCE_DIR}/_static/']
 html_css_files = ['custom.css']
 html_show_sourcelink = False
