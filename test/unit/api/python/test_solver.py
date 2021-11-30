@@ -2247,7 +2247,7 @@ def test_tuple_project(solver):
         solver.mkBoolean(True), \
         solver.mkInteger(3),\
         solver.mkString("C"),\
-        solver.mkTerm(SET_SINGLETON, solver.mkString("Z"))]
+        solver.mkTerm(kinds.SET_SINGLETON, solver.mkString("Z"))]
 
     tuple = solver.mkTuple(sorts, elements)
 
@@ -2258,22 +2258,22 @@ def test_tuple_project(solver):
     indices5 = [4]
     indices6 = [0, 4]
 
-    solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices1), tuple)
+    solver.mkTerm(solver.mkOp(kinds.TUPLE_PROJECT, indices1), tuple)
 
-    solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices2), tuple)
+    solver.mkTerm(solver.mkOp(kinds.TUPLE_PROJECT, indices2), tuple)
 
-    solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices3), tuple)
+    solver.mkTerm(solver.mkOp(kinds.TUPLE_PROJECT, indices3), tuple)
 
-    solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices4), tuple)
+    solver.mkTerm(solver.mkOp(kinds.TUPLE_PROJECT, indices4), tuple)
 
     with pytest.raises(RuntimeError):
-        solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices5), tuple)
+        solver.mkTerm(solver.mkOp(kinds.TUPLE_PROJECT, indices5), tuple)
     with pytest.raises(RuntimeError):
-        solver.mkTerm(solver.mkOp(TUPLE_PROJECT, indices6), tuple)
+        solver.mkTerm(solver.mkOp(kinds.TUPLE_PROJECT, indices6), tuple)
 
     indices = [0, 3, 2, 0, 1, 2]
 
-    op = solver.mkOp(TUPLE_PROJECT, indices)
+    op = solver.mkOp(kinds.TUPLE_PROJECT, indices)
     projection = solver.mkTerm(op, tuple)
 
     datatype = tuple.getSort().getDatatype()
@@ -2282,7 +2282,7 @@ def test_tuple_project(solver):
     for i in range(indices.size()):
 
         selectorTerm = constructor[indices[i]].getSelectorTerm()
-        selectedTerm = solver.mkTerm(APPLY_SELECTkinds.Or, selectorTerm, tuple)
+        selectedTerm = solver.mkTerm(kinds.APPLY_SELECT, selectorTerm, tuple)
         simplifiedTerm = solver.simplify(selectedTerm)
         assert elements[indices[i]] == simplifiedTerm
 
