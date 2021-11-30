@@ -5166,7 +5166,10 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
 {
   // Note: Kind and children are checked in the caller to avoid double checks
   //////// all checks before this line
-
+  if (children.size() == 0)
+  {
+    return mkTermFromKind(kind);
+  }
   std::vector<Node> echildren = Term::termVectorToNodes(children);
   cvc5::Kind k = extToIntKind(kind);
   Node res;
@@ -6305,14 +6308,12 @@ Term Solver::mkTerm(const Op& op) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_OP(op);
-  checkMkTerm(op.d_kind, 0);
-  //////// all checks before this line
-
   if (!op.isIndexedHelper())
   {
     return mkTermFromKind(op.d_kind);
   }
-
+  checkMkTerm(op.d_kind, 0);
+  //////// all checks before this line
   const cvc5::Kind int_kind = extToIntKind(op.d_kind);
   Term res = Term(this, getNodeManager()->mkNode(int_kind, *op.d_node));
 

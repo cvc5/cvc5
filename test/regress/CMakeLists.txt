@@ -631,6 +631,7 @@ set(regress_0_tests
   regress0/ho/bug_nodbuilding_interpreted_SYO042^1.p
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
+  regress0/ho/datatype-field-ho.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
   regress0/ho/ext-finite-unsat.smt2
