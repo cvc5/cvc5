@@ -51,9 +51,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
               CDProof* cdp,
               bool& continueUpdate) override;
   /**
-   * This method is used to add some last steps to a
-   * proof when this is necessary. The final step should always be printed as
-   * (cl).
+   * This method is used to add some last steps to a proof when this is
+   * necessary. The final step should always be printed as (cl). However:
    *
    * 1. If the last step of a proof is reached (which is false) it is printed as
    * (cl false).
