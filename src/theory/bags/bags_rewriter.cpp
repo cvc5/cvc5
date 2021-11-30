@@ -580,8 +580,7 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
     {
       if (bag[1].isConst() && bag[1].getConst<Rational>() > Rational(0))
       {
-        // (bag.fold f t (bag x n)) = (apply f t ... (apply f t (apply f t x)))
-        //  n times, where n > 0
+        // (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times, n > 0
         Node value = NormalForm::evaluateBagFold(n);
         return BagsRewriteResponse(value, Rewrite::FOLD_BAG);
       }

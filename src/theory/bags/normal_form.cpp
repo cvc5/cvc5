@@ -170,8 +170,6 @@ Node NormalForm::evaluateBinaryOperation(const TNode& n,
 
 std::map<Node, Rational> NormalForm::getBagElements(TNode n)
 {
-  Assert(n.isConst()) << "node " << n << " is not in a normal form"
-                      << std::endl;
   std::map<Node, Rational> elements;
   if (n.getKind() == BAG_EMPTY)
   {

@@ -225,8 +225,7 @@ class BagsRewriter : public TheoryRewriter
   /**
    *  rewrites for n include:
    *  - (bag.fold f t (as bag.empty (Bag T1))) = t
-   *  - (bag.fold f t (bag x n)) = (apply f t ... (apply f t (apply f t x)))
-   *    n times where n > 0
+   *  - (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times, where n > 0
    *  - (bag.fold f t (bag.union_disjoint A B)) =
    *       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
    *  where f: T1 -> T2 -> T2
