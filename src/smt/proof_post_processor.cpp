@@ -1047,9 +1047,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Trace("smt-proof-pp-debug") << "..add reordering step.\n";
       cdp->addStep(args[0], PfRule::REORDERING, {n}, {args[0]});
     }
-    Trace("crowding-lits")
-        << "Number of added proof nodes: "
-        << cdp->getNumProofNodes() - initProofSize << "\n";
+    Trace("crowding-lits") << "Number of added proof nodes: "
+                           << cdp->getNumProofNodes() - initProofSize << "\n";
     return args[0];
   }
   else if (id == PfRule::SUBS)
