@@ -750,7 +750,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
 
   Node empty = d_nodeManager->mkConst(String(""));
   Node xString = d_nodeManager->mkBoundVar("x", d_nodeManager->stringType());
-  Node bound = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, xString);
+  Node bound = d_nodeManager->mkNode(BOUND_VAR_LIST, xString);
   Node lambda = d_nodeManager->mkNode(LAMBDA, bound, empty);
 
   // (bag.map (lambda ((x U))  t) (as bag.empty (Bag String)) =
