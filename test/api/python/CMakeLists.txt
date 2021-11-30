@@ -24,8 +24,8 @@ macro(cvc5_add_python_api_test name filename)
     # directory for importing the python bindings
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
     set_tests_properties(${test_name} 
-	    PROPERTIES LABELS "api"
-	    ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
+      PROPERTIES LABELS "api"
+      ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
 endmacro()
 
 # add specific test files

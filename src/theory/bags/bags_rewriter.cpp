@@ -449,7 +449,6 @@ BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
     Node plus = d_nm->mkNode(PLUS, A, B);
     return BagsRewriteResponse(plus, Rewrite::CARD_DISJOINT);
   }
-
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 

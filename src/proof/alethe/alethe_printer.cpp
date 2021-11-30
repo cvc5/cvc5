@@ -110,11 +110,7 @@ std::string AletheProofPrinter::printInternal(
       for (size_t j = 3, size = args.size(); j < size; j++)
       {
         out << "(:= (" << args[j][0] << " " << args[j][0].getType() << ") "
-            << args[j][1] << ")";
-        if (j != args.size() - 1)
-        {
-          out << " ";
-        }
+            << args[j][1] << ")" << (j != args.size() - 1 ? " " : "");
       }
       out << ")";
     }
@@ -228,7 +224,7 @@ std::string AletheProofPrinter::printInternal(
   if (args.size() > 3)
   {
     out << " :args (";
-    for (unsigned long int i = 3, size = args.size(); i < size; i++)
+    for (size_t i = 3, size = args.size(); i < size; i++)
     {
       if (arule == AletheRule::FORALL_INST)
       {

@@ -437,7 +437,7 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   else if (type.isArray() || type.isSet())
   {
     // generate constant array over the first element of the constituent type
-    Node c = type.mkGroundTerm();
+    Node c = nm->mkGroundTerm(type);
     // note that c should never contain an uninterpreted constant
     Assert(!expr::hasSubtermKind(UNINTERPRETED_CONSTANT, c));
     ops.push_back(c);
@@ -1065,8 +1065,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       // if there are not constructors yet by this point, which can happen,
       // e.g. for unimplemented types that have no variables in the argument
-      // list of the function-to-synthesize, create a fresh ground term 
-      sdts[i].addConstructor(types[i].mkGroundTerm(), "", {});
+      // list of the function-to-synthesize, create a fresh ground term
+      sdts[i].addConstructor(nm->mkGroundTerm(types[i]), "", {});
     }
 
     // always add ITE
