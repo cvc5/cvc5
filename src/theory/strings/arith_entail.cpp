@@ -866,11 +866,7 @@ Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
   if (s.isConst())
   {
     size_t len = Word::getLength(s);
-    // return null for lower bound on length
-    if (!isLower || len != 0)
-    {
-      ret = nm->mkConst(CONST_RATIONAL, Rational(len));
-    }
+    ret = nm->mkConst(CONST_RATIONAL, Rational(len));
   }
   else if (s.getKind() == STRING_CONCAT)
   {
