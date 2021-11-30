@@ -1,7 +1,7 @@
-Booleans
+Core & Booleans
 ================
 
-Basic Term Builders
+Basic Boolean Term Builders
 -------------------
 .. autofunction:: cvc5_z3py_compat.Bool
 .. autofunction:: cvc5_z3py_compat.Bools
@@ -10,14 +10,35 @@ Basic Term Builders
 .. autofunction:: cvc5_z3py_compat.FreshBool
 .. autofunction:: cvc5_z3py_compat.BoolVector
 
-Operators
+Basic Generic Term Builders
 -------------------
-.. autofunction:: cvc5_z3py_compat.Implies
-.. autofunction:: cvc5_z3py_compat.Xor
-.. autofunction:: cvc5_z3py_compat.Not
+.. autofunction:: cvc5_z3py_compat.Const
+.. autofunction:: cvc5_z3py_compat.Consts
+.. autofunction:: cvc5_z3py_compat.FreshConst
+
+Boolean Operators
+-------------------
 .. autofunction:: cvc5_z3py_compat.And
 .. autofunction:: cvc5_z3py_compat.Or
+.. autofunction:: cvc5_z3py_compat.Not
 .. autofunction:: cvc5_z3py_compat.mk_not
+.. autofunction:: cvc5_z3py_compat.Implies
+.. autofunction:: cvc5_z3py_compat.Xor
+
+Generic Operators
+-------------------
+.. autofunction:: cvc5_z3py_compat.If
+.. autofunction:: cvc5_z3py_compat.Distinct
+
+Equality
+~~~~~~~~
+
+See
+:py:meth:`cvc5_z3py_compat.ExprRef.__eq__`
+and
+:py:meth:`cvc5_z3py_compat.ExprRef.__ne__`
+for building equality and disequality terms.
+
 
 Testers
 -------------------
@@ -30,9 +51,17 @@ Testers
 .. autofunction:: cvc5_z3py_compat.is_not
 .. autofunction:: cvc5_z3py_compat.is_eq
 .. autofunction:: cvc5_z3py_compat.is_distinct
+.. autofunction:: cvc5_z3py_compat.is_const
+
 
 Classes
 --------
+.. autoclass:: cvc5_z3py_compat.ExprRef
+   :members:
+   :special-members:
+.. autoclass:: cvc5_z3py_compat.SortRef
+   :members:
+   :special-members:
 .. autoclass:: cvc5_z3py_compat.BoolRef
    :members:
    :special-members:
