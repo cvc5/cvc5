@@ -206,6 +206,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   // them. The factoring step must be added after the last inclusion and before
   // its elimination.
   std::unordered_set<TNode> crowding;
+  size_t childrenSize = children.size(), numCrowding = 0;
   std::vector<std::pair<Node, size_t>> lastInclusion;
   // for each crowding lit its last inclusion, its eliminator, its number of
   // occurrences by last eliminator
@@ -215,88 +216,91 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::vector<size_t> eliminators;
   for (size_t i = 0, size = clauseLits.size(); i < size; ++i)
   {
-    if (!crowding.count(clauseLits[i])
-        && std::find(
+    // repeated crowding literal or conclusion literal
+    if (crowding.count(clauseLits[i])
+        || std::find(
                targetClauseLits.begin(), targetClauseLits.end(), clauseLits[i])
-               == targetClauseLits.end())
+               != targetClauseLits.end())
     {
-      Node crowdLit = clauseLits[i];
-      crowding.insert(crowdLit);
-      Trace("crowding-lit2") << "crowding lit " << crowdLit << "\n";
-      // found crowding lit, now get its last inclusion position, which is the
-      // position of the last resolution link that introduces the crowding
-      // literal. Note that this position has to be *before* the last link, as a
-      // link *after* the last inclusion must eliminate the crowding literal.
-      size_t j;
-      for (j = children.size() - 1; j > 0; --j)
-      {
-        // notice that only non-singleton clauses may be introducing the
-        // crowding literal, so we only care about non-singleton OR nodes. We
-        // check then against the kind and whether the whole OR node occurs as a
-        // pivot of the respective resolution
-        if (children[j - 1].getKind() != kind::OR)
-        {
-          continue;
-        }
-        uint64_t pivotIndex = 2 * (j - 1);
-        if (args[pivotIndex] == children[j - 1]
-            || args[pivotIndex].notNode() == children[j - 1])
-        {
-          continue;
-        }
-        if (std::find(children[j - 1].begin(), children[j - 1].end(), crowdLit)
-            != children[j - 1].end())
-        {
-          break;
-        }
-      }
-      Assert(j > 0);
-      lastInclusion.emplace_back(crowdLit, j - 1);
-      CrowdingLitInfo info;
-      info.d_lastInclusion = j - 1;
-
-      Trace("crowding-lits2") << "last inc " << j - 1 << "\n";
-      // get elimination position, starting from the following link as the last
-      // inclusion one. The result is the last (in the chain, but first from
-      // this point on) resolution link that eliminates the crowding literal. A
-      // literal l is eliminated by a link if it contains a literal l' with
-      // opposite polarity to l.
-      for (; j < children.size(); ++j)
-      {
-        bool posFirst = args[(2 * j) - 1] == trueNode;
-        Node pivot = args[(2 * j)];
-        Trace("crowding-lits2")
-            << "\tcheck w/ args " << posFirst << " / " << pivot << "\n";
-        // To eliminate the crowding literal (crowdLit), the clause must contain
-        // it with opposite polarity. There are three successful cases,
-        // according to the pivot and its sign
-        //
-        // - crowdLit is the same as the pivot and posFirst is true, which means
-        //   that the clause contains its negation and eliminates it
-        //
-        // - crowdLit is the negation of the pivot and posFirst is false, so the
-        //   clause contains the node whose negation is crowdLit. Note that this
-        //   case may either be crowdLit.notNode() == pivot or crowdLit ==
-        //   pivot.notNode().
-        if ((crowdLit == pivot && posFirst)
-            || (crowdLit.notNode() == pivot && !posFirst)
-            || (pivot.notNode() == crowdLit && !posFirst))
-        {
-          Trace("crowding-lits2") << "\t\tfound it!\n";
-          eliminators.push_back(j);
-          break;
-        }
-      }
-      info.d_eliminator = eliminators.back();
-      crowdLitsInfo[crowdLit] = info;
-      Trace("crowding-lits2") << "last inc " << info.d_lastInclusion
-                              << ", elim " << info.d_eliminator << "\n";
-      AlwaysAssert(j < children.size());
+      continue;
     }
+    Node crowdLit = clauseLits[i];
+    crowding.insert(crowdLit);
+    Trace("crowding-lit2") << "crowding lit " << crowdLit << "\n";
+    // found crowding lit, now get its last inclusion position, which is the
+    // position of the last resolution link that introduces the crowding
+    // literal. Note that this position has to be *before* the last link, as a
+    // link *after* the last inclusion must eliminate the crowding literal.
+    size_t j;
+    for (j = childrenSize - 1; j > 0; --j)
+    {
+      // notice that only non-singleton clauses may be introducing the
+      // crowding literal, so we only care about non-singleton OR nodes. We
+      // check then against the kind and whether the whole OR node occurs as a
+      // pivot of the respective resolution
+      if (children[j - 1].getKind() != kind::OR)
+      {
+        continue;
+      }
+      uint64_t pivotIndex = 2 * (j - 1);
+      if (args[pivotIndex] == children[j - 1]
+          || args[pivotIndex].notNode() == children[j - 1])
+      {
+        continue;
+      }
+      if (std::find(children[j - 1].begin(), children[j - 1].end(), crowdLit)
+          != children[j - 1].end())
+      {
+        break;
+      }
+    }
+    Assert(j > 0);
+    lastInclusion.emplace_back(crowdLit, j - 1);
+    CrowdingLitInfo info;
+    info.d_lastInclusion = j - 1;
+
+    Trace("crowding-lits2") << "last inc " << j - 1 << "\n";
+    // get elimination position, starting from the following link as the last
+    // inclusion one. The result is the last (in the chain, but first from
+    // this point on) resolution link that eliminates the crowding literal. A
+    // literal l is eliminated by a link if it contains a literal l' with
+    // opposite polarity to l.
+    for (; j < childrenSize; ++j)
+    {
+      bool posFirst = args[(2 * j) - 1] == trueNode;
+      Node pivot = args[(2 * j)];
+      Trace("crowding-lits2")
+          << "\tcheck w/ args " << posFirst << " / " << pivot << "\n";
+      // To eliminate the crowding literal (crowdLit), the clause must contain
+      // it with opposite polarity. There are three successful cases,
+      // according to the pivot and its sign
+      //
+      // - crowdLit is the same as the pivot and posFirst is true, which means
+      //   that the clause contains its negation and eliminates it
+      //
+      // - crowdLit is the negation of the pivot and posFirst is false, so the
+      //   clause contains the node whose negation is crowdLit. Note that this
+      //   case may either be crowdLit.notNode() == pivot or crowdLit ==
+      //   pivot.notNode().
+      if ((crowdLit == pivot && posFirst)
+          || (crowdLit.notNode() == pivot && !posFirst)
+          || (pivot.notNode() == crowdLit && !posFirst))
+      {
+        Trace("crowding-lits2") << "\t\tfound it!\n";
+        eliminators.push_back(j);
+        break;
+      }
+    }
+    info.d_eliminator = eliminators.back();
+    crowdLitsInfo[crowdLit] = info;
+    Trace("crowding-lits2") << "last inc " << info.d_lastInclusion << ", elim "
+                            << info.d_eliminator << "\n";
+    AlwaysAssert(j < childrenSize);
   }
   Assert(!lastInclusion.empty());
   Trace("crowding-lits") << "..total of " << lastInclusion.size()
                          << " crowding literals\n";
+  numCrowding = lastInclusion.size();
   // order map so that we process crowding literals in the order of the clauses
   // that last introduce them
   auto cmp = [](std::pair<Node, size_t>& a, std::pair<Node, size_t>& b) {
@@ -305,172 +309,193 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::sort(lastInclusion.begin(), lastInclusion.end(), cmp);
   // order eliminators
   std::sort(eliminators.begin(), eliminators.end());
-  // compute extra information
-  for (size_t i = 0, size = lastInclusion.size(); i < size; ++i)
+  if (d_env.getOptions().proof.optResReconSize)
   {
-    size_t elim = crowdLitsInfo[lastInclusion[i].first].d_eliminator;
-    unsigned bad = 0;
-    size_t minLastInc = children.size();
-    for (size_t j = 0, sizeElim = children[elim].getNumChildren(); j < sizeElim;
-         ++j)
+    // compute extra information
+    for (size_t i = 0; i < numCrowding; ++i)
     {
-      // if not crowding and not in conclusion
-      if (!crowding.count(children[elim][j])
-          && std::find(targetClauseLits.begin(),
-                       targetClauseLits.end(),
-                       children[elim][j])
-                 == targetClauseLits.end())
+      size_t elim = crowdLitsInfo[lastInclusion[i].first].d_eliminator;
+      // how many non-crowding non-conclusion lits
+      uint32_t regularLits = 0;
+      // TODO this will probably break with unit ORs
+      size_t minLastInc = childrenSize,
+             numLits = children[elim].getKind() != kind::OR
+                           ? 1
+                           : children[elim].getNumChildren();
+      // unit eliminators can be moved to the end
+      if (numLits == 1)
       {
-        bad++;
+        crowdLitsInfo[lastInclusion[i].first].d_onlyCrowdingInElim = true;
+        crowdLitsInfo[lastInclusion[i].first].d_minLastIncOfCrowdingInElim =
+            childrenSize;
+        continue;
       }
-      else if (crowding.count(children[elim][j]))
+      for (size_t j = 0; j < numLits; ++j)
       {
-        Assert(crowdLitsInfo.find(children[elim][j]) != crowdLitsInfo.end());
-        size_t lastInc = crowdLitsInfo[children[elim][j]].d_lastInclusion;
-        minLastInc = lastInc < minLastInc ? lastInc : minLastInc;
+        // if not crowding and not in conclusion
+        if (!crowding.count(children[elim][j])
+            && std::find(targetClauseLits.begin(),
+                         targetClauseLits.end(),
+                         children[elim][j])
+                   == targetClauseLits.end())
+        {
+          regularLits++;
+        }
+        else if (crowding.count(children[elim][j]))
+        {
+          Assert(crowdLitsInfo.find(children[elim][j]) != crowdLitsInfo.end());
+          size_t lastInc = crowdLitsInfo[children[elim][j]].d_lastInclusion;
+          minLastInc = lastInc < minLastInc ? lastInc : minLastInc;
+        }
+      }
+      Assert(regularLits >= 1)
+          << "Just " << regularLits << " regular lits in non-unit child "
+          << elim << ": " << children[elim];
+      // as long as there are no regular lits beyond the one eliminating the
+      // crowding literal, we set the information
+      if (regularLits == 1)
+      {
+        crowdLitsInfo[lastInclusion[i].first].d_onlyCrowdingInElim = true;
+        crowdLitsInfo[lastInclusion[i].first].d_minLastIncOfCrowdingInElim =
+            minLastInc;
       }
     }
-    if (bad <= 1)
+    if (Trace.isOn("smt-proof-pp-debug2"))
     {
-      crowdLitsInfo[lastInclusion[i].first].d_onlyCrowdingInElim = bad <= 1;
-      crowdLitsInfo[lastInclusion[i].first].d_minLastIncOfCrowdingInElim =
-          minLastInc;
+      Trace("smt-proof-pp-debug2") << "crowding lits last inclusion:\n";
+      for (size_t i = 0, size = lastInclusion.size(); i < size; ++i)
+      {
+        Node crowdingLit = lastInclusion[i].first;
+        Trace("smt-proof-pp-debug2")
+            << "\t- [" << crowdLitsInfo[crowdingLit].d_lastInclusion << "] : {"
+            << crowdLitsInfo[crowdingLit].d_eliminator << "} " << crowdingLit
+            << "\n";
+        if (crowdLitsInfo[crowdingLit].d_onlyCrowdingInElim)
+        {
+          Trace("smt-proof-pp-debug2")
+              << "\t\t- onlyCrowdingInElim; minLastInc: "
+              << crowdLitsInfo[lastInclusion[i].first]
+                     .d_minLastIncOfCrowdingInElim
+              << "\n";
+        }
+      }
     }
-  }
-  if (Trace.isOn("smt-proof-pp-debug"))
-  {
-    Trace("smt-proof-pp-debug") << "crowding lits last inclusion:\n";
-    for (size_t i = 0, size = lastInclusion.size(); i < size; ++i)
+    // Every eliminator that has, besides the pivot of the crowding literal it's
+    // eliminating, only crowding literals or conclusion literals can be,
+    // without loss of generality, moved until up to the immediate position
+    // befone the minimum position of a crowding literal on it. So for example,
+    // an eliminator in position i, which has only crowding literals, whose
+    // minumum position is i+1000, can be moved anywhere in the premises between
+    // i and i+999. This is the case since all the literals that are introduced
+    // by the eliminator are going to be killed only starting at i+1000.
+    //
+    // Given the above we proceed, based on the crowding lits information, to
+    // move up to maximum all eliminators.
+    //
+    // We will use std::rotate to do the moving of the premises, which moves to
+    // target position (first argument) an interval [l, u), where l and u are
+    // the second and third arguments. For each eliminator in position i that
+    // has a minimum crowding last inclusion k bigger than i + 1, we do the
+    // moving with arguments (i, i+1, k). As a consequence children[i] will move
+    // to position k-1. Since we are moving premises we also need to move
+    // arguments. The polarity/pivot of the eliminator in position i are (2*i)
+    // -1 and 2*i. So the rotation in the arguments is with (2*i-1, 2*i+1,
+    // 2*k-1).
+    Trace("smt-proof-pp-debug") << "Moving eliminators\n" << push;
+    // This guys will be used to search for the position of the eliminator
+    // within children after the moves below. This is necessary because an
+    // eliminator originally moved to position k can end up in some position
+    // before k if any other eliminator is moved ahead of k
+    uint32_t counterMoved = 0;
+    for (size_t i = 0; i < numCrowding; ++i)
     {
       Node crowdingLit = lastInclusion[i].first;
+      size_t elim = crowdLitsInfo[crowdingLit].d_eliminator;
+      size_t minLastInc =
+          crowdLitsInfo[crowdingLit].d_minLastIncOfCrowdingInElim;
+      Assert(minLastInc >= elim);
+      if (!crowdLitsInfo[crowdingLit].d_onlyCrowdingInElim
+          || minLastInc - elim <= 1)
+      {
+        continue;
+      }
+      ++counterMoved;
+      Trace("smt-proof-pp-debug2")
+          << "..move elim " << elim << " to " << minLastInc - 1 << "\n";
+      std::rotate(children.begin() + elim,
+                  children.begin() + elim + 1,
+                  children.begin() + minLastInc);
+      std::rotate(args.begin() + (2 * elim) - 1,
+                  args.begin() + (2 * elim) + 1,
+                  args.begin() + (2 * minLastInc) - 1);
+      // Being pedantic here we should assert that the rotated children/args
+      // still yield the same conclusion with a MACRO_RESOLUTION step. However
+      // this can be very expensive to check, so we don't do this. Only if one
+      // is debugging this code this test should be added
+
+      // Now we need to update the indices, since we have changed children. For
+      // every crowding literal whose information indices are in the interval
+      // [elim+1, minLastInc), these indices should be decremented by 1.
+      for (std::pair<const Node, CrowdingLitInfo>& p : crowdLitsInfo)
+      {
+        bool updated = false;
+        // guarantee we update who we just moved...
+        if (p.first == crowdingLit)
+        {
+          p.second.d_eliminator = minLastInc - 1;
+          updated = true;
+        }
+        // can update lastInclusion, eliminator and minLastIncOfCrowdingInElim
+        if (p.second.d_lastInclusion >= elim + 1
+            && p.second.d_lastInclusion < minLastInc)
+        {
+          --p.second.d_lastInclusion;
+          updated = true;
+        }
+        if (p.second.d_eliminator >= elim + 1
+            && p.second.d_eliminator < minLastInc)
+        {
+          --p.second.d_eliminator;
+          updated = true;
+        }
+        if (p.second.d_onlyCrowdingInElim
+            && p.second.d_minLastIncOfCrowdingInElim >= elim + 1
+            && p.second.d_minLastIncOfCrowdingInElim < minLastInc)
+        {
+          --p.second.d_minLastIncOfCrowdingInElim;
+          updated = true;
+        }
+        if (updated)
+        {
+          Trace("smt-proof-pp-debug2")
+              << "\tUpdated crowding lit " << p.first << " info to "
+              << crowdLitsInfo[p.first] << "\n";
+        }
+      }
+    }
+    Trace("smt-proof-pp-debug") << pop;
+    if (counterMoved)
+    {
+      Trace("crowding-lits")
+          << "..moved up " << counterMoved << " eliminators\n";
       Trace("smt-proof-pp-debug")
-          << "\t- [" << crowdLitsInfo[crowdingLit].d_lastInclusion << "] : {"
-          << crowdLitsInfo[crowdingLit].d_eliminator << "} " << crowdingLit
-          << "\n";
-      if (crowdLitsInfo[crowdingLit].d_onlyCrowdingInElim)
+          << "Updating bookkeeping of lastInclusion/eliminators vectors\n";
+      Trace("smt-proof-pp-debug2") << "New premises " << children << "\n";
+      Trace("smt-proof-pp-debug2") << "New args " << args << "\n";
+      // lastInclusion order will not have changed, so we just traverse in the
+      // same way and update
+      for (auto& p : lastInclusion)
       {
-        Trace("smt-proof-pp-debug") << "\t\t- onlyCrowdingInElim; minLastInc: "
-                                    << crowdLitsInfo[lastInclusion[i].first]
-                                           .d_minLastIncOfCrowdingInElim
-                                    << "\n";
+        p.second = crowdLitsInfo[p.first].d_lastInclusion;
       }
+      // since eliminators may have changed drastically, we fully recompute
+      eliminators.clear();
+      for (const std::pair<const Node, CrowdingLitInfo>& p : crowdLitsInfo)
+      {
+        eliminators.push_back(p.second.d_eliminator);
+      }
+      std::sort(eliminators.begin(), eliminators.end());
     }
-  }
-  // Every eliminator that has, besides the pivot of the crowding literal it's
-  // eliminating, only crowding literals or conclusion literals can be, without
-  // loss of generality, moved until up to the immediate position befone the
-  // minimum position of a crowding literal on it. So for example, an eliminator
-  // in position i, which has only crowding literals, whose minumum position is
-  // i+1000, can be moved anywhere in the premises between i and i+999. This is
-  // the case since all the literals that are introduced by the eliminator are
-  // going to be killed only starting at i+1000.
-  //
-  // Given the above we proceed, based on the crowding lits information, to move
-  // up to maximum all eliminators.
-  //
-  // We will use std::rotate to do the moving of the premises, which moves to
-  // target position (first argument) an interval [l, u), where l and u are the
-  // second and third arguments. For each eliminator in position i that has a
-  // minimum crowding last inclusion k bigger than i + 1, we do the moving with
-  // arguments (i, i+1, k). As a consequence children[i] will move to position
-  // k-1. Since we are moving premises we also need to move arguments. The
-  // polarity/pivot of the eliminator in position i are (2*i) -1 and 2*i. So the
-  // rotation in the arguments is with (2*i-1, 2*i+1, 2*k-1).
-  Trace("smt-proof-pp-debug") << "Moving eliminators\n" << push;
-  // This guys will be used to search for the position of the eliminator within
-  // children after the moves below. This is necessary because an eliminator
-  // originally moved to position k can end up in some position before k if any
-  // other eliminator is moved ahead of k
-  bool moved = false;
-  unsigned counterMoved = 0;
-  for (size_t i = 0, size = lastInclusion.size(); i < size; ++i)
-  {
-    Node crowdingLit = lastInclusion[i].first;
-    size_t elim = crowdLitsInfo[crowdingLit].d_eliminator;
-    size_t minLastInc = crowdLitsInfo[crowdingLit].d_minLastIncOfCrowdingInElim;
-    Assert(minLastInc >= elim) << "Crowding lit " << crowdingLit
-                               << " with info " << crowdLitsInfo[crowdingLit];
-    if (!crowdLitsInfo[crowdingLit].d_onlyCrowdingInElim
-        || minLastInc - elim <= 1)
-    {
-      continue;
-    }
-    ++counterMoved;
-    moved = true;
-    Trace("smt-proof-pp-debug2")
-        << "..move elim " << elim << " to " << minLastInc - 1 << "\n";
-    std::rotate(children.begin() + elim,
-                children.begin() + elim + 1,
-                children.begin() + minLastInc);
-    std::rotate(args.begin() + (2 * elim) - 1,
-                args.begin() + (2 * elim) + 1,
-                args.begin() + (2 * minLastInc) - 1);
-    std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
-    Assert(
-        !d_pnm->getChecker()
-             ->checkDebug(PfRule::MACRO_RESOLUTION, children, args, args[0], "")
-             .isNull());
-    // Now I need to update the indices, since I have changed `children`. For
-    // every crowding literal whose information indices are in the interval
-    // [elim+1, minLastInc), these indices should be decremented by 1.
-    for (std::pair<const Node, CrowdingLitInfo>& p: crowdLitsInfo)
-    {
-      bool updated = false;
-      // guarantee we update who we just moved...
-      if (p.first == crowdingLit)
-      {
-        p.second.d_eliminator = minLastInc - 1;
-        updated = true;
-      }
-      // can update lastInclusion, eliminator and minLastIncOfCrowdingInElim
-      if (p.second.d_lastInclusion >= elim + 1
-          && p.second.d_lastInclusion < minLastInc)
-      {
-        --p.second.d_lastInclusion;
-        updated = true;
-      }
-      if (p.second.d_eliminator >= elim + 1
-          && p.second.d_eliminator < minLastInc)
-      {
-        --p.second.d_eliminator;
-        updated = true;
-      }
-      if (p.second.d_onlyCrowdingInElim
-          && p.second.d_minLastIncOfCrowdingInElim >= elim + 1
-          && p.second.d_minLastIncOfCrowdingInElim < minLastInc)
-      {
-        --p.second.d_minLastIncOfCrowdingInElim;
-        updated = true;
-      }
-      if (updated)
-      {
-        Trace("smt-proof-pp-debug2")
-            << "\tUpdated crowding lit " << p.first << " info to "
-            << crowdLitsInfo[p.first] << "\n";
-      }
-    }
-  }
-  Trace("smt-proof-pp-debug") << pop;
-  if (moved)
-  {
-    Trace("crowding-lits") << "..moved up " << counterMoved << " eliminators\n";
-    Trace("smt-proof-pp-debug")
-        << "Updating bookkeeping of lastInclusion/eliminators vectors\n";
-    Trace("smt-proof-pp-debug2") << "New premises " << children << "\n";
-    Trace("smt-proof-pp-debug2") << "New args " << args << "\n";
-    // lastInclusion order will not have changed, so we just traverse in the
-    // same way and update
-    for (auto& p : lastInclusion)
-    {
-      p.second = crowdLitsInfo[p.first].d_lastInclusion;
-    }
-    // since eliminators may have changed drastically, we fully recompute
-    eliminators.clear();
-    for (const std::pair<const Node, CrowdingLitInfo>& p : crowdLitsInfo)
-    {
-      eliminators.push_back(p.second.d_eliminator);
-    }
-    std::sort(eliminators.begin(), eliminators.end());
   }
   if (Trace.isOn("smt-proof-pp-debug2"))
   {
@@ -560,7 +585,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
         resPlaceHolder, PfRule::CHAIN_RESOLUTION, childrenRes, childrenResArgs);
     // I need to add factoring if end < children.size(). Otherwise, this is
     // to be handled by the caller
-    if (end < children.size() - 1)
+    if (end < childrenSize - 1)
     {
       lastClause = d_pnm->getChecker()->checkDebug(
           PfRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
@@ -586,8 +611,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     lastElim = end;
 
     // find the position of the last inclusion of the next crowded literal
-    size_t nextCrowdedInclusionPos = lastInclusion.size();
-    for (size_t i = 0, size = lastInclusion.size(); i < size; ++i)
+    size_t nextCrowdedInclusionPos = numCrowding;
+    for (size_t i = 0; i < numCrowding; ++i)
     {
       if (lastInclusion[i].second > lastElim)
       {
@@ -601,14 +626,11 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
         << nextCrowdedInclusionPos << "\n";
     // if there is none, then the remaining literals will be used in the next
     // round
-    if (nextCrowdedInclusionPos == lastInclusion.size())
+    nextGuardedElimPos = childrenSize;
+    if (nextCrowdedInclusionPos != numCrowding)
     {
       nextGuardedElimPos = children.size();
-    }
-    else
-    {
-      nextGuardedElimPos = children.size();
-      for (size_t i = 0, size = eliminators.size(); i < size; ++i)
+      for (size_t i = 0; i < numCrowding; ++i)
       {
         //  nextGuardedElimPos is the largest element of
         // eliminators bigger the next crowded literal's last inclusion
@@ -618,7 +640,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
           break;
         }
       }
-      Assert(nextGuardedElimPos < children.size());
+      Assert(nextGuardedElimPos < childrenSize);
     }
     Trace("smt-proof-pp-debug2")
         << "nextGuardedElimPos: " << nextGuardedElimPos << "\n";
@@ -955,21 +977,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // If the sets are different, there are "crowding" literals, i.e. literals
     // that were removed by implicit multi-usage of premises in the resolution
     // chain.
-    bool gotCrowding = false;
     if (chainConclusionLitsSet != conclusionLitsSet)
     {
-      // if (++d_crowdingLitHandlingCounter < 1655)
-      // {
-      //   Trace("crowding-lits")
-      //       << "..bailed " << d_crowdingLitHandlingCounter << ".\n";
-      //   cdp->addStep(args[0], PfRule::PREPROCESS, children, args);
-      //   return args[0];
-      // }
       Trace("smt-proof-pp-debug") << "..need to eliminate crowding lits.\n";
       Trace("crowding-lits") << "..need to eliminate crowding lits.\n";
       chainConclusion = eliminateCrowdingLits(
           chainConclusionLits, conclusionLits, children, args, cdp);
-      gotCrowding = true;
       // update vector of lits. Note that the set is no longer used, so we don't
       // need to update it
       //
@@ -1037,10 +1050,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Trace("crowding-lits")
         << "Number of added proof nodes: "
         << cdp->getNumProofNodes() - initProofSize << "\n";
-    // if (gotCrowding)
-    // {
-    //   Unreachable();
-    // }
     return args[0];
   }
   else if (id == PfRule::SUBS)
