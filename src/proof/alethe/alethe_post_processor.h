@@ -53,8 +53,8 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
               bool& continueUpdate) override;
   /**
    * This method is used to add an additional application of the or-rule between
-   * a conclusion (cl (or F1 ... Fn)) and a rule that uses this conclusion as
-   * premise and treats it as a clause, i.e. assumes that it has to be printed
+   * a conclusion (cl (or F1 ... Fn)) and a rule that uses this conclusion as a
+   * premise and treats it as a clause, i.e. assumes that it has been printed
    * as (cl F1 ... Fn).
    */
   bool finalize(Node res,
@@ -63,16 +63,15 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                 const std::vector<Node>& args,
                 CDProof* cdp) override;
   /**
-   * This method is used to add some last steps to a
-   * proof when this is necessary. The final step should always be printed as
-   * (cl).
+   * This method is used to add some last steps to a proof when this is
+   * necessary. The final step should always be printed as (cl). However:
    *
    * 1. If the last step of a proof is reached (which is false) it is printed as
    * (cl false).
    * 2. If one of the assumptions is false it is printed as false.
    *
    * Thus, an additional resolution step with (cl (not true)) has to be added to
-   * transfer (cl false) or false into (cl).
+   * transform (cl false) or false into (cl).
    *
    */
   bool finalStep(Node res,
