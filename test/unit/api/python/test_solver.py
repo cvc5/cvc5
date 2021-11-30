@@ -696,8 +696,22 @@ def test_mk_term(solver):
 
     # mkTerm(Kind kind) const
     solver.mkPi()
+    solver.mkTerm(kinds.Pi)
+    solver.mkTerm(kinds.Pi, v6)
+    solver.mkTerm(solver.mkOp(kinds.Pi))
+    solver.mkTerm(solver.mkOp(kinds.Pi), v6)
     solver.mkTerm(kinds.RegexpNone)
+    solver.mkTerm(kinds.RegexpNone, v6)
+    solver.mkTerm(solver.mkOp(kinds.RegexpNone))
+    solver.mkTerm(solver.mkOp(kinds.RegexpNone), v6)
     solver.mkTerm(kinds.RegexpAllchar)
+    solver.mkTerm(kinds.RegexpAllchar, v6)
+    solver.mkTerm(solver.mkOp(kinds.RegexpAllchar))
+    solver.mkTerm(solver.mkOp(kinds.RegexpAllchar), v6)
+    solver.mkTerm(kinds.SepEmp)
+    solver.mkTerm(kinds.SepEmp, v6)
+    solver.mkTerm(solver.mkOp(kinds.SepEmp))
+    solver.mkTerm(solver.mkOp(kinds.SepEmp), v6)
     with pytest.raises(RuntimeError):
         solver.mkTerm(kinds.ConstBV)
 
@@ -747,6 +761,36 @@ def test_mk_term(solver):
     with pytest.raises(RuntimeError):
         solver.mkTerm(kinds.Distinct, v6)
 
+    # Test cases that are nary via the API but have arity = 2 internally
+    s_bool = solver.getBooleanSort()
+    t_bool = solver.mkConst(s_bool, "t_bool")
+    solver.mkTerm(kinds.Implies, [t_bool, t_bool, t_bool])
+    solver.mkTerm(kinds.Xor, [t_bool, t_bool, t_bool])
+    solver.mkTerm(solver.mkOp(kinds.Xor), [t_bool, t_bool, t_bool])
+    t_int = solver.mkConst(solver.getIntegerSort(), "t_int")
+    solver.mkTerm(kinds.Division, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(kinds.Division), [t_int, t_int, t_int])
+    solver.mkTerm(kinds.IntsDivision, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(kinds.IntsDivision), [t_int, t_int, t_int])
+    solver.mkTerm(kinds.Minus, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(kinds.Minus), [t_int, t_int, t_int])
+    solver.mkTerm(kinds.Equal, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(kinds.Equal), [t_int, t_int, t_int])
+    solver.mkTerm(kinds.Lt, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(kinds.Lt), [t_int, t_int, t_int])
+    solver.mkTerm(kinds.Gt, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(kinds.Gt), [t_int, t_int, t_int])
+    solver.mkTerm(kinds.Leq, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(kinds.Leq), [t_int, t_int, t_int])
+    solver.mkTerm(kinds.Geq, [t_int, t_int, t_int])
+    solver.mkTerm(solver.mkOp(kinds.Geq), [t_int, t_int, t_int])
+    t_reg = solver.mkConst(solver.getRegExpSort(), "t_reg")
+    solver.mkTerm(kinds.RegexpDiff, [t_reg, t_reg, t_reg])
+    solver.mkTerm(solver.mkOp(kinds.RegexpDiff), [t_reg, t_reg, t_reg])
+    t_fun = solver.mkConst(solver.mkFunctionSort(
+        [s_bool, s_bool, s_bool], s_bool))
+    solver.mkTerm(kinds.HoApply, [t_fun, t_bool, t_bool, t_bool])
+    solver.mkTerm(solver.mkOp(kinds.HoApply), [t_fun, t_bool, t_bool, t_bool])
 
 def test_mk_term_from_op(solver):
     bv32 = solver.mkBitVectorSort(32)

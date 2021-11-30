@@ -361,6 +361,10 @@ bool RegExpEntail::isConstRegExp(TNode t)
           return false;
         }
       }
+      else if (ck == REGEXP_RV)
+      {
+        return false;
+      }
       else if (ck == REGEXP_RANGE)
       {
         for (const Node& cn : cur)

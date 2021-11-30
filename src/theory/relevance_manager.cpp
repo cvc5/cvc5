@@ -29,6 +29,7 @@ RelevanceManager::RelevanceManager(context::Context* lemContext, Valuation val)
     : d_val(val),
       d_input(lemContext),
       d_computed(false),
+      d_inFullEffortCheck(false),
       d_success(false),
       d_trackRSetExp(false),
       d_miniscopeTopLevel(true)
@@ -100,10 +101,13 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
   }
 }
 
-void RelevanceManager::resetRound()
+void RelevanceManager::beginRound()
 {
   d_computed = false;
+  d_inFullEffortCheck = true;
 }
+
+void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
 
 void RelevanceManager::computeRelevance()
 {
@@ -351,7 +355,9 @@ const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
 
 void RelevanceManager::notifyLemma(Node n)
 {
-  if (d_dman != nullptr)
+  // only consider lemmas that were sent at full effort, when we have a
+  // complete SAT assignment.
+  if (d_dman != nullptr && d_inFullEffortCheck)
   {
     // ensure we know which literals are relevant, and why
     computeRelevance();

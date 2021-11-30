@@ -61,8 +61,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(
-      env, options::SolveBVAsIntMode::SUM, 1, false);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, false);
   Node result = intBlaster.translateNoChildren(bv7_4, lemmas, skolems);
   Node seven = d_nodeManager->mkConst(CONST_RATIONAL, Rational(7));
   ASSERT_EQ(seven, result);
@@ -87,8 +86,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(
-      env, options::SolveBVAsIntMode::SUM, 1, true);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, true);
   Node result = intBlaster.translateNoChildren(bv, lemmas, skolems);
   ASSERT_TRUE(result.isVar() && result.getType().isInteger());
 
@@ -118,8 +116,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(
-      env, options::SolveBVAsIntMode::SUM, 1, true);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, true);
   Node result = intBlaster.translateNoChildren(f, lemmas, skolems);
   TypeNode resultType = result.getType();
   std::vector<TypeNode> resultDomain = resultType.getArgTypes();
@@ -146,8 +143,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(
-      env, options::SolveBVAsIntMode::SUM, 1, true);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, true);
 
   // bit-vector variables
   TypeNode bvType = d_nodeManager->mkBitVectorType(4);
@@ -211,6 +207,13 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
+  // sign extend
+  Node signExtOp =
+      d_nodeManager->mkConst<BitVectorSignExtend>(BitVectorSignExtend(4));
+  original = d_nodeManager->mkNode(signExtOp, v1);
+  result = intBlaster.translateWithChildren(original, {i1}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
   // extract + BV ITE
   Node extract = theory::bv::utils::mkExtract(v1, 0, 0);
   original = d_nodeManager->mkNode(BITVECTOR_ITE, extract, v2, v1);
@@ -219,6 +222,31 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
       intBlaster.translateWithChildren(original, {intExtract, i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
   ASSERT_TRUE(intExtract.getType().isInteger());
+
+  // left shift
+  original = d_nodeManager->mkNode(BITVECTOR_SHL, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
+  // logical right shift
+  original = d_nodeManager->mkNode(BITVECTOR_LSHR, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
+  // arithmetic right shift
+  original = d_nodeManager->mkNode(BITVECTOR_ASHR, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
+  // bvand
+  original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
+
+  // bvor
+  original = d_nodeManager->mkNode(BITVECTOR_OR, v1, v2);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
+  ASSERT_TRUE(result.getType().isInteger());
 
   // concat
   original = d_nodeManager->mkNode(BITVECTOR_CONCAT, v1, v2);
@@ -249,14 +277,6 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   // BVULT with a BV result
   original = d_nodeManager->mkNode(BITVECTOR_ULTBV, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
-  ASSERT_TRUE(result.getType().isInteger());
-
-  // function application
-  TypeNode funType = d_nodeManager->mkFunctionType({bvType}, bvType);
-  Node f = d_nodeManager->mkVar("f", funType);
-  Node g = intBlaster.translateNoChildren(f, lemmas, skolems);
-  original = d_nodeManager->mkNode(APPLY_UF, f, v1);
-  result = intBlaster.translateWithChildren(original, {g, i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 }
 

@@ -51,6 +51,8 @@ libcvc5_add_sources(
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
   options/decision_weight.h
+  options/io_utils.cpp
+  options/io_utils.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -61,8 +63,6 @@ libcvc5_add_sources(
   options/options_handler.h
   options/options_listener.h
   options/options_public.h
-  options/set_language.cpp
-  options/set_language.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/learned_literal_manager.cpp
@@ -223,6 +223,7 @@ libcvc5_add_sources(
   proof/alethe/alethe_node_converter.h
   proof/alethe/alethe_post_processor.cpp
   proof/alethe/alethe_post_processor.h
+  proof/alethe/alethe_printer.h
   proof/alethe/alethe_proof_rule.cpp
   proof/alethe/alethe_proof_rule.h
   prop/cadical.cpp

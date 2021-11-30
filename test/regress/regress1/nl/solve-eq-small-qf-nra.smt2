@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --no-check-models
+; REQUIRES: poly
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_NRA)
