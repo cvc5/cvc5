@@ -158,6 +158,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats,
       d_cumulativeTimeUsed(0),
       d_cumulativeResourceUsed(0),
       d_thisCallResourceUsed(0),
+      d_thisCallResourceBudget(0),
       d_statistics(new ResourceManager::Statistics(stats))
 {
   d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
