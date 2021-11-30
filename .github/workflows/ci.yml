@@ -122,7 +122,7 @@ jobs:
 
   update-pr:
     runs-on: ubuntu-latest
-    if: github.repository == 'cvc5/cvc5'
+    if: github.repository == 'cvc5/cvc5' && github.event == 'push'
     needs: build
     steps:
       - name: Automatically update PR
