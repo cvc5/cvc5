@@ -27,14 +27,13 @@
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
 #include "lib/strtok_r.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/option_exception.h"
-#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
@@ -124,7 +123,8 @@ void OptionsHandler::languageIsNotAST(const std::string& flag, Language lang)
 
 void OptionsHandler::applyOutputLanguage(const std::string& flag, Language lang)
 {
-  d_options->base.out << language::SetLanguage(lang);
+  ioutils::setDefaultOutputLang(lang);
+  ioutils::applyOutputLang(d_options->base.out, lang);
 }
 
 void OptionsHandler::setVerbosity(const std::string& flag, int value)
@@ -335,18 +335,20 @@ void OptionsHandler::setBitblastAig(const std::string& flag, bool arg)
   }
 }
 
-void OptionsHandler::setDefaultExprDepth(const std::string& flag, int depth)
+void OptionsHandler::setDefaultExprDepth(const std::string& flag, int64_t depth)
 {
-  Debug.getStream() << expr::ExprSetDepth(depth);
-  Trace.getStream() << expr::ExprSetDepth(depth);
-  Warning.getStream() << expr::ExprSetDepth(depth);
+  ioutils::setDefaultNodeDepth(depth);
+  ioutils::applyNodeDepth(Debug.getStream(), depth);
+  ioutils::applyNodeDepth(Trace.getStream(), depth);
+  ioutils::applyNodeDepth(Warning.getStream(), depth);
 }
 
-void OptionsHandler::setDefaultDagThresh(const std::string& flag, int dag)
+void OptionsHandler::setDefaultDagThresh(const std::string& flag, int64_t dag)
 {
-  Debug.getStream() << expr::ExprDag(dag);
-  Trace.getStream() << expr::ExprDag(dag);
-  Warning.getStream() << expr::ExprDag(dag);
+  ioutils::setDefaultDagThresh(dag);
+  ioutils::applyDagThresh(Debug.getStream(), dag);
+  ioutils::applyDagThresh(Trace.getStream(), dag);
+  ioutils::applyDagThresh(Warning.getStream(), dag);
 }
 
 static void print_config(const char* str, std::string config)
@@ -387,7 +389,6 @@ void OptionsHandler::showConfiguration(const std::string& flag)
   print_config_cond("debug code", Configuration::isDebugBuild());
   print_config_cond("statistics", Configuration::isStatisticsBuild());
   print_config_cond("tracing", Configuration::isTracingBuild());
-  print_config_cond("dumping", Configuration::isDumpingBuild());
   print_config_cond("muzzled", Configuration::isMuzzledBuild());
   print_config_cond("assertions", Configuration::isAssertionBuild());
   print_config_cond("coverage", Configuration::isCoverageBuild());

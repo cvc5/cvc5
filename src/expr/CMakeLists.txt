@@ -32,8 +32,6 @@ libcvc5_add_sources(
   emptyset.h
   emptybag.cpp
   emptybag.h
-  expr_iomanip.cpp
-  expr_iomanip.h
   kind_map.h
   match_trie.cpp
   match_trie.h
@@ -107,6 +105,7 @@ libcvc5_add_sources(GENERATED
   metakind.h
   node_manager.cpp
   type_checker.cpp
+  type_properties.cpp
   type_properties.h
 )
 
@@ -146,6 +145,16 @@ add_custom_command(
     ${KINDS_FILES}
     > ${CMAKE_CURRENT_BINARY_DIR}/type_properties.h
   DEPENDS mkkind type_properties_template.h ${KINDS_FILES}
+)
+
+add_custom_command(
+  OUTPUT type_properties.cpp
+  COMMAND
+    ${mkkind_script}
+    ${CMAKE_CURRENT_LIST_DIR}/type_properties_template.cpp
+    ${KINDS_FILES}
+    > ${CMAKE_CURRENT_BINARY_DIR}/type_properties.cpp
+  DEPENDS mkkind type_properties_template.cpp type_properties.h ${KINDS_FILES}
 )
 
 add_custom_command(
@@ -196,5 +205,6 @@ add_custom_target(gen-expr
     metakind.h
     node_manager.cpp
     type_checker.cpp
+    type_properties.cpp
     type_properties.h
 )
