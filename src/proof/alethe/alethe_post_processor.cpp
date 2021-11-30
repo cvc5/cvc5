@@ -1388,12 +1388,12 @@ bool AletheProofPostprocessCallback::update(Node res,
   }
 }
 
-// Adds OR rule to the premises of a step if the premise is not a clause and
+// Adds an OR rule to the premises of a step if the premise is not a clause and
 // should not be a singleton. Since FACTORING and REORDERING always take
-// non-singletons, this adds an OR step to their premise if it was formerly
-// printed as (cl (or F1 ... Fn)). For resolution, it is necessary to check all
-// children to find out whether they're singleton before determining if they are
-// already printed correctly.
+// non-singletons, this function adds an OR step to their premise if it was
+// formerly printed as (cl (or F1 ... Fn)). For resolution, it is necessary to
+// check all children to find out whether they're singleton before determining
+// if they are already printed correctly.
 bool AletheProofPostprocessCallback::finalize(Node res,
                                               PfRule id,
                                               const std::vector<Node>& children,
@@ -1406,11 +1406,11 @@ bool AletheProofPostprocessCallback::finalize(Node res,
                         << std::endl;
   switch (rule)
   {
-    // In the case of a resolution rule the rule might originally have been a
-    // cvc5 RESOLUTION or CHAIN_RESOLUTION rule. In these cases it is possible
+    // In the case of a resolution rule that step might originally have been a
+    // cvc5 RESOLUTION or CHAIN_RESOLUTION step. In these cases it is possible
     // that one of the children was printed as (cl (or F1 ... Fn)) but used as
     // (cl F1 ... Fn). However, since the information about the pivot of the
-    // resolution step the child is used in is provided it is always possible
+    // resolution step the child is used in is provided, it is always possible
     // to figure out if an additional OR step is necessary.
     case AletheRule::RESOLUTION:
     {
