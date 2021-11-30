@@ -72,7 +72,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Parse the options
   std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
-  if (solver.getOptionInfo("help").boolValue())
+  if (solver->getOptionInfo("help").boolValue())
   {
     main::printUsage(progName, dopts.out());
     exit(1);
@@ -83,7 +83,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
                            "show-trace-tags",
                            "version"})
   {
-    if (solver.getOptionInfo(name).boolValue())
+    if (solver->getOptionInfo(name).boolValue())
     {
       std::exit(0);
     }
