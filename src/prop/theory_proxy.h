@@ -18,10 +18,6 @@
 #ifndef CVC5__PROP__SAT_H
 #define CVC5__PROP__SAT_H
 
-// Just defining this for now, since there's no other SAT solver bindings.
-// Optional blocks below will be unconditionally included
-#define CVC5_USE_MINISAT
-
 #include <unordered_set>
 
 #include "context/cdqueue.h"

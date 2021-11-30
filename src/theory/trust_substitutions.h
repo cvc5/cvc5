@@ -143,6 +143,8 @@ class TrustSubstitutionMap : public ProofGenerator
    * two substitutions but not the third when asked to prove this equality.
    */
   NodeUIntMap d_eqtIndex;
+  /** Debugging, catches potential for infinite loops */
+  std::unordered_set<Node> d_proving;
 };
 
 }  // namespace theory

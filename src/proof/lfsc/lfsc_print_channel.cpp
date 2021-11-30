@@ -79,7 +79,8 @@ void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
   // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
-  n.toStream(ss, -1, 0, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+  n.toStream(ss, -1, 0);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;
@@ -89,7 +90,8 @@ void LfscPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
   // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
-  tn.toStream(ss, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyOutputLang(ss, Language::LANG_SMTLIB_V2_6);
+  tn.toStream(ss);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;

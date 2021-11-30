@@ -26,10 +26,10 @@
 #include "base/check.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
 #include "expr/node.h"
 #include "expr/symbol_manager.h"
 #include "expr/type_node.h"
+#include "options/io_utils.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/printer_options.h"
@@ -85,9 +85,9 @@ const CommandInterrupted* CommandInterrupted::s_instance =
 std::ostream& operator<<(std::ostream& out, const Command& c)
 {
   c.toStream(out,
-             Node::setdepth::getDepth(out),
-             Node::dag::getDag(out),
-             Node::setlanguage::getLanguage(out));
+             options::ioutils::getNodeDepth(out),
+             options::ioutils::getDagThresh(out),
+             options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -106,7 +106,7 @@ ostream& operator<<(ostream& out, const Command* c)
 
 std::ostream& operator<<(std::ostream& out, const CommandStatus& s)
 {
-  s.toStream(out, Node::setlanguage::getLanguage(out));
+  s.toStream(out, options::ioutils::getOutputLang(out));
   return out;
 }
 
@@ -1593,7 +1593,8 @@ void GetValueCommand::printResult(std::ostream& out) const
   }
   else
   {
-    expr::ExprDag::Scope scope(out, false);
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
     out << d_result << endl;
   }
 }
@@ -1966,7 +1967,10 @@ void GetInstantiationsCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetInterpolCommand::GetInterpolCommand(const std::string& name, api::Term conj)
-    : d_name(name), d_conj(conj), d_resultStatus(false)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar(nullptr),
+      d_resultStatus(false)
 {
 }
 GetInterpolCommand::GetInterpolCommand(const std::string& name,
@@ -2014,7 +2018,8 @@ void GetInterpolCommand::printResult(std::ostream& out) const
   }
   else
   {
-    expr::ExprDag::Scope scope(out, false);
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
     if (d_resultStatus)
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -2055,7 +2060,10 @@ void GetInterpolCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetAbductCommand::GetAbductCommand(const std::string& name, api::Term conj)
-    : d_name(name), d_conj(conj), d_resultStatus(false)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar(nullptr),
+      d_resultStatus(false)
 {
 }
 GetAbductCommand::GetAbductCommand(const std::string& name,
@@ -2103,7 +2111,8 @@ void GetAbductCommand::printResult(std::ostream& out) const
   }
   else
   {
-    expr::ExprDag::Scope scope(out, false);
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
     if (d_resultStatus)
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
