@@ -21,7 +21,7 @@
 #include <string>
 
 #include "base/check.h"
-#include "options/set_language.h"
+#include "options/io_utils.h"
 
 using namespace std;
 
@@ -289,7 +289,20 @@ ostream& operator<<(ostream& out, enum Result::UnknownExplanation e)
 }
 
 ostream& operator<<(ostream& out, const Result& r) {
-  r.toStream(out, language::SetLanguage::getLanguage(out));
+  Language language = options::ioutils::getOutputLang(out);
+  switch (language) {
+    case Language::LANG_SYGUS_V2: r.toStreamSmt2(out); break;
+    case Language::LANG_TPTP: r.toStreamTptp(out); break;
+    default:
+      if (language::isLangSmt2(language))
+      {
+        r.toStreamSmt2(out);
+      }
+      else
+      {
+        r.toStreamDefault(out);
+      }
+  };
   return out;
 } /* operator<<(ostream&, const Result&) */
 
@@ -352,24 +365,6 @@ void Result::toStreamTptp(std::ostream& out) const {
     out << "GaveUp";
   }
   out << " for " << getInputName();
-}
-
-void Result::toStream(std::ostream& out, Language language) const
-{
-  switch (language) {
-    case Language::LANG_SYGUS_V2: toStreamSmt2(out); break;
-    case Language::LANG_TPTP: toStreamTptp(out); break;
-    default:
-      if (language::isLangSmt2(language))
-      {
-        toStreamSmt2(out);
-      }
-      else
-      {
-        toStreamDefault(out);
-      }
-      break;
-  };
 }
 
 }  // namespace cvc5
