@@ -56,8 +56,8 @@ class AletheProofPrinter
    * @param pfn The proof node to be printed
    * @param assumptions The list of assumptions made before the current step,
    * that are visible as premises to that step
-   * @param steps The list of steps occuring before the current step, that can
-   * that are visible as premises to that step
+   * @param steps The list of steps occurring before the current step, that are
+   * visible as premises to that step
    * @param current_prefix The current prefix which is updated whenever a
    * subproof is encountered E.g., the prefix "t19.t2." is used when we are
    * under a subproof started at step "t19" and another at "t2" without leaving
@@ -66,12 +66,13 @@ class AletheProofPrinter
    * prefix).
    * @return The full id (including the prefix) of the last step of pfn.
    */
-  std::string printInternal(std::ostream& out,
-                            std::shared_ptr<ProofNode> pfn,
-                            std::unordered_map<Node, std::string> assumptions,
-                            std::unordered_map<Node, std::string> steps,
-                            std::string current_prefix,
-                            int& current_step_id);
+  std::string printInternal(
+      std::ostream& out,
+      std::shared_ptr<ProofNode> pfn,
+      const std::unordered_map<Node, std::string>& assumptions,
+      const std::unordered_map<Node, std::string>& steps,
+      std::string current_prefix,
+      uint32_t& current_step_id);
 };
 
 }  // namespace proof
