@@ -122,7 +122,8 @@ void RelevanceManager::computeRelevance()
       if (Trace.isOn("rel-manager"))
       {
         std::stringstream serr;
-        serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
+        serr
+            << "RelevanceManager::computeRelevance: WARNING: failed to justify "
             << n;
         Trace("rel-manager") << serr.str() << std::endl;
       }
