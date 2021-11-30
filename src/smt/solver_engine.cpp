@@ -803,12 +803,6 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions,
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
-        if (d_env->getOptions().smt.checkProofs
-            && !d_env->getOptions().smt.produceProofs)
-        {
-          throw ModalException(
-              "Cannot check-proofs because proofs were disabled.");
-        }
         checkProof();
       }
     }
