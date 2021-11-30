@@ -1558,7 +1558,7 @@ bool AletheProofPostprocessCallback::finalStep(
                         << " / {}" << std::endl;
   if (!success)
   {
-    Trace("alethe-proof") << "... Error while printing final Steps"
+    Trace("alethe-proof") << "... Error while printing final steps"
                           << std::endl;
   }
 
