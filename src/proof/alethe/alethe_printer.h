@@ -66,12 +66,13 @@ class AletheProofPrinter
    * prefix).
    * @return The full id (including the prefix) of the last step of pfn.
    */
-  std::string printInternal(std::ostream& out,
-                            std::shared_ptr<ProofNode> pfn,
-                            const std::unordered_map<Node, std::string> &assumptions,
-                            const std::unordered_map<Node, std::string> &steps,
-                            std::string current_prefix,
-                            uint32_t& current_step_id);
+  std::string printInternal(
+      std::ostream& out,
+      std::shared_ptr<ProofNode> pfn,
+      const std::unordered_map<Node, std::string>& assumptions,
+      const std::unordered_map<Node, std::string>& steps,
+      std::string current_prefix,
+      uint32_t& current_step_id);
 };
 
 }  // namespace proof
