@@ -42,17 +42,17 @@ void AletheProofPrinter::print(std::ostream& out,
   }
 
   // Then, print the rest of the proof node
-  int start_t = 1;
+  uint32_t start_t = 1;
   printInternal(out, pfn->getChildren()[0], assumptions, {}, "", start_t);
 }
 
 std::string AletheProofPrinter::printInternal(
     std::ostream& out,
     std::shared_ptr<ProofNode> pfn,
-    std::unordered_map<Node, std::string> assumptions,
-    std::unordered_map<Node, std::string> steps,
+    const std::unordered_map<Node, std::string>& assumptions,
+    const std::unordered_map<Node, std::string>& steps,
     std::string current_prefix,
-    int& current_step_id)
+    uint32_t& current_step_id)
 {
   int step_id = current_step_id;
   std::vector<std::string> current_assumptions;
