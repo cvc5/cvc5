@@ -59,7 +59,7 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
    * 2. If one of the assumptions is false it is printed as false.
    *
    * Thus, an additional resolution step with (cl (not true)) has to be added to
-   * transfer (cl false) or false into (cl).
+   * transform (cl false) or false into (cl).
    *
    */
   bool finalStep(Node res,
