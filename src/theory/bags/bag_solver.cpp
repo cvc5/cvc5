@@ -78,7 +78,6 @@ void BagSolver::postCheck()
         case kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
         case kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
         case kind::BAG_MAP: checkMap(n); break;
-        case kind::BAG_FOLD: checkFold(n); break;
         default: break;
       }
       it++;
@@ -223,34 +222,6 @@ void BagSolver::checkDisequalBagTerms()
 void BagSolver::checkMap(Node n)
 {
   Assert(n.getKind() == BAG_MAP);
-  const set<Node>& downwards = d_state.getElements(n);
-  const set<Node>& upwards = d_state.getElements(n[1]);
-  for (const Node& y : downwards)
-  {
-    if (d_mapCache.count(n) && d_mapCache[n].get()->contains(y))
-    {
-      continue;
-    }
-    auto [downInference, uf, preImageSize] = d_ig.mapDownwards(n, y);
-    d_im.lemmaTheoryInference(&downInference);
-    for (const Node& x : upwards)
-    {
-      InferInfo upInference = d_ig.mapUpwards(n, uf, preImageSize, y, x);
-      d_im.lemmaTheoryInference(&upInference);
-    }
-    if (!d_mapCache.count(n))
-    {
-      std::shared_ptr<context::CDHashSet<Node> > set =
-          std::make_shared<context::CDHashSet<Node> >(userContext());
-      d_mapCache.insert(n, set);
-    }
-    d_mapCache[n].get()->insert(y);
-  }
-}
-
-void BagSolver::checkFold(Node n)
-{
-  Assert(n.getKind() == BAG_FOLD);
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
   for (const Node& y : downwards)
