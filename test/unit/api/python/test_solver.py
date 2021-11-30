@@ -2279,12 +2279,12 @@ def test_tuple_project(solver):
     datatype = tuple.getSort().getDatatype()
     constructor = datatype[0]
 
-    for i in range(indices.size()):
+    for i in indices:
 
-        selectorTerm = constructor[indices[i]].getSelectorTerm()
+        selectorTerm = constructor[i].getSelectorTerm()
         selectedTerm = solver.mkTerm(kinds.ApplySelector, selectorTerm, tuple)
         simplifiedTerm = solver.simplify(selectedTerm)
-        assert elements[indices[i]] == simplifiedTerm
+        assert elements[i] == simplifiedTerm
 
         assert "((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (set.singleton \"Z\")))" == str(
             projection)
