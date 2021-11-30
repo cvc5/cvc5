@@ -166,6 +166,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }else if(t.isVar()){
     return rewriteVariable(t);
   }else{
+    Trace("arith-rewriter") << "postRewriteTerm: " << t << std::endl;
     switch(t.getKind()){
     case kind::MINUS:
       return rewriteMinus(t, false);
@@ -213,8 +214,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       return RewriteResponse(REWRITE_DONE, t);
     case kind::TO_REAL:
     case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
-    case kind::TO_INTEGER:
-    case kind::IS_INTEGER: return rewriteExtIntegerOp(t, false);
+    case kind::TO_INTEGER:return rewriteExtIntegerOp(t, false);
     case kind::POW:
       {
         if(t[1].getKind() == kind::CONST_RATIONAL){
@@ -647,14 +647,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
 
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
   if(atom.getKind() == kind::IS_INTEGER) {
-    if(atom[0].isConst()) {
-      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(atom[0].getConst<Rational>().isIntegral()));
-    }
-    if(atom[0].getType().isInteger()) {
-      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
-    }
-    // not supported, but this isn't the right place to complain
-    return RewriteResponse(REWRITE_DONE, atom);
+    return rewriteExtIntegerOp(atom, false);
   } else if(atom.getKind() == kind::DIVISIBLE) {
     if(atom[0].isConst()) {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(bool((atom[0].getConst<Rational>() / atom.getOperator().getConst<Divisible>().k).isIntegral())));
@@ -829,14 +822,14 @@ RewriteResponse ArithRewriter::rewriteIntsDivMod(TNode t, bool pre)
 RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t, bool pre)
 {
   Assert(t.getKind() == kind::TO_INTEGER || t.getKind() == kind::IS_INTEGER);
-  bool isPred = t.getKind() == kind::TO_INTEGER;
+  bool isPred = t.getKind() == kind::IS_INTEGER;
   NodeManager* nm = NodeManager::currentNM();
   if (t[0].isConst())
   {
     Node ret;
     if (isPred)
     {
-      ret = nm->mkConst(t[0].getConst<Rational>().getDenominator() == 1);
+      ret = nm->mkConst(t[0].getConst<Rational>().isIntegral());
     }
     else
     {
