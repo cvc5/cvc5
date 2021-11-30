@@ -1362,6 +1362,29 @@ Node SequencesRewriter::rewriteMembership(TNode node)
       Node retNode = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, retNode, Rewrite::RE_IN_SIGMA_STAR);
     }
+    else if (r[0].getKind() == REGEXP_CONCAT)
+    {
+      bool isAllchar = true;
+      for (const Node& rc : r[0])
+      {
+        if (rc.getKind() != REGEXP_ALLCHAR)
+        {
+          isAllchar = false;
+          break;
+        }
+      }
+      if (isAllchar)
+      {
+        // For example:
+        // (str.in_re x (re.* re.allchar re.allchar)) --->
+        // (= (mod (str.len x) 2) 0)
+        Node zero = nm->mkConstInt(Rational(0));
+        Node factor = nm->mkConstInt(Rational(r[0].getNumChildren()));
+        Node t = nm->mkNode(INTS_MODULUS, nm->mkNode(STRING_LENGTH, x), factor);
+        Node retNode = t.eqNode(zero);
+        return returnRewrite(node, retNode, Rewrite::RE_IN_CHAR_MODULUS_STAR);
+      }
+    }
   }
   else if (r.getKind() == kind::REGEXP_CONCAT)
   {
@@ -1734,7 +1757,8 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
     if (node.getKind() == SEQ_NTH_TOTAL)
     {
       // return arbitrary term
-      Node ret = s.getType().getSequenceElementType().mkGroundValue();
+      NodeManager* nm = NodeManager::currentNM();
+      Node ret = nm->mkGroundValue(s.getType().getSequenceElementType());
       return returnRewrite(node, ret, Rewrite::SEQ_NTH_TOTAL_OOB);
     }
     else

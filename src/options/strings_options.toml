@@ -115,12 +115,12 @@ name   = "Strings Theory"
   help       = "minimize explanations for prefix of normal forms in strings"
 
 [[option]]
-  name       = "stringGuessModel"
+  name       = "stringModelBasedReduction"
   category   = "regular"
-  long       = "strings-guess-model"
+  long       = "strings-mbr"
   type       = "bool"
-  default    = "false"
-  help       = "use model guessing to avoid string extended function reductions"
+  default    = "true"
+  help       = "use models to avoid reductions for extended functions that introduce quantified formulas"
 
 [[option]]
   name       = "regExpElim"
@@ -199,3 +199,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "use extensionality for string disequalities"
+
+[[option]]
+  name       = "stringsEagerLenEntRegexp"
+  category   = "regular"
+  long       = "strings-eager-len-re"
+  type       = "bool"
+  default    = "false"
+  help       = "use regular expressions for eager length conflicts"

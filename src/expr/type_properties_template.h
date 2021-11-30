@@ -97,34 +97,8 @@ ${type_wellfoundednesses}
   }
 }/* isWellFounded(TypeNode) */
 
-inline Node mkGroundTerm(TypeConstant tc)
-{
-  switch (tc)
-  {
-    // clang-format off
-${type_constant_groundterms}
-      // clang-format on
-    default:
-      InternalError() << "No ground term known for type constant: " << tc;
-  }
-} /* mkGroundTerm(TypeConstant) */
-
-inline Node mkGroundTerm(TypeNode typeNode)
-{
-  AssertArgument(!typeNode.isNull(), typeNode);
-  switch (Kind k = typeNode.getKind())
-  {
-    case TYPE_CONSTANT:
-      return mkGroundTerm(typeNode.getConst<TypeConstant>());
-      // clang-format off
-${type_groundterms}
-      // clang-format on
-    default:
-      InternalError() << "A theory kinds file did not provide a ground term "
-                      << "or ground term computer for type:\n"
-                      << typeNode << "\nof kind " << k;
-  }
-} /* mkGroundTerm(TypeNode) */
+Node mkGroundTerm(TypeConstant tc);
+Node mkGroundTerm(TypeNode typeNode);
 
 }  // namespace kind
 }  // namespace cvc5
