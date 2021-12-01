@@ -28,7 +28,7 @@ namespace cvc5 {
 namespace theory {
 namespace bags {
 
-BagReduction::BagReduction(Env& env) : d_env(env) {}
+BagReduction::BagReduction(Env& env) : EnvObj(env) {}
 
 BagReduction::~BagReduction() {}
 

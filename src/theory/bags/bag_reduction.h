@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "cvc5_private.h"
-#include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/bags/inference_manager.h"
 
 namespace cvc5 {
@@ -29,11 +29,12 @@ namespace bags {
 /**
  * class for bag reductions
  */
-class BagReduction
+class BagReduction : EnvObj
 {
  public:
   BagReduction(Env& env);
   ~BagReduction();
+
   /**
    * @param node a term of the form (bag.fold f t A) where
    *        f: (-> T1 T2 T2) is a binary operation
@@ -67,8 +68,6 @@ class BagReduction
   Node reduceFoldOperator(Node node, std::vector<Node>& asserts);
 
  private:
-  /** The associated environment. */
-  Env& d_env;
 };
 
 }  // namespace bags
