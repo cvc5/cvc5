@@ -30,7 +30,8 @@ LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
                                    ProofGenerator* defGen,
                                    bool defRec,
                                    const std::string& name)
-    : d_manager(pnm),
+    : CDProof(pnm, c, name, false),
+      d_manager(pnm),
       d_cyclic(cyclic),
       d_defRec(defRec),
       d_context(),
@@ -62,6 +63,15 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       << "LazyCDProofChain::getProofFor of gen " << d_name << "\n";
   Trace("lazy-cdproofchain")
       << "LazyCDProofChain::getProofFor: " << fact << "\n";
+  // Check whether the underlying proof justifies the given fact. Only when the
+  // result is an assumption we proceed to expand generators.
+  std::shared_ptr<ProofNode> opf = CDProof::getProofFor(fact);
+  Assert(opf != nullptr);
+  if (opf->getRule() != PfRule::ASSUME)
+  {
+    Trace("lazy-cdproofchain") << "...internal proof already justifies it\n";
+    return opf;
+  }
   // which facts have had proofs retrieved for. This is maintained to avoid
   // cycles. It also saves the proof node of the fact
   std::unordered_map<Node, std::shared_ptr<ProofNode>> toConnect;
@@ -94,6 +104,17 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
         // nothing to do for this fact, it'll be a leaf in the final proof
         // node, don't post-traverse.
         visited[cur] = true;
+        // before being done, check whether underlying proof has a justification
+        // for the fact, which will be associated with it in the final proof
+        // produced my the method
+        std::shared_ptr<ProofNode> maybePf = CDProof::getProofFor(cur);
+        Assert(maybePf != nullptr);
+        if (maybePf->getRule() != PfRule::ASSUME)
+        {
+          Trace("lazy-cdproofchain")
+              << "..internal proof already justifies it, save it\n";
+          toConnect[cur] = maybePf;
+        }
         continue;
       }
       Trace("lazy-cdproofchain")

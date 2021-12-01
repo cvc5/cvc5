@@ -20,8 +20,7 @@
 
 #include <vector>
 
-#include "context/cdhashmap.h"
-#include "proof/proof_generator.h"
+#include "proof/proof.h"
 
 namespace cvc5 {
 
@@ -36,7 +35,7 @@ class ProofNodeManager;
  * connecting, for the proof generated to one fact, assumptions to the proofs
  * generated for those assumptinos that are registered in the chain.
  */
-class LazyCDProofChain : public ProofGenerator
+class LazyCDProofChain : public CDProof
 {
  public:
   /** Constructor
