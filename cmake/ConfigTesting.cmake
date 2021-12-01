@@ -23,8 +23,6 @@ cvc5_set_option(ENABLE_ASSERTIONS ON)
 cvc5_set_option(ENABLE_PROOFS ON)
 # enable_tracing=yes
 cvc5_set_option(ENABLE_TRACING ON)
-# enable_dumping=yes
-cvc5_set_option(ENABLE_DUMPING ON)
 # enable_muzzle=no
 cvc5_set_option(ENABLE_MUZZLE OFF)
 # enable_valgrind=no
