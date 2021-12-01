@@ -88,8 +88,14 @@ class EqcInfo
    * the conflict:
    *   (and (= x (str.++ "B" y)) (str.in_re x (re.++ (str.to_re "A") R2)))
    * for this input.
+   *
+   * @param t The first bound term
+   * @param prev The second bound term
+   * @param isArith Whether this is an arithmetic conflict. This impacts
+   * whether (str.in_re x R) is processed as x or (str.len x).
+   * @return The node corresponding to the conflict.
    */
-  static Node mkMergeConflict(Node t, Node prev);
+  static Node mkMergeConflict(Node t, Node prev, bool isArith);
 };
 
 }  // namespace strings

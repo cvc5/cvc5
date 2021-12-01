@@ -1488,6 +1488,98 @@ bool AletheProofPostprocessCallback::update(Node res,
   }
 }
 
+// The last step of the proof was:
+//
+// Children:  (P1:C1) ... (Pn:Cn)
+// Arguments: (AletheRule::VRULE,false,(cl false))
+// ---------------------
+// Conclusion: (false)
+//
+// In Alethe:
+//
+//  P1 ... Pn
+// ------------------- VRULE   ---------------------- FALSE
+//  (VP1:(cl false))*           (VP2:(cl (not true)))
+// -------------------------------------------------- RESOLUTION
+//                       (cl)**
+//
+// *  the corresponding proof node is ((false))
+// ** the corresponding proof node is (false)
+bool AletheProofPostprocessCallback::finalStep(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node falseNode = nm->mkConst(false);
+
+  if (
+      // If the last proof rule was not translated yet
+      (id == PfRule::ALETHE_RULE) &&
+      // This case can only occur if the last step is an assumption
+      (args[2].getNumChildren() > 1) &&
+      // If the proof node has result (false) additional steps have to be added.
+      (args[2][1] != falseNode))
+  {
+    return false;
+  }
+
+  // remove attribute for outermost scope
+  if (id != PfRule::ALETHE_RULE)
+  {
+    std::vector<Node> sanitized_args{
+        res,
+        res,
+        nm->mkConst<Rational>(CONST_RATIONAL,
+                              static_cast<unsigned>(AletheRule::ASSUME))};
+    for (const Node& arg : args)
+    {
+      sanitized_args.push_back(d_anc.convert(arg));
+    }
+    return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitized_args);
+  }
+
+  bool success = true;
+  Node vp1 = nm->mkNode(kind::SEXPR, res);    // ((false))
+  Node vp2 = nm->mkConst(false).notNode();    // (not true)
+  Node res2 = nm->mkNode(kind::SEXPR, d_cl);  // (cl)
+  AletheRule vrule = getAletheRule(args[0]);
+
+  // In the special case that false is an assumption, we print false instead of
+  // (cl false)
+  success &= addAletheStep(
+      vrule,
+      vp1,
+      (vrule == AletheRule::ASSUME ? res : nm->mkNode(kind::SEXPR, d_cl, res)),
+      children,
+      {},
+      *cdp);
+  Trace("alethe-proof") << "... add Alethe step " << vp1 << " / "
+                        << nm->mkNode(kind::SEXPR, d_cl, res) << " " << vrule
+                        << " " << children << " / {}" << std::endl;
+
+  success &= addAletheStep(
+      AletheRule::FALSE, vp2, nm->mkNode(kind::SEXPR, d_cl, vp2), {}, {}, *cdp);
+  Trace("alethe-proof") << "... add Alethe step " << vp2 << " / "
+                        << nm->mkNode(kind::SEXPR, d_cl, vp2) << " "
+                        << AletheRule::FALSE << " {} / {}" << std::endl;
+
+  success &=
+      addAletheStep(AletheRule::RESOLUTION, res, res2, {vp2, vp1}, {}, *cdp);
+  Trace("alethe-proof") << "... add Alethe step " << res << " / " << res2 << " "
+                        << AletheRule::RESOLUTION << " {" << vp2 << ", " << vp1
+                        << " / {}" << std::endl;
+  if (!success)
+  {
+    Trace("alethe-proof") << "... Error while printing final steps"
+                          << std::endl;
+  }
+
+  return true;
+}
+
 bool AletheProofPostprocessCallback::addAletheStep(
     AletheRule rule,
     Node res,
@@ -1528,36 +1620,9 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
 
-AletheProofPostprocessFinalCallback::AletheProofPostprocessFinalCallback(
-    ProofNodeManager* pnm, AletheNodeConverter& anc)
-    : d_pnm(pnm), d_anc(anc)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  d_cl = nm->mkBoundVar("cl", nm->sExprType());
-}
-
-bool AletheProofPostprocessFinalCallback::shouldUpdate(
-    std::shared_ptr<ProofNode> pn,
-    const std::vector<Node>& fa,
-    bool& continueUpdate)
-{
-  return false;
-}
-
-bool AletheProofPostprocessFinalCallback::update(
-    Node res,
-    PfRule id,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof* cdp,
-    bool& continueUpdate)
-{
-  return true;
-}
-
 AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
                                                AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc), d_fcb(d_pnm, anc)
+    : d_pnm(pnm), d_cb(d_pnm, anc)
 {
 }
 
