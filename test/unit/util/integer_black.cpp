@@ -343,7 +343,6 @@ TEST_F(TestUtilBlackInteger, overly_long_signed)
   }
   ASSERT_NO_THROW(i.getSigned64());
   ASSERT_EQ(i.getSigned64(), sl);
-  int64_t slplus1 = sl + 1;
   i = i + 1;
   ASSERT_THROW(i.getSigned64(), IllegalArgumentException);
 }
