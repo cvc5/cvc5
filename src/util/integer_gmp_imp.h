@@ -269,7 +269,10 @@ class CVC5_EXPORT Integer
   /** Return the unsigned long representation of this Integer. */
   unsigned long getUnsignedLong() const;
 
+  /** Return the int64_t representation of this Integer. */
   int64_t getSigned64() const;
+
+  /** Return the uint64_t representation of this Integer. */
   uint64_t getUnsigned64() const;
 
   /**

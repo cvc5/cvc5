@@ -517,6 +517,51 @@ unsigned long Integer::getUnsignedLong() const
   return cln::cl_I_to_ulong(d_value);
 }
 
+int64_t Integer::getSigned64() const
+{
+  if constexpr (sizeof(int64_t) == sizeof(signed long int))
+  {
+    return getLong();
+  }
+  else
+  {
+    if (mpz_fits_slong_p(d_value.get_mpz_t()) != 0)
+    {
+      return getLong();
+    }
+    // ensure there isn't overflow
+    CheckArgument(d_value <= std::numeric_limits<int64_t>::max(),
+                  this,
+                  "Overflow detected in Integer::getSigned64()");
+    CheckArgument(d_value >= std::numeric_limits<int64_t>::min(),
+                  this,
+                  "Overflow detected in Integer::getSigned64()");
+    return std::stoll(toString());
+  }
+}
+uint64_t Integer::getUnsigned64() const
+{
+  if constexpr (sizeof(uint64_t) == sizeof(unsigned long int))
+  {
+    return getUnsignedLong();
+  }
+  else
+  {
+    if (mpz_fits_ulong_p(d_value.get_mpz_t()) != 0)
+    {
+      return getUnsignedLong();
+    }
+    // ensure there isn't overflow
+    CheckArgument(d_value <= std::numeric_limits<uint64_t>::max(),
+                  this,
+                  "Overflow detected in Integer::getSigned64()");
+    CheckArgument(d_value >= std::numeric_limits<uint64_t>::min(),
+                  this,
+                  "Overflow detected in Integer::getSigned64()");
+    return std::stoull(toString());
+  }
+}
+
 size_t Integer::hash() const { return equal_hashcode(d_value); }
 
 bool Integer::testBit(unsigned n) const { return cln::logbitp(n, d_value); }
