@@ -1414,11 +1414,12 @@ bool AletheProofPostprocessCallback::finalize(Node res,
   switch (rule)
   {
     // In the case of a resolution rule that step might originally have been a
-    // cvc5 RESOLUTION or CHAIN_RESOLUTION step. In these cases it is possible
-    // that one of the children was printed as (cl (or F1 ... Fn)) but used as
-    // (cl F1 ... Fn). However, since the information about the pivot of the
-    // resolution step the child is used in is provided, it is always possible
-    // to figure out if an additional OR step is necessary.
+    // cvc5 RESOLUTION or CHAIN_RESOLUTION step. So it is possible that one of
+    // the children was processed to be printed as (cl (or F1 ... Fn)) but it is
+    // being used by this rule as (cl F1 ... Fn). We can determine whether this
+    // is the case by looking at the pivot of the respective resolution step
+    // involving the child, adding an OR step to obtain the non-singleton clause
+    // needed.
     case AletheRule::RESOLUTION:
     {
       if (args.size() < 4)
