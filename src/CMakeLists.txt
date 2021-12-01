@@ -1183,9 +1183,9 @@ set(options_toml_files
   options/strings_options.toml
   options/theory_options.toml
   options/uf_options.toml
-  )
+)
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
-string(REPLACE "toml" "h;" options_gen_h_files ${options_toml_files})
+string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
 list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
 list(APPEND options_gen_h_files "options/options.h")
 
@@ -1197,10 +1197,10 @@ set(options_gen_doc_files "")
 if (BUILD_DOCS)
   list(
     APPEND
-    options_gen_doc_files
-    "${CMAKE_BINARY_DIR}/docs/options_generated.rst"
+      options_gen_doc_files
+      "${CMAKE_BINARY_DIR}/docs/options_generated.rst"
   )
-endif ()
+endif()
 
 # The mkoptions.py script only updates its output files if their content would
 # actually change. This mechanism makes sure that running the script does not
@@ -1214,27 +1214,27 @@ endif ()
 # properly updated.
 add_custom_command(
   OUTPUT
-  options/options.stamp
+    options/options.stamp
   COMMAND
-  ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
+    ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
   COMMAND
-  ${PYTHON_EXECUTABLE}
-  ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
-  ${CMAKE_CURRENT_LIST_DIR}
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${abs_toml_files}
+    ${PYTHON_EXECUTABLE}
+    ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${abs_toml_files}
   BYPRODUCTS
-  ${options_gen_cpp_files} ${options_gen_h_files} ${options_gen_doc_files}
+    ${options_gen_cpp_files} ${options_gen_h_files} ${options_gen_doc_files}
   DEPENDS
-  options/mkoptions.py
-  ${options_toml_files}
-  main/options_template.cpp
-  options/module_template.h
-  options/module_template.cpp
-  options/options_public_template.cpp
-  options/options_template.h
-  options/options_template.cpp
+    options/mkoptions.py
+    ${options_toml_files}
+    main/options_template.cpp
+    options/module_template.h
+    options/module_template.cpp
+    options/options_public_template.cpp
+    options/options_template.h
+    options/options_template.cpp
 )
 
 add_custom_target(gen-options DEPENDS options/options.stamp)
@@ -1289,14 +1289,14 @@ set_target_properties(cvc5 PROPERTIES OUTPUT_NAME cvc5)
 # Link the shared library
 target_include_directories(cvc5
   PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-  $<INSTALL_INTERFACE:include>
-  )
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
 install(TARGETS cvc5
   EXPORT cvc5-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+)
 
 include(GenerateExportHeader)
 generate_export_header(cvc5-obj BASE_NAME cvc5)
@@ -1304,58 +1304,58 @@ generate_export_header(cvc5-obj BASE_NAME cvc5)
 # Add library/include dependencies
 add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
-if (BUILD_SHARED_LIBS)
+if(BUILD_SHARED_LIBS)
   target_link_libraries(cvc5 PRIVATE GMP)
-else ()
+else()
   target_link_libraries(cvc5 PUBLIC GMP)
-endif ()
+endif()
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
 target_link_libraries(cvc5 PRIVATE ${RT_LIBRARIES})
 
-if (ENABLE_VALGRIND)
+if(ENABLE_VALGRIND)
   target_include_directories(cvc5-obj PUBLIC ${Valgrind_INCLUDE_DIR})
-endif ()
+endif()
 
 add_dependencies(cvc5-obj CaDiCaL)
 target_include_directories(cvc5-obj PRIVATE ${CaDiCaL_INCLUDE_DIR})
 target_link_libraries(cvc5 PRIVATE CaDiCaL)
 
-if (USE_CLN)
+if(USE_CLN)
   add_dependencies(cvc5-obj CLN)
   target_include_directories(cvc5-obj PRIVATE ${CLN_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE CLN)
-endif ()
-if (USE_CRYPTOMINISAT)
+endif()
+if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
   target_include_directories(cvc5-obj PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE CryptoMiniSat)
-endif ()
-if (USE_KISSAT)
+endif()
+if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
   target_include_directories(cvc5-obj PRIVATE ${Kissat_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE Kissat)
-endif ()
-if (USE_GLPK)
+endif()
+if(USE_GLPK)
   target_include_directories(cvc5-obj PRIVATE ${GLPK_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
-endif ()
-if (USE_POLY)
+endif()
+if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx)
   target_include_directories(cvc5-obj PRIVATE ${Poly_INCLUDE_DIR})
-  if (BUILD_SHARED_LIBS)
+  if(BUILD_SHARED_LIBS)
     target_link_libraries(cvc5 PRIVATE Polyxx)
-  else ()
+  else()
     target_link_libraries(cvc5 PUBLIC Polyxx)
-  endif ()
-endif ()
-if (USE_COCOA)
+  endif()
+endif()
+if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
   target_include_directories(cvc5-obj PRIVATE ${CoCoA_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE CoCoA)
-endif ()
+endif()
 
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj PRIVATE ${SymFPU_INCLUDE_DIR})
@@ -1373,14 +1373,14 @@ add_subdirectory(main)
 # Install public API headers
 
 install(FILES
-  api/cpp/cvc5.h
-  api/cpp/cvc5_kind.h
-  DESTINATION
-  ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
+          api/cpp/cvc5.h
+          api/cpp/cvc5_kind.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/cvc5_export.h
-  DESTINATION
-  ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
+          ${CMAKE_CURRENT_BINARY_DIR}/cvc5_export.h
+        DESTINATION
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.
