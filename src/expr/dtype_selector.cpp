@@ -15,8 +15,6 @@
 
 #include "expr/dtype_selector.h"
 
-#include "options/set_language.h"
-
 using namespace cvc5::kind;
 
 namespace cvc5 {

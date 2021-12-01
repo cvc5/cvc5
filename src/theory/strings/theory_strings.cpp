@@ -59,7 +59,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
-      d_eagerSolver(env, d_state, d_termReg, d_rewriter.getArithEntail()),
+      d_eagerSolver(env, d_state, d_termReg),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
       d_extTheory(env, d_extTheoryCb, d_im),
@@ -151,6 +151,9 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
+
+  // memberships are not relevant for model building
+  d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
 }
 
 std::string TheoryStrings::identify() const
@@ -885,9 +888,12 @@ void TheoryStrings::postCheck(Effort e)
 }
 
 bool TheoryStrings::needsCheckLastEffort() {
-  if (options().strings.stringGuessModel)
+  if (options().strings.stringModelBasedReduction)
   {
-    return d_esolver.hasExtendedFunctions();
+    bool hasExtf = d_esolver.hasExtendedFunctions();
+    Trace("strings-process")
+        << "needsCheckLastEffort: hasExtf = " << hasExtf << std::endl;
+    return hasExtf;
   }
   return false;
 }
@@ -1280,7 +1286,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_SEQUENCES_ARRAY_EAGER: d_asolver.checkArrayEager(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
-    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(); break;
+    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(effort); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }

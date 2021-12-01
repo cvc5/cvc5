@@ -391,7 +391,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       // to indicate that its information must be recomputed.
       if (d_relManager != nullptr)
       {
-        d_relManager->resetRound();
+        d_relManager->beginRound();
       }
       d_tc->resetRound();
     }
@@ -486,10 +486,18 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
-    if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
-      // Do post-processing of model from the theories (e.g. used for THEORY_SEP
-      // to construct heap model)
-      d_tc->postProcessModel(d_incomplete.get());
+    if (Theory::fullEffort(effort))
+    {
+      if (d_relManager != nullptr)
+      {
+        d_relManager->endRound();
+      }
+      if (!d_inConflict && !needCheck())
+      {
+        // Do post-processing of model from the theories (e.g. used for
+        // THEORY_SEP to construct heap model)
+        d_tc->postProcessModel(d_incomplete.get());
+      }
     }
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
@@ -1790,6 +1798,8 @@ TrustNode TheoryEngine::getExplanation(
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
+  bool hasFailure = false;
+  std::stringstream serror;
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -1816,7 +1826,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
             if (val == d_false)
             {
               // Always an error if it is false
-              InternalError() << ss.str();
+              hasFailure = true;
+              serror << ss.str();
             }
             else
             {
@@ -1830,6 +1841,10 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         }
       }
     }
+  }
+  if (hasFailure)
+  {
+    InternalError() << serror.str();
   }
 }
 

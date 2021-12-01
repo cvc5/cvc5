@@ -143,19 +143,22 @@ void Strategy::initializeStrategy()
       addStrategyStep(CHECK_SEQUENCES_ARRAY_CONCAT);
       addStrategyStep(CHECK_SEQUENCES_ARRAY);
     }
-    if (options::stringExp() && !options::stringGuessModel())
+    if (options::stringExp())
     {
       addStrategyStep(CHECK_EXTF_REDUCTION, 2);
     }
     addStrategyStep(CHECK_MEMBERSHIP);
     addStrategyStep(CHECK_CARDINALITY);
     step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
-    if (options::stringExp() && options::stringGuessModel())
+    if (options::stringModelBasedReduction())
     {
       step_begin[Theory::EFFORT_LAST_CALL] = d_infer_steps.size();
-      // these two steps are run in parallel
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2, false);
       addStrategyStep(CHECK_EXTF_EVAL, 3);
+      if (options::stringExp())
+      {
+        addStrategyStep(CHECK_EXTF_REDUCTION, 3);
+      }
+      addStrategyStep(CHECK_MEMBERSHIP, 3);
       step_end[Theory::EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
     }
     // set the beginning/ending ranges

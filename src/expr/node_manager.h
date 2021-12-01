@@ -16,7 +16,6 @@
 #include "cvc5_private.h"
 
 /* circular dependency; force node.h first */
-//#include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 
@@ -29,7 +28,7 @@
 
 #include "base/check.h"
 #include "expr/kind.h"
-#include "expr/metakind.h"
+#include "expr/node_builder.h"
 #include "expr/node_value.h"
 #include "util/floatingpoint_size.h"
 
@@ -73,6 +72,18 @@ class NodeManager
    * of a node.
    */
   static bool isNAryKind(Kind k);
+
+  /**
+   * Returns a node representing the operator of this `TypeNode`.
+   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these) have an
+   * operator. "Little-p parameterized" types (like Array), are OPERATORs, not
+   * PARAMETERIZEDs.
+   */
+  static Node operatorFromType(const TypeNode& tn)
+  {
+    Assert(tn.getMetaKind() == kind::metakind::PARAMETERIZED);
+    return Node(tn.d_nv->getOperator());
+  }
 
  private:
   /**
@@ -449,6 +460,24 @@ class NodeManager
 
   Node mkBoundVar(const TypeNode& type);
 
+  /**
+   * Construct and return a ground term of a given type. If the type is not
+   * well founded, this function throws an exception.
+   *
+   * @param tn The type
+   * @return a ground term of the type
+   */
+  Node mkGroundTerm(const TypeNode& tn);
+
+  /**
+   * Construct and return a ground value of a given type. If the type is not
+   * well founded, this function throws an exception.
+   *
+   * @param tn The type
+   * @return a ground value of the type
+   */
+  Node mkGroundValue(const TypeNode& tn);
+
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType( TypeNode tn );
 
@@ -561,19 +590,14 @@ class NodeManager
    * Determine whether Nodes of a particular Kind have operators.
    * @returns true if Nodes of Kind k have operators.
    */
-  static inline bool hasOperator(Kind k);
+  static bool hasOperator(Kind k);
 
   /**
    * Get the (singleton) operator of an OPERATOR-kinded kind.  The
    * returned node n will have kind BUILTIN, and calling
    * n.getConst<cvc5::Kind>() will yield k.
    */
-  inline TNode operatorOf(Kind k) {
-    AssertArgument( kind::metaKindOf(k) == kind::metakind::OPERATOR, k,
-                    "Kind is not an OPERATOR-kinded kind "
-                    "in NodeManager::operatorOf()" );
-    return d_operators[k];
-  }
+  TNode operatorOf(Kind k);
 
   /**
    * Retrieve an attribute for a node.
@@ -1038,37 +1062,6 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
 
-}  // namespace cvc5
-
-#define CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
-#include "expr/metakind.h"
-#undef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
-
-#include "expr/node_builder.h"
-
-namespace cvc5 {
-
-// general expression-builders
-
-inline bool NodeManager::hasOperator(Kind k) {
-  switch(kind::MetaKind mk = kind::metaKindOf(k)) {
-
-  case kind::metakind::INVALID:
-  case kind::metakind::VARIABLE:
-  case kind::metakind::NULLARY_OPERATOR:
-    return false;
-
-  case kind::metakind::OPERATOR:
-  case kind::metakind::PARAMETERIZED:
-    return true;
-
-  case kind::metakind::CONSTANT:
-    return false;
-
-  default: Unhandled() << mk;
-  }
-}
-
 inline Kind NodeManager::operatorToKind(TNode n) {
   return kind::operatorToKind(n.d_nv);
 }
@@ -1205,75 +1198,6 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1,
 inline TypeNode NodeManager::mkTypeNode(Kind kind,
                                         const std::vector<TypeNode>& children) {
   return NodeBuilder(this, kind).append(children).constructTypeNode();
-}
-
-template <class T>
-Node NodeManager::mkConst(const T& val) {
-  return mkConstInternal<Node, T>(kind::metakind::ConstantMap<T>::kind, val);
-}
-
-template <class T>
-Node NodeManager::mkConst(Kind k, const T& val)
-{
-  return mkConstInternal<Node, T>(k, val);
-}
-
-template <class T>
-TypeNode NodeManager::mkTypeConst(const T& val) {
-  return mkConstInternal<TypeNode, T>(kind::metakind::ConstantMap<T>::kind,
-                                      val);
-}
-
-template <class NodeClass, class T>
-NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
-{
-  NVStorage<1> nvStorage;
-  expr::NodeValue& nvStack = reinterpret_cast<expr::NodeValue&>(nvStorage);
-
-  nvStack.d_id = 0;
-  nvStack.d_kind = k;
-  nvStack.d_rc = 0;
-  nvStack.d_nchildren = 1;
-
-#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
-
-  nvStack.d_children[0] =
-    const_cast<expr::NodeValue*>(reinterpret_cast<const expr::NodeValue*>(&val));
-  expr::NodeValue* nv = poolLookup(&nvStack);
-
-#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-#pragma GCC diagnostic pop
-#endif
-
-  if(nv != NULL) {
-    return NodeClass(nv);
-  }
-
-  nv = (expr::NodeValue*)
-    std::malloc(sizeof(expr::NodeValue) + sizeof(T));
-  if(nv == NULL) {
-    throw std::bad_alloc();
-  }
-
-  nv->d_nchildren = 0;
-  nv->d_kind = k;
-  nv->d_id = next_id++;// FIXME multithreading
-  nv->d_rc = 0;
-
-  new (&nv->d_children) T(val);
-
-  poolInsert(nv);
-  if(Debug.isOn("gc")) {
-    Debug("gc") << "creating node value " << nv
-                << " [" << nv->d_id << "]: ";
-    nv->printAst(Debug("gc"));
-    Debug("gc") << std::endl;
-  }
-
-  return NodeClass(nv);
 }
 
 }  // namespace cvc5
