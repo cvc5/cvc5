@@ -389,7 +389,6 @@ void OptionsHandler::showConfiguration(const std::string& flag)
   print_config_cond("debug code", Configuration::isDebugBuild());
   print_config_cond("statistics", Configuration::isStatisticsBuild());
   print_config_cond("tracing", Configuration::isTracingBuild());
-  print_config_cond("dumping", Configuration::isDumpingBuild());
   print_config_cond("muzzled", Configuration::isMuzzledBuild());
   print_config_cond("assertions", Configuration::isAssertionBuild());
   print_config_cond("coverage", Configuration::isCoverageBuild());
