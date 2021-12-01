@@ -458,7 +458,7 @@ int64_t Integer::getSigned64() const
   {
     return getLong();
   }
-  else 
+  else
   {
     if (mpz_fits_slong_p(d_value.get_mpz_t()) != 0)
     {

@@ -348,7 +348,6 @@ TEST_F(TestUtilBlackInteger, overly_long_signed)
   ASSERT_THROW(i.getSigned64(), IllegalArgumentException);
 }
 
-
 TEST_F(TestUtilBlackInteger, overly_long_unsigned)
 {
   uint64_t ul = std::numeric_limits<uint64_t>::max();
