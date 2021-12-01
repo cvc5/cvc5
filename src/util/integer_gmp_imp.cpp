@@ -14,6 +14,7 @@
  */
 
 #include <cmath>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -37,6 +38,33 @@ Integer::Integer(const char* s, unsigned base)
 Integer::Integer(const std::string& s, unsigned base)
   : d_value(s, base)
 {}
+
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
+Integer::Integer(int64_t z)
+{
+  if (std::numeric_limits<signed long int>::min() <= z
+      && z <= std::numeric_limits<signed long int>::max())
+  {
+    d_value = static_cast<signed long int>(z);
+  }
+  else
+  {
+    d_value = std::to_string(z);
+  }
+}
+Integer::Integer(uint64_t z)
+{
+  if (std::numeric_limits<unsigned long int>::min() <= z
+      && z <= std::numeric_limits<unsigned long int>::max())
+  {
+    d_value = static_cast<unsigned long int>(z);
+  }
+  else
+  {
+    d_value = std::to_string(z);
+  }
+}
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
 Integer& Integer::operator=(const Integer& x)
 {
