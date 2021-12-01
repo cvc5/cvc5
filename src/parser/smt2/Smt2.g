@@ -444,10 +444,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
-        if(num > PARSER_STATE->scopeLevel()) {
-          PARSER_STATE->parseError("Attempted to pop above the top stack "
-                                   "frame.");
-        }
+        // we don't compare num to PARSER_STATE->scopeLevel() here, since
+        // when global declarations is true, the scope level of the parser
+        // is not indicative of the context level.
         if(num == 0) {
           cmd->reset(new EmptyCommand());
         } else if(num == 1) {
