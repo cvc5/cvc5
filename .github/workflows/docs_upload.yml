@@ -18,8 +18,8 @@ jobs:
             SSH_AUTH_SOCK: /tmp/ssh_agent.sock
         run: |
             ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
-            ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
+            #ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+            #ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
 
       - name: Clone Documentation Repository
         env:
