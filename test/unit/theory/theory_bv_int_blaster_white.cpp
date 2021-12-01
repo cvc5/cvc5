@@ -315,6 +315,8 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   // should have kind skolem, would use bitwise comparisons to refine
   ASSERT_TRUE(result.getKind() == kind::SKOLEM);
+  ASSERT_TRUE(lemmas.size());
+  ASSERT_TRUE(skolems.size());
 }
 
 }  // namespace test
