@@ -337,7 +337,10 @@ TEST_F(TestUtilBlackInteger, overly_long)
 {
   uint64_t ul = std::numeric_limits<uint64_t>::max();
   Integer i(ul);
-  ASSERT_EQ(i.getUnsignedLong(), ul);
+  if constexpr (sizeof(unsigned long) == sizeof(uint64_t))
+  {
+    ASSERT_EQ(i.getUnsignedLong(), ul);
+  }
   ASSERT_THROW(i.getLong(), IllegalArgumentException);
   uint64_t ulplus1 = ul + 1;
   ASSERT_EQ(ulplus1, 0);
