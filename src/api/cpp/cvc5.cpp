@@ -2906,7 +2906,7 @@ std::int64_t Term::getInt64Value() const
   CVC5_API_ARG_CHECK_EXPECTED(detail::isInt64(*d_node), *d_node)
       << "Term to be a 64-bit integer value when calling getInt64Value()";
   //////// all checks before this line
-  return detail::getInteger(*d_node).getLong();
+  return detail::getInteger(*d_node).getSigned64();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2929,7 +2929,7 @@ std::uint64_t Term::getUInt64Value() const
       << "Term to be a unsigned 64-bit integer value when calling "
          "getUInt64Value()";
   //////// all checks before this line
-  return detail::getInteger(*d_node).getUnsignedLong();
+  return detail::getInteger(*d_node).getUnsigned64();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3027,8 +3027,8 @@ std::pair<std::int64_t, std::uint64_t> Term::getReal64Value() const
       << "Term to be a 64-bit rational value when calling getReal64Value()";
   //////// all checks before this line
   const Rational& r = detail::getRational(*d_node);
-  return std::make_pair(r.getNumerator().getLong(),
-                        r.getDenominator().getUnsignedLong());
+  return std::make_pair(r.getNumerator().getSigned64(),
+                        r.getDenominator().getUnsigned64());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
