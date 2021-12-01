@@ -39,6 +39,8 @@ class DifficultyManager
 
  public:
   DifficultyManager(context::Context* c, Valuation val);
+  /** Notify input assertions */
+  void notifyInputAssertions(const std::vector<Node>& assertions);
   /**
    * Get difficulty map, which populates dmap mapping preprocessed assertions
    * to a difficulty measure (a constant integer).
@@ -61,14 +63,15 @@ class DifficultyManager
    * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
    *
-   * @param input The list of preprocessed assertions
    * @param m The candidate model.
    */
-  void notifyCandidateModel(const NodeList& input, TheoryModel* m);
+  void notifyCandidateModel(TheoryModel* m);
 
  private:
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
+  /** The input assertions */
+  NodeList d_input;
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /**

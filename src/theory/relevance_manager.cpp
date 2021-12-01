@@ -49,7 +49,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 }
 
 void RelevanceManager::notifyPreprocessedAssertions(
-    const std::vector<Node>& assertions)
+    const std::vector<Node>& assertions, bool isInput)
 {
   // add to input list, which is user-context dependent
   std::vector<Node> toProcess;
@@ -69,13 +69,17 @@ void RelevanceManager::notifyPreprocessedAssertions(
     }
   }
   addAssertionsInternal(toProcess);
+  if (isInput)
+  {
+    d_dman->notifyInputAssertions(assertions);
+  }
 }
 
-void RelevanceManager::notifyPreprocessedAssertion(Node n)
+void RelevanceManager::notifyPreprocessedAssertion(Node n, bool isInput)
 {
   std::vector<Node> toProcess;
   toProcess.push_back(n);
-  addAssertionsInternal(toProcess);
+  notifyPreprocessedAssertions(toProcess, isInput);
 }
 
 void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
@@ -404,7 +408,7 @@ void RelevanceManager::notifyCandidateModel(TheoryModel* m)
 {
   if (d_dman != nullptr)
   {
-    d_dman->notifyCandidateModel(d_input, m);
+    d_dman->notifyCandidateModel(m);
   }
 }
 

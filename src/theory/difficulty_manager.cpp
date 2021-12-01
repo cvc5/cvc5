@@ -26,8 +26,16 @@ namespace cvc5 {
 namespace theory {
 
 DifficultyManager::DifficultyManager(context::Context* c, Valuation val)
-    : d_val(val), d_dfmap(c)
+    : d_input(c), d_val(val), d_dfmap(c)
 {
+}
+
+void DifficultyManager::notifyInputAssertions(const std::vector<Node>& assertions)
+{
+  for (const Node& a : assertions)
+  {
+    d_input.push_back(a);
+  }
 }
 
 void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
@@ -79,16 +87,15 @@ void DifficultyManager::notifyLemma(const context::CDHashMap<Node, Node>& rse, N
   }
 }
 
-void DifficultyManager::notifyCandidateModel(const NodeList& input,
-                                             TheoryModel* m)
+void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
   if (options::difficultyMode() != options::DifficultyMode::MODEL_CHECK)
   {
     return;
   }
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
-                    << input.size() << std::endl;
-  for (const Node& a : input)
+                    << d_input.size() << std::endl;
+  for (const Node& a : d_input)
   {
     // should have miniscoped the assertions upstream
     Assert(a.getKind() != kind::AND);

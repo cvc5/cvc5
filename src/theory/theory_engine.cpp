@@ -779,7 +779,7 @@ void TheoryEngine::notifyPreprocessedAssertions(
   }
   if (d_relManager != nullptr)
   {
-    d_relManager->notifyPreprocessedAssertions(assertions);
+    d_relManager->notifyPreprocessedAssertions(assertions, true);
   }
 }
 
@@ -1321,8 +1321,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
     if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
     {
-      d_relManager->notifyPreprocessedAssertion(retLemma);
-      d_relManager->notifyPreprocessedAssertions(skAsserts);
+      d_relManager->notifyPreprocessedAssertion(retLemma, false);
+      d_relManager->notifyPreprocessedAssertions(skAsserts, false);
     }
     d_relManager->notifyLemma(retLemma);
   }

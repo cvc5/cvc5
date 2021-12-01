@@ -91,9 +91,9 @@ class RelevanceManager : protected EnvObj
    * lemmas that need justification that have been fully processed, just before
    * adding them to the PropEngine.
    */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
+  void notifyPreprocessedAssertions(const std::vector<Node>& assertions, bool isInput);
   /** Singleton version of above */
-  void notifyPreprocessedAssertion(Node n);
+  void notifyPreprocessedAssertion(Node n, bool isInput);
   /**
    * Begin round, called at the beginning of a full effort check in
    * TheoryEngine.
