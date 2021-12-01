@@ -61,6 +61,19 @@ def test(slv, consListSort):
             print(" + args:", j)
         print()
 
+    # You can also define a tester term for constructor 'cons': (_ is cons)
+    t_is_cons = slv.mkTerm(
+            kinds.ApplyTester, consList["cons"].getTesterTerm(), t)
+    print("t_is_cons is {}\n\n".format(t_is_cons))
+    slv.assertFormula(t_is_cons)
+    # Updating t at 'head' with value 1 is defined as follows:
+    t_updated = slv.mkTerm(kinds.ApplyUpdater,
+                           consList["cons"]["head"].getUpdaterTerm(),
+                           t,
+                           slv.mkInteger(1))
+    print("t_updated is {}\n\n".format(t_updated))
+    slv.assertFormula(slv.mkTerm(kinds.Distinct, t, t_updated))
+
     # You can also define parameterized datatypes.
     # This example builds a simple parameterized list of sort T, with one
     # constructor "cons".

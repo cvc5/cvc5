@@ -90,10 +90,12 @@ class RelevanceManager
   /** Singleton version of above */
   void notifyPreprocessedAssertion(Node n);
   /**
-   * Reset round, called at the beginning of a full effort check in
+   * Begin round, called at the beginning of a full effort check in
    * TheoryEngine.
    */
-  void resetRound();
+  void beginRound();
+  /** End round, called at the end of a full effort check in TheoryEngine. */
+  void endRound();
   /**
    * Is lit part of the current relevant selection? This computes the set of
    * relevant assertions if not already done so. This call is valid during a
@@ -165,6 +167,8 @@ class RelevanceManager
   std::unordered_set<TNode> d_rset;
   /** Have we computed the relevant selection this round? */
   bool d_computed;
+  /** Are we in a full effort check? */
+  bool d_inFullEffortCheck;
   /**
    * Did we succeed in computing the relevant selection? If this is false, there
    * was a syncronization issue between the input formula and the satisfying
