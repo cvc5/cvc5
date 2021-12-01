@@ -1422,6 +1422,8 @@ bool AletheProofPostprocessCallback::finalize(Node res,
     // needed.
     case AletheRule::RESOLUTION:
     {
+      // This means it's a resolution step generated during the processing of
+      // other rules, so the confusion we are looking for does not happen.
       if (args.size() < 4)
       {
         return false;
