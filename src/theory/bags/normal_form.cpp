@@ -699,7 +699,7 @@ Node NormalForm::evaluateBagFold(TNode n)
   // --------
   // minimum string
   // - (bag.fold
-  //     ((lambda ((x String) (y String)) (ite (<= x y) x y))
+  //     ((lambda ((x String) (y String)) (ite (str.< x y) x y))
   //     ""
   //     (bag.union_disjoint (bag "a" 2) (bag "b" 3))
   //   = "a"

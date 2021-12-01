@@ -1604,6 +1604,7 @@ set(regress_1_tests
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
   regress1/bags/fold1.smt2
+  regress1/bags/fold2.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
   regress1/bags/fuzzy3.smt2
