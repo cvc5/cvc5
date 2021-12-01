@@ -29,8 +29,10 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
+#include "expr/type_properties.h"
 #include "theory/bags/bag_make_op.h"
 #include "theory/sets/singleton_op.h"
+#include "theory/type_enumerator.h"
 #include "util/abstract_value.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
@@ -690,9 +692,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
         // cvc5::DType class, but this actually needs to be checked.
-        if (selectorType.getRangeType().isFunctionLike())
+        if (!selectorType.getRangeType().isFirstClass())
         {
-          throw Exception("cannot put function-like things in datatypes");
+          throw Exception(
+              "cannot use fields in datatypes that are not first class types");
         }
       }
     }
@@ -1214,6 +1217,17 @@ NodeClass NodeManager::mkConstInternal(Kind k, const T& val)
   }
 
   return NodeClass(nv);
+}
+
+Node NodeManager::mkGroundTerm(const TypeNode& tn)
+{
+  return kind::mkGroundTerm(tn);
+}
+
+Node NodeManager::mkGroundValue(const TypeNode& tn)
+{
+  theory::TypeEnumerator te(tn);
+  return *te;
 }
 
 bool NodeManager::safeToReclaimZombies() const

@@ -57,7 +57,18 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                 const std::vector<Node>& children,
                 const std::vector<Node>& args,
                 CDProof* cdp) override;
-
+  /**
+   * This method is used to add some last steps to a proof when this is
+   * necessary. The final step should always be printed as (cl). However:
+   *
+   * 1. If the last step of a proof is reached (which is false) it is printed as
+   * (cl false).
+   * 2. If one of the assumptions is false it is printed as false.
+   *
+   * Thus, an additional resolution step with (cl (not true)) has to be added to
+   * transform (cl false) or false into (cl).
+   *
+   */
   bool finalStep(Node res,
                  PfRule id,
                  const std::vector<Node>& children,

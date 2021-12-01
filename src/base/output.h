@@ -304,57 +304,12 @@ public:
 
 }; /* class TraceC */
 
-/** The dump output class */
-class DumpOutC
-{
-  std::set<std::string> d_tags;
-  std::ostream* d_os;
-
-public:
-  /**
-   * A copy of cout for use by the dumper.  This is important because
-   * it has different settings (e.g., the expr printing depth is always
-   * unlimited). */
-  static std::ostream dump_cout;
-
-  explicit DumpOutC(std::ostream* os) : d_os(os) {}
-
-  Cvc5ostream operator()(std::string tag)
-  {
-    if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return Cvc5ostream(d_os);
-    } else {
-      return Cvc5ostream();
-    }
-  }
-
-  bool on(const std::string& tag)
-  {
-    d_tags.insert(tag);
-    return true;
-  }
-  bool off(const std::string& tag)
-  {
-    d_tags.erase(tag);
-    return false;
-  }
-  bool off()                { d_tags.clear(); return false; }
-
-  bool isOn(std::string tag) const { return d_tags.find(tag) != d_tags.end(); }
-
-  std::ostream& setStream(std::ostream* os) { d_os = os; return *d_os; }
-  std::ostream& getStream() const { return *d_os; }
-  std::ostream* getStreamPointer() const { return d_os; }
-}; /* class DumpOutC */
-
 /** The debug output singleton */
 extern DebugC DebugChannel CVC5_EXPORT;
 /** The warning output singleton */
 extern WarningC WarningChannel CVC5_EXPORT;
 /** The trace output singleton */
 extern TraceC TraceChannel CVC5_EXPORT;
-/** The dump output singleton */
-extern DumpOutC DumpOutChannel CVC5_EXPORT;
 
 #ifdef CVC5_MUZZLE
 
@@ -364,8 +319,6 @@ extern DumpOutC DumpOutChannel CVC5_EXPORT;
 #define WarningOnce \
   ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::WarningChannel
 #define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
-#define DumpOut \
-  ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DumpOutChannel
 
 #else /* CVC5_MUZZLE */
 
@@ -386,12 +339,6 @@ extern DumpOutC DumpOutChannel CVC5_EXPORT;
 #else /* CVC5_TRACING */
 #define Trace ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::TraceChannel
 #endif /* CVC5_TRACING */
-#ifdef CVC5_DUMPING
-#define DumpOut ::cvc5::DumpOutChannel
-#else /* CVC5_DUMPING */
-#define DumpOut \
-  ::cvc5::__cvc5_true() ? ::cvc5::nullStream : ::cvc5::DumpOutChannel
-#endif /* CVC5_DUMPING */
 
 #endif /* CVC5_MUZZLE */
 
