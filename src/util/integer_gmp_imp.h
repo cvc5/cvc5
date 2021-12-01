@@ -269,6 +269,9 @@ class CVC5_EXPORT Integer
   /** Return the unsigned long representation of this Integer. */
   unsigned long getUnsignedLong() const;
 
+  int64_t getSigned64() const;
+  uint64_t getUnsigned64() const;
+
   /**
    * Computes the hash of the node from the first word of the
    * numerator, the denominator.

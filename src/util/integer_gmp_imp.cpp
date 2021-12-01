@@ -436,22 +436,59 @@ bool Integer::fitsUnsignedLong() const { return d_value.fits_ulong_p(); }
 
 long Integer::getLong() const
 {
-  long si = d_value.get_si();
-  // ensure there wasn't overflow
-  CheckArgument(mpz_cmp_si(d_value.get_mpz_t(), si) == 0,
+  // ensure there it fits
+  CheckArgument(mpz_fits_slong_p(d_value.get_mpz_t()) != 0,
                 this,
                 "Overflow detected in Integer::getLong().");
-  return si;
+  return d_value.get_si();
 }
 
 unsigned long Integer::getUnsignedLong() const
 {
-  unsigned long ui = d_value.get_ui();
-  // ensure there wasn't overflow
-  CheckArgument(mpz_cmp_ui(d_value.get_mpz_t(), ui) == 0,
+  // ensure that it fits
+  CheckArgument(mpz_fits_ulong_p(d_value.get_mpz_t()) != 0,
                 this,
                 "Overflow detected in Integer::getUnsignedLong().");
-  return ui;
+  return d_value.get_ui();
+}
+
+int64_t Integer::getSigned64() const
+{
+  if constexpr (sizeof(int64_t) == sizeof(signed long int))
+  {
+    return getLong();
+  }
+  else 
+  {
+    if (mpz_fits_slong_p(d_value.get_mpz_t()) != 0)
+    {
+      return getLong();
+    }
+    // ensure there isn't overflow
+    CheckArgument(mpz_sizeinbase(d_value.get_mpz_t(), 2) < 64,
+                  this,
+                  "Overflow detected in Integer::getSigned64().");
+    return std::stoll(toString());
+  }
+}
+uint64_t Integer::getUnsigned64() const
+{
+  if constexpr (sizeof(uint64_t) == sizeof(unsigned long int))
+  {
+    return getUnsignedLong();
+  }
+  else
+  {
+    if (mpz_fits_ulong_p(d_value.get_mpz_t()) != 0)
+    {
+      return getUnsignedLong();
+    }
+    // ensure there isn't overflow
+    CheckArgument(mpz_sizeinbase(d_value.get_mpz_t(), 2) < 64,
+                  this,
+                  "Overflow detected in Integer::getUnsigned64().");
+    return std::stoull(toString());
+  }
 }
 
 size_t Integer::hash() const { return gmpz_hash(d_value.get_mpz_t()); }
