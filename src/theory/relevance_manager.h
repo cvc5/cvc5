@@ -79,7 +79,7 @@ class RelevanceManager : protected EnvObj
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
   using NodeSet = context::CDHashSet<Node>;
-
+  using NodeUIntMap = context::CDHashMap<Node, uint64_t>;
  public:
   /**
    * @param env The environment
@@ -146,7 +146,7 @@ class RelevanceManager : protected EnvObj
    * This method returns 1 if we justified n to be true, -1 means
    * justified n to be false, 0 means n could not be justified.
    */
-  int justify(TNode n, std::unordered_map<TNode, int>& cache);
+  int justify(TNode n);
   /** Is the top symbol of cur a Boolean connective? */
   bool isBooleanConnective(TNode cur);
   /**
@@ -162,15 +162,14 @@ class RelevanceManager : protected EnvObj
    * the justify value of the current child is added to childrenJustify.
    */
   bool updateJustifyLastChild(TNode cur,
-                              std::vector<int>& childrenJustify,
-                              std::unordered_map<TNode, int>& cache);
+                              std::vector<int>& childrenJustify);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
   NodeList d_input;
   /** The current relevant selection. */
   std::unordered_set<TNode> d_rset;
-  /** Have we computed the relevant selection this round? */
+  /** Have we computed the relevant selection this FULL effort check? */
   bool d_computed;
   /** Are we in a full effort check? */
   bool d_inFullEffortCheck;
@@ -180,6 +179,8 @@ class RelevanceManager : protected EnvObj
    * assignment since this class found that the input formula was not satisfied
    * by the assignment. This should never happen, but if it does, this class
    * aborts and indicates that all literals are relevant.
+   *
+   * This flag is only valid at FULL effort.
    */
   bool d_success;
   /** Are we tracking the sources of why a literal is relevant */
@@ -196,8 +197,12 @@ class RelevanceManager : protected EnvObj
    * reason why that literal is currently relevant.
    */
   NodeMap d_rsetExp;
-  /** Set of nodes that we have justified (SAT-context dependent) */
-  NodeSet d_justified;
+  /**
+   * Set of nodes that we have justified (SAT-context dependent). This is used
+   * as an optimization for avoid repeated calls to justify for uses of
+   * the relevance manager at standard effort.
+   */
+  NodeUIntMap d_jcache;
   /** Difficulty module */
   std::unique_ptr<DifficultyManager> d_dman;
 };
