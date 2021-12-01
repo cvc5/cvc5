@@ -1,4 +1,4 @@
-regular Python API
+Regular Python API
 ========================
 
 .. only:: not bindings_python

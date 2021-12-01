@@ -5,8 +5,8 @@ Python API
     :maxdepth: 1
     :hidden:
 
-    z3py compatibility API <z3compat/z3compat>
-    regular Python API <regular/python>
+    z3compat/z3compat
+    regular/python
 
 .. only:: not bindings_python
 

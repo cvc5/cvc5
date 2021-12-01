@@ -1,4 +1,4 @@
-C++ API Documentation
+C++ API
 =====================
 
 The C++ API is the primary interface for cvc5 and exposes the full functionality of cvc5.
