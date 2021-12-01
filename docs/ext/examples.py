@@ -1,4 +1,5 @@
 import os
+import re
 
 from docutils import nodes
 from docutils.statemachine import StringList
@@ -19,12 +20,37 @@ class APIExamples(SphinxDirective):
     """
 
     # Set tab title and language for syntax highlighting
-    exts = {
-        '.cpp': {'title': 'C++', 'lang': 'c++'},
-        '.java': {'title': 'Java', 'lang': 'java'},
-        '.py': {'title': 'Python', 'lang': 'python'},
-        '.smt2': {'title': 'SMT-LIBv2', 'lang': 'smtlib'},
-        '.sy': {'title': 'SyGuS', 'lang': 'smtlib'},
+    types = {
+        '\.cpp$': {
+            'title': 'C++',
+            'lang': 'c++',
+            'group': 'c++'
+        },
+        '\.java$': {
+            'title': 'Java',
+            'lang': 'java',
+            'group': 'java'
+        },
+        '<examples>.*\.py$': {
+            'title': 'Python',
+            'lang': 'python',
+            'group': 'py-regular'
+        },
+        '<z3pycompat>.*\.py$': {
+            'title': 'Python z3py',
+            'lang': 'python',
+            'group': 'py-z3pycompat'
+        },
+        '\.smt2$': {
+            'title': 'SMT-LIBv2',
+            'lang': 'smtlib',
+            'group': 'smt2'
+        },
+        '\.sy$': {
+            'title': 'SyGuS',
+            'lang': 'smtlib',
+            'group': 'smt2'
+        },
     }
 
     # The "arguments" are actually the content of the directive
@@ -37,20 +63,27 @@ class APIExamples(SphinxDirective):
         # collect everything in a list of strings
         content = ['.. tabs::', '']
 
-        remaining = set([self.exts[e]['lang'] for e in self.exts])
+        remaining = set([t['group'] for t in self.types.values()])
         location = '{}:{}'.format(*self.get_source_info())
 
         for file in self.content:
             # detect file extension
-            _, ext = os.path.splitext(file)
-            if ext in self.exts:
-                title = self.exts[ext]['title']
-                lang = self.exts[ext]['lang']
-                remaining.remove(lang)
-            else:
-                self.logger.warning(f'{location} is using unknown file extension "{ext}"')
-                title = ext
-                lang = ext
+            lang = None
+            title = None
+            for type in self.types:
+                if re.search(type, file) != None:
+                    lang = self.types[type]['lang']
+                    title = self.types[type]['title']
+                    remaining.discard(self.types[type]['group'])
+                    break
+            if lang == None:
+                self.logger.warning(
+                    f'file type of {location} could not be detected')
+                title = os.path.splitext(file)[1]
+                lang = title
+
+            for k, v in self.env.config.ex_patterns.items():
+                file = file.replace(k, v)
 
             # generate tabs
             content.append(f'    .. tab:: {title}')
@@ -70,6 +103,7 @@ class APIExamples(SphinxDirective):
 
 def setup(app):
     app.setup_extension('sphinx_tabs.tabs')
+    app.add_config_value('ex_patterns', {}, 'env')
     app.add_directive("api-examples", APIExamples)
     return {
         'version': '0.1',

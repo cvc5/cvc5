@@ -248,7 +248,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     DEFINE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
-    LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
+    LPAREN_TOK symbolList[names,CHECK_UNDECLARED,SYM_SORT] RPAREN_TOK
     { PARSER_STATE->pushScope();
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
