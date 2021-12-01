@@ -15,8 +15,6 @@
 
 #include "proof/alethe/alethe_post_processor.h"
 
-#include <bits/c++config.h>
-
 #include <sstream>
 
 #include "base/configuration.h"

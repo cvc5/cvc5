@@ -135,6 +135,14 @@ name   = "Proof"
   help       = "add optional annotations to proofs"
 
 [[option]]
+  name       = "optResReconSize"
+  category   = "regular"
+  long       = "opt-res-reconstruction-size"
+  type       = "bool"
+  default    = "true"
+  help       = "Optimize resolution reconstruction to reduce proof size"
+
+[[option]]
   name       = "proofAletheResPivots"
   category   = "regular"
   long       = "proof-alethe-res-pivots"
