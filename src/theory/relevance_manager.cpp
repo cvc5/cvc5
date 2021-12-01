@@ -25,17 +25,20 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::Context* lemContext, Valuation val)
-    : d_val(val),
-      d_input(lemContext),
+RelevanceManager::RelevanceManager(EnvObj& env, Valuation val)
+    : EnvObj(env),
+      d_val(val),
+      d_input(userContext()),
       d_computed(false),
+      d_inFullEffortCheck(false),
       d_success(false),
       d_trackRSetExp(false),
-      d_miniscopeTopLevel(true)
+      d_miniscopeTopLevel(true),
+      d_rsetExpc(context())
 {
-  if (options::produceDifficulty())
+  if (options().smt.produceDifficulty)
   {
-    d_dman.reset(new DifficultyManager(lemContext, val));
+    d_dman.reset(new DifficultyManager(userContext(), val));
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
@@ -103,44 +106,56 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
 void RelevanceManager::beginRound()
 {
   d_computed = false;
+  d_inFullEffortCheck = true;
 }
+
+void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
 
 void RelevanceManager::computeRelevance()
 {
-  d_computed = true;
+  if (d_inFullEffortCheck)
+  {
+    // if we are in full effort check, we only compute once
+    if (d_computed)
+    {
+      return;
+    }
+    d_computed = true;
+  }
   d_rset.clear();
   d_rsetExp.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int> cache;
-  d_success = true;
   for (const Node& node: d_input)
   {
+    if (!d_inFullEffortCheck && d_justified.find(node)!=d_justified.end())
+    {
+      // skip if we've already justified this, and we are not at full effort
+      continue;
+    }
     TNode n = node;
     int val = justify(n, cache);
     if (val != 1)
     {
-      if (Trace.isOn("rel-manager"))
+      if (d_inFullEffortCheck)
       {
         std::stringstream serr;
-        serr
-            << "RelevanceManager::computeRelevance: WARNING: failed to justify "
+        serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
             << n;
         Trace("rel-manager") << serr.str() << std::endl;
+        Assert(false) << serr.str();
+        d_success = false;
+        d_rset.clear();
+        return;
       }
-      d_success = false;
-      // If we fail to justify an assertion, we set success to false and
-      // continue to try to justify the remaining assertions. This is important
-      // for cases where the difficulty manager is measuring based on lemmas
-      // that are being sent at STANDARD effort, before all assertions are
-      // satisfied.
+    }
+    else if (!d_inFullEffortCheck)
+    {
+      d_justified.insert(node);
     }
   }
-  if (!d_success)
-  {
-    d_rset.clear();
-    return;
-  }
   Trace("rel-manager") << "...success, size = " << d_rset.size() << std::endl;
+  d_success = true;
 }
 
 bool RelevanceManager::isBooleanConnective(TNode cur)
@@ -300,7 +315,11 @@ int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int>& cache)
         if (d_val.hasSatValue(cur, value))
         {
           ret = value ? 1 : -1;
-          d_rset.insert(cur);
+          if (d_inFullEffortCheck)
+          {
+            // if in full effort check, we are computing d_rset
+            d_rset.insert(cur);
+          }
           if (d_trackRSetExp)
           {
             d_rsetExp[cur] = n;
@@ -331,10 +350,7 @@ int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int>& cache)
 
 bool RelevanceManager::isRelevant(Node lit)
 {
-  if (!d_computed)
-  {
-    computeRelevance();
-  }
+  computeRelevance();
   if (!d_success)
   {
     // always relevant if we failed to compute
@@ -351,10 +367,7 @@ bool RelevanceManager::isRelevant(Node lit)
 const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
     bool& success)
 {
-  if (!d_computed)
-  {
-    computeRelevance();
-  }
+  computeRelevance();
   // update success flag
   success = d_success;
   return d_rset;

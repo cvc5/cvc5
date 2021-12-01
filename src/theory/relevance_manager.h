@@ -21,7 +21,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "smt/env_obj.h"
 #include "context/cdlist.h"
+#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/difficulty_manager.h"
 #include "theory/valuation.h"
@@ -71,16 +74,18 @@ class TheoryModel;
  * selection is computed lazily, i.e. only when someone asks if a literal is
  * relevant, and only at most once per FULL effort check.
  */
-class RelevanceManager
+class RelevanceManager : protected EnvObj
 {
-  typedef context::CDList<Node> NodeList;
+  using NodeList = context::CDList<Node>;
+  using NodeMap = context::CDHashMap<Node, Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   /**
-   * @param lemContext The context which lemmas live at
+   * @param env The environment
    * @param val The valuation class, for computing what is relevant.
    */
-  RelevanceManager(context::Context* lemContext, Valuation val);
+  RelevanceManager(Env& env, Valuation val);
   /**
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before
@@ -90,9 +95,12 @@ class RelevanceManager
   /** Singleton version of above */
   void notifyPreprocessedAssertion(Node n);
   /**
-   * Begin round, called at the beginning of a check in TheoryEngine.
+   * Begin round, called at the beginning of a full effort check in
+   * TheoryEngine.
    */
   void beginRound();
+  /** End round, called at the end of a full effort check in TheoryEngine. */
+  void endRound();
   /**
    * Is lit part of the current relevant selection? This computes the set of
    * relevant assertions if not already done so. This call is valid during a
@@ -187,7 +195,9 @@ class RelevanceManager
    * Map from the domain of d_rset to the assertion in d_input that is the
    * reason why that literal is currently relevant.
    */
-  std::map<TNode, TNode> d_rsetExp;
+  NodeMap d_rsetExp;
+  /** Set of nodes that we have justified (SAT-context dependent) */
+  NodeSet d_justified;
   /** Difficulty module */
   std::unique_ptr<DifficultyManager> d_dman;
 };

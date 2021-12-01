@@ -39,7 +39,7 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
   }
 }
 
-void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
+void DifficultyManager::notifyLemma(const context::CDHashMap<Node, Node>& rse, Node n)
 {
   if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
   {
@@ -63,7 +63,7 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
   {
     litsToCheck.push_back(n);
   }
-  std::map<TNode, TNode>::const_iterator it;
+  context::CDHashMap<Node, Node>::const_iterator it;
   for (TNode nc : litsToCheck)
   {
     bool pol = nc.getKind() != kind::NOT;

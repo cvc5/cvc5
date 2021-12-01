@@ -56,7 +56,7 @@ class DifficultyManager
    * the reason why that literal was relevant in the current context
    * @param lem The lemma
    */
-  void notifyLemma(const std::map<TNode, TNode>& rse, Node lem);
+  void notifyLemma(const context::CDHashMap<Node, Node>& rse, Node lem);
   /**
    * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
