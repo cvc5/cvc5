@@ -22,6 +22,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/inference_id.h"
+#include "theory/theory.h"
 
 namespace cvc5 {
 namespace theory {
@@ -173,7 +174,7 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   for (const auto& v : d_CAC.getVariableOrdering())
   {
     Node variable = d_CAC.getConstraints().varMapper()(v);
-    if (!variable.isVar())
+    if (!Theory::isLeafOf(variable, TheoryId::THEORY_ARITH))
     {
       Trace("nl-cad") << "Not a variable: " << variable << std::endl;
       foundNonVariable = true;
