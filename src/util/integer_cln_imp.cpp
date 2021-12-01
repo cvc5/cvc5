@@ -515,7 +515,8 @@ int64_t Integer::getSigned64() const
   }
   else
   {
-    if (mpz_fits_slong_p(d_value.get_mpz_t()) != 0)
+    if (std::numeric_limits<long>::min() << d_value
+        && d_value <= std::numeric_limits<long>::max())
     {
       return getLong();
     }
@@ -537,7 +538,8 @@ uint64_t Integer::getUnsigned64() const
   }
   else
   {
-    if (mpz_fits_ulong_p(d_value.get_mpz_t()) != 0)
+    if (std::numeric_limits<unsigned long>::min() << d_value
+        && d_value <= std::numeric_limits<unsigned long>::max())
     {
       return getUnsignedLong();
     }
