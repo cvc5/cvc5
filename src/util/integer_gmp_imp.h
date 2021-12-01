@@ -257,12 +257,6 @@ class CVC5_EXPORT Integer
   /** Return the unsigned int representation of this Integer. */
   unsigned int getUnsignedInt() const;
 
-  /** Return true if this Integer fits into a signed long. */
-  bool fitsSignedLong() const;
-
-  /** Return true if this Integer fits into an unsigned long. */
-  bool fitsUnsignedLong() const;
-
   /** Return the signed long representation of this Integer. */
   long getLong() const;
 

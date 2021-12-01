@@ -483,16 +483,6 @@ unsigned int Integer::getUnsignedInt() const
   return cln::cl_I_to_uint(d_value);
 }
 
-bool Integer::fitsSignedLong() const
-{
-  return d_value <= s_signedLongMax && d_value >= s_signedLongMin;
-}
-
-bool Integer::fitsUnsignedLong() const
-{
-  return sgn() >= 0 && d_value <= s_unsignedLongMax;
-}
-
 long Integer::getLong() const
 {
   // ensure there isn't overflow

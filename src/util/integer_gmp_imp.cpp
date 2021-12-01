@@ -430,10 +430,6 @@ unsigned int Integer::getUnsignedInt() const
   return (unsigned int)d_value.get_ui();
 }
 
-bool Integer::fitsSignedLong() const { return d_value.fits_slong_p(); }
-
-bool Integer::fitsUnsignedLong() const { return d_value.fits_ulong_p(); }
-
 long Integer::getLong() const
 {
   // ensure there it fits
