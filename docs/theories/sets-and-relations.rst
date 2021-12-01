@@ -8,9 +8,9 @@ cvc5 supports the theory of finite sets.
 The simplest way to get a sense of the syntax is to look at an example:
 
 .. api-examples::
-    ../../examples/api/cpp/sets.cpp
-    ../../examples/api/python/sets.py
-    ../../examples/api/smtlib/sets.smt2
+    <examples>/api/cpp/sets.cpp
+    <examples>/api/python/sets.py
+    <examples>/api/smtlib/sets.smt2
 
 The source code of these examples is available at:
 
@@ -148,7 +148,7 @@ Finite Relations
 Example:
 
 .. api-examples::
-    ../../examples/api/smtlib/relations.smt2
+    <examples>/api/smtlib/relations.smt2
 
 For reference, below is a short summary of the sorts, constants, functions and
 predicates.

@@ -248,7 +248,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     DEFINE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
-    LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
+    LPAREN_TOK symbolList[names,CHECK_UNDECLARED,SYM_SORT] RPAREN_TOK
     { PARSER_STATE->pushScope();
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
@@ -444,10 +444,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
-        if(num > PARSER_STATE->scopeLevel()) {
-          PARSER_STATE->parseError("Attempted to pop above the top stack "
-                                   "frame.");
-        }
+        // we don't compare num to PARSER_STATE->scopeLevel() here, since
+        // when global declarations is true, the scope level of the parser
+        // is not indicative of the context level.
         if(num == 0) {
           cmd->reset(new EmptyCommand());
         } else if(num == 1) {
