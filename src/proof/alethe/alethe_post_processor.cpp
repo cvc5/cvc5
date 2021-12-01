@@ -16,6 +16,7 @@
 #include "proof/alethe/alethe_post_processor.h"
 
 #include "expr/node_algorithm.h"
+#include "options/proof_options.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
