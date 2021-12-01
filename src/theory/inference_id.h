@@ -180,6 +180,7 @@ enum class InferenceId
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
   BAGS_MAP,
+  BAGS_FOLD,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory

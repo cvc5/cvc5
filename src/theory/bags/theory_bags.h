@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__BAGS__THEORY_BAGS_H
 #define CVC5__THEORY__BAGS__THEORY_BAGS_H
 
+#include "theory/bags/bag_reduction.h"
 #include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
@@ -94,8 +95,6 @@ class TheoryBags : public Theory
                                  std::vector<SkolemLemma>& lems);
   /** expand the definition of bag.card operator */
   TrustNode expandCardOperator(TNode n, std::vector<SkolemLemma>& lems);
-  /** expand the definition of bag.fold operator */
-  TrustNode expandFoldOperator(TNode n, std::vector<SkolemLemma>& lems);
 
   /** The state of the bags solver at full effort */
   SolverState d_state;
@@ -113,6 +112,9 @@ class TheoryBags : public Theory
   TermRegistry d_termReg;
   /** the main solver for bags */
   BagSolver d_solver;
+
+  /** bag reduction */
+  BagReduction d_bagReduction;
 
   void eqNotifyNewClass(TNode n);
   void eqNotifyMerge(TNode n1, TNode n2);
