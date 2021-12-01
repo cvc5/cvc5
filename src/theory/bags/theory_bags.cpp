@@ -15,8 +15,6 @@
 
 #include "theory/bags/theory_bags.h"
 
-#include "expr/attribute.h"
-#include "expr/bound_var_manager.h"
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
