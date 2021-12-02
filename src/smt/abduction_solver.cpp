@@ -97,6 +97,8 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
   {
     // get the synthesis solution
     std::map<Node, Node> sols;
+    // use the "getSubsolverSynthSolutions" interface, since we asserted the
+    // internal form of the SyGuS conjecture and used check-sat.
     d_subsolver->getSubsolverSynthSolutions(sols);
     Assert(sols.size() == 1);
     std::map<Node, Node>::iterator its = sols.find(d_sssf);

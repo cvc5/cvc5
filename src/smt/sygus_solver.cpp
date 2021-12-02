@@ -227,7 +227,7 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     if (options().base.incrementalSolving)
     {
-      // we generate a new smt engine to do the SyGuS query
+      // we generate a new solver engine to do the SyGuS query
       initializeSygusSubsolver(d_subsolver, as);
 
       // also assert the internal SyGuS conjecture

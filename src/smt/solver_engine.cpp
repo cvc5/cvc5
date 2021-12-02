@@ -1605,22 +1605,7 @@ bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 {
   SolverEngineScope smts(this);
   finishInit();
-  Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
-  std::map<Node, std::map<Node, Node>> sol_mapn;
-  // fail if the theory engine does not have synthesis solutions
-  QuantifiersEngine* qe = getAvailableQuantifiersEngine("getSynthSolutions");
-  if (qe == nullptr || !qe->getSynthSolutions(sol_mapn))
-  {
-    return false;
-  }
-  for (std::pair<const Node, std::map<Node, Node>>& cs : sol_mapn)
-  {
-    for (std::pair<const Node, Node>& s : cs.second)
-    {
-      solMap[s.first] = s.second;
-    }
-  }
-  return true;
+  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
