@@ -109,10 +109,7 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
   }
 }
 
-void RelevanceManager::beginRound()
-{
-  d_inFullEffortCheck = true;
-}
+void RelevanceManager::beginRound() { d_inFullEffortCheck = true; }
 
 void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
 
@@ -351,7 +348,7 @@ int RelevanceManager::justify(TNode n)
       else
       {
         visit.pop_back();
-        Assert (d_jcache.find(cur)!=d_jcache.end());
+        Assert(d_jcache.find(cur) != d_jcache.end());
         if (d_jcache[cur] == 0)
         {
           noJustify.insert(cur);
@@ -365,7 +362,7 @@ int RelevanceManager::justify(TNode n)
 
 bool RelevanceManager::isRelevant(Node lit)
 {
-  Assert (d_inFullEffortCheck);
+  Assert(d_inFullEffortCheck);
   computeRelevance();
   if (!d_success)
   {
@@ -380,8 +377,7 @@ bool RelevanceManager::isRelevant(Node lit)
   return d_rset.find(lit) != d_rset.end();
 }
 
-std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(
-    bool& success)
+std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 {
   computeRelevance();
   // update success flag

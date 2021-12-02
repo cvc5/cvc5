@@ -172,9 +172,9 @@ class RelevanceManager : protected EnvObj
   Valuation d_val;
   /** The input assertions */
   NodeList d_input;
-  /** 
+  /**
    * The current relevant selection, SAT-context dependent, includes
-   * literals that are definitely relevant in this context. 
+   * literals that are definitely relevant in this context.
    */
   NodeSet d_rset;
   /** Are we in a full effort check? */
