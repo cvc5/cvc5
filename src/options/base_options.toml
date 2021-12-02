@@ -63,16 +63,18 @@ name   = "Base"
   category   = "common"
   short      = "v"
   long       = "verbose"
-  type       = "void"
-  handler    = "increaseVerbosity"
+  type       = "bool"
+  alternate  = false
+  predicates = ["increaseVerbosity"]
   help       = "increase verbosity (may be repeated)"
 
 [[option]]
   category   = "common"
   short      = "q"
   long       = "quiet"
-  type       = "void"
-  handler    = "decreaseVerbosity"
+  type       = "bool"
+  alternate  = false
+  predicates = ["decreaseVerbosity"]
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
