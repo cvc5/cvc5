@@ -795,7 +795,7 @@ def generate_sphinx_help(modules):
 def generate_sphinx_output_tags(modules, src_dir, build_dir):
     """Render help for the --output option for sphinx."""
     base = next(filter(lambda m: m.id == 'base', modules))
-    opt = next(filter(lambda o: o.name == 'outputTag', base.options))
+    opt = next(filter(lambda o: o.long == 'output=TAG', base.options))
 
     # The programoutput extension has weird semantics about the cwd:
     # https://sphinxcontrib-programoutput.readthedocs.io/en/latest/#usage
