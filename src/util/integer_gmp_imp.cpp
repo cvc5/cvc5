@@ -460,7 +460,8 @@ int64_t Integer::getSigned64() const
     {
       return getLong();
     }
-    // ensure there isn't overflow
+    // ensure there is no overflow.
+    // mpz_sizeinbase ignores the sign bit, thus at most 63 bits.
     CheckArgument(mpz_sizeinbase(d_value.get_mpz_t(), 2) < 64,
                   this,
                   "Overflow detected in Integer::getSigned64().");
