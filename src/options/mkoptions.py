@@ -405,7 +405,7 @@ def generate_module_mode_decl(module):
     """Generates the declarations of mode enums and utility functions."""
     res = []
     for option in module.options:
-        if option.name is None or not option.mode:
+        if not option.mode:
             continue
         values = list(option.mode.keys())
         res.append(
@@ -497,7 +497,7 @@ def generate_module_mode_impl(module):
     """Generates the declarations of mode enums and utility functions."""
     res = []
     for option in module.options:
-        if option.name is None or not option.mode:
+        if not option.mode:
             continue
         cases = [
             'case {type}::{enum}: return os << "{name}";'.format(
