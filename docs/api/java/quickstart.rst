@@ -10,8 +10,7 @@ First, create a cvc5 `Solver <io/github/cvc5/api/Solver.html>`_ instance using t
        /** write your code here */
      }
 
-We will ask the solver to produce models and unsat cores in the following,
-and for this we have to enable the following options.
+To produce models and unsat cores, we have to enable the following options.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
