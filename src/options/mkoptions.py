@@ -317,14 +317,6 @@ def _set_predicates(option):
     return res
 
 
-TPL_SET = '''    opts.{module}.{name} = {handler};
-    opts.{module}.{name}WasSetByUser = true;'''
-TPL_SET_PRED = '''    auto value = {handler};
-    {predicates}
-    opts.{module}.{name} = value;
-    opts.{module}.{name}WasSetByUser = true;'''
-
-
 def generate_set_impl(modules):
     """Generates the implementation for options::set()."""
     res = []
@@ -332,31 +324,19 @@ def generate_set_impl(modules):
         if not option.long:
             continue
         cond = ' || '.join(['name == "{}"'.format(x) for x in option.names])
-        predicates = _set_predicates(option)
         if res:
-            res.append('  }} else if ({}) {{'.format(cond))
+            res.append('}} else if ({}) {{'.format(cond))
         else:
             res.append('if ({}) {{'.format(cond))
-        if option.name and not (option.handler and option.mode):
-            if predicates:
-                res.append(
-                    TPL_SET_PRED.format(module=module.id,
-                                        name=option.name,
-                                        handler=_set_handlers(option),
-                                        predicates='\n    '.join(predicates)))
-            else:
-                res.append(
-                    TPL_SET.format(module=module.id,
-                                   name=option.name,
-                                   handler=_set_handlers(option)))
-        elif option.handler:
-            h = '  opts.handler().{handler}(name'
-            if option.type not in ['bool', 'void']:
-                h += ', optionarg'
-            h += ');'
-            res.append(
-                h.format(handler=option.handler, smtname=option.long_name))
-    return '\n'.join(res)
+        res.append('  auto value = {};'.format(_set_handlers(option)))
+        for pred in _set_predicates(option):
+            res.append('  {}'.format(pred))
+        if option.name:
+            res.append('  opts.{module}.{name} = value;'.format(module=module.id,
+                                        name=option.name))
+            res.append('  opts.{module}.{name}WasSetByUser = true;'.format(module=module.id,
+                                        name=option.name))
+    return '\n    '.join(res)
 
 
 def generate_getinfo_impl(modules):
