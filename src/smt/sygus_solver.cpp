@@ -280,8 +280,6 @@ bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
   if (isVerboseOn(1))
   {
     verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
@@ -330,32 +328,12 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     solChecker->getOptions().smt.checkSynthSol = false;
     solChecker->getOptions().quantifiers.sygusRecFun = false;
     // Apply solution map to conjecture body
-    Node conjBody;
-    /* Whether property is quantifier free */
-    if (conj[1].getKind() != EXISTS)
-    {
-      conjBody = conj[1].substitute(
+    Node conjBody = conj[1];
+    // we must expand definitions here, since definitions may contain the
+    // function-to-synthesize.
+    conjBody = d_smtSolver.getPreprocessor()->expandDefinitions(conjBody);
+    conjBody = conjBody.substitute(
           fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
-    }
-    else
-    {
-      conjBody = conj[1][1].substitute(
-          fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
-
-      /* Skolemize property */
-      std::vector<Node> vars, skos;
-      for (unsigned j = 0, size = conj[1][0].getNumChildren(); j < size; ++j)
-      {
-        vars.push_back(conj[1][0][j]);
-        std::stringstream ss;
-        ss << "sk_" << j;
-        skos.push_back(sm->mkDummySkolem(ss.str(), conj[1][0][j].getType()));
-        Trace("check-synth-sol") << "\tSkolemizing " << conj[1][0][j] << " to "
-                                 << skos.back() << "\n";
-      }
-      conjBody = conjBody.substitute(
-          vars.begin(), vars.end(), skos.begin(), skos.end());
-    }
 
     if (isVerboseOn(1))
     {
