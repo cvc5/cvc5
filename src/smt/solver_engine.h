@@ -563,6 +563,9 @@ class CVC5_EXPORT SolverEngine
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& solMap);
+  /**
+   */
+  bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
 
   /**
    * Do quantifier elimination.

@@ -205,6 +205,8 @@ Result SygusSolver::checkSynth(Assertions& as)
       body = nm->mkNode(IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
+    // must expand definitions
+    body = d_smtSolver.getPreprocessor()->expandDefinitions(body);
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
     {
@@ -252,6 +254,17 @@ Result SygusSolver::checkSynth(Assertions& as)
     checkSynthSolution(as);
   }
   return r;
+}
+
+bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
+{
+  Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
+  // fail if the theory engine does not have synthesis solutions
+  if (d_subsolver == nullptr)
+  {
+    return false;
+  }
+  return d_subsolver->getSubsolverSynthSolutions(sol_map);
 }
 
 void SygusSolver::checkSynthSolution(Assertions& as)

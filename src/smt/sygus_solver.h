@@ -119,6 +119,24 @@ class SygusSolver : protected EnvObj
    * universal variables and F is the set of declared constraints.
    */
   Result checkSynth(Assertions& as);
+  /**
+   * Get synth solution.
+   *
+   * This method returns true if we are in a state immediately preceded by
+   * a successful call to checkSynth.
+   *
+   * This method adds entries to sol_map that map functions-to-synthesize with
+   * their solutions, for all active conjectures. This should be called
+   * immediately after the solver answers unsat for sygus input.
+   *
+   * Specifically, given a sygus conjecture of the form
+   *   exists x1...xn. forall y1...yn. P( x1...xn, y1...yn )
+   * where x1...xn are second order bound variables, we map each xi to
+   * lambda term in sol_map such that
+   *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
+   * is a valid formula.
+   */
+  bool getSynthSolutions(std::map<Node, Node>& sol_map);
 
  private:
   /**
