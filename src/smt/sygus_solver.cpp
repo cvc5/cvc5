@@ -333,7 +333,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     // function-to-synthesize.
     conjBody = d_smtSolver.getPreprocessor()->expandDefinitions(conjBody);
     conjBody = conjBody.substitute(
-          fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
+        fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
 
     if (isVerboseOn(1))
     {
