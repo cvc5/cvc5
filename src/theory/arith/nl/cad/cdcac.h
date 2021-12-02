@@ -207,7 +207,8 @@ class CDCAC : protected EnvObj
    * enabled, this function uses `le.isolateRealRoots()`, otherwise uses the
    * regular `poly::isolate_real_roots()`.
    */
-  std::vector<poly::Value> isolateRealRoots(LazardEvaluation& le, const poly::Polynomial& p) const;
+  std::vector<poly::Value> isolateRealRoots(LazardEvaluation& le,
+                                            const poly::Polynomial& p) const;
 
   /**
    * The current assignment. When the method terminates with SAT, it contains a

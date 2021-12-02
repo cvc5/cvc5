@@ -426,8 +426,9 @@ CACInterval CDCAC::intervalFromCharacterization(
   roots.emplace_back(poly::Value::minus_infty());
   for (const auto& p : m)
   {
-    Trace("cdcac") << "Isolating real roots of " << p << " over " << d_assignment << std::endl;
-    
+    Trace("cdcac") << "Isolating real roots of " << p << " over "
+                   << d_assignment << std::endl;
+
     auto tmp = isolateRealRoots(le, p);
     roots.insert(roots.end(), tmp.begin(), tmp.end());
   }
@@ -460,7 +461,8 @@ CACInterval CDCAC::intervalFromCharacterization(
     d_assignment.set(d_variableOrdering[cur_variable], lower);
     for (const auto& p : m)
     {
-      Trace("cdcac") << "Evaluating " << p << " = 0 over " << d_assignment << std::endl;
+      Trace("cdcac") << "Evaluating " << p << " = 0 over " << d_assignment
+                     << std::endl;
       if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
         l.add(p, true);
@@ -474,7 +476,8 @@ CACInterval CDCAC::intervalFromCharacterization(
     d_assignment.set(d_variableOrdering[cur_variable], upper);
     for (const auto& p : m)
     {
-      Trace("cdcac") << "Evaluating " << p << " = 0 over " << d_assignment << std::endl;
+      Trace("cdcac") << "Evaluating " << p << " = 0 over " << d_assignment
+                     << std::endl;
       if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
         u.add(p, true);
@@ -567,7 +570,6 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     Trace("cdcac") << "Characterization: " << characterization << std::endl;
 
     d_assignment.unset(d_variableOrdering[curVariable]);
-
 
     Trace("cdcac") << "Building interval..." << std::endl;
     auto newInterval =
@@ -731,11 +733,11 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
   }
 }
 
-void CDCAC::prepareRootIsolation(LazardEvaluation& le, size_t cur_variable) const
+void CDCAC::prepareRootIsolation(LazardEvaluation& le,
+                                 size_t cur_variable) const
 {
-  if (options().arith.nlCadLifting
-        == options::NlCadLiftingMode::LAZARD)
-        {
+  if (options().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+  {
     for (size_t vid = 0; vid < cur_variable; ++vid)
     {
       const auto& val = d_assignment.get(d_variableOrdering[vid]);
@@ -745,11 +747,11 @@ void CDCAC::prepareRootIsolation(LazardEvaluation& le, size_t cur_variable) cons
   }
 }
 
-std::vector<poly::Value> CDCAC::isolateRealRoots(LazardEvaluation& le, const poly::Polynomial& p) const
+std::vector<poly::Value> CDCAC::isolateRealRoots(
+    LazardEvaluation& le, const poly::Polynomial& p) const
 {
-  if (options().arith.nlCadLifting
-        == options::NlCadLiftingMode::LAZARD)
-        {
+  if (options().arith.nlCadLifting == options::NlCadLiftingMode::LAZARD)
+  {
     return le.isolateRealRoots(p);
   }
   return poly::isolate_real_roots(p, d_assignment);

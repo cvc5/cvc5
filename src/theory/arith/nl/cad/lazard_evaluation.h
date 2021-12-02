@@ -92,7 +92,7 @@ class LazardEvaluation
    */
   std::vector<poly::Polynomial> reducePolynomial(
       const poly::Polynomial& q) const;
-  
+
   /**
    * Isolates the real roots of the given polynomials.
    */

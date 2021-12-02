@@ -821,7 +821,8 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
   return {p};
 }
 
-std::vector<poly::Value> LazardEvaluation::isolateRealRoots(const poly::Polynomial& q) const
+std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
+    const poly::Polynomial& q) const
 {
   poly::Assignment a;
   std::vector<poly::Value> roots;
