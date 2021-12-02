@@ -205,8 +205,6 @@ Result SygusSolver::checkSynth(Assertions& as)
       body = nm->mkNode(IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
-    // must expand definitions
-    body = d_smtSolver.getPreprocessor()->expandDefinitions(body);
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
     {
@@ -230,7 +228,18 @@ Result SygusSolver::checkSynth(Assertions& as)
     // we generate a new smt engine to do the SyGuS query
     initializeSubsolver(d_subsolver, d_env);
     d_subsolver->assertFormula(d_conj);
-
+    // carry the definitions
+    const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
+    for (const Node& def : alistDefs)
+    {
+      if (def.getKind()==EQUAL)
+      {
+        Assert (def[0].isVar());
+        Assert (def[1].getKind()==LAMBDA);
+        std::vector<Node> formals(def[1][0].begin(), def[1][0].end());
+        d_subsolver->defineFunction(def[0], formals, def[1][1]);
+      }
+    }
     // Also assert auxiliary assertions
     std::vector<Node> auxAssertions = getExpandedAuxAssertions(as);
     for (const Node& assertion : auxAssertions)
