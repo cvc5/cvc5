@@ -1,7 +1,8 @@
 Quickstart Guide
 ================
 
-First, create a cvc5 `Solver <io/github/cvc5/api/Solver.html>`_ instance using try with resources:
+First, create a cvc5 `Solver <io/github/cvc5/api/Solver.html>`_
+instance using try with resources:
 
 .. code-block:: java
 
