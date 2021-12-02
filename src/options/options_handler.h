@@ -120,15 +120,15 @@ class OptionsHandler
 
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */
-  void showConfiguration(const std::string& flag);
+  void showConfiguration(const std::string& flag, bool value);
   /** Show copyright information and exit */
-  void showCopyright(const std::string& flag);
+  void showCopyright(const std::string& flag, bool value);
   /** Show version information and exit */
-  void showVersion(const std::string& flag);
+  void showVersion(const std::string& flag, bool value);
   /** Show all debug tags and exit */
-  void showDebugTags(const std::string& flag);
+  void showDebugTags(const std::string& flag, bool value);
   /** Show all trace tags and exit */
-  void showTraceTags(const std::string& flag);
+  void showTraceTags(const std::string& flag, bool value);
 
  private:
   /** Pointer to the containing Options object.*/
