@@ -692,6 +692,7 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_UNIT,
   // nth over conatenation
   STRINGS_ARRAY_NTH_CONCAT,
+  // nth over reverse
   STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
   // regular expression normal form conflict

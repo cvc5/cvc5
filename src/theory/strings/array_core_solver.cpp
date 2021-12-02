@@ -186,7 +186,6 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
   }
   Trace("seq-update") << "SequencesArraySolver::check..." << std::endl;
   d_writeModel.clear();
-  // AJR: i think d_index_map should be cleared at the beginning of each check?
   d_index_map.clear();
   for (const Node& n : nthTerms)
   {

@@ -69,6 +69,14 @@ class ArrayCoreSolver : protected EnvObj
   const std::map<Node, Node>& getConnectedSequences();
 
  private:
+  void sendInference(const std::vector<Node>& exp, const Node& lem);
+
+  void checkNth(const std::vector<Node>& nthTerms);
+
+  void checkUpdate(const std::vector<Node>& updateTerms);
+
+  void computeConnected(const std::vector<Node>& updateTerms);
+
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -89,14 +97,6 @@ class ArrayCoreSolver : protected EnvObj
 
   // ========= data structure =========
   std::map<Node, std::set<Node>> d_index_map;
-
-  void sendInference(const std::vector<Node>& exp, const Node& lem);
-
-  void checkNth(const std::vector<Node>& nthTerms);
-
-  void checkUpdate(const std::vector<Node>& updateTerms);
-
-  void computeConnected(const std::vector<Node>& updateTerms);
 };
 
 }  // namespace strings
