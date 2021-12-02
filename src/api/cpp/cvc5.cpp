@@ -313,6 +313,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {BAG_FROM_SET, cvc5::Kind::BAG_FROM_SET},
     {BAG_TO_SET, cvc5::Kind::BAG_TO_SET},
     {BAG_MAP, cvc5::Kind::BAG_MAP},
+    {BAG_FOLD, cvc5::Kind::BAG_FOLD},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, cvc5::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP},
@@ -624,6 +625,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
         {cvc5::Kind::BAG_MAP, BAG_MAP},
+        {cvc5::Kind::BAG_FOLD, BAG_FOLD},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -5081,6 +5083,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
                                const std::string& s,
                                uint32_t base) const
 {
+  CVC5_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
   CVC5_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
   CVC5_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
       << "base 2, 10, or 16";
@@ -5090,7 +5093,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 
   if (val.strictlyNegative())
   {
-    CVC5_API_CHECK(val >= -Integer("2", 10).pow(size - 1))
+    CVC5_API_CHECK(val >= -Integer(2).pow(size - 1))
         << "Overflow in bitvector construction (specified bitvector size "
         << size << " too small to hold value " << s << ")";
   }
