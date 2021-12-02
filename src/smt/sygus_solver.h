@@ -145,6 +145,16 @@ class SygusSolver : protected EnvObj
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& sol_map);
+  /**
+   * Same as above, but used for getting synthesis solutions from a "subsolver"
+   * that has been initialized to assert the synthesis conjecture as a
+   * normal assertion.
+   *
+   * This method returns true if we are in a state immediately preceded by
+   * a successful call to checkSat, where this SolverEngine has an asserted
+   * synthesis conjecture.
+   */
+  bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
 
  private:
   /**
@@ -170,8 +180,13 @@ class SygusSolver : protected EnvObj
   void expandDefinitionsSygusDt(TypeNode tn) const;
   /** List to vector helper */
   static std::vector<Node> listToVector(const NodeList& list);
-  /** Get expanded assertions from the assertions as */
-  std::vector<Node> getExpandedAuxAssertions(Assertions& as);
+  /** 
+   * Initialize SyGuS subsolver based on the assertions from the "main" solver.
+   * This is used for check-synth using a subsolver, and for check-synth-sol.
+   * This constructs a subsolver se, and makes calls to add all define-fun 
+   * and auxilary assertions.
+   */
+  void initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se, Assertions& as);
   /** The SMT solver. */
   SmtSolver& d_smtSolver;
   /**

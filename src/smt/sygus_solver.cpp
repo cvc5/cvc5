@@ -226,32 +226,10 @@ Result SygusSolver::checkSynth(Assertions& as)
     d_conj = body;
 
     // we generate a new smt engine to do the SyGuS query
-    initializeSubsolver(d_subsolver, d_env);
+    initializeSygusSubsolver(d_subsolver, as);
+    
+    // also assert the internal SyGuS conjecture 
     d_subsolver->assertFormula(d_conj);
-    // carry the definitions
-    const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
-    for (const Node& def : alistDefs)
-    {
-      Trace("smt") << "Carry definition for check-synth: " << def << std::endl;
-      if (def.getKind() == EQUAL)
-      {
-        Assert(def[0].isVar());
-        std::vector<Node> formals;
-        Node dbody = def[1];
-        if (def[1].getKind() == LAMBDA)
-        {
-          formals.insert(formals.end(), def[1][0].begin(), def[1][0].end());
-          dbody = dbody[1];
-        }
-        d_subsolver->defineFunction(def[0], formals, dbody);
-      }
-    }
-    // Also assert auxiliary assertions
-    std::vector<Node> auxAssertions = getExpandedAuxAssertions(as);
-    for (const Node& assertion : auxAssertions)
-    {
-      d_subsolver->assertFormula(assertion);
-    }
   }
   else
   {
@@ -280,9 +258,28 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   return d_subsolver->getSubsolverSynthSolutions(sol_map);
 }
 
+bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
+{
+  Trace("smt") << "SygusSolver::getSubsolverSynthSolutions" << std::endl;
+  std::map<Node, std::map<Node, Node>> solMapn;
+  // fail if the theory engine does not have synthesis solutions
+  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
+  if (qe == nullptr || !qe->getSynthSolutions(solMapn))
+  {
+    return false;
+  }
+  for (std::pair<const Node, std::map<Node, Node>>& cs : solMapn)
+  {
+    for (std::pair<const Node, Node>& s : cs.second)
+    {
+      solMap[s.first] = s.second;
+    }
+  }
+  return true;
+}
+
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
-  return;
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   if (isVerboseOn(1))
@@ -292,7 +289,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
   std::map<Node, Node> sol_map;
   // Get solutions and build auxiliary vectors for substituting
-  if (d_subsolver == nullptr || !d_subsolver->getSynthSolutions(sol_map))
+  if (d_subsolver == nullptr || !d_subsolver->getSubsolverSynthSolutions(sol_map))
   {
     InternalError()
         << "SygusSolver::checkSynthSolution(): No solution to check!";
@@ -323,14 +320,12 @@ void SygusSolver::checkSynthSolution(Assertions& as)
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
-  // auxiliary assertions
-  std::vector<Node> auxAssertions = getExpandedAuxAssertions(as);
   // check all conjectures
   for (Node conj : conjs)
   {
     // Start new SMT engine to check solutions
     std::unique_ptr<SolverEngine> solChecker;
-    initializeSubsolver(solChecker, d_env);
+    initializeSygusSubsolver(solChecker, as);
     solChecker->getOptions().smt.checkSynthSol = false;
     solChecker->getOptions().quantifiers.sygusRecFun = false;
     // Apply solution map to conjecture body
@@ -369,17 +364,6 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     Trace("check-synth-sol")
         << "Substituted body of assertion to " << conjBody << "\n";
     solChecker->assertFormula(conjBody);
-    // Assert all auxiliary assertions. This may include recursive function
-    // definitions that were added as assertions to the sygus problem.
-    for (Node a : auxAssertions)
-    {
-      // We require rewriting here, e.g. so that define-fun from the original
-      // problem are rewritten to true. If this is not the case, then the
-      // assertions module of the subsolver will complain about assertions
-      // with free variables.
-      Node ar = rewrite(a);
-      solChecker->assertFormula(ar);
-    }
     Result r = solChecker->checkSat();
     if (isVerboseOn(1))
     {
@@ -401,16 +385,32 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
 }
 
-std::vector<Node> SygusSolver::getExpandedAuxAssertions(Assertions& as)
+void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se, Assertions& as)
 {
-  std::vector<Node> auxAssertions;
-  // Build conjecture from original assertions
+  initializeSubsolver(se, d_env);
+  // carry the definitions
+  const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
+  for (const Node& def : alistDefs)
+  {
+    if (def.getKind() == EQUAL)
+    {
+      Assert(def[0].isVar());
+      std::vector<Node> formals;
+      Node dbody = def[1];
+      if (def[1].getKind() == LAMBDA)
+      {
+        formals.insert(formals.end(), def[1][0].begin(), def[1][0].end());
+        dbody = dbody[1];
+      }
+      se->defineFunction(def[0], formals, dbody);
+    }
+  }
+  // Also assert auxiliary assertions
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
   for (size_t i = 0, asize = ap.size(); i < asize; ++i)
   {
-    auxAssertions.push_back(ap[i]);
+    se->assertFormula(ap[i]);
   }
-  return auxAssertions;
 }
 
 void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
