@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 
+#include "options/base_options.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
@@ -83,9 +84,9 @@ class OptionsHandler
   /** Apply verbosity to the different output channels */
   void setVerbosity(const std::string& flag, int value);
   /** Decrease verbosity and call setVerbosity */
-  void decreaseVerbosity(const std::string& flag);
+  void decreaseVerbosity(const std::string& flag, bool value);
   /** Increase verbosity and call setVerbosity */
-  void increaseVerbosity(const std::string& flag);
+  void increaseVerbosity(const std::string& flag, bool value);
   /** If statistics are disabled, disable statistics sub-options */
   void setStats(const std::string& flag, bool value);
   /** If statistics sub-option is disabled, enable statistics */
@@ -95,7 +96,7 @@ class OptionsHandler
   /** Enable a particular debug tag */
   void enableDebugTag(const std::string& flag, const std::string& optarg);
   /** Enable a particular output tag */
-  void enableOutputTag(const std::string& flag, const std::string& optarg);
+  void enableOutputTag(const std::string& flag, OutputTag optarg);
   /** Apply print success flag to the different output channels */
   void setPrintSuccess(const std::string& flag, bool value);
   /** Pass the resource weight specification to the resource manager */
@@ -120,15 +121,15 @@ class OptionsHandler
 
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */
-  void showConfiguration(const std::string& flag);
+  void showConfiguration(const std::string& flag, bool value);
   /** Show copyright information and exit */
-  void showCopyright(const std::string& flag);
+  void showCopyright(const std::string& flag, bool value);
   /** Show version information and exit */
-  void showVersion(const std::string& flag);
+  void showVersion(const std::string& flag, bool value);
   /** Show all debug tags and exit */
-  void showDebugTags(const std::string& flag);
+  void showDebugTags(const std::string& flag, bool value);
   /** Show all trace tags and exit */
-  void showTraceTags(const std::string& flag);
+  void showTraceTags(const std::string& flag, bool value);
 
  private:
   /** Pointer to the containing Options object.*/
