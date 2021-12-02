@@ -30,7 +30,6 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
       d_val(val),
       d_input(userContext()),
       d_rset(context()),
-      d_computed(false),
       d_inFullEffortCheck(false),
       d_success(false),
       d_trackRSetExp(false),
@@ -112,7 +111,6 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
 
 void RelevanceManager::beginRound()
 {
-  d_computed = false;
   d_inFullEffortCheck = true;
 }
 
@@ -123,15 +121,6 @@ void RelevanceManager::computeRelevance()
   // if not at full effort, should be tracking something else, e.g. explanation
   // for why literals are relevant.
   Assert(d_inFullEffortCheck || d_trackRSetExp);
-  if (d_inFullEffortCheck)
-  {
-    // if we are in full effort check, we only compute once
-    if (d_computed)
-    {
-      return;
-    }
-    d_computed = true;
-  }
   Trace("rel-manager") << "RelevanceManager::computeRelevance, full effort = "
                        << d_inFullEffortCheck << "..." << std::endl;
   for (const Node& node: d_input)
@@ -140,6 +129,9 @@ void RelevanceManager::computeRelevance()
     int val = justify(n);
     if (val != 1)
     {
+      // if we are in full effort check and fail to justify, then we should
+      // give a failure and set success to false, or otherwise calls to
+      // isRelevant cannot be trusted.
       if (d_inFullEffortCheck)
       {
         std::stringstream serr;
