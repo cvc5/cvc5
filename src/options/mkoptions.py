@@ -311,8 +311,7 @@ def _set_predicates(option):
             'opts.handler().checkMaximum(name, value, static_cast<{}>({}));'
             .format(option.type, option.maximum))
     res += [
-        'opts.handler().{}(name, value);'.format(x)
-        for x in option.predicates
+        'opts.handler().{}(name, value);'.format(x) for x in option.predicates
     ]
     return res
 
@@ -332,10 +331,10 @@ def generate_set_impl(modules):
         for pred in _set_predicates(option):
             res.append('  {}'.format(pred))
         if option.name:
-            res.append('  opts.{module}.{name} = value;'.format(module=module.id,
-                                        name=option.name))
-            res.append('  opts.{module}.{name}WasSetByUser = true;'.format(module=module.id,
-                                        name=option.name))
+            res.append('  opts.{module}.{name} = value;'.format(
+                module=module.id, name=option.name))
+            res.append('  opts.{module}.{name}WasSetByUser = true;'.format(
+                module=module.id, name=option.name))
     return '\n    '.join(res)
 
 
@@ -502,7 +501,7 @@ def generate_module_mode_impl(module):
         cases = [
             'case {type}::{enum}: return os << "{name}";'.format(
                 type=option.type, enum=enum, name=info[0]['name'])
-            for enum,info in option.mode.items()
+            for enum, info in option.mode.items()
         ]
         res.append(
             TPL_MODE_STREAM_OPERATOR.format(type=option.type,
@@ -802,7 +801,7 @@ def generate_sphinx_output_tags(modules, src_dir, build_dir):
     cwd = '/' + os.path.relpath(build_dir, src_dir)
 
     res = []
-    for name,info in opt.mode.items():
+    for name, info in opt.mode.items():
         info = info[0]
         if 'description' not in info:
             continue
