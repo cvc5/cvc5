@@ -163,7 +163,7 @@ class SygusSolver : protected EnvObj
   Node d_conj;
   /**
    * Whether we need to reconstruct the sygus conjecture.
-   * 
+   *
    * The sygus conjecture is stale if either:
    * (1) no sygus conjecture has been added as an assertion to this SMT engine,
    * (2) there is a sygus conjecture that has been added as an assertion

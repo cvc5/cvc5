@@ -225,7 +225,7 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     // TODO (project #7): if incremental, we should push a context and assert
     d_conj = body;
-    
+
     // we generate a new smt engine to do the abduction query
     initializeSubsolver(d_subsolver, d_env);
     d_subsolver->assertFormula(d_conj);
@@ -242,7 +242,7 @@ Result SygusSolver::checkSynth(Assertions& as)
   else
   {
     // block current solution?
-    Assert (d_subsolver!=nullptr);
+    Assert(d_subsolver != nullptr);
   }
   Result r = d_subsolver->checkSat();
   // Check that synthesis solutions satisfy the conjecture
