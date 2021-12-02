@@ -126,7 +126,7 @@ For this, we first reset the assertions added to the solver.
 
 Next, we assert the same assertions as above, but with integers.
 This time, we inline the construction of terms
-to the assertion command.
+in the assertion command.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
