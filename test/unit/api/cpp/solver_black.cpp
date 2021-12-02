@@ -1451,9 +1451,9 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
     EXPECT_EQ("batch", modeInfo.defaultValue);
     EXPECT_EQ("batch", modeInfo.currentValue);
     EXPECT_EQ(2, modeInfo.modes.size());
-    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
-                != modeInfo.modes.end());
     EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "batch")
+                != modeInfo.modes.end());
+    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
   }
 }
