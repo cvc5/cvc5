@@ -42,7 +42,12 @@ namespace cvc5 {
 namespace smt {
 
 SygusSolver::SygusSolver(Env& env)
-    : EnvObj(env), d_sygusVars(userContext()), d_sygusConstraints(userContext()), d_sygusAssumps(userContext()), d_sygusFunSymbols(userContext()), d_sygusConjectureStale(userContext(), true)
+    : EnvObj(env),
+      d_sygusVars(userContext()),
+      d_sygusConstraints(userContext()),
+      d_sygusAssumps(userContext()),
+      d_sygusFunSymbols(userContext()),
+      d_sygusConjectureStale(userContext(), true)
 {
 }
 

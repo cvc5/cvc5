@@ -18,8 +18,8 @@
 #ifndef CVC5__SMT__SYGUS_SOLVER_H
 #define CVC5__SMT__SYGUS_SOLVER_H
 
-#include "context/cdo.h"
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "smt/assertions.h"
@@ -46,6 +46,7 @@ class SmtSolver;
 class SygusSolver : protected EnvObj
 {
   using NodeList = context::CDList<Node>;
+
  public:
   SygusSolver(Env& env, SmtSolver& sms);
   ~SygusSolver();
