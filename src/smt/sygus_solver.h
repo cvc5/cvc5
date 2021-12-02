@@ -162,6 +162,8 @@ class SygusSolver : protected EnvObj
   void expandDefinitionsSygusDt(TypeNode tn) const;
   /** List to vector helper */
   static std::vector<Node> listToVector(const NodeList& list);
+  /** Get expanded assertions from the assertions as */
+  std::vector<Node> getExpandedAuxAssertions(Assertions& as);
   /** The SMT solver. */
   SmtSolver& d_smtSolver;
   /**

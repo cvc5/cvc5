@@ -225,18 +225,15 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     d_sygusConjectureStale = false;
 
-    // TODO (project #7): if incremental, we should push a context and assert
     d_conj = body;
 
-    // we generate a new smt engine to do the abduction query
+    // we generate a new smt engine to do the SyGuS query
     initializeSubsolver(d_subsolver, d_env);
     d_subsolver->assertFormula(d_conj);
 
     // Also assert auxiliary assertions
-    const context::CDList<Node>& alist = as.getAssertionList();
-    Assert(options().smt.produceAssertions)
-        << "Expected produce assertions to be true for check-synth";
-    for (const Node& assertion : alist)
+    std::vector<Node> auxAssertions = getExpandedAuxAssertions(as);
+    for (const Node& assertion : auxAssertions)
     {
       d_subsolver->assertFormula(assertion);
     }
@@ -264,6 +261,7 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   {
     return false;
   }
+  // use the call to get the synth solutions from the subsolver
   return d_subsolver->getSubsolverSynthSolutions(sol_map);
 }
 
@@ -310,40 +308,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
-  const context::CDList<Node>& alist = as.getAssertionList();
-  Assert(options().smt.produceAssertions)
-      << "Expected produce assertions to be true when checking synthesis "
-         "solution";
   // auxiliary assertions
-  std::vector<Node> auxAssertions;
-  // expand definitions cache
-  std::unordered_map<Node, Node> cache;
-  for (const Node& assertion : alist)
-  {
-    if (isVerboseOn(1))
-    {
-      verbose(1) << "SyGuS::checkSynthSolution: checking assertion "
-                 << assertion << std::endl;
-    }
-    Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
-    // Apply any define-funs from the problem.
-    Node n = d_smtSolver.getPreprocessor()->expandDefinitions(assertion, cache);
-    if (isVerboseOn(1))
-    {
-      verbose(1) << "SyGuS::checkSynthSolution: -- expands to " << n
-                 << std::endl;
-    }
-    Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
-    if (conjs.find(n) == conjs.end())
-    {
-      Trace("check-synth-sol") << "It is an auxiliary assertion\n";
-      auxAssertions.push_back(n);
-    }
-    else
-    {
-      Trace("check-synth-sol") << "It is a synthesis conjecture\n";
-    }
-  }
+  std::vector<Node> auxAssertions = getExpandedAuxAssertions(as);
   // check all conjectures
   for (Node conj : conjs)
   {
@@ -418,6 +384,18 @@ void SygusSolver::checkSynthSolution(Assertions& as)
              "satisfiable negated conjecture.";
     }
   }
+}
+
+std::vector<Node> SygusSolver::getExpandedAuxAssertions(Assertions& as)
+{
+  std::vector<Node> auxAssertions;
+  // Build conjecture from original assertions
+  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  for (size_t i = 0, asize = ap.size(); i < asize; ++i)
+  {
+    auxAssertions.push_back(ap[i]);
+  }
+  return auxAssertions;
 }
 
 void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
