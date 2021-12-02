@@ -146,13 +146,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "Make synth variables for types..." << std::endl;
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
-  unsigned nvars = options().quantifiers.sygusRewSynthInputNVars;
+  uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
   // must have at least one variable per type
   nvars = nvars < 1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
-  unsigned varCounter = 0;
+  uint64_t varCounter = 0;
   for (std::pair<const TypeNode, bool> tfp : typesFound)
   {
     TypeNode tn = tfp.first;
@@ -161,11 +161,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // This ensures that no type in our grammar has zero constructors. If
     // our input does not contain a Boolean variable, we need not allocate any
     // Boolean variables here.
-    unsigned useNVars =
+    uint64_t useNVars =
         (options().quantifiers.sygusRewSynthInputUseBool || !tn.isBoolean())
             ? nvars
             : (hasBoolVar ? 1 : 0);
-    for (unsigned i = 0; i < useNVars; i++)
+    for (uint64_t i = 0; i < useNVars; i++)
     {
       // We must have a good name for these variables, these are
       // the ones output in rewrite rules. We choose
@@ -173,7 +173,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       std::stringstream ssv;
       if (varCounter < 26)
       {
-        ssv << static_cast<char>(varCounter + static_cast<unsigned>('A'));
+        ssv << static_cast<char>(varCounter + static_cast<uint64_t>('A'));
       }
       else
       {
