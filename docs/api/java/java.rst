@@ -4,7 +4,7 @@ Java API Documentation
 The Java API for cvc5 mostly mirrors the :doc:`C++ API <../cpp/cpp>` and supports operator
 overloading, iterators, and exceptions.
 There are a few differences from the C++ API, such as using arbitrary-precision integer pairs,
-specifically, pairs of Java BigInteger objects, to represent rational numbers.
+specifically, pairs of Java `BigInteger` objects, to represent rational numbers.
 The :doc:`quickstart guide <quickstart>` gives a short introduction,
 and more examples can be found `here <../../examples/examples.html>`_.
 
