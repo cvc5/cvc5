@@ -293,10 +293,7 @@ def generate_get_impl(modules):
 def _set_handlers(option):
     """Render handler call for options::set()."""
     if option.handler:
-        if option.type == 'void':
-            return 'opts.handler().{}(name)'.format(option.handler)
-        else:
-            return 'opts.handler().{}(name, optionarg)'.format(option.handler)
+        return 'opts.handler().{}(name, optionarg)'.format(option.handler)
     elif option.mode:
         return 'stringTo{}(optionarg)'.format(option.type)
     return 'handlers::handleOption<{}>(name, optionarg)'.format(option.type)
