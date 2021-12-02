@@ -232,7 +232,7 @@ Result SygusSolver::checkSynth(Assertions& as)
     const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
     for (const Node& def : alistDefs)
     {
-      Trace("smt") << "Definition: " << def << std::endl;
+      Trace("smt") << "Carry definition for check-synth: " << def << std::endl;
       if (def.getKind() == EQUAL)
       {
         Assert(def[0].isVar());
