@@ -227,8 +227,8 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     // we generate a new smt engine to do the SyGuS query
     initializeSygusSubsolver(d_subsolver, as);
-    
-    // also assert the internal SyGuS conjecture 
+
+    // also assert the internal SyGuS conjecture
     d_subsolver->assertFormula(d_conj);
   }
   else
@@ -289,7 +289,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
   std::map<Node, Node> sol_map;
   // Get solutions and build auxiliary vectors for substituting
-  if (d_subsolver == nullptr || !d_subsolver->getSubsolverSynthSolutions(sol_map))
+  if (d_subsolver == nullptr
+      || !d_subsolver->getSubsolverSynthSolutions(sol_map))
   {
     InternalError()
         << "SygusSolver::checkSynthSolution(): No solution to check!";
@@ -385,7 +386,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
 }
 
-void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se, Assertions& as)
+void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
+                                           Assertions& as)
 {
   initializeSubsolver(se, d_env);
   // carry the definitions

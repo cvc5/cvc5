@@ -180,13 +180,14 @@ class SygusSolver : protected EnvObj
   void expandDefinitionsSygusDt(TypeNode tn) const;
   /** List to vector helper */
   static std::vector<Node> listToVector(const NodeList& list);
-  /** 
+  /**
    * Initialize SyGuS subsolver based on the assertions from the "main" solver.
    * This is used for check-synth using a subsolver, and for check-synth-sol.
-   * This constructs a subsolver se, and makes calls to add all define-fun 
+   * This constructs a subsolver se, and makes calls to add all define-fun
    * and auxilary assertions.
    */
-  void initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se, Assertions& as);
+  void initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
+                                Assertions& as);
   /** The SMT solver. */
   SmtSolver& d_smtSolver;
   /**
