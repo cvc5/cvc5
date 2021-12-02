@@ -49,6 +49,11 @@ Building cvc5 Java API
        (< 0 b)
        (< (+ a b) 1)
 
+.. toctree::
+    :hidden:
+
+    quickstart
+    API documentation <index>
 
 `Package io.github.cvc5.api <io/github/cvc5/api/package-summary.html>`_
 ^^^^^^^^^^^^^^^
