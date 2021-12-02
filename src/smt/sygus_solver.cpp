@@ -41,8 +41,8 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
-    : EnvObj(env), d_smtSolver(sms), d_sygusConjectureStale(userContext(), true)
+SygusSolver::SygusSolver(Env& env)
+    : EnvObj(env), d_sygusVars(userContext()), d_sygusConstraints(userContext()), d_sygusAssumps(userContext()), d_sygusFunSymbols(userContext()), d_sygusConjectureStale(userContext(), true)
 {
 }
 
@@ -222,7 +222,10 @@ Result SygusSolver::checkSynth(Assertions& as)
     query.push_back(body);
   }
 
-  Result r = d_smtSolver.checkSatisfiability(as, query, false);
+  // we generate a new smt engine to do the abduction query
+  initializeSubsolver(d_subsolver, d_env);
+  d_subsolver->assertFormula(query);
+  Result r = d_subsolver->checkSat();
 
   // Check that synthesis solutions satisfy the conjecture
   if (options().smt.checkSynthSol
@@ -238,8 +241,7 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
   std::map<Node, std::map<Node, Node>> sol_mapn;
   // fail if the theory engine does not have synthesis solutions
-  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if (qe == nullptr || !qe->getSynthSolutions(sol_mapn))
+  if (qe == nullptr || !d_subsolver->getSynthSolutions(sol_mapn))
   {
     return false;
   }

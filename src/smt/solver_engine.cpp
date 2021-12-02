@@ -118,7 +118,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_absValues, *d_stats));
   // make the SyGuS solver
-  d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
+  d_sygusSolver.reset(new SygusSolver(*d_env.get()));
   // make the quantifier elimination solver
   d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
 }

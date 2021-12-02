@@ -19,6 +19,7 @@
 #define CVC5__SMT__SYGUS_SOLVER_H
 
 #include "context/cdo.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "smt/assertions.h"
@@ -44,6 +45,7 @@ class SmtSolver;
  */
 class SygusSolver : protected EnvObj
 {
+  using NodeList = context::CDList<Node>;
  public:
   SygusSolver(Env& env, SmtSolver& sms);
   ~SygusSolver();
@@ -170,25 +172,25 @@ class SygusSolver : protected EnvObj
    * expansion.
    */
   void expandDefinitionsSygusDt(TypeNode tn) const;
-  /** The SMT solver, which is used during checkSynth. */
-  SmtSolver& d_smtSolver;
   /**
    * sygus variables declared (from "declare-var" and "declare-fun" commands)
    *
    * The SyGuS semantics for declared variables is that they are implicitly
    * universally quantified in the constraints.
    */
-  std::vector<Node> d_sygusVars;
+  NodeList d_sygusVars;
   /** sygus constraints */
-  std::vector<Node> d_sygusConstraints;
+  NodeList d_sygusConstraints;
   /** sygus assumptions */
-  std::vector<Node> d_sygusAssumps;
+  NodeList d_sygusAssumps;
   /** functions-to-synthesize */
-  std::vector<Node> d_sygusFunSymbols;
+  NodeList d_sygusFunSymbols;
   /**
    * Whether we need to reconstruct the sygus conjecture.
    */
   context::CDO<bool> d_sygusConjectureStale;
+  /** Subsolver */
+  std::unique_ptr<SolverEngine> d_subsolver;
 };
 
 }  // namespace smt
