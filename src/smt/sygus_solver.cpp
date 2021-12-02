@@ -232,12 +232,18 @@ Result SygusSolver::checkSynth(Assertions& as)
     const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
     for (const Node& def : alistDefs)
     {
+      Trace("smt") << "Definition: " << def << std::endl;
       if (def.getKind() == EQUAL)
       {
         Assert(def[0].isVar());
-        Assert(def[1].getKind() == LAMBDA);
-        std::vector<Node> formals(def[1][0].begin(), def[1][0].end());
-        d_subsolver->defineFunction(def[0], formals, def[1][1]);
+        std::vector<Node> formals;
+        Node dbody = def[1];
+        if (def[1].getKind() == LAMBDA)
+        {
+          formals.insert(formals.end(), def[1][0].begin(), def[1][0].end());
+          dbody = dbody[1];
+        }
+        d_subsolver->defineFunction(def[0], formals, dbody);
       }
     }
     // Also assert auxiliary assertions
