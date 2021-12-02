@@ -13,6 +13,12 @@ For most applications, the `Solver <io/github/cvc5/api/Solver.html>`_ class is t
 The class hierarchy of `cvc5 package <io/github/cvc5/api/package-summary.html>`_
 provides more details on the individual classes.
 
+.. toctree::
+    :hidden:
+
+    quickstart
+    API documentation <index>
+
 Building cvc5 Java API
 ^^^^^^^^^^^^^^^^^^^^^^
 
