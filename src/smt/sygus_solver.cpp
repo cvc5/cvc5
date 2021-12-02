@@ -332,7 +332,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
   // check all conjectures
-  for (Node conj : conjs)
+  for (const Node& conj : conjs)
   {
     // Start new SMT engine to check solutions
     std::unique_ptr<SolverEngine> solChecker;
@@ -341,8 +341,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     solChecker->getOptions().quantifiers.sygusRecFun = false;
     Assert(conj.getKind() == FORALL);
     Node conjBody = conj[1];
-    // we must expand definitions here, since definitions may contain the
-    // function-to-synthesize.
+    // we must expand definitions here, since define-fun may contain the
+    // function-to-synthesize, which needs to be substituted.
     conjBody = d_smtSolver.getPreprocessor()->expandDefinitions(conjBody);
     // Apply solution map to conjecture body
     conjBody = conjBody.substitute(
@@ -381,10 +381,12 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
                                            Assertions& as)
 {
   initializeSubsolver(se, d_env);
-  // carry the definitions
+  // carry the ordinary define-fun definitions
   const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
+  std::unordered_set<Node> processed;
   for (const Node& def : alistDefs)
   {
+    // only consider define-fun, represented as (= f (lambda ...)).
     if (def.getKind() == EQUAL)
     {
       Assert(def[0].isVar());
@@ -396,13 +398,19 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
         dbody = dbody[1];
       }
       se->defineFunction(def[0], formals, dbody);
+      processed.insert(def);
     }
   }
   // Also assert auxiliary assertions
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
-  for (size_t i = 0, asize = ap.size(); i < asize; ++i)
+  const context::CDList<Node>& alist = as.getAssertionList();
+  for (size_t i = 0, asize = alist.size(); i < asize; ++i)
   {
-    se->assertFormula(ap[i]);
+    Node a = alist[i];
+    // ignore definitions here
+    if (processed.find(a)==processed.end())
+    {
+      se->assertFormula(a);
+    }
   }
 }
 
