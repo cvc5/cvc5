@@ -209,10 +209,10 @@ name   = "Strings Theory"
   help       = "use regular expressions for eager length conflicts"
 
 [[option]]
-  name       = "stringSeqUpdate"
+  name       = "seqArray"
   category   = "expert"
-  long       = "strings-seq-update=MODE"
-  type       = "StringSeqUpdateMode"
+  long       = "seq-array=MODE"
+  type       = "SeqArrayMode"
   default    = "NONE"
   help       = "use array-inspired solver for sequence updates in eager or lazy mode"
   help_mode  = "use array-inspired solver for sequence updates in eager or lazy mode"
