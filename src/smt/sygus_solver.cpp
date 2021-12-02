@@ -407,7 +407,7 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
   {
     Node a = alist[i];
     // ignore definitions here
-    if (processed.find(a)==processed.end())
+    if (processed.find(a) == processed.end())
     {
       se->assertFormula(a);
     }
