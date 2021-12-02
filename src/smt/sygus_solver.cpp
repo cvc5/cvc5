@@ -339,7 +339,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     initializeSygusSubsolver(solChecker, as);
     solChecker->getOptions().smt.checkSynthSol = false;
     solChecker->getOptions().quantifiers.sygusRecFun = false;
-    Assert (conj.getKind()==FORALL);
+    Assert(conj.getKind() == FORALL);
     Node conjBody = conj[1];
     // we must expand definitions here, since definitions may contain the
     // function-to-synthesize.

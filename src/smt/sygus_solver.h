@@ -41,7 +41,7 @@ class SmtSolver;
  * check satisfiability using a separate SolverEngine "subsolver".
  *
  * This solver operates in two mode.
- * 
+ *
  * If in incremental mode, then the "main" SolverEngine for SyGuS inputs only
  * maintains a (user-context) dependent state of SyGuS assertions, as well as
  * assertions corresponding to (recursive) function definitions. The subsolver
@@ -49,7 +49,7 @@ class SmtSolver;
  * however, push/pop (which impact SyGuS constraints) impacts only the main
  * solver. This means that the conjecture being handled by the subsolver is
  * reconstructed when the SyGuS conjecture is updated.
- * 
+ *
  * If not in incremental mode, then the internal SyGuS conjecture is asserted
  * to the "main" SolverEngine.
  */
