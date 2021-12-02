@@ -36,7 +36,7 @@ For this, we first query the solver for the corresponding sorts.
 
 Now, we create two constants ``x`` and ``y`` of sort ``Real``,
 and two constants ``a`` and ``b`` of sort ``Integer``.
-Notice that these are *symbolic* constants, but not actual values.
+Notice that these are *symbolic* constants, not actual values.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
