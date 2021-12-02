@@ -90,7 +90,7 @@ void SygusSolver::declareSynthFun(Node fn,
   }
 
   // sygus conjecture is now stale
-  setSygusConjectureStale();
+  d_sygusConjectureStale = true;
 }
 
 void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
@@ -107,7 +107,7 @@ void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
   }
 
   // sygus conjecture is now stale
-  setSygusConjectureStale();
+  d_sygusConjectureStale = true;
 }
 
 void SygusSolver::assertSygusInvConstraint(Node inv,
@@ -179,7 +179,7 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   d_sygusConstraints.push_back(constraint);
 
   // sygus conjecture is now stale
-  setSygusConjectureStale();
+  d_sygusConjectureStale = true;
 }
 
 Result SygusSolver::checkSynth(Assertions& as)
@@ -225,25 +225,26 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     // TODO (project #7): if incremental, we should push a context and assert
     d_conj = body;
+    
+    // we generate a new smt engine to do the abduction query
+    initializeSubsolver(d_subsolver, d_env);
+    d_subsolver->assertFormula(d_conj);
+
+    // Also assert auxiliary assertions
+    const context::CDList<Node>& alist = as.getAssertionList();
+    Assert(options().smt.produceAssertions)
+        << "Expected produce assertions to be true for check-synth";
+    for (const Node& assertion : alist)
+    {
+      d_subsolver->assertFormula(assertion);
+    }
   }
   else
   {
+    // block current solution?
+    Assert (d_subsolver!=nullptr);
   }
-  // we generate a new smt engine to do the abduction query
-  initializeSubsolver(d_subsolver, d_env);
-  d_subsolver->assertFormula(d_conj);
-
-  // Also assert auxiliary assertions
-  const context::CDList<Node>& alist = as.getAssertionList();
-  Assert(options().smt.produceAssertions)
-      << "Expected produce assertions to be true for check-synth";
-  for (const Node& assertion : alist)
-  {
-    d_subsolver->assertFormula(assertion);
-  }
-
   Result r = d_subsolver->checkSat();
-
   // Check that synthesis solutions satisfy the conjecture
   if (options().smt.checkSynthSol
       && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -255,6 +256,7 @@ Result SygusSolver::checkSynth(Assertions& as)
 
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
+  return;
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   if (isVerboseOn(1))
@@ -403,17 +405,6 @@ void SygusSolver::checkSynthSolution(Assertions& as)
              "satisfiable negated conjecture.";
     }
   }
-}
-
-void SygusSolver::setSygusConjectureStale()
-{
-  if (d_sygusConjectureStale)
-  {
-    // already stale
-    return;
-  }
-  d_sygusConjectureStale = true;
-  // TODO (project #7): if incremental, we should pop a context
 }
 
 void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
