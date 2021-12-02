@@ -43,7 +43,7 @@ namespace smt {
 
 SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
     : EnvObj(env),
-    d_smtSolver(sms),
+      d_smtSolver(sms),
       d_sygusVars(userContext()),
       d_sygusConstraints(userContext()),
       d_sygusAssumps(userContext()),
@@ -214,8 +214,8 @@ Result SygusSolver::checkSynth(Assertions& as)
     }
     if (!d_sygusFunSymbols.empty())
     {
-      body =
-          quantifiers::SygusUtils::mkSygusConjecture(listToVector(d_sygusFunSymbols), body);
+      body = quantifiers::SygusUtils::mkSygusConjecture(
+          listToVector(d_sygusFunSymbols), body);
     }
     Trace("smt") << "...constructed forall " << body << std::endl;
 
@@ -228,12 +228,11 @@ Result SygusSolver::checkSynth(Assertions& as)
   }
   else
   {
-  
   }
   // we generate a new smt engine to do the abduction query
   initializeSubsolver(d_subsolver, d_env);
   d_subsolver->assertFormula(d_conj);
-  
+
   // Also assert auxiliary assertions
   const context::CDList<Node>& alist = as.getAssertionList();
   Assert(options().smt.produceAssertions)
@@ -242,7 +241,7 @@ Result SygusSolver::checkSynth(Assertions& as)
   {
     d_subsolver->assertFormula(assertion);
   }
-  
+
   Result r = d_subsolver->checkSat();
 
   // Check that synthesis solutions satisfy the conjecture
@@ -291,7 +290,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     fvars.push_back(pair.first);
     fsols.push_back(pair.second);
   }
-  
+
   Trace("check-synth-sol") << "Starting new SMT Engine\n";
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
