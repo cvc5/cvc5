@@ -142,13 +142,13 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
   }
 }
 
-void OptionsHandler::decreaseVerbosity(const std::string& flag)
+void OptionsHandler::decreaseVerbosity(const std::string& flag, bool value)
 {
   d_options->base.verbosity -= 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::increaseVerbosity(const std::string& flag)
+void OptionsHandler::increaseVerbosity(const std::string& flag, bool value)
 {
   d_options->base.verbosity += 1;
   setVerbosity(flag, d_options->base.verbosity);
@@ -247,9 +247,9 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
 }
 
 void OptionsHandler::enableOutputTag(const std::string& flag,
-                                     const std::string& optarg)
+                                     OutputTag optarg)
 {
-  size_t tagid = static_cast<size_t>(stringToOutputTag(optarg));
+  size_t tagid = static_cast<size_t>(optarg);
   Assert(d_options->base.outputTagHolder.size() > tagid)
       << "Output tag is larger than the bitset that holds it.";
   d_options->base.outputTagHolder.set(tagid);
