@@ -44,10 +44,6 @@ enum class IncompleteId
   QUANTIFIERS_RECORDED_INST,
   // incomplete due to limited number of allowed instantiation rounds
   QUANTIFIERS_MAX_INST_ROUNDS,
-  // sygus solved
-  QUANTIFIERS_SYGUS_SOLVED_TRUST,
-  // sygus solved
-  QUANTIFIERS_SYGUS_SOLVED,
   // incomplete due to separation logic
   SEP,
   // relations were used in combination with set cardinality constraints
