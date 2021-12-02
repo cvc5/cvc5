@@ -28,7 +28,7 @@
 
 namespace cvc5 {
 
-class OutputManager;
+class SolverEngine;
 
 namespace smt {
 
@@ -119,24 +119,6 @@ class SygusSolver : protected EnvObj
    * universal variables and F is the set of declared constraints.
    */
   Result checkSynth(Assertions& as);
-  /**
-   * Get synth solution.
-   *
-   * This method returns true if we are in a state immediately preceded by
-   * a successful call to checkSynth.
-   *
-   * This method adds entries to sol_map that map functions-to-synthesize with
-   * their solutions, for all active conjectures. This should be called
-   * immediately after the solver answers unsat for sygus input.
-   *
-   * Specifically, given a sygus conjecture of the form
-   *   exists x1...xn. forall y1...yn. P( x1...xn, y1...yn )
-   * where x1...xn are second order bound variables, we map each xi to
-   * lambda term in sol_map such that
-   *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
-   * is a valid formula.
-   */
-  bool getSynthSolutions(std::map<Node, Node>& sol_map);
 
  private:
   /**
@@ -173,6 +155,10 @@ class SygusSolver : protected EnvObj
    * expansion.
    */
   void expandDefinitionsSygusDt(TypeNode tn) const;
+  /** List to vector helper */
+  static std::vector<Node> listToVector(const NodeList& list);
+  /** The SMT solver. */
+  SmtSolver& d_smtSolver;
   /**
    * sygus variables declared (from "declare-var" and "declare-fun" commands)
    *
@@ -186,6 +172,8 @@ class SygusSolver : protected EnvObj
   NodeList d_sygusAssumps;
   /** functions-to-synthesize */
   NodeList d_sygusFunSymbols;
+  /** The current sygus conjecture */
+  Node d_conj;
   /**
    * Whether we need to reconstruct the sygus conjecture.
    */

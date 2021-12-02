@@ -41,8 +41,9 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace smt {
 
-SygusSolver::SygusSolver(Env& env)
+SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
     : EnvObj(env),
+    d_smtSolver(sms),
       d_sygusVars(userContext()),
       d_sygusConstraints(userContext()),
       d_sygusAssumps(userContext()),
@@ -190,32 +191,31 @@ Result SygusSolver::checkSynth(Assertions& as)
         "Cannot make check-synth commands when incremental solving is enabled");
   }
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
-  std::vector<Node> query;
   if (d_sygusConjectureStale)
   {
     NodeManager* nm = NodeManager::currentNM();
     // build synthesis conjecture from asserted constraints and declared
     // variables/functions
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
-    Node body = nm->mkAnd(d_sygusConstraints);
+    Node body = nm->mkAnd(listToVector(d_sygusConstraints));
     // note that if there are no constraints, then assumptions are irrelevant
     if (!d_sygusConstraints.empty() && !d_sygusAssumps.empty())
     {
-      Node bodyAssump = nm->mkAnd(d_sygusAssumps);
+      Node bodyAssump = nm->mkAnd(listToVector(d_sygusAssumps));
       body = nm->mkNode(IMPLIES, bodyAssump, body);
     }
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
     {
-      Node boundVars = nm->mkNode(BOUND_VAR_LIST, d_sygusVars);
+      Node boundVars = nm->mkNode(BOUND_VAR_LIST, listToVector(d_sygusVars));
       body = nm->mkNode(EXISTS, boundVars, body);
       Trace("smt") << "...constructed exists " << body << std::endl;
     }
     if (!d_sygusFunSymbols.empty())
     {
       body =
-          quantifiers::SygusUtils::mkSygusConjecture(d_sygusFunSymbols, body);
+          quantifiers::SygusUtils::mkSygusConjecture(listToVector(d_sygusFunSymbols), body);
     }
     Trace("smt") << "...constructed forall " << body << std::endl;
 
@@ -224,12 +224,25 @@ Result SygusSolver::checkSynth(Assertions& as)
     d_sygusConjectureStale = false;
 
     // TODO (project #7): if incremental, we should push a context and assert
-    query.push_back(body);
+    d_conj = body;
   }
-
+  else
+  {
+  
+  }
   // we generate a new smt engine to do the abduction query
   initializeSubsolver(d_subsolver, d_env);
-  d_subsolver->assertFormula(query);
+  d_subsolver->assertFormula(d_conj);
+  
+  // Also assert auxiliary assertions
+  const context::CDList<Node>& alist = as.getAssertionList();
+  Assert(options().smt.produceAssertions)
+      << "Expected produce assertions to be true for check-synth";
+  for (const Node& assertion : alist)
+  {
+    d_subsolver->assertFormula(assertion);
+  }
+  
   Result r = d_subsolver->checkSat();
 
   // Check that synthesis solutions satisfy the conjecture
@@ -241,25 +254,6 @@ Result SygusSolver::checkSynth(Assertions& as)
   return r;
 }
 
-bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
-{
-  Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
-  std::map<Node, std::map<Node, Node>> sol_mapn;
-  // fail if the theory engine does not have synthesis solutions
-  if (qe == nullptr || !d_subsolver->getSynthSolutions(sol_mapn))
-  {
-    return false;
-  }
-  for (std::pair<const Node, std::map<Node, Node>>& cs : sol_mapn)
-  {
-    for (std::pair<const Node, Node>& s : cs.second)
-    {
-      sol_map[s.first] = s.second;
-    }
-  }
-  return true;
-}
-
 void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -269,10 +263,9 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
                << std::endl;
   }
-  std::map<Node, std::map<Node, Node>> sol_map;
+  std::map<Node, Node> sol_map;
   // Get solutions and build auxiliary vectors for substituting
-  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if (qe == nullptr || !qe->getSynthSolutions(sol_map))
+  if (d_subsolver == nullptr || !d_subsolver->getSynthSolutions(sol_map))
   {
     InternalError()
         << "SygusSolver::checkSynthSolution(): No solution to check!";
@@ -286,24 +279,19 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   Trace("check-synth-sol") << "Got solution map:\n";
   // the set of synthesis conjectures in our assertions
   std::unordered_set<Node> conjs;
+  conjs.insert(d_conj);
   // For each of the above conjectures, the functions-to-synthesis and their
   // solutions. This is used as a substitution below.
-  std::map<Node, std::vector<Node>> fvarMap;
-  std::map<Node, std::vector<Node>> fsolMap;
-  for (const std::pair<const Node, std::map<Node, Node>>& cmap : sol_map)
+  std::vector<Node> fvars;
+  std::vector<Node> fsols;
+  for (const std::pair<const Node, Node>& pair : sol_map)
   {
-    Trace("check-synth-sol") << "For conjecture " << cmap.first << ":\n";
-    conjs.insert(cmap.first);
-    std::vector<Node>& fvars = fvarMap[cmap.first];
-    std::vector<Node>& fsols = fsolMap[cmap.first];
-    for (const std::pair<const Node, Node>& pair : cmap.second)
-    {
-      Trace("check-synth-sol")
-          << "  " << pair.first << " --> " << pair.second << "\n";
-      fvars.push_back(pair.first);
-      fsols.push_back(pair.second);
-    }
+    Trace("check-synth-sol")
+        << "  " << pair.first << " --> " << pair.second << "\n";
+    fvars.push_back(pair.first);
+    fsols.push_back(pair.second);
   }
+  
   Trace("check-synth-sol") << "Starting new SMT Engine\n";
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
@@ -350,9 +338,6 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     initializeSubsolver(solChecker, d_env);
     solChecker->getOptions().smt.checkSynthSol = false;
     solChecker->getOptions().quantifiers.sygusRecFun = false;
-    // get the solution for this conjecture
-    std::vector<Node>& fvars = fvarMap[conj];
-    std::vector<Node>& fsols = fsolMap[conj];
     // Apply solution map to conjecture body
     Node conjBody;
     /* Whether property is quantifier free */
@@ -472,6 +457,16 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       }
     }
   }
+}
+
+std::vector<Node> SygusSolver::listToVector(const NodeList& list)
+{
+  std::vector<Node> vec;
+  for (const Node& n : list)
+  {
+    vec.push_back(n);
+  }
+  return vec;
 }
 
 }  // namespace smt

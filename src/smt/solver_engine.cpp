@@ -118,7 +118,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_state, *d_absValues, *d_stats));
   // make the SyGuS solver
-  d_sygusSolver.reset(new SygusSolver(*d_env.get()));
+  d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
   d_quantElimSolver.reset(new QuantElimSolver(*d_env.get(), *d_smtSolver));
 }
@@ -1598,7 +1598,22 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   SolverEngineScope smts(this);
   finishInit();
-  return d_sygusSolver->getSynthSolutions(solMap);
+  Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
+  std::map<Node, std::map<Node, Node>> sol_mapn;
+  // fail if the theory engine does not have synthesis solutions
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("getSynthSolutions");
+  if (qe == nullptr || !qe->getSynthSolutions(sol_mapn))
+  {
+    return false;
+  }
+  for (std::pair<const Node, std::map<Node, Node>>& cs : sol_mapn)
+  {
+    for (std::pair<const Node, Node>& s : cs.second)
+    {
+      solMap[s.first] = s.second;
+    }
+  }
+  return true;
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
