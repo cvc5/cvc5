@@ -70,7 +70,7 @@ void RelevanceManager::notifyPreprocessedAssertions(
   }
   addAssertionsInternal(toProcess);
   // notify the difficulty manager if these are input assertions
-  if (isInput && d_dman!=nullptr)
+  if (isInput && d_dman != nullptr)
   {
     d_dman->notifyInputAssertions(assertions);
   }
@@ -121,7 +121,7 @@ void RelevanceManager::computeRelevance()
 {
   // if not at full effort, should be tracking something else, e.g. explanation
   // for why literals are relevant.
-  Assert (d_inFullEffortCheck || d_trackRSetExp);
+  Assert(d_inFullEffortCheck || d_trackRSetExp);
   if (d_inFullEffortCheck)
   {
     // if we are in full effort check, we only compute once
@@ -133,7 +133,8 @@ void RelevanceManager::computeRelevance()
   }
   d_rset.clear();
   d_rsetExp.clear();
-  Trace("rel-manager") << "RelevanceManager::computeRelevance, full effort = " << d_inFullEffortCheck << "..." << std::endl;
+  Trace("rel-manager") << "RelevanceManager::computeRelevance, full effort = "
+                       << d_inFullEffortCheck << "..." << std::endl;
   for (const Node& node: d_input)
   {
     TNode n = node;
@@ -143,7 +144,8 @@ void RelevanceManager::computeRelevance()
       if (d_inFullEffortCheck)
       {
         std::stringstream serr;
-        serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
+        serr
+            << "RelevanceManager::computeRelevance: WARNING: failed to justify "
             << n;
         Trace("rel-manager") << serr.str() << std::endl;
         Assert(false) << serr.str();
@@ -157,11 +159,13 @@ void RelevanceManager::computeRelevance()
   {
     if (d_inFullEffortCheck)
     {
-      Trace("rel-manager") << "...success (full), size = " << d_rset.size() << std::endl;
+      Trace("rel-manager") << "...success (full), size = " << d_rset.size()
+                           << std::endl;
     }
     else
     {
-      Trace("rel-manager") << "...success, exp size = " << d_rsetExp.size() << std::endl;
+      Trace("rel-manager") << "...success, exp size = " << d_rsetExp.size()
+                           << std::endl;
     }
   }
   d_success = true;
@@ -174,9 +178,8 @@ bool RelevanceManager::isBooleanConnective(TNode cur)
          || (k == EQUAL && cur[0].getType().isBoolean());
 }
 
-bool RelevanceManager::updateJustifyLastChild(
-    TNode cur,
-    std::vector<int>& childrenJustify)
+bool RelevanceManager::updateJustifyLastChild(TNode cur,
+                                              std::vector<int>& childrenJustify)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
@@ -297,7 +300,7 @@ int RelevanceManager::justify(TNode n)
     it = d_jcache.find(cur);
     if (it != d_jcache.end())
     {
-      if (it->second!=0 || noJustify.find(cur)!=noJustify.end())
+      if (it->second != 0 || noJustify.find(cur) != noJustify.end())
       {
         visit.pop_back();
         // already computed value
@@ -335,11 +338,12 @@ int RelevanceManager::justify(TNode n)
           if (d_trackRSetExp)
           {
             d_rsetExp[cur] = n;
-            Trace("rel-manager-exp") << "Reason for " << cur << " is " << n << std::endl;
+            Trace("rel-manager-exp")
+                << "Reason for " << cur << " is " << n << std::endl;
           }
         }
         d_jcache[cur] = ret;
-        if (ret==0)
+        if (ret == 0)
         {
           noJustify.insert(cur);
         }
@@ -358,7 +362,7 @@ int RelevanceManager::justify(TNode n)
       else
       {
         visit.pop_back();
-        if (d_jcache[cur]==0)
+        if (d_jcache[cur] == 0)
         {
           noJustify.insert(cur);
         }

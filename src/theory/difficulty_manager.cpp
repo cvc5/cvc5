@@ -30,7 +30,8 @@ DifficultyManager::DifficultyManager(context::Context* c, Valuation val)
 {
 }
 
-void DifficultyManager::notifyInputAssertions(const std::vector<Node>& assertions)
+void DifficultyManager::notifyInputAssertions(
+    const std::vector<Node>& assertions)
 {
   for (const Node& a : assertions)
   {
@@ -47,7 +48,8 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
   }
 }
 
-void DifficultyManager::notifyLemma(const context::CDHashMap<Node, Node>& rse, Node n)
+void DifficultyManager::notifyLemma(const context::CDHashMap<Node, Node>& rse,
+                                    Node n)
 {
   if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
   {
@@ -81,7 +83,7 @@ void DifficultyManager::notifyLemma(const context::CDHashMap<Node, Node>& rse, N
         << "Check literal: " << atom << ", has reason = " << (it != rse.end())
         << std::endl;
     // must be an input assertion
-    if (it != rse.end() && d_input.find(it->second)!=d_input.end())
+    if (it != rse.end() && d_input.find(it->second) != d_input.end())
     {
       incrementDifficulty(it->second);
     }

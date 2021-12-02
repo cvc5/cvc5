@@ -21,11 +21,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "smt/env_obj.h"
-#include "context/cdlist.h"
-#include "context/cdhashset.h"
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/difficulty_manager.h"
 #include "theory/valuation.h"
 
@@ -80,6 +80,7 @@ class RelevanceManager : protected EnvObj
   using NodeMap = context::CDHashMap<Node, Node>;
   using NodeSet = context::CDHashSet<Node>;
   using NodeUIntMap = context::CDHashMap<Node, uint64_t>;
+
  public:
   /**
    * @param env The environment
@@ -90,12 +91,13 @@ class RelevanceManager : protected EnvObj
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before
    * adding them to the PropEngine.
-   * 
+   *
    * @param assertions The assertions
    * @param isInput Whether the assertions are preprocessed input assertions;
    * this flag is false for lemmas.
    */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions, bool isInput);
+  void notifyPreprocessedAssertions(const std::vector<Node>& assertions,
+                                    bool isInput);
   /** Singleton version of above */
   void notifyPreprocessedAssertion(Node n, bool isInput);
   /**
@@ -165,8 +167,7 @@ class RelevanceManager : protected EnvObj
    * @return True if we wish to visit the next child. If this is the case, then
    * the justify value of the current child is added to childrenJustify.
    */
-  bool updateJustifyLastChild(TNode cur,
-                              std::vector<int>& childrenJustify);
+  bool updateJustifyLastChild(TNode cur, std::vector<int>& childrenJustify);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
