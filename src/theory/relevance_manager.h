@@ -90,6 +90,10 @@ class RelevanceManager : protected EnvObj
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before
    * adding them to the PropEngine.
+   * 
+   * @param assertions The assertions
+   * @param isInput Whether the assertions are preprocessed input assertions;
+   * this flag is false for lemmas.
    */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions, bool isInput);
   /** Singleton version of above */
@@ -198,8 +202,8 @@ class RelevanceManager : protected EnvObj
    */
   NodeMap d_rsetExp;
   /**
-   * Set of nodes that we have justified (SAT-context dependent). This is used
-   * as an optimization for avoid repeated calls to justify for uses of
+   * Set of nodes that we have justified (SAT context dependent). This is SAT
+   * context dependent to avoid repeated calls to justify for uses of
    * the relevance manager at standard effort.
    */
   NodeUIntMap d_jcache;

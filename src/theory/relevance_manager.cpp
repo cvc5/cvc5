@@ -69,7 +69,8 @@ void RelevanceManager::notifyPreprocessedAssertions(
     }
   }
   addAssertionsInternal(toProcess);
-  if (isInput)
+  // notify the difficulty manager if these are input assertions
+  if (isInput && d_dman!=nullptr)
   {
     d_dman->notifyInputAssertions(assertions);
   }

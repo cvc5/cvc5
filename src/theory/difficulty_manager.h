@@ -19,7 +19,7 @@
 #define CVC5__THEORY__DIFFICULTY_MANAGER__H
 
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
+#include "context/cdhashset.h"
 #include "expr/node.h"
 #include "theory/valuation.h"
 
@@ -34,7 +34,7 @@ class TheoryModel;
  */
 class DifficultyManager
 {
-  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
@@ -70,8 +70,11 @@ class DifficultyManager
  private:
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
-  /** The input assertions */
-  NodeList d_input;
+  /**
+   * The input assertions, tracked to ensure we do not increment difficulty
+   * on lemmas.
+   */
+  NodeSet d_input;
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /**

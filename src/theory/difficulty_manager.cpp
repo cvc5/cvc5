@@ -34,7 +34,7 @@ void DifficultyManager::notifyInputAssertions(const std::vector<Node>& assertion
 {
   for (const Node& a : assertions)
   {
-    d_input.push_back(a);
+    d_input.insert(a);
   }
 }
 
@@ -80,7 +80,8 @@ void DifficultyManager::notifyLemma(const context::CDHashMap<Node, Node>& rse, N
     Trace("diff-man-debug")
         << "Check literal: " << atom << ", has reason = " << (it != rse.end())
         << std::endl;
-    if (it != rse.end())
+    // must be an input assertion
+    if (it != rse.end() && d_input.find(it->second)!=d_input.end())
     {
       incrementDifficulty(it->second);
     }
