@@ -11,15 +11,14 @@ instance using try with resources:
        /** write your code here */
      }
 
-We will ask the solver to produce models and unsat cores in the following,
-and for this we have to enable the following options.
+To produce models and unsat cores, we have to enable the following options.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 32-33
 
 Next we set the logic.
-The simplest way to set a logic for the solver is to choose "ALL".
+The simplest way to set a logic for the solver is to choose ``"ALL"``.
 This enables all logics in the solver.
 Alternatively, ``"QF_ALL"`` enables all logics without quantifiers.
 To optimize the solver's behavior for a more specific logic,
@@ -29,7 +28,7 @@ use the logic name, e.g. ``"QF_BV"`` or ``"QF_AUFBV"``.
      :language: java
      :lines: 42
 
-In the following, we will define constraints of reals and integers.
+In the following, we will define real and integer constraints.
 For this, we first query the solver for the corresponding sorts.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
@@ -38,7 +37,7 @@ For this, we first query the solver for the corresponding sorts.
 
 Now, we create two constants ``x`` and ``y`` of sort ``Real``,
 and two constants ``a`` and ``b`` of sort ``Integer``.
-Notice that these are *symbolic* constants, but not actual values.
+Notice that these are *symbolic* constants, not actual values.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
@@ -128,7 +127,7 @@ For this, we first reset the assertions added to the solver.
 
 Next, we assert the same assertions as above, but with integers.
 This time, we inline the construction of terms
-to the assertion command.
+in the assertion command.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
