@@ -29,6 +29,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
     : EnvObj(env),
       d_val(val),
       d_input(userContext()),
+      d_rset(context()),
       d_computed(false),
       d_inFullEffortCheck(false),
       d_success(false),
@@ -131,8 +132,6 @@ void RelevanceManager::computeRelevance()
     }
     d_computed = true;
   }
-  d_rset.clear();
-  d_rsetExp.clear();
   Trace("rel-manager") << "RelevanceManager::computeRelevance, full effort = "
                        << d_inFullEffortCheck << "..." << std::endl;
   for (const Node& node: d_input)
@@ -150,7 +149,6 @@ void RelevanceManager::computeRelevance()
         Trace("rel-manager") << serr.str() << std::endl;
         Assert(false) << serr.str();
         d_success = false;
-        d_rset.clear();
         return;
       }
     }
@@ -284,8 +282,11 @@ bool RelevanceManager::updateJustifyLastChild(TNode cur,
 
 int RelevanceManager::justify(TNode n)
 {
-  // the vector of values of children
+  // The set of nodes that we have computed currently have no value. Those
+  // that are marked as having no value in d_jcache must be recomputed, since
+  // the values for SAT literals may have changed.
   std::unordered_set<Node> noJustify;
+  // the vector of values of children
   std::unordered_map<TNode, std::vector<int>> childJustify;
   NodeUIntMap::iterator it;
   std::unordered_map<TNode, std::vector<int>>::iterator itc;
@@ -330,11 +331,7 @@ int RelevanceManager::justify(TNode n)
         if (d_val.hasSatValue(cur, value))
         {
           ret = value ? 1 : -1;
-          if (d_inFullEffortCheck)
-          {
-            // if in full effort check, we are computing d_rset
-            d_rset.insert(cur);
-          }
+          d_rset.insert(cur);
           if (d_trackRSetExp)
           {
             d_rsetExp[cur] = n;
@@ -362,6 +359,7 @@ int RelevanceManager::justify(TNode n)
       else
       {
         visit.pop_back();
+        Assert (d_jcache.find(cur)!=d_jcache.end());
         if (d_jcache[cur] == 0)
         {
           noJustify.insert(cur);
@@ -375,6 +373,7 @@ int RelevanceManager::justify(TNode n)
 
 bool RelevanceManager::isRelevant(Node lit)
 {
+  Assert (d_inFullEffortCheck);
   computeRelevance();
   if (!d_success)
   {
@@ -389,13 +388,21 @@ bool RelevanceManager::isRelevant(Node lit)
   return d_rset.find(lit) != d_rset.end();
 }
 
-const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
+std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(
     bool& success)
 {
   computeRelevance();
   // update success flag
   success = d_success;
-  return d_rset;
+  std::unordered_set<TNode> rset;
+  if (success)
+  {
+    for (const Node& a : d_rset)
+    {
+      rset.insert(a);
+    }
+  }
+  return rset;
 }
 
 void RelevanceManager::notifyLemma(Node n)

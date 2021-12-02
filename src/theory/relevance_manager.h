@@ -125,7 +125,7 @@ class RelevanceManager : protected EnvObj
    *
    * The value of this return is only valid if success was not updated to false.
    */
-  const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
+  std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
   void notifyLemma(Node n);
   /** Notify that m is a (candidate) model, for difficulty measurements */
@@ -173,7 +173,7 @@ class RelevanceManager : protected EnvObj
   /** The input assertions */
   NodeList d_input;
   /** The current relevant selection. */
-  std::unordered_set<TNode> d_rset;
+  NodeSet d_rset;
   /** Have we computed the relevant selection this FULL effort check? */
   bool d_computed;
   /** Are we in a full effort check? */
