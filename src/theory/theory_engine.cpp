@@ -384,15 +384,15 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     Debug("theory") << "TheoryEngine::check(" << effort << "): d_factsAsserted = " << (d_factsAsserted ? "true" : "false") << endl;
 
+    // Reset round for the relevance manager, which notice only sets a flag
+    // to indicate that its information must be recomputed.
+    if (d_relManager != nullptr)
+    {
+      d_relManager->beginRound();
+    }
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
-      // Reset round for the relevance manager, which notice only sets a flag
-      // to indicate that its information must be recomputed.
-      if (d_relManager != nullptr)
-      {
-        d_relManager->beginRound();
-      }
       d_tc->resetRound();
     }
 
@@ -488,10 +488,6 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     if (Theory::fullEffort(effort))
     {
-      if (d_relManager != nullptr)
-      {
-        d_relManager->endRound();
-      }
       if (!d_inConflict && !needCheck())
       {
         // Do post-processing of model from the theories (e.g. used for
@@ -1319,7 +1315,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    if (isLemmaPropertyNeedsJustify(p))
+    if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
     {
       d_relManager->notifyPreprocessedAssertion(retLemma);
       d_relManager->notifyPreprocessedAssertions(skAsserts);

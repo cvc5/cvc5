@@ -39,7 +39,6 @@ The following flags enable optional features (disable with --no-<option name>).
   --statistics             include statistics
   --assertions             turn on assertions
   --tracing                include tracing code
-  --dumping                include dumping code
   --muzzle                 complete silence (no non-result output)
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
@@ -110,7 +109,6 @@ cryptominisat=default
 debug_context_mm=default
 debug_symbols=default
 docs=default
-dumping=default
 glpk=default
 gpl=default
 kissat=default
@@ -205,9 +203,6 @@ do
 
     --debug-context-mm) debug_context_mm=ON;;
     --no-debug-context-mm) debug_context_mm=OFF;;
-
-    --dumping) dumping=ON;;
-    --no-dumping) dumping=OFF;;
 
     --gpl) gpl=ON;;
     --no-gpl) gpl=OFF;;
@@ -329,8 +324,6 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols"
 [ $debug_context_mm != default ] \
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_CONTEXT_MM=$debug_context_mm"
-[ $dumping != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_DUMPING=$dumping"
 [ $gpl != default ] \
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
