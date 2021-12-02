@@ -301,9 +301,6 @@ def _set_handlers(option):
 
 def _set_predicates(option):
     """Render predicate calls for options::set()."""
-    if option.type == 'void':
-        return []
-    assert option.type != 'void'
     res = []
     if option.minimum:
         res.append(
