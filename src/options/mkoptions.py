@@ -287,7 +287,7 @@ def generate_get_impl(modules):
             ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
                 module.id, option.name)
         res.append('if ({}) {}'.format(cond, ret))
-    return '\n  '.join(res)
+    return '\n    '.join(res)
 
 
 def _set_handlers(option):
@@ -540,7 +540,7 @@ def generate_module_mode_impl(module):
 def _add_cmdoption(option, name, opts, next_id):
     fmt = {
         'name': name,
-        'arg': 'no' if option.type in ['bool', 'void'] else 'required',
+        'arg': 'no' if option.type != 'bool' else 'required',
         'next_id': next_id
     }
     opts.append(
@@ -564,7 +564,7 @@ def generate_parsing(modules):
             needs_impl = True
             code.append("case '{0}': // -{0}".format(option.short))
             short += option.short
-            if option.type not in ['bool', 'void']:
+            if option.type != 'bool':
                 short += ':'
         if option.long:  # long option
             needs_impl = True
@@ -582,9 +582,6 @@ def generate_parsing(modules):
             # there is some way to call it, add call to solver.setOption()
             if option.type == 'bool':
                 code.append('  solver.setOption("{}", "true"); break;'.format(
-                    option.long_name))
-            elif option.type == 'void':
-                code.append('  solver.setOption("{}", ""); break;'.format(
                     option.long_name))
             else:
                 code.append(
@@ -976,9 +973,9 @@ class Checker:
             self.__check_option_long(o, o.long_name)
             if o.alternate:
                 self.__check_option_long(o, 'no-' + o.long_name)
-            if o.type in ['bool', 'void'] and '=' in o.long:
-                self.perr('must not have an argument description', option=o)
-            if o.type not in ['bool', 'void'] and not '=' in o.long:
+            if o.type == 'bool' and '=' in o.long:
+                self.perr('bool options must not have an argument description', option=o)
+            if o.type != 'bool' and not '=' in o.long:
                 self.perr("needs argument description ('{}=...')",
                           o.long,
                           option=o)
