@@ -39,7 +39,7 @@ class SmtSolver;
  *
  * This class is responsible for responding to check-synth commands. It calls
  * check satisfiability using a separate SolverEngine "subsolver".
- * 
+ *
  * Note that the "main" SolverEngine for SyGuS inputs only maintains a
  * (user-context) dependent state of SyGuS assertions, as well as assertions
  * corresponding to (recursive) function definitions. The subsolver that
@@ -204,7 +204,7 @@ class SygusSolver : protected EnvObj
    * previously not stale.
    */
   context::CDO<bool> d_sygusConjectureStale;
-  /** 
+  /**
    * The subsolver we are using. This is a separate copy of the SolverEngine
    * which has the asserted synthesis conjecture, i.e. a formula returned by
    * quantifiers::SygusUtils::mkSygusConjecture.
