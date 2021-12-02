@@ -27,7 +27,7 @@ use the logic name, e.g. ``"QF_BV"`` or ``"QF_AUFBV"``.
      :language: java
      :lines: 42
 
-In the following, we will define constraints of reals and integers.
+In the following, we will define real and integer constraints.
 For this, we first query the solver for the corresponding sorts.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
