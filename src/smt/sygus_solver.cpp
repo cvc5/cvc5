@@ -225,18 +225,31 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     d_conj = body;
 
-    // we generate a new smt engine to do the SyGuS query
-    initializeSygusSubsolver(d_subsolver, as);
+    if (options().base.incrementalSolving)
+    {
+      // we generate a new smt engine to do the SyGuS query
+      initializeSygusSubsolver(d_subsolver, as);
 
-    // also assert the internal SyGuS conjecture
-    d_subsolver->assertFormula(d_conj);
+      // also assert the internal SyGuS conjecture
+      d_subsolver->assertFormula(d_conj);
+    }
   }
   else
   {
     // block current solution?
     Assert(d_subsolver != nullptr);
   }
-  Result r = d_subsolver->checkSat();
+  Result r;
+  if (options().base.incrementalSolving)
+  {
+    r = d_subsolver->checkSat();
+  }
+  else
+  {
+    std::vector<Node> query;
+    query.push_back(d_conj);
+    r = d_smtSolver.checkSatisfiability(as, query, false);
+  }
   // Check that synthesis solutions satisfy the conjecture
   if (options().smt.checkSynthSol
       && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -246,16 +259,16 @@ Result SygusSolver::checkSynth(Assertions& as)
   return r;
 }
 
-bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
   // fail if the theory engine does not have synthesis solutions
-  if (d_subsolver == nullptr)
+  if (options().base.incrementalSolving)
   {
-    return false;
+    // use the call to get the synth solutions from the subsolver
+    return d_subsolver->getSubsolverSynthSolutions(solMap);
   }
-  // use the call to get the synth solutions from the subsolver
-  return d_subsolver->getSubsolverSynthSolutions(sol_map);
+  return getSubsolverSynthSolutions(solMap);
 }
 
 bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
@@ -287,8 +300,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
   std::map<Node, Node> sol_map;
   // Get solutions and build auxiliary vectors for substituting
-  if (d_subsolver == nullptr
-      || !d_subsolver->getSubsolverSynthSolutions(sol_map))
+  if (!getSynthSolutions(sol_map))
   {
     InternalError()
         << "SygusSolver::checkSynthSolution(): No solution to check!";
@@ -327,11 +339,12 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     initializeSygusSubsolver(solChecker, as);
     solChecker->getOptions().smt.checkSynthSol = false;
     solChecker->getOptions().quantifiers.sygusRecFun = false;
-    // Apply solution map to conjecture body
+    Assert (conj.getKind()==FORALL);
     Node conjBody = conj[1];
     // we must expand definitions here, since definitions may contain the
     // function-to-synthesize.
     conjBody = d_smtSolver.getPreprocessor()->expandDefinitions(conjBody);
+    // Apply solution map to conjecture body
     conjBody = conjBody.substitute(
         fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
 
