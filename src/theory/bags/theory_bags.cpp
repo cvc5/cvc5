@@ -20,6 +20,7 @@
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
@@ -39,7 +40,8 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(),
       d_rewriter(&d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
-      d_solver(env, d_state, d_im, d_termReg)
+      d_solver(env, d_state, d_im, d_termReg),
+      d_bagReduction(env)
 {
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
@@ -87,6 +89,18 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   {
     case kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
     case kind::BAG_CARD: return expandCardOperator(atom, lems);
+    case kind::BAG_FOLD:
+    {
+      std::vector<Node> asserts;
+      Node ret = d_bagReduction.reduceFoldOperator(atom, asserts);
+      NodeManager* nm = NodeManager::currentNM();
+      Node andNode = nm->mkNode(AND, asserts);
+      d_im.lemma(andNode, InferenceId::BAGS_FOLD);
+      Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
+                         << " such that:" << std::endl
+                         << asserts << std::endl;
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
     default: return TrustNode::null();
   }
 }
@@ -131,9 +145,9 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
 
-TrustNode TheoryBags::expandCardOperator(TNode n,
-                                         std::vector<SkolemLemma>& vector)
+TrustNode TheoryBags::expandCardOperator(TNode n, std::vector<SkolemLemma>&)
 {
+  Assert(n.getKind() == BAG_CARD);
   if (d_env.getLogicInfo().isHigherOrder())
   {
     // (bag.card A) = (bag.count 1 (bag.map (lambda ((x E)) 1) A)),

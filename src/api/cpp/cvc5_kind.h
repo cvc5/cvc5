@@ -2539,6 +2539,22 @@ enum Kind : int32_t
    *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
    */
   BAG_MAP,
+  /**
+   * bag.fold operator combines elements of a bag into a single value.
+   * (bag.fold f t B) folds the elements of bag B starting with term t and using
+   * the combining function f.
+   *
+   * Parameters:
+   *   - 1: a binary operation of type (-> T1 T2 T2)
+   *   - 2: an initial value of type T2
+   *   - 2: a bag of type (Bag T1)
+   *
+   * Create with:
+   *   - `Solver::mkTerm(Kind kind, const Term& child1, const Term& child2,
+   * const Term& child3) const`
+   *   - `Solver::mkTerm(Kind kind, const std::vector<Term>& children) const`
+   */
+  BAG_FOLD,
 
   /* Strings --------------------------------------------------------------- */
 
