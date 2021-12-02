@@ -364,6 +364,38 @@ TEST_F(TestUtilBlackInteger, overly_long_unsigned)
   ASSERT_THROW(i.getUnsignedLong(), IllegalArgumentException);
 }
 
+TEST_F(TestUtilBlackInteger, getSigned64)
+{
+  {
+    int64_t i = std::numeric_limits<int64_t>::max();
+    Integer a(i);
+    EXPECT_EQ(a.getSigned64(), i);
+    EXPECT_THROW((a + 1).getSigned64(), IllegalArgumentException);
+  }
+  {
+    int64_t i = std::numeric_limits<int64_t>::min();
+    Integer a(i);
+    EXPECT_EQ(a.getSigned64(), i);
+    EXPECT_THROW((a - 1).getSigned64(), IllegalArgumentException);
+  }
+}
+
+TEST_F(TestUtilBlackInteger, getUnsigned64)
+{
+  {
+    uint64_t i = std::numeric_limits<uint64_t>::max();
+    Integer a(i);
+    EXPECT_EQ(a.getUnsigned64(), i);
+    EXPECT_THROW((a + 1).getUnsigned64(), IllegalArgumentException);
+  }
+  {
+    uint64_t i = std::numeric_limits<uint64_t>::min();
+    Integer a(i);
+    EXPECT_EQ(a.getUnsigned64(), i);
+    EXPECT_THROW((a - 1).getUnsigned64(), IllegalArgumentException);
+  }
+}
+
 TEST_F(TestUtilBlackInteger, testBit)
 {
   ASSERT_FALSE(Integer(0).testBit(6));

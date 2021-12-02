@@ -480,7 +480,7 @@ uint64_t Integer::getUnsigned64() const
       return getUnsignedLong();
     }
     // ensure there isn't overflow
-    CheckArgument(mpz_sizeinbase(d_value.get_mpz_t(), 2) < 64,
+    CheckArgument(mpz_sizeinbase(d_value.get_mpz_t(), 2) <= 64,
                   this,
                   "Overflow detected in Integer::getUnsigned64().");
     return std::stoull(toString());
