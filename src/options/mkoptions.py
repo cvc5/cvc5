@@ -540,7 +540,7 @@ def generate_module_mode_impl(module):
 def _add_cmdoption(option, name, opts, next_id):
     fmt = {
         'name': name,
-        'arg': 'no' if option.type != 'bool' else 'required',
+        'arg': 'no' if option.type == 'bool' else 'required',
         'next_id': next_id
     }
     opts.append(
