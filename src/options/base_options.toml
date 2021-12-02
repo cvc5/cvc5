@@ -150,12 +150,11 @@ name   = "Base"
   help       = "debug something (e.g. -d arith), can repeat"
 
 [[option]]
-  name       = "outputTag"
   short      = "o"
   long       = "output=TAG"
   type       = "OutputTag"
   default    = "NONE"
-  handler    = "enableOutputTag"
+  predicates = ["enableOutputTag"]
   category   = "regular"
   help       = "Enable output tag."
   help_mode  = "Output tags."
