@@ -970,6 +970,16 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
 {
   return {p};
 }
+
+std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
+    const poly::Polynomial& q) const
+{
+  WarningOnce()
+      << "CAD::LazardEvaluation is disabled because CoCoA is not available. "
+         "Falling back to regular real root isolation."
+      << std::endl;
+  return poly::isolate_real_roots(q, d_state->d_assignment);
+}
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q, poly::SignCondition sc) const
 {
