@@ -229,7 +229,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             c = learnedLiteral[1];
           }
           Assert(!t.isConst());
-          Assert(cps.apply(t, true) == t);
+          Assert(rewrite(cps.apply(t)) == t);
           Assert(top_level_substs.apply(t) == t);
           Assert(nss.apply(t) == t);
           // also add to learned literal
