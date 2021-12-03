@@ -63,7 +63,7 @@ class SubstitutionMap
   bool d_cacheInvalidated;
 
   /** Internal method that performs substitution */
-  Node internalSubstitute(TNode t, NodeCache& cache);
+  Node internalSubstitute(TNode t, NodeCache& cache, std::set<TNode>* tracker);
 
   /** Helper class to invalidate cache on user pop */
   class CacheInvalidator : public context::ContextNotifyObj
@@ -127,7 +127,7 @@ class SubstitutionMap
   /**
    * Apply the substitutions to the node.
    */
-  Node apply(TNode t, bool doRewrite = false);
+  Node apply(TNode t, bool doRewrite = false, std::set<TNode>* tracker = nullptr);
 
   /**
    * Apply the substitutions to the node.
