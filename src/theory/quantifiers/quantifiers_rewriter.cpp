@@ -1028,12 +1028,11 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
                                              std::vector<Node>& subs) const
 {
   Kind nk = n.getKind();
-  if (nk == NOT)
+  while (nk == NOT)
   {
     n = n[0];
     pol = !pol;
     nk = n.getKind();
-    Assert(nk != NOT);
   }
   if ((nk == AND && pol) || (nk == OR && !pol))
   {
