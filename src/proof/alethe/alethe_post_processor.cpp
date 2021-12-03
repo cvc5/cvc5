@@ -1712,7 +1712,37 @@ AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
 
 AletheProofPostprocess::~AletheProofPostprocess() {}
 
-void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {}
+void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
+  // Translate proof node
+  ProofNodeUpdater updater(d_pnm, d_cb, false, false, true);
+  updater.process(pf->getChildren()[0]);
+
+  // In the Alethe proof format the final step has to be (cl). However, after
+  // the translation it might be (cl false). In that case additional steps are
+  // required.
+  // The function has the additional purpose of sanitizing the attributes of the
+  // first SCOPE
+  CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", true);
+  const std::vector<std::shared_ptr<ProofNode>>& cc = pf->getChildren();
+  std::vector<Node> ccn;
+  for (const std::shared_ptr<ProofNode>& cp : cc)
+  {
+    Node cpres = cp->getResult();
+    ccn.push_back(cpres);
+    // store in the proof
+    cpf.addProof(cp);
+  }
+  if (d_cb.finalStep(
+          pf->getResult(), pf->getRule(), ccn, pf->getArguments(), &cpf))
+  {
+    std::shared_ptr<ProofNode> npn = cpf.getProofFor(pf->getResult());
+
+    // then, update the original proof node based on this one
+    Trace("pf-process-debug") << "Update node..." << std::endl;
+    d_pnm->updateNode(pf.get(), npn.get());
+    Trace("pf-process-debug") << "...update node finished." << std::endl;
+  }
+}
 
 }  // namespace proof
 
