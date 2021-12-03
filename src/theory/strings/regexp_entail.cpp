@@ -28,6 +28,12 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
+RegExpEntail::RegExpEntail(Rewriter* r) : d_rewriter(r), d_aent(r)
+{
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+}
+
 Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                                        std::vector<Node>& children,
                                        int dir)
@@ -647,10 +653,11 @@ bool RegExpEntail::hasEpsilonNode(TNode node)
   return false;
 }
 
-Node RegExpEntail::getFixedLengthForRegexp(Node n)
+Node RegExpEntail::getFixedLengthForRegexp(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  if (n.getKind() == STRING_TO_REGEXP)
+  Kind k = n.getKind();
+  if (k == STRING_TO_REGEXP)
   {
     Node ret = nm->mkNode(STRING_LENGTH, n[0]);
     ret = Rewriter::rewrite(ret);
@@ -659,11 +666,11 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
       return ret;
     }
   }
-  else if (n.getKind() == REGEXP_ALLCHAR || n.getKind() == REGEXP_RANGE)
+  else if (k == REGEXP_ALLCHAR || k == REGEXP_RANGE)
   {
     return nm->mkConstInt(Rational(1));
   }
-  else if (n.getKind() == REGEXP_UNION || n.getKind() == REGEXP_INTER)
+  else if (k == REGEXP_UNION || k == REGEXP_INTER)
   {
     Node ret;
     for (const Node& nc : n)
@@ -681,7 +688,7 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
     }
     return ret;
   }
-  else if (n.getKind() == REGEXP_CONCAT)
+  else if (k == REGEXP_CONCAT)
   {
     NodeBuilder nb(PLUS);
     for (const Node& nc : n)
@@ -698,6 +705,82 @@ Node RegExpEntail::getFixedLengthForRegexp(Node n)
     return ret;
   }
   return Node::null();
+}
+
+Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
+{
+  Assert(n.getType().isRegExp());
+  Node ret;
+  if (getConstantBoundCache(n, isLower, ret))
+  {
+    return ret;
+  }
+  Kind k = n.getKind();
+  NodeManager* nm = NodeManager::currentNM();
+  if (k == STRING_TO_REGEXP)
+  {
+    ret = d_aent.getConstantBoundLength(n[0], isLower);
+  }
+  else if (k == REGEXP_ALLCHAR || k == REGEXP_RANGE)
+  {
+    ret = d_one;
+  }
+  else if (k == REGEXP_UNION || k == REGEXP_INTER || k == REGEXP_CONCAT)
+  {
+    bool success = true;
+    bool firstTime = true;
+    Rational rr(0);
+    for (const Node& nc : n)
+    {
+      Node bc = getConstantBoundLengthForRegexp(nc, isLower);
+      if (bc.isNull())
+      {
+        if (k == REGEXP_UNION || (k == REGEXP_CONCAT && !isLower))
+        {
+          // since the bound could not be determined on the component, the
+          // overall bound is undetermined.
+          success = false;
+          break;
+        }
+        else
+        {
+          // if intersection, or we are computing lower bound for concat
+          // and the component cannot be determined, ignore it
+          continue;
+        }
+      }
+      Assert(bc.getKind() == CONST_RATIONAL);
+      Rational r = bc.getConst<Rational>();
+      if (k == REGEXP_CONCAT)
+      {
+        rr += r;
+      }
+      else if (firstTime)
+      {
+        rr = r;
+      }
+      else if ((k == REGEXP_UNION) == isLower)
+      {
+        rr = std::min(r, rr);
+      }
+      else
+      {
+        rr = std::max(r, rr);
+      }
+      firstTime = false;
+    }
+    // if we were successful and didn't ignore all components
+    if (success && !firstTime)
+    {
+      ret = nm->mkConst(CONST_RATIONAL, rr);
+    }
+  }
+  if (ret.isNull() && isLower)
+  {
+    ret = d_zero;
+  }
+  setConstantBoundCache(n, ret, isLower);
+  return ret;
 }
 
 bool RegExpEntail::regExpIncludes(Node r1, Node r2)
@@ -801,6 +884,55 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
   }
 
   return result;
+}
+
+struct RegExpEntailConstantBoundLowerId
+{
+};
+typedef expr::Attribute<RegExpEntailConstantBoundLowerId, Node>
+    RegExpEntailConstantBoundLower;
+
+struct RegExpEntailConstantBoundUpperId
+{
+};
+typedef expr::Attribute<RegExpEntailConstantBoundUpperId, Node>
+    RegExpEntailConstantBoundUpper;
+
+void RegExpEntail::setConstantBoundCache(TNode n, Node ret, bool isLower)
+{
+  if (isLower)
+  {
+    RegExpEntailConstantBoundLower rcbl;
+    n.setAttribute(rcbl, ret);
+  }
+  else
+  {
+    RegExpEntailConstantBoundUpper rcbu;
+    n.setAttribute(rcbu, ret);
+  }
+}
+
+bool RegExpEntail::getConstantBoundCache(TNode n, bool isLower, Node& c)
+{
+  if (isLower)
+  {
+    RegExpEntailConstantBoundLower rcbl;
+    if (n.hasAttribute(rcbl))
+    {
+      c = n.getAttribute(rcbl);
+      return true;
+    }
+  }
+  else
+  {
+    RegExpEntailConstantBoundUpper rcbu;
+    if (n.hasAttribute(rcbu))
+    {
+      c = n.getAttribute(rcbu);
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace strings

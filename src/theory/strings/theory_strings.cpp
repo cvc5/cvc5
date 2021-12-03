@@ -59,7 +59,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
-      d_eagerSolver(env, d_state, d_termReg, d_rewriter.getArithEntail()),
+      d_eagerSolver(env, d_state, d_termReg),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
       d_extTheory(env, d_extTheoryCb, d_im),

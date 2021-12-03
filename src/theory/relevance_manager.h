@@ -90,12 +90,9 @@ class RelevanceManager
   /** Singleton version of above */
   void notifyPreprocessedAssertion(Node n);
   /**
-   * Begin round, called at the beginning of a full effort check in
-   * TheoryEngine.
+   * Begin round, called at the beginning of a check in TheoryEngine.
    */
   void beginRound();
-  /** End round, called at the end of a full effort check in TheoryEngine. */
-  void endRound();
   /**
    * Is lit part of the current relevant selection? This computes the set of
    * relevant assertions if not already done so. This call is valid during a

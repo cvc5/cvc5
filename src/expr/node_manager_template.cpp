@@ -692,9 +692,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
         // cvc5::DType class, but this actually needs to be checked.
-        if (selectorType.getRangeType().isFunctionLike())
+        if (!selectorType.getRangeType().isFirstClass())
         {
-          throw Exception("cannot put function-like things in datatypes");
+          throw Exception(
+              "cannot use fields in datatypes that are not first class types");
         }
       }
     }
