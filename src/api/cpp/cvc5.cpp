@@ -3558,7 +3558,7 @@ bool DatatypeConstructorDecl::isNullHelper() const { return d_ctor == nullptr; }
 
 bool DatatypeConstructorDecl::isResolved() const
 {
-  return d_ctor==nullptr || d_ctor->isResolved();
+  return d_ctor == nullptr || d_ctor->isResolved();
 }
 
 /* DatatypeDecl ------------------------------------------------------------- */
@@ -6741,7 +6741,8 @@ Sort Solver::declareDatatype(
   CVC5_API_SOLVER_CHECK_DTCTORDECLS(ctors);
   for (size_t i = 0, size = ctors.size(); i < size; i++)
   {
-    CVC5_API_CHECK(!ctors[i].isResolved()) << "cannot use a constructor for multiple datatypes";
+    CVC5_API_CHECK(!ctors[i].isResolved())
+        << "cannot use a constructor for multiple datatypes";
   }
   //////// all checks before this line
   DatatypeDecl dtdecl(this, symbol);

@@ -1724,10 +1724,10 @@ class CVC5_EXPORT DatatypeConstructorDecl
    * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
-  
-  /** 
+
+  /**
    * Is the underlying constructor resolved (i.e. has it been used to declare
-   * a datatype already)? 
+   * a datatype already)?
    */
   bool isResolved() const;
 
