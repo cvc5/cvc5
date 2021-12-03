@@ -460,14 +460,15 @@ int64_t Integer::getSigned64() const
     {
       return getLong();
     }
-    // ensure there is no overflow.
-    CheckArgument(mpz_class(std::to_string(std::numeric_limits<int64_t>::min()))
-                          <= d_value
-                      && d_value <= mpz_class(std::to_string(
-                             std::numeric_limits<int64_t>::max())),
-                  this,
-                  "Overflow detected in Integer::getSigned64().");
-    return std::stoll(toString());
+    try
+    {
+      return std::stoll(toString());
+    }
+    catch (const std::exception& e)
+    {
+      CheckArgument(
+          false, this, "Overflow detected in Integer::getSigned64().");
+    }
   }
 }
 uint64_t Integer::getUnsigned64() const
@@ -482,15 +483,15 @@ uint64_t Integer::getUnsigned64() const
     {
       return getUnsignedLong();
     }
-    // ensure there is no overflow
-    CheckArgument(
-        mpz_class(std::to_string(std::numeric_limits<uint64_t>::min()))
-                <= d_value
-            && d_value <= mpz_class(
-                   std::to_string(std::numeric_limits<uint64_t>::max())),
-        this,
-        "Overflow detected in Integer::getUnsigned64().");
-    return std::stoull(toString());
+    try
+    {
+      return std::stoull(toString());
+    }
+    catch (const std::exception& e)
+    {
+      CheckArgument(
+          false, this, "Overflow detected in Integer::getUnsigned64().");
+    }
   }
 }
 
