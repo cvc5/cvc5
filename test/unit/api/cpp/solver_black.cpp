@@ -2642,7 +2642,7 @@ TEST_F(TestApiBlackSolver, issue5893)
   ASSERT_NO_FATAL_FAILURE(distinct.getOp());
 }
 
-TEST_F(TestApiBlackSolver, proj - issue373)
+TEST_F(TestApiBlackSolver, proj_issue373)
 {
   Sort s1 = d_solver.getRealSort();
 
