@@ -16,6 +16,7 @@
 #include "theory/strings/word.h"
 
 #include "expr/sequence.h"
+#include "expr/attribute.h"
 #include "util/string.h"
 
 using namespace cvc5::kind;
@@ -24,21 +25,37 @@ namespace cvc5 {
 namespace theory {
 namespace strings {
 
+/** Attribute for caching the empty word for each type. */
+struct EmptyWordAttributeId
+{
+};
+typedef expr::Attribute<EmptyWordAttributeId, Node> EmptyWordAttribute;
+  
 Node Word::mkEmptyWord(TypeNode tn)
 {
+  EmptyWordAttribute ewa;
+  Node eword = tn.getAttribute(ewa);
+  if (!eword.isNull())
+  {
+    return eword;
+  }
   if (tn.isString())
   {
     std::vector<unsigned> vec;
-    return NodeManager::currentNM()->mkConst(String(vec));
+    eword = NodeManager::currentNM()->mkConst(String(vec));
   }
   else if (tn.isSequence())
   {
     std::vector<Node> seq;
-    return NodeManager::currentNM()->mkConst(
+    eword = NodeManager::currentNM()->mkConst(
         Sequence(tn.getSequenceElementType(), seq));
   }
-  Unimplemented();
-  return Node::null();
+  else
+  {
+    Unimplemented();
+  }
+  tn.setAttribute(ewa, eword);
+  return eword;
 }
 
 Node Word::mkWordFlatten(const std::vector<Node>& xs)
