@@ -408,6 +408,8 @@ bool CDProof::hasStep(Node fact)
   return false;
 }
 
+size_t CDProof::getNumProofNodes() const { return d_nodes.size(); }
+
 ProofNodeManager* CDProof::getManager() const { return d_manager; }
 
 bool CDProof::shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol)

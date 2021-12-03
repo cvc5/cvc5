@@ -631,6 +631,7 @@ set(regress_0_tests
   regress0/ho/bug_nodbuilding_interpreted_SYO042^1.p
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
+  regress0/ho/datatype-field-ho.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
   regress0/ho/ext-finite-unsat.smt2
@@ -779,6 +780,8 @@ set(regress_0_tests
   regress0/nl/very-simple-unsat.smt2
   regress0/opt-abd-no-use.smt2
   regress0/options/ast-and-sexpr.smt2
+  regress0/options/didyoumean.smt2
+  regress0/options/help.smt2
   regress0/options/interactive-mode.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
@@ -802,6 +805,7 @@ set(regress_0_tests
   regress0/parser/linear_arithmetic_err3.smt2
   regress0/parser/named-attr-error.smt2
   regress0/parser/named-attr.smt2
+  regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
@@ -1602,6 +1606,7 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
   regress1/bags/fuzzy3.smt2
@@ -1813,6 +1818,7 @@ set(regress_1_tests
   regress1/nl/ones.smt2
   regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
+  regress1/nl/proj-365-is-int-pi.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
@@ -2815,6 +2821,8 @@ set(regression_disabled_tests
   regress0/tptp/SYN075+1.p
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   ###
+  # takes around 30 sec
+  regress1/bags/fold2.smt2
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).
