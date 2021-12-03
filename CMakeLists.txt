@@ -475,7 +475,6 @@ endif()
 
 if(BUILD_BINDINGS_JAVA)
   add_subdirectory(src/api/java)
-  message(WARNING "Java API is currently under development.")
 endif()
 
 if(BUILD_DOCS)

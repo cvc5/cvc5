@@ -19,6 +19,7 @@ jobs:
         run: |
             ssh-agent -a $SSH_AUTH_SOCK > /dev/null
             ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
 
       - name: Clone Documentation Repository
         env:
@@ -52,6 +53,12 @@ jobs:
       - name: Unpack artifact
         run: unzip download.zip -d docs-new/
       
+      - name: Check for broken links
+        continue-on-error: true
+        run: |
+          python3 -m pip install linkchecker
+          linkchecker --check-extern docs-new/index.html
+
       - name: Setup Context
         run: |
           HASH=${{ github.event.workflow_run.head_commit.id }}
