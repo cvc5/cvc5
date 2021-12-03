@@ -2639,5 +2639,18 @@ TEST_F(TestApiBlackSolver, issue5893)
   ASSERT_NO_FATAL_FAILURE(distinct.getOp());
 }
 
+TEST_F(TestApiBlackSolver, doubleUseCons)                                                      
+{                                                                                    
+  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");        
+  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");                                                                                                                
+  Sort s3 = d_solver.declareDatatype(                                                                                                                                                        
+      std::string("_x17"),                                                                                                                                                                   
+      {ctor1, ctor2});                                                                                                                                                                       
+                                                                                                                                                                                             
+  ASSERT_THROW(d_solver.declareDatatype(                                                                                                                                                        
+      std::string("_x86"),                                                                                                                                                                   
+      {ctor1, ctor2}), CVC5ApiException);                                                                                                                                                                  
+} 
+
 }  // namespace test
 }  // namespace cvc5
