@@ -55,7 +55,8 @@ PreprocessingPassResult ApplySubsts::applyInternal(
                           << std::endl;
     d_preprocContext->spendResource(Resource::PreprocessStep);
     assertionsToPreprocess->replaceTrusted(
-        i, tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
+        i,
+        tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
     Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                           << std::endl;
   }

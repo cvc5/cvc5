@@ -28,7 +28,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-VtsTermCache::VtsTermCache(Env& env, QuantifiersInferenceManager& qim) : EnvObj(env), d_qim(qim)
+VtsTermCache::VtsTermCache(Env& env, QuantifiersInferenceManager& qim)
+    : EnvObj(env), d_qim(qim)
 {
   d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }

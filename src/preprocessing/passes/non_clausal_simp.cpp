@@ -447,7 +447,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
                                        theory::TrustSubstitutionMap* subs,
                                        theory::TrustSubstitutionMap* cp)
 {
-  Rewriter * rw = d_env.getRewriter();
+  Rewriter* rw = d_env.getRewriter();
   TrustNode tlit;
   if (subs != nullptr)
   {

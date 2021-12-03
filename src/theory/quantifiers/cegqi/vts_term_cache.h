@@ -19,9 +19,10 @@
 #define CVC5__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H
 
 #include <map>
-#include "smt/env_obj.h"
+
 #include "expr/attribute.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 namespace theory {

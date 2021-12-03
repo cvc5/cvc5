@@ -31,7 +31,7 @@
 
 namespace cvc5 {
 namespace theory {
-  
+
 class Rewriter;
 
 /**
