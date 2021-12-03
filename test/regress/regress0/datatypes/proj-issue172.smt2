@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-info :status sat)
 (declare-codatatypes ((a 0)) (((b (c Int) (d a)))))
 (declare-fun e () a)
 (declare-fun f () a)

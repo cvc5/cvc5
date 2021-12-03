@@ -1,5 +1,6 @@
 (set-logic ALL)
 (set-option :sygus-inference true)
+(set-info :status sat)
 (declare-fun a () String)
 (declare-fun b () String)
 (declare-const c String)

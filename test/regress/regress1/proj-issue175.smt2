@@ -1,6 +1,5 @@
-(set-option :print-success false)
 (set-logic QF_AUFNIA)
-(set-info :status unknown)
+(set-info :status sat)
 (declare-fun |#offset~STRUCT#?type~INT?length~UINT?off~UINT?data~$Pointer$?input~$Pointer$?comp~$Pointer$#~data| () Int)
 (declare-fun |ssl3_accept_#t~mem38_491| () Int)
 (declare-fun |#offset~STRUCT#?version~INT?type~INT?method~$Pointer$?rbio~$Pointer$?wbio~$Pointer$?bbio~$Pointer$?rwstate~INT?in_handshake~INT?handshake_func~$Pointer$?server~INT?new_session~INT?quiet_shutdown~INT?shutdown~INT?state~INT?rstate~INT?init_buf~$Pointer$?init_num~INT?init_off~INT?packet~$Pointer$?packet_length~UINT?s2~$Pointer$?s3~$Pointer$?read_ahead~INT?hit~INT?purpose~INT?trust~INT?cipher_list~$Pointer$?cipher_list_by_id~$Pointer$?enc_read_ctx~$Pointer$?read_hash~$Pointer$?expand~$Pointer$?enc_write_ctx~$Pointer$?write_hash~$Pointer$?compress~$Pointer$?cert~$Pointer$?sid_ctx_length~UINT?sid_ctx~ARRAY#_32_~UCHAR#?session~$Pointer$?verify_mode~INT?verify_depth~INT?verify_callback~$Pointer$?info_callback~$Pointer$?error~INT?error_code~INT?ctx~$Pointer$?debug~INT?verify_result~LONG?ex_data~~CRYPTO_EX_DATA?client_CA~$Pointer$?references~INT?options~ULONG?mode~ULONG?first_packet~INT?client_version~INT#~state| () Int)

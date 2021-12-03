@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status sat)
 (declare-fun b () (Set String))
 (declare-fun c () (Set (Tuple Int Int)))
 (declare-fun d () (Set (Tuple Int Int)))
