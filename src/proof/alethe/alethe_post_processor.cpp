@@ -20,6 +20,7 @@
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
+#include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
@@ -1714,7 +1715,7 @@ AletheProofPostprocess::~AletheProofPostprocess() {}
 
 void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf) {
   // Translate proof node
-  ProofNodeUpdater updater(d_pnm, d_cb, false, false, true);
+  ProofNodeUpdater updater(d_pnm, d_cb);
   updater.process(pf->getChildren()[0]);
 
   // In the Alethe proof format the final step has to be (cl). However, after
