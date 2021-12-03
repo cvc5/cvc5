@@ -2645,8 +2645,7 @@ TEST_F(TestApiBlackSolver, doubleUseCons)
   DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
   Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
 
-  ASSERT_NO_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}),
-                  CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}));
 }
 
 }  // namespace test
