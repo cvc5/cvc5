@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: unsat
 (set-logic ALL)
 (set-option :sygus-inference true)
 (set-info :status unsat)

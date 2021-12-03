@@ -1,3 +1,5 @@
+; COMMAND-LINE: --strings-exp
+; EXPECT: sat
 (set-logic ALL)
 (set-option :sygus-inference true)
 (set-info :status sat)
