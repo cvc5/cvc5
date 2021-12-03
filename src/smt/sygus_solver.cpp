@@ -193,7 +193,7 @@ Result SygusSolver::checkSynth(Assertions& as)
   }
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
-  if (usingSygusSubsolver() && d_subsolverCd.get()!=d_subsolver.get())
+  if (usingSygusSubsolver() && d_subsolverCd.get() != d_subsolver.get())
   {
     // this can occur if we backtrack to a place where we were using a different
     // subsolver than the current one. In this case, we should reconstruct
@@ -239,7 +239,7 @@ Result SygusSolver::checkSynth(Assertions& as)
     {
       // we generate a new solver engine to do the SyGuS query
       initializeSygusSubsolver(d_subsolver, as);
-      
+
       // store the pointer (context-dependent)
       d_subsolverCd = d_subsolver.get();
 

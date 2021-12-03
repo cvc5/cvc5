@@ -224,7 +224,7 @@ class SygusSolver : protected EnvObj
    * previously not stale.
    */
   context::CDO<bool> d_sygusConjectureStale;
-  /** 
+  /**
    * The (context-dependent) pointer to the subsolver we have constructed.
    * This is used to verify if the current subsolver is current, in case
    * user-context dependent pop has a occurred. If this pointer does not match
