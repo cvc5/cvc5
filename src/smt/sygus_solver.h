@@ -190,6 +190,8 @@ class SygusSolver : protected EnvObj
    */
   void initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
                                 Assertions& as);
+  /** Are we using a subsolver for the SyGuS query? */
+  bool usingSygusSubsolver() const;
   /** The SMT solver. */
   SmtSolver& d_smtSolver;
   /**
@@ -222,6 +224,13 @@ class SygusSolver : protected EnvObj
    * previously not stale.
    */
   context::CDO<bool> d_sygusConjectureStale;
+  /** 
+   * The (context-dependent) pointer to the subsolver we have constructed.
+   * This is used to verify if the current subsolver is current, in case
+   * user-context dependent pop has a occurred. If this pointer does not match
+   * d_subsolver, then d_subsolver must be reconstructed in this context.
+   */
+  context::CDO<SolverEngine*> d_subsolverCd;
   /**
    * The subsolver we are using. This is a separate copy of the SolverEngine
    * which has the asserted synthesis conjecture, i.e. a formula returned by

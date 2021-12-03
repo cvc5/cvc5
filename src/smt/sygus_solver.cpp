@@ -48,7 +48,8 @@ SygusSolver::SygusSolver(Env& env, SmtSolver& sms)
       d_sygusConstraints(userContext()),
       d_sygusAssumps(userContext()),
       d_sygusFunSymbols(userContext()),
-      d_sygusConjectureStale(userContext(), true)
+      d_sygusConjectureStale(userContext(), true),
+      d_subsolverCd(userContext(), nullptr)
 {
 }
 
@@ -191,6 +192,14 @@ Result SygusSolver::checkSynth(Assertions& as)
         "Cannot make check-synth commands when incremental solving is enabled");
   }
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
+  // if applicable, check if the subsolver is the correct one
+  if (usingSygusSubsolver() && d_subsolverCd.get()!=d_subsolver.get())
+  {
+    // this can occur if we backtrack to a place where we were using a different
+    // subsolver than the current one. In this case, we should reconstruct
+    // the subsolver.
+    d_sygusConjectureStale = true;
+  }
   if (d_sygusConjectureStale)
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -225,10 +234,14 @@ Result SygusSolver::checkSynth(Assertions& as)
 
     d_conj = body;
 
-    if (options().base.incrementalSolving)
+    // if we are using a subsolver, initialize it now
+    if (usingSygusSubsolver())
     {
       // we generate a new solver engine to do the SyGuS query
       initializeSygusSubsolver(d_subsolver, as);
+      
+      // store the pointer (context-dependent)
+      d_subsolverCd = d_subsolver.get();
 
       // also assert the internal SyGuS conjecture
       d_subsolver->assertFormula(d_conj);
@@ -236,11 +249,10 @@ Result SygusSolver::checkSynth(Assertions& as)
   }
   else
   {
-    // block current solution?
     Assert(d_subsolver != nullptr);
   }
   Result r;
-  if (options().base.incrementalSolving)
+  if (usingSygusSubsolver())
   {
     r = d_subsolver->checkSat();
   }
@@ -262,8 +274,7 @@ Result SygusSolver::checkSynth(Assertions& as)
 bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
-  // fail if the theory engine does not have synthesis solutions
-  if (options().base.incrementalSolving)
+  if (usingSygusSubsolver())
   {
     // use the call to get the synth solutions from the subsolver
     return d_subsolver->getSubsolverSynthSolutions(solMap);
@@ -412,6 +423,12 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
       se->assertFormula(a);
     }
   }
+}
+
+bool SygusSolver::usingSygusSubsolver() const
+{
+  // use SyGuS subsolver if in incremental mode
+  return options().base.incrementalSolving;
 }
 
 void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
