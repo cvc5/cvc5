@@ -15,8 +15,8 @@
 
 #include "theory/strings/word.h"
 
-#include "expr/sequence.h"
 #include "expr/attribute.h"
+#include "expr/sequence.h"
 #include "util/string.h"
 
 using namespace cvc5::kind;
@@ -30,7 +30,7 @@ struct EmptyWordAttributeId
 {
 };
 typedef expr::Attribute<EmptyWordAttributeId, Node> EmptyWordAttribute;
-  
+
 Node Word::mkEmptyWord(TypeNode tn)
 {
   EmptyWordAttribute ewa;
