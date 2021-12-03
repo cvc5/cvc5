@@ -468,9 +468,9 @@ int64_t Integer::getSigned64() const
     {
       CheckArgument(
           false, this, "Overflow detected in Integer::getSigned64().");
-      return 0;
     }
   }
+  return 0;
 }
 uint64_t Integer::getUnsigned64() const
 {
@@ -486,15 +486,20 @@ uint64_t Integer::getUnsigned64() const
     }
     try
     {
+      if (sgn() < 0)
+      {
+        CheckArgument(
+            false, this, "Overflow detected in Integer::getUnsigned64().");
+      }
       return std::stoull(toString());
     }
     catch (const std::exception& e)
     {
       CheckArgument(
           false, this, "Overflow detected in Integer::getUnsigned64().");
-      return 0;
     }
   }
+  return 0;
 }
 
 size_t Integer::hash() const { return gmpz_hash(d_value.get_mpz_t()); }
