@@ -19,6 +19,7 @@
 #define CVC5__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H
 
 #include <map>
+#include "smt/env_obj.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
 
@@ -68,10 +69,10 @@ class QuantifiersInferenceManager;
  * that combine instantiating quantified formulas with nested quantifiers
  * with terms containing virtual terms.
  */
-class VtsTermCache
+class VtsTermCache : protected EnvObj
 {
  public:
-  VtsTermCache(QuantifiersInferenceManager& qim);
+  VtsTermCache(Env& env, QuantifiersInferenceManager& qim);
   ~VtsTermCache() {}
   /**
    * Get vts delta. The argument isFree indicates if we are getting the
