@@ -1443,13 +1443,16 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // mode option
-    api::OptionInfo info = d_solver.getOptionInfo("output");
-    EXPECT_EQ("output", info.name);
-    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    api::OptionInfo info = d_solver.getOptionInfo("simplification");
+    EXPECT_EQ("simplification", info.name);
+    EXPECT_EQ(std::vector<std::string>{"simplification-mode"}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-    EXPECT_EQ("none", modeInfo.defaultValue);
-    EXPECT_EQ("none", modeInfo.currentValue);
+    EXPECT_EQ("batch", modeInfo.defaultValue);
+    EXPECT_EQ("batch", modeInfo.currentValue);
+    EXPECT_EQ(2, modeInfo.modes.size());
+    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "batch")
+                != modeInfo.modes.end());
     EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
   }
@@ -2637,6 +2640,16 @@ TEST_F(TestApiBlackSolver, issue5893)
   Term sel = d_solver.mkTerm(SELECT, arr, idx);
   Term distinct = d_solver.mkTerm(DISTINCT, sel, ten);
   ASSERT_NO_FATAL_FAILURE(distinct.getOp());
+}
+
+TEST_F(TestApiBlackSolver, doubleUseCons)
+{
+  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
+  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
+  Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
+
+  ASSERT_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}),
+               CVC5ApiException);
 }
 
 }  // namespace test
