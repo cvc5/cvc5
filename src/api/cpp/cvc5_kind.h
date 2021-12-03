@@ -2013,7 +2013,7 @@ enum Kind : int32_t
    * Operator for tuple projection indices
    *
    * Parameters:
-   *   - 1: The tuple projection indices
+   *   - 1: A vector of tuple projection indices.
    *
    * Create with:
    *   - `Solver::mkOp(Kind TUPLE_PROJECT, std::vector<uint32_t> param) const`
