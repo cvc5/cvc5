@@ -16,6 +16,7 @@ To produce models and unsat cores, we have to enable the following options.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 32-33
+     :dedent: 6
 
 Next we set the logic.
 The simplest way to set a logic for the solver is to choose ``"ALL"``.
@@ -27,6 +28,7 @@ use the logic name, e.g. ``"QF_BV"`` or ``"QF_AUFBV"``.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 42
+     :dedent: 6
 
 In the following, we will define real and integer constraints.
 For this, we first query the solver for the corresponding sorts.
@@ -34,6 +36,7 @@ For this, we first query the solver for the corresponding sorts.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 46-47
+     :dedent: 6
 
 Now, we create two constants ``x`` and ``y`` of sort ``Real``,
 and two constants ``a`` and ``b`` of sort ``Integer``.
@@ -42,6 +45,7 @@ Notice that these are *symbolic* constants, not actual values.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 52-55
+     :dedent: 6
 
 We define the following constraints regarding ``x`` and ``y``:
 
@@ -54,6 +58,7 @@ We construct the required terms and assert them as follows:
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 65-89
+     :dedent: 6
 
 Now we check if the asserted formula is satisfiable, that is, we check if
 there exist values of sort ``Real`` for ``x`` and ``y`` that satisfy all
@@ -62,6 +67,7 @@ the constraints.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 93
+     :dedent: 6
 
 The result we get from this satisfiability check is either ``sat``, ``unsat``
 or ``unknown``.
@@ -74,6 +80,7 @@ Alternatively, it can also be printed.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 97-98
+     :dedent: 6
 
 This will print:
 
@@ -88,6 +95,7 @@ the constraints.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 101-102
+     :dedent: 6
 
 It is also possible to get values for terms that do not appear in the original
 formula.
@@ -95,12 +103,14 @@ formula.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 106-107
+     :dedent: 6
 
 We can convert these values to Java types.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 109-116
+     :dedent: 6
 
 Another way to independently compute the value of ``x - y`` would be to
 perform the (rational) arithmetic manually.
@@ -110,6 +120,7 @@ evaluation.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 122-134
+     :dedent: 6
 
 This will print:
 
@@ -124,6 +135,7 @@ For this, we first reset the assertions added to the solver.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 140
+     :dedent: 6
 
 Next, we assert the same assertions as above, but with integers.
 This time, we inline the construction of terms
@@ -132,12 +144,14 @@ in the assertion command.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 145-149
+     :dedent: 6
 
 Now, we check whether the revised assertion is satisfiable.
 
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 152-156
+     :dedent: 6
 
 This time the asserted formula is unsatisfiable:
 
@@ -152,6 +166,7 @@ of the assertions that is already unsatisfiable.
 .. literalinclude:: ../../../examples/api/java/QuickStart.java
      :language: java
      :lines: 160-166
+     :dedent: 6
 
 This will print:
 
