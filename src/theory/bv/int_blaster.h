@@ -169,14 +169,16 @@ class IntBlaster : protected EnvObj
   Node createBVAndNode(Node x,
                        Node y,
                        uint64_t bvsize,
-                       std::vector<Node>& lemmas);
+                       std::vector<Node>& lemmas,
+                       std::map<Node, Node>& skolems);
 
   /** Returns a node that represents the bitwise or of x and y, by translation
    * to sum and bitwise and. */
   Node createBVOrNode(Node x,
                       Node y,
                       uint64_t bvsize,
-                      std::vector<Node>& lemmas);
+                      std::vector<Node>& lemmas,
+                      std::map<Node, Node>& skolems);
 
   /** Returns a node that represents the sum of x and y. */
   Node createBVAddNode(Node x, Node y, uint64_t bvsize);
@@ -325,7 +327,8 @@ class IntBlaster : protected EnvObj
    */
   Node translateWithChildren(Node original,
                              const std::vector<Node>& translated_children,
-                             std::vector<Node>& lemmas);
+                             std::vector<Node>& lemmas,
+                             std::map<Node, Node>& skolems);
 
   /**
    * Performs the actual translation to integers for nodes
