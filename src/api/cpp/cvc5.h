@@ -1726,6 +1726,12 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isNullHelper() const;
 
   /**
+   * Is the underlying constructor resolved (i.e. has it been used to declare
+   * a datatype already)?
+   */
+  bool isResolved() const;
+
+  /**
    * The associated solver object.
    */
   const Solver* d_solver;
