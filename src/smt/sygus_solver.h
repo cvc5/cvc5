@@ -40,7 +40,7 @@ class SmtSolver;
  * This class is responsible for responding to check-synth commands. It calls
  * check satisfiability using a separate SolverEngine "subsolver".
  *
- * This solver operates in two mode.
+ * This solver operates in two modes.
  *
  * If in incremental mode, then the "main" SolverEngine for SyGuS inputs only
  * maintains a (user-context) dependent state of SyGuS assertions, as well as
@@ -48,7 +48,9 @@ class SmtSolver;
  * that solves SyGuS conjectures may be called to checkSat multiple times,
  * however, push/pop (which impact SyGuS constraints) impacts only the main
  * solver. This means that the conjecture being handled by the subsolver is
- * reconstructed when the SyGuS conjecture is updated.
+ * reconstructed when the SyGuS conjecture is updated. The key property that
+ * this enables is that the subsolver does *not* get calls to push/pop,
+ * although it may receive multiple check-sat.
  *
  * If not in incremental mode, then the internal SyGuS conjecture is asserted
  * to the "main" SolverEngine.
