@@ -23,6 +23,7 @@
 #include "smt/env_obj.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
+#include "theory/arith/nl/equality_substitution.h"
 
 namespace cvc5 {
 
@@ -104,6 +105,8 @@ class CadSolver: protected EnvObj
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+
+  EqualitySubstitution d_eqsubs;
 }; /* class CadSolver */
 
 }  // namespace nl

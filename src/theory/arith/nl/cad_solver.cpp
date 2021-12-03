@@ -37,7 +37,8 @@ CadSolver::CadSolver(Env& env, InferenceManager& im, NlModel& model)
 #endif
       d_foundSatisfiability(false),
       d_im(im),
-      d_model(model)
+      d_model(model),
+      d_eqsubs(env)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -66,10 +67,28 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
       Trace("nl-cad") << "  " << a << std::endl;
     }
   }
+  d_eqsubs.reset();
+  std::vector<Node> processed = d_eqsubs.eliminateEqualities(assertions);
+  if (d_eqsubs.hasConflict())
+  {
+      Node lem = NodeManager::currentNM()->mkAnd(d_eqsubs.getConflict()).negate();
+      d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, nullptr);
+      return;
+  }
+  if (Trace.isOn("nl-cad"))
+  {
+    Trace("nl-cad") << "After simplifications" << std::endl;
+    Trace("nl-cad") << "* Assertions: " << std::endl;
+    for (const Node& a : processed)
+    {
+      Trace("nl-cad") << "  " << a << std::endl;
+    }
+  }
   // store or process assertions
   d_CAC.reset();
-  for (const Node& a : assertions)
+  for (const Node& a : processed)
   {
+    Assert(!a.isConst());
     d_CAC.getConstraints().addConstraint(a);
   }
   d_CAC.computeVariableOrdering();
@@ -171,6 +190,10 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
     return false;
   }
   bool foundNonVariable = false;
+  for (const auto& sub: d_eqsubs.getSubstitutions())
+  {
+    d_model.addSubstitution(sub.first, sub.second);
+  }
   for (const auto& v : d_CAC.getVariableOrdering())
   {
     Node variable = d_CAC.getConstraints().varMapper()(v);
