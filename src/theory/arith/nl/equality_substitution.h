@@ -168,9 +168,13 @@ class EqualitySubstitution: protected EnvObj
             Trace("nl-eqs") << "-> " << conflict << std::endl;
         }
     private:
+        // The SubstitutionMap
         std::unique_ptr<SubstitutionMap> d_substitutions;
+        // conflicting assertions, if a conflict was found
         std::vector<Node> d_conflict;
+        // Maps a simplified assertion to the original assertion + set of original assertions used for substitutions
         std::map<Node, std::vector<Node>> d_conflictMap;
+        // Maps substituted terms (what will end up in the tracker) to the equality from which the substitution was derived.
         std::map<Node,Node> d_trackOrigin;
 }; 
 
