@@ -146,9 +146,9 @@ std::string AletheProofPrinter::printInternal(
     auto it = assumptions.find(args[2]);
     if (it != assumptions.end())
     {
-      Trace("alethe-printer") << "... found assumption in list "
-                              << ": " << args[2] << "/" << assumptions
-                              << "     " << it->second << std::endl;
+      Trace("alethe-printer")
+          << "... found assumption in list "
+          << ": " << args[2] << "/" << assumptions << std::endl;
       return it->second;
     }
 
@@ -170,7 +170,7 @@ std::string AletheProofPrinter::printInternal(
                                              new_steps,
                                              current_prefix,
                                              current_step_id);
-    new_steps[args[2]] = child_prefix;
+    new_steps[child->getArguments()[2]] = child_prefix;
     child_prefixes.push_back(child_prefix);
   }
 
