@@ -39,73 +39,105 @@ class EqualitySubstitution: protected EnvObj
         void reset() {
             d_substitutions = std::make_unique<SubstitutionMap>();
             d_conflict.clear();
+            d_conflictMap.clear();
         }
+        void addToConflictMap(const Node& n, const Node& orig, const std::set<TNode>& tracker)
+        {
+            std::set<Node> origins;
+            auto it = d_conflictMap.find(orig);
+            if (it == d_conflictMap.end())
+            {
+                origins.insert(orig);
+            }
+            else
+            {
+                origins.insert(it->second.begin(), it->second.end());
+            }
+            for (const auto& t : tracker)
+            {
+                auto tit = d_trackOrigin.find(t);
+                Assert(tit != d_trackOrigin.end());
+                Trace("nl-eqs") << "Track origin for " << t << ": " << tit->second << std::endl;
+                origins.insert(tit->second);
+            }
+            Trace("nl-eqs") << "ConflictMap: " << n << " -> " << origins << std::endl;
+            d_conflictMap.emplace(n, std::vector<Node>(origins.begin(), origins.end()));
+
+        }
+
         std::vector<Node> eliminateEqualities(const std::vector<Node>& assertions)
         {
-            std::map<Node,Node> trackOrigin;
             std::set<TNode> tracker;
-            std::map<Node,Node> asserts;
-            for (const auto& a: assertions) {
-                asserts.emplace(a, a);
-            }
+            std::vector<Node> asserts = assertions;
+            std::vector<Node> next;
 
             size_t last_size = 0;
             while (asserts.size() != last_size)
             {
                 last_size = asserts.size();
                 // collect all eliminations from original into d_substitutions
-                for (auto& orig: asserts)
+                for (const auto& orig: asserts)
                 {
-                    if (orig.second.getKind() != Kind::EQUAL) continue;
-                    orig.second = d_substitutions->apply(orig.second, true);
-                    if (orig.second.getKind() != Kind::EQUAL) continue;
-                    Assert(orig.second.getNumChildren() == 2);
+                    if (orig.getKind() != Kind::EQUAL) continue;
+                    tracker.clear();
+                    d_substitutions->invalidateCache();
+                    Node o = d_substitutions->apply(orig, true, &tracker);
+                    if (o.getKind() != Kind::EQUAL) continue;
+                    Assert(o.getNumChildren() == 2);
                     for (size_t i = 0; i < 2; ++i)
                     {
-                        const auto& l = orig.second[i];
-                        const auto& r = orig.second[1-i];
+                        const auto& l = o[i];
+                        const auto& r = o[1-i];
                         if (l.isConst()) continue;
                         if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
                         if (d_substitutions->hasSubstitution(l)) continue;
                         if (expr::hasSubterm(r, l, true)) continue;
+                        Trace("nl-eqs") << "Found substitution " << l << " -> " << r << std::endl;
                         d_substitutions->addSubstitution(l, r);
-                        trackOrigin.emplace(l, orig.first);
+                        d_trackOrigin.emplace(l, o);
+                        if (o != orig) {
+                            addToConflictMap(o, orig, tracker);
+                        }
                         break;
                     }
                     // is o an elimination? Add to subs
                 }
 
                 // simplify with subs from original into next
-                for (auto it = asserts.begin(); it != asserts.end();)
+                next.clear();
+                for (const auto& a: asserts)
                 {
-                    it->second = d_substitutions->apply(it->second, true, &tracker);
-                    if (it->second.isConst())
+                    tracker.clear();
+                    d_substitutions->invalidateCache();
+                    Node simp = d_substitutions->apply(a, true, &tracker);
+                    Trace("nl-eqs") << "Simplifying " << a << " -> " << simp << std::endl;
+                    if (simp.isConst())
                     {
-                        if (it->second.getConst<bool>())
+                        if (simp.getConst<bool>())
                         {
-                            it = asserts.erase(it);
                             continue;
                         }
+                        Trace("nl-eqs") << "Simplified " << a << " to " << simp << std::endl;
                         for (TNode t: tracker) {
-                            auto toit = trackOrigin.find(t);
-                            Assert(toit != trackOrigin.end());
+                            Trace("nl-eqs") << "Tracker has " << t << std::endl;
+                            auto toit = d_trackOrigin.find(t);
+                            Assert(toit != d_trackOrigin.end());
                             d_conflict.emplace_back(toit->second);
                         }
-                        d_conflict.emplace_back(it->first);
-                        //std::cout << std::endl << d_conflict.size() << " vs " << std::distance(d_substitutions->begin(), d_substitutions->end()) << std::endl << std::endl;
+                        d_conflict.emplace_back(a);
+                        Trace("nl-eqs") << std::endl << d_conflict.size() << " vs " << std::distance(d_substitutions->begin(), d_substitutions->end()) << std::endl << std::endl;
                         return {};
                     }
-                    ++it;
-
+                    if (simp != a)
+                    {
+                        addToConflictMap(simp, a, tracker);
+                    }
+                    next.emplace_back(simp);
                 }
-            }
-            std::vector<Node> result;
-            for (const auto& a: asserts)
-            {
-                result.emplace_back(a.second);
+                asserts = std::move(next);
             }
             d_conflict.clear();
-            return result;
+            return asserts;
         }
         const SubstitutionMap& getSubstitutions() const {
             return *d_substitutions;
@@ -116,9 +148,30 @@ class EqualitySubstitution: protected EnvObj
         const std::vector<Node>& getConflict() const {
             return d_conflict;
         }
+        void postprocessConflict(std::vector<Node>& conflict) const {
+            Trace("nl-eqs") << "Postprocessing " << conflict << std::endl;
+            std::set<Node> result;
+            for (const auto& c: conflict)
+            {
+                auto it = d_conflictMap.find(c);
+                if (it == d_conflictMap.end())
+                {
+                    result.insert(c);
+                }
+                else {
+                    Trace("nl-eqs") << "Origin of " << c << ": " << it->second << std::endl;
+                    result.insert(it->second.begin(), it->second.end());
+                }
+            }
+            conflict.clear();
+            conflict.insert(conflict.end(), result.begin(), result.end());
+            Trace("nl-eqs") << "-> " << conflict << std::endl;
+        }
     private:
         std::unique_ptr<SubstitutionMap> d_substitutions;
         std::vector<Node> d_conflict;
+        std::map<Node, std::vector<Node>> d_conflictMap;
+        std::map<Node,Node> d_trackOrigin;
 }; 
 
 

@@ -73,6 +73,7 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
   {
       Node lem = NodeManager::currentNM()->mkAnd(d_eqsubs.getConflict()).negate();
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, nullptr);
+      Trace("nl-cad") << "Found conflict: " << lem << std::endl;
       return;
   }
   if (Trace.isOn("nl-cad"))
@@ -121,6 +122,8 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
+    d_eqsubs.postprocessConflict(mis);
+    Trace("nl-cad") << "After postprocessing: " << mis << std::endl;
     Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
     ProofGenerator* proof = d_CAC.closeProof(mis);
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, proof);
@@ -193,6 +196,7 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   for (const auto& sub: d_eqsubs.getSubstitutions())
   {
     d_model.addSubstitution(sub.first, sub.second);
+    Trace("nl-cad") << "-> " << sub.first << " = " << sub.second << std::endl;
   }
   for (const auto& v : d_CAC.getVariableOrdering())
   {
