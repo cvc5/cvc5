@@ -1859,15 +1859,25 @@ bool AletheProofPostprocessCallback::finalize(Node res,
         Node childConclusion = childPf->getArguments()[2];
         // if child conclusion is of the form (sexpr cl (or ...)), then we need
         // to add an OR step, since this child must not be a singleton
-        if (childConclusion.getNumChildren() == 2 && childConclusion[0] == d_cl
-            && childConclusion[1].getKind() == kind::OR)
+        if ((childConclusion.getNumChildren() == 2 && childConclusion[0] == d_cl
+             && childConclusion[1].getKind() == kind::OR)
+            || (getAletheRule(childPf->getArguments()[0]) == AletheRule::ASSUME
+                && childConclusion.getKind() == kind::OR))
         {
           hasUpdated = true;
           // Add or step
           std::vector<Node> subterms{d_cl};
-          subterms.insert(subterms.end(),
-                          childConclusion[1].begin(),
-                          childConclusion[1].end());
+          if (getAletheRule(childPf->getArguments()[0]) == AletheRule::ASSUME)
+          {
+            subterms.insert(
+                subterms.end(), childConclusion.begin(), childConclusion.end());
+          }
+          else
+          {
+            subterms.insert(subterms.end(),
+                            childConclusion[1].begin(),
+                            childConclusion[1].end());
+          }
           Node newConclusion = nm->mkNode(kind::SEXPR, subterms);
           addAletheStep(AletheRule::OR,
                         newConclusion,
@@ -1897,15 +1907,26 @@ bool AletheProofPostprocessCallback::finalize(Node res,
           std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
           Node childConclusion = childPf->getArguments()[2];
           // Add or step
-          if (childConclusion.getNumChildren() == 2
-              && childConclusion[0] == d_cl
-              && childConclusion[1].getKind() == kind::OR)
+          if ((childConclusion.getNumChildren() == 2
+               && childConclusion[0] == d_cl
+               && childConclusion[1].getKind() == kind::OR)
+              || (getAletheRule(childPf->getArguments()[0])
+                      == AletheRule::ASSUME
+                  && childConclusion.getKind() == kind::OR))
           {
             hasUpdated = true;
             std::vector<Node> lits{d_cl};
-            lits.insert(lits.end(),
-                        childConclusion[1].begin(),
-                        childConclusion[1].end());
+            if (getAletheRule(childPf->getArguments()[0]) == AletheRule::ASSUME)
+            {
+              lits.insert(
+                  lits.end(), childConclusion.begin(), childConclusion.end());
+            }
+            else
+            {
+              lits.insert(lits.end(),
+                          childConclusion[1].begin(),
+                          childConclusion[1].end());
+            }
             Node conclusion = nm->mkNode(kind::SEXPR, lits);
             addAletheStep(AletheRule::OR,
                           conclusion,
