@@ -486,11 +486,8 @@ uint64_t Integer::getUnsigned64() const
     }
     try
     {
-      if (sgn() < 0)
-      {
-        CheckArgument(
-            false, this, "Overflow detected in Integer::getUnsigned64().");
-      }
+      CheckArgument(
+          sgn() >= 0, this, "Overflow detected in Integer::getUnsigned64().");
       return std::stoull(toString());
     }
     catch (const std::exception& e)
