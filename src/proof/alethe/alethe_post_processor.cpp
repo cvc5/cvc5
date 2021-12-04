@@ -1548,14 +1548,24 @@ bool AletheProofPostprocessCallback::finalize(Node res,
     {
       std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
       Node childConclusion = childPf->getArguments()[2];
-      if (childConclusion.getNumChildren() == 2 && childConclusion[0] == d_cl
-          && childConclusion[1].getKind() == kind::OR)
+      if ((childConclusion.getNumChildren() == 2 && childConclusion[0] == d_cl
+           && childConclusion[1].getKind() == kind::OR)
+          || (getAletheRule(childPf->getArguments()[0]) == AletheRule::ASSUME
+              && childConclusion.getKind() == kind::OR))
       {
         // Add or step for child
         std::vector<Node> subterms{d_cl};
-        subterms.insert(subterms.end(),
-                        childConclusion[1].begin(),
-                        childConclusion[1].end());
+        if (getAletheRule(childPf->getArguments()[0]) == AletheRule::ASSUME)
+        {
+          subterms.insert(
+              subterms.end(), childConclusion.begin(), childConclusion.end());
+        }
+        else
+        {
+          subterms.insert(subterms.end(),
+                          childConclusion[1].begin(),
+                          childConclusion[1].end());
+        }
         Node newChild = nm->mkNode(kind::SEXPR, subterms);
         addAletheStep(
             AletheRule::OR, newChild, newChild, {children[0]}, {}, *cdp);
