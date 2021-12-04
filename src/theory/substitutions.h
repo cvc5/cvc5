@@ -152,6 +152,10 @@ class SubstitutionMap
    */
   void print(std::ostream& out) const;
 
+  void invalidateCache() {
+    d_cacheInvalidated = true;
+  }
+
 }; /* class SubstitutionMap */
 
 inline std::ostream& operator << (std::ostream& out, const SubstitutionMap& subst) {
