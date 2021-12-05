@@ -1726,6 +1726,12 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isNullHelper() const;
 
   /**
+   * Is the underlying constructor resolved (i.e. has it been used to declare
+   * a datatype already)?
+   */
+  bool isResolved() const;
+
+  /**
    * The associated solver object.
    */
   const Solver* d_solver;
@@ -4504,7 +4510,7 @@ class CVC5_EXPORT Solver
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
-  Term mkValHelper(T t) const;
+  Term mkValHelper(const T& t) const;
   /** Helper for making rational values. */
   Term mkRationalValHelper(const Rational& r) const;
   /** Helper for mkReal functions that take a string as argument. */

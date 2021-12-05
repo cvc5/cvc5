@@ -90,6 +90,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_FROM_SET: response = rewriteFromSet(n); break;
       case BAG_TO_SET: response = rewriteToSet(n); break;
       case BAG_MAP: response = postRewriteMap(n); break;
+      case BAG_FOLD: response = postRewriteFold(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -449,7 +450,6 @@ BagsRewriteResponse BagsRewriter::rewriteCard(const TNode& n) const
     Node plus = d_nm->mkNode(PLUS, A, B);
     return BagsRewriteResponse(plus, Rewrite::CARD_DISJOINT);
   }
-
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
@@ -560,6 +560,45 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
 
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
+{
+  Assert(n.getKind() == kind::BAG_FOLD);
+  Node f = n[0];
+  Node t = n[1];
+  Node bag = n[2];
+  if (bag.isConst())
+  {
+    Node value = NormalForm::evaluateBagFold(n);
+    return BagsRewriteResponse(value, Rewrite::FOLD_CONST);
+  }
+  Kind k = bag.getKind();
+  switch (k)
+  {
+    case BAG_MAKE:
+    {
+      if (bag[1].isConst() && bag[1].getConst<Rational>() > Rational(0))
+      {
+        // (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times, n > 0
+        Node value = NormalForm::evaluateBagFold(n);
+        return BagsRewriteResponse(value, Rewrite::FOLD_BAG);
+      }
+      break;
+    }
+    case BAG_UNION_DISJOINT:
+    {
+      // (bag.fold f t (bag.union_disjoint A B)) =
+      //       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
+      Node A = bag[0] < bag[1] ? bag[0] : bag[1];
+      Node B = bag[0] < bag[1] ? bag[1] : bag[0];
+      Node foldA = d_nm->mkNode(BAG_FOLD, f, t, A);
+      Node fold = d_nm->mkNode(BAG_FOLD, f, foldA, B);
+      return BagsRewriteResponse(fold, Rewrite::FOLD_UNION_DISJOINT);
+    }
+    default: return BagsRewriteResponse(n, Rewrite::NONE);
+  }
+  return BagsRewriteResponse(n, Rewrite::NONE);
 }
 }  // namespace bags
 }  // namespace theory

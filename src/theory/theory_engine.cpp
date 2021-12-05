@@ -384,15 +384,15 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     Debug("theory") << "TheoryEngine::check(" << effort << "): d_factsAsserted = " << (d_factsAsserted ? "true" : "false") << endl;
 
+    // Reset round for the relevance manager, which notice only sets a flag
+    // to indicate that its information must be recomputed.
+    if (d_relManager != nullptr)
+    {
+      d_relManager->beginRound();
+    }
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
-      // Reset round for the relevance manager, which notice only sets a flag
-      // to indicate that its information must be recomputed.
-      if (d_relManager != nullptr)
-      {
-        d_relManager->resetRound();
-      }
       d_tc->resetRound();
     }
 
@@ -486,10 +486,14 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
-    if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
-      // Do post-processing of model from the theories (e.g. used for THEORY_SEP
-      // to construct heap model)
-      d_tc->postProcessModel(d_incomplete.get());
+    if (Theory::fullEffort(effort))
+    {
+      if (!d_inConflict && !needCheck())
+      {
+        // Do post-processing of model from the theories (e.g. used for
+        // THEORY_SEP to construct heap model)
+        d_tc->postProcessModel(d_incomplete.get());
+      }
     }
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
@@ -1311,7 +1315,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    if (isLemmaPropertyNeedsJustify(p))
+    if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
     {
       d_relManager->notifyPreprocessedAssertion(retLemma);
       d_relManager->notifyPreprocessedAssertions(skAsserts);
@@ -1790,6 +1794,8 @@ TrustNode TheoryEngine::getExplanation(
 bool TheoryEngine::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
+  bool hasFailure = false;
+  std::stringstream serror;
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
     if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
@@ -1816,7 +1822,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
             if (val == d_false)
             {
               // Always an error if it is false
-              InternalError() << ss.str();
+              hasFailure = true;
+              serror << ss.str();
             }
             else
             {
@@ -1830,6 +1837,10 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
         }
       }
     }
+  }
+  if (hasFailure)
+  {
+    InternalError() << serror.str();
   }
 }
 

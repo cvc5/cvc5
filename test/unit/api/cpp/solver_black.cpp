@@ -593,6 +593,11 @@ TEST_F(TestApiBlackSolver, mkReal)
   ASSERT_NO_THROW(d_solver.mkReal(val2, val2));
   ASSERT_NO_THROW(d_solver.mkReal(val3, val3));
   ASSERT_NO_THROW(d_solver.mkReal(val4, val4));
+  ASSERT_NO_THROW(d_solver.mkReal("-1/-1"));
+  ASSERT_NO_THROW(d_solver.mkReal("1/-1"));
+  ASSERT_NO_THROW(d_solver.mkReal("-1/1"));
+  ASSERT_NO_THROW(d_solver.mkReal("1/1"));
+  ASSERT_THROW(d_solver.mkReal("/-5"), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkRegexpAll)
@@ -653,12 +658,27 @@ TEST_F(TestApiBlackSolver, mkTerm)
 
   // mkTerm(Kind kind) const
   ASSERT_NO_THROW(d_solver.mkTerm(PI));
+  ASSERT_NO_THROW(d_solver.mkTerm(PI, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(PI)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(PI), v6));
   ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_NONE, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_NONE)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_NONE), v6));
   ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR));
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_ALLCHAR, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_ALLCHAR)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(REGEXP_ALLCHAR), v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(SEP_EMP));
+  ASSERT_NO_THROW(d_solver.mkTerm(SEP_EMP, v6));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SEP_EMP)));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(SEP_EMP), v6));
   ASSERT_THROW(d_solver.mkTerm(CONST_BITVECTOR), CVC5ApiException);
 
   // mkTerm(Kind kind, Term child) const
   ASSERT_NO_THROW(d_solver.mkTerm(NOT, d_solver.mkTrue()));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(BAG_MAKE, d_solver.mkTrue(), d_solver.mkInteger(1)));
   ASSERT_THROW(d_solver.mkTerm(NOT, Term()), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(NOT, a), CVC5ApiException);
   ASSERT_THROW(slv.mkTerm(NOT, d_solver.mkTrue()), CVC5ApiException);
@@ -693,6 +713,44 @@ TEST_F(TestApiBlackSolver, mkTerm)
   ASSERT_THROW(d_solver.mkTerm(EQUAL, v2), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(EQUAL, v3), CVC5ApiException);
   ASSERT_THROW(d_solver.mkTerm(DISTINCT, v6), CVC5ApiException);
+
+  // Test cases that are nary via the API but have arity = 2 internally
+  Sort s_bool = d_solver.getBooleanSort();
+  Term t_bool = d_solver.mkConst(s_bool, "t_bool");
+  ASSERT_NO_THROW(d_solver.mkTerm(IMPLIES, {t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(IMPLIES), {t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(d_solver.mkTerm(XOR, {t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(XOR), {t_bool, t_bool, t_bool}));
+  Term t_int = d_solver.mkConst(d_solver.getIntegerSort(), "t_int");
+  ASSERT_NO_THROW(d_solver.mkTerm(DIVISION, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(DIVISION), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(INTS_DIVISION, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(INTS_DIVISION), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(MINUS, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(MINUS), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(EQUAL, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(EQUAL), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(LT, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(LT), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(GT, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(GT), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(LEQ, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(LEQ), {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(GEQ, {t_int, t_int, t_int}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(GEQ), {t_int, t_int, t_int}));
+  Term t_reg = d_solver.mkConst(d_solver.getRegExpSort(), "t_reg");
+  ASSERT_NO_THROW(d_solver.mkTerm(REGEXP_DIFF, {t_reg, t_reg, t_reg}));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(REGEXP_DIFF), {t_reg, t_reg, t_reg}));
+  Term t_fun = d_solver.mkConst(
+      d_solver.mkFunctionSort({s_bool, s_bool, s_bool}, s_bool));
+  ASSERT_NO_THROW(d_solver.mkTerm(HO_APPLY, {t_fun, t_bool, t_bool, t_bool}));
+  ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(HO_APPLY),
+                                  {t_fun, t_bool, t_bool, t_bool}));
 }
 
 TEST_F(TestApiBlackSolver, mkTermFromOp)
@@ -1385,13 +1443,16 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // mode option
-    api::OptionInfo info = d_solver.getOptionInfo("output");
-    EXPECT_EQ("output", info.name);
-    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    api::OptionInfo info = d_solver.getOptionInfo("simplification");
+    EXPECT_EQ("simplification", info.name);
+    EXPECT_EQ(std::vector<std::string>{"simplification-mode"}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-    EXPECT_EQ("none", modeInfo.defaultValue);
-    EXPECT_EQ("none", modeInfo.currentValue);
+    EXPECT_EQ("batch", modeInfo.defaultValue);
+    EXPECT_EQ("batch", modeInfo.currentValue);
+    EXPECT_EQ(2, modeInfo.modes.size());
+    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "batch")
+                != modeInfo.modes.end());
     EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
   }
@@ -2579,6 +2640,35 @@ TEST_F(TestApiBlackSolver, issue5893)
   Term sel = d_solver.mkTerm(SELECT, arr, idx);
   Term distinct = d_solver.mkTerm(DISTINCT, sel, ten);
   ASSERT_NO_FATAL_FAILURE(distinct.getOp());
+}
+
+TEST_F(TestApiBlackSolver, proj_issue373)
+{
+  Sort s1 = d_solver.getRealSort();
+
+  DatatypeConstructorDecl ctor13 = d_solver.mkDatatypeConstructorDecl("_x115");
+  ctor13.addSelector("_x109", s1);
+  Sort s4 = d_solver.declareDatatype("_x86", {ctor13});
+
+  Term t452 = d_solver.mkVar(s1, "_x281");
+  Term bvl = d_solver.mkTerm(d_solver.mkOp(VARIABLE_LIST), {t452});
+  Term acons =
+      d_solver.mkTerm(d_solver.mkOp(APPLY_CONSTRUCTOR),
+                      {s4.getDatatype().getConstructorTerm("_x115"), t452});
+  // type exception
+  ASSERT_THROW(
+      d_solver.mkTerm(d_solver.mkOp(APPLY_CONSTRUCTOR), {bvl, acons, t452}),
+      CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, doubleUseCons)
+{
+  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
+  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
+  Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
+
+  ASSERT_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}),
+               CVC5ApiException);
 }
 
 }  // namespace test

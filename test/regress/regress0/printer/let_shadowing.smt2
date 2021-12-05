@@ -1,4 +1,3 @@
-; REQUIRES: dumping
 ; COMMAND-LINE: -o raw-benchmark --preprocess-only
 ; SCRUBBER: grep assert
 ; EXPECT: (assert (let ((_let_1 (* x y))) (and (= _let_1 _let_1) (= _let_1 _let_0))))

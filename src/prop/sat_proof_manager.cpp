@@ -356,7 +356,8 @@ void SatProofManager::explainLit(SatLiteral lit,
   if (d_assumptions.contains(litNode))
   {
     Trace("sat-proof")
-        << "SatProofManager::explainLit: input assumption, ABORT\n";
+        << "SatProofManager::explainLit: input assumption, ABORT\n"
+        << pop;
     return;
   }
   // We don't need to explain nodes who already have proofs.
@@ -449,7 +450,8 @@ void SatProofManager::explainLit(SatLiteral lit,
       Trace("sat-proof") << "SatProofManager::explainLit:   " << children[i];
       if (i > 0)
       {
-        Trace("sat-proof") << " [" << args[i - 1] << "]";
+        Trace("sat-proof") << " [" << args[(2 * i) - 2] << ", "
+                           << args[(2 * i) - 1] << "]";
       }
       Trace("sat-proof") << "\n";
     }
