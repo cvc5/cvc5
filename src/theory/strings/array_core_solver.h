@@ -71,6 +71,9 @@ class ArrayCoreSolver : protected EnvObj
  private:
   void sendInference(const std::vector<Node>& exp, const Node& lem);
 
+  /**
+   * Perform reasoning about seq.nth operation.
+   */
   void checkNth(const std::vector<Node>& nthTerms);
 
   void checkUpdate(const std::vector<Node>& updateTerms);
