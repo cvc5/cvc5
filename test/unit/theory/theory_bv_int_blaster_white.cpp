@@ -161,139 +161,122 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
 
   // sum
   original = d_nodeManager->mkNode(BITVECTOR_ADD, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // multiplication
   original = d_nodeManager->mkNode(BITVECTOR_MULT, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // division 1
   original = d_nodeManager->mkNode(BITVECTOR_UDIV, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // division 2
   original = d_nodeManager->mkNode(BITVECTOR_UREM, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // bit-wise negation
   original = d_nodeManager->mkNode(BITVECTOR_NOT, v1);
-  result = intBlaster.translateWithChildren(original, {i1}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // arithmetic negation
   original = d_nodeManager->mkNode(BITVECTOR_NEG, v1);
-  result = intBlaster.translateWithChildren(original, {i1}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // bv2nat
   original = d_nodeManager->mkNode(BITVECTOR_TO_NAT, v1);
-  result = intBlaster.translateWithChildren(original, {i1}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // int2bv
   Node intToBVOp = d_nodeManager->mkConst<IntToBitVector>(IntToBitVector(4));
   original = d_nodeManager->mkNode(intToBVOp, i1);
-  result = intBlaster.translateWithChildren(original, {i1}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // zero extend
   Node zeroExtOp =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(4));
   original = d_nodeManager->mkNode(zeroExtOp, v1);
-  result = intBlaster.translateWithChildren(original, {i1}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // sign extend
   Node signExtOp =
       d_nodeManager->mkConst<BitVectorSignExtend>(BitVectorSignExtend(4));
   original = d_nodeManager->mkNode(signExtOp, v1);
-  result = intBlaster.translateWithChildren(original, {i1}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // extract + BV ITE
   Node extract = theory::bv::utils::mkExtract(v1, 0, 0);
   original = d_nodeManager->mkNode(BITVECTOR_ITE, extract, v2, v1);
-  Node intExtract =
-      intBlaster.translateWithChildren(extract, {i1}, lemmas, skolems);
-  result = intBlaster.translateWithChildren(
-      original, {intExtract, i1, i2}, lemmas, skolems);
+  Node intExtract = intBlaster.translateWithChildren(extract, {i1}, lemmas);
+  result =
+      intBlaster.translateWithChildren(original, {intExtract, i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
   ASSERT_TRUE(intExtract.getType().isInteger());
 
   // left shift
   original = d_nodeManager->mkNode(BITVECTOR_SHL, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // logical right shift
   original = d_nodeManager->mkNode(BITVECTOR_LSHR, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // arithmetic right shift
   original = d_nodeManager->mkNode(BITVECTOR_ASHR, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // bvand
   original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // bvor
   original = d_nodeManager->mkNode(BITVECTOR_OR, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // concat
   original = d_nodeManager->mkNode(BITVECTOR_CONCAT, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // predicates
   original = d_nodeManager->mkNode(EQUAL, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
   original = d_nodeManager->mkNode(BITVECTOR_ULT, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
   original = d_nodeManager->mkNode(BITVECTOR_ULE, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
   original = d_nodeManager->mkNode(BITVECTOR_UGT, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
   original = d_nodeManager->mkNode(BITVECTOR_UGE, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
   // BVULT with a BV result
   original = d_nodeManager->mkNode(BITVECTOR_ULTBV, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 }
 
@@ -327,18 +310,13 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
   Node original;
   Node result;
 
-  size_t orig_num_lemmas = lemmas.size();
-  size_t orig_num_skolems = skolems.size();
-
   // bvand
   original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
-  result =
-      intBlaster.translateWithChildren(original, {i1, i2}, lemmas, skolems);
+  result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   // should have kind skolem, would use bitwise comparisons to refine
   ASSERT_TRUE(result.getKind() == kind::SKOLEM);
-  // test that lemmas and skolems were added to
-  ASSERT_TRUE(lemmas.size() > orig_num_lemmas);
-  ASSERT_TRUE(skolems.size() > orig_num_skolems);
+  ASSERT_TRUE(lemmas.size());
+  ASSERT_TRUE(skolems.size());
 }
 
 }  // namespace test

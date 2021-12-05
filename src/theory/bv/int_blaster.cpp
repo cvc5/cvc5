@@ -224,8 +224,8 @@ Node IntBlaster::intBlast(Node n,
           {
             translated_children.push_back(d_intblastCache[current[i]]);
           }
-          translation = translateWithChildren(
-              current, translated_children, lemmas, skolems);
+          translation =
+              translateWithChildren(current, translated_children, lemmas);
         }
         Assert(!translation.isNull());
         // Map the current node to its translation in the cache.
@@ -242,8 +242,7 @@ Node IntBlaster::intBlast(Node n,
 Node IntBlaster::translateWithChildren(
     Node original,
     const std::vector<Node>& translated_children,
-    std::vector<Node>& lemmas,
-    std::map<Node, Node>& skolems)
+    std::vector<Node>& lemmas)
 {
   // The translation of the original node is determined by the kind of
   // the node.
@@ -349,11 +348,8 @@ Node IntBlaster::translateWithChildren(
     {
       Assert(translated_children.size() == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      returnNode = createBVOrNode(translated_children[0],
-                                  translated_children[1],
-                                  bvsize,
-                                  lemmas,
-                                  skolems);
+      returnNode = createBVOrNode(
+          translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
     case kind::BITVECTOR_XOR:
@@ -362,16 +358,10 @@ Node IntBlaster::translateWithChildren(
       uint64_t bvsize = original[0].getType().getBitVectorSize();
       // Based on Hacker's Delight section 2-2 equation n:
       // x xor y = x|y - x&y
-      Node bvor = createBVOrNode(translated_children[0],
-                                 translated_children[1],
-                                 bvsize,
-                                 lemmas,
-                                 skolems);
-      Node bvand = createBVAndNode(translated_children[0],
-                                   translated_children[1],
-                                   bvsize,
-                                   lemmas,
-                                   skolems);
+      Node bvor = createBVOrNode(
+          translated_children[0], translated_children[1], bvsize, lemmas);
+      Node bvand = createBVAndNode(
+          translated_children[0], translated_children[1], bvsize, lemmas);
       returnNode = createBVSubNode(bvor, bvand, bvsize);
       break;
     }
@@ -379,11 +369,8 @@ Node IntBlaster::translateWithChildren(
     {
       Assert(translated_children.size() == 2);
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      returnNode = createBVAndNode(translated_children[0],
-                                   translated_children[1],
-                                   bvsize,
-                                   lemmas,
-                                   skolems);
+      returnNode = createBVAndNode(
+          translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
     case kind::BITVECTOR_SHL:
@@ -997,8 +984,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 Node IntBlaster::createBVAndNode(Node x,
                                  Node y,
                                  uint64_t bvsize,
-                                 std::vector<Node>& lemmas,
-                                 std::map<Node, Node>& skolems)
+                                 std::vector<Node>& lemmas)
 {
   // We support three configurations:
   // 1. translating to IAND
@@ -1040,16 +1026,6 @@ Node IntBlaster::createBVAndNode(Node x,
         iAnd,
         "__intblast__iand",
         "skolem for an IAND node in bitwise mode " + iAnd.toString());
-    // add bvCast to skolems if it is not already there.
-    if (skolems.find(iAnd) == skolems.end())
-    {
-      skolems[iAnd] = returnNode;
-    }
-    else
-    {
-      Assert(skolems[iAnd] == returnNode);
-    }
-
     addRangeConstraint(returnNode, bvsize, lemmas);
 
     // eagerly add bitwise lemmas according to the provided granularity
@@ -1075,15 +1051,14 @@ Node IntBlaster::createBVAndNode(Node x,
 Node IntBlaster::createBVOrNode(Node x,
                                 Node y,
                                 uint64_t bvsize,
-                                std::vector<Node>& lemmas,
-                                std::map<Node, Node>& skolems)
+                                std::vector<Node>& lemmas)
 {
   // Based on Hacker's Delight section 2-2 equation h:
   // x+y = x|y + x&y
   // from which we deduce:
   // x|y = x+y - x&y
   Node plus = createBVAddNode(x, y, bvsize);
-  Node bvand = createBVAndNode(x, y, bvsize, lemmas, skolems);
+  Node bvand = createBVAndNode(x, y, bvsize, lemmas);
   return createBVSubNode(plus, bvand, bvsize);
 }
 
