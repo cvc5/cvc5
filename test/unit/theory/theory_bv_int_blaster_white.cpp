@@ -312,11 +312,12 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
 
   // bvand
   original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
+  size_t orig_num_lemmas = lemmas.size();
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   // should have kind skolem, would use bitwise comparisons to refine
   ASSERT_TRUE(result.getKind() == kind::SKOLEM);
-  ASSERT_TRUE(lemmas.size());
-  ASSERT_TRUE(skolems.size());
+  // check that a lemma was added
+  ASSERT_TRUE(lemmas.size() > orig_num_lemmas);
 }
 
 }  // namespace test
