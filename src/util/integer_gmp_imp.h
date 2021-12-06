@@ -59,8 +59,8 @@ class CVC5_EXPORT Integer
   Integer(unsigned long int z) : d_value(z) {}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-  Integer(int64_t z) : d_value(static_cast<long>(z)) {}
-  Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
+  Integer(int64_t z);
+  Integer(uint64_t z);
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */
@@ -257,17 +257,17 @@ class CVC5_EXPORT Integer
   /** Return the unsigned int representation of this Integer. */
   unsigned int getUnsignedInt() const;
 
-  /** Return true if this Integer fits into a signed long. */
-  bool fitsSignedLong() const;
-
-  /** Return true if this Integer fits into an unsigned long. */
-  bool fitsUnsignedLong() const;
-
   /** Return the signed long representation of this Integer. */
   long getLong() const;
 
   /** Return the unsigned long representation of this Integer. */
   unsigned long getUnsignedLong() const;
+
+  /** Return the int64_t representation of this Integer. */
+  int64_t getSigned64() const;
+
+  /** Return the uint64_t representation of this Integer. */
+  uint64_t getUnsigned64() const;
 
   /**
    * Computes the hash of the node from the first word of the
