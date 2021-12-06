@@ -91,6 +91,11 @@ class LazyCDProofChain : public CDProof
    * it is required to do so. This mapping is maintained in the remainder of
    * the current context (according to the context c provided to this class).
    *
+   * It is important to note that pg is asked to provide a proof for expected
+   * only when no other call for the fact expected is provided via the addStep
+   * method of this class. In particular, pg is asked to prove expected when it
+   * appears as the conclusion of an ASSUME leaf within CDProof::getProofFor.
+   *
    * Moreover the lazy steps of this class are expected to fulfill the
    * requirement that pg.getProofFor(expected) generates a proof node closed
    * with relation to

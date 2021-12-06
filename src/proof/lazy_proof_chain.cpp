@@ -63,15 +63,6 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       << "LazyCDProofChain::getProofFor of gen " << d_name << "\n";
   Trace("lazy-cdproofchain")
       << "LazyCDProofChain::getProofFor: " << fact << "\n";
-  // Check whether the underlying proof justifies the given fact. Only when the
-  // result is an assumption we proceed to expand generators.
-  std::shared_ptr<ProofNode> opf = CDProof::getProofFor(fact);
-  Assert(opf != nullptr);
-  if (opf->getRule() != PfRule::ASSUME)
-  {
-    Trace("lazy-cdproofchain") << "...internal proof already justifies it\n";
-    return opf;
-  }
   // which facts have had proofs retrieved for. This is maintained to avoid
   // cycles. It also saves the proof node of the fact
   std::unordered_map<Node, std::shared_ptr<ProofNode>> toConnect;
@@ -95,46 +86,49 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       Trace("lazy-cdproofchain")
           << "LazyCDProofChain::getProofFor: check " << cur << "\n";
       Assert(toConnect.find(cur) == toConnect.end());
-      bool rec = true;
-      ProofGenerator* pg = getGeneratorForInternal(cur, rec);
-      if (!pg)
+      // The current fact may be justified by concrete steps added to this
+      // proof, in which case we do not use the generators.
+      std::shared_ptr<ProofNode> curPfn = CDProof::getProofFor(cur);
+      Assert(curPfn != nullptr);
+      // If concrete proof, save it and proceed to try to connect its
+      // assumptions. Otherwise try generators.
+      if (curPfn->getRule() != PfRule::ASSUME)
       {
-        Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: nothing to do\n";
-        // nothing to do for this fact, it'll be a leaf in the final proof
-        // node, don't post-traverse.
-        visited[cur] = true;
-        // before being done, check whether underlying proof has a justification
-        // for the fact, which will be associated with it in the final proof
-        // produced my the method
-        std::shared_ptr<ProofNode> maybePf = CDProof::getProofFor(cur);
-        Assert(maybePf != nullptr);
-        if (maybePf->getRule() != PfRule::ASSUME)
+        toConnect[cur] = curPfn;
+      }
+      else
+      {
+        bool rec = true;
+        ProofGenerator* pg = getGeneratorForInternal(cur, rec);
+        if (!pg)
         {
           Trace("lazy-cdproofchain")
-              << "..internal proof already justifies it, save it\n";
-          toConnect[cur] = maybePf;
+              << "LazyCDProofChain::getProofFor: nothing to do\n";
+          // nothing to do for this fact, it'll be a leaf in the final proof
+          // node, don't post-traverse.
+          visited[cur] = true;
+          continue;
         }
-        continue;
-      }
-      Trace("lazy-cdproofchain")
-          << "LazyCDProofChain::getProofFor: Call generator " << pg->identify()
-          << " for chain link " << cur << "\n";
-      std::shared_ptr<ProofNode> curPfn = pg->getProofFor(cur);
-      if (curPfn == nullptr)
-      {
         Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: No proof found, skip\n";
-        visited[cur] = true;
-        continue;
-      }
-      // map node whose proof node must be expanded to the respective poof node
-      toConnect[cur] = curPfn;
-      // We may not want to recursively connect this proof so we skip.
-      if (!rec)
-      {
-        visited[cur] = true;
-        continue;
+            << "LazyCDProofChain::getProofFor: Call generator "
+            << pg->identify() << " for chain link " << cur << "\n";
+        curPfn = pg->getProofFor(cur);
+        if (curPfn == nullptr)
+        {
+          Trace("lazy-cdproofchain")
+              << "LazyCDProofChain::getProofFor: No proof found, skip\n";
+          visited[cur] = true;
+          continue;
+        }
+        // map node whose proof node must be expanded to the respective poof
+        // node
+        toConnect[cur] = curPfn;
+        // We may not want to recursively connect this proof so we skip.
+        if (!rec)
+        {
+          visited[cur] = true;
+          continue;
+        }
       }
       Trace("lazy-cdproofchain-debug")
           << "LazyCDProofChain::getProofFor: stored proof: " << *curPfn.get()
