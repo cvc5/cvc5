@@ -69,7 +69,9 @@ class ArrayCoreSolver : protected EnvObj
   const std::map<Node, Node>& getConnectedSequences();
 
  private:
-  void sendInference(const std::vector<Node>& exp, const Node& lem, const InferenceId iid);
+  void sendInference(const std::vector<Node>& exp,
+                     const Node& lem,
+                     const InferenceId iid);
 
   /**
    * Perform reasoning about seq.nth operation.
