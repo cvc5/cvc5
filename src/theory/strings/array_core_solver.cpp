@@ -49,7 +49,7 @@ ArrayCoreSolver::~ArrayCoreSolver() {}
 
 void ArrayCoreSolver::sendInference(const std::vector<Node>& exp,
                                     const Node& lem,
-									const InferenceId iid)
+                                    const InferenceId iid)
 {
   if (d_lem.find(lem) == d_lem.end())
   {
