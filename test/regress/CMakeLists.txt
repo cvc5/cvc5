@@ -511,6 +511,7 @@ set(regress_0_tests
   regress0/datatypes/pair-bool-bool.cvc.smt2
   regress0/datatypes/pair-real-bool.smt2
   regress0/datatypes/parametric-alt-list.cvc.smt2
+  regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
@@ -1845,6 +1846,7 @@ set(regress_1_tests
   regress1/nl/tan-rewrite2.smt2
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
+  regress1/proj-issue175.smt2
   regress1/proof00.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
@@ -2218,6 +2220,8 @@ set(regress_1_tests
   regress1/sets/issue5342_difference_version.smt2
   regress1/sets/issue5942-witness.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
+  regress1/sets/proj-issue164.smt2
+  regress1/sets/proj-issue178.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
@@ -2510,6 +2514,9 @@ set(regress_1_tests
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
+  regress1/sygus/proj-issue181.smt2
+  regress1/sygus/proj-issue183.smt2
+  regress1/sygus/proj-issue185.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
