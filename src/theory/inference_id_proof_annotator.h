@@ -37,7 +37,7 @@ class InferenceIdProofAnnotator : public Annotator
   InferenceIdProofAnnotator(ProofNodeManager* pnm, context::Context* c);
   /** Set annotation, that formula f should be annotated by id */
   void setAnnotation(Node f, InferenceId id);
-  /** 
+  /**
    * Annotate the proof node with the appropriate inference ID. Given proof
    * P proving F that was generated as a lemma with inference id `i`, this
    * returns (ANNOTATION (ANNOTATION P : args i)). The outer ANNOTATION is
