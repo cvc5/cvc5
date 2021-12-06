@@ -48,12 +48,12 @@ ArrayCoreSolver::ArrayCoreSolver(Env& env,
 ArrayCoreSolver::~ArrayCoreSolver() {}
 
 void ArrayCoreSolver::sendInference(const std::vector<Node>& exp,
-                                    const Node& lem)
+                                    const Node& lem,
+									const InferenceId iid)
 {
   if (d_lem.find(lem) == d_lem.end())
   {
     d_lem.insert(lem);
-    InferenceId iid = InferenceId::UNKNOWN;
     Trace("seq-update") << "- send lemma - " << lem << std::endl;
     d_im.sendInference(exp, lem, iid);
   }
@@ -77,7 +77,7 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
           EQUAL, n, nm->mkNode(SEQ_UNIT, nm->mkNode(SEQ_NTH, n[0], n[1])));
       Node body2 = nm->mkNode(EQUAL, n, Word::mkEmptyWord(n.getType()));
       Node lem = nm->mkNode(ITE, cond, body1, body2);
-      sendInference(exp, lem);
+      sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_EXTRACT);
     }
   }
 }
@@ -119,7 +119,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
     right = Rewriter::rewrite(right);
     Node lem = nm->mkNode(EQUAL, left, right);
     Trace("seq-array-debug") << "enter" << std::endl;
-    sendInference(exp, lem);
+    sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
 
     // enumerate possible index
     for (auto nth : d_index_map)
@@ -139,7 +139,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
             Node nth2 = nm->mkNode(SEQ_NTH, n[0], j);
             right = nm->mkNode(EQUAL, nth1, nth2);
             lem = nm->mkNode(IMPLIES, left, right);
-            sendInference(exp, lem);
+            sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
           }
 
           // normal cases
@@ -155,7 +155,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
           Node body2 = nm->mkNode(SEQ_NTH, n[0], j);
           right = nm->mkNode(ITE, cond, body1, body2);
           lem = nm->mkNode(EQUAL, left, right);
-          sendInference(exp, lem);
+          sendInference(exp, lem, InferenceId::STRINGS_ARRAY_NTH_UPDATE);
         }
       }
     }
