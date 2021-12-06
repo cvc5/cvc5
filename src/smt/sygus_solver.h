@@ -50,7 +50,8 @@ class SmtSolver;
  * solver. This means that the conjecture being handled by the subsolver is
  * reconstructed when the SyGuS conjecture is updated. The key property that
  * this enables is that the subsolver does *not* get calls to push/pop,
- * although it may receive multiple check-sat.
+ * although it may receive multiple check-sat if the sygus functions and
+ * constraints are not updated between check-sat calls.
  *
  * If not in incremental mode, then the internal SyGuS conjecture is asserted
  * to the "main" SolverEngine.
@@ -220,10 +221,8 @@ class SygusSolver : protected EnvObj
    * internally to this SMT engine, and there have been further calls such that
    * the asserted conjecture is no longer up-to-date.
    *
-   * This method should be called when new sygus constraints are asserted and
-   * when functions-to-synthesize are declared. This function pops a user
-   * context if we are in incremental mode and the sygus conjecture was
-   * previously not stale.
+   * This flag should be set to true when new sygus constraints are asserted and
+   * when functions-to-synthesize are declared.
    */
   context::CDO<bool> d_sygusConjectureStale;
   /**
