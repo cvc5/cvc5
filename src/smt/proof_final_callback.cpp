@@ -30,7 +30,7 @@ namespace smt {
 
 ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
     : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
-        "finalProof::ruleCount")),
+          "finalProof::ruleCount")),
       d_instRuleIds(
           smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::instRuleId")),

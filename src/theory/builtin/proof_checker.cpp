@@ -387,7 +387,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.size() == 1);
     return children[0];
   }
-  
+
   // no rule
   return Node::null();
 }
