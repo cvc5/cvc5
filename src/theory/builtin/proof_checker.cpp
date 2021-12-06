@@ -43,6 +43,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
+  pc->registerChecker(PfRule::ANNOTATION, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
   // trusted rules
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
@@ -381,7 +382,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-
+  else if (id == PfRule::ANNOTATION)
+  {
+    Assert(children.size() == 1);
+    return children[0];
+  }
+  
   // no rule
   return Node::null();
 }
