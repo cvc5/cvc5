@@ -27,7 +27,10 @@ namespace cvc5 {
 
 class ProofNodeManager;
 
-/** Base class for annotations */
+/** 
+ * Base class for annotators. An annotator is a utility that implements a
+ * simple transformation on proofs `annotate` below.
+ */
 class Annotator
 {
  public:
