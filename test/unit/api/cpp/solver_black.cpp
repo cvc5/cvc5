@@ -1443,13 +1443,16 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   }
   {
     // mode option
-    api::OptionInfo info = d_solver.getOptionInfo("output");
-    EXPECT_EQ("output", info.name);
-    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
+    api::OptionInfo info = d_solver.getOptionInfo("simplification");
+    EXPECT_EQ("simplification", info.name);
+    EXPECT_EQ(std::vector<std::string>{"simplification-mode"}, info.aliases);
     EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-    EXPECT_EQ("none", modeInfo.defaultValue);
-    EXPECT_EQ("none", modeInfo.currentValue);
+    EXPECT_EQ("batch", modeInfo.defaultValue);
+    EXPECT_EQ("batch", modeInfo.currentValue);
+    EXPECT_EQ(2, modeInfo.modes.size());
+    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "batch")
+                != modeInfo.modes.end());
     EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
   }
@@ -2632,6 +2635,35 @@ TEST_F(TestApiBlackSolver, issue5893)
   Term sel = d_solver.mkTerm(SELECT, arr, idx);
   Term distinct = d_solver.mkTerm(DISTINCT, sel, ten);
   ASSERT_NO_FATAL_FAILURE(distinct.getOp());
+}
+
+TEST_F(TestApiBlackSolver, proj_issue373)
+{
+  Sort s1 = d_solver.getRealSort();
+
+  DatatypeConstructorDecl ctor13 = d_solver.mkDatatypeConstructorDecl("_x115");
+  ctor13.addSelector("_x109", s1);
+  Sort s4 = d_solver.declareDatatype("_x86", {ctor13});
+
+  Term t452 = d_solver.mkVar(s1, "_x281");
+  Term bvl = d_solver.mkTerm(d_solver.mkOp(VARIABLE_LIST), {t452});
+  Term acons =
+      d_solver.mkTerm(d_solver.mkOp(APPLY_CONSTRUCTOR),
+                      {s4.getDatatype().getConstructorTerm("_x115"), t452});
+  // type exception
+  ASSERT_THROW(
+      d_solver.mkTerm(d_solver.mkOp(APPLY_CONSTRUCTOR), {bvl, acons, t452}),
+      CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, doubleUseCons)
+{
+  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
+  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
+  Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
+
+  ASSERT_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}),
+               CVC5ApiException);
 }
 
 }  // namespace test

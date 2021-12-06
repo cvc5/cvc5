@@ -222,6 +222,16 @@ class BagsRewriter : public TheoryRewriter
    */
   BagsRewriteResponse postRewriteMap(const TNode& n) const;
 
+  /**
+   *  rewrites for n include:
+   *  - (bag.fold f t (as bag.empty (Bag T1))) = t
+   *  - (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times, where n > 0
+   *  - (bag.fold f t (bag.union_disjoint A B)) =
+   *       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
+   *  where f: T1 -> T2 -> T2
+   */
+  BagsRewriteResponse postRewriteFold(const TNode& n) const;
+
  private:
   /** Reference to the rewriter statistics. */
   NodeManager* d_nm;
