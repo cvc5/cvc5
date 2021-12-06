@@ -73,9 +73,22 @@ class ArrayCoreSolver : protected EnvObj
 
   /**
    * Perform reasoning about seq.nth operation.
+   * It handled the reduction from seq.extract to seq.nth, following the rule below:
+   * (t = (seq.extract A i 1)) ^ (0 <= i) ^ (i < (str.len A))
+   * ----------------------------------------------------------------------
+   * t = (seq.unit (seq.nth A i))
    */
   void checkNth(const std::vector<Node>& nthTerms);
 
+  /**
+   * Perform reasoning about seq.update operation.
+   * It handled the reduction from seq.update to seq.nth, following the rule below:
+   * (seq.update x i a) in TERMS
+   * (seq.nth t j) in TERMS
+   * t == (seq.update x i a)
+   * ----------------------------------------------------------------------
+   * (seq.nth (seq.update x i a) j) = (ITE, j in range(i, i+len(a)), (seq.nth a (j - i)), (seq.nth x j))
+   */
   void checkUpdate(const std::vector<Node>& updateTerms);
 
   void computeConnected(const std::vector<Node>& updateTerms);
