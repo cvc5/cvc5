@@ -185,7 +185,7 @@ Example
 | The source code for this example can be found at `examples/api/java/QuickStart.java <https://github.com/cvc5/cvc5/blob/master/examples/api/java/QuickStart.java>`_.
 
 .. api-examples::
-    <examples>/api/cpp/quickstart.cpp
     <examples>/api/java/QuickStart.java
+    <examples>/api/cpp/quickstart.cpp
     <examples>/api/python/quickstart.py
     <examples>/api/smtlib/quickstart.smt2
