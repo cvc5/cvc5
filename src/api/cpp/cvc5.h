@@ -314,6 +314,7 @@ class CVC5_EXPORT Sort
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
   friend class DatatypeDecl;
+  friend class Datatype;
   friend class Op;
   friend class Solver;
   friend class Grammar;
