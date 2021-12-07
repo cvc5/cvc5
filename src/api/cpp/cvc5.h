@@ -2228,8 +2228,8 @@ class CVC5_EXPORT Datatype
 
   /** @return the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
-  
-  /** 
+
+  /**
    * @return the parameters of this datatype, if it is parametric. An exception
    * is throw if this datatype is not parametric.
    */
