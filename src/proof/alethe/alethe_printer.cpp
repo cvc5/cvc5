@@ -95,12 +95,6 @@ std::string AletheProofPrinter::printInternal(
     return "";
   }
 
-  std::vector<std::string> current_assumptions;
-  std::unordered_map<Node, std::string> assumptions_before_subproof =
-      assumptions;
-  std::unordered_map<std::shared_ptr<ProofNode>, std::string>
-      steps_before_subproof = steps;
-
   // If the current step is already printed return its id
   auto it = steps.find(pfn);
   if (it != steps.end())
@@ -110,6 +104,11 @@ std::string AletheProofPrinter::printInternal(
         << pfn->getResult() << " " << arule << " / " << args << std::endl;
     return it->second;
   }
+  std::vector<std::string> current_assumptions;
+  std::unordered_map<Node, std::string> assumptions_before_subproof =
+      assumptions;
+  std::unordered_map<std::shared_ptr<ProofNode>, std::string>
+      steps_before_subproof = steps;
 
   // In case the rule is an anchor it is printed before its children.
   if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
