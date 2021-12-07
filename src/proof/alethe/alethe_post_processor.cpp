@@ -1408,9 +1408,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::ARITH_TRICHOTOMY:
     {
       bool success = true;
-      Node equal;
-      Node lesser;
-      Node greater;
+      Node equal, lesser, greater;
 
       if (res.getKind() == kind::EQUAL)
       {
