@@ -1472,11 +1472,10 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (res == equal || res == greater)
       {  // C = (= x c) or C = (> x c)
         // lesser = (>= x c)
-        Node vpc2 = nm->mkNode(kind::SEXPR,
-                               d_cl,
-                               nm->mkNode(kind::EQUAL,
-                                          nm->mkNode(kind::GEQ, x, c),
-                                          nm->mkNode(kind::LEQ, c, x)));
+        Node vpc2 = nm->mkNode(
+            kind::SEXPR,
+            d_cl,
+            nm->mkNode(kind::GEQ, x, c).eqNode(nm->mkNode(kind::LEQ, c, x)));
         // (cl (= (>= x c) (<= c x)))
         Node vpc1 = nm->mkNode(kind::SEXPR,
                                {d_cl,
