@@ -158,12 +158,23 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   d_env.verbose(2) << "solving..." << std::endl;
   Trace("smt") << "SmtSolver::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
+  Trace("smt") << "SmtSolver::check(): result " << result << std::endl;
 
   rm->endCall();
   Trace("limit") << "SmtSolver::check(): cumulative millis "
                  << rm->getTimeUsage() << ", resources "
                  << rm->getResourceUsage() << endl;
-
+                 
+  // if we solved a SyGuS conjecture, mark the result as unsat
+  if (result.asSatisfiabilityResult().isUnknown())
+  {
+    theory::IncompleteId iid = d_theoryEngine->getIncompleteId();
+    Trace("smt") << "SmtSolver::check(): incomplete id is " << iid << std::endl;
+    if (iid==theory::IncompleteId::QUANTIFIERS_SYGUS_SOLVED)
+    {
+      result = Result(Result::UNSAT);
+    }
+  }
   if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
       && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
