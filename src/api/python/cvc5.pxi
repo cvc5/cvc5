@@ -153,6 +153,17 @@ cdef class Datatype:
         """
         return self.cd.getNumConstructors()
 
+    def getParameters(self):
+        """
+            :return: the parameter sorts of this datatype
+        """
+        param_sorts = []
+        for s in self.cd.getParameters():
+            sort = Sort(self.solver)
+            sort.csort = s
+            param_sorts.append(sort)
+        return param_sorts
+
     def isParametric(self):
         """:return: True if this datatype is parametric."""
         return self.cd.isParametric()

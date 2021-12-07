@@ -434,7 +434,10 @@ class CVC5_EXPORT Sort
   bool isDatatype() const;
 
   /**
-   * Is this a parametric datatype sort?
+   * Is this a parametric datatype sort? A parametric datatype sort is either
+   * one that is returned by a call to mkDatatypeSort or mkDatatypeSorts for a
+   * parametric datatype, or an instantiated datatype sort returned by
+   * s.instantiate(...) for parametric datatype sort s.
    * @return true if the sort is a parametric datatype sort
    */
   bool isParametricDatatype() const;
@@ -744,6 +747,11 @@ class CVC5_EXPORT Sort
   /* Datatype sort ------------------------------------------------------- */
 
   /**
+   * Returns the parameters for a parametric datatype sort. If this sort
+   * is a (non-instantiated) parametric datatype, this returns the parameter
+   * sorts of the underlying datatype. If this sort is an instantiated
+   * parametric datatype, then this returns the sort parameters that were used
+   * to construct it via instantiate.
    * @return the parameter sorts of a datatype sort
    */
   std::vector<Sort> getDatatypeParamSorts() const;
