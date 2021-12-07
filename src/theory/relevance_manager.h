@@ -124,6 +124,9 @@ class RelevanceManager : protected EnvObj
    * the assertions we are notified of. This should never happen.
    *
    * The value of this return is only valid if success was not updated to false.
+   *
+   * Note that this returns a context-independent set to the user, which
+   * copies the assertions.
    */
   std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
@@ -158,12 +161,12 @@ class RelevanceManager : protected EnvObj
   /**
    * Update justify last child. This method is a helper function for justify,
    * which is called at the moment that Boolean connective formula cur
-   * has a new child that has been computed in the justify cache.
+   * has a new child that has been computed in the justify cache maintained
+   * by this class.
    *
    * @param cur The Boolean connective formula
    * @param childrenJustify The values of the previous children (not including
    * the current one)
-   * @param cache The justify cache
    * @return True if we wish to visit the next child. If this is the case, then
    * the justify value of the current child is added to childrenJustify.
    */
