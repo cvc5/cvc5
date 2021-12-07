@@ -19,7 +19,7 @@
 #define CVC5__THEORY__DIFFICULTY_MANAGER__H
 
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
+#include "context/cdhashset.h"
 #include "expr/node.h"
 #include "theory/valuation.h"
 
@@ -34,11 +34,13 @@ class TheoryModel;
  */
 class DifficultyManager
 {
-  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
   DifficultyManager(context::Context* c, Valuation val);
+  /** Notify input assertions */
+  void notifyInputAssertions(const std::vector<Node>& assertions);
   /**
    * Get difficulty map, which populates dmap mapping preprocessed assertions
    * to a difficulty measure (a constant integer).
@@ -56,19 +58,23 @@ class DifficultyManager
    * the reason why that literal was relevant in the current context
    * @param lem The lemma
    */
-  void notifyLemma(const std::map<TNode, TNode>& rse, Node lem);
+  void notifyLemma(const context::CDHashMap<Node, Node>& rse, Node lem);
   /**
    * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
    *
-   * @param input The list of preprocessed assertions
    * @param m The candidate model.
    */
-  void notifyCandidateModel(const NodeList& input, TheoryModel* m);
+  void notifyCandidateModel(TheoryModel* m);
 
  private:
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
+  /**
+   * The input assertions, tracked to ensure we do not increment difficulty
+   * on lemmas.
+   */
+  NodeSet d_input;
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /**

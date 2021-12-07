@@ -558,6 +558,8 @@ set(regress_0_tests
   regress0/declare-fun-is-match.smt2
   regress0/declare-funs.smt2
   regress0/define-fun-model.smt2
+  regress0/difficulty-simple.smt2
+  regress0/difficulty-model-ex.smt2
   regress0/distinct.smtv1.smt2
   regress0/dump-unsat-core-full.smt2
   regress0/echo.smt2
@@ -1304,6 +1306,7 @@ set(regress_0_tests
   regress0/sygus/General_plus10.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/ho-occ-synth-fun.sy
+  regress0/sygus/incremental-modify-ex.sy
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy

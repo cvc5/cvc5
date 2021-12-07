@@ -374,7 +374,7 @@ class TheoryEngine : protected EnvObj
    * relevance manager failed to compute relevant assertions due to an internal
    * error.
    */
-  const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
+  std::unordered_set<TNode> getRelevantAssertions(bool& success);
 
   /**
    * Get difficulty map, which populates dmap, mapping preprocessed assertions
@@ -544,11 +544,6 @@ class TheoryEngine : protected EnvObj
   std::unique_ptr<theory::DecisionManager> d_decManager;
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
-  /**
-   * An empty set of relevant assertions, which is returned as a dummy value for
-   * getRelevantAssertions when relevance is disabled.
-   */
-  std::unordered_set<TNode> d_emptyRelevantSet;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;

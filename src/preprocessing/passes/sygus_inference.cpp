@@ -308,7 +308,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
   }
   // get the synthesis solutions
   std::map<Node, Node> synth_sols;
-  rrSygus->getSynthSolutions(synth_sols);
+  bool sinferSol = rrSygus->getSubsolverSynthSolutions(synth_sols);
+  AlwaysAssert(sinferSol) << "Failed to get solutions for sygus-inference";
 
   std::vector<Node> final_ff;
   std::vector<Node> final_ff_sol;
