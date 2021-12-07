@@ -67,6 +67,10 @@ class EqualitySubstitution: protected EnvObj
 
         std::vector<Node> eliminateEqualities(const std::vector<Node>& assertions)
         {
+            Trace("nl-eqs") << "Input:" << std::endl;
+            for (const auto& a: assertions) {
+                Trace("nl-eqs") << "\t" << a << std::endl;
+            }
             std::set<TNode> tracker;
             std::vector<Node> asserts = assertions;
             std::vector<Node> next;
@@ -92,7 +96,7 @@ class EqualitySubstitution: protected EnvObj
                         if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
                         if (d_substitutions->hasSubstitution(l)) continue;
                         if (expr::hasSubterm(r, l, true)) continue;
-                        Trace("nl-eqs") << "Found substitution " << l << " -> " << r << std::endl;
+                        Trace("nl-eqs") << "Found substitution " << l << " -> " << r << " from " << orig << std::endl;
                         d_substitutions->addSubstitution(l, r);
                         d_trackOrigin.emplace(l, o);
                         if (o != orig) {
@@ -125,6 +129,8 @@ class EqualitySubstitution: protected EnvObj
                             d_conflict.emplace_back(toit->second);
                         }
                         d_conflict.emplace_back(a);
+                        postprocessConflict(d_conflict);
+                        Trace("nl-eqs") << "Direct conflict: " << d_conflict << std::endl;
                         Trace("nl-eqs") << std::endl << d_conflict.size() << " vs " << std::distance(d_substitutions->begin(), d_substitutions->end()) << std::endl << std::endl;
                         return {};
                     }
