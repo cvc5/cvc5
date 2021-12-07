@@ -1455,8 +1455,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
 
-      Node x;
-      Node c;
+      Node x, c;
       if (equal.getKind() == kind::NOT)
       {
         x = equal[0][0];
