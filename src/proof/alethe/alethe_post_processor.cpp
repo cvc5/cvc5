@@ -1467,8 +1467,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         x = equal[0];
         c = equal[1];
       }
-      Node vp_child1 = children[0];
-      Node vp_child2 = children[1];
+      Node vp_child1 = children[0], vp_child2 = children[1];
 
       // Preprocessing
       if (res == equal || res == greater)
