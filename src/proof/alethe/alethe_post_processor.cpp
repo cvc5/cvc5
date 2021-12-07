@@ -1572,47 +1572,43 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 {},
                                 *cdp);
       }
-      else
-      {  // have (not (<= c x)) but result should be (< x c)
-        Node vp3 = nm->mkNode(
-            kind::SEXPR,
-            d_cl,
-            nm->mkNode(kind::LEQ, c, x).notNode());  // (cl (not (<= c x)))
-        Node vp4 = nm->mkNode(
-            kind::SEXPR,
-            {d_cl,
-             nm->mkNode(kind::LT, x, c)
-                 .eqNode(nm->mkNode(kind::LEQ, c, x).notNode())
-                 .notNode(),
-             nm->mkNode(kind::LT, x, c),
-             nm->mkNode(kind::LEQ, c, x)
-                 .notNode()
-                 .notNode()});  // (cl (not(= (< x c) (not (<= c x)))) (< x c)
-                                // (not (not (<= c x))))
-        Node vp5 = nm->mkNode(
-            kind::SEXPR,
-            d_cl,
-            nm->mkNode(kind::LT, x, c)
-                .eqNode(nm->mkNode(kind::LEQ, c, x)
-                            .notNode()));  // (cl (= (< x c) (not (<= c x))))
-
-        return success
-               && addAletheStep(AletheRule::RESOLUTION,
-                                vp3,
-                                vp3,
-                                {vp2, vp_child1, vp_child2},
-                                {},
-                                *cdp)
-               && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
-               && addAletheStep(
-                   AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
-               && addAletheStep(AletheRule::RESOLUTION,
-                                res,
-                                nm->mkNode(kind::SEXPR, d_cl, res),
-                                {vp3, vp4, vp5},
-                                {},
-                                *cdp);
-      }
+      // have (not (<= c x)) but result should be (< x c)
+      Node vp3 = nm->mkNode(
+          kind::SEXPR,
+          d_cl,
+          nm->mkNode(kind::LEQ, c, x).notNode());  // (cl (not (<= c x)))
+      Node vp4 =
+          nm->mkNode(kind::SEXPR,
+                     {d_cl,
+                      nm->mkNode(kind::LT, x, c)
+                          .eqNode(nm->mkNode(kind::LEQ, c, x).notNode())
+                          .notNode(),
+                      nm->mkNode(kind::LT, x, c),
+                      nm->mkNode(kind::LEQ, c, x)
+                          .notNode()
+                          .notNode()});  // (cl (not(= (< x c) (not (<= c x))))
+                                         // (< x c) (not (not (<= c x))))
+      Node vp5 = nm->mkNode(
+          kind::SEXPR,
+          d_cl,
+          nm->mkNode(kind::LT, x, c)
+              .eqNode(nm->mkNode(kind::LEQ, c, x)
+                          .notNode()));  // (cl (= (< x c) (not (<= c x))))
+      return success
+             && addAletheStep(AletheRule::RESOLUTION,
+                              vp3,
+                              vp3,
+                              {vp2, vp_child1, vp_child2},
+                              {},
+                              *cdp)
+             && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
+             && addAletheStep(AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              res,
+                              nm->mkNode(kind::SEXPR, d_cl, res),
+                              {vp3, vp4, vp5},
+                              {},
+                              *cdp);
     }
     default:
     {
