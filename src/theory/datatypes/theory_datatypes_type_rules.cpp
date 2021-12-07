@@ -224,8 +224,8 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
     {
       TypeNode childType = n[i].getType(check);
       TypeNode targ = updType[i];
-        Trace("typecheck-idt")
-            << "typecheck update: " << n << "[" << i << "]: " << targ << " " << childType << std::endl;
+      Trace("typecheck-idt") << "typecheck update: " << n << "[" << i
+                             << "]: " << targ << " " << childType << std::endl;
       if (t.isParametricDatatype())
       {
         TypeMatcher m(t);
