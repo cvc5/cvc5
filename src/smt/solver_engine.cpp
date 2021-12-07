@@ -1386,7 +1386,7 @@ void SolverEngine::checkUnsatCore()
   theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
   {
-    Node assertionAfterExpansion = tls.apply(*i, false);
+    Node assertionAfterExpansion = tls.apply(*i);
     d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core member "
                       << *i << ", expanded to " << assertionAfterExpansion
                       << std::endl;
@@ -1599,6 +1599,13 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
   SolverEngineScope smts(this);
   finishInit();
   return d_sygusSolver->getSynthSolutions(solMap);
+}
+
+bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
+{
+  SolverEngineScope smts(this);
+  finishInit();
+  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
 }
 
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)

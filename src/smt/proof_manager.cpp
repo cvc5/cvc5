@@ -231,6 +231,9 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   {
     Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
                         << ppa.first << std::endl;
+    // The difficulty manager should only report difficulty for preprocessed
+    // assertions, or we will get an open proof below. This is ensured
+    // internally by the difficuly manager.
     ppAsserts.push_back(ppa.first);
   }
   // assume a SAT refutation from all input assertions that were marked

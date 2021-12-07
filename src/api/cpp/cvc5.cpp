@@ -313,6 +313,7 @@ const static std::unordered_map<Kind, cvc5::Kind> s_kinds{
     {BAG_FROM_SET, cvc5::Kind::BAG_FROM_SET},
     {BAG_TO_SET, cvc5::Kind::BAG_TO_SET},
     {BAG_MAP, cvc5::Kind::BAG_MAP},
+    {BAG_FOLD, cvc5::Kind::BAG_FOLD},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, cvc5::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, cvc5::Kind::STRING_IN_REGEXP},
@@ -624,6 +625,7 @@ const static std::unordered_map<cvc5::Kind, Kind, cvc5::kind::KindHashFunction>
         {cvc5::Kind::BAG_FROM_SET, BAG_FROM_SET},
         {cvc5::Kind::BAG_TO_SET, BAG_TO_SET},
         {cvc5::Kind::BAG_MAP, BAG_MAP},
+        {cvc5::Kind::BAG_FOLD, BAG_FOLD},
         /* Strings --------------------------------------------------------- */
         {cvc5::Kind::STRING_CONCAT, STRING_CONCAT},
         {cvc5::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -2906,7 +2908,7 @@ std::int64_t Term::getInt64Value() const
   CVC5_API_ARG_CHECK_EXPECTED(detail::isInt64(*d_node), *d_node)
       << "Term to be a 64-bit integer value when calling getInt64Value()";
   //////// all checks before this line
-  return detail::getInteger(*d_node).getLong();
+  return detail::getInteger(*d_node).getSigned64();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2929,7 +2931,7 @@ std::uint64_t Term::getUInt64Value() const
       << "Term to be a unsigned 64-bit integer value when calling "
          "getUInt64Value()";
   //////// all checks before this line
-  return detail::getInteger(*d_node).getUnsignedLong();
+  return detail::getInteger(*d_node).getUnsigned64();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3027,8 +3029,8 @@ std::pair<std::int64_t, std::uint64_t> Term::getReal64Value() const
       << "Term to be a 64-bit rational value when calling getReal64Value()";
   //////// all checks before this line
   const Rational& r = detail::getRational(*d_node);
-  return std::make_pair(r.getNumerator().getLong(),
-                        r.getDenominator().getUnsignedLong());
+  return std::make_pair(r.getNumerator().getSigned64(),
+                        r.getDenominator().getUnsigned64());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3555,6 +3557,11 @@ std::ostream& operator<<(std::ostream& out,
 }
 
 bool DatatypeConstructorDecl::isNullHelper() const { return d_ctor == nullptr; }
+
+bool DatatypeConstructorDecl::isResolved() const
+{
+  return d_ctor == nullptr || d_ctor->isResolved();
+}
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
@@ -5081,6 +5088,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
                                const std::string& s,
                                uint32_t base) const
 {
+  CVC5_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
   CVC5_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
   CVC5_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, base)
       << "base 2, 10, or 16";
@@ -5090,7 +5098,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
 
   if (val.strictlyNegative())
   {
-    CVC5_API_CHECK(val >= -Integer("2", 10).pow(size - 1))
+    CVC5_API_CHECK(val >= -Integer(2).pow(size - 1))
         << "Overflow in bitvector construction (specified bitvector size "
         << size << " too small to hold value " << s << ")";
   }
@@ -6734,6 +6742,11 @@ Sort Solver::declareDatatype(
   CVC5_API_ARG_CHECK_EXPECTED(ctors.size() > 0, ctors)
       << "a datatype declaration with at least one constructor";
   CVC5_API_SOLVER_CHECK_DTCTORDECLS(ctors);
+  for (size_t i = 0, size = ctors.size(); i < size; i++)
+  {
+    CVC5_API_CHECK(!ctors[i].isResolved())
+        << "cannot use a constructor for multiple datatypes";
+  }
   //////// all checks before this line
   DatatypeDecl dtdecl(this, symbol);
   for (size_t i = 0, size = ctors.size(); i < size; i++)
