@@ -30,6 +30,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+SynthConjectureProcessFun::SynthConjectureProcessFun(Env& env) : EnvObj(env) {}
+
 void SynthConjectureProcessFun::init(Node f)
 {
   d_synth_fun = f;
@@ -511,7 +513,7 @@ void SynthConjectureProcessFun::getIrrelevantArgs(
   }
 }
 
-SynthConjectureProcess::SynthConjectureProcess() {}
+SynthConjectureProcess::SynthConjectureProcess(Env& env) : EnvObj(env) {}
 SynthConjectureProcess::~SynthConjectureProcess() {}
 Node SynthConjectureProcess::preSimplify(Node q)
 {
@@ -532,7 +534,8 @@ Node SynthConjectureProcess::postSimplify(Node q)
       Node f = q[0][i];
       if (f.getType().isFunction())
       {
-        d_sf_info[f].init(f);
+        std::pair<std::map<Node,SynthConjectureProcessFun>::iterator, bool> it = d_sf_info.emplace(f, d_env);
+        it.first->second.init(f);
       }
     }
 
