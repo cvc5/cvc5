@@ -265,12 +265,18 @@ Result SygusSolver::checkSynth(Assertions& as)
   std::map<Node, Node> sol_map;
   if (getSynthSolutions(sol_map))
   {
+    // if we have solutions, we return "unsat" by convention
     r = Result(Result::UNSAT);
     // Check that synthesis solutions satisfy the conjecture
     if (options().smt.checkSynthSol)
     {
       checkSynthSolution(as, sol_map);
     }
+  }
+  else
+  {
+    // otherwise, we return "unknown"
+    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
   }
   return r;
 }
