@@ -219,17 +219,17 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
   Assert(updType.getNumChildren() == 2);
   if (check)
   {
-    bool isParamType = updType[0].isParametricDatatype();
+    TypeNode t = updType[0];
     for (size_t i = 0; i < 2; i++)
     {
       TypeNode childType = n[i].getType(check);
-      TypeNode t = updType[i];
+      TypeNode targ = updType[i];
         Trace("typecheck-idt")
-            << "typecheck update: " << n << "[" << i << "]: " << t << " " << childType << std::endl;
-      if (isParamType)
+            << "typecheck update: " << n << "[" << i << "]: " << targ << " " << childType << std::endl;
+      if (t.isParametricDatatype())
       {
         TypeMatcher m(t);
-        if (!m.doMatching(t, childType))
+        if (!m.doMatching(targ, childType))
         {
           throw TypeCheckingExceptionPrivate(
               n,
@@ -238,7 +238,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
       }
       else
       {
-        if (!t.isComparableTo(childType))
+        if (!targ.isComparableTo(childType))
         {
           throw TypeCheckingExceptionPrivate(n, "bad type for update argument");
         }
@@ -246,7 +246,7 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
     }
   }
   // type is the first argument
-  return updType[0];
+  return n[0].getType();
 }
 
 TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
