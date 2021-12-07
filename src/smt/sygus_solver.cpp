@@ -261,7 +261,30 @@ Result SygusSolver::checkSynth(Assertions& as)
     query.push_back(d_conj);
     r = d_smtSolver.checkSatisfiability(as, query, false);
   }
-  // check if we have synthesis solutions
+  // The result returned by the above call is typically "unknown", which may
+  // or may not correspond to a state in which we solved the conjecture
+  // successfully. Instead we call getSynthSolutions below. If this returns
+  // true, then we were successful. In this case, we set the result to "unsat",
+  // since the synthesis conjecture was negated when assered to the subsolver.
+  //
+  // This behavior is done for 2 reasons:
+  // (1) if we do not negate the synthesis conjecture, the subsolver in some
+  // cases cannot answer "sat", e.g. in the presence of recursive function
+  // definitions. Instead the SyGuS language standard itself indicates that
+  // a correct solution for a conjecture is one where the synthesis conjecture
+  // is *T-valid* (in the presence of defined recursive functions). In other
+  // words, a SyGuS query asks to prove that the conjecture is valid when
+  // witnessed by the given solution.
+  // (2) we do not want the solver to explicitly answer "unsat" by giving an
+  // unsatisfiable set of formulas to the underlying PropEngine, or otherwise
+  // we will not be able to ask for further solutions. This is critical for
+  // incremental solving where multiple solutions are returned for the same
+  // set of constraints. Thus, the internal SyGuS solver will mark unknown
+  // with IncompleteId::QUANTIFIERS_SYGUS_SOLVED. Furthermore, this id may be
+  // overwritten by other means of incompleteness.
+  //
+  // Thus, we use getSynthSolutions as means of knowing the conjecture was
+  // solved.
   std::map<Node, Node> sol_map;
   if (getSynthSolutions(sol_map))
   {
