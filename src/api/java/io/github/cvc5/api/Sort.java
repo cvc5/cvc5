@@ -752,6 +752,11 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Datatype sort ------------------------------------------------------- */
 
   /**
+   * This will return the parameter sorts created via Solver.mkParamSort() if
+   * this is a not yet instantiated parametric datatype. For instantiated
+   * parametric datatypes, this will return the sorts used to instantiate the
+   * datatype.
+   *
    * @return the parameter sorts of a datatype sort
    */
   public Sort[] getDatatypeParamSorts()

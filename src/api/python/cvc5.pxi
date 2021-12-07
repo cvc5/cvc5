@@ -2706,7 +2706,12 @@ cdef class Sort:
 
     def getDatatypeParamSorts(self):
         """
-            :return: the parameter sorts of a datatype sort
+             This will return the parameter sorts created via
+             :py:meth:`Solver.mkParamSort()` if this is a not yet instantiated
+             parametric datatype. For instantiated parametric datatypes, this
+             will return the sorts used to instantiate the datatype.
+
+             :return: the parameter sorts of a datatype sort
         """
         param_sorts = []
         for s in self.csort.getDatatypeParamSorts():
