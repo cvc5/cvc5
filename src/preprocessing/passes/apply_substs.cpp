@@ -21,7 +21,7 @@
 #include "context/cdo.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/rewriter.h"
+#include "smt/env.h"
 #include "theory/substitutions.h"
 
 namespace cvc5 {
@@ -55,7 +55,8 @@ PreprocessingPassResult ApplySubsts::applyInternal(
                           << std::endl;
     d_preprocContext->spendResource(Resource::PreprocessStep);
     assertionsToPreprocess->replaceTrusted(
-        i, tlsm.applyTrusted((*assertionsToPreprocess)[i]));
+        i,
+        tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
     Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                           << std::endl;
   }
