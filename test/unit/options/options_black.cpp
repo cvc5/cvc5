@@ -149,7 +149,9 @@ TEST_F(TestBlackOptions, set)
                 for (const auto& m : v.modes)
                 {
                   d_solver.setOption(name, m);
+                  EXPECT_EQ(d_solver.getOption(name), m);
                 }
+                EXPECT_DEATH(d_solver.setOption(name, "help"), "");
               },
           },
           info.valueInfo);
