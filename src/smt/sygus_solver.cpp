@@ -281,7 +281,8 @@ Result SygusSolver::checkSynth(Assertions& as)
   // incremental solving where multiple solutions are returned for the same
   // set of constraints. Thus, the internal SyGuS solver will mark unknown
   // with IncompleteId::QUANTIFIERS_SYGUS_SOLVED. Furthermore, this id may be
-  // overwritten by other means of incompleteness.
+  // overwritten by other means of incompleteness, so we cannot rely on this
+  // identifier being the final reason for unknown.
   //
   // Thus, we use getSynthSolutions as means of knowing the conjecture was
   // solved.
