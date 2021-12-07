@@ -38,6 +38,9 @@ const char* toString(Rewrite r)
     case Rewrite::EQ_REFL: return "EQ_REFL";
     case Rewrite::EQ_SYM: return "EQ_SYM";
     case Rewrite::FROM_SINGLETON: return "FROM_SINGLETON";
+    case Rewrite::FOLD_BAG: return "FOLD_BAG";
+    case Rewrite::FOLD_CONST: return "FOLD_CONST";
+    case Rewrite::FOLD_UNION_DISJOINT: return "FOLD_UNION_DISJOINT";
     case Rewrite::IDENTICAL_NODES: return "IDENTICAL_NODES";
     case Rewrite::INTERSECTION_EMPTY_LEFT: return "INTERSECTION_EMPTY_LEFT";
     case Rewrite::INTERSECTION_EMPTY_RIGHT: return "INTERSECTION_EMPTY_RIGHT";
