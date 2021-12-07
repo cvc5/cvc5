@@ -115,7 +115,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   }
 
   private native Sort[] getParameters(long pointer);
-  
+
   /** @return true if this datatype is parametric */
   public boolean isParametric()
   {
