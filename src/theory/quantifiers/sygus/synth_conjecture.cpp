@@ -315,8 +315,8 @@ bool SynthConjecture::doCheck()
     {
       d_hasSolution = true;
       // the conjecture has a solution, so its negation holds
-      //Node qn = d_quant.negate();
-      //d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED);
+      // Node qn = d_quant.negate();
+      // d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED);
       d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     }
     return true;
@@ -558,7 +558,7 @@ bool SynthConjecture::doCheck()
     // We should set incomplete, since a "sat" answer should not be
     // interpreted as "infeasible", which would make a difference in the rare
     // case where e.g. we had a finite grammar and exhausted the grammar.
-    //d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
+    // d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
     return false;
   }
   // otherwise we are unsat, and we will process the solution below
