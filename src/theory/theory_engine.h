@@ -383,11 +383,6 @@ class TheoryEngine : protected EnvObj
    * For details, see theory/difficuly_manager.h.
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
-  
-  /** 
-   * Get incomplete id
-   */
-  theory::IncompleteId getIncompleteId() const;
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.

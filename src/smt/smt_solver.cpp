@@ -163,16 +163,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   Trace("limit") << "SmtSolver::check(): cumulative millis "
                  << rm->getTimeUsage() << ", resources "
                  << rm->getResourceUsage() << endl;
-                 
-  // if we solved a SyGuS conjecture, mark the result as unsat
-  if (result.asSatisfiabilityResult().isUnknown())
-  {
-    theory::IncompleteId iid = d_theoryEngine->getIncompleteId();
-    if (iid==theory::IncompleteId::QUANTIFIERS_SYGUS_SOLVED)
-    {
-      result = Result(Result::UNSAT);
-    }
-  }
+
   if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
       && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
