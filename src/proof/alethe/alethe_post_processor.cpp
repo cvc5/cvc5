@@ -1593,10 +1593,9 @@ bool AletheProofPostprocessCallback::update(Node res,
         Node vp5 = nm->mkNode(
             kind::SEXPR,
             d_cl,
-            nm->mkNode(kind::EQUAL,
-                       nm->mkNode(kind::LT, x, c),
-                       nm->mkNode(kind::LEQ, c, x)
-                           .notNode()));  // (cl (= (< x c) (not (<= c x))))
+            nm->mkNode(kind::LT, x, c)
+                .eqNode(nm->mkNode(kind::LEQ, c, x)
+                            .notNode()));  // (cl (= (< x c) (not (<= c x))))
 
         return success
                && addAletheStep(AletheRule::RESOLUTION,
