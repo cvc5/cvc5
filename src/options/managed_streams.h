@@ -31,12 +31,12 @@ namespace detail {
  * Open a file as an output stream and return it as a pointer. The caller
  * assumes the ownership of the returned pointer.
  */
-std::ostream* openOStream(const std::string& filename);
+std::unique_ptr<std::ostream> openOStream(const std::string& filename);
 /*
  * Open a file as an input stream and return it as a pointer. The caller
  * assumes the ownership of the returned pointer.
  */
-std::istream* openIStream(const std::string& filename);
+std::unique_ptr<std::istream> openIStream(const std::string& filename);
 }  // namespace detail
 
 /**
@@ -64,13 +64,13 @@ class ManagedStream
     if constexpr (std::is_same<Stream, std::ostream>::value)
     {
       d_nonowned = nullptr;
-      d_owned.reset(detail::openOStream(value));
+      d_owned = detail::openOStream(value);
       d_description = value;
     }
     else if constexpr (std::is_same<Stream, std::istream>::value)
     {
       d_nonowned = nullptr;
-      d_owned.reset(detail::openIStream(value));
+      d_owned = detail::openIStream(value);
       d_description = value;
     }
   }

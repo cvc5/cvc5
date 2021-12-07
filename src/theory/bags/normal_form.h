@@ -75,6 +75,12 @@ class NormalForm
   static Node constructBagFromElements(TypeNode t,
                                        const std::map<Node, Node>& elements);
 
+  /**
+   * @param n has the form (bag.fold f t A) where A is a constant bag
+   * @return a single value which is the result of the fold
+   */
+  static Node evaluateBagFold(TNode n);
+
  private:
   /**
    * a high order helper function that return a constant bag that is the result

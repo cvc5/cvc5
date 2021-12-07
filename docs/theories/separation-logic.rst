@@ -121,7 +121,7 @@ formula ``(not (emp x 0))`` is satisfied by heaps ``U -> Int`` (the sorts of
   (check-sat)
 
 The following input on heaps ``Int -> Node`` is satisfiable, where ``Node``
-denotes a user-defined inductive `datatypes <datatypes>`__.
+denotes a user-defined inductive :doc:`datatypes`.
 
 .. code:: smtlib
 
