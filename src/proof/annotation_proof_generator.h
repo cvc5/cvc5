@@ -29,7 +29,7 @@ class ProofNodeManager;
 
 /**
  * Base class for annotators. An annotator is a utility that implements a
- * simple transformation on proofs `annotate` below.
+ * simple transformation on proofs: `annotate` below.
  */
 class Annotator
 {
@@ -37,7 +37,7 @@ class Annotator
   Annotator() {}
   virtual ~Annotator() {}
   /**
-   * Annotate the proof node. This must return a proof node that returns the
+   * Annotate the proof node. This must return a proof node that concludes the
    * same thing as p.
    */
   virtual std::shared_ptr<ProofNode> annotate(std::shared_ptr<ProofNode> p) = 0;
