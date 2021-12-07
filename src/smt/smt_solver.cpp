@@ -164,7 +164,8 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
                  << rm->getTimeUsage() << ", resources "
                  << rm->getResourceUsage() << endl;
 
-  if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
+  if ((d_env.getOptions().smt.solveRealAsInt
+       || d_env.getOptions().smt.solveIntAsBV > 0)
       && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
