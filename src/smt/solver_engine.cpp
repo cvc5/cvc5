@@ -1601,6 +1601,13 @@ bool SolverEngine::getSynthSolutions(std::map<Node, Node>& solMap)
   return d_sygusSolver->getSynthSolutions(solMap);
 }
 
+bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
+{
+  SolverEngineScope smts(this);
+  finishInit();
+  return d_sygusSolver->getSubsolverSynthSolutions(solMap);
+}
+
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
 {
   SolverEngineScope smts(this);
