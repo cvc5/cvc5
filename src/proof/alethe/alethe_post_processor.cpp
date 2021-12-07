@@ -1530,7 +1530,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 {},
                                 *cdp);
       }
-      else if (res == greater)
+      if (res == greater)
       {  // have (not (<= x c)) but result should be (> x c)
         Node vp3 = nm->mkNode(
             kind::SEXPR,
