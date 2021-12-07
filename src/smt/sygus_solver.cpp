@@ -185,12 +185,6 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
 
 Result SygusSolver::checkSynth(Assertions& as)
 {
-  if (options().base.incrementalSolving)
-  {
-    // TODO (project #7)
-    throw ModalException(
-        "Cannot make check-synth commands when incremental solving is enabled");
-  }
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
   if (usingSygusSubsolver() && d_subsolverCd.get() != d_subsolver.get())
