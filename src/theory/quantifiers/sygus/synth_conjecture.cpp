@@ -508,9 +508,7 @@ bool SynthConjecture::doCheck()
     // we have that the current candidate passed a sample test
     // since we trust sampling in this mode, we assert there is no
     // counterexample to the conjecture here.
-    Node qn = d_quant.negate();
-    d_qim.addPendingLemma(qn,
-                          InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED);
+    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     recordSolution(candidate_values);
     return true;
   }
@@ -575,8 +573,7 @@ bool SynthConjecture::doCheck()
   }
   // Use lemma to terminate with "unsat", this is justified by the verification
   // check above, which confirms the synthesis conjecture is solved.
-  Node qn = d_quant.negate();
-  d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED);
+  d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
   return true;
 }
 
