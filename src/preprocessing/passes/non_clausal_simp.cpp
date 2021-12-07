@@ -120,6 +120,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
   context::Context* u = userContext();
+  Rewriter* rw = d_env.getRewriter();
   TrustSubstitutionMap& ttls = d_preprocContext->getTopLevelSubstitutions();
   CVC5_UNUSED SubstitutionMap& top_level_substs = ttls.get();
   // constant propagations
@@ -228,7 +229,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             c = learnedLiteral[1];
           }
           Assert(!t.isConst());
-          Assert(cps.apply(t, true) == t);
+          Assert(rewrite(cps.apply(t)) == t);
           Assert(top_level_substs.apply(t) == t);
           Assert(nss.apply(t) == t);
           // also add to learned literal
@@ -293,7 +294,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];
-    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion);
+    TrustNode assertionNew = newSubstitutions->applyTrusted(assertion, rw);
     Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
     if (!assertionNew.isNull())
     {
@@ -305,7 +306,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     for (;;)
     {
-      assertionNew = constantPropagations->applyTrusted(assertion);
+      assertionNew = constantPropagations->applyTrusted(assertion, rw);
       if (assertionNew.isNull())
       {
         break;
@@ -340,7 +341,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       if (d_preprocContext->getSymsInAssertions().contains(lhs))
       {
         // if it has, the substitution becomes an assertion
-        TrustNode trhs = newSubstitutions->applyTrusted(lhs);
+        TrustNode trhs = newSubstitutions->applyTrusted(lhs, rw);
         Assert(!trhs.isNull());
         Trace("non-clausal-simplify")
             << "substitute: will notify SAT layer of substitution: "
@@ -446,10 +447,11 @@ Node NonClausalSimp::processLearnedLit(Node lit,
                                        theory::TrustSubstitutionMap* subs,
                                        theory::TrustSubstitutionMap* cp)
 {
+  Rewriter* rw = d_env.getRewriter();
   TrustNode tlit;
   if (subs != nullptr)
   {
-    tlit = subs->applyTrusted(lit);
+    tlit = subs->applyTrusted(lit, rw);
     if (!tlit.isNull())
     {
       lit = processRewrittenLearnedLit(tlit);
@@ -462,7 +464,7 @@ Node NonClausalSimp::processLearnedLit(Node lit,
   {
     for (;;)
     {
-      tlit = cp->applyTrusted(lit);
+      tlit = cp->applyTrusted(lit, rw);
       if (tlit.isNull())
       {
         break;

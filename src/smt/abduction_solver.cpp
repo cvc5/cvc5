@@ -50,6 +50,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
   Node conjn = d_env.getTopLevelSubstitutions().apply(goal);
+  conjn = rewrite(conjn);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;
