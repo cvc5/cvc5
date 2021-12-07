@@ -1498,14 +1498,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                              *cdp);
         // greater = (<= x c) or greater = (not (= x c)) -> no preprocessing
         // necessary
-        if (res == equal)
-        {
-          vp_child2 = greater;
-        }
-        else
-        {
-          vp_child2 = equal;
-        }
+        vp_child2 = res == equal ? greater : equal;
       }
 
       // Process
