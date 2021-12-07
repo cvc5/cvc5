@@ -306,6 +306,10 @@ bool SynthConjecture::needsCheck()
 
 bool SynthConjecture::doCheck()
 {
+  if (d_hasSolution)
+  {
+    return true;
+  }
   if (isSingleInvocation())
   {
     // We now try to solve with the single invocation solver, which may or may
@@ -322,7 +326,6 @@ bool SynthConjecture::doCheck()
     return true;
   }
   Assert(d_master != nullptr);
-  Assert(!d_hasSolution);
 
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
