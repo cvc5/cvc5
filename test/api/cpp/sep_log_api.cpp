@@ -247,8 +247,7 @@ int validate_getters(void)
        * than the random constant -- if we get a value that is LTE, then
        * something has gone wrong!
        */
-      if (std::stoll(value.toString())
-          <= std::stoll(random_constant.toString()))
+      if (value.getInt64Value() <= random_constant.getInt64Value())
       {
         return -1;
       }
