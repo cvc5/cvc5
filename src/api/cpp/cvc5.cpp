@@ -1207,7 +1207,7 @@ bool Sort::isParametricDatatype() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   if (!d_type->isDatatype()) return false;
-  return d_type->isParametricDatatype();
+  return d_type->isParametricDatatype() && !d_type->isInstantiatedDatatype();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3804,7 +3804,7 @@ Term DatatypeConstructor::getConstructorTerm() const
   CVC5_API_TRY_CATCH_END;
 }
 
-Term DatatypeConstructor::getSpecializedConstructorTerm(
+Term DatatypeConstructor::getInstantiatedConstructorTerm(
     const Sort& retSort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -4111,6 +4111,18 @@ size_t Datatype::getNumConstructors() const
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return d_dtype->getNumConstructors();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Sort> Datatype::getParameters() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(isParametric()) << "Expected parametric datatype";
+  //////// all checks before this line
+  std::vector<cvc5::TypeNode> params = d_dtype->getParameters();
+  return Sort::typeNodeVectorToSorts(d_solver, params);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

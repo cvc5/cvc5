@@ -1364,7 +1364,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           {
             // lookup constructor by name
             api::DatatypeConstructor dc = dt.getConstructor(f.toString());
-            api::Term scons = dc.getSpecializedConstructorTerm(expr.getSort());
+            api::Term scons = dc.getInstantiatedConstructorTerm(expr.getSort());
             // take the type of the specialized constructor instead
             type = scons.getSort();
           }

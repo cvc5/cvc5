@@ -1978,7 +1978,7 @@ class CVC5_EXPORT DatatypeConstructor
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  Term getSpecializedConstructorTerm(const Sort& retSort) const;
+  Term getInstantiatedConstructorTerm(const Sort& retSort) const;
 
   /**
    * Get the tester operator of this datatype constructor.
@@ -2228,6 +2228,12 @@ class CVC5_EXPORT Datatype
 
   /** @return the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
+  
+  /** 
+   * @return the parameters of this datatype, if it is parametric. An exception
+   * is throw if this datatype is not parametric.
+   */
+  std::vector<Sort> getParameters() const;
 
   /** @return true if this datatype is parametric */
   bool isParametric() const;
