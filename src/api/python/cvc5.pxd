@@ -51,6 +51,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5::api":
         DatatypeSelector getSelector(const string& name) except +
         string getName() except +
         size_t getNumConstructors() except +
+        vector[Sort] getParameters() except +
         bint isParametric() except +
         bint isCodatatype() except +
         bint isTuple() except +
