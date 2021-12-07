@@ -112,6 +112,10 @@ enum class SkolemFunId
    * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
+  BAGS_FOLD_CARD,
+  BAGS_FOLD_COMBINE,
+  BAGS_FOLD_ELEMENTS,
+  BAGS_FOLD_UNION_DISJOINT,
   /** An interpreted function for bag.choose operator:
    * (bag.choose A) is expanded as
    * (witness ((x elementType))

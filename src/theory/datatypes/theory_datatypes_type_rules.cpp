@@ -36,6 +36,10 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
 {
   Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
   TypeNode consType = n.getOperator().getType(check);
+  if (!consType.isConstructor())
+  {
+    throw TypeCheckingExceptionPrivate(n, "expected constructor to apply");
+  }
   TypeNode t = consType.getConstructorRangeType();
   Assert(t.isDatatype());
   TNode::iterator child_it = n.begin();
