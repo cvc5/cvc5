@@ -1581,9 +1581,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         Node vp4 = nm->mkNode(
             kind::SEXPR,
             {d_cl,
-             nm->mkNode(kind::EQUAL,
-                        nm->mkNode(kind::LT, x, c),
-                        nm->mkNode(kind::LEQ, c, x).notNode())
+             nm->mkNode(kind::LT, x, c)
+                 .eqNode(nm->mkNode(kind::LEQ, c, x).notNode())
                  .notNode(),
              nm->mkNode(kind::LT, x, c),
              nm->mkNode(kind::LEQ, c, x)
