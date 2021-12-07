@@ -125,8 +125,8 @@ Node Preprocessor::expandDefinitions(const Node& node,
     // Ensure node is type-checked at this point.
     n.getType(true);
   }
-  // we apply substitutions here, before expanding definitions
-  n = d_env.getTopLevelSubstitutions().apply(n, false);
+  // apply substitutions here (without rewriting), before expanding definitions
+  n = d_env.getTopLevelSubstitutions().apply(n);
   // now call expand definitions
   n = d_exDefs.expandDefinitions(n, cache);
   return n;

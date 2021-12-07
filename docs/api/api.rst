@@ -10,5 +10,5 @@ Additionally, a more pythonic Python API is availble at https://github.com/cvc5/
    :maxdepth: 1
 
    C++ API <cpp/cpp>
-   Java API <java/index>
+   Java API <java/java>
    Python API <python/python>
