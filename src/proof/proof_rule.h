@@ -190,6 +190,8 @@ enum class PfRule : uint32_t
   // Arguments: (a1 ... an)
   // ----------------------------------------
   // Conclusion: F
+  // The terms a1 ... an can be anything used to annotate the proof node, one
+  // example is where a1 is a theory::InferenceId.
   ANNOTATION,
   //================================================= Processing rules
   // ======== Remove Term Formulas Axiom
