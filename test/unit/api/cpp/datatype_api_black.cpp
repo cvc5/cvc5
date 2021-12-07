@@ -275,7 +275,7 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
 
   ASSERT_TRUE(pairType.getDatatype().isParametric());
   std::vector<Sort> dparams = pairType.getDatatype().getParameters();
-  ASSERT_TRUE(dparams[0]==t1 && dparams[1]==t2);
+  ASSERT_TRUE(dparams[0] == t1 && dparams[1] == t2);
 
   v.clear();
   v.push_back(d_solver.getIntegerSort());

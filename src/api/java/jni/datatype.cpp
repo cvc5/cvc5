@@ -117,8 +117,8 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_api_Datatype_getNumConstructors(
  * Method:    getParameters
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL
-Java_io_github_cvc5_api_Datatype_getParameters(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_api_Datatype_getParameters(
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Datatype* current = (Datatype*)pointer;

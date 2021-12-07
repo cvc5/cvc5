@@ -249,7 +249,7 @@ class DatatypeTest
 
     assertTrue(pairType.getDatatype().isParametric());
     List<Sort> dparams = pairType.getDatatype().getParameters();
-    assertTrue(dparams[0]==t1 && dparams[1]==t2);
+    assertTrue(dparams[0] == t1 && dparams[1] == t2);
 
     v.clear();
     v.add(d_solver.getIntegerSort());
