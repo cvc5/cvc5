@@ -1207,7 +1207,7 @@ bool Sort::isParametricDatatype() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   if (!d_type->isDatatype()) return false;
-  return d_type->isParametricDatatype() && !d_type->isInstantiatedDatatype();
+  return d_type->isParametricDatatype();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
