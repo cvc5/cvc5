@@ -261,11 +261,16 @@ Result SygusSolver::checkSynth(Assertions& as)
     query.push_back(d_conj);
     r = d_smtSolver.checkSatisfiability(as, query, false);
   }
-  // Check that synthesis solutions satisfy the conjecture
-  if (options().smt.checkSynthSol
-      && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  // check if we have synthesis solutions
+  std::map<Node, Node> sol_map;
+  if (getSynthSolutions(sol_map))
   {
-    checkSynthSolution(as);
+    r =  Result(Result::UNSAT);
+    // Check that synthesis solutions satisfy the conjecture
+    if (options().smt.checkSynthSol)
+    {
+      checkSynthSolution(as, sol_map);
+    }
   }
   return r;
 }
@@ -301,20 +306,12 @@ bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
   return true;
 }
 
-void SygusSolver::checkSynthSolution(Assertions& as)
+void SygusSolver::checkSynthSolution(Assertions& as, const std::map<Node, Node>& sol_map)
 {
   if (isVerboseOn(1))
   {
     verbose(1) << "SyGuS::checkSynthSolution: checking synthesis solution"
                << std::endl;
-  }
-  std::map<Node, Node> sol_map;
-  // Get solutions and build auxiliary vectors for substituting
-  if (!getSynthSolutions(sol_map))
-  {
-    InternalError()
-        << "SygusSolver::checkSynthSolution(): No solution to check!";
-    return;
   }
   if (sol_map.empty())
   {

@@ -165,16 +165,6 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
                  << rm->getTimeUsage() << ", resources "
                  << rm->getResourceUsage() << endl;
 
-  // if we solved a SyGuS conjecture, mark the result as unsat
-  if (result.asSatisfiabilityResult().isUnknown())
-  {
-    theory::IncompleteId iid = d_theoryEngine->getIncompleteId();
-    Trace("smt") << "SmtSolver::check(): incomplete id is " << iid << std::endl;
-    if (iid == theory::IncompleteId::QUANTIFIERS_SYGUS_SOLVED)
-    {
-      result = Result(Result::UNSAT);
-    }
-  }
   if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
       && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
