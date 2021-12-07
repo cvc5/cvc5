@@ -81,18 +81,13 @@ std::string AletheProofPrinter::printInternal(
         << " / " << args << " " << std::endl;
 
     auto it = assumptions.find(args[2]);
-    if (it != assumptions.end())
-    {
-      Trace("alethe-printer")
-          << "... found assumption in list " << it->second << ": " << args[2]
-          << "/" << assumptions << std::endl;
-      return it->second;
-    }
-
-    Trace("alethe-printer") << "... printing failed! Encountered assumption "
-                               "that has not been printed! "
-                            << args[2] << "/" << assumptions << std::endl;
-    return "";
+    Assert(it != assumptions.end())
+        << "Assumption has not been printed yet! " << args[2] << "/"
+        << assumptions << std::endl;
+    Trace("alethe-printer")
+        << "... found assumption in list " << it->second << ": " << args[2]
+        << "/" << assumptions << std::endl;
+    return it->second;
   }
 
   // If the current step is already printed return its id
