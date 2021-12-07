@@ -265,7 +265,7 @@ Result SygusSolver::checkSynth(Assertions& as)
   std::map<Node, Node> sol_map;
   if (getSynthSolutions(sol_map))
   {
-    r =  Result(Result::UNSAT);
+    r = Result(Result::UNSAT);
     // Check that synthesis solutions satisfy the conjecture
     if (options().smt.checkSynthSol)
     {
@@ -306,7 +306,8 @@ bool SygusSolver::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
   return true;
 }
 
-void SygusSolver::checkSynthSolution(Assertions& as, const std::map<Node, Node>& sol_map)
+void SygusSolver::checkSynthSolution(Assertions& as,
+                                     const std::map<Node, Node>& sol_map)
 {
   if (isVerboseOn(1))
   {
