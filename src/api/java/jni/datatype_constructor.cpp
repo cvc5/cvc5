@@ -69,7 +69,7 @@ Java_io_github_cvc5_api_DatatypeConstructor_getConstructorTerm(JNIEnv* env,
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_api_DatatypeConstructor_getSpecializedConstructorTerm(
+Java_io_github_cvc5_api_DatatypeConstructor_getInstantiatedConstructorTerm(
     JNIEnv* env, jobject, jlong pointer, jlong retSortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
