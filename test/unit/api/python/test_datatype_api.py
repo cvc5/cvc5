@@ -272,6 +272,8 @@ def test_parametric_datatype(solver):
     pairType = solver.mkDatatypeSort(pairSpec)
 
     assert pairType.getDatatype().isParametric()
+    dparams = pairType.getDatatype().getParameters()
+    assert dparams[0]==t1 and dparams[1]==t2
 
     v.clear()
     v.append(solver.getIntegerSort())
