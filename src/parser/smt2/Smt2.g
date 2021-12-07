@@ -372,6 +372,9 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     {
+      if (PARSER_STATE->sygus()) {
+        PARSER_STATE->parseError("Sygus does not support check-sat command.");
+      }
       cmd->reset(new CheckSatCommand());
     }
   | /* check-sat-assuming */
