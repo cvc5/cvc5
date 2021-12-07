@@ -105,6 +105,7 @@ void CadSolver::checkFull()
 {
 #ifdef CVC5_POLY_IMP
   if (d_CAC.getConstraints().getConstraints().empty()) {
+    d_foundSatisfiability = true;
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
   }
