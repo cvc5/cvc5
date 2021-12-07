@@ -1410,7 +1410,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       bool success = true;
       Node equal, lesser, greater;
 
-      if (res.getKind() == kind::EQUAL)
+      Kind k = res.getKind();
+      if (k == kind::EQUAL)
       {
         equal = res;
         if (children[0].getKind() == kind::LEQ)
