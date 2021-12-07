@@ -46,7 +46,10 @@ public:
   /** setValue function */
   void setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex );
   /** getFunctionValue */
-  Node getFunctionValue( const std::vector< Node >& args, int index, Node argDefaultValue, bool simplify = true );
+  Node getFunctionValue(const std::vector<Node>& args,
+                        int index,
+                        Node argDefaultValue,
+                        bool simplify = true);
   /** update function */
   void update( TheoryModel* m );
   /** simplify function */
@@ -93,12 +96,12 @@ public:
     d_tree.setValue( m, Node::null(), v, d_index_order, false, 0 );
   }
   /** getFunctionValue
-    * Returns a representation of this function. The body of the function is
-    * rewritten if r is non-null.
-    */
-  Node getFunctionValue( const std::vector< Node >& args, Rewriter * r );
+   * Returns a representation of this function. The body of the function is
+   * rewritten if r is non-null.
+   */
+  Node getFunctionValue(const std::vector<Node>& args, Rewriter* r);
   /** getFunctionValue for args with set prefix */
-  Node getFunctionValue( const std::string& argPrefix, Rewriter * r );
+  Node getFunctionValue(const std::string& argPrefix, Rewriter* r);
   /** update
     *   This will update all values in the tree to be representatives in m.
     */

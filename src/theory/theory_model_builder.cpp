@@ -1278,7 +1278,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
   }
   std::stringstream ss;
   ss << "_arg_";
-  Rewriter * r = condenseFuncValues ? d_env.getRewriter() : nullptr;
+  Rewriter* r = condenseFuncValues ? d_env.getRewriter() : nullptr;
   Node val = ufmt.getFunctionValue(ss.str().c_str(), r);
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );

@@ -534,7 +534,8 @@ Node SynthConjectureProcess::postSimplify(Node q)
       Node f = q[0][i];
       if (f.getType().isFunction())
       {
-        std::pair<std::map<Node,SynthConjectureProcessFun>::iterator, bool> it = d_sf_info.emplace(f, d_env);
+        std::pair<std::map<Node, SynthConjectureProcessFun>::iterator, bool>
+            it = d_sf_info.emplace(f, d_env);
         it.first->second.init(f);
       }
     }
