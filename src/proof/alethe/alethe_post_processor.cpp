@@ -1501,9 +1501,8 @@ bool AletheProofPostprocessCallback::finalize(Node res,
           if ((childConclusion.getNumChildren() == 2
                && childConclusion[0] == d_cl
                && childConclusion[1].getKind() == kind::OR)
-              || childRule
-                      == AletheRule::ASSUME
-                  && childConclusion.getKind() == kind::OR)
+              || childRule == AletheRule::ASSUME
+                     && childConclusion.getKind() == kind::OR)
           {
             hasUpdated = true;
             std::vector<Node> lits{d_cl};
