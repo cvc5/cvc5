@@ -157,13 +157,6 @@ void SynthEngine::assignConjecture(Node q)
   d_conjs.back()->assign(q);
 }
 
-bool SynthEngine::checkCompleteFor(Node q)
-{
-  // we are complete for synthesis conjectures
-  QuantAttributes& qa = d_qreg.getQuantAttributes();
-  return qa.isSygus(q);
-}
-
 void SynthEngine::checkOwnership(Node q)
 {
   // take ownership of quantified formulas with sygus attribute, and function

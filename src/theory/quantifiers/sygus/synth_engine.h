@@ -52,8 +52,6 @@ class SynthEngine : public QuantifiersModule
   QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
-  /** check complete for quantified formula */
-  bool checkCompleteFor(Node q) override;
   /** check ownership */
   void checkOwnership(Node q) override;
   /* Called for new quantifiers */
