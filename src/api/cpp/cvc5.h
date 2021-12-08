@@ -743,12 +743,14 @@ class CVC5_EXPORT Sort
   /* Datatype sort ------------------------------------------------------- */
 
   /**
-   * @return the parameter sorts of a datatype sort.
    *
-   * @note This will return the parameter sorts created via
-   *       ``Solver::mkParamSort()`` if this is a not yet instantiated
-   *       parametric datatype. For instantiated parametric datatypes, this
-   *       will return the sorts used to instantiate the datatype.
+   * Return the parameters of a parametric datatype sort. If this sort is a
+   * non-instantiated parametric datatype, this returns the parameter sorts of
+   * the underlying datatype. If this sort is an instantiated parametric
+   * datatype, then this returns the sort parameters that were used to
+   * construct the sort via ``Sort::instantiate``.
+   *
+   * @return the parameter sorts of a parametric datatype sort.
    */
   std::vector<Sort> getDatatypeParamSorts() const;
 
