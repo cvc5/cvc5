@@ -161,14 +161,14 @@ std::size_t InferenceManagerBuffered::numPendingFacts() const
   return d_pendingFact.size();
 }
 
-void InferenceManagerBuffered::lemmaTheoryInference(TheoryInference* lem)
+bool InferenceManagerBuffered::lemmaTheoryInference(TheoryInference* lem)
 {
   // process this lemma
   LemmaProperty p = LemmaProperty::NONE;
   TrustNode tlem = lem->processLemma(p);
   Assert(!tlem.isNull());
   // send the lemma
-  trustedLemma(tlem, lem->getId(), p);
+  return trustedLemma(tlem, lem->getId(), p);
 }
 
 void InferenceManagerBuffered::assertInternalFactTheoryInference(

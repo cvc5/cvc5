@@ -151,7 +151,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * inference manager. This calls TheoryInferenceManager::trustedLemma based
    * on the provided theory inference.
    */
-  void lemmaTheoryInference(TheoryInference* lem);
+  bool lemmaTheoryInference(TheoryInference* lem);
   /**
    * Add the given theory inference as an internal fact. This calls
    * TheoryInferenceManager::assertInternalFact based on the provided theory
