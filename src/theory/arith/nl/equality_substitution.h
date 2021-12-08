@@ -40,6 +40,7 @@ class EqualitySubstitution: protected EnvObj
             d_substitutions = std::make_unique<SubstitutionMap>();
             d_conflict.clear();
             d_conflictMap.clear();
+            d_trackOrigin.clear();
         }
         void addToConflictMap(const Node& n, const Node& orig, const std::set<TNode>& tracker)
         {
