@@ -2242,7 +2242,7 @@ class CVC5_EXPORT Datatype
 
   /**
    * @return the parameters of this datatype, if it is parametric. An exception
-   * is throw if this datatype is not parametric.
+   * is thrown if this datatype is not parametric.
    */
   std::vector<Sort> getParameters() const;
 
