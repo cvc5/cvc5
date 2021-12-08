@@ -163,9 +163,7 @@ std::uint64_t TaylorGenerator::getPolynomialApproximationBoundForArg(
       std::pair<Node, Node> taylor = getTaylor(k, n);
       // check that 1-c^{n+1}/(n+1)! > 0
       Node ru = taylor.second;
-      std::cout << ru << "[" << ttrf << " -> " << tc << "]" << std::endl;
       Node rus = eval.eval(ru, {ttrf}, {tc});
-      std::cout << "-> " << rus << std::endl;
       Assert(rus.isConst());
       if (rus.getConst<Rational>() > 1)
       {
