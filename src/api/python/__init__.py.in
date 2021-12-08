@@ -1,4 +1,2 @@
 import sys
 from .pycvc5 import *
-# fake a submodule for dotted imports, e.g. from pycvc5.kinds import *
-sys.modules['%s.%s'%(__name__, kinds.__name__)] = kinds
