@@ -296,7 +296,9 @@ Node IAndSolver::bitwiseLemma(Node i)
       bitIAnd = d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j);
       // enforce bitwise equality
       lem = nm->mkNode(
-          AND, lem, rewrite(d_iandUtils.iextract(high_bit, j, i)).eqNode(bitIAnd));
+          AND,
+          lem,
+          rewrite(d_iandUtils.iextract(high_bit, j, i)).eqNode(bitIAnd));
     }
   }
   return lem;
