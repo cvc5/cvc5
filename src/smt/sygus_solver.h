@@ -175,7 +175,7 @@ class SygusSolver : protected EnvObj
    * @param sol_map Map from functions-to-synthesize to their solution (of the
    * same type) for the asserted synthesis conjecture.
    */
-  void checkSynthSolution(Assertions& as, const std::map<Node, Node>& sol_map);
+  void checkSynthSolution(Assertions& as, const std::map<Node, Node>& solMap);
   /**
    * Expand definitions in sygus datatype tn, which ensures that all
    * sygus constructors that are used to build values of sygus datatype
