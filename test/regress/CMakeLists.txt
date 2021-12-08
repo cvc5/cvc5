@@ -510,6 +510,7 @@ set(regress_0_tests
   regress0/datatypes/mutually-recursive.cvc.smt2
   regress0/datatypes/pair-bool-bool.cvc.smt2
   regress0/datatypes/pair-real-bool.smt2
+  regress0/datatypes/par-updater-type-rule.smt2 
   regress0/datatypes/parametric-alt-list.cvc.smt2
   regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/rec1.cvc.smt2
@@ -2687,7 +2688,7 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
-  regress2/strings/strings-alpha-card-129.smt2
+  regress2/strings/strings-alpha-card-65.smt2
   regress2/strings/update-ex3.smt2
   regress2/strings/update-ex4-seq.smt2
   regress2/sygus/MPwL_d1s3.sy
