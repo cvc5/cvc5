@@ -2671,7 +2671,7 @@ TEST_F(TestApiBlackSolver, doubleUseCons)
                CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, foo)
+TEST_F(TestApiBlackSolver, getDatatypeArity)
 {
   DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
   DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
