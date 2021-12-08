@@ -248,8 +248,8 @@ class DatatypeTest
     Sort pairType = d_solver.mkDatatypeSort(pairSpec);
 
     assertTrue(pairType.getDatatype().isParametric());
-    List<Sort> dparams = pairType.getDatatype().getParameters();
-    assertTrue(dparams[0] == t1 && dparams[1] == t2);
+    Sort[] dparams = pairType.getDatatype().getParameters();
+    assertTrue(dparams[0].equals(t1) && dparams[1].equals(t2));
 
     v.clear();
     v.add(d_solver.getIntegerSort());
