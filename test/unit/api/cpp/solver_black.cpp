@@ -2750,5 +2750,26 @@ TEST_F(TestApiBlackSolver, getDatatypeArity)
   ASSERT_EQ(s3.getDatatypeArity(), 0);
 }
 
+TEST_F(TestApiBlackSolver, proj_issue381)
+{
+  Sort s1 = d_solver.getBooleanSort();
+
+  Sort psort = d_solver.mkParamSort("_x9");
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("_x8", psort);
+  DatatypeConstructorDecl ctor = d_solver.mkDatatypeConstructorDecl("_x22");
+  ctor.addSelector("_x19", s1);
+  dtdecl.addConstructor(ctor);
+  Sort s3 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s6 = s3.instantiate({s1});
+  Term t26 = d_solver.mkConst(s6, "_x63");
+  Term t5 = d_solver.mkTrue();
+  Term t187 = d_solver.mkTerm(
+      APPLY_UPDATER,
+      t26.getSort().getDatatype().getConstructor("_x22").getSelector("_x19").getUpdaterTerm(),
+      t26,
+      t5);
+  ASSERT_NO_THROW(d_solver.simplify(t187));
+}
+
 }  // namespace test
 }  // namespace cvc5
