@@ -149,7 +149,8 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   /**
    * Send the given theory inference as a lemma on the output channel of this
    * inference manager. This calls TheoryInferenceManager::trustedLemma based
-   * on the provided theory inference.
+   * on the provided theory inference, and returns true if the lemma was
+   * successfully sent.
    */
   bool lemmaTheoryInference(TheoryInference* lem);
   /**
