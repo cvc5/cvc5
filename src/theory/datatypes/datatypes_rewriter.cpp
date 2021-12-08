@@ -890,7 +890,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       NodeBuilder b(APPLY_CONSTRUCTOR);
       if (tn.isParametricDatatype())
       {
-        b << dc.getSpecializedConstructor(n[1].getType());
+        b << dc.getSpecializedConstructor(n[0].getType());
       }
       else
       {
