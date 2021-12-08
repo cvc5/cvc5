@@ -13,7 +13,6 @@
 
 import pytest
 import pycvc5
-from pycvc5 import kinds
 from pycvc5 import Sort, Term 
 from pycvc5 import DatatypeDecl
 from pycvc5 import Datatype
