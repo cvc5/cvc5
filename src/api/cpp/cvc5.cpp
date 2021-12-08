@@ -1763,7 +1763,7 @@ size_t Sort::getDatatypeArity() const
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(isDatatype()) << "Not a datatype sort.";
   //////// all checks before this line
-  return d_type->getNumChildren() - 1;
+  return d_type->isParametricDatatype() ? d_type->getNumChildren() - 1 : 0;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
