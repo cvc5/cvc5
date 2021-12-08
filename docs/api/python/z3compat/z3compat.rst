@@ -1,4 +1,4 @@
-z3py compatibility API
+z3py compatibility Python API
 =========================================
 
 .. only:: not bindings_python

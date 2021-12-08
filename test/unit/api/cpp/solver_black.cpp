@@ -2742,5 +2742,13 @@ TEST_F(TestApiBlackSolver, proj_issue379)
   ASSERT_EQ(t879.getSort(), s6);
 }
 
+TEST_F(TestApiBlackSolver, getDatatypeArity)
+{
+  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
+  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
+  Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
+  ASSERT_EQ(s3.getDatatypeArity(), 0);
+}
+
 }  // namespace test
 }  // namespace cvc5
