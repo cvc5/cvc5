@@ -215,7 +215,11 @@ class RelevanceManager : protected EnvObj
   /**
    * Set of nodes that we have justified (SAT context dependent). This is SAT
    * context dependent to avoid repeated calls to justify for uses of
-   * the relevance manager at standard effort.
+   * the relevance manager at standard effort. Notice that we pair each node
+   * with its polarity. We take into account the polarity of the node when
+   * computing relevance, where a node is only relevant if it is asserted
+   * and either does not have a polarity in the overall formula, or if its
+   * asserted value matches its polarity.
    */
   RlvPairUIntMap d_jcache;
   /** Difficulty module */
