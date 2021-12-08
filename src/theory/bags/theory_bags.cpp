@@ -169,11 +169,11 @@ TrustNode TheoryBags::expandCardOperator(TNode n, std::vector<SkolemLemma>&)
 void TheoryBags::postCheck(Effort effort)
 {
   d_im.doPendingFacts();
-  // TODO issue #78: add Assert(d_strat.isStrategyInit());
-  if (!d_state.isInConflict() && !d_valuation.needCheck())
-  // TODO issue #78:  add && d_strat.hasStrategyEffort(e))
+  Assert(d_strat.isStrategyInit());
+  if (!d_state.isInConflict() && !d_valuation.needCheck()
+      && d_strat.hasStrategyEffort(effort))
   {
-    Trace("bags::TheoryBags::postCheck") << "effort: " << std::endl;
+    Trace("bags::TheoryBags::postCheck") << "effort: " << effort << std::endl;
 
     // TODO issue #78: add ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
@@ -184,9 +184,8 @@ void TheoryBags::postCheck(Effort effort)
       d_im.reset();
       // TODO issue #78: add ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
-      // TODO issue #78: add runStrategy(e);
-
-      d_solver.postCheck();
+      d_state.initialize();
+      runStrategy(effort);
 
       // remember if we had pending facts or lemmas
       hadPending = d_im.hasPending();
@@ -202,7 +201,7 @@ void TheoryBags::postCheck(Effort effort)
       sentLemma = d_im.hasSentLemma();
       if (Trace.isOn("bags-check"))
       {
-        // TODO: clean this Trace("bags-check") << "  ...finish run strategy: ";
+        Trace("bags-check") << "  ...finish run strategy: ";
         Trace("bags-check") << (hadPending ? "hadPending " : "");
         Trace("bags-check") << (sentLemma ? "sentLemma " : "");
         Trace("bags-check") << (d_state.isInConflict() ? "conflict " : "");
@@ -219,6 +218,60 @@ void TheoryBags::postCheck(Effort effort)
   Trace("bags-check") << "Theory of bags, done check : " << effort << std::endl;
   Assert(!d_im.hasPendingFact());
   Assert(!d_im.hasPendingLemma());
+}
+
+void TheoryBags::runStrategy(Theory::Effort e)
+{
+  std::vector<std::pair<InferStep, size_t> >::iterator it =
+      d_strat.stepBegin(e);
+  std::vector<std::pair<InferStep, size_t> >::iterator stepEnd =
+      d_strat.stepEnd(e);
+
+  Trace("bags-process") << "----check, next round---" << std::endl;
+  while (it != stepEnd)
+  {
+    InferStep curr = it->first;
+    if (curr == BREAK)
+    {
+      if (d_state.isInConflict() || d_im.hasPending())
+      {
+        break;
+      }
+    }
+    else
+    {
+      runInferStep(curr, it->second);
+      if (d_state.isInConflict())
+      {
+        break;
+      }
+    }
+    ++it;
+  }
+  Trace("bags-process") << "----finished round---" << std::endl;
+}
+
+/** run the given inference step */
+void TheoryBags::runInferStep(InferStep s, int effort)
+{
+  Trace("bags-process") << "Run " << s;
+  if (effort > 0)
+  {
+    Trace("bags-process") << ", effort = " << effort;
+  }
+  Trace("bags-process") << "..." << std::endl;
+  switch (s)
+  {
+    case CHECK_INIT: break;
+    case CHECK_BAG_MAKE: d_solver.checkBagMake(); break;
+    case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
+    default: Unreachable(); break;
+  }
+  Trace("bags-process") << "Done " << s
+                        << ", addedFact = " << d_im.hasPendingFact()
+                        << ", addedLemma = " << d_im.hasPendingLemma()
+                        << ", conflict = " << d_state.isInConflict()
+                        << std::endl;
 }
 
 void TheoryBags::notifyFact(TNode atom,
@@ -303,7 +356,12 @@ void TheoryBags::preRegisterTerm(TNode n)
   }
 }
 
-void TheoryBags::presolve() {}
+void TheoryBags::presolve()
+{
+  Debug("bags-presolve") << "Started presolve" << std::endl;
+  d_strat.initializeStrategy();
+  Debug("bags-presolve") << "Finished presolve" << std::endl;
+}
 
 /**************************** eq::NotifyClass *****************************/
 

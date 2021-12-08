@@ -17,6 +17,7 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
@@ -50,6 +51,27 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 
   Node gte = d_nm->mkNode(GEQ, count, d_zero);
   inferInfo.d_conclusion = gte;
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::bagMake(Node n)
+{
+  Assert(n.getKind() == BAG_MAKE);
+  /*
+   * (or
+   *   (and (<  c 1) (= (bag x c) (as bag.empty (Bag E))))
+   *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
+   */
+  Node x = n[0];
+  Node c = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE);
+  Node empty = d_nm->mkConst(EmptyBag(n.getType()));
+  Node equal = d_nm->mkNode(EQUAL, n, empty);
+  Node geq = d_nm->mkNode(GEQ, c, d_one);
+  Node isEmpty = geq.notNode().andNode(equal);
+  Node isNotEmpty = geq.andNode(equal.notNode());
+  Node orNode = isEmpty.orNode(isNotEmpty);
+  inferInfo.d_conclusion = orNode;
   return inferInfo;
 }
 
