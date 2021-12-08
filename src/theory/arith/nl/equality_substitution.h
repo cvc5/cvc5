@@ -85,7 +85,7 @@ class EqualitySubstitution: protected EnvObj
                     if (orig.getKind() != Kind::EQUAL) continue;
                     tracker.clear();
                     d_substitutions->invalidateCache();
-                    Node o = d_substitutions->apply(orig, true, &tracker);
+                    Node o = d_substitutions->apply(orig, d_env.getRewriter(), &tracker);
                     if (o.getKind() != Kind::EQUAL) continue;
                     Assert(o.getNumChildren() == 2);
                     for (size_t i = 0; i < 2; ++i)
@@ -113,7 +113,7 @@ class EqualitySubstitution: protected EnvObj
                 {
                     tracker.clear();
                     d_substitutions->invalidateCache();
-                    Node simp = d_substitutions->apply(a, true, &tracker);
+                    Node simp = d_substitutions->apply(a, d_env.getRewriter(), &tracker);
                     Trace("nl-eqs") << "Simplifying " << a << " -> " << simp << std::endl;
                     if (simp.isConst())
                     {
