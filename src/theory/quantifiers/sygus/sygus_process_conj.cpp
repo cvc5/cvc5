@@ -526,7 +526,7 @@ Node SynthConjectureProcess::postSimplify(Node q)
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
   Assert(q.getKind() == FORALL);
 
-  if (options::sygusArgRelevant())
+  if (options().quantifiers.sygusArgRelevant)
   {
     // initialize the information about each function to synthesize
     for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
@@ -586,7 +586,7 @@ void SynthConjectureProcess::initialize(Node n, std::vector<Node>& candidates)
 
 bool SynthConjectureProcess::isArgRelevant(Node f, unsigned i)
 {
-  if (!options::sygusArgRelevant())
+  if (!options().quantifiers.sygusArgRelevant)
   {
     return true;
   }
