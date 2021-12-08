@@ -239,7 +239,7 @@ class DatatypeTest
     v.add(t1);
     v.add(t2);
     DatatypeDecl pairSpec = d_solver.mkDatatypeDecl("pair", v);
-
+    
     DatatypeConstructorDecl mkpair = d_solver.mkDatatypeConstructorDecl("mk-pair");
     mkpair.addSelector("first", t1);
     mkpair.addSelector("second", t2);

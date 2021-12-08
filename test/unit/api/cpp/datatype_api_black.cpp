@@ -231,6 +231,7 @@ TEST_F(TestApiBlackDatatype, datatypeNames)
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
+  ASSERT_THROW(dt.getParameters(), CVC5ApiException);
   ASSERT_EQ(dt.getName(), std::string("list"));
   ASSERT_NO_THROW(dt.getConstructor("nil"));
   ASSERT_NO_THROW(dt["cons"]);
@@ -264,7 +265,7 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   v.push_back(t1);
   v.push_back(t2);
   DatatypeDecl pairSpec = d_solver.mkDatatypeDecl("pair", v);
-
+  
   DatatypeConstructorDecl mkpair =
       d_solver.mkDatatypeConstructorDecl("mk-pair");
   mkpair.addSelector("first", t1);
@@ -578,6 +579,9 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
   iargs.push_back(isort);
   Sort listInt = dtsorts[0].instantiate(iargs);
 
+  std::vector<Sort> liparams = listInt.getDatatype().getParameters();
+  ASSERT_TRUE(liparams.size()==1 && liparams[0]==isort);
+  
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
   ASSERT_NO_THROW(testConsTerm = nilc.getInstantiatedConstructorTerm(listInt));

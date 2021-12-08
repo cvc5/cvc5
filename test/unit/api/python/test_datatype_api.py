@@ -155,6 +155,8 @@ def test_datatype_structs(solver):
     dtypeSpec.addConstructor(nil)
     dtypeSort = solver.mkDatatypeSort(dtypeSpec)
     dt = dtypeSort.getDatatype()
+    # not parametric datatype
+    with pytest.raises(RuntimeError): dt.getParameters()
     assert not dt.isCodatatype()
     assert not dt.isTuple()
     assert not dt.isRecord()
@@ -262,7 +264,7 @@ def test_parametric_datatype(solver):
     v.append(t1)
     v.append(t2)
     pairSpec = solver.mkDatatypeDecl("pair", v)
-
+        
     mkpair = solver.mkDatatypeConstructorDecl("mk-pair")
     mkpair.addSelector("first", t1)
     mkpair.addSelector("second", t2)

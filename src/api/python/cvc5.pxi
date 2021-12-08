@@ -155,7 +155,8 @@ cdef class Datatype:
 
     def getParameters(self):
         """
-            :return: the parameter sorts of this datatype
+            :return: the parameters of this datatype, if it is parametric. An
+            exception is thrown if this datatype is not parametric.
         """
         param_sorts = []
         for s in self.cd.getParameters():
@@ -246,7 +247,9 @@ cdef class DatatypeConstructor:
 
     def getInstantiatedConstructorTerm(self, Sort retSort):
         """
-            Specialized method for parametric datatypes (see :cpp:func:`DatatypeConstructor::getInstantiatedConstructorTerm() <cvc5::api::DatatypeConstructor::getInstantiatedConstructorTerm>`).
+            Specialized method for parametric datatypes (see
+            :cpp:func:`DatatypeConstructor::getInstantiatedConstructorTerm()
+            <cvc5::api::DatatypeConstructor::getInstantiatedConstructorTerm>`).
 
             :param retSort: the desired return sort of the constructor
             :return: the constructor operator as a term.

@@ -108,7 +108,10 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
 
   private native int getNumConstructors(long pointer);
 
-  /** @return the parameters of this Datatype. */
+  /**
+   * @return the parameters of this datatype, if it is parametric. An exception
+   * is thrown if this datatype is not parametric.
+   */
   public Sort[] getParameters()
   {
     long[] sortPointers = getParameters(pointer);
