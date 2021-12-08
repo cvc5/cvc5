@@ -33,7 +33,7 @@ namespace transcendental {
 TranscendentalState::TranscendentalState(Env& env,
                                          InferenceManager& im,
                                          NlModel& model)
-    : EnvObj(env), d_im(im), d_model(model), d_env(env)
+    : EnvObj(env), d_im(im), d_model(model)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
