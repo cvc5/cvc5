@@ -28,6 +28,7 @@
 #include "smt/env_obj.h"
 #include "theory/difficulty_manager.h"
 #include "theory/valuation.h"
+#include "expr/term_context.h"
 
 namespace cvc5 {
 namespace theory {
@@ -76,10 +77,12 @@ class TheoryModel;
  */
 class RelevanceManager : protected EnvObj
 {
+  using RlvPair = std::pair<Node, uint32_t>;
+  using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
   using NodeSet = context::CDHashSet<Node>;
-  using NodeUIntMap = context::CDHashMap<Node, uint64_t>;
+  using RlvPairUIntMap = context::CDHashMap<RlvPair, uint64_t, RlvPairHashFunction>;
 
  public:
   /**
@@ -157,7 +160,7 @@ class RelevanceManager : protected EnvObj
    */
   int justify(TNode n);
   /** Is the top symbol of cur a Boolean connective? */
-  bool isBooleanConnective(TNode cur);
+  static bool isBooleanConnective(TNode cur);
   /**
    * Update justify last child. This method is a helper function for justify,
    * which is called at the moment that Boolean connective formula cur
@@ -170,7 +173,7 @@ class RelevanceManager : protected EnvObj
    * @return True if we wish to visit the next child. If this is the case, then
    * the justify value of the current child is added to childrenJustify.
    */
-  bool updateJustifyLastChild(TNode cur, std::vector<int>& childrenJustify);
+  bool updateJustifyLastChild(RlvPair cur, std::vector<int>& childrenJustify);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
@@ -206,12 +209,14 @@ class RelevanceManager : protected EnvObj
    * reason why that literal is currently relevant.
    */
   NodeMap d_rsetExp;
+  /** For computing polarity on terms */
+  PolarityTermContext d_ptctx;
   /**
    * Set of nodes that we have justified (SAT context dependent). This is SAT
    * context dependent to avoid repeated calls to justify for uses of
    * the relevance manager at standard effort.
    */
-  NodeUIntMap d_jcache;
+  RlvPairUIntMap d_jcache;
   /** Difficulty module */
   std::unique_ptr<DifficultyManager> d_dman;
 };
