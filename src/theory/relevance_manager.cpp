@@ -335,7 +335,8 @@ int RelevanceManager::justify(TNode n)
             {
               d_rsetExp[cur.first] = n;
               Trace("rel-manager-exp")
-                  << "Reason for " << cur.first << " is " << n << ", polarity is " << hasPol << "/" << pol << std::endl;
+                  << "Reason for " << cur.first << " is " << n
+                  << ", polarity is " << hasPol << "/" << pol << std::endl;
             }
           }
         }
