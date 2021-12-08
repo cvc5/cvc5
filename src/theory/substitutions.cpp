@@ -192,7 +192,7 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-Node SubstitutionMap::apply(TNode t, bool doRewrite, std::set<TNode>* tracker) {
+Node SubstitutionMap::apply(TNode t, Rewriter* r, std::set<TNode>* tracker) {
 
   Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
@@ -207,9 +207,9 @@ Node SubstitutionMap::apply(TNode t, bool doRewrite, std::set<TNode>* tracker) {
   Node result = internalSubstitute(t, d_substitutionCache, tracker);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
-  if (doRewrite)
+  if (r != nullptr)
   {
-    result = Rewriter::rewrite(result);
+    result = r->rewrite(result);
   }
 
   return result;

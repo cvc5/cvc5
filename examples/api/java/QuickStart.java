@@ -106,11 +106,32 @@ public class QuickStart
       Term xMinusY = solver.mkTerm(Kind.MINUS, x, y);
       Term xMinusYVal = solver.getValue(xMinusY);
 
-      // Further, we can convert the values to java types,
-      Pair<BigInteger, BigInteger> xRational = xVal.getRealValue();
-      Pair<BigInteger, BigInteger> yRational = yVal.getRealValue();
-      System.out.println("value for x: " + xRational.first + "/" + xRational.second);
-      System.out.println("value for y: " + yRational.first + "/" + yRational.second);
+      // Further, we can convert the values to java types
+      Pair<BigInteger, BigInteger> xPair = xVal.getRealValue();
+      Pair<BigInteger, BigInteger> yPair = yVal.getRealValue();
+      Pair<BigInteger, BigInteger> xMinusYPair = xMinusYVal.getRealValue();
+
+      System.out.println("value for x: " + xPair.first + "/" + xPair.second);
+      System.out.println("value for y: " + yPair.first + "/" + yPair.second);
+      System.out.println("value for x - y: " + xMinusYPair.first + "/" + xMinusYPair.second);
+
+      // Another way to independently compute the value of x - y would be
+      // to perform the (rational) arithmetic manually.
+      // However, for more complex terms,
+      // it is easier to let the solver do the evaluation.
+      Pair<BigInteger, BigInteger> xMinusYComputed =
+          new Pair(xPair.first.multiply(yPair.second).subtract(xPair.second.multiply(yPair.first)),
+              xPair.second.multiply(yPair.second));
+      BigInteger g = xMinusYComputed.first.gcd(xMinusYComputed.second);
+      xMinusYComputed = new Pair(xMinusYComputed.first.divide(g), xMinusYComputed.second.divide(g));
+      if (xMinusYComputed.equals(xMinusYPair))
+      {
+        System.out.println("computed correctly");
+      }
+      else
+      {
+        System.out.println("computed incorrectly");
+      }
 
       // Next, we will check satisfiability of the same formula,
       // only this time over integer variables a and b.
