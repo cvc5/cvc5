@@ -8,7 +8,6 @@ input mechanisms.
 
 
 .. toctree::
-    :maxdepth: 2
 
     helloworld
     exceptions

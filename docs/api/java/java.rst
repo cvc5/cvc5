@@ -1,4 +1,4 @@
-Java API Documentation
+Java API
 ======================
 
 The Java API for cvc5 mostly mirrors the :doc:`C++ API <../cpp/cpp>` and supports operator
