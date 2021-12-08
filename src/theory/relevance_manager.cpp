@@ -17,9 +17,9 @@
 
 #include <sstream>
 
+#include "expr/term_context_stack.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "expr/term_context_stack.h"
 
 using namespace cvc5::kind;
 
@@ -180,7 +180,8 @@ bool RelevanceManager::updateJustifyLastChild(RlvPair cur,
   Kind k = cur.first.getKind();
   // Lookup the last child's value in the overall cache, we may choose to
   // add this to childrenJustify if we return true.
-  RlvPair cp(cur.first[index], d_ptctx.computeValue(cur.first, cur.second, index));
+  RlvPair cp(cur.first[index],
+             d_ptctx.computeValue(cur.first, cur.second, index));
   Assert(d_jcache.find(cp) != d_jcache.end());
   int lastChildJustify = d_jcache[cp];
   if (k == NOT)
@@ -278,9 +279,11 @@ int RelevanceManager::justify(TNode n)
   // the values for SAT literals may have changed.
   std::unordered_set<RlvPair, RlvPairHashFunction> noJustify;
   // the vector of values of children
-  std::unordered_map<RlvPair, std::vector<int>, RlvPairHashFunction> childJustify;
+  std::unordered_map<RlvPair, std::vector<int>, RlvPairHashFunction>
+      childJustify;
   RlvPairUIntMap::iterator it;
-  std::unordered_map<RlvPair, std::vector<int>, RlvPairHashFunction>::iterator itc;
+  std::unordered_map<RlvPair, std::vector<int>, RlvPairHashFunction>::iterator
+      itc;
   RlvPair cur;
   TCtxStack visit(&d_ptctx);
   visit.pushInitial(n);
@@ -325,7 +328,7 @@ int RelevanceManager::justify(TNode n)
           bool hasPol, pol;
           PolarityTermContext::getFlags(cur.second, hasPol, pol);
           // relevant if weakly matches polarity
-          if (!hasPol || pol==value)
+          if (!hasPol || pol == value)
           {
             d_rset.insert(cur.first);
             if (d_trackRSetExp)

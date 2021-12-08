@@ -25,10 +25,10 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "expr/term_context.h"
 #include "smt/env_obj.h"
 #include "theory/difficulty_manager.h"
 #include "theory/valuation.h"
-#include "expr/term_context.h"
 
 namespace cvc5 {
 namespace theory {
@@ -82,7 +82,8 @@ class RelevanceManager : protected EnvObj
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
   using NodeSet = context::CDHashSet<Node>;
-  using RlvPairUIntMap = context::CDHashMap<RlvPair, uint64_t, RlvPairHashFunction>;
+  using RlvPairUIntMap =
+      context::CDHashMap<RlvPair, uint64_t, RlvPairHashFunction>;
 
  public:
   /**
