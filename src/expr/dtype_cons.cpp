@@ -86,11 +86,11 @@ Node DTypeConstructor::getConstructor() const
 Node DTypeConstructor::getSpecializedConstructor(TypeNode returnType) const
 {
   Assert(isResolved());
-  NodeManager * nm = NodeManager::currentNM();
-return       nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                 nm->mkConst(AscriptionType(
-                     getSpecializedConstructorType(returnType))),
-                 d_constructor);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      kind::APPLY_TYPE_ASCRIPTION,
+      nm->mkConst(AscriptionType(getSpecializedConstructorType(returnType))),
+      d_constructor);
 }
 
 Node DTypeConstructor::getTester() const
