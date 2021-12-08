@@ -18,7 +18,7 @@
 #include "expr/sequence.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
-#include "theory/rewriter.h"
+#include "theory/evaluator.h"
 
 using namespace cvc5::kind;
 
@@ -154,16 +154,15 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
-    Node evall = Rewriter::rewrite(
-        bounds.d_upperPos.substitute(tg.getTaylorVariable(), l));
-    Node evalu = Rewriter::rewrite(
-        bounds.d_upperPos.substitute(tg.getTaylorVariable(), u));
+    Evaluator eval(nullptr);
+    Node evall = eval.eval(bounds.d_upperPos, {tg.getTaylorVariable()}, {l});
+    Node evalu = eval.eval(bounds.d_upperPos, {tg.getTaylorVariable()}, {u});
     Node evalsecant = mkSecant(t, l, u, evall, evalu);
     Node lem = nm->mkNode(
         Kind::IMPLIES,
         mkBounds(t, l, u),
         nm->mkNode(Kind::LEQ, nm->mkNode(Kind::EXPONENTIAL, t), evalsecant));
-    return Rewriter::rewrite(lem);
+    return lem;
   }
   else if (id == PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG)
   {
@@ -182,16 +181,15 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
-    Node evall = Rewriter::rewrite(
-        bounds.d_upperNeg.substitute(tg.getTaylorVariable(), l));
-    Node evalu = Rewriter::rewrite(
-        bounds.d_upperNeg.substitute(tg.getTaylorVariable(), u));
+    Evaluator eval(nullptr);
+    Node evall = eval.eval(bounds.d_upperNeg, {tg.getTaylorVariable()}, {l});
+    Node evalu = eval.eval(bounds.d_upperNeg, {tg.getTaylorVariable()}, {u});
     Node evalsecant = mkSecant(t, l, u, evall, evalu);
     Node lem = nm->mkNode(
         Kind::IMPLIES,
         mkBounds(t, l, u),
         nm->mkNode(Kind::LEQ, nm->mkNode(Kind::EXPONENTIAL, t), evalsecant));
-    return Rewriter::rewrite(lem);
+    return lem;
   }
   else if (id == PfRule::ARITH_TRANS_EXP_APPROX_BELOW)
   {
@@ -206,10 +204,10 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d, bounds);
-    Node eval =
-        Rewriter::rewrite(bounds.d_lower.substitute(tg.getTaylorVariable(), t));
+    Evaluator eval(nullptr);
+    Node evalt = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {t});
     return nm->mkNode(
-        Kind::GEQ, std::vector<Node>{nm->mkNode(Kind::EXPONENTIAL, t), eval});
+        Kind::GEQ, std::vector<Node>{nm->mkNode(Kind::EXPONENTIAL, t), evalt});
   }
   else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
   {
@@ -252,8 +250,7 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 1);
     Assert(args[0].getType().isReal());
     Node s1 = nm->mkNode(Kind::SINE, args[0]);
-    Node s2 = nm->mkNode(
-        Kind::SINE, Rewriter::rewrite(nm->mkNode(Kind::MULT, mone, args[0])));
+    Node s2 = nm->mkNode(Kind::SINE, nm->mkNode(Kind::MULT, mone, args[0]));
     return nm->mkNode(PLUS, s1, s2).eqNode(zero);
   }
   else if (id == PfRule::ARITH_TRANS_SINE_TANGENT_ZERO)
@@ -306,16 +303,15 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
-    Node evall = Rewriter::rewrite(
-        bounds.d_upperNeg.substitute(tg.getTaylorVariable(), l));
-    Node evalu = Rewriter::rewrite(
-        bounds.d_upperNeg.substitute(tg.getTaylorVariable(), u));
+    Evaluator eval(nullptr);
+    Node evall = eval.eval(bounds.d_upperNeg, {tg.getTaylorVariable()}, {l});
+    Node evalu = eval.eval(bounds.d_upperNeg, {tg.getTaylorVariable()}, {u});
     Node lem = nm->mkNode(
         Kind::IMPLIES,
         mkBounds(t, lb, ub),
         nm->mkNode(
             Kind::LEQ, nm->mkNode(Kind::SINE, t), mkSecant(t, lb, ub, l, u)));
-    return Rewriter::rewrite(lem);
+    return lem;
   }
   else if (id == PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS)
   {
@@ -335,12 +331,11 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
-    Node eval = Rewriter::rewrite(
-        bounds.d_upperPos.substitute(tg.getTaylorVariable(), c));
-    return Rewriter::rewrite(
-        nm->mkNode(Kind::IMPLIES,
-                   mkBounds(t, lb, ub),
-                   nm->mkNode(Kind::LEQ, nm->mkNode(Kind::SINE, t), eval)));
+    Evaluator eval(nullptr);
+    Node evalc = eval.eval(bounds.d_upperPos, {tg.getTaylorVariable()}, {c});
+    return nm->mkNode(Kind::IMPLIES,
+                      mkBounds(t, lb, ub),
+                      nm->mkNode(Kind::LEQ, nm->mkNode(Kind::SINE, t), evalc));
   }
   else if (id == PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS)
   {
@@ -363,16 +358,15 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
-    Node evall =
-        Rewriter::rewrite(bounds.d_lower.substitute(tg.getTaylorVariable(), l));
-    Node evalu =
-        Rewriter::rewrite(bounds.d_lower.substitute(tg.getTaylorVariable(), u));
+    Evaluator eval(nullptr);
+    Node evall = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {l});
+    Node evalu = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {u});
     Node lem = nm->mkNode(
         Kind::IMPLIES,
         mkBounds(t, lb, ub),
         nm->mkNode(
             Kind::GEQ, nm->mkNode(Kind::SINE, t), mkSecant(t, lb, ub, l, u)));
-    return Rewriter::rewrite(lem);
+    return lem;
   }
   else if (id == PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG)
   {
@@ -392,12 +386,11 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
-    Node eval =
-        Rewriter::rewrite(bounds.d_lower.substitute(tg.getTaylorVariable(), c));
-    return Rewriter::rewrite(
-        nm->mkNode(Kind::IMPLIES,
-                   mkBounds(t, lb, ub),
-                   nm->mkNode(Kind::GEQ, nm->mkNode(Kind::SINE, t), eval)));
+    Evaluator eval(nullptr);
+    Node evalc = eval.eval(bounds.d_lower, {tg.getTaylorVariable()}, {c});
+    return nm->mkNode(Kind::IMPLIES,
+                      mkBounds(t, lb, ub),
+                      nm->mkNode(Kind::GEQ, nm->mkNode(Kind::SINE, t), evalc));
   }
   return Node::null();
 }
