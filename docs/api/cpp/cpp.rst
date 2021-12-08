@@ -9,7 +9,6 @@ For most applications, the :cpp:class:`Solver <cvc5::api::Solver>` class is the 
 .. container:: hide-toctree
 
   .. toctree::
-    :maxdepth: 0
 
     quickstart
     exceptions

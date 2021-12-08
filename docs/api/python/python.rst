@@ -1,13 +1,6 @@
 Python API
 ========================
 
-.. toctree::
-    :maxdepth: 1
-    :hidden:
-
-    z3compat/z3compat
-    regular/python
-
 .. only:: not bindings_python
 
     .. warning::
@@ -16,7 +9,13 @@ Python API
 
 cvc5 offers two separate APIs for Python users.
 The :doc:`regular Python API <regular/python>` is an almost exact copy of the :doc:`C++ API <../cpp/cpp>`.
-Alternatively, the :doc:`z3py compatibility API <z3compat/z3compat>` is a more pythonic API that aims to be fully compatible with `Z3s Python API <https://z3prover.github.io/api/html/namespacez3py.html>`_ while adding functionality that Z3 does not support.
+Alternatively, the :doc:`z3py compatibility Python API <z3compat/z3compat>` is a more pythonic API that aims to be fully compatible with `Z3s Python API <https://z3prover.github.io/api/html/namespacez3py.html>`_ while adding functionality that Z3 does not support.
+
+.. toctree::
+    :maxdepth: 1
+
+    z3compat/z3compat
+    regular/python
 
 
 Which Python API should I use?
