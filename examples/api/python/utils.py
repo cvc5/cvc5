@@ -15,7 +15,7 @@
 ##
 
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 
 # Get the string version of define-fun command.
 # @param f the function to print
@@ -47,7 +47,7 @@ def print_synth_solutions(terms, sols):
     result = ""
     for i in range(0, len(terms)):
         params = []
-        if sols[i].getKind() == kinds.Lambda:
+        if sols[i].getKind() == Kind.Lambda:
             params += sols[i][0]
             body = sols[i][1]
         result += "  " + define_fun_to_string(terms[i], params, body) + "\n"
