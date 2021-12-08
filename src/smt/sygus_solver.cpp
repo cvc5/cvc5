@@ -265,7 +265,7 @@ Result SygusSolver::checkSynth(Assertions& as)
   // or may not correspond to a state in which we solved the conjecture
   // successfully. Instead we call getSynthSolutions below. If this returns
   // true, then we were successful. In this case, we set the result to "unsat",
-  // since the synthesis conjecture was negated when assered to the subsolver.
+  // since the synthesis conjecture was negated when asserted to the subsolver.
   //
   // This behavior is done for 2 reasons:
   // (1) if we do not negate the synthesis conjecture, the subsolver in some
