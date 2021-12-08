@@ -2763,11 +2763,14 @@ TEST_F(TestApiBlackSolver, proj_issue381)
   Sort s6 = s3.instantiate({s1});
   Term t26 = d_solver.mkConst(s6, "_x63");
   Term t5 = d_solver.mkTrue();
-  Term t187 = d_solver.mkTerm(
-      APPLY_UPDATER,
-      t26.getSort().getDatatype().getConstructor("_x22").getSelector("_x19").getUpdaterTerm(),
-      t26,
-      t5);
+  Term t187 = d_solver.mkTerm(APPLY_UPDATER,
+                              t26.getSort()
+                                  .getDatatype()
+                                  .getConstructor("_x22")
+                                  .getSelector("_x19")
+                                  .getUpdaterTerm(),
+                              t26,
+                              t5);
   ASSERT_NO_THROW(d_solver.simplify(t187));
 }
 
