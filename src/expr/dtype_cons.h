@@ -85,6 +85,12 @@ class DTypeConstructor
    * DType must be resolved.
    */
   Node getConstructor() const;
+  /**
+   * Get the specialized constructor term of this constructor, which is
+   * the constructor wrapped in a APPLY_TYPE_ASCRIPTION. This is required
+   * for constructing applications of constructors for parametric datatypes.
+   */
+  Node getSpecializedConstructor(TypeNode returnType) const;
 
   /**
    * Get the tester operator of this constructor.  The
