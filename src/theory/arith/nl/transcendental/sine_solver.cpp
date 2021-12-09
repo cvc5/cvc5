@@ -143,7 +143,9 @@ void SineSolver::checkInitialRefine()
           if (d_data->isProofEnabled())
           {
             proof = d_data->getProof();
-            proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SYMMETRY, {}, {t[0]});
+            Node tmplem = nm->mkNode(Kind::PLUS, t, nm->mkNode(Kind::SINE, nm->mkNode(Kind::MULT, d_data->d_neg_one, t[0]))).eqNode(d_data->d_zero);
+            proof->addStep(tmplem, PfRule::ARITH_TRANS_SINE_SYMMETRY, {}, {t[0]});
+            proof->addStep(lem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {lem});
           }
           d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
