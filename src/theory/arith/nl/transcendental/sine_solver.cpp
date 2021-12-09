@@ -385,9 +385,6 @@ void SineSolver::doTangentLemma(
                  e,
                  poly_approx));
 
-  Trace("nl-ext-sine") << "*** Tangent plane lemma (pre-rewrite): " << lem
-                       << std::endl;
-  lem = rewrite(lem);
   Trace("nl-ext-sine") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
