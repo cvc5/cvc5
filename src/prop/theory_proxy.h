@@ -25,6 +25,7 @@
 #include "proof/trust_node.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "util/resource_manager.h"
@@ -47,14 +48,14 @@ class SkolemDefManager;
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
  */
-class TheoryProxy : public Registrar
+class TheoryProxy : protected EnvObj, public Registrar
 {
  public:
-  TheoryProxy(PropEngine* propEngine,
+  TheoryProxy(Env& env,
+              PropEngine* propEngine,
               TheoryEngine* theoryEngine,
               decision::DecisionEngine* decisionEngine,
-              SkolemDefManager* skdm,
-              Env& env);
+              SkolemDefManager* skdm);
 
   ~TheoryProxy();
 
@@ -167,9 +168,6 @@ class TheoryProxy : public Registrar
 
   /** The skolem definition manager */
   SkolemDefManager* d_skdm;
-
-  /** Reference to the environment */
-  Env& d_env;
 }; /* class TheoryProxy */
 
 }  // namespace prop

@@ -460,13 +460,17 @@ int64_t Integer::getSigned64() const
     {
       return getLong();
     }
-    // ensure there is no overflow.
-    // mpz_sizeinbase ignores the sign bit, thus at most 63 bits.
-    CheckArgument(mpz_sizeinbase(d_value.get_mpz_t(), 2) < 64,
-                  this,
-                  "Overflow detected in Integer::getSigned64().");
-    return std::stoll(toString());
+    try
+    {
+      return std::stoll(toString());
+    }
+    catch (const std::exception& e)
+    {
+      CheckArgument(
+          false, this, "Overflow detected in Integer::getSigned64().");
+    }
   }
+  return 0;
 }
 uint64_t Integer::getUnsigned64() const
 {
@@ -480,12 +484,19 @@ uint64_t Integer::getUnsigned64() const
     {
       return getUnsignedLong();
     }
-    // ensure there isn't overflow
-    CheckArgument(mpz_sizeinbase(d_value.get_mpz_t(), 2) <= 64,
-                  this,
-                  "Overflow detected in Integer::getUnsigned64().");
-    return std::stoull(toString());
+    try
+    {
+      CheckArgument(
+          sgn() >= 0, this, "Overflow detected in Integer::getUnsigned64().");
+      return std::stoull(toString());
+    }
+    catch (const std::exception& e)
+    {
+      CheckArgument(
+          false, this, "Overflow detected in Integer::getUnsigned64().");
+    }
   }
+  return 0;
 }
 
 size_t Integer::hash() const { return gmpz_hash(d_value.get_mpz_t()); }

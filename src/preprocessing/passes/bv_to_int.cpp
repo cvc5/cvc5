@@ -27,6 +27,7 @@
 #include "expr/node.h"
 #include "expr/node_traversal.h"
 #include "expr/skolem_manager.h"
+#include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -938,6 +939,11 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
   d_one = d_nm->mkConstInt(Rational(1));
+
+  if (options().smt.solveBVAsInt == options::SolveBVAsIntMode::BITWISE)
+  {
+    throw OptionException("bitwise option is not supported currently");
+  }
 };
 
 PreprocessingPassResult BVToInt::applyInternal(

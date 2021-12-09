@@ -443,7 +443,7 @@ Node QuantifiersRewriter::computeProcessTerms(Node body,
     {
       Node r = computeProcessTerms2(fbody, cache, new_vars, new_conds);
       Assert(new_vars.size() == h.getNumChildren());
-      return Rewriter::rewrite(NodeManager::currentNM()->mkNode(EQUAL, h, r));
+      return NodeManager::currentNM()->mkNode(EQUAL, h, r);
     }
     // It can happen that we can't infer the shape of the function definition,
     // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
@@ -1028,12 +1028,11 @@ bool QuantifiersRewriter::getVarElimInternal(Node body,
                                              std::vector<Node>& subs) const
 {
   Kind nk = n.getKind();
-  if (nk == NOT)
+  while (nk == NOT)
   {
     n = n[0];
     pol = !pol;
     nk = n.getKind();
-    Assert(nk != NOT);
   }
   if ((nk == AND && pol) || (nk == OR && !pol))
   {
@@ -1326,7 +1325,6 @@ Node QuantifiersRewriter::computeVarElimination(Node body,
       // remake with eliminated nodes
       body =
           body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-      body = Rewriter::rewrite(body);
       if (!qa.d_ipl.isNull())
       {
         qa.d_ipl = qa.d_ipl.substitute(

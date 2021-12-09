@@ -182,9 +182,7 @@ Node IAndUtils::iextract(unsigned i, unsigned j, Node n) const
   NodeManager* nm = NodeManager::currentNM();
   //  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
   Node n2j = nm->mkNode(kind::INTS_DIVISION_TOTAL, n, twoToK(j));
-  Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
-  ret = Rewriter::rewrite(ret);
-  return ret;
+  return nm->mkNode(kind::INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
 }
 
 void IAndUtils::computeAndTable(uint64_t granularity)
@@ -262,18 +260,14 @@ Node IAndUtils::twoToK(unsigned k) const
 {
   // could be faster
   NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(kind::POW, d_two, nm->mkConstInt(Rational(k)));
-  ret = Rewriter::rewrite(ret);
-  return ret;
+  return nm->mkNode(kind::POW, d_two, nm->mkConstInt(Rational(k)));
 }
 
 Node IAndUtils::twoToKMinusOne(unsigned k) const
 {
   // could be faster
   NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(kind::MINUS, twoToK(k), d_one);
-  ret = Rewriter::rewrite(ret);
-  return ret;
+  return nm->mkNode(kind::MINUS, twoToK(k), d_one);
 }
 
 }  // namespace nl

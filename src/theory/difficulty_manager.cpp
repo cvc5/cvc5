@@ -26,8 +26,17 @@ namespace cvc5 {
 namespace theory {
 
 DifficultyManager::DifficultyManager(context::Context* c, Valuation val)
-    : d_val(val), d_dfmap(c)
+    : d_input(c), d_val(val), d_dfmap(c)
 {
+}
+
+void DifficultyManager::notifyInputAssertions(
+    const std::vector<Node>& assertions)
+{
+  for (const Node& a : assertions)
+  {
+    d_input.insert(a);
+  }
 }
 
 void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
@@ -39,7 +48,8 @@ void DifficultyManager::getDifficultyMap(std::map<Node, Node>& dmap)
   }
 }
 
-void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
+void DifficultyManager::notifyLemma(const context::CDHashMap<Node, Node>& rse,
+                                    Node n)
 {
   if (options::difficultyMode() != options::DifficultyMode::LEMMA_LITERAL)
   {
@@ -63,7 +73,7 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
   {
     litsToCheck.push_back(n);
   }
-  std::map<TNode, TNode>::const_iterator it;
+  context::CDHashMap<Node, Node>::const_iterator it;
   for (TNode nc : litsToCheck)
   {
     bool pol = nc.getKind() != kind::NOT;
@@ -72,23 +82,23 @@ void DifficultyManager::notifyLemma(const std::map<TNode, TNode>& rse, Node n)
     Trace("diff-man-debug")
         << "Check literal: " << atom << ", has reason = " << (it != rse.end())
         << std::endl;
-    if (it != rse.end())
+    // must be an input assertion
+    if (it != rse.end() && d_input.find(it->second) != d_input.end())
     {
       incrementDifficulty(it->second);
     }
   }
 }
 
-void DifficultyManager::notifyCandidateModel(const NodeList& input,
-                                             TheoryModel* m)
+void DifficultyManager::notifyCandidateModel(TheoryModel* m)
 {
   if (options::difficultyMode() != options::DifficultyMode::MODEL_CHECK)
   {
     return;
   }
   Trace("diff-man") << "DifficultyManager::notifyCandidateModel, #input="
-                    << input.size() << std::endl;
-  for (const Node& a : input)
+                    << d_input.size() << std::endl;
+  for (const Node& a : d_input)
   {
     // should have miniscoped the assertions upstream
     Assert(a.getKind() != kind::AND);
