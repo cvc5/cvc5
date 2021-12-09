@@ -61,7 +61,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
   Env env(d_nodeManager, &opts);
   env.d_logic.setLogicString("QF_UFBV");
   env.d_logic.lock();
-  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, false);
+  IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1, true);
   Node result = intBlaster.translateNoChildren(bv7_4, lemmas, skolems);
   Node seven = d_nodeManager->mkConst(CONST_RATIONAL, Rational(7));
   ASSERT_EQ(seven, result);

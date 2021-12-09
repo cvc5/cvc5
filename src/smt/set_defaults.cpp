@@ -255,18 +255,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     }
   }
 
-  if (options::bvSolver() == options::BVSolver::INTBLAST)
-  {
-    if (logic.isTheoryEnabled(THEORY_BV))
-    {
-      logic = logic.getUnlockedCopy();
-      logic.enableTheory(THEORY_ARITH);
-      logic.arithNonLinear();
-      logic.lock();
-      opts.arith.nlExtTangentPlanes = true;
-    }
-  }
-
   // set options about ackermannization
   if (opts.smt.ackermann && opts.smt.produceModels
       && (logic.isTheoryEnabled(THEORY_ARRAYS)
