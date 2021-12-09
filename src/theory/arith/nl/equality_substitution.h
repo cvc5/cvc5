@@ -42,24 +42,26 @@ class EqualitySubstitution: protected EnvObj
             d_conflictMap.clear();
             d_trackOrigin.clear();
         }
-        void addToConflictMap(const Node& n, const Node& orig, const std::set<TNode>& tracker)
-        {
-            std::set<Node> origins;
-            auto it = d_conflictMap.find(orig);
+        void insertOrigins(std::set<Node>& dest, const Node& n) const {
+            auto it = d_conflictMap.find(n);
             if (it == d_conflictMap.end())
             {
-                origins.insert(orig);
+                dest.insert(n);
             }
             else
             {
-                origins.insert(it->second.begin(), it->second.end());
+                dest.insert(it->second.begin(), it->second.end());
             }
+        }
+        void addToConflictMap(const Node& n, const Node& orig, const std::set<TNode>& tracker)
+        {
+            std::set<Node> origins;
+            insertOrigins(origins, orig);
             for (const auto& t : tracker)
             {
                 auto tit = d_trackOrigin.find(t);
                 Assert(tit != d_trackOrigin.end());
-                Trace("nl-eqs") << "Track origin for " << t << ": " << tit->second << std::endl;
-                origins.insert(tit->second);
+                insertOrigins(origins, tit->second);
             }
             Trace("nl-eqs") << "ConflictMap: " << n << " -> " << origins << std::endl;
             d_conflictMap.emplace(n, std::vector<Node>(origins.begin(), origins.end()));
@@ -87,6 +89,7 @@ class EqualitySubstitution: protected EnvObj
                     tracker.clear();
                     d_substitutions->invalidateCache();
                     Node o = d_substitutions->apply(orig, d_env.getRewriter(), &tracker);
+                    Trace("nl-eqs") << "Simplified for subst " << orig << " -> " << o << std::endl;
                     if (o.getKind() != Kind::EQUAL) continue;
                     Assert(o.getNumChildren() == 2);
                     for (size_t i = 0; i < 2; ++i)
@@ -97,7 +100,7 @@ class EqualitySubstitution: protected EnvObj
                         if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
                         if (d_substitutions->hasSubstitution(l)) continue;
                         if (expr::hasSubterm(r, l, true)) continue;
-                        Trace("nl-eqs") << "Found substitution " << l << " -> " << r << " from " << orig << std::endl;
+                        Trace("nl-eqs") << "Found substitution " << l << " -> " << r << std::endl << " from " << o << " / " << orig << std::endl;
                         d_substitutions->addSubstitution(l, r);
                         d_trackOrigin.emplace(l, o);
                         if (o != orig) {
