@@ -22,7 +22,6 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "smt/env_obj.h"
-#include "smt/env.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
 
@@ -31,163 +30,54 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-class EqualitySubstitution: protected EnvObj
+/**
+ * This class is a general utility to eliminate variables from a set of
+ * assertions.
+ */
+class EqualitySubstitution : protected EnvObj
 {
-    public:
-        EqualitySubstitution(Env& env): EnvObj(env), d_substitutions(std::make_unique<SubstitutionMap>()) {
-        }
-        void reset() {
-            d_substitutions = std::make_unique<SubstitutionMap>();
-            d_conflict.clear();
-            d_conflictMap.clear();
-            d_trackOrigin.clear();
-        }
-        void insertOrigins(std::set<Node>& dest, const Node& n) const {
-            auto it = d_conflictMap.find(n);
-            if (it == d_conflictMap.end())
-            {
-                dest.insert(n);
-            }
-            else
-            {
-                dest.insert(it->second.begin(), it->second.end());
-            }
-        }
-        void addToConflictMap(const Node& n, const Node& orig, const std::set<TNode>& tracker)
-        {
-            std::set<Node> origins;
-            insertOrigins(origins, orig);
-            for (const auto& t : tracker)
-            {
-                auto tit = d_trackOrigin.find(t);
-                Assert(tit != d_trackOrigin.end());
-                insertOrigins(origins, tit->second);
-            }
-            Trace("nl-eqs") << "ConflictMap: " << n << " -> " << origins << std::endl;
-            d_conflictMap.emplace(n, std::vector<Node>(origins.begin(), origins.end()));
+ public:
+  EqualitySubstitution(Env& env);
+  /** Reset this object */
+  void reset();
 
-        }
+  /** Eliminate variables using equalities from the set of assertions */
+  std::vector<Node> eliminateEqualities(const std::vector<Node>& assertions);
+  /** Return the substitutions that were found */
+  const SubstitutionMap& getSubstitutions() const { return *d_substitutions; }
+  /** Check whether a direct conflict was found */
+  bool hasConflict() const { return !d_conflict.empty(); }
+  /** Return the conflict that was found */
+  const std::vector<Node>& getConflict() const { return d_conflict; }
+  /**
+   * Postprocess a conflict found in the result of eliminateEqualities.
+   * Replaces assertions within the conflict by their origins, i.e. the input
+   * assertions and the assertions that gave rise to the substitutions being
+   * used.
+   */
+  void postprocessConflict(std::vector<Node>& conflict) const;
 
-        std::vector<Node> eliminateEqualities(const std::vector<Node>& assertions)
-        {
-            Trace("nl-eqs") << "Input:" << std::endl;
-            for (const auto& a: assertions) {
-                Trace("nl-eqs") << "\t" << a << std::endl;
-            }
-            std::set<TNode> tracker;
-            std::vector<Node> asserts = assertions;
-            std::vector<Node> next;
+ private:
+  /** Utility method for addToConflictMap. Checks for n in d_conflictMap */
+  void insertOrigins(std::set<Node>& dest, const Node& n) const;
+  /** Add n -> { orig, *tracker } to the conflict map. The tracked nodes are
+   * first resolved using d_trackOrigin, and everything is run through
+   * insertOrigins to make sure that all origins are input assertions. */
+  void addToConflictMap(const Node& n,
+                        const Node& orig,
+                        const std::set<TNode>& tracker);
 
-            size_t last_size = 0;
-            while (asserts.size() != last_size)
-            {
-                last_size = asserts.size();
-                // collect all eliminations from original into d_substitutions
-                for (const auto& orig: asserts)
-                {
-                    if (orig.getKind() != Kind::EQUAL) continue;
-                    tracker.clear();
-                    d_substitutions->invalidateCache();
-                    Node o = d_substitutions->apply(orig, d_env.getRewriter(), &tracker);
-                    Trace("nl-eqs") << "Simplified for subst " << orig << " -> " << o << std::endl;
-                    if (o.getKind() != Kind::EQUAL) continue;
-                    Assert(o.getNumChildren() == 2);
-                    for (size_t i = 0; i < 2; ++i)
-                    {
-                        const auto& l = o[i];
-                        const auto& r = o[1-i];
-                        if (l.isConst()) continue;
-                        if (!Theory::isLeafOf(l, TheoryId::THEORY_ARITH)) continue;
-                        if (d_substitutions->hasSubstitution(l)) continue;
-                        if (expr::hasSubterm(r, l, true)) continue;
-                        Trace("nl-eqs") << "Found substitution " << l << " -> " << r << std::endl << " from " << o << " / " << orig << std::endl;
-                        d_substitutions->addSubstitution(l, r);
-                        d_trackOrigin.emplace(l, o);
-                        if (o != orig) {
-                            addToConflictMap(o, orig, tracker);
-                        }
-                        break;
-                    }
-                    // is o an elimination? Add to subs
-                }
-
-                // simplify with subs from original into next
-                next.clear();
-                for (const auto& a: asserts)
-                {
-                    tracker.clear();
-                    d_substitutions->invalidateCache();
-                    Node simp = d_substitutions->apply(a, d_env.getRewriter(), &tracker);
-                    if (simp.isConst())
-                    {
-                        if (simp.getConst<bool>())
-                        {
-                            continue;
-                        }
-                        Trace("nl-eqs") << "Simplified " << a << " to " << simp << std::endl;
-                        for (TNode t: tracker) {
-                            Trace("nl-eqs") << "Tracker has " << t << std::endl;
-                            auto toit = d_trackOrigin.find(t);
-                            Assert(toit != d_trackOrigin.end());
-                            d_conflict.emplace_back(toit->second);
-                        }
-                        d_conflict.emplace_back(a);
-                        postprocessConflict(d_conflict);
-                        Trace("nl-eqs") << "Direct conflict: " << d_conflict << std::endl;
-                        Trace("nl-eqs") << std::endl << d_conflict.size() << " vs " << std::distance(d_substitutions->begin(), d_substitutions->end()) << std::endl << std::endl;
-                        return {};
-                    }
-                    if (simp != a)
-                    {
-                        Trace("nl-eqs") << "Simplified " << a << " to " << simp << std::endl;
-                        addToConflictMap(simp, a, tracker);
-                    }
-                    next.emplace_back(simp);
-                }
-                asserts = std::move(next);
-            }
-            d_conflict.clear();
-            return asserts;
-        }
-        const SubstitutionMap& getSubstitutions() const {
-            return *d_substitutions;
-        }
-        bool hasConflict() const {
-            return !d_conflict.empty();
-        }
-        const std::vector<Node>& getConflict() const {
-            return d_conflict;
-        }
-        void postprocessConflict(std::vector<Node>& conflict) const {
-            Trace("nl-eqs") << "Postprocessing " << conflict << std::endl;
-            std::set<Node> result;
-            for (const auto& c: conflict)
-            {
-                auto it = d_conflictMap.find(c);
-                if (it == d_conflictMap.end())
-                {
-                    result.insert(c);
-                }
-                else {
-                    Trace("nl-eqs") << "Origin of " << c << ": " << it->second << std::endl;
-                    result.insert(it->second.begin(), it->second.end());
-                }
-            }
-            conflict.clear();
-            conflict.insert(conflict.end(), result.begin(), result.end());
-            Trace("nl-eqs") << "-> " << conflict << std::endl;
-        }
-    private:
-        // The SubstitutionMap
-        std::unique_ptr<SubstitutionMap> d_substitutions;
-        // conflicting assertions, if a conflict was found
-        std::vector<Node> d_conflict;
-        // Maps a simplified assertion to the original assertion + set of original assertions used for substitutions
-        std::map<Node, std::vector<Node>> d_conflictMap;
-        // Maps substituted terms (what will end up in the tracker) to the equality from which the substitution was derived.
-        std::map<Node,Node> d_trackOrigin;
-}; 
-
+  // The SubstitutionMap
+  std::unique_ptr<SubstitutionMap> d_substitutions;
+  // conflicting assertions, if a conflict was found
+  std::vector<Node> d_conflict;
+  // Maps a simplified assertion to the original assertion + set of original
+  // assertions used for substitutions
+  std::map<Node, std::vector<Node>> d_conflictMap;
+  // Maps substituted terms (what will end up in the tracker) to the equality
+  // from which the substitution was derived.
+  std::map<Node, Node> d_trackOrigin;
+};
 
 }  // namespace nl
 }  // namespace arith
