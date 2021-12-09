@@ -15,7 +15,7 @@ from fractions import Fraction
 import pytest
 
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 
 
 def testGetBool():
@@ -54,9 +54,9 @@ def testGetArray():
     solver = pycvc5.Solver()
     arrsort = solver.mkArraySort(solver.getRealSort(), solver.getRealSort())
     zero_array = solver.mkConstArray(arrsort, solver.mkInteger(0))
-    stores = solver.mkTerm(kinds.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(2), solver.mkInteger(3))
-    stores = solver.mkTerm(kinds.Store, stores, solver.mkInteger(4), solver.mkInteger(5))
+    stores = solver.mkTerm(Kind.Store, zero_array, solver.mkInteger(1), solver.mkInteger(2))
+    stores = solver.mkTerm(Kind.Store, stores, solver.mkInteger(2), solver.mkInteger(3))
+    stores = solver.mkTerm(Kind.Store, stores, solver.mkInteger(4), solver.mkInteger(5))
 
     array_dict = stores.toPythonObj()
 
@@ -90,7 +90,7 @@ def testGetValueInt():
 
     intsort = solver.getIntegerSort()
     x = solver.mkConst(intsort, "x")
-    solver.assertFormula(solver.mkTerm(kinds.Equal, x, solver.mkInteger(6)))
+    solver.assertFormula(solver.mkTerm(Kind.Equal, x, solver.mkInteger(6)))
 
     r = solver.checkSat()
     assert r.isSat()
@@ -106,8 +106,8 @@ def testGetValueReal():
     realsort = solver.getRealSort()
     x = solver.mkConst(realsort, "x")
     y = solver.mkConst(realsort, "y")
-    solver.assertFormula(solver.mkTerm(kinds.Equal, x, solver.mkReal("6")))
-    solver.assertFormula(solver.mkTerm(kinds.Equal, y, solver.mkReal("8.33")))
+    solver.assertFormula(solver.mkTerm(Kind.Equal, x, solver.mkReal("6")))
+    solver.assertFormula(solver.mkTerm(Kind.Equal, y, solver.mkReal("8.33")))
 
     r = solver.checkSat()
     assert r.isSat()

@@ -11,6 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 
+import os
 import sys
 
 # add path to enable extensions
@@ -45,6 +46,7 @@ extensions = [
         'sphinxcontrib.bibtex',
         'sphinxcontrib.programoutput',
         'sphinx_tabs.tabs',
+        'autoenum',
         'examples',
         'include_build_file',
 ]
@@ -69,12 +71,20 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-html_theme_options = {}
+html_theme_options = {
+    'navigation_depth': 5
+}
 html_static_path = ['${CMAKE_CURRENT_SOURCE_DIR}/_static/']
 html_css_files = ['custom.css']
 html_show_sourcelink = False
 
 html_extra_path = []
+
+
+ex_patterns = {
+        '<examples>': '/../examples',
+        '<z3pycompat>': '/' + os.path.relpath('${CMAKE_BINARY_DIR}/deps/src/z3pycompat-EP', '${CMAKE_CURRENT_SOURCE_DIR}'),
+}
 
 # -- C++ / Breathe configuration ---------------------------------------------
 breathe_default_project = "cvc5"

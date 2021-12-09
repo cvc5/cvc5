@@ -124,7 +124,8 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
-    elements.push_back(tn.mkGroundTerm());
+    NodeManager* nm = NodeManager::currentNM();
+    elements.push_back(nm->mkGroundTerm(tn));
     return elements;
   }
   return *type_refs;
@@ -134,6 +135,7 @@ Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
   Node nn = d_env.getTopLevelSubstitutions().apply(n);
+  nn = rewrite(nn);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);

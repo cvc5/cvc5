@@ -8,15 +8,17 @@ cvc5 supports the theory of finite sets.
 The simplest way to get a sense of the syntax is to look at an example:
 
 .. api-examples::
-    ../../examples/api/cpp/sets.cpp
-    ../../examples/api/python/sets.py
-    ../../examples/api/smtlib/sets.smt2
+    <examples>/api/cpp/sets.cpp
+    <examples>/api/java/Sets.java
+    <examples>/api/python/sets.py
+    <examples>/api/smtlib/sets.smt2
 
 The source code of these examples is available at:
 
 * `SMT-LIB 2 language example <https://github.com/cvc5/cvc5/blob/master/examples/api/smtlib/sets.smt2>`__
 * `C++ API example <https://github.com/cvc5/cvc5/blob/master/examples/api/cpp/sets.cpp>`__
-* `Python API example <https://github.com/cvc5/cvc5/blob/master/examples/api/python/sets.cpp>`__
+* `Java API example <https://github.com/cvc5/cvc5/blob/master/examples/api/java/Sets.java>`__
+* `Python API example <https://github.com/cvc5/cvc5/blob/master/examples/api/python/sets.py>`__
 
 
 Below is a short summary of the sorts, constants, functions and
@@ -148,7 +150,7 @@ Finite Relations
 Example:
 
 .. api-examples::
-    ../../examples/api/smtlib/relations.smt2
+    <examples>/api/smtlib/relations.smt2
 
 For reference, below is a short summary of the sorts, constants, functions and
 predicates.

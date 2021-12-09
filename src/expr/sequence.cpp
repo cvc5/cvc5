@@ -371,13 +371,13 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s)
 
 size_t SequenceHashFunction::operator()(const Sequence& s) const
 {
-  size_t ret = 0;
+  uint64_t ret = fnv1a::offsetBasis;
   const std::vector<Node>& vec = s.getVec();
   for (const Node& n : vec)
   {
     ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(n));
   }
-  return ret;
+  return static_cast<size_t>(ret);
 }
 
 }  // namespace cvc5

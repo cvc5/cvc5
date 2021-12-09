@@ -1098,6 +1098,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_FROM_SET: return "bag.from_set";
   case kind::BAG_TO_SET: return "bag.to_set";
   case kind::BAG_MAP: return "bag.map";
+  case kind::BAG_FOLD: return "bag.fold";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1220,7 +1221,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.
-  tn.toStream(out, Language::LANG_SMTLIB_V2_6);
+  tn.toStream(out);
 }
 
 template <class T>

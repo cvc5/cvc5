@@ -19,7 +19,7 @@ jobs:
 
           - name: macos:production
             os: macos-11
-            config: production --auto-download --all-bindings --editline
+            config: production --auto-download --python-bindings --editline
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -110,3 +110,16 @@ jobs:
       with:
         binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5
         github-token: ${{ secrets.GITHUB_TOKEN }}
+
+
+  update-pr:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5' && github.event_name == 'push'
+    needs: build
+    steps:
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@v0.5.1
+        with:
+          token: ${{ secrets.ACTION_USER_TOKEN }}
+          base: 'master'
+          required_approval_count: 1

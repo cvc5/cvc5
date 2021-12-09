@@ -59,7 +59,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
-      d_eagerSolver(env, d_state, d_termReg, d_rewriter.getArithEntail()),
+      d_eagerSolver(env, d_state, d_termReg),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
       d_extTheory(env, d_extTheoryCb, d_im),
@@ -79,7 +79,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_rsolver(
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(options().strings.regExpElimAgg, d_pnm, userContext()),
-      d_stringsFmf(env, valuation, d_termReg)
+      d_stringsFmf(env, valuation, d_termReg),
+      d_strat(d_env)
 {
   d_termReg.finishInit(&d_im);
 
@@ -149,6 +150,9 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
+
+  // memberships are not relevant for model building
+  d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
 }
 
 std::string TheoryStrings::identify() const
@@ -723,9 +727,12 @@ void TheoryStrings::postCheck(Effort e)
 }
 
 bool TheoryStrings::needsCheckLastEffort() {
-  if (options().strings.stringGuessModel)
+  if (options().strings.stringModelBasedReduction)
   {
-    return d_esolver.hasExtendedFunctions();
+    bool hasExtf = d_esolver.hasExtendedFunctions();
+    Trace("strings-process")
+        << "needsCheckLastEffort: hasExtf = " << hasExtf << std::endl;
+    return hasExtf;
   }
   return false;
 }
@@ -1115,7 +1122,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
-    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(); break;
+    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(effort); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }

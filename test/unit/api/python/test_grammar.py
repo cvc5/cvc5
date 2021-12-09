@@ -16,7 +16,7 @@
 import pytest
 
 import pycvc5
-from pycvc5 import kinds, Term
+from pycvc5 import Term
 
 
 @pytest.fixture

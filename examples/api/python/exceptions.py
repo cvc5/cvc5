@@ -17,7 +17,7 @@
 ##
 
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 import sys
 
 

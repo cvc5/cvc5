@@ -728,7 +728,7 @@ struct ArithEntailConstantBoundUpperId
 typedef expr::Attribute<ArithEntailConstantBoundUpperId, Node>
     ArithEntailConstantBoundUpper;
 
-void ArithEntail::setConstantBoundCache(Node n, Node ret, bool isLower)
+void ArithEntail::setConstantBoundCache(TNode n, Node ret, bool isLower)
 {
   if (isLower)
   {
@@ -742,14 +742,15 @@ void ArithEntail::setConstantBoundCache(Node n, Node ret, bool isLower)
   }
 }
 
-Node ArithEntail::getConstantBoundCache(Node n, bool isLower)
+bool ArithEntail::getConstantBoundCache(TNode n, bool isLower, Node& c)
 {
   if (isLower)
   {
     ArithEntailConstantBoundLower acbl;
     if (n.hasAttribute(acbl))
     {
-      return n.getAttribute(acbl);
+      c = n.getAttribute(acbl);
+      return true;
     }
   }
   else
@@ -757,17 +758,18 @@ Node ArithEntail::getConstantBoundCache(Node n, bool isLower)
     ArithEntailConstantBoundUpper acbu;
     if (n.hasAttribute(acbu))
     {
-      return n.getAttribute(acbu);
+      c = n.getAttribute(acbu);
+      return true;
     }
   }
-  return Node::null();
+  return false;
 }
 
-Node ArithEntail::getConstantBound(Node a, bool isLower)
+Node ArithEntail::getConstantBound(TNode a, bool isLower)
 {
   Assert(d_rr->rewrite(a) == a);
-  Node ret = getConstantBoundCache(a, isLower);
-  if (!ret.isNull())
+  Node ret;
+  if (getConstantBoundCache(a, isLower, ret))
   {
     return ret;
   }
@@ -852,18 +854,19 @@ Node ArithEntail::getConstantBound(Node a, bool isLower)
   return ret;
 }
 
-Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
+Node ArithEntail::getConstantBoundLength(TNode s, bool isLower) const
 {
   Assert(s.getType().isStringLike());
-  Node ret = getConstantBoundCache(s, isLower);
-  if (!ret.isNull())
+  Node ret;
+  if (getConstantBoundCache(s, isLower, ret))
   {
     return ret;
   }
   NodeManager* nm = NodeManager::currentNM();
   if (s.isConst())
   {
-    ret = nm->mkConst(CONST_RATIONAL, Rational(Word::getLength(s)));
+    size_t len = Word::getLength(s);
+    ret = nm->mkConst(CONST_RATIONAL, Rational(len));
   }
   else if (s.getKind() == STRING_CONCAT)
   {
@@ -885,12 +888,12 @@ Node ArithEntail::getConstantBoundLength(Node s, bool isLower)
       Assert(b.getKind() == CONST_RATIONAL);
       sum = sum + b.getConst<Rational>();
     }
-    if (success)
+    if (success && (!isLower || sum.sgn() != 0))
     {
       ret = nm->mkConst(CONST_RATIONAL, sum);
     }
   }
-  else if (isLower)
+  if (ret.isNull() && isLower)
   {
     ret = d_zero;
   }

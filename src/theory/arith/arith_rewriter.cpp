@@ -166,6 +166,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   }else if(t.isVar()){
     return rewriteVariable(t);
   }else{
+    Trace("arith-rewriter") << "postRewriteTerm: " << t << std::endl;
     switch(t.getKind()){
     case kind::MINUS:
       return rewriteMinus(t, false);
@@ -213,29 +214,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       return RewriteResponse(REWRITE_DONE, t);
     case kind::TO_REAL:
     case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
-    case kind::TO_INTEGER:
-      if(t[0].isConst()) {
-        return RewriteResponse(
-            REWRITE_DONE,
-            NodeManager::currentNM()->mkConst(
-                CONST_RATIONAL, Rational(t[0].getConst<Rational>().floor())));
-      }
-      if(t[0].getType().isInteger()) {
-        return RewriteResponse(REWRITE_DONE, t[0]);
-      }
-      //Unimplemented() << "TO_INTEGER, nonconstant";
-      //return rewriteToInteger(t);
-      return RewriteResponse(REWRITE_DONE, t);
-    case kind::IS_INTEGER:
-      if(t[0].isConst()) {
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(t[0].getConst<Rational>().getDenominator() == 1));
-      }
-      if(t[0].getType().isInteger()) {
-        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
-      }
-      //Unimplemented() << "IS_INTEGER, nonconstant";
-      //return rewriteIsInteger(t);
-      return RewriteResponse(REWRITE_DONE, t);
+    case kind::TO_INTEGER:return rewriteExtIntegerOp(t);
     case kind::POW:
       {
         if(t[1].getKind() == kind::CONST_RATIONAL){
@@ -673,14 +652,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
 
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
   if(atom.getKind() == kind::IS_INTEGER) {
-    if(atom[0].isConst()) {
-      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(atom[0].getConst<Rational>().isIntegral()));
-    }
-    if(atom[0].getType().isInteger()) {
-      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
-    }
-    // not supported, but this isn't the right place to complain
-    return RewriteResponse(REWRITE_DONE, atom);
+    return rewriteExtIntegerOp(atom);
   } else if(atom.getKind() == kind::DIVISIBLE) {
     if(atom[0].isConst()) {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(bool((atom[0].getConst<Rational>() / atom.getOperator().getConst<Divisible>().k).isIntegral())));
@@ -848,6 +820,37 @@ RewriteResponse ArithRewriter::rewriteIntsDivMod(TNode t, bool pre)
       Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, t[0], t[1]);
       return returnRewrite(t, ret, Rewrite::DIV_TOTAL_BY_CONST);
     }
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t)
+{
+  Assert(t.getKind() == kind::TO_INTEGER || t.getKind() == kind::IS_INTEGER);
+  bool isPred = t.getKind() == kind::IS_INTEGER;
+  NodeManager* nm = NodeManager::currentNM();
+  if (t[0].isConst())
+  {
+    Node ret;
+    if (isPred)
+    {
+      ret = nm->mkConst(t[0].getConst<Rational>().isIntegral());
+    }
+    else
+    {
+      ret = nm->mkConstInt(Rational(t[0].getConst<Rational>().floor()));
+    }
+    return returnRewrite(t, ret, Rewrite::INT_EXT_CONST);
+  }
+  if (t[0].getType().isInteger())
+  {
+    Node ret = isPred ? nm->mkConst(true) : Node(t[0]);
+    return returnRewrite(t, ret, Rewrite::INT_EXT_INT);
+  }
+  if (t[0].getKind() == kind::PI)
+  {
+    Node ret = isPred ? nm->mkConst(false) : nm->mkConstReal(Rational(3));
+    return returnRewrite(t, ret, Rewrite::INT_EXT_PI);
   }
   return RewriteResponse(REWRITE_DONE, t);
 }

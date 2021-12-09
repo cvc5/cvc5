@@ -33,7 +33,6 @@
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
-#include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
@@ -386,7 +385,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
        || opts.smt.produceInterpols != options::ProduceInterpols::NONE
        || opts.smt.modelCoresMode != options::ModelCoresMode::NONE
        || opts.smt.blockModelsMode != options::BlockModelsMode::NONE
-       || opts.smt.produceProofs)
+       || opts.smt.produceProofs || isSygus(opts))
       && !opts.smt.produceAssertions)
   {
     verbose(1) << "SolverEngine: turning on produce-assertions to support "
@@ -1174,9 +1173,8 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
 bool SetDefaults::safeUnsatCores(const Options& opts) const
 {
   // whether we want to force safe unsat cores, i.e., if we are in the default
-  // ASSUMPTIONS mode or PP_ONLY, since other ones are experimental
-  return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS
-         || opts.smt.unsatCoresMode == options::UnsatCoresMode::PP_ONLY;
+  // ASSUMPTIONS mode, since other ones are experimental
+  return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
 bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
