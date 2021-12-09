@@ -141,12 +141,13 @@ class ArithEntail
    *     if and only if
    *   check( a, strict ) = true.
    */
-  Node getConstantBound(Node a, bool isLower = true);
+  Node getConstantBound(TNode a, bool isLower = true);
 
   /**
-   * get constant bound on the length of s.
+   * Get constant bound on the length of s, if it can be determined. This
+   * method will always worst case return 0 as a lower bound.
    */
-  Node getConstantBoundLength(Node s, bool isLower = true);
+  Node getConstantBoundLength(TNode s, bool isLower = true) const;
   /**
    * Given an inequality y1 + ... + yn >= x, removes operands yi s.t. the
    * original inequality still holds. Returns true if the original inequality
@@ -192,9 +193,12 @@ class ArithEntail
                               std::vector<Node>& approx,
                               bool isOverApprox = false);
   /** Set bound cache */
-  void setConstantBoundCache(Node n, Node ret, bool isLower);
-  /** Get bound cache */
-  Node getConstantBoundCache(Node n, bool isLower);
+  static void setConstantBoundCache(TNode n, Node ret, bool isLower);
+  /**
+   * Get bound cache, store in c and return true if the bound for n has been
+   * computed. Used for getConstantBound and getConstantBoundLength.
+   */
+  static bool getConstantBoundCache(TNode n, bool isLower, Node& c);
   /** The underlying rewriter */
   Rewriter* d_rr;
   /** Constant zero */

@@ -104,7 +104,6 @@ class TaylorGenerator
                                          NlModel& model);
 
  private:
-  NodeManager* d_nm;
   const Node d_taylor_real_fv;
 
   /**

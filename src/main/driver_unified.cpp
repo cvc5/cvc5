@@ -59,26 +59,6 @@ std::unique_ptr<cvc5::main::CommandExecutor> pExecutor;
 }  // namespace main
 }  // namespace cvc5
 
-    void printUsage(const api::DriverOptions& dopts, bool full)
-    {
-      std::stringstream ss;
-      ss << "usage: " << progName << " [options] [input-file]" << std::endl
-         << std::endl
-         << "Without an input file, or with `-', cvc5 reads from standard "
-            "input."
-         << std::endl
-         << std::endl
-         << "cvc5 options:" << std::endl;
-      if (full)
-      {
-        main::printUsage(ss.str(), dopts.out());
-      }
-      else
-      {
-        main::printShortUsage(ss.str(), dopts.out());
-      }
-    }
-
 int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 {
   // Initialize the signal handlers
@@ -92,15 +72,24 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<api::Solver>& solver)
 
   // Parse the options
   std::vector<string> filenames = main::parse(*solver, argc, argv, progName);
-
-  auto limit = install_time_limit(solver->getOptionInfo("tlimit").uintValue());
-
   if (solver->getOptionInfo("help").boolValue())
   {
-    printUsage(dopts, true);
+    main::printUsage(progName, dopts.out());
     exit(1);
   }
+  for (const auto& name : {"show-config",
+                           "copyright",
+                           "show-debug-tags",
+                           "show-trace-tags",
+                           "version"})
+  {
+    if (solver->getOptionInfo(name).boolValue())
+    {
+      std::exit(0);
+    }
+  }
 
+  auto limit = install_time_limit(solver->getOptionInfo("tlimit").uintValue());
   segvSpin = solver->getOptionInfo("segv-spin").boolValue();
 
   // If in competition mode, set output stream option to flush immediately

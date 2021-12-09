@@ -65,10 +65,10 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te, Env& env)
-    : d_inCheckSat(false),
+PropEngine::PropEngine(Env& env, TheoryEngine* te)
+    : EnvObj(env),
+      d_inCheckSat(false),
       d_theoryEngine(te),
-      d_env(env),
       d_skdm(new SkolemDefManager(d_env.getContext(), d_env.getUserContext())),
       d_theoryProxy(nullptr),
       d_satSolver(nullptr),
@@ -83,7 +83,7 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   ResourceManager* rm = d_env.getResourceManager();
 
-  options::DecisionMode dmode = options::decisionMode();
+  options::DecisionMode dmode = options().decision.decisionMode;
   if (dmode == options::DecisionMode::JUSTIFICATION
       || dmode == options::DecisionMode::STOPONLY)
   {
@@ -105,7 +105,7 @@ PropEngine::PropEngine(TheoryEngine* te, Env& env)
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first
   d_theoryProxy = new TheoryProxy(
-      this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get(), d_env);
+      d_env, this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get());
   d_cnfStream = new CnfStream(d_satSolver,
                               d_theoryProxy,
                               userContext,
@@ -214,7 +214,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
 
   // do final checks on the lemmas we are about to send
   if (isProofEnabled()
-      && options::proofCheck() == options::ProofCheckMode::EAGER)
+      && options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug
@@ -245,11 +245,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   Node node = trn.getNode();
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
-  Assert(
-      !isProofEnabled() || trn.getGenerator() != nullptr
-      || options::unsatCores()
-      || (options::unsatCores()
-          && options::unsatCoresMode() != options::UnsatCoresMode::FULL_PROOF));
+  Assert(!isProofEnabled() || trn.getGenerator() != nullptr
+         || options().smt.unsatCores);
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
 }
 
@@ -257,7 +254,7 @@ void PropEngine::assertInternal(
     TNode node, bool negated, bool removable, bool input, ProofGenerator* pg)
 {
   // Assert as (possibly) removable
-  if (options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
     if (input)
     {
@@ -378,7 +375,8 @@ Result PropEngine::checkSat() {
   // Note this currently ignores conflicts (a dangerous practice).
   d_theoryProxy->presolve();
 
-  if(options::preprocessOnly()) {
+  if (options().base.preprocessOnly)
+  {
     return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
   }
 
@@ -673,7 +671,7 @@ bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 void PropEngine::getUnsatCore(std::vector<Node>& core)
 {
-  Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
+  Assert(options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<SatLiteral> unsat_assumptions;
   d_satSolver->getUnsatAssumptions(unsat_assumptions);
   for (const SatLiteral& lit : unsat_assumptions)
@@ -684,7 +682,7 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
 
 std::shared_ptr<ProofNode> PropEngine::getRefutation()
 {
-  Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
+  Assert(options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<Node> core;
   getUnsatCore(core);
   CDProof cdp(d_env.getProofNodeManager());

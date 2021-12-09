@@ -56,7 +56,7 @@ InstStrategyCegqi::InstStrategyCegqi(Env& env,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(userContext()),
-      d_vtsCache(new VtsTermCache(qim)),
+      d_vtsCache(new VtsTermCache(env, qim)),
       d_bv_invert(nullptr),
       d_small_const_multiplier(NodeManager::currentNM()->mkConst(
           CONST_RATIONAL, Rational(1) / Rational(1000000))),

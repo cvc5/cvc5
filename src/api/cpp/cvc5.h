@@ -639,6 +639,9 @@ class CVC5_EXPORT Sort
 
   /**
    * @return the codomain sort of a tester sort, which is the Boolean sort
+   *
+   * @note We mainly need this for the symbol table, which doesn't have
+   *       access to the solver object.
    */
   Sort getTesterCodomainSort() const;
 
@@ -743,7 +746,14 @@ class CVC5_EXPORT Sort
   /* Datatype sort ------------------------------------------------------- */
 
   /**
-   * @return the parameter sorts of a datatype sort
+   *
+   * Return the parameters of a parametric datatype sort. If this sort is a
+   * non-instantiated parametric datatype, this returns the parameter sorts of
+   * the underlying datatype. If this sort is an instantiated parametric
+   * datatype, then this returns the sort parameters that were used to
+   * construct the sort via ``Sort::instantiate``.
+   *
+   * @return the parameter sorts of a parametric datatype sort.
    */
   std::vector<Sort> getDatatypeParamSorts() const;
 
@@ -1724,6 +1734,12 @@ class CVC5_EXPORT DatatypeConstructorDecl
    * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
+
+  /**
+   * Is the underlying constructor resolved (i.e. has it been used to declare
+   * a datatype already)?
+   */
+  bool isResolved() const;
 
   /**
    * The associated solver object.
