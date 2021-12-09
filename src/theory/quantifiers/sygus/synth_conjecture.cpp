@@ -748,7 +748,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values)
   // blocking clause, so that we proceed to the next solution. We do this only
   // for passively-generated enumerators (TermDbSygus::isPassiveEnumerator).
   std::vector<Node> exp;
-  for (unsigned i = 0, tsize = d_candidates.size(); i < tsize; i++)
+  for (size_t i = 0, tsize = d_candidates.size(); i < tsize; i++)
   {
     Node cprog = d_candidates[i];
     Assert(d_tds->isEnumerator(cprog));
@@ -957,7 +957,12 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     return true;
   }
   d_computedSolution = true;
-  std::vector<Node> svals = d_solutionValues.back();
+  // get the (SyGuS datatype) values of the solutions, if they exist
+  std::vector<Node> svals;
+  if (!d_solutionValues.empty())
+  {
+    svals = d_solutionValues.back();
+  }
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node prog = d_embed_quant[0][i];
