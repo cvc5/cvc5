@@ -59,7 +59,9 @@ class Rewriter;
 class ProofNodeManager
 {
  public:
-  ProofNodeManager(const Options& opts, theory::Rewriter* rr, ProofChecker* pc = nullptr);
+  ProofNodeManager(const Options& opts,
+                   theory::Rewriter* rr,
+                   ProofChecker* pc = nullptr);
   ~ProofNodeManager() {}
   /**
    * This constructs a ProofNode with the given arguments. The expected

@@ -41,7 +41,8 @@ PfManager::PfManager(Env& env)
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
           options().proof.proofPedantic)),
-      d_pnm(new ProofNodeManager(env.getOptions(), env.getRewriter(), d_pchecker.get())),
+      d_pnm(new ProofNodeManager(
+          env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
       d_pfpp(nullptr),

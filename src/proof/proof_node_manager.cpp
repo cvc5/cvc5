@@ -28,7 +28,9 @@ using namespace cvc5::kind;
 
 namespace cvc5 {
 
-ProofNodeManager::ProofNodeManager(const Options& opts, theory::Rewriter* rr, ProofChecker* pc)
+ProofNodeManager::ProofNodeManager(const Options& opts,
+                                   theory::Rewriter* rr,
+                                   ProofChecker* pc)
     : d_opts(opts), d_rewriter(rr), d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
