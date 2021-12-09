@@ -166,7 +166,7 @@ bool RelevanceManager::isBooleanConnective(TNode cur)
          || (k == EQUAL && cur[0].getType().isBoolean());
 }
 
-bool RelevanceManager::updateJustifyLastChild(RlvPair cur,
+bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
                                               std::vector<int>& childrenJustify)
 {
   // This method is run when we are informed that child index of cur
@@ -183,7 +183,7 @@ bool RelevanceManager::updateJustifyLastChild(RlvPair cur,
   RlvPair cp(cur.first[index],
              d_ptctx.computeValue(cur.first, cur.second, index));
   Assert(d_jcache.find(cp) != d_jcache.end());
-  int lastChildJustify = d_jcache[cp];
+  uint64_t lastChildJustify = d_jcache[cp];
   if (k == NOT)
   {
     d_jcache[cur] = -lastChildJustify;
