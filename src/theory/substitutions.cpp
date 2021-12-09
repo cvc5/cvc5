@@ -71,7 +71,10 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache, std::set<TNo
       Node rhs = (*find2).second;
       Assert(rhs != current);
       internalSubstitute(rhs, cache, tracker);
-      d_substitutions[current] = cache[rhs];
+      if (tracker == nullptr)
+      {
+        d_substitutions[current] = cache[rhs];
+      }
       cache[current] = cache[rhs];
       toVisit.pop_back();
       if (tracker != nullptr)
