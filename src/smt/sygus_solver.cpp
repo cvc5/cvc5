@@ -194,11 +194,6 @@ Result SygusSolver::checkSynth(Assertions& as)
     // the subsolver.
     d_sygusConjectureStale = true;
   }
-  // TODO (project #7): we currently must always rebuild the synthesis
-  // conjecture + subsolver, since it answers unsat. When the subsolver is
-  // updated to treat "sat" as solution for synthesis conjecture, this line
-  // will be deleted.
-  d_sygusConjectureStale = true;
   if (d_sygusConjectureStale)
   {
     NodeManager* nm = NodeManager::currentNM();
