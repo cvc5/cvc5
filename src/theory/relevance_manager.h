@@ -174,7 +174,8 @@ class RelevanceManager : protected EnvObj
    * @return True if we wish to visit the next child. If this is the case, then
    * the justify value of the current child is added to childrenJustify.
    */
-  bool updateJustifyLastChild(const RlvPair& cur, std::vector<int>& childrenJustify);
+  bool updateJustifyLastChild(const RlvPair& cur,
+                              std::vector<int>& childrenJustify);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
