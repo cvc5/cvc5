@@ -207,6 +207,11 @@ class SynthConjecture : protected EnvObj
    */
   std::vector<Node> d_sol;
   std::vector<int8_t> d_solStatus;
+  /** 
+   * (SyGuS datatype) values for solutions, which is populated if we have a
+   * solution and only if we are not using the single invocation solver.
+   */
+  std::vector< std::vector<Node> > d_solutionValues;
   /** the decision strategy for the feasible guard */
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */
@@ -293,8 +298,6 @@ class SynthConjecture : protected EnvObj
   Node d_simp_quant;
   /** (negated) conjecture after simplification, conversion to deep embedding */
   Node d_embed_quant;
-  /** candidate information */
-  std::vector< std::vector<Node> > d_solutionValues;
   /**
    * The first index of an instantiation in CandidateInfo::d_inst that we have
    * not yet tried to repair.
