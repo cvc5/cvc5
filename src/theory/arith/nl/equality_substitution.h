@@ -115,7 +115,6 @@ class EqualitySubstitution: protected EnvObj
                     tracker.clear();
                     d_substitutions->invalidateCache();
                     Node simp = d_substitutions->apply(a, d_env.getRewriter(), &tracker);
-                    Trace("nl-eqs") << "Simplifying " << a << " -> " << simp << std::endl;
                     if (simp.isConst())
                     {
                         if (simp.getConst<bool>())
@@ -137,6 +136,7 @@ class EqualitySubstitution: protected EnvObj
                     }
                     if (simp != a)
                     {
+                        Trace("nl-eqs") << "Simplified " << a << " to " << simp << std::endl;
                         addToConflictMap(simp, a, tracker);
                     }
                     next.emplace_back(simp);
