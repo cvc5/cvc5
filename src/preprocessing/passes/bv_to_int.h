@@ -13,8 +13,8 @@
  **/
 
 
-#ifndef __cvc5__PREPROCESSING__PASSES__BV_TO_INT_H
-#define __cvc5__PREPROCESSING__PASSES__BV_TO_INT_H
+#ifndef __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H
+#define __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H
 
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
@@ -52,4 +52,4 @@ class BVToInt : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace cvc5
 
-#endif /* __cvc5__PREPROCESSING__PASSES__BV_TO_INT_H */
+#endif /* __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H */
