@@ -235,7 +235,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       }
       else if (current.isConst())
       {
-        if (current.getType().isRealOrInt())
+        if (current.getType().isInteger())
         {
           Rational constant = current.getConst<Rational>();
           if (constant.isIntegral())

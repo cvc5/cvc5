@@ -31,7 +31,7 @@ namespace {
 
 /** Shorthand to create a Node from a constant number */
 template <typename T>
-Node mkRat(T val)
+Node mkInt(T val)
 {
   return NodeManager::currentNM()->mkConstInt(Rational(val));
 }
