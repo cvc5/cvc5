@@ -38,10 +38,12 @@ class BVToInt : public PreprocessingPass
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
 
+  // Add the lemmas in `additionalConstraints` to the assertions pipeline.
   void addFinalizeAssertions(AssertionPipeline* assertionsToPreprocess,
                              const std::vector<Node>& additionalConstraints);
+
+  // include the skolem map as substitutions
   void addSkolemDefinitions(const std::map<Node, Node>& skolems);
-  void defineBVUFAsIntUF(Node bvUF, Node intUF);
 
   IntBlaster d_intBlaster;
 };
