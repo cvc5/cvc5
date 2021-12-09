@@ -580,7 +580,8 @@ TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
   Sort listInt = dtsorts[0].instantiate(iargs);
 
   std::vector<Sort> liparams = listInt.getDatatype().getParameters();
-  ASSERT_TRUE(liparams.size() == 1 && liparams[0] == isort);
+  // the parameter of the datatype is not instantiated
+  ASSERT_TRUE(liparams.size() == 1 && liparams[0] == x);
 
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
