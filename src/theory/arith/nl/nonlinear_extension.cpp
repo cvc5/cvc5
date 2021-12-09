@@ -122,7 +122,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   }
   Valuation v = d_containing.getValuation();
 
-  BoundInference bounds;
+  BoundInference bounds(d_env);
 
   std::unordered_set<Node> init_assertions;
 
