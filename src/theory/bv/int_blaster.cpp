@@ -1017,7 +1017,7 @@ Node IntBlaster::createBVAndNode(Node x,
   {
     Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
     // Enforce semantics over individual bits with iextract and ites
-    uint64_t granularity = options::BVAndIntegerGranularity();
+    uint64_t granularity = options().smt.BVAndIntegerGranularity;
 
     Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
     Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);

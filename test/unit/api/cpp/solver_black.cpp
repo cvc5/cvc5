@@ -2671,5 +2671,84 @@ TEST_F(TestApiBlackSolver, doubleUseCons)
                CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, proj_issue378)
+{
+  DatatypeDecl dtdecl;
+  DatatypeConstructorDecl cdecl;
+
+  Sort s1 = d_solver.getBooleanSort();
+
+  dtdecl = d_solver.mkDatatypeDecl("_x0");
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x6");
+  cdecl.addSelector("_x1", s1);
+  dtdecl.addConstructor(cdecl);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+
+  dtdecl = d_solver.mkDatatypeDecl("_x36");
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x42");
+  cdecl.addSelector("_x37", s1);
+  dtdecl.addConstructor(cdecl);
+  Sort s4 = d_solver.mkDatatypeSort(dtdecl);
+
+  Term t1 = d_solver.mkConst(s1, "_x53");
+  Term t4 = d_solver.mkConst(s4, "_x56");
+  Term t7 = d_solver.mkConst(s2, "_x58");
+
+  Sort sp = d_solver.mkParamSort("_x178");
+  dtdecl = d_solver.mkDatatypeDecl("_x176", sp);
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x184");
+  cdecl.addSelector("_x180", s2);
+  dtdecl.addConstructor(cdecl);
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x186");
+  cdecl.addSelector("_x185", sp);
+  dtdecl.addConstructor(cdecl);
+  Sort s7 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s9 = s7.instantiate({s2});
+  Term t1507 = d_solver.mkTerm(
+      APPLY_CONSTRUCTOR, s9.getDatatype().getConstructorTerm("_x184"), t7);
+  ASSERT_NO_THROW(d_solver.mkTerm(
+      APPLY_UPDATER,
+      s9.getDatatype().getConstructor("_x186").getSelectorTerm("_x185"),
+      t1507,
+      t7));
+}
+
+TEST_F(TestApiBlackSolver, proj_issue379)
+{
+  Sort bsort = d_solver.getBooleanSort();
+  Sort psort = d_solver.mkParamSort("_x1");
+  DatatypeConstructorDecl cdecl;
+  DatatypeDecl dtdecl = d_solver.mkDatatypeDecl("x_0", psort);
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x8");
+  cdecl.addSelector("_x7", bsort);
+  dtdecl.addConstructor(cdecl);
+  cdecl = d_solver.mkDatatypeConstructorDecl("_x6");
+  cdecl.addSelector("_x2", psort);
+  cdecl.addSelectorSelf("_x3");
+  cdecl.addSelector("_x4", psort);
+  cdecl.addSelector("_x5", bsort);
+  Sort s2 = d_solver.mkDatatypeSort(dtdecl);
+  Sort s6 = s2.instantiate({bsort});
+  Term t317 = d_solver.mkConst(bsort, "_x345");
+  Term t843 = d_solver.mkConst(s6, "_x346");
+  Term t879 = d_solver.mkTerm(APPLY_UPDATER,
+                              t843.getSort()
+                                  .getDatatype()
+                                  .getConstructor("_x8")
+                                  .getSelector("_x7")
+                                  .getUpdaterTerm(),
+                              t843,
+                              t317);
+  ASSERT_EQ(t879.getSort(), s6);
+}
+
+TEST_F(TestApiBlackSolver, getDatatypeArity)
+{
+  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
+  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
+  Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
+  ASSERT_EQ(s3.getDatatypeArity(), 0);
+}
+
 }  // namespace test
 }  // namespace cvc5

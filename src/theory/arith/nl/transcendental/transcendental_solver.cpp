@@ -41,11 +41,11 @@ TranscendentalSolver::TranscendentalSolver(Env& env,
                                            InferenceManager& im,
                                            NlModel& m)
     : EnvObj(env),
-      d_tstate(im, m, env),
+      d_tstate(env, im, m),
       d_expSlv(env, &d_tstate),
       d_sineSlv(env, &d_tstate)
 {
-  d_taylor_degree = d_tstate.d_env.getOptions().arith.nlExtTfTaylorDegree;
+  d_taylor_degree = options().arith.nlExtTfTaylorDegree;
 }
 
 TranscendentalSolver::~TranscendentalSolver() {}
@@ -187,7 +187,7 @@ void TranscendentalSolver::processSideEffect(const NlLemma& se)
     auto it = secant_points.find(d);
     if (it == secant_points.end())
     {
-      it = secant_points.emplace(d, d_tstate.d_env.getUserContext()).first;
+      it = secant_points.emplace(d, userContext()).first;
     }
     it->second.push_back(c);
   }
