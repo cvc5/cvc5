@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/term_context_stack.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 
@@ -123,7 +124,7 @@ void RelevanceManager::computeRelevance()
   for (const Node& node: d_input)
   {
     TNode n = node;
-    int val = justify(n);
+    int32_t val = justify(n);
     if (val != 1)
     {
       // if we are in full effort check and fail to justify, then we should
@@ -165,22 +166,24 @@ bool RelevanceManager::isBooleanConnective(TNode cur)
          || (k == EQUAL && cur[0].getType().isBoolean());
 }
 
-bool RelevanceManager::updateJustifyLastChild(TNode cur,
-                                              std::vector<int>& childrenJustify)
+bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
+                                              std::vector<int32_t>& childrenJustify)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
   // compute the next child, in this case we push the status of the current
   // child to childrenJustify.
-  size_t nchildren = cur.getNumChildren();
-  Assert(isBooleanConnective(cur));
+  size_t nchildren = cur.first.getNumChildren();
+  Assert(isBooleanConnective(cur.first));
   size_t index = childrenJustify.size();
   Assert(index < nchildren);
-  Assert(d_jcache.find(cur[index]) != d_jcache.end());
-  Kind k = cur.getKind();
+  Kind k = cur.first.getKind();
   // Lookup the last child's value in the overall cache, we may choose to
   // add this to childrenJustify if we return true.
-  int lastChildJustify = d_jcache[cur[index]];
+  RlvPair cp(cur.first[index],
+             d_ptctx.computeValue(cur.first, cur.second, index));
+  Assert(d_jcache.find(cp) != d_jcache.end());
+  int32_t lastChildJustify = d_jcache[cp];
   if (k == NOT)
   {
     d_jcache[cur] = -lastChildJustify;
@@ -269,30 +272,32 @@ bool RelevanceManager::updateJustifyLastChild(TNode cur,
   return false;
 }
 
-int RelevanceManager::justify(TNode n)
+int32_t RelevanceManager::justify(TNode n)
 {
   // The set of nodes that we have computed currently have no value. Those
   // that are marked as having no value in d_jcache must be recomputed, since
   // the values for SAT literals may have changed.
-  std::unordered_set<Node> noJustify;
+  std::unordered_set<RlvPair, RlvPairHashFunction> noJustify;
   // the vector of values of children
-  std::unordered_map<TNode, std::vector<int>> childJustify;
-  NodeUIntMap::iterator it;
-  std::unordered_map<TNode, std::vector<int>>::iterator itc;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
+  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>
+      childJustify;
+  RlvPairIntMap::iterator it;
+  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>::iterator
+      itc;
+  RlvPair cur;
+  TCtxStack visit(&d_ptctx);
+  visit.pushInitial(n);
   do
   {
-    cur = visit.back();
+    cur = visit.getCurrent();
     // should always have Boolean type
-    Assert(cur.getType().isBoolean());
+    Assert(cur.first.getType().isBoolean());
     it = d_jcache.find(cur);
     if (it != d_jcache.end())
     {
       if (it->second != 0 || noJustify.find(cur) != noJustify.end())
       {
-        visit.pop_back();
+        visit.pop();
         // already computed value
         continue;
       }
@@ -302,30 +307,37 @@ int RelevanceManager::justify(TNode n)
     if (itc == childJustify.end())
     {
       // are we not a Boolean connective (including NOT)?
-      if (isBooleanConnective(cur))
+      if (isBooleanConnective(cur.first))
       {
         // initialize its children justify vector as empty
         childJustify[cur].clear();
         // start with the first child
-        visit.push_back(cur[0]);
+        visit.pushChild(cur.first, cur.second, 0);
       }
       else
       {
-        visit.pop_back();
+        visit.pop();
         // The atom case, lookup the value in the valuation class to
         // see its current value in the SAT solver, if it has one.
         int ret = 0;
         // otherwise we look up the value
         bool value;
-        if (d_val.hasSatValue(cur, value))
+        if (d_val.hasSatValue(cur.first, value))
         {
           ret = value ? 1 : -1;
-          d_rset.insert(cur);
-          if (d_trackRSetExp)
+          bool hasPol, pol;
+          PolarityTermContext::getFlags(cur.second, hasPol, pol);
+          // relevant if weakly matches polarity
+          if (!hasPol || pol == value)
           {
-            d_rsetExp[cur] = n;
-            Trace("rel-manager-exp")
-                << "Reason for " << cur << " is " << n << std::endl;
+            d_rset.insert(cur.first);
+            if (d_trackRSetExp)
+            {
+              d_rsetExp[cur.first] = n;
+              Trace("rel-manager-exp")
+                  << "Reason for " << cur.first << " is " << n
+                  << ", polarity is " << hasPol << "/" << pol << std::endl;
+            }
           }
         }
         d_jcache[cur] = ret;
@@ -341,13 +353,12 @@ int RelevanceManager::justify(TNode n)
       // and possibly requests that a new child is computed.
       if (updateJustifyLastChild(cur, itc->second))
       {
-        Assert(itc->second.size() < cur.getNumChildren());
-        TNode nextChild = cur[itc->second.size()];
-        visit.push_back(nextChild);
+        Assert(itc->second.size() < cur.first.getNumChildren());
+        visit.pushChild(cur.first, cur.second, itc->second.size());
       }
       else
       {
-        visit.pop_back();
+        visit.pop();
         Assert(d_jcache.find(cur) != d_jcache.end());
         if (d_jcache[cur] == 0)
         {
@@ -356,8 +367,9 @@ int RelevanceManager::justify(TNode n)
       }
     }
   } while (!visit.empty());
-  Assert(d_jcache.find(n) != d_jcache.end());
-  return d_jcache[n];
+  RlvPair ci(n, d_ptctx.initialValue());
+  Assert(d_jcache.find(ci) != d_jcache.end());
+  return d_jcache[ci];
 }
 
 bool RelevanceManager::isRelevant(Node lit)
