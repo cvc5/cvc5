@@ -376,14 +376,6 @@ name   = "SMT Layer"
   help       = "Cross-theory rewrites"
 
 [[option]]
-  name       = "bvToIntFreshVars"
-  category   = "regular"
-  long       = "bv-to-int-fresh-vars"
-  type       = "bool"
-  default    = "true"
-  help       = "introduce fresh integer variables for BV variables, rather than using bv2nat operator"
-
-[[option]]
   name       = "solveBVAsInt"
   category   = "undocumented"
   long       = "solve-bv-as-int=MODE"
