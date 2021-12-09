@@ -132,7 +132,7 @@ name   = "Proof"
   long       = "proof-annotate"
   type       = "bool"
   default    = "false"
-  help       = "add optional annotations to proofs"
+  help       = "add optional annotations to proofs, which enables statistics for inference ids for lemmas and conflicts appearing in final proof"
 
 [[option]]
   name       = "optResReconSize"

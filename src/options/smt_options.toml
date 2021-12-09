@@ -395,6 +395,9 @@ name   = "SMT Layer"
 [[option.mode.BV]]
   name = "bv"
   help = "Translate bvand back to bit-vectors"
+[[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "Introduce a UF operator for bvand, and eagerly add bitwise lemmas"
 
 [[option]]
   name       = "BVAndIntegerGranularity"

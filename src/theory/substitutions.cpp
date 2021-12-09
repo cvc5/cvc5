@@ -184,8 +184,8 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-Node SubstitutionMap::apply(TNode t, bool doRewrite) {
-
+Node SubstitutionMap::apply(TNode t, Rewriter* r)
+{
   Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
   // Setup the cache
@@ -199,9 +199,9 @@ Node SubstitutionMap::apply(TNode t, bool doRewrite) {
   Node result = internalSubstitute(t, d_substitutionCache);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
-  if (doRewrite)
+  if (r != nullptr)
   {
-    result = Rewriter::rewrite(result);
+    result = r->rewrite(result);
   }
 
   return result;

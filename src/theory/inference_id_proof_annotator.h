@@ -37,7 +37,16 @@ class InferenceIdProofAnnotator : public Annotator
   InferenceIdProofAnnotator(ProofNodeManager* pnm, context::Context* c);
   /** Set annotation, that formula f should be annotated by id */
   void setAnnotation(Node f, InferenceId id);
-  /** Annotate the proof node with the appropriate inference ID. */
+  /**
+   * Annotate the proof node with the appropriate inference ID. Given proof
+   * P proving F that was generated as a lemma with inference id `i`, this
+   * returns (ANNOTATION (ANNOTATION P : args i)). The outer ANNOTATION is
+   * used since commonly a proof node is "linked" into another, where its
+   * children and rule are copied into another. Using ANNOTATION (with no
+   * arguments) ensures the top-most ANNOTATION may be linked/copied
+   * multiple times; however its child (which counts `i`) will only appear
+   * once in the final proof.
+   */
   std::shared_ptr<ProofNode> annotate(std::shared_ptr<ProofNode> p) override;
 
  private:

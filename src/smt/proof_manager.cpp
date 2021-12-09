@@ -247,20 +247,14 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   std::map<Node, Node> dmapp = dmap;
   dmap.clear();
   std::vector<Node> ppAsserts;
-  std::vector<Node> asserts;
-  getAssertions(as, asserts);
   for (const std::pair<const Node, Node>& ppa : dmapp)
   {
     Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
                         << ppa.first << std::endl;
-    // Ensure that only input assertions are marked as having a difficulty.
-    // In some cases, a lemma may be marked as having a difficulty
-    // internally, e.g. for lemmas that require justification, which we should
-    // skip or otherwise we end up with an open proof below.
-    if (std::find(asserts.begin(), asserts.end(), ppa.first) != asserts.end())
-    {
-      ppAsserts.push_back(ppa.first);
-    }
+    // The difficulty manager should only report difficulty for preprocessed
+    // assertions, or we will get an open proof below. This is ensured
+    // internally by the difficuly manager.
+    ppAsserts.push_back(ppa.first);
   }
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty

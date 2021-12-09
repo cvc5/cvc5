@@ -21,7 +21,7 @@ import argparse
 import os
 import sys
 import re
-
+import textwrap
 
 
 # get access to cvc5/src/api/parsekinds.py
@@ -110,11 +110,7 @@ CPP_JAVA_MAPPING = \
 def format_comment(comment):
     for pattern, replacement in CPP_JAVA_MAPPING.items():
         comment = re.sub(pattern, replacement, comment)
-    java_comment = "\n  /**"
-    for line in comment.split("\n"):
-        java_comment += "\n   * " + line
-    java_comment = "  " + java_comment.strip() + "/"
-    return java_comment
+    return """  /**\n{}\n   */""".format(textwrap.indent(comment, '   * '))
 
 
 # Files generation

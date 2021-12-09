@@ -18,7 +18,7 @@
 
 import utils
 import pycvc5
-from pycvc5 import kinds
+from pycvc5 import Kind
 
 if __name__ == "__main__":
   slv = pycvc5.Solver()
@@ -42,15 +42,15 @@ if __name__ == "__main__":
   xp = slv.mkVar(integer, "xp")
 
   # (ite (< x 10) (= xp (+ x 1)) (= xp x))
-  ite = slv.mkTerm(kinds.Ite,
-                        slv.mkTerm(kinds.Lt, x, ten),
-                        slv.mkTerm(kinds.Equal, xp, slv.mkTerm(kinds.Plus, x, one)),
-                        slv.mkTerm(kinds.Equal, xp, x))
+  ite = slv.mkTerm(Kind.Ite,
+                        slv.mkTerm(Kind.Lt, x, ten),
+                        slv.mkTerm(Kind.Equal, xp, slv.mkTerm(Kind.Plus, x, one)),
+                        slv.mkTerm(Kind.Equal, xp, x))
 
   # define the pre-conditions, transition relations, and post-conditions
-  pre_f = slv.defineFun("pre-f", [x], boolean, slv.mkTerm(kinds.Equal, x, zero))
+  pre_f = slv.defineFun("pre-f", [x], boolean, slv.mkTerm(Kind.Equal, x, zero))
   trans_f = slv.defineFun("trans-f", [x, xp], boolean, ite)
-  post_f = slv.defineFun("post-f", [x], boolean, slv.mkTerm(kinds.Leq, x, ten))
+  post_f = slv.defineFun("post-f", [x], boolean, slv.mkTerm(Kind.Leq, x, ten))
 
   # declare the invariant-to-synthesize
   inv_f = slv.synthInv("inv-f", {x})

@@ -27,14 +27,17 @@ namespace cvc5 {
 
 class ProofNodeManager;
 
-/** Base class for annotations */
+/**
+ * Base class for annotators. An annotator is a utility that implements a
+ * simple transformation on proofs: `annotate` below.
+ */
 class Annotator
 {
  public:
   Annotator() {}
   virtual ~Annotator() {}
   /**
-   * Annotate the proof node. This must return a proof node that returns the
+   * Annotate the proof node. This must return a proof node that concludes the
    * same thing as p.
    */
   virtual std::shared_ptr<ProofNode> annotate(std::shared_ptr<ProofNode> p) = 0;
@@ -62,7 +65,7 @@ class AnnotationProofGenerator : public ProofGenerator
   /**
    * Set explanation for fact f, called when pg has a proof for f.
    *
-   * @param f The fact proven by pf,
+   * @param f The fact proven by pg,
    * @param pg The proof generator that can prove f.
    * @param a The annotator that will annotate the proof of f, if necessary.
    */
@@ -82,12 +85,13 @@ class AnnotationProofGenerator : public ProofGenerator
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /**
-   * A user-context-dependent map from formulas to a generator + annotation
+   * A context-dependent map from formulas to a generator + annotation
    * pair, which will be used to generate the proof of formulas if asked.
+   * We use the context provided to this class or otherwise d_context above.
    */
   NodeExpMap d_exps;
   /**
-   * A user-context-dependent map from formulas to the proof nodes we have
+   * A context-dependent map from formulas to the proof nodes we have
    * returned in calls to getProofFor.
    */
   NodeProofNodeMap d_proofs;

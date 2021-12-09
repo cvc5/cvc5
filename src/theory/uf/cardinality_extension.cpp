@@ -465,11 +465,13 @@ std::string SortModel::CardinalityDecisionStrategy::identify() const
   return std::string("uf_card");
 }
 
-SortModel::SortModel(TypeNode tn,
+SortModel::SortModel(Env& env,
+                     TypeNode tn,
                      TheoryState& state,
                      TheoryInferenceManager& im,
                      CardinalityExtension* thss)
-    : d_type(tn),
+    : EnvObj(env),
+      d_type(tn),
       d_state(state),
       d_im(im),
       d_thss(thss),
@@ -484,8 +486,7 @@ SortModel::SortModel(TypeNode tn,
       d_initialized(thss->userContext(), false),
       d_c_dec_strat(nullptr)
 {
-
-  if (options::ufssMode() == options::UfssMode::FULL)
+  if (options().uf.ufssMode == options::UfssMode::FULL)
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
@@ -672,7 +673,7 @@ bool SortModel::areDisequal( Node a, Node b ) {
 
 void SortModel::check(Theory::Effort level)
 {
-  Assert(options::ufssMode() == options::UfssMode::FULL);
+  Assert(options().uf.ufssMode == options::UfssMode::FULL);
   if (!d_hasCard && d_state.isInConflict())
   {
     // not necessary to check
@@ -885,11 +886,11 @@ void SortModel::assertCardinality(uint32_t c, bool val)
         }
       }
       // we assert it positively, if its beyond the bound, abort
-      if (options::ufssAbortCardinality() >= 0
-          && c >= static_cast<uint32_t>(options::ufssAbortCardinality()))
+      if (options().uf.ufssAbortCardinality >= 0
+          && c >= static_cast<uint32_t>(options().uf.ufssAbortCardinality))
       {
         std::stringstream ss;
-        ss << "Maximum cardinality (" << options::ufssAbortCardinality()
+        ss << "Maximum cardinality (" << options().uf.ufssAbortCardinality
            << ")  for finite model finding exceeded." << std::endl;
         throw LogicException(ss.str());
       }
@@ -1011,7 +1012,7 @@ int SortModel::addSplit(Region* r)
   if (!s.isNull() ){
     //add lemma to output channel
     Assert(s.getKind() == EQUAL);
-    Node ss = Rewriter::rewrite( s );
+    Node ss = rewrite(s);
     if( ss.getKind()!=EQUAL ){
       Node b_t = NodeManager::currentNM()->mkConst( true );
       Node b_f = NodeManager::currentNM()->mkConst( false );
@@ -1620,7 +1621,7 @@ void CardinalityExtension::preRegisterTerm(TNode n)
     if (tn.isSort())
     {
       Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
-      rm = new SortModel(tn, d_state, d_im, this);
+      rm = new SortModel(d_env, tn, d_state, d_im, this);
     }
     if (rm)
     {

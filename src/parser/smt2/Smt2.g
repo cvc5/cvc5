@@ -371,7 +371,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if (PARSER_STATE->sygus()) {
+    {
+      if (PARSER_STATE->sygus()) {
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
       cmd->reset(new CheckSatCommand());
@@ -405,10 +406,6 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new GetDifficultyCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
-        PARSER_STATE->parseError("Sygus does not support push command.");
-      }
-    }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
         if(num == 0) {
@@ -438,10 +435,6 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         }
       } )
   | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
-        PARSER_STATE->parseError("Sygus does not support pop command.");
-      }
-    }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
         // we don't compare num to PARSER_STATE->scopeLevel() here, since
