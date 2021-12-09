@@ -639,6 +639,9 @@ class CVC5_EXPORT Sort
 
   /**
    * @return the codomain sort of a tester sort, which is the Boolean sort
+   *
+   * @note We mainly need this for the symbol table, which doesn't have
+   *       access to the solver object.
    */
   Sort getTesterCodomainSort() const;
 
