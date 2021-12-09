@@ -62,7 +62,7 @@ class SynthConjecture : protected EnvObj
                   TermRegistry& tr,
                   SygusStatistics& s);
   ~SynthConjecture();
-  /** 
+  /**
    * Presolve, called once at the beginning of every check-sat.
    */
   void presolve();
@@ -201,17 +201,17 @@ class SynthConjecture : protected EnvObj
   bool d_hasSolution;
   /** Whether we have computed a solution */
   bool d_computedSolution;
-  /** 
+  /**
    * The final solution and status, caches getSynthSolutionsInternal, valid
    * if d_computedSolution is true.
    */
   std::vector<Node> d_sol;
   std::vector<int8_t> d_solStatus;
-  /** 
+  /**
    * (SyGuS datatype) values for solutions, which is populated if we have a
    * solution and only if we are not using the single invocation solver.
    */
-  std::vector< std::vector<Node> > d_solutionValues;
+  std::vector<std::vector<Node>> d_solutionValues;
   /** the decision strategy for the feasible guard */
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */

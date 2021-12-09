@@ -748,7 +748,7 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& values)
 
 void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& values)
 {
-  Assert (values.size()==d_candidates.size());
+  Assert(values.size() == d_candidates.size());
   Trace("cegqi-debug") << "Exclude current solution: " << values << std::endl;
   // However, we need to exclude the current solution using an explicit
   // blocking clause, so that we proceed to the next solution. We do this only
