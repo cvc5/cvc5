@@ -83,13 +83,13 @@ Node DTypeConstructor::getConstructor() const
   return d_constructor;
 }
 
-Node DTypeConstructor::getSpecializedConstructor(TypeNode returnType) const
+Node DTypeConstructor::getInstantiatedConstructor(TypeNode returnType) const
 {
   Assert(isResolved());
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(
       kind::APPLY_TYPE_ASCRIPTION,
-      nm->mkConst(AscriptionType(getSpecializedConstructorType(returnType))),
+      nm->mkConst(AscriptionType(getInstantiatedConstructorType(returnType))),
       d_constructor);
 }
 
@@ -126,12 +126,12 @@ unsigned DTypeConstructor::getWeight() const
 
 size_t DTypeConstructor::getNumArgs() const { return d_args.size(); }
 
-TypeNode DTypeConstructor::getSpecializedConstructorType(
+TypeNode DTypeConstructor::getInstantiatedConstructorType(
     TypeNode returnType) const
 {
   Assert(isResolved());
   Assert(returnType.isDatatype())
-      << "DTypeConstructor::getSpecializedConstructorType: expected datatype, "
+      << "DTypeConstructor::getInstantiatedConstructorType: expected datatype, "
          "got "
       << returnType;
   TypeNode ctn = d_constructor.getType();
@@ -449,7 +449,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
                             << ", ascribe to " << t << std::endl;
     groundTerms[0] = nm->mkNode(
         APPLY_TYPE_ASCRIPTION,
-        nm->mkConst(AscriptionType(getSpecializedConstructorType(t))),
+        nm->mkConst(AscriptionType(getInstantiatedConstructorType(t))),
         groundTerms[0]);
     groundTerm = nm->mkNode(APPLY_CONSTRUCTOR, groundTerms);
   }
@@ -466,7 +466,7 @@ void DTypeConstructor::computeSharedSelectors(TypeNode domainType) const
     TypeNode ctype;
     if (domainType.isParametricDatatype())
     {
-      ctype = getSpecializedConstructorType(domainType);
+      ctype = getInstantiatedConstructorType(domainType);
     }
     else
     {

@@ -329,7 +329,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         // get the constructor object
         const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
         // create ascribed constructor type
-        Node op_new = dtc.getSpecializedConstructor(tn);
+        Node op_new = dtc.getInstantiatedConstructor(tn);
         // make new node
         std::vector<Node> children;
         children.push_back(op_new);
@@ -890,7 +890,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       NodeBuilder b(APPLY_CONSTRUCTOR);
       if (tn.isParametricDatatype())
       {
-        b << dc.getSpecializedConstructor(n[0].getType());
+        b << dc.getInstantiatedConstructor(n[0].getType());
       }
       else
       {
