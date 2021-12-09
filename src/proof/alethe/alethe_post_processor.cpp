@@ -201,8 +201,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // -------------------------------------------- RESOLUTION
     //          (cl (not (and F1 ... Fn)))*
     //
-    // VP8: (cl (=> (and F1 ... Fn))) (cl (not (=> (and F1 ... Fn) false))
-    //      (not (and F1 ... Fn)))
+    // VP8: (cl (=> (and F1 ... Fn) false))
     // VP9: (cl (= (=> (and F1 ... Fn) false) (not (and F1 ... Fn))))
     // VP10: (cl (not (=> (and F1 ... Fn) false)) (not (and F1 ... Fn)))
     //
