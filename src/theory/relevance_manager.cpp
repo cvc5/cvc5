@@ -124,7 +124,7 @@ void RelevanceManager::computeRelevance()
   for (const Node& node: d_input)
   {
     TNode n = node;
-    int val = justify(n);
+    int32_t val = justify(n);
     if (val != 1)
     {
       // if we are in full effort check and fail to justify, then we should
@@ -167,7 +167,7 @@ bool RelevanceManager::isBooleanConnective(TNode cur)
 }
 
 bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
-                                              std::vector<int>& childrenJustify)
+                                              std::vector<int32_t>& childrenJustify)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
@@ -183,7 +183,7 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
   RlvPair cp(cur.first[index],
              d_ptctx.computeValue(cur.first, cur.second, index));
   Assert(d_jcache.find(cp) != d_jcache.end());
-  uint64_t lastChildJustify = d_jcache[cp];
+  int32_t lastChildJustify = d_jcache[cp];
   if (k == NOT)
   {
     d_jcache[cur] = -lastChildJustify;
@@ -272,17 +272,17 @@ bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
   return false;
 }
 
-int RelevanceManager::justify(TNode n)
+int32_t RelevanceManager::justify(TNode n)
 {
   // The set of nodes that we have computed currently have no value. Those
   // that are marked as having no value in d_jcache must be recomputed, since
   // the values for SAT literals may have changed.
   std::unordered_set<RlvPair, RlvPairHashFunction> noJustify;
   // the vector of values of children
-  std::unordered_map<RlvPair, std::vector<int>, RlvPairHashFunction>
+  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>
       childJustify;
-  RlvPairUIntMap::iterator it;
-  std::unordered_map<RlvPair, std::vector<int>, RlvPairHashFunction>::iterator
+  RlvPairIntMap::iterator it;
+  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>::iterator
       itc;
   RlvPair cur;
   TCtxStack visit(&d_ptctx);

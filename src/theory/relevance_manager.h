@@ -82,8 +82,8 @@ class RelevanceManager : protected EnvObj
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
   using NodeSet = context::CDHashSet<Node>;
-  using RlvPairUIntMap =
-      context::CDHashMap<RlvPair, uint64_t, RlvPairHashFunction>;
+  using RlvPairIntMap =
+      context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
 
  public:
   /**
@@ -159,7 +159,7 @@ class RelevanceManager : protected EnvObj
    * This method returns 1 if we justified n to be true, -1 means
    * justified n to be false, 0 means n could not be justified.
    */
-  int justify(TNode n);
+  int32_t justify(TNode n);
   /** Is the top symbol of cur a Boolean connective? */
   static bool isBooleanConnective(TNode cur);
   /**
@@ -175,7 +175,7 @@ class RelevanceManager : protected EnvObj
    * the justify value of the current child is added to childrenJustify.
    */
   bool updateJustifyLastChild(const RlvPair& cur,
-                              std::vector<int>& childrenJustify);
+                              std::vector<int32_t>& childrenJustify);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
@@ -222,7 +222,7 @@ class RelevanceManager : protected EnvObj
    * and either does not have a polarity in the overall formula, or if its
    * asserted value matches its polarity.
    */
-  RlvPairUIntMap d_jcache;
+  RlvPairIntMap d_jcache;
   /** Difficulty module */
   std::unique_ptr<DifficultyManager> d_dman;
 };
