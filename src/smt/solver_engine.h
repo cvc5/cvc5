@@ -1035,6 +1035,12 @@ class CVC5_EXPORT SolverEngine
    * changes.
    */
   std::vector<Node> getAssertionsInternal();
+
+  /**
+   * Return a reference to options like for `EnvObj`.
+   */
+  const Options& options() const;
+
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
