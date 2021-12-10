@@ -180,7 +180,7 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
   if (n[1].getKind() == BAG_MAKE && n[0] == n[1][0] && n[1][1].isConst()
       && n[1][1].getConst<Rational>() > Rational(0))
   {
-    // (bag.count x (bag x c)) = (ite (>= c 1) c 0)
+    // (bag.count x (bag x c)) = c, c > 0 is a constant
     Node c = n[1][1];
     return BagsRewriteResponse(c, Rewrite::COUNT_BAG_MAKE);
   }
