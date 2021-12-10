@@ -329,10 +329,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         // get the constructor object
         const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
         // create ascribed constructor type
-        Node tc = NodeManager::currentNM()->mkConst(
-            AscriptionType(dtc.getSpecializedConstructorType(tn)));
-        Node op_new = NodeManager::currentNM()->mkNode(
-            kind::APPLY_TYPE_ASCRIPTION, tc, op);
+        Node op_new = dtc.getInstantiatedConstructor(tn);
         // make new node
         std::vector<Node> children;
         children.push_back(op_new);
@@ -891,7 +888,14 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       size_t cindex = utils::cindexOf(op);
       const DTypeConstructor& dc = dt[cindex];
       NodeBuilder b(APPLY_CONSTRUCTOR);
-      b << dc.getConstructor();
+      if (tn.isParametricDatatype())
+      {
+        b << dc.getInstantiatedConstructor(n[0].getType());
+      }
+      else
+      {
+        b << dc.getConstructor();
+      }
       Trace("dt-expand") << "Expand updater " << n << std::endl;
       Trace("dt-expand") << "expr is " << n << std::endl;
       Trace("dt-expand") << "updateIndex is " << updateIndex << std::endl;

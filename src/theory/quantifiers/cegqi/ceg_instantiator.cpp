@@ -357,7 +357,7 @@ CegHandledStatus CegInstantiator::isCbqiSort(
       if (dt.isParametric())
       {
         // if parametric, must instantiate the argument types
-        consType = dt[i].getSpecializedConstructorType(tn);
+        consType = dt[i].getInstantiatedConstructorType(tn);
       }
       else
       {

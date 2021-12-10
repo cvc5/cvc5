@@ -158,6 +158,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   d_env.verbose(2) << "solving..." << std::endl;
   Trace("smt") << "SmtSolver::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
+  Trace("smt") << "SmtSolver::check(): result " << result << std::endl;
 
   rm->endCall();
   Trace("limit") << "SmtSolver::check(): cumulative millis "

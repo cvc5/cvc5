@@ -137,8 +137,8 @@ void Skolemize::getSelfSel(const DType& dt,
   TypeNode tspec;
   if (dt.isParametric())
   {
-    tspec = dc.getSpecializedConstructorType(n.getType());
-    Trace("sk-ind-debug") << "Specialized constructor type : " << tspec
+    tspec = dc.getInstantiatedConstructorType(n.getType());
+    Trace("sk-ind-debug") << "Instantiated constructor type : " << tspec
                           << std::endl;
     Assert(tspec.getNumChildren() == dc.getNumArgs());
   }

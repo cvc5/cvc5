@@ -190,8 +190,7 @@ Node Pow2Solver::valueBasedLemma(Node i)
   Node valC = nm->mkNode(POW2, valX);
   valC = rewrite(valC);
 
-  Node lem = nm->mkNode(IMPLIES, x.eqNode(valX), i.eqNode(valC));
-  return lem;
+  return nm->mkNode(IMPLIES, x.eqNode(valX), i.eqNode(valC));
 }
 
 }  // namespace nl
