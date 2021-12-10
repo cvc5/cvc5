@@ -57,7 +57,7 @@ class BagSolver : protected EnvObj
    *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
    * where (Bag E) is the type of the bag term
    */
-  void checkBagMake();
+  bool checkBagMake();
 
  private:
   /** apply inference rules for empty bags */

@@ -76,7 +76,7 @@ class TheoryBags : public Theory
   /** run strategy for effort e */
   void runStrategy(Theory::Effort e);
   /** run the given inference step */
-  void runInferStep(InferStep s, int effort);
+  bool runInferStep(InferStep s, int effort);
 
  private:
   /** Functions to handle callbacks from equality engine */

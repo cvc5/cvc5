@@ -163,8 +163,9 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   }
 }
 
-void BagSolver::checkBagMake()
+bool BagSolver::checkBagMake()
 {
+  bool sentLemma = false;
   for (const Node& bag : d_state.getBags())
   {
     TypeNode bagType = bag.getType();
@@ -186,13 +187,14 @@ void BagSolver::checkBagMake()
         Trace("bags::BagSolver::postCheck")
             << "splitting on node " << std::endl;
         InferInfo i = d_ig.bagMake(n);
-        d_im.lemmaTheoryInference(&i);
+        sentLemma = d_im.lemmaTheoryInference(&i);
         // it is enough to split only once per equivalent class
         break;
       }
       it++;
     }
   }
+  return sentLemma;
 }
 
 void BagSolver::checkBagMake(const Node& n)

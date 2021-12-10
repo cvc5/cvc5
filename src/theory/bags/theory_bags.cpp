@@ -240,8 +240,7 @@ void TheoryBags::runStrategy(Theory::Effort e)
     }
     else
     {
-      runInferStep(curr, it->second);
-      if (d_state.isInConflict())
+      if(runInferStep(curr, it->second) || d_state.isInConflict())
       {
         break;
       }
@@ -252,7 +251,7 @@ void TheoryBags::runStrategy(Theory::Effort e)
 }
 
 /** run the given inference step */
-void TheoryBags::runInferStep(InferStep s, int effort)
+bool TheoryBags::runInferStep(InferStep s, int effort)
 {
   Trace("bags-process") << "Run " << s;
   if (effort > 0)
@@ -263,7 +262,14 @@ void TheoryBags::runInferStep(InferStep s, int effort)
   switch (s)
   {
     case CHECK_INIT: break;
-    case CHECK_BAG_MAKE: d_solver.checkBagMake(); break;
+    case CHECK_BAG_MAKE:
+    {
+      if(d_solver.checkBagMake())
+      {
+        return true;
+      }
+      break;
+    }
     case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
     default: Unreachable(); break;
   }
@@ -272,6 +278,7 @@ void TheoryBags::runInferStep(InferStep s, int effort)
                         << ", addedLemma = " << d_im.hasPendingLemma()
                         << ", conflict = " << d_state.isInConflict()
                         << std::endl;
+  return false;
 }
 
 void TheoryBags::notifyFact(TNode atom,
