@@ -139,7 +139,7 @@ name   = "Base"
   long       = "trace=TAG"
   type       = "std::string"
   predicates = ["enableTraceTag"]
-  help       = "trace something (e.g. -t pushpop), can repeat"
+  help       = "trace something (e.g. -t pushpop), can repeat and may contain wildcards like (e.g. -t theory::*)"
 
 [[option]]
   category   = "regular"

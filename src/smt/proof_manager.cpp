@@ -151,8 +151,10 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   Trace("smt-proof") << "SolverEngine::setFinalProof(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves of the
-  // proof are the assertions.
-  d_finalProof = d_pnm->mkScope(pfn, assertions);
+  // proof are the assertions. If we are pruning the input, we will try to
+  // minimize the used assertions.
+  d_finalProof =
+      d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
   Trace("smt-proof") << "SolverEngine::setFinalProof(): finished.\n";
 }
 
