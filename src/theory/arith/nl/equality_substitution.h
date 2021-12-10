@@ -41,13 +41,25 @@ class EqualitySubstitution : protected EnvObj
   /** Reset this object */
   void reset();
 
-  /** Eliminate variables using equalities from the set of assertions */
+  /**
+   * Eliminate variables using equalities from the set of assertions.
+   * Returns a set of assertions where some variables may have been eliminated.
+   * Substitutions for the eliminated variables can be obtained from
+   * getSubstitutions().
+   */
   std::vector<Node> eliminateEqualities(const std::vector<Node>& assertions);
-  /** Return the substitutions that were found */
+  /**
+   * Can be called after eliminateEqualities(). Returns the substitutions that
+   * were found and eliminated.
+   */
   const SubstitutionMap& getSubstitutions() const { return *d_substitutions; }
-  /** Check whether a direct conflict was found */
+  /**
+   * Can be called after eliminateEqualities(). Checks whether a direct conflict
+   * was found, that is an assertion simplified to false during
+   * eliminateEqualities().
+   */
   bool hasConflict() const { return !d_conflict.empty(); }
-  /** Return the conflict that was found */
+  /** Return the conflict found in eliminateEqualities() */
   const std::vector<Node>& getConflict() const { return d_conflict; }
   /**
    * Postprocess a conflict found in the result of eliminateEqualities.
