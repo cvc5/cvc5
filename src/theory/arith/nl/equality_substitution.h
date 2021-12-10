@@ -59,7 +59,10 @@ class EqualitySubstitution : protected EnvObj
    * eliminateEqualities().
    */
   bool hasConflict() const { return !d_conflict.empty(); }
-  /** Return the conflict found in eliminateEqualities() */
+  /**
+   * Return the conflict found in eliminateEqualities() as a set of assertions
+   * that is a subset of the input assertions provided to eliminateEqualities().
+   */
   const std::vector<Node>& getConflict() const { return d_conflict; }
   /**
    * Postprocess a conflict found in the result of eliminateEqualities.
