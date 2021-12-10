@@ -207,3 +207,19 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "use regular expressions for eager length conflicts"
+
+[[option]]
+  name       = "stringEagerSolver"
+  category   = "regular"
+  long       = "strings-eager-solver"
+  type       = "bool"
+  default    = "true"
+  help       = "use the eager solver"
+
+[[option]]
+  name       = "stringRegexpInclusion"
+  category   = "regular"
+  long       = "strings-regexp-inclusion"
+  type       = "bool"
+  default    = "true"
+  help       = "use regular expression inclusion"
