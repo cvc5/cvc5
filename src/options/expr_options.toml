@@ -6,7 +6,7 @@ name   = "Expression"
   category   = "regular"
   long       = "expr-depth=N"
   type       = "int64_t"
-  default    = "0"
+  default    = "-1"
   minimum    = "-1"
   predicates = ["setDefaultExprDepth"]
   help       = "print exprs to depth N (0 == default, -1 == no limit)"

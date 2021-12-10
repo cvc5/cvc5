@@ -322,7 +322,6 @@ struct ConstraintRule {
                  RationalVectorCP coeffs);
 
   void print(std::ostream& out, bool produceProofs) const;
-  void debugPrint() const;
 }; /* class ConstraintRule */
 
 class Constraint {
@@ -881,8 +880,6 @@ class Constraint {
   {
     return d_produceProofs ? getConstraintRule().d_farkasCoefficients : nullptr;
   }
-
-  void debugPrint() const;
 
   /**
    * The proof of the node is empty.

@@ -59,7 +59,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
-      d_eagerSolver(env, d_state, d_termReg, d_rewriter.getArithEntail()),
+      d_eagerSolver(env, d_state, d_termReg),
       d_extTheoryCb(),
       d_im(env, *this, d_state, d_termReg, d_extTheory, d_statistics),
       d_extTheory(env, d_extTheoryCb, d_im),
@@ -78,14 +78,15 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_statistics),
       d_rsolver(
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
-      d_regexp_elim(options::regExpElimAgg(), d_pnm, userContext()),
-      d_stringsFmf(env, valuation, d_termReg)
+      d_regexp_elim(options().strings.regExpElimAgg, d_pnm, userContext()),
+      d_stringsFmf(env, valuation, d_termReg),
+      d_strat(d_env)
 {
   d_termReg.finishInit(&d_im);
 
-  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -123,7 +124,7 @@ void TheoryStrings::finishInit()
   // witness is used to eliminate str.from_code
   d_valuation.setUnevaluatedKind(WITNESS);
 
-  bool eagerEval = options::stringEagerEval();
+  bool eagerEval = options().strings.stringEagerEval;
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::STRING_LENGTH, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_CONCAT, eagerEval);
@@ -149,6 +150,9 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
+
+  // memberships are not relevant for model building
+  d_valuation.setIrrelevantKind(kind::STRING_IN_REGEXP);
 }
 
 std::string TheoryStrings::identify() const
@@ -186,11 +190,13 @@ TrustNode TheoryStrings::explain(TNode literal)
 }
 
 void TheoryStrings::presolve() {
-  Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
+  Debug("strings-presolve")
+      << "TheoryStrings::Presolving : get fmf options "
+      << (options().strings.stringFMF ? "true" : "false") << std::endl;
   d_strat.initializeStrategy();
 
   // if strings fmf is enabled, register the strategy
-  if (options::stringFMF())
+  if (options().strings.stringFMF)
   {
     d_stringsFmf.presolve();
     // This strategy is local to a check-sat call, since we refresh the strategy
@@ -419,7 +425,7 @@ bool TheoryStrings::collectModelInfoType(
           lvalue++;
         }
         Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
-        lts_values[i] = nm->mkConst(Rational(lvalue));
+        lts_values[i] = nm->mkConst(CONST_RATIONAL, Rational(lvalue));
         values_used[lvalue] = Node::null();
       }
       Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
@@ -721,8 +727,12 @@ void TheoryStrings::postCheck(Effort e)
 }
 
 bool TheoryStrings::needsCheckLastEffort() {
-  if( options::stringGuessModel() ){
-    return d_esolver.hasExtendedFunctions();
+  if (options().strings.stringModelBasedReduction)
+  {
+    bool hasExtf = d_esolver.hasExtendedFunctions();
+    Trace("strings-process")
+        << "needsCheckLastEffort: hasExtf = " << hasExtf << std::endl;
+    return hasExtf;
   }
   return false;
 }
@@ -746,8 +756,61 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
     //we care about the length of this string
     d_termReg.registerTerm(t[0], 1);
+
+    eq::EqualityEngine* ee = d_state.getEqualityEngine();
+    Node r = ee->getRepresentative(t[0]);
+    EqcInfo* ei = d_state.getOrMakeEqcInfo(r);
+    if (k == STRING_LENGTH)
+    {
+      ei->d_lengthTerm = t;
+    }
+    else
+    {
+      ei->d_codeTerm = t[0];
+    }
   }
   d_eagerSolver.eqNotifyNewClass(t);
+}
+
+void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
+{
+  EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
+  if (e2 == nullptr)
+  {
+    return;
+  }
+  // always create it if e2 was non-null
+  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
+
+  d_eagerSolver.eqNotifyMerge(e1, t1, e2, t2);
+
+  // add information from e2 to e1
+  if (!e2->d_lengthTerm.get().isNull())
+  {
+    e1->d_lengthTerm.set(e2->d_lengthTerm);
+  }
+  if (!e2->d_codeTerm.get().isNull())
+  {
+    e1->d_codeTerm.set(e2->d_codeTerm);
+  }
+  if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
+  {
+    e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
+  }
+  if (!e2->d_normalizedLength.get().isNull())
+  {
+    e1->d_normalizedLength.set(e2->d_normalizedLength);
+  }
+}
+
+void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+{
+  if (t1.getType().isStringLike())
+  {
+    // store disequalities between strings, may need to check if their lengths
+    // are equal/disequal
+    d_state.addDisequality(t1, t2);
+  }
 }
 
 void TheoryStrings::addCarePairs(TNodeTrie* t1,
@@ -874,7 +937,7 @@ void TheoryStrings::computeCareGraph(){
 
 void TheoryStrings::checkRegisterTermsPreNormalForm()
 {
-  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
   for (const Node& eqc : seqc)
   {
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
@@ -903,9 +966,14 @@ void TheoryStrings::checkCodes()
     // str.code applied to the proxy variables for each equivalence classes that
     // are constants of size one
     std::vector<Node> const_codes;
-    const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+    const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
     for (const Node& eqc : seqc)
     {
+      if (!eqc.getType().isString())
+      {
+        continue;
+      }
+
       NormalForm& nfe = d_csolver.getNormalForm(eqc);
       if (nfe.d_nf.size() == 1 && nfe.d_nf[0].isConst())
       {
@@ -969,7 +1037,7 @@ void TheoryStrings::checkCodes()
 
 void TheoryStrings::checkRegisterTermsNormalForms()
 {
-  const std::vector<Node>& seqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
   for (const Node& eqc : seqc)
   {
     NormalForm& nfi = d_csolver.getNormalForm(eqc);
@@ -1003,7 +1071,8 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     SkolemCache* sc = d_termReg.getSkolemCache();
     Node k = sc->mkSkolemCached(atom, SkolemCache::SK_PURIFY, "kFromCode");
     Node t = atom[0];
-    Node card = nm->mkConst(Rational(d_termReg.getAlphabetCardinality()));
+    Node card = nm->mkConst(CONST_RATIONAL,
+                            Rational(d_termReg.getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node emp = Word::mkEmptyWord(atom.getType());
@@ -1015,7 +1084,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   }
   TrustNode ret;
   Node atomRet = atom;
-  if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
+  if (options().strings.regExpElim && atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
     ret = d_regexp_elim.eliminateTrusted(atomRet);
@@ -1053,7 +1122,7 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
     case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
-    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(); break;
+    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(effort); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }

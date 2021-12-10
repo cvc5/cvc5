@@ -219,6 +219,21 @@ class TermTest
     Term nilOpTerm = list.getConstructorTerm("nil");
   }
 
+  @Test void hasGetSymbol() throws CVC5ApiException
+  {
+    Term n = d_solver.getNullTerm();
+    Term t = d_solver.mkBoolean(true);
+    Term c = d_solver.mkConst(d_solver.getBooleanSort(), "|\\|");
+
+    assertThrows(CVC5ApiException.class, () -> n.hasSymbol());
+    assertFalse(t.hasSymbol());
+    assertTrue(c.hasSymbol());
+
+    assertThrows(CVC5ApiException.class, () -> n.getSymbol());
+    assertThrows(CVC5ApiException.class, () -> t.getSymbol());
+    assertEquals(c.getSymbol(), "|\\|");
+  }
+
   @Test void isNull() throws CVC5ApiException
   {
     Term x = d_solver.getNullTerm();
@@ -895,10 +910,10 @@ class TermTest
     Term i2 = d_solver.mkInteger(7);
 
     Term s1 = d_solver.mkEmptySet(s);
-    Term s2 = d_solver.mkTerm(Kind.SINGLETON, i1);
-    Term s3 = d_solver.mkTerm(Kind.SINGLETON, i1);
-    Term s4 = d_solver.mkTerm(Kind.SINGLETON, i2);
-    Term s5 = d_solver.mkTerm(Kind.UNION, s2, d_solver.mkTerm(Kind.UNION, s3, s4));
+    Term s2 = d_solver.mkTerm(Kind.SET_SINGLETON, i1);
+    Term s3 = d_solver.mkTerm(Kind.SET_SINGLETON, i1);
+    Term s4 = d_solver.mkTerm(Kind.SET_SINGLETON, i2);
+    Term s5 = d_solver.mkTerm(Kind.SET_UNION, s2, d_solver.mkTerm(Kind.SET_UNION, s3, s4));
 
     assertTrue(s1.isSetValue());
     assertTrue(s2.isSetValue());

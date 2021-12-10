@@ -15,11 +15,15 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include "expr/emptybag.h"
+#include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
@@ -36,7 +40,8 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(),
       d_rewriter(&d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
-      d_solver(env, d_state, d_im, d_termReg)
+      d_solver(env, d_state, d_im, d_termReg),
+      d_bagReduction(env)
 {
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
@@ -60,21 +65,105 @@ void TheoryBags::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
 
-  // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
 
   // functions we are doing congruence over
-  d_equalityEngine->addFunctionKind(UNION_MAX);
-  d_equalityEngine->addFunctionKind(UNION_DISJOINT);
-  d_equalityEngine->addFunctionKind(INTERSECTION_MIN);
-  d_equalityEngine->addFunctionKind(DIFFERENCE_SUBTRACT);
-  d_equalityEngine->addFunctionKind(DIFFERENCE_REMOVE);
+  d_equalityEngine->addFunctionKind(BAG_UNION_MAX);
+  d_equalityEngine->addFunctionKind(BAG_UNION_DISJOINT);
+  d_equalityEngine->addFunctionKind(BAG_INTER_MIN);
+  d_equalityEngine->addFunctionKind(BAG_DIFFERENCE_SUBTRACT);
+  d_equalityEngine->addFunctionKind(BAG_DIFFERENCE_REMOVE);
   d_equalityEngine->addFunctionKind(BAG_COUNT);
-  d_equalityEngine->addFunctionKind(DUPLICATE_REMOVAL);
-  d_equalityEngine->addFunctionKind(MK_BAG);
+  d_equalityEngine->addFunctionKind(BAG_DUPLICATE_REMOVAL);
+  d_equalityEngine->addFunctionKind(BAG_MAKE);
   d_equalityEngine->addFunctionKind(BAG_CARD);
   d_equalityEngine->addFunctionKind(BAG_FROM_SET);
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
+}
+
+TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
+{
+  Trace("bags-ppr") << "TheoryBags::ppRewrite " << atom << std::endl;
+
+  switch (atom.getKind())
+  {
+    case kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
+    case kind::BAG_CARD: return expandCardOperator(atom, lems);
+    case kind::BAG_FOLD:
+    {
+      std::vector<Node> asserts;
+      Node ret = d_bagReduction.reduceFoldOperator(atom, asserts);
+      NodeManager* nm = NodeManager::currentNM();
+      Node andNode = nm->mkNode(AND, asserts);
+      d_im.lemma(andNode, InferenceId::BAGS_FOLD);
+      Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
+                         << " such that:" << std::endl
+                         << asserts << std::endl;
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
+    default: return TrustNode::null();
+  }
+}
+
+TrustNode TheoryBags::expandChooseOperator(const Node& node,
+                                           std::vector<SkolemLemma>& lems)
+{
+  Assert(node.getKind() == BAG_CHOOSE);
+
+  // (bag.choose A) is expanded as
+  // (witness ((x elementType))
+  //    (ite
+  //      (= A (as bag.empty (Bag E)))
+  //      (= x (uf A))
+  //      (and (>= (bag.count x A) 1) (= x (uf A)))
+  // where uf: (Bag E) -> E is a skolem function, and E is the type of elements
+  // of A
+
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node A = node[0];
+  TypeNode bagType = A.getType();
+  TypeNode ufType = nm->mkFunctionType(bagType, bagType.getBagElementType());
+  // a Null node is used here to get a unique skolem function per bag type
+  Node uf = sm->mkSkolemFunction(SkolemFunId::BAGS_CHOOSE, ufType, Node());
+  Node ufA = NodeManager::currentNM()->mkNode(APPLY_UF, uf, A);
+
+  Node x = nm->mkBoundVar(bagType.getBagElementType());
+
+  Node equal = x.eqNode(ufA);
+  Node emptyBag = nm->mkConst(EmptyBag(bagType));
+  Node isEmpty = A.eqNode(emptyBag);
+  Node count = nm->mkNode(BAG_COUNT, x, A);
+  Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  Node geqOne = nm->mkNode(GEQ, count, one);
+  Node geqOneAndEqual = geqOne.andNode(equal);
+  Node ite = nm->mkNode(ITE, isEmpty, equal, geqOneAndEqual);
+  Node ret = sm->mkSkolem(x, ite, "kBagChoose");
+  lems.push_back(SkolemLemma(ret, nullptr));
+  Trace("TheoryBags::ppRewrite")
+      << "ppRewrite(" << node << ") = " << ret << std::endl;
+  return TrustNode::mkTrustRewrite(node, ret, nullptr);
+}
+
+TrustNode TheoryBags::expandCardOperator(TNode n, std::vector<SkolemLemma>&)
+{
+  Assert(n.getKind() == BAG_CARD);
+  if (d_env.getLogicInfo().isHigherOrder())
+  {
+    // (bag.card A) = (bag.count 1 (bag.map (lambda ((x E)) 1) A)),
+    // where E is the type of elements of A
+    NodeManager* nm = NodeManager::currentNM();
+    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+    TypeNode type = n[0].getType().getBagElementType();
+    Node x = nm->mkBoundVar("x", type);
+    Node lambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, x), one);
+    Node map = nm->mkNode(kind::BAG_MAP, lambda, n[0]);
+    Node countOne = nm->mkNode(kind::BAG_COUNT, one, map);
+    Trace("TheoryBags::ppRewrite")
+        << "ppRewrite(" << n << ") = " << countOne << std::endl;
+    return TrustNode::mkTrustRewrite(n, countOne, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryBags::postCheck(Effort effort)
@@ -202,7 +291,6 @@ void TheoryBags::preRegisterTerm(TNode n)
   Trace("bags::TheoryBags::preRegisterTerm") << n << std::endl;
   switch (n.getKind())
   {
-    case BAG_CARD:
     case BAG_FROM_SET:
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:

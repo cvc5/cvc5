@@ -48,6 +48,7 @@ class SolverEngine;
 class TypeNode;
 class Options;
 class Random;
+class Rational;
 class Result;
 class StatisticsRegistry;
 
@@ -116,6 +117,31 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
    */
   CVC5ApiRecoverableException(const std::stringstream& stream)
       : CVC5ApiException(stream.str())
+  {
+  }
+};
+
+/**
+ * Exception for unsupported command arguments.
+ * If thrown, API objects can still be used.
+ */
+class CVC5_EXPORT CVC5ApiUnsupportedException : public CVC5ApiRecoverableException
+{
+ public:
+  /**
+   * Construct with message from a string.
+   * @param str The error message.
+   */
+  CVC5ApiUnsupportedException(const std::string& str)
+      : CVC5ApiRecoverableException(str)
+  {
+  }
+  /**
+   * Construct with message from a string stream.
+   * @param stream The error message.
+   */
+  CVC5ApiUnsupportedException(const std::stringstream& stream)
+      : CVC5ApiRecoverableException(stream.str())
   {
   }
 };
@@ -613,6 +639,9 @@ class CVC5_EXPORT Sort
 
   /**
    * @return the codomain sort of a tester sort, which is the Boolean sort
+   *
+   * @note We mainly need this for the symbol table, which doesn't have
+   *       access to the solver object.
    */
   Sort getTesterCodomainSort() const;
 
@@ -717,7 +746,14 @@ class CVC5_EXPORT Sort
   /* Datatype sort ------------------------------------------------------- */
 
   /**
-   * @return the parameter sorts of a datatype sort
+   *
+   * Return the parameters of a parametric datatype sort. If this sort is a
+   * non-instantiated parametric datatype, this returns the parameter sorts of
+   * the underlying datatype. If this sort is an instantiated parametric
+   * datatype, then this returns the sort parameters that were used to
+   * construct the sort via ``Sort::instantiate``.
+   *
+   * @return the parameter sorts of a parametric datatype sort.
    */
   std::vector<Sort> getDatatypeParamSorts() const;
 
@@ -1103,6 +1139,17 @@ class CVC5_EXPORT Term
   Op getOp() const;
 
   /**
+   * @return true if the term has a symbol.
+   */
+  bool hasSymbol() const;
+
+  /**
+   * Asserts hasSymbol().
+   * @return the raw symbol of the term.
+   */
+  std::string getSymbol() const;
+
+  /**
    * @return true if this Term is a null term
    */
   bool isNull() const;
@@ -1459,7 +1506,7 @@ class CVC5_EXPORT Term
    * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
    * also @ref Term::operator>(const Term&) const).
    *
-   * Note that a universe set term (kind UNIVERSE_SET) is not considered to be
+   * Note that a universe set term (kind SET_UNIVERSE) is not considered to be
    * a set value.
    */
   bool isSetValue() const;
@@ -1687,6 +1734,12 @@ class CVC5_EXPORT DatatypeConstructorDecl
    * CVC5_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
+
+  /**
+   * Is the underlying constructor resolved (i.e. has it been used to declare
+   * a datatype already)?
+   */
+  bool isResolved() const;
 
   /**
    * The associated solver object.
@@ -2623,19 +2676,19 @@ enum RoundingMode
   ROUND_NEAREST_TIES_TO_EVEN,
   /**
    * Round towards positive infinity (+oo).
-   * The result shall be the format’s floating-point number (possibly +oo)
+   * The result shall be the format's floating-point number (possibly +oo)
    * closest to and no less than the infinitely precise result.
    */
   ROUND_TOWARD_POSITIVE,
   /**
    * Round towards negative infinity (-oo).
-   * The result shall be the format’s floating-point number (possibly -oo)
+   * The result shall be the format's floating-point number (possibly -oo)
    * closest to and no less than the infinitely precise result.
    */
   ROUND_TOWARD_NEGATIVE,
   /**
    * Round towards zero.
-   * The result shall be the format’s floating-point number closest to and no
+   * The result shall be the format's floating-point number closest to and no
    * greater in magnitude than the infinitely precise result.
    */
   ROUND_TOWARD_ZERO,
@@ -3418,16 +3471,22 @@ class CVC5_EXPORT Solver
   Term mkReal(int64_t num, int64_t den) const;
 
   /**
-   * Create a regular expression empty term.
-   * @return the empty term
+   * Create a regular expression all (re.all) term.
+   * @return the all term
    */
-  Term mkRegexpEmpty() const;
+  Term mkRegexpAll() const;
 
   /**
-   * Create a regular expression sigma term.
-   * @return the sigma term
+   * Create a regular expression allchar (re.allchar) term.
+   * @return the allchar term
    */
-  Term mkRegexpSigma() const;
+  Term mkRegexpAllchar() const;
+
+  /**
+   * Create a regular expression none (re.none) term.
+   * @return the none term
+   */
+  Term mkRegexpNone() const;
 
   /**
    * Create a constant representing an empty set of the given sort.
@@ -4461,7 +4520,9 @@ class CVC5_EXPORT Solver
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
-  Term mkValHelper(T t) const;
+  Term mkValHelper(const T& t) const;
+  /** Helper for making rational values. */
+  Term mkRationalValHelper(const Rational& r) const;
   /** Helper for mkReal functions that take a string as argument. */
   Term mkRealFromStrHelper(const std::string& s) const;
   /** Helper for mkBitVector functions that take a string as argument. */

@@ -33,12 +33,13 @@
 #include "theory/trust_substitutions.h"
 #include "util/rational.h"
 
+using namespace std;
+using namespace cvc5::kind;
+using namespace cvc5::theory;
+
 namespace cvc5 {
 namespace preprocessing {
 namespace passes {
-
-using namespace std;
-using namespace cvc5::theory;
 
 namespace {
 
@@ -212,7 +213,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
+  Node zero = nm->mkConst(CONST_RATIONAL, Rational(0)),
+       one = nm->mkConst(CONST_RATIONAL, Rational(1));
   Node trueNode = nm->mkConst(true);
 
   unordered_map<TNode, Node> intVars;
@@ -571,25 +573,23 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             NodeBuilder sumb(kind::PLUS);
             for (size_t jj = 0; jj < pos.getNumChildren(); ++jj)
             {
-              sumb << nm->mkNode(
-                  kind::MULT, nm->mkConst(coef[pos_var][jj]), newVars[jj]);
+              sumb << nm->mkNode(kind::MULT,
+                                 nm->mkConst(CONST_RATIONAL, coef[pos_var][jj]),
+                                 newVars[jj]);
             }
             sum = sumb;
           }
           else
           {
-            sum = nm->mkNode(
-                kind::MULT, nm->mkConst(coef[pos_var][0]), newVars[0]);
+            sum = nm->mkNode(kind::MULT,
+                             nm->mkConst(CONST_RATIONAL, coef[pos_var][0]),
+                             newVars[0]);
           }
           Debug("miplib") << "vars[] " << var << endl
                           << "    eq " << rewrite(sum) << endl;
           Node newAssertion = var.eqNode(rewrite(sum));
           if (top_level_substs.hasSubstitution(newAssertion[0]))
           {
-            // Warning() << "RE-SUBSTITUTION " << newAssertion[0] << endl;
-            // Warning() << "REPLACE         " << newAssertion[1] << endl;
-            // Warning() << "ORIG            " <<
-            // top_level_substs.getSubstitution(newAssertion[0]) << endl;
             Assert(top_level_substs.getSubstitution(newAssertion[0])
                    == newAssertion[1]);
           }

@@ -2,10 +2,10 @@
 (set-info :status sat)
 (declare-fun b () (Set (Tuple Int Int)))
 (assert 
-(= (join b (tclosure (join b b))) (as emptyset (Set (Tuple Int Int))))
+(= (rel.join b (rel.tclosure (rel.join b b))) (as set.empty (Set (Tuple Int Int))))
 )
 (assert
-(distinct b (as emptyset (Set (Tuple Int Int))))
+(distinct b (as set.empty (Set (Tuple Int Int))))
 )
-(assert (= (join b b) (as emptyset (Set (Tuple Int Int)))))
+(assert (= (rel.join b b) (as set.empty (Set (Tuple Int Int)))))
 (check-sat)

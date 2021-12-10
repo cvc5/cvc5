@@ -283,7 +283,7 @@ bool TermUtil::isAssoc(Kind k, bool reqNAry)
 {
   if (reqNAry)
   {
-    if (k == UNION || k == INTERSECTION)
+    if (k == SET_UNION || k == SET_INTER)
     {
       return false;
     }
@@ -292,15 +292,15 @@ bool TermUtil::isAssoc(Kind k, bool reqNAry)
          || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
-         || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT
-         || k == SEP_STAR;
+         || k == SET_UNION || k == SET_INTER || k == RELATION_JOIN
+         || k == RELATION_PRODUCT || k == SEP_STAR;
 }
 
 bool TermUtil::isComm(Kind k, bool reqNAry)
 {
   if (reqNAry)
   {
-    if (k == UNION || k == INTERSECTION)
+    if (k == SET_UNION || k == SET_INTER)
     {
       return false;
     }
@@ -308,7 +308,7 @@ bool TermUtil::isComm(Kind k, bool reqNAry)
   return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
          || k == OR || k == XOR || k == BITVECTOR_ADD || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
-         || k == BITVECTOR_XNOR || k == UNION || k == INTERSECTION
+         || k == BITVECTOR_XNOR || k == SET_UNION || k == SET_INTER
          || k == SEP_STAR;
 }
 
@@ -329,10 +329,10 @@ bool TermUtil::isBoolConnectiveTerm( TNode n ) {
 Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
 {
   Node n;
-  if (tn.isInteger() || tn.isReal())
+  if (tn.isRealOrInt())
   {
     Rational c(val);
-    n = NodeManager::currentNM()->mkConst(c);
+    n = NodeManager::currentNM()->mkConst(CONST_RATIONAL, c);
   }
   else if (tn.isBitVector())
   {
@@ -382,7 +382,7 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn,
   status = -1;
   if (!offset_val.isNull())
   {
-    if (tn.isInteger() || tn.isReal())
+    if (tn.isRealOrInt())
     {
       val_o = Rewriter::rewrite(
           NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
@@ -500,8 +500,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
         return n;
       }
     }
-    else if (ik == BITVECTOR_UDIV || ik == BITVECTOR_UDIV
-             || ik == BITVECTOR_SDIV)
+    else if (ik == BITVECTOR_UDIV || ik == BITVECTOR_SDIV)
     {
       if (arg == 0)
       {
@@ -557,7 +556,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
   }
   else
   {
-    if (n.getType().isReal() && n.getConst<Rational>().sgn() < 0)
+    if (n.getType().isInteger() && n.getConst<Rational>().sgn() < 0)
     {
       // negative arguments
       if (ik == STRING_SUBSTR || ik == STRING_CHARAT)

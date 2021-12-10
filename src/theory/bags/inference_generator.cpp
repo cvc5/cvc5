@@ -36,8 +36,8 @@ InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager* im)
   d_nm = NodeManager::currentNM();
   d_sm = d_nm->getSkolemManager();
   d_true = d_nm->mkConst(true);
-  d_zero = d_nm->mkConst(Rational(0));
-  d_one = d_nm->mkConst(Rational(1));
+  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
 }
 
 InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
@@ -53,46 +53,29 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::mkBag(Node n, Node e)
+InferInfo InferenceGenerator::bagMake(Node n, Node e)
 {
-  Assert(n.getKind() == MK_BAG);
+  Assert(n.getKind() == BAG_MAKE);
   Assert(e.getType() == n.getType().getBagElementType());
 
+  /*
+   * (ite (and (= e x) (>= c 1))
+   *   (= (bag.count e skolem) c)
+   *   (= (bag.count e skolem) 0))
+   */
   Node x = n[0];
   Node c = n[1];
+  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE);
+  Node same = d_nm->mkNode(EQUAL, e, x);
   Node geq = d_nm->mkNode(GEQ, c, d_one);
-  if (d_state->areEqual(e, x))
-  {
-    // (= (bag.count e skolem) (ite (>= c 1) c 0)))
-    InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG_SAME_ELEMENT);
-    Node skolem = getSkolem(n, inferInfo);
-    Node count = getMultiplicityTerm(e, skolem);
-    Node ite = d_nm->mkNode(ITE, geq, c, d_zero);
-    inferInfo.d_conclusion = count.eqNode(ite);
-    return inferInfo;
-  }
-  if (d_state->areDisequal(e, x))
-  {
-    //(= (bag.count e skolem) 0))
-    InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG_SAME_ELEMENT);
-    Node skolem = getSkolem(n, inferInfo);
-    Node count = getMultiplicityTerm(e, skolem);
-    inferInfo.d_conclusion = count.eqNode(d_zero);
-    return inferInfo;
-  }
-  else
-  {
-    // (= (bag.count e skolem) (ite (and (= e x) (>= c 1)) c 0)))
-    InferInfo inferInfo(d_im, InferenceId::BAGS_MK_BAG);
-    Node skolem = getSkolem(n, inferInfo);
-    Node count = getMultiplicityTerm(e, skolem);
-    Node same = d_nm->mkNode(EQUAL, e, x);
-    Node andNode = same.andNode(geq);
-    Node ite = d_nm->mkNode(ITE, andNode, c, d_zero);
-    Node equal = count.eqNode(ite);
-    inferInfo.d_conclusion = equal;
-    return inferInfo;
-  }
+  Node andNode = same.andNode(geq);
+  Node skolem = getSkolem(n, inferInfo);
+  Node count = getMultiplicityTerm(e, skolem);
+  Node equalC = d_nm->mkNode(EQUAL, count, c);
+  Node equalZero = d_nm->mkNode(EQUAL, count, d_zero);
+  Node ite = d_nm->mkNode(ITE, andNode, equalC, equalZero);
+  inferInfo.d_conclusion = ite;
+  return inferInfo;
 }
 
 /**
@@ -158,7 +141,7 @@ Node InferenceGenerator::getSkolem(Node& n, InferInfo& inferInfo)
 
 InferInfo InferenceGenerator::empty(Node n, Node e)
 {
-  Assert(n.getKind() == EMPTYBAG);
+  Assert(n.getKind() == BAG_EMPTY);
   Assert(e.getType() == n.getType().getBagElementType());
 
   InferInfo inferInfo(d_im, InferenceId::BAGS_EMPTY);
@@ -172,7 +155,7 @@ InferInfo InferenceGenerator::empty(Node n, Node e)
 
 InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
 {
-  Assert(n.getKind() == UNION_DISJOINT && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_UNION_DISJOINT && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -194,7 +177,7 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
 
 InferInfo InferenceGenerator::unionMax(Node n, Node e)
 {
-  Assert(n.getKind() == UNION_MAX && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_UNION_MAX && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -217,7 +200,7 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
 
 InferInfo InferenceGenerator::intersection(Node n, Node e)
 {
-  Assert(n.getKind() == INTERSECTION_MIN && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_INTER_MIN && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -238,7 +221,7 @@ InferInfo InferenceGenerator::intersection(Node n, Node e)
 
 InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 {
-  Assert(n.getKind() == DIFFERENCE_SUBTRACT && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -260,7 +243,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 
 InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
 {
-  Assert(n.getKind() == DIFFERENCE_REMOVE && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_DIFFERENCE_REMOVE && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -282,7 +265,7 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
 
 InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
 {
-  Assert(n.getKind() == DUPLICATE_REMOVAL && n[0].getType().isBag());
+  Assert(n.getKind() == BAG_DUPLICATE_REMOVAL && n[0].getType().isBag());
   Assert(e.getType() == n[0].getType().getBagElementType());
 
   Node A = n[0];
@@ -400,6 +383,8 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDownwards(Node n,
 
   std::map<Node, Node> m;
   m[e] = conclusion;
+  Trace("bags::InferenceGenerator::mapDownwards")
+      << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return std::tuple(inferInfo, uf, preImageSize);
 }
 
@@ -426,8 +411,8 @@ InferInfo InferenceGenerator::mapUpwards(
   Node orNode = d_nm->mkNode(OR, notEqual, andNode);
   Node implies = d_nm->mkNode(IMPLIES, xInA, orNode);
   inferInfo.d_conclusion = implies;
-  std::cout << "Upwards conclusion: " << inferInfo.d_conclusion << std::endl
-            << std::endl;
+  Trace("bags::InferenceGenerator::mapUpwards")
+      << "conclusion: " << inferInfo.d_conclusion << std::endl;
   return inferInfo;
 }
 

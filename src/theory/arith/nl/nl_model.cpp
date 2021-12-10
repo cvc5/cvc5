@@ -36,9 +36,9 @@ NlModel::NlModel() : d_used_approx(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_two = NodeManager::currentNM()->mkConst(Rational(2));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_two = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(2));
 }
 
 NlModel::~NlModel() {}
@@ -205,7 +205,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       if (visited.find(cur) == visited.end())
       {
         visited.insert(cur);
-        if (cur.getType().isReal() && !cur.isConst())
+        if (cur.getType().isRealOrInt() && !cur.isConst())
         {
           Kind k = cur.getKind();
           if (k != MULT && k != PLUS && k != NONLINEAR_MULT
@@ -538,7 +538,8 @@ bool NlModel::solveEqualitySimple(Node eq,
       Assert(false);
       return false;
     }
-    Node val = nm->mkConst(-c.getConst<Rational>() / b.getConst<Rational>());
+    Node val = nm->mkConst(CONST_RATIONAL,
+                           -c.getConst<Rational>() / b.getConst<Rational>());
     if (Trace.isOn("nl-ext-cm"))
     {
       Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
@@ -553,117 +554,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     }
     return ret;
   }
-  Trace("nl-ext-quad") << "Solve quadratic : " << seq << std::endl;
-  Trace("nl-ext-quad") << "  a : " << a << std::endl;
-  Trace("nl-ext-quad") << "  b : " << b << std::endl;
-  Trace("nl-ext-quad") << "  c : " << c << std::endl;
-  Node two_a = nm->mkNode(MULT, d_two, a);
-  two_a = Rewriter::rewrite(two_a);
-  Node sqrt_val = nm->mkNode(
-      MINUS, nm->mkNode(MULT, b, b), nm->mkNode(MULT, d_two, two_a, c));
-  sqrt_val = Rewriter::rewrite(sqrt_val);
-  Trace("nl-ext-quad") << "Will approximate sqrt " << sqrt_val << std::endl;
-  Assert(sqrt_val.isConst());
-  // if it is negative, then we are in conflict
-  if (sqrt_val.getConst<Rational>().sgn() == -1)
-  {
-    Node conf = seq.negate();
-    Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : " << conf
-                          << std::endl;
-    lemmas.emplace_back(InferenceId::ARITH_NL_CM_QUADRATIC_EQ, conf);
-    Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
-    return false;
-  }
-  if (hasAssignment(var))
-  {
-    Trace("nl-ext-cms") << "...fail due to bounds on variable to solve for."
-                        << std::endl;
-    // two quadratic equations for same variable, give up
-    return false;
-  }
-  // approximate the square root of sqrt_val
-  Node l, u;
-  if (!getApproximateSqrt(sqrt_val, l, u, 15 + d))
-  {
-    Trace("nl-ext-cms") << "...fail, could not approximate sqrt." << std::endl;
-    return false;
-  }
-  d_used_approx = true;
-  Trace("nl-ext-quad") << "...got " << l << " <= sqrt(" << sqrt_val
-                       << ") <= " << u << std::endl;
-  Node negb = nm->mkConst(-b.getConst<Rational>());
-  Node coeffa = nm->mkConst(Rational(1) / two_a.getConst<Rational>());
-  // two possible bound regions
-  Node bounds[2][2];
-  Node diff_bound[2];
-  Node m_var = computeConcreteModelValue(var);
-  Assert(m_var.isConst());
-  for (unsigned r = 0; r < 2; r++)
-  {
-    for (unsigned b2 = 0; b2 < 2; b2++)
-    {
-      Node val = b2 == 0 ? l : u;
-      // (-b +- approx_sqrt( b^2 - 4ac ))/2a
-      Node approx = nm->mkNode(
-          MULT, coeffa, nm->mkNode(r == 0 ? MINUS : PLUS, negb, val));
-      approx = Rewriter::rewrite(approx);
-      bounds[r][b2] = approx;
-      Assert(approx.isConst());
-    }
-    if (bounds[r][0].getConst<Rational>() > bounds[r][1].getConst<Rational>())
-    {
-      // ensure bound is (lower, upper)
-      Node tmp = bounds[r][0];
-      bounds[r][0] = bounds[r][1];
-      bounds[r][1] = tmp;
-    }
-    Node diff =
-        nm->mkNode(MINUS,
-                   m_var,
-                   nm->mkNode(MULT,
-                              nm->mkConst(Rational(1) / Rational(2)),
-                              nm->mkNode(PLUS, bounds[r][0], bounds[r][1])));
-    if (Trace.isOn("nl-ext-cm-debug"))
-    {
-      Trace("nl-ext-cm-debug") << "Bound option #" << r << " : ";
-      printRationalApprox("nl-ext-cm-debug", bounds[r][0]);
-      Trace("nl-ext-cm-debug") << "...";
-      printRationalApprox("nl-ext-cm-debug", bounds[r][1]);
-      Trace("nl-ext-cm-debug") << std::endl;
-    }
-    diff = Rewriter::rewrite(diff);
-    Assert(diff.isConst());
-    diff = nm->mkConst(diff.getConst<Rational>().abs());
-    diff_bound[r] = diff;
-    if (Trace.isOn("nl-ext-cm-debug"))
-    {
-      Trace("nl-ext-cm-debug") << "...diff from model value (";
-      printRationalApprox("nl-ext-cm-debug", m_var);
-      Trace("nl-ext-cm-debug") << ") is ";
-      printRationalApprox("nl-ext-cm-debug", diff_bound[r]);
-      Trace("nl-ext-cm-debug") << std::endl;
-    }
-  }
-  // take the one that var is closer to in the model
-  Node cmp = nm->mkNode(GEQ, diff_bound[0], diff_bound[1]);
-  cmp = Rewriter::rewrite(cmp);
-  Assert(cmp.isConst());
-  unsigned r_use_index = cmp == d_true ? 1 : 0;
-  if (Trace.isOn("nl-ext-cm"))
-  {
-    Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
-    printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
-    Trace("nl-ext-cm") << " <= " << var << " <= ";
-    printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
-    Trace("nl-ext-cm") << std::endl;
-  }
-  bool ret = addBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
-  if (ret)
-  {
-    d_check_model_solved[eq] = var;
-    Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
-  }
-  return ret;
+  return false;
 }
 
 bool NlModel::simpleCheckModelLit(Node lit)
@@ -1118,48 +1009,6 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
   return comp == d_true;
 }
 
-bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
-{
-  Assert(c.isConst());
-  if (c == d_one || c == d_zero)
-  {
-    l = c;
-    u = c;
-    return true;
-  }
-  Rational rc = c.getConst<Rational>();
-
-  Rational rl = rc < Rational(1) ? rc : Rational(1);
-  Rational ru = rc < Rational(1) ? Rational(1) : rc;
-  unsigned count = 0;
-  Rational half = Rational(1) / Rational(2);
-  while (count < iter)
-  {
-    Rational curr = half * (rl + ru);
-    Rational curr_sq = curr * curr;
-    if (curr_sq == rc)
-    {
-      rl = curr;
-      ru = curr;
-      break;
-    }
-    else if (curr_sq < rc)
-    {
-      rl = curr;
-    }
-    else
-    {
-      ru = curr;
-    }
-    count++;
-  }
-
-  NodeManager* nm = NodeManager::currentNM();
-  l = nm->mkConst(rl);
-  u = nm->mkConst(ru);
-  return true;
-}
-
 void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 {
   if (Trace.isOn(c))
@@ -1221,8 +1070,9 @@ void NlModel::getModelValueRepair(
       if (witnessToValue)
       {
         // witness is the midpoint
-        witness = nm->mkNode(
-            MULT, nm->mkConst(Rational(1, 2)), nm->mkNode(PLUS, l, u));
+        witness = nm->mkNode(MULT,
+                             nm->mkConst(CONST_RATIONAL, Rational(1, 2)),
+                             nm->mkNode(PLUS, l, u));
         witness = Rewriter::rewrite(witness);
         Trace("nl-model") << v << " witness is " << witness << std::endl;
       }

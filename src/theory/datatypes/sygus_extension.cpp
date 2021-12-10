@@ -57,7 +57,7 @@ SygusExtension::SygusExtension(Env& env,
       d_active_terms(context()),
       d_currTermSize(context())
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
@@ -1772,8 +1772,8 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue()
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     d_measure_value = sm->mkDummySkolem("mt", nm->integerType());
-    Node mtlem =
-        nm->mkNode(kind::GEQ, d_measure_value, nm->mkConst(Rational(0)));
+    Node mtlem = nm->mkNode(
+        kind::GEQ, d_measure_value, nm->mkConst(CONST_RATIONAL, Rational(0)));
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
   return d_measure_value;
@@ -1787,7 +1787,8 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
     Node new_mt = sm->mkDummySkolem("mt", nm->integerType());
-    Node mtlem = nm->mkNode(kind::GEQ, new_mt, nm->mkConst(Rational(0)));
+    Node mtlem =
+        nm->mkNode(kind::GEQ, new_mt, nm->mkConst(CONST_RATIONAL, Rational(0)));
     d_measure_value_active = new_mt;
     d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
@@ -1816,7 +1817,8 @@ Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-engine") << "******* Sygus : allocate size literal " << s
                         << " for " << d_this << std::endl;
-  return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
+  return nm->mkNode(
+      DT_SYGUS_BOUND, d_this, nm->mkConst(CONST_RATIONAL, Rational(s)));
 }
 
 int SygusExtension::getGuardStatus( Node g ) {

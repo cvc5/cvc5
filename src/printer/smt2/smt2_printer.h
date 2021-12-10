@@ -247,6 +247,10 @@ class Smt2Printer : public cvc5::Printer
    * the SMT-LIB format (with variant v).
    */
   static std::string smtKindString(Kind k, Variant v = smt2_6_variant);
+  /**
+   * Get the string corresponding to the sygus datatype t printed as a grammar.
+   */
+  static std::string sygusGrammarString(const TypeNode& t);
 
  private:
   /**

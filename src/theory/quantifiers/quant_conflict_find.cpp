@@ -1918,13 +1918,17 @@ bool QuantConflictFind::areMatchDisequal( TNode n1, TNode n2 ) {
 
 bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   bool performCheck = false;
-  if( options::quantConflictFind() && !d_conflict ){
+  if (options().quantifiers.quantConflictFind && !d_conflict)
+  {
     if( level==Theory::EFFORT_LAST_CALL ){
-      performCheck = options::qcfWhenMode() == options::QcfWhenMode::LAST_CALL;
+      performCheck =
+          options().quantifiers.qcfWhenMode == options::QcfWhenMode::LAST_CALL;
     }else if( level==Theory::EFFORT_FULL ){
-      performCheck = options::qcfWhenMode() == options::QcfWhenMode::DEFAULT;
+      performCheck =
+          options().quantifiers.qcfWhenMode == options::QcfWhenMode::DEFAULT;
     }else if( level==Theory::EFFORT_STANDARD ){
-      performCheck = options::qcfWhenMode() == options::QcfWhenMode::STD;
+      performCheck =
+          options().quantifiers.qcfWhenMode == options::QcfWhenMode::STD;
     }
   }
   return performCheck;
@@ -1943,7 +1947,7 @@ void QuantConflictFind::reset_round( Theory::Effort level ) {
     if (tdb->hasTermCurrent(r))
     {
       TypeNode rtn = r.getType();
-      if (!options::cegqi() || !TermUtil::hasInstConstAttr(r))
+      if (!options().quantifiers.cegqi || !TermUtil::hasInstConstAttr(r))
       {
         d_eqcs[rtn].push_back(r);
       }
@@ -2281,7 +2285,7 @@ TNode QuantConflictFind::getZero( Kind k ) {
   if( it==d_zero.end() ){
     Node nn;
     if( k==PLUS ){
-      nn = NodeManager::currentNM()->mkConst( Rational(0) );
+      nn = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
     }
     d_zero[k] = nn;
     return nn;

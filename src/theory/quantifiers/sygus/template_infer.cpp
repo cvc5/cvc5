@@ -26,6 +26,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
+SygusTemplateInfer::SygusTemplateInfer(Env& env) : EnvObj(env), d_ti(env) {}
+
 void SygusTemplateInfer::initialize(Node q)
 {
   Assert(d_quant.isNull());
@@ -34,7 +36,7 @@ void SygusTemplateInfer::initialize(Node q)
   // We are processing without single invocation techniques, now check if
   // we should fix an invariant template (post-condition strengthening or
   // pre-condition weakening).
-  options::SygusInvTemplMode tmode = options::sygusInvTemplMode();
+  options::SygusInvTemplMode tmode = options().quantifiers.sygusInvTemplMode;
   if (tmode != options::SygusInvTemplMode::NONE)
   {
     // currently only works for single predicate synthesis
@@ -42,7 +44,7 @@ void SygusTemplateInfer::initialize(Node q)
     {
       tmode = options::SygusInvTemplMode::NONE;
     }
-    else if (!options::sygusInvTemplWhenSyntax())
+    else if (!options().quantifiers.sygusInvTemplWhenSyntax)
     {
       // only use invariant templates if no syntactic restrictions
       if (CegGrammarConstructor::hasSyntaxRestrictions(q))
@@ -104,7 +106,7 @@ void SygusTemplateInfer::initialize(Node q)
 
   // construct template
   Node templ;
-  if (options::sygusInvAutoUnfold())
+  if (options().quantifiers.sygusInvAutoUnfold)
   {
     if (d_ti.isComplete())
     {

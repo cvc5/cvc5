@@ -57,12 +57,12 @@ SynthConjecture::SynthConjecture(Env& env,
       d_treg(tr),
       d_stats(s),
       d_tds(tr.getTermDatabaseSygus()),
-      d_verify(options(), logicInfo(), d_tds),
+      d_verify(env, d_tds),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
-      d_templInfer(new SygusTemplateInfer),
-      d_ceg_proc(new SynthConjectureProcess),
-      d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
+      d_templInfer(new SygusTemplateInfer(env)),
+      d_ceg_proc(new SynthConjectureProcess(env)),
+      d_ceg_gc(new CegGrammarConstructor(env, d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(env, qs, qim, d_tds, this)),
@@ -285,7 +285,7 @@ bool SynthConjecture::needsCheck()
     if (!value)
     {
       Trace("sygus-engine-debug") << "Conjecture is infeasible." << std::endl;
-      Warning() << "Warning : the SyGuS conjecture may be infeasible"
+      warning() << "Warning : the SyGuS conjecture may be infeasible"
                 << std::endl;
       return false;
     }
@@ -306,6 +306,10 @@ bool SynthConjecture::needsCheck()
 
 bool SynthConjecture::doCheck()
 {
+  if (d_hasSolution)
+  {
+    return true;
+  }
   if (isSingleInvocation())
   {
     // We now try to solve with the single invocation solver, which may or may
@@ -314,14 +318,12 @@ bool SynthConjecture::doCheck()
     if (d_ceg_si->solve())
     {
       d_hasSolution = true;
-      // the conjecture has a solution, so its negation holds
-      Node qn = d_quant.negate();
-      d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED);
+      // the conjecture has a solution, we set incomplete
+      d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     }
     return true;
   }
   Assert(d_master != nullptr);
-  Assert(!d_hasSolution);
 
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
@@ -372,7 +374,7 @@ bool SynthConjecture::doCheck()
     }
   }
 
-  bool printDebug = d_env.isOutputOn(options::OutputTag::SYGUS);
+  bool printDebug = isOutputOn(OutputTag::SYGUS);
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -437,9 +439,9 @@ bool SynthConjecture::doCheck()
           }
         }
         Trace("sygus-engine") << std::endl;
-        if (d_env.isOutputOn(options::OutputTag::SYGUS))
+        if (d_env.isOutputOn(OutputTag::SYGUS))
         {
-          d_env.getOutput(options::OutputTag::SYGUS)
+          d_env.output(OutputTag::SYGUS)
               << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
         }
       }
@@ -506,11 +508,10 @@ bool SynthConjecture::doCheck()
   if (options().quantifiers.cegisSample == options::CegisSampleMode::TRUST)
   {
     // we have that the current candidate passed a sample test
-    // since we trust sampling in this mode, we assert there is no
-    // counterexample to the conjecture here.
-    Node qn = d_quant.negate();
-    d_qim.addPendingLemma(qn,
-                          InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED);
+    // since we trust sampling in this mode, we assume there is a solution here
+    // and set incomplete.
+    d_hasSolution = true;
+    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     recordSolution(candidate_values);
     return true;
   }
@@ -518,16 +519,15 @@ bool SynthConjecture::doCheck()
   // print the candidate solution for debugging
   if (constructed_cand && printDebug)
   {
-    const Options& sopts = options();
-    std::ostream& out = *sopts.base.out;
+    std::ostream& out = output(OutputTag::SYGUS);
     out << "(sygus-candidate ";
     Assert(d_quant[0].getNumChildren() == candidate_values.size());
     for (size_t i = 0, ncands = candidate_values.size(); i < ncands; i++)
     {
       Node v = candidate_values[i];
-      std::stringstream ss;
-      TermDbSygus::toStreamSygus(ss, v);
-      out << "(" << d_quant[0][i] << " " << ss.str() << ")";
+      out << "(" << d_quant[0][i] << " ";
+      TermDbSygus::toStreamSygus(out, v);
+      out << ")";
     }
     out << ")" << std::endl;
   }
@@ -574,10 +574,8 @@ bool SynthConjecture::doCheck()
     d_hasSolution = false;
     return false;
   }
-  // Use lemma to terminate with "unsat", this is justified by the verification
-  // check above, which confirms the synthesis conjecture is solved.
-  Node qn = d_quant.negate();
-  d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED);
+  // We set incomplete and terminate with unknown.
+  d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
   return true;
 }
 

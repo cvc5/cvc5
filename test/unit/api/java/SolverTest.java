@@ -632,18 +632,25 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkReal(val4, val4));
   }
 
-  @Test void mkRegexpEmpty()
+  @Test void mkRegexpNone()
   {
     Sort strSort = d_solver.getStringSort();
     Term s = d_solver.mkConst(strSort, "s");
-    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpEmpty()));
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpNone()));
   }
 
-  @Test void mkRegexpSigma()
+  @Test void mkRegexpAll()
   {
     Sort strSort = d_solver.getStringSort();
     Term s = d_solver.mkConst(strSort, "s");
-    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAll()));
+  }
+
+  @Test void mkRegexpAllchar()
+  {
+    Sort strSort = d_solver.getStringSort();
+    Term s = d_solver.mkConst(strSort, "s");
+    assertDoesNotThrow(() -> d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpAllchar()));
   }
 
   @Test void mkSepEmp()
@@ -683,8 +690,8 @@ class SolverTest
 
     // mkTerm(Kind kind) const
     assertDoesNotThrow(() -> d_solver.mkTerm(PI));
-    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_EMPTY));
-    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_SIGMA));
+    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_NONE));
+    assertDoesNotThrow(() -> d_solver.mkTerm(REGEXP_ALLCHAR));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(CONST_BITVECTOR));
 
     // mkTerm(Kind kind, Term child) const
@@ -1421,16 +1428,18 @@ class SolverTest
     }
     {
       // mode option
-      OptionInfo info = d_solver.getOptionInfo("output");
+      OptionInfo info = d_solver.getOptionInfo("simplification");
       assertions.clear();
-      assertions.add(() -> assertEquals("output", info.getName()));
+      assertions.add(() -> assertEquals("simplification", info.getName()));
       assertions.add(
-          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+          () -> assertEquals(Arrays.asList(new String[] {"simplification-mode"}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ModeInfo.class));
       OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getBaseInfo();
-      assertions.add(() -> assertEquals("NONE", modeInfo.getDefaultValue()));
-      assertions.add(() -> assertEquals("OutputTag::NONE", modeInfo.getCurrentValue()));
-      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("NONE")));
+      assertions.add(() -> assertEquals("batch", modeInfo.getDefaultValue()));
+      assertions.add(() -> assertEquals("batch", modeInfo.getCurrentValue()));
+      assertions.add(() -> assertEquals(2, modeInfo.getModes().length));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("batch")));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
     }
     assertAll(assertions);
   }
@@ -1638,7 +1647,7 @@ class SolverTest
     Term x = d_solver.mkVar(uSort, "x");
     Term y = d_solver.mkVar(uSort, "y");
     Term eq = d_solver.mkTerm(EQUAL, x, y);
-    Term bvl = d_solver.mkTerm(BOUND_VAR_LIST, x, y);
+    Term bvl = d_solver.mkTerm(VARIABLE_LIST, x, y);
     Term f = d_solver.mkTerm(FORALL, bvl, eq);
     d_solver.assertFormula(f);
     d_solver.checkSat();
@@ -1706,9 +1715,8 @@ class SolverTest
   @Test void getQuantifierElimination()
   {
     Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-    Term forall = d_solver.mkTerm(FORALL,
-        d_solver.mkTerm(BOUND_VAR_LIST, x),
-        d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
+    Term forall = d_solver.mkTerm(
+        FORALL, d_solver.mkTerm(VARIABLE_LIST, x), d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
     assertThrows(
         CVC5ApiException.class, () -> d_solver.getQuantifierElimination(d_solver.getNullTerm()));
     Solver slv = new Solver();
@@ -1722,9 +1730,8 @@ class SolverTest
   @Test void getQuantifierEliminationDisjunct()
   {
     Term x = d_solver.mkVar(d_solver.getBooleanSort(), "x");
-    Term forall = d_solver.mkTerm(FORALL,
-        d_solver.mkTerm(BOUND_VAR_LIST, x),
-        d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
+    Term forall = d_solver.mkTerm(
+        FORALL, d_solver.mkTerm(VARIABLE_LIST, x), d_solver.mkTerm(OR, x, d_solver.mkTerm(NOT, x)));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.getQuantifierEliminationDisjunct(d_solver.getNullTerm()));
 
@@ -2557,7 +2564,7 @@ class SolverTest
     Term[] elements = new Term[] {d_solver.mkBoolean(true),
         d_solver.mkInteger(3),
         d_solver.mkString("C"),
-        d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
+        d_solver.mkTerm(SET_SINGLETON, d_solver.mkString("Z"))};
 
     Term tuple = d_solver.mkTuple(sorts, elements);
 
@@ -2594,8 +2601,8 @@ class SolverTest
       assertEquals(elements[indices[i]], simplifiedTerm);
     }
 
-    assertEquals("((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" (singleton "
-            + "\"Z\")))",
+    assertEquals("((_ tuple_project 0 3 2 0 1 2) (tuple true 3 \"C\" "
+            + "(set.singleton \"Z\")))",
         projection.toString());
   }
 }

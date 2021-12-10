@@ -50,9 +50,9 @@ CoreSolver::CoreSolver(Env& env,
       d_nfPairs(context()),
       d_extDeq(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(-1));
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -131,7 +131,7 @@ void CoreSolver::checkCycles()
   d_eqc.clear();
   // Rebuild strings eqc based on acyclic ordering, first copy the equivalence
   // classes from the base solver.
-  const std::vector<Node>& eqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& eqc = d_bsolver.getStringLikeEqc();
   d_strings_eqc.clear();
   for (const Node& r : eqc)
   {
@@ -776,12 +776,12 @@ Node CoreSolver::getConclusion(Node x,
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
-      conc = nm->mkNode(
-          AND,
-          conc,
-          sk1.eqNode(emp).negate(),
-          nm->mkNode(
-              GT, nm->mkNode(STRING_LENGTH, sk1), nm->mkConst(Rational(0))));
+      conc = nm->mkNode(AND,
+                        conc,
+                        sk1.eqNode(emp).negate(),
+                        nm->mkNode(GT,
+                                   nm->mkNode(STRING_LENGTH, sk1),
+                                   nm->mkConst(CONST_RATIONAL, Rational(0))));
     }
   }
   else if (rule == PfRule::CONCAT_CSPLIT)
@@ -1635,7 +1635,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
 
     int32_t lentTestSuccess = -1;
     Node lenConstraint;
-    if (options::stringCheckEntailLen())
+    if (options().strings.stringCheckEntailLen)
     {
       // If length entailment checks are enabled, we can save the case split by
       // inferring that `x` has to be longer than `y` or vice-versa.
@@ -1784,11 +1784,13 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   TypeNode stype = veci[loop_index].getType();
 
-  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
+  if (options().strings.stringProcessLoopMode
+      == options::ProcessLoopMode::ABORT)
   {
     throw LogicException("Looping word equation encountered.");
   }
-  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE
+  else if (options().strings.stringProcessLoopMode
+               == options::ProcessLoopMode::NONE
            || stype.isSequence())
   {
     // note we cannot convert looping word equations into regular expressions if
@@ -1932,12 +1934,12 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
   }
   else
   {
-    if (options::stringProcessLoopMode()
+    if (options().strings.stringProcessLoopMode
         == options::ProcessLoopMode::SIMPLE_ABORT)
     {
       throw LogicException("Normal looping word equation encountered.");
     }
-    else if (options::stringProcessLoopMode()
+    else if (options().strings.stringProcessLoopMode
              == options::ProcessLoopMode::SIMPLE)
     {
       d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
@@ -2081,7 +2083,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
     return;
   }
 
-  if (options::stringsDeqExt())
+  if (options().strings.stringsDeqExt)
   {
     processDeqExtensionality(ni, nj);
     return;

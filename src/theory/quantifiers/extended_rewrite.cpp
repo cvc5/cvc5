@@ -49,7 +49,7 @@ ExtendedRewriter::ExtendedRewriter(Rewriter& rew, bool aggr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
 
 void ExtendedRewriter::setCache(Node n, Node ret) const
@@ -291,7 +291,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n) const
       << "Do aggressive rewrites on " << n << std::endl;
   bool polarity = n.getKind() != NOT;
   Node ret_atom = n.getKind() == NOT ? n[0] : n;
-  if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isReal())
+  if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isRealOrInt())
       || ret_atom.getKind() == GEQ)
   {
     // ITE term removal in polynomials

@@ -74,15 +74,10 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   d_pivots = 0;
   static thread_local unsigned int instance = 0;
   instance = instance + 1;
-  static const bool verbose = false;
 
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
     Debug("arith::findModel") << "fcFindModel("<< instance <<") trivial" << endl;
     Assert(d_conflictVariables.empty());
-    // if (verbose)
-    //{
-    //  CVC5Message() << "fcFindModel(" << instance << ") trivial" << endl;
-    //}
     return Result::SAT;
   }
 
@@ -94,20 +89,11 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
-    if (verbose)
-    {
-      CVC5Message() << "fcFindModel(" << instance << ") early conflict" << endl;
-    }
     Debug("arith::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    // if (verbose)
-    //{
-    //  CVC5Message() << "fcFindModel(" << instance << ") fixed itself" << endl;
-    //}
     Debug("arith::findModel") << "fcFindModel("<< instance <<") fixed itself" << endl;
-    if (verbose) Assert(!d_errorSet.moreSignals());
     Assert(d_conflictVariables.empty());
     return Result::SAT;
   }
@@ -132,27 +118,11 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
 
     if(result ==  Result::UNSAT){
       ++(d_statistics.d_fcFoundUnsat);
-      if (verbose)
-      {
-        CVC5Message() << "fc found unsat";
-      }
     }else if(d_errorSet.errorEmpty()){
       ++(d_statistics.d_fcFoundSat);
-      if (verbose)
-      {
-        CVC5Message() << "fc found model";
-      }
     }else{
       ++(d_statistics.d_fcMissed);
-      if (verbose)
-      {
-        CVC5Message() << "fc missed";
-      }
     }
-  }
-  if (verbose)
-  {
-    CVC5Message() << "(" << instance << ") pivots " << d_pivots << endl;
   }
 
   Assert(!d_errorSet.moreSignals());
@@ -508,28 +478,9 @@ bool debugUpdatedBasic(const UpdateInfo& selected, ArithVar updated){
 void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, WitnessImprovement w){
   ArithVar nonbasic = selected.nonbasic();
 
-  static bool verbose = false;
-
   Debug("updateAndSignal") << "updateAndSignal " << selected << endl;
 
   stringstream ss;
-  if(verbose){
-    d_errorSet.debugPrint(ss);
-    if(selected.describesPivot()){
-      ArithVar leaving = selected.leaving();
-      ss << "leaving " << leaving
-         << " " << d_tableau.basicRowLength(leaving)
-         << " " << d_linEq.debugBasicAtBoundCount(leaving)
-         << endl;
-    }
-    if(degenerate(w) && selected.describesPivot()){
-      ArithVar leaving = selected.leaving();
-      CVC5Message() << "degenerate " << leaving << ", atBounds "
-                    << d_linEq.basicsAtBounds(selected) << ", len "
-                    << d_tableau.basicRowLength(leaving) << ", bc "
-                    << d_linEq.debugBasicAtBoundCount(leaving) << endl;
-    }
-  }
 
   if(selected.describesPivot()){
     ConstraintP limiting = selected.limiting();
@@ -573,11 +524,6 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
     }
   }
 
-  if (verbose)
-  {
-    CVC5Message() << "conflict variable " << selected << endl;
-    CVC5Message() << ss.str();
-  }
   if(Debug.isOn("error")){ d_errorSet.debugPrint(Debug("error")); }
 
   Assert(
@@ -715,7 +661,6 @@ bool FCSimplexDecisionProcedure::debugDualLike(WitnessImprovement w, ostream& ou
 
 Result::Sat FCSimplexDecisionProcedure::dualLike(){
   static int instance = 0;
-  static bool verbose = false;
 
   TimerStat::CodeTimer codeTimer(d_statistics.d_fcTimer);
 
@@ -787,15 +732,14 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
         w = selectFocusImproving();
       }
     }
+    Debug("dualLike") << "witnessImprovement: " << w << endl;
     Assert(d_focusSize == d_errorSet.focusSize());
     Assert(d_errorSize == d_errorSet.errorSize());
 
-    if (verbose)
-    {
-      debugDualLike(w, CVC5Message(), instance, prevFocusSize, prevErrorSize);
-    }
     Assert(debugDualLike(
         w, Debug("dualLike"), instance, prevFocusSize, prevErrorSize));
+    Debug("dualLike") << "Focus size " << d_focusSize << " (was " << prevFocusSize << ")" << endl;
+    Debug("dualLike") << "Error size " << d_errorSize << " (was " << prevErrorSize << ")" << endl;
   }
 
 

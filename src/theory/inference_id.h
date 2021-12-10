@@ -169,9 +169,7 @@ enum class InferenceId
 
   // ---------------------------------- bags theory
   BAGS_NON_NEGATIVE_COUNT,
-  BAGS_MK_BAG_DIFFERENT_ELEMENT,
-  BAGS_MK_BAG_SAME_ELEMENT,
-  BAGS_MK_BAG,
+  BAGS_BAG_MAKE,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_EMPTY,
@@ -182,6 +180,7 @@ enum class InferenceId
   BAGS_DIFFERENCE_REMOVE,
   BAGS_DUPLICATE_REMOVAL,
   BAGS_MAP,
+  BAGS_FOLD,
   // ---------------------------------- end bags theory
 
   // ---------------------------------- bitvector theory
@@ -343,12 +342,6 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
-  // Q where Q was solved by a subcall to the single invocation module
-  QUANTIFIERS_SYGUS_SI_SOLVED,
-  // Q where Q was (trusted) solved by sampling
-  QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED,
-  // Q where Q was solved by a verification subcall
-  QUANTIFIERS_SYGUS_VERIFY_SOLVED,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
   // unif+pi symmetry breaking between multiple enumerators
@@ -840,6 +833,15 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_MODEL_EXTENSIONALITY,
+  // equivalence of lambda functions
+  //   f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
+  // This is applied when lamda functions f and g are in the same eq class.
+  UF_HO_LAMBDA_UNIV_EQ,
+  // equivalence of a lambda function and an ordinary function
+  //   f = h => h(t) = reduce(lambda(f)(t))
+  // This is applied when lamda function f and ordinary function h are in the
+  // same eq class.
+  UF_HO_LAMBDA_APP_REDUCE,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
   //-------------------------------------- end uf theory

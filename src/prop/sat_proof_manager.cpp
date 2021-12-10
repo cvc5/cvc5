@@ -356,7 +356,8 @@ void SatProofManager::explainLit(SatLiteral lit,
   if (d_assumptions.contains(litNode))
   {
     Trace("sat-proof")
-        << "SatProofManager::explainLit: input assumption, ABORT\n";
+        << "SatProofManager::explainLit: input assumption, ABORT\n"
+        << pop;
     return;
   }
   // We don't need to explain nodes who already have proofs.
@@ -449,7 +450,8 @@ void SatProofManager::explainLit(SatLiteral lit,
       Trace("sat-proof") << "SatProofManager::explainLit:   " << children[i];
       if (i > 0)
       {
-        Trace("sat-proof") << " [" << args[i - 1] << "]";
+        Trace("sat-proof") << " [" << args[(2 * i) - 2] << ", "
+                           << args[(2 * i) - 1] << "]";
       }
       Trace("sat-proof") << "\n";
     }
@@ -634,23 +636,23 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     {
       for (const Node& fa : fassumps)
       {
-        Trace("sat-proof") << "- ";
         auto it = d_cnfStream->getTranslationCache().find(fa);
         if (it != d_cnfStream->getTranslationCache().end())
         {
-          Trace("sat-proof") << it->second << "\n";
+          Trace("sat-proof") << "- " << it->second << "\n";
           Trace("sat-proof") << "  - " << fa << "\n";
           continue;
         }
         // then it's a clause
+        std::stringstream ss;
         Assert(fa.getKind() == kind::OR);
         for (const Node& n : fa)
         {
           it = d_cnfStream->getTranslationCache().find(n);
           Assert(it != d_cnfStream->getTranslationCache().end());
-          Trace("sat-proof") << it->second << " ";
+          ss << it->second << " ";
         }
-        Trace("sat-proof") << "\n";
+        Trace("sat-proof") << "- " << ss.str() << "\n";
         Trace("sat-proof") << "  - " << fa << "\n";
       }
     }

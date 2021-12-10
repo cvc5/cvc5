@@ -41,8 +41,6 @@
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
-#include "smt/solver_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -184,7 +182,7 @@ void Smt2Printer::toStream(std::ostream& out,
       default:
         // fall back on whatever operator<< does on underlying type; we
         // might luck out and be SMT-LIB v2 compliant
-        kind::metakind::NodeValueConstPrinter::toStream(out, n);
+        n.constToStream(out);
       }
       break;
     case kind::BITVECTOR_TYPE:
@@ -332,14 +330,14 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ss.str();
       break;
     }
-    case kind::EMPTYSET:
-      out << "(as emptyset ";
+    case kind::SET_EMPTY:
+      out << "(as set.empty ";
       toStreamType(out, n.getConst<EmptySet>().getType());
       out << ")";
       break;
 
-    case kind::EMPTYBAG:
-      out << "(as emptybag ";
+    case kind::BAG_EMPTY:
+      out << "(as bag.empty ";
       toStreamType(out, n.getConst<EmptyBag>().getType());
       out << ")";
       break;
@@ -456,7 +454,7 @@ void Smt2Printer::toStream(std::ostream& out,
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
-      kind::metakind::NodeValueConstPrinter::toStream(out, n);
+      n.constToStream(out);
     }
 
     return;
@@ -497,7 +495,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   if (!type_asc_arg.isNull())
   {
-    if (force_nt.isReal())
+    if (force_nt.isRealOrInt())
     {
       // we prefer using (/ x 1) instead of (to_real x) here.
       // the reason is that (/ x 1) is SMT-LIB compliant when x is a constant
@@ -690,7 +688,7 @@ void Smt2Printer::toStream(std::ostream& out,
     break;
 
   // sets
-  case kind::SINGLETON:
+  case kind::SET_SINGLETON:
   {
     out << smtKindString(k, d_variant) << " ";
     TypeNode elemType = n.getType().getSetElementType();
@@ -700,12 +698,12 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
   break;
-  case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
+  case kind::SET_UNIVERSE: out << "(as set.universe " << n.getType() << ")"; break;
 
   // bags
-  case kind::MK_BAG:
+  case kind::BAG_MAKE:
   {
-    // print (bag (mkBag_op Real) 1 3) as (bag 1.0 3)
+    // print (bag (BAG_MAKE_OP Real) 1 3) as (bag 1.0 3)
     out << smtKindString(k, d_variant) << " ";
     TypeNode elemType = n.getType().getBagElementType();
     toStreamCastToType(
@@ -1062,43 +1060,45 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::APPLY_UPDATER: return "update";
 
   // set theory
-  case kind::UNION: return "union";
-  case kind::INTERSECTION: return "intersection";
-  case kind::SETMINUS: return "setminus";
-  case kind::SUBSET: return "subset";
-  case kind::MEMBER: return "member";
+  case kind::SET_UNION: return "set.union";
+  case kind::SET_INTER: return "set.inter";
+  case kind::SET_MINUS: return "set.minus";
+  case kind::SET_SUBSET: return "set.subset";
+  case kind::SET_MEMBER: return "set.member";
   case kind::SET_TYPE: return "Set";
-  case kind::SINGLETON: return "singleton";
-  case kind::INSERT: return "insert";
-  case kind::COMPLEMENT: return "complement";
-  case kind::CARD: return "card";
-  case kind::COMPREHENSION: return "comprehension";
-  case kind::CHOOSE: return "choose";
-  case kind::IS_SINGLETON: return "is_singleton";
-  case kind::JOIN: return "join";
-  case kind::PRODUCT: return "product";
-  case kind::TRANSPOSE: return "transpose";
-  case kind::TCLOSURE: return "tclosure";
-  case kind::IDEN: return "iden";
-  case kind::JOIN_IMAGE: return "join_image";
+  case kind::SET_SINGLETON: return "set.singleton";
+  case kind::SET_INSERT: return "set.insert";
+  case kind::SET_COMPLEMENT: return "set.complement";
+  case kind::SET_CARD: return "set.card";
+  case kind::SET_COMPREHENSION: return "set.comprehension";
+  case kind::SET_CHOOSE: return "set.choose";
+  case kind::SET_IS_SINGLETON: return "set.is_singleton";
+  case kind::SET_MAP: return "set.map";
+  case kind::RELATION_JOIN: return "rel.join";
+  case kind::RELATION_PRODUCT: return "rel.product";
+  case kind::RELATION_TRANSPOSE: return "rel.transpose";
+  case kind::RELATION_TCLOSURE: return "rel.tclosure";
+  case kind::RELATION_IDEN: return "rel.iden";
+  case kind::RELATION_JOIN_IMAGE: return "rel.join_image";
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";
-  case kind::UNION_MAX: return "union_max";
-  case kind::UNION_DISJOINT: return "union_disjoint";
-  case kind::INTERSECTION_MIN: return "intersection_min";
-  case kind::DIFFERENCE_SUBTRACT: return "difference_subtract";
-  case kind::DIFFERENCE_REMOVE: return "difference_remove";
-  case kind::SUBBAG: return "subbag";
+  case kind::BAG_UNION_MAX: return "bag.union_max";
+  case kind::BAG_UNION_DISJOINT: return "bag.union_disjoint";
+  case kind::BAG_INTER_MIN: return "bag.inter_min";
+  case kind::BAG_DIFFERENCE_SUBTRACT: return "bag.difference_subtract";
+  case kind::BAG_DIFFERENCE_REMOVE: return "bag.difference_remove";
+  case kind::BAG_SUBBAG: return "bag.subbag";
   case kind::BAG_COUNT: return "bag.count";
-  case kind::DUPLICATE_REMOVAL: return "duplicate_removal";
-  case kind::MK_BAG: return "bag";
+  case kind::BAG_DUPLICATE_REMOVAL: return "bag.duplicate_removal";
+  case kind::BAG_MAKE: return "bag";
   case kind::BAG_CARD: return "bag.card";
   case kind::BAG_CHOOSE: return "bag.choose";
   case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
   case kind::BAG_FROM_SET: return "bag.from_set";
   case kind::BAG_TO_SET: return "bag.to_set";
   case kind::BAG_MAP: return "bag.map";
+  case kind::BAG_FOLD: return "bag.fold";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1180,8 +1180,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::STRING_STOI: return "str.to_int";
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
-  case kind::REGEXP_EMPTY: return "re.none";
-  case kind::REGEXP_SIGMA: return "re.allchar";
+  case kind::REGEXP_NONE: return "re.none";
+  case kind::REGEXP_ALLCHAR: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
   case kind::REGEXP_INTER: return "re.inter";
@@ -1221,7 +1221,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
 void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
 {
   // we currently must call TypeNode::toStream here.
-  tn.toStream(out, Language::LANG_SMTLIB_V2_6);
+  tn.toStream(out);
 }
 
 template <class T>
@@ -1774,8 +1774,9 @@ void Smt2Printer::toStreamCmdEcho(std::ostream& out,
    --------------------------------------------------------------------------
 */
 
-static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
+std::string Smt2Printer::sygusGrammarString(const TypeNode& t)
 {
+  std::stringstream out;
   if (!t.isNull() && t.isDatatype() && t.getDType().isSygus())
   {
     std::stringstream types_predecl, types_list;
@@ -1830,6 +1831,7 @@ static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
 
     out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ')';
   }
+  return out.str();
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
@@ -1863,7 +1865,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   // print grammar, if any
   if (!sygusType.isNull())
   {
-    toStreamSygusGrammar(out, sygusType);
+    out << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
 }
@@ -1905,8 +1907,7 @@ void Smt2Printer::toStreamCmdGetInterpol(std::ostream& out,
   out << "(get-interpol " << cvc5::quoteSymbol(name) << ' ' << conj;
   if (!sygusType.isNull())
   {
-    out << ' ';
-    toStreamSygusGrammar(out, sygusType);
+    out << ' ' << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
 }
@@ -1923,7 +1924,7 @@ void Smt2Printer::toStreamCmdGetAbduct(std::ostream& out,
   // print grammar, if any
   if (!sygusType.isNull())
   {
-    toStreamSygusGrammar(out, sygusType);
+    out << sygusGrammarString(sygusType);
   }
   out << ')' << std::endl;
 }

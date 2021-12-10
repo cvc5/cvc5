@@ -80,7 +80,6 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
   d_pivots = 0;
   static thread_local unsigned int instance = 0;
   instance = instance + 1;
-  static const bool verbose = false;
 
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
     Debug("soi::findModel") << "soiFindModel("<< instance <<") trivial" << endl;
@@ -96,10 +95,6 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
-    if (verbose)
-    {
-      CVC5Message() << "fcFindModel(" << instance << ") early conflict" << endl;
-    }
     Debug("soi::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
@@ -130,27 +125,11 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
 
     if(result ==  Result::UNSAT){
       ++(d_statistics.d_soiFoundUnsat);
-      if (verbose)
-      {
-        CVC5Message() << "fc found unsat";
-      }
     }else if(d_errorSet.errorEmpty()){
       ++(d_statistics.d_soiFoundSat);
-      if (verbose)
-      {
-        CVC5Message() << "fc found model";
-      }
     }else{
       ++(d_statistics.d_soiMissed);
-      if (verbose)
-      {
-        CVC5Message() << "fc missed";
-      }
     }
-  }
-  if (verbose)
-  {
-    CVC5Message() << "(" << instance << ") pivots " << d_pivots << endl;
   }
 
   Assert(!d_errorSet.moreSignals());
@@ -345,28 +324,7 @@ void SumOfInfeasibilitiesSPD::debugPrintSignal(ArithVar updated) const{
 void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, WitnessImprovement w){
   ArithVar nonbasic = selected.nonbasic();
 
-  static bool verbose = false;
-
   Debug("updateAndSignal") << "updateAndSignal " << selected << endl;
-
-  stringstream ss;
-  if(verbose){
-    d_errorSet.debugPrint(ss);
-    if(selected.describesPivot()){
-      ArithVar leaving = selected.leaving();
-      ss << "leaving " << leaving
-         << " " << d_tableau.basicRowLength(leaving)
-         << " " << d_linEq.debugBasicAtBoundCount(leaving)
-         << endl;
-    }
-    if(degenerate(w) && selected.describesPivot()){
-      ArithVar leaving = selected.leaving();
-      CVC5Message() << "degenerate " << leaving << ", atBounds "
-                    << d_linEq.basicsAtBounds(selected) << ", len "
-                    << d_tableau.basicRowLength(leaving) << ", bc "
-                    << d_linEq.debugBasicAtBoundCount(leaving) << endl;
-    }
-  }
 
   if(selected.describesPivot()){
     ConstraintP limiting = selected.limiting();
@@ -410,11 +368,6 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     }
   }
 
-  if (verbose)
-  {
-    CVC5Message() << "conflict variable " << selected << endl;
-    CVC5Message() << ss.str();
-  }
   if(Debug.isOn("error")){ d_errorSet.debugPrint(Debug("error")); }
 
   //Assert(debugSelectedErrorDropped(selected, d_errorSize, d_errorSet.errorSize()));
@@ -944,8 +897,7 @@ bool SumOfInfeasibilitiesSPD::debugSOI(WitnessImprovement w, ostream& out, int i
 
 Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
   static int instance = 0;
-  static bool verbose = false;
-
+  
   TimerStat::CodeTimer codeTimer(d_statistics.d_soiTimer);
 
   Assert(d_sgnDisagreements.empty());
@@ -968,15 +920,11 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
     // - conflict
     // - budget was exhausted
     // - focus went down
-    Debug("dualLike") << "selectFocusImproving " << endl;
     WitnessImprovement w = soiRound();
+    Debug("dualLike") << "selectFocusImproving -> " << w << endl;
 
     Assert(d_errorSize == d_errorSet.errorSize());
 
-    if (verbose)
-    {
-      debugSOI(w, CVC5Message(), instance);
-    }
     Assert(debugSOI(w, Debug("dualLike"), instance));
   }
 

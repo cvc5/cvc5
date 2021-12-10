@@ -140,8 +140,8 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
 {
   TypeNode integer = d_nodeManager->integerType();
 
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node two = d_nodeManager->mkConst(Rational(2));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational(2));
 
   Node x = d_nodeManager->mkBoundVar(integer);
   Node a = d_skolemManager->mkDummySkolem("a", integer);

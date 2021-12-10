@@ -41,8 +41,8 @@ TEST_F(TestTheoryBlack, array_const)
 {
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
   Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 

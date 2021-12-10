@@ -59,8 +59,6 @@ options {
 #  define ANTLR3_INLINE_INPUT_8BIT
 #endif /* CVC5_COMPETITION_MODE && !CVC5_SMTCOMP_APPLICATION_TRACK */
 
-#include "parser/antlr_tracing.h"
-
 }/* @lexer::includes */
 
 @lexer::postinclude {
@@ -79,7 +77,6 @@ using namespace cvc5::parser;
 #include <memory>
 
 #include "base/check.h"
-#include "parser/antlr_tracing.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "smt/command.h"
@@ -105,7 +102,6 @@ namespace cvc5 {
 
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
-#include "options/set_language.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2.h"
@@ -252,7 +248,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     DEFINE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
-    LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
+    LPAREN_TOK symbolList[names,CHECK_UNDECLARED,SYM_SORT] RPAREN_TOK
     { PARSER_STATE->pushScope();
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
@@ -375,7 +371,8 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     }
   | /* check-sat */
     CHECK_SAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if (PARSER_STATE->sygus()) {
+    {
+      if (PARSER_STATE->sygus()) {
         PARSER_STATE->parseError("Sygus does not support check-sat command.");
       }
       cmd->reset(new CheckSatCommand());
@@ -409,10 +406,6 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new GetDifficultyCommand); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
-        PARSER_STATE->parseError("Sygus does not support push command.");
-      }
-    }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
         if(num == 0) {
@@ -442,16 +435,11 @@ command [std::unique_ptr<cvc5::Command>* cmd]
         }
       } )
   | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { if( PARSER_STATE->sygus() ){
-        PARSER_STATE->parseError("Sygus does not support pop command.");
-      }
-    }
     ( k=INTEGER_LITERAL
       { unsigned num = AntlrInput::tokenToUnsigned(k);
-        if(num > PARSER_STATE->scopeLevel()) {
-          PARSER_STATE->parseError("Attempted to pop above the top stack "
-                                   "frame.");
-        }
+        // we don't compare num to PARSER_STATE->scopeLevel() here, since
+        // when global declarations is true, the scope level of the parser
+        // is not indicative of the context level.
         if(num == 0) {
           cmd->reset(new EmptyCommand());
         } else if(num == 1) {
@@ -1305,7 +1293,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
       }
       expr = MK_TERM(kind, args);
     }
-  | LPAREN_TOK COMPREHENSION_TOK
+  | LPAREN_TOK SET_COMPREHENSION_TOK
     { PARSER_STATE->pushScope(); }
     boundVarList[bvl]
     {
@@ -1314,7 +1302,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
     term[f, f2] { args.push_back(f); }
     term[f, f2] {
       args.push_back(f);
-      expr = MK_TERM(api::COMPREHENSION, args);
+      expr = MK_TERM(api::SET_COMPREHENSION, args);
     }
     RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
@@ -1399,7 +1387,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           cargs.push_back(f);
           cargs.insert(cargs.end(),args.begin(),args.end());
           api::Term c = MK_TERM(api::APPLY_CONSTRUCTOR,cargs);
-          api::Term bvla = MK_TERM(api::BOUND_VAR_LIST,args);
+          api::Term bvla = MK_TERM(api::VARIABLE_LIST,args);
           api::Term mc = MK_TERM(api::MATCH_BIND_CASE, bvla, c, f3);
           matchcases.push_back(mc);
           // now, pop the scope
@@ -1430,7 +1418,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
           api::Term mc;
           if (f.getKind() == api::VARIABLE)
           {
-            api::Term bvlf = MK_TERM(api::BOUND_VAR_LIST, f);
+            api::Term bvlf = MK_TERM(api::VARIABLE_LIST, f);
             mc = MK_TERM(api::MATCH_BIND_CASE, bvlf, f, f3);
           }
           else
@@ -1547,7 +1535,7 @@ termNonVariable[cvc5::api::Term& expr, cvc5::api::Term& expr2]
  * as (3).
  * - Overloaded non-parametric constructors (as C T) return the appropriate
  * expression, analogous to the parametric cases above.
- * - For other ascripted nullary constants like (as emptyset (Set T)),
+ * - For other ascripted nullary constants like (as set.empty (Set T)),
  * (as sep.nil T), we return the appropriate expression (3).
  * - For array constant specifications (as const (Array T1 T2)), we return (1)
  * and (4), where kind is set to STORE_ALL and type is set to (Array T1 T2),
@@ -1938,7 +1926,7 @@ boundVarList[cvc5::api::Term& expr]
    {
      std::vector<cvc5::api::Term> args =
          PARSER_STATE->bindBoundVars(sortedVarNames);
-     expr = MK_TERM(api::BOUND_VAR_LIST, args);
+     expr = MK_TERM(api::VARIABLE_LIST, args);
    }
  ;
 
@@ -2224,7 +2212,7 @@ DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'decla
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'par';
-COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'comprehension';
+SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SETS) }?'set.comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'is';
 UPDATE_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'update';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }?'match';

@@ -71,7 +71,7 @@ void SmtSolver::finishInit()
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new prop::PropEngine(d_theoryEngine.get(), d_env));
+  d_propEngine.reset(new prop::PropEngine(d_env, d_theoryEngine.get()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -89,7 +89,7 @@ void SmtSolver::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new prop::PropEngine(d_theoryEngine.get(), d_env));
+  d_propEngine.reset(new prop::PropEngine(d_env, d_theoryEngine.get()));
   d_theoryEngine->setPropEngine(getPropEngine());
   // Notice that we do not reset TheoryEngine, nor does it require calling
   // finishInit again. In particular, TheoryEngine::finishInit does not
@@ -155,16 +155,18 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   TimerStat::CodeTimer solveTimer(d_stats.d_solveTime);
 
-  Chat() << "solving..." << endl;
+  d_env.verbose(2) << "solving..." << std::endl;
   Trace("smt") << "SmtSolver::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
+  Trace("smt") << "SmtSolver::check(): result " << result << std::endl;
 
   rm->endCall();
   Trace("limit") << "SmtSolver::check(): cumulative millis "
                  << rm->getTimeUsage() << ", resources "
                  << rm->getResourceUsage() << endl;
 
-  if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
+  if ((d_env.getOptions().smt.solveRealAsInt
+       || d_env.getOptions().smt.solveIntAsBV > 0)
       && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
@@ -228,7 +230,7 @@ void SmtSolver::processAssertions(Assertions& as)
 
   // Push the formula to SAT
   {
-    Chat() << "converting to CNF..." << endl;
+    d_env.verbose(2) << "converting to CNF..." << endl;
     const std::vector<Node>& assertions = ap.ref();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter

@@ -66,30 +66,30 @@ void TheorySets::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
 
-  d_valuation.setUnevaluatedKind(COMPREHENSION);
+  d_valuation.setUnevaluatedKind(SET_COMPREHENSION);
   // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
   // Universe set is not evaluated. This is moreover important for ensuring that
   // we do not eliminate terms whose value involves the universe set.
-  d_valuation.setUnevaluatedKind(UNIVERSE_SET);
+  d_valuation.setUnevaluatedKind(SET_UNIVERSE);
 
   // functions we are doing congruence over
-  d_equalityEngine->addFunctionKind(SINGLETON);
-  d_equalityEngine->addFunctionKind(UNION);
-  d_equalityEngine->addFunctionKind(INTERSECTION);
-  d_equalityEngine->addFunctionKind(SETMINUS);
-  d_equalityEngine->addFunctionKind(MEMBER);
-  d_equalityEngine->addFunctionKind(SUBSET);
+  d_equalityEngine->addFunctionKind(SET_SINGLETON);
+  d_equalityEngine->addFunctionKind(SET_UNION);
+  d_equalityEngine->addFunctionKind(SET_INTER);
+  d_equalityEngine->addFunctionKind(SET_MINUS);
+  d_equalityEngine->addFunctionKind(SET_MEMBER);
+  d_equalityEngine->addFunctionKind(SET_SUBSET);
   // relation operators
-  d_equalityEngine->addFunctionKind(PRODUCT);
-  d_equalityEngine->addFunctionKind(JOIN);
-  d_equalityEngine->addFunctionKind(TRANSPOSE);
-  d_equalityEngine->addFunctionKind(TCLOSURE);
-  d_equalityEngine->addFunctionKind(JOIN_IMAGE);
-  d_equalityEngine->addFunctionKind(IDEN);
+  d_equalityEngine->addFunctionKind(RELATION_PRODUCT);
+  d_equalityEngine->addFunctionKind(RELATION_JOIN);
+  d_equalityEngine->addFunctionKind(RELATION_TRANSPOSE);
+  d_equalityEngine->addFunctionKind(RELATION_TCLOSURE);
+  d_equalityEngine->addFunctionKind(RELATION_JOIN_IMAGE);
+  d_equalityEngine->addFunctionKind(RELATION_IDEN);
   d_equalityEngine->addFunctionKind(APPLY_CONSTRUCTOR);
   // we do congruence over cardinality
-  d_equalityEngine->addFunctionKind(CARD);
+  d_equalityEngine->addFunctionKind(SET_CARD);
 
   // finish initialization internally
   d_internal->finishInit();
@@ -133,8 +133,8 @@ void TheorySets::preRegisterTerm(TNode node)
 TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
-  if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
-      || nk == COMPREHENSION)
+  if (nk == SET_UNIVERSE || nk == SET_COMPLEMENT || nk == RELATION_JOIN_IMAGE
+      || nk == SET_COMPREHENSION)
   {
     if (!options().sets.setsExt)
     {
@@ -144,7 +144,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  if (nk == COMPREHENSION)
+  if (nk == SET_COMPREHENSION)
   {
     // set comprehension is an implicit quantifier, require it in the logic
     if (!logicInfo().isQuantified())

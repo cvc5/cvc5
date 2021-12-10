@@ -851,28 +851,40 @@ public class Solver implements IPointer, AutoCloseable
   private native long mkReal(long pointer, long num, long den);
 
   /**
-   * Create a regular expression empty term.
-   * @return the empty term
+   * Create a regular expression none (re.none) term.
+   * @return the none term
    */
-  public Term mkRegexpEmpty()
+  public Term mkRegexpNone()
   {
-    long termPointer = mkRegexpEmpty(pointer);
+    long termPointer = mkRegexpNone(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpEmpty(long pointer);
+  private native long mkRegexpNone(long pointer);
 
   /**
-   * Create a regular expression sigma term.
-   * @return the sigma term
+   * Create a regular expression all (re.all) term.
+   * @return the all term
    */
-  public Term mkRegexpSigma()
+  public Term mkRegexpAll()
   {
-    long termPointer = mkRegexpSigma(pointer);
+    long termPointer = mkRegexpAll(pointer);
     return new Term(this, termPointer);
   }
 
-  private native long mkRegexpSigma(long pointer);
+  private native long mkRegexpAll(long pointer);
+
+  /**
+   * Create a regular expression allchar (re.allchar) term.
+   * @return the allchar term
+   */
+  public Term mkRegexpAllchar()
+  {
+    long termPointer = mkRegexpAllchar(pointer);
+    return new Term(this, termPointer);
+  }
+
+  private native long mkRegexpAllchar(long pointer);
 
   /**
    * Create a constant representing an empty set of the given sort.

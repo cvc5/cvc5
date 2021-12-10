@@ -2,23 +2,6 @@ id     = "SMT"
 name   = "SMT Layer"
 
 [[option]]
-  name       = "dumpModeString"
-  category   = "common"
-  long       = "dump=MODE"
-  type       = "std::string"
-  help       = "dump preprocessed assertions, etc., see --dump=help"
-  predicates = ["setDumpMode"]
-
-[[option]]
-  name       = "dumpToFileName"
-  category   = "common"
-  long       = "dump-to=FILE"
-  type       = "ManagedOut"
-  help       = "all dumping goes to FILE (instead of stdout)"
-  predicates = ["setDumpStream"]
-  includes   = ["<iostream>", "options/managed_streams.h"]
-
-[[option]]
   name       = "ackermann"
   category   = "regular"
   long       = "ackermann"
@@ -412,6 +395,9 @@ name   = "SMT Layer"
 [[option.mode.BV]]
   name = "bv"
   help = "Translate bvand back to bit-vectors"
+[[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "Introduce a UF operator for bvand, and eagerly add bitwise lemmas"
 
 [[option]]
   name       = "BVAndIntegerGranularity"

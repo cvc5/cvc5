@@ -131,7 +131,7 @@ uint32_t PolarityTermContext::getValue(bool hasPol, bool pol)
 
 void PolarityTermContext::getFlags(uint32_t val, bool& hasPol, bool& pol)
 {
-  hasPol = val == 0;
+  hasPol = val != 0;
   pol = val == 2;
 }
 

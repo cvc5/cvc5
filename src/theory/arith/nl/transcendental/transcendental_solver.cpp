@@ -37,12 +37,15 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im,
-                                           NlModel& m,
-                                           Env& env)
-    : d_tstate(im, m, env), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
+TranscendentalSolver::TranscendentalSolver(Env& env,
+                                           InferenceManager& im,
+                                           NlModel& m)
+    : EnvObj(env),
+      d_tstate(env, im, m),
+      d_expSlv(env, &d_tstate),
+      d_sineSlv(env, &d_tstate)
 {
-  d_taylor_degree = d_tstate.d_env.getOptions().arith.nlExtTfTaylorDegree;
+  d_taylor_degree = options().arith.nlExtTfTaylorDegree;
 }
 
 TranscendentalSolver::~TranscendentalSolver() {}
@@ -98,7 +101,7 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
     if (!subs.empty())
     {
       pa = arithSubstitute(pa, subs);
-      pa = Rewriter::rewrite(pa);
+      pa = rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
     {
@@ -179,7 +182,14 @@ void TranscendentalSolver::processSideEffect(const NlLemma& se)
     Node tf = std::get<0>(sp);
     unsigned d = std::get<1>(sp);
     Node c = std::get<2>(sp);
-    d_tstate.d_secant_points[tf][d].push_back(c);
+    // we have a CDList within the maps, creating it requires some care
+    auto& secant_points = d_tstate.d_secant_points[tf];
+    auto it = secant_points.find(d);
+    if (it == secant_points.end())
+    {
+      it = secant_points.emplace(d, userContext()).first;
+    }
+    it->second.push_back(c);
   }
 }
 
@@ -330,11 +340,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
       Trace("nl-trans") << "...compare : " << comp << std::endl;
-      Node compr = Rewriter::rewrite(comp);
+      Node compr = rewrite(comp);
       Trace("nl-trans") << "...got : " << compr << std::endl;
       if (compr == d_tstate.d_true)
       {
-        poly_approx_c = Rewriter::rewrite(v_pab);
+        poly_approx_c = rewrite(v_pab);
         // beyond the bounds
         if (r == 0)
         {

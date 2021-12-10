@@ -74,10 +74,10 @@ std::ostream& operator<<(std::ostream& out, InferStep i);
  * This stores a sequence of the above enum that indicates the calls to
  * runInferStep to make on the theory of strings, given by parent.
  */
-class Strategy
+class Strategy : protected EnvObj
 {
  public:
-  Strategy();
+  Strategy(Env& env);
   ~Strategy();
   /** is this strategy initialized? */
   bool isStrategyInit() const;

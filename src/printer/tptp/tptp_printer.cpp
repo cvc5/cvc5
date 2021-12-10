@@ -24,7 +24,6 @@
 #include "options/smt_options.h"  // for unsat cores
 #include "proof/unsat_core.h"
 #include "smt/command.h"
-#include "smt/node_command.h"
 #include "smt/solver_engine.h"
 
 using namespace std;
@@ -38,7 +37,9 @@ void TptpPrinter::toStream(std::ostream& out,
                            int toDepth,
                            size_t dag) const
 {
-  n.toStream(out, toDepth, dag, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyOutputLang(out, Language::LANG_SMTLIB_V2_6);
+  n.toStream(out, toDepth, dag);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const

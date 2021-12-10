@@ -27,6 +27,7 @@
 #include "proof/buffered_proof_generator.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/lazy_proof.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -80,7 +81,7 @@ class EqualityEngine;
  * - explain, for explaining why a literal is true in the current state.
  * Details on these methods can be found below.
  */
-class ProofEqEngine : public EagerProofGenerator
+class ProofEqEngine : protected EnvObj, public EagerProofGenerator
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;

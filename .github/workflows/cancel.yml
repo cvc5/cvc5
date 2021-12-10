@@ -1,13 +1,15 @@
-on: [push, pull_request_target]
+
 name: Cancel
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - requested
 
 jobs:
   cancel:
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.5.0
+      - uses: styfle/cancel-workflow-action@0.9.1
         with:
-          # cancel builds from ci workflow
-          workflow_id: 903674
-          access_token: ${{ github.token }}
+          workflow_id: ${{ github.event.workflow.id }}

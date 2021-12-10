@@ -40,7 +40,7 @@ InstStrategyEnum::InstStrategyEnum(Env& env,
 }
 void InstStrategyEnum::presolve()
 {
-  d_fullSaturateLimit = options::fullSaturateLimit();
+  d_fullSaturateLimit = options().quantifiers.fullSaturateLimit;
 }
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
@@ -48,7 +48,7 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
   {
     return false;
   }
-  if (options::fullSaturateInterleave())
+  if (options().quantifiers.fullSaturateInterleave)
   {
     // if interleaved, we run at the same time as E-matching
     if (d_qstate.getInstWhenNeedsCheck(e))
@@ -56,7 +56,7 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
       return true;
     }
   }
-  if (options::fullSaturateQuant())
+  if (options().quantifiers.fullSaturateQuant)
   {
     if (e >= Theory::EFFORT_LAST_CALL)
     {
@@ -73,12 +73,12 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   bool fullEffort = false;
   if (d_fullSaturateLimit != 0)
   {
-    if (options::fullSaturateInterleave())
+    if (options().quantifiers.fullSaturateInterleave)
     {
       // we only add when interleaved with other strategies
       doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
     }
-    if (options::fullSaturateQuant() && !doCheck)
+    if (options().quantifiers.fullSaturateQuant && !doCheck)
     {
       if (!d_qstate.getValuation().needCheck())
       {
@@ -99,7 +99,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     Trace("fs-engine") << "---Full Saturation Round, effort = " << e << "---"
                        << std::endl;
   }
-  unsigned rstart = options::fullSaturateQuantRd() ? 0 : 1;
+  unsigned rstart = options().quantifiers.fullSaturateQuantRd ? 0 : 1;
   unsigned rend = fullEffort ? 1 : rstart;
   unsigned addedLemmas = 0;
   // First try in relevant domain of all quantified formulas, if no
@@ -138,7 +138,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
           if (process(q, fullEffort, r == 0))
           {
             // don't need to mark this if we are not stratifying
-            if (!options::fullSaturateStratify())
+            if (!options().quantifiers.fullSaturateStratify)
             {
               alreadyProc[q] = true;
             }
@@ -152,7 +152,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
         }
       }
       if (d_qstate.isInConflict()
-          || (addedLemmas > 0 && options::fullSaturateStratify()))
+          || (addedLemmas > 0 && options().quantifiers.fullSaturateStratify))
       {
         // we break if we are in conflict, or if we added any lemma at this
         // effort level and we stratify effort levels.
@@ -184,7 +184,7 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = fullEffort;
-  ttec.d_increaseSum = options::fullSaturateSum();
+  ttec.d_increaseSum = options().quantifiers.fullSaturateSum;
   // make the enumerator, which is either relevant domain or term database
   // based on the flag isRd.
   std::unique_ptr<TermTupleEnumeratorInterface> enumerator(

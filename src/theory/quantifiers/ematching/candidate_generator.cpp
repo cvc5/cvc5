@@ -48,8 +48,8 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
                                            TermRegistry& tr,
                                            Node pat)
     : CandidateGenerator(qs, tr),
-      d_term_iter(-1),
-      d_term_iter_limit(0),
+      d_termIter(0),
+      d_termIterList(nullptr),
       d_mode(cand_term_none)
 {
   d_op = d_treg.getTermDatabase()->getMatchOperator(pat);
@@ -60,11 +60,12 @@ void CandidateGeneratorQE::reset(Node eqc) { resetForOperator(eqc, d_op); }
 
 void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
 {
-  d_term_iter = 0;
+  d_termIter = 0;
   d_eqc = eqc;
   d_op = op;
-  d_term_iter_limit = d_treg.getTermDatabase()->getNumGroundTerms(d_op);
-  if( eqc.isNull() ){
+  d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
+  if (eqc.isNull())
+  {
     d_mode = cand_term_db;
   }else{
     if( isExcludedEqc( eqc ) ){
@@ -104,11 +105,18 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
+    if (d_termIterList == nullptr)
+    {
+      d_mode = cand_term_none;
+      return Node::null();
+    }
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
-    while( d_term_iter<d_term_iter_limit ){
-      Node n = d_treg.getTermDatabase()->getGroundTerm(d_op, d_term_iter);
-      d_term_iter++;
+    size_t tlLimit = d_termIterList->d_list.size();
+    while (d_termIter < tlLimit)
+    {
+      Node n = d_termIterList->d_list[d_termIter];
+      d_termIter++;
       if( isLegalCandidate( n ) ){
         if (d_treg.getTermDatabase()->hasTermCurrent(n))
         {
@@ -243,10 +251,20 @@ CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(QuantifiersState& qs,
 
 void CandidateGeneratorConsExpand::reset(Node eqc)
 {
-  d_term_iter = 0;
+  d_termIter = 0;
   if (eqc.isNull())
   {
-    d_mode = cand_term_db;
+    // generates too many instantiations at top-level when eqc is null, thus
+    // set mode to none unless option is set.
+    if (options::consExpandTriggers())
+    {
+      d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
+      d_mode = cand_term_db;
+    }
+    else
+    {
+      d_mode = cand_term_none;
+    }
   }
   else
   {

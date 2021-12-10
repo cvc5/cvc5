@@ -28,6 +28,7 @@
 #include "expr/node_value.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/options_public.h"
 #include "smt/solver_engine.h"
@@ -562,7 +563,7 @@ TEST_F(TestNodeBlackNode, toStream)
   Node o = NodeBuilder() << n << n << kind::XOR;
 
   std::stringstream sstr;
-  sstr << Node::dag(false);
+  options::ioutils::applyDagThresh(sstr, 0);
   n.toStream(sstr);
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
@@ -579,37 +580,41 @@ TEST_F(TestNodeBlackNode, toStream)
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(0) << n;
+  options::ioutils::applyNodeDepth(sstr, -1);
+  sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(0) << o;
+  sstr << o;
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(1) << n;
+  options::ioutils::applyNodeDepth(sstr, 1);
+  sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR (...) (...)) z)");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(1) << o;
+  sstr << o;
   ASSERT_EQ(sstr.str(),
             "(XOR (AND (...) (...) (...)) (AND (...) (...) (...)))");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(2) << n;
+  options::ioutils::applyNodeDepth(sstr, 2);
+  sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(2) << o;
+  sstr << o;
   ASSERT_EQ(sstr.str(),
             "(XOR (AND w (OR (...) (...)) z) (AND w (OR (...) (...)) z))");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(3) << n;
+  options::ioutils::applyNodeDepth(sstr, 3);
+  sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(3) << o;
+  sstr << o;
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 }
 
@@ -643,8 +648,8 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(Language::LANG_SMTLIB_V2_6);
-  sstr << Node::dag(false) << n;  // never dagify
+  options::ioutils::apply(sstr, 0, -1, Language::LANG_SMTLIB_V2_6);
+  sstr << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(or (= (f (f (f x))) x) (= (f (f (f x))) y) (= (f x) (g x)) (= x "
             "y) (= (f (g x)) (g y)))");
@@ -732,15 +737,15 @@ TEST_F(TestNodeBlackNode, isConst)
   Node cons_1_nil =
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(Rational(1)),
+                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
   Node cons_1_cons_2_nil = d_nodeManager->mkNode(
       APPLY_CONSTRUCTOR,
       cons,
-      d_nodeManager->mkConst(Rational(1)),
+      d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(Rational(2)),
+                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(2)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
   ASSERT_TRUE(d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
   ASSERT_FALSE(cons_x_nil.isConst());
@@ -749,8 +754,8 @@ TEST_F(TestNodeBlackNode, isConst)
 
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
+  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
   Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 

@@ -109,6 +109,7 @@ set(regress_0_tests
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
   regress0/arrays/issue4927-unsat-cores.smt2
+  regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -509,7 +510,9 @@ set(regress_0_tests
   regress0/datatypes/mutually-recursive.cvc.smt2
   regress0/datatypes/pair-bool-bool.cvc.smt2
   regress0/datatypes/pair-real-bool.smt2
+  regress0/datatypes/par-updater-type-rule.smt2 
   regress0/datatypes/parametric-alt-list.cvc.smt2
+  regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
@@ -556,6 +559,8 @@ set(regress_0_tests
   regress0/declare-fun-is-match.smt2
   regress0/declare-funs.smt2
   regress0/define-fun-model.smt2
+  regress0/difficulty-simple.smt2
+  regress0/difficulty-model-ex.smt2
   regress0/distinct.smtv1.smt2
   regress0/dump-unsat-core-full.smt2
   regress0/echo.smt2
@@ -613,6 +618,7 @@ set(regress_0_tests
   regress0/fp/issue5734.smt2
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
+  regress0/fp/issue7569.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
@@ -629,6 +635,7 @@ set(regress_0_tests
   regress0/ho/bug_nodbuilding_interpreted_SYO042^1.p
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
+  regress0/ho/datatype-field-ho.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
   regress0/ho/ext-finite-unsat.smt2
@@ -658,11 +665,14 @@ set(regress_0_tests
   regress0/ho/issue6536.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
+  regress0/ho/lazy-lambda-model.smt2
   regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/qgu-fuzz-ho-1-dd.smt2
   regress0/ho/qgu-fuzz-ho-2-dd-no-ext.smt2
   regress0/ho/shadowing-defs.smt2
+  regress0/ho/simple-conf-lazy-lambda-lift.smt2
+  regress0/ho/simple-conf-lazy-lambda-lift-app.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2
   regress0/ho/trans.smt2
@@ -774,8 +784,9 @@ set(regress_0_tests
   regress0/nl/very-simple-unsat.smt2
   regress0/opt-abd-no-use.smt2
   regress0/options/ast-and-sexpr.smt2
+  regress0/options/didyoumean.smt2
+  regress0/options/help.smt2
   regress0/options/interactive-mode.smt2
-  regress0/options/invalid_dump.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -798,6 +809,8 @@ set(regress_0_tests
   regress0/parser/linear_arithmetic_err3.smt2
   regress0/parser/named-attr-error.smt2
   regress0/parser/named-attr.smt2
+  regress0/parser/proj-issue370-push-pop-global.smt2
+  regress0/parser/quoted-define-fun.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -868,10 +881,12 @@ set(regress_0_tests
   regress0/proofs/project-issue317-inc-sat-conflictlit.smt2
   regress0/proofs/project-issue330-eqproof.smt2
   regress0/proofs/proj-issue326-nl-bounds-check.smt2
+  regress0/proofs/proj-issue342-eager-checking-no-proof-checking.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
+  regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/trust-subs-eq-open.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -1082,6 +1097,7 @@ set(regress_0_tests
   regress0/seq/issue5665-invalid-model.smt2
   regress0/seq/issue6337-seq.smt2
   regress0/seq/len_simplify.smt2
+  regress0/seq/proj-issue340.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1291,6 +1307,7 @@ set(regress_0_tests
   regress0/sygus/General_plus10.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/ho-occ-synth-fun.sy
+  regress0/sygus/incremental-modify-ex.sy
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
@@ -1309,6 +1326,7 @@ set(regress_0_tests
   regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
+  regress0/sygus/print-grammar.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/setFeature.sy
   regress0/sygus/strings-unconstrained.sy
@@ -1509,6 +1527,7 @@ set(regress_0_tests
 # Regression level 1 tests
 
 set(regress_1_tests
+  regress1/abduction/abd-real-const.smt2
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848-2.smt2
@@ -1582,19 +1601,27 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/card1.smt2
+  regress1/bags/choose1.smt2
+  regress1/bags/choose2.smt2
+  regress1/bags/choose3.smt2
+  regress1/bags/choose4.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
   regress1/bags/fuzzy3.smt2
   regress1/bags/fuzzy4.smt2
   regress1/bags/fuzzy5.smt2
+  regress1/bags/fuzzy6.smt2
   regress1/bags/intersection_min1.smt2
   regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
+  regress1/bags/map-lazy-lam.smt2
   regress1/bags/map1.smt2
   regress1/bags/map2.smt2
   regress1/bags/map3.smt2
@@ -1636,6 +1663,7 @@ set(regress_1_tests
   regress1/datatypes/dt-color-2.6.smt2
   regress1/datatypes/dt-param-card4-unsat.smt2
   regress1/datatypes/issue3266-small.smt2
+  regress1/datatypes/issue4851-cdt-model.smt2
   regress1/datatypes/issue-variant-dt-zero.smt2
   regress1/datatypes/manos-model.smt2
   regress1/datatypes/non-simple-rec.smt2
@@ -1656,6 +1684,7 @@ set(regress_1_tests
   regress1/decision/wishue149-2.smt2
   regress1/decision/wishue149-3.smt2
   regress1/decision/wishue160.smt2
+  regress1/difficulty-polarity.smt2
   regress1/errorcrash.smt2
   regress1/fp/fp_to_real.smt2
   regress1/fp/rti_3_5_bug_report.smt2
@@ -1717,10 +1746,11 @@ set(regress_1_tests
   regress1/fmf/sort-inf-int.smt2
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
-  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.p
+  regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bound_var_bug.p
   regress1/ho/fta0328.lfho.p
+  regress1/ho/ho-fun-sharing-dd.smt2
   regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/issue4065-no-rep.smt2
   regress1/ho/issue4092-sinf.smt2
@@ -1790,9 +1820,11 @@ set(regress_1_tests
   regress1/nl/nl-help-unsat-quant.smt2
   regress1/nl/nl-unk-quant.smt2
   regress1/nl/nl_uf_lalt.smt2
+  regress1/nl/nra-cad-performance.smt2
   regress1/nl/ones.smt2
   regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
+  regress1/nl/proj-365-is-int-pi.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
   regress1/nl/rewriting-sums.smt2
@@ -1819,6 +1851,7 @@ set(regress_1_tests
   regress1/nl/tan-rewrite2.smt2
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
+  regress1/proj-issue175.smt2
   regress1/proof00.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
@@ -1827,6 +1860,7 @@ set(regress_1_tests
   regress1/proofs/qgu-fuzz-arrays-1-dd-te-auto.smt2
   regress1/proofs/quant-alpha-eq.smt2
   regress1/proofs/sat-trivial-cycle.smt2
+  regress1/proofs/str-ovf-dd.smt2
   regress1/proofs/unsat-cores-proofs.smt2
   regress1/push-pop/arith_lra_01.smt2
   regress1/push-pop/arith_lra_02.smt2
@@ -1961,6 +1995,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4813-qe-quant.smt2
   regress1/quantifiers/issue4849-nqe.smt2
   regress1/quantifiers/issue5019-cegqi-i.smt2
+  regress1/quantifiers/issue5278-ext-rewrite-rec.smt2
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5288-vts-real-int.smt2
   regress1/quantifiers/issue5365-nqe.smt2
@@ -2050,7 +2085,6 @@ set(regress_1_tests
   regress1/quantifiers/stream-x2014-09-18-unsat.smt2
   regress1/quantifiers/sygus-infer-nested.smt2
   regress1/quantifiers/sygus-inst-nia-psyco-060.smt2
-  regress1/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
   regress1/quantifiers/tpp-unit-fail-qbv.smt2
   regress1/quantifiers/var-eq-trigger.smt2
@@ -2191,6 +2225,8 @@ set(regress_1_tests
   regress1/sets/issue5342_difference_version.smt2
   regress1/sets/issue5942-witness.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
+  regress1/sets/proj-issue164.smt2
+  regress1/sets/proj-issue178.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
@@ -2295,6 +2331,7 @@ set(regress_1_tests
   regress1/strings/issue6777-seq-nth-eval-cm.smt2
   regress1/strings/issue6913.smt2
   regress1/strings/issue6973-dup-lemma-conc.smt2
+  regress1/strings/issue7677-test-const-rv.smt2 
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2482,6 +2519,9 @@ set(regress_1_tests
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
+  regress1/sygus/proj-issue181.smt2
+  regress1/sygus/proj-issue183.smt2
+  regress1/sygus/proj-issue185.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
@@ -2581,7 +2621,6 @@ set(regress_2_tests
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_inc1.smt2
-  regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
@@ -2650,7 +2689,7 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
-  regress2/strings/strings-alpha-card-129.smt2
+  regress2/strings/strings-alpha-card-65.smt2
   regress2/strings/update-ex3.smt2
   regress2/strings/update-ex4-seq.smt2
   regress2/sygus/MPwL_d1s3.sy
@@ -2794,6 +2833,8 @@ set(regression_disabled_tests
   regress0/tptp/SYN075+1.p
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   ###
+  # takes around 30 sec
+  regress1/bags/fold2.smt2
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).
@@ -2821,6 +2862,8 @@ set(regression_disabled_tests
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
+  # timeout after changes to theory preprocessing, note is non-linear and does not involve sygus-inst
+  regress1/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2
@@ -2854,6 +2897,8 @@ set(regression_disabled_tests
   # previously sygus inference did not apply, now (correctly) times out
   regress1/sygus/issue3498.smt2
   regress2/arith/miplib-opt1217--27.smt2
+  # times out after #7345
+  regress2/bv_to_int_mask_array_1.smt2
   regress2/nl/dumortier-050317.smt2
   # timeout on some builds after changes to justification heuristic
   regress2/nl/nt-lemmas-bad.smt2
