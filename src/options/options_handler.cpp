@@ -67,6 +67,12 @@ std::string suggestTags(const std::vector<std::string>& validTags,
   return didYouMean.getMatchAsString(inputTag);
 }
 
+/**
+ * Select all tags from validTags that match the given (globbing) pattern.
+ * The pattern may contain `*` as wildcards. These are internally converted to
+ * `.*` and matched using std::regex. If no wildcards are present, regular
+ * string comparisons are used.
+ */
 std::vector<std::string> selectTags(const std::vector<std::string>& validTags, std::string pattern)
 {
   bool isRegex = false;
