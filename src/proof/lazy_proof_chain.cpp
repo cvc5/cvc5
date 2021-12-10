@@ -88,47 +88,23 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       Assert(toConnect.find(cur) == toConnect.end());
       // The current fact may be justified by concrete steps added to this
       // proof, in which case we do not use the generators.
-      std::shared_ptr<ProofNode> curPfn = CDProof::getProofFor(cur);
-      Assert(curPfn != nullptr);
-      // If concrete proof, save it and proceed to try to connect its
-      // assumptions. Otherwise try generators.
-      if (curPfn->getRule() != PfRule::ASSUME)
+      bool rec = true;
+      std::shared_ptr<ProofNode> curPfn = getProofForInternal(cur, rec);
+      if (curPfn == nullptr)
       {
-        toConnect[cur] = curPfn;
-      }
-      else
-      {
-        bool rec = true;
-        ProofGenerator* pg = getGeneratorForInternal(cur, rec);
-        if (!pg)
-        {
-          Trace("lazy-cdproofchain")
-              << "LazyCDProofChain::getProofFor: nothing to do\n";
-          // nothing to do for this fact, it'll be a leaf in the final proof
-          // node, don't post-traverse.
-          visited[cur] = true;
-          continue;
-        }
         Trace("lazy-cdproofchain")
-            << "LazyCDProofChain::getProofFor: Call generator "
-            << pg->identify() << " for chain link " << cur << "\n";
-        curPfn = pg->getProofFor(cur);
-        if (curPfn == nullptr)
-        {
-          Trace("lazy-cdproofchain")
-              << "LazyCDProofChain::getProofFor: No proof found, skip\n";
-          visited[cur] = true;
-          continue;
-        }
-        // map node whose proof node must be expanded to the respective poof
-        // node
-        toConnect[cur] = curPfn;
-        // We may not want to recursively connect this proof so we skip.
-        if (!rec)
-        {
-          visited[cur] = true;
-          continue;
-        }
+            << "LazyCDProofChain::getProofFor: No proof found, skip\n";
+        visited[cur] = true;
+        continue;
+      }
+      // map node whose proof node must be expanded to the respective poof
+      // node
+      toConnect[cur] = curPfn;
+      // We may not want to recursively connect this proof so we skip.
+      if (!rec)
+      {
+        visited[cur] = true;
+        continue;
       }
       Trace("lazy-cdproofchain-debug")
           << "LazyCDProofChain::getProofFor: stored proof: " << *curPfn.get()
@@ -381,6 +357,27 @@ ProofGenerator* LazyCDProofChain::getGeneratorForInternal(Node fact, bool& rec)
     return d_defGen;
   }
   return nullptr;
+}
+
+std::shared_ptr<ProofNode> LazyCDProofChain::getProofForInternal(Node fact,
+                                                                 bool& rec)
+{
+  std::shared_ptr<ProofNode> pfn = CDProof::getProofFor(fact);
+  Assert(pfn != nullptr);
+  // If concrete proof, save it, otherwise try generators.
+  if (pfn->getRule() != PfRule::ASSUME)
+  {
+    return pfn;
+  }
+  ProofGenerator* pg = getGeneratorForInternal(fact, rec);
+  if (!pg)
+  {
+    return nullptr;
+  }
+  Trace("lazy-cdproofchain")
+      << "LazyCDProofChain::getProofFor: Call generator " << pg->identify()
+      << " for chain link " << fact << "\n";
+  return pg->getProofFor(fact);
 }
 
 std::string LazyCDProofChain::identify() const { return d_name; }

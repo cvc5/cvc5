@@ -140,6 +140,14 @@ class LazyCDProofChain : public CDProof
    * true if we should recurse on its proof.
    */
   ProofGenerator* getGeneratorForInternal(Node fact, bool& rec);
+  /**
+   * Get internal proof for fact from the underlying CDProof, if any, otherwise
+   * via a call to the above method.
+   *
+   * Returns a nullptr when no internal proof stored.
+   */
+  std::shared_ptr<ProofNode> getProofForInternal(Node fact, bool& rec);
+
   /** The proof manager, used for allocating new ProofNode objects */
   ProofNodeManager* d_manager;
   /** Whether this instance is robust to cycles in the chain. */
