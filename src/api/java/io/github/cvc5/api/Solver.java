@@ -639,10 +639,9 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create an operator for a builtin Kind
    * The Kind may not be the Kind for an indexed operator
-   *   (e.g. BITVECTOR_EXTRACT)
-   * Note: in this case, the Op simply wraps the Kind.
-   * The Kind can be used in mkTerm directly without
-   *   creating an op first.
+   *   (e.g. BITVECTOR_EXTRACT).
+   * @apiNote In this case, the Op simply wraps the Kind. The Kind can be used
+   *          in mkTerm directly without creating an op first.
    * @param kind the kind to wrap
    */
   public Op mkOp(Kind kind)
@@ -1017,7 +1016,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Create a bit-vector constant of given size and value.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @apiNote The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
@@ -1037,7 +1036,7 @@ public class Solver implements IPointer, AutoCloseable
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @apiNote The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
@@ -2355,9 +2354,10 @@ public class Solver implements IPointer, AutoCloseable
   private native void setOption(long pointer, String option, String value);
 
   /**
-   * If needed, convert this term to a given sort. Note that the sort of the
-   * term must be convertible into the target sort. Currently only Int to Real
-   * conversions are supported.
+   * If needed, convert this term to a given sort.
+   *
+   * @apiNote The sort of the term must be convertible into the target sort.
+   *          Currently only Int to Real conversions are supported.
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed
