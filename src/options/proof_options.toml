@@ -143,6 +143,14 @@ name   = "Proof"
   help       = "Optimize resolution reconstruction to reduce proof size"
 
 [[option]]
+  name       = "proofPruneInput"
+  category   = "regular"
+  long       = "proof-prune-input"
+  type       = "bool"
+  default    = "false"
+  help       = "Prune unused input assumptions from final scope"
+
+[[option]]
   name       = "proofAletheResPivots"
   category   = "regular"
   long       = "proof-alethe-res-pivots"
