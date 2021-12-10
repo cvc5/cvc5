@@ -51,10 +51,10 @@ namespace {
  * resolution proofs get removed when popping the context but the SAT solver
  * keeps using them.
  */
-bool assertionLevelOnly()
+bool assertionLevelOnly(const Options& opts)
 {
-  return (options::produceProofs() || options::unsatCores())
-         && options::incrementalSolving();
+  return (opts.smt.produceProofs || opts.smt.unsatCores)
+         && opts.base.incrementalSolving;
 }
 
 //=================================================================================================
@@ -63,27 +63,27 @@ bool assertionLevelOnly()
 // Writes to Trace macro for decision tree tracing
 static inline void dtviewDecisionHelper(size_t level,
                                         const Node& node,
-                                        const char* decisiontype)
+                                        const char* decisiontype,
+                                        bool incremental)
 {
-  Trace("dtview") << std::string(level - (options::incrementalSolving() ? 1 : 0), '*')
-                  << " " << node << " :" << decisiontype << "-DECISION:" << std::endl;
+  Trace("dtview") << std::string(level - (incremental ? 1 : 0), '*') << " "
+                  << node << " :" << decisiontype << "-DECISION:" << std::endl;
 }
 
 // Writes to Trace macro for propagation tracing
-static inline void dtviewPropagationHeaderHelper(size_t level)
+static inline void dtviewPropagationHeaderHelper(size_t level, bool incremental)
 {
-  Trace("dtview::prop") << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0),
-                                       '*')
+  Trace("dtview::prop") << std::string(level + 1 - (incremental ? 1 : 0), '*')
                         << " /Propagations/" << std::endl;
 }
 
 // Writes to Trace macro for propagation tracing
 static inline void dtviewBoolPropagationHelper(size_t level,
                                                Lit& l,
-                                               cvc5::prop::TheoryProxy* proxy)
+                                               cvc5::prop::TheoryProxy* proxy,
+                                               bool incremental)
 {
-  Trace("dtview::prop") << std::string(
-      level + 1 - (options::incrementalSolving() ? 1 : 0), ' ')
+  Trace("dtview::prop") << std::string(level + 1 - (incremental ? 1 : 0), ' ')
                         << ":BOOL-PROP: "
                         << proxy->getNode(MinisatSatSolver::toSatLiteral(l))
                         << std::endl;
@@ -92,10 +92,11 @@ static inline void dtviewBoolPropagationHelper(size_t level,
 // Writes to Trace macro for conflict tracing
 static inline void dtviewPropConflictHelper(size_t level,
                                             Clause& confl,
-                                            cvc5::prop::TheoryProxy* proxy)
+                                            cvc5::prop::TheoryProxy* proxy,
+                                            bool incremental)
 {
   Trace("dtview::conflict")
-      << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0), ' ')
+      << std::string(level + 1 - (incremental ? 1 : 0), ' ')
       << ":PROP-CONFLICT: (or";
   for (int i = 0; i < confl.size(); i++)
   {
@@ -354,7 +355,7 @@ CRef Solver::reason(Var x) {
 
   // Compute the assertion level for this clause
   int explLevel = 0;
-  if (assertionLevelOnly())
+  if (assertionLevelOnly(options()))
   {
     explLevel = assertionLevel;
   }
@@ -429,13 +430,14 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
     Lit p; int i, j;
 
     // Which user-level to assert this clause at
-    int clauseLevel = (removable && !assertionLevelOnly()) ? 0 : assertionLevel;
+    int clauseLevel =
+        (removable && !assertionLevelOnly(options())) ? 0 : assertionLevel;
 
     // Check the clause for tautologies and similar
     int falseLiteralsCount = 0;
     for (i = j = 0, p = lit_Undef; i < ps.size(); i++) {
       // Update the level
-      clauseLevel = assertionLevelOnly()
+      clauseLevel = assertionLevelOnly(options())
                         ? assertionLevel
                         : std::max(clauseLevel, intro_level(var(ps[i])));
       // Tautologies are ignored
@@ -740,12 +742,14 @@ Lit Solver::pickBranchLit()
           dtviewDecisionHelper(
               d_context->getLevel(),
               d_proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-              "THEORY");
+              "THEORY",
+              options().base.incrementalSolving);
         }
 
         if (Trace.isOn("dtview::prop"))
         {
-          dtviewPropagationHeaderHelper(d_context->getLevel());
+          dtviewPropagationHeaderHelper(d_context->getLevel(),
+                                        options().base.incrementalSolving);
         }
 
         return nextLit;
@@ -783,12 +787,14 @@ Lit Solver::pickBranchLit()
         dtviewDecisionHelper(
             d_context->getLevel(),
             d_proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-            "DE");
+            "DE",
+            options().base.incrementalSolving);
       }
 
       if (Trace.isOn("dtview::prop"))
       {
-        dtviewPropagationHeaderHelper(d_context->getLevel());
+        dtviewPropagationHeaderHelper(d_context->getLevel(),
+                                      options().base.incrementalSolving);
       }
 
       return nextLit;
@@ -845,12 +851,14 @@ Lit Solver::pickBranchLit()
         dtviewDecisionHelper(
             d_context->getLevel(),
             d_proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)),
-            "DE");
+            "DE",
+            options().base.incrementalSolving);
       }
 
       if (Trace.isOn("dtview::prop"))
       {
-        dtviewPropagationHeaderHelper(d_context->getLevel());
+        dtviewPropagationHeaderHelper(d_context->getLevel(),
+                                      options().base.incrementalSolving);
       }
 
       return decisionLit;
@@ -1237,7 +1245,10 @@ CRef Solver::propagate(TheoryCheckType type)
           {
             if (confl != CRef_Undef)
             {
-              dtviewPropConflictHelper(decisionLevel(), ca[confl], d_proxy);
+              dtviewPropConflictHelper(decisionLevel(),
+                                       ca[confl],
+                                       d_proxy,
+                                       options().base.incrementalSolving);
             }
           }
           // Even though in conflict, we still need to discharge the lemmas
@@ -1335,7 +1346,8 @@ CRef Solver::propagateBool()
         // if propagation tracing enabled, print boolean propagation
         if (Trace.isOn("dtview::prop"))
         {
-          dtviewBoolPropagationHelper(decisionLevel(), p, d_proxy);
+          dtviewBoolPropagationHelper(
+              decisionLevel(), p, d_proxy, options().base.incrementalSolving);
         }
 
         for (i = j = (Watcher*)ws, end = i + ws.size();  i != end;){
@@ -1561,9 +1573,10 @@ lbool Solver::search(int nof_conflicts)
       }
       else
       {
-        CRef cr = ca.alloc(assertionLevelOnly() ? assertionLevel : max_level,
-                           learnt_clause,
-                           true);
+        CRef cr =
+            ca.alloc(assertionLevelOnly(options()) ? assertionLevel : max_level,
+                     learnt_clause,
+                     true);
         clauses_removable.push(cr);
         attachClause(cr);
         claBumpActivity(ca[cr]);
@@ -2087,7 +2100,7 @@ CRef Solver::updateLemmas() {
     if (lemma.size() > 1) {
       // If the lemmas is removable, we can compute its level by the level
       int clauseLevel = assertionLevel;
-      if (removable && !assertionLevelOnly())
+      if (removable && !assertionLevelOnly(options()))
       {
         clauseLevel = 0;
         for (int k = 0; k < lemma.size(); ++k)
