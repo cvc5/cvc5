@@ -93,6 +93,7 @@ class ArrayCoreSolver : protected EnvObj
    */
   void checkUpdate(const std::vector<Node>& updateTerms);
 
+  // TODO: document
   void computeConnected(const std::vector<Node>& updateTerms);
 
   /** The solver state object */
