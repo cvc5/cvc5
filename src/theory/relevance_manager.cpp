@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/term_context_stack.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 
@@ -25,18 +26,21 @@ using namespace cvc5::kind;
 namespace cvc5 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::Context* lemContext, Valuation val)
-    : d_val(val),
-      d_input(lemContext),
-      d_computed(false),
+RelevanceManager::RelevanceManager(Env& env, Valuation val)
+    : EnvObj(env),
+      d_val(val),
+      d_input(userContext()),
+      d_rset(context()),
       d_inFullEffortCheck(false),
       d_success(false),
       d_trackRSetExp(false),
-      d_miniscopeTopLevel(true)
+      d_miniscopeTopLevel(true),
+      d_rsetExp(context()),
+      d_jcache(context())
 {
-  if (options::produceDifficulty())
+  if (options().smt.produceDifficulty)
   {
-    d_dman.reset(new DifficultyManager(lemContext, val));
+    d_dman.reset(new DifficultyManager(userContext(), val));
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
@@ -46,7 +50,7 @@ RelevanceManager::RelevanceManager(context::Context* lemContext, Valuation val)
 }
 
 void RelevanceManager::notifyPreprocessedAssertions(
-    const std::vector<Node>& assertions)
+    const std::vector<Node>& assertions, bool isInput)
 {
   // add to input list, which is user-context dependent
   std::vector<Node> toProcess;
@@ -66,13 +70,18 @@ void RelevanceManager::notifyPreprocessedAssertions(
     }
   }
   addAssertionsInternal(toProcess);
+  // notify the difficulty manager if these are input assertions
+  if (isInput && d_dman != nullptr)
+  {
+    d_dman->notifyInputAssertions(assertions);
+  }
 }
 
-void RelevanceManager::notifyPreprocessedAssertion(Node n)
+void RelevanceManager::notifyPreprocessedAssertion(Node n, bool isInput)
 {
   std::vector<Node> toProcess;
   toProcess.push_back(n);
-  addAssertionsInternal(toProcess);
+  notifyPreprocessedAssertions(toProcess, isInput);
 }
 
 void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
@@ -101,38 +110,52 @@ void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
   }
 }
 
-void RelevanceManager::beginRound()
-{
-  d_computed = false;
-  d_inFullEffortCheck = true;
-}
+void RelevanceManager::beginRound() { d_inFullEffortCheck = true; }
 
 void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
 
 void RelevanceManager::computeRelevance()
 {
-  d_computed = true;
-  d_rset.clear();
-  d_rsetExp.clear();
-  Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
-  std::unordered_map<TNode, int> cache;
+  // if not at full effort, should be tracking something else, e.g. explanation
+  // for why literals are relevant.
+  Assert(d_inFullEffortCheck || d_trackRSetExp);
+  Trace("rel-manager") << "RelevanceManager::computeRelevance, full effort = "
+                       << d_inFullEffortCheck << "..." << std::endl;
   for (const Node& node: d_input)
   {
     TNode n = node;
-    int val = justify(n, cache);
+    int32_t val = justify(n);
     if (val != 1)
     {
-      std::stringstream serr;
-      serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
-           << n;
-      Trace("rel-manager") << serr.str() << std::endl;
-      Assert(false) << serr.str();
-      d_success = false;
-      d_rset.clear();
-      return;
+      // if we are in full effort check and fail to justify, then we should
+      // give a failure and set success to false, or otherwise calls to
+      // isRelevant cannot be trusted.
+      if (d_inFullEffortCheck)
+      {
+        std::stringstream serr;
+        serr
+            << "RelevanceManager::computeRelevance: WARNING: failed to justify "
+            << n;
+        Trace("rel-manager") << serr.str() << std::endl;
+        Assert(false) << serr.str();
+        d_success = false;
+        return;
+      }
     }
   }
-  Trace("rel-manager") << "...success, size = " << d_rset.size() << std::endl;
+  if (Trace.isOn("rel-manager"))
+  {
+    if (d_inFullEffortCheck)
+    {
+      Trace("rel-manager") << "...success (full), size = " << d_rset.size()
+                           << std::endl;
+    }
+    else
+    {
+      Trace("rel-manager") << "...success, exp size = " << d_rsetExp.size()
+                           << std::endl;
+    }
+  }
   d_success = true;
 }
 
@@ -143,27 +166,27 @@ bool RelevanceManager::isBooleanConnective(TNode cur)
          || (k == EQUAL && cur[0].getType().isBoolean());
 }
 
-bool RelevanceManager::updateJustifyLastChild(
-    TNode cur,
-    std::vector<int>& childrenJustify,
-    std::unordered_map<TNode, int>& cache)
+bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
+                                              std::vector<int32_t>& childrenJustify)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
   // compute the next child, in this case we push the status of the current
   // child to childrenJustify.
-  size_t nchildren = cur.getNumChildren();
-  Assert(isBooleanConnective(cur));
+  size_t nchildren = cur.first.getNumChildren();
+  Assert(isBooleanConnective(cur.first));
   size_t index = childrenJustify.size();
   Assert(index < nchildren);
-  Assert(cache.find(cur[index]) != cache.end());
-  Kind k = cur.getKind();
+  Kind k = cur.first.getKind();
   // Lookup the last child's value in the overall cache, we may choose to
   // add this to childrenJustify if we return true.
-  int lastChildJustify = cache[cur[index]];
+  RlvPair cp(cur.first[index],
+             d_ptctx.computeValue(cur.first, cur.second, index));
+  Assert(d_jcache.find(cp) != d_jcache.end());
+  int32_t lastChildJustify = d_jcache[cp];
   if (k == NOT)
   {
-    cache[cur] = -lastChildJustify;
+    d_jcache[cur] = -lastChildJustify;
   }
   else if (k == IMPLIES || k == AND || k == OR)
   {
@@ -174,7 +197,7 @@ bool RelevanceManager::updateJustifyLastChild(
       if (lastChildJustify
           == ((k == AND || (k == IMPLIES && index == 0)) ? -1 : 1))
       {
-        cache[cur] = k == AND ? -1 : 1;
+        d_jcache[cur] = k == AND ? -1 : 1;
         return false;
       }
     }
@@ -190,7 +213,7 @@ bool RelevanceManager::updateJustifyLastChild(
           break;
         }
       }
-      cache[cur] = ret;
+      d_jcache[cur] = ret;
     }
     else
     {
@@ -202,7 +225,7 @@ bool RelevanceManager::updateJustifyLastChild(
   else if (lastChildJustify == 0)
   {
     // all other cases, an unknown child implies we are unknown
-    cache[cur] = 0;
+    d_jcache[cur] = 0;
   }
   else if (k == ITE)
   {
@@ -223,7 +246,7 @@ bool RelevanceManager::updateJustifyLastChild(
       // should be in proper branch
       Assert(childrenJustify[0] == (index == 1 ? 1 : -1));
       // we are the value of the branch
-      cache[cur] = lastChildJustify;
+      d_jcache[cur] = lastChildJustify;
     }
   }
   else
@@ -241,7 +264,7 @@ bool RelevanceManager::updateJustifyLastChild(
     {
       // both children known, compute value
       Assert(childrenJustify.size() == 1 && childrenJustify[0] != 0);
-      cache[cur] =
+      d_jcache[cur] =
           ((k == XOR ? -1 : 1) * lastChildJustify == childrenJustify[0]) ? 1
                                                                          : -1;
     }
@@ -249,85 +272,110 @@ bool RelevanceManager::updateJustifyLastChild(
   return false;
 }
 
-int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int>& cache)
+int32_t RelevanceManager::justify(TNode n)
 {
+  // The set of nodes that we have computed currently have no value. Those
+  // that are marked as having no value in d_jcache must be recomputed, since
+  // the values for SAT literals may have changed.
+  std::unordered_set<RlvPair, RlvPairHashFunction> noJustify;
   // the vector of values of children
-  std::unordered_map<TNode, std::vector<int>> childJustify;
-  std::unordered_map<TNode, int>::iterator it;
-  std::unordered_map<TNode, std::vector<int>>::iterator itc;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
+  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>
+      childJustify;
+  RlvPairIntMap::iterator it;
+  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>::iterator
+      itc;
+  RlvPair cur;
+  TCtxStack visit(&d_ptctx);
+  visit.pushInitial(n);
   do
   {
-    cur = visit.back();
+    cur = visit.getCurrent();
     // should always have Boolean type
-    Assert(cur.getType().isBoolean());
-    it = cache.find(cur);
-    if (it != cache.end())
+    Assert(cur.first.getType().isBoolean());
+    it = d_jcache.find(cur);
+    if (it != d_jcache.end())
     {
-      visit.pop_back();
-      // already computed value
-      continue;
+      if (it->second != 0 || noJustify.find(cur) != noJustify.end())
+      {
+        visit.pop();
+        // already computed value
+        continue;
+      }
     }
     itc = childJustify.find(cur);
     // have we traversed to children yet?
     if (itc == childJustify.end())
     {
       // are we not a Boolean connective (including NOT)?
-      if (isBooleanConnective(cur))
+      if (isBooleanConnective(cur.first))
       {
         // initialize its children justify vector as empty
         childJustify[cur].clear();
         // start with the first child
-        visit.push_back(cur[0]);
+        visit.pushChild(cur.first, cur.second, 0);
       }
       else
       {
-        visit.pop_back();
+        visit.pop();
         // The atom case, lookup the value in the valuation class to
         // see its current value in the SAT solver, if it has one.
         int ret = 0;
         // otherwise we look up the value
         bool value;
-        if (d_val.hasSatValue(cur, value))
+        if (d_val.hasSatValue(cur.first, value))
         {
           ret = value ? 1 : -1;
-          d_rset.insert(cur);
-          if (d_trackRSetExp)
+          bool hasPol, pol;
+          PolarityTermContext::getFlags(cur.second, hasPol, pol);
+          // relevant if weakly matches polarity
+          if (!hasPol || pol == value)
           {
-            d_rsetExp[cur] = n;
+            d_rset.insert(cur.first);
+            if (d_trackRSetExp)
+            {
+              d_rsetExp[cur.first] = n;
+              Trace("rel-manager-exp")
+                  << "Reason for " << cur.first << " is " << n
+                  << ", polarity is " << hasPol << "/" << pol << std::endl;
+            }
           }
         }
-        cache[cur] = ret;
+        d_jcache[cur] = ret;
+        if (ret == 0)
+        {
+          noJustify.insert(cur);
+        }
       }
     }
     else
     {
       // this processes the impact of the current child on the value of cur,
       // and possibly requests that a new child is computed.
-      if (updateJustifyLastChild(cur, itc->second, cache))
+      if (updateJustifyLastChild(cur, itc->second))
       {
-        Assert(itc->second.size() < cur.getNumChildren());
-        TNode nextChild = cur[itc->second.size()];
-        visit.push_back(nextChild);
+        Assert(itc->second.size() < cur.first.getNumChildren());
+        visit.pushChild(cur.first, cur.second, itc->second.size());
       }
       else
       {
-        visit.pop_back();
+        visit.pop();
+        Assert(d_jcache.find(cur) != d_jcache.end());
+        if (d_jcache[cur] == 0)
+        {
+          noJustify.insert(cur);
+        }
       }
     }
   } while (!visit.empty());
-  Assert(cache.find(n) != cache.end());
-  return cache[n];
+  RlvPair ci(n, d_ptctx.initialValue());
+  Assert(d_jcache.find(ci) != d_jcache.end());
+  return d_jcache[ci];
 }
 
 bool RelevanceManager::isRelevant(Node lit)
 {
-  if (!d_computed)
-  {
-    computeRelevance();
-  }
+  Assert(d_inFullEffortCheck);
+  computeRelevance();
   if (!d_success)
   {
     // always relevant if we failed to compute
@@ -341,23 +389,26 @@ bool RelevanceManager::isRelevant(Node lit)
   return d_rset.find(lit) != d_rset.end();
 }
 
-const std::unordered_set<TNode>& RelevanceManager::getRelevantAssertions(
-    bool& success)
+std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 {
-  if (!d_computed)
-  {
-    computeRelevance();
-  }
+  computeRelevance();
   // update success flag
   success = d_success;
-  return d_rset;
+  std::unordered_set<TNode> rset;
+  if (success)
+  {
+    for (const Node& a : d_rset)
+    {
+      rset.insert(a);
+    }
+  }
+  return rset;
 }
 
 void RelevanceManager::notifyLemma(Node n)
 {
-  // only consider lemmas that were sent at full effort, when we have a
-  // complete SAT assignment.
-  if (d_dman != nullptr && d_inFullEffortCheck)
+  // notice that we may be in FULL or STANDARD effort here.
+  if (d_dman != nullptr)
   {
     // ensure we know which literals are relevant, and why
     computeRelevance();
@@ -369,7 +420,7 @@ void RelevanceManager::notifyCandidateModel(TheoryModel* m)
 {
   if (d_dman != nullptr)
   {
-    d_dman->notifyCandidateModel(d_input, m);
+    d_dman->notifyCandidateModel(m);
   }
 }
 

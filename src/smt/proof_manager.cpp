@@ -41,7 +41,8 @@ PfManager::PfManager(Env& env)
       d_pchecker(new ProofChecker(
           options().proof.proofCheck == options::ProofCheckMode::EAGER,
           options().proof.proofPedantic)),
-      d_pnm(new ProofNodeManager(env.getRewriter(), d_pchecker.get())),
+      d_pnm(new ProofNodeManager(
+          env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), env.getUserContext(), "smt::PreprocessProofGenerator")),
       d_pfpp(nullptr),
@@ -150,8 +151,10 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   Trace("smt-proof") << "SolverEngine::setFinalProof(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves of the
-  // proof are the assertions.
-  d_finalProof = d_pnm->mkScope(pfn, assertions);
+  // proof are the assertions. If we are pruning the input, we will try to
+  // minimize the used assertions.
+  d_finalProof =
+      d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
   Trace("smt-proof") << "SolverEngine::setFinalProof(): finished.\n";
 }
 
@@ -231,6 +234,9 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   {
     Trace("difficulty") << "  preprocess difficulty: " << ppa.second << " for "
                         << ppa.first << std::endl;
+    // The difficulty manager should only report difficulty for preprocessed
+    // assertions, or we will get an open proof below. This is ensured
+    // internally by the difficuly manager.
     ppAsserts.push_back(ppa.first);
   }
   // assume a SAT refutation from all input assertions that were marked

@@ -135,6 +135,7 @@ Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
   Node nn = d_env.getTopLevelSubstitutions().apply(n);
+  nn = rewrite(nn);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);

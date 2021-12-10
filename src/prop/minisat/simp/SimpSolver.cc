@@ -48,25 +48,26 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 //=================================================================================================
 // Constructor/Destructor:
 
-SimpSolver::SimpSolver(cvc5::prop::TheoryProxy* proxy,
+SimpSolver::SimpSolver(Env& env,
+                       cvc5::prop::TheoryProxy* proxy,
                        cvc5::context::Context* context,
                        cvc5::context::UserContext* userContext,
                        ProofNodeManager* pnm,
                        bool enableIncremental)
-    : Solver(proxy, context, userContext, pnm, enableIncremental),
+    : Solver(env, proxy, context, userContext, pnm, enableIncremental),
       grow(opt_grow),
       clause_lim(opt_clause_lim),
       subsumption_lim(opt_subsumption_lim),
       simp_garbage_frac(opt_simp_garbage_frac),
       use_asymm(opt_use_asymm),
       // make sure this is not enabled if unsat cores or proofs are on
-      use_rcheck(opt_use_rcheck && !options::unsatCores() && !pnm),
-      use_elim(options::minisatUseElim() && !enableIncremental),
+      use_rcheck(opt_use_rcheck && !options().smt.unsatCores && !pnm),
+      use_elim(options().prop.minisatUseElim && !enableIncremental),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
-      use_simplification(!enableIncremental && !options::unsatCores()
+      use_simplification(!enableIncremental && !options().smt.unsatCores
                          && !pnm)  // TODO: turn off simplifications if
                                    // proofs are on initially
       ,
@@ -75,11 +76,12 @@ SimpSolver::SimpSolver(cvc5::prop::TheoryProxy* proxy,
       bwdsub_assigns(0),
       n_touched(0)
 {
-    if(options::minisatUseElim() &&
-       Options::current().prop.minisatUseElimWasSetByUser &&
-       enableIncremental) {
-        WarningOnce() << "Incremental mode incompatible with --minisat-elim" << std::endl;
-    }
+  if (options().prop.minisatUseElim && options().prop.minisatUseElimWasSetByUser
+      && enableIncremental)
+  {
+    WarningOnce() << "Incremental mode incompatible with --minisat-elim"
+                  << std::endl;
+  }
 
     vec<Lit> dummy(1,lit_Undef);
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
@@ -124,10 +126,11 @@ Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister
 
 lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 {
-    if (options::minisatDumpDimacs()) {
-      toDimacs();
-      return l_Undef;
-    }
+  if (options().prop.minisatDumpDimacs)
+  {
+    toDimacs();
+    return l_Undef;
+  }
     Assert(decisionLevel() == 0);
 
     vec<Var> extra_frozen;

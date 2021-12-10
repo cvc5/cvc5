@@ -17,7 +17,6 @@
 
 import pytest
 import pycvc5
-from pycvc5 import kinds
 from pycvc5 import Result
 from pycvc5 import UnknownExplanation
 

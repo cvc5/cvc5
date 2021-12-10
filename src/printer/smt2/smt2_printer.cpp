@@ -1098,6 +1098,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BAG_FROM_SET: return "bag.from_set";
   case kind::BAG_TO_SET: return "bag.to_set";
   case kind::BAG_MAP: return "bag.map";
+  case kind::BAG_FOLD: return "bag.fold";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
