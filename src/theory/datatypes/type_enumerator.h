@@ -142,7 +142,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   Node operator*() override
   {
-    Debug("dt-enum-debug") << ": get term " << this << std::endl;
+    Trace("dt-enum-debug") << ": get term " << this << std::endl;
     if (d_zeroTermActive)
     {
       return d_zeroTerm;

@@ -139,7 +139,7 @@ bool TheorySep::propagateLit(TNode literal)
 
 TrustNode TheorySep::explain(TNode literal)
 {
-  Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
+  Trace("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
   return d_im.explainLit(literal);
 }
 
@@ -149,7 +149,7 @@ TrustNode TheorySep::explain(TNode literal)
 /////////////////////////////////////////////////////////////////////////////
 
 void TheorySep::computeCareGraph() {
-  Debug("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
+  Trace("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
   for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
     TNode a = d_sharedTerms[i];
     TypeNode aType = a.getType();

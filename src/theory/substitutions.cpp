@@ -41,7 +41,7 @@ struct substitution_stack_element {
 
 Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
 
-  Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
+  Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
   if (d_substitutions.empty()) {
     return t;
@@ -57,7 +57,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     substitution_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.d_node;
 
-    Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): processing " << current << endl;
+    Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): processing " << current << endl;
 
     // If node already in the cache we're done, pop from the stack
     NodeCache::iterator find = cache.find(current);
@@ -108,7 +108,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
           }
         }
       }
-      Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
+      Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
       cache[current] = result;
       toVisit.pop_back();
     }
@@ -135,7 +135,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
         }
       } else {
         // No children, so we're done
-        Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
+        Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
         cache[current] = current;
         toVisit.pop_back();
       }
@@ -149,7 +149,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
 
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
-  Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
+  Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
   Assert(d_substitutions.find(x) == d_substitutions.end());
 
   // this causes a later assert-fail (the rhs != current one, above) anyway
@@ -186,18 +186,18 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
 
 Node SubstitutionMap::apply(TNode t, Rewriter* r)
 {
-  Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
+  Trace("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
   // Setup the cache
   if (d_cacheInvalidated) {
     d_substitutionCache.clear();
     d_cacheInvalidated = false;
-    Debug("substitution") << "-- reset the cache" << endl;
+    Trace("substitution") << "-- reset the cache" << endl;
   }
 
   // Perform the substitution
   Node result = internalSubstitute(t, d_substitutionCache);
-  Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
+  Trace("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
   if (r != nullptr)
   {

@@ -83,12 +83,12 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   bool finished = false;
   //while unfinished, try effort level=0,1,2....
   while( !finished && e<=eLimit ){
-    Debug("inst-engine") << "IE: Prepare instantiation (" << e << ")." << std::endl;
+    Trace("inst-engine") << "IE: Prepare instantiation (" << e << ")." << std::endl;
     finished = true;
     //instantiate each quantifier
     for( unsigned i=0; i<d_quants.size(); i++ ){
       Node q = d_quants[i];
-      Debug("inst-engine-debug") << "IE: Instantiate " << q << "..." << std::endl;
+      Trace("inst-engine-debug") << "IE: Instantiate " << q << "..." << std::endl;
       //int e_use = d_quantEngine->getRelevance( q )==-1 ? e - 1 : e;
       int e_use = e;
       if( e_use>=0 ){

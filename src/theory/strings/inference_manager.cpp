@@ -255,7 +255,7 @@ void InferenceManager::addToExplanation(Node a,
 {
   if (a != b)
   {
-    Debug("strings-explain")
+    Trace("strings-explain")
         << "Add to explanation : " << a << " == " << b << std::endl;
     Assert(d_state.areEqual(a, b));
     exp.push_back(a.eqNode(b));

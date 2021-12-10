@@ -285,7 +285,7 @@ void Theory::notifyInConflict()
 }
 
 void Theory::computeCareGraph() {
-  Debug("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
+  Trace("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
   for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
     TNode a = d_sharedTerms[i];
     TypeNode aType = a.getType();
@@ -633,9 +633,9 @@ void Theory::preRegisterTerm(TNode node) {}
 
 void Theory::addSharedTerm(TNode n)
 {
-  Debug("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")"
+  Trace("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")"
                    << std::endl;
-  Debug("theory::assertions")
+  Trace("theory::assertions")
       << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
   d_sharedTerms.push_back(n);
   // now call theory-specific method notifySharedTerm

@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& out, const std::pair<T, U>& p) {
 /**
  * A utility class to provide (essentially) a "/dev/null" streambuf.
  * If debugging support is compiled in, but debugging for
- * e.g. "parser" is off, then Debug("parser") returns a stream
+ * e.g. "parser" is off, then Trace("parser") returns a stream
  * attached to a null_streambuf instance so that output is directed to
  * the bit bucket.
  */
@@ -342,10 +342,10 @@ extern TraceC TraceChannel CVC5_EXPORT;
 
 #endif /* CVC5_MUZZLE */
 
-// Disallow e.g. !Debug("foo").isOn() forms
+// Disallow e.g. !Trace("foo").isOn() forms
 // because the ! will apply before the ? .
 // If a compiler error has directed you here,
-// just parenthesize it e.g. !(Debug("foo").isOn())
+// just parenthesize it e.g. !(Trace("foo").isOn())
 class __cvc5_true
 {
   CVC5_UNUSED void operator!();
@@ -368,7 +368,7 @@ public:
 
   ScopedDebug(std::string tag, bool newSetting = true) :
     d_tag(tag) {
-    d_oldSetting = Debug.isOn(d_tag);
+    d_oldSetting = Trace.isOn(d_tag);
     if(newSetting) {
       Debug.on(d_tag);
     } else {

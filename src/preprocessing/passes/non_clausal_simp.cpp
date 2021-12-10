@@ -97,7 +97,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     Trace("non-clausal-simplify")
         << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-    Debug("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
+    Trace("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
                    << std::endl;
     propagator->assertTrue((*assertionsToPreprocess)[i]);
   }

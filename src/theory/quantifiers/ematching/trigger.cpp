@@ -155,11 +155,11 @@ uint64_t Trigger::addInstantiations()
     }
   }
   uint64_t addedLemmas = d_mg->addInstantiations(d_quant);
-  if (Debug.isOn("inst-trigger"))
+  if (Trace.isOn("inst-trigger"))
   {
     if (addedLemmas > 0)
     {
-      Debug("inst-trigger") << "Added " << addedLemmas
+      Trace("inst-trigger") << "Added " << addedLemmas
                             << " lemmas, trigger was " << d_nodes << std::endl;
     }
   }

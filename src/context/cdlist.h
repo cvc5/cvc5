@@ -110,7 +110,7 @@ private:
         d_cleanUp(l.d_cleanUp),
         d_allocator(l.d_allocator)
   {
-    Debug("cdlist") << "copy ctor: " << this << " from " << &l << " size "
+    Trace("cdlist") << "copy ctor: " << this << " from " << &l << " size "
                     << d_size << std::endl;
   }
   CDList& operator=(const CDList& l) = delete;
@@ -122,14 +122,14 @@ private:
    * allocated space.
    */
   void grow() {
-    Debug("cdlist") << "grow " << this << " " << getContext()->getLevel()
+    Trace("cdlist") << "grow " << this << " " << getContext()->getLevel()
                     << ": grow? " << d_size << " " << d_sizeAlloc << std::endl;
     if (d_size != d_sizeAlloc)
     {
       // If there is still unused allocated space
       return;
     }
-    Debug("cdlist") << "grow " << this << " " << getContext()->getLevel()
+    Trace("cdlist") << "grow " << this << " " << getContext()->getLevel()
                     << ": grow!" << std::endl;
 
     const size_t maxSize =
@@ -138,7 +138,7 @@ private:
     {
       // Allocate an initial list if one does not yet exist
       d_sizeAlloc = INITIAL_SIZE;
-      Debug("cdlist") << "initial grow of cdlist " << this
+      Trace("cdlist") << "initial grow of cdlist " << this
                       << " level " << getContext()->getLevel()
                       << " to " << d_sizeAlloc << std::endl;
       if (d_sizeAlloc > maxSize)
@@ -164,7 +164,7 @@ private:
       }
       T* newList =
           std::allocator_traits<AllocatorT>::allocate(d_allocator, newSize);
-      Debug("cdlist") << "2x grow of cdlist " << this
+      Trace("cdlist") << "2x grow of cdlist " << this
                       << " level " << getContext()->getLevel()
                       << " to " << newSize
                       << " (from " << d_list
@@ -191,7 +191,7 @@ private:
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
     ContextObj* data = new(pCMM) CDList<T, CleanUp, Allocator>(*this);
-    Debug("cdlist") << "save " << this
+    Trace("cdlist") << "save " << this
                     << " at level " << this->getContext()->getLevel()
                     << " size at " << this->d_size
                     << " sizeAlloc at " << this->d_sizeAlloc
@@ -208,12 +208,12 @@ protected:
    */
  void restore(ContextObj* data) override
  {
-   Debug("cdlist") << "restore " << this << " level "
+   Trace("cdlist") << "restore " << this << " level "
                    << this->getContext()->getLevel() << " data == " << data
                    << " call dtor == " << this->d_callDestructor
                    << " d_list == " << this->d_list << std::endl;
    truncateList(((CDList<T, CleanUp, Allocator>*)data)->d_size);
-   Debug("cdlist") << "restore " << this << " level "
+   Trace("cdlist") << "restore " << this << " level "
                    << this->getContext()->getLevel() << " size back to "
                    << this->d_size << " sizeAlloc at " << this->d_sizeAlloc
                    << std::endl;
@@ -297,7 +297,7 @@ protected:
    * to avoid this issue.
    */
   void push_back(const T& data) {
-    Debug("cdlist") << "push_back " << this
+    Trace("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
                     << ": make-current, "
                     << "d_list == " << d_list << std::endl;
@@ -305,18 +305,18 @@ protected:
     grow();
     Assert(d_size < d_sizeAlloc);
 
-    Debug("cdlist") << "push_back " << this
+    Trace("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
                     << ": construct! at " << d_list
                     << "[" << d_size << "] == " << &d_list[d_size]
                     << std::endl;
     std::allocator_traits<AllocatorT>::construct(
         d_allocator, &d_list[d_size], data);
-    Debug("cdlist") << "push_back " << this
+    Trace("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
                     << ": done..." << std::endl;
     ++d_size;
-    Debug("cdlist") << "push_back " << this
+    Trace("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
                     << ": size now " << d_size << std::endl;
   }
@@ -329,22 +329,22 @@ protected:
   template <typename... Args>
   void emplace_back(Args&&... args)
   {
-    Debug("cdlist") << "emplace_back " << this << " "
+    Trace("cdlist") << "emplace_back " << this << " "
                     << getContext()->getLevel() << ": make-current, "
                     << "d_list == " << d_list << std::endl;
     makeCurrent();
     grow();
     Assert(d_size < d_sizeAlloc);
 
-    Debug("cdlist") << "emplace_back " << this << " "
+    Trace("cdlist") << "emplace_back " << this << " "
                     << getContext()->getLevel() << ": construct! at " << d_list
                     << "[" << d_size << "] == " << &d_list[d_size] << std::endl;
     std::allocator_traits<AllocatorT>::construct(
         d_allocator, &d_list[d_size], std::forward<Args>(args)...);
-    Debug("cdlist") << "emplace_back " << this << " "
+    Trace("cdlist") << "emplace_back " << this << " "
                     << getContext()->getLevel() << ": done..." << std::endl;
     ++d_size;
-    Debug("cdlist") << "emplace_back " << this << " "
+    Trace("cdlist") << "emplace_back " << this << " "
                     << getContext()->getLevel() << ": size now " << d_size
                     << std::endl;
   }

@@ -110,7 +110,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
       d_qim.addPendingPhaseRequirement(ceLit, true);
-      Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
+      Trace("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = rewrite(lem);
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
@@ -200,12 +200,12 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
       if (fm->isQuantifierActive(q))
       {
         d_active_quant[q] = true;
-        Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
+        Trace("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
         bool value;
         if (d_qstate.getValuation().hasSatValue(cel, value))
         {
-          Debug("cegqi-debug") << "...CE Literal has value " << value << std::endl;
+          Trace("cegqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
             if (d_qstate.getValuation().isDecision(cel))
             {
@@ -218,7 +218,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
             }
           }
         }else{
-          Debug("cegqi-debug") << "...CE Literal does not have value " << std::endl;
+          Trace("cegqi-debug") << "...CE Literal does not have value " << std::endl;
         }
       }
     }

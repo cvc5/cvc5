@@ -315,21 +315,21 @@ void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason) {}
 
 void TheoryBags::NotifyClass::eqNotifyNewClass(TNode n)
 {
-  Debug("bags-eq") << "[bags-eq] eqNotifyNewClass:"
+  Trace("bags-eq") << "[bags-eq] eqNotifyNewClass:"
                    << " n = " << n << std::endl;
   d_theory.eqNotifyNewClass(n);
 }
 
 void TheoryBags::NotifyClass::eqNotifyMerge(TNode n1, TNode n2)
 {
-  Debug("bags-eq") << "[bags-eq] eqNotifyMerge:"
+  Trace("bags-eq") << "[bags-eq] eqNotifyMerge:"
                    << " n1 = " << n1 << " n2 = " << n2 << std::endl;
   d_theory.eqNotifyMerge(n1, n2);
 }
 
 void TheoryBags::NotifyClass::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
 {
-  Debug("bags-eq") << "[bags-eq] eqNotifyDisequal:"
+  Trace("bags-eq") << "[bags-eq] eqNotifyDisequal:"
                    << " n1 = " << n1 << " n2 = " << n2 << " reason = " << reason
                    << std::endl;
   d_theory.eqNotifyDisequal(n1, n2, reason);

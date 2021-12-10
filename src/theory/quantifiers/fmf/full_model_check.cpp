@@ -95,7 +95,7 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
 }
 
 int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index ) {
-  Debug("fmc-entry-trie") << "Get generalization index " << inst.size() << " " << index << std::endl;
+  Trace("fmc-entry-trie") << "Get generalization index " << inst.size() << " " << index << std::endl;
   if (index==(int)inst.size()) {
     return d_data;
   }else{

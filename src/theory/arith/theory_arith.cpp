@@ -125,7 +125,7 @@ void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
+  Trace("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   if (atom.getKind() == kind::EQUAL)
   {
@@ -326,7 +326,7 @@ void TheoryArith::presolve(){
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
-  Debug("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  Trace("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
   if (d_arithModelCache.empty())
   {
     return d_internal->getEqualityStatus(a,b);

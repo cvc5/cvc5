@@ -72,10 +72,10 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
       }
       if (!valueType.isSubtypeOf(arrayType.getArrayConstituentType()))
       {
-        Debug("array-types")
+        Trace("array-types")
             << "array type: " << arrayType.getArrayConstituentType()
             << std::endl;
-        Debug("array-types") << "value types: " << valueType << std::endl;
+        Trace("array-types") << "value types: " << valueType << std::endl;
         throw TypeCheckingExceptionPrivate(
             n, "array store not assigned with correct type for array");
       }

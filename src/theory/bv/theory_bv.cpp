@@ -277,7 +277,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
     return texp;
   }
 
-  Debug("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
+  Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;
   if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
   {
@@ -301,7 +301,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
     }
   }
 
-  Debug("theory-bv-pp-rewrite") << "to   " << res << "\n";
+  Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
   if (res != t)
   {
     return TrustNode::mkTrustRewrite(t, res, nullptr);
@@ -328,10 +328,10 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 
     if (value_a == value_b)
     {
-      Debug("theory-bv") << EQUALITY_TRUE_IN_MODEL << std::endl;
+      Trace("theory-bv") << EQUALITY_TRUE_IN_MODEL << std::endl;
       return EQUALITY_TRUE_IN_MODEL;
     }
-    Debug("theory-bv") << EQUALITY_FALSE_IN_MODEL << std::endl;
+    Trace("theory-bv") << EQUALITY_FALSE_IN_MODEL << std::endl;
     return EQUALITY_FALSE_IN_MODEL;
   }
   return status;

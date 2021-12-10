@@ -1249,7 +1249,7 @@ Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
 Node TheorySetsPrivate::explain(TNode literal)
 {
-  Debug("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
+  Trace("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
 
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -1265,7 +1265,7 @@ Node TheorySetsPrivate::explain(TNode literal)
   }
   else
   {
-    Debug("sets") << "unhandled: " << literal << "; (" << atom << ", "
+    Trace("sets") << "unhandled: " << literal << "; (" << atom << ", "
                   << polarity << "); kind" << atom.getKind() << std::endl;
     Unhandled();
   }
@@ -1275,7 +1275,7 @@ Node TheorySetsPrivate::explain(TNode literal)
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
-  Debug("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
+  Trace("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
                 << std::endl;
   switch (node.getKind())
   {
@@ -1314,7 +1314,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 TrustNode TheorySetsPrivate::ppRewrite(Node node,
                                        std::vector<SkolemLemma>& lems)
 {
-  Debug("sets-proc") << "ppRewrite : " << node << std::endl;
+  Trace("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {

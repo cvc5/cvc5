@@ -37,7 +37,7 @@ ErrorInformation::ErrorInformation()
       d_amount(nullptr),
       d_metric(0)
 {
-  Debug("arith::error::mem")
+  Trace("arith::error::mem")
       << "def constructor " << d_variable << " " << d_amount.get() << endl;
 }
 
@@ -52,7 +52,7 @@ ErrorInformation::ErrorInformation(ArithVar var, ConstraintP vio, int sgn)
       d_metric(0)
 {
   Assert(debugInitialized());
-  Debug("arith::error::mem")
+  Trace("arith::error::mem")
       << "constructor " << d_variable << " " << d_amount.get() << endl;
 }
 
@@ -61,8 +61,8 @@ ErrorInformation::~ErrorInformation() {
   Assert(d_relaxed != true);
   if (d_amount != nullptr)
   {
-    Debug("arith::error::mem") << d_amount.get() << endl;
-    Debug("arith::error::mem")
+    Trace("arith::error::mem") << d_amount.get() << endl;
+    Trace("arith::error::mem")
         << "destroy " << d_variable << " " << d_amount.get() << endl;
     d_amount = nullptr;
   }
@@ -85,7 +85,7 @@ ErrorInformation::ErrorInformation(const ErrorInformation& ei)
   {
     d_amount = std::make_unique<DeltaRational>(*ei.d_amount);
   }
-  Debug("arith::error::mem")
+  Trace("arith::error::mem")
       << "copy const " << d_variable << " " << d_amount.get() << endl;
 }
 
@@ -99,19 +99,19 @@ ErrorInformation& ErrorInformation::operator=(const ErrorInformation& ei){
   d_metric = ei.d_metric;
   if (d_amount != nullptr && ei.d_amount != nullptr)
   {
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "assignment assign " << d_variable << " " << d_amount.get() << endl;
     *d_amount = *ei.d_amount;
   }
   else if (ei.d_amount != nullptr)
   {
     d_amount = std::make_unique<DeltaRational>(*ei.d_amount);
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "assignment alloc " << d_variable << " " << d_amount.get() << endl;
   }
   else if (d_amount != nullptr)
   {
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "assignment release " << d_variable << " " << d_amount.get() << endl;
     d_amount = nullptr;
   }
@@ -130,7 +130,7 @@ void ErrorInformation::reset(ConstraintP c, int sgn){
 
   if (d_amount != nullptr)
   {
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "reset " << d_variable << " " << d_amount.get() << endl;
     d_amount = nullptr;
   }
@@ -140,7 +140,7 @@ void ErrorInformation::setAmount(const DeltaRational& am){
   if (d_amount == nullptr)
   {
     d_amount = std::make_unique<DeltaRational>();
-    Debug("arith::error::mem")
+    Trace("arith::error::mem")
         << "setAmount " << d_variable << " " << d_amount.get() << endl;
   }
   (*d_amount) = am;

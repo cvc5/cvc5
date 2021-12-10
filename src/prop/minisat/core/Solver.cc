@@ -268,12 +268,12 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 
     setDecisionVar(v, dvar);
 
-    Debug("minisat") << "new var " << v << std::endl;
+    Trace("minisat") << "new var " << v << std::endl;
 
     // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
     if (preRegister)
     {
-      Debug("minisat") << "  To register at level " << decisionLevel()
+      Trace("minisat") << "  To register at level " << decisionLevel()
                        << std::endl;
       variables_to_register.push(VarIntroInfo(v, decisionLevel()));
     }
@@ -301,7 +301,7 @@ void Solver::resizeVars(int newSize) {
     theory.shrink(shrinkSize);
   }
 
-  if (Debug.isOn("minisat::pop")) {
+  if (Trace.isOn("minisat::pop")) {
     for (int i = 0; i < trail.size(); ++ i) {
       Assert(var(trail[i]) < nVars());
     }
@@ -540,7 +540,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         if(assigns[var(ps[0])] == l_Undef) {
           Assert(assigns[var(ps[0])] != l_False);
           uncheckedEnqueue(ps[0], cr);
-          Debug("cores") << "i'm registering a unit clause, maybe input"
+          Trace("cores") << "i'm registering a unit clause, maybe input"
                          << std::endl;
           if (ps.size() == 1)
           {
@@ -581,14 +581,14 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
-    if (Debug.isOn("minisat"))
+    if (Trace.isOn("minisat"))
     {
-      Debug("minisat") << "Solver::attachClause(" << c << "): ";
+      Trace("minisat") << "Solver::attachClause(" << c << "): ";
       for (unsigned i = 0, size = c.size(); i < size; ++i)
       {
-        Debug("minisat") << c[i] << " ";
+        Trace("minisat") << c[i] << " ";
       }
-      Debug("minisat") << ", level " << c.level() << "\n";
+      Trace("minisat") << ", level " << c.level() << "\n";
     }
     Assert(c.size() > 1);
     watches[~c[0]].push(Watcher(cr, c[1]));
@@ -600,17 +600,17 @@ void Solver::attachClause(CRef cr) {
 
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
-    Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
-    if (Debug.isOn("minisat"))
+    Trace("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
+    if (Trace.isOn("minisat"))
     {
-      Debug("minisat") << "Solver::detachClause(" << c << "), CRef " << cr
+      Trace("minisat") << "Solver::detachClause(" << c << "), CRef " << cr
                        << ", clause ";
       for (unsigned i = 0, size = c.size(); i < size; ++i)
       {
-        Debug("minisat") << c[i] << " ";
+        Trace("minisat") << c[i] << " ";
       }
 
-      Debug("minisat") << "\n";
+      Trace("minisat") << "\n";
     }
     Assert(c.size() > 1);
 
@@ -629,15 +629,15 @@ void Solver::detachClause(CRef cr, bool strict) {
 
 void Solver::removeClause(CRef cr) {
     Clause& c = ca[cr];
-    if (Debug.isOn("minisat"))
+    if (Trace.isOn("minisat"))
     {
-      Debug("minisat") << "Solver::removeClause(" << c << "), CRef " << cr
+      Trace("minisat") << "Solver::removeClause(" << c << "), CRef " << cr
                        << ", clause ";
       for (unsigned i = 0, size = c.size(); i < size; ++i)
       {
-        Debug("minisat") << c[i] << " ";
+        Trace("minisat") << c[i] << " ";
       }
-      Debug("minisat") << "\n";
+      Trace("minisat") << "\n";
     }
     detachClause(cr);
     // Don't leave pointers to free'd memory!
@@ -678,7 +678,7 @@ bool Solver::satisfied(const Clause& c) const {
 // Revert to the state at given level (keeping all assignment at 'level' but not beyond).
 //
 void Solver::cancelUntil(int level) {
-    Debug("minisat") << "minisat::cancelUntil(" << level << ")" << std::endl;
+    Trace("minisat") << "minisat::cancelUntil(" << level << ")" << std::endl;
 
     if (decisionLevel() > level){
         // Pop the SMT context
@@ -729,7 +729,7 @@ Lit Solver::pickBranchLit()
         MinisatSatSolver::toMinisatLit(d_proxy->getNextTheoryDecisionRequest());
     while (nextLit != lit_Undef) {
       if(value(var(nextLit)) == l_Undef) {
-        Debug("theoryDecision")
+        Trace("theoryDecision")
             << "getNextTheoryDecisionRequest(): now deciding on " << nextLit
             << std::endl;
         decisions++;
@@ -750,14 +750,14 @@ Lit Solver::pickBranchLit()
 
         return nextLit;
       } else {
-        Debug("theoryDecision")
+        Trace("theoryDecision")
             << "getNextTheoryDecisionRequest(): would decide on " << nextLit
             << " but it already has an assignment" << std::endl;
       }
       nextLit = MinisatSatSolver::toMinisatLit(
           d_proxy->getNextTheoryDecisionRequest());
     }
-    Debug("theoryDecision")
+    Trace("theoryDecision")
         << "getNextTheoryDecisionRequest(): decide on another literal"
         << std::endl;
 
@@ -971,15 +971,15 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
     } while (pathC > 0);
     out_learnt[0] = ~p;
-    if (Debug.isOn("newproof::sat"))
+    if (Trace.isOn("newproof::sat"))
     {
-      Debug("newproof::sat") << "finished with learnt clause ";
+      Trace("newproof::sat") << "finished with learnt clause ";
       for (unsigned i = 0, size = out_learnt.size(); i < size; ++i)
       {
         prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(out_learnt[i]);
-        Debug("newproof::sat") << satLit << " ";
+        Trace("newproof::sat") << satLit << " ";
       }
-      Debug("newproof::sat") << "\n";
+      Trace("newproof::sat") << "\n";
     }
 
     // Simplify conflict clause:
@@ -1001,7 +1001,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
               } else {
                 if (needProof())
                 {
-                  Debug("newproof::sat")
+                  Trace("newproof::sat")
                       << "Solver::analyze: redundant lit "
                       << toSatLiteral<Minisat::Solver>(out_learnt[i]) << "\n";
                   d_pfManager->addResolutionStep(out_learnt[i], true);
@@ -1141,28 +1141,28 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 
 void Solver::uncheckedEnqueue(Lit p, CRef from)
 {
-  if (Debug.isOn("minisat"))
+  if (Trace.isOn("minisat"))
   {
-    Debug("minisat") << "unchecked enqueue of " << p << " ("
+    Trace("minisat") << "unchecked enqueue of " << p << " ("
                      << trail_index(var(p)) << ") trail size is "
                      << trail.size() << " cap is " << trail.capacity()
                      << ", reason is " << from << ", ";
     if (from == CRef_Lazy)
     {
-      Debug("minisat") << "CRef_Lazy";
+      Trace("minisat") << "CRef_Lazy";
     }
     else if (from == CRef_Undef)
     {
-      Debug("minisat") << "CRef_Undef";
+      Trace("minisat") << "CRef_Undef";
     }
     else
     {
       for (unsigned i = 0, size = ca[from].size(); i < size; ++i)
       {
-        Debug("minisat") << ca[from][i] << " ";
+        Trace("minisat") << ca[from][i] << " ";
       }
     }
-    Debug("minisat") << "\n";
+    Trace("minisat") << "\n";
   }
   Assert(value(p) == l_Undef);
   Assert(var(p) < nVars());
@@ -1272,16 +1272,16 @@ void Solver::propagateTheory() {
   MinisatSatSolver::toMinisatClause(propagatedLiteralsClause, propagatedLiterals);
 
   int oldTrailSize = trail.size();
-  Debug("minisat") << "old trail size is " << oldTrailSize << ", propagating " << propagatedLiterals.size() << " lits..." << std::endl;
+  Trace("minisat") << "old trail size is " << oldTrailSize << ", propagating " << propagatedLiterals.size() << " lits..." << std::endl;
   for (unsigned i = 0, i_end = propagatedLiterals.size(); i < i_end; ++ i) {
-    Debug("minisat") << "Theory propagated: " << propagatedLiterals[i] << std::endl;
+    Trace("minisat") << "Theory propagated: " << propagatedLiterals[i] << std::endl;
     // multiple theories can propagate the same literal
     Lit p = propagatedLiterals[i];
     if (value(p) == l_Undef) {
       uncheckedEnqueue(p, CRef_Lazy);
     } else {
       if (value(p) == l_False) {
-        Debug("minisat") << "Conflict in theory propagation" << std::endl;
+        Trace("minisat") << "Conflict in theory propagation" << std::endl;
         SatClause explanation_cl;
         d_proxy->explainPropagation(MinisatSatSolver::toSatLiteral(p),
                                     explanation_cl);
@@ -1692,7 +1692,7 @@ lbool Solver::search(int nof_conflicts)
         if (next == lit_Undef)
         {
           // We need to do a full theory check to confirm
-          Debug("minisat::search")
+          Trace("minisat::search")
               << "Doing a full theory check..." << std::endl;
           check_type = CHECK_FINAL;
           continue;
@@ -1752,7 +1752,7 @@ static double luby(double y, int x){
 // NOTE: assumptions passed in member-variable 'assumptions'.
 lbool Solver::solve_()
 {
-    Debug("minisat") << "nvars = " << nVars() << std::endl;
+    Trace("minisat") << "nvars = " << nVars() << std::endl;
 
     ScopedBool scoped_bool(minisat_busy, true);
 
@@ -1801,7 +1801,7 @@ lbool Solver::solve_()
         model.growTo(nVars());
         for (int i = 0; i < nVars(); i++) {
           model[i] = value(i);
-          Debug("minisat") << i << " = " << model[i] << std::endl;
+          Trace("minisat") << i << " = " << model[i] << std::endl;
         }
     }
     else if (status == l_False && d_conflict.size() == 0)
@@ -1956,13 +1956,13 @@ void Solver::push()
   Assert(decisionLevel() == 0);
 
   ++assertionLevel;
-  Debug("minisat") << "in user push, increasing assertion level to " << assertionLevel << std::endl;
+  Trace("minisat") << "in user push, increasing assertion level to " << assertionLevel << std::endl;
   trail_ok.push(ok);
   assigns_lim.push(assigns.size());
 
   d_context->push();  // SAT context for cvc5
 
-  Debug("minisat") << "MINISAT PUSH assertionLevel is " << assertionLevel << ", trail.size is " << trail.size() << std::endl;
+  Trace("minisat") << "MINISAT PUSH assertionLevel is " << assertionLevel << ", trail.size is " << trail.size() << std::endl;
 }
 
 void Solver::pop()
@@ -1973,11 +1973,11 @@ void Solver::pop()
 
   // Pop the trail below the user level
   --assertionLevel;
-  Debug("minisat") << "in user pop, decreasing assertion level to "
+  Trace("minisat") << "in user pop, decreasing assertion level to "
                    << assertionLevel << "\n"
                    << cvc5::push;
   while (true) {
-    Debug("minisat") << "== unassigning " << trail.last() << std::endl;
+    Trace("minisat") << "== unassigning " << trail.last() << std::endl;
     Var      x  = var(trail.last());
     if (user_level(x) > assertionLevel) {
       assigns[x] = l_Undef;
@@ -1997,11 +1997,11 @@ void Solver::pop()
   // Remove the clauses
   removeClausesAboveLevel(clauses_persistent, assertionLevel);
   removeClausesAboveLevel(clauses_removable, assertionLevel);
-  Debug("minisat") << cvc5::pop;
+  Trace("minisat") << cvc5::pop;
   // Pop the SAT context to notify everyone
   d_context->pop();  // SAT context for cvc5
 
-  Debug("minisat") << "MINISAT POP assertionLevel is " << assertionLevel
+  Trace("minisat") << "MINISAT POP assertionLevel is " << assertionLevel
                    << ", trail.size is " << trail.size() << "\n";
   // Pop the created variables
   resizeVars(assigns_lim.last());
@@ -2015,7 +2015,7 @@ void Solver::pop()
 
 CRef Solver::updateLemmas() {
 
-  Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
+  Trace("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
 
   // Avoid adding lemmas indefinitely without resource-out
   d_proxy->spendResource(Resource::LemmaStep);
@@ -2048,14 +2048,14 @@ CRef Solver::updateLemmas() {
         Assert(!options().smt.unsatCores && !needProof());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
-        Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
+        Trace("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
         continue;
       }
       // Sort the lemma to be able to attach
       sort(lemma, lt);
       // See if the lemma propagates something
       if (lemma.size() == 1 || value(lemma[1]) == l_False) {
-        Debug("minisat::lemmas") << "found unit " << lemma.size() << std::endl;
+        Trace("minisat::lemmas") << "found unit " << lemma.size() << std::endl;
         // This lemma propagates, see which level we need to backtrack to
         int currentBacktrackLevel = lemma.size() == 1 ? 0 : level(var(lemma[1]));
         // Even if the first literal is true, we should propagate it at this level (unless it's set at a lower level)
@@ -2068,7 +2068,7 @@ CRef Solver::updateLemmas() {
     }
 
     // Pop so that propagation would be current
-    Debug("minisat::lemmas") << "Solver::updateLemmas(): backtracking to " << backtrackLevel << " from " << decisionLevel() << std::endl;
+    Trace("minisat::lemmas") << "Solver::updateLemmas(): backtracking to " << backtrackLevel << " from " << decisionLevel() << std::endl;
     cancelUntil(backtrackLevel);
   }
 
@@ -2113,10 +2113,10 @@ CRef Solver::updateLemmas() {
         if (value(lemma[0]) == l_False) {
           // We have a conflict
           if (lemma.size() > 1) {
-            Debug("minisat::lemmas") << "Solver::updateLemmas(): conflict" << std::endl;
+            Trace("minisat::lemmas") << "Solver::updateLemmas(): conflict" << std::endl;
             conflict = lemma_ref;
           } else {
-            Debug("minisat::lemmas") << "Solver::updateLemmas(): unit conflict or empty clause" << std::endl;
+            Trace("minisat::lemmas") << "Solver::updateLemmas(): unit conflict or empty clause" << std::endl;
             conflict = CRef_Lazy;
             if (needProof())
             {
@@ -2124,8 +2124,8 @@ CRef Solver::updateLemmas() {
             }
           }
         } else {
-          Debug("minisat::lemmas") << "lemma size is " << lemma.size() << std::endl;
-          Debug("minisat::lemmas") << "lemma ref is " << lemma_ref << std::endl;
+          Trace("minisat::lemmas") << "lemma size is " << lemma.size() << std::endl;
+          Trace("minisat::lemmas") << "lemma ref is " << lemma_ref << std::endl;
           uncheckedEnqueue(lemma[0], lemma_ref);
         }
       }
@@ -2140,14 +2140,14 @@ CRef Solver::updateLemmas() {
     theoryConflict = true;
   }
 
-  Debug("minisat::lemmas") << "Solver::updateLemmas() end" << std::endl;
+  Trace("minisat::lemmas") << "Solver::updateLemmas() end" << std::endl;
 
   return conflict;
 }
 
 void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to)
 {
-  Debug("minisat") << "ClauseAllocator::reloc: cr " << cr << std::endl;
+  Trace("minisat") << "ClauseAllocator::reloc: cr " << cr << std::endl;
   // FIXME what is this CRef_lazy
   if (cr == CRef_Lazy) return;
 

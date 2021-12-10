@@ -675,8 +675,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
   Polynomial pleft = Polynomial::parsePolynomial(left);
   Polynomial pright = Polynomial::parsePolynomial(right);
 
-  Debug("arith::rewriter") << "pleft " << pleft.getNode() << std::endl;
-  Debug("arith::rewriter") << "pright " << pright.getNode() << std::endl;
+  Trace("arith::rewriter") << "pleft " << pleft.getNode() << std::endl;
+  Trace("arith::rewriter") << "pright " << pright.getNode() << std::endl;
 
   Comparison cmp = Comparison::mkComparison(atom.getKind(), pleft, pright);
   Assert(cmp.isNormalForm());
@@ -714,14 +714,14 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
 RewriteResponse ArithRewriter::postRewrite(TNode t){
   if(isTerm(t)){
     RewriteResponse response = postRewriteTerm(t);
-    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
+    if (Trace.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
     {
       Polynomial::parsePolynomial(response.d_node);
     }
     return response;
   }else if(isAtom(t)){
     RewriteResponse response = postRewriteAtom(t);
-    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
+    if (Trace.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
     {
       Comparison::parseNormalForm(response.d_node);
     }

@@ -102,8 +102,8 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
 
-  Debug("smt") << "#Assertions : " << assertions.size() << endl;
-  Debug("smt") << "#Assumptions: " << assertions.getNumAssumptions() << endl;
+  Trace("smt") << "#Assertions : " << assertions.size() << endl;
+  Trace("smt") << "#Assumptions: " << assertions.getNumAssumptions() << endl;
 
   if (assertions.size() == 0)
   {
@@ -137,7 +137,7 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   if (options().quantifiers.globalNegate)
   {
@@ -166,7 +166,7 @@ bool ProcessAssertions::apply(Assertions& as)
     applyPass("ackermann", as);
   }
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   bool noConflict = true;
 
@@ -274,7 +274,7 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     applyPass("static-learning", as);
   }
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   if (options().smt.learnedRewrite)
   {
@@ -317,11 +317,11 @@ bool ProcessAssertions::apply(Assertions& as)
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
-  Debug("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
+  Trace("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
                << endl;
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   // ensure rewritten
   applyPass("rewrite", as);
@@ -384,7 +384,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       }
     }
 
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
 
     // ITE simplification
     if (options().smt.doITESimp
@@ -398,7 +398,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       }
     }
 
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
 
     // Unconstrained simplification
     if (options().smt.unconstrainedSimp)
@@ -419,7 +419,7 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
 
     dumpAssertions("post-repeatsimp", as);
     Trace("smt") << "POST repeatSimp" << endl;
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
   }
   catch (TypeCheckingExceptionPrivate& tcep)
   {

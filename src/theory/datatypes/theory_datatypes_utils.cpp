@@ -61,10 +61,10 @@ Node mkApplyCons(TypeNode tn,
   if (dt.isParametric())
   {
     // add type ascription for ambiguous constructor types
-    Debug("datatypes-parametric")
+    Trace("datatypes-parametric")
         << "Constructor is " << dt[index] << std::endl;
     TypeNode tspec = dt[index].getSpecializedConstructorType(tn);
-    Debug("datatypes-parametric")
+    Trace("datatypes-parametric")
         << "Type specification is " << tspec << std::endl;
     cchildren[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
                               nm->mkConst(AscriptionType(tspec)),

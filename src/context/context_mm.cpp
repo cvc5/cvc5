@@ -108,7 +108,7 @@ void* ContextMemoryManager::newData(size_t size) {
     AlwaysAssert(d_nextFree <= d_endChunk)
         << "Request is bigger than memory chunk size";
   }
-  Debug("context") << "ContextMemoryManager::newData(" << size
+  Trace("context") << "ContextMemoryManager::newData(" << size
                    << ") returning " << res << " at level "
                    << d_chunkList.size() << std::endl;
 

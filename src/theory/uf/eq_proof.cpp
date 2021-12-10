@@ -28,7 +28,7 @@ void EqProof::debug_print(const char* c, unsigned tb) const
 {
   std::stringstream ss;
   debug_print(ss, tb);
-  Debug(c) << ss.str();
+  Trace(c) << ss.str();
 }
 
 void EqProof::debug_print(std::ostream& os, unsigned tb) const

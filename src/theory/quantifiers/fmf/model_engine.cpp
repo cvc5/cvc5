@@ -309,7 +309,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           {
             m.set(d_qstate, i, riter.getCurrentTerm(i));
           }
-          Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
+          Trace("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
           if (inst->addInstantiation(f,
@@ -324,7 +324,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
               break;
             }
           }else{
-            Debug("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
+            Trace("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
           }
           riter.increment();
         }

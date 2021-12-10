@@ -222,7 +222,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   {
     if (propagator->isAssigned(v0))
     {
-      Debug("miplib") << "ineligible: " << v0 << " because assigned "
+      Trace("miplib") << "ineligible: " << v0 << " because assigned "
                       << propagator->getAssignment(v0) << endl;
       continue;
     }
@@ -244,7 +244,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         assertions.push_back(v0);
       }
     }
-    Debug("miplib") << "for " << v0 << endl;
+    Trace("miplib") << "for " << v0 << endl;
     bool eligible = true;
     map<pair<Node, Node>, uint64_t> marks;
     map<pair<Node, Node>, vector<Rational> > coef;
@@ -254,25 +254,25 @@ PreprocessingPassResult MipLibTrick::applyInternal(
          j1 != assertions.end();
          ++j1)
     {
-      Debug("miplib") << "  found: " << *j1 << endl;
+      Trace("miplib") << "  found: " << *j1 << endl;
       if ((*j1).getKind() != kind::IMPLIES)
       {
         eligible = false;
-        Debug("miplib") << "  -- INELIGIBLE -- (not =>)" << endl;
+        Trace("miplib") << "  -- INELIGIBLE -- (not =>)" << endl;
         break;
       }
       Node conj = BooleanSimplification::simplify((*j1)[0]);
       if (conj.getKind() == kind::AND && conj.getNumChildren() > 6)
       {
         eligible = false;
-        Debug("miplib") << "  -- INELIGIBLE -- (N-ary /\\ too big)" << endl;
+        Trace("miplib") << "  -- INELIGIBLE -- (N-ary /\\ too big)" << endl;
         break;
       }
       if (conj.getKind() != kind::AND && !conj.isVar()
           && !(conj.getKind() == kind::NOT && conj[0].isVar()))
       {
         eligible = false;
-        Debug("miplib") << "  -- INELIGIBLE -- (not /\\ or literal)" << endl;
+        Trace("miplib") << "  -- INELIGIBLE -- (not /\\ or literal)" << endl;
         break;
       }
       if ((*j1)[1].getKind() != kind::EQUAL
@@ -282,7 +282,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                    && (*j1)[1][1].isVar())))
       {
         eligible = false;
-        Debug("miplib") << "  -- INELIGIBLE -- (=> (and X X) X)" << endl;
+        Trace("miplib") << "  -- INELIGIBLE -- (=> (and X X) X)" << endl;
         break;
       }
       if (conj.getKind() == kind::AND)
@@ -307,14 +307,14 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           else
           {
             eligible = false;
-            Debug("miplib")
+            Trace("miplib")
                 << "  -- INELIGIBLE -- (non-var: " << *ii << ")" << endl;
             break;
           }
           if (propagator->isAssigned(posv.back()))
           {
             eligible = false;
-            Debug("miplib") << "  -- INELIGIBLE -- (" << posv.back()
+            Trace("miplib") << "  -- INELIGIBLE -- (" << posv.back()
                             << " asserted)" << endl;
             break;
           }
@@ -326,7 +326,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         if (!found_x)
         {
           eligible = false;
-          Debug("miplib") << "  --INELIGIBLE -- (couldn't find " << v0
+          Trace("miplib") << "  --INELIGIBLE -- (couldn't find " << v0
                           << " in conjunction)" << endl;
           break;
         }
@@ -357,20 +357,20 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         if ((marks[pos_var] & (1lu << mark)) != 0)
         {
           eligible = false;
-          Debug("miplib") << "  -- INELIGIBLE -- (remarked)" << endl;
+          Trace("miplib") << "  -- INELIGIBLE -- (remarked)" << endl;
           break;
         }
-        Debug("miplib") << "mark is " << mark << " -- " << (1lu << mark)
+        Trace("miplib") << "mark is " << mark << " -- " << (1lu << mark)
                         << endl;
         marks[pos_var] |= (1lu << mark);
-        Debug("miplib") << "marks[" << pos << "," << var << "] now "
+        Trace("miplib") << "marks[" << pos << "," << var << "] now "
                         << marks[pos_var] << endl;
         if (countneg == pos.getNumChildren())
         {
           if (constant != 0)
           {
             eligible = false;
-            Debug("miplib") << "  -- INELIGIBLE -- (nonzero constant)" << endl;
+            Trace("miplib") << "  -- INELIGIBLE -- (nonzero constant)" << endl;
             break;
           }
         }
@@ -399,13 +399,13 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         if (x != v0 && x != (v0).notNode())
         {
           eligible = false;
-          Debug("miplib")
+          Trace("miplib")
               << "  -- INELIGIBLE -- (x not present where I expect it)" << endl;
           break;
         }
         const bool xneg = (x.getKind() == kind::NOT);
         x = xneg ? x[0] : x;
-        Debug("miplib") << "  x:" << x << "  " << xneg << endl;
+        Trace("miplib") << "  x:" << x << "  " << xneg << endl;
         const TNode var = ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
                               ? (*j1)[1][1]
                               : (*j1)[1][0];
@@ -418,7 +418,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         if ((marks[x_var] & (1u << mark)) != 0)
         {
           eligible = false;
-          Debug("miplib") << "  -- INELIGIBLE -- (remarked)" << endl;
+          Trace("miplib") << "  -- INELIGIBLE -- (remarked)" << endl;
           break;
         }
         marks[x_var] |= (1u << mark);
@@ -427,7 +427,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           if (constant != 0)
           {
             eligible = false;
-            Debug("miplib") << "  -- INELIGIBLE -- (nonzero constant)" << endl;
+            Trace("miplib") << "  -- INELIGIBLE -- (nonzero constant)" << endl;
             break;
           }
         }
@@ -454,12 +454,12 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             pos.getKind() == kind::AND ? pos.getNumChildren() : 1;
         uint64_t expected = (uint64_t(1) << (1 << numVars)) - 1;
         expected = (expected == 0) ? -1 : expected;  // fix for overflow
-        Debug("miplib") << "[" << pos << "] => " << hex << mark << " expect "
+        Trace("miplib") << "[" << pos << "] => " << hex << mark << " expect "
                         << expected << dec << endl;
         Assert(pos.getKind() == kind::AND || pos.isVar());
         if (mark != expected)
         {
-          Debug("miplib") << "  -- INELIGIBLE " << pos
+          Trace("miplib") << "  -- INELIGIBLE " << pos
                           << " -- (insufficiently marked, got " << mark
                           << " for " << numVars << " vars, expected "
                           << expected << endl;
@@ -476,24 +476,24 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               if ((k & (k - 1)) != 0)
               {
                 Rational sum = 0;
-                Debug("miplib") << k << " => " << checks[pos_var][k] << endl;
+                Trace("miplib") << k << " => " << checks[pos_var][k] << endl;
                 for (size_t v1 = 1, kk = k; kk != 0; ++v1, kk >>= 1)
                 {
                   if ((kk & 0x1) == 1)
                   {
                     Assert(pos.getKind() == kind::AND);
-                    Debug("miplib")
+                    Trace("miplib")
                         << "var " << v1 << " : " << pos[v1 - 1]
                         << " coef:" << coef[pos_var][v1 - 1] << endl;
                     sum += coef[pos_var][v1 - 1];
                   }
                 }
-                Debug("miplib") << "checkSum is " << sum << " input says "
+                Trace("miplib") << "checkSum is " << sum << " input says "
                                 << checks[pos_var][k] << endl;
                 if (sum != checks[pos_var][k])
                 {
                   eligible = false;
-                  Debug("miplib") << "  -- INELIGIBLE " << pos
+                  Trace("miplib") << "  -- INELIGIBLE " << pos
                                   << " -- (nonlinear combination)" << endl;
                   break;
                 }
@@ -514,7 +514,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             continue;
           }
 
-          Debug("miplib") << "  -- ELIGIBLE " << v0 << " , " << pos << " --"
+          Trace("miplib") << "  -- ELIGIBLE " << v0 << " , " << pos << " --"
                           << endl;
           vector<Node> newVars;
           expr::NodeSelfIterator ii, iiend;
@@ -585,7 +585,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                              nm->mkConst(CONST_RATIONAL, coef[pos_var][0]),
                              newVars[0]);
           }
-          Debug("miplib") << "vars[] " << var << endl
+          Trace("miplib") << "vars[] " << var << endl
                           << "    eq " << rewrite(sum) << endl;
           Node newAssertion = var.eqNode(rewrite(sum));
           if (top_level_substs.hasSubstitution(newAssertion[0]))
@@ -597,27 +597,27 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                    <= options().arith.arithMLTrickSubstitutions)
           {
             top_level_substs.addSubstitution(newAssertion[0], newAssertion[1]);
-            Debug("miplib") << "addSubs: " << newAssertion[0] << " to "
+            Trace("miplib") << "addSubs: " << newAssertion[0] << " to "
                             << newAssertion[1] << endl;
           }
           else
           {
-            Debug("miplib")
+            Trace("miplib")
                 << "skipSubs: " << newAssertion[0] << " to " << newAssertion[1]
                 << " (threshold is "
                 << options().arith.arithMLTrickSubstitutions << ")" << endl;
           }
           newAssertion = rewrite(newAssertion);
-          Debug("miplib") << "  " << newAssertion << endl;
+          Trace("miplib") << "  " << newAssertion << endl;
 
           assertionsToPreprocess->push_back(newAssertion);
-          Debug("miplib") << "  assertions to remove: " << endl;
+          Trace("miplib") << "  assertions to remove: " << endl;
           for (vector<TNode>::const_iterator k = asserts[pos_var].begin(),
                                              k_end = asserts[pos_var].end();
                k != k_end;
                ++k)
           {
-            Debug("miplib") << "    " << *k << endl;
+            Trace("miplib") << "    " << *k << endl;
             removeAssertions.insert((*k).getId());
           }
         }
@@ -626,7 +626,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   }
   if (!removeAssertions.empty())
   {
-    Debug("miplib") << " scrubbing miplib encoding..." << endl;
+    Trace("miplib") << " scrubbing miplib encoding..." << endl;
     for (size_t i = 0, size = assertionsToPreprocess->getRealAssertionsEnd();
          i < size;
          ++i)
@@ -634,7 +634,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       Node assertion = (*assertionsToPreprocess)[i];
       if (removeAssertions.find(assertion.getId()) != removeAssertions.end())
       {
-        Debug("miplib") << " - removing " << assertion << endl;
+        Trace("miplib") << " - removing " << assertion << endl;
         assertionsToPreprocess->replace(i, trueNode);
         ++d_statistics.d_numMiplibAssertionsRemoved;
       }
@@ -643,20 +643,20 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         size_t removals = removeFromConjunction(assertion, removeAssertions);
         if (removals > 0)
         {
-          Debug("miplib") << " - reduced " << assertion << endl;
-          Debug("miplib") << " -      by " << removals << " conjuncts" << endl;
+          Trace("miplib") << " - reduced " << assertion << endl;
+          Trace("miplib") << " -      by " << removals << " conjuncts" << endl;
           d_statistics.d_numMiplibAssertionsRemoved += removals;
         }
       }
-      Debug("miplib") << "had: " << assertion << endl;
+      Trace("miplib") << "had: " << assertion << endl;
       assertionsToPreprocess->replace(
           i, rewrite(top_level_substs.apply(assertion)));
-      Debug("miplib") << "now: " << assertion << endl;
+      Trace("miplib") << "now: " << assertion << endl;
     }
   }
   else
   {
-    Debug("miplib") << " miplib pass found nothing." << endl;
+    Trace("miplib") << " miplib pass found nothing." << endl;
   }
   assertionsToPreprocess->updateRealAssertionsEnd();
   return PreprocessingPassResult::NO_CONFLICT;

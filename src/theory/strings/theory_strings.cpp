@@ -185,12 +185,12 @@ bool TheoryStrings::propagateLit(TNode literal)
 
 TrustNode TheoryStrings::explain(TNode literal)
 {
-  Debug("strings-explain") << "explain called on " << literal << std::endl;
+  Trace("strings-explain") << "explain called on " << literal << std::endl;
   return d_im.explainLit(literal);
 }
 
 void TheoryStrings::presolve() {
-  Debug("strings-presolve")
+  Trace("strings-presolve")
       << "TheoryStrings::Presolving : get fmf options "
       << (options().strings.stringFMF ? "true" : "false") << std::endl;
   d_strat.initializeStrategy();
@@ -206,7 +206,7 @@ void TheoryStrings::presolve() {
         d_stringsFmf.getDecisionStrategy(),
         DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
   }
-  Debug("strings-presolve") << "Finished presolve" << std::endl;
+  Trace("strings-presolve") << "Finished presolve" << std::endl;
 }
 
 

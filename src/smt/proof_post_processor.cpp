@@ -1066,14 +1066,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::MACRO_ARITH_SCALE_SUM_UB)
   {
-    Debug("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
-    if (Debug.isOn("macro::arith"))
+    Trace("macro::arith") << "Expand MACRO_ARITH_SCALE_SUM_UB" << std::endl;
+    if (Trace.isOn("macro::arith"))
     {
       for (const auto& child : children)
       {
-        Debug("macro::arith") << "  child: " << child << std::endl;
+        Trace("macro::arith") << "  child: " << child << std::endl;
       }
-      Debug("macro::arith") << "   args: " << args << std::endl;
+      Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
     NodeManager* nm = NodeManager::currentNM();
@@ -1112,7 +1112,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
     Node sumBounds = steps.tryStep(PfRule::ARITH_SUM_UB, scaledRels, {});
     cdp->addSteps(steps);
-    Debug("macro::arith") << "Expansion done. Proved: " << sumBounds
+    Trace("macro::arith") << "Expansion done. Proved: " << sumBounds
                           << std::endl;
     return sumBounds;
   }

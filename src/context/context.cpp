@@ -135,14 +135,14 @@ void Context::addNotifyObjPost(ContextNotifyObj* pCNO) {
 
 void ContextObj::update()
 {
-  Debug("context") << "before update(" << this << "):" << std::endl
+  Trace("context") << "before update(" << this << "):" << std::endl
                    << "context is " << getContext() << std::endl
                    << *getContext() << std::endl;
 
   // Call save() to save the information in the current object
   ContextObj* pContextObjSaved = save(d_pScope->getCMM());
 
-  Debug("context") << "in update(" << this << ") with restore "
+  Trace("context") << "in update(" << this << ") with restore "
                    << pContextObjSaved << ": waypoint 1" << std::endl
                    << *getContext() << std::endl;
 
@@ -155,25 +155,25 @@ void ContextObj::update()
 
   // Link the "saved" object in place of this ContextObj in the scope
   // we're moving it FROM.
-  Debug("context") << "in update(" << this
+  Trace("context") << "in update(" << this
                    << "): next() == " << next() << std::endl;
   if(next() != NULL) {
-    Debug("context") << "in update(" << this
+    Trace("context") << "in update(" << this
                      << "): next()->prev() == " << next()->prev() << std::endl;
     next()->prev() = &pContextObjSaved->next();
-    Debug("context") << "in update(" << this
+    Trace("context") << "in update(" << this
                      << "): next()->prev() is now "
                      << next()->prev() << std::endl;
   }
-  Debug("context") << "in update(" << this
+  Trace("context") << "in update(" << this
                    << "): prev() == " << prev() << std::endl;
-  Debug("context") << "in update(" << this
+  Trace("context") << "in update(" << this
                    << "): *prev() == " << *prev() << std::endl;
   *prev() = pContextObjSaved;
-  Debug("context") << "in update(" << this
+  Trace("context") << "in update(" << this
                    << "): *prev() is now " << *prev() << std::endl;
 
-  Debug("context") << "in update(" << this << ") with restore "
+  Trace("context") << "in update(" << this << ") with restore "
                    << pContextObjSaved << ": waypoint 3" << std::endl
                    << *getContext() << std::endl;
 
@@ -187,7 +187,7 @@ void ContextObj::update()
   // Scope is popped.
   d_pScope->addToChain(this);
 
-  Debug("context") << "after update(" << this << ") with restore "
+  Trace("context") << "after update(" << this << ") with restore "
                    << pContextObjSaved << ":" << std::endl
                    << *getContext() << std::endl;
 }
@@ -205,7 +205,7 @@ ContextObj* ContextObj::restoreAndContinue()
     // Assert(d_pScope == d_pScope->getContext()->getBottomScope()) <<
     //        "Expected bottom scope";
 
-    Debug("context") << "NULL restore object! " << this << std::endl;
+    Trace("context") << "NULL restore object! " << this << std::endl;
     pContextObjNext = d_pContextObjNext;
     d_pScope = nullptr;
 
@@ -244,7 +244,7 @@ void ContextObj::destroy()
   Assert(d_pScope != nullptr);
   /* Context can be big and complicated, so we only want to process this output
    * if we're really going to use it. (Same goes below.) */
-  Debug("context") << "before destroy " << this << " (level " << getLevel()
+  Trace("context") << "before destroy " << this << " (level " << getLevel()
                    << "):" << std::endl << *getContext() << std::endl;
 
   for (;;)
@@ -262,13 +262,13 @@ void ContextObj::destroy()
     {
       break;
     }
-    Debug("context") << "in destroy " << this << ", restore object is "
+    Trace("context") << "in destroy " << this << ", restore object is "
                      << d_pContextObjRestore << " at level "
                      << d_pContextObjRestore->getLevel() << ":" << std::endl
                      << *getContext() << std::endl;
     restoreAndContinue();
   }
-  Debug("context") << "after destroy " << this << ":" << std::endl
+  Trace("context") << "after destroy " << this << ":" << std::endl
                    << *getContext() << std::endl;
 }
 
@@ -280,7 +280,7 @@ ContextObj::ContextObj(Context* pContext) :
   d_ppContextObjPrev(NULL) {
   Assert(pContext != NULL) << "NULL context pointer";
 
-  Debug("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
+  Trace("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
   d_pScope = pContext->getBottomScope();
   d_pScope->addToChain(this);
 }
@@ -293,7 +293,7 @@ ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
   d_ppContextObjPrev(NULL) {
   Assert(pContext != NULL) << "NULL context pointer";
 
-  Debug("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
+  Trace("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
   if(allocatedInCMM) {
     d_pScope = pContext->getTopScope();
   } else {

@@ -47,7 +47,7 @@ void InstMatch::debugPrint( const char* c ){
   for (unsigned i = 0, size = d_vals.size(); i < size; i++)
   {
     if( !d_vals[i].isNull() ){
-      Debug( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
+      Trace( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
     }
   }
 }

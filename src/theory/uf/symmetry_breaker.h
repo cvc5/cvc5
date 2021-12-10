@@ -153,7 +153,7 @@ public:
  protected:
   void contextNotifyPop() override
   {
-    Debug("ufsymm") << "UFSYMM: clearing state due to pop" << std::endl;
+    Trace("ufsymm") << "UFSYMM: clearing state due to pop" << std::endl;
     clear();
   }
 
