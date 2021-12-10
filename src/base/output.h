@@ -357,45 +357,6 @@ class __cvc5_true
   inline operator bool() { return true; }
 }; /* __cvc5_true */
 
-
-#ifdef CVC5_TRACING
-
-class ScopedTrace
-{
-  std::string d_tag;
-  bool d_oldSetting;
-
-public:
-
-  ScopedTrace(std::string tag, bool newSetting = true) :
-    d_tag(tag) {
-    d_oldSetting = Trace.isOn(d_tag);
-    if(newSetting) {
-      Trace.on(d_tag);
-    } else {
-      Trace.off(d_tag);
-    }
-  }
-
-  ~ScopedTrace() {
-    if(d_oldSetting) {
-      Trace.on(d_tag);
-    } else {
-      Trace.off(d_tag);
-    }
-  }
-}; /* class ScopedTrace */
-
-#else /* CVC5_TRACING */
-
-class ScopedTrace
-{
- public:
-  ScopedTrace(std::string tag, bool newSetting = true) {}
-}; /* class ScopedTrace */
-
-#endif /* CVC5_TRACING */
-
 /**
  * Pushes an indentation level on construction, pop on destruction.
  * Useful for tracing recursive functions especially, but also can be
