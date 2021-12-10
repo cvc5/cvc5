@@ -64,7 +64,6 @@ Option types
 
 Though not enforced explicitly, option types are commonly expected to come from
 a rather restricted set of C++ types:
-some options are merely used to have a handler function called and use `void`;
 Boolean options should use `bool`;
 numeric options should use one of `int64_t`, `uint64_t` and `double`, possibly
 using `minimum` and `maximum` to further restrict the options domain;
@@ -81,10 +80,9 @@ Handler functions
 Custom handler functions are used to turn the option value from an `std::string`
 into the type specified by `type`. Standard handler functions are provided for
 basic types (`std::string`, `bool`, `int64_t`, `uint64_t`, and `double`) as
-well as enums specified by `mode`. A custom handler function needs to be member
-function of `options::OptionsHandler` with signature
-`{type} {handler}(const std::string& flag, const std::string& optionvalue)`, or
-alternatively `void {handler}(const std::string& flag)` if the `type` is `void`.
+well as enums specified by `mode`. A custom handler function needs to be a 
+member function of `options::OptionsHandler` with signature
+`{type} {handler}(const std::string& flag, const std::string& optionvalue)`.
 The parameter `flag` holds the actually used option name, which may be an alias
 name, and should only be used in user messages.
 
@@ -92,16 +90,14 @@ name, and should only be used in user messages.
 Predicate functions
 -------------------
 
-Predicate functions are used to check whether an option value is valid after it
-has been parsed by a (standard or custom) handler function. Like a handler
-function, a predicate function needs to be a member function of
-`options::OptionsHandler` with signature
+Predicate functions are called after an option value has been parsed by a
+(standard or custom) handler function. They usually either check whether the
+parsed option value is valid, or to trigger some action (e.g. print some
+message or set another option). Like a handler function, a predicate function
+needs to be a member function of `options::OptionsHandler` with signature
 `void {predicate}(const std::string& flag, {type} value)`.
-If the check fails, the predicate should raise an `OptionException`.
-
-Note that a predicate function may not only check the value, but may also
-trigger some other action. Examples include enabling trace tags or enforcing
-dependencies between several options.
+A predicate function is expected to raise an `OptionException` if the option
+value is not valid for some reason.
 
 
 Mode options
@@ -144,15 +140,15 @@ Generated code
 The entire options setup heavily relies on generating a lot of code from the
 information retrieved from the `*_options.toml` files. After code generation,
 files related to options live either in `src/options/` (if not changed) or in
-`build/src/options/` (if automatically generated). After all code has been
-generated, the entire options setup consists of the following components:
+`build/src/options/` (if automatically generated). Additionally, code that is
+only needed when using cvc5 on the command line lives in `src/main/` and
+`build/src/main`. After all code has been generated, the entire options setup
+consists of the following components:
 
-* `options.h`: core `Options` class
-* `options_api.h`: utility methods used by the API (`parse()`, `set()`, `get()`,
-  ...)
-* `options_public.h`: utility methods used to access options from outside of
-  libcvc5
-* `{module}_options.h`: specifics for one single options module
+* `options/options.h`: core `Options` class
+* `options/options_public.h`: utility methods used by the API (`getNames()`, `get()`, `set()` and `getInfo()`)
+* `options/{module}_options.h`: specifics for one single options module
+* `main/options.h`: utility methods used by the CLI (`parse()` and `printUsage()`)
 
 
 `Options` class
@@ -172,19 +168,12 @@ Option modules
 --------------
 
 Every option module declares an "option holder" class, which is a simple struct
-that has two members for every option (that is not declared as `type = void`):
+that has two members for every option (that specifies a `name`):
 the actual option value as `{option.type} {option.name}` and a Boolean flag
-`bool {option.name}__setByUser` that indicates whether the option value was
+`bool {option.name}WasSetByUser` that indicates whether the option value was
 explicitly set by the user. If any of the options of a module is a mode option,
 the option module also defines an enum class that corresponds to the mode,
 including `operator<<()` and `stringTo{mode type}`.
-
-For convenience, the option modules also provide methods `void
-{module.id}::setDefault{option.name}(Options& opts, {option.type} value)`. Each
-such method sets the option value to the given value, if the option was not yet
-set by the user, i.e., the `__setByUser` flag is false. Additionally, every
-option module exports the `long` option name as `static constexpr const char*
-{module.id}::{option.name}__name`.
 
 
 Full Example
@@ -218,6 +207,5 @@ with `--decision-mode=justification`, and similarly from an SMT-LIB input with
 `(set-option :decision internal)` and `(set-option :decision-mode
 justification)`. The command-line help for this option looks as follows:
 
-    --output-lang=LANG | --output-language=LANG
-                           force output language (default is "auto"; see
-                           --output-lang help)
+    --decision=MODE | --decision-mode=MODE
+                           choose decision mode, see --decision=help

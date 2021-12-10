@@ -90,3 +90,27 @@ name   = "Proof"
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
   help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
+
+[[option]]
+  name       = "proofAnnotate"
+  category   = "regular"
+  long       = "proof-annotate"
+  type       = "bool"
+  default    = "false"
+  help       = "add optional annotations to proofs, which enables statistics for inference ids for lemmas and conflicts appearing in final proof"
+
+[[option]]
+  name       = "proofPruneInput"
+  category   = "regular"
+  long       = "proof-prune-input"
+  type       = "bool"
+  default    = "false"
+  help       = "Prune unused input assumptions from final scope"
+
+[[option]]
+  name       = "proofAletheResPivots"
+  category   = "regular"
+  long       = "proof-alethe-res-pivots"
+  type       = "bool"
+  default    = "false"
+  help       = "Add pivots to Alethe resolution steps"

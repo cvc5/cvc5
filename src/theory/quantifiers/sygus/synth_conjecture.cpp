@@ -61,7 +61,7 @@ SynthConjecture::SynthConjecture(Env& env,
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(env, tr, s)),
       d_templInfer(new SygusTemplateInfer(env)),
-      d_ceg_proc(new SynthConjectureProcess),
+      d_ceg_proc(new SynthConjectureProcess(env)),
       d_ceg_gc(new CegGrammarConstructor(env, d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(env, d_tds)),
       d_exampleInfer(new ExampleInfer(d_tds)),
@@ -306,6 +306,10 @@ bool SynthConjecture::needsCheck()
 
 bool SynthConjecture::doCheck()
 {
+  if (d_hasSolution)
+  {
+    return true;
+  }
   if (isSingleInvocation())
   {
     // We now try to solve with the single invocation solver, which may or may
@@ -314,14 +318,12 @@ bool SynthConjecture::doCheck()
     if (d_ceg_si->solve())
     {
       d_hasSolution = true;
-      // the conjecture has a solution, so its negation holds
-      Node qn = d_quant.negate();
-      d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_SI_SOLVED);
+      // the conjecture has a solution, we set incomplete
+      d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     }
     return true;
   }
   Assert(d_master != nullptr);
-  Assert(!d_hasSolution);
 
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
@@ -506,11 +508,10 @@ bool SynthConjecture::doCheck()
   if (options().quantifiers.cegisSample == options::CegisSampleMode::TRUST)
   {
     // we have that the current candidate passed a sample test
-    // since we trust sampling in this mode, we assert there is no
-    // counterexample to the conjecture here.
-    Node qn = d_quant.negate();
-    d_qim.addPendingLemma(qn,
-                          InferenceId::QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED);
+    // since we trust sampling in this mode, we assume there is a solution here
+    // and set incomplete.
+    d_hasSolution = true;
+    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     recordSolution(candidate_values);
     return true;
   }
@@ -573,10 +574,8 @@ bool SynthConjecture::doCheck()
     d_hasSolution = false;
     return false;
   }
-  // Use lemma to terminate with "unsat", this is justified by the verification
-  // check above, which confirms the synthesis conjecture is solved.
-  Node qn = d_quant.negate();
-  d_qim.addPendingLemma(qn, InferenceId::QUANTIFIERS_SYGUS_VERIFY_SOLVED);
+  // We set incomplete and terminate with unknown.
+  d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
   return true;
 }
 

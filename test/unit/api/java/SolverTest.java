@@ -1428,15 +1428,17 @@ class SolverTest
     }
     {
       // mode option
-      OptionInfo info = d_solver.getOptionInfo("output");
+      OptionInfo info = d_solver.getOptionInfo("simplification");
       assertions.clear();
-      assertions.add(() -> assertEquals("output", info.getName()));
+      assertions.add(() -> assertEquals("simplification", info.getName()));
       assertions.add(
-          () -> assertEquals(Arrays.asList(new String[] {}), Arrays.asList(info.getAliases())));
+          () -> assertEquals(Arrays.asList(new String[] {"simplification-mode"}), Arrays.asList(info.getAliases())));
       assertions.add(() -> assertTrue(info.getBaseInfo().getClass() == OptionInfo.ModeInfo.class));
       OptionInfo.ModeInfo modeInfo = (OptionInfo.ModeInfo) info.getBaseInfo();
-      assertions.add(() -> assertEquals("none", modeInfo.getDefaultValue()));
-      assertions.add(() -> assertEquals("none", modeInfo.getCurrentValue()));
+      assertions.add(() -> assertEquals("batch", modeInfo.getDefaultValue()));
+      assertions.add(() -> assertEquals("batch", modeInfo.getCurrentValue()));
+      assertions.add(() -> assertEquals(2, modeInfo.getModes().length));
+      assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("batch")));
       assertions.add(() -> assertTrue(Arrays.asList(modeInfo.getModes()).contains("none")));
     }
     assertAll(assertions);
