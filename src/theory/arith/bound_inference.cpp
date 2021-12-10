@@ -15,6 +15,7 @@
 
 #include "theory/arith/bound_inference.h"
 
+#include "smt/env.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 
@@ -28,6 +29,8 @@ std::ostream& operator<<(std::ostream& os, const Bounds& b) {
   return os << (b.lower_strict ? '(' : '[') << b.lower_value << " .. "
             << b.upper_value << (b.upper_strict ? ')' : ']');
 }
+
+BoundInference::BoundInference(Env& env) : EnvObj(env) {}
 
 void BoundInference::reset() { d_bounds.clear(); }
 
@@ -53,7 +56,7 @@ Bounds BoundInference::get(const Node& lhs) const
 const std::map<Node, Bounds>& BoundInference::get() const { return d_bounds; }
 bool BoundInference::add(const Node& n, bool onlyVariables)
 {
-  Node tmp = Rewriter::rewrite(n);
+  Node tmp = rewrite(n);
   if (tmp.getKind() == Kind::CONST_BOOLEAN)
   {
     return false;
@@ -175,19 +178,19 @@ void BoundInference::update_lower_bound(const Node& origin,
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
       b.lower_bound = b.upper_bound =
-          Rewriter::rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
+          rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
     }
     else
     {
-      b.lower_bound = Rewriter::rewrite(
-          nm->mkNode(strict ? Kind::GT : Kind::GEQ, lhs, value));
+      b.lower_bound =
+          rewrite(nm->mkNode(strict ? Kind::GT : Kind::GEQ, lhs, value));
     }
   }
   else if (strict && b.lower_value == value)
   {
     auto* nm = NodeManager::currentNM();
     b.lower_strict = strict;
-    b.lower_bound = Rewriter::rewrite(nm->mkNode(Kind::GT, lhs, value));
+    b.lower_bound = rewrite(nm->mkNode(Kind::GT, lhs, value));
     b.lower_origin = origin;
   }
 }
@@ -210,19 +213,19 @@ void BoundInference::update_upper_bound(const Node& origin,
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
       b.lower_bound = b.upper_bound =
-          Rewriter::rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
+          rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
     }
     else
     {
-      b.upper_bound = Rewriter::rewrite(
-          nm->mkNode(strict ? Kind::LT : Kind::LEQ, lhs, value));
+      b.upper_bound =
+          rewrite(nm->mkNode(strict ? Kind::LT : Kind::LEQ, lhs, value));
     }
   }
   else if (strict && b.upper_value == value)
   {
     auto* nm = NodeManager::currentNM();
     b.upper_strict = strict;
-    b.upper_bound = Rewriter::rewrite(nm->mkNode(Kind::LT, lhs, value));
+    b.upper_bound = rewrite(nm->mkNode(Kind::LT, lhs, value));
     b.upper_origin = origin;
   }
 }
@@ -236,20 +239,6 @@ std::ostream& operator<<(std::ostream& os, const BoundInference& bi)
        << b.second.upper_value << std::endl;
   }
   return os;
-}
-
-std::map<Node, std::pair<Node,Node>> getBounds(const std::vector<Node>& assertions) {
-  BoundInference bi;
-  for (const auto& a: assertions) {
-    bi.add(a);
-  }
-  std::map<Node, std::pair<Node,Node>> res;
-  for (const auto& b : bi.get())
-  {
-    res.emplace(b.first,
-                std::make_pair(b.second.lower_value, b.second.upper_value));
-  }
-  return res;
 }
 
 }  // namespace arith
