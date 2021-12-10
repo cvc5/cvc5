@@ -69,17 +69,29 @@ std::string suggestTags(const std::vector<std::string>& validTags,
 
 std::vector<std::string> selectTags(const std::vector<std::string>& validTags, std::string pattern)
 {
+  bool isRegex = false;
   size_t pos = 0;
   while ((pos = pattern.find('*', pos)) != std::string::npos)
   {
     pattern.replace(pos, 1, ".*");
     pos += 2;
+    isRegex = true;
   }
-  std::regex re(pattern);
   std::vector<std::string> results;
-  std::copy_if(validTags.begin(), validTags.end(), std::back_inserter(results),
-    [&re](const auto& tag){ return std::regex_match(tag, re); }
-  );
+  if (isRegex)
+  {
+    std::regex re(pattern);
+    std::copy_if(validTags.begin(), validTags.end(), std::back_inserter(results),
+      [&re](const auto& tag){ return std::regex_match(tag, re); }
+    );
+  }
+  else
+  {
+    if (std::find(validTags.begin(), validTags.end(), pattern) != validTags.end())
+    {
+      results.emplace_back(pattern);
+    }
+  }
   return results;
 }
 
