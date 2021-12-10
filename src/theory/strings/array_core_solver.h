@@ -111,9 +111,11 @@ class ArrayCoreSolver : protected EnvObj
   std::map<Node, std::map<Node, Node>> d_writeModel;
   /** Connected */
   std::map<Node, Node> d_connectedSeq;
+  /** The set of lemmas been sent */
   context::CDHashSet<Node> d_lem;
 
   // ========= data structure =========
+  /** Map sequence variable to indices that occurred in nth terms */
   std::map<Node, std::set<Node>> d_index_map;
 };
 
