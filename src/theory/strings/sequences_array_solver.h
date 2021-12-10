@@ -83,12 +83,12 @@ class SequencesArraySolver : protected EnvObj
   ExtTheory& d_extt;
   /** The write model */
   std::map<Node, std::map<Node, Node>> d_writeModel;
-  /** 
+  /**
    * Map from sequences to their "connected representative". Two sequences are
    * connected (based on the definition described in computeConnected) iff they
    * have the same connected representative. Sequences that do not occur in
    * this map are assumed to be their own connected representative.
-   * 
+   *
    * This map is only valid after running computeConnected, and is valid
    * only during model building.
    */
@@ -112,7 +112,7 @@ class SequencesArraySolver : protected EnvObj
    * that is currently equal to b.
    *
    * This method runs a union find algorithm to compute all connected sequences.
-   * 
+   *
    * As a result of running this method, the map d_connectedSeq is populated
    * with information regarding which sequences are connected.
    */

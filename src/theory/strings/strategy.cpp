@@ -138,7 +138,8 @@ void Strategy::initializeStrategy()
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
-    if (options().strings.stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
+    if (options().strings.stringSeqUpdate()
+        != options::StringSeqUpdateMode::NONE)
     {
       addStrategyStep(CHECK_SEQUENCES_ARRAY_CONCAT);
       addStrategyStep(CHECK_SEQUENCES_ARRAY);

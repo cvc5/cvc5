@@ -158,7 +158,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     // asserted (pol=0).
     return false;
   }
-  else 
+  else
   {
     if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
     {
@@ -168,7 +168,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
         return false;
       }
       else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
-              && d_termReg.isHandledUpdate(n))
+               && d_termReg.isHandledUpdate(n))
       {
         // don't need to reduce certain seq.update
         // don't need to reduce certain seq.extract with length 1
