@@ -366,22 +366,10 @@ class __cvc5_true
 class IndentedScope
 {
   Cvc5ostream d_out;
-
  public:
-  inline IndentedScope(Cvc5ostream out);
-  inline ~IndentedScope();
+  inline IndentedScope(Cvc5ostream out) : d_out(out) { d_out << push; }
+  inline ~IndentedScope() { d_out << pop; }
 }; /* class IndentedScope */
-
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-inline IndentedScope::IndentedScope(Cvc5ostream out) : d_out(out)
-{
-  d_out << push;
-}
-inline IndentedScope::~IndentedScope() { d_out << pop; }
-#else  /* CVC5_DEBUG && CVC5_TRACING */
-inline IndentedScope::IndentedScope(Cvc5ostream out) {}
-inline IndentedScope::~IndentedScope() {}
-#endif /* CVC5_DEBUG && CVC5_TRACING */
 
 }  // namespace cvc5
 
