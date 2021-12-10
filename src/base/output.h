@@ -357,43 +357,6 @@ class __cvc5_true
   inline operator bool() { return true; }
 }; /* __cvc5_true */
 
-#if defined(CVC5_DEBUG) && defined(CVC5_TRACING)
-
-class ScopedDebug
-{
-  std::string d_tag;
-  bool d_oldSetting;
-
-public:
-
-  ScopedDebug(std::string tag, bool newSetting = true) :
-    d_tag(tag) {
-    d_oldSetting = Debug.isOn(d_tag);
-    if(newSetting) {
-      Debug.on(d_tag);
-    } else {
-      Debug.off(d_tag);
-    }
-  }
-
-  ~ScopedDebug() {
-    if(d_oldSetting) {
-      Debug.on(d_tag);
-    } else {
-      Debug.off(d_tag);
-    }
-  }
-}; /* class ScopedDebug */
-
-#else /* CVC5_DEBUG && CVC5_TRACING */
-
-class ScopedDebug
-{
- public:
-  ScopedDebug(std::string tag, bool newSetting = true) {}
-}; /* class ScopedDebug */
-
-#endif /* CVC5_DEBUG && CVC5_TRACING */
 
 #ifdef CVC5_TRACING
 
