@@ -3074,7 +3074,7 @@ cdef class Term:
         ``c1 > ... > cn`` (see also :cpp:func:`cvc5::api::Term::operator>()`).
 
         .. note::
-            A universe set term `(kind SET_UNIVERSE)` is not considered to be
+            A universe set term ``(kind SET_UNIVERSE)`` is not considered to be
             a set value.
 
         :return: True if the term is a set value.
