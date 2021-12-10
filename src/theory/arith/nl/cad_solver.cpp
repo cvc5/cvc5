@@ -16,6 +16,7 @@
 #include "theory/arith/nl/cad_solver.h"
 
 #include "expr/skolem_manager.h"
+#include "options/arith_options.h"
 #include "smt/env.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
@@ -67,30 +68,41 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
       Trace("nl-cad") << "  " << a << std::endl;
     }
   }
-  d_eqsubs.reset();
-  std::vector<Node> processed = d_eqsubs.eliminateEqualities(assertions);
-  if (d_eqsubs.hasConflict())
+  if (options().arith.nlCadVarElim)
   {
-      Node lem = NodeManager::currentNM()->mkAnd(d_eqsubs.getConflict()).negate();
-      d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, nullptr);
-      Trace("nl-cad") << "Found conflict: " << lem << std::endl;
-      return;
-  }
-  if (Trace.isOn("nl-cad"))
-  {
-    Trace("nl-cad") << "After simplifications" << std::endl;
-    Trace("nl-cad") << "* Assertions: " << std::endl;
+    d_eqsubs.reset();
+    std::vector<Node> processed = d_eqsubs.eliminateEqualities(assertions);
+    if (d_eqsubs.hasConflict())
+    {
+        Node lem = NodeManager::currentNM()->mkAnd(d_eqsubs.getConflict()).negate();
+        d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, nullptr);
+        Trace("nl-cad") << "Found conflict: " << lem << std::endl;
+        return;
+    }
+    if (Trace.isOn("nl-cad"))
+    {
+      Trace("nl-cad") << "After simplifications" << std::endl;
+      Trace("nl-cad") << "* Assertions: " << std::endl;
+      for (const Node& a : processed)
+      {
+        Trace("nl-cad") << "  " << a << std::endl;
+      }
+    }
+    d_CAC.reset();
     for (const Node& a : processed)
     {
-      Trace("nl-cad") << "  " << a << std::endl;
+      Assert(!a.isConst());
+      d_CAC.getConstraints().addConstraint(a);
     }
   }
-  // store or process assertions
-  d_CAC.reset();
-  for (const Node& a : processed)
+  else
   {
-    Assert(!a.isConst());
-    d_CAC.getConstraints().addConstraint(a);
+    d_CAC.reset();
+    for (const Node& a : assertions)
+    {
+      Assert(!a.isConst());
+      d_CAC.getConstraints().addConstraint(a);
+    }
   }
   d_CAC.computeVariableOrdering();
   d_CAC.retrieveInitialAssignment(d_model, d_ranVariable);
