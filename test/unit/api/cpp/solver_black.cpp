@@ -929,22 +929,35 @@ TEST_F(TestApiBlackSolver, mkConstArray)
 
 TEST_F(TestApiBlackSolver, declareDatatype)
 {
+  DatatypeConstructorDecl lin = d_solver.mkDatatypeConstructorDecl("lin");
+  std::vector<DatatypeConstructorDecl> ctors0 = {lin};
+  ASSERT_NO_THROW(d_solver.declareDatatype(std::string(""), ctors0));
+
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors1 = {nil};
   ASSERT_NO_THROW(d_solver.declareDatatype(std::string("a"), ctors1));
+
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil2 = d_solver.mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil2};
   ASSERT_NO_THROW(d_solver.declareDatatype(std::string("b"), ctors2));
+
   DatatypeConstructorDecl cons2 = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil3 = d_solver.mkDatatypeConstructorDecl("nil");
   std::vector<DatatypeConstructorDecl> ctors3 = {cons2, nil3};
   ASSERT_NO_THROW(d_solver.declareDatatype(std::string(""), ctors3));
+
+  // must have at least one constructor
   std::vector<DatatypeConstructorDecl> ctors4;
   ASSERT_THROW(d_solver.declareDatatype(std::string("c"), ctors4),
                CVC5ApiException);
-  ASSERT_THROW(d_solver.declareDatatype(std::string(""), ctors4),
+  // constructors may not be reused
+  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
+  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
+  Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
+  ASSERT_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}),
                CVC5ApiException);
+  // constructor belongs to different solver instance
   Solver slv;
   ASSERT_THROW(slv.declareDatatype(std::string("a"), ctors1), CVC5ApiException);
 }
@@ -2659,16 +2672,6 @@ TEST_F(TestApiBlackSolver, proj_issue373)
   ASSERT_THROW(
       d_solver.mkTerm(d_solver.mkOp(APPLY_CONSTRUCTOR), {bvl, acons, t452}),
       CVC5ApiException);
-}
-
-TEST_F(TestApiBlackSolver, doubleUseCons)
-{
-  DatatypeConstructorDecl ctor1 = d_solver.mkDatatypeConstructorDecl("_x21");
-  DatatypeConstructorDecl ctor2 = d_solver.mkDatatypeConstructorDecl("_x31");
-  Sort s3 = d_solver.declareDatatype(std::string("_x17"), {ctor1, ctor2});
-
-  ASSERT_THROW(d_solver.declareDatatype(std::string("_x86"), {ctor1, ctor2}),
-               CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue378)
