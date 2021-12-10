@@ -47,7 +47,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
   return out;
 }
 
-Strategy::Strategy() : d_strategy_init(false) {}
+Strategy::Strategy(Env& env) : EnvObj(env), d_strategy_init(false) {}
 
 Strategy::~Strategy() {}
 
@@ -97,7 +97,7 @@ void Strategy::initializeStrategy()
     d_strategy_init = true;
     // beginning indices
     step_begin[Theory::EFFORT_FULL] = 0;
-    if (options::stringEager())
+    if (options().strings.stringEager)
     {
       step_begin[Theory::EFFORT_STANDARD] = 0;
     }
@@ -111,50 +111,50 @@ void Strategy::initializeStrategy()
     }
     // we must check cycles before using flat forms
     addStrategyStep(CHECK_CYCLES);
-    if (options::stringFlatForms())
+    if (options().strings.stringFlatForms)
     {
       addStrategyStep(CHECK_FLAT_FORMS);
     }
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
-    if (options::stringEager())
+    if (options().strings.stringEager)
     {
       // do only the above inferences at standard effort, if applicable
       step_end[Theory::EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
-    if (!options::stringEagerLen())
+    if (!options().strings.stringEagerLen)
     {
       addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);
     }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
-    if (!options::stringEagerLen() && options::stringLenNorm())
+    if (!options().strings.stringEagerLen && options().strings.stringLenNorm)
     {
       addStrategyStep(CHECK_LENGTH_EQC, 0, false);
       addStrategyStep(CHECK_REGISTER_TERMS_NF);
     }
     addStrategyStep(CHECK_NORMAL_FORMS_DEQ);
     addStrategyStep(CHECK_CODES);
-    if (options::stringEagerLen() && options::stringLenNorm())
+    if (options().strings.stringEagerLen && options().strings.stringLenNorm)
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
-    if (options::stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
+    if (options().strings.stringSeqUpdate() != options::StringSeqUpdateMode::NONE)
     {
       addStrategyStep(CHECK_SEQUENCES_ARRAY_CONCAT);
       addStrategyStep(CHECK_SEQUENCES_ARRAY);
     }
-    if (options::stringExp())
+    if (options().strings.stringExp)
     {
       addStrategyStep(CHECK_EXTF_REDUCTION, 2);
     }
     addStrategyStep(CHECK_MEMBERSHIP);
     addStrategyStep(CHECK_CARDINALITY);
     step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
-    if (options::stringModelBasedReduction())
+    if (options().strings.stringModelBasedReduction)
     {
       step_begin[Theory::EFFORT_LAST_CALL] = d_infer_steps.size();
       addStrategyStep(CHECK_EXTF_EVAL, 3);
-      if (options::stringExp())
+      if (options().strings.stringExp)
       {
         addStrategyStep(CHECK_EXTF_REDUCTION, 3);
       }

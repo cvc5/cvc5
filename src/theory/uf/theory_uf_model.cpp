@@ -57,7 +57,11 @@ void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int
   }
 }
 
-Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node argDefaultValue, bool simplify) {
+Node UfModelTreeNode::getFunctionValue(const std::vector<Node>& args,
+                                       int index,
+                                       Node argDefaultValue,
+                                       bool simplify)
+{
   if(!d_data.empty()) {
     Node defaultValue = argDefaultValue;
     if(d_data.find(Node::null()) != d_data.end()) {
@@ -222,16 +226,19 @@ void UfModelTreeNode::debugPrint( std::ostream& out, TheoryModel* m, std::vector
   }
 }
 
-Node UfModelTree::getFunctionValue( std::vector< Node >& args, bool simplify ){
-  Node body = d_tree.getFunctionValue( args, 0, Node::null(), simplify );
-  if(simplify) {
-    body = Rewriter::rewrite( body );
+Node UfModelTree::getFunctionValue(const std::vector<Node>& args, Rewriter* r)
+{
+  Node body = d_tree.getFunctionValue(args, 0, Node::null(), r != nullptr);
+  if (r != nullptr)
+  {
+    body = r->rewrite(body);
   }
   Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args);
   return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, body);
 }
 
-Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
+Node UfModelTree::getFunctionValue(const std::string& argPrefix, Rewriter* r)
+{
   TypeNode type = d_op.getType();
   std::vector< Node > vars;
   for( size_t i=0; i<type.getNumChildren()-1; i++ ){
@@ -239,7 +246,7 @@ Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
     ss << argPrefix << (i+1);
     vars.push_back( NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] ) );
   }
-  return getFunctionValue( vars, simplify );
+  return getFunctionValue(vars, r);
 }
 
 }  // namespace uf

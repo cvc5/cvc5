@@ -18,6 +18,7 @@
 #include <cerrno>
 #include <iostream>
 #include <ostream>
+#include <regex>
 #include <string>
 
 #include "base/check.h"
@@ -33,6 +34,7 @@
 #include "options/decision_options.h"
 #include "options/io_utils.h"
 #include "options/language.h"
+#include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -45,9 +47,9 @@ namespace options {
 // helper functions
 namespace {
 
-static void printTags(const std::vector<std::string>& tags)
+void printTags(const std::vector<std::string>& tags)
 {
-  std::cout << "available tags:";
+  std::cout << "available tags:" << std::endl;
   for (const auto& t : tags)
   {
     std::cout << "  " << t << std::endl;
@@ -63,6 +65,40 @@ std::string suggestTags(const std::vector<std::string>& validTags,
   didYouMean.addWords(validTags);
   didYouMean.addWords(additionalTags);
   return didYouMean.getMatchAsString(inputTag);
+}
+
+/**
+ * Select all tags from validTags that match the given (globbing) pattern.
+ * The pattern may contain `*` as wildcards. These are internally converted to
+ * `.*` and matched using std::regex. If no wildcards are present, regular
+ * string comparisons are used.
+ */
+std::vector<std::string> selectTags(const std::vector<std::string>& validTags, std::string pattern)
+{
+  bool isRegex = false;
+  size_t pos = 0;
+  while ((pos = pattern.find('*', pos)) != std::string::npos)
+  {
+    pattern.replace(pos, 1, ".*");
+    pos += 2;
+    isRegex = true;
+  }
+  std::vector<std::string> results;
+  if (isRegex)
+  {
+    std::regex re(pattern);
+    std::copy_if(validTags.begin(), validTags.end(), std::back_inserter(results),
+      [&re](const auto& tag){ return std::regex_match(tag, re); }
+    );
+  }
+  else
+  {
+    if (std::find(validTags.begin(), validTags.end(), pattern) != validTags.end())
+    {
+      results.emplace_back(pattern);
+    }
+  }
+  return results;
 }
 
 }  // namespace
@@ -96,8 +132,7 @@ Languages currently supported as arguments to the --output-lang option:
   tptp                           TPTP format
   ast                            internal format (simple syntax trees)
 )FOOBAR" << std::endl;
-    std::exit(1);
-    return Language::LANG_AUTO;
+    throw OptionException("help is not a valid language");
   }
 
   try
@@ -142,13 +177,13 @@ void OptionsHandler::setVerbosity(const std::string& flag, int value)
   }
 }
 
-void OptionsHandler::decreaseVerbosity(const std::string& flag)
+void OptionsHandler::decreaseVerbosity(const std::string& flag, bool value)
 {
   d_options->base.verbosity -= 1;
   setVerbosity(flag, d_options->base.verbosity);
 }
 
-void OptionsHandler::increaseVerbosity(const std::string& flag)
+void OptionsHandler::increaseVerbosity(const std::string& flag, bool value)
 {
   d_options->base.verbosity += 1;
   setVerbosity(flag, d_options->base.verbosity);
@@ -199,19 +234,24 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   {
     throw OptionException("trace tags not available in non-tracing builds");
   }
-  else if(!Configuration::isTraceTag(optarg.c_str()))
+  auto tags = selectTags(Configuration::getTraceTags(), optarg);
+  if (tags.empty())
   {
     if (optarg == "help")
     {
-      printTags(Configuration::getTraceTags());
-      std::exit(0);
+      d_options->driver.showTraceTags = true;
+      showTraceTags("", true);
+      return;
     }
 
     throw OptionException(
-        std::string("trace tag ") + optarg + std::string(" not available.")
+        std::string("no trace tag matching ") + optarg + std::string(" was found.")
         + suggestTags(Configuration::getTraceTags(), optarg, {}));
   }
-  Trace.on(optarg);
+  for (const auto& tag: tags)
+  {
+    Trace.on(tag);
+  }
 }
 
 void OptionsHandler::enableDebugTag(const std::string& flag,
@@ -226,13 +266,13 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
     throw OptionException("debug tags not available in non-tracing builds");
   }
 
-  if (!Configuration::isDebugTag(optarg.c_str())
-      && !Configuration::isTraceTag(optarg.c_str()))
+  if (!Configuration::isDebugTag(optarg) && !Configuration::isTraceTag(optarg))
   {
     if (optarg == "help")
     {
-      printTags(Configuration::getDebugTags());
-      std::exit(0);
+      d_options->driver.showDebugTags = true;
+      showDebugTags("", true);
+      return;
     }
 
     throw OptionException(std::string("debug tag ") + optarg
@@ -246,9 +286,9 @@ void OptionsHandler::enableDebugTag(const std::string& flag,
 }
 
 void OptionsHandler::enableOutputTag(const std::string& flag,
-                                     const std::string& optarg)
+                                     OutputTag optarg)
 {
-  size_t tagid = static_cast<size_t>(stringToOutputTag(optarg));
+  size_t tagid = static_cast<size_t>(optarg);
   Assert(d_options->base.outputTagHolder.size() > tagid)
       << "Output tag is larger than the bitset that holds it.";
   d_options->base.outputTagHolder.set(tagid);
@@ -364,8 +404,9 @@ static void print_config_cond(const char* str, bool cond = false)
   print_config(str, cond ? "yes" : "no");
 }
 
-void OptionsHandler::showConfiguration(const std::string& flag)
+void OptionsHandler::showConfiguration(const std::string& flag, bool value)
 {
+  if (!value) return;
   std::cout << Configuration::about() << std::endl;
 
   print_config("version", Configuration::getVersionString());
@@ -407,24 +448,23 @@ void OptionsHandler::showConfiguration(const std::string& flag)
   print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("poly", Configuration::isBuiltWithPoly());
   print_config_cond("editline", Configuration::isBuiltWithEditline());
-
-  std::exit(0);
 }
 
-void OptionsHandler::showCopyright(const std::string& flag)
+void OptionsHandler::showCopyright(const std::string& flag, bool value)
 {
+  if (!value) return;
   std::cout << Configuration::copyright() << std::endl;
-  std::exit(0);
 }
 
-void OptionsHandler::showVersion(const std::string& flag)
+void OptionsHandler::showVersion(const std::string& flag, bool value)
 {
+  if (!value) return;
   d_options->base.out << Configuration::about() << std::endl;
-  std::exit(0);
 }
 
-void OptionsHandler::showDebugTags(const std::string& flag)
+void OptionsHandler::showDebugTags(const std::string& flag, bool value)
 {
+  if (!value) return;
   if (!Configuration::isDebugBuild())
   {
     throw OptionException("debug tags not available in non-debug builds");
@@ -434,17 +474,16 @@ void OptionsHandler::showDebugTags(const std::string& flag)
     throw OptionException("debug tags not available in non-tracing builds");
   }
   printTags(Configuration::getDebugTags());
-  std::exit(0);
 }
 
-void OptionsHandler::showTraceTags(const std::string& flag)
+void OptionsHandler::showTraceTags(const std::string& flag, bool value)
 {
+  if (!value) return;
   if (!Configuration::isTracingBuild())
   {
     throw OptionException("trace tags not available in non-tracing build");
   }
   printTags(Configuration::getTraceTags());
-  std::exit(0);
 }
 
 }  // namespace options

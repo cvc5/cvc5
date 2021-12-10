@@ -42,7 +42,7 @@ ${modes_decl}$
 struct Holder${id_cap}$
 {
 // clang-format off
-${holder_decl}$
+  ${holder_decl}$
 // clang-format on
 };
 

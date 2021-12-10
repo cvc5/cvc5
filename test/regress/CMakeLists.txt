@@ -510,7 +510,9 @@ set(regress_0_tests
   regress0/datatypes/mutually-recursive.cvc.smt2
   regress0/datatypes/pair-bool-bool.cvc.smt2
   regress0/datatypes/pair-real-bool.smt2
+  regress0/datatypes/par-updater-type-rule.smt2 
   regress0/datatypes/parametric-alt-list.cvc.smt2
+  regress0/datatypes/proj-issue172.smt2
   regress0/datatypes/rec1.cvc.smt2
   regress0/datatypes/rec2.cvc.smt2
   regress0/datatypes/rec4.cvc.smt2
@@ -557,6 +559,8 @@ set(regress_0_tests
   regress0/declare-fun-is-match.smt2
   regress0/declare-funs.smt2
   regress0/define-fun-model.smt2
+  regress0/difficulty-simple.smt2
+  regress0/difficulty-model-ex.smt2
   regress0/distinct.smtv1.smt2
   regress0/dump-unsat-core-full.smt2
   regress0/echo.smt2
@@ -780,7 +784,10 @@ set(regress_0_tests
   regress0/nl/very-simple-unsat.smt2
   regress0/opt-abd-no-use.smt2
   regress0/options/ast-and-sexpr.smt2
+  regress0/options/didyoumean.smt2
+  regress0/options/help.smt2
   regress0/options/interactive-mode.smt2
+  regress0/options/named_muted.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
   regress0/options/statistics.smt2
@@ -1311,6 +1318,7 @@ set(regress_0_tests
   regress0/sygus/General_plus10.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/ho-occ-synth-fun.sy
+  regress0/sygus/incremental-modify-ex.sy
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
@@ -1614,6 +1622,7 @@ set(regress_1_tests
   regress1/bags/duplicate_removal1.smt2
   regress1/bags/duplicate_removal2.smt2
   regress1/bags/emptybag1.smt2
+  regress1/bags/fold1.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
   regress1/bags/fuzzy3.smt2
@@ -1686,6 +1695,7 @@ set(regress_1_tests
   regress1/decision/wishue149-2.smt2
   regress1/decision/wishue149-3.smt2
   regress1/decision/wishue160.smt2
+  regress1/difficulty-polarity.smt2
   regress1/errorcrash.smt2
   regress1/fp/fp_to_real.smt2
   regress1/fp/rti_3_5_bug_report.smt2
@@ -1852,6 +1862,7 @@ set(regress_1_tests
   regress1/nl/tan-rewrite2.smt2
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
+  regress1/proj-issue175.smt2
   regress1/proof00.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
@@ -2226,6 +2237,8 @@ set(regress_1_tests
   regress1/sets/issue5342_difference_version.smt2
   regress1/sets/issue5942-witness.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
+  regress1/sets/proj-issue164.smt2
+  regress1/sets/proj-issue178.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
@@ -2519,6 +2532,9 @@ set(regress_1_tests
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
+  regress1/sygus/proj-issue181.smt2
+  regress1/sygus/proj-issue183.smt2
+  regress1/sygus/proj-issue185.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
@@ -2686,7 +2702,7 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
-  regress2/strings/strings-alpha-card-129.smt2
+  regress2/strings/strings-alpha-card-65.smt2
   regress2/strings/update-ex3.smt2
   regress2/strings/update-ex4-seq.smt2
   regress2/sygus/MPwL_d1s3.sy
@@ -2830,6 +2846,8 @@ set(regression_disabled_tests
   regress0/tptp/SYN075+1.p
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   ###
+  # takes around 30 sec
+  regress1/bags/fold2.smt2
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).
