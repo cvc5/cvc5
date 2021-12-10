@@ -230,7 +230,7 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
         std::string("no trace tag matching ") + optarg + std::string(" was found.")
         + suggestTags(Configuration::getTraceTags(), optarg, {}));
   }
-  for (const auto& tag: selectTags(Configuration::getTraceTags(), optarg))
+  for (const auto& tag: tags)
   {
     Trace.on(tag);
   }
