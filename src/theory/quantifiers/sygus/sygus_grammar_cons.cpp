@@ -483,7 +483,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         {
           // get the specialized constructor type, which accounts for
           // parametric datatypes
-          TypeNode ctn = dt[i].getSpecializedConstructorType(range);
+          TypeNode ctn = dt[i].getInstantiatedConstructorType(range);
           std::vector<TypeNode> argTypes = ctn.getArgTypes();
           for (size_t j = 0, nargs = argTypes.size(); j < nargs; ++j)
           {
@@ -1010,12 +1010,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Trace("sygus-grammar-def") << "...for " << dt[l].getName() << std::endl;
         Node cop = dt[l].getConstructor();
-        TypeNode tspec = dt[l].getSpecializedConstructorType(types[i]);
+        TypeNode tspec = dt[l].getInstantiatedConstructorType(types[i]);
         // must specialize if a parametric datatype
         if (dt.isParametric())
         {
-          cop = nm->mkNode(
-              APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cop);
+          cop = dt[l].getInstantiatedConstructor(types[i]);
         }
         if (dt[l].getNumArgs() == 0)
         {
