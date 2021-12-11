@@ -1510,9 +1510,9 @@ class CVC5_EXPORT Term
    *
    * A term is a set value if it is considered to be a (canonical) constant set
    * value.  A canonical set value is one whose AST is:
-   * ```
-   *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
-   * ```
+   *
+   *     (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   *
    * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
    * also @ref Term::operator>(const Term&) const).
    *
@@ -1532,7 +1532,7 @@ class CVC5_EXPORT Term
   bool isSequenceValue() const;
   /**
    * Asserts isSequenceValue().
-   * @note It is usually necessary for sequences to call `Solver::simplify()`
+   * @note It is usually necessary for sequences to call Solver::simplify()
    *       to turn a sequence that is constructed by, e.g., concatenation of
    *       unit sequences, into a sequence value.
    * @return the representation of a sequence value as a vector of terms.
@@ -1983,13 +1983,18 @@ class CVC5_EXPORT DatatypeConstructor
    *
    * This method is required for constructors of parametric datatypes whose
    * return type cannot be determined by type inference. For example, given:
-   *   (declare-datatype List (par (T) ((nil) (cons (head T) (tail (List T))))))
+   *
+   *     (declare-datatype List
+   *         (par (T) ((nil) (cons (head T) (tail (List T))))))
+   *
    * The type of nil terms need to be provided by the user. In SMT version 2.6,
    * this is done via the syntax for qualified identifiers:
-   *   (as nil (List Int))
+   *
+   *     (as nil (List Int))
+   *
    * This method is equivalent of applying the above, where this
    * DatatypeConstructor is the one corresponding to nil, and retSort is
-   * (List Int).
+   * ``(List Int)``.
    *
    * @note the returned constructor term ``t`` is an operator, while
    *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, t)`` is used to construct the
@@ -3691,11 +3696,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Create (first-order) constant (0-arity function symbol).
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( declare-const <symbol> <sort> )
-   *   ( declare-fun <symbol> ( ) <sort> )
-   * \endverbatim
+   *
+   *     ( declare-const <symbol> <sort> )
+   *     ( declare-fun <symbol> ( ) <sort> )
    *
    * @param sort the sort of the constant
    * @param symbol the name of the constant
@@ -3779,30 +3784,33 @@ class CVC5_EXPORT Solver
 
   /**
    * Assert a formula.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( assert <term> )
-   * \endverbatim
+   *
+   *     ( assert <term> )
+   *
    * @param term the formula to assert
    */
   void assertFormula(const Term& term) const;
 
   /**
    * Check satisfiability.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( check-sat )
-   * \endverbatim
+   *
+   *     ( check-sat )
+   *
    * @return the result of the satisfiability check.
    */
   Result checkSat() const;
 
   /**
    * Check satisfiability assuming the given formula.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( check-sat-assuming ( <prop_literal> ) )
-   * \endverbatim
+   *
+   *     ( check-sat-assuming ( <prop_literal> ) )
+   *
    * @param assumption the formula to assume
    * @return the result of the satisfiability check.
    */
@@ -3810,10 +3818,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Check satisfiability assuming the given formulas.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( check-sat-assuming ( <prop_literal>+ ) )
-   * \endverbatim
+   *
+   *     ( check-sat-assuming ( <prop_literal>+ ) )
+   *
    * @param assumptions the formulas to assume
    * @return the result of the satisfiability check.
    */
@@ -3836,10 +3845,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Create datatype sort.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( declare-datatype <symbol> <datatype_decl> )
-   * \endverbatim
+   *
+   *     ( declare-datatype <symbol> <datatype_decl> )
+   *
    * @param symbol the name of the datatype sort
    * @param ctors the constructor declarations of the datatype sort
    * @return the datatype sort
@@ -3849,10 +3859,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Declare n-ary function symbol.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( declare-fun <symbol> ( <sort>* ) <sort> )
-   * \endverbatim
+   *
+   *     ( declare-fun <symbol> ( <sort>* ) <sort> )
+   *
    * @param symbol the name of the function
    * @param sorts the sorts of the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3864,10 +3875,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Declare uninterpreted sort.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( declare-sort <symbol> <numeral> )
-   * \endverbatim
+   *
+   *     ( declare-sort <symbol> <numeral> )
+   *
    * @param symbol the name of the sort
    * @param arity the arity of the sort
    * @return the sort
@@ -3876,10 +3888,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Define n-ary function.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( define-fun <function_def> )
-   * \endverbatim
+   *
+   *     ( define-fun <function_def> )
+   *
    * @param symbol the name of the function
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3896,10 +3909,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Define recursive function.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( define-fun-rec <function_def> )
-   * \endverbatim
+   *
+   *     ( define-fun-rec <function_def> )
+   *
    * @param symbol the name of the function
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -3916,10 +3930,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Define recursive function.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( define-fun-rec <function_def> )
-   * \endverbatim
+   *
+   *     ( define-fun-rec <function_def> )
+   *
    * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
@@ -3935,10 +3950,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Define recursive functions.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
-   * \endverbatim
+   *
+   *     ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
+   *
    * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
    * @param bound_vars the list of parameters to the functions
@@ -3954,10 +3970,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Echo a given string to the given output stream.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( echo <std::string> )
-   * \endverbatim
+   *
+   *     ( echo <std::string> )
+   *
    * @param out the output stream
    * @param str the string to echo
    */
@@ -3965,27 +3982,33 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the list of asserted formulas.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-assertions )
-   * \endverbatim
+   *
+   *     ( get-assertions )
+   *
    * @return the list of asserted formulas
    */
   std::vector<Term> getAssertions() const;
 
   /**
    * Get info from the solver.
-   * SMT-LIB: \verbatim( get-info <info_flag> )\endverbatim
+   *
+   * SMT-LIB:
+   *
+   *     ( get-info <info_flag> )
+   *
    * @return the info
    */
   std::string getInfo(const std::string& flag) const;
 
   /**
    * Get the value of a given option.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-option <keyword> )
-   * \endverbatim
+   *
+   *     ( get-option <keyword> )
+   *
    * @param option the option for which the value is queried
    * @return a string representation of the option value
    */
@@ -4014,10 +4037,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the set of unsat ("failed") assumptions.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-unsat-assumptions )
-   * \endverbatim
+   *
+   *     ( get-unsat-assumptions )
+   *
    * Requires to enable option 'produce-unsat-assumptions'.
    * @return the set of unsat assumptions.
    */
@@ -4025,10 +4049,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the unsatisfiable core.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-unsat-core )
-   * \endverbatim
+   *
+   *     ( get-unsat-core )
+   *
    * Requires to enable option 'produce-unsat-cores'.
    * @return a set of terms representing the unsatisfiable core
    */
@@ -4039,17 +4064,18 @@ class CVC5_EXPORT Solver
    * intended to be called immediately after any response to a checkSat.
    *
    * @return a map from (a subset of) the input assertions to a real value that
-   * is an estimate of how difficult each assertion was to solve. Unmentioned
-   * assertions can be assumed to have zero difficulty.
+   *         is an estimate of how difficult each assertion was to solve.
+   *         Unmentioned assertions can be assumed to have zero difficulty.
    */
   std::map<Term, Term> getDifficulty() const;
 
   /**
    * Get the refutation proof
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-proof )
-   * \endverbatim
+   *
+   *     ( get-proof )
+   *
    * Requires to enable option 'produce-proofs'.
    * @return a string representing the proof, according to the value of
    * proof-format-mode.
@@ -4058,10 +4084,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the value of the given term in the current model.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-value ( <term> ) )
-   * \endverbatim
+   *
+   *     ( get-value ( <term> ) )
+   *
    * @param term the term for which the value is queried
    * @return the value of the given term
    */
@@ -4069,10 +4096,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the values of the given terms in the current model.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-value ( <term>+ ) )
-   * \endverbatim
+   *
+   *     ( get-value ( <term>+ ) )
+   *
    * @param terms the terms for which the value is queried
    * @return the values of the given terms
    */
@@ -4101,10 +4129,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Get the model
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-model )
-   * \endverbatim
+   *
+   *     ( get-model )
+   *
    * Requires to enable option 'produce-models'.
    * @param sorts The list of uninterpreted sorts that should be printed in the
    * model.
@@ -4117,49 +4146,59 @@ class CVC5_EXPORT Solver
 
   /**
    * Do quantifier elimination.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-qe <q> )
-   * \endverbatim
+   *
+   *     ( get-qe <q> )
+   *
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
-   * @param q a quantified formula of the form:
-   *   Q x1...xn. P( x1...xn, y1...yn )
-   * where P( x1...xn, y1...yn ) is a quantifier-free formula
-   * @return a formula ret such that, given the current set of formulas A
-   * asserted to this solver:
-   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
-   *   - ret is quantifier-free formula containing only free variables in
-   *     y1...yn.
+   * @param q a quantified formula of the form
+   *          @f$Q x_1...x_n. P( x_1...x_n, y_1...y_n )@f$ where
+   *          @f$P( x_1...x_n, y_1...y_n )@f$ is a quantifier-free formula
+   * @return a formula @f$\phi@f$  such that, given the current set of formulas
+   *         @f$A@f$ asserted to this solver:
+   *         - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
+   *         - @f$\phi@f$ is quantifier-free formula containing only free
+   *           variables in @f$y_1...y_n@f$.
    */
   Term getQuantifierElimination(const Term& q) const;
 
   /**
    * Do partial quantifier elimination, which can be used for incrementally
    * computing the result of a quantifier elimination.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-qe-disjunct <q> )
-   * \endverbatim
+   *
+   *     ( get-qe-disjunct <q> )
+   *
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
-   * @param q a quantified formula of the form:
-   *   Q x1...xn. P( x1...xn, y1...yn )
-   * where P( x1...xn, y1...yn ) is a quantifier-free formula
-   * @return a formula ret such that, given the current set of formulas A
-   * asserted to this solver:
-   *   - (A ^ q) => (A ^ ret) if Q is forall or (A ^ ret) => (A ^ q) if Q is
-   *     exists,
-   *   - ret is quantifier-free formula containing only free variables in
-   *     y1...yn,
-   *   - If Q is exists, let A^Q_n be the formula
-   *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
-   *     where for each i=1,...n, formula ret^Q_i is the result of calling
-   *     getQuantifierEliminationDisjunct for q with the set of assertions
-   *     A^Q_{i-1}. Similarly, if Q is forall, then let A^Q_n be
-   *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
-   *     where ret^Q_i is the same as above. In either case, we have
-   *     that ret^Q_j will eventually be true or false, for some finite j.
+   * @param q a quantified formula of the form
+   *          @f$Q x_1...x_n. P( x_1...x_n, y_1...y_n )@f$ where
+   *          @f$P( x_1...x_n, y_1...y_n )@f$ is a quantifier-free formula
+   * @return a formula @f$\phi@f$ such that, given the current set of formulas
+   *         @f$A@f$ asserted to this solver:
+   *         - @f$(A \wedge q \implies A \wedge \phi)@f$ if @f$Q@f$ is
+   *           @f$\forall@f$, and @f$(A \wedge \phi \implies A \wedge q)@f$ if
+   *           @f$Q@f$ is @f$\exists@f$
+   *         - @f$\phi@f$ is quantifier-free formula containing only free
+   *           variables in @f$y_1...y_n@f$
+   *         - If @f$Q@f$ is @f$\exists@f$, let @f$(A \wedge Q_n)@f$ be the
+   *           formula
+   *           @f$(A \wedge \neg (\phi \wedge Q_1) \wedge ... \wedge
+   *           \neg (\phi \wedge Q_n))@f$
+   *           where for each @f$i = 1...n@f$,
+   *           formula @f$(\phi \wedge Q_i)@f$ is the result of calling
+   *           Solver::getQuantifierEliminationDisjunct() for @f$q@f$ with the
+   *           set of assertions @f$(A \wedge Q_{i-1})@f$.
+   *           Similarly, if @f$Q@f$ is @f$\forall@f$, then let
+   *           @f$(A \wedge Q_n)@f$ be
+   *           @f$(A \wedge (\phi \wedge Q_1) \wedge ... \wedge (\phi \wedge
+   *           Q_n))@f$
+   *           where @f$(\phi \wedge Q_i)@f$ is the same as above.
+   *           In either case, we have that @f$(\phi \wedge Q_j)@f$ will
+   *           eventually be true or false, for some finite j.
    */
   Term getQuantifierEliminationDisjunct(const Term& q) const;
 
@@ -4186,10 +4225,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( declare-pool <symbol> <sort> ( <term>* ) )
-   * \endverbatim
+   *
+   *     ( declare-pool <symbol> <sort> ( <term>* ) )
+   *
    * @param symbol The name of the pool
    * @param sort The sort of the elements of the pool.
    * @param initValue The initial value of the pool
@@ -4199,20 +4239,22 @@ class CVC5_EXPORT Solver
                    const std::vector<Term>& initValue) const;
   /**
    * Pop (a) level(s) from the assertion stack.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( pop <numeral> )
-   * \endverbatim
+   *
+   *     ( pop <numeral> )
+   *
    * @param nscopes the number of levels to pop
    */
   void pop(uint32_t nscopes = 1) const;
 
   /**
    * Get an interpolant
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-interpol <conj> )
-   * \endverbatim
+   *
+   *     ( get-interpol <conj> )
+   *
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
@@ -4223,11 +4265,13 @@ class CVC5_EXPORT Solver
 
   /**
    * Get an interpolant
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-interpol <conj> <g> )
-   * \endverbatim
+   *
+   *     ( get-interpol <conj> <g> )
+   *
    * Requires to enable option 'produce-interpols'.
+   *
    * @param conj the conjecture term
    * @param grammar the grammar for the interpolant I
    * @param output a Term I such that A->I and I->B are valid, where A is the
@@ -4238,42 +4282,47 @@ class CVC5_EXPORT Solver
 
   /**
    * Get an abduct.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-abduct <conj> )
-   * \endverbatim
+   *
+   *     ( get-abduct <conj> )
+   *
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
-   *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj
-   * @return true if it gets C successfully, false otherwise
+   * @param output a term @f$C@f$ such that @f$A \wedge C@f$ is satisfiable,
+   *               and @f$A \wedge \neg B \wedge C@f$ is unsatisfiable, where
+   *               @f$A@f$ is the current set of assertions and @f$B@f$ is
+   *               given in the input by ``conj``
+   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
    */
   bool getAbduct(const Term& conj, Term& output) const;
 
   /**
    * Get an abduct.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( get-abduct <conj> <g> )
-   * \endverbatim
+   *
+   *     ( get-abduct <conj> <g> )
+   *
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
-   * @param grammar the grammar for the abduct C
-   * @param output a term C such that A^C is satisfiable, and A^~B^C is
-   *        unsatisfiable, where A is the current set of assertions and B is
-   *        given in the input by conj
-   * @return true if it gets C successfully, false otherwise
+   * @param grammar the grammar for the abduct @f$C@f$
+   * @param output a term C such that @f$A \wedge @f$C@f$ is satisfiable, and
+   *        @f$A \wedge \neg B \wedge C@f$ is unsatisfiable, where @f$A@f$ is
+   *        the current set of assertions and @f$B@f$ is given in the input by
+   *        ``conj``
+   * @return true if it gets abduct @f$C@f$ successfully, false otherwise
    */
   bool getAbduct(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
    * SAT or INVALID query.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( block-model )
-   * \endverbatim
+   *
+   *     ( block-model )
+   *
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
    */
@@ -4282,10 +4331,11 @@ class CVC5_EXPORT Solver
   /**
    * Block the current model values of (at least) the values in terms. Can be
    * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( block-model-values ( <terms>+ ) )
-   * \endverbatim
+   *
+   *     ( block-model-values ( <terms>+ ) )
+   *
    * Requires enabling 'produce-models' option and setting 'block-models' option
    * to a mode other than "none".
    */
@@ -4299,29 +4349,32 @@ class CVC5_EXPORT Solver
 
   /**
    * Push (a) level(s) to the assertion stack.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( push <numeral> )
-   * \endverbatim
+   *
+   *     ( push <numeral> )
+   *
    * @param nscopes the number of levels to push
    */
   void push(uint32_t nscopes = 1) const;
 
   /**
    * Remove all assertions.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( reset-assertions )
-   * \endverbatim
+   *
+   *     ( reset-assertions )
+   *
    */
   void resetAssertions() const;
 
   /**
    * Set info.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( set-info <attribute> )
-   * \endverbatim
+   *
+   *     ( set-info <attribute> )
+   *
    * @param keyword the info flag
    * @param value the value of the info flag
    */
@@ -4329,20 +4382,22 @@ class CVC5_EXPORT Solver
 
   /**
    * Set logic.
+   *
    * SMT-LIB:
-   * \verbatim
-   * ( set-logic <symbol> )
-   * \endverbatim
+   *
+   *     ( set-logic <symbol> )
+   *
    * @param logic the logic to set
    */
   void setLogic(const std::string& logic) const;
 
   /**
    * Set option.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( set-option <option> )
-   * \endverbatim
+   *
+   *     ( set-option <option> )
+   *
    * @param option the option name
    * @param value the option value
    */
@@ -4361,10 +4416,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Append \p symbol to the current list of universal variables.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( declare-var <symbol> <sort> )
-   * \endverbatim
+   *
+   *     ( declare-var <symbol> <sort> )
+   *
    * @param sort the sort of the universal variable
    * @param symbol the name of the universal variable
    * @return the universal variable
@@ -4385,10 +4441,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize n-ary function.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> )
-   * \endverbatim
+   *
+   *     ( synth-fun <symbol> ( <boundVars>* ) <sort> )
+   *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -4400,10 +4457,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
-   * \endverbatim
+   *
+   *     ( synth-fun <symbol> ( <boundVars>* ) <sort> <g> )
+   *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
@@ -4417,10 +4475,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize invariant.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( synth-inv <symbol> ( <boundVars>* ) )
-   * \endverbatim
+   *
+   *     ( synth-inv <symbol> ( <boundVars>* ) )
+   *
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
    * @return the invariant
@@ -4430,10 +4489,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize invariant following specified syntactic constraints.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( synth-inv <symbol> ( <boundVars>* ) <g> )
-   * \endverbatim
+   *
+   *     ( synth-inv <symbol> ( <boundVars>* ) <g> )
+   *
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
    * @param grammar the syntactic constraints
@@ -4445,20 +4505,22 @@ class CVC5_EXPORT Solver
 
   /**
    * Add a forumla to the set of Sygus constraints.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( constraint <term> )
-   * \endverbatim
+   *
+   *     ( constraint <term> )
+   *
    * @param term the formula to add as a constraint
    */
   void addSygusConstraint(const Term& term) const;
 
   /**
    * Add a forumla to the set of Sygus assumptions.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( assume <term> )
-   * \endverbatim
+   *
+   *     ( assume <term> )
+   *
    * @param term the formula to add as an assumption
    */
   void addSygusAssume(const Term& term) const;
@@ -4466,10 +4528,11 @@ class CVC5_EXPORT Solver
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
    * invariant synthesis problem.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( inv-constraint <inv> <pre> <trans> <post> )
-   * \endverbatim
+   *
+   *     ( inv-constraint <inv> <pre> <trans> <post> )
+   *
    * @param inv the function-to-synthesize
    * @param pre the pre-condition
    * @param trans the transition relation
@@ -4481,10 +4544,11 @@ class CVC5_EXPORT Solver
    * Try to find a solution for the synthesis conjecture corresponding to the
    * current list of functions-to-synthesize, universal variables and
    * constraints.
+   *
    * SyGuS v2:
-   * \verbatim
-   *   ( check-synth )
-   * \endverbatim
+   *
+   *     ( check-synth )
+   *
    * @return the result of the synthesis conjecture.
    */
   Result checkSynth() const;
@@ -4605,10 +4669,11 @@ class CVC5_EXPORT Solver
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
+   *
    * SMT-LIB:
-   * \verbatim
-   *   ( synth-fun <symbol> ( <boundVars>* ) <sort> <g>? )
-   * \endverbatim
+   *
+   *     ( synth-fun <symbol> ( <boundVars>* ) <sort> <g>? )
+   *
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
