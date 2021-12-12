@@ -88,7 +88,18 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   switch (atom.getKind())
   {
     case kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
-    case kind::BAG_CARD: return expandCardOperator(atom, lems);
+    case kind::BAG_CARD:
+    {
+      std::vector<Node> asserts;
+      Node ret = d_bagReduction.reduceCardOperator(atom, asserts);
+      NodeManager* nm = NodeManager::currentNM();
+      Node andNode = nm->mkNode(AND, asserts);
+      Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
+                         << " such that:" << std::endl
+                         << andNode << std::endl;
+      d_im.lemma(andNode, InferenceId::BAGS_CARD);
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
     case kind::BAG_FOLD:
     {
       std::vector<Node> asserts;
@@ -98,7 +109,7 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       d_im.lemma(andNode, InferenceId::BAGS_FOLD);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret
                          << " such that:" << std::endl
-                         << asserts << std::endl;
+                         << andNode << std::endl;
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
     default: return TrustNode::null();
@@ -143,27 +154,6 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Trace("TheoryBags::ppRewrite")
       << "ppRewrite(" << node << ") = " << ret << std::endl;
   return TrustNode::mkTrustRewrite(node, ret, nullptr);
-}
-
-TrustNode TheoryBags::expandCardOperator(TNode n, std::vector<SkolemLemma>&)
-{
-  Assert(n.getKind() == BAG_CARD);
-  if (d_env.getLogicInfo().isHigherOrder())
-  {
-    // (bag.card A) = (bag.count 1 (bag.map (lambda ((x E)) 1) A)),
-    // where E is the type of elements of A
-    NodeManager* nm = NodeManager::currentNM();
-    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
-    TypeNode type = n[0].getType().getBagElementType();
-    Node x = nm->mkBoundVar("x", type);
-    Node lambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, x), one);
-    Node map = nm->mkNode(kind::BAG_MAP, lambda, n[0]);
-    Node countOne = nm->mkNode(kind::BAG_COUNT, one, map);
-    Trace("TheoryBags::ppRewrite")
-        << "ppRewrite(" << n << ") = " << countOne << std::endl;
-    return TrustNode::mkTrustRewrite(n, countOne, nullptr);
-  }
-  return TrustNode::null();
 }
 
 void TheoryBags::postCheck(Effort effort)
