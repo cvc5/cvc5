@@ -343,12 +343,6 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
   // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
-  // Q where Q was solved by a subcall to the single invocation module
-  QUANTIFIERS_SYGUS_SI_SOLVED,
-  // Q where Q was (trusted) solved by sampling
-  QUANTIFIERS_SYGUS_SAMPLE_TRUST_SOLVED,
-  // Q where Q was solved by a verification subcall
-  QUANTIFIERS_SYGUS_VERIFY_SOLVED,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
   // unif+pi symmetry breaking between multiple enumerators
@@ -694,6 +688,12 @@ enum class InferenceId
   STRINGS_ARRAY_NTH_UNIT,
   // nth over conatenation
   STRINGS_ARRAY_NTH_CONCAT,
+  // nth over extract
+  STRINGS_ARRAY_NTH_EXTRACT,
+  // nth over update
+  STRINGS_ARRAY_NTH_UPDATE,
+  // nth over reverse
+  STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false

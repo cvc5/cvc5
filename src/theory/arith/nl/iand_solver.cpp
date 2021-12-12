@@ -100,7 +100,7 @@ void IAndSolver::checkInitialRefine()
       // conj.push_back(i.eqNode(nm->mkNode(IAND, op, i[1], i[0])));
       // 0 <= iand(x,y) < 2^k
       conj.push_back(nm->mkNode(LEQ, d_zero, i));
-      conj.push_back(nm->mkNode(LT, i, d_iandUtils.twoToK(k)));
+      conj.push_back(nm->mkNode(LT, i, rewrite(d_iandUtils.twoToK(k))));
       // iand(x,y)<=x
       conj.push_back(nm->mkNode(LEQ, i, i[0]));
       // iand(x,y)<=y
@@ -296,7 +296,7 @@ Node IAndSolver::bitwiseLemma(Node i)
       bitIAnd = d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j);
       // enforce bitwise equality
       lem = nm->mkNode(
-          AND, lem, d_iandUtils.iextract(high_bit, j, i).eqNode(bitIAnd));
+          AND, lem, rewrite(d_iandUtils.iextract(high_bit, j, i)).eqNode(bitIAnd));
     }
   }
   return lem;
