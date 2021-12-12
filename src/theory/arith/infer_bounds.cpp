@@ -163,9 +163,7 @@ Node InferBoundsResult::getLiteral() const{
     Assert(getValue().infinitesimalSgn() >= 0);
     k = boundIsRational() ? kind::GEQ : kind::GT;
   }
-  Node atom = nm->mkNode(k, getTerm(), qnode);
-  Node lit = Rewriter::rewrite(atom);
-  return lit;
+  return nm->mkNode(k, getTerm(), qnode);
 }
 
 /* If there is a bound, this is a node that explains the bound. */
