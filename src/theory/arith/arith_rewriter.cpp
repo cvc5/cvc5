@@ -214,7 +214,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       return RewriteResponse(REWRITE_DONE, t);
     case kind::TO_REAL:
     case kind::CAST_TO_REAL: return RewriteResponse(REWRITE_DONE, t[0]);
-    case kind::TO_INTEGER:return rewriteExtIntegerOp(t);
+    case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
     case kind::POW:
       {
         if(t[1].getKind() == kind::CONST_RATIONAL){

@@ -23,6 +23,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "expr/subs.h"
+#include "smt/env_obj.h"
 
 namespace cvc5 {
 
@@ -48,12 +49,12 @@ class NonlinearExtension;
  * model in the case it can determine that a model exists. These include
  * techniques based on solving (quadratic) equations and bound analysis.
  */
-class NlModel
+class NlModel : protected EnvObj
 {
   friend class NonlinearExtension;
 
  public:
-  NlModel();
+  NlModel(Env& env);
   ~NlModel();
   /**
    * This method is called once at the beginning of a last call effort check,

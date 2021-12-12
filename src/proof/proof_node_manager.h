@@ -27,6 +27,7 @@ namespace cvc5 {
 
 class ProofChecker;
 class ProofNode;
+class Options;
 
 namespace theory {
 class Rewriter;
@@ -58,7 +59,9 @@ class Rewriter;
 class ProofNodeManager
 {
  public:
-  ProofNodeManager(theory::Rewriter* rr, ProofChecker* pc = nullptr);
+  ProofNodeManager(const Options& opts,
+                   theory::Rewriter* rr,
+                   ProofChecker* pc = nullptr);
   ~ProofNodeManager() {}
   /**
    * This constructs a ProofNode with the given arguments. The expected
@@ -188,6 +191,8 @@ class ProofNodeManager
   static ProofNode* cancelDoubleSymm(ProofNode* pn);
 
  private:
+  /** Reference to the options */
+  const Options& d_opts;
   /** The rewriter */
   theory::Rewriter* d_rewriter;
   /** The (optional) proof checker */

@@ -1017,6 +1017,8 @@ libcvc5_add_sources(
   theory/sort_inference.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
+  theory/strings/array_core_solver.cpp
+  theory/strings/array_core_solver.h
   theory/strings/arith_entail.cpp
   theory/strings/arith_entail.h
   theory/strings/base_solver.cpp

@@ -1551,9 +1551,6 @@ TrustNode Constraint::externalExplainForPropagation(TNode lit) const
   Node n = safeConstructNary(nb);
   if (d_database->isProofEnabled())
   {
-    // Check that the literal we're explaining via this constraint actually
-    // matches the constraint's canonical literal.
-    Assert(Rewriter::rewrite(lit) == getLiteral());
     std::vector<Node> assumptions;
     if (n.getKind() == Kind::AND)
     {
