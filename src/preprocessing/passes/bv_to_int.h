@@ -1,17 +1,18 @@
-/*********************                                                        */
-/*! \file bv_to_int.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar
- ** This file is part of the cvc5 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The BVToInt preprocessing pass
- **/
 
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The bv-to-int preprocessing pass.
+ */
 
 #ifndef __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H
 #define __CVC5__PREPROCESSING__PASSES__BV_TO_INT_H

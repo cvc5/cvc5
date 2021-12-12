@@ -60,7 +60,7 @@ PreprocessingPassResult BVToInt::applyInternal(
     Node bvNode = (*assertionsToPreprocess)[i];
     Node intNode =
         d_intBlaster.intBlast(bvNode, additionalConstraints, skolems);
-    Node rwNode = Rewriter::rewrite(intNode);
+    Node rwNode = rewrite(intNode);
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
     Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
