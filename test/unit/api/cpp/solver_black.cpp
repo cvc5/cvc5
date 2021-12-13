@@ -2807,8 +2807,7 @@ TEST_F(TestApiBlackSolver, proj_issue382)
       APPLY_SELECTOR,
       t82.getSort().getDatatype().getSelector("_x19").getSelectorTerm(),
       t82);
-  // type checking exception for t325 due to non-exhaustive dt cases
-  ASSERT_THROW(d_solver.simplify(t325), CVC5ApiRecoverableException);
+  ASSERT_NO_THROW(d_solver.simplify(t325));
 }
 
 }  // namespace test
