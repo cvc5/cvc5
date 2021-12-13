@@ -302,6 +302,12 @@ void TheoryBags::preRegisterTerm(TNode n)
   Trace("bags") << "TheoryBags::preRegisterTerm(" << n << ")" << std::endl;
   switch (n.getKind())
   {
+    case kind::EQUAL:
+    {
+      // add trigger predicate for equality and membership
+      d_equalityEngine->addTriggerPredicate(n);
+    }
+    break;
     case BAG_FROM_SET:
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
