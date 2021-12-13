@@ -262,8 +262,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       if (children.size() != 1
           || (children[0].getKind() != Kind::GT
               && children[0].getKind() != Kind::GEQ)
-          || !children[0][0].getType().isInteger()
-          || !children[0][1].isConst())
+          || !children[0][0].getType().isInteger() || !children[0][1].isConst())
       {
         Debug("arith::pf::check") << "Illformed input: " << children;
         return Node::null();
@@ -287,8 +286,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       if (children.size() != 1
           || (children[0].getKind() != Kind::LT
               && children[0].getKind() != Kind::LEQ)
-          || !children[0][0].getType().isInteger()
-          || !children[0][1].isConst())
+          || !children[0][0].getType().isInteger() || !children[0][1].isConst())
       {
         Debug("arith::pf::check") << "Illformed input: " << children;
         return Node::null();
