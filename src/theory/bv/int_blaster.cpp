@@ -59,8 +59,8 @@ IntBlaster::IntBlaster(Env& env,
       d_context(userContext())
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst(CONST_RATIONAL, Rational(0));
-  d_one = d_nm->mkConst(CONST_RATIONAL, Rational(1));
+  d_zero = d_nm->mkConstInt(0);
+  d_one = d_nm->mkConstInt(1);
 };
 
 IntBlaster::~IntBlaster() {}
@@ -106,18 +106,18 @@ Node IntBlaster::maxInt(uint64_t k)
 {
   Assert(k > 0);
   Rational max_value = intpow2(k) - 1;
-  return d_nm->mkConst(CONST_RATIONAL, max_value);
+  return d_nm->mkConstInt(max_value);
 }
 
 Node IntBlaster::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst(CONST_RATIONAL, intpow2(k));
+  return d_nm->mkConstInt(intpow2(k));
 }
 
 Node IntBlaster::modpow2(Node n, uint64_t exponent)
 {
-  Node p2 = d_nm->mkConst(CONST_RATIONAL, intpow2(exponent));
+  Node p2 = d_nm->mkConstInt(intpow2(exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -720,7 +720,7 @@ Node IntBlaster::translateNoChildren(Node original,
       BitVector constant(original.getConst<BitVector>());
       Integer c = constant.toInteger();
       Rational r = Rational(c, Integer(1));
-      translation = d_nm->mkConst(CONST_RATIONAL, r);
+      translation = d_nm->mkConstInt(r);
     }
     else
     {

@@ -470,8 +470,8 @@ std::ostream& operator<<(std::ostream& out, InferenceId i)
 
 Node mkInferenceIdNode(InferenceId i)
 {
-  return NodeManager::currentNM()->mkConst(CONST_RATIONAL,
-                                           Rational(static_cast<uint32_t>(i)));
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(i)));
 }
 
 bool getInferenceId(TNode n, InferenceId& i)
