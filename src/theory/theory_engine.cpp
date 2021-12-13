@@ -155,7 +155,7 @@ void TheoryEngine::finishInit()
   // create the relevance filter if any option requires it
   if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
-    d_relManager.reset(new RelevanceManager(userContext(), Valuation(this)));
+    d_relManager.reset(new RelevanceManager(d_env, Valuation(this)));
   }
 
   // initialize the quantifiers engine
@@ -384,15 +384,15 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     Debug("theory") << "TheoryEngine::check(" << effort << "): d_factsAsserted = " << (d_factsAsserted ? "true" : "false") << endl;
 
-    // Reset round for the relevance manager, which notice only sets a flag
-    // to indicate that its information must be recomputed.
-    if (d_relManager != nullptr)
-    {
-      d_relManager->beginRound();
-    }
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
+      // Reset round for the relevance manager, which notice only sets a flag
+      // to indicate that its information must be recomputed.
+      if (d_relManager != nullptr)
+      {
+        d_relManager->beginRound();
+      }
       d_tc->resetRound();
     }
 
@@ -488,6 +488,10 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     if (Theory::fullEffort(effort))
     {
+      if (d_relManager != nullptr)
+      {
+        d_relManager->endRound();
+      }
       if (!d_inConflict && !needCheck())
       {
         // Do post-processing of model from the theories (e.g. used for
@@ -775,7 +779,7 @@ void TheoryEngine::notifyPreprocessedAssertions(
   }
   if (d_relManager != nullptr)
   {
-    d_relManager->notifyPreprocessedAssertions(assertions);
+    d_relManager->notifyPreprocessedAssertions(assertions, true);
   }
 }
 
@@ -1075,14 +1079,14 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-const std::unordered_set<TNode>& TheoryEngine::getRelevantAssertions(
-    bool& success)
+std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
 {
   // if we are not in SAT mode, or there is no relevance manager, we fail
   if (!d_inSatMode || d_relManager == nullptr)
   {
     success = false;
-    return d_emptyRelevantSet;
+    // return empty set
+    return std::unordered_set<TNode>();
   }
   return d_relManager->getRelevantAssertions(success);
 }
@@ -1091,6 +1095,11 @@ void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 {
   Assert(d_relManager != nullptr);
   d_relManager->getDifficultyMap(dmap);
+}
+
+theory::IncompleteId TheoryEngine::getIncompleteId() const
+{
+  return d_incompleteId.get();
 }
 
 Node TheoryEngine::getModelValue(TNode var) {
@@ -1318,8 +1327,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
     if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
     {
-      d_relManager->notifyPreprocessedAssertion(retLemma);
-      d_relManager->notifyPreprocessedAssertions(skAsserts);
+      d_relManager->notifyPreprocessedAssertion(retLemma, false);
+      d_relManager->notifyPreprocessedAssertions(skAsserts, false);
     }
     d_relManager->notifyLemma(retLemma);
   }

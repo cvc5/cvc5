@@ -9,6 +9,7 @@ The simplest way to get a sense of the syntax is to look at an example:
 
 .. api-examples::
     <examples>/api/cpp/sets.cpp
+    <examples>/api/java/Sets.java
     <examples>/api/python/sets.py
     <examples>/api/smtlib/sets.smt2
 

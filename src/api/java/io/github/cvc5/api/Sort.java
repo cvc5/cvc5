@@ -372,7 +372,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * or return value for any term that is function-like.
    * This is mainly to avoid higher order.
    *
-   * Note that arrays are explicitly not considered function-like here.
+   * @apiNote Arrays are explicitly not considered function-like here.
    *
    * @return true if this is a function-like sort
    */
@@ -752,6 +752,12 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   /* Datatype sort ------------------------------------------------------- */
 
   /**
+   * Return the parameters of a parametric datatype sort. If this sort is a
+   * non-instantiated parametric datatype, this returns the parameter sorts of
+   * the underlying datatype. If this sort is an instantiated parametric
+   * datatype, then this returns the sort parameters that were used to
+   * construct the sort via Sort.instantiate().
+   *
    * @return the parameter sorts of a datatype sort
    */
   public Sort[] getDatatypeParamSorts()

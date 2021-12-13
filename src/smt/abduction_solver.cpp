@@ -50,6 +50,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
   Node conjn = d_env.getTopLevelSubstitutions().apply(goal);
+  conjn = rewrite(conjn);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;
@@ -93,11 +94,12 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
   Result r = d_subsolver->checkSat();
   Trace("sygus-abduct") << "  SolverEngine::getAbduct result: " << r
                         << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  // get the synthesis solution
+  std::map<Node, Node> sols;
+  // use the "getSubsolverSynthSolutions" interface, since we asserted the
+  // internal form of the SyGuS conjecture and used check-sat.
+  if (d_subsolver->getSubsolverSynthSolutions(sols))
   {
-    // get the synthesis solution
-    std::map<Node, Node> sols;
-    d_subsolver->getSynthSolutions(sols);
     Assert(sols.size() == 1);
     std::map<Node, Node>::iterator its = sols.find(d_sssf);
     if (its != sols.end())

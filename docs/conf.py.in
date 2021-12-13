@@ -46,6 +46,7 @@ extensions = [
         'sphinxcontrib.bibtex',
         'sphinxcontrib.programoutput',
         'sphinx_tabs.tabs',
+        'autoenum',
         'examples',
         'include_build_file',
 ]

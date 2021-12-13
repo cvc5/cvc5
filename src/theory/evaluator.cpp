@@ -458,6 +458,29 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
+        case kind::DIVISION:
+        case kind::DIVISION_TOTAL:
+        {
+          Rational res = results[currNode[0]].d_rat;
+          bool divbyzero = false;
+          for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
+          {
+            if (results[currNode[i]].d_rat.isZero())
+            {
+              Trace("evaluator")
+                  << "Division by zero not supported" << std::endl;
+              divbyzero = true;
+              results[currNode] = EvalResult();
+              break;
+            }
+            res = res / results[currNode[i]].d_rat;
+          }
+          if (!divbyzero)
+          {
+            results[currNode] = EvalResult(res);
+          }
+          break;
+        }
 
         case kind::GEQ:
         {

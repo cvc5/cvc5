@@ -137,8 +137,8 @@ void Skolemize::getSelfSel(const DType& dt,
   TypeNode tspec;
   if (dt.isParametric())
   {
-    tspec = dc.getSpecializedConstructorType(n.getType());
-    Trace("sk-ind-debug") << "Specialized constructor type : " << tspec
+    tspec = dc.getInstantiatedConstructorType(n.getType());
+    Trace("sk-ind-debug") << "Instantiated constructor type : " << tspec
                           << std::endl;
     Assert(tspec.getNumChildren() == dc.getNumArgs());
   }
@@ -309,7 +309,6 @@ Node Skolemize::mkSkolemizedBody(Node f,
     {
       Node bvl = nm->mkNode(BOUND_VAR_LIST, rem_ind_vars);
       nret = nm->mkNode(FORALL, bvl, nret);
-      nret = Rewriter::rewrite(nret);
       sub = nret;
       sub_vars.insert(
           sub_vars.end(), ind_var_indicies.begin() + 1, ind_var_indicies.end());

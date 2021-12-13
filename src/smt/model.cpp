@@ -30,7 +30,8 @@ Model::Model(bool isKnownSat, const std::string& inputName)
 std::ostream& operator<<(std::ostream& out, const Model& m) {
   options::ioutils::Scope scope(out);
   options::ioutils::applyDagThresh(out, 0);
-  Printer::getPrinter(options::outputLanguage())->toStream(out, m);
+  auto language = options::ioutils::getOutputLang(out);
+  Printer::getPrinter(language)->toStream(out, m);
   return out;
 }
 

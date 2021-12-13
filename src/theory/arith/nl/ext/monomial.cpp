@@ -326,7 +326,6 @@ Node MonomialDb::mkMonomialRemFactor(Node n,
     children.insert(children.end(), inc, v);
   }
   Node ret = safeConstructNary(MULT, children);
-  ret = Rewriter::rewrite(ret);
   Trace("nl-ext-mono-factor") << "...return : " << ret << std::endl;
   return ret;
 }

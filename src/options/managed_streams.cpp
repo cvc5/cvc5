@@ -72,12 +72,11 @@ std::string cvc5_errno_failreason()
 
 namespace detail {
 
-std::ostream* openOStream(const std::string& filename)
+std::unique_ptr<std::ostream> openOStream(const std::string& filename)
 {
   errno = 0;
-  std::ostream* res;
-  res = new std::ofstream(filename);
-  if (res == nullptr || !*res)
+  std::unique_ptr<std::ostream> res = std::make_unique<std::ofstream>(filename);
+  if (!res || !*res)
   {
     std::stringstream ss;
     ss << "Cannot open file: `" << filename << "': " << cvc5_errno_failreason();
@@ -85,12 +84,11 @@ std::ostream* openOStream(const std::string& filename)
   }
   return res;
 }
-std::istream* openIStream(const std::string& filename)
+std::unique_ptr<std::istream> openIStream(const std::string& filename)
 {
   errno = 0;
-  std::istream* res;
-  res = new std::ifstream(filename);
-  if (res == nullptr || !*res)
+  std::unique_ptr<std::istream> res = std::make_unique<std::ifstream>(filename);
+  if (!res || !*res)
   {
     std::stringstream ss;
     ss << "Cannot open file: `" << filename << "': " << cvc5_errno_failreason();

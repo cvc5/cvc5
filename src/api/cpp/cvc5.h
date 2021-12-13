@@ -275,8 +275,9 @@ class CVC5_EXPORT Result
 
   /**
    * The interal result wrapped by this result.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::Result is
-   *       not ref counted.
+   *
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::Result`` is not ref counted.
    */
   std::shared_ptr<cvc5::Result> d_result;
 };
@@ -544,7 +545,7 @@ class CVC5_EXPORT Sort
    * or return value for any term that is function-like.
    * This is mainly to avoid higher order.
    *
-   * Note that arrays are explicitly not considered function-like here.
+   * @note Arrays are explicitly not considered function-like here.
    *
    * @return true if this is a function-like sort
    */
@@ -639,6 +640,9 @@ class CVC5_EXPORT Sort
 
   /**
    * @return the codomain sort of a tester sort, which is the Boolean sort
+   *
+   * @note We mainly need this for the symbol table, which doesn't have
+   *       access to the solver object.
    */
   Sort getTesterCodomainSort() const;
 
@@ -743,7 +747,14 @@ class CVC5_EXPORT Sort
   /* Datatype sort ------------------------------------------------------- */
 
   /**
-   * @return the parameter sorts of a datatype sort
+   *
+   * Return the parameters of a parametric datatype sort. If this sort is a
+   * non-instantiated parametric datatype, this returns the parameter sorts of
+   * the underlying datatype. If this sort is an instantiated parametric
+   * datatype, then this returns the sort parameters that were used to
+   * construct the sort via Sort::instantiate().
+   *
+   * @return the parameter sorts of a parametric datatype sort.
    */
   std::vector<Sort> getDatatypeParamSorts() const;
 
@@ -798,9 +809,10 @@ class CVC5_EXPORT Sort
 
   /**
    * The internal type wrapped by this sort.
-   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (cvc5::Type is already ref counted, so this
-   *       could be a unique_ptr instead).
+   *
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
+   *       avoid overhead due to memory allocation (``cvc5::Type`` is already
+   *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
   std::shared_ptr<cvc5::TypeNode> d_type;
 };
@@ -947,9 +959,11 @@ class CVC5_EXPORT Op
   bool isNullHelper() const;
 
   /**
-   * Note: An indexed operator has a non-null internal node, d_node
-   * Note 2: We use a helper method to avoid having API functions call
-   *         other API functions (we need to call this internally)
+   * @note An indexed operator has a non-null internal node (``d_node``).
+   *
+   * @note We use a helper method to avoid having API functions call other API
+   *       functions (we need to call this internally).
+   *
    * @return true iff this Op is indexed
    */
   bool isIndexedHelper() const;
@@ -977,9 +991,10 @@ class CVC5_EXPORT Op
 
   /**
    * The internal node wrapped by this operator.
-   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (cvc5::Node is already ref counted, so this
-   *       could be a unique_ptr instead).
+   *
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
+   *       avoid overhead due to memory allocation (``cvc5::Node`` is already
+   *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
   std::shared_ptr<cvc5::Node> d_node;
 };
@@ -1123,8 +1138,9 @@ class CVC5_EXPORT Term
   bool hasOp() const;
 
   /**
+   * @note This is safe to call when hasOp() returns true.
+   *
    * @return the Op used to create this term
-   * Note: This is safe to call when hasOp() returns true.
    */
   Op getOp() const;
 
@@ -1200,9 +1216,9 @@ class CVC5_EXPORT Term
 
   /**
    * Iterator for the children of a Term.
-   * Note: This treats uninterpreted functions as Term just like any other term
-   *       for example, the term f(x, y) will have Kind APPLY_UF and three
-   *       children: f, x, and y
+   * @note This treats uninterpreted functions as Term just like any other term
+   *       for example, the term ``f(x, y)`` will have Kind ``APPLY_UF`` and
+   *       three children: ``f``, ``x``, and ``y``
    */
   class CVC5_EXPORT const_iterator
   {
@@ -1236,7 +1252,7 @@ class CVC5_EXPORT Term
     /**
      * Constructor
      * @param slv the associated solver object
-     * @param e a shared pointer to the node that we're iterating over
+     * @param e a ``std::shared pointer`` to the node that we're iterating over
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
@@ -1359,9 +1375,9 @@ class CVC5_EXPORT Term
    */
   bool isStringValue() const;
   /**
-   * Note: This method is not to be confused with toString() which returns
-   * the term in some string representation, whatever data it may hold. Asserts
-   * isStringValue().
+   * Asserts isStringValue().
+   * @note This method is not to be confused with toString(), which returns
+   *       some string representation of the term, whatever data it may hold.
    * @return the string term as a native string value.
    */
   std::wstring getStringValue() const;
@@ -1389,9 +1405,8 @@ class CVC5_EXPORT Term
    */
   std::pair<int64_t, uint64_t> getReal64Value() const;
   /**
+   * @note A term of kind PI is not considered to be a real value.
    * @return true if the term is a rational value.
-   *
-   * Note that a term of kind PI is not considered to be a real value.
    */
   bool isRealValue() const;
   /**
@@ -1496,8 +1511,8 @@ class CVC5_EXPORT Term
    * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
    * also @ref Term::operator>(const Term&) const).
    *
-   * Note that a universe set term (kind SET_UNIVERSE) is not considered to be
-   * a set value.
+   * @note A universe set term (kind SET_UNIVERSE) is not considered to be
+   *       a set value.
    */
   bool isSetValue() const;
   /**
@@ -1512,9 +1527,9 @@ class CVC5_EXPORT Term
   bool isSequenceValue() const;
   /**
    * Asserts isSequenceValue().
-   * Note that it is usually necessary for sequences to call
-   * `Solver::simplify()` to turn a sequence that is constructed by, e.g.,
-   * concatenation of unit sequences, into a sequence value.
+   * @note It is usually necessary for sequences to call `Solver::simplify()`
+   *       to turn a sequence that is constructed by, e.g., concatenation of
+   *       unit sequences, into a sequence value.
    * @return the representation of a sequence value as a vector of terms.
    */
   std::vector<Term> getSequenceValue() const;
@@ -1582,9 +1597,9 @@ class CVC5_EXPORT Term
   bool isCastedReal() const;
   /**
    * The internal node wrapped by this term.
-   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
-   *       to memory allocation (cvc5::Node is already ref counted, so this
-   *       could be a unique_ptr instead).
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
+   *       avoid overhead due to memory allocation (``cvc5::Node`` is already
+   *       ref counted, so this could be a ``std::unique_ptr`` instead).
    */
   std::shared_ptr<cvc5::Node> d_node;
 };
@@ -1739,8 +1754,8 @@ class CVC5_EXPORT DatatypeConstructorDecl
   /**
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
-   * Note: This is a shared_ptr rather than a unique_ptr since
-   *       cvc5::DTypeConstructor is not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DTypeConstructor`` is not ref counted.
    */
   std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
@@ -1845,8 +1860,8 @@ class CVC5_EXPORT DatatypeDecl
   /**
    * The internal (intermediate) datatype wrapped by this datatype
    * declaration.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
-   *       not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DType`` is not ref counted.
    */
   std::shared_ptr<cvc5::DType> d_dtype;
 };
@@ -1921,8 +1936,8 @@ class CVC5_EXPORT DatatypeSelector
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
-   *       not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DType`` is not ref counted.
    */
   std::shared_ptr<cvc5::DTypeSelector> d_stor;
 };
@@ -1971,9 +1986,9 @@ class CVC5_EXPORT DatatypeConstructor
    * DatatypeConstructor is the one corresponding to nil, and retSort is
    * (List Int).
    *
-   * Furthermore note that the returned constructor term t is an operator,
-   * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
-   * (nullary) application of nil.
+   * @note the returned constructor term ``t`` is an operator, while
+   *       ``Solver::mkTerm(APPLY_CONSTRUCTOR, t)`` is used to construct the
+   *       above (nullary) application of nil.
    *
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
@@ -2166,8 +2181,8 @@ class CVC5_EXPORT DatatypeConstructor
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
-   *       not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DType`` is not ref counted.
    */
   std::shared_ptr<cvc5::DTypeConstructor> d_ctor;
 };
@@ -2423,8 +2438,8 @@ class CVC5_EXPORT Datatype
 
   /**
    * The internal datatype wrapped by this datatype.
-   * Note: This is a shared_ptr rather than a unique_ptr since cvc5::DType is
-   *       not ref counted.
+   * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr``
+   *       since ``cvc5::DType`` is not ref counted.
    */
   std::shared_ptr<cvc5::DType> d_dtype;
 };
@@ -3330,12 +3345,13 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
 
   /**
-   * Create an operator for a builtin Kind
+   * Create an operator for a builtin Kind.
+   *
    * The Kind may not be the Kind for an indexed operator
-   *   (e.g. BITVECTOR_EXTRACT)
-   * Note: in this case, the Op simply wraps the Kind.
-   * The Kind can be used in mkTerm directly without
-   *   creating an op first.
+   * (e.g. BITVECTOR_EXTRACT).
+   *
+   * @note In this case, the ``Op`` simply wraps the ``Kind``.  The Kind can be
+   *       used in ``Solver::mkTerm`` directly without creating an ``Op`` first.
    * @param kind the kind to wrap
    */
   Op mkOp(Kind kind) const;
@@ -3541,7 +3557,7 @@ class CVC5_EXPORT Solver
   /**
    * Create a bit-vector constant of given size and value.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @note The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
@@ -3553,7 +3569,7 @@ class CVC5_EXPORT Solver
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
    *
-   * Note: The given value must fit into a bit-vector of the given size.
+   * @note The given value must fit into a bit-vector of the given size.
    *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
@@ -4318,9 +4334,10 @@ class CVC5_EXPORT Solver
   void setOption(const std::string& option, const std::string& value) const;
 
   /**
-   * If needed, convert this term to a given sort. Note that the sort of the
-   * term must be convertible into the target sort. Currently only Int to Real
-   * conversions are supported.
+   * If needed, convert this term to a given sort.
+   *
+   * @note The sort of the term must be convertible into the target sort.
+   *       Currently only Int to Real conversions are supported.
    * @param t the term
    * @param s the target sort
    * @return the term wrapped into a sort conversion if needed

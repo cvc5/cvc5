@@ -28,7 +28,8 @@ namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-VtsTermCache::VtsTermCache(QuantifiersInferenceManager& qim) : d_qim(qim)
+VtsTermCache::VtsTermCache(Env& env, QuantifiersInferenceManager& qim)
+    : EnvObj(env), d_qim(qim)
 {
   d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
 }
@@ -155,7 +156,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
                            subs_lhs.end(),
                            subs_rhs.begin(),
                            subs_rhs.end());
-          n = Rewriter::rewrite(n);
+          n = rewrite(n);
           // may have cancelled
           if (!expr::hasSubterm(n, rew_vts_inf))
           {
