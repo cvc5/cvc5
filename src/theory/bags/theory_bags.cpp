@@ -134,7 +134,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
   Node emptyBag = nm->mkConst(EmptyBag(bagType));
   Node isEmpty = A.eqNode(emptyBag);
   Node count = nm->mkNode(BAG_COUNT, x, A);
-  Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+  Node one = nm->mkConstInt(Rational(1));
   Node geqOne = nm->mkNode(GEQ, count, one);
   Node geqOneAndEqual = geqOne.andNode(equal);
   Node ite = nm->mkNode(ITE, isEmpty, equal, geqOneAndEqual);

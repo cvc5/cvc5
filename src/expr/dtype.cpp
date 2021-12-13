@@ -867,7 +867,7 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
   ss << "sel_" << index;
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode stype = nm->mkSelectorType(dtt, t);
-  Node nindex = nm->mkConst(CONST_RATIONAL, Rational(index));
+  Node nindex = nm->mkConstInt(Rational(index));
   s = sm->mkSkolemFunction(SkolemFunId::SHARED_SELECTOR, stype, nindex);
   d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t

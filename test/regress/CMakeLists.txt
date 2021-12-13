@@ -257,6 +257,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_elim_err.smt2
+  regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvcomp.cvc.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -434,6 +435,7 @@ set(regress_0_tests
   regress0/bv/mult-pow2-negative.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
+  regress0/bv/proj-issue343.smt2
   regress0/bv/reset-assertions-assert-input.smt2
   regress0/bv/sizecheck.cvc.smt2
   regress0/bv/smtcompbug.smtv1.smt2
@@ -2627,6 +2629,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
+  regress2/bv_to_int_quantifiers_bvand.smt2
   regress2/error1.smtv1.smt2
   regress2/fp/issue7056.smt2
   regress2/fuzz_2.smtv1.smt2

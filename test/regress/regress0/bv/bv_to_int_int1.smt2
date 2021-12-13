@@ -1,11 +1,11 @@
 ; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
-; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1
-; EXPECT: unsat
-(set-logic QF_BV)
+; EXPECT: sat
+(set-logic QF_ALL)
 (declare-fun x () (_ BitVec 4))
 (declare-fun y () (_ BitVec 4))
+(declare-fun z () Int)
+(declare-fun w () Int)
 (assert (= x (_ bv3 4)))
 (assert (= y (_ bv3 4)))
-(assert (not (bvsle (bvadd x y) (_ bv6 4))))
-(assert (= (bvadd x y) (_ bv6 4)))
+(assert (> z w))
 (check-sat)
