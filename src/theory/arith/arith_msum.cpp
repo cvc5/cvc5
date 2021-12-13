@@ -128,7 +128,7 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
   return false;
 }
 
-Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
+Node ArithMSum::mkNode(TypeNode tn, const std::map<Node, Node>& msum)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
@@ -150,7 +150,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
   return children.size() > 1 ? nm->mkNode(PLUS, children)
                              : (children.size() == 1
                                     ? children[0]
-                                    : nm->mkConst(CONST_RATIONAL, Rational(0)));
+                                    : nm->mkConstRealOrInt(tn, Rational(0)));
 }
 
 int ArithMSum::isolate(
@@ -189,7 +189,7 @@ int ArithMSum::isolate(
                 ? nm->mkNode(PLUS, children)
                 : (children.size() == 1
                        ? children[0]
-                       : nm->mkConst(CONST_RATIONAL, Rational(0)));
+                       : nm->mkConstRealOrInt(vtn, Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
         if (vtn.isInteger())
@@ -285,7 +285,7 @@ bool ArithMSum::decompose(Node n, Node v, Node& coeff, Node& rem)
     {
       coeff = it->second;
       msum.erase(v);
-      rem = mkNode(msum);
+      rem = mkNode(n.getType(), msum);
       return true;
     }
   }
