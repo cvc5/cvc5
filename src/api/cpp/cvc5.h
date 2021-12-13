@@ -436,9 +436,10 @@ class CVC5_EXPORT Sort
 
   /**
    * Is this a parametric datatype sort? A parametric datatype sort is either
-   * one that is returned by a call to Solver::mkDatatypeSort() or Solver::mkDatatypeSorts() for a
-   * parametric datatype, or an instantiated datatype sort returned by
-   * Sort::instantiate() for parametric datatype sort `s`.
+   * one that is returned by a call to Solver::mkDatatypeSort() or
+   * Solver::mkDatatypeSorts() for a parametric datatype, or an instantiated
+   * datatype sort returned by Sort::instantiate() for parametric datatype
+   * sort `s`.
    * @return true if the sort is a parametric datatype sort
    */
   bool isParametricDatatype() const;
@@ -2588,6 +2589,8 @@ class CVC5_EXPORT Grammar
    * with bound variables via purifySygusGTerm, and binding these variables
    * via a lambda.
    *
+   * @note Create unresolved sorts with Solver::mkUninterpretedSort().
+   *
    * @param dt the non-terminal's datatype to which a constructor is added
    * @param term the sygus operator of the constructor
    * @param ntsToUnres mapping from non-terminals to their unresolved sorts
@@ -3150,6 +3153,8 @@ class CVC5_EXPORT Solver
    *
    * When constructing datatypes, unresolved sorts are replaced by the datatype
    * sort constructed for the datatype declaration it is associated with.
+   *
+   * @note Create unresolved sorts with Solver::mkUninterpretedSort().
    *
    * @param dtypedecls the datatype declarations from which the sort is created
    * @param unresolvedSorts the list of unresolved sorts
