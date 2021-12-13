@@ -486,8 +486,7 @@ SortModel::SortModel(Env& env,
       d_initialized(thss->userContext(), false),
       d_c_dec_strat(nullptr)
 {
-
-  if (options::ufssMode() == options::UfssMode::FULL)
+  if (options().uf.ufssMode == options::UfssMode::FULL)
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
@@ -674,7 +673,7 @@ bool SortModel::areDisequal( Node a, Node b ) {
 
 void SortModel::check(Theory::Effort level)
 {
-  Assert(options::ufssMode() == options::UfssMode::FULL);
+  Assert(options().uf.ufssMode == options::UfssMode::FULL);
   if (!d_hasCard && d_state.isInConflict())
   {
     // not necessary to check
@@ -887,11 +886,11 @@ void SortModel::assertCardinality(uint32_t c, bool val)
         }
       }
       // we assert it positively, if its beyond the bound, abort
-      if (options::ufssAbortCardinality() >= 0
-          && c >= static_cast<uint32_t>(options::ufssAbortCardinality()))
+      if (options().uf.ufssAbortCardinality >= 0
+          && c >= static_cast<uint32_t>(options().uf.ufssAbortCardinality))
       {
         std::stringstream ss;
-        ss << "Maximum cardinality (" << options::ufssAbortCardinality()
+        ss << "Maximum cardinality (" << options().uf.ufssAbortCardinality
            << ")  for finite model finding exceeded." << std::endl;
         throw LogicException(ss.str());
       }

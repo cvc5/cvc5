@@ -464,7 +464,7 @@ cdef class Op:
         """
             :return: the kind of this operator.
         """
-        return kind(<int> self.cop.getKind())
+        return Kind(<int> self.cop.getKind())
 
     def isIndexed(self):
         """
@@ -982,7 +982,7 @@ cdef class Solver:
         cdef vector[c_Term] v
 
         op = kind_or_op
-        if isinstance(kind_or_op, kind):
+        if isinstance(kind_or_op, Kind):
             op = self.mkOp(kind_or_op)
 
         if len(args) == 0:
@@ -1012,7 +1012,7 @@ cdef class Solver:
         return result
 
     @expand_list_arg(num_req_args=0)
-    def mkOp(self, kind k, *args):
+    def mkOp(self, k, *args):
         """
         Supports the following uses:
 
@@ -1027,27 +1027,27 @@ cdef class Solver:
         cdef vector[uint32_t] v
 
         if len(args) == 0:
-            op.cop = self.csolver.mkOp(k.k)
+            op.cop = self.csolver.mkOp(<c_Kind> k.value)
         elif len(args) == 1:
             if isinstance(args[0], str):
-                op.cop = self.csolver.mkOp(k.k,
+                op.cop = self.csolver.mkOp(<c_Kind> k.value,
                                            <const string &>
                                            args[0].encode())
             elif isinstance(args[0], int):
-                op.cop = self.csolver.mkOp(k.k, <int?> args[0])
+                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int?> args[0])
             elif isinstance(args[0], list):
                 for a in args[0]:
                     if a < 0 or a >= 2 ** 31:
                         raise ValueError("Argument {} must fit in a uint32_t".format(a))
 
                     v.push_back((<uint32_t?> a))
-                op.cop = self.csolver.mkOp(k.k, <const vector[uint32_t]&> v)
+                op.cop = self.csolver.mkOp(<c_Kind> k.value, <const vector[uint32_t]&> v)
             else:
                 raise ValueError("Unsupported signature"
                                  " mkOp: {}".format(" X ".join([str(k), str(args[0])])))
         elif len(args) == 2:
             if isinstance(args[0], int) and isinstance(args[1], int):
-                op.cop = self.csolver.mkOp(k.k, <int> args[0], <int> args[1])
+                op.cop = self.csolver.mkOp(<c_Kind> k.value, <int> args[0], <int> args[1])
             else:
                 raise ValueError("Unsupported signature"
                                  " mkOp: {}".format(" X ".join([k, args[0], args[1]])))
@@ -2439,16 +2439,16 @@ cdef class Sort:
 
     def isFunctionLike(self):
         """
-            Is this a function-LIKE sort?
+        Is this a function-LIKE sort?
 
-            Anything function-like except arrays (e.g., datatype selectors) is
-            considered a function here. Function-like terms can not be the argument
-            or return value for any term that is function-like.
-            This is mainly to avoid higher order.
+        Anything function-like except arrays (e.g., datatype selectors) is
+        considered a function here. Function-like terms can not be the argument
+        or return value for any term that is function-like.
+        This is mainly to avoid higher order.
 
-            Note that arrays are explicitly not considered function-like here.
+        .. note:: Arrays are explicitly not considered function-like here.
 
-            :return: True if this is a function-like sort
+        :return: True if this is a function-like sort
         """
         return self.csort.isFunctionLike()
 
@@ -2706,7 +2706,14 @@ cdef class Sort:
 
     def getDatatypeParamSorts(self):
         """
-            :return: the parameter sorts of a datatype sort
+             Return the parameters of a parametric datatype sort. If this sort
+             is a non-instantiated parametric datatype, this returns the
+             parameter sorts of the underlying datatype. If this sort is an
+             instantiated parametric datatype, then this returns the sort
+             parameters that were used to construct the sort via
+             :py:meth:`instantiate()`.
+
+             :return: the parameter sorts of a parametric datatype sort
         """
         param_sorts = []
         for s in self.csort.getDatatypeParamSorts():
@@ -2801,7 +2808,7 @@ cdef class Term:
 
     def getKind(self):
         """:return: the :py:class:`pycvc5.Kind` of this term."""
-        return kind(<int> self.cterm.getKind())
+        return Kind(<int> self.cterm.getKind())
 
     def getSort(self):
         """:return: the :py:class:`pycvc5.Sort` of this term."""
@@ -2848,10 +2855,10 @@ cdef class Term:
 
     def getOp(self):
         """
-	    Note: This is safe to call when :py:meth:`hasOp()` returns True.
+        .. note:: This is safe to call when :py:meth:`hasOp()` returns True.
 
-	    :return: the :py:class:`pycvc5.Op` used to create this Term.
-	"""
+        :return: the :py:class:`pycvc5.Op` used to create this Term.
+        """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
         return op
@@ -2981,13 +2988,15 @@ cdef class Term:
 
     def getStringValue(self):
         """
-           Note: This method is not to be confused with :py:meth:`__str__()` which
-	   returns the term in some string representation, whatever data it
-	   may hold.
-	   Asserts :py:meth:`isStringValue()`.
+        Asserts :py:meth:`isStringValue()`.
 
-	   :return: the string term as a native string value.
-	"""
+        .. note::
+           This method is not to be confused with :py:meth:`__str__()` which
+           returns the term in some string representation, whatever data it
+           may hold.
+
+        :return: the string term as a native string value.
+        """
         cdef Py_ssize_t size
         cdef c_wstring s = self.cterm.getStringValue()
         return PyUnicode_FromWideChar(s.data(), s.size())
@@ -3053,19 +3062,23 @@ cdef class Term:
 
     def isSetValue(self):
         """
-            A term is a set value if it is considered to be a (canonical) constant set
-            value.  A canonical set value is one whose AST is:
-            
-                (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
-            
-            where ``c1 ... cn`` are values ordered by id such that ``c1 > ... > cn`` (see
-            also :cpp:func:`cvc5::api::Term::operator>()`).
-            
-            Note that a universe set term ``(kind SET_UNIVERSE)`` is not considered to be
+        A term is a set value if it is considered to be a (canonical) constant
+        set value.  A canonical set value is one whose AST is:
+
+        .. code::
+
+            (union
+                (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+
+        where ``c1 ... cn`` are values ordered by id such that
+        ``c1 > ... > cn`` (see also :cpp:func:`cvc5::api::Term::operator>()`).
+
+        .. note::
+            A universe set term ``(kind SET_UNIVERSE)`` is not considered to be
             a set value.
 
-            :return: True if the term is a set value.    
-	"""
+        :return: True if the term is a set value.
+        """
         return self.cterm.isSetValue()
 
     def getSetValue(self):
@@ -3087,14 +3100,15 @@ cdef class Term:
 
     def getSequenceValue(self):
         """
-	   Asserts :py:meth:`isSequenceValue()`.
-           
-	   Note that it is usually necessary for sequences to call
-           :py:meth:`Solver.simplify()` to turn a sequence that is constructed by, e.g.,
-           concatenation of unit sequences, into a sequence value.
-	  
-	   :return: the representation of a sequence value as a vector of terms.
-	"""
+        Asserts :py:meth:`isSequenceValue()`.
+
+        .. note::
+            It is usually necessary for sequences to call
+            :py:meth:`Solver.simplify()` to turn a sequence that is constructed
+            by, e.g., concatenation of unit sequences, into a sequence value.
+
+        :return: the representation of a sequence value as a vector of terms.
+        """
         elems = []
         for e in self.cterm.getSequenceValue():
             term = Term(self.solver)
@@ -3137,7 +3151,7 @@ cdef class Term:
 
     def isRealValue(self):
         """
-	    Note that a term of kind PI is not considered to be a real value.
+	    .. note:: A term of kind PI is not considered to be a real value.
 
 	    :return: True iff this term is a rational value.
         """
@@ -3199,13 +3213,13 @@ cdef class Term:
             # on a constant array
             while to_visit:
                 t = to_visit.pop()
-                if t.getKind() == kinds.Store:
+                if t.getKind().value == c_Kind.STORE:
                     # save the mappings
                     keys.append(t[1].toPythonObj())
                     values.append(t[2].toPythonObj())
                     to_visit.append(t[0])
                 else:
-                    assert t.getKind() == kinds.ConstArray
+                    assert t.getKind().value == c_Kind.CONST_ARRAY
                     base_value = t.getConstArrayBase().toPythonObj()
 
             assert len(keys) == len(values)

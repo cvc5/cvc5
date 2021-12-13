@@ -48,7 +48,7 @@ NonlinearExtension::NonlinearExtension(Env& env,
       d_checkCounter(0),
       d_extTheoryCb(state.getEqualityEngine()),
       d_extTheory(env, d_extTheoryCb, d_im),
-      d_model(),
+      d_model(env),
       d_trSlv(d_env, d_im, d_model),
       d_extState(d_im, d_model, d_env),
       d_factoringSlv(d_env, &d_extState),
@@ -122,7 +122,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   }
   Valuation v = d_containing.getValuation();
 
-  BoundInference bounds;
+  BoundInference bounds(d_env);
 
   std::unordered_set<Node> init_assertions;
 

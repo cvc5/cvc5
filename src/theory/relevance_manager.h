@@ -25,6 +25,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "expr/term_context.h"
 #include "smt/env_obj.h"
 #include "theory/difficulty_manager.h"
 #include "theory/valuation.h"
@@ -76,10 +77,13 @@ class TheoryModel;
  */
 class RelevanceManager : protected EnvObj
 {
+  using RlvPair = std::pair<Node, uint32_t>;
+  using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
   using NodeList = context::CDList<Node>;
   using NodeMap = context::CDHashMap<Node, Node>;
   using NodeSet = context::CDHashSet<Node>;
-  using NodeUIntMap = context::CDHashMap<Node, uint64_t>;
+  using RlvPairIntMap =
+      context::CDHashMap<RlvPair, int32_t, RlvPairHashFunction>;
 
  public:
   /**
@@ -155,9 +159,9 @@ class RelevanceManager : protected EnvObj
    * This method returns 1 if we justified n to be true, -1 means
    * justified n to be false, 0 means n could not be justified.
    */
-  int justify(TNode n);
+  int32_t justify(TNode n);
   /** Is the top symbol of cur a Boolean connective? */
-  bool isBooleanConnective(TNode cur);
+  static bool isBooleanConnective(TNode cur);
   /**
    * Update justify last child. This method is a helper function for justify,
    * which is called at the moment that Boolean connective formula cur
@@ -170,7 +174,8 @@ class RelevanceManager : protected EnvObj
    * @return True if we wish to visit the next child. If this is the case, then
    * the justify value of the current child is added to childrenJustify.
    */
-  bool updateJustifyLastChild(TNode cur, std::vector<int>& childrenJustify);
+  bool updateJustifyLastChild(const RlvPair& cur,
+                              std::vector<int32_t>& childrenJustify);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The input assertions */
@@ -206,12 +211,18 @@ class RelevanceManager : protected EnvObj
    * reason why that literal is currently relevant.
    */
   NodeMap d_rsetExp;
+  /** For computing polarity on terms */
+  PolarityTermContext d_ptctx;
   /**
    * Set of nodes that we have justified (SAT context dependent). This is SAT
    * context dependent to avoid repeated calls to justify for uses of
-   * the relevance manager at standard effort.
+   * the relevance manager at standard effort. Notice that we pair each node
+   * with its polarity. We take into account the polarity of the node when
+   * computing relevance, where a node is only relevant if it is asserted
+   * and either does not have a polarity in the overall formula, or if its
+   * asserted value matches its polarity.
    */
-  NodeUIntMap d_jcache;
+  RlvPairIntMap d_jcache;
   /** Difficulty module */
   std::unique_ptr<DifficultyManager> d_dman;
 };
