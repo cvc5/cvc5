@@ -51,7 +51,7 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
   // the current factorial `counter!`
   Integer factorial = 1;
   // the current variable power `x^counter`
-  Node varpow = nm->mkConst(CONST_RATIONAL, Rational(1));
+  Node varpow = nm->mkConstReal(Rational(1));
   std::vector<Node> sum;
   for (std::uint64_t counter = 1; counter <= n; ++counter)
   {
@@ -62,7 +62,7 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       sum.push_back(
           nm->mkNode(Kind::DIVISION,
                      varpow,
-                     nm->mkConst<Rational>(CONST_RATIONAL, factorial)));
+                     nm->mkConstReal(factorial)));
     }
     else if (k == Kind::SINE)
     {
@@ -74,8 +74,8 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
         sum.push_back(nm->mkNode(
             Kind::MULT,
             nm->mkNode(Kind::DIVISION,
-                       nm->mkConst<Rational>(CONST_RATIONAL, sign),
-                       nm->mkConst<Rational>(CONST_RATIONAL, factorial)),
+                       nm->mkConstReal(sign),
+                       nm->mkConstReal(factorial)),
             varpow));
       }
     }
@@ -84,7 +84,7 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
   }
   Node taylor_sum = (sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum));
   Node taylor_rem = nm->mkNode(
-      Kind::DIVISION, varpow, nm->mkConst<Rational>(CONST_RATIONAL, factorial));
+      Kind::DIVISION, varpow, nm->mkConstReal(factorial));
 
   auto res = std::make_pair(taylor_sum, taylor_rem);
 
@@ -119,7 +119,7 @@ void TaylorGenerator::getPolynomialApproximationBounds(
       pbounds.d_upperPos = nm->mkNode(
           Kind::MULT,
           taylor_sum,
-          nm->mkNode(Kind::PLUS, nm->mkConst(CONST_RATIONAL, Rational(1)), ru));
+          nm->mkNode(Kind::PLUS, nm->mkConstReal(Rational(1)), ru));
     }
     else
     {
@@ -201,11 +201,11 @@ std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf,
     // at zero, its trivial
     if (k == Kind::SINE)
     {
-      Node zero = nm->mkConst(CONST_RATIONAL, Rational(0));
+      Node zero = nm->mkConstReal(Rational(0));
       return std::pair<Node, Node>(zero, zero);
     }
     Assert(k == Kind::EXPONENTIAL);
-    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+    Node one = nm->mkConstReal(Rational(1));
     return std::pair<Node, Node>(one, one);
   }
   bool isNeg = csign == -1;

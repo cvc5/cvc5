@@ -153,7 +153,7 @@ TrustNode TheoryBags::expandCardOperator(TNode n, std::vector<SkolemLemma>&)
     // (bag.card A) = (bag.count 1 (bag.map (lambda ((x E)) 1) A)),
     // where E is the type of elements of A
     NodeManager* nm = NodeManager::currentNM();
-    Node one = nm->mkConst(CONST_RATIONAL, Rational(1));
+    Node one = nm->mkConstInt(Rational(1));
     TypeNode type = n[0].getType().getBagElementType();
     Node x = nm->mkBoundVar("x", type);
     Node lambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, x), one);

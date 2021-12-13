@@ -174,7 +174,7 @@ Node OperatorElim::eliminateOperators(Node node,
                       MULT,
                       den,
                       nm->mkNode(
-                          PLUS, v, nm->mkConst(CONST_RATIONAL, Rational(1))))));
+                          PLUS, v, nm->mkConstInt(Rational(1))))));
         }
         else
         {
@@ -187,8 +187,7 @@ Node OperatorElim::eliminateOperators(Node node,
                                     den,
                                     nm->mkNode(PLUS,
                                                v,
-                                               nm->mkConst(CONST_RATIONAL,
-                                                           Rational(-1))))));
+                                               nm->mkConstInt(Rational(-1))))));
         }
       }
       else
@@ -198,7 +197,7 @@ Node OperatorElim::eliminateOperators(Node node,
             AND,
             nm->mkNode(
                 IMPLIES,
-                nm->mkNode(GT, den, nm->mkConst(CONST_RATIONAL, Rational(0))),
+                nm->mkNode(GT, den, nm->mkConstInt(Rational(0))),
                 nm->mkNode(
                     AND,
                     leqNum,
@@ -209,11 +208,10 @@ Node OperatorElim::eliminateOperators(Node node,
                                    den,
                                    nm->mkNode(PLUS,
                                               v,
-                                              nm->mkConst(CONST_RATIONAL,
-                                                          Rational(1))))))),
+                                              nm->mkConstInt(Rational(1))))))),
             nm->mkNode(
                 IMPLIES,
-                nm->mkNode(LT, den, nm->mkConst(CONST_RATIONAL, Rational(0))),
+                nm->mkNode(LT, den, nm->mkConstInt(Rational(0))),
                 nm->mkNode(
                     AND,
                     leqNum,
@@ -224,8 +222,7 @@ Node OperatorElim::eliminateOperators(Node node,
                                    den,
                                    nm->mkNode(PLUS,
                                               v,
-                                              nm->mkConst(CONST_RATIONAL,
-                                                          Rational(-1))))))));
+                                              nm->mkConstInt(Rational(-1))))))));
       }
       Node intVar = mkWitnessTerm(
           v, lem, "linearIntDiv", "the result of an intdiv-by-k term", lems);
@@ -261,7 +258,7 @@ Node OperatorElim::eliminateOperators(Node node,
       Node v = bvm->mkBoundVar<ArithWitnessVarAttribute>(rw, nm->realType());
       Node lem = nm->mkNode(
           IMPLIES,
-          den.eqNode(nm->mkConst(CONST_RATIONAL, Rational(0))).negate(),
+          den.eqNode(nm->mkConstReal(Rational(0))).negate(),
           nm->mkNode(MULT, den, v).eqNode(num));
       return mkWitnessTerm(
           v, lem, "nonlinearDiv", "the result of a non-linear div term", lems);
@@ -277,7 +274,7 @@ Node OperatorElim::eliminateOperators(Node node,
         checkNonLinearLogic(node);
         Node divByZeroNum = getArithSkolemApp(num, SkolemFunId::DIV_BY_ZERO);
         Node denEq0 =
-            nm->mkNode(EQUAL, den, nm->mkConst(CONST_RATIONAL, Rational(0)));
+            nm->mkNode(EQUAL, den, nm->mkConstReal(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, divByZeroNum, ret);
       }
       return ret;
@@ -296,7 +293,7 @@ Node OperatorElim::eliminateOperators(Node node,
         Node intDivByZeroNum =
             getArithSkolemApp(num, SkolemFunId::INT_DIV_BY_ZERO);
         Node denEq0 =
-            nm->mkNode(EQUAL, den, nm->mkConst(CONST_RATIONAL, Rational(0)));
+            nm->mkNode(EQUAL, den, nm->mkConstInt(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, intDivByZeroNum, ret);
       }
       return ret;
@@ -314,7 +311,7 @@ Node OperatorElim::eliminateOperators(Node node,
         checkNonLinearLogic(node);
         Node modZeroNum = getArithSkolemApp(num, SkolemFunId::MOD_BY_ZERO);
         Node denEq0 =
-            nm->mkNode(EQUAL, den, nm->mkConst(CONST_RATIONAL, Rational(0)));
+            nm->mkNode(EQUAL, den, nm->mkConstInt(Rational(0)));
         ret = nm->mkNode(ITE, denEq0, modZeroNum, ret);
       }
       return ret;
@@ -325,7 +322,7 @@ Node OperatorElim::eliminateOperators(Node node,
     {
       return nm->mkNode(
           ITE,
-          nm->mkNode(LT, node[0], nm->mkConst(CONST_RATIONAL, Rational(0))),
+          nm->mkNode(LT, node[0], nm->mkConstRealOrInt(node[0].getType(), Rational(0))),
           nm->mkNode(UMINUS, node[0]),
           node[0]);
       break;
@@ -365,7 +362,7 @@ Node OperatorElim::eliminateOperators(Node node,
         // model.
         lem = nm->mkNode(
             ITE,
-            nm->mkNode(GEQ, node[0], nm->mkConst(CONST_RATIONAL, Rational(0))),
+            nm->mkNode(GEQ, node[0], nm->mkConstReal(Rational(0))),
             nonNeg,
             uf);
       }
@@ -377,10 +374,10 @@ Node OperatorElim::eliminateOperators(Node node,
         Node rlem;
         if (k == ARCSINE || k == ARCTANGENT || k == ARCCOSECANT)
         {
-          Node half = nm->mkConst(CONST_RATIONAL, Rational(1) / Rational(2));
+          Node half = nm->mkConstReal(Rational(1) / Rational(2));
           Node pi2 = nm->mkNode(MULT, half, pi);
           Node npi2 =
-              nm->mkNode(MULT, nm->mkConst(CONST_RATIONAL, Rational(-1)), pi2);
+              nm->mkNode(MULT, nm->mkConstReal(Rational(-1)), pi2);
           // -pi/2 < var <= pi/2
           rlem = nm->mkNode(
               AND, nm->mkNode(LT, npi2, var), nm->mkNode(LEQ, var, pi2));
@@ -390,7 +387,7 @@ Node OperatorElim::eliminateOperators(Node node,
           // 0 <= var < pi
           rlem = nm->mkNode(
               AND,
-              nm->mkNode(LEQ, nm->mkConst(CONST_RATIONAL, Rational(0)), var),
+              nm->mkNode(LEQ, nm->mkConstReal(Rational(0)), var),
               nm->mkNode(LT, var, pi));
         }
 

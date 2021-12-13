@@ -53,9 +53,7 @@ struct ExtState
 
   Node d_false;
   Node d_true;
-  Node d_zero;
   Node d_one;
-  Node d_neg_one;
 
   /** The inference manager that we push conflicts and lemmas to. */
   InferenceManager& d_im;
