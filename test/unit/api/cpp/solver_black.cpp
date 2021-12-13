@@ -2798,7 +2798,7 @@ TEST_F(TestApiBlackSolver, proj_issue382)
       d_solver.mkTerm(VARIABLE_LIST, t73),
       d_solver.mkTerm(
           APPLY_CONSTRUCTOR,
-          s6.getDatatype().getConstructor("_x20").getSpecializedConstructorTerm(
+          s6.getDatatype().getConstructor("_x20").getInstantiatedConstructorTerm(
               s6),
           t73),
       t18);
