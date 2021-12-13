@@ -372,7 +372,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    * or return value for any term that is function-like.
    * This is mainly to avoid higher order.
    *
-   * Note that arrays are explicitly not considered function-like here.
+   * @apiNote Arrays are explicitly not considered function-like here.
    *
    * @return true if this is a function-like sort
    */

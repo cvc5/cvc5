@@ -63,12 +63,7 @@ Node mkApplyCons(TypeNode tn,
     // add type ascription for ambiguous constructor types
     Debug("datatypes-parametric")
         << "Constructor is " << dt[index] << std::endl;
-    TypeNode tspec = dt[index].getSpecializedConstructorType(tn);
-    Debug("datatypes-parametric")
-        << "Type specification is " << tspec << std::endl;
-    cchildren[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
-                              nm->mkConst(AscriptionType(tspec)),
-                              cchildren[0]);
+    cchildren[0] = dt[index].getInstantiatedConstructor(tn);
   }
   return nm->mkNode(APPLY_CONSTRUCTOR, cchildren);
 }

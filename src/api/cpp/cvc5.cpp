@@ -3815,13 +3815,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
   //////// all checks before this line
-
-  NodeManager* nm = d_solver->getNodeManager();
-  Node ret =
-      nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                 nm->mkConst(AscriptionType(
-                     d_ctor->getSpecializedConstructorType(*retSort.d_type))),
-                 d_ctor->getConstructor());
+  Node ret = d_ctor->getInstantiatedConstructor(*retSort.d_type);
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
   Term sctor = api::Term(d_solver, ret);
