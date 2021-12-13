@@ -4400,7 +4400,7 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( set-option <option> )
+   *     ( set-option :<option> <value> )
    *
    * @param option the option name
    * @param value the option value
