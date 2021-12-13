@@ -240,7 +240,7 @@ void TheoryBags::runStrategy(Theory::Effort e)
     }
     else
     {
-      if(runInferStep(curr, it->second) || d_state.isInConflict())
+      if (runInferStep(curr, it->second) || d_state.isInConflict())
       {
         break;
       }
@@ -264,7 +264,7 @@ bool TheoryBags::runInferStep(InferStep s, int effort)
     case CHECK_INIT: break;
     case CHECK_BAG_MAKE:
     {
-      if(d_solver.checkBagMake())
+      if (d_solver.checkBagMake())
       {
         return true;
       }
