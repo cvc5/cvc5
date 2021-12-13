@@ -94,6 +94,11 @@ class LazardEvaluation
       const poly::Polynomial& q) const;
 
   /**
+   * Isolates the real roots of the given polynomials.
+   */
+  std::vector<poly::Value> isolateRealRoots(const poly::Polynomial& q) const;
+
+  /**
    * Compute the infeasible regions of q under the given sign condition.
    * Uses reducePolynomial and then performs real root isolation on the
    * resulting polynomials to obtain the intervals. Mimics

@@ -500,6 +500,14 @@ name   = "Arithmetic Theory"
   help       = "whether to use the cylindrical algebraic coverings solver for non-linear arithmetic"
 
 [[option]]
+  name       = "nlCadVarElim"
+  category   = "regular"
+  long       = "nl-cad-var-elim"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to eliminate variables using equalities before going into the cylindrical algebraic coverings solver"
+
+[[option]]
   name       = "nlCadPrune"
   category   = "regular"
   long       = "nl-cad-prune"
