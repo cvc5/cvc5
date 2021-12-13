@@ -62,7 +62,7 @@ class ArrayCoreSolver : protected EnvObj
   const std::map<Node, Node>& getWriteModel(Node eqc);
 
   /**
-   * Get connected sequences
+   * Get connected sequences, see documentation above computeConnected.
    * @return a map M such that sequence equivalence class representatives x and
    * y are connected if an only if M[x] = M[y].
    */
@@ -93,7 +93,18 @@ class ArrayCoreSolver : protected EnvObj
    */
   void checkUpdate(const std::vector<Node>& updateTerms);
 
-  // TODO: document
+  /**
+   * Given the current set of update terms, this computes the connected
+   * sequences implied by the current equality information + this set of terms.
+   * Connected sequences is a reflexive transitive relation where additionally
+   * a and b are connected if there exists an update term (seq.update a n x)
+   * that is currently equal to b.
+   *
+   * This method runs a union find algorithm to compute all connected sequences.
+   * 
+   * As a result of running this method, the map d_connectedSeq is populated
+   * with information regarding which sequences are connected.
+   */
   void computeConnected(const std::vector<Node>& updateTerms);
 
   /** The solver state object */
@@ -110,7 +121,15 @@ class ArrayCoreSolver : protected EnvObj
   ExtTheory& d_extt;
   /** The write model */
   std::map<Node, std::map<Node, Node>> d_writeModel;
-  /** Connected */
+  /** 
+   * Map from sequences to their "connected representative". Two sequences are
+   * connected (based on the definition described in computeConnected) iff they
+   * have the same connected representative. Sequences that do not occur in
+   * this map are assumed to be their own connected representative.
+   * 
+   * This map is only valid after running computeConnected, and is valid
+   * only during model building.
+   */
   std::map<Node, Node> d_connectedSeq;
   /** The set of lemmas been sent */
   context::CDHashSet<Node> d_lem;

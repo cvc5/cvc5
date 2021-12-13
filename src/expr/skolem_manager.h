@@ -112,6 +112,8 @@ enum class SkolemFunId
    * i = 0, ..., n.
    */
   RE_UNFOLD_POS_COMPONENT,
+  /** Sequence model construction, character for base */
+  SEQ_MODEL_BASE_ELEMENT,
   BAGS_FOLD_CARD,
   BAGS_FOLD_COMBINE,
   BAGS_FOLD_ELEMENTS,

@@ -422,6 +422,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // not eliminated
     return Node::null();
   }
+  Trace("smt-proof-pp-debug") << "Expand macro " << id << std::endl;
   // macro elimination
   if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
