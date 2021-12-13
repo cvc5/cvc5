@@ -28,7 +28,7 @@ Arithmetic Operators
 .. autofunction:: cvc5_z3py_compat.Sqrt
 .. autofunction:: cvc5_z3py_compat.Cbrt
 
-See the following operator overloads for buildign other kinds of arithmetic
+See the following operator overloads for building other kinds of arithmetic
 terms:
 
 * :py:meth:`cvc5_z3py_compat.ArithRef.__add__`

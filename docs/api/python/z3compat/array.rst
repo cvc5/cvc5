@@ -16,10 +16,10 @@ Array Operators
 .. autofunction:: cvc5_z3py_compat.Store
 .. autofunction:: cvc5_z3py_compat.Select
 
-See the following operator overloads for buildign other kinds of array
+See the following operator overloads for building other kinds of array
 terms:
 
-* select: :py:meth:`cvc5_z3py_compat.ArrayRef.__getitem__`
+* ``select``: :py:meth:`cvc5_z3py_compat.ArrayRef.__getitem__`
 
 
 Testers
