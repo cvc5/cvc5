@@ -101,14 +101,12 @@ class IntBlaster : protected EnvObj
    * @param context user context
    * @param mode bv-to-int translation mode
    * @param granularity bv-to-int translation granularity
-   * @param introduceFreshIntVars determines whether bit-vector variables are
    * translated to integer variables, or are directly casted using `bv2nat`
    * operator. not purely bit-vector nodes.
    */
   IntBlaster(Env& env,
              options::SolveBVAsIntMode mode,
-             uint64_t granluarity = 1,
-             bool introduceFreshIntVars = true);
+             uint64_t granluarity = 1);
 
   ~IntBlaster();
 
@@ -371,11 +369,6 @@ class IntBlaster : protected EnvObj
   /** an SolverEngine for context */
   context::Context* d_context;
 
-  /** true iff the translator should introduce
-   * fresh integer variables for bit-vector variables.
-   * Otherwise, we introduce a nat2bv term.
-   */
-  bool d_introduceFreshIntVars;
 };
 
 }  // namespace cvc5

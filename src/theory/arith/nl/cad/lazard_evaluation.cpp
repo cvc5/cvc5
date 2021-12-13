@@ -821,6 +821,30 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
   return {p};
 }
 
+std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
+    const poly::Polynomial& q) const
+{
+  poly::Assignment a;
+  std::vector<poly::Value> roots;
+  // reduce q to a set of reduced polynomials p
+  for (const auto& p : reducePolynomial(q))
+  {
+    // collect all real roots except for -infty, none, +infty
+    Trace("cad::lazard") << "Isolating roots of " << p << std::endl;
+    Assert(poly::is_univariate(p) && poly::is_univariate_over_assignment(p, a));
+    std::vector<poly::Value> proots = poly::isolate_real_roots(p, a);
+    for (const auto& r : proots)
+    {
+      if (poly::is_minus_infinity(r)) continue;
+      if (poly::is_none(r)) continue;
+      if (poly::is_plus_infinity(r)) continue;
+      roots.emplace_back(r);
+    }
+  }
+  std::sort(roots.begin(), roots.end());
+  return roots;
+}
+
 /**
  * Compute the infeasible regions of the given polynomial according to a sign
  * condition. We first reduce the polynomial and isolate the real roots of every
@@ -835,23 +859,7 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q, poly::SignCondition sc) const
 {
-  poly::Assignment a;
-  std::set<poly::Value> roots;
-  // reduce q to a set of reduced polynomials p
-  for (const auto& p : reducePolynomial(q))
-  {
-    // collect all real roots except for -infty, none, +infty
-    Trace("cad::lazard") << "Isolating roots of " << p << std::endl;
-    Assert(poly::is_univariate(p) && poly::is_univariate_over_assignment(p, a));
-    std::vector<poly::Value> proots = poly::isolate_real_roots(p, a);
-    for (const auto& r : proots)
-    {
-      if (poly::is_minus_infinity(r)) continue;
-      if (poly::is_none(r)) continue;
-      if (poly::is_plus_infinity(r)) continue;
-      roots.insert(r);
-    }
-  }
+  std::vector<poly::Value> roots = isolateRealRoots(q);
 
   // generate all intervals
   // (-infty,root_0), [root_0], (root_0,root_1), ..., [root_m], (root_m,+infty)
@@ -961,6 +969,16 @@ std::vector<poly::Polynomial> LazardEvaluation::reducePolynomial(
     const poly::Polynomial& p) const
 {
   return {p};
+}
+
+std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
+    const poly::Polynomial& q) const
+{
+  WarningOnce()
+      << "CAD::LazardEvaluation is disabled because CoCoA is not available. "
+         "Falling back to regular real root isolation."
+      << std::endl;
+  return poly::isolate_real_roots(q, d_state->d_assignment);
 }
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q, poly::SignCondition sc) const
