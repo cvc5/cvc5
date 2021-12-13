@@ -1035,7 +1035,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
     if (!repSet.empty())
     {
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
-                             << ", first = " << *(repSet.begin()) << endl;
+                             << ", repSet = " << repSet << endl;
       Assert(false);
     }
   }
