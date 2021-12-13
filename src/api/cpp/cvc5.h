@@ -1516,7 +1516,7 @@ class CVC5_EXPORT Term
    * where `c1 ... cn` are values ordered by id such that `c1 > ... > cn` (see
    * also @ref Term::operator>(const Term&) const).
    *
-   * @note A universe set term (kind SET_UNIVERSE) is not considered to be
+   * @note A universe set term `(kind SET_UNIVERSE)` is not considered to be
    *       a set value.
    */
   bool isSetValue() const;
@@ -4099,7 +4099,7 @@ class CVC5_EXPORT Solver
    *
    * SMT-LIB:
    *
-   *     ( get-value ( <term>+ ) )
+   *     ( get-value ( <term>* ) )
    *
    * @param terms the terms for which the value is queried
    * @return the values of the given terms
@@ -4153,6 +4153,9 @@ class CVC5_EXPORT Solver
    *
    * Requires a logic that supports quantifier elimination. Currently, the only
    * logics supported by quantifier elimination is LRA and LIA.
+   *
+   * @note Quantifier Elimination is is only complete for LRA and LIA.
+   *
    * @param q a quantified formula of the form
    *          @f$Q x_1...x_n. P( x_1...x_n, y_1...y_n )@f$ where
    *          @f$P( x_1...x_n, y_1...y_n )@f$ is a quantifier-free formula
