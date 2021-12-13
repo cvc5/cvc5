@@ -425,6 +425,7 @@ TEST_F(TestTheoryWhiteSequencesRewriter, rewrite_concat)
 
 TEST_F(TestTheoryWhiteSequencesRewriter, length_preserve_rewrite)
 {
+  StringsRewriter sr(d_rewriter, nullptr);
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 
@@ -451,8 +452,8 @@ TEST_F(TestTheoryWhiteSequencesRewriter, length_preserve_rewrite)
   Node concat2 = d_nodeManager->mkNode(
       kind::STRING_CONCAT,
       {gh, x, d_nodeManager->mkNode(kind::STRING_REPLACE, x, gh, ij), ij});
-  Node res_concat1 = SequencesRewriter::lengthPreserveRewrite(concat1);
-  Node res_concat2 = SequencesRewriter::lengthPreserveRewrite(concat2);
+  Node res_concat1 = sr.lengthPreserveRewrite(concat1);
+  Node res_concat2 = sr.lengthPreserveRewrite(concat2);
   ASSERT_EQ(res_concat1, res_concat2);
 }
 
