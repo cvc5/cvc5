@@ -34,13 +34,26 @@ BagReduction::~BagReduction() {}
 
 /**
  * A bound variable corresponding to the universally quantified integer
- * variable used to range over the distinct elements in a bag, used
+ * variable used to range over (may be distinct) elements in a bag, used
  * for axiomatizing the behavior of some term.
+ * If there are multiple quantifiers, this variable should be the first one.
  */
-struct IndexVarAttributeId
+struct FirstIndexVarAttributeId
 {
 };
-typedef expr::Attribute<IndexVarAttributeId, Node> IndexVarAttribute;
+typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
+
+/**
+ * A bound variable corresponding to the universally quantified integer
+ * variable used to range over (may be distinct) elements in a bag, used
+ * for axiomatizing the behavior of some term.
+ * This variable should be the second of multiple quantifiers.
+ */
+struct SecondIndexVarAttributeId
+{
+};
+typedef expr::Attribute<SecondIndexVarAttributeId, Node>
+    SecondIndexVarAttribute;
 
 Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
@@ -71,7 +84,8 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
         SkolemFunId::BAGS_FOLD_COMBINE, combineType, {f, t, A});
 
     BoundVarManager* bvm = nm->getBoundVarManager();
-    Node i = bvm->mkBoundVar<IndexVarAttribute>(node, "i", nm->integerType());
+    Node i =
+        bvm->mkBoundVar<FirstIndexVarAttribute>(node, "i", nm->integerType());
     Node iList = nm->mkNode(BOUND_VAR_LIST, i);
     Node iMinusOne = nm->mkNode(MINUS, i, one);
     Node uf_i = nm->mkNode(APPLY_UF, uf, i);
@@ -113,17 +127,6 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   }
   return Node::null();
 }
-
-struct FirstIndexVarAttributeId
-{
-};
-typedef expr::Attribute<FirstIndexVarAttributeId, Node> FirstIndexVarAttribute;
-
-struct SecondIndexVarAttributeId
-{
-};
-typedef expr::Attribute<SecondIndexVarAttributeId, Node>
-    SecondIndexVarAttribute;
 
 Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 {
