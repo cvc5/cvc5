@@ -2790,8 +2790,8 @@ Node SequencesRewriter::rewriteReplace(Node node)
     if (d_stringsEntail.checkLengthOne(node[0]))
     {
       Node empty = Word::mkEmptyWord(stype);
-      Node rn1 = d_rr->rewrite(
-          rewriteEqualityExt(nm->mkNode(EQUAL, node[1], empty)));
+      Node rn1 =
+          d_rr->rewrite(rewriteEqualityExt(nm->mkNode(EQUAL, node[1], empty)));
       if (rn1 != node[1])
       {
         std::vector<Node> emptyNodes;

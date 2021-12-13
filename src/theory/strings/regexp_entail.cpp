@@ -696,7 +696,7 @@ Node RegExpEntail::getFixedLengthForRegexp(TNode n)
       {
         return flc;
       }
-      Assert (flc.isConst() && flc.getType().isInteger());
+      Assert(flc.isConst() && flc.getType().isInteger());
       sum += flc.getConst<Rational>();
     }
     return nm->mkConstInt(sum);

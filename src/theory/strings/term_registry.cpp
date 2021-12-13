@@ -670,17 +670,14 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
   }
 }
 
-
 Node TermRegistry::mkNConcat(Node n1, Node n2)
 {
-  return rewrite(
-      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
+  return rewrite(NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2, Node n3)
 {
-  return rewrite(
-      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
+  return rewrite(NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
 }
 
 Node TermRegistry::mkNConcat(const std::vector<Node>& c, TypeNode tn)
