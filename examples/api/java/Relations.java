@@ -152,10 +152,9 @@ public class Relations
       Term transpose = solver.mkTerm(RELATION_TRANSPOSE, descendant);
       Term ancestorFormula = solver.mkTerm(EQUAL, ancestor, transpose);
 
-      // (assert (forall ((x Person)) (not (set.member (mkTuple x x) ancestor))))
+      // (assert (forall ((x Person)) (not (set.member (tuple x x) ancestor))))
       Term x = solver.mkVar(personSort, "x");
-      DatatypeConstructor constructor = tupleArity2.getDatatype().getConstructor(0);
-      Term xxTuple = solver.mkTerm(APPLY_CONSTRUCTOR, constructor.getConstructorTerm(), x, x);
+      Term xxTuple = solver.mkTuple(new Sort[]{personSort, personSort}, new Term[] {x, x});
       Term member = solver.mkTerm(SET_MEMBER, xxTuple, ancestor);
       Term notMember = solver.mkTerm(NOT, member);
 
