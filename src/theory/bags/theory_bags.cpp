@@ -299,7 +299,7 @@ Node TheoryBags::getModelValue(TNode node) { return Node::null(); }
 
 void TheoryBags::preRegisterTerm(TNode n)
 {
-  Trace("bags::TheoryBags::preRegisterTerm") << n << std::endl;
+  Trace("bags") << "TheoryBags::preRegisterTerm(" << n << ")" << std::endl;
   switch (n.getKind())
   {
     case BAG_FROM_SET:
@@ -310,7 +310,7 @@ void TheoryBags::preRegisterTerm(TNode n)
       ss << "Term of kind " << n.getKind() << " is not supported yet";
       throw LogicException(ss.str());
     }
-    default: break;
+    default: d_equalityEngine->addTerm(n); break;
   }
 }
 
