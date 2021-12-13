@@ -78,13 +78,14 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * @param retSort the desired return sort of the constructor
    * @return the constructor term
    */
-  public Term getSpecializedConstructorTerm(Sort retSort)
-  {
-    long termPointer = getSpecializedConstructorTerm(pointer, retSort.getPointer());
+  public Term getInstantiatedConstructorTerm(Sort retSort) {
+    long termPointer =
+        getInstantiatedConstructorTerm(pointer, retSort.getPointer());
     return new Term(solver, termPointer);
   }
 
-  private native long getSpecializedConstructorTerm(long pointer, long retSortPointer);
+  private native long getInstantiatedConstructorTerm(
+      long pointer, long retSortPointer);
 
   /**
    * Get the tester operator of this datatype constructor.

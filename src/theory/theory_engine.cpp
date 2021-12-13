@@ -1108,7 +1108,8 @@ Node TheoryEngine::getModelValue(TNode var) {
     // the model value of a constant must be itself
     return var;
   }
-  Assert(d_sharedSolver->isShared(var));
+  Assert(d_sharedSolver->isShared(var))
+      << "node " << var << " is not shared" << std::endl;
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 

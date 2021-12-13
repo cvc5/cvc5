@@ -906,9 +906,9 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       // take into account if parametric
       if (dt.isParametric())
       {
-        tspec = c.getSpecializedConstructorType(lit[0].getType());
-        cons = nm->mkNode(
-            APPLY_TYPE_ASCRIPTION, nm->mkConst(AscriptionType(tspec)), cons);
+        TypeNode ltn = lit[0].getType();
+        tspec = c.getInstantiatedConstructorType(ltn);
+        cons = c.getInstantiatedConstructor(ltn);
       }
       else
       {
@@ -920,7 +920,7 @@ bool QuantifiersRewriter::getVarElimLit(Node body,
       for (size_t j = 0, nargs = c.getNumArgs(); j < nargs; j++)
       {
         TypeNode tn = tspec[j];
-        Node rn = nm->mkConst(CONST_RATIONAL, Rational(j));
+        Node rn = nm->mkConstInt(Rational(j));
         Node cacheVal = BoundVarManager::getCacheValue(body, lit, rn);
         Node v = bvm->mkBoundVar<QRewDtExpandAttribute>(cacheVal, tn);
         newChildren.push_back(v);
