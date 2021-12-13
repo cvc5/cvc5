@@ -2544,7 +2544,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
   if (!node[2].isConst() || node[2].getConst<Rational>().sgn() != 0)
   {
     fstr = nm->mkNode(kind::STRING_SUBSTR, node[0], node[2], len0);
-    fstr = rewriteSubstr(fstr);
+    fstr = d_rr->rewrite(fstr);
   }
 
   Node cmp_conr = d_stringsEntail.checkContains(fstr, node[1]);
