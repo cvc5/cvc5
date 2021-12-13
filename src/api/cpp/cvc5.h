@@ -4292,10 +4292,10 @@ class CVC5_EXPORT Solver
    *
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
-   * @param output a term @f$C@f$ such that @f$A \wedge C@f$ is satisfiable,
-   *               and @f$A \wedge \neg B \wedge C@f$ is unsatisfiable, where
+   * @param output a term @f$C@f$ such that @f$(A \wedge C)@f$ is satisfiable,
+   *               and @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where
    *               @f$A@f$ is the current set of assertions and @f$B@f$ is
-   *               given in the input by ``conj``
+   *               given in the input by ``conj``.
    * @return true if it gets abduct @f$C@f$ successfully, false otherwise
    */
   bool getAbduct(const Term& conj, Term& output) const;
@@ -4308,10 +4308,11 @@ class CVC5_EXPORT Solver
    *     ( get-abduct <conj> <g> )
    *
    * Requires enabling option 'produce-abducts'
+   *
    * @param conj the conjecture term
    * @param grammar the grammar for the abduct @f$C@f$
-   * @param output a term C such that @f$A \wedge @f$C@f$ is satisfiable, and
-   *        @f$A \wedge \neg B \wedge C@f$ is unsatisfiable, where @f$A@f$ is
+   * @param output a term C such that @f$(A \wedge C)@f$ is satisfiable, and
+   *        @f$(A \wedge \neg B \wedge C)@f$ is unsatisfiable, where @f$A@f$ is
    *        the current set of assertions and @f$B@f$ is given in the input by
    *        ``conj``
    * @return true if it gets abduct @f$C@f$ successfully, false otherwise
