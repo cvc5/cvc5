@@ -18,7 +18,6 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_RANDOM_ENUMERATOR_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_RANDOM_ENUMERATOR_H
 
-#include <random>
 #include <unordered_set>
 
 #include "expr/node.h"
@@ -50,9 +49,8 @@ class SygusRandomEnumerator : public EnumValGenerator
   /** Constructor. Initializes the enumerator.
    *
    * @param tds pointer to term database sygus.
-   * @param tn the sygus type to enumerate.
    */
-  SygusRandomEnumerator(TermDbSygus* tds, TypeNode tn);
+  SygusRandomEnumerator(TermDbSygus* tds) : d_tds(tds){};
 
   /** Initialize this class with enumerator `e`. */
   void initialize(Node e) override;
@@ -71,9 +69,6 @@ class SygusRandomEnumerator : public EnumValGenerator
   Node getCurrent() override { return d_currTerm; }
 
  private:
-  /** Initialize helper utility. */
-  void initializeH();
-
   /** Generates a random sygus term.
    *
    * S ::= 0 | x | (+ S S)
@@ -112,12 +107,6 @@ class SygusRandomEnumerator : public EnumValGenerator
   TermDbSygus* d_tds;
   /** The type to enumerate. */
   TypeNode d_tn;
-  /** Random number generator. */
-  std::mt19937_64 d_gen;
-  /** Bernoulli distribution. */
-  std::bernoulli_distribution d_bernoulli;
-  /** Uniform distribution. */
-  std::uniform_int_distribution<size_t> d_uniform;
   /** The current term. */
   Node d_currTerm;
   /** Cache of no-argument constructors for each sygus datatype type. */

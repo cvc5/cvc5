@@ -21,28 +21,15 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
+#include "util/random.h"
 
 namespace cvc5 {
 namespace theory {
 namespace quantifiers {
 
-SygusRandomEnumerator::SygusRandomEnumerator(TermDbSygus* tds, TypeNode tn)
-    : d_tds(tds),
-      d_tn(tn),
-      d_gen(std::random_device()()),
-      d_bernoulli(options::sygusActiveGenRandomP())
-{
-  initializeH();
-}
-
 void SygusRandomEnumerator::initialize(Node e)
 {
   d_tn = e.getType();
-  initializeH();
-}
-
-void SygusRandomEnumerator::initializeH()
-{
   Assert(d_tn.isDatatype());
   Assert(d_tn.getDType().isSygus());
   SygusTypeInfo sti;
@@ -87,6 +74,8 @@ Node SygusRandomEnumerator::incrementH()
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  Random& rand = Random::getRandom();
+  double p = options::sygusActiveGenRandomP();
 
   Node mainSkolem = sm->mkDummySkolem("sygus_rand", d_tn);
   // List of skolems with no corresponding constructor.
@@ -106,10 +95,10 @@ Node SygusRandomEnumerator::incrementH()
   std::unordered_map<Node, std::vector<Node>> subSkolems;
 
   // We stop when we get a tails or there are no more skolems to process.
-  while (d_bernoulli(d_gen) && !remainingSkolems.empty())
+  while (rand.pickWithProb(p) && !remainingSkolems.empty())
   {
     // Pick a random skolem from the remaining ones and remove it from the list.
-    size_t r = d_uniform(d_gen) % remainingSkolems.size();
+    size_t r = rand() % remainingSkolems.size();
     Node currSkolem = remainingSkolems[r];
     remainingSkolems.erase(remainingSkolems.cbegin() + r);
     // Add the picked skolem to stack for later processing.
@@ -128,9 +117,9 @@ Node SygusRandomEnumerator::incrementH()
     skolemCons[currSkolem] =
         d_argCons[currSkolemType].empty()
             ? d_noArgCons[currSkolemType]
-                         [d_uniform(d_gen) % d_noArgCons[currSkolemType].size()]
+                         [rand() % d_noArgCons[currSkolemType].size()]
             : d_argCons[currSkolemType]
-                       [d_uniform(d_gen) % d_argCons[currSkolemType].size()];
+                       [rand() % d_argCons[currSkolemType].size()];
     // Create a sub-skolem for each constructor argument and add them to the
     // list of remaining skolems.
     for (size_t i = 0, n = skolemCons[currSkolem]->getNumArgs(); i < n; ++i)
@@ -155,8 +144,7 @@ Node SygusRandomEnumerator::incrementH()
     else
     {
       skolemCons[skolem] =
-          d_noArgCons[skolemType]
-                     [d_uniform(d_gen) % d_noArgCons[skolemType].size()];
+          d_noArgCons[skolemType][rand() % d_noArgCons[skolemType].size()];
       stack.push_back(skolem);
     }
   }

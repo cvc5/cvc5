@@ -98,7 +98,7 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
       else if (options().quantifiers.sygusActiveGenMode
                == options::SygusActiveGenMode::RANDOM)
       {
-        d_evg.reset(new SygusRandomEnumerator(d_tds, e.getType()));
+        d_evg.reset(new SygusRandomEnumerator(d_tds));
       }
       else
       {
