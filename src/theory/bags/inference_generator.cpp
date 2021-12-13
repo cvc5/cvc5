@@ -64,7 +64,7 @@ InferInfo InferenceGenerator::bagMake(Node n)
    */
   Node x = n[0];
   Node c = n[1];
-  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE_SPLIT);
   Node empty = d_nm->mkConst(EmptyBag(n.getType()));
   Node equal = d_nm->mkNode(EQUAL, n, empty);
   Node geq = d_nm->mkNode(GEQ, c, d_one);
