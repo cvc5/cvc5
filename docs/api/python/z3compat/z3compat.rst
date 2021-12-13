@@ -22,8 +22,3 @@ z3py compatibility Python API
     dt
     quant
     internals
-
-.. automodule:: cvc5_z3py_compat
-   :members:
-   :private-members:
-   :imported-members:
