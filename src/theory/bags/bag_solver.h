@@ -51,7 +51,7 @@ class BagSolver : protected EnvObj
   /**
    * apply inference rules for BAG_MAKE terms.
    * For each term (bag x c) that is neither equal nor disequal to the empty
-   * bag, we do a split using following lemma:
+   * bag, we do a split using the following lemma:
    * (or
    *   (and (<  c 1) (= (bag x c) (as bag.empty (Bag E))))
    *   (and (>= c 1) (not (= (bag x c) (as bag.empty (Bag E))))
