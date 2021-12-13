@@ -2453,16 +2453,16 @@ cdef class Sort:
 
     def isFunctionLike(self):
         """
-            Is this a function-LIKE sort?
+        Is this a function-LIKE sort?
 
-            Anything function-like except arrays (e.g., datatype selectors) is
-            considered a function here. Function-like terms can not be the argument
-            or return value for any term that is function-like.
-            This is mainly to avoid higher order.
+        Anything function-like except arrays (e.g., datatype selectors) is
+        considered a function here. Function-like terms can not be the argument
+        or return value for any term that is function-like.
+        This is mainly to avoid higher order.
 
-            Note that arrays are explicitly not considered function-like here.
+        .. note:: Arrays are explicitly not considered function-like here.
 
-            :return: True if this is a function-like sort
+        :return: True if this is a function-like sort
         """
         return self.csort.isFunctionLike()
 
@@ -2869,10 +2869,10 @@ cdef class Term:
 
     def getOp(self):
         """
-	    Note: This is safe to call when :py:meth:`hasOp()` returns True.
+        .. note:: This is safe to call when :py:meth:`hasOp()` returns True.
 
-	    :return: the :py:class:`pycvc5.Op` used to create this Term.
-	"""
+        :return: the :py:class:`pycvc5.Op` used to create this Term.
+        """
         cdef Op op = Op(self.solver)
         op.cop = self.cterm.getOp()
         return op
@@ -3002,13 +3002,15 @@ cdef class Term:
 
     def getStringValue(self):
         """
-           Note: This method is not to be confused with :py:meth:`__str__()` which
-	   returns the term in some string representation, whatever data it
-	   may hold.
-	   Asserts :py:meth:`isStringValue()`.
+        Asserts :py:meth:`isStringValue()`.
 
-	   :return: the string term as a native string value.
-	"""
+        .. note::
+           This method is not to be confused with :py:meth:`__str__()` which
+           returns the term in some string representation, whatever data it
+           may hold.
+
+        :return: the string term as a native string value.
+        """
         cdef Py_ssize_t size
         cdef c_wstring s = self.cterm.getStringValue()
         return PyUnicode_FromWideChar(s.data(), s.size())
@@ -3074,19 +3076,23 @@ cdef class Term:
 
     def isSetValue(self):
         """
-            A term is a set value if it is considered to be a (canonical) constant set
-            value.  A canonical set value is one whose AST is:
-            
-                (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
-            
-            where ``c1 ... cn`` are values ordered by id such that ``c1 > ... > cn`` (see
-            also :cpp:func:`cvc5::api::Term::operator>()`).
-            
-            Note that a universe set term ``(kind SET_UNIVERSE)`` is not considered to be
+        A term is a set value if it is considered to be a (canonical) constant
+        set value.  A canonical set value is one whose AST is:
+
+        .. code::
+
+            (union
+                (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+
+        where ``c1 ... cn`` are values ordered by id such that
+        ``c1 > ... > cn`` (see also :cpp:func:`cvc5::api::Term::operator>()`).
+
+        .. note::
+            A universe set term ``(kind SET_UNIVERSE)`` is not considered to be
             a set value.
 
-            :return: True if the term is a set value.    
-	"""
+        :return: True if the term is a set value.
+        """
         return self.cterm.isSetValue()
 
     def getSetValue(self):
@@ -3108,14 +3114,15 @@ cdef class Term:
 
     def getSequenceValue(self):
         """
-	   Asserts :py:meth:`isSequenceValue()`.
-           
-	   Note that it is usually necessary for sequences to call
-           :py:meth:`Solver.simplify()` to turn a sequence that is constructed by, e.g.,
-           concatenation of unit sequences, into a sequence value.
-	  
-	   :return: the representation of a sequence value as a vector of terms.
-	"""
+        Asserts :py:meth:`isSequenceValue()`.
+
+        .. note::
+            It is usually necessary for sequences to call
+            :py:meth:`Solver.simplify()` to turn a sequence that is constructed
+            by, e.g., concatenation of unit sequences, into a sequence value.
+
+        :return: the representation of a sequence value as a vector of terms.
+        """
         elems = []
         for e in self.cterm.getSequenceValue():
             term = Term(self.solver)
@@ -3158,7 +3165,7 @@ cdef class Term:
 
     def isRealValue(self):
         """
-	    Note that a term of kind PI is not considered to be a real value.
+	    .. note:: A term of kind PI is not considered to be a real value.
 
 	    :return: True iff this term is a rational value.
         """

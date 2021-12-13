@@ -1794,8 +1794,10 @@ attribute[cvc5::api::Term& expr, cvc5::api::Term& retExpr]
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       // notify that expression was given a name
-      PARSER_STATE->preemptCommand(
-          new DefineFunctionCommand(s, expr.getSort(), expr));
+      DefineFunctionCommand* defFunCmd =
+          new DefineFunctionCommand(s, expr.getSort(), expr);
+      defFunCmd->setMuted(true);
+      PARSER_STATE->preemptCommand(defFunCmd);
       PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;
