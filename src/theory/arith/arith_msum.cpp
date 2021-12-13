@@ -104,8 +104,12 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             std::map<Node, Node>::iterator it2 = msum.find(it->first);
             if (it2 != msum.end())
             {
-              Rational r1 = it2->second.isNull() ? Rational(1) : it2->second.getConst<Rational>();
-              Rational r2 = it->second.isNull() ? Rational(1) : it->second.getConst<Rational>();
+              Rational r1 = it2->second.isNull()
+                                ? Rational(1)
+                                : it2->second.getConst<Rational>();
+              Rational r2 = it->second.isNull()
+                                ? Rational(1)
+                                : it->second.getConst<Rational>();
               msum[it->first] = nm->mkConstRealOrInt(tn, r1 - r2);
             }
             else
@@ -197,7 +201,9 @@ int ArithMSum::isolate(
           val = nm->mkNode(MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
         }
       }
-      val = r.sgn() == 1 ? nm->mkNode(MULT, nm->mkConstRealOrInt(vtn, Rational(-1)), val) : val;
+      val = r.sgn() == 1
+                ? nm->mkNode(MULT, nm->mkConstRealOrInt(vtn, Rational(-1)), val)
+                : val;
       return (r.sgn() == 1 || k == EQUAL) ? 1 : -1;
     }
   }

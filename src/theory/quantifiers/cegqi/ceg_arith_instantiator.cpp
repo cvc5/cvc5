@@ -1042,8 +1042,9 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
 
 Node ArithInstantiator::negate(const Node& t) const
 {
-  NodeManager * nm = NodeManager::currentNM();
-  return rewrite(nm->mkNode(MULT, nm->mkConstRealOrInt(t.getType(), Rational(-1)), val));
+  NodeManager* nm = NodeManager::currentNM();
+  return rewrite(
+      nm->mkNode(MULT, nm->mkConstRealOrInt(t.getType(), Rational(-1)), val));
 }
 
 }  // namespace quantifiers
