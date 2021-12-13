@@ -475,13 +475,11 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
       }
     }
   }
-  if (check)
+  // it is mandatory to check this here to ensure the match is exhaustive
+  if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
   {
-    if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "cases for match term are not exhaustive");
-    }
+    throw TypeCheckingExceptionPrivate(
+        n, "cases for match term are not exhaustive");
   }
   return retType;
 }
