@@ -24,6 +24,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
+#include "util/rational.h"
 
 using namespace cvc5::kind;
 
