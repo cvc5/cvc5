@@ -1097,6 +1097,11 @@ void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   d_relManager->getDifficultyMap(dmap);
 }
 
+theory::IncompleteId TheoryEngine::getIncompleteId() const
+{
+  return d_incompleteId.get();
+}
+
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
   {
