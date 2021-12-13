@@ -104,20 +104,16 @@ bool ArithMSum::getMonomialSumLit(Node lit, std::map<Node, Node>& msum)
             std::map<Node, Node>::iterator it2 = msum.find(it->first);
             if (it2 != msum.end())
             {
-              Rational r1 = it2->second.isNull()
-                                      ? Rational(1)
-                                      : it2->second;
-                                      Rational r2 = 
-                                  it->second.isNull()
-                                      ? Rational(1)
-                                      : it->second;
-              msum[it->first] = nm->mkConstRealOrInt(tn, r1-r2);
+              Rational r1 = it2->second.isNull() ? Rational(1) : it2->second;
+              Rational r2 = it->second.isNull() ? Rational(1) : it->second;
+              msum[it->first] = nm->mkConstRealOrInt(tn, r1 - r2);
             }
             else
             {
               msum[it->first] = it->second.isNull()
                                     ? nm->mkConstRealOrInt(tn, Rational(-1))
-                                    : nm->mkConstRealOrInt(tn, -it->second.getConst<Rational>());
+                                    : nm->mkConstRealOrInt(
+                                        tn, -it->second.getConst<Rational>());
             }
           }
           return true;
@@ -160,7 +156,7 @@ int ArithMSum::isolate(
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     std::vector<Node> children;
     Rational r =
         itv->second.isNull() ? Rational(1) : itv->second.getConst<Rational>();
@@ -186,9 +182,9 @@ int ArithMSum::isolate(
       }
       val = children.size() > 1
                 ? nm->mkNode(PLUS, children)
-                : (children.size() == 1 ? children[0]
-                                        : nm->mkConst(
-                                            CONST_RATIONAL, Rational(0)));
+                : (children.size() == 1
+                       ? children[0]
+                       : nm->mkConst(CONST_RATIONAL, Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
         if (v.getType().isInteger())
@@ -197,10 +193,7 @@ int ArithMSum::isolate(
         }
         else
         {
-          val = nm->mkNode(
-              MULT,
-              val,
-              nm->mkConstReal(Rational(1) / r.abs()));
+          val = nm->mkNode(MULT, val, nm->mkConstReal(Rational(1) / r.abs()));
         }
       }
       val = r.sgn() == 1 ? negate(val) : val;
