@@ -42,7 +42,6 @@ class BagSolver : protected EnvObj
 
   /**
    * apply inference rules for basic bag operators:
-   * case kind::BAG_EMPTY: checkEmpty(n); break;
    * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN,
    * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL
    */
