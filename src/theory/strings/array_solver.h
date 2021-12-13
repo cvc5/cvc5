@@ -19,10 +19,10 @@
 #define CVC5__THEORY__STRINGS__ARRAY_SOLVER_H
 
 #include "context/cdhashset.h"
+#include "theory/strings/array_core_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
-#include "theory/strings/array_core_solver.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
 
@@ -58,7 +58,7 @@ class ArraySolver : protected EnvObj
   /**
    * Perform reasoning about seq.nth and seq.update operations (lazily), which
    * calls the core array solver for the set of nth/update terms over atomic
-   * equivalence classes. 
+   * equivalence classes.
    */
   void checkArray();
   /**
