@@ -262,7 +262,7 @@ class ExtendedRewriter
   /** Common constant nodes */
   Node d_true;
   Node d_false;
-  Node d_zero;
+  Node d_intZero;
 };
 
 }  // namespace quantifiers

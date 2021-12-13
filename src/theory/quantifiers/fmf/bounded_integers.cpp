@@ -59,7 +59,7 @@ BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
 Node BoundedIntegers::IntRangeDecisionHeuristic::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node cn = nm->mkConst(CONST_RATIONAL, Rational(n == 0 ? 0 : n - 1));
+  Node cn = nm->mkConstInt(Rational(n == 0 ? 0 : n - 1));
   return nm->mkNode(n == 0 ? LT : LEQ, d_proxy_range, cn);
 }
 
@@ -84,10 +84,9 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   Node lem = nm->mkNode(
       EQUAL,
       currLit,
-      nm->mkNode(
-          curr == 0 ? LT : LEQ,
-          d_range,
-          nm->mkConst(CONST_RATIONAL, Rational(curr == 0 ? 0 : curr - 1))));
+      nm->mkNode(curr == 0 ? LT : LEQ,
+                 d_range,
+                 nm->mkConstInt(Rational(curr == 0 ? 0 : curr - 1))));
   return lem;
 }
 
@@ -693,8 +692,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
       }
       choices.pop_back();
       Node bvl = nm->mkNode(BOUND_VAR_LIST, choice_i);
-      Node cMinCard =
-          nm->mkNode(LEQ, srCardN, nm->mkConst(CONST_RATIONAL, Rational(i)));
+      Node cMinCard = nm->mkNode(LEQ, srCardN, nm->mkConstInt(Rational(i)));
       choice_i = nm->mkNode(WITNESS, bvl, nm->mkNode(OR, cMinCard, cBody));
       d_setm_choice[sro].push_back(choice_i);
     }
@@ -818,8 +816,8 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node range = rewrite(nm->mkNode(MINUS, u, l));
         // 9999 is an arbitrary range past which we do not do exhaustive
         // bounded instantation, based on the check below.
-        Node ra = rewrite(nm->mkNode(
-            LEQ, range, nm->mkConst(CONST_RATIONAL, Rational(9999))));
+        Node ra =
+            rewrite(nm->mkNode(LEQ, range, nm->mkConstInt(Rational(9999))));
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
@@ -830,8 +828,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for (long k = 0; k < rr; k++)
           {
-            Node t =
-                nm->mkNode(PLUS, tl, nm->mkConst(CONST_RATIONAL, Rational(k)));
+            Node t = nm->mkNode(PLUS, tl, nm->mkConstInt(Rational(k)));
             t = rewrite(t);
             elements.push_back( t );
           }
