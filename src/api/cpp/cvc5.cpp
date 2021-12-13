@@ -7312,6 +7312,8 @@ Term Solver::getValue(const Term& term) const
   CVC5_API_SOLVER_CHECK_TERM(term);
   CVC5_API_RECOVERABLE_CHECK(term.getSort().isFirstClass())
       << "Cannot get value of a term that is not first class.";
+  CVC5_API_RECOVERABLE_CHECK(!term.getSort().isDatatype() || term.getSort().getDatatype().isWellFounded())
+      << "Cannot get value of a term of non-well-founded datatype type.";
   //////// all checks before this line
   return getValueHelper(term);
   ////////
@@ -7330,6 +7332,8 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   {
     CVC5_API_RECOVERABLE_CHECK(t.getSort().isFirstClass())
         << "Cannot get value of a term that is not first class.";
+    CVC5_API_RECOVERABLE_CHECK(!t.getSort().isDatatype() || t.getSort().getDatatype().isWellFounded())
+        << "Cannot get value of a term of non-well-founded datatype type.";
   }
   CVC5_API_SOLVER_CHECK_TERMS(terms);
   //////// all checks before this line
