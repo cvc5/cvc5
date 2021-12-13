@@ -105,7 +105,7 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
-    if (options::stringSeqUpdate() == options::StringSeqUpdateMode::EAGER)
+    if (options().strings.stringSeqUpdate == options::StringSeqUpdateMode::EAGER)
     {
       addStrategyStep(CHECK_SEQUENCES_ARRAY_EAGER);
     }
@@ -138,7 +138,7 @@ void Strategy::initializeStrategy()
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
-    if (options().strings.stringSeqUpdate()
+    if (options().strings.stringSeqUpdate
         != options::StringSeqUpdateMode::NONE)
     {
       addStrategyStep(CHECK_SEQUENCES_ARRAY_CONCAT);
