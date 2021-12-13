@@ -103,11 +103,11 @@ class ArithMSum
    *
    * Make the Node corresponding to the interpretation of msum, [msum], where:
    *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
-   * 
+   *
    * @param tn The type of the node to return, which is used only if msum is
    * empty
    * @param msum The monomial sum
-   * @return The node corresponding to the monomial sum 
+   * @return The node corresponding to the monomial sum
    */
   static Node mkNode(TypeNode tn, const std::map<Node, Node>& msum);
 

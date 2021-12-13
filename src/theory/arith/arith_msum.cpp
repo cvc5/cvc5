@@ -147,10 +147,10 @@ Node ArithMSum::mkNode(TypeNode tn, const std::map<Node, Node>& msum)
     }
     children.push_back(m);
   }
-  return children.size() > 1 ? nm->mkNode(PLUS, children)
-                             : (children.size() == 1
-                                    ? children[0]
-                                    : nm->mkConstRealOrInt(tn, Rational(0)));
+  return children.size() > 1
+             ? nm->mkNode(PLUS, children)
+             : (children.size() == 1 ? children[0]
+                                     : nm->mkConstRealOrInt(tn, Rational(0)));
 }
 
 int ArithMSum::isolate(
@@ -185,11 +185,11 @@ int ArithMSum::isolate(
           children.push_back(m);
         }
       }
-      val = children.size() > 1
-                ? nm->mkNode(PLUS, children)
-                : (children.size() == 1
-                       ? children[0]
-                       : nm->mkConstRealOrInt(vtn, Rational(0)));
+      val =
+          children.size() > 1
+              ? nm->mkNode(PLUS, children)
+              : (children.size() == 1 ? children[0]
+                                      : nm->mkConstRealOrInt(vtn, Rational(0)));
       if (!r.isOne() && !r.isNegativeOne())
       {
         if (vtn.isInteger())
